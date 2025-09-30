@@ -179,7 +179,9 @@
     "upgradeLicenseToUsePrivateBasesSubtitle": "Private bases are not available in Enterprise Starter license. Upgrade license key to start using them.",
     "upgradeToAddMoreAttachmentsInCellSubtitle": "You can only upload at most {limit} {filePlural} to this cell. Upgrade to the {plan} plan to add more files.",
     "upgradeToUseAiTextField": "Upgrade to use AI Text fields",
-    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt."
+    "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
+    "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
   },
   "general": {
     "script": "Script",
@@ -441,6 +443,7 @@
     "overview": "Overview",
     "baseType": "Base Type",
     "beta": "Beta",
+    "selected": "selected",
     "selectAll": "Select All",
     "clearAll": "Clear All",
     "records": "Records"
@@ -699,6 +702,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Access Restricted",
     "editTablePermissions": "Edit table permissions",
     "editFieldPermissions": "Edit field permissions",
@@ -1137,6 +1141,7 @@
     "tokenLimit": "Only one token per user is allowed",
     "duplicateAttachment": "File with name {filename} already attached",
     "tableIdColon": "TABLE ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT ID: {scriptId}",
     "dashboardIdColon": "DASHBOARD ID: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1179,6 +1184,7 @@
     "forRole": "for role",
     "clickToCopy": "Click to copy",
     "clickToCopyTableID": "Click to copy Table ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Click to copy Script ID",
     "clickToCopyDashboardID": "Click to copy Dashboard ID",
     "clickToCopyViewID": "Click to copy View ID",
@@ -1488,7 +1494,8 @@
     "newScript": "New Script",
     "emptyScript": "Empty Script",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1498,6 +1505,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filter by this field",
     "groupByThisField": "Group by this field",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Add to starred",
     "removeFromStarred": "Remove from starred",
     "runActions": "Run Actions",
@@ -1845,6 +1853,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Expand 'Shift + Space'",
     "selectAllMappedFields": "Select all mapped fields",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Copy error code",
     "paidUserBadgeTooltip": "User has an editor or higher role in at least one base.",
     "approachingLimit": "Approaching limit",
@@ -1868,7 +1877,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Search icons",
@@ -2011,7 +2028,7 @@
       "secondParamWeekDayHaveDate": "The second parameter of WEEKDAY() should have the value either \"sunday\", \"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\" or \"saturday\"",
       "firstParamDateAddHaveDate": "The first parameter of DATEADD() should have date value",
       "secondParamDateAddHaveNumber": "The second parameter of DATEADD() should have numeric value",
-      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\" or \"year\"",
+      "thirdParamDateAddHaveDate": "The third parameter of DATEADD() should have the value either \"day\", \"week\", \"month\", \"year\", \"hour\", \"minute\" or \"second\"",
       "firstParamDateDiffHaveDate": "The first parameter of DATEDIFF() should have date value",
       "secondParamDateDiffHaveDate": "The second parameter of DATEDIFF() should have date value",
       "thirdParamDateDiffHaveDate": "The third parameter of DATETIME_DIFF() should have value either \"milliseconds\", \"ms\", \"seconds\", \"s\", \"minutes\", \"m\", \"hours\", \"h\", \"days\", \"d\", \"weeks\", \"w\", \"months\", \"M\", \"quarters\", \"Q\", \"years\", or \"y\"",
@@ -2428,7 +2445,9 @@
       "failedToCreateLookupFields": "Failed to create lookup fields",
       "invalidSearchQuery": "Invalid search query",
       "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
-      "invalidSearchQueryForDisplayField": "Invalid search query for display field"
+      "invalidSearchQueryForDisplayField": "Invalid search query for display field",
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

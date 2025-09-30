@@ -31,7 +31,7 @@ export const getModelPaths = async (
     get: {
       summary: `${ctx.tableName} list`,
       operationId: `${ctx.tableName.toLowerCase()}-db-table-row-list`,
-      description: `List of all rows from ${ctx.tableName} ${ctx.type} and response data fields can be filtered based on query params.`,
+      description: `List all rows from **${ctx.tableName}** ${ctx.type}. Fields to be included in the response can be refined through query parameters. Additionally, filtering, sorting, and pagination can be applied to the results.`,
       tags: [ctx.tableName],
       parameters: [
         fieldsParam,

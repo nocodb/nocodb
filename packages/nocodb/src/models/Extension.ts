@@ -76,7 +76,7 @@ export default class Extension {
         extensionList = extensionList.map((extension) =>
           prepareForResponse(extension, ['kv_store', 'meta']),
         );
-        NocoCache.setList(CacheScope.EXTENSION, [baseId], extensionList);
+        await NocoCache.setList(CacheScope.EXTENSION, [baseId], extensionList);
       }
     }
 
@@ -186,5 +186,26 @@ export default class Extension {
     );
 
     return res;
+  }
+
+  static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.EXTENSIONS,
+      {
+        base_id: baseId,
+      },
+    );
+
+    // clear cache
+    await NocoCache.deepDel(
+      `${CacheScope.EXTENSION}:${baseId}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
+    );
   }
 }

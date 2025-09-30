@@ -367,6 +367,10 @@ export class ActionManager {
     }
   }
 
+  async executeUploadAction(...args: Parameters<typeof this.executeAction>): Promise<ReturnType<typeof this.executeAction>> {
+    return this.executeAction(...args)
+  }
+
   // Public state query methods
   isLoading(rowId: string, columnId: string): boolean {
     const key = this.getKey(rowId, columnId)

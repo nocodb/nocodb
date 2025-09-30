@@ -17,7 +17,7 @@ export class DecimalHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): number | null {
-    value = serializeDecimalValue(value);
+    value = serializeDecimalValue(value, undefined, params);
 
     if (value === null) {
       if (params.isMultipleCellPaste || params.serializeSearchQuery) {

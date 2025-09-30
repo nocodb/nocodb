@@ -14,6 +14,7 @@ import {
   PlanLimitTypes,
   ViewTypes,
   isAIPromptCol,
+  isHiddenCol,
   isReadOnlyColumn,
   isSystemColumn,
   isVirtualCol,
@@ -22,7 +23,13 @@ import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
-  (meta: Ref<TableType>, _row: Ref<Row>, maintainDefaultViewOrder: Ref<boolean>, useMetaFields: boolean) => {
+  (
+    meta: Ref<TableType>,
+    _row: Ref<Row>,
+    maintainDefaultViewOrder: Ref<boolean>,
+    useMetaFields: boolean,
+    allowNullFieldIds?: string[],
+  ) => {
     const { $e, $state, $api, $ncSocket } = useNuxtApp()
 
     const { t } = useI18n()
@@ -45,7 +52,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const saveRowAndStay = ref(0)
 
-    const changedColumns = ref(new Set<string>())
+    const changedColumns = ref<Set<string>>(new Set<string>())
 
     const localOnlyChanges = ref<Record<string, any>>({})
 
@@ -71,7 +78,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     if (row.value?.rowMeta?.fromExpandedForm) {
       row.value.rowMeta.fromExpandedForm = true
     }
-    const rowStore = useProvideSmartsheetRowStore(row)
+    const rowStore = useProvideSmartsheetRowStore(row, changedColumns)
 
     const activeView = inject(ActiveViewInj, ref())
 
@@ -113,7 +120,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
-    const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
+    const { fieldsMap, isLocalMode, showSystemFields } = useViewColumnsOrThrow()
 
     const isHiddenColumnInNewRecord = (col: ColumnType) => {
       return isReadOnlyColumn(col) || isAIPromptCol(col)
@@ -141,8 +148,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           return (meta.value.columns ?? [])
             .filter(
               (col) =>
+                !isHiddenCol(col, meta.value ?? {}) &&
                 !isSystemColumn(col) &&
-                !!col.meta?.defaultViewColVisibility &&
+                !!(col.meta?.defaultViewColVisibility ?? true) &&
                 // if new record, then hide readonly fields
                 (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
             )
@@ -153,12 +161,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         return (meta.value.columns ?? []).filter(
           (col) =>
+            !isHiddenCol(col, meta.value ?? {}) &&
             // if new record, then hide readonly fields
             (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)) &&
             // exclude system columns
             !isSystemColumn(col) &&
             // exclude hidden columns
-            !!col.meta?.defaultViewColVisibility,
+            !!(col.meta?.defaultViewColVisibility ?? true),
         )
       }
 
@@ -176,9 +185,10 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const hiddenFields = computed(() => {
       // todo: figure out when meta.value is undefined
-      const hiddenFields = (meta.value?.columns ?? []).filter(
+      const _hiddenFields = (meta.value?.columns ?? []).filter(
         (col) =>
-          !isSystemColumn(col) &&
+          !isHiddenCol(col, meta.value ?? {}) &&
+          (!useMetaFields || !isSystemColumn(col)) &&
           !fields.value?.includes(col) &&
           (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
           // exclude readonly fields from hidden fields if new record creation
@@ -186,16 +196,24 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       )
       if (useMetaFields) {
         return maintainDefaultViewOrder.value
-          ? hiddenFields.sort((a, b) => {
+          ? _hiddenFields.sort((a, b) => {
               return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
             })
-          : hiddenFields
+          : _hiddenFields
       }
       // record from same view and same table (not linked)
       else {
-        return hiddenFields.sort((a, b) => {
-          return (fieldsMap.value[a.id]?.order ?? Infinity) - (fieldsMap.value[b.id]?.order ?? Infinity)
-        })
+        return _hiddenFields
+          .filter((col) => {
+            if (rowStore.isNew.value || !showSystemFields.value) {
+              return !isSystemColumn(col)
+            }
+
+            return true
+          })
+          .sort((a, b) => {
+            return (fieldsMap.value[a.id]?.order ?? Infinity) - (fieldsMap.value[b.id]?.order ?? Infinity)
+          })
       }
     })
 
@@ -350,6 +368,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           getMeta,
           row: row.value.row,
           throwError: true,
+          allowNullFieldIds,
         })
 
         if (missingRequiredColumns.size) return
@@ -872,6 +891,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       },
       { immediate: true },
     )
+
+    const unsubscribeActiveChannels = (): void => {
+      ;[activeDataListener.value, activeCommentListener.value].filter(Boolean).forEach((channel) => {
+        $ncSocket.offMessage(channel!)
+      })
+    }
+
+    onBeforeUnmount(() => {
+      unsubscribeActiveChannels()
+    })
 
     return {
       ...rowStore,

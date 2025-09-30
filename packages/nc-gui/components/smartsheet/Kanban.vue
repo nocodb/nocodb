@@ -473,6 +473,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
 
   return !!(
     eventTarget &&
+    target &&
     target.contains(eventTarget) &&
     closestNotDraggable &&
     (target.contains(closestNotDraggable) || closestNotDraggable === target)
@@ -499,11 +500,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
   >
     <div
       ref="kanbanContainerRef"
-      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg"
-      :style="{
-        minHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
-        maxHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
-      }"
+      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg min-h-[calc(100%_-_0.4rem)] max-h-[calc(100%_-_0.4rem)]"
     >
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
         <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
@@ -518,6 +515,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
           <!-- Draggable Stack -->
           <Draggable
             v-model="groupingFieldColOptions"
+            v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
             class="flex gap-3"
             item-key="id"
             group="kanban-stack"
@@ -777,11 +775,13 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                       >
                         <!-- Draggable Record Card -->
                         <Draggable
+                          v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 150 })"
                           :list="formattedData.get(stack.title)"
                           item-key="row.Id"
                           draggable=".nc-kanban-item"
                           group="kanban-card"
                           class="flex flex-col h-full"
+                          :disabled="isMobileMode"
                           :filter="draggableCardFilter"
                           @start="(e) => e.target.classList.add('grabbing')"
                           @end="(e) => e.target.classList.remove('grabbing')"
@@ -1258,6 +1258,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
       :meta="meta"
       :load-row="!isPublic"
       :view="view"
+      :allow-null-field-ids="groupingFieldColumn?.id ? [groupingFieldColumn.id] : []"
       @cancel="removeRowFromUncategorizedStack"
     />
   </Suspense>
@@ -1272,6 +1273,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
       :expand-form="expandForm"
       :row-id="route.query.rowId"
       :view="view"
+      :allow-null-field-ids="groupingFieldColumn?.id ? [groupingFieldColumn.id] : []"
     />
   </Suspense>
 

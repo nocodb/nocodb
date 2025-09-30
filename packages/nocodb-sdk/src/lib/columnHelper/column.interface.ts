@@ -1,4 +1,5 @@
 import { ColumnType, TableType, UserType } from '../Api';
+import { getClipboardConfigForColumn } from './utils/clipboard-config';
 import { populateFillHandleStrictCopy } from './utils/fill-handler';
 
 export default abstract class AbstractColumnHelper {
@@ -66,6 +67,10 @@ export default abstract class AbstractColumnHelper {
   }) {
     return populateFillHandleStrictCopy(params);
   }
+
+  public getClipboardConfig(params: SerializerOrParserFnProps['params']) {
+    return getClipboardConfigForColumn({ col: params.col });
+  }
 }
 
 export interface SerializerOrParserFnProps {
@@ -85,5 +90,16 @@ export interface SerializerOrParserFnProps {
     serializeSearchQuery?: boolean;
     t?: (key: string, params?: Record<string, any>) => string;
     isAggregation?: boolean;
+    clipboardItem?: NcClipboardItemType;
   };
 }
+
+export type NcClipboardDataType = Record<string, NcClipboardItemType>;
+
+export interface NcClipboardItemType {
+  rowId: string;
+  dbCellValue: any;
+  column: Partial<ColumnType>;
+}
+
+export interface NcClipboardItemForColumnType {}

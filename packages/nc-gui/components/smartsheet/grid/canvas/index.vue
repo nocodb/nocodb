@@ -265,6 +265,8 @@ let selectedRowInfo: { index: number | null | undefined; isSelectionStarted: boo
   path: [],
 }
 
+let colAutoScrollTimerId: any = null
+
 const {
   isGroupBy,
 
@@ -290,6 +292,10 @@ const {
   makeCellEditable,
   findClickedColumn,
   findColumnPosition,
+  findColumnAtPosition,
+  dragOver,
+  attachmentCellDropOver,
+  dragStart,
   elementMap,
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
@@ -327,6 +333,9 @@ const {
   copyValue,
   clearCell,
   clearSelectedRangeOfCells,
+
+  // Attachment Cell Drop
+  handleAttachmentCellDrop,
 
   // Cell Click
   handleCellClick,
@@ -728,7 +737,7 @@ function onNewRecordToFormClick(path: Array<number> = []) {
   isDropdownVisible.value = false
 }
 
-const onVisibilityChange = (value) => {
+const onVisibilityChange = (value: boolean) => {
   if (value) {
     isDropdownVisible.value = true
   } else if (isCreateOrEditColumnDropdownOpen.value) {
@@ -1195,8 +1204,18 @@ function scrollToCell(row?: number, column?: number, path?: Array<number>, horiz
   }
 }
 
+function clearColAutoScrollTimer() {
+  if (colAutoScrollTimerId) {
+    clearInterval(colAutoScrollTimerId)
+    colAutoScrollTimerId = null
+  }
+}
+
 async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   e.preventDefault()
+
+  clearColAutoScrollTimer()
+
   if (mouseUpListener) {
     document.removeEventListener('mouseup', mouseUpListener)
     mouseUpListener = null
@@ -1685,7 +1704,7 @@ const getHeaderTooltipRegions = (
 
   const ctx = defaultOffscreen2DContext
   ctx.save()
-  ctx.font = '550 12px Inter'
+  ctx.font = '600 12px Inter'
   columns.value.slice(startColIndex, endColIndex).forEach((column) => {
     const width = parseCellWidth(column.width)
 
@@ -1793,6 +1812,8 @@ const getHeaderTooltipRegions = (
 }
 
 const handleMouseMove = (e: MouseEvent) => {
+  clearColAutoScrollTimer()
+
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -1803,10 +1824,9 @@ const handleMouseMove = (e: MouseEvent) => {
 
   let cursor = colResizeHoveredColIds.value.size ? 'col-resize' : 'auto'
   hideTooltip()
+  const fixedCols = columns.value.filter((col) => col.fixed)
 
   if (mousePosition.y < 32) {
-    const fixedCols = columns.value.filter((col) => col.fixed)
-
     // check if it's hovering add new column
     const plusColumnX = totalColumnsWidth.value - scrollLeft.value + groupByColumns.value?.length * 13
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
@@ -1874,14 +1894,66 @@ const handleMouseMove = (e: MouseEvent) => {
   if (isFillHandlerActive.value) {
     onMouseMoveFillHandlerMove(e)
   } else if (isDragging.value || resizeableColumn.value) {
+    const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
+
     if (mousePosition.x >= width.value - 200) {
       scroller.value?.scrollTo({
         left: scrollLeft.value + 10,
       })
-    } else if (mousePosition.x <= 200) {
+
+      if (isDragging.value) {
+        colAutoScrollTimerId = setInterval(() => {
+          if (scrollLeft.value + 200 >= scroller.value?.scrollBounds.right) {
+            clearColAutoScrollTimer()
+            return
+          }
+
+          scroller.value?.scrollTo({
+            left: scrollLeft.value + 10,
+          })
+
+          const rect = canvasRef.value?.getBoundingClientRect()
+          if (!rect) return
+
+          const col = findColumnAtPosition(e.clientX - rect.left)
+
+          if (col && col.id !== dragStart.value?.id) {
+            dragOver.value = {
+              id: col.id,
+              index: columns.value.findIndex((c) => c.id === col.id),
+            }
+          }
+        }, 0)
+      }
+    } else if (mousePosition.x <= fixedWidth) {
       scroller.value?.scrollTo({
         left: scrollLeft.value - 10,
       })
+
+      if (isDragging.value) {
+        colAutoScrollTimerId = setInterval(() => {
+          if (scrollLeft.value <= 0) {
+            clearColAutoScrollTimer()
+            return
+          }
+
+          scroller.value?.scrollTo({
+            left: scrollLeft.value - 10 <= 0 ? 0 : scrollLeft.value - 10,
+          })
+
+          const rect = canvasRef.value?.getBoundingClientRect()
+          if (!rect) return
+
+          const col = findColumnAtPosition(Math.max(fixedWidth, e.clientX - rect.left))
+
+          if (col && col.id !== dragStart.value?.id) {
+            dragOver.value = {
+              id: col.id,
+              index: columns.value.findIndex((c) => c.id === col.id),
+            }
+          }
+        }, 0)
+      }
     }
   } else {
     const y = e.clientY - rect.top
@@ -2544,6 +2616,114 @@ useActiveKeydownListener(
   },
 )
 
+const resetAttachmentCellDropOver = () => {
+  if (!attachmentCellDropOver.value) return
+
+  attachmentCellDropOver.value = null
+
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+const onDrop = (files: File[] | null) => {
+  if (!attachmentCellDropOver.value || !files?.length || !isDataEditAllowed.value) {
+    return
+  }
+
+  const dataCache = getDataCache(attachmentCellDropOver.value.path)
+
+  const row =
+    attachmentCellDropOver.value.rowIndex !== null
+      ? dataCache.cachedRows.value.get(attachmentCellDropOver.value.rowIndex)
+      : undefined
+
+  const column = columns.value[attachmentCellDropOver.value.colIndex]!
+
+  if (!row || !column || column.readonly) {
+    resetAttachmentCellDropOver()
+    return
+  }
+
+  selection.value.clear()
+  editEnabled.value = null
+  activeCell.value = {
+    row: attachmentCellDropOver.value.rowIndex,
+    column: attachmentCellDropOver.value.colIndex,
+    path: attachmentCellDropOver.value.path,
+  }
+  resetRowSelection()
+  onActiveCellChanged()
+
+  try {
+    handleAttachmentCellDrop(files, attachmentCellDropOver.value)
+  } finally {
+    resetAttachmentCellDropOver()
+  }
+}
+
+const onOver = (_files: File[] | null, e: DragEvent) => {
+  if (!isDataEditAllowed.value) return
+
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+
+  if (
+    clientMousePosition.clientX === e.clientX &&
+    clientMousePosition.clientY === e.clientY &&
+    mousePosition.x === e.clientX - rect.left &&
+    mousePosition.y === e.clientY - rect.top
+  ) {
+    return
+  }
+
+  clientMousePosition.clientX = e.clientX
+  clientMousePosition.clientY = e.clientY
+  mousePosition.x = e.clientX - rect.left
+  mousePosition.y = e.clientY - rect.top
+
+  // Skip on hover on header
+  if (mousePosition.y <= 32) {
+    return resetAttachmentCellDropOver()
+  }
+
+  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ROW])
+  if (!element?.row) return
+
+  const rowIndex = element?.rowIndex
+  const groupPath = generateGroupPath(element?.group)
+
+  const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
+
+  const colIndex = column ? columns.value.findIndex((col) => col.id === column.id) : -1
+
+  // If hover column is not attachment or is readonly, skip
+  if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment || column.readonly) {
+    return resetAttachmentCellDropOver()
+  }
+
+  if (
+    attachmentCellDropOver.value &&
+    attachmentCellDropOver.value.rowIndex === rowIndex &&
+    attachmentCellDropOver.value.columnId === column.id
+  ) {
+    return
+  }
+
+  attachmentCellDropOver.value = { rowIndex, colIndex, columnId: column.id, path: groupPath }
+
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+useDropZone(canvasRef, {
+  onDrop,
+  onEnter: () => {
+    resetAttachmentCellDropOver()
+  },
+  onOver,
+  onLeave: () => {
+    resetAttachmentCellDropOver()
+  },
+})
+
 watch(
   removeInlineAddRecord,
   (newValue) => {
@@ -2653,7 +2833,6 @@ watch(
               :bulk-delete-all="bulkDeleteAll"
               :call-add-new-row="callAddNewRow"
               :copy-value="copyValue"
-              :read-only="!hasEditPermission"
               :get-rows="getRows"
               :bulk-update-rows="bulkUpdateRows"
               :expand-form="expandForm"

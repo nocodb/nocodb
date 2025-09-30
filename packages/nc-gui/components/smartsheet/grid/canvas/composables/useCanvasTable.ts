@@ -189,6 +189,7 @@ export function useCanvasTable({
   const editEnabled = ref<CanvasEditEnabledType>(null)
   const isFillMode = ref(false)
   const dragOver = ref<{ id: string; index: number } | null>(null)
+  const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
@@ -229,7 +230,7 @@ export function useCanvasTable({
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
-  const { isAiFeaturesEnabled, aiIntegrations, generateRows: _generateRows } = useNocoAi()
+  const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
   const automationStore = useAutomationStore()
   const tooltipStore = useTooltipStore()
   const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
@@ -388,11 +389,13 @@ export function useCanvasTable({
           f.extra.display_column_meta = displayColumnConfig
         }
 
-        const isInvalid = isColumnInvalid(
-          f,
-          aiIntegrations.value,
-          isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
-        )
+        const isInvalid = isColumnInvalid({
+          col: f,
+          aiIntegrations: aiIntegrations.value,
+          isReadOnly: isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
+          isNocoAiAvailable: isNocoAiAvailable.value,
+          columns: meta.value?.columns as ColumnType[],
+        })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 
         const isCellEditable =
@@ -797,6 +800,7 @@ export function useCanvasTable({
     meta,
     hasEditPermission: isDataEditAllowed,
     setCursor,
+    attachmentCellDropOver,
   })
 
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
@@ -890,7 +894,7 @@ export function useCanvasTable({
     isExternalSource,
   })
 
-  const { clearCell, copyValue, isPasteable } = useCopyPaste({
+  const { clearCell, copyValue, isPasteable, handleAttachmentCellDrop } = useCopyPaste({
     activeCell,
     selection,
     columns,
@@ -945,6 +949,7 @@ export function useCanvasTable({
     updateOrSaveRow,
     getRows,
     getDataCache,
+    actionManager,
   })
 
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({
@@ -1006,80 +1011,77 @@ export function useCanvasTable({
     (columnId, width) =>
       handleColumnWidth(columnId, width, (normalizedWidth) => updateGridViewColumn(columnId, { width: normalizedWidth })),
   )
-  const { isDragging: isColumnReordering, startDrag } = useColumnReorder(
-    canvasRef,
-    columns,
-    colSlice,
-    scrollLeft,
-    triggerRefreshCanvas,
-    dragOver,
-    (event, fromIndex, toIndex) => {
-      const toBeReorderedCol = columns.value[fromIndex]
-      const toCol = columns.value[toIndex]
-      if (!toBeReorderedCol || !toCol || !meta.value?.columns) return
+  const {
+    isDragging: isColumnReordering,
+    dragStart: columnDragStart,
+    startDrag,
+    findColumnAtPosition,
+  } = useColumnReorder(canvasRef, columns, colSlice, scrollLeft, triggerRefreshCanvas, dragOver, (event, fromIndex, toIndex) => {
+    const toBeReorderedCol = columns.value[fromIndex]
+    const toCol = columns.value[toIndex]
+    if (!toBeReorderedCol || !toCol || !meta.value?.columns) return
 
-      const toBeReorderedViewCol = gridViewCols.value[toBeReorderedCol.id]
-      const toViewCol = gridViewCols.value[toCol.id]
-      if (!toBeReorderedViewCol || !toViewCol) return
+    const toBeReorderedViewCol = gridViewCols.value[toBeReorderedCol.id]
+    const toViewCol = gridViewCols.value[toCol.id]
+    if (!toBeReorderedViewCol || !toViewCol) return
 
-      const nextToColField = toIndex < columns.value.length - 1 ? columns.value[toIndex + 1] : null
-      const nextToViewCol = nextToColField ? gridViewCols.value[nextToColField.id] : null
+    const nextToColField = toIndex < columns.value.length - 1 ? columns.value[toIndex + 1] : null
+    const nextToViewCol = nextToColField ? gridViewCols.value[nextToColField.id] : null
 
-      const lastCol = columns.value[columns.value.length - 1]
-      const lastViewCol = gridViewCols.value[lastCol.id]
+    const lastCol = columns.value[columns.value.length - 1]
+    const lastViewCol = gridViewCols.value[lastCol.id]
 
-      if (nextToViewCol === null && lastViewCol === null) return
+    if (nextToViewCol === null && lastViewCol === null) return
 
-      const newOrder = nextToViewCol ? toViewCol.order + (nextToViewCol.order - toViewCol.order) / 2 : lastViewCol.order + 1
-      const oldOrder = toBeReorderedViewCol.order
+    const newOrder = nextToViewCol ? toViewCol.order + (nextToViewCol.order - toViewCol.order) / 2 : lastViewCol.order + 1
+    const oldOrder = toBeReorderedViewCol.order
 
-      toBeReorderedViewCol.order = newOrder
+    toBeReorderedViewCol.order = newOrder
 
-      if (isDefaultView.value && toBeReorderedViewCol.fk_column_id) {
-        meta.value.columns = (meta.value?.columns ?? [])?.map((c) => {
-          if (c.id !== toBeReorderedViewCol.fk_column_id) return c
-          c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: newOrder }
-          return c
-        })
-
-        if (meta.value?.columnsById?.[toBeReorderedViewCol.fk_column_id]) {
-          meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta = {
-            ...parseProp(meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta),
-            defaultViewColOrder: newOrder,
-          }
-        }
-      }
-
-      addUndo({
-        undo: {
-          fn: async () => {
-            toBeReorderedViewCol.order = oldOrder
-            if (isDefaultView.value) {
-              updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, oldOrder)
-            }
-            await updateGridViewColumn(toBeReorderedCol.id, { order: oldOrder })
-            eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-          },
-          args: [],
-        },
-        redo: {
-          fn: async () => {
-            toBeReorderedViewCol.order = newOrder
-            if (isDefaultView.value) {
-              updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
-            }
-            await updateGridViewColumn(toBeReorderedCol.id, { order: newOrder })
-            eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-          },
-          args: [],
-        },
-        scope: defineViewScope({ view: activeView.value }),
+    if (isDefaultView.value && toBeReorderedViewCol.fk_column_id) {
+      meta.value.columns = (meta.value?.columns ?? [])?.map((c) => {
+        if (c.id !== toBeReorderedViewCol.fk_column_id) return c
+        c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: newOrder }
+        return c
       })
 
-      updateGridViewColumn(toBeReorderedCol.id, { order: newOrder }, true)
-      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-    },
-  )
+      if (meta.value?.columnsById?.[toBeReorderedViewCol.fk_column_id]) {
+        meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta = {
+          ...parseProp(meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta),
+          defaultViewColOrder: newOrder,
+        }
+      }
+    }
+
+    addUndo({
+      undo: {
+        fn: async () => {
+          toBeReorderedViewCol.order = oldOrder
+          if (isDefaultView.value) {
+            updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, oldOrder)
+          }
+          await updateGridViewColumn(toBeReorderedCol.id, { order: oldOrder })
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        },
+        args: [],
+      },
+      redo: {
+        fn: async () => {
+          toBeReorderedViewCol.order = newOrder
+          if (isDefaultView.value) {
+            updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
+          }
+          await updateGridViewColumn(toBeReorderedCol.id, { order: newOrder })
+          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        },
+        args: [],
+      },
+      scope: defineViewScope({ view: activeView.value }),
+    })
+
+    updateGridViewColumn(toBeReorderedCol.id, { order: newOrder }, true)
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+  })
 
   useKeyboardNavigation({
     activeCell,
@@ -1367,11 +1369,14 @@ export function useCanvasTable({
     columns,
     canvasRef,
     isDragging: isColumnReordering,
+    dragStart: columnDragStart,
     selection,
     hoverRow,
     resizeableColumn,
     partialRowHeight,
     readOnly,
+    dragOver,
+    attachmentCellDropOver,
 
     // columnresize related refs
     colResizeHoveredColIds,
@@ -1383,6 +1388,7 @@ export function useCanvasTable({
     findColumnIndex,
     triggerRefreshCanvas,
     startDrag,
+    findColumnAtPosition,
     findClickedColumn,
     findColumnPosition,
 
@@ -1439,6 +1445,9 @@ export function useCanvasTable({
     clearCell,
     copyValue,
     clearSelectedRangeOfCells,
+
+    // attachment cell drop handler
+    handleAttachmentCellDrop,
 
     // Action Manager
     actionManager,

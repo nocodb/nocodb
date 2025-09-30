@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import RowColorCondition from 'src/models/RowColorCondition';
 import type {
   FilterCreateV3Type,
   FilterGroupV3Type,
@@ -11,6 +10,9 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
+import RowColorCondition from '~/models/RowColorCondition';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { Filter, Hook, View } from '~/models';
@@ -127,6 +129,7 @@ export class FiltersV3Service {
     logicalOp = null,
     isRoot = true, // Flag to check if it's the root group
     viewId,
+    viewWebhookManager,
     ncMeta,
   }: {
     context: any;
@@ -140,6 +143,7 @@ export class FiltersV3Service {
     logicalOp?: 'AND' | 'OR' | null;
     isRoot?: boolean;
     viewId: string;
+    viewWebhookManager?: ViewWebhookManager;
     ncMeta?: MetaService;
   }): Promise<void> {
     validatePayload(
@@ -154,6 +158,38 @@ export class FiltersV3Service {
       param,
       context,
     );
+    let innerViewWebhookManager: ViewWebhookManager;
+
+    if ((param as any).viewId && !viewWebhookManager) {
+      const view = await View.get(context, (param as any).viewId, ncMeta);
+      innerViewWebhookManager = (param as any).viewId
+        ? (
+            await (
+              await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+                view.fk_model_id,
+              )
+            ).withViewId(view.id)
+          ).forUpdate()
+        : null;
+    } else if ((param as any).rowColorConditionId) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        (param as any).rowColorConditionId,
+        ncMeta,
+      );
+      const view = await View.get(
+        context,
+        rowColorCondition.fk_view_id,
+        ncMeta,
+      );
+      innerViewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(rowColorCondition.fk_view_id)
+      ).forUpdate();
+    }
 
     // if logicalOp is not provided, extract based on the parent group
     if (!logicalOp) {
@@ -291,6 +327,14 @@ export class FiltersV3Service {
       );
     } else {
       throw new Error('Invalid structure: Expected a group or filter.');
+    }
+
+    if (innerViewWebhookManager) {
+      (
+        await innerViewWebhookManager.withNewViewId(
+          innerViewWebhookManager.getViewId(),
+        )
+      ).emit();
     }
   }
 
@@ -517,6 +561,7 @@ export class FiltersV3Service {
     });
   }
 
+  // skip viewWebhookManager for this, deleteAll is not a standalone operation, it's invoked by view service
   async filterDeleteAll(
     context: NcContext,
     param: {

@@ -48,6 +48,7 @@ const handleNavigateToView = async (view: ViewType) => {
   await navigateToView({
     view,
     tableId: activeTable.value.id!,
+    tableTitle: activeTable.value?.title,
     baseId: base.value.id!,
     hardReload: view.type === ViewTypes.FORM && activeView.value?.id === view.id,
     doNotSwitchTab: true,

@@ -91,7 +91,7 @@ export const ButtonCellRenderer: CellRenderer = {
     let truncatedLabel = currentStepTitle || buttonMeta.label
 
     if (hasLabel || currentStepTitle) {
-      ctx.font = '550 13px Inter'
+      ctx.font = '600 13px Inter'
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
       const labelToTruncate = currentStepTitle || buttonMeta.label
@@ -204,7 +204,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (hasLabel) {
       const ctx = defaultOffscreen2DContext
-      ctx.font = '550 13px Inter'
+      ctx.font = '600 13px Inter'
 
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
@@ -235,7 +235,7 @@ export const ButtonCellRenderer: CellRenderer = {
     return true
   },
 
-  async handleHover({ column, getCellPosition, row, mousePosition, t, cellRenderStore }) {
+  async handleHover({ column, getCellPosition, row, mousePosition, cellRenderStore }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
 
@@ -245,8 +245,6 @@ export const ButtonCellRenderer: CellRenderer = {
     const ignoreTooltip = column?.isInvalidColumn?.ignoreTooltip
 
     if (!cellRenderStore.invalidUrlTooltip && (!isInvalid || ignoreTooltip)) return
-
-    const { aiIntegrations } = useNocoAi()
 
     const colOptions = column.columnObj?.colOptions as ButtonType
 
@@ -269,7 +267,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     if (hasLabel) {
       const ctx = defaultOffscreen2DContext
-      ctx.font = '550 13px Inter'
+      ctx.font = '600 13px Inter'
 
       const maxTextWidth = maxButtonWidth - horizontalPadding * 2 - (hasIcon ? iconSize + iconSpacing : 0)
 
@@ -278,11 +276,15 @@ export const ButtonCellRenderer: CellRenderer = {
       contentWidth += labelWidth
     }
 
-    const tooltip = cellRenderStore.invalidUrlTooltip
-      ? cellRenderStore.invalidUrlTooltip
-      : aiIntegrations.value.length
-      ? t('tooltip.aiIntegrationReConfigure')
-      : t('tooltip.aiIntegrationAddAndReConfigure')
+    let tooltip = ''
+
+    if (cellRenderStore.invalidUrlTooltip) {
+      tooltip = cellRenderStore.invalidUrlTooltip
+    } else if (isAiButton(column.columnObj)) {
+      tooltip = column?.isInvalidColumn?.tooltip ?? ''
+    }
+
+    if (!tooltip) return
 
     const buttonWidth = Math.min(maxButtonWidth, Math.max(buttonMinWidth, contentWidth + horizontalPadding * 2))
 

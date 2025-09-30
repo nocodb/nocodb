@@ -18,7 +18,7 @@ const { isUIAllowed } = useRoles()
 
 const { metas, getMeta } = useMetas()
 
-const { isMobileMode, ncNavigateTo } = useGlobal()
+const { ncNavigateTo } = useGlobal()
 
 const route = useRoute()
 
@@ -231,10 +231,11 @@ const onReady = () => {
   }
 }
 
-onMounted(async () => {
+const checkIfViewExists = async () => {
   await until(() => isViewsLoading.value).toBe(false)
-
-  const views = await viewStore.loadViews()
+  const views = await viewStore.loadViews({
+    ignoreLoading: true,
+  })
 
   // If no views exist or the current view is not found, navigate to workspace/base
   if (
@@ -246,15 +247,14 @@ onMounted(async () => {
       baseId: activeProjectId.value,
     })
   }
+}
+
+onMounted(async () => {
+  await checkIfViewExists()
 })
 
-watch([() => isViewsLoading.value], ([isLoading, _]) => {
-  if (!isLoading && !activeView.value) {
-    ncNavigateTo({
-      workspaceId: activeWorkspaceId.value,
-      baseId: activeProjectId.value,
-    })
-  }
+watch(isViewsLoading, async () => {
+  await checkIfViewExists()
 })
 </script>
 
@@ -280,10 +280,7 @@ watch([() => isViewsLoading.value], ([isLoading, _]) => {
         >
           <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
             <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
-            <div
-              :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"
-              class="flex flex-row w-full"
-            >
+            <div :style="{ height: isForm ? '100%' : 'calc(100% - var(--toolbar-height))' }" class="flex flex-row w-full">
               <Transition name="layout" mode="out-in">
                 <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                   <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">

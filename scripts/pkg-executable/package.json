@@ -23,6 +23,9 @@
       "node18-win-x64"
     ]
   },
+  "engines": {
+    "node": "18.19.1"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -31,12 +34,13 @@
     "@nestjs/core": "^10.4.17",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "nocodb": "0.263.4"
+    "nocodb": "0.264.8",
+    "isomorphic-dompurify": "2.25.0"
   },
   "overrides": {
     "sqlite3": "5.1.6"
   },
   "devDependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.11"
+    "@mapbox/node-pre-gyp": "1.0.11"
   }
 }

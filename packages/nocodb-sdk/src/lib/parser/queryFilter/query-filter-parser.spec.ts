@@ -243,13 +243,11 @@ describe('query-filter-parser', () => {
     it(`will error when and/or operation is wrong`, async () => {
       expect.hasAssertions();
       const text = `(fSingleLineText,eq,"sample,text")or(fSingleLineText,eq,"sample text")`;
-      try {
-        QueryFilterParser.parse(text);
-      } catch (ex) {
-        expect(ex.message).toBe(
-          `Invalid filter expression. Expected a valid logical operator like '~or' or '~and', but found 'or'`
-        );
-      }
+      const result = QueryFilterParser.parse(text);
+      const message = parseParsingError(result.parseErrors[0]);
+      expect(message).toBe(
+        `Invalid filter expression. Expected a valid logical operator like '~or' or '~and', but found 'or'`
+      );
     });
     it(`will handle parsing error when operation is wrong`, async () => {
       const text = `(fSingleLineText,noneInOperation,"sample,text")`;

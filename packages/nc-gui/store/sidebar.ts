@@ -2,10 +2,14 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { INITIAL_LEFT_SIDEBAR_WIDTH, MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
+  const route = useRoute()
+
   const { width } = useWindowSize()
+
   const isViewPortMobile = () => {
     return width.value < MAX_WIDTH_FOR_MOBILE_MODE
   }
+
   const { isMobileMode, leftSidebarSize: _leftSidebarSize, isLeftSidebarOpen: _isLeftSidebarOpen } = useGlobal()
 
   const miniSidebarWidth = computed(() => {
@@ -15,8 +19,17 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const isFullScreen = ref(false)
 
   const tablesStore = useTablesStore()
+
+  const allowHideLeftSidebarForCurrentRoute = computed(() => {
+    return ['index-typeOrId-baseId-index-index', 'index-typeOrId-settings'].includes(route.name as string)
+  })
+
   const isLeftSidebarOpen = computed({
     get() {
+      if (isMobileMode.value && allowHideLeftSidebarForCurrentRoute.value) {
+        return _isLeftSidebarOpen.value
+      }
+
       return (isMobileMode.value && !tablesStore.activeTableId) || _isLeftSidebarOpen.value
     },
     set(value) {
@@ -133,6 +146,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     isFullScreen,
     toggleFullScreenState,
     ncIsIframeFullscreenSupported,
+    allowHideLeftSidebarForCurrentRoute,
   }
 })
 

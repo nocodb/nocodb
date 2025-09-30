@@ -56,7 +56,7 @@ const { aiLoading } = useNocoAi()
           {{ $t('labels.autoSuggested') }}
         </div>
       </template>
-      <div>
+      <div class="w-full">
         <slot name="AutoSuggestedContent"></slot>
       </div>
     </a-tab-pane>

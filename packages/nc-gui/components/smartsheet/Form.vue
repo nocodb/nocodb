@@ -125,6 +125,8 @@ const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwne
 
 const columns = computed(() => meta?.value?.columns || [])
 
+const isSidebarVisible = ref(ncIsPlaywright())
+
 const draggableRef = ref()
 
 const systemFieldsIds = ref<Record<string, any>[]>([])
@@ -820,6 +822,9 @@ watch(
 )
 
 watch(activeField, (newValue, oldValue) => {
+  if (newValue && !isSidebarVisible.value) {
+    isSidebarVisible.value = true
+  }
   if (newValue && autoScrollFormField.value) {
     nextTick(() => {
       handleAutoScrollFormField(newValue.title, false)
@@ -886,7 +891,7 @@ useEventListener(
     if (
       (draggableRef.value?.targetDomElement && draggableRef.value?.targetDomElement.contains(e.target)) ||
       (e.target as HTMLElement)?.closest(
-        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter',
+        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter, .nc-sidebar-toggle-btn',
       )
     ) {
       return
@@ -896,6 +901,19 @@ useEventListener(
   },
   true,
 )
+
+const handleOnClick = (e: MouseEvent) => {
+  if (isSidebarVisible.value) return
+
+  const target = e.target as HTMLElement
+  const parentPreview = target.closest('.nc-form-preview')
+
+  const isChildOfPreview = parentPreview && target !== parentPreview
+
+  if (isChildOfPreview) {
+    isSidebarVisible.value = true
+  }
+}
 
 const { message: templatedMessage } = useTemplatedMessage(
   computed(() => formViewData?.value?.success_msg),
@@ -1005,13 +1023,32 @@ const { message: templatedMessage } = useTemplatedMessage(
           </div>
         </div>
         <template v-else-if="formViewData">
-          <SmartsheetFormLayout>
+          <SmartsheetFormLayout :is-sidebar-visible="isSidebarVisible">
             <template #preview>
               <div
                 class="w-full h-full overflow-auto nc-form-scrollbar p-6"
                 :style="{background:(formViewData?.meta as Record<string,any>).background_color || '#F9F9FA'}"
               >
-                <div class="min-w-[616px] overflow-x-auto nc-form-scrollbar">
+                <Transition
+                  enter-active-class="transition-opacity delay-300 duration-300"
+                  enter-from-class="opacity-0"
+                  enter-to-class="opacity-100"
+                  leave-active-class="transition-opacity duration-0"
+                  leave-from-class="opacity-0"
+                  leave-to-class="opacity-0"
+                >
+                  <div v-show="!isSidebarVisible" class="absolute top-4 right-4 z-499">
+                    <NcTooltip placement="topRight" class="nc-sidebar-toggle-btn">
+                      <template #title> {{ $t('activity.toggleSidebar') }}</template>
+                      <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = true">
+                        <template #icon>
+                          <GeneralIcon icon="sidebar" class="w-4 h-4" />
+                        </template>
+                      </NcButton>
+                    </NcTooltip>
+                  </div>
+                </Transition>
+                <div class="nc-form-preview min-w-[616px] overflow-x-auto nc-form-scrollbar" @click="handleOnClick">
                   <div v-if="!isAllowedToAddRecord" class="mb-6">
                     <NcAlert
                       type="warning"
@@ -1052,7 +1089,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 class="nc-form-upload-banner-btn"
                                 data-testid="nc-form-upload-banner-btn"
                                 :disabled="!isEeUI || isLocked"
-                                @click="click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO, () => openUploadImage(true))"
+                                @click.stop="click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO, () => openUploadImage(true))"
                               >
                                 <div class="flex gap-2 items-center">
                                   <component :is="iconMap.upload" class="w-4 h-4" />
@@ -1082,7 +1119,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             class="nc-form-delete-banner-btn"
                             data-testid="nc-form-delete-banner-btn"
                             :disabled="isLocked"
-                            @click="
+                            @click.stop="
                               () => {
                                 if (isEditable) {
                                   formViewData!.banner_image_url = null
@@ -1171,7 +1208,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                       class="nc-form-upload-logo-btn group"
                                       data-testid="nc-form-upload-log-btn"
                                       :disabled="!isEeUI || isLocked"
-                                      @click="click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO, () => openUploadImage(false))"
+                                      @click.stop="click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO, () => openUploadImage(false))"
                                     >
                                       <div class="flex gap-2 items-center">
                                         <component :is="iconMap.upload" class="w-4 h-4" />
@@ -1201,14 +1238,13 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   class="nc-form-delete-logo-btn"
                                   data-testid="nc-form-delete-logo-btn"
                                   :disabled="isLocked"
-                                  @click="
-                              () => {
-                                if (isEditable) {
-                                  formViewData!.logo_url = null
-                                  updateView()
-                                }
-                              }
-                            "
+                                  @click.stop="
+                                    () => {
+                                      if (isEditable) {
+                                        formViewData!.logo_url = null
+                                        updateView()
+                                      }
+                                  }"
                                 >
                                   <div class="flex gap-2 items-center">
                                     <component :is="iconMap.delete" class="w-4 h-4" />
@@ -1320,6 +1356,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                       <Draggable
                         ref="draggableRef"
+                        v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
                         :model-value="visibleColumns"
                         item-key="fk_column_id"
                         draggable=".item"
@@ -1504,7 +1541,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           class="nc-form-clear nc-form-focus-element"
                           data-testid="nc-form-clear"
                           data-title="nc-form-clear"
-                          @click="clearForm"
+                          @click.stop="clearForm"
                         >
                           {{ $t('activity.clearForm') }}
                         </NcButton>
@@ -1517,7 +1554,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           class="nc-form-submit nc-form-focus-element"
                           data-testid="nc-form-submit"
                           data-title="nc-form-submit"
-                          @click="submitForm"
+                          @click.stop="submitForm"
                         >
                           {{ $t('general.submit') }}
                         </NcButton>
@@ -1528,7 +1565,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       <a-divider class="!my-8" />
                       <!-- Nocodb Branding  -->
                       <div class="inline-block">
-                        <GeneralFormBranding />
+                        <GeneralFormBranding @click.stop />
                       </div>
                     </div>
                   </a-card>
@@ -1547,29 +1584,28 @@ const { message: templatedMessage } = useTemplatedMessage(
                 <!-- Form Field settings -->
                 <div v-if="activeField && activeColumn" :key="activeField?.id" class="nc-form-field-right-panel">
                   <!-- Field header -->
-                  <div class="px-4 pt-4 pb-2 flex items-center justify-between border-b border-gray-200 font-medium">
-                    <div class="flex items-center">
-                      <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">
-                        {{ $t('objects.viewType.form') }}
-                      </div>
-                      <div class="px-1.75 text-gray-500 text-xl font-normal">/</div>
-
-                      <div class="flex items-center pr-1 py-1.5 text-gray-800">
-                        <SmartsheetHeaderIcon :column="activeField" />
-
-                        <NcTooltip class="truncate max-w-[120px] text-sm font-semibold" show-on-truncate-only>
-                          <template #title>
-                            <div class="text-center">
-                              {{ activeField.title }}
-                            </div>
-                          </template>
-
-                          <span data-testid="nc-form-input-label">
-                            {{ activeField.title }}
-                          </span>
-                        </NcTooltip>
-                      </div>
+                  <div class="px-4 pt-4 pb-2 flex items-center border-b border-gray-200 font-medium">
+                    <div class="text-gray-600 font-medium cursor-pointer select-none hover:underline" @click="activeRow = ''">
+                      {{ $t('objects.viewType.form') }}
                     </div>
+                    <div class="px-1.75 text-gray-500 text-xl font-normal">/</div>
+
+                    <div class="flex items-center py-1.5">
+                      <SmartsheetHeaderIcon :column="activeField" class="text-nc-content-gray" />
+                    </div>
+
+                    <NcTooltip class="truncate flex-1 text-sm font-semibold pr-1" show-on-truncate-only>
+                      <template #title>
+                        <div class="text-center">
+                          {{ activeField.title }}
+                        </div>
+                      </template>
+
+                      <span data-testid="nc-form-input-label text-nc-content-gray">
+                        {{ activeField.title }}
+                      </span>
+                    </NcTooltip>
+
                     <div class="flex items-center space-x-2">
                       <a-dropdown
                         v-model:visible="dropdownStates.showEditColumn"
@@ -1607,6 +1643,14 @@ const { message: templatedMessage } = useTemplatedMessage(
                         "
                         @hide-field="showOrHideColumn(activeField, false, false)"
                       />
+                      <NcTooltip placement="topRight" class="nc-sidebar-toggle-btn">
+                        <template #title> {{ $t('activity.toggleSidebar') }}</template>
+                        <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = !isSidebarVisible">
+                          <template #icon>
+                            <GeneralIcon icon="sidebar" class="w-4 h-4" />
+                          </template>
+                        </NcButton>
+                      </NcTooltip>
                     </div>
                   </div>
                   <!-- Field text -->
@@ -1650,43 +1694,48 @@ const { message: templatedMessage } = useTemplatedMessage(
                   <Splitpanes v-if="formViewData" horizontal class="nc-form-settings w-full nc-form-right-splitpane">
                     <Pane min-size="30" size="50" class="nc-form-right-splitpane-item p-4 flex flex-col space-y-4 !min-h-200px">
                       <div class="flex flex-wrap justify-between items-center gap-2">
-                        <div class="flex items-center gap-3">
-                          <div class="text-sm font-bold text-gray-800">
-                            {{ $t('objects.viewType.form') }} {{ $t('objects.fields') }}
-                          </div>
-                          <NcBadge color="border-gray-200">
-                            {{ visibleColumns.length }}/{{ localColumns.length }} {{ $t('objects.field') }}
-                          </NcBadge>
+                        <div class="text-sm font-bold text-gray-800">
+                          {{ $t('objects.viewType.form') }} {{ $t('objects.fields') }}
                         </div>
 
-                        <a-dropdown
-                          v-if="isUIAllowed('fieldAdd')"
-                          v-model:visible="dropdownStates.showAddColumn"
-                          :trigger="['click']"
-                          :disabled="isLocked"
-                          overlay-class-name="nc-dropdown-form-add-column"
-                          @visible-change="onVisibilityChange('showAddColumn')"
-                        >
-                          <NcButton type="secondary" size="small" class="nc-form-add-field" data-testid="nc-form-add-field">
-                            <div class="flex gap-2 items-center">
-                              <component :is="iconMap.plus" class="w-4 h-4" />
-                              <span> {{ $t('activity.addFieldFromFormView') }} </span>
-                            </div>
-                          </NcButton>
+                        <div class="flex items-center gap-2">
+                          <a-dropdown
+                            v-if="isUIAllowed('fieldAdd')"
+                            v-model:visible="dropdownStates.showAddColumn"
+                            :trigger="['click']"
+                            :disabled="isLocked"
+                            overlay-class-name="nc-dropdown-form-add-column"
+                            @visible-change="onVisibilityChange('showAddColumn')"
+                          >
+                            <NcButton type="secondary" size="small" class="nc-form-add-field" data-testid="nc-form-add-field">
+                              <div class="flex gap-2 items-center">
+                                <component :is="iconMap.plus" class="w-4 h-4" />
+                                <span> {{ $t('activity.addFieldFromFormView') }} </span>
+                              </div>
+                            </NcButton>
 
-                          <template #overlay>
-                            <div class="nc-edit-or-add-provider-wrapper">
-                              <LazySmartsheetColumnEditOrAddProvider
-                                v-if="dropdownStates.showAddColumn"
-                                ref="editOrAddProviderRef"
-                                @submit="addColumnCallback"
-                                @cancel="dropdownStates.showAddColumn = false"
-                                @click.stop
-                                @keydown.stop
-                              />
-                            </div>
-                          </template>
-                        </a-dropdown>
+                            <template #overlay>
+                              <div class="nc-edit-or-add-provider-wrapper">
+                                <LazySmartsheetColumnEditOrAddProvider
+                                  v-if="dropdownStates.showAddColumn"
+                                  ref="editOrAddProviderRef"
+                                  @submit="addColumnCallback"
+                                  @cancel="dropdownStates.showAddColumn = false"
+                                  @click.stop
+                                  @keydown.stop
+                                />
+                              </div>
+                            </template>
+                          </a-dropdown>
+                          <NcTooltip placement="topRight" class="nc-sidebar-toggle-btn">
+                            <template #title> {{ $t('activity.toggleSidebar') }}</template>
+                            <NcButton icon-only size="small" type="secondary" @click.stop="isSidebarVisible = !isSidebarVisible">
+                              <template #icon>
+                                <GeneralIcon icon="sidebar" class="w-4 h-4" />
+                              </template>
+                            </NcButton>
+                          </NcTooltip>
+                        </div>
                       </div>
 
                       <form autocomplete="off">
@@ -1726,7 +1775,10 @@ const { message: templatedMessage } = useTemplatedMessage(
                             data-testid="nc-form-show-all-fields"
                             @click.stop
                           >
-                            <div class="w-4 h-4 flex-none mx-2"></div>
+                            <div class="flex-none mx-2 text-nc-content-brand">
+                              {{ visibleColumns.length }}/{{ localColumns.length }} {{ $t('general.selected') }}
+                            </div>
+
                             <div class="flex-1 flex items-center justify-end truncate">
                               <div class="flex items-center px-2">
                                 <NcSwitch
@@ -1743,6 +1795,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             </div>
                           </div>
                           <Draggable
+                            v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
                             :list="localColumns"
                             item-key="id"
                             ghost-class="nc-form-field-ghost"

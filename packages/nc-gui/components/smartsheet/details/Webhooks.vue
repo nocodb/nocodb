@@ -171,6 +171,17 @@ const eventList = ref<Record<string, any>[]>([
   { text: [t('general.record'), t('general.insert').toLowerCase()], value: ['after', 'insert'] },
   { text: [t('general.record'), t('general.update').toLowerCase()], value: ['after', 'update'] },
   { text: [t('general.record'), t('general.delete').toLowerCase()], value: ['after', 'delete'] },
+
+  ...((isEeUI && [
+    { text: [t('objects.view'), t('general.create').toLowerCase()], value: ['view', 'insert'] },
+    { text: [t('objects.view'), t('general.update').toLowerCase()], value: ['view', 'update'] },
+    { text: [t('objects.view'), t('general.delete').toLowerCase()], value: ['view', 'delete'] },
+    { text: [t('objects.field'), t('general.create').toLowerCase()], value: ['field', 'insert'] },
+    { text: [t('objects.field'), t('general.update').toLowerCase()], value: ['field', 'update'] },
+    { text: [t('objects.field'), t('general.delete').toLowerCase()], value: ['field', 'delete'] },
+  ]) ||
+    []),
+
   {
     text: [t('general.manual'), t('general.trigger').toLowerCase()],
     value: ['manual', 'trigger'],
@@ -239,7 +250,20 @@ const getHookTypeText = (hook: HookType) => {
       })
       .filter(Boolean)
 
-    const prefix = hook.event === 'after' ? `${t('general.after')} ` : hook.event === 'manual' ? `${t('general.manual')} ` : ''
+    let prefix = ''
+    switch (hook.event) {
+      case 'after': {
+        prefix = `${t('general.record')} : `
+        break
+      }
+      case 'manual': {
+        prefix = `${t('general.manual')} `
+        break
+      }
+      case 'view': {
+        prefix = `${t('objects.view')} : `
+      }
+    }
 
     if (operations.length === 1) {
       return `${prefix}${operations[0]}`
@@ -249,7 +273,7 @@ const getHookTypeText = (hook: HookType) => {
       return `${prefix}${operations.join(` ${t('general.or').toLowerCase()} `)}`
     }
 
-    return t('labels.sendAllEvents')
+    return `${prefix}${t('labels.sendAllEvents').toLowerCase()}`
   }
 
   const result = v2EventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text

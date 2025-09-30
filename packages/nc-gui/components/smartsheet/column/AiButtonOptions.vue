@@ -20,6 +20,8 @@ const { submitBtnLabel, saving } = toRefs(props)
 
 const meta = inject(MetaInj, ref())
 
+const { appInfo } = useGlobal()
+
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
@@ -117,7 +119,8 @@ const availableFields = computed(() => {
     (c) =>
       c.title &&
       !c.system &&
-      ![UITypes.ID, UITypes.Button, UITypes.Links].includes(c.uidt) &&
+      (!vModel.value?.id || c.id !== vModel.value.id) &&
+      ![UITypes.ID, UITypes.Button, UITypes.Links, UITypes.LinkToAnotherRecord].includes(c.uidt) &&
       (isEdit.value ? column.value?.id !== c.id : true),
   )
 })
@@ -134,8 +137,9 @@ const outputFieldOptions = computed(() => {
     (c) =>
       !c.system &&
       !c.pk &&
+      !c.readonly &&
       c.id !== column.value?.id &&
-      ![UITypes.Attachment, UITypes.Button, UITypes.Links].includes(c.uidt) &&
+      ![UITypes.Attachment, UITypes.Button, UITypes.Links, UITypes.LinkToAnotherRecord].includes(c.uidt) &&
       !isReadOnlyVirtualCell(c),
   )
 })
@@ -347,6 +351,7 @@ onBeforeUnmount(() => {
             :label="submitBtnLabel.label"
             :loading-label="submitBtnLabel.loadingLabel"
             :loading="saving"
+            theme="ai"
             @click.stop="emit('onSubmit')"
           >
             {{ submitBtnLabel.label }}
@@ -368,7 +373,12 @@ onBeforeUnmount(() => {
                   <div class="text-base text-nc-content-gray font-bold flex-1">
                     {{ $t('general.configure') }}
                   </div>
-                  <div class="-my-1.5">
+                  <div
+                    class="-my-1.5"
+                    :class="{
+                      hidden: appInfo.env !== 'development' && appInfo.ee,
+                    }"
+                  >
                     <AiSettings
                       v-model:fk-integration-id="vModel.fk_integration_id"
                       v-model:model="vModel.model"
@@ -405,7 +415,8 @@ onBeforeUnmount(() => {
                       v-model="vModel.formula_raw"
                       :options="availableFields"
                       :placeholder="inputFieldPlaceholder"
-                      prompt-field-tag-class-name="!bg-nc-bg-gray-medium !text-nc-content-gray"
+                      prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
+                      suggestion-icon-class-name="!text-nc-content-purple-medium"
                     />
                     <div class="rounded-b-lg flex items-center gap-2 p-1">
                       <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />
@@ -448,9 +459,10 @@ onBeforeUnmount(() => {
                           is-multi-select
                           show-search-always
                           container-class-name="!max-h-[171px]"
+                          theme="ai"
                         >
                           <template #listItem="{ option, isSelected }">
-                            <NcCheckbox :checked="isSelected" />
+                            <NcCheckbox :checked="isSelected" theme="ai" />
 
                             <div class="inline-flex items-center gap-2 flex-1 truncate">
                               <SmartsheetHeaderIcon
@@ -468,8 +480,8 @@ onBeforeUnmount(() => {
                             </div>
                           </template>
                           <template #headerExtraRight>
-                            <NcBadge :border="false" color="brand"
-                              >{{ outputColumnIds.length }}
+                            <NcBadge :border="false" color="ai">
+                              {{ outputColumnIds.length }}
                               {{ $t(`objects.${outputColumnIds?.length === 1 ? 'field' : 'fields'}`) }}
                             </NcBadge>
                           </template>
@@ -712,20 +724,20 @@ onBeforeUnmount(() => {
 
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 flex-none rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               inputColumns.length
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
                                 : 'bg-nc-bg-red-dark text-nc-content-red-dark'
                             "
                           >
-                            <GeneralIcon :icon="inputColumns.length ? 'check' : 'ncX'" />
+                            <GeneralIcon :icon="inputColumns.length ? 'check' : 'ncX'" class="flex-none" />
                           </div>
                           <div>Use at least 1 Field in your Input prompt</div>
                         </div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 flex-none rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               outputColumnIds.length
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -738,7 +750,7 @@ onBeforeUnmount(() => {
                         </div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 flex-none rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               selectedRecordPk
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -754,7 +766,7 @@ onBeforeUnmount(() => {
                     <NcButton
                       size="small"
                       theme="ai"
-                      type="primary"
+                      type="secondary"
                       class="nc-ai-button-test-generate"
                       :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length || !inputColumns.length"
                       :loading="aiLoading && generatingPreview"
@@ -968,6 +980,10 @@ onBeforeUnmount(() => {
   @apply !rounded-lg;
   transition: all 0.3s;
 
+  &:has(.nc-cell-currency) {
+    @apply h-8;
+  }
+
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
     @apply !border-gray-200;
@@ -1015,6 +1031,15 @@ onBeforeUnmount(() => {
     }
   }
 }
+
+:deep(.nc-data-cell > .nc-cell-longtext) {
+  .long-text-wrapper {
+    & > div {
+      @apply max-h-50 nc-scrollbar-thin;
+    }
+  }
+}
+
 .nc-data-cell:focus-within {
   @apply !border-1 !border-purple-500;
 }

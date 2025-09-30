@@ -81,7 +81,7 @@ export const parseDateTimeValue = (
 
 export const serializeDateOrDateTimeValue = (
   value: string | null,
-  col: ColumnType
+  params: SerializerOrParserFnProps['params']
 ) => {
   if (!value) return null;
 
@@ -90,11 +90,32 @@ export const serializeDateOrDateTimeValue = (
   if (typeof value === 'string' && value.length < 11) {
     isDateOnly = true;
   }
-  const formatting = isDateOnly
-    ? parseProp(col.meta).date_format ?? 'YYYY-MM-DD'
-    : constructDateTimeFormat(col);
 
-  let parsedDateOrDateTime = dayjs(value, formatting);
+  let parsedDateOrDateTime;
+
+  // If clipboardItem column is date or datetime, then use the dbCellValue from clipboardItem
+  if (
+    [UITypes.Date, UITypes.DateTime].includes(
+      params.clipboardItem?.column?.uidt as UITypes
+    ) &&
+    params.clipboardItem.dbCellValue
+  ) {
+    const formatting =
+      params.clipboardItem?.column.uidt === UITypes.Date
+        ? 'YYYY-MM-DD'
+        : 'YYYY-MM-DD HH:mm:ssZ';
+
+    parsedDateOrDateTime = dayjs(params.clipboardItem.dbCellValue, formatting);
+  }
+
+  // If clipboardItem not present or invalid, then use default method to parse the value
+  if (!parsedDateOrDateTime || !parsedDateOrDateTime.isValid()) {
+    const formatting = isDateOnly
+      ? parseProp(params.col.meta).date_format ?? 'YYYY-MM-DD'
+      : constructDateTimeFormat(params.col);
+
+    parsedDateOrDateTime = dayjs(value, formatting);
+  }
 
   if (!parsedDateOrDateTime.isValid()) {
     parsedDateOrDateTime = dayjs(value, getDateTimeFormat(value));
@@ -107,7 +128,7 @@ export const serializeDateOrDateTimeValue = (
     return null;
   }
 
-  return col.uidt === UITypes.Date
+  return params.col.uidt === UITypes.Date
     ? parsedDateOrDateTime.format('YYYY-MM-DD')
     : parsedDateOrDateTime.utc().format('YYYY-MM-DD HH:mm:ssZ');
 };

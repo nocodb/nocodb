@@ -37,7 +37,7 @@ export function useTableNew(param: {
 
   const { loadTables, baseUrl, isXcdbBase } = useBase()
 
-  const { loadViews } = useViewsStore()
+  const { loadViews, getViewReadableUrlSlug } = useViewsStore()
 
   const { openedViewsTab, viewsByTable } = storeToRefs(useViewsStore())
 
@@ -72,8 +72,20 @@ export function useTableNew(param: {
 
     const navigateToTable = async () => {
       if (navigate && openedViewsTab.value === 'view') {
+        let defaultView = table?.views?.[0]
+
+        if (!defaultView) {
+          const views = viewsByTable.value.get(table.id as string) ?? []
+
+          defaultView = views.find((v) => v.is_default) || views[0]
+        }
+
+        const slug = defaultView ? getViewReadableUrlSlug({ tableTitle: table.title, viewOrViewTitle: defaultView }) : ''
+
         await navigateTo(
-          `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}`,
+          `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}${
+            slug ? `/${defaultView!.id}/${slug}` : ''
+          }`,
           cmdOrCtrl
             ? {
                 open: navigateToBlankTargetOpenOption,
@@ -93,9 +105,9 @@ export function useTableNew(param: {
           const defaultView = views.find((v) => v.is_default) || views[0]
 
           await navigateTo(
-            `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${defaultView.id}/${
-              openedViewsTab.value
-            }`,
+            `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${
+              defaultView.id
+            }/${getViewReadableUrlSlug({ tableTitle: table.title, viewOrViewTitle: defaultView })}}/${openedViewsTab.value}`,
             cmdOrCtrl
               ? {
                   open: navigateToBlankTargetOpenOption,

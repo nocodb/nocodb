@@ -141,12 +141,13 @@ export class FieldsPage extends BasePage {
         break;
       case 'Date':
         await this.addOrEditColumn.locator('.nc-date-select').click();
-        await this.rootPage.locator('.nc-date-select').pressSequentially(dateFormat);
+        await this.addOrEditColumn.locator('.nc-date-select').pressSequentially(dateFormat);
         await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
         break;
       case 'DateTime':
         // Date Format
         await this.addOrEditColumn.locator('.nc-date-select').click();
+        await this.addOrEditColumn.locator('.nc-date-select').pressSequentially(dateFormat);
         await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
         // Time Format
         await this.addOrEditColumn.locator('.nc-time-select').click();

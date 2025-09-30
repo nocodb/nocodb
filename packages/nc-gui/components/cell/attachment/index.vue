@@ -403,7 +403,6 @@ onUnmounted(() => {
         data-rec="true"
         class="nc-attachment-cell-dropzone text-white text-lg bg-gray-600/75 flex text-sm items-center justify-center gap-2"
       >
-        <MaterialSymbolsFileCopyOutline />
         {{ $t('labels.dropHere') }}
       </general-overlay>
     </template>
@@ -543,11 +542,6 @@ onUnmounted(() => {
     &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
       box-shadow: none !important;
     }
-  }
-
-  &:has(.nc-cell-ai-button.is-expanded-form),
-  &:has(.nc-cell-button.is-expanded-form) {
-    @apply -mt-1 -ml-1;
   }
 
   .nc-cell-attachment {

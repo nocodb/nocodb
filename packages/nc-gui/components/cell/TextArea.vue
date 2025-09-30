@@ -554,7 +554,7 @@ useResizeObserver(inputWrapperRef, () => {
             minHeight: isForm ? '117px' : `${height}px`,
             maxHeight: 'min(800px, calc(100vh - 200px))',
           }"
-          :disabled="readOnly || (props.isAi && isEditColumn)"
+          :disabled="!!readOnly || (props.isAi && !!isEditColumn) || isAiGenerating"
           @blur="editEnabled = false"
           @keydown.alt.stop
           @keydown.alt.enter.stop

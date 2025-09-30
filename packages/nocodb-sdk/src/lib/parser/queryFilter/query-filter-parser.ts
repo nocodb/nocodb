@@ -82,12 +82,28 @@ export class QueryFilterParser extends CommonCstParser {
     parser.input = lexResult.tokens;
     // any top level rule may be used as an entry point
     const cst = parser.parse();
+
+    const parseErrors = [...parser.errors];
+
+    let parsedCst = undefined;
+
+    try {
+      parsedCst = parseErrors.length === 0 ? parseCst(cst) : undefined;
+    } catch (error) {
+      parseErrors.push({
+        name: error?.message ?? 'Invalid filter expression',
+        message: error?.message ?? 'Invalid filter expression',
+        token: null,
+        resyncedTokens: [],
+        context: null,
+      });
+    }
+
     return {
       cst: cst,
       lexErrors: lexResult.errors,
-      parseErrors: parser.errors,
-      parsedCst:
-        parser.errors && parser.errors.length === 0 ? parseCst(cst) : undefined,
+      parseErrors,
+      parsedCst,
     };
   }
 }

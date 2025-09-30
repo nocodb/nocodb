@@ -32,9 +32,9 @@ describe('parse date', () => {
 
   it('should serialize a valid date value for Date type', () => {
     const col = { uidt: UITypes.Date, meta: null };
-    expect(serializeDateOrDateTimeValue('2023-10-27', col as any)).toBe(
-      '2023-10-27'
-    );
+    expect(
+      serializeDateOrDateTimeValue('2023-10-27', { col: col as any })
+    ).toBe('2023-10-27');
   });
 });
 
@@ -101,14 +101,18 @@ describe('serialize', () => {
     const value = '2023-10-27 10:00:00';
     const expected = dayjs(value).utc().format('YYYY-MM-DD HH:mm:ssZ');
 
-    expect(serializeDateOrDateTimeValue(value, col as any)).toBe(expected);
+    expect(serializeDateOrDateTimeValue(value, { col: col as any })).toBe(
+      expected
+    );
   });
 
   it('should serialize a date string to datetime format for DateTime type', () => {
     const col = { uidt: UITypes.DateTime, meta: {} };
     const value = '2023-10-27';
     const expected = dayjs(value).utc().format('YYYY-MM-DD HH:mm:ssZ');
-    expect(serializeDateOrDateTimeValue(value, col as any)).toBe(expected);
+    expect(serializeDateOrDateTimeValue(value, { col: col as any })).toBe(
+      expected
+    );
   });
 
   it('should serialize a date string to datetime format for custom date format (1)', () => {
@@ -118,7 +122,9 @@ describe('serialize', () => {
     };
     const value = '09/05/1980';
     const expected = dayjs(value, 'MM/DD/YYYY').format('YYYY-MM-DD');
-    expect(serializeDateOrDateTimeValue(value, col as any)).toBe(expected);
+    expect(serializeDateOrDateTimeValue(value, { col: col as any })).toBe(
+      expected
+    );
   });
 
   it('should serialize a date string to datetime format for custom date format (2)', () => {
@@ -128,6 +134,8 @@ describe('serialize', () => {
     };
     const value = '09/05/1980';
     const expected = dayjs(value, 'DD/MM/YYYY').format('YYYY-MM-DD');
-    expect(serializeDateOrDateTimeValue(value, col as any)).toBe(expected);
+    expect(serializeDateOrDateTimeValue(value, { col: col as any })).toBe(
+      expected
+    );
   });
 });

@@ -267,6 +267,7 @@ type NcButtonSize = 'xxsmall' | 'xsmall' | 'small' | 'medium' | 'xs'
 interface SidebarTableNode extends TableType {
   isMetaLoading?: boolean
   isViewsLoading?: boolean
+  views: ViewType[]
 }
 
 interface UsersSortType {
@@ -458,44 +459,7 @@ interface CellRendererOptions {
   isRowChecked?: boolean
   isCellInSelectionRange?: boolean
   isGroupHeader?: boolean
-  rowMeta?: {
-    // Used in InfiniteScroll Grid View
-    isLastRow?: number
-    rowIndex?: number
-    isLoading?: boolean
-    isValidationFailed?: boolean
-    isRowOrderUpdated?: boolean
-    isDragging?: boolean
-    rowProgress?: {
-      message: string
-      progress: number
-    }
-
-    new?: boolean
-    selected?: boolean
-    commentCount?: number
-    changed?: boolean
-    saving?: boolean
-    ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
-    fromExpandedForm?: boolean
-    // use in datetime picker component
-    isUpdatedFromCopyNPaste?: Record<string, boolean>
-    // Used in Calendar view
-    style?: Partial<CSSStyleDeclaration>
-    range?: {
-      fk_from_col: ColumnType
-      fk_to_col: ColumnType | null
-      is_readonly?: boolean
-    }
-    id?: string
-    position?: string
-    dayIndex?: number
-    overLapIteration?: number
-    numberOfOverlaps?: number
-    minutes?: number
-    recordIndex?: number // For week spanning records in month view
-    maxSpanning?: number
-  } & RowMetaRowColorInfo
+  rowMeta?: Row['rowMeta']
   allowLocalUrl?: boolean
   /**
    * `isRootCell` is used to determine if the cell is the root cell of the row or nested cell
@@ -872,6 +836,11 @@ interface NcListProps {
    * ```
    */
   searchBasisOptions?: NcListSearchBasisOptionType[]
+
+  /**
+   * @default default
+   */
+  theme?: 'default' | 'ai'
 }
 
 // NcList type ends here
@@ -901,6 +870,39 @@ interface CreateViewForm {
     fk_to_column_id: string | null // for ee only
   }>
   fk_cover_image_col_id: string | null | undefined
+}
+
+// NcClipboardDataType type starts here
+type NcClipboardDataType = Record<string, NcClipboardDataItemType>
+
+interface NcClipboardDataItemType {
+  /**
+   * Unique clipboard item id
+   */
+  id: string
+  workspaceId?: string
+  tableId?: string
+  rowIds: string[]
+  copiedPlainText: string
+  copiedHtml?: string
+  dbCellValueArr: Array<any[]>
+  columns: Partial<ColumnType>[]
+}
+
+// NcClipboardDataType type ends here
+
+interface AttachmentCellDropOverType {
+  rowIndex: number
+  colIndex: number
+  columnId: string
+  path: Array<number>
+}
+
+interface GroupKeysStorage {
+  [viewId: string]: {
+    keys: Array<string>
+    lastAccessed: number // timestamp
+  }
 }
 
 export type {
@@ -968,4 +970,8 @@ export type {
   NcDropdownPlacement,
   MakeCellEditableFn,
   CreateViewForm,
+  NcClipboardDataType,
+  NcClipboardDataItemType,
+  AttachmentCellDropOverType,
+  GroupKeysStorage,
 }

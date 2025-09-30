@@ -988,8 +988,8 @@ export interface FieldBaseV3Type {
     | 'Barcode'
     | 'Year'
     | 'QrCode'
-    | 'CreatedAt'
-    | 'LastModifiedAt'
+    | 'CreatedTime'
+    | 'LastModifiedTime'
     | 'CreatedBy'
     | 'LastModifiedBy'
     | 'LinkToAnotherRecord'
@@ -1002,23 +1002,16 @@ export interface FieldBaseV3Type {
 }
 
 export type ViewV3Type = {
-  /**
-   * Unique identifier for the view.
-   * @format uuid
-   */
+  /** Unique identifier for the view. */
   id: string;
+  /** Id of table associated with the view. */
+  table_id?: string;
   /** Indicates if this is the default view. Omitted if not the default view. */
   is_default?: boolean;
 } & ViewBaseV3Type & {
-    /**
-     * User ID of the creator.
-     * @format uuid
-     */
+    /** User ID of the creator. */
     created_by?: string;
-    /**
-     * User ID of the owner.
-     * @format uuid
-     */
+    /** User ID of the owner. */
     owned_by?: string;
     /**
      * Timestamp of creation.
@@ -1281,34 +1274,22 @@ export interface ViewOptionsFormV3Type {
 }
 
 export interface ViewOptionsGalleryV3Type {
-  /**
-   * Attachment field ID to be used as cover image in gallery view. Is optional, if not provided, the first attachment field will be used.
-   * @format uuid
-   */
+  /** Attachment field ID to be used as cover image in gallery view. Is optional, if not provided, the first attachment field will be used. */
   cover_field_id?: string;
 }
 
 export interface ViewOptionsCalendarV3Type {
   date_ranges: {
-    /**
-     * Date field ID to be used as start date in calendar view.
-     * @format uuid
-     */
+    /** Date field ID to be used as start date in calendar view. */
     start_date_field_id: string;
-    /**
-     * Date field ID to be used as end date in calendar view.
-     * @format uuid
-     */
+    /** Date field ID to be used as end date in calendar view. */
     end_date_field_id?: string;
   }[];
 }
 
 export interface ViewOptionsKanbanV3Type {
   stack_by: {
-    /**
-     * Single select field ID to be used for stacking cards in kanban view.
-     * @format uuid
-     */
+    /** Single select field ID to be used for stacking cards in kanban view. */
     field_id: string;
     /**
      * Order of the stacks in kanban view. If not provided, the order will be determined by options listed in associated field.
@@ -1317,20 +1298,14 @@ export interface ViewOptionsKanbanV3Type {
      */
     stack_order?: string[];
   };
-  /**
-   * Attachment field ID to be used as cover image in kanban view. If not provided, cover field configuration is skipped.
-   * @format uuid
-   */
+  /** Attachment field ID to be used as cover image in kanban view. If not provided, cover field configuration is skipped. */
   cover_field_id?: string;
 }
 
 export interface ViewOptionsGridV3Type {
   /** List of groups to be applied on the grid view. */
   groups?: {
-    /**
-     * Identifier for the field being sorted.
-     * @format uuid
-     */
+    /** Identifier for the field being sorted. */
     field_id: string;
     /** Direction of the group, either 'asc' (ascending) or 'desc' (descending). */
     direction?: 'asc' | 'desc';
@@ -1352,10 +1327,7 @@ export type ViewRowColourV3Type =
   | {
       /** Mode of row coloring. In this mode, the color is selected based on a single select field. */
       mode: 'select';
-      /**
-       * Single select field ID to be used for colouring rows in the view.
-       * @format uuid
-       */
+      /** Single select field ID to be used for colouring rows in the view. */
       field_id: string;
       /** Whether to additionally apply the color as row background. */
       apply_as_row_background?: boolean;
@@ -1369,10 +1341,7 @@ export type ViewRowColourV3Type =
 - In case of partial list, fields not included in the list will be excluded from the view.
 */
 export type ViewFieldsV3Type = {
-  /**
-   * Unique identifier for the field.
-   * @format uuid
-   */
+  /** Unique identifier for the field. */
   field_id: string;
   /** Indicates whether the field should be displayed in the view. */
   show: boolean;
@@ -1398,7 +1367,7 @@ export interface ViewBaseInUpdateV3Type {
    *
    *  Note: Assigning view as personal using API is not supported currently
    */
-  lock_type?: 'collaborative' | 'locked';
+  lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Description of the view. */
   description?: string;
 }
@@ -1426,6 +1395,8 @@ export interface ViewListV3Type {
   list: {
     /** Unique identifier for the view. */
     id: string;
+    /** Id of table associated with the view. */
+    table_id?: string;
     /** Title of the view. */
     title: string;
     /** Description of the view. */
@@ -1436,15 +1407,9 @@ export interface ViewListV3Type {
     lock_type: 'collaborative' | 'locked' | 'personal';
     /** Indicates if this is the default view. */
     is_default?: boolean;
-    /**
-     * User ID of the creator.
-     * @format uuid
-     */
+    /** User ID of the creator. */
     created_by: string;
-    /**
-     * User ID of the owner. Applicable only for personal views.
-     * @format uuid
-     */
+    /** User ID of the owner. Applicable only for personal views. */
     owned_by?: string;
     /**
      * Timestamp of creation.
@@ -1563,14 +1528,12 @@ export type BaseMemberUpdateV3Type = {
 /**
  * Array of members to be created.
  */
-export type BaseMemberCreateV3Type = (
+export type BaseMemberCreateV3Type = ((
   | {
       /** Unique identifier for the user (skip if email is provided) */
       user_id: string;
       /** Full name of the user. */
       user_name?: string;
-      /** Base roles for the user. */
-      base_role: BaseRolesV3Type;
     }
   | {
       /**
@@ -1580,10 +1543,11 @@ export type BaseMemberCreateV3Type = (
       email: string;
       /** Full name of the user. */
       user_name?: string;
-      /** Base roles for the user. */
-      base_role: BaseRolesV3Type;
     }
-)[];
+) & {
+  /** Base roles for the user. */
+  base_role: BaseRolesV3Type;
+})[];
 
 export interface BaseMemberListV3Type {
   list?: BaseMemberV3Type[];
@@ -3251,7 +3215,7 @@ export interface HookType {
    * Event Type for the operation
    * @example after
    */
-  event?: 'after' | 'before' | 'manual';
+  event?: 'view' | 'field' | 'after' | 'before' | 'manual';
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -3317,7 +3281,7 @@ export interface HookReqType {
    * Event Type for the operation
    * @example after
    */
-  event: 'after' | 'before' | 'manual';
+  event: 'view' | 'field' | 'after' | 'before' | 'manual';
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -3392,7 +3356,7 @@ export interface HookLogType {
    * Hook Event
    * @example after
    */
-  event?: 'after' | 'before' | 'manual';
+  event?: 'field' | 'view' | 'after' | 'before' | 'manual';
   /**
    * Execution Time in milliseconds
    * @example 98
@@ -13448,7 +13412,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name SamplePayloadGet
  * @summary Get Sample Hook Payload
- * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}
+ * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{event}/{operation}/{version}
  * @response `200` `{
   \** Sample Payload Data *\
   data?: object,
@@ -13462,6 +13426,7 @@ export class Api<
  */
     samplePayloadGet: (
       tableId: IdType,
+      event: 'field' | 'view' | 'after' | 'before' | 'manual',
       operation:
         | 'insert'
         | 'update'
@@ -13482,7 +13447,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}/${version}`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${event}/${operation}/${version}`,
         method: 'GET',
         format: 'json',
         ...params,

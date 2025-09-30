@@ -10,7 +10,7 @@ import type {
   TableType,
   ViewType,
 } from 'nocodb-sdk'
-import dayjs from 'dayjs'
+import type dayjs from 'dayjs'
 
 const formatData = (
   list: Record<string, any>[],
@@ -134,8 +134,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     })
 
     const timezone = computed(() => {
-      if (!calendarRange.value || !calendarRange.value[0]) return dayjs.tz.guess()
-      return calendarRange.value[0]?.fk_from_col?.meta?.timezone ?? dayjs.tz.guess()
+      return getTimeZoneFromName(calendarRange.value?.[0]?.fk_from_col?.meta?.timezone)?.name
     })
 
     const timezoneDayjs = reactive(workerWithTimezone(isEeUI, timezone?.value))
@@ -1208,7 +1207,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     onBeforeUnmount(() => {
       if (activeDataListener.value) {
-        $ncSocket?.offMessage?.(activeDataListener.value)
+        $ncSocket.offMessage(activeDataListener.value)
       }
     })
 

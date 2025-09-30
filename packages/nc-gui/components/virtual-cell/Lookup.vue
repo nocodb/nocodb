@@ -4,6 +4,8 @@ import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 
 const { metas, getMeta } = useMetas()
 
+const { isMobileMode } = useGlobal()
+
 const column = inject(ColumnInj, ref())
 
 const row = inject(RowInj)!
@@ -101,7 +103,7 @@ const arrValue = computed(() => {
     lookupColumn.value?.uidt === UITypes.Checkbox &&
     [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)
   ) {
-    const hasLink = !!(row && row.value?.row[relationColumn.value?.title])
+    const hasLink = !!row?.value?.row?.[relationColumn.value?.title]
 
     if (!cellValue.value && !hasLink) return []
 
@@ -241,7 +243,9 @@ onUnmounted(() => {
 watch(dropdownVisible, (val) => {
   setTimeout(() => {
     if (val && dropdownOverlayRef.value) {
-      dropdownOverlayRef.value?.querySelector<HTMLInputElement>('.lookup-search-input input')?.focus()
+      if (!isMobileMode.value) {
+        dropdownOverlayRef.value?.querySelector<HTMLInputElement>('.lookup-search-input input')?.focus()
+      }
 
       if (dropdownOverlayRef.value.clientHeight) {
         dropdownInitialHeight.value = dropdownOverlayRef.value.clientHeight

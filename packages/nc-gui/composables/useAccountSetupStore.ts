@@ -56,19 +56,6 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
     loadingAction.value = Action.Save
 
     try {
-      if (activePlugin.value) {
-        const testRes = await $api.plugin.test({
-          input: JSON.stringify(activePluginFormData.value),
-          title: activePlugin.value.title,
-          category: activePlugin.value.category,
-        } as PluginTestReqType)
-
-        if (!testRes) {
-          message.error(t('msg.info.invalidCredentials'))
-          return
-        }
-      }
-
       await $api.plugin.update(activePlugin.value?.id, {
         input: JSON.stringify(activePluginFormData.value),
         active: true,

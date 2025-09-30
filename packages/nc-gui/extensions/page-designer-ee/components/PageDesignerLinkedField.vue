@@ -81,7 +81,11 @@ const column = computed(() => widget.value!.field as Required<ColumnType>)
 
 const isNew = ref(false)
 
-const { relatedTableMeta, relatedTableDisplayValueProp, loadChildrenList } = useProvideLTARStore(column, row, isNew)
+const { relatedTableMeta, relatedTableDisplayValueProp, loadChildrenList, refreshCurrentRow } = useProvideLTARStore(
+  column,
+  row,
+  isNew,
+)
 
 const inlineValue = computed(() => {
   if (widget.value.displayAs !== LinkedFieldDisplayAs.INLINE) return ''
@@ -116,8 +120,21 @@ async function loadRelatedRows() {
   relatedRows.value = (await loadChildrenList(undefined, undefined, runtimeConfig.public.maxPageDesignerTableRows))?.list ?? []
 }
 
-onMounted(loadRelatedRows)
-watch(row, loadRelatedRows)
+watch(
+  row,
+  (newRow) => {
+    if (!newRow) return
+    // injected row value can be undefined, so we need to wait and then refreshCurrentRow
+    refreshCurrentRow()
+
+    nextTick(() => {
+      loadRelatedRows()
+    })
+  },
+  {
+    immediate: true,
+  },
+)
 
 const tableRowHeight = computed(() => {
   const height = +(widget.value.cssStyle.match(/height:\s*(\d+)px/)?.[1] ?? 0)

@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
       "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Run Actions",
     "createScript": "Create Script",
     "deleteAllRecords": "Delete all records",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
     "webhookLogs": "Webhook: Logs",

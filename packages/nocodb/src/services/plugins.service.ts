@@ -6,8 +6,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { Plugin } from '~/models';
-
-export const isPlayWrightNode = () => process.env.PLAYWRIGHT_TEST === 'true';
+import { isPlayWrightNode } from '~/helpers/utils';
 
 @Injectable()
 export class PluginsService {

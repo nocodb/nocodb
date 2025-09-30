@@ -278,6 +278,12 @@ const anySelected = computed(() => {
   return list.some((_, index) => isChildrenExcludedListLinked.value[index])
 })
 
+const showBulkActions = computed(() => {
+  if (!childrenExcludedList?.list?.length) return false
+
+  return relation.value === RelationTypes.MANY_TO_MANY || relation.value === RelationTypes.HAS_MANY
+})
+
 watch(expandedFormDlg, () => {
   if (!expandedFormDlg.value) {
     isExpandedFormCloseAfterSave.value = false
@@ -492,7 +498,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
           :table-title="meta?.title"
         />
       </div>
-      <div v-if="childrenExcludedList?.list?.length > 0" class="bg-gray-50 px-3 py-1 border-b border-gray-200 flex justify-between items-center">
+      <div v-if="showBulkActions" class="bg-gray-50 px-3 py-1 border-b border-gray-200 flex justify-between items-center">
         <div class="text-xs text-gray-600">
           {{ childrenExcludedList.list.length }} {{ $t('general.records') }}
         </div>

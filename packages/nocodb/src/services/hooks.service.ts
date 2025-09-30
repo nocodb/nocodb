@@ -275,11 +275,19 @@ export class HooksService {
       payload: { data, user },
     } = param.hookTest;
 
+    let view = null;
+
+    if ((hook?.notification as any)?.trigger_form_id) {
+      view = await View.get(
+        context,
+        (hook.notification as any).trigger_form_id,
+      );
+    }
     try {
       await invokeWebhook(context, {
         hook: new Hook(hook),
         model: model,
-        view: null,
+        view: view,
         prevData: data?.previous_rows ?? null,
         newData: data.rows,
         user: user,

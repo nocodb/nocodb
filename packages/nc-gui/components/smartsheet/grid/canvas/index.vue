@@ -2838,6 +2838,7 @@ watch(
               "
               v-model:context-menu-target="contextMenuTarget"
               v-model:selected-all-records="vSelectedAllRecords"
+              v-model:selected-all-records-skip-pks="vSelectedAllRecordsSkipPks"
               :selection="selection"
               :columns="columns"
               :active-cell="activeCell"

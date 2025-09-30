@@ -699,7 +699,7 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
-    "mcpServer": "MCP Server",
+    "mcpServer": "MCP 서버",
     "accessRestricted": "접근 제한됨",
     "editTablePermissions": "테이블 권한 편집",
     "editFieldPermissions": "필드 권한 편집",
@@ -1138,7 +1138,7 @@
     "tokenLimit": "사용자당 하나의 토큰만 허용됩니다",
     "duplicateAttachment": "이름이 {filename}인 파일이 이미 연결됨",
     "tableIdColon": "테이블 ID: {tableId}",
-    "baseIdColon": "BASE ID: {baseId}",
+    "baseIdColon": "베이스 ID: {baseId}",
     "scriptIdColon": "스크립트 ID: {scriptId}",
     "dashboardIdColon": "대시보드 ID: {dashboardId}",
     "viewIdColon": "뷰 ID: {viewId}",
@@ -1181,7 +1181,7 @@
     "forRole": "역할",
     "clickToCopy": "복사하기",
     "clickToCopyTableID": "클릭하여 테이블 ID 복사",
-    "clickToCopyBaseID": "Click to copy Base ID",
+    "clickToCopyBaseID": "클릭하여 베이스 ID를 복사하세요",
     "clickToCopyScriptID": "스크립트 ID를 복사하려면 클릭하십시오",
     "clickToCopyDashboardID": "대시보드 ID를 복사하려면 클릭합니다.",
     "clickToCopyViewID": "클릭하여 뷰 ID 복사",
@@ -1850,7 +1850,7 @@
     "shiftSpace": "Shift + 스페이스바",
     "expandShiftSpace": "'Shift + Space' 확장",
     "selectAllMappedFields": "매핑된 모든 필드 선택",
-    "copyErrorMessage": "Copy error message",
+    "copyErrorMessage": "복사 오류 메시지",
     "copyErrorCode": "오류 코드 복사",
     "paidUserBadgeTooltip": "사용자는 하나 이상의 기반에서 편집자 이상의 역할을 가지고 있습니다.",
     "approachingLimit": "한계에 가까워짐",
@@ -1881,8 +1881,8 @@
     "thisFieldTypeDoesNotSupportGrouping": "이 필드 유형은 그룹화를 지원하지 않습니다",
     "filterByLimitExceeded": "한도 초과 기준 필터링",
     "groupByLimitExceeded": "그룹별 제한 초과",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "youDoNotHavePermissionToPasteIntoThisField": "이 필드에 붙여넣을 권한이 없습니다",
+    "pasteOperationLimitedToMaxRows": "붙여넣기 작업이 최대 {max}개 행으로 제한되었습니다. 추가 행은 잘렸습니다."
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -2444,7 +2444,7 @@
       "invalidSearchQueryForVisibleFields": "표시되는 필드에 대한 잘못된 검색 쿼리",
       "invalidSearchQueryForDisplayField": "표시 필드에 대한 잘못된 검색 쿼리",
       "promptHasDeletedColumn": "프롬프트에서 열({columns})을 삭제했습니다",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "첨부 파일을 삭제하는 동안 오류가 발생했습니다"
     },
     "toast": {
       "exportMetadata": "베이스 메타 데이터를 성공적으로 내보냈습니다",

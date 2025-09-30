@@ -4,7 +4,6 @@ import { ToolbarFieldsPage } from './Fields';
 import { ToolbarSortPage } from './Sort';
 import { ToolbarFilterPage } from './Filter';
 import { ToolbarViewMenuPage } from './ViewMenu';
-import * as fs from 'fs';
 import { GridPage } from '../../Grid';
 import { ToolbarActionsPage } from './Actions';
 import { GalleryPage } from '../../Gallery';
@@ -213,14 +212,14 @@ export class ToolbarPage extends BasePage {
   }
 
   async verifyDownloadDisabled() {
-    await this.get().locator(`.nc-toolbar-btn.nc-actions-menu-btn`).waitFor({ state: 'hidden' });
+    await this.get().locator(`.nc-toolbar-btn.nc-download-actions-menu-btn`).waitFor({ state: 'hidden' });
   }
 
   async clickAddEditStack() {
     await this.get().locator(`.nc-kanban-stacked-by-menu-btn`).click();
   }
 
-  async validateViewsMenu(param: { role: string; mode?: string }) {
+  async validateViewsMenu(param: { role: string; mode?: string; isToolbarOperationsRestricted?: boolean }) {
     const menuItems = {
       creator: ['Download', 'Upload'],
       editor: ['Download', 'Upload'],
@@ -229,24 +228,39 @@ export class ToolbarPage extends BasePage {
     };
     const vMenu = this.rootPage.locator('.nc-dropdown-actions-menu:visible');
     for (const item of menuItems[param.role.toLowerCase()]) {
-      await expect(vMenu).toContainText(item);
+      if (param.isToolbarOperationsRestricted) {
+        await expect(vMenu).not.toContainText(item);
+      } else {
+        await expect(vMenu).toContainText(item);
+      }
+    }
+
+    // If toolbar operations are restricted, then only VIEW ID should be visible
+    if (param.isToolbarOperationsRestricted) {
+      await expect(vMenu).toContainText('VIEW ID');
     }
   }
 
-  async verifyRoleAccess(param: { role: string; mode?: string }) {
+  async verifyRoleAccess(param: { role: string; mode?: string; isToolbarOperationsRestricted?: boolean }) {
     const role = param.role.toLowerCase();
 
     await this.clickActions();
     await this.validateViewsMenu({
       role: role,
       mode: param.mode,
+      isToolbarOperationsRestricted: param.isToolbarOperationsRestricted,
     });
     await this.clickActions();
 
-    expect(await this.btn_fields.count()).toBe(1);
-    expect(await this.btn_filter.count()).toBe(1);
-    expect(await this.btn_sort.count()).toBe(1);
-    expect(await this.btn_rowHeight.count()).toBe(1);
+    expect(await this.btn_fields.count()).toBe(param.isToolbarOperationsRestricted ? 0 : 1);
+    expect(await this.btn_filter.count()).toBe(param.isToolbarOperationsRestricted ? 0 : 1);
+    expect(await this.btn_sort.count()).toBe(param.isToolbarOperationsRestricted ? 0 : 1);
+    expect(await this.btn_rowHeight.count()).toBe(param.isToolbarOperationsRestricted ? 0 : 1);
+
+    // If toolbar operations are restricted, then download button should be visible
+    expect(await this.get().locator(`.nc-toolbar-btn.nc-download-actions-menu-btn`).count()).toBe(
+      param.isToolbarOperationsRestricted ? 1 : 0
+    );
   }
 
   getToolbarBtns() {

@@ -1,6 +1,6 @@
 <template>
   <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
-    <NcButton v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn" size="xs" type="secondary">
+    <NcButton v-e="['c:actions']" class="nc-download-actions-menu-btn nc-toolbar-btn" size="xs" type="secondary">
       <div class="flex gap-2 items-center text-gray-700">
         <component :is="iconMap.download" class="group-hover:text-accent" />
         <span class="text-capitalize !text-sm font-medium xs:hidden">{{ $t('general.download') }}</span>

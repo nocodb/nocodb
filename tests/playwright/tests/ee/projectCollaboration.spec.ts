@@ -9,10 +9,10 @@ import { LoginPage } from '../../pages/LoginPage';
 import { ProjectViewPage } from '../../pages/Dashboard/ProjectView';
 
 const roleDb = [
-  { email: 'pjt_creator@nocodb.com', role: 'Creator' },
-  { email: 'pjt_editor@nocodb.com', role: 'Editor' },
-  { email: 'pjt_commenter@nocodb.com', role: 'Commenter' },
-  { email: 'pjt_viewer@nocodb.com', role: 'Viewer' },
+  { email: 'pjt_creator@nocodb.com', role: 'Creator', isToolbarOperationsRestricted: false },
+  { email: 'pjt_editor@nocodb.com', role: 'Editor', isToolbarOperationsRestricted: false },
+  { email: 'pjt_commenter@nocodb.com', role: 'Commenter', isToolbarOperationsRestricted: true },
+  { email: 'pjt_viewer@nocodb.com', role: 'Viewer', isToolbarOperationsRestricted: true },
 ];
 
 test.describe('Base Collaboration', () => {
@@ -58,6 +58,7 @@ test.describe('Base Collaboration', () => {
     user: {
       email: string;
       role: string;
+      isToolbarOperationsRestricted: boolean;
     }
   ) => {
     await dashboard.leftSidebar.clickTeamAndSettings();
@@ -105,7 +106,10 @@ test.describe('Base Collaboration', () => {
     });
     await dashboard.viewSidebar.validateRoleAccess({ role: user.role });
 
-    await dashboard.grid.verifyRoleAccess({ role: user.role });
+    await dashboard.grid.verifyRoleAccess({
+      role: user.role,
+      isToolbarOperationsRestricted: user.isToolbarOperationsRestricted,
+    });
 
     await dashboard.grid.openExpandedRow({ index: 0 });
     await dashboard.expandedForm.verifyRoleAccess({ role: user.role });

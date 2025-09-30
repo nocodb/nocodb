@@ -20,7 +20,7 @@ const activeViewTitleOrId = computed(() => {
   return route.value.params.viewTitle
 })
 
-const { eventBus } = useExtensions()
+const { eventBus, extensionAccess } = useExtensions()
 
 const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOrThrow()
 const EXTENSION_ID = extension.value.extensionId
@@ -614,12 +614,22 @@ onMounted(async () => {
                 </div>
 
                 <div class="flex">
-                  <NcTooltip class="flex">
+                  <NcTooltip class="flex" :placement="extensionAccess.update ? 'top' : 'left'">
                     <template #title>
-                      {{ $t('general.remove') }}
+                      {{
+                        extensionAccess.update
+                          ? $t('general.remove')
+                          : $t('tooltip.youDoNotHaveSufficientPermissionToPerformThisAction')
+                      }}
                     </template>
 
-                    <NcButton type="text" size="xs" class="!px-[5px]" @click="onRemoveExportedFile(exp.id)">
+                    <NcButton
+                      :disabled="!extensionAccess.update"
+                      type="text"
+                      size="xs"
+                      class="!px-[5px]"
+                      @click="onRemoveExportedFile(exp.id)"
+                    >
                       <GeneralIcon icon="close" />
                     </NcButton>
                   </NcTooltip>

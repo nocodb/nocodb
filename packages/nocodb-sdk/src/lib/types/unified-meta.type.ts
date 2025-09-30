@@ -1,6 +1,7 @@
 import { ColumnType, LinkToAnotherRecordType } from '~/lib/Api';
 import { NcContext } from '~/lib/ncTypes';
-import { ParsedFormulaNode } from '../formulaHelpers';
+import { ParsedFormulaNode } from '~/lib/formulaHelpers';
+import { RelationTypes } from '~/lib/globals';
 
 /**
  * These types are definitions of meta if it's passed from gui (result from API),
@@ -100,3 +101,27 @@ export interface IFormulaColumn {
 
   getParsedTree(): ParsedFormulaNode;
 }
+
+export type ILinkInfo = {
+  source: {
+    context: NcContext;
+    model: IModel;
+    linkColumn: IColumn;
+    joinColumn: IColumn;
+  };
+  mm?: {
+    context: NcContext;
+    sourceJoinColumn: IColumn;
+    targetJoinColumn: IColumn;
+    model: IModel;
+  };
+  target: {
+    context: NcContext;
+    model: IModel;
+    linkColumn?: IColumn; // cannot be fetched from relation options
+    joinColumn: IColumn;
+  };
+  relationType: RelationTypes;
+  relationFromSource: RelationTypes;
+  isBelongsTo: boolean;
+};

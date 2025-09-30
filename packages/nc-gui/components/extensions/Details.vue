@@ -20,8 +20,8 @@ const {
   addExtension,
   getExtensionAssetsUrl,
   isMarketVisible,
-  userHasAccessToExtension,
-  userCurrentBaseRole,
+
+  extensionAccess,
 } = useExtensions()
 
 const { blockAddNewExtension, navigateToPricing, isWsOwner } = useEeConfig()
@@ -90,21 +90,11 @@ const detailsBody = computed(() => {
           <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeExtension.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
-          <NcTooltip v-if="!blockAddNewExtension" :disabled="userHasAccessToExtension(activeExtension.id)">
+          <NcTooltip v-if="!blockAddNewExtension" :disabled="extensionAccess.create">
             <template #title>
-              {{
-                $t('tooltip.extensionAccessRestrictionTooltip', {
-                  minAccessRole: $t(`objects.roleType.${activeExtension.minAccessRole}`),
-                  currentRole: $t(`objects.roleType.${userCurrentBaseRole}`),
-                })
-              }}
+              {{ $t('tooltip.youDoNotHaveSufficientPermissionToAddExtension') }}
             </template>
-            <NcButton
-              size="small"
-              class="w-full"
-              :disabled="!userHasAccessToExtension(activeExtension.id)"
-              @click="onAddExtension(activeExtension)"
-            >
+            <NcButton size="small" class="w-full" :disabled="!extensionAccess.create" @click="onAddExtension(activeExtension)">
               <div class="flex items-center justify-center gap-1 -ml-3px">
                 <GeneralIcon icon="plus" /> {{ $t('general.add') }} {{ $t('general.extension') }}
               </div>

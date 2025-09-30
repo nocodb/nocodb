@@ -24,14 +24,7 @@ watchDebounced(
   { debounce: 3000 },
 )
 
-const {
-  availableExtensions,
-  addExtension,
-  getExtensionAssetsUrl,
-  showExtensionDetails,
-  userHasAccessToExtension,
-  userCurrentBaseRole,
-} = useExtensions()
+const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails, extensionAccess } = useExtensions()
 
 const { blockAddNewExtension } = useEeConfig()
 
@@ -102,20 +95,15 @@ const onAddExtension = (ext: any) => {
                 {{ ext.subTitle }}
               </NcTooltip>
             </div>
-            <NcTooltip v-if="!blockAddNewExtension" :disabled="userHasAccessToExtension(ext.id)">
+            <NcTooltip v-if="!blockAddNewExtension" :disabled="extensionAccess.create">
               <template #title>
-                {{
-                  $t('tooltip.extensionAccessRestrictionTooltip', {
-                    minAccessRole: $t(`objects.roleType.${ext.minAccessRole}`),
-                    currentRole: $t(`objects.roleType.${userCurrentBaseRole}`),
-                  })
-                }}
+                {{ $t('tooltip.youDoNotHaveSufficientPermissionToAddExtension') }}
               </template>
               <NcButton
                 size="small"
                 type="secondary"
                 class="flex-none !px-7px"
-                :disabled="!userHasAccessToExtension(ext.id)"
+                :disabled="!extensionAccess.create"
                 @click.stop="onAddExtension(ext)"
               >
                 <div class="flex items-center gap-1 -ml-3px text-small">

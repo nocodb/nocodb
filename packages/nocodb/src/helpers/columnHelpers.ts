@@ -4,6 +4,7 @@ import {
   getAvailableRollupForUiType,
   RelationTypes,
   UITypes,
+  WebhookActions,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { REGEXSTR_INTL_LETTER, REGEXSTR_NUMERIC_ARABIC } from 'nocodb-sdk';
@@ -21,6 +22,7 @@ import type LookupColumn from '~/models/LookupColumn';
 import type Model from '~/models/Model';
 import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
+import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -50,6 +52,7 @@ export async function createHmAndBtColumn(
   colExtra?: any,
   parentColumn?: Column,
   isCustom = false,
+  columnWebhookManager?: ColumnWebhookManager,
 ) {
   let savedColumn: Column;
   let crossBaseProps: {
@@ -101,6 +104,10 @@ export async function createHmAndBtColumn(
         },
       },
     );
+    await columnWebhookManager?.addNewColumnById({
+      columnId: childRelCol.id,
+      action: WebhookActions.INSERT,
+    });
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: child,
@@ -152,6 +159,10 @@ export async function createHmAndBtColumn(
         ...crossBaseProps,
       },
     );
+    await columnWebhookManager?.addNewColumnById({
+      columnId: savedColumn.id,
+      action: WebhookActions.INSERT,
+    });
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: parent,
@@ -195,6 +206,7 @@ export async function createOOColumn(
   colExtra?: any,
   parentColumn?: Column,
   isCustom = false,
+  columnWebhookManager?: ColumnWebhookManager,
 ) {
   let savedColumn: Column;
 
@@ -251,6 +263,10 @@ export async function createOOColumn(
       },
     );
 
+    await columnWebhookManager?.addNewColumnById({
+      columnId: childRelCol.id,
+      action: WebhookActions.INSERT,
+    });
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table: child,
       column: childRelCol,
@@ -305,6 +321,10 @@ export async function createOOColumn(
       ...crossBaseProps,
     });
 
+    await columnWebhookManager?.addNewColumnById({
+      columnId: savedColumn.id,
+      action: WebhookActions.INSERT,
+    });
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table: parent,
       column: savedColumn,

@@ -10,68 +10,31 @@ export const recordIdParam = {
   in: 'path',
   required: true,
   example: 1,
-  description:
-    'Primary key of the record you want to read. If the table have composite primary key then combine them by using `___` and pass it as primary key.',
+  description: 'Primary key of the record you want to read.',
 };
 export const fieldsParam = {
   schema: {
-    oneOf: [
-      {
-        type: 'array',
-        items: {
-          type: 'string',
-        },
-      },
-      {
-        type: 'string',
-      },
-    ],
+    type: 'array',
+    items: {
+      type: 'string',
+    },
   },
   in: 'query',
   name: 'fields',
-  example: null,
   description:
-    'Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=["field1","field2"]` or `fields=field1,field2` will include only \'field1\' and \'field2\' in the API response.',
+    'Specify fields to include in the API response. \n\nExample: fields=`field1` will include only field1 in the response.',
 };
 export const sortParam = {
   schema: {
-    oneOf: [
-      {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            direction: {
-              type: 'string',
-              enum: ['asc', 'desc'],
-            },
-            field: {
-              type: 'string',
-            },
-          },
-          required: ['field', 'direction'],
-        },
-      },
-      {
-        type: 'object',
-        properties: {
-          direction: {
-            type: 'string',
-            enum: ['asc', 'desc'],
-          },
-          field: {
-            type: 'string',
-          },
-        },
-        required: ['field', 'direction'],
-      },
-    ],
+    type: 'array',
+    items: {
+      type: 'string',
+    },
   },
   in: 'query',
   name: 'sort',
-  example: null,
   description:
-    'Allows you to specify the fields by which you want to sort the records in your API response. Accepts either an array of sort objects or a single sort object.\n\nEach sort object must have a \'field\' property specifying the field name and a \'direction\' property with value \'asc\' or \'desc\'.\n\nExample: `sort=[{"direction":"asc","field":"field_name"},{"direction":"desc","field":"another_field"}]` or `sort={"direction":"asc","field":"field_name"}`\n\nIf `viewId` query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view.',
+    'Allows you to specify the fields by which you want to sort the records in your API response. Each sort object must have a \'field\' property specifying the field name and a \'direction\' property with value \'asc\' or \'desc\'. If **viewId** query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view. \n\nExample: sort=`{"direction":"asc", "field":"field1"}` will sort records in ascending order based on field1.',
 };
 export const whereParam = {
   schema: {
@@ -79,9 +42,8 @@ export const whereParam = {
   },
   in: 'query',
   name: 'where',
-  example: null,
   description:
-    "Enables you to define specific conditions for filtering records in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components",
+    "Enables defining conditions to filter records in the API response. Multiple conditions can be combined using the logical operators 'and' or 'or'. Each condition consists of three components: a field name, a comparison operator, and a value.\n\nExample: where=`(field1,eq,value1)~and(field2,eq,value2)` will filter records where field1 equals value1 AND field2 equals value2.\n\nIf **viewId** parameter is also included, these filters are applied on top of the view’s predefined filter configuration. \n\n**NOTE**: Maintain the specified format; do not include spaces between components of a condition. For further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)",
 };
 export const pageParam = {
   schema: {
@@ -91,7 +53,7 @@ export const pageParam = {
   in: 'query',
   name: 'page',
   description:
-    'Enables you to control the pagination of your API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of records in the dataset.',
+    'Controls pagination of the API response by specifying the page number to retrieve. By default, the first page is returned. Increment the page number to retrieve subsequent pages.\n\nExample: page=`2` will return the second page of data records in the dataset.',
 };
 export const pageSizeParam = {
   schema: {
@@ -101,7 +63,7 @@ export const pageSizeParam = {
   in: 'query',
   name: 'pageSize',
   description:
-    'Enables you to set a limit on the number of records you want to retrieve in your API response. By default, your response includes all the available records, but by using this parameter, you can control the quantity you receive.\n\nExample: `pageSize=100` will constrain your response to the first 100 records in the dataset.',
+    'Sets a limit on the number of records returned in the API response. By default, all available records are returned, but this parameter allows you to control the quantity.\n\nExample: pageSize=`100` will limit the response to 100 records per page.',
 };
 export const nestedPageParam = {
   schema: {
@@ -111,13 +73,13 @@ export const nestedPageParam = {
   in: 'query',
   name: 'nestedPage',
   description:
-    'Enables you to control the pagination of your nested data (linked records) in API response by specifying the page number you want to retrieve. By default, the first page is returned. If you want to retrieve the next page, you can increment the page number by one.\n\nExample: `page=2` will return the second page of nested data records in the dataset.',
+    'Controls pagination of nested (linked) records in the API response by specifying the page number. By default, the first page is returned; increment the page number to retrieve subsequent pages.\n\nExample: nestedPage=`2` will return the second page of nested data records in the dataset.',
 };
 
 export const linkFieldNameParam = (columns: SwaggerColumn[]) => {
   const linkColumnIds = [];
   const description = [
-    '**Links Field Identifier** corresponding to the relation field `Links` established between tables.\n\nLink Columns:',
+    '**Links Field Identifier** corresponding to the relation field **Links** or **LinkToAnotherRecord** established between tables.\n\nLink Columns:',
   ];
   for (const { column } of columns) {
     // Skip non-link columns and non-self-link system columns
@@ -143,7 +105,7 @@ export const linkFieldNameParam = (columns: SwaggerColumn[]) => {
 export const viewIdParam = (views: SwaggerView[]) => {
   const viewIds = [];
   const description = [
-    '***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.\n\nAdditionally, if you specify a `sort` query parameter, it will take precedence over any sorting configuration defined in the view. If you specify a `where` query parameter, it will be applied over the filtering configuration defined in the view. \n\nBy default, all fields, including those that are disabled within the view, are included in the response. To explicitly specify which fields to include or exclude, you can use the `fields` query parameter to customize the output according to your requirements.\n\nViews:',
+    'Fetches records that are visible within a specific view. If the view has sorting enabled, the API returns records in the same order as displayed in the view. Specifying a **sort** query parameter overrides the view’s sorting configuration. Similarly, a **where** query parameter applies additional filtering on top of the view’s filters. By default, all fields—including those disabled in the view—are included in the response. Use the **fields** query parameter to include or exclude specific fields and customize the output.\n\n**Views:**',
   ];
 
   for (const { view } of views) {

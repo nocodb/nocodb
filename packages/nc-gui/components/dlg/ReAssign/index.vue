@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ProjectRoles, ViewLockType } from 'nocodb-sdk'
+import { ProjectRoles, ViewLockType, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 import UserItem from './UserItem.vue'
 const props = defineProps<Props>()
 
@@ -55,7 +55,11 @@ const filterdBaseUsers = computed(() => {
 
   // exclude current owner from the list
   return users.filter((u) => {
-    const restrictAccessTo = u.roles !== ProjectRoles.NO_ACCESS && u.roles !== ProjectRoles.VIEWER
+    // Don't show user if it is deleted
+    if (u?.deleted) return false
+
+    const baseRole = u.roles ?? extractBaseRoleFromWorkspaceRole(u.workspace_roles)
+    const restrictAccessTo = baseRole !== ProjectRoles.NO_ACCESS && baseRole !== ProjectRoles.VIEWER
 
     if (isPersonalView.value) {
       return u.id !== currentOwner.value?.id && restrictAccessTo

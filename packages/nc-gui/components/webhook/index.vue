@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
-import { type HookReqType, type HookTestReqType, type HookType, PlanLimitTypes, hasInputCalls } from 'nocodb-sdk'
+import {
+  type HookReqType,
+  type HookTestReqType,
+  type HookType,
+  PlanLimitTypes,
+  hasInputCalls,
+  removeUndefinedFromObj,
+} from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
@@ -143,7 +150,7 @@ let hookRef = reactive<
 })
 
 const hasUnsavedChanges = computed(() => {
-  if (!props.hook || !hookRef.id || !oldHookRef.value || !hookRef) return true
+  if (!props.hook || !hookRef.id || !oldHookRef.value || !hookRef || showUpgradeModal.value) return true
 
   return !ncIsEmptyObject(diff(removeUndefinedFromObj(oldHookRef.value), removeUndefinedFromObj(hookRef)))
 })
@@ -187,16 +194,22 @@ const isDropdownOpen = ref()
 
 const titleDomRef = ref<HTMLInputElement | undefined>()
 
-const notificationTypes = ref([
-  {
-    type: 'URL',
-    label: 'HTTP Webhook',
-  },
-  {
-    type: 'Script',
-    label: 'Run Script',
-  },
-])
+const notificationTypes = computed(() => {
+  return [
+    {
+      type: 'URL',
+      label: 'HTTP Webhook',
+    },
+    ...(hookRef.event !== 'view'
+      ? [
+          {
+            type: 'Script',
+            label: 'Run Script',
+          },
+        ]
+      : []),
+  ]
+})
 
 const automationOptions = computed(() => {
   return activeBaseAutomations.value
@@ -225,8 +238,9 @@ const toggleOperation = (operation: string) => {
     hookRef.notification.trigger_form_id = undefined
   }
   hookRef.operation = ops // this will trigger hookRef.operation watch
-  // event other than 'after' has no 'send me everything'
-  sendMeEverythingChecked.value = hookRef.event === 'after' && ops?.length === operationsEnum.value?.length
+  // event other than 'field', 'view', 'after' has no 'send me everything'
+  sendMeEverythingChecked.value =
+    ['field', 'view', 'after'].includes(hookRef.event) && ops?.length === operationsEnum.value?.length
 }
 
 const toggleSendMeEverythingChecked = (_evt: Event) => {
@@ -243,12 +257,15 @@ const handleEventChange = (e: string) => {
   sendMeEverythingChecked.value = false
   hookRef.operation = []
   hookRef.event = e as any
-  if (e !== 'after') {
+  if (!['field', 'view', 'after'].includes(e)) {
     hookRef.operation = ['trigger']
     hookRef.trigger_field = false
     hookRef.trigger_fields = []
     hookRef.notification.trigger_form = false
     hookRef.notification.trigger_form_id = undefined
+  } else {
+    sendMeEverythingChecked.value = true
+    hookRef.operation = sendMeEverythingChecked.value ? [...operationsEnum.value.map((k) => k.value)] : []
   }
 
   // Automatically set active to true when event type is manual
@@ -512,9 +529,9 @@ function setHook(newHook: HookType) {
     },
   })
   if (
-    toAssign.event === 'after' &&
+    ['field', 'view', 'after'].includes(toAssign.event) &&
     toAssign.operation &&
-    toAssign.operation.length === eventList.value.filter((k) => k.value[0] === 'after').length
+    toAssign.operation.length === eventList.value.filter((k) => k.value[0] === toAssign.event).length
   ) {
     sendMeEverythingChecked.value = true
   } else {
@@ -604,7 +621,7 @@ async function loadPluginList() {
 }
 
 const isConditionSupport = computed(() => {
-  return hookRef.event && hookRef.event !== 'manual'
+  return hookRef.event && !['field', 'view', 'manual'].includes(hookRef.event)
 })
 
 async function saveHooks() {
@@ -759,6 +776,14 @@ const supportedDocs = [
 ]
 
 watch(
+  () => hookRef?.event,
+  async () => {
+    await loadSampleData()
+  },
+  { immediate: true },
+)
+
+watch(
   () => hookRef?.operation,
   async () => {
     await loadSampleData()
@@ -769,6 +794,7 @@ watch(
 async function loadSampleData() {
   const samplePayload = await $api.dbTableWebhook.samplePayloadGet(
     meta?.value?.id as string,
+    hookRef?.event ?? 'after',
     ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
     hookRef.version!,
     {
@@ -1115,7 +1141,7 @@ const webhookV2AndV3Diff = computed(() => {
                         <a-select-option v-for="event of eventsEnum" :key="event.value"> {{ event.text }}</a-select-option>
                       </NcSelect>
                     </a-form-item>
-                    <NcDropdown v-if="hookRef.event === 'after'" v-model:visible="isDropdownOpen">
+                    <NcDropdown v-if="['field', 'view', 'after'].includes(hookRef.event)" v-model:visible="isDropdownOpen">
                       <div
                         class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-4 py-2 h-[36px] shadow-default"
                         data-testid="nc-dropdown-hook-operation"
@@ -1145,7 +1171,7 @@ const webhookV2AndV3Diff = computed(() => {
                           data-testid="nc-dropdown-hook-operation-modal"
                           data-testvalue="send_everything"
                         >
-                          <template v-if="hookRef.event === 'after'">
+                          <template v-if="['field', 'view', 'after'].includes(hookRef.event)">
                             <NcMenuItem
                               data-testid="nc-dropdown-hook-operation-option"
                               data-testvalue="sendMeEverything"
@@ -1168,7 +1194,7 @@ const webhookV2AndV3Diff = computed(() => {
                             @click.prevent="toggleOperation(operation.value)"
                           >
                             <div class="flex-1 w-full text-sm">
-                              <template v-if="hookRef.event === 'after'">
+                              <template v-if="['field', 'view', 'after'].includes(hookRef.event)">
                                 {{ $t('general.after') }}
                               </template>
                               {{ operation.text }}

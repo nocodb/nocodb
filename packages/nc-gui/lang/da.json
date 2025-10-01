@@ -442,7 +442,8 @@
     "record": "Post",
     "overview": "Oversigt",
     "baseType": "Basetype",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Script",
@@ -698,6 +699,7 @@
     "isNotNull": "er ikke null."
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Adgang begrænset",
     "editTablePermissions": "Rediger tabelrettigheder",
     "editFieldPermissions": "Rediger feltrettigheder",
@@ -1136,6 +1138,7 @@
     "tokenLimit": "Kun én token pr. bruger er tilladt",
     "duplicateAttachment": "Fil med navn {filename} allerede vedhæftet",
     "tableIdColon": "TABEL ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT-ID: {scriptId}",
     "dashboardIdColon": "DASHBOARD-ID: {dashboardId}",
     "viewIdColon": "VIS ID: {viewId}",
@@ -1178,6 +1181,7 @@
     "forRole": "for rolle",
     "clickToCopy": "Klik for at kopiere",
     "clickToCopyTableID": "Klik for at kopiere tabel-ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klik for at kopiere script-ID",
     "clickToCopyDashboardID": "Klik for at kopiere dashboard-ID",
     "clickToCopyViewID": "Klik for at kopiere View ID",
@@ -1487,7 +1491,8 @@
     "newScript": "Nyt script",
     "emptyScript": "Tomt script",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Klik for at løse",
@@ -1497,6 +1502,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtrér efter dette felt",
     "groupByThisField": "Grupper efter dette felt",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Føj til favoritter",
     "removeFromStarred": "Fjern fra favoritter",
     "runActions": "Kør handlinger",
@@ -1844,6 +1850,7 @@
     "shiftSpace": "Shift + Mellemrum",
     "expandShiftSpace": "Udvid 'Shift + Mellemrum'",
     "selectAllMappedFields": "Vælg alle kortlagte felter",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiér fejlkode",
     "paidUserBadgeTooltip": "Brugeren har rollen editor eller højere i mindst én base.",
     "approachingLimit": "Nærmer sig grænsen",
@@ -1867,7 +1874,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Søg ikoner",
@@ -2428,7 +2443,8 @@
       "invalidSearchQuery": "Ugyldig søgeforespørgsel",
       "invalidSearchQueryForVisibleFields": "Ugyldig søgeforespørgsel for synlige felter",
       "invalidSearchQueryForDisplayField": "Ugyldig søgeforespørgsel for visningsfelt",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Project Metadata eksporteres med succes",

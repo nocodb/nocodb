@@ -1356,6 +1356,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                       <Draggable
                         ref="draggableRef"
+                        v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
                         :model-value="visibleColumns"
                         item-key="fk_column_id"
                         draggable=".item"
@@ -1794,6 +1795,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             </div>
                           </div>
                           <Draggable
+                            v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
                             :list="localColumns"
                             item-key="id"
                             ghost-class="nc-form-field-ghost"

@@ -17,6 +17,7 @@ const { includeM2M, showNull } = useGlobal()
 watch(includeM2M, async () => await loadTables())
 
 onMounted(async () => {
+  await until(() => !!baseId.value).toBeTruthy()
   await basesStore.loadProject(baseId.value!, true)
   showNullAndEmptyInFilter.value = basesStore.getProjectMeta(baseId.value!)?.showNullAndEmptyInFilter
 })

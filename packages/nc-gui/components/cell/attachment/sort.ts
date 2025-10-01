@@ -46,6 +46,7 @@ export function useSortable(
       onStart: onSortStart,
       onEnd: onSortEnd,
       revertOnSpill: true,
+      ...getDraggableAutoScrollOptions({ scrollSensitivity: 100 }),
     })
   }
 

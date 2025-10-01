@@ -82,6 +82,7 @@ export async function populateInsertObject({
   ltarState,
   throwError,
   undo = false,
+  allowNullFieldIds = [],
 }: {
   meta: TableType
   ltarState: Record<string, any>
@@ -89,6 +90,7 @@ export async function populateInsertObject({
   row: Record<string, any>
   throwError?: boolean
   undo?: boolean
+  allowNullFieldIds?: string[]
 }) {
   const missingRequiredColumns = new Set()
   const insertObj = await meta.columns?.reduce(async (_o: Promise<any>, col) => {
@@ -116,7 +118,7 @@ export async function populateInsertObject({
       missingRequiredColumns.add(col.title)
     }
 
-    if ((!col.ai || undo) && row?.[col.title as string] !== null) {
+    if ((!col.ai || undo) && (row?.[col.title as string] !== null || allowNullFieldIds.includes(col.id as string))) {
       o[col.title as string] = row?.[col.title as string]
     }
 

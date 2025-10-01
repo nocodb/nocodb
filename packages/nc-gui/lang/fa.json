@@ -442,7 +442,8 @@
     "record": "سابقه",
     "overview": "نمای کلی",
     "baseType": "نوع پایگاه",
-    "beta": "بتا"
+    "beta": "بتا",
+    "selected": "selected"
   },
   "objects": {
     "script": "اسکریپت",
@@ -698,6 +699,7 @@
     "isNotNull": "تهی نیست"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "دسترسی محدود است",
     "editTablePermissions": "ویرایش دسترسی‌های جدول",
     "editFieldPermissions": "ویرایش دسترسی‌های فیلد",
@@ -1136,6 +1138,7 @@
     "tokenLimit": "فقط یک توکن در هر کاربر مجاز است",
     "duplicateAttachment": "فایلی با نام {filename} قبلاً پیوست شده است",
     "tableIdColon": "TABLE ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "شناسه اسکریپت: {scriptId}",
     "dashboardIdColon": "شناسه داشبورد: {dashboardId}",
     "viewIdColon": "نمایش ID: {viewId}",
@@ -1178,6 +1181,7 @@
     "forRole": "برای نقش",
     "clickToCopy": "کلیک برای کپی",
     "clickToCopyTableID": "برای کپی کردن Table ID کلیک کنید",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "کلیک برای کپی شناسه اسکریپت",
     "clickToCopyDashboardID": "کلیک برای کپی کردن شناسه داشبورد",
     "clickToCopyViewID": "برای کپی کردن ID نمایش کلیک کنید",
@@ -1487,7 +1491,8 @@
     "newScript": "اسکریپت جدید",
     "emptyScript": "اسکریپت خالی",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "کلیک کنید تا حل شود",
@@ -1497,6 +1502,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "فیلتر بر اساس این فیلد",
     "groupByThisField": "گروه‌بندی بر اساس این فیلد",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "افزودن به ستاره‌دارها",
     "removeFromStarred": "حذف از ستاره‌دارها",
     "runActions": "اجرای اقدامات",
@@ -1844,6 +1850,7 @@
     "shiftSpace": "شیفت + فاصله",
     "expandShiftSpace": "باز کردن «شیفت + فاصله»",
     "selectAllMappedFields": "انتخاب همه فیلدهای نگاشت‌شده",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "کپی کد خطا",
     "paidUserBadgeTooltip": "کاربر در حداقل یک پایگاه دارای نقش ویرایشگر یا بالاتر است.",
     "approachingLimit": "نزدیک به حد مجاز",
@@ -1867,7 +1874,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "جستجو آیکون",
@@ -2428,7 +2443,8 @@
       "invalidSearchQuery": "پرس و جوی جستجوی نامعتبر",
       "invalidSearchQueryForVisibleFields": "پرس و جوی جستجوی نامعتبر برای فیلدهای قابل مشاهده",
       "invalidSearchQueryForDisplayField": "پرس و جوی جستجوی نامعتبر برای فیلد نمایشی",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",

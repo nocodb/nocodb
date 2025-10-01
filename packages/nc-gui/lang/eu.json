@@ -442,7 +442,8 @@
     "record": "Erregistroa",
     "overview": "Gainbegiratzea",
     "baseType": "Oinarrizko mota",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Script",
@@ -698,6 +699,7 @@
     "isNotNull": "ez da null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Sarbidea mugatuta",
     "editTablePermissions": "Editatu taularen baimenak",
     "editFieldPermissions": "Editatu eremuen baimenak",
@@ -1136,6 +1138,7 @@
     "tokenLimit": "Erabiltzaile bakoitzeko token bakarra onartzen da",
     "duplicateAttachment": "Fitxategia izenarekin {filename} jada erantsita",
     "tableIdColon": "TAULA ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT IDA: {scriptId}",
     "dashboardIdColon": "ARBELEAREN IDa: {dashboardId}",
     "viewIdColon": "Ikuspegi ID: {viewId}",
@@ -1178,6 +1181,7 @@
     "forRole": "rolarentzat",
     "clickToCopy": "Klikatu kopiatzeko",
     "clickToCopyTableID": "Klik egin Taula ID kopiatzeko",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klikatu Script ID kopiatzeko",
     "clickToCopyDashboardID": "Egin klik Arbela IDa kopiatzeko",
     "clickToCopyViewID": "Klik egin Ikuspegi IDa kopiatzeko",
@@ -1487,7 +1491,8 @@
     "newScript": "Script berria",
     "emptyScript": "Script hutsik",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Egin klik ebazteko",
@@ -1497,6 +1502,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "Iragazi eremu honen arabera",
     "groupByThisField": "Taldekatu eremu honen arabera",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Gehitu izarrei",
     "removeFromStarred": "Kendu izarretatik",
     "runActions": "Exekutatu ekintzak",
@@ -1844,6 +1850,7 @@
     "shiftSpace": "Maius + Zuriune",
     "expandShiftSpace": "Zabaldu 'Maius + Zuriune'",
     "selectAllMappedFields": "Hautatu mapatutako eremu guztiak",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiatu errore kodea",
     "paidUserBadgeTooltip": "Erabiltzaileak gutxienez base bateko editore edo maila handiagoko rola du.",
     "approachingLimit": "Mugara hurbiltzen",
@@ -1867,7 +1874,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Bilatu ikonoak",
@@ -2428,7 +2443,8 @@
       "invalidSearchQuery": "Bilaketa-kontsulta baliogabea",
       "invalidSearchQueryForVisibleFields": "Bilaketa-kontsulta baliogabea ikusarazten diren eremuetarako",
       "invalidSearchQueryForDisplayField": "Bilaketa-kontsulta baliogabea bistaratzen den eremuarentzat",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",

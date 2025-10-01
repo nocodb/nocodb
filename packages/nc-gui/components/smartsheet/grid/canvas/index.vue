@@ -9,6 +9,7 @@ import {
   UITypes,
   type ViewType,
   isVirtualCol,
+  ncHasProperties,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
@@ -106,6 +107,7 @@ const props = defineProps<{
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
   selectedAllRecords?: boolean
+  selectedAllRecordsSkipPks: Record<string, string>
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
@@ -129,7 +131,7 @@ const props = defineProps<{
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
 }>()
 
-const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
 
 provide(IsCanvasInjectionInj, true)
 
@@ -160,6 +162,8 @@ const {
 
 // VModels
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
+
+const vSelectedAllRecordsSkipPks = useVModel(props, 'selectedAllRecordsSkipPks', emits)
 
 const { eventBus, isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
 
@@ -265,6 +269,8 @@ let selectedRowInfo: { index: number | null | undefined; isSelectionStarted: boo
   path: [],
 }
 
+let colAutoScrollTimerId: any = null
+
 const {
   isGroupBy,
 
@@ -290,6 +296,10 @@ const {
   makeCellEditable,
   findClickedColumn,
   findColumnPosition,
+  findColumnAtPosition,
+  dragOver,
+  attachmentCellDropOver,
+  dragStart,
   elementMap,
   // MouseSelectionHandler
   onMouseMoveSelectionHandler,
@@ -328,6 +338,9 @@ const {
   clearCell,
   clearSelectedRangeOfCells,
 
+  // Attachment Cell Drop
+  handleAttachmentCellDrop,
+
   // Cell Click
   handleCellClick,
 
@@ -351,6 +364,7 @@ const {
   isRowDraggingEnabled,
   rowMetaColumnWidth,
   rowColouringBorderWidth,
+  isRecordSelected,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -367,6 +381,7 @@ const {
   scrollTop,
   aggregations,
   vSelectedAllRecords,
+  vSelectedAllRecordsSkipPks,
   selectedRows,
   updateRecordOrder,
   expandRows,
@@ -577,6 +592,7 @@ function resetRowSelection() {
   })
 
   vSelectedAllRecords.value = false
+  vSelectedAllRecordsSkipPks.value = {}
 }
 
 watch(vSelectedAllRecords, (val) => {
@@ -775,8 +791,10 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
 
 function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
-  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
-  const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+
+  const isChecked = isRecordSelected(row)
+
+  const isCheckboxDisabled = (!vSelectedAllRecords.value && !isChecked && isAtMaxSelection) || readOnly.value
 
   const path = group ? generateGroupPath(group) : []
 
@@ -872,7 +890,7 @@ const handleRowMetaClick = ({
   onlyDrag?: boolean
   group?: CanvasGroup
 }) => {
-  const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
+  const { isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -882,11 +900,19 @@ const handleRowMetaClick = ({
 
   switch (clickedRegion.action) {
     case 'select':
-      if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
+      if (!isCheckboxDisabled) {
         resetActiveCell()
 
         if (onlyDrag) {
           row.rowMeta.selected = !row.rowMeta?.selected
+
+          if (vSelectedAllRecords.value && isValidValue(row.rowMeta.rowIndex)) {
+            if (ncHasProperties(vSelectedAllRecordsSkipPks.value, row.rowMeta.rowIndex!)) {
+              delete vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex!]
+            } else {
+              vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex!] = extractPkFromRow(row.row, meta.value?.columns ?? [])
+            }
+          }
 
           const path = generateGroupPath(group)
           if (row.rowMeta?.selected && ncIsNumber(row.rowMeta.rowIndex)) {
@@ -1195,8 +1221,18 @@ function scrollToCell(row?: number, column?: number, path?: Array<number>, horiz
   }
 }
 
+function clearColAutoScrollTimer() {
+  if (colAutoScrollTimerId) {
+    clearInterval(colAutoScrollTimerId)
+    colAutoScrollTimerId = null
+  }
+}
+
 async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   e.preventDefault()
+
+  clearColAutoScrollTimer()
+
   if (mouseUpListener) {
     document.removeEventListener('mouseup', mouseUpListener)
     mouseUpListener = null
@@ -1251,7 +1287,11 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
       if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
-        vSelectedAllRecords.value = !vSelectedAllRecords.value
+        if (vSelectedAllRecords.value && !ncIsEmptyObject(vSelectedAllRecordsSkipPks.value)) {
+          vSelectedAllRecordsSkipPks.value = {}
+        } else {
+          vSelectedAllRecords.value = !vSelectedAllRecords.value
+        }
         resetActiveCell()
       }
 
@@ -1793,6 +1833,8 @@ const getHeaderTooltipRegions = (
 }
 
 const handleMouseMove = (e: MouseEvent) => {
+  clearColAutoScrollTimer()
+
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -1803,10 +1845,9 @@ const handleMouseMove = (e: MouseEvent) => {
 
   let cursor = colResizeHoveredColIds.value.size ? 'col-resize' : 'auto'
   hideTooltip()
+  const fixedCols = columns.value.filter((col) => col.fixed)
 
   if (mousePosition.y < 32) {
-    const fixedCols = columns.value.filter((col) => col.fixed)
-
     // check if it's hovering add new column
     const plusColumnX = totalColumnsWidth.value - scrollLeft.value + groupByColumns.value?.length * 13
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
@@ -1874,14 +1915,66 @@ const handleMouseMove = (e: MouseEvent) => {
   if (isFillHandlerActive.value) {
     onMouseMoveFillHandlerMove(e)
   } else if (isDragging.value || resizeableColumn.value) {
+    const fixedWidth = fixedCols.reduce((sum, col) => sum + parseCellWidth(col.width), 0)
+
     if (mousePosition.x >= width.value - 200) {
       scroller.value?.scrollTo({
         left: scrollLeft.value + 10,
       })
-    } else if (mousePosition.x <= 200) {
+
+      if (isDragging.value) {
+        colAutoScrollTimerId = setInterval(() => {
+          if (scrollLeft.value + 200 >= scroller.value?.scrollBounds.right) {
+            clearColAutoScrollTimer()
+            return
+          }
+
+          scroller.value?.scrollTo({
+            left: scrollLeft.value + 10,
+          })
+
+          const rect = canvasRef.value?.getBoundingClientRect()
+          if (!rect) return
+
+          const col = findColumnAtPosition(e.clientX - rect.left)
+
+          if (col && col.id !== dragStart.value?.id) {
+            dragOver.value = {
+              id: col.id,
+              index: columns.value.findIndex((c) => c.id === col.id),
+            }
+          }
+        }, 0)
+      }
+    } else if (mousePosition.x <= fixedWidth) {
       scroller.value?.scrollTo({
         left: scrollLeft.value - 10,
       })
+
+      if (isDragging.value) {
+        colAutoScrollTimerId = setInterval(() => {
+          if (scrollLeft.value <= 0) {
+            clearColAutoScrollTimer()
+            return
+          }
+
+          scroller.value?.scrollTo({
+            left: scrollLeft.value - 10 <= 0 ? 0 : scrollLeft.value - 10,
+          })
+
+          const rect = canvasRef.value?.getBoundingClientRect()
+          if (!rect) return
+
+          const col = findColumnAtPosition(Math.max(fixedWidth, e.clientX - rect.left))
+
+          if (col && col.id !== dragStart.value?.id) {
+            dragOver.value = {
+              id: col.id,
+              index: columns.value.findIndex((c) => c.id === col.id),
+            }
+          }
+        }, 0)
+      }
     }
   } else {
     const y = e.clientY - rect.top
@@ -1977,7 +2070,10 @@ const handleMouseMove = (e: MouseEvent) => {
 
       const selectionStart = Math.min(selectedRowInfo.index, row.rowMeta.rowIndex)
 
-      const selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
+      const selectionEnd = Math.min(
+        selectionStart + (MAX_SELECTED_ROWS - 1),
+        Math.max(selectedRowInfo.index, row.rowMeta.rowIndex),
+      )
 
       /**
        * If selection is started and the selection is not changed, then don't do anything
@@ -2544,6 +2640,114 @@ useActiveKeydownListener(
   },
 )
 
+const resetAttachmentCellDropOver = () => {
+  if (!attachmentCellDropOver.value) return
+
+  attachmentCellDropOver.value = null
+
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+const onDrop = (files: File[] | null) => {
+  if (!attachmentCellDropOver.value || !files?.length || !isDataEditAllowed.value) {
+    return
+  }
+
+  const dataCache = getDataCache(attachmentCellDropOver.value.path)
+
+  const row =
+    attachmentCellDropOver.value.rowIndex !== null
+      ? dataCache.cachedRows.value.get(attachmentCellDropOver.value.rowIndex)
+      : undefined
+
+  const column = columns.value[attachmentCellDropOver.value.colIndex]!
+
+  if (!row || !column || column.readonly) {
+    resetAttachmentCellDropOver()
+    return
+  }
+
+  selection.value.clear()
+  editEnabled.value = null
+  activeCell.value = {
+    row: attachmentCellDropOver.value.rowIndex,
+    column: attachmentCellDropOver.value.colIndex,
+    path: attachmentCellDropOver.value.path,
+  }
+  resetRowSelection()
+  onActiveCellChanged()
+
+  try {
+    handleAttachmentCellDrop(files, attachmentCellDropOver.value)
+  } finally {
+    resetAttachmentCellDropOver()
+  }
+}
+
+const onOver = (_files: File[] | null, e: DragEvent) => {
+  if (!isDataEditAllowed.value) return
+
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+
+  if (
+    clientMousePosition.clientX === e.clientX &&
+    clientMousePosition.clientY === e.clientY &&
+    mousePosition.x === e.clientX - rect.left &&
+    mousePosition.y === e.clientY - rect.top
+  ) {
+    return
+  }
+
+  clientMousePosition.clientX = e.clientX
+  clientMousePosition.clientY = e.clientY
+  mousePosition.x = e.clientX - rect.left
+  mousePosition.y = e.clientY - rect.top
+
+  // Skip on hover on header
+  if (mousePosition.y <= 32) {
+    return resetAttachmentCellDropOver()
+  }
+
+  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ROW])
+  if (!element?.row) return
+
+  const rowIndex = element?.rowIndex
+  const groupPath = generateGroupPath(element?.group)
+
+  const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
+
+  const colIndex = column ? columns.value.findIndex((col) => col.id === column.id) : -1
+
+  // If hover column is not attachment or is readonly, skip
+  if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment || column.readonly) {
+    return resetAttachmentCellDropOver()
+  }
+
+  if (
+    attachmentCellDropOver.value &&
+    attachmentCellDropOver.value.rowIndex === rowIndex &&
+    attachmentCellDropOver.value.columnId === column.id
+  ) {
+    return
+  }
+
+  attachmentCellDropOver.value = { rowIndex, colIndex, columnId: column.id, path: groupPath }
+
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+useDropZone(canvasRef, {
+  onDrop,
+  onEnter: () => {
+    resetAttachmentCellDropOver()
+  },
+  onOver,
+  onLeave: () => {
+    resetAttachmentCellDropOver()
+  },
+})
+
 watch(
   removeInlineAddRecord,
   (newValue) => {
@@ -2634,6 +2838,7 @@ watch(
               "
               v-model:context-menu-target="contextMenuTarget"
               v-model:selected-all-records="vSelectedAllRecords"
+              v-model:selected-all-records-skip-pks="vSelectedAllRecordsSkipPks"
               :selection="selection"
               :columns="columns"
               :active-cell="activeCell"

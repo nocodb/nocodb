@@ -33,9 +33,12 @@ export function ncIsEmptyObject(value: any): boolean {
 /**
  * Checks whether the given value is an object and contains all the specified properties.
  *
+ * Supports checking either a **single property** or **multiple properties** at once.
+ *
  * @template T - The expected object type.
  * @param value - The value to check.
- * @param keys - An array of property keys that should exist in the object.
+ * @param keyOrKeys - A property key or an array of property keys that should exist in the object.
+ *                     Can be a single string, a single `keyof T`, an array of strings, or an array of `keyof T`.
  * @returns {value is T} - Returns `true` if `value` is an object containing all specified keys, otherwise `false`.
  *
  * @example
@@ -44,8 +47,14 @@ export function ncIsEmptyObject(value: any): boolean {
  *
  * const obj = { name: "Alice", age: 25 };
  *
+ * // Check multiple keys
  * if (ncHasProperties<User>(obj, ["name", "age"])) {
  *   console.log(obj.name); // ✅ TypeScript ensures obj.name is safe to access
+ * }
+ *
+ * // Check single key
+ * if (ncHasProperties<User>(obj, "age")) {
+ *   console.log(obj.age); // ✅ Safe to access
  * }
  * ```
  *
@@ -53,19 +62,45 @@ export function ncIsEmptyObject(value: any): boolean {
  * ```typescript
  * const obj = { title: "Hello", value: "World" };
  *
+ * // Using string array
  * if (ncHasProperties(obj, ["title", "value"])) {
  *   console.log(obj["title"]); // ✅ Safe to access without explicit type
  * }
+ *
+ * // Using single string
+ * if (ncHasProperties(obj, "title")) {
+ *   console.log(obj.title); // ✅ Works
+ * }
  * ```
  */
-export function ncHasProperties<T extends object>(
+export function ncHasProperties<T extends object = object>(
+  value: any,
+  key: keyof T
+): value is T;
+export function ncHasProperties<T extends object = object>(
+  value: any,
+  key: string | number | symbol
+): value is T;
+export function ncHasProperties<T extends object = object>(
   value: any,
   keys: readonly (keyof T)[]
 ): value is T;
 export function ncHasProperties<T extends object = object>(
   value: any,
-  keys: readonly string[]
+  keys: readonly (string | number | symbol)[]
+): value is T;
+// Implementation signature (broad enough)
+export function ncHasProperties<T extends object = object>(
+  value: any,
+  keyOrKeys:
+    | string
+    | number
+    | symbol
+    | keyof T
+    | readonly (string | number | symbol)[]
+    | readonly (keyof T)[]
 ): value is T {
+  const keys = ncIsArray(keyOrKeys) ? keyOrKeys : [keyOrKeys];
   return ncIsObject(value) && keys.every((key) => key in value);
 }
 

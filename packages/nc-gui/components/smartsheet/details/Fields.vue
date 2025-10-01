@@ -1816,6 +1816,7 @@ onBeforeRouteUpdate((_to, from, next) => {
             </div>
             <div ref="fieldsListWrapperDomRef" class="flex-1 flex-grow-1 nc-scrollbar-md !overflow-auto">
               <Draggable
+                v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
                 :model-value="fields"
                 :disabled="isLocked"
                 item-key="id"

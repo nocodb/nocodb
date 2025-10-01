@@ -40,14 +40,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'model_context_protocol',
-    title: 'Model Context Protocol',
-    description: 'Connect NocoDB base to Claude AI, Windsurf AI, and more.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-  },
-  {
     id: 'ai_features',
     title: 'AI features',
     description: 'Unlock AI features to enhance your NocoDB experience.',

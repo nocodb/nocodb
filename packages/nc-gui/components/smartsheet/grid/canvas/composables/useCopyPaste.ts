@@ -22,6 +22,7 @@ import { SelectTypeConversionError } from '../../../../../error/select-type-conv
 import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
+import type { ActionManager } from '../loaders/ActionManager'
 
 const MAX_ROWS = 5000
 
@@ -40,6 +41,8 @@ export function useCopyPaste({
   updateOrSaveRow,
   getRows,
   getDataCache,
+
+  actionManager,
 }: {
   activeCell: Ref<{
     row?: number
@@ -75,7 +78,7 @@ export function useCopyPaste({
   }>
   view: ComputedRef<ViewType | undefined>
   meta: Ref<TableType>
-  syncCellData: (ctx: { row: number; col?: number; updatedColumnTitle?: string }, path?: Array<number>) => Promise<void>
+  syncCellData: (ctx: { row: number; column?: number; updatedColumnTitle?: string }, path?: Array<number>) => Promise<void>
   bulkUpsertRows: (
     insertRows: Row[],
     updateRows: Row[],
@@ -108,6 +111,7 @@ export function useCopyPaste({
     selectedRows: ComputedRef<Array<Row>>
     isRowSortRequiredRows: ComputedRef<Array<Row>>
   }
+  actionManager: ActionManager
 }) {
   const { $api } = useNuxtApp()
   const { isDataReadOnly } = useRoles()
@@ -123,6 +127,13 @@ export function useCopyPaste({
   const { isAllowed } = usePermissions()
   const { maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } = useEeConfig()
   const { batchUploadFiles } = useAttachment()
+  const {
+    setCellClipboardDataItem,
+    getClipboardItemId,
+    getCurrentCopiedCellClipboardData,
+    extractCellClipboardData,
+    waitingCellClipboardDataIds,
+  } = useNcClipboardData()
 
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const isPublic = inject(IsPublicInj, ref(false))
@@ -182,7 +193,7 @@ export function useCopyPaste({
     // Keep this check at the end so that readonly or other field restrictions get priority over permission check
     if (restrictEditCell) {
       if (showInfo) {
-        message.toast('You do not have permission to paste into this field')
+        message.toast(t('tooltip.youDoNotHavePermissionToPasteIntoThisField'))
       }
       return false
     }
@@ -220,6 +231,13 @@ export function useCopyPaste({
     // Replace \" with " in clipboard data
     let clipboardData = e.clipboardData?.getData('text/plain') || ''
 
+    const storedCopiedData = getCurrentCopiedCellClipboardData(clipboardData)
+
+    // Add the waiting clipboard data id so that if setClipboardData fn is called during this operation, it will not remove the currentCopiedCellClipboardDataItem from the clipboard data
+    if (storedCopiedData && !waitingCellClipboardDataIds.value.includes(storedCopiedData.id)) {
+      waitingCellClipboardDataIds.value.push(storedCopiedData.id)
+    }
+
     if (clipboardData?.endsWith('\n')) {
       // Remove '\n' from the end of the clipboardData
       // When copying from XLS/XLSX files, there is an extra '\n' appended to the end
@@ -230,6 +248,7 @@ export function useCopyPaste({
     try {
       if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
         // if the clipboard data contains new line or tab, then it is a matrix or LongText
+
         const parsedClipboard = parse(clipboardData, {
           delimiter: '\t',
           escapeChar: '\\',
@@ -388,6 +407,7 @@ export function useCopyPaste({
                     markInfoShown: () => {
                       isColInfoShown[column.title!] = true
                     },
+                    clipboardItem: extractCellClipboardData(storedCopiedData, clipboardRowIndex, j),
                   },
                   isMysql(meta.value?.source_id),
                   true,
@@ -434,7 +454,7 @@ export function useCopyPaste({
         }
 
         if (isTruncated) {
-          message.warning(`Paste operation limited to ${MAX_ROWS} rows. Additional rows were truncated.`)
+          message.warning(t('tooltip.pasteOperationLimitedToMaxRows', { max: MAX_ROWS }))
         }
       } else {
         if (selection.value.isSingleCell()) {
@@ -453,6 +473,7 @@ export function useCopyPaste({
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -492,6 +513,7 @@ export function useCopyPaste({
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -618,7 +640,7 @@ export function useCopyPaste({
 
                       rowObj.row[columnObj.title!] = value
 
-                      await syncCellData?.(activeCell.activeCell?.value?.path)
+                      await syncCellData?.(activeCell, activeCell?.path)
                     }
                   },
                   args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
@@ -648,6 +670,7 @@ export function useCopyPaste({
                 oldValue: rowObj.row[columnObj.title!],
                 maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
                 showUpgradeToAddMoreAttachmentsInCell,
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -668,13 +691,23 @@ export function useCopyPaste({
           }
 
           if (columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length && pasteValue?.length) {
-            const newAttachments =
-              (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
+            const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
 
-            const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+            const uploadAction = async () => {
+              const newAttachments =
+                (await handleFileUploadAndGetCellValue(pasteValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
 
-            rowObj.row[columnObj.title!] =
-              newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+              const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+
+              rowObj.row[columnObj.title!] =
+                newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+            }
+
+            if (pasteRowPk) {
+              await actionManager.executeUploadAction(pasteRowPk, columnObj.id!, [], uploadAction)
+            } else {
+              await uploadAction()
+            }
           } else if (pasteValue !== undefined) {
             rowObj.row[columnObj.title!] = pasteValue
           }
@@ -732,15 +765,35 @@ export function useCopyPaste({
                       markInfoShown: () => {
                         isColInfoShown[col.title!] = true
                       },
+                      clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
                     },
                     isMysql(meta.value?.source_id),
                     true,
                   )
 
                   if (fileUploadPayload?.length) {
-                    const newAttachments = await handleFileUploadAndGetCellValue(fileUploadPayload, col.id!, row.row[col.title!])
+                    const uploadAction = async () => {
+                      const newAttachments = await handleFileUploadAndGetCellValue(
+                        fileUploadPayload,
+                        col.id!,
+                        row.row[col.title!],
+                      )
 
-                    pasteValue = newAttachments ? JSON.stringify(newAttachments) : null
+                      pasteValue = newAttachments ? JSON.stringify(newAttachments) : null
+                    }
+
+                    const pasteRowsPk = rows
+                      .map((row) => {
+                        return extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                      })
+                      .filter(Boolean) as string[]
+
+                    if (pasteRowsPk.length) {
+                      // We do upload action for first row only and use uploaded url in other rows
+                      await actionManager.executeUploadAction(pasteRowsPk, col.id!, [], uploadAction)
+                    } else {
+                      await uploadAction()
+                    }
                   }
                 }
               } else {
@@ -758,6 +811,7 @@ export function useCopyPaste({
                       markInfoShown: () => {
                         isColInfoShown[col.title!] = true
                       },
+                      clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -796,6 +850,11 @@ export function useCopyPaste({
         console.error(error, (error as SuppressedError).isErrorSuppressed)
         message.error(await extractSdkResponseErrorMsg(error))
       }
+    } finally {
+      // After paste operation is completed, remove the waiting clipboard data id so that on setClipboardDateItem can remove the item from the clipboard data
+      if (storedCopiedData && waitingCellClipboardDataIds.value.includes(storedCopiedData.id)) {
+        waitingCellClipboardDataIds.value = waitingCellClipboardDataIds.value.filter((id) => id !== storedCopiedData.id)
+      }
     }
   }
 
@@ -822,7 +881,11 @@ export function useCopyPaste({
   }
 
   const copyTable = async (rows: Row[], cols: ColumnType[]) => {
-    const { html: copyHTML, text: copyPlainText } = serializeRange(rows, cols, {
+    const {
+      html: copyHTML,
+      text: copyPlainText,
+      clipboardItemConfig,
+    } = serializeRange(rows, cols, {
       meta: meta.value,
       isPg,
       isMysql,
@@ -831,10 +894,19 @@ export function useCopyPaste({
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
 
-    return (
-      navigator.clipboard?.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })]) ??
-      copy(copyPlainText)
-    )
+    const clipboardItem: NcClipboardDataItemType = {
+      ...clipboardItemConfig,
+      tableId: meta.value?.id,
+      id: getClipboardItemId(),
+    }
+
+    const res = await (navigator.clipboard?.write([
+      new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText }),
+    ]) ?? copy(copyPlainText))
+
+    setCellClipboardDataItem(clipboardItem)
+
+    return res
   }
 
   async function clearCell(ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate = false) {
@@ -1024,14 +1096,28 @@ export function useCopyPaste({
           const columnObj = unref(fields)[cpCol]
           if (!rowObj || !columnObj) return
 
-          const textToCopy = valueToCopy(rowObj, columnObj, {
+          const { textToCopy, cellValue, clipboardColumn, rowId } = valueToCopy(rowObj, columnObj, {
             meta: meta.value,
             metas: metas.value,
             isPg,
             isMysql,
           })
 
-          await copy(isValidValue(textToCopy) ? textToCopy : '')
+          const plainTextValue = isValidValue(textToCopy) ? textToCopy : ''
+
+          await copy(plainTextValue)
+
+          const clipboardItem: NcClipboardDataItemType = {
+            dbCellValueArr: [[cellValue]],
+            columns: [clipboardColumn],
+            copiedPlainText: plainTextValue,
+            rowIds: [rowId],
+            tableId: meta.value?.id,
+            id: getClipboardItemId(),
+          }
+
+          setCellClipboardDataItem(clipboardItem)
+
           message.toast(
             t(`msg.toast.nCellCopied`, {
               n: 1,
@@ -1045,6 +1131,72 @@ export function useCopyPaste({
     }
   }
 
+  const handleAttachmentCellDrop = async (files: File[], attachmentCellDropOver: AttachmentCellDropOverType) => {
+    if (isSqlView.value || isPublic.value || !hasEditPermission.value) return false
+
+    if (!meta.value?.id) return
+
+    const dataCache = getDataCache(attachmentCellDropOver.path)
+
+    const { cachedRows } = dataCache
+
+    const rowObj = (unref(cachedRows) as Map<number, Row>).get(attachmentCellDropOver.rowIndex!)
+    const canvasGridColumn = (unref(columns) ?? [])[attachmentCellDropOver.colIndex]
+
+    if (!rowObj || !canvasGridColumn || canvasGridColumn.readonly || !canvasGridColumn.columnObj) return
+
+    const columnObj = canvasGridColumn.columnObj
+
+    let dropValue: any
+
+    try {
+      try {
+        dropValue = convertCellData(
+          {
+            value: '',
+            to: columnObj.uidt as UITypes,
+            column: columnObj,
+            appInfo: unref(appInfo),
+            files,
+            oldValue: rowObj.row[columnObj.title!],
+            maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+            showUpgradeToAddMoreAttachmentsInCell,
+          },
+          isMysql(meta.value?.source_id),
+        )
+        validateColumnValue(columnObj, dropValue)
+      } catch (ex) {
+        dropValue = null
+      }
+
+      if (!dropValue?.length) return
+
+      const dropRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+      if (!dropRowPk) return
+
+      await actionManager.executeUploadAction(dropRowPk, columnObj.id!, [], async () => {
+        const newAttachments =
+          (await handleFileUploadAndGetCellValue(dropValue, columnObj.id!, rowObj.row[columnObj.title!])) || []
+
+        const oldAttachments = ncIsArray(rowObj.row[columnObj.title!]) ? rowObj.row[columnObj.title!] : []
+
+        rowObj.row[columnObj.title!] =
+          newAttachments.length || oldAttachments.length ? JSON.stringify(oldAttachments.concat(newAttachments)) : null
+
+        await syncCellData?.(
+          {
+            row: attachmentCellDropOver.rowIndex,
+            column: attachmentCellDropOver.colIndex,
+          },
+          attachmentCellDropOver.path,
+        )
+      })
+    } catch (ex) {
+      console.log(ex)
+      message.error(t('msg.error.errorOccuredWhileDroppingAttachments'))
+    }
+  }
+
   function handleParseAttachmentCellData<T>(value: T): T {
     const parsedVal = parseProp(value)
 
@@ -1055,5 +1207,5 @@ export function useCopyPaste({
     }
   }
   useEventListener(document, 'paste', handlePaste)
-  return { copyValue, clearCell, isPasteable }
+  return { copyValue, clearCell, isPasteable, handleAttachmentCellDrop }
 }

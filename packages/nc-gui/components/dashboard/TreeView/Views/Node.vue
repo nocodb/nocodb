@@ -297,7 +297,7 @@ watch(isDropdownOpen, async () => {
       :overlay-inner-style="{ width: '240px' }"
       trigger="hover"
       placement="right"
-      :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip"
+      :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip || isMobileMode"
     >
       <template #title>
         <div class="flex flex-col gap-3">

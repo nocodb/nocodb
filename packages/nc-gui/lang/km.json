@@ -442,7 +442,8 @@
     "record": "កំណត់ត្រា",
     "overview": "ទិដ្ឋភាពសង្ខេប",
     "baseType": "ប្រភេទ Base",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "ស្គ្រីប",
@@ -698,6 +699,7 @@
     "isNotNull": "មិនទទេ"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "ចូលដំណើរការត្រូវបានកំណត់",
     "editTablePermissions": "កែសម្រួលសិទ្ធិតារាង",
     "editFieldPermissions": "កែសម្រួលសិទ្ធិវាល",
@@ -1136,6 +1138,7 @@
     "tokenLimit": "មានតែមួយtokenសម្រាប់អ្នកប្រើមួយដែលអនុញ្ញាត",
     "duplicateAttachment": "ឯកសារជាមួយឈ្មោះ {filename} បានភ្ជាប់រួចហើយ",
     "tableIdColon": "អត្តលេខតារាង: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "លេខសម្គាល់ស្គ្រីប: {scriptId}",
     "dashboardIdColon": "ID ផ្ទាំងគ្រប់គ្រង៖ {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1178,6 +1181,7 @@
     "forRole": "សម្រាប់តួការងារ",
     "clickToCopy": "ចុចដើម្បីចម្លង",
     "clickToCopyTableID": "ចុចដើម្បីចម្លងអត្តលេខតារាង",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "ចុចដើម្បីចម្លងលេខសម្គាល់ស្គ្រីប",
     "clickToCopyDashboardID": "ចុចដើម្បីចម្លង ID ផ្ទាំងគ្រប់គ្រង",
     "clickToCopyViewID": "ចុចដើម្បីចម្លងទិដ្ឋភាព ID",
@@ -1487,7 +1491,8 @@
     "newScript": "ស្គ្រីបថ្មី",
     "emptyScript": "ស្គ្រីបទទេ",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "ចុចដើម្បីដោះស្រាយ",
@@ -1497,6 +1502,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "តម្រងតាមវាលនេះ",
     "groupByThisField": "ក្រុមតាមវាលនេះ",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "បន្ថែមទៅបានសម្គល់ផ្កាយ",
     "removeFromStarred": "យកចេញពីបានសម្គល់ផ្កាយ",
     "runActions": "រត្តូវសកម្មភាព",
@@ -1844,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "ពង្រីក 'Shift + Space'",
     "selectAllMappedFields": "ជ្រើសវាលបានផ្គូផ្គងទាំងអស់",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "ចម្លងកូដកំហុស",
     "paidUserBadgeTooltip": "អ្នកប្រើមានតួនាទី Editor ឬខ្ពស់ជាងនេះក្នុងយ៉ាងហោចណាស់មួយ Base។",
     "approachingLimit": "កំពុងជិតដល់កំណត់",
@@ -1867,7 +1874,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",
@@ -2428,7 +2443,8 @@
       "invalidSearchQuery": "សំណួរស្វែងរកមិនត្រឹមត្រូវ",
       "invalidSearchQueryForVisibleFields": "សំណួរស្វែងរកមិនត្រឹមត្រូវសម្រាប់វាលអាចមើលឃើញ",
       "invalidSearchQueryForDisplayField": "សំណួរស្វែងរកមិនត្រឹមត្រូវសម្រាប់វាលបង្ហាញ",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "ធាតុមូលដ្ឋានត្រូវបាននាំចេញដោយជោគជ័យ",

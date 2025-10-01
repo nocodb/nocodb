@@ -5,6 +5,7 @@
     <AccountToken v-if="$route.params.page === 'tokens'" />
     <AccountSetup v-else-if="$route.params.page === 'setup'" />
     <AccountProfile v-else-if="$route.params.page === 'profile'" />
+    <AccountMCP v-else-if="$route.params.page === 'mcp'" />
     <AccountAppStore v-else-if="$route.params.page === 'apps' && !isEeUI" />
     <span v-else></span>
   </div>

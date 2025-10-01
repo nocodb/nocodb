@@ -711,6 +711,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               {{ $t('title.noResultsMatchedYourSearch') }}
             </div>
             <Draggable
+              v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 40 })"
               v-model="fields"
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"

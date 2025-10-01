@@ -40,4 +40,12 @@ export default class Vultr extends GenericS3 implements IStorageAdapterV2 {
 
     this.s3Client = new S3Client(s3Options);
   }
+  override getUploadedPath(path: string): { path?: string; url?: string } {
+    const updatedEndpoint = this.input.hostname.startsWith('https://')
+      ? this.input.hostname
+      : `https://${this.input.hostname}`;
+    return {
+      url: `${updatedEndpoint}/${this.input.bucket}/${path}`,
+    };
+  }
 }

@@ -442,7 +442,8 @@
     "record": "ದಾಖಲೆ",
     "overview": "ಅವಲೋಕನ",
     "baseType": "ಬೇಸ್ ಪ್ರಕಾರ",
-    "beta": "ಬೇಟಾ"
+    "beta": "ಬೇಟಾ",
+    "selected": "selected"
   },
   "objects": {
     "script": "ಸ್ಕ್ರಿಪ್ಟ್",
@@ -698,6 +699,7 @@
     "isNotNull": "null ಅಲ್ಲ"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "ಪ್ರವೇಶ ನಿರ್ಭಂಧಿಸಲಾಗಿದೆ",
     "editTablePermissions": "ಟೇಬಲ್ ಅನುಮತಿಗಳನ್ನು ಸಂಪಾದಿಸಿ",
     "editFieldPermissions": "ಕ್ಷೇತ್ರ ಅನುಮತಿಗಳನ್ನು ಸಂಪಾದಿಸಿ",
@@ -1136,6 +1138,7 @@
     "tokenLimit": "ಪ್ರತಿ ಬಳಕೆದಾರನಿಗೆ ಒಂದೇ ಒಂದು ಟೋಕನ್ ಅನುಮತಿಸಲಾಗಿದೆ",
     "duplicateAttachment": "ಹೆಸರಿನ {filename} ಒಟ್ಟಿ ಫೈಲ್ ಈಗಾಗಲೇ ಲಗತ್ತಿಸಲಾಗಿದೆ",
     "tableIdColon": "ಕೋಷ್ಟಕ ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ಸ್ಕ್ರಿಪ್ಟ್ ID: {scriptId}",
     "dashboardIdColon": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಐಡಿ: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1178,6 +1181,7 @@
     "forRole": "ಭೂಮಿಕೆಯವರಿಗೆ",
     "clickToCopy": "ಪ್ರತಿಕರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToCopyTableID": "ಕೋಷ್ಟಕ ID ನಕಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "ಸ್ಕ್ರಿಪ್ಟ್ ID ಅನ್ನು ಪ್ರತಿಕರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToCopyDashboardID": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಐಡಿಯನ್ನು ನಕಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToCopyViewID": "ವೀಕ್ಷಣೆ ID ನಕಲು ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
@@ -1487,7 +1491,8 @@
     "newScript": "ಹೊಸ ಸ್ಕ್ರಿಪ್ಟ್",
     "emptyScript": "ಖಾಲಿ ಸ್ಕ್ರಿಪ್ಟ್",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "ಪರಿಹರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
@@ -1497,6 +1502,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "ಈ ಫೀಲ್ಡ್ ಮೂಲಕ ಫಿಲ್ಟರ್ ಮಾಡಿ",
     "groupByThisField": "ಈ ಫೀಲ್ಡ್ ಮೂಲಕ ಗುಂಪುಗೊಳಿಸಿ",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "ನಕ್ಷತ್ರಗಳಿಗೆ ಸೇರಿಸಿ",
     "removeFromStarred": "ನಕ್ಷತ್ರಗಳಿಂದ ತೆಗೆದುಹಾಕಿ",
     "runActions": "ಕ್ರಿಯೆಗಳನ್ನು ಚಾಲನೆ ಮಾಡಿ",
@@ -1844,6 +1850,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "'Shift + Space' ವಿಸ್ತರಿಸಿ",
     "selectAllMappedFields": "ನಕ್ಷೆ ಮಾಡಿದ ಎಲ್ಲಾ ಫೀಲ್ಡ್‌ಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "ದೋಷ ಕೋಡ್ ಅನ್ನು ಪ್ರತಿಕರಿಸಿ",
     "paidUserBadgeTooltip": "ಬಳಕೆದಾರ ಕನಿಷ್ಠ ಒಂದು ಬೇಸ್\r\u000bನಲ್ಲಿ ಎಡಿಟರ್ ಅಥವಾ ಅದಕ್ಕಿಂತ ಮೇಲಿನ ಪಾತ್ರ ಹೊಂದಿದ್ದಾರೆ.",
     "approachingLimit": "ಮಿತಿ ಸಮೀಪಿಸುತ್ತಿದೆ",
@@ -1867,7 +1874,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "ಐಕಾನ್‌ಗಳನ್ನು ಹುಡುಕಿ",
@@ -2428,7 +2443,8 @@
       "invalidSearchQuery": "ಅಮಾನ್ಯ ಹುಡುಕಾಟ ಅನುರೋಧ",
       "invalidSearchQueryForVisibleFields": "ಗೋಚರ ಕ್ಷೇತ್ರಗಳಿಗೆ ಅಮಾನ್ಯ ಹುಡುಕಾಟ ಅನುರೋಧ",
       "invalidSearchQueryForDisplayField": "ಪ್ರದರ್ಶನ ಕ್ಷೇತ್ರಕ್ಕೆ ಅಮಾನ್ಯ ಹುಡುಕಾಟ ಅನುರೋಧ",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "ಮೂಲಮಾಹಿತಿ ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",

@@ -442,7 +442,8 @@
     "record": "Zapis",
     "overview": "Pregled",
     "baseType": "Vrsta baze",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Skripta",
@@ -698,6 +699,7 @@
     "isNotNull": "ni null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Dostop omejen",
     "editTablePermissions": "Uredi dovoljenja tabele",
     "editFieldPermissions": "Uredi dovoljenja polja",
@@ -1136,6 +1138,7 @@
     "tokenLimit": "Dovoljen je le en žeton na uporabnika",
     "duplicateAttachment": "Datoteka z imenom {filename} je že priložena",
     "tableIdColon": "ID Tabele: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SKRIPTE: {scriptId}",
     "dashboardIdColon": "ID NADZORNE PLOŠČE: {dashboardId}",
     "viewIdColon": "OGLED ID: {viewId}",
@@ -1178,6 +1181,7 @@
     "forRole": "za vlogo",
     "clickToCopy": "Kliknite za kopiranje",
     "clickToCopyTableID": "Kliknite za kopiranje ID-ja tabele",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Kliknite za kopiranje ID skripte",
     "clickToCopyDashboardID": "Kliknite za kopiranje ID-ja nadzorne plošče",
     "clickToCopyViewID": "Klikni za kopiranje ogleda ID",
@@ -1487,7 +1491,8 @@
     "newScript": "Nova skripta",
     "emptyScript": "Prazna skripta",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Kliknite za razrešitev",
@@ -1497,6 +1502,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtriraj po tem polju",
     "groupByThisField": "Združi po tem polju",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Dodaj med priljubljene",
     "removeFromStarred": "Odstrani iz priljubljenih",
     "runActions": "Zaženi dejanja",
@@ -1844,6 +1850,7 @@
     "shiftSpace": "Shift + Preslednica",
     "expandShiftSpace": "Razširi 'Shift + Preslednica'",
     "selectAllMappedFields": "Izberi vsa preslikana polja",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiraj kodo napake",
     "paidUserBadgeTooltip": "Uporabnik ima v najmanj eni bazi vlogo urednika ali višjo.",
     "approachingLimit": "Blizu omejitve",
@@ -1867,7 +1874,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Iskanje ikon",
@@ -2428,7 +2443,8 @@
       "invalidSearchQuery": "Neveljaven iskalni niz",
       "invalidSearchQueryForVisibleFields": "Neveljaven iskalni niz za vidna polja",
       "invalidSearchQueryForDisplayField": "Neveljaven iskalni niz za prikazno polje",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Projekt Metapodatki se je uspešno izvozil",

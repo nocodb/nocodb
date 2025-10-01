@@ -442,7 +442,8 @@
     "record": "Záznam",
     "overview": "Prehľad",
     "baseType": "Typ databázy",
-    "beta": "Beta"
+    "beta": "Beta",
+    "selected": "selected"
   },
   "objects": {
     "script": "Skript",
@@ -698,6 +699,7 @@
     "isNotNull": "nie je null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Prístup obmedzený",
     "editTablePermissions": "Upraviť oprávnenia tabuľky",
     "editFieldPermissions": "Upraviť oprávnenia poľa",
@@ -1136,6 +1138,7 @@
     "tokenLimit": "Každý používateľ môže mať iba jeden token",
     "duplicateAttachment": "Súbor s názvom {filename} je už pripojený",
     "tableIdColon": "ID TABUĽKY: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SKRIPTU: {scriptId}",
     "dashboardIdColon": "ID DASHBOARDU: {dashboardId}",
     "viewIdColon": "ID ZOBRAZENIA: {viewId}",
@@ -1178,6 +1181,7 @@
     "forRole": "pre úlohu",
     "clickToCopy": "Kliknite na kopírovanie",
     "clickToCopyTableID": "Kliknite pre skopírovanie ID tabuľky",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Kliknite na kopírovanie ID skriptu",
     "clickToCopyDashboardID": "Kliknite pre skopírovanie ID dashboardu",
     "clickToCopyViewID": "Kliknite na kopírovanie ID zobrazenia",
@@ -1487,7 +1491,8 @@
     "newScript": "Nový skript",
     "emptyScript": "Prázdny skript",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Kliknite na vyriešenie",
@@ -1497,6 +1502,7 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtrovať podľa tohto poľa",
     "groupByThisField": "Zoskupiť podľa tohto poľa",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Pridať k obľúbeným",
     "removeFromStarred": "Odstrániť z obľúbených",
     "runActions": "Spustiť akcie",
@@ -1844,6 +1850,7 @@
     "shiftSpace": "Shift + Medzerník",
     "expandShiftSpace": "Rozbaliť „Shift + Medzerník“",
     "selectAllMappedFields": "Vybrať všetky namapované polia",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Skopírovať chybový kód",
     "paidUserBadgeTooltip": "Používateľ má rolu Editora alebo vyššiu aspoň v jednej databáze.",
     "approachingLimit": "Blíži sa limit",
@@ -1867,7 +1874,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Vyhľadať ikony",
@@ -2428,7 +2443,8 @@
       "invalidSearchQuery": "Neplatný vyhľadávací dotaz",
       "invalidSearchQueryForVisibleFields": "Neplatný vyhľadávací dotaz pre viditeľné polia",
       "invalidSearchQueryForDisplayField": "Neplatný vyhľadávací dotaz pre zobrazované pole",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Úspešný export metadát projektu",

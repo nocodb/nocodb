@@ -12821,6 +12821,14 @@
           },
           "in": "query",
           "name": "viewId"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "skipPks",
+          "description": "Comma separated list of pks"
         }
       ],
       "patch": {
@@ -15557,7 +15565,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}": {
+    "/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{event}/{operation}/{version}": {
       "parameters": [
         {
           "schema": {
@@ -15569,6 +15577,22 @@
           "in": "path",
           "required": true,
           "description": "Unique Table ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "field",
+              "view",
+              "after",
+              "before",
+              "manual"
+            ]
+          },
+          "name": "event",
+          "in": "path",
+          "required": true,
+          "description": "Hook Event"
         },
         {
           "schema": {
@@ -23738,6 +23762,8 @@
           },
           "event": {
             "enum": [
+              "view",
+              "field",
               "after",
               "before",
               "manual"
@@ -23871,6 +23897,8 @@
           },
           "event": {
             "enum": [
+              "view",
+              "field",
               "after",
               "before",
               "manual"
@@ -24096,6 +24124,8 @@
             "description": "Hook Event",
             "example": "after",
             "enum": [
+              "field",
+              "view",
               "after",
               "before",
               "manual"

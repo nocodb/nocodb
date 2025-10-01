@@ -698,7 +698,7 @@ const onDeleteColumn = () => {
     </NcMenuItem>
     <NcDivider v-if="isUIAllowed('fieldAlter') && !column?.pv" />
     <NcMenuItem v-if="!column?.pv" :disabled="isLocked" @click="hideOrShowField">
-      <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
+      <div v-e="['a:field:hide']" class="nc-column-hide-or-show nc-header-menu-item">
         <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
         <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="!w-4 !h-4 opacity-80" />
         <!-- Hide Field -->
@@ -711,7 +711,7 @@ const onDeleteColumn = () => {
       placement="right"
     >
       <template #title>
-        {{ `${columnTypeName(column)} field cannot be used as display value field` }}
+        {{ $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(column) }) }}
       </template>
 
       <NcMenuItem :disabled="isLocked || !isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">
@@ -732,10 +732,10 @@ const onDeleteColumn = () => {
       <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
         <NcTooltip :disabled="isSortSupported">
           <template #title>
-            {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+            {{ !isSortSupported ? $t('tooltip.thisFieldTypeDoesNotSupportSorting') : '' }}
           </template>
           <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('asc')">
-            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
+            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-header-menu-item">
               <component :is="iconMap.sortDesc" class="opacity-80 transform !rotate-180 !w-4.25 !h-4.25" />
 
               <!-- Sort Ascending -->
@@ -746,10 +746,10 @@ const onDeleteColumn = () => {
 
         <NcTooltip :disabled="isSortSupported">
           <template #title>
-            {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+            {{ !isSortSupported ? $t('tooltip.thisFieldTypeDoesNotSupportSorting') : '' }}
           </template>
           <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('desc')">
-            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
+            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-header-menu-item">
               <!-- Sort Descending -->
               <component :is="iconMap.sortDesc" class="opacity-80 !w-4.25 !h-4.25" />
               {{ $t('general.sortDesc').trim() }}
@@ -764,9 +764,9 @@ const onDeleteColumn = () => {
         <template #title>
           {{
             !isFilterSupported
-              ? "This field type doesn't support filtering"
+              ? $t('tooltip.thisFieldTypeDoesNotSupportFiltering')
               : isFilterLimitExceeded
-              ? 'Filter by limit exceeded'
+              ? $t('tooltip.filterByLimitExceeded')
               : ''
           }}
         </template>
@@ -786,9 +786,9 @@ const onDeleteColumn = () => {
         <template #title
           >{{
             !isGroupBySupported
-              ? "This field type doesn't support grouping"
+              ? $t('tooltip.thisFieldTypeDoesNotSupportGrouping')
               : isGroupByLimitExceeded
-              ? 'Group by limit exceeded'
+              ? $t('tooltip.groupByLimitExceeded')
               : ''
           }}
         </template>
@@ -805,7 +805,7 @@ const onDeleteColumn = () => {
           <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
             <component :is="iconMap.group" class="opacity-80" />
             <!-- Group by this field -->
-            {{ isGroupedByThisField ? "Don't group by this field" : $t('activity.groupByThisField') }}
+            {{ isGroupedByThisField ? $t('activity.dontGroupByThisField') : $t('activity.groupByThisField') }}
           </div>
         </NcMenuItem>
       </NcTooltip>

@@ -36,6 +36,7 @@ let customerFormView: View;
 // use film table because it has single select field
 let filmKanbanView: View;
 let rentalCalendarView: View;
+let rentalCalendarView2: View;
 
 function viewRowLocalStaticTests() {
   beforeEach(async function () {
@@ -82,7 +83,7 @@ function viewRowLocalStaticTests() {
       table: rentalTable,
       type: ViewTypes.CALENDAR,
     });
-    rentalCalendarView = await createView(context, {
+    rentalCalendarView2 = await createView(context, {
       title: 'Rental Calendar 2',
       table: rentalTable,
       type: ViewTypes.CALENDAR,
@@ -166,6 +167,9 @@ function viewRowLocalStaticTests() {
 
   it('Get view row list Calendar', async () => {
     await testGetViewRowListCalendar(rentalCalendarView);
+  });
+  it('Get view row list Calendar2', async () => {
+    await testGetViewRowListCalendar(rentalCalendarView2);
   });
 
   //#endregion Get view row

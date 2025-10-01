@@ -22,7 +22,6 @@ export default async function genRollupSelectv2({
   columnOptions,
   parentColumns,
   nestedLevel = 0,
-  visitedNodes = new Set<string>(),
 }: {
   baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
@@ -30,7 +29,6 @@ export default async function genRollupSelectv2({
   columnOptions: RollupColumn | LinksColumn;
   parentColumns?: CircularRefContext;
   nestedLevel?: number;
-  visitedNodes?: Set<string>;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const context = baseModelSqlv2.context;
   parentColumns = parentColumns ?? CircularRefContext.make();
@@ -123,7 +121,7 @@ export default async function genRollupSelectv2({
           refContext,
         ),
         nestedLevel: nestedLevel + 1,
-        visitedNodes,
+        parentColumns,
       });
 
       // Use the inner builder directly as a subquery

@@ -32,7 +32,7 @@ function rollupErrorTests() {
     _tables = setup.tables;
   });
 
-  it.only(`will create a circular referenced rollup with rollup`, async () => {
+  it(`will create a circular referenced rollup with rollup`, async () => {
     const table1Model = await Model.get(_ctx, _tables.table1.id);
     const table2Model = await Model.get(_ctx, _tables.table2.id);
     const T1TitleCountColumn = (await table2Model.getColumns(_ctx)).find(

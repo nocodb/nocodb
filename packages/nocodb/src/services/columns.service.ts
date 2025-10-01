@@ -4731,12 +4731,17 @@ export class ColumnsService implements IColumnsService {
         modelId: column.fk_model_id,
         context,
       });
-      await Column.update(context, column.id, colBody);
       await genRollupSelectv2({
         baseModelSqlv2: baseModel,
         knex: baseModel.dbDriver,
-        columnOptions: colBody,
+        columnOptions: {
+          // colBody do not have fk_column_id
+          // fk_column_id is required to detect circular ref
+          fk_column_id: column.colOptions.fk_column_id,
+          ...colBody,
+        },
       });
+      await Column.update(context, column.id, colBody);
     }
   }
 

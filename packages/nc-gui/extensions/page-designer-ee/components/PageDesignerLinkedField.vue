@@ -2,7 +2,7 @@
 import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
-import { RelationTypes, type ColumnType, type LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, RelationTypes } from 'nocodb-sdk'
 import {
   LinkedFieldDisplayAs,
   LinkedFieldListType,
@@ -33,10 +33,6 @@ const { basesUser } = storeToRefs(useBases())
 const baseStore = useBase()
 
 const { isXcdbBase, isMysql } = baseStore
-
-const sqlUi = computed(() => baseStore.getSqlUiBySourceId(column.value?.source_id))
-
-const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
 const widget = computed(() => {
   return payload?.value?.widgets[props.id] as PageDesignerLinkedFieldWidget
@@ -90,6 +86,10 @@ const theadRef = ref<HTMLElement>()
 
 const column = computed(() => widget.value!.field as Required<ColumnType>)
 
+const sqlUi = computed(() => baseStore.getSqlUiBySourceId(column.value?.source_id))
+
+const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+
 const isNew = ref(false)
 
 const {
@@ -103,6 +103,10 @@ const {
 
 provide(MetaInj, relatedTableMeta)
 
+const extractCurrentColumnValue = (row: Record<string, any>) => {
+  return row[relatedTableDisplayValueProp.value] ?? row[relatedTableDisplayValuePropId.value]
+}
+
 const inlineValue = computed(() => {
   if (widget.value.displayAs !== LinkedFieldDisplayAs.INLINE) return ''
 
@@ -111,7 +115,7 @@ const inlineValue = computed(() => {
       ?.map((relatedRow: Record<string, any>) => {
         const value = extractCurrentColumnValue(relatedRow)
 
-        if (!relatedTableMeta.value || !relatedTableDisplayValueColumn.value) value
+        if (!relatedTableMeta.value || !relatedTableDisplayValueColumn.value) return value
 
         return parsePlainCellValue(value, {
           col: relatedTableDisplayValueColumn.value!,
@@ -147,17 +151,15 @@ const tableColumns = computed(() =>
     .filter(Boolean),
 )
 
-const extractCurrentColumnValue = (row: Record<string, any>) => {
-  return row[relatedTableDisplayValueProp.value] ?? row[relatedTableDisplayValuePropId.value]
-}
-
 async function loadRelatedRows() {
   if (!row.value || !row.value.row[column.value.title]) {
     relatedRows.value = []
   }
 
   if (
-    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes((column.value?.colOptions as LinkToAnotherRecordType)?.type as RelationTypes)
+    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+      (column.value?.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
+    )
   ) {
     if (!relatedTableMeta.value) return
 

@@ -40,13 +40,11 @@ export class PluginsService {
 
     const pluginInfo = await Plugin.get(param.pluginId);
     if (pluginInfo?.title && pluginInfo.category) {
-      if (!process.env.NC_SKIP_PLUGIN_TEST_ON_SAVE) {
-        await NcPluginMgrv2.test({
-          title: pluginInfo.title,
-          category: pluginInfo.category,
-          input: param.plugin.input,
-        });
-      }
+      await NcPluginMgrv2.test({
+        title: pluginInfo.title,
+        category: pluginInfo.category,
+        input: param.plugin.input,
+      });
     }
 
     const plugin = await Plugin.update(param.pluginId, param.plugin);

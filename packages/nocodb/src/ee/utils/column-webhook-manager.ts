@@ -468,10 +468,6 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
         return;
       }
 
-      console.log('emit', {
-        hookName: `${WebhookEvents.FIELD}.${this.params.action}`,
-        ...emitData,
-      });
       Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
         context: this.context,
         hookName: `${WebhookEvents.FIELD}.${this.params.action}`,

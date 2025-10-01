@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "A szerkesztési jogosultságokat a szerkesztőkre és a felettük lévőkre állítjuk be.",
       "confirmRevertPermissionsToDefault": "Biztosan visszaállítja az engedélyeket a következő táblánál: \"{tableName}\"?",
       "formViewFieldEditPermissionRestrictionTooltip": "Ez a mező az űrlapon azért van rejtve, mert senkinek sincs jogosultsága szerkeszteni."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Műveletek futtatása",
     "createScript": "Szkript létrehozása",
     "deleteAllRecords": "Összes rekord törlése",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Nézet hozzárendelése",
     "webhookDetails": "Webhook Részletek",
     "webhookLogs": "Webhook Logs",

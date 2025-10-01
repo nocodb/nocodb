@@ -92,7 +92,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         return
       }
 
-      return route.value.query.where
+      return route.value.query.where as string
     })
 
     const totalRowsWithSearchQuery = ref(0)

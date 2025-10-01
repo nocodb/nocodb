@@ -646,7 +646,7 @@ export class ColumnsService implements IColumnsService {
               baseModel: baseModel,
               tree: colBody.formula,
               model: table,
-              column: oldColumn,
+              column,
               validateFormula: true,
               parsedTree: colBody.parsed_tree,
             });

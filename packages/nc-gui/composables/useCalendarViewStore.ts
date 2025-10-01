@@ -442,14 +442,14 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id, {
               ...params,
               offset: params.offset,
-              ...{},
-              ...{},
+              where: queryParams.value.where,
               ...(isUIAllowed('filterSync')
                 ? { filterArrJson: stringifyFilterOrSortArr([...sideBarFilter.value]) }
                 : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value, ...sideBarFilter.value]) }),
             })
           : await fetchSharedViewData({
               ...params,
+              where: queryParams.value.where,
               sortsArr: sorts.value,
               filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
               offset: params.offset,
@@ -512,6 +512,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               prev_date: prevDate,
               sortsArr: sorts.value,
               filtersArr: nestedFilters.value,
+              where: queryParams.value.where,
             })
         activeDates.value = res.dates.map((dateObj: unknown) => timezoneDayjs.timezonize(dateObj as string))
 
@@ -637,6 +638,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               to_date: toDate,
               from_date: fromDate,
               filtersArr: nestedFilters.value,
+              where: queryParams.value.where,
             })
         formattedData.value = formatData(res!.list, getEvaluatedRowMetaRowColorInfo)
       } catch (e) {
@@ -713,14 +715,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         const res = !isPublic.value
           ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
               ...queryParams.value,
-              ...{},
-              ...{},
               ...{ filterArrJson: stringifyFilterOrSortArr([...sideBarFilter.value]) },
               include_row_color: true,
             })
           : await fetchSharedViewData({
               sortsArr: sorts.value,
               filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
+              where: queryParams.value.where,
             })
 
         formattedSideBarData.value = formatData(res!.list, getEvaluatedRowMetaRowColorInfo)

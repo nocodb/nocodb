@@ -527,13 +527,17 @@ async function checkForCircularFormulaRef(
 
     for (const refColId of referencedColumns) {
       const refCol = columns.find((c) => c.id === refColId);
-      if (refCol.uidt === UITypes.Formula) {
-        neighbours.push(...(await processLookupFormula(refCol, columns)));
-      } else if (
-        refCol.uidt === UITypes.Lookup ||
-        refCol.uidt === UITypes.LinkToAnotherRecord
-      ) {
-        neighbours.push(...(await processLookupOrLTARColumn(refCol)));
+      // if refColId is not valid column, maybe just a concidence value of CONCAT
+      // we ignore
+      if (refCol) {
+        if (refCol.uidt === UITypes.Formula) {
+          neighbours.push(...(await processLookupFormula(refCol, columns)));
+        } else if (
+          refCol.uidt === UITypes.Lookup ||
+          refCol.uidt === UITypes.LinkToAnotherRecord
+        ) {
+          neighbours.push(...(await processLookupOrLTARColumn(refCol)));
+        }
       }
     }
     return neighbours;

@@ -441,7 +441,6 @@ function generateStepAPI() {
   dollarSign: 'ncDollarSign',
   creditCard: 'ncCreditCard',
   package: 'ncPackage',
-  box: 'ncBox',
   
   // Office & Productivity
   clipboard: 'ncClipboard',

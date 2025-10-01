@@ -4,13 +4,7 @@ import wasmUrl from 'esbuild-wasm/esbuild.wasm?url'
 
 let isEsbuildInitialized = false
 let initPromise: Promise<void> | null = null
-
 const moduleCache = new Map<string, string>()
-
-interface BundleOptions {
-  cdn?: 'esm.sh' | 'unpkg' | 'skypack' | 'jsdelivr'
-  externalPackages?: string[]
-}
 
 interface TransformResult {
   code: string | null
@@ -21,10 +15,9 @@ interface TransformResult {
 
 export function useEsbuild() {
   const isInitializing = ref(false)
-  const initError = ref(null)
+  const initError = ref()
 
   const initWasm = async () => {
-    if (isEsbuildInitialized) return
     if (initPromise) return initPromise
 
     isInitializing.value = true
@@ -32,9 +25,7 @@ export function useEsbuild() {
 
     initPromise = (async () => {
       try {
-        await esbuild.initialize({
-          wasmURL: wasmUrl,
-        })
+        await esbuild.initialize({ wasmURL: wasmUrl })
         isEsbuildInitialized = true
       } catch (error) {
         console.error('Failed to initialize esbuild:', error)
@@ -48,21 +39,32 @@ export function useEsbuild() {
     return initPromise
   }
 
-  const getCdnUrl = (packageName: string, cdn: string = 'esm.sh'): string => {
-    const cdnUrls = {
-      'esm.sh': `https://esm.sh/${packageName}`,
-      'unpkg': `https://unpkg.com/${packageName}?module`,
-      'skypack': `https://cdn.skypack.dev/${packageName}`,
-      'jsdelivr': `https://cdn.jsdelivr.net/npm/${packageName}/+esm`,
+  const getCdnUrl = async (packageName: string): Promise<string> => {
+    const cdnUrls = [
+      `https://esm.sh/${packageName}`,
+      `https://unpkg.com/${packageName}?module`,
+      `https://cdn.skypack.dev/${packageName}`,
+      `https://cdn.jsdelivr.net/npm/${packageName}/+esm`,
+    ]
+
+    for (const url of cdnUrls) {
+      try {
+        const response = await fetch(url, { method: 'HEAD' })
+        if (response.ok) {
+          return url
+        }
+      } catch (error) {
+        console.warn(`Failed to check availability of ${url}: ${error}`)
+      }
     }
-    return cdnUrls[cdn] || cdnUrls['esm.sh']
+    return cdnUrls[0] as string
   }
 
-  const createHttpPlugin = (cdn: string = 'esm.sh'): Plugin => ({
+  const createHttpPlugin = (): Plugin => ({
     name: 'http',
     setup(build) {
-      // Intercept bare imports
-      build.onResolve({ filter: /.*/ }, (args) => {
+      // Intercept imports
+      build.onResolve({ filter: /.*/ }, async (args) => {
         // Skip if already in http-url namespace
         if (args.namespace === 'http-url') {
           // Handle relative/absolute paths within downloaded modules
@@ -91,8 +93,10 @@ export function useEsbuild() {
 
         // Handle bare imports (package names) - convert to CDN URL
         if (!/^\./.test(args.path) && args.namespace !== 'file') {
+          const cdnUrl = await getCdnUrl(args.path)
+
           return {
-            path: getCdnUrl(args.path, cdn),
+            path: cdnUrl,
             namespace: 'http-url',
           }
         }
@@ -136,7 +140,7 @@ export function useEsbuild() {
     },
   })
 
-  const transformWithImports = async (code: string, options: BundleOptions = {}): Promise<TransformResult> => {
+  const transformWithImports = async (code: string): Promise<TransformResult> => {
     await initWasm()
 
     if (!isEsbuildInitialized) {
@@ -156,8 +160,8 @@ export function useEsbuild() {
         platform: 'browser',
         target: 'es2020',
         sourcemap: 'inline',
-        plugins: [createHttpPlugin(options.cdn)],
-        external: options.externalPackages || [],
+        plugins: [createHttpPlugin()],
+        external: [],
       })
 
       const outputFile = result.outputFiles?.[0]

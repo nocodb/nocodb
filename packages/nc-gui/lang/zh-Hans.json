@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "编辑权限将设置为编辑及以上。",
       "confirmRevertPermissionsToDefault": "确认重置表“{tableName}”权限为默认值",
       "formViewFieldEditPermissionRestrictionTooltip": "由于没有人有编辑权限，此字段在表单中被隐藏。"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "运行操作",
     "createScript": "创建脚本",
     "deleteAllRecords": "删除所有记录",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "指定视图",
     "webhookDetails": "Webhook 详情",
     "webhookLogs": "Webhook日志",

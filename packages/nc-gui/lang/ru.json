@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Право на редактирование будет установлено для редакторов и выше.",
       "confirmRevertPermissionsToDefault": "Подтвердить сброс разрешений для таблицы — \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Это поле скрыто в форме, потому что у всех отсутствует право на его редактирование."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Запустить действия",
     "createScript": "Создать скрипт",
     "deleteAllRecords": "Удалить все записи",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Назначить представление",
     "webhookDetails": "Детали вебхука",
     "webhookLogs": "Вебхук: Логи",

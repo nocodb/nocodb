@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "גישה לעריכה תיקבע לעורכים ומעלה.",
       "confirmRevertPermissionsToDefault": "אשר איפוס הרשאות לטבלה - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "שדה זה מוסתר בטופס כי אין לאף אחד הרשאה לערוך אותו."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "הפעל פעולות",
     "createScript": "צור סקריפט",
     "deleteAllRecords": "מחק את כל הרשומות",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "הקצאת תצוגה",
     "webhookDetails": "פרטי Webhook",
     "webhookLogs": "Webhook Logs",

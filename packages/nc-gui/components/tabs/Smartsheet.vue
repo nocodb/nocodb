@@ -58,7 +58,7 @@ const activeSource = computed(() => {
 
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
-useProvideCalendarViewStore(meta, activeView)
+useProvideCalendarViewStore(meta, activeView, false, xWhere)
 
 // todo: move to store
 provide(MetaInj, meta)

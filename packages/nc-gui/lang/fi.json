@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Muokkausoikeus asetetaan editoreille ja ylemmille.",
       "confirmRevertPermissionsToDefault": "Vahvista oikeuksien palautus taululle - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Tämä kenttä on piilotettu lomakkeessa, koska kenelläkään ei ole oikeutta muokata sitä."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Suorita toimenpiteet",
     "createScript": "Luo skripti",
     "deleteAllRecords": "Poista kaikki tietueet",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Määritä näkymä",
     "webhookDetails": "Webhotokin tiedot",
     "webhookLogs": "Webhook Logs",

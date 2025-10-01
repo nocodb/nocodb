@@ -5,7 +5,6 @@ import type { MetaService } from '~/meta/meta.service';
 import type { Model } from '~/models';
 import type { ModelWebhookManager } from '~/utils/model-webhook-manager';
 import Noco from '~/Noco';
-import { NcError } from '~/helpers/ncError';
 
 export class ColumnWebhookManagerBuilder {
   constructor(
@@ -58,11 +57,6 @@ export class ColumnWebhookManagerBuilder {
   }
 
   forCreate() {
-    if (!this.modelId) {
-      NcError.get(this.context).internalServerError(
-        `Need to call 'withModel' before running 'forCreate'`,
-      );
-    }
     return new ColumnWebhookManager(this.context, {
       action: WebhookActions.INSERT,
       modelId: this.modelId!,
@@ -72,16 +66,6 @@ export class ColumnWebhookManagerBuilder {
   }
 
   forUpdate() {
-    if (!this.modelId) {
-      NcError.get(this.context).internalServerError(
-        `Need to call 'withModel' before running 'forUpdate'`,
-      );
-    }
-    if (!this.oldColumns.length) {
-      NcError.get(this.context).internalServerError(
-        `Need to call 'withView' before running 'forUpdate'`,
-      );
-    }
     return new ColumnWebhookManager(this.context, {
       action: WebhookActions.UPDATE,
       modelId: this.modelId!,
@@ -91,16 +75,6 @@ export class ColumnWebhookManagerBuilder {
   }
 
   forDelete() {
-    if (!this.modelId) {
-      NcError.get(this.context).internalServerError(
-        `Need to call 'withModel' before running 'forDelete'`,
-      );
-    }
-    if (!this.oldColumns.length) {
-      NcError.get(this.context).internalServerError(
-        `Need to call 'withView' before running 'forDelete'`,
-      );
-    }
     return new ColumnWebhookManager(
       this.context,
       {

@@ -75,7 +75,7 @@ const onDrag = (e: OnDrag) => {
 const onScale = (e: OnScale) => {
   e.target.style.transform = e.drag.transform
 }
-const onRender = () => {
+const onRenderEnd = () => {
   widget.value.cssStyle = targetRef.value?.getAttribute('style') ?? ''
 }
 
@@ -357,7 +357,7 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
       :origin="false"
       :container="container"
       class-name="nc-moveable"
-      @render="onRender"
+      @render-end="onRenderEnd"
       @resize="onResize"
       @rotate="onRotate"
       @drag="onDrag"

@@ -8,6 +8,33 @@ import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
 
+const getArraySourceAttachmentUnnested = async (
+  argument: any,
+  args: MapFnArgs,
+) => {
+  const { builder } = await args.fn({
+    ...argument,
+    fnName: argument.type === JSEPNode.IDENTIFIER ? 'CONCAT' : argument.fnName,
+  });
+  if (!(<CallExpressionNode>argument).inArrayFormat) {
+    const sourceQuery = '??::jsonb';
+    const unnestedAsTable = [
+      `select __elem->>'id', __elem->>'title', __elem::text as __val`,
+      `from jsonb_array_elements(${sourceQuery}) as __elem`,
+    ].join(' ');
+
+    return { builder: args.knex.raw(`${unnestedAsTable}`, [builder]) };
+  } else {
+    const sourceQuery = '??';
+    const unnestedAsTable = [
+      `select __elem->>'id', __elem->>'title', __elem::text as __val`,
+      `from unnest(${sourceQuery}) as __elem`,
+    ].join(' ');
+
+    return { builder: args.knex.raw(`${unnestedAsTable}`, [builder]) };
+  }
+};
+
 const getArraySourceUserUnnested = async (argument: any, args: MapFnArgs) => {
   const { builder } = await args.fn({
     ...argument,
@@ -474,6 +501,26 @@ END`,
           [source, direction],
         ),
       };
+    } else if (
+      (<CallExpressionNode>pt).referencedColumn?.uidt === UITypes.Attachment
+    ) {
+      const source = (
+        await getArraySourceAttachmentUnnested(pt.arguments[0], args)
+      ).builder;
+
+      const direction = pt.arguments[1]
+        ? sanitize(
+            knex.raw(
+              pt.arguments[1]?.value ?? (await fn(pt.arguments[1])).builder,
+            ),
+          )
+        : knex.raw('asc');
+      return {
+        builder: knex.raw(
+          `ARRAY(SELECT __val::jsonb FROM ( ?? ORDER BY title ?? ) as _tbl1)`,
+          [source, direction],
+        ),
+      };
     }
     const source = (await getArraySource(pt.arguments[0], args)).builder;
     const direction = pt.arguments[1]
@@ -498,6 +545,18 @@ END`,
       return {
         builder: knex.raw(
           `ARRAY(SELECT DISTINCT userid FROM ( ?? ) as _tbl1)`,
+          [source],
+        ),
+      };
+    } else if (
+      (<CallExpressionNode>pt).referencedColumn?.uidt === UITypes.Attachment
+    ) {
+      const source = (
+        await getArraySourceAttachmentUnnested(pt.arguments[0], args)
+      ).builder;
+      return {
+        builder: knex.raw(
+          `ARRAY(SELECT DISTINCT __val::jsonb FROM ( ?? ) as _tbl1)`,
           [source],
         ),
       };

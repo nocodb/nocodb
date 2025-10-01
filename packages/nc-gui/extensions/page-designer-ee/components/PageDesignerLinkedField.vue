@@ -2,7 +2,7 @@
 import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
-import { type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, RelationTypes } from 'nocodb-sdk'
 import {
   LinkedFieldDisplayAs,
   LinkedFieldListType,
@@ -12,28 +12,35 @@ import {
 } from '../lib/widgets'
 import { PageDesignerPayloadInj, PageDesignerRowInj } from '../lib/context'
 import { Removable } from '../lib/removable'
-import PlainCell from '../../../components/smartsheet/PlainCell.vue'
+import { SmartsheetPlainCell } from '#components'
 
 const props = defineProps<PageDesignerWidgetComponentProps>()
 defineEmits(['deleteCurrentWidget'])
 
+const { $api } = useNuxtApp()
+
+const { t } = useI18n()
+
+const { metas } = useMetas()
+
 const runtimeConfig = useRuntimeConfig()
 
 const payload = inject(PageDesignerPayloadInj)!
-const widget = ref() as Ref<PageDesignerLinkedFieldWidget>
 const row = inject(PageDesignerRowInj)! as Ref<Row>
+
+const { basesUser } = storeToRefs(useBases())
+
+const baseStore = useBase()
+
+const { isXcdbBase, isMysql } = baseStore
+
+const widget = computed(() => {
+  return payload?.value?.widgets[props.id] as PageDesignerLinkedFieldWidget
+})
 
 const relatedRows = ref<Record<string, any>[]>([])
 
 const defaultBlackColor = '#000000'
-
-watch(
-  () => props.id,
-  (id) => {
-    widget.value = payload?.value?.widgets[id] as PageDesignerLinkedFieldWidget
-  },
-  { immediate: true },
-)
 
 const draggable = true
 const throttleDrag = 1
@@ -68,7 +75,7 @@ const onDrag = (e: OnDrag) => {
 const onScale = (e: OnScale) => {
   e.target.style.transform = e.drag.transform
 }
-const onRender = () => {
+const onRenderEnd = () => {
   widget.value.cssStyle = targetRef.value?.getAttribute('style') ?? ''
 }
 
@@ -79,16 +86,48 @@ const theadRef = ref<HTMLElement>()
 
 const column = computed(() => widget.value!.field as Required<ColumnType>)
 
+const sqlUi = computed(() => baseStore.getSqlUiBySourceId(column.value?.source_id))
+
+const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+
 const isNew = ref(false)
 
-const { relatedTableMeta, relatedTableDisplayValueProp, loadChildrenList } = useProvideLTARStore(column, row, isNew)
+const {
+  relatedTableMeta,
+  relatedTableDisplayValueProp,
+  relatedTableDisplayValuePropId,
+  relatedTableDisplayValueColumn,
+  loadChildrenList,
+  refreshCurrentRow,
+} = useProvideLTARStore(column, row, isNew)
+
+provide(MetaInj, relatedTableMeta)
+
+const extractCurrentColumnValue = (row: Record<string, any>) => {
+  return row[relatedTableDisplayValueProp.value] ?? row[relatedTableDisplayValuePropId.value]
+}
 
 const inlineValue = computed(() => {
   if (widget.value.displayAs !== LinkedFieldDisplayAs.INLINE) return ''
+
   return (
     relatedRows.value
-      ?.map((relatedRow: Record<string, any>) => relatedRow[relatedTableDisplayValueProp.value] ?? '')
-      .filter(Boolean)
+      ?.map((relatedRow: Record<string, any>) => {
+        const value = extractCurrentColumnValue(relatedRow)
+
+        if (!relatedTableMeta.value || !relatedTableDisplayValueColumn.value) return value
+
+        return parsePlainCellValue(value, {
+          col: relatedTableDisplayValueColumn.value!,
+          abstractType: abstractType.value,
+          meta: relatedTableMeta.value,
+          metas: metas.value,
+          baseUsers: basesUser.value,
+          isMysql,
+          isXcdbBase,
+          t,
+        })
+      })
       .join(', ') ?? ''
   )
 })
@@ -111,13 +150,63 @@ const tableColumns = computed(() =>
     .map((col) => columnsMapById.value[col.id]!)
     .filter(Boolean),
 )
+
 async function loadRelatedRows() {
-  if (!row.value || !row.value.row[column.value.title]) return
-  relatedRows.value = (await loadChildrenList(undefined, undefined, runtimeConfig.public.maxPageDesignerTableRows))?.list ?? []
+  if (!row.value || !row.value.row[column.value.title]) {
+    relatedRows.value = []
+  }
+
+  if (
+    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+      (column.value?.colOptions as LinkToAnotherRecordType)?.type as RelationTypes,
+    )
+  ) {
+    if (!relatedTableMeta.value) return
+
+    const rowId = extractPkFromRow(row.value.row[column.value.title], (relatedTableMeta.value?.columns || []) as ColumnType[])
+
+    if (!rowId) return
+
+    try {
+      const relatedRow = await $api.dbTableRow.read(
+        NOCO,
+        relatedTableMeta.value?.base_id as string,
+        relatedTableMeta.value.id as string,
+        encodeURIComponent(rowId),
+        {
+          getHiddenColumn: true,
+        },
+      )
+
+      if (relatedRow) {
+        relatedRows.value = [relatedRow]
+      } else {
+        relatedRows.value = []
+      }
+    } catch (err: any) {
+      console.log('field to laod related record')
+      relatedRows.value = []
+    }
+  } else {
+    relatedRows.value = (await loadChildrenList(undefined, undefined, runtimeConfig.public.maxPageDesignerTableRows))?.list ?? []
+  }
 }
 
-onMounted(loadRelatedRows)
-watch(row, loadRelatedRows)
+watch(
+  row,
+  (newRow) => {
+    if (!newRow) return
+    // injected row value can be undefined, so we need to wait and then refreshCurrentRow
+    refreshCurrentRow()
+
+    nextTick(() => {
+      loadRelatedRows()
+    })
+  },
+  {
+    immediate: true,
+  },
+)
 
 const tableRowHeight = computed(() => {
   const height = +(widget.value.cssStyle.match(/height:\s*(\d+)px/)?.[1] ?? 0)
@@ -165,9 +254,13 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
             class="list-inside m-0 p-0"
             :class="[isNumberedList ? 'list-decimal' : 'list-disc']"
           >
-            <li v-for="relatedRow in relatedRows" :key="relatedRow.Id">
+            <li v-for="(relatedRow, index) of relatedRows" :key="index">
               <span :class="{ 'relative left-[-8px]': !isNumberedList }" :style="{ fontFamily: widget.fontFamily }">
-                {{ relatedRow[relatedTableDisplayValueProp] }}
+                <SmartsheetPlainCell
+                  v-if="relatedTableDisplayValueColumn"
+                  :column="relatedTableDisplayValueColumn"
+                  :model-value="extractCurrentColumnValue(relatedRow)"
+                />
               </span>
             </li>
           </component>
@@ -194,8 +287,8 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
             <thead ref="theadRef">
               <tr>
                 <th
-                  v-for="relatedColumn in tableColumns"
-                  :key="relatedColumn.id"
+                  v-for="(relatedColumn, index) of tableColumns"
+                  :key="index"
                   :style="{
                     ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
                     color: widget.tableSettings.header.textColor,
@@ -210,10 +303,10 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
               </tr>
             </thead>
             <tbody>
-              <tr v-for="relatedRow in relatedRows" :key="relatedRow.Id">
+              <tr v-for="(relatedRow, index) of relatedRows" :key="index">
                 <td
-                  v-for="relatedColumn in tableColumns"
-                  :key="relatedColumn.id"
+                  v-for="(relatedColumn, idx) of tableColumns"
+                  :key="idx"
                   :style="{
                     ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
                     color: widget.tableSettings.row.textColor,
@@ -225,11 +318,11 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
                   }"
                 >
                   <img
-                    v-if="attachmentUrl(relatedRow[relatedColumn?.title ?? ''])"
-                    :src="attachmentUrl(relatedRow[relatedColumn?.title ?? ''])"
+                    v-if="attachmentUrl(extractCurrentColumnValue(relatedRow))"
+                    :src="attachmentUrl(extractCurrentColumnValue(relatedRow))"
                     class="h-full w-auto object-contain"
                   />
-                  <PlainCell v-else :column="relatedColumn" :model-value="relatedRow[relatedColumn?.title ?? '']" />
+                  <SmartsheetPlainCell v-else :column="relatedColumn" :model-value="extractCurrentColumnValue(relatedRow)" />
                 </td>
               </tr>
             </tbody>
@@ -264,7 +357,7 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
       :origin="false"
       :container="container"
       class-name="nc-moveable"
-      @render="onRender"
+      @render-end="onRenderEnd"
       @resize="onResize"
       @rotate="onRotate"
       @drag="onDrag"

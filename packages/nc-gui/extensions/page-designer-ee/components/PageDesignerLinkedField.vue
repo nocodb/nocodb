@@ -2,7 +2,7 @@
 import Moveable from 'vue3-moveable'
 import type { OnDrag, OnResize, OnRotate, OnScale } from 'vue3-moveable'
 import { ref } from 'vue'
-import { type ColumnType } from 'nocodb-sdk'
+import { RelationTypes, type ColumnType, type LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
   LinkedFieldDisplayAs,
   LinkedFieldListType,
@@ -17,23 +17,34 @@ import { SmartsheetPlainCell } from '#components'
 const props = defineProps<PageDesignerWidgetComponentProps>()
 defineEmits(['deleteCurrentWidget'])
 
+const { $api } = useNuxtApp()
+
+const { t } = useI18n()
+
+const { metas } = useMetas()
+
 const runtimeConfig = useRuntimeConfig()
 
 const payload = inject(PageDesignerPayloadInj)!
-const widget = ref() as Ref<PageDesignerLinkedFieldWidget>
 const row = inject(PageDesignerRowInj)! as Ref<Row>
+
+const { basesUser } = storeToRefs(useBases())
+
+const baseStore = useBase()
+
+const { isXcdbBase, isMysql } = baseStore
+
+const sqlUi = computed(() => baseStore.getSqlUiBySourceId(column.value?.source_id))
+
+const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+
+const widget = computed(() => {
+  return payload?.value?.widgets[props.id] as PageDesignerLinkedFieldWidget
+})
 
 const relatedRows = ref<Record<string, any>[]>([])
 
 const defaultBlackColor = '#000000'
-
-watch(
-  () => props.id,
-  (id) => {
-    widget.value = payload?.value?.widgets[id] as PageDesignerLinkedFieldWidget
-  },
-  { immediate: true },
-)
 
 const draggable = true
 const throttleDrag = 1
@@ -81,18 +92,38 @@ const column = computed(() => widget.value!.field as Required<ColumnType>)
 
 const isNew = ref(false)
 
-const { relatedTableMeta, relatedTableDisplayValueProp, loadChildrenList, refreshCurrentRow } = useProvideLTARStore(
-  column,
-  row,
-  isNew,
-)
+const {
+  relatedTableMeta,
+  relatedTableDisplayValueProp,
+  relatedTableDisplayValuePropId,
+  relatedTableDisplayValueColumn,
+  loadChildrenList,
+  refreshCurrentRow,
+} = useProvideLTARStore(column, row, isNew)
+
+provide(MetaInj, relatedTableMeta)
 
 const inlineValue = computed(() => {
   if (widget.value.displayAs !== LinkedFieldDisplayAs.INLINE) return ''
+
   return (
     relatedRows.value
-      ?.map((relatedRow: Record<string, any>) => relatedRow[relatedTableDisplayValueProp.value] ?? '')
-      .filter(Boolean)
+      ?.map((relatedRow: Record<string, any>) => {
+        const value = extractCurrentColumnValue(relatedRow)
+
+        if (!relatedTableMeta.value || !relatedTableDisplayValueColumn.value) value
+
+        return parsePlainCellValue(value, {
+          col: relatedTableDisplayValueColumn.value!,
+          abstractType: abstractType.value,
+          meta: relatedTableMeta.value,
+          metas: metas.value,
+          baseUsers: basesUser.value,
+          isMysql,
+          isXcdbBase,
+          t,
+        })
+      })
       .join(', ') ?? ''
   )
 })
@@ -115,9 +146,48 @@ const tableColumns = computed(() =>
     .map((col) => columnsMapById.value[col.id]!)
     .filter(Boolean),
 )
+
+const extractCurrentColumnValue = (row: Record<string, any>) => {
+  return row[relatedTableDisplayValueProp.value] ?? row[relatedTableDisplayValuePropId.value]
+}
+
 async function loadRelatedRows() {
-  if (!row.value || !row.value.row[column.value.title]) return
-  relatedRows.value = (await loadChildrenList(undefined, undefined, runtimeConfig.public.maxPageDesignerTableRows))?.list ?? []
+  if (!row.value || !row.value.row[column.value.title]) {
+    relatedRows.value = []
+  }
+
+  if (
+    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes((column.value?.colOptions as LinkToAnotherRecordType)?.type as RelationTypes)
+  ) {
+    if (!relatedTableMeta.value) return
+
+    const rowId = extractPkFromRow(row.value.row[column.value.title], (relatedTableMeta.value?.columns || []) as ColumnType[])
+
+    if (!rowId) return
+
+    try {
+      const relatedRow = await $api.dbTableRow.read(
+        NOCO,
+        relatedTableMeta.value?.base_id as string,
+        relatedTableMeta.value.id as string,
+        encodeURIComponent(rowId),
+        {
+          getHiddenColumn: true,
+        },
+      )
+
+      if (relatedRow) {
+        relatedRows.value = [relatedRow]
+      } else {
+        relatedRows.value = []
+      }
+    } catch (err: any) {
+      console.log('field to laod related record')
+      relatedRows.value = []
+    }
+  } else {
+    relatedRows.value = (await loadChildrenList(undefined, undefined, runtimeConfig.public.maxPageDesignerTableRows))?.list ?? []
+  }
 }
 
 watch(
@@ -184,7 +254,11 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
           >
             <li v-for="(relatedRow, index) of relatedRows" :key="index">
               <span :class="{ 'relative left-[-8px]': !isNumberedList }" :style="{ fontFamily: widget.fontFamily }">
-                {{ relatedRow[relatedTableDisplayValueProp] }}
+                <SmartsheetPlainCell
+                  v-if="relatedTableDisplayValueColumn"
+                  :column="relatedTableDisplayValueColumn"
+                  :model-value="extractCurrentColumnValue(relatedRow)"
+                />
               </span>
             </li>
           </component>
@@ -242,11 +316,11 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
                   }"
                 >
                   <img
-                    v-if="attachmentUrl(relatedRow[relatedColumn?.title ?? ''])"
-                    :src="attachmentUrl(relatedRow[relatedColumn?.title ?? ''])"
+                    v-if="attachmentUrl(extractCurrentColumnValue(relatedRow))"
+                    :src="attachmentUrl(extractCurrentColumnValue(relatedRow))"
                     class="h-full w-auto object-contain"
                   />
-                  <SmartsheetPlainCell v-else :column="relatedColumn" :model-value="relatedRow[relatedColumn?.title ?? '']" />
+                  <SmartsheetPlainCell v-else :column="relatedColumn" :model-value="extractCurrentColumnValue(relatedRow)" />
                 </td>
               </tr>
             </tbody>

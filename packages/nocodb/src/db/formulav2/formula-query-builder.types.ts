@@ -2,6 +2,7 @@ import type {
   ArrayExpressionNode,
   BinaryExpressionNode,
   CallExpressionNode,
+  CircularRefContext,
   CompoundNode,
   IdentifierNode,
   LiteralNode,
@@ -19,7 +20,7 @@ export interface FormulaBaseParams {
 }
 export type TAliasToColumnParam = {
   tableAlias?: string;
-  parentColumns?: Set<string>;
+  parentColumns?: CircularRefContext;
 };
 export type TAliasToColumn = Record<
   string,
@@ -32,7 +33,7 @@ export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
   aliasToColumn?: TAliasToColumn;
   parsedTree?: ParsedFormulaNode;
   column?: Column;
-  parentColumns: Set<string>;
+  parentColumns: CircularRefContext;
   getAliasCount: () => number;
 }
 export type FnParsedTreeBase = {

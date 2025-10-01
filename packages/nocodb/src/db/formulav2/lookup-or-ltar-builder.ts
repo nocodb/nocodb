@@ -13,12 +13,11 @@ import type {
   QrCodeColumn,
   RollupColumn,
 } from '~/models';
-import { getRefColumnIfAlias } from '~/helpers';
-import { NcError } from '~/helpers/catchError';
-import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
-import { Model } from '~/models';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import { getRefColumnIfAlias } from '~/helpers';
+import { Model } from '~/models';
 
 export const lookupOrLtarBuilder =
   (
@@ -37,7 +36,7 @@ export const lookupOrLtarBuilder =
       knex = baseModelSqlv2.dbDriver,
       context = baseModelSqlv2.context,
       tableAlias: _tableAlias,
-      model = baseModelSqlv2.model,
+      //model = baseModelSqlv2.model,
       _formulaQueryBuilder,
       getAliasCount,
     } = params;
@@ -504,24 +503,13 @@ export const lookupOrLtarBuilder =
             const formulaOption =
               await lookupColumn.getColOptions<FormulaColumn>(context);
             const lookupModel = await lookupColumn.getModel(context);
-            if (parentColumns?.has(lookupColumn.id)) {
-              NcError.get(context).formulaError('Circular reference detected', {
-                details: {
-                  columnId: lookupColumn.id,
-                  modelId: model.id,
-                  parentColumnIds: Array.from(parentColumns),
-                },
-              });
-            }
+            parentColumns = parentColumns.cloneAndAdd(lookupColumn.id);
             const { builder } = await _formulaQueryBuilder({
               ...params,
               _tree: formulaOption.formula,
               model: lookupModel,
               parsedTree: formulaOption.getParsedTree(),
-              parentColumns: new Set([
-                lookupColumn.id,
-                ...(parentColumns ?? []),
-              ]),
+              parentColumns,
               tableAlias: prevAlias,
               column: lookupColumn,
             });

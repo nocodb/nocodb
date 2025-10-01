@@ -76,3 +76,4 @@ export * from '~/lib/roleHelpers';
 export * from '~/lib/system';
 export * from '~/lib/timer.utils';
 export * from '~/lib/commonUtils';
+export * from '~/lib/CircularRefContext';

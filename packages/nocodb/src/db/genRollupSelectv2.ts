@@ -1,4 +1,5 @@
 import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import { CircularRefContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { Knex } from 'knex';
 import type {
@@ -19,13 +20,18 @@ export default async function ({
   knex,
   alias,
   columnOptions,
+  parentColumns,
 }: {
   baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
   alias?: string;
   columnOptions: RollupColumn | LinksColumn;
+  parentColumns?: CircularRefContext;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const context = baseModelSqlv2.context;
+  parentColumns = (parentColumns ?? CircularRefContext.make()).cloneAndAdd(
+    columnOptions.fk_column_id,
+  );
 
   const column = await Column.get(context, {
     colId: columnOptions.fk_column_id,
@@ -83,6 +89,7 @@ export default async function ({
         validateFormula: false,
         parsedTree: formulOption.getParsedTree(),
         baseUsers: undefined,
+        parentColumns,
       });
 
       selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');

@@ -24,7 +24,7 @@ export function useMultiSelect(
   _meta: MaybeRef<TableType | undefined>,
   fields: MaybeRef<ColumnType[]>,
   data: MaybeRef<Row[]> | MaybeRef<Map<number, Row>>,
-  _totalRows?: MaybeRef<number>,
+  _totalRows: MaybeRef<number>,
   _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
   contextMenu: Ref<boolean>,

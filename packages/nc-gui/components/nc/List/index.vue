@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { useVirtualList } from '@vueuse/core'
-import type { NcListProps } from '#imports'
-
+import type { NcListProps } from '~/lib/types'
 interface Emits {
   (e: 'update:value', value: RawValueType): void
   (e: 'update:open', open: boolean): void

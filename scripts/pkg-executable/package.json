@@ -23,9 +23,6 @@
       "node18-win-x64"
     ]
   },
-  "engines": {
-    "node": "18.19.1"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",

@@ -43,7 +43,7 @@ export const whereParam = {
   in: 'query',
   name: 'where',
   description:
-    "Enables defining conditions to filter records in the API response. Multiple conditions can be combined using the logical operators 'and' or 'or'. Each condition consists of three components: a field name, a comparison operator, and a value.\n\nExample: where=`(field1,eq,value1)~and(field2,eq,value2)` will filter records where field1 equals value1 AND field2 equals value2.\n\nIf **viewId** parameter is also included, these filters are applied on top of the view’s predefined filter configuration. \n\n**NOTE**: Maintain the specified format; do not include spaces between components of a condition.",
+    "Enables defining conditions to filter records in the API response. Multiple conditions can be combined using the logical operators 'and' or 'or'. Each condition consists of three components: a field name, a comparison operator, and a value.\n\nExample: where=`(field1,eq,value1)~and(field2,eq,value2)` will filter records where field1 equals value1 AND field2 equals value2.\n\nIf **viewId** parameter is also included, these filters are applied on top of the view’s predefined filter configuration. \n\n**NOTE**: Maintain the specified format; do not include spaces between components of a condition. For further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)",
 };
 export const pageParam = {
   schema: {

@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Pristup uređivanju biti će omogućen editorima i višima.",
       "confirmRevertPermissionsToDefault": "Potvrdite resetiranje dozvola za tablicu - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Polje je skriveno u obrascu jer nitko nema dopuštenje za njegovo uređivanje."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Pokreni akcije",
     "createScript": "Stvori skriptu",
     "deleteAllRecords": "Izbriši sve zapise",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Dodijeli prikaz",
     "webhookDetails": "Detalji o webhooku",
     "webhookLogs": "Webhook Logs",

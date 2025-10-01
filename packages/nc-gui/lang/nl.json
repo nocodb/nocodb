@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Bewerkrechten worden ingesteld op Editors & hoger.",
       "confirmRevertPermissionsToDefault": "Bevestig reset van machtigingen voor tabel - \\\"{tableName}\\\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Dit veld is verborgen in het formulier omdat niemand toestemming heeft om het te bewerken."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Acties uitvoeren",
     "createScript": "Script maken",
     "deleteAllRecords": "Alle records verwijderen",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Weergave toewijzen",
     "webhookDetails": "Webhookdetails",
     "webhookLogs": "Webhook Logs",

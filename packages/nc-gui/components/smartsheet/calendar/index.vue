@@ -128,6 +128,15 @@ reloadViewDataHook?.on(
     ])
   }),
 )
+
+// on filter param changes reload the data
+// In calendar view we don't have toolbar search component, so we have to listen to route query changes to reload the data
+watch(
+  () => route?.query?.where,
+  () => {
+    reloadViewDataHook?.trigger()
+  },
+)
 </script>
 
 <template>

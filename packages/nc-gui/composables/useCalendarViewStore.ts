@@ -55,7 +55,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const displayField = computed(() => meta.value?.columns?.find((c) => c.pv))
 
-    const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
+    const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
     const calendarMetaData = computed<CalendarType>(() => {
       return isPublic.value ? (sharedView.value?.view as CalendarType) : (viewMeta.value?.view as CalendarType)
@@ -445,8 +445,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               ...{},
               ...{},
               ...(isUIAllowed('filterSync')
-                ? { filterArrJson: JSON.stringify([...sideBarFilter.value]) }
-                : { filterArrJson: JSON.stringify([nestedFilters.value, ...sideBarFilter.value]) }),
+                ? { filterArrJson: stringifyFilterOrSortArr([...sideBarFilter.value]) }
+                : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value, ...sideBarFilter.value]) }),
             })
           : await fetchSharedViewData({
               ...params,
@@ -621,25 +621,15 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         if (showLoading) isCalendarDataLoading.value = true
 
         const res = !isPublic.value
-          ? await api.dbCalendarViewRow.list(
-              'noco',
-              base.value.id!,
-              meta.value!.id!,
-              viewMeta.value!.id!,
-              {
-                prev_date: prevDate,
-                next_date: nextDate,
-                to_date: toDate,
-                from_date: fromDate,
-                include_row_color: true,
-              },
-              {
-                ...queryParams.value,
-                ...(isUIAllowed('filterSync') ? { filterArrJson: [] } : { filterArrJson: JSON.stringify([nestedFilters.value]) }),
-                where: where?.value ?? '',
-                filterArrJson: JSON.stringify([...nestedFilters.value]),
-              },
-            )
+          ? await api.dbCalendarViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+              prev_date: prevDate,
+              next_date: nextDate,
+              to_date: toDate,
+              from_date: fromDate,
+              include_row_color: true,
+              ...queryParams.value,
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value]) }),
+            })
           : await fetchSharedCalendarViewData({
               sortsArr: sorts.value,
               prev_date: prevDate,
@@ -717,6 +707,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const loadSidebarData = async (showLoading = true) => {
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value?.length) return
+
       try {
         if (showLoading) isSidebarLoading.value = true
         const res = !isPublic.value
@@ -724,7 +715,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               ...queryParams.value,
               ...{},
               ...{},
-              ...{ filterArrJson: JSON.stringify([...sideBarFilter.value]) },
+              ...{ filterArrJson: stringifyFilterOrSortArr([...sideBarFilter.value]) },
               include_row_color: true,
             })
           : await fetchSharedViewData({

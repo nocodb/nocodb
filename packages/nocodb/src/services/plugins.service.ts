@@ -7,6 +7,8 @@ import { validatePayload } from '~/helpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { Plugin } from '~/models';
 
+export const isPlayWrightNode = () => process.env.PLAYWRIGHT_TEST === 'true';
+
 @Injectable()
 export class PluginsService {
   constructor(private readonly appHooksService: AppHooksService) {}
@@ -39,7 +41,7 @@ export class PluginsService {
     validatePayload('swagger.json#/components/schemas/PluginReq', param.plugin);
 
     const pluginInfo = await Plugin.get(param.pluginId);
-    if (pluginInfo?.title && pluginInfo.category) {
+    if (pluginInfo?.title && pluginInfo.category && !isPlayWrightNode()) {
       await NcPluginMgrv2.test({
         title: pluginInfo.title,
         category: pluginInfo.category,

@@ -71,7 +71,7 @@ useEventListener('message', (event) => {
         newPlan: planTitle,
         paymentMode: paymentModeInput,
       })
-      openNewTab('https://cal.com/nocodb')
+      openNewTab('cal.com/nocodb/sales')
       return
     }
 

@@ -2,6 +2,7 @@ import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
 
 import { Model } from '../../../src/models';
+import type { NcContext } from 'nocodb-sdk';
 import type {
   Base,
   Column,
@@ -931,6 +932,37 @@ const createColumn = async (
   return column;
 };
 
+const createColumn2 = async ({
+  ctx,
+  context,
+  table,
+  columnAttr,
+  option,
+}: {
+  context: Context;
+  ctx: NcContext;
+  table: Model;
+  columnAttr: Record<string, any>;
+  option?: {
+    throwError?: boolean;
+  };
+}) => {
+  const response = await request(context.app)
+    .post(`/api/v3/meta/bases/${ctx.base_id}/tables/${table.id}/fields`)
+    .set('xc-auth', context.token)
+    .send({
+      ...columnAttr,
+    });
+  if (response.status >= 400 && option?.throwError) {
+    throw response.error;
+  }
+
+  const column: Column = (await table.getColumns(ctx)).find(
+    (column) => column.title === columnAttr.title,
+  );
+  return { response, column };
+};
+
 const createRollupColumn = async (
   context: Context,
   {
@@ -1280,5 +1312,6 @@ export {
   updateViewColumn,
   updateColumn,
   deleteColumn,
+  createColumn2,
   updateColumn2,
 };

@@ -147,6 +147,7 @@ export class ToolbarPage extends BasePage {
 
   async clickGroupBy() {
     const menuOpen = await this.groupBy.get().isVisible();
+    await this.get().locator(`button.nc-group-by-menu-btn`).waitFor({ state: 'visible' });
     await this.get().locator(`button.nc-group-by-menu-btn`).click();
 
     // Wait for the menu to close

@@ -76,7 +76,6 @@ declare module 'vue' {
     LogosGoogleGmail: typeof import('~icons/logos/google-gmail')['default']
     MaterialSymbolsCloseRounded: typeof import('~icons/material-symbols/close-rounded')['default']
     MaterialSymbolsDeleteOutlineRounded: typeof import('~icons/material-symbols/delete-outline-rounded')['default']
-    MaterialSymbolsFileCopyOutline: typeof import('~icons/material-symbols/file-copy-outline')['default']
     MaterialSymbolsKeyboardArrowDownRounded: typeof import('~icons/material-symbols/keyboard-arrow-down-rounded')['default']
     MaterialSymbolsLockOutline: typeof import('~icons/material-symbols/lock-outline')['default']
     MaterialSymbolsPublic: typeof import('~icons/material-symbols/public')['default']

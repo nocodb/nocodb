@@ -10765,6 +10765,8 @@ export class Api<
       query?: {
         where?: string;
         viewId?: string;
+        /** Comma separated list of pks */
+        skipPks?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -10805,6 +10807,8 @@ export class Api<
       query?: {
         where?: string;
         viewId?: string;
+        /** Comma separated list of pks */
+        skipPks?: string;
       },
       params: RequestParams = {}
     ) =>

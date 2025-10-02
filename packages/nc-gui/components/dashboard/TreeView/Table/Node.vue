@@ -516,7 +516,26 @@ async function onRename() {
             }"
             @blur="onRename"
             @keydown.stop="onKeyDown($event)"
+            @compositionstart="onCompositionStart"
+            @compositionend="onCompositionEnd"
+            @input="onInputHandler"
           />
+const isComposing = ref(false)
+
+      function onCompositionStart() {
+        isComposing.value = true
+      }
+      
+      function onCompositionEnd(e: CompositionEvent) {
+        isComposing.value = false
+        formState.title = (e.target as HTMLInputElement).value
+      }
+      
+      function onInputHandler(e: InputEvent) {
+        if (!isComposing.value) {
+          formState.title = (e.target as HTMLInputElement).value
+        }
+      }
         </a-form>
         <NcTooltip
           v-else

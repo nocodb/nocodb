@@ -15,18 +15,29 @@ import {
   initRentalTable,
 } from './viewRowInit';
 import type View from '../../../../src/models/View';
-import type Base from '~/models/Base';
-import type { Model } from '~/models';
-let context;
+import type Base from '../../../../src/models/Base';
+import type { ColumnType } from 'nocodb-sdk';
+import type Model from '../../../../src/models/Model';
+let context: any;
 let ctx: {
   workspace_id: string;
   base_id: string;
+};
+
+const isColumnsCorrectInResponse = (row: any, columns: ColumnType[]) => {
+  const responseColumnsListStr = Object.keys(row).sort().join(',');
+  const customerColumnsListStr = columns
+    .map((c: ColumnType) => c.title)
+    .sort()
+    .join(',');
+  return responseColumnsListStr === customerColumnsListStr;
 };
 // bases
 let base: Base;
 let customerTable: Model;
 let filmTable: Model;
 let rentalTable: Model;
+let customerColumns;
 let filmColumns;
 let rentalColumns;
 // views
@@ -48,6 +59,7 @@ function viewRowLocalStaticTests() {
       base_id: base.id,
     };
     customerTable = await initCustomerTable(context, base);
+    customerColumns = await customerTable.getColumns(ctx);
     customerGridView = await createView(context, {
       title: 'Customer Grid',
       table: customerTable,
@@ -88,8 +100,9 @@ function viewRowLocalStaticTests() {
       table: rentalTable,
       type: ViewTypes.CALENDAR,
       range: {
-        fk_from_column_id: rentalColumns.find((c) => c.title === 'RentalDate')
-          .id,
+        fk_from_column_id: rentalColumns.find(
+          (c: ColumnType) => c.title === 'RentalDate',
+        )?.id,
       },
     });
 
@@ -112,11 +125,13 @@ function viewRowLocalStaticTests() {
   };
 
   const testGetViewRowListKanban = async (view: View) => {
-    const ratingColumn = filmColumns.find((c) => c.column_name === 'rating');
+    const ratingColumn = filmColumns.find(
+      (c: ColumnType) => c.column_name === 'rating',
+    );
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
+        `/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn?.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -170,6 +185,57 @@ function viewRowLocalStaticTests() {
   });
   it('Get view row list Calendar2', async () => {
     await testGetViewRowListCalendar(rentalCalendarView2);
+  });
+
+  const testGetViewDataListWithRequiredColumns = async (view: View) => {
+    const requiredColumns = customerColumns
+      .filter((_: any, index: number) => index < 3)
+      .filter(
+        (c: ColumnType) =>
+          ![
+            UITypes.ForeignKey,
+            // those additional uidts are
+            // created automatically when not ext db
+            UITypes.CreatedBy,
+            UITypes.CreatedTime,
+            UITypes.LastModifiedBy,
+            UITypes.LastModifiedTime,
+          ].includes(c.uidt as UITypes),
+      );
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: requiredColumns.map((c) => c.title),
+      })
+      .expect(200);
+    const pageInfo = response.body.pageInfo;
+
+    if (response.body.list.length !== pageInfo.pageSize) {
+      throw new Error('Wrong number of rows');
+    }
+
+    if (!isColumnsCorrectInResponse(response.body.list[0], requiredColumns)) {
+      console.log(
+        response.body.list[0],
+        requiredColumns.map((c: ColumnType) => ({
+          title: c.title,
+          uidt: c.uidt,
+        })),
+      );
+      throw new Error('Wrong columns');
+    }
+  };
+  it('Get view data list with required columns gallery', async () => {
+    await testGetViewDataListWithRequiredColumns(customerGalleryView);
+  });
+  it('Get view data list with required columns form', async () => {
+    await testGetViewDataListWithRequiredColumns(customerFormView);
+  });
+  it('Get view data list with required columns grid', async () => {
+    await testGetViewDataListWithRequiredColumns(customerGridView);
   });
 
   //#endregion Get view row

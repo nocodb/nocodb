@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import './utils/remote-worker'
 import ErrorBoundary from './components/nc/ErrorBoundary.vue'
 
 const router = useRouter()

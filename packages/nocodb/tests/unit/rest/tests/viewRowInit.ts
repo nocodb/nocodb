@@ -1,6 +1,7 @@
 import { UITypes } from 'nocodb-sdk';
-import { createTable } from '../../factory/table';
+import { createTable, getAllTables, getTable } from '../../factory/table';
 import { createBulkRows } from '../../factory/row';
+import { createLtarColumn } from '../../factory/column';
 
 const data = {
   Customers: [
@@ -1291,4 +1292,16 @@ export const initRentalTable = async (context: any, base: any) => {
   });
 
   return rentalTable;
+};
+
+export const linkInitTables = async (context: any, base: any) => {
+  const allTables = await getAllTables({ base });
+  const customerTable = allTables.find((tbl) => tbl.title === 'Customer');
+  const rentalTable = allTables.find((tbl) => tbl.title === 'Rental');
+  await createLtarColumn(context, {
+    title: 'Rentals',
+    parentTable: customerTable!,
+    childTable: rentalTable!,
+    type: 'hm',
+  });
 };

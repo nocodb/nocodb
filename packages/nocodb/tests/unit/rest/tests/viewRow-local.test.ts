@@ -4,15 +4,23 @@ import { expect } from 'chai';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import request from 'supertest';
 import { createProject } from '../../factory/base';
-import { createColumn, createLtarColumn } from '../../factory/column';
+import {
+  createColumn,
+  createLookupColumn,
+  createLtarColumn,
+  createRollupColumn,
+  updateViewColumn,
+} from '../../factory/column';
 import { createChildRow, createRow, getRow } from '../../factory/row';
 import { createTable, getTable } from '../../factory/table';
 import { createView } from '../../factory/view';
 import init from '../../init';
+import { getViewColumns, updateViewColumns } from '../../factory/viewColumns';
 import {
   initCustomerTable,
   initFilmTable,
   initRentalTable,
+  linkInitTables,
 } from './viewRowInit';
 import type View from '../../../../src/models/View';
 import type Base from '../../../../src/models/Base';
@@ -129,9 +137,13 @@ function viewRowLocalStaticTests() {
       (c: ColumnType) => c.column_name === 'rating',
     );
 
+    if (!ratingColumn) {
+      throw new Error('Rating column not found');
+    }
+
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn?.id}`,
+        `/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);
@@ -504,8 +516,216 @@ function viewRowLocalTests() {
       workspace_id: base.fk_workspace_id,
       base_id: base.id,
     };
+    customerTable = await initCustomerTable(context, base);
+    customerColumns = await customerTable.getColumns(ctx);
+
+    const _filmTable = await initFilmTable(context, base);
+    filmTable = await getTable({
+      base: base,
+      name: _filmTable.table_name,
+    });
+    filmColumns = await filmTable.getColumns(ctx);
+
+    rentalTable = await initRentalTable(context, base);
+    rentalColumns = await rentalTable.getColumns(ctx);
+
+    await linkInitTables(context, base);
     console.timeEnd('#### viewRowLocalTests');
   });
+
+  //#region Get row view
+  const testGetViewDataListWithRequiredColumnsAndFilter = async (
+    viewType: ViewTypes,
+  ) => {
+    const view = await createView(context, {
+      title: 'View',
+      table: rentalTable,
+      type: viewType,
+    });
+
+    const lookupColumn = await createLookupColumn(context, {
+      base: base,
+      title: 'Lookup',
+      table: rentalTable,
+      relatedTableName: customerTable.table_name,
+      relatedTableColumnTitle: 'FirstName',
+    });
+    // show column in gallery
+    await updateViewColumns(context, {
+      view,
+      viewColumns: {
+        [lookupColumn.id]: {
+          show: true,
+        },
+      },
+    });
+
+    const nestedFilter = {
+      is_group: true,
+      logical_op: 'and',
+      children: [
+        {
+          fk_column_id: lookupColumn?.id,
+          logical_op: 'and',
+          comparison_op: 'like',
+          value: '%a%',
+        },
+      ],
+    };
+
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${base.id}/${rentalTable.id}/views/${view.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+      });
+
+    console.log(response.body.pageInfo);
+    expect(response.body.pageInfo.totalRows).equal(9558);
+
+    const ascResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${base.id}/${rentalTable.id}/views/${view.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: lookupColumn?.id,
+            direction: 'asc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    expect(ascResponse.body.pageInfo.totalRows).equal(9558);
+    expect(ascResponse.body.list[0][lookupColumn.title]).equal('AARON');
+
+    const descResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${base.id}/${rentalTable.id}/views/${view.id}`)
+      .set('xc-auth', context.token)
+      .query({
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: lookupColumn?.id,
+            direction: 'desc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    expect(descResponse.body.pageInfo.totalRows).equal(9558);
+    expect(descResponse.body.list[0][lookupColumn.title]).equal('ZACHARY');
+  };
+
+  it.only('Get nested sorted filtered table data list with a lookup column gallery', async function () {
+    await testGetViewDataListWithRequiredColumnsAndFilter(ViewTypes.GALLERY);
+  });
+
+  it('Get nested sorted filtered table data list with a lookup column grid', async function () {
+    await testGetViewDataListWithRequiredColumnsAndFilter(ViewTypes.GRID);
+  });
+
+  it('Get nested sorted filtered table data list with a lookup column Calendar', async function () {
+    await testGetViewDataListWithRequiredColumnsAndFilter(ViewTypes.CALENDAR);
+  });
+
+  const testGetNestedSortedFilteredTableDataListWithLookupColumn = async (
+    viewType: ViewTypes,
+  ) => {
+    const view = await createView(context, {
+      title: 'View',
+      table: customerTable,
+      type: viewType,
+    });
+
+    const rollupColumn = await createRollupColumn(context, {
+      base: base,
+      title: 'Number of rentals',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: 'rental',
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const activeColumn = (await customerTable.getColumns(ctx)).find(
+      (c: ColumnType) => c.title === 'Active',
+    );
+
+    const nestedFields = {
+      Rentals: { fields: ['RentalDate', 'ReturnDate'] },
+    };
+
+    const nestedFilter = [
+      {
+        fk_column_id: rollupColumn?.id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'gte',
+        value: 25,
+      },
+      {
+        is_group: true,
+        status: 'create',
+        logical_op: 'or',
+        children: [
+          {
+            fk_column_id: rollupColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'lte',
+            value: 30,
+          },
+          {
+            is_group: true,
+            status: 'create',
+            logical_op: 'and',
+            children: [
+              {
+                logical_op: 'and',
+                fk_column_id: activeColumn?.id,
+                status: 'create',
+                comparison_op: 'eq',
+                value: 1,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const ascResponse = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        nested: nestedFields,
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sortArrJson: JSON.stringify([
+          {
+            fk_column_id: rollupColumn?.id,
+            direction: 'asc',
+          },
+        ]),
+      })
+      .expect(200);
+
+    expect(ascResponse.body.pageInfo.totalRows).equal(594);
+
+    if (parseInt(ascResponse.body.list[0][rollupColumn.title]) !== 12) {
+      throw new Error('Wrong filter');
+    }
+
+    expect(+ascResponse.body.list[0]['Rentals']).to.equal(12);
+  };
+
+  it('Get nested sorted filtered table with nested fields data list with a rollup column in customer table view grid', async () => {
+    await testGetNestedSortedFilteredTableDataListWithLookupColumn(
+      ViewTypes.GRID,
+    );
+  });
+  //#endregion Get row view
 
   //#region Create row view
   // todo: gallery view doesnt seem to support rollup

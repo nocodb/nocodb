@@ -4,8 +4,8 @@ import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
-import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import nodePolyfills from '@rolldown/plugin-node-polyfills'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
 
@@ -154,9 +154,9 @@ export default defineNuxtConfig({
         ignoreTryCatch: true,
       },
       minify: true,
-      rollupOptions: {},
     },
     plugins: [
+      nodePolyfills(),
       VueI18nPlugin({
         include: [resolve(dirname('./lang/*.json'))],
         runtimeOnly: false,
@@ -220,13 +220,6 @@ export default defineNuxtConfig({
     server: {
       watch: {
         usePolling: true,
-      },
-    },
-    resolve: {
-      alias: {
-        querystring: 'rollup-plugin-node-polyfills/polyfills/qs',
-        util: 'rollup-plugin-node-polyfills/polyfills/util',
-        url: 'rollup-plugin-node-polyfills/polyfills/url',
       },
     },
     optimizeDeps: {
@@ -312,13 +305,6 @@ export default defineNuxtConfig({
         'vue3-moveable',
         'vue-fullscreen',
       ],
-      esbuildOptions: {
-        define: {
-          global: 'globalThis',
-        },
-        // Enable esbuild polyfill plugins
-        plugins: [NodeModulesPolyfillPlugin()],
-      },
     },
   },
 

@@ -726,6 +726,21 @@ const data = {
       Rating: 'R',
       SpecialFeatures: 'Trailers,Deleted Scenes,Behind the Scenes',
     },
+    {
+      FilmId: 31,
+      Title: 'WORST BANGER',
+      Description:
+        'A Thrilling Drama of a Madman And a Dentist who must Conquer a Boy in The Outback',
+      ReleaseYear: 2006,
+      LanguageId: 1,
+      OriginalLanguageId: null,
+      RentalDuration: 4,
+      RentalRate: 2.99,
+      Length: 185,
+      ReplacementCost: 26.99,
+      Rating: 'PG',
+      SpecialFeatures: 'Deleted Scenes,Behind the Scenes',
+    },
   ],
   Rentals: [
     {

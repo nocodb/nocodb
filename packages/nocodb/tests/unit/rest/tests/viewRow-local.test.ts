@@ -314,7 +314,8 @@ function viewRowLocalStaticTests() {
       throw new Error('Wrong columns');
     }
 
-    if (response.body.list[0][firstNameColumn.title] !== 'ZACHARY') {
+    // local test do not bring all data from sekila
+    if (response.body.list[0][firstNameColumn.title] !== 'SUSAN') {
       console.log(response.body.list);
       throw new Error('Wrong sort');
     }
@@ -336,7 +337,7 @@ function viewRowLocalStaticTests() {
     if (
       lastPageResponse.body.list[lastPageResponse.body.list.length - 1][
         firstNameColumn.title
-      ] !== 'AARON'
+      ] !== 'ANGELA'
     ) {
       console.log(lastPageOffset, lastPageResponse.body.list);
       throw new Error('Wrong sort on last page');
@@ -380,7 +381,6 @@ function viewRowLocalStaticTests() {
 
     // PG, R, NC-17, G, PG-17, null (uncategorized)
     expect(response.body).to.be.have.length(6);
-
     expect(
       response.body.find((e: any) => e.key === 'PG').value.list[0].Title,
     ).to.equal('WORST BANGER');

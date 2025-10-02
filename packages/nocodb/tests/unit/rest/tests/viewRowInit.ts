@@ -1,12 +1,39 @@
 import { UITypes } from 'nocodb-sdk';
-import { createTable, getAllTables, getTable } from '../../factory/table';
+import { expect } from 'chai';
+import request from 'supertest';
+import { createTable, getAllTables } from '../../factory/table';
 import { createBulkRows } from '../../factory/row';
-import { createLtarColumn } from '../../factory/column';
+import { createLtarColumn2, customColumns } from '../../factory/column';
+
+async function ncAxiosLinkAdd({
+  context,
+  urlParams,
+  body = {},
+  status = 200,
+  msg,
+}: {
+  context: { context: any; base: any };
+  urlParams: { tableId: string; linkId: string; rowId: string };
+  body?: any;
+  status?: number;
+  msg?: string;
+}) {
+  const url = `/api/v3/data/${context.base.id}/${urlParams.tableId}/links/${urlParams.linkId}/${urlParams.rowId}`;
+  const response = await request(context.context.app)
+    .post(url)
+    .set('xc-auth', context.context.token)
+    .send(body);
+
+  expect(response.status).to.equal(status);
+  if (msg) {
+    expect(response.body.message || response.body.msg).to.equal(msg);
+  }
+  return response;
+}
 
 const data = {
   Customers: [
     {
-      CustomerId: 1,
       StoreId: 1,
       FirstName: 'MARY',
       LastName: 'SMITH',
@@ -15,7 +42,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 2,
       StoreId: 1,
       FirstName: 'PATRICIA',
       LastName: 'JOHNSON',
@@ -24,7 +50,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 3,
       StoreId: 1,
       FirstName: 'LINDA',
       LastName: 'WILLIAMS',
@@ -33,7 +58,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 4,
       StoreId: 2,
       FirstName: 'BARBARA',
       LastName: 'JONES',
@@ -42,7 +66,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 5,
       StoreId: 1,
       FirstName: 'ELIZABETH',
       LastName: 'BROWN',
@@ -51,7 +74,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 6,
       StoreId: 2,
       FirstName: 'JENNIFER',
       LastName: 'DAVIS',
@@ -60,7 +82,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 7,
       StoreId: 1,
       FirstName: 'MARIA',
       LastName: 'MILLER',
@@ -69,7 +90,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 8,
       StoreId: 2,
       FirstName: 'SUSAN',
       LastName: 'WILSON',
@@ -78,7 +98,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 9,
       StoreId: 2,
       FirstName: 'MARGARET',
       LastName: 'MOORE',
@@ -87,7 +106,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 10,
       StoreId: 1,
       FirstName: 'DOROTHY',
       LastName: 'TAYLOR',
@@ -96,7 +114,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 11,
       StoreId: 2,
       FirstName: 'LISA',
       LastName: 'ANDERSON',
@@ -105,7 +122,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 12,
       StoreId: 1,
       FirstName: 'NANCY',
       LastName: 'THOMAS',
@@ -114,7 +130,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 13,
       StoreId: 2,
       FirstName: 'KAREN',
       LastName: 'JACKSON',
@@ -123,7 +138,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 14,
       StoreId: 2,
       FirstName: 'BETTY',
       LastName: 'WHITE',
@@ -132,7 +146,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 15,
       StoreId: 1,
       FirstName: 'HELEN',
       LastName: 'HARRIS',
@@ -141,7 +154,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 16,
       StoreId: 2,
       FirstName: 'SANDRA',
       LastName: 'MARTIN',
@@ -150,7 +162,6 @@ const data = {
       Active: 0,
     },
     {
-      CustomerId: 17,
       StoreId: 1,
       FirstName: 'DONNA',
       LastName: 'THOMPSON',
@@ -159,7 +170,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 18,
       StoreId: 2,
       FirstName: 'CAROL',
       LastName: 'GARCIA',
@@ -168,7 +178,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 19,
       StoreId: 1,
       FirstName: 'RUTH',
       LastName: 'MARTINEZ',
@@ -177,7 +186,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 20,
       StoreId: 2,
       FirstName: 'SHARON',
       LastName: 'ROBINSON',
@@ -186,7 +194,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 21,
       StoreId: 1,
       FirstName: 'MICHELLE',
       LastName: 'CLARK',
@@ -195,7 +202,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 22,
       StoreId: 1,
       FirstName: 'LAURA',
       LastName: 'RODRIGUEZ',
@@ -204,7 +210,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 23,
       StoreId: 2,
       FirstName: 'SARAH',
       LastName: 'LEWIS',
@@ -213,7 +218,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 24,
       StoreId: 2,
       FirstName: 'KIMBERLY',
       LastName: 'LEE',
@@ -222,7 +226,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 25,
       StoreId: 1,
       FirstName: 'DEBORAH',
       LastName: 'WALKER',
@@ -231,7 +234,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 26,
       StoreId: 2,
       FirstName: 'JESSICA',
       LastName: 'HALL',
@@ -240,7 +242,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 27,
       StoreId: 2,
       FirstName: 'SHIRLEY',
       LastName: 'ALLEN',
@@ -249,7 +250,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 28,
       StoreId: 1,
       FirstName: 'CYNTHIA',
       LastName: 'YOUNG',
@@ -258,7 +258,6 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 29,
       StoreId: 2,
       FirstName: 'ANGELA',
       LastName: 'HERNANDEZ',
@@ -267,12 +266,19 @@ const data = {
       Active: 1,
     },
     {
-      CustomerId: 30,
       StoreId: 1,
       FirstName: 'MELISSA',
       LastName: 'KING',
       Email: 'MELISSA.KING@sakilacustomer.org',
       AddressId: 34,
+      Active: 1,
+    },
+    {
+      StoreId: 2,
+      FirstName: 'AARON',
+      LastName: 'SELBY',
+      Email: 'AARON.SELBY@sakilacustomer.org',
+      AddressId: 380,
       Active: 1,
     },
   ],
@@ -745,7 +751,7 @@ const data = {
   ],
   Rentals: [
     {
-      RentalId: '1',
+      RentalId: 1,
       RentalDate: '2005-05-24T22:53:30.000',
       InventoryId: '367',
       CustomerId: '130',
@@ -754,7 +760,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '2',
+      RentalId: 2,
       RentalDate: '2005-05-24T22:54:33.000',
       InventoryId: '1525',
       CustomerId: '459',
@@ -763,7 +769,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '3',
+      RentalId: 3,
       RentalDate: '2005-05-24T23:03:39.000',
       InventoryId: '1711',
       CustomerId: '408',
@@ -772,7 +778,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '4',
+      RentalId: 4,
       RentalDate: '2005-05-24T23:04:41.000',
       InventoryId: '2452',
       CustomerId: '333',
@@ -781,7 +787,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '5',
+      RentalId: 5,
       RentalDate: '2005-05-24T23:05:21.000',
       InventoryId: '2079',
       CustomerId: '222',
@@ -790,7 +796,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '6',
+      RentalId: 6,
       RentalDate: '2005-05-24T23:08:07.000',
       InventoryId: '2792',
       CustomerId: '549',
@@ -799,7 +805,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '7',
+      RentalId: 7,
       RentalDate: '2005-05-24T23:11:53.000',
       InventoryId: '3995',
       CustomerId: '269',
@@ -808,7 +814,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '8',
+      RentalId: 8,
       RentalDate: '2005-05-24T23:31:46.000',
       InventoryId: '2346',
       CustomerId: '239',
@@ -817,7 +823,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '9',
+      RentalId: 9,
       RentalDate: '2005-05-25T00:00:40.000',
       InventoryId: '2580',
       CustomerId: '126',
@@ -826,7 +832,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '10',
+      RentalId: 10,
       RentalDate: '2005-05-25T00:02:21.000',
       InventoryId: '1824',
       CustomerId: '399',
@@ -835,7 +841,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '11',
+      RentalId: 11,
       RentalDate: '2005-05-25T00:09:02.000',
       InventoryId: '4443',
       CustomerId: '142',
@@ -844,7 +850,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '12',
+      RentalId: 12,
       RentalDate: '2005-05-25T00:19:27.000',
       InventoryId: '1584',
       CustomerId: '261',
@@ -853,7 +859,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '13',
+      RentalId: 13,
       RentalDate: '2005-05-25T00:22:55.000',
       InventoryId: '2294',
       CustomerId: '334',
@@ -862,7 +868,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '14',
+      RentalId: 14,
       RentalDate: '2005-05-25T00:31:15.000',
       InventoryId: '2701',
       CustomerId: '446',
@@ -871,7 +877,7 @@ const data = {
       LastUpdate: '2006-02-15T21:30:53.000',
     },
     {
-      RentalId: '15',
+      RentalId: 15,
       RentalDate: '2005-05-25T00:39:22.000',
       InventoryId: '3049',
       CustomerId: '319',
@@ -1111,12 +1117,7 @@ export const initCustomerTable = async (context: any, base: any) => {
   const customerTable = await createTable(context, base, {
     title: 'Customer',
     table_name: 'customer',
-    columns: [
-      {
-        title: 'CustomerId',
-        column_name: 'customer_id',
-        uidt: UITypes.ID,
-      },
+    columns: customColumns('custom', [
       {
         title: 'StoreId',
         column_name: 'store_id',
@@ -1145,9 +1146,9 @@ export const initCustomerTable = async (context: any, base: any) => {
       {
         title: 'Active',
         column_name: 'active',
-        uidt: UITypes.Checkbox,
+        uidt: UITypes.Number,
       },
-    ],
+    ]),
   });
 
   await createBulkRows(context, {
@@ -1168,6 +1169,7 @@ export const initFilmTable = async (context: any, base: any) => {
         title: 'FilmId',
         column_name: 'film_id',
         uidt: UITypes.ID,
+        pk: true,
       },
       {
         title: 'Title',
@@ -1246,12 +1248,7 @@ export const initRentalTable = async (context: any, base: any) => {
   const rentalTable = await createTable(context, base, {
     title: 'Rental',
     table_name: 'rental',
-    columns: [
-      {
-        column_name: 'rental_id',
-        title: 'RentalId',
-        type: UITypes.Number,
-      },
+    columns: customColumns('custom', [
       {
         column_name: 'rental_date',
         title: 'RentalDate',
@@ -1282,7 +1279,7 @@ export const initRentalTable = async (context: any, base: any) => {
         title: 'LastUpdate',
         type: UITypes.DateTime,
       },
-    ],
+    ]),
   });
 
   await createBulkRows(context, {
@@ -1298,10 +1295,156 @@ export const linkInitTables = async (context: any, base: any) => {
   const allTables = await getAllTables({ base });
   const customerTable = allTables.find((tbl) => tbl.title === 'Customer');
   const rentalTable = allTables.find((tbl) => tbl.title === 'Rental');
-  await createLtarColumn(context, {
+  const Customer_HM_Rental_LTAR = await createLtarColumn2(context, {
     title: 'Rentals',
     parentTable: customerTable!,
     childTable: rentalTable!,
     type: 'hm',
   });
+
+  const rentalCustomerLink = [
+    {
+      id: '1',
+      customerId: '30',
+    },
+    {
+      id: '2',
+      customerId: '29',
+    },
+    {
+      id: '3',
+      customerId: '28',
+    },
+    {
+      id: '4',
+      customerId: '27',
+    },
+    {
+      id: '5',
+      customerId: '26',
+    },
+    {
+      id: '6',
+      customerId: '25',
+    },
+    {
+      id: '7',
+      customerId: '24',
+    },
+    {
+      id: '8',
+      customerId: '23',
+    },
+    {
+      id: '9',
+      customerId: '22',
+    },
+    {
+      id: '10',
+      customerId: '21',
+    },
+    {
+      id: '11',
+      customerId: '20',
+    },
+    {
+      id: '12',
+      customerId: '19',
+    },
+    {
+      id: '13',
+      customerId: '18',
+    },
+    {
+      id: '14',
+      customerId: '17',
+    },
+    {
+      id: '15',
+      customerId: '16',
+    },
+    {
+      id: '16',
+      customerId: '15',
+    },
+    {
+      id: '17',
+      customerId: '14',
+    },
+    {
+      id: '18',
+      customerId: '13',
+    },
+    {
+      id: '19',
+      customerId: '12',
+    },
+    {
+      id: '20',
+      customerId: '11',
+    },
+    {
+      id: '21',
+      customerId: '10',
+    },
+    {
+      id: '22',
+      customerId: '9',
+    },
+    {
+      id: '23',
+      customerId: '8',
+    },
+    {
+      id: '24',
+      customerId: '7',
+    },
+    {
+      id: '25',
+      customerId: '6',
+    },
+    {
+      id: '26',
+      customerId: '5',
+    },
+    {
+      id: '1',
+      customerId: '4',
+    },
+    {
+      id: '1',
+      customerId: '3',
+    },
+    {
+      id: '1',
+      customerId: '2',
+    },
+    {
+      id: '1',
+      customerId: '1',
+    },
+  ];
+
+  const linkTo_Customer_HM_Rental_LTAR = (rowId: string, body: any[]) => {
+    return ncAxiosLinkAdd({
+      context: {
+        context,
+        base,
+      },
+      urlParams: {
+        tableId: customerTable!.id,
+        linkId: Customer_HM_Rental_LTAR.id,
+        rowId: rowId,
+      },
+      body: body,
+      status: 200,
+    });
+  };
+  await Promise.all(
+    rentalCustomerLink.map((link) =>
+      linkTo_Customer_HM_Rental_LTAR(link.id, [
+        { id: Number(link.customerId) },
+      ]),
+    ),
+  );
 };

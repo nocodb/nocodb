@@ -181,6 +181,23 @@ const searchQuery = ref('')
 
 const autoScrollFormField = ref(false)
 
+const isHeadingComposing = ref(false)
+
+const onHeadingCompositionStart = () => {
+  isHeadingComposing.value = true
+}
+
+const onHeadingCompositionEnd = () => {
+  isHeadingComposing.value = false
+  updateView(false)
+}
+
+const onHeadingInput = () => {
+  if (!isHeadingComposing.value) {
+    updateView(false)
+  }
+}
+
 const { t } = useI18n()
 
 const { open, onChange: onChangeFile } = useFileDialog({
@@ -1296,7 +1313,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                               :bordered="false"
                               :data-testid="NcForm.heading"
                               :data-title="NcForm.heading"
-                              @input="updateView"
+                              @input="onHeadingInput"
+                              @compositionstart="onHeadingCompositionStart"
+                              @compositionend="onHeadingCompositionEnd"
                               @focus="activeRow = NcForm.heading"
                               @blur="activeRow = ''"
                             />

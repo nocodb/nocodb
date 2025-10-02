@@ -37,9 +37,9 @@ let base: Base;
 let customerTable: Model;
 let filmTable: Model;
 let rentalTable: Model;
-let customerColumns;
-let filmColumns;
-let rentalColumns;
+let customerColumns: any;
+let filmColumns: any;
+let rentalColumns: any;
 // views
 let customerGridView: View;
 let customerGalleryView: View;
@@ -189,7 +189,6 @@ function viewRowLocalStaticTests() {
 
   const testGetViewDataListWithRequiredColumns = async (view: View) => {
     const requiredColumns = customerColumns
-      .filter((_: any, index: number) => index < 3)
       .filter(
         (c: ColumnType) =>
           ![
@@ -200,8 +199,10 @@ function viewRowLocalStaticTests() {
             UITypes.CreatedTime,
             UITypes.LastModifiedBy,
             UITypes.LastModifiedTime,
+            UITypes.Order,
           ].includes(c.uidt as UITypes),
-      );
+      )
+      .filter((_: any, index: number) => index < 2);
     const response = await request(context.app)
       .get(
         `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}`,
@@ -236,6 +237,156 @@ function viewRowLocalStaticTests() {
   });
   it('Get view data list with required columns grid', async () => {
     await testGetViewDataListWithRequiredColumns(customerGridView);
+  });
+
+  const testGetGroupedViewDataListWithRequiredColumns = async (view: View) => {
+    const requiredColumns = filmColumns
+      .filter(
+        (c: ColumnType) =>
+          ![
+            UITypes.ForeignKey,
+            // those additional uidts are
+            // created automatically when not ext db
+            UITypes.CreatedBy,
+            UITypes.CreatedTime,
+            UITypes.LastModifiedBy,
+            UITypes.LastModifiedTime,
+            UITypes.Order,
+          ].includes(c.uidt as UITypes),
+      )
+      .filter((_: any, index: number) => index < 3);
+    const ratingColumn = filmColumns.find(
+      (c: ColumnType) => c.column_name === 'rating',
+    );
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn?.id}`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: requiredColumns.map((c) => c.title),
+      })
+      .expect(200);
+
+    expect(response.body).to.be.an('array');
+
+    // PG, R, NC-17, G, PG-17, null (uncategorized)
+    expect(response.body).to.be.have.length(6);
+
+    expect(
+      Object.keys(
+        response.body.find((e: any) => e.key === 'NC-17').value.list[0],
+      )
+        .sort()
+        .join(','),
+    ).to.equal('Description,FilmId,Title');
+  };
+  it('Get grouped view data list with required columns kanban', async () => {
+    await testGetGroupedViewDataListWithRequiredColumns(filmKanbanView);
+  });
+
+  const testDescSortedViewDataList = async (view: View) => {
+    const firstNameColumn = customerColumns.find(
+      (col: ColumnType) => col.title === 'FirstName',
+    );
+    const visibleColumns = [firstNameColumn];
+    const sortInfo = [{ fk_column_id: firstNameColumn?.id, direction: 'desc' }];
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sortArrJson: JSON.stringify(sortInfo),
+      })
+      .expect(200);
+    const pageInfo = response.body.pageInfo;
+
+    if (response.body.list.length !== pageInfo.pageSize) {
+      throw new Error('Wrong number of rows');
+    }
+
+    if (!isColumnsCorrectInResponse(response.body.list[0], visibleColumns)) {
+      console.log(response.body.list);
+      throw new Error('Wrong columns');
+    }
+
+    if (response.body.list[0][firstNameColumn.title] !== 'ZACHARY') {
+      console.log(response.body.list);
+      throw new Error('Wrong sort');
+    }
+
+    const lastPageOffset =
+      Math.trunc(pageInfo.totalRows / pageInfo.pageSize) * pageInfo.pageSize;
+    const lastPageResponse = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sortArrJson: JSON.stringify(sortInfo),
+        offset: lastPageOffset,
+      })
+      .expect(200);
+
+    if (
+      lastPageResponse.body.list[lastPageResponse.body.list.length - 1][
+        firstNameColumn.title
+      ] !== 'AARON'
+    ) {
+      console.log(lastPageOffset, lastPageResponse.body.list);
+      throw new Error('Wrong sort on last page');
+    }
+  };
+  it('Get desc sorted table data list with required columns gallery', async function () {
+    await testDescSortedViewDataList(customerGalleryView);
+  });
+  it('Get desc sorted table data list with required columns form', async function () {
+    await testDescSortedViewDataList(customerFormView);
+  });
+  it('Get desc sorted table data list with required columns grid', async function () {
+    await testDescSortedViewDataList(customerGridView);
+  });
+
+  const testDescSortedGroupedViewDataList = async (view: View) => {
+    const ratingColumn = filmColumns.find(
+      (c: ColumnType) => c.title === 'Rating',
+    );
+
+    const titleColumn = filmColumns.find(
+      (col: ColumnType) => col.title === 'Title',
+    );
+
+    const visibleColumns = [titleColumn];
+
+    const sortInfo = [{ fk_column_id: titleColumn?.id, direction: 'desc' }];
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}/group/${ratingColumn?.id}`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sortArrJson: JSON.stringify(sortInfo),
+      })
+      .expect(200);
+
+    expect(response.body).to.be.an('array');
+
+    // PG, R, NC-17, G, PG-17, null (uncategorized)
+    expect(response.body).to.be.have.length(6);
+
+    expect(
+      response.body.find((e: any) => e.key === 'PG').value.list[0].Title,
+    ).to.equal('WORST BANGER');
+  };
+  it('Get desc sorted table data list with required columns kanban', async function () {
+    await testDescSortedGroupedViewDataList(filmKanbanView);
   });
 
   //#endregion Get view row

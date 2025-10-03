@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "എഡിറ്റ് അനുവദനം എഡിറ്റർമാർക്കും അത് മേൽപറയുന്നവർക്കുമാകും.",
       "confirmRevertPermissionsToDefault": "ടേബിള്‍ - \"{tableName}\" ന് റീസെറ്റ് അനുമതികൾ സ്ഥിരീകരിക്കുക",
       "formViewFieldEditPermissionRestrictionTooltip": "ഈ ഫോമിൽ ഈ ഫീൽഡ് മറച്ചിരിക്കുന്നു കാരണമ് ഒരാളും എഡിറ്റ് ചെയ്യാനുള്ള അനുമതി ഇല്ല."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "പ്രവർത്തനങ്ങൾ റൺ ചെയ്യുക",
     "createScript": "സ്‌ക്രിപ്റ്റ് സൃഷ്ടിക്കുക",
     "deleteAllRecords": "എല്ലാ റെക്കോര്‍ഡുകളും ഇല്ലാക്കുക",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "കാഴ്ച നിയോഗിക്കുക",
     "webhookDetails": "വെബ്‌ഹുക്ക് വിശദാംശങ്ങൾ",
     "webhookLogs": "Webhook Logs",

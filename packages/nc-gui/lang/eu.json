@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Editoreek eta goragokoek izango dute editatzeko sarbidea.",
       "confirmRevertPermissionsToDefault": "Berretsi taularen baimenak berrezartzea: \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Eremu hau ezkutatuta dago formularioan inork editatzeko baimenik ez duelako."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Exekutatu ekintzak",
     "createScript": "Sortu scripta",
     "deleteAllRecords": "Ezabatu erregistro guztiak",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Esleitu ikuspegia",
     "webhookDetails": "Webhook xehetasunak",
     "webhookLogs": "Webhook Logs",

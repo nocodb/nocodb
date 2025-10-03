@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "ಸಂಪಾದನಾ ಪ್ರವೇಶವನ್ನು ಎಡಿಟರ್‌ಗಳು ಮತ್ತು ಮೇಲ್ಭಾಗದವರಿಗೆ ಮಾತ್ರ ನೀಡಲಾಗುವುದು.",
       "confirmRevertPermissionsToDefault": "ಟೇಬಲ್ - \"{tableName}\" ಗಾಗಿ ಅನುಮತಿಗಳನ್ನು ಮರುಹೊಂದಲು ದೃಢೀಕರಿಸಿ",
       "formViewFieldEditPermissionRestrictionTooltip": "ಈ ಕ್ಷೇತ್ರವನ್ನು ಯಾವುದೇ ವ್ಯಕ್ತಿಗೆ ಸಂಪಾದನೆಗೆ ಅನುಮತಿ ಇಲ್ಲದ ಕಾರಣ ಫಾರ್ಮ್‌ನಲ್ಲಿ ಮರೆಮಾಡಲಾಗಿದೆ."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "ಕ್ರಿಯೆಗಳನ್ನು ಚಾಲನೆ ಮಾಡಿ",
     "createScript": "ಸ್ಕ್ರಿಪ್ಟ್ ರಚಿಸಿ",
     "deleteAllRecords": "ಎಲ್ಲಾ ದಾಖಲೆಗಳನ್ನು ಅಳಿಸಿ",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "ದೃಶ್ಯವನ್ನು ನಿಯೋಜಿಸಿ",
     "webhookDetails": "ವೆಬ್‌ಹುಕ್ ವಿವರಣೆಗಳು",
     "webhookLogs": "Webhook Logs",

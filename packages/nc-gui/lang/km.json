@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "សិទ្ធិកែសម្រួលនឹងត្រូវកំណត់សម្រាប់អ្នកកែសម្រួល & ខ្ពស់។",
       "confirmRevertPermissionsToDefault": "បញ្ជាក់ការសោ/reset សិទ្ធិតារាងសម្រាប់ - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "វាលនេះត្រូវបានលាក់ក្នុងបែបបទ ព្រោះគ្មាននរណាមានសិទ្ធិកែវាលនេះទេ។"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "រត្តូវសកម្មភាព",
     "createScript": "បង្កើតស្គ្រីប",
     "deleteAllRecords": "លុបទិន្នន័យទាំងអស់",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "ផ្ដល់មើល",
     "webhookDetails": "ព័ត៌មានលម្អិតរបស់ Webhook",
     "webhookLogs": "Webhook Logs",

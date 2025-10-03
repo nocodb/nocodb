@@ -66,7 +66,7 @@
     "@nestjs/platform-socket.io": "^10.4.19",
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^10.4.19",
-    "@react-email/components": "0.0.41",
+    "@react-email/components": "0.0.42",
     "@react-email/render": "^1.1.2",
     "@sentry/nestjs": "^9.27.0",
     "@socket.io/redis-adapter": "^8.3.0",

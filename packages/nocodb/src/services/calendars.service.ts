@@ -46,6 +46,26 @@ export class CalendarsService {
 
     const model = await Model.get(context, param.tableId, ncMeta);
 
+    const existingView = await View.getByTitleOrId(
+      context,
+      {
+        titleOrId: param.calendar.title,
+        fk_model_id: param.tableId,
+      },
+      ncMeta,
+    );
+    if (existingView) {
+      NcError.get(context).duplicateAlias({
+        type: 'view',
+        alias: param.calendar.title,
+        label: 'title',
+        base: context.base_id,
+        additionalTrace: {
+          table: param.tableId,
+        },
+      });
+    }
+
     const viewWebhookManager =
       param.viewWebhookManager ??
       (

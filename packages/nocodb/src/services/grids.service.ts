@@ -36,6 +36,7 @@ export class GridsService {
     );
 
     const model = await Model.get(context, param.tableId, ncMeta);
+    // check for duplicated view title
     const existingView = await View.getByTitleOrId(
       context,
       {

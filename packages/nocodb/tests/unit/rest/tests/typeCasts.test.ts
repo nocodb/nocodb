@@ -49,13 +49,13 @@ async function setup(context, base: Base, type: UITypes) {
     ],
   });
 
-  // Table will miss ID column (API v2 behavior) so we target 5th index
+  // get the column based on col title
   const column = (
     await table.getColumns({
       workspace_id: base.fk_workspace_id,
       base_id: base.id,
     })
-  )[5];
+  ).find((col) => col.title === 'Test');
 
   const rowAttributes = [];
   for (let i = 0; i < 100; i++) {

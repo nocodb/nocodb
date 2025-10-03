@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "এডিট অ্যাক্সেস এডিটর এবং তার ওপরে সেট করা হবে।",
       "confirmRevertPermissionsToDefault": "টেবিল - \"{tableName}\"-এর জন্য রিসেট পারমিশন কনফার্ম করুন",
       "formViewFieldEditPermissionRestrictionTooltip": "এই ফিল্ডটি ফর্মে লুকানো কারণ কোনো ব্যবহারকারীর সম্পাদনার অনুমতি নেই।"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "অ্যাকশন চালান",
     "createScript": "স্ক্রিপ্ট তৈরি করুন",
     "deleteAllRecords": "সব রেকর্ড মুছে ফেলুন",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "ভিউ নির্ধারণ করুন",
     "webhookDetails": "ওয়েবহুকের বিবরণ",
     "webhookLogs": "Webhook Logs",

@@ -35,6 +35,8 @@ const maxVisibleDays = computed(() => {
   return viewMetaProperties.value?.hide_weekend ? 5 : 7
 })
 
+const { t } = useI18n()
+
 const days = computed(() => {
   let days = []
 
@@ -48,7 +50,8 @@ const days = computed(() => {
     days = days.filter((day) => day !== 'Sat' && day !== 'Sun')
   }
 
-  return days
+  // i18n support
+  return days.map((d) => t(`objects.shortDays.${d.slice(0, 2)}`))
 })
 
 const calendarGridContainer = ref()

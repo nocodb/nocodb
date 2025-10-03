@@ -31,7 +31,7 @@ Please refer to [Development Setup](https://docs.nocodb.com/engineering/developm
 
 ### Committing Changes
 
-We encourage all contributors to commit messages following [Commit Message Convention](./COMMIT_CONVENTION.md).
+We encourage all contributors to commit messages following [Commit Message Convention](/.github/COMMIT_CONVENTION.md).
 
 ### Applying License
 

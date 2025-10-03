@@ -23,7 +23,7 @@ useProvideSmartsheetLtarHelpers(meta)
 
 useProvideKanbanViewStore(meta, sharedView)
 
-useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
+useProvideCalendarViewStore(meta, sharedView, true, xWhere)
 
 useViewRowColorProvider({ shared: true })
 </script>

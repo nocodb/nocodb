@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Доступ для редагування буде дозволено редакторам і вище.",
       "confirmRevertPermissionsToDefault": "Підтвердіть скидання дозволів для таблиці – \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Це поле приховане у формі, оскільки ніхто не має дозволу його редагувати."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Запустити дії",
     "createScript": "Створити скрипт",
     "deleteAllRecords": "Видалити всі записи",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Призначити вид",
     "webhookDetails": "Деталі вебхука",
     "webhookLogs": "Webhook Logs",

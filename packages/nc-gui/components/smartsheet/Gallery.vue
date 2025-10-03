@@ -15,7 +15,8 @@ const fields = inject(FieldsInj, ref([]))
 
 const { user } = useGlobal()
 const { isViewDataLoading } = storeToRefs(useViewsStore())
-const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
+const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus } =
+  useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
 const route = useRoute()
 const router = useRouter()
@@ -372,6 +373,12 @@ reloadViewDataHook?.on(
     calculateSlices()
   }),
 )
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.DATA_RELOAD) {
+    reloadViewDataHook?.trigger()
+  }
+})
 
 const handleOpenNewRecordForm = () => {
   if (showRecordPlanLimitExceededModal()) return

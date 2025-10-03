@@ -66,6 +66,8 @@ const {
   removeFile,
   updateAttachmentTitle,
   isEditAllowed,
+  isSharedForm,
+  isUploading,
 } = useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
@@ -355,18 +357,19 @@ onUnmounted(() => {
     <div
       class="flex"
       :class="{
-        'w-full': !visibleItems.length,
+        'w-full': !visibleItems.length || isUploading,
       }"
     >
       <NcTooltip
         :disabled="isEditAllowed || !isAllowed"
         :title="$t('tooltip.sourceDataIsReadonly')"
+        class="flex items-center justify-between"
         :class="{
-          'w-full': !visibleItems.length,
+          'w-full': !visibleItems.length || isUploading,
         }"
       >
         <NcButton
-          v-if="visibleItems.length"
+          v-if="visibleItems.length || isUploading"
           data-testid="attachment-cell-file-picker-button"
           type="secondary"
           size="small"
@@ -410,6 +413,14 @@ onUnmounted(() => {
             {{ $t('labels.toUpload') }}
           </span>
         </div>
+
+        <div
+          v-if="isUploading && !isSharedForm"
+          class="flex items-center gap-1.5 h-full pb-1 text-bodyDefaultSm !text-nc-content-gray-muted"
+        >
+          <GeneralLoader class="!text-inherit" />
+          <div>{{ $t('labels.uploading') }}</div>
+        </div>
       </NcTooltip>
     </div>
 
@@ -418,7 +429,9 @@ onUnmounted(() => {
       :class="{
         'top-0 bottom-0 -right-1 left-0': !visibleItems.length,
         '-top-1 -left-1 -right-1 bottom-0': visibleItems.length,
-        'hidden': visibleItems.length && (!isOverDropZone || isReadonly || dragging || !currentCellRef),
+        'hidden':
+          (visibleItems.length && (!isOverDropZone || isReadonly || dragging || !currentCellRef)) ||
+          (isUploading && !visibleItems.length),
         'border-nc-border-medium': !visibleItems.length && !isOverDropZone,
         'border-nc-fill-primary': isOverDropZone && isEditAllowed,
       }"

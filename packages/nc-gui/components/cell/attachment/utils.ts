@@ -62,6 +62,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const permissionGranted = ref(false)
 
+    // User can drag and drop files multiple times so we have to keep track of that and reduce count after upload are done
+    const uploadingCount = ref(0)
+
+    const isUploading = computed(() => {
+      return uploadingCount.value > 0
+    })
+
     const { base } = storeToRefs(useBase())
 
     const { api, isLoading } = useApi()
@@ -227,6 +234,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
 
       if (files.length) {
+        uploadingCount.value++
         try {
           const data = await batchUploadFiles(files, [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'))
 
@@ -243,6 +251,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           }
         } catch (e: any) {
           message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
+        } finally {
+          uploadingCount.value--
         }
       } else if (imageUrls.length) {
         const data = await uploadViaUrl(imageUrls)
@@ -253,6 +263,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     async function uploadViaUrl(url: AttachmentReqType | AttachmentReqType[], returnError = false) {
+      uploadingCount.value++
       const imageUrl = Array.isArray(url) ? url : [url]
       try {
         const data = await api.storage.uploadByUrl(
@@ -269,6 +280,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         }
         message.error("File couldn't be uploaded. Verify URL & try again.")
         return null
+      } finally {
+        uploadingCount.value--
       }
     }
 
@@ -568,6 +581,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       updateAttachmentTitle,
       isEditAllowed,
       isSharedForm,
+      isUploading,
     }
   },
   'useAttachmentCell',

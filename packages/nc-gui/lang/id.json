@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Akses edit akan diatur ke Editor & ke atas.",
       "confirmRevertPermissionsToDefault": "Konfirmasi setel ulang izin untuk tabel - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Field ini disembunyikan di formulir karena tidak ada yang memiliki izin untuk mengeditnya."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Jalankan Tindakan",
     "createScript": "Buat Skrip",
     "deleteAllRecords": "Hapus semua rekaman",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Tetapkan tampilan",
     "webhookDetails": "Detail Webhook",
     "webhookLogs": "Webhook Logs",

@@ -28,7 +28,7 @@ export const useUpdateChecker = createSharedComposable(() => {
 
       if (!newCommit) return
 
-      if (currentCommit.value === null) {
+      if (!currentCommit.value) {
         currentCommit.value = newCommit
         return
       }
@@ -64,9 +64,7 @@ export const useUpdateChecker = createSharedComposable(() => {
       } else if (newerCommitDetected.value !== null) {
         consecutiveNewCommitCount.value = 0
       }
-    } catch (error) {
-      console.error('Error checking for updates:', error)
-    }
+    } catch {}
   }
 
   onMounted(() => {

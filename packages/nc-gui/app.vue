@@ -137,7 +137,7 @@ const _ = (window as any).ResizeObserver
       <NcNuxtLoadingIndicator />
 
       <!-- Command Menu -->
-      <CmdK
+      <LazyCmdK
         ref="commandPalette"
         v-model:open="cmdK"
         :scope="activeScope.scope"
@@ -148,9 +148,9 @@ const _ = (window as any).ResizeObserver
         @scope="onScope"
       />
       <!-- Recent Views. Cycles through recently visited Views -->
-      <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
+      <LazyCmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
       <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->
-      <CmdJ v-model:open="cmdJ" :set-active-cmd-view="setActiveCmdView" />
+      <LazyCmdJ v-model:open="cmdJ" :set-active-cmd-view="setActiveCmdView" />
       <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
     </div>
   </ErrorBoundary>

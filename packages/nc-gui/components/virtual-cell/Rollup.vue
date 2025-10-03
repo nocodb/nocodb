@@ -46,7 +46,7 @@ const renderAsTextFun = computed(() => {
 
 <template>
   <div @dblclick="activateShowEditNonEditableFieldWarning">
-    <LazyCellDecimal v-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
+    <CellDecimal v-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
     <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
     <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
       {{ $t('msg.info.computedFieldEditWarning') }}

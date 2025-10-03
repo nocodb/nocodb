@@ -302,8 +302,8 @@ watch(isViewsLoading, async () => {
               </Transition>
             </div>
           </Pane>
-          <ExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
-          <ActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />
+          <LazyExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
+          <LazyActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />
         </Splitpanes>
       </NcFullScreen>
 

@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "संपादन एक्सेस केवल संपादक और ऊपर को दी जाएगी।",
       "confirmRevertPermissionsToDefault": "टेबल - \"{tableName}\" के लिए डिफ़ॉल्ट अनुमतियों को रीसेट करने की पुष्टि करें",
       "formViewFieldEditPermissionRestrictionTooltip": "इस फ़ील्ड को फॉर्म में छुपाया गया है क्योंकि किसी को भी इसे संपादित करने की अनुमति नहीं है।"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "क्रियाएँ चलाएँ",
     "createScript": "स्क्रिप्ट बनाएं",
     "deleteAllRecords": "सभी रिकॉर्ड हटाएँ",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "दृश्य सौंपें",
     "webhookDetails": "वेबहूक विवरण",
     "webhookLogs": "Webhook Logs",

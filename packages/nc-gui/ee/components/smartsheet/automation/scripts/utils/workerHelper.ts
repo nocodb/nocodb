@@ -2400,14 +2400,12 @@ function generateInputMethods(): string {
 function generateRestrictGlobals(): string {
   return `
     const restrictedGlobals = [
-      "window",
       "document",
       "location",
       "top",
       "parent",
       "frames",
       "opener",
-      "navigator",
       "eval",
     ];
     

@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "Якщо ви видалите, вони втратять доступ до всіх баз та даних у цьому робочому просторі. Для повторного приєднання їм знадобиться запрошення."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Продовжити редагування",
     "leave": "Залишити",

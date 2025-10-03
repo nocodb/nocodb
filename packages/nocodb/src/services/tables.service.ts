@@ -646,9 +646,10 @@ export class TablesService {
         const col = tableCreatePayLoad.columns[i];
         if ([UITypes.ID, UITypes.Order].includes(col.uidt as UITypes)) {
           tableCreatePayLoad.columns.splice(i, 1);
-        }
-        if (col.pk) {
-          delete col.pk;
+        } else {
+          if (col.pk) {
+            delete col.pk;
+          }
         }
       }
       for (const uidt of [

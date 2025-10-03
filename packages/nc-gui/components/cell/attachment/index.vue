@@ -169,6 +169,8 @@ watch(selectedFile, (newVal, oldVal) => {
 })
 
 const openAttachmentModal = (e: Event) => {
+  if (!isEditAllowed.value) return
+
   e?.stopPropagation()
   isNewAttachmentModalOpen.value = true
 }
@@ -350,9 +352,21 @@ onUnmounted(() => {
         }}
       </NcButton>
     </div>
-    <div class="flex">
-      <NcTooltip :disabled="isEditAllowed || !isAllowed" :title="$t('tooltip.sourceDataIsReadonly')">
+    <div
+      class="flex"
+      :class="{
+        'w-full': !visibleItems.length,
+      }"
+    >
+      <NcTooltip
+        :disabled="isEditAllowed || !isAllowed"
+        :title="$t('tooltip.sourceDataIsReadonly')"
+        :class="{
+          'w-full': !visibleItems.length,
+        }"
+      >
         <NcButton
+          v-if="visibleItems.length"
           data-testid="attachment-cell-file-picker-button"
           type="secondary"
           size="small"
@@ -367,18 +381,55 @@ onUnmounted(() => {
             </span>
           </div>
         </NcButton>
+
+        <div
+          v-else
+          data-testid="attachment-cell-file-picker-button"
+          class="flex-none w-full border-dashed border-2 border-transparent rounded-lg text-center justify-center flex items-center flex-col p-3 text-nc-content-gray-subtle2"
+          :class="{
+            'cursor-not-allowed': !isEditAllowed,
+            'cursor-pointer': isEditAllowed,
+          }"
+          @click="openAttachmentModal"
+        >
+          <GeneralIcon
+            icon="upload"
+            class="flex-none w-6 h-6"
+            :class="{
+              'text-nc-content-gray-muted': !isOverDropZone,
+              'text-nc-content-brand': isOverDropZone && isEditAllowed,
+            }"
+          />
+          <span class="py-3">
+            {{ $t('labels.clickTo') }}
+
+            <span :tabindex="0" class="font-semibold text-nc-content-brand"> {{ $t('labels.browseFiles') }} </span>
+            {{ $t('general.or') }}
+            <span class="font-semibold"> {{ $t('labels.dragFilesHere') }} </span>
+
+            {{ $t('labels.toUpload') }}
+          </span>
+        </div>
       </NcTooltip>
     </div>
 
     <div
-      v-if="!isReadonly && !dragging && !!currentCellRef && isOverDropZone && visibleItems.length"
-      class="absolute -top-1 -left-1 -right-1 bottom-0 border-dashed border-2 border-nc-fill-primary rounded-lg flex flex-col items-center justify-center"
+      class="absolute border-dashed border-2 rounded-lg flex flex-col items-center justify-center pointer-events-none"
+      :class="{
+        'top-0 bottom-0 -right-1 left-0': !visibleItems.length,
+        '-top-1 -left-1 -right-1 bottom-0': visibleItems.length,
+        'hidden': visibleItems.length && (!isOverDropZone || isReadonly || dragging || !currentCellRef),
+        'border-nc-border-medium': !visibleItems.length && !isOverDropZone,
+        'border-nc-fill-primary': isOverDropZone && isEditAllowed,
+      }"
     >
-      <GeneralIcon icon="upload" class="flex-none w-6 h-6 text-nc-content-brand" />
+      <template v-if="visibleItems.length">
+        <GeneralIcon icon="upload" class="flex-none w-6 h-6 text-nc-content-brand" />
 
-      <div class="p-3">
-        <h1 class="text-nc-content-brand font-bold">{{ $t('labels.dropHere') }}</h1>
-      </div>
+        <div class="p-3">
+          <h1 class="text-nc-content-brand font-bold">{{ $t('labels.dropHere') }}</h1>
+        </div>
+      </template>
     </div>
 
     <LazyGeneralDeleteModal
@@ -512,7 +563,11 @@ onUnmounted(() => {
         >
           <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-          <component :is="iconMap.maximize" v-else class="transform group-hover:(!text-nc-content-gray) text-nc-content-gray-subtle w-3 h-3" />
+          <component
+            :is="iconMap.maximize"
+            v-else
+            class="transform group-hover:(!text-nc-content-gray) text-nc-content-gray-subtle w-3 h-3"
+          />
         </NcButton>
       </NcTooltip>
 

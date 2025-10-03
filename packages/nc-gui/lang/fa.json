@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "دسترسی ویرایش برای ویرایشگران و بالاتر تنظیم خواهد شد.",
       "confirmRevertPermissionsToDefault": "بازنشانی دسترسی‌های جدول – \"{tableName}\" را تأیید کنید",
       "formViewFieldEditPermissionRestrictionTooltip": "این فیلد در فرم مخفی است زیرا هیچ‌کس اجازه ویرایش آن را ندارد."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "اجرای اقدامات",
     "createScript": "ایجاد اسکریپت",
     "deleteAllRecords": "حذف همه رکوردها",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "تخصیص نما",
     "webhookDetails": "جزئیات وب‌هوک",
     "webhookLogs": "Webhook Logs",

@@ -2,6 +2,7 @@
 import * as monaco from 'monaco-editor'
 import { Pane, Splitpanes } from 'splitpanes'
 import { registerCompletion } from 'monacopilot'
+import { initializeMonaco } from '../../../../../lib/monaco'
 import { TypeGenerator } from '~/components/smartsheet/automation/scripts/utils/TypeGenerator'
 
 const editorRef = ref<HTMLDivElement | null>(null)
@@ -150,6 +151,7 @@ watch(
 )
 
 onMounted(async () => {
+  await initializeMonaco()
   configValue.value = {
     ...(activeAutomation.value?.config ?? {}),
   }

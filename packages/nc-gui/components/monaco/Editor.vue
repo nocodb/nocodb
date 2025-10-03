@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { editor as MonacoEditor } from 'monaco-editor'
 import { languages, editor as monacoEditor } from 'monaco-editor'
+import { initializeMonaco } from '../../lib/monaco'
 
 import PlaceholderContentWidget from './Placeholder'
 
@@ -32,8 +33,6 @@ const emits = defineEmits(['update:modelValue'])
 const { modelValue, readOnly } = toRefs(props)
 
 const { hideMinimap, lang, validate, disableDeepCompare, autoFocus, monacoConfig, monacoCustomTheme, placeholder } = props
-
-const { $initMonacoWorkers } = useNuxtApp()
 
 let isInitialLoad = false
 
@@ -116,7 +115,7 @@ defineExpose({
 })
 
 onMounted(async () => {
-  await $initMonacoWorkers()
+  await initializeMonaco()
 
   if (root.value && lang) {
     const model = monacoEditor.createModel(vModel.value, lang)

@@ -13,9 +13,9 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import { NcApiVersion } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnType,
   NormalColumnRequestType,
@@ -640,8 +640,19 @@ export class TablesService {
 
     // add CreatedTime and LastModifiedTime system columns if missing in request payload
     {
+      // FIXME: do not reassign tableCreatePayLoad.columns with .filter or .map
+      // somehow it bugged out, will check out later
+      for (let i = tableCreatePayLoad.columns.length - 1; i >= 0; i--) {
+        const col = tableCreatePayLoad.columns[i];
+        if ([UITypes.ID, UITypes.Order].includes(col.uidt as UITypes)) {
+          tableCreatePayLoad.columns.splice(i, 1);
+        }
+        if (col.pk) {
+          delete col.pk;
+        }
+      }
       for (const uidt of [
-        ...(param.apiVersion === NcApiVersion.V3 ? [UITypes.ID] : []),
+        UITypes.ID,
         UITypes.CreatedTime,
         UITypes.LastModifiedTime,
         UITypes.CreatedBy,

@@ -647,7 +647,7 @@ export class TablesService {
         if ([UITypes.ID, UITypes.Order].includes(col.uidt as UITypes)) {
           tableCreatePayLoad.columns.splice(i, 1);
         } else {
-          if (col.pk) {
+          if (source?.isMeta() && col.pk) {
             delete col.pk;
           }
         }

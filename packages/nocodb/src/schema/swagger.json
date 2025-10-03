@@ -29298,6 +29298,70 @@
           }
         }
       },
+      "Script": {
+        "description": "Model for Script",
+        "title": "Script Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the Script"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the Script"
+          },
+          "meta": {
+            "type": "object",
+            "description": "Meta data for the Script"
+          },
+          "config": {
+            "type": "object",
+            "description": "Config for the Script"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the Script"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID",
+            "x-stoplight": {
+              "id": "2drg88fmodf3v"
+            }
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "script": {
+            "type": "string",
+            "description": "Code of the script"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last updated time"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation time"
+          }
+        },
+        "x-stoplight": {
+          "id": "4zvzrppfjxrqb"
+        }
+      },
       "ExtensionReq": {
         "type": "object",
         "properties": {

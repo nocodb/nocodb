@@ -7,10 +7,10 @@ import { getDefaultPwd } from '../../../tests/utils/general';
 import { isEE } from '../../../setup/db';
 
 const roleDb = [
-  { email: 'creator@nocodb.com', role: 'creator', url: '' },
-  { email: 'editor@nocodb.com', role: 'editor', url: '' },
-  { email: 'commenter@nocodb.com', role: 'commenter', url: '' },
-  { email: 'viewer@nocodb.com', role: 'viewer', url: '' },
+  { email: 'creator@nocodb.com', role: 'creator', url: '', isToolbarOperationsRestricted: false },
+  { email: 'editor@nocodb.com', role: 'editor', url: '', isToolbarOperationsRestricted: false },
+  { email: 'commenter@nocodb.com', role: 'commenter', url: '', isToolbarOperationsRestricted: true },
+  { email: 'viewer@nocodb.com', role: 'viewer', url: '', isToolbarOperationsRestricted: true },
 ];
 
 test.describe.skip('User roles', () => {
@@ -69,10 +69,12 @@ test.describe.skip('User roles', () => {
 
     await dashboard.treeView.validateRoleAccess({
       role: roleDb[roleIdx].role,
+      context,
     });
 
     await dashboard.grid.verifyRoleAccess({
       role: roleDb[roleIdx].role,
+      isToolbarOperationsRestricted: roleDb[roleIdx].isToolbarOperationsRestricted,
     });
 
     await dashboard.grid.openExpandedRow({ index: 0 });

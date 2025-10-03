@@ -2400,7 +2400,6 @@ function generateInputMethods(): string {
 function generateRestrictGlobals(): string {
   return `
     const restrictedGlobals = [
-      "document",
       "location",
       "top",
       "parent",

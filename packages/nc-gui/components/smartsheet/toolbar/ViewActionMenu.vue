@@ -8,6 +8,7 @@ const props = withDefaults(
     view: ViewType
     table: TableType
     inSidebar?: boolean
+    showOnlyDownload?: boolean
   }>(),
   {
     inSidebar: false,

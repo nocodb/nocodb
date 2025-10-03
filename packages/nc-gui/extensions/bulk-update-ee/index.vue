@@ -720,7 +720,7 @@ const handleConfirmUpdate = async () => {
   }
 
   if (!meta.value!.columns?.some((col) => col.pk)) {
-    message.toast(t('msg.info.updateNotAllowedWithoutPK'))
+    message.info(t('msg.info.updateNotAllowedWithoutPK'))
     return
   }
 

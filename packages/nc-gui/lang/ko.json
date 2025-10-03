@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "편집 액세스 권한은 편집자 이상으로 설정됩니다.",
       "confirmRevertPermissionsToDefault": "테이블에 대한 재설정 권한 확인 - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "이 필드는 아무도 편집할 권한이 없기 때문에 양식에서 숨겨져 있습니다."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "작업 실행",
     "createScript": "스크립트 생성",
     "deleteAllRecords": "모든 항목 삭제",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "뷰 할당",
     "webhookDetails": "웹훅 상세",
     "webhookLogs": "웹후크 로그",

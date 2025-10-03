@@ -1359,7 +1359,7 @@ provide(IsGalleryInj, ref(false))
           <NcTooltip :title="$t('msg.info.updateNotAllowedWithoutPK')" :disabled="selectedTableHasPk" placement="left">
             <NcButton
               size="small"
-              :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo || selectedTableHasPk"
+              :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo || !selectedTableHasPk"
               :loading="isLoadingViewInfo"
               @click="handleConfirmUpdate"
             >

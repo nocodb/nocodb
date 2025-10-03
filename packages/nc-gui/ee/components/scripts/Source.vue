@@ -35,7 +35,7 @@ const showCode = ref(true)
     </div>
     <Transition>
       <Suspense v-if="showCode">
-        <MonacoEditor
+        <LazyMonacoEditor
           class="h-[402px] !rounded-b-lg overflow-hidden !bg-gray-50"
           :model-value="code"
           :read-only="true"

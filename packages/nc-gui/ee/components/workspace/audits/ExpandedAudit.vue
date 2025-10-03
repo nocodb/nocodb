@@ -161,7 +161,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
 
           <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
             <Suspense>
-              <MonacoEditor
+              <LazyMonacoEditor
                 :model-value="selectedAudit?.details || ''"
                 read-only
                 class="nc-audit-json-perview h-[200px] w-full"

@@ -737,7 +737,7 @@ watch(
           'pointer-events-none': importLoading,
         }"
       >
-        <LazyTemplateEditor
+        <TemplateEditor
           v-if="templateEditorModal"
           ref="templateEditorRef"
           :base-template="templateData"

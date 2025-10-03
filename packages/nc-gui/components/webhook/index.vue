@@ -57,8 +57,6 @@ const { activeTable } = toRefs(useTablesStore())
 
 const { updateStatLimit, showWebhookLogsFeatureAccessModal } = useEeConfig()
 
-const { activeBaseAutomations } = storeToRefs(useAutomationStore())
-
 const defaultHookName = t('labels.webhook')
 
 const testSuccess = ref()
@@ -211,14 +209,16 @@ const notificationTypes = computed(() => {
   ]
 })
 
-const automationOptions = computed(() => {
-  return activeBaseAutomations.value
-    .filter((automation) => automation.script && !hasInputCalls(automation.script))
-    .map((automation) => ({
-      label: automation.title,
-      value: automation.id,
-    }))
-})
+const filterScripts = (automation: any) => {
+  if (hasInputCalls(automation.script)) {
+    return {
+      ...automation,
+      ncItemDisabled: true,
+      ncItemTooltip: `Script with user inputs can't be used with webhooks`,
+    }
+  }
+  return automation
+}
 
 const toggleOperation = (operation: string) => {
   const ops = [...hookRef.operation]
@@ -1317,15 +1317,15 @@ const webhookV2AndV3Diff = computed(() => {
 
                   <template v-if="isEeUI && hookRef.notification.type === 'Script'">
                     <a-form-item class="flex w-full my-3" v-bind="validateInfos['notification.payload.scriptId']">
-                      <NcSelect
+                      <NcListAutomationSelector
                         v-model:value="hookRef.notification.payload.scriptId"
-                        :options="automationOptions"
-                        class="w-full nc-select-shadow nc-select-hook-scrip-type"
                         data-testid="nc-dropdown-hook-notification-type"
-                        placeholder="Select a script"
-                        show-search
-                        :filter-option="(input, option) => antSelectFilterOption(input, option, ['label'])"
-                      ></NcSelect>
+                        class="nc-select-hook-scrip-type"
+                        :base-id="activeTable.base_id"
+                        :disable-label="true"
+                        :map-script="filterScripts"
+                        :auto-select="false"
+                      />
                     </a-form-item>
                   </template>
 

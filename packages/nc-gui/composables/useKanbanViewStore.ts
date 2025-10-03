@@ -3,7 +3,7 @@ import { EventType, ViewTypes } from 'nocodb-sdk'
 import type {
   Api,
   ColumnType,
-  type DataPayload,
+  DataPayload,
   KanbanType,
   SelectOptionType,
   SelectOptionsType,

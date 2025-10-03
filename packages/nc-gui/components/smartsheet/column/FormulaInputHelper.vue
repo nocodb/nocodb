@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type ColumnType, UITypes, isHiddenCol, jsepCurlyHook } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import {
   KeyCode,

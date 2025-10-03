@@ -4,8 +4,8 @@ import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
-import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill'
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
+import nodePolyfills from '@rolldown/plugin-node-polyfills'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
 
@@ -154,9 +154,9 @@ export default defineNuxtConfig({
         ignoreTryCatch: true,
       },
       minify: true,
-      rollupOptions: {},
     },
     plugins: [
+      nodePolyfills(),
       VueI18nPlugin({
         include: [resolve(dirname('./lang/*.json'))],
         runtimeOnly: false,
@@ -222,13 +222,6 @@ export default defineNuxtConfig({
         usePolling: true,
       },
     },
-    resolve: {
-      alias: {
-        querystring: 'rollup-plugin-node-polyfills/polyfills/qs',
-        util: 'rollup-plugin-node-polyfills/polyfills/util',
-        url: 'rollup-plugin-node-polyfills/polyfills/url',
-      },
-    },
     optimizeDeps: {
       include: [
         '@ckpack/vue-color',
@@ -258,7 +251,6 @@ export default defineNuxtConfig({
         '@vuelidate/validators',
         '@vueuse/integrations/useQRCode',
         '@vvo/tzdb',
-        'company-email-validator',
         'crossoriginworker',
         'd3-scale',
         'dagre',
@@ -268,7 +260,6 @@ export default defineNuxtConfig({
         'diff',
         'embla-carousel-vue',
         'emoji-mart-vue-fast/src',
-        'esbuild-wasm',
         'fflate',
         'file-saver',
         'fuse.js',
@@ -307,18 +298,9 @@ export default defineNuxtConfig({
         'validator',
         '@floating-ui/vue',
         'validator',
-        '@stripe/stripe-js',
         'typesense',
-        'vue3-moveable',
         'vue-fullscreen',
       ],
-      esbuildOptions: {
-        define: {
-          global: 'globalThis',
-        },
-        // Enable esbuild polyfill plugins
-        plugins: [NodeModulesPolyfillPlugin()],
-      },
     },
   },
 

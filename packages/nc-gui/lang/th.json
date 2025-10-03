@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "สิทธิ์แก้ไขจะถูกกำหนดให้กับ Editor ขึ้นไป",
       "confirmRevertPermissionsToDefault": "ยืนยันการรีเซ็ตสิทธิ์สำหรับตาราง - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "ฟิลด์นี้ถูกซ่อนในฟอร์มเพราะไม่มีใครมีสิทธิ์แก้ไข"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "เรียกใช้การดำเนินการ",
     "createScript": "สร้างสคริปต์",
     "deleteAllRecords": "ลบเรคคอร์ดทั้งหมด",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "กำหนดมุมมอง",
     "webhookDetails": "รายละเอียด Webhook",
     "webhookLogs": "Webhook Logs",

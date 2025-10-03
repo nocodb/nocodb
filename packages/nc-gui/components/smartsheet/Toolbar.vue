@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { LazySmartsheetToolbarRowColorFilterDropdown } from '#components'
-
 defineProps<{
   showFullScreenToggle?: boolean
 }>()
@@ -74,7 +72,8 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         :class="{
           'min-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
           'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
-          'gap-1': isCalendar,
+          '!gap-1': isCalendar && isToolbarOperationsAllowed,
+          '!gap-2': isCalendar && !isToolbarOperationsAllowed,
         }"
         class="flex items-center gap-3 empty:hidden"
       >
@@ -100,7 +99,11 @@ provide(IsToolbarIconMode, isToolbarIconMode)
             v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute') && isViewActionsEnabled"
           />
         </template>
-        <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
+
+        <template v-if="isCalendar">
+          <LazySmartsheetToolbarExport v-if="!isToolbarOperationsAllowed" />
+          <LazySmartsheetToolbarOpenedViewAction :show-only-copy-id="!isToolbarOperationsAllowed" />
+        </template>
       </div>
 
       <LazySmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
@@ -108,7 +111,11 @@ provide(IsToolbarIconMode, isToolbarIconMode)
       <template v-if="!isMobileMode">
         <LazySmartsheetToolbarRowHeight v-if="isGrid && isToolbarOperationsAllowed" />
 
-        <LazySmartsheetToolbarOpenedViewAction v-if="!isCalendar" />
+        <template v-if="!isCalendar">
+          <LazySmartsheetToolbarExport v-if="!isToolbarOperationsAllowed" />
+          <LazySmartsheetToolbarOpenedViewAction :show-only-copy-id="!isToolbarOperationsAllowed" />
+        </template>
+
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
         <div class="flex-1" />

@@ -49,31 +49,31 @@ watch(isPanelExpanded, (newValue) => {
       <div v-show="isPanelExpanded" class="flex flex-col h-full">
         <div
           ref="actionHeaderRef"
-          class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-gray-200 bg-white"
+          class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-nc-border-gray-medium bg-nc-bg-default"
         >
           <div class="flex items-center gap-2">
             <NcButton size="small" type="text" @click="toggleActionPanel">
-              <GeneralIcon icon="play" class="flex-none !text-gray-700" />
+              <GeneralIcon icon="play" class="flex-none !text-nc-content-gray-subtle" />
             </NcButton>
-            <span class="text-sm font-medium text-gray-700">{{ $t('general.actions') }}</span>
+            <span class="text-sm font-medium text-nc-content-gray-subtle">{{ $t('general.actions') }}</span>
           </div>
         </div>
 
-        <div class="flex-1 flex flex-col p-4 overflow-y-auto">
+        <div class="flex-1 flex flex-col bg-nc-bg-default p-4 overflow-y-auto">
           <div v-if="executions.length > 0" class="space-y-4 min-h-0">
             <div
               v-for="execution in executions"
               :key="execution.executionId"
-              class="border-1 border-nc-border-gray-light shadow-sm rounded-lg bg-white p-4"
+              class="border-1 border-nc-border-gray-light shadow-sm rounded-lg bg-nc-bg-default p-4"
             >
               <div class="flex flex-col">
                 <div class="flex items-center gap-2 mb-2">
                   <div
                     class="w-6 h-6 rounded-full flex items-center justify-center"
                     :class="{
-                      'bg-blue-100': execution.status === 'running',
-                      'bg-green-100': execution.status === 'completed',
-                      'bg-red-100': execution.status === 'error',
+                      'bg-nc-blue-100': execution.status === 'running',
+                      'bg-nc-green-100': execution.status === 'completed',
+                      'bg-nc-red-100': execution.status === 'error',
                     }"
                   >
                     <GeneralLoader v-if="execution.status === 'running'" />
@@ -82,8 +82,8 @@ watch(isPanelExpanded, (newValue) => {
                       :icon="execution.status === 'completed' ? 'check' : 'alertTriangle'"
                       class="w-3 h-3"
                       :class="{
-                        'text-green-600': execution.status === 'completed',
-                        'text-red-600': execution.status === 'error',
+                        'text-nc-green-600': execution.status === 'completed',
+                        'text-nc-red-600': execution.status === 'error',
                       }"
                     />
                   </div>
@@ -124,7 +124,7 @@ watch(isPanelExpanded, (newValue) => {
 
 <style lang="scss" scoped>
 .nc-action-pane {
-  @apply flex flex-col bg-gray-50 rounded-l-xl border-1 border-gray-200 z-30 -mt-1px;
+  @apply flex flex-col bg-nc-bg-gray-extra-light rounded-l-xl border-1 border-nc-border-gray-medium z-30 -mt-1px;
 
   box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
 }

@@ -61,7 +61,7 @@ function openDashboardCreateDialog() {
           <div>
             <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
               <template #default>
-                <GeneralIcon icon="dashboards" class="min-w-4 !text-gray-500" />
+                <GeneralIcon icon="dashboards" class="min-w-4 !text-nc-content-gray-muted" />
               </template>
             </LazyGeneralEmojiPicker>
           </div>
@@ -83,7 +83,7 @@ function openDashboardCreateDialog() {
           <NcDivider class="!mt-0 !mb-2" />
           <div class="px-2 mb-2" @click="openDashboardCreateDialog()">
             <div
-              class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-brand-500 hover:bg-gray-100 rounded-md cursor-pointer"
+              class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-nc-content-brand hover:bg-nc-bg-gray-light rounded-md cursor-pointer"
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="plus" />

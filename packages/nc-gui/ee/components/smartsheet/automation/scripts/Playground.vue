@@ -10,6 +10,7 @@ interface Props {
   isFinished?: boolean
   showRunButton?: boolean
   compact?: boolean
+  isEditorOpen?: boolean
   containerClass?: string
 }
 
@@ -19,13 +20,16 @@ const props = withDefaults(defineProps<Props>(), {
   isFinished: false,
   showRunButton: true,
   compact: false,
+  isEditorOpen: true,
   containerClass: '',
 })
 
 const scriptStore = props.playground ? null : useScriptStoreOrThrow()
 const playgroundData = computed(() => props.playground || scriptStore?.playground.value || [])
 const isRunningState = computed(() => props.isRunning || scriptStore?.isRunning.value || false)
-const isFinishedState = computed(() => props.isFinished || scriptStore?.isFinished.value || false)
+const isFinishedState = computed(
+  () => props.isFinished || (scriptStore?.isFinished.value && playgroundData.value?.length > 0) || false,
+)
 
 const playgroundContainer = ref<HTMLElement | null>(null)
 
@@ -114,15 +118,15 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
     class="overflow-y-auto nc-scrollbar-md"
     :class="[
       {
-        'border-l-1 border-nc-border-gray-medium': !compact && scriptStore?.isCreateEditScriptAllowed,
-        'p-6 h-[91svh] bg-nc-bg-gray-extralight max-w-130': !compact,
+        'border-l-1 border-nc-border-gray-medium': !compact && !scriptStore?.isCreateEditScriptAllowed && isEditorOpen,
+        'p-6 non-compat-playground bg-nc-bg-gray-extralight': !compact,
       },
       containerClass,
     ]"
   >
     <div
       v-if="isRunningState || isFinishedState || playgroundData.length > 0"
-      class="flex mx-auto flex-col gap-6"
+      class="flex mx-auto flex-col max-w-130 gap-6"
       :class="[{ 'pb-40': !compact, 'pb-4': compact }]"
     >
       <div v-for="(item, index) in playgroundData" :key="index" class="playground-item" :data-type="item.type">
@@ -137,7 +141,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
               'bg-nc-bg-orange-light border-nc-border-orange': item.content.color === 'orange',
               'bg-nc-bg-pink-light border-nc-border-pink': item.content.color === 'pink',
               'bg-nc-bg-maroon-light border-nc-border-maroon': item.content.color === 'maroon',
-              'bg-white border-nc-border-gray-dark': !item.content.color || item.content.color === 'gray',
+              'bg-nc-bg-default border-nc-border-gray-dark': !item.content.color || item.content.color === 'gray',
             }"
             class="workflow-step-card border-1 rounded-lg overflow-hidden"
           >
@@ -153,7 +157,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
                 'border-nc-border-maroon': item.content.color === 'maroon',
                 'border-nc-border-gray-dark': !item.content.color || item.content.color === 'gray',
               }"
-              class="step-header px-4 py-4 border-b border-gray-200"
+              class="step-header px-4 py-4 border-b border-nc-border-gray-medium"
             >
               <div class="flex items-center gap-4">
                 <div v-if="item.content.icon" class="step-icon">
@@ -189,8 +193,8 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
                   <div
                     class="leading-5 whitespace-pre-wrap text-sm"
                     :class="{
-                      'text-red-500': child.style === 'error',
-                      'text-orange-500': child.style === 'warning',
+                      'text-nc-content-red-medium': child.style === 'error',
+                      'text-nc-content-orange-medium': child.style === 'warning',
                     }"
                   >
                     {{ child.content }}
@@ -249,7 +253,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
         <template v-else-if="item.type === 'text'">
           <div
             class="leading-5 whitespace-pre-wrap"
-            :class="{ 'text-red-500': item.style === 'error', 'text-orange-500': item.style === 'warning' }"
+            :class="{ 'text-nc-content-red-medium': item.style === 'error', 'text-orange-500': item.style === 'warning' }"
           >
             {{ item.content }}
           </div>
@@ -323,6 +327,10 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
 </template>
 
 <style scoped lang="scss">
+.non-compat-playground {
+  height: calc(100svh - var(--topbar-height) - var(--footer-height));
+}
+
 :deep(.vjs-tree) {
   .vjs-tree-node:hover {
     @apply !bg-nc-bg-gray-light;
@@ -374,7 +382,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   @apply !max-w-auto;
 
   a {
-    @apply text-gray-900;
+    @apply text-nc-content-gray-emphasis;
   }
 
   h1 {

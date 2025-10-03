@@ -7,7 +7,7 @@ const selected = defineModel()
 </script>
 
 <template>
-  <div class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
+  <div class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 nc-view-sidebar-tab">
     <div
       v-for="value in values"
       :key="value"
@@ -26,7 +26,7 @@ const selected = defineModel()
 
 <style scoped>
 .tab {
-  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-nc-content-gray-subtle2 hover:text-nc-content-gray-extreme cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab-icon {
@@ -37,7 +37,7 @@ const selected = defineModel()
 }
 
 .active {
-  @apply bg-white font-600 text-nc-content-gray-emphasis;
+  @apply bg-nc-bg-default font-600 text-nc-content-gray-emphasis;
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }
 </style>

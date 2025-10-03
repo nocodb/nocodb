@@ -10,7 +10,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 <template>
   <div
-    class="flex flex-row items-center border-gray-50 transition-all duration-100 select-none"
+    class="flex flex-row items-center border-nc-border-gray-extra-light transition-all duration-100 select-none"
     :class="{
       'text-base w-[calc(100%_-_52px)]': isMobileMode,
       'w-[calc(100%_-_44px)]': !isMobileMode && !isLeftSidebarOpen,
@@ -21,7 +21,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <SmartsheetTopbarProjectListDropdown>
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer max-w-1/3"
+            class="rounded-lg h-8 px-2 text-nc-content-gray-subtle font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-extreme) flex items-center gap-1 cursor-pointer max-w-1/3"
             :class="{
               '!max-w-none': isSharedBase && !isMobileMode,
               '': !isMobileMode && isLeftSidebarOpen,
@@ -68,7 +68,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <SmartsheetTopbarDashboardListDropdown v-if="activeDashboard">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-nc-content-gray-subtle font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-extreme) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode && !activeDashboard,
@@ -88,8 +88,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
                   icon="dashboards"
                   class="min-w-5"
                   :class="{
-                    '!text-gray-500': !isMobileMode,
-                    '!text-gray-700': isMobileMode,
+                    '!text-nc-content-gray-muted': !isMobileMode,
+                    '!text-nc-content-gray-subtle': isMobileMode,
                   }"
                 />
               </template>

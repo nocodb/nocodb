@@ -8,6 +8,8 @@ const editorRef = ref<HTMLDivElement | null>(null)
 
 let editor: monaco.editor.IStandaloneCodeEditor
 
+const { isDark } = useTheme()
+
 const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
 
 const { appInfo } = useGlobal()
@@ -21,6 +23,7 @@ const {
   isSettingsOpen,
   shouldShowSettings,
   isCreateEditScriptAllowed,
+  isEditorOpen,
   updateScript,
   debouncedSave,
 } = useScriptStoreOrThrow()
@@ -38,6 +41,14 @@ const updateTypes = () => {
 const { completeScript } = useNocoAi()
 
 let dirty = false
+
+const updateTheme = () => {
+  if (isDark.value) {
+    monaco.editor.setTheme('vs-dark')
+  } else {
+    monaco.editor.setTheme('vs-light')
+  }
+}
 
 async function setupMonacoEditor() {
   if (!editorRef.value) return
@@ -88,6 +99,8 @@ async function setupMonacoEditor() {
     wrappingStrategy: 'advanced',
     renderLineHighlight: 'none',
   })
+
+  updateTheme()
 
   if (isAiBetaFeaturesEnabled.value) {
     registerCompletion(monaco, editor, {
@@ -145,10 +158,21 @@ onMounted(async () => {
   await setupMonacoEditor()
 })
 
+watch(isEditorOpen, async (newVal) => {
+  if (newVal) {
+    await until(() => editorRef.value).toBeTruthy()
+    await setupMonacoEditor()
+  }
+})
+
 watch(activeBaseSchema, (newVal) => {
   if (newVal) {
     updateTypes()
   }
+})
+
+watch(isDark, () => {
+  updateTheme()
 })
 
 onBeforeUnmount(() => {
@@ -159,20 +183,25 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex h-full w-full nc-scripts-content-resizable-wrapper">
+  <div
+    class="flex h-full w-full nc-scripts-content-resizable-wrapper"
+    :class="{
+      'is-editor-open': isEditorOpen && isCreateEditScriptAllowed,
+    }"
+  >
     <Splitpanes>
-      <Pane v-show="isCreateEditScriptAllowed" min-size="20" :size="70" class="flex flex-col h-full min-w-0">
-        <div class="w-full flex-1">
+      <Pane v-show="isCreateEditScriptAllowed" min-size="20" :size="isEditorOpen ? 70 : 0" class="flex flex-col h-full min-w-0">
+        <div v-if="isEditorOpen" class="w-full flex-1">
           <div ref="editorRef" class="h-full" />
         </div>
       </Pane>
-      <Pane :min-size="25" :size="isCreateEditScriptAllowed ? 30 : 100">
+      <Pane :min-size="25" :size="isCreateEditScriptAllowed && isEditorOpen ? 30 : 100">
         <SmartsheetAutomationScriptsConfigInput
           v-if="isSettingsOpen && shouldShowSettings"
           v-model:model-value="configValue"
           :config="config"
         />
-        <SmartsheetAutomationScriptsPlayground v-else />
+        <SmartsheetAutomationScriptsPlayground v-else :is-editor-open="isEditorOpen || !isCreateEditScriptAllowed" />
       </Pane>
     </Splitpanes>
   </div>
@@ -181,7 +210,13 @@ onBeforeUnmount(() => {
 
 <style lang="scss">
 .nc-scripts-content-resizable-wrapper {
-  height: calc(100svh - var(--topbar-height) - 30px);
+  &:not(.is-editor-open) {
+    .splitpanes__splitter {
+      display: none !important;
+    }
+  }
+
+  height: calc(100svh - var(--topbar-height) - var(--footer-height));
   .monaco-editor {
     @apply !border-0 !rounded-b-lg outline-none;
   }
@@ -191,8 +226,8 @@ onBeforeUnmount(() => {
   .monaco-editor,
   .monaco-diff-editor,
   .monaco-component {
-    --vscode-editor-background: #ffffff;
-    --vscode-editorGutter-background: #ffffff;
+    --vscode-editor-background: var(--nc-bg-default);
+    --vscode-editorGutter-background: var(--nc-bg-default);
   }
   .line-numbers {
     @apply text-nc-content-gray-subtle2 !pr-1;

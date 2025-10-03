@@ -57,7 +57,7 @@ const onChange = (value: string) => {
     :placeholder="placeholder"
     :show-search="showSearch"
     :max-tag-count="maxTagCount"
-    class="nc-select"
+    class="nc-select nc-select-shadow"
     @change="onChange as any"
   >
     <template #suffixIcon>
@@ -88,7 +88,7 @@ const onChange = (value: string) => {
   height: fit-content;
   .ant-select-selector {
     box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
-    @apply border-1 border-gray-200 rounded-lg shadow-default;
+    @apply border-1 border-nc-border-gray-medium rounded-lg shadow-default;
   }
 
   .ant-select-selection-item {
@@ -96,10 +96,10 @@ const onChange = (value: string) => {
   }
 
   .ant-select-selection-placeholder {
-    @apply text-gray-600;
+    @apply text-nc-content-gray-subtle2;
   }
   .ant-select-selection-item-remove {
-    @apply text-gray-800 !pb-1;
+    @apply text-nc-content-gray !pb-1;
   }
 
   .ant-select-clear {
@@ -111,11 +111,11 @@ const onChange = (value: string) => {
   }
 }
 .nc-select.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
-  @apply border-brand-500;
+  @apply border-nc-border-brand;
 }
 
 .nc-select.ant-select.ant-select-disabled .nc-select-expand-btn {
-  @apply text-gray-300;
+  @apply text-nc-content-brand-hover;
 }
 
 .nc-select-dropdown {
@@ -142,10 +142,10 @@ const onChange = (value: string) => {
     }
     &::-webkit-scrollbar-thumb {
       width: 4px;
-      @apply bg-gray-300 rounded-md;
+      @apply bg-nc-bg-gray-dark rounded-md;
     }
     &::-webkit-scrollbar-thumb:hover {
-      @apply bg-gray-400;
+      @apply bg-nc-bg-gray-extra-dark;
     }
   }
 }

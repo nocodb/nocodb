@@ -16,7 +16,7 @@ const toggleScriptSettings = () => {
   <div v-if="!isLoadingAutomation && activeAutomation" class="flex items-center gap-2">
     <NcButton
       v-if="shouldShowSettings"
-      :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isSettingsOpen }"
+      :class="{ '!bg-nc-bg-brand !hover:bg-brand-100/70 !text-nc-content-brand': isSettingsOpen }"
       type="secondary"
       size="small"
       @click="toggleScriptSettings"
@@ -25,7 +25,7 @@ const toggleScriptSettings = () => {
     </NcButton>
 
     <template v-if="isRunning">
-      <NcButton type="text" size="small" class="!text-nc-content-brand !hover:bg-white" :loading="isRunning">
+      <NcButton type="text" size="small" class="!text-nc-content-brand !hover:bg-nc-bg-default" :loading="isRunning">
         Running Script ...
       </NcButton>
       <div class="flex items-center">

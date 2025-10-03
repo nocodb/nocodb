@@ -60,12 +60,14 @@ interface ScriptBaseInputContent {
 // Text input content
 export interface ScriptTextInputContent extends ScriptBaseInputContent {
   type: ScriptInputType.TEXT
+  defaultValue?: string
 }
 
 // Select input content
-export interface ScriptSelectInputContent extends ScriptBaseInputContent {
+export interface ScriptSelectInputContent<T> extends ScriptBaseInputContent {
   type: ScriptInputType.SELECT
-  options: ScriptInputSelectOption[]
+  options: ScriptInputSelectOption<T>[]
+  defaultValue?: T
 }
 
 // Buttons input content
@@ -111,7 +113,7 @@ export interface ScriptRecordInputContent extends ScriptBaseInputContent {
 
 export type InputContent =
   | ScriptTextInputContent
-  | ScriptSelectInputContent
+  | ScriptSelectInputContent<any>
   | ScriptButtonsInputContent
   | ScriptFileInputContent
   | ScriptTableInputContent
@@ -173,7 +175,7 @@ export interface DynamicInputProps {
   onResolve: (value: string | Record<string, any> | ScriptInputFileUploadResult) => void
 }
 
-export {
+export type {
   ScriptConfigItemBase,
   ScriptConfigItemTable,
   ScriptConfigItemField,

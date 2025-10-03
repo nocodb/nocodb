@@ -86,7 +86,7 @@ const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SC
 </script>
 
 <template>
-  <div class="dashboard-toolbar bg-white border-b-1 border-nc-border-gray-medium h-12 p-2 gap-2 flex">
+  <div class="dashboard-toolbar bg-nc-bg-default border-b-1 border-nc-border-gray-medium h-12 p-2 gap-2 flex">
     <NcButton size="small" type="text" @click="addTextWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="cellText" class="w-4 h-4" />

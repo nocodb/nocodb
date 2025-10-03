@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const { isUpdatingAutomation } = storeToRefs(useAutomationStore())
 
+const { isEditorOpen, isCreateEditScriptAllowed } = useScriptStoreOrThrow()
+
 const displayText = ref()
 const showSaved = ref(false)
 let savingInterval: NodeJS.Timeout | null = null
@@ -64,8 +66,30 @@ onUnmounted(() => {
 
 <template>
   <div class="h-9 border-t-1 flex items-center border-nc-border-gray-medium px-2 py-1">
+    <NcTooltip v-if="isCreateEditScriptAllowed">
+      <NcButton
+        :class="{
+          '!bg-nc-bg-brand': isEditorOpen,
+        }"
+        size="xsmall"
+        type="text"
+        @click="isEditorOpen = !isEditorOpen"
+      >
+        <GeneralIcon
+          :class="{
+            'text-nc-content-brand': isEditorOpen,
+          }"
+          icon="sidebar"
+        />
+      </NcButton>
+
+      <template #title>
+        {{ isEditorOpen ? $t('labels.hideEditor') : $t('labels.showEditor') }}
+      </template>
+    </NcTooltip>
+
     <Transition name="fade" mode="out-in">
-      <div v-if="displayText" class="flex items-center gap-2">
+      <div v-if="displayText" class="flex items-center ml-2 gap-2">
         <Transition name="slide-fade" mode="out-in">
           <div
             v-if="isUpdatingAutomation"

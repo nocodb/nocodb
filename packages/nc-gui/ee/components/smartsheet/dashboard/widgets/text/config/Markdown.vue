@@ -326,6 +326,7 @@ defineExpose({
 
 <style lang="scss">
 .nc-rich-text-widget {
+  @apply bg-nc-bg-default;
   .readonly {
     .nc-widget-rich-editor {
       .ProseMirror {
@@ -336,7 +337,7 @@ defineExpose({
   }
 
   .nc-rich-link-tooltip {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
   }
 
   .nc-widget-rich-editor {
@@ -362,7 +363,7 @@ defineExpose({
       }
     }
     .tiptap p.is-editor-empty:first-child::before {
-      @apply text-gray-500;
+      @apply text-nc-content-gray-muted;
       content: attr(data-placeholder);
       float: left;
       height: 0;
@@ -371,7 +372,7 @@ defineExpose({
 
     .ProseMirror {
       @apply flex-grow !border-0 rounded-lg;
-      caret-color: #3366ff;
+      caret-color: var(--nc-content-brand-default);
     }
 
     p {
@@ -386,11 +387,11 @@ defineExpose({
     h1,
     h2,
     h3 {
-      @apply mb-2;
+      @apply mb-2 text-nc-content-gray;
     }
 
     table {
-      @apply border-1 border-separate rounded-md border-gray-300 w-full border-1 border-nc-gray-medium my-2;
+      @apply border-1 border-separate rounded-md border-nc-border-gray-dark w-full border-1 border-nc-gray-medium my-2;
       border-spacing: 0px;
 
       thead {

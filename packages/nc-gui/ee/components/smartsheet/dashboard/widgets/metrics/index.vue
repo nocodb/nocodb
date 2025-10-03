@@ -26,7 +26,7 @@ const colors = computed(() => {
   }
 
   return {
-    fill: 'white',
+    fill: 'var(--nc-bg-default)',
     color: 'var(--nc-content-gray-subtle2)',
   }
 })

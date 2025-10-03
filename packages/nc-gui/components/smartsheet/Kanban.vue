@@ -47,7 +47,7 @@ const route = router.currentRoute
 
 const { metaColumnById } = useViewColumnsOrThrow(view, meta)
 
-const { isSyncedTable } = useSmartsheetStoreOrThrow()
+const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
 
 const {
   loadKanbanData,
@@ -131,6 +131,12 @@ reloadViewDataHook?.on(
     await loadKanbanData()
   }),
 )
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.DATA_RELOAD) {
+    reloadViewDataHook?.trigger()
+  }
+})
 
 const attachments = (record: any): Attachment[] => {
   if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []

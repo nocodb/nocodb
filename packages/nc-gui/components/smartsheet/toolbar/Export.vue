@@ -25,7 +25,7 @@ useProvideSmartsheetLtarHelpers(meta)
 
 useProvideKanbanViewStore(meta, sharedView)
 
-useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
+useProvideCalendarViewStore(meta, sharedView, true, xWhere)
 </script>
 
 <template>

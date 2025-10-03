@@ -66,22 +66,27 @@ onUnmounted(() => {
 
 <template>
   <div class="h-9 border-t-1 flex items-center border-nc-border-gray-medium px-2 py-1">
-    <NcButton
-      v-if="isCreateEditScriptAllowed"
-      :class="{
-        '!bg-nc-bg-brand': isEditorOpen,
-      }"
-      size="xsmall"
-      type="text"
-      @click="isEditorOpen = !isEditorOpen"
-    >
-      <GeneralIcon
+    <NcTooltip v-if="isCreateEditScriptAllowed">
+      <NcButton
         :class="{
-          'text-nc-content-brand': isEditorOpen,
+          '!bg-nc-bg-brand': isEditorOpen,
         }"
-        icon="sidebar"
-      />
-    </NcButton>
+        size="xsmall"
+        type="text"
+        @click="isEditorOpen = !isEditorOpen"
+      >
+        <GeneralIcon
+          :class="{
+            'text-nc-content-brand': isEditorOpen,
+          }"
+          icon="sidebar"
+        />
+      </NcButton>
+
+      <template #title>
+        {{ isEditorOpen ? $t('labels.hideEditor') : $t('labels.showEditor') }}
+      </template>
+    </NcTooltip>
 
     <Transition name="fade" mode="out-in">
       <div v-if="displayText" class="flex items-center ml-2 gap-2">

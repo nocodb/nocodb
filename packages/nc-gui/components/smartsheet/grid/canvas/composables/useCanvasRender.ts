@@ -581,6 +581,7 @@ export function useCanvasRender({
         if (column.id === 'row_number') {
           if (
             !readOnly.value &&
+            !isMobileMode.value &&
             (isSelectedAllRecords.value || isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: 32 }, mousePosition)) &&
             !isGroupBy.value
           ) {
@@ -907,7 +908,7 @@ export function useCanvasRender({
     /**
      * 1. Render row index
      */
-    if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
+    if (readOnly.value || isMobileMode.value || !(isHover || isChecked || isRowCellSelected)) {
       let rowIndexFontSize = '13px'
 
       if (row.rowMeta.rowIndex! + 1 >= 1000) {
@@ -973,7 +974,7 @@ export function useCanvasRender({
     /**
      * 3. Render checkbox
      */
-    if (!readOnly.value && (isChecked || isHover || isRowCellSelected)) {
+    if (!isMobileMode.value && !readOnly.value && (isChecked || isHover || isRowCellSelected)) {
       const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
       renderCheckbox(
         ctx,

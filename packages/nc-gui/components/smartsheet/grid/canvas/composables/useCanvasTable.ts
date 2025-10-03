@@ -300,7 +300,7 @@ export function useCanvasTable({
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
-  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value)
+  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value && !isMobileMode.value)
 
   const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced)
 

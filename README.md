@@ -158,7 +158,7 @@ Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/maste
 
 # Why are we building this?
 
-Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings have meant horrible access controls, vendor lock-in, data lock-in, abrupt price changes & most importantly a glass ceiling on what's possible in the future.
+Most internet businesses equip themselves with either a spreadsheet or a database to solve their business needs. Spreadsheets are used by Billion+ of humans collaboratively every single day. However, we are far off from working at similar speeds on databases, which are significantly more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings have meant horrible access controls, vendor lock-in, data lock-in, abrupt price changes & most importantly, a glass ceiling on what's possible in the future.
 
 # Our Mission
 

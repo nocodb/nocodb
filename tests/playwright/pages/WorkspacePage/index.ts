@@ -177,8 +177,6 @@ export class WorkspacePage extends BasePage {
     await this.rootPage.waitForTimeout(1000);
 
     if (role === 'creator' || role === 'owner') {
-      console.log(await this.container.get().count());
-      console.log(await this.container.collaborators.count());
       expect(await collaborators.isVisible()).toBeTruthy();
     } else {
       expect(await collaborators.isVisible()).toBeFalsy();

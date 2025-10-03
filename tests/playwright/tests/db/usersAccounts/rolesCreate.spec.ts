@@ -38,11 +38,10 @@ test.describe.skip('User roles', () => {
 
     for (let i = 0; i < roleDb.length; i++) {
       await dashboard.baseView.btn_share.click();
-      roleDb[i].url = await settings.teams.invite({
+      roleDb[i].url = await dashboard.settings.teams.invite({
         email: roleDb[i].email,
         role: roleDb[i].role,
       });
-      console.log(roleDb[i].url);
     }
 
     // Role test

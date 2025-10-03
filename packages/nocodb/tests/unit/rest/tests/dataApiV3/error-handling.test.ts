@@ -339,7 +339,7 @@ describe('dataApiV3', () => {
         });
         expect(response.body.error).to.eq('INVALID_PK_VALUE');
         expect(response.body.message).to.eq(
-          `Primary key value 'text-primary-key' is invalid for column 'id'`,
+          `Primary key value 'text-primary-key' is invalid for column 'Id'`,
         );
       });
 

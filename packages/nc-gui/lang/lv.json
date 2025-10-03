@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Rediģēšanas piekļuve tiks iestatīta redaktoriem un augstākiem.",
       "confirmRevertPermissionsToDefault": "Apstiprināt tabulas \"{tableName}\" atļauju atiestatīšanu uz noklusējumu",
       "formViewFieldEditPermissionRestrictionTooltip": "Šis lauks ir paslēpts formā, jo nevienam nav atļaujas to rediģēt."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Palaist darbības",
     "createScript": "Izveidot skriptu",
     "deleteAllRecords": "Dzēst visus ierakstus",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Piešķirt skatu",
     "webhookDetails": "Webhook detaļas",
     "webhookLogs": "Webhook Logs",

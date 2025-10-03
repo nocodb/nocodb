@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Edycja będzie możliwa dla Redaktorów i osób o wyższych uprawnieniach.",
       "confirmRevertPermissionsToDefault": "Potwierdź resetowanie uprawnień do tabeli – \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "To pole jest ukryte w formularzu, ponieważ nikt nie ma uprawnień do jego edycji."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Uruchom Akcje",
     "createScript": "Utwórz skrypt",
     "deleteAllRecords": "Usuń wszystkie rekordy",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Przypisz widok",
     "webhookDetails": "Szczegóły Webhooka",
     "webhookLogs": "Webhook Logs",

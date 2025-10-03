@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Accesul la editare va fi setat pentru editori și superiori.",
       "confirmRevertPermissionsToDefault": "Confirmă resetarea permisiunilor pentru tabelul - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Acest câmp este ascuns în formular deoarece nimeni nu are permisiunea de a-l edita."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Rulează acțiuni",
     "createScript": "Creează script",
     "deleteAllRecords": "Șterge toate înregistrările",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Atribuie vizualizarea",
     "webhookDetails": "Detalii Webhook",
     "webhookLogs": "Webhook Logs",

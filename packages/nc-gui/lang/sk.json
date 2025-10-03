@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Prístup na úpravy bude nastavený len pre editorov a vyššie.",
       "confirmRevertPermissionsToDefault": "Potvrďte obnovenie oprávnení pre tabuľku – \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Toto pole je v formulári skryté, pretože nikto nemá oprávnenie ho upravovať."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Spustiť akcie",
     "createScript": "Vytvoriť skript",
     "deleteAllRecords": "Odstrániť všetky záznamy",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Priradiť zobrazenie",
     "webhookDetails": "Detaily Webhooku",
     "webhookLogs": "Webhook Logs",

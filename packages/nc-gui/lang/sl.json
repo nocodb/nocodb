@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Dostop za urejanje bo nastavljen na Urednike in višje.",
       "confirmRevertPermissionsToDefault": "Potrdi ponastavitev dovoljenj za tabelo - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "To polje je skrito v obrazcu, ker nihče nima dovoljenja za njegovo urejanje."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Zaženi dejanja",
     "createScript": "Ustvari skripto",
     "deleteAllRecords": "Izbriši vse zapise",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Dodeli pogled",
     "webhookDetails": "Podrobnosti Webhook",
     "webhookLogs": "Webhook Logs",

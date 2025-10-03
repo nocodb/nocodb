@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Quyền chỉnh sửa sẽ được đặt cho Editor trở lên.",
       "confirmRevertPermissionsToDefault": "Xác nhận đặt lại quyền cho bảng - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Trường này bị ẩn trong form do không ai có quyền chỉnh sửa."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Chạy hành động",
     "createScript": "Tạo Script",
     "deleteAllRecords": "Xóa tất cả bản ghi",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Gán chế độ xem",
     "webhookDetails": "Chi tiết Webhook",
     "webhookLogs": "Webhook Logs",

@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Redigering settes til redaktører og opp.",
       "confirmRevertPermissionsToDefault": "Bekreft tilbakestilling av rettigheter for tabell – \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Dette feltet er skjult i skjemaet fordi ingen har rettighet til å redigere det."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -1508,6 +1512,7 @@
     "runActions": "Utfør handlinger",
     "createScript": "Opprett skript",
     "deleteAllRecords": "Slett alle poster",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Tilordne visning",
     "webhookDetails": "Webhook Detaljer",
     "webhookLogs": "Webhook Logs",

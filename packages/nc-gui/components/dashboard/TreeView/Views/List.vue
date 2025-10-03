@@ -93,7 +93,8 @@ function validate(view: ViewType) {
     return t('msg.error.viewNameRequired')
   }
 
-  if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
+  const trimmedTitle = view.title.trim()
+  if (views.value.some((v) => v.title?.trim() === trimmedTitle && v.id !== view.id)) {
     return t('msg.error.viewNameDuplicate')
   }
 

@@ -200,7 +200,7 @@ async function onRename() {
     return
   }
 
-  if (vModel.value.title === '' || vModel.value.title === _title.value) {
+  if (vModel.value.title === '' || vModel.value.title?.trim() === _title.value) {
     onCancel()
     return
   }

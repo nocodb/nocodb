@@ -1118,9 +1118,9 @@ export class ExportService {
     delimiter = ',',
     dataExportMode = false,
   ): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       this.datasService
-        .getDataList(context, {
+        .dataList(context, {
           model,
           view,
           query: { limit, offset, fields },

@@ -20,16 +20,18 @@ export default defineNuxtPlugin(async () => {
 
   monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,
-    diagnosticCodesToIgnore: [1375, 1378, 2451, 6385, 1108],
+    diagnosticCodesToIgnore: [1375, 1378, 2451, 6385, 1108, 2792, 2307],
     noSyntaxValidation: false,
   })
 
   monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
     target: monaco.languages.typescript.ScriptTarget.ESNext,
+    module: monaco.languages.typescript.ModuleKind.ESNext,
     allowNonTsExtensions: true,
     noLib: false,
     strictFunctionTypes: true,
     strict: true,
+    moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
   })
 
   /**

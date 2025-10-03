@@ -715,8 +715,12 @@ async function handleBulkUpdate() {
 
 const handleConfirmUpdate = async () => {
   await validateAll()
-
   if (v$.value.$error) {
+    return
+  }
+
+  if (!meta.value!.columns?.some((col) => col.pk)) {
+    message.toast(t('msg.info.updateNotAllowedWithoutPK'))
     return
   }
 

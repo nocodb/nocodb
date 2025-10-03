@@ -106,6 +106,12 @@ const systemFieldsIds = computed(() => getSystemColumnsIds(meta.value?.columns |
 
 const updateNotSupportedCols = [UITypes.Attachment]
 
+const selectedTableHasPk = computed(() => {
+  if (!ncIsArray(meta.value?.columns)) return true
+
+  return meta.value.columns.some((col) => col.pk)
+})
+
 const bulkUpdateColumns = computed(() => {
   return (meta.value?.columns || [])
     .filter((c) => {
@@ -715,8 +721,7 @@ async function handleBulkUpdate() {
 
 const handleConfirmUpdate = async () => {
   await validateAll()
-
-  if (v$.value.$error) {
+  if (v$.value.$error || !selectedTableHasPk.value) {
     return
   }
 
@@ -823,7 +828,7 @@ provide(IsGalleryInj, ref(false))
     <template v-if="fullscreen" #headerExtra>
       <NcButton
         size="small"
-        :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo"
+        :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo || !selectedTableHasPk"
         :loading="isLoadingViewInfo"
         @click="handleConfirmUpdate"
       >
@@ -920,7 +925,13 @@ provide(IsGalleryInj, ref(false))
             <div class="text-base font-bold text-nc-content-gray-extreme">Settings</div>
             <div class="flex flex-col gap-2">
               <div class="text-nc-content-gray font-medium">Table</div>
-              <a-form-item class="!my-0">
+              <a-form-item
+                class="!my-0 nc-input-required-error"
+                v-bind="{
+                  validateStatus: !selectedTableHasPk ? 'error' : 'success',
+                  help: !selectedTableHasPk ? [$t('msg.info.updateNotAllowedWithoutPK')] : [],
+                }"
+              >
                 <NcSelect
                   v-model:value="savedPayloads.selectedTableId"
                   placeholder="-select table-"
@@ -1345,14 +1356,16 @@ provide(IsGalleryInj, ref(false))
               New Action
             </NcButton>
           </NcTooltip>
-          <NcButton
-            size="small"
-            :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo"
-            :loading="isLoadingViewInfo"
-            @click="handleConfirmUpdate"
-          >
-            Update Records
-          </NcButton>
+          <NcTooltip :title="$t('msg.info.updateNotAllowedWithoutPK')" :disabled="selectedTableHasPk" placement="left">
+            <NcButton
+              size="small"
+              :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo || !selectedTableHasPk"
+              :loading="isLoadingViewInfo"
+              @click="handleConfirmUpdate"
+            >
+              Update Records
+            </NcButton>
+          </NcTooltip>
         </div>
       </div>
     </div>

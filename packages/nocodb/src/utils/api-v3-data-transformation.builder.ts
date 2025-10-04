@@ -502,7 +502,8 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
           options = { ...rest, button_type: type };
         }
       } else if (isLinksOrLTAR(data.type)) {
-        const { type, ...rest } = data.options as Record<string, any>;
+        const { type, ...rest } =
+          (data.options as Record<string, any>) ?? options;
         options = { ...rest, relation_type: type };
       }
       options = options || data.options;

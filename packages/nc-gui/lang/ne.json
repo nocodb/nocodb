@@ -2355,6 +2355,7 @@
       "domainNameRequired": "डोमेन नाम आवश्यक छ",
       "nameMaxLength256": "नाम बढीमा २५६ वर्ण लामो हुनुपर्छ",
       "viewNameUnique": "दृश्य नाम अद्वितीय हुनुपर्छ",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "तपाईंको {search} को लागि खोजीले कुनै परिणाम भेटेन",
       "invalidChar": "फोल्डर मार्गमा अमान्य अक्षर।",
       "invalidDbCredentials": "अमान्य डाटाबेस प्रमाणहरू।",

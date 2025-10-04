@@ -919,6 +919,7 @@ export class OracleUi implements SqlUi {
         break;
       case 'Percent':
         colProp.dt = 'double';
+        colProp.meta = { precision: 1 };
         break;
       case 'Duration':
         colProp.dt = 'integer';

@@ -1,6 +1,8 @@
 <!-- File not in use for now -->
 
 <script setup lang="ts">
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
+
 const props = defineProps<{
   value: any
 }>()
@@ -9,10 +11,15 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-if (!vModel.value.meta) vModel.value.meta = {}
+// set default value
+vModel.value.meta = {
+  ...ColumnHelper.getColumnDefaultMeta(UITypes.Percent),
+  ...(vModel.value.meta || {}),
+}
+
 if (!vModel.value.meta?.negative) vModel.value.meta.negative = false
 if (!vModel.value.meta?.default) vModel.value.meta.default = null
-if (!vModel.value.meta?.precision) vModel.value.meta.precision = precisions[0].id
+if (!vModel.value.meta?.precision && vModel.value.meta?.precision !== 0) vModel.value.meta.precision = precisionFormats[0]
 </script>
 
 <template>
@@ -20,10 +27,10 @@ if (!vModel.value.meta?.precision) vModel.value.meta.precision = precisions[0].i
     <div class="flex flex-row space-x-2">
       <a-form-item class="flex w-1/2" :label="$t('placeholder.precision')">
         <a-select v-model:value="vModel.meta.precision" dropdown-class-name="nc-dropdown-precision">
-          <a-select-option v-for="(precision, i) of precisions" :key="i" :value="precision.id">
+          <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
             <div class="flex flex-row items-center">
               <div class="text-xs">
-                {{ precision.title }}
+                {{ (makePrecisionFormatsDiplay($t) as any)[format] }}
               </div>
             </div>
           </a-select-option>

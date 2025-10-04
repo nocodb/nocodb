@@ -30,10 +30,17 @@ export const PercentCellRenderer: CellRenderer = {
 
     ctx.fillStyle = pv ? '#3366FF' : '#4a5268'
 
+    // Use precision from meta, default to 1
+    const precision = typeof meta.precision === 'number' ? meta.precision : 1
+    let displayValue = ''
+    if (value !== null && typeof value !== 'undefined' && value !== '') {
+      displayValue = `${Number(value).toFixed(precision)}%`
+    }
+
     renderSingleLineText(ctx, {
       x: x + width - padding,
       y,
-      text: value !== null && typeof value !== 'undefined' && value !== '' ? `${value}%` : '',
+      text: displayValue,
       textAlign: 'right',
       maxWidth: width - padding * 2,
       fontFamily: `${pv ? 600 : 500} 13px Inter`,

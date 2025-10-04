@@ -1734,6 +1734,7 @@ export class PgUi implements SqlUi {
         break;
       case 'Percent':
         colProp.dt = 'double precision';
+        colProp.meta = { precision: 1 };
         break;
       case 'Duration':
         colProp.dt = 'decimal';

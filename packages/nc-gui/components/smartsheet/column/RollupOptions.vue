@@ -226,6 +226,10 @@ watch(
 // to avoid fractional part data loss(eg. 1.2345 -> 1.23)
 const onPrecisionChange = (value: number) => {
   vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
+  // Also update meta.precision for percent/decimal/currency
+  if (vModel.value.meta) {
+    vModel.value.meta.precision = value
+  }
 }
 
 // set default value

@@ -310,7 +310,7 @@ export function useCanvasTable({
 
   const isAddingColumnAllowed = computed(() => !readOnly.value && isFieldEditAllowed.value && !isSqlView.value)
 
-  const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
+  const rowHeight = computed(() => (isMobileMode.value ? 40 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
   const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
 

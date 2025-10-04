@@ -112,6 +112,76 @@ const unlinkRow = async (row: Record<string, any>, id: number) => {
   }
 }
 
+const selectAll = async () => {
+  if (isSharedBase.value || isDataReadOnly.value) return
+  
+  const { list } = childrenExcludedList.value || {}
+  if (!list || list.length === 0) return
+
+  try {
+    if (isNew.value) {
+      // For new rows, add all records to LTAR refs
+      const promises = []
+      for (let i = 0; i < list.length; i++) {
+        if (!isChildrenExcludedListLinked.value[i]) {
+          promises.push(addLTARRef(list[i], injectedColumn?.value as ColumnType))
+          isChildrenExcludedListLinked.value[i] = true
+        }
+      }
+      await Promise.all(promises)
+      saveRow!()
+    } else {
+      // For existing rows, link all records
+      const promises = []
+      for (let i = 0; i < list.length; i++) {
+        if (!isChildrenExcludedListLinked.value[i]) {
+          promises.push(link(list[i], {}, false, i))
+        }
+      }
+      await Promise.all(promises)
+    }
+    
+    $e('a:links:select-all')
+  } catch (error) {
+    console.error('Error in selectAll:', error)
+  }
+}
+
+const clearAll = async () => {
+  if (isSharedBase.value || isDataReadOnly.value) return
+  
+  const { list } = childrenExcludedList.value || {}
+  if (!list || list.length === 0) return
+
+  try {
+    if (isNew.value) {
+      // For new rows, remove all records from LTAR refs
+      const promises = []
+      for (let i = 0; i < list.length; i++) {
+        if (isChildrenExcludedListLinked.value[i]) {
+          promises.push(removeLTARRef(list[i], injectedColumn?.value as ColumnType))
+          isChildrenExcludedListLinked.value[i] = false
+        }
+      }
+      await Promise.all(promises)
+      saveRow!()
+    } else {
+      // For existing rows, unlink all records
+      const promises = []
+      for (let i = 0; i < list.length; i++) {
+        if (isChildrenExcludedListLinked.value[i]) {
+          promises.push(unlink(list[i], {}, false, i))
+        }
+      }
+      await Promise.all(promises)
+    }
+    
+    $e('a:links:clear-all')
+  } catch (error) {
+    console.error('Error in clearAll:', error)
+  }
+}
+
 /** reload list on modal open */
 watch(
   vModel,
@@ -192,6 +262,26 @@ const totalItemsToShow = computed(() => {
   }
 
   return childrenListCount.value ?? 0
+})
+
+const allSelected = computed(() => {
+  const { list } = childrenExcludedList.value || {}
+  if (!list || list.length === 0) return false
+  
+  return list.every((_, index) => isChildrenExcludedListLinked.value[index])
+})
+
+const anySelected = computed(() => {
+  const { list } = childrenExcludedList.value || {}
+  if (!list || list.length === 0) return false
+  
+  return list.some((_, index) => isChildrenExcludedListLinked.value[index])
+})
+
+const showBulkActions = computed(() => {
+  if (!childrenExcludedList?.list?.length) return false
+
+  return relation.value === RelationTypes.MANY_TO_MANY || relation.value === RelationTypes.HAS_MANY
 })
 
 watch(expandedFormDlg, () => {
@@ -407,6 +497,32 @@ const handleKeyDown = (e: KeyboardEvent) => {
           :relation="relation"
           :table-title="meta?.title"
         />
+      </div>
+      <div v-if="showBulkActions" class="bg-gray-50 px-3 py-1 border-b border-gray-200 flex justify-between items-center">
+        <div class="text-xs text-gray-600">
+          {{ childrenExcludedList.list.length }} {{ $t('general.records') }}
+        </div>
+        <div class="flex gap-2">
+          <NcButton
+            v-if="anySelected"
+            size="xsmall"
+            type="secondary"
+            class="!h-6 !text-xs !min-w-20"
+            :disabled="isSharedBase || isDataReadOnly"
+            @click="clearAll"
+          >
+            {{ $t('general.clearAll') }}
+          </NcButton>
+          <NcButton
+            size="xsmall"
+            type="secondary"
+            class="!h-6 !text-xs !min-w-20"
+            :disabled="isSharedBase || isDataReadOnly || allSelected"
+            @click="selectAll"
+          >
+            {{ $t('general.selectAll') }}
+          </NcButton>
+        </div>
       </div>
       <div class="flex-1 overflow-auto nc-scrollbar-thin">
         <template v-if="childrenExcludedList?.pageInfo?.totalRows">

@@ -92,5 +92,5 @@ function tableHelpersTests() {
 }
 
 export function tableHelpersTest() {
-  describe.only('tableHelpers', tableHelpersTests);
+  describe('tableHelpers', tableHelpersTests);
 }

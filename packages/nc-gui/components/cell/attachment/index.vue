@@ -321,14 +321,14 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="isExpandedForm || isForm" class="form-attachment-cell">
+  <div v-if="isExpandedForm || isForm" class="form-attachment-cell relative">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
     <div v-if="visibleItems.length > 0" ref="sortableRef" class="flex flex-wrap items-stretch mb-2 gap-2">
       <CellAttachmentCard
         v-for="(item, i) in expandedFormVisibelItems"
         :key="`${item?.title}-${i}`"
         v-model:dragging="dragging"
-        class="nc-attachment-item group gap-2 flex border-1 rounded-md border-gray-200 flex-col relative w-[124px] overflow-hidden"
+        class="nc-attachment-item group gap-2 flex border-1 bg-nc-bg-default rounded-md border-nc-border-gray-medium flex-col relative w-[124px] overflow-hidden"
         :attachment="item"
         :index="i"
         :allow-selection="false"
@@ -368,6 +368,17 @@ onUnmounted(() => {
           </div>
         </NcButton>
       </NcTooltip>
+    </div>
+
+    <div
+      v-if="!isReadonly && !dragging && !!currentCellRef && isOverDropZone && visibleItems.length"
+      class="absolute -top-1 -left-1 -right-1 bottom-0 border-dashed border-2 border-nc-fill-primary rounded-lg flex flex-col items-center justify-center"
+    >
+      <GeneralIcon icon="upload" class="flex-none w-6 h-6 text-nc-content-brand" />
+
+      <div class="p-3">
+        <h1 class="text-nc-content-brand font-bold">{{ $t('labels.dropHere') }}</h1>
+      </div>
     </div>
 
     <LazyGeneralDeleteModal
@@ -430,7 +441,7 @@ onUnmounted(() => {
           @click.stop="openAttachmentModal"
         >
           <div class="flex items-center gap-1 justify-center">
-            <GeneralIcon icon="upload" class="text-gray-500 text-[10px] h-3.5 w-3.5" />
+            <GeneralIcon icon="upload" class="text-nc-content-gray-muted text-[10px] h-3.5 w-3.5" />
             <span class="text-[11px]">
               {{ $t('activity.addFiles') }}
             </span>
@@ -501,7 +512,7 @@ onUnmounted(() => {
         >
           <component :is="iconMap.reload" v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
-          <component :is="iconMap.maximize" v-else class="transform group-hover:(!text-gray-800) text-gray-700 w-3 h-3" />
+          <component :is="iconMap.maximize" v-else class="transform group-hover:(!text-nc-content-gray) text-nc-content-gray-subtle w-3 h-3" />
         </NcButton>
       </NcTooltip>
 
@@ -523,7 +534,7 @@ onUnmounted(() => {
           class="!p-0 !w-5 !h-5 !min-w-[fit-content] add-files"
           @click.stop="openAttachmentModal"
         >
-          <GeneralIcon icon="ncPaperclip" class="w-3 group-hover:(!text-gray-800) text-nc-content-gray-subtle" />
+          <GeneralIcon icon="ncPaperclip" class="w-3 group-hover:(!text-nc-content-gray) text-nc-content-gray-subtle" />
         </NcButton>
       </NcTooltip>
     </template>
@@ -551,7 +562,7 @@ onUnmounted(() => {
 .nc-cell {
   .nc-attachment-cell {
     .nc-attachment {
-      @apply min-h-5.5 !ring-1 !ring-gray-300 !rounded;
+      @apply min-h-5.5 !ring-1 !ring-nc-border-gray-dark !rounded;
     }
 
     .ghost,

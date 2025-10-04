@@ -82,7 +82,7 @@ const onRenameBlur = async () => {
 /** validate view title */
 function validate() {
   const trimmedTitle = viewRenameTitle.value.trim()
-  if (!viewRenameTitle.value || trimmedTitle.length < 0) {
+  if (!trimmedTitle) {
     error.value = t('msg.error.viewNameRequired')
 
     return false

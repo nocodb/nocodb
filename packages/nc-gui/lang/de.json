@@ -2353,7 +2353,6 @@
       "domainNameRequired": "Domainname ist erforderlich",
       "nameMaxLength256": "Name darf höchstens 256 Zeichen lang sein",
       "viewNameUnique": "Ansichtsname sollte eindeutig sein",
-      "viewNameDuplicate": "Ansichtsname existiert bereits",
       "searchProject": "Ihre Suche nach {search} erzielte keine Ergebnisse",
       "invalidChar": "Ungültiges Zeichen im Ordnerpfad.",
       "invalidDbCredentials": "Ungültige Datenbank-Anmeldeinformationen.",

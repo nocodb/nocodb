@@ -224,6 +224,11 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     $e('a:integration:update')
 
     try {
+      // trim title before saving
+      if (integration.title) {
+        integration.title = integration.title.trim()
+      }
+
       await api.integration.update(integration.id, integration)
 
       if (integration.type === IntegrationsType.Ai) {
@@ -291,6 +296,11 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
 
     try {
+      // trim title before saving
+      if (integration.title) {
+        integration.title = integration.title.trim()
+      }
+
       const response = await api.integration.create(integration)
 
       if (response && response?.id) {

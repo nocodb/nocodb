@@ -252,9 +252,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                   ? activeTabSelectedFields.value.some((c) => {
                       return (
                         c.ai_temp_id !== formState.value?.ai_temp_id &&
-                        ((value || '').toLowerCase().trim() === (c.formState?.column_name || '').toLowerCase().trim() ||
-                          (value || '').toLowerCase().trim() === (c.formState?.title || '').toLowerCase().trim() ||
-                          (value || '').toLowerCase().trim() === (c?.title || '').toLowerCase().trim())
+                        ((value || '').trim().toLowerCase() === (c.formState?.column_name || '').trim().toLowerCase() ||
+                          (value || '').trim().toLowerCase() === (c.formState?.title || '').trim().toLowerCase() ||
+                          (value || '').trim().toLowerCase() === (c?.title || '').trim().toLowerCase())
                       )
                     })
                   : false
@@ -265,8 +265,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                     (c) =>
                       c.id !== formState.value.id && // ignore current column
                       // compare against column_name and title
-                      ((value || '').toLowerCase() === (c.column_name || '').toLowerCase() ||
-                        (value || '').toLowerCase() === (c.title || '').toLowerCase()),
+                      ((value || '').trim().toLowerCase() === (c.column_name || '').trim().toLowerCase() ||
+                        (value || '').trim().toLowerCase() === (c.title || '').trim().toLowerCase()),
                   ) ||
                     isAiFieldExist)
                 ) {
@@ -384,6 +384,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       try {
         isSaving.value = true // set saving state
+
+        // trim title before saving
+        if (formState.value.title) {
+          formState.value.title = formState.value.title.trim()
+        }
 
         formState.value.table_name = meta.value?.table_name
 

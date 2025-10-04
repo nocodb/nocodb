@@ -1,7 +1,7 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
-import { enableQuickRun, isMysql, isPg, isSqlite } from '../../../setup/db';
+import { enableQuickRun, isPg } from '../../../setup/db';
 
 // Add formula to be verified here & store expected results for 5 rows
 // Column data from City table (Sakila DB)
@@ -274,7 +274,7 @@ test.describe('Virtual Columns', () => {
         type: 'Formula',
         formula: formulaData[i].formula,
       });
-      console.log(`running test function: ${formulaData[i].formula}`);
+
       if (formulaData[i].unSupDbType?.includes(dbType)) {
         // assert for message not supported or greyed out save button.
         await dashboard.grid.column.checkMessageAndClose({ errorMessage: new RegExp('Function .* is not available') });

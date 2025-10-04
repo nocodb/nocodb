@@ -58,7 +58,7 @@ const relatedTableDisplayColumn = computed(
 loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
 })
 
 const textVal = computed(() => {
@@ -203,8 +203,8 @@ onUnmounted(() => {
             class="text-center nc-datatype-link underline-transparent nc-canvas-links-text font-weight-500"
             :class="{ '!text-gray-300': !textVal }"
             :tabindex="readOnly ? -1 : 0"
-            @click.stop.prevent="isForm && !isExpandedFormOpen ? openListDlg() : openChildList()"
-            @keydown.enter.stop.prevent="isForm && !isExpandedFormOpen ? openListDlg() : openChildList"
+            @click.stop.prevent="isForm && !isExpandedFormOpen && hasEditPermission ? openListDlg() : openChildList()"
+            @keydown.enter.stop.prevent="isForm && !isExpandedFormOpen && hasEditPermission ? openListDlg() : openChildList"
           >
             {{ textVal }}
           </component>

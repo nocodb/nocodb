@@ -645,3 +645,42 @@ export const getMMColumnNames = (parent: Model, child: Model) => {
     childCn,
   };
 };
+
+export const TableSystemColumns = () => [
+  {
+    column_name: 'id',
+    title: 'Id',
+    uidt: 'ID',
+    allowNonSystem: false,
+  },
+  {
+    column_name: 'created_at',
+    title: 'CreatedAt',
+    uidt: 'CreatedTime',
+    allowNonSystem: true,
+  },
+  {
+    column_name: 'updated_at',
+    title: 'UpdatedAt',
+    uidt: 'LastModifiedTime',
+    allowNonSystem: true,
+  },
+  {
+    column_name: 'created_by',
+    title: 'nc_created_by',
+    uidt: 'CreatedBy',
+    allowNonSystem: true,
+  },
+  {
+    column_name: 'updated_by',
+    title: 'nc_updated_by',
+    uidt: 'LastModifiedBy',
+    allowNonSystem: true,
+  },
+  {
+    column_name: 'nc_order',
+    title: 'nc_order',
+    uidt: 'Order',
+    allowNonSystem: false,
+  },
+];

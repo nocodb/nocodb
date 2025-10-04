@@ -13,6 +13,7 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
+import { repopulateCreateTableSystemColumns } from 'src/helpers/tableHelpers';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
 import type { NcApiVersion } from 'nocodb-sdk';
@@ -639,103 +640,9 @@ export class TablesService {
     }
 
     // add CreatedTime and LastModifiedTime system columns if missing in request payload
-    {
-      // FIXME: do not reassign tableCreatePayLoad.columns with .filter or .map
-      // somehow it bugged out, will check out later
-      for (let i = tableCreatePayLoad.columns.length - 1; i >= 0; i--) {
-        const col = tableCreatePayLoad.columns[i];
-        if ([UITypes.ID, UITypes.Order].includes(col.uidt as UITypes)) {
-          tableCreatePayLoad.columns.splice(i, 1);
-        } else {
-          if (source?.isMeta() && col.pk) {
-            delete col.pk;
-          }
-        }
-      }
-      for (const uidt of [
-        UITypes.ID,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-        UITypes.CreatedBy,
-        UITypes.LastModifiedBy,
-        UITypes.Order,
-      ]) {
-        const col = tableCreatePayLoad.columns.find(
-          (c) => c.uidt === uidt,
-        ) as ColumnType;
-
-        let columnName, columnTitle;
-
-        switch (uidt) {
-          case UITypes.CreatedTime:
-            columnName = 'created_at';
-            columnTitle = 'CreatedAt';
-            break;
-          case UITypes.LastModifiedTime:
-            columnName = 'updated_at';
-            columnTitle = 'UpdatedAt';
-            break;
-          case UITypes.CreatedBy:
-            columnName = 'created_by';
-            columnTitle = 'nc_created_by';
-            break;
-          case UITypes.LastModifiedBy:
-            columnName = 'updated_by';
-            columnTitle = 'nc_updated_by';
-            break;
-          case UITypes.Order:
-            columnTitle = 'nc_order';
-            columnName = 'nc_order';
-            break;
-          case UITypes.ID:
-            columnTitle = 'Id';
-            columnName = 'id';
-            break;
-        }
-
-        const colName = getUniqueColumnName(
-          tableCreatePayLoad.columns as any[],
-          columnName,
-        );
-
-        const colAlias = getUniqueColumnAliasName(
-          tableCreatePayLoad.columns as any[],
-          columnTitle,
-        );
-
-        if (!col || (!col.system && col.uidt !== UITypes.ID)) {
-          tableCreatePayLoad.columns.push({
-            ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
-            column_name: colName,
-            cn: colName,
-            title: colAlias,
-            system: uidt !== UITypes.ID,
-          });
-        } else {
-          // temporary fix for updating if user passed system columns with duplicate names
-          if (
-            tableCreatePayLoad.columns.some(
-              (c: ColumnType) =>
-                c.uidt !== uidt && c.column_name === col.column_name,
-            )
-          ) {
-            Object.assign(col, {
-              column_name: colName,
-              cn: colName,
-            });
-          }
-          if (
-            tableCreatePayLoad.columns.some(
-              (c: ColumnType) => c.uidt !== uidt && c.title === col.title,
-            )
-          ) {
-            Object.assign(col, {
-              title: colAlias,
-            });
-          }
-        }
-      }
-    }
+    tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
+      columns: tableCreatePayLoad.columns,
+    });
 
     {
       // set order of system columns in columns list

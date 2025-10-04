@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Domain name is required",
       "nameMaxLength256": "Name must be at most 256 characters long",
       "viewNameUnique": "View name should be unique",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Your search for {search} found no results",
       "invalidChar": "Invalid character in folder path.",
       "invalidDbCredentials": "Invalid database credentials.",

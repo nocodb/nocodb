@@ -2353,6 +2353,7 @@
       "domainNameRequired": "Se requiere nombre de dominio",
       "nameMaxLength256": "El nombre debe tener como máximo 256 caracteres de longitud",
       "viewNameUnique": "El nombre de la vista debe ser único",
+      "viewNameDuplicate": "El nombre de la vista ya existe",
       "searchProject": "Tu búsqueda de {search} no encontró resultados",
       "invalidChar": "Caracteres inválidos en la ruta de la carpeta.",
       "invalidDbCredentials": "Credenciales de Base de Datos incorrectas.",

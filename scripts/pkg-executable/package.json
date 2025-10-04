@@ -31,8 +31,8 @@
     "@nestjs/core": "^10.4.17",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "nocodb": "0.264.8",
-    "isomorphic-dompurify": "2.25.0"
+    "nocodb": "0.265.1",
+    "isomorphic-dompurify": "2.28.0"
   },
   "overrides": {
     "sqlite3": "5.1.6"

@@ -159,7 +159,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7" @clcik.stop>
+        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7" @click.stop>
           <NcTooltip class="flex" hide-on-click>
             <template #title>{{ $t('title.expand') }}</template>
 
@@ -173,7 +173,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
             </button>
           </NcTooltip>
         </div>
-        <template v-if="(!isPublic && !readOnly) || isForm">
+        <template v-if="(!isPublic && !readOnly) || (isForm && !readOnly)">
           <PermissionsTooltip
             class="z-10 flex"
             :entity="PermissionEntity.FIELD"

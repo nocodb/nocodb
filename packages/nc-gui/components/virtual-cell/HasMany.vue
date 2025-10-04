@@ -56,7 +56,7 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, un
 await loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
 })
 
 const localCellValue = computed<any[]>(() => {
@@ -215,6 +215,7 @@ onUnmounted(() => {
             :column="hasManyColumn"
             :show-unlink-button="false"
             :truncate="false"
+            :readonly="readOnly"
             @unlink="unlinkRef(cell.item)"
           />
 

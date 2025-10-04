@@ -6,9 +6,9 @@ import { Model } from '../../../src/models';
 import Base from '../../../src/models/Base';
 import { createProject } from '../factory/base';
 import {
-  createColumn,
   createLookupColumn,
   createLtarColumn2,
+  createRollupColumn,
   customColumns,
 } from '../factory/column';
 import { createBulkRows } from '../factory/row';
@@ -76,7 +76,6 @@ const getDuplicatedRows = (tableName: string) => {
  * Used by: tests/unit/formula/tests/formula-lookup-ltar.test.ts
  */
 export async function initInitialModel() {
-  console.time('#### formulaLookupLtarTests');
   const context = await init();
   const base = await createProject(context);
 
@@ -159,13 +158,6 @@ export async function initInitialModel() {
     type: 'hm',
   });
 
-  const t1_HM_t1_Ltar = await createLtarColumn2(context, {
-    title: 'Table1SelfList',
-    parentTable: table1,
-    childTable: table1,
-    type: 'hm',
-  });
-
   const source = (await Base.getByTitleOrId(ctx, base.id)).getSources();
   await createLookupColumn(context, {
     base,
@@ -202,18 +194,6 @@ export async function initInitialModel() {
     relatedTableName: table2.table_name,
     relatedTableColumnTitle: 'T1s',
     relationColumnId: t3_HM_t2_Ltar.id,
-  });
-  await createLookupColumn(context, {
-    base,
-    title: 'Table1SelfList_Titles',
-    table: await Model.getByIdOrName(ctx, {
-      base_id: base.id,
-      source_id: source.id!,
-      id: table1.id,
-    }),
-    relatedTableName: table1.table_name,
-    relatedTableColumnTitle: 'Title',
-    relationColumnId: t1_HM_t1_Ltar.id,
   });
 
   const linkTo_t2_HM_t1_Ltar = (rowId: string, body: any[]) => {
@@ -284,82 +264,24 @@ export async function initInitialModel() {
   } as ITestContext;
 }
 
-export async function initQrBarcodeColumns(context: ITestContext) {
-  const table1 = context.tables.table1;
-  const table2 = context.tables.table2;
-  await createColumn(context.context, table1, {
-    title: 'QRCode',
-    column_name: 'qrcode',
-    uidt: UITypes.QrCode,
-    fk_qr_value_column_id: (
-      await table1.getColumns(context.ctx)
-    ).find((k) => k.title === 'Title').id,
-  });
-  await createColumn(context.context, table1, {
-    title: 'Barcode',
-    column_name: 'barcode',
-    uidt: UITypes.Barcode,
-    fk_barcode_value_column_id: (
-      await table1.getColumns(context.ctx)
-    ).find((k) => k.title === 'Title').id,
-  });
-
-  const t2_HM_t1_Ltar = (await table2.getColumns(context.ctx)).find(
-    (col) => col.title === 'T1s',
-  );
-  const source = (await context.base.getSources())[0];
-  await createLookupColumn(context.context, {
+export async function initRollupColumns(context: ITestContext) {
+  const t1TitleCount = await createRollupColumn(context.context, {
     base: context.base,
-    title: 'table1Qr',
-    table: await Model.getByIdOrName(context.ctx, {
-      base_id: context.base.id,
-      source_id: source.id!,
-      id: context.tables.table2.id,
-    }),
-    relatedTableName: table1.table_name,
-    relatedTableColumnTitle: 'QRCode',
-    relationColumnId: t2_HM_t1_Ltar.id,
-  });
-  await createLookupColumn(context.context, {
-    base: context.base,
-    title: 'table1Barcode',
-    table: await Model.getByIdOrName(context.ctx, {
-      base_id: context.base.id,
-      source_id: source.id!,
-      id: context.tables.table2.id,
-    }),
-    relatedTableName: table1.table_name,
-    relatedTableColumnTitle: 'Barcode',
-    relationColumnId: t2_HM_t1_Ltar.id,
-  });
-}
-
-export async function initFormulaLookupColumns(context: ITestContext) {
-  const formulaColumn = await createColumn(
-    context.context,
-    context.tables.table1,
-    {
-      title: 'FormulaTitle',
-      uidt: UITypes.Formula,
-      formula: '{Title}',
-      formula_raw: '{Title}',
-    },
-  );
-  const t2_HM_t1_Ltar = (
-    await context.tables.table2.getColumns(context.ctx)
-  ).find((col) => col.title === 'T1s');
-  const source = (await context.base.getSources())[0];
-
-  await createLookupColumn(context.context, {
-    base: context.base,
-    title: 'table1FormulaTitle',
-    table: await Model.getByIdOrName(context.ctx, {
-      base_id: context.base.id,
-      source_id: source.id!,
-      id: context.tables.table2.id,
-    }),
+    title: 'T1TitleCount',
+    rollupFunction: 'count',
+    table: context.tables.table2,
     relatedTableName: context.tables.table1.table_name,
-    relatedTableColumnTitle: 'FormulaTitle',
-    relationColumnId: t2_HM_t1_Ltar.id,
+    relatedTableColumnTitle: 'Title',
   });
+  const t1_HM_t2_Ltar = await createLtarColumn2(context.context, {
+    title: 'T2s',
+    parentTable: context.tables.table1,
+    childTable: context.tables.table2,
+    type: 'hm',
+  });
+
+  return {
+    t1TitleCount,
+    t1_HM_t2_Ltar,
+  };
 }

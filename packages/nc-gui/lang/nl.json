@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Domeinnaam is vereist",
       "nameMaxLength256": "Naam mag maximaal 256 tekens lang zijn",
       "viewNameUnique": "Weergavenaam moet uniek zijn",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Uw zoekopdracht voor {search} heeft geen resultaten opgeleverd",
       "invalidChar": "Ongeldig karakter in folderlocatie.",
       "invalidDbCredentials": "Ongeldige database-inloggegevens.",

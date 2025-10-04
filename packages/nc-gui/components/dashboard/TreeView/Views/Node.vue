@@ -172,6 +172,9 @@ const onRenameMenuClick = () => {
   if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {
+    // close dropdown when rename menu is clicked and show inline view rename input
+    isDropdownOpen.value = false
+
     isEditing.value = true
     _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
@@ -233,6 +236,8 @@ function onStopEdit() {
   isStopped.value = true
   isEditing.value = false
   _title.value = ''
+
+  console.log('stop edit')
 
   setTimeout(() => {
     isStopped.value = false

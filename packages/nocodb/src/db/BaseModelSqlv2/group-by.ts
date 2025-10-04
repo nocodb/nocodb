@@ -263,14 +263,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       qb.select(
         baseModel.dbDriver.raw(
           `COUNT(DISTINCT COALESCE(${sqlNullIfBlank({
-            columnName: baseModel.dbDriver.raw(
-              baseModel.isPg ? '(??)::text' : '??',
-              [baseModel.dbDriver.raw(subGroupQuery)],
-            ),
+            columnName: baseModel.isPg ? '(??)::text' : '??',
             baseModel,
             isStringType: true,
           })}, '__null__')) as ??`,
-          ['__sub_group_count__'],
+          [baseModel.dbDriver.raw(subGroupQuery), '__sub_group_count__'],
         ),
       );
     }

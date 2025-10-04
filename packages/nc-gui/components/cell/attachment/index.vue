@@ -325,7 +325,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="isExpandedForm || isForm" class="form-attachment-cell relative">
+  <div
+    v-if="isExpandedForm || isForm"
+    class="form-attachment-cell"
+    :class="{
+      'nc-has-attachments': visibleItems.length,
+    }"
+  >
     <LazyCellAttachmentCarousel v-if="selectedFile" />
     <div v-if="visibleItems.length > 0" ref="sortableRef" class="flex flex-wrap items-stretch mb-2 gap-2">
       <CellAttachmentCard
@@ -406,7 +412,13 @@ onUnmounted(() => {
           <span class="py-3">
             {{ $t('labels.clickTo') }}
 
-            <span :tabindex="0" class="font-semibold text-nc-content-brand"> {{ $t('labels.browseFiles') }} </span>
+            <span
+              :tabindex="0"
+              class="font-semibold text-nc-content-brand focus:(!outline-none) focus-visible:(outline-none)"
+              @keydown.enter="openAttachmentModal"
+            >
+              {{ $t('labels.browseFiles') }}
+            </span>
             {{ $t('general.or') }}
             <span class="font-semibold"> {{ $t('labels.dragFilesHere') }} </span>
 
@@ -425,16 +437,8 @@ onUnmounted(() => {
     </div>
 
     <div
-      class="absolute border-dashed border-2 rounded-lg flex flex-col items-center justify-center pointer-events-none"
-      :class="{
-        'top-0 bottom-0 -right-1 left-0': !visibleItems.length,
-        '-top-1 -left-1 -right-1 bottom-0': visibleItems.length,
-        'hidden':
-          (visibleItems.length && (!isOverDropZone || isReadonly || dragging || !currentCellRef)) ||
-          (isUploading && !visibleItems.length),
-        'border-nc-border-medium': !visibleItems.length && !isOverDropZone,
-        'border-nc-fill-primary': isOverDropZone && isEditAllowed,
-      }"
+      v-if="isOverDropZone && isEditAllowed && !isReadonly && !dragging && currentCellRef"
+      class="nc-is-over-drop-zone absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
     >
       <template v-if="visibleItems.length">
         <GeneralIcon icon="upload" class="flex-none w-6 h-6 text-nc-content-brand" />
@@ -614,17 +618,25 @@ onUnmounted(() => {
 
 <style lang="scss">
 .nc-data-cell {
-  &:has(.form-attachment-cell) {
+  &:has(.form-attachment-cell.nc-has-attachments) {
     @apply !border-none pt-1 -mt-1 -ml-1;
     box-shadow: none !important;
 
     &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
       box-shadow: none !important;
     }
+
+    .nc-cell-attachment {
+      @apply !border-none;
+    }
   }
 
-  .nc-cell-attachment {
-    @apply !border-none;
+  &:has(.form-attachment-cell .nc-is-over-drop-zone) {
+    @apply relative;
+
+    &::after {
+      @apply content-[''] block absolute inset-0 border-dashed border-2 border-nc-fill-primary rounded-lg pointer-events-none;
+    }
   }
 }
 .nc-cell {

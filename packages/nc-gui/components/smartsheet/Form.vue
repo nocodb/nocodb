@@ -2186,7 +2186,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 .nc-input {
   @apply appearance-none w-full;
   &:not(.layout-list) {
-    &:not(.nc-cell-attachment) {
+    &:not(:has(.form-attachment-cell.nc-has-attachments)) {
       @apply !bg-white rounded-lg border-solid border-1 border-gray-200 !focus-within:border-brand-500;
     }
   }

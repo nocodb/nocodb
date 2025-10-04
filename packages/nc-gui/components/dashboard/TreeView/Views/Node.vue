@@ -237,8 +237,6 @@ function onStopEdit() {
   isEditing.value = false
   _title.value = ''
 
-  console.log('stop edit')
-
   setTimeout(() => {
     isStopped.value = false
   }, 250)

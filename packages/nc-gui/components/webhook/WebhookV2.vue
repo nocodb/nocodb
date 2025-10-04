@@ -842,7 +842,7 @@ const toggleIncludeUser = async () => {
 
               <div v-if="hookRef.notification.type === 'Slack'" class="flex flex-col w-full gap-3">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                  <LazyWebhookChannelMultiSelect
+                  <WebhookChannelMultiSelect
                     v-model="hookRef.notification.payload.channels"
                     :selected-channel-list="hookRef.notification.payload.channels"
                     :available-channel-list="slackChannels"
@@ -853,7 +853,7 @@ const toggleIncludeUser = async () => {
 
               <div v-if="hookRef.notification.type === 'Microsoft Teams'" class="flex flex-col w-full gap-3">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                  <LazyWebhookChannelMultiSelect
+                  <WebhookChannelMultiSelect
                     v-model="hookRef.notification.payload.channels"
                     :selected-channel-list="hookRef.notification.payload.channels"
                     :available-channel-list="teamsChannels"
@@ -875,7 +875,7 @@ const toggleIncludeUser = async () => {
 
               <div v-if="hookRef.notification.type === 'Mattermost'" class="flex flex-col w-full gap-3">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                  <LazyWebhookChannelMultiSelect
+                  <WebhookChannelMultiSelect
                     v-model="hookRef.notification.payload.channels"
                     :selected-channel-list="hookRef.notification.payload.channels"
                     :available-channel-list="mattermostChannels"

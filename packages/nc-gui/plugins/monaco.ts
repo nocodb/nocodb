@@ -1,26 +1,24 @@
 import getCrossOriginWorkerURL from 'crossoriginworker'
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&url'
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&url'
-import TypeScriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker&url'
-
 
 export default defineNuxtPlugin(async (nuxtApp) => {
-
   const initializeMonaco = async () => {
+    const EditorWorker = await import('monaco-editor/esm/vs/editor/editor.worker?worker&url')
+    const JsonWorker = await import('monaco-editor/esm/vs/language/json/json.worker?worker&url')
+    const TypeScriptWorker = await import('monaco-editor/esm/vs/language/typescript/ts.worker?worker&url')
 
-    const monaco = await import('monaco-editor');
+    const monaco = await import('monaco-editor')
 
     const editorWorker = new Worker(
       await getCrossOriginWorkerURL(EditorWorker),
-      process.env.NODE_ENV === 'development' ? {type: 'module'} : undefined,
+      process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
     )
     const jsonWorker = new Worker(
       await getCrossOriginWorkerURL(JsonWorker),
-      process.env.NODE_ENV === 'development' ? {type: 'module'} : undefined,
+      process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
     )
     const tsWorker = new Worker(
       await getCrossOriginWorkerURL(TypeScriptWorker),
-      process.env.NODE_ENV === 'development' ? {type: 'module'} : undefined,
+      process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
     )
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
@@ -38,7 +36,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       strict: true,
     moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
     })
-
 
     /**
      * Adding monaco editor to Vite
@@ -61,7 +58,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       },
     }
   }
-
 
   nuxtApp.provide('initMonacoWorkers', {
     get: initializeMonaco(),

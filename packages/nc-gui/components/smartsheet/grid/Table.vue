@@ -5,6 +5,7 @@ import type { ButtonType, ColumnReqType, ColumnType, PaginatedType, TableType, V
 import { UITypes, ViewTypes, isAIPromptCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
 import { type CellRange, type Group, NavigateDir } from '#imports'
+import { parseProp } from '~/utils/parseUtils'
 
 const props = defineProps<{
   data: Row[]
@@ -1491,6 +1492,18 @@ const topOffset = computed(() => {
   return rowHeight.value * (rowSlice.value.start - placeholderStartRows.value.length)
 })
 
+// Column colors computed property
+const columnColors = computed(() => {
+  const colors: Record<string, string> = {}
+  fields.value?.forEach((field) => {
+    const columnMeta = parseProp(field.meta || {})
+    if (columnMeta.columnColor) {
+      colors[field.id!] = columnMeta.columnColor
+    }
+  })
+  return colors
+})
+
 // #Fill Handle
 
 const fillHandleTop = ref()
@@ -1980,6 +1993,7 @@ onKeyStroke('ArrowDown', onDown)
                     'min-width': gridViewCols[fields[0].id]?.width || '180px',
                     'max-width': gridViewCols[fields[0].id]?.width || '180px',
                     'width': gridViewCols[fields[0].id]?.width || '180px',
+                    'background-color': columnColors[fields[0].id!] || '',
                   }"
                   class="nc-grid-column-header"
                   :class="{
@@ -2027,6 +2041,7 @@ onKeyStroke('ArrowDown', onDown)
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
                     'width': gridViewCols[col.id]?.width || '180px',
+                    'background-color': columnColors[col.id!] || '',
                   }"
                   class="nc-grid-column-header"
                   :class="{
@@ -2434,6 +2449,7 @@ onKeyStroke('ArrowDown', onDown)
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
                           'max-width': gridViewCols[columnObj.id]?.width || '180px',
                           'width': gridViewCols[columnObj.id]?.width || '180px',
+                          'background-color': columnColors[columnObj.id!] || '',
                         }"
                         :data-testid="`cell-${columnObj.title}-${rowIndex}`"
                         :data-key="`data-key-${rowIndex}-${columnObj.id}`"

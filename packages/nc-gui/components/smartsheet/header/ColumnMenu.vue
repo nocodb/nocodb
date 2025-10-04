@@ -500,6 +500,13 @@ const onFieldPermissions = () => {
   showFieldPermissionsModal.value = true
 }
 
+const showColumnColorPicker = ref(false)
+
+const openColumnColorPicker = () => {
+  isOpen.value = false
+  showColumnColorPicker.value = true
+}
+
 const onDeleteColumn = () => {
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
@@ -602,6 +609,12 @@ const onDeleteColumn = () => {
       <div class="nc-column-edit-description nc-header-menu-item">
         <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
         {{ $t('labels.editFieldDescription') }}
+      </div>
+    </NcMenuItem>
+    <NcMenuItem v-if="isUIAllowed('fieldAlter') && !isSqlView" title="Set column color" @click="openColumnColorPicker">
+      <div class="nc-column-color-picker nc-header-menu-item">
+        <GeneralIcon icon="palette" class="opacity-80 !w-4.25 !h-4.25" />
+        {{ $t('labels.setColumnColor') }}
       </div>
     </NcMenuItem>
 
@@ -872,6 +885,7 @@ const onDeleteColumn = () => {
         :field-title="column.title!"
         :field-uidt="column.uidt!"
       />
+      <LazySmartsheetHeaderColumnColorPicker v-if="column" key="ccp" v-model:visible="showColumnColorPicker" :column="column" />
     </div>
   </NcMenu>
 </template>

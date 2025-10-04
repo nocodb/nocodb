@@ -20,6 +20,7 @@ import axios from 'axios'
 import { useColumnDrag } from './useColumnDrag'
 import { useRowDragging } from './useRowDragging'
 import { type CellRange, NavigateDir, type Row, type ViewActionState } from '#imports'
+import { parseProp } from '~/utils/parseUtils'
 
 const props = defineProps<{
   totalRows: number
@@ -1661,6 +1662,18 @@ const totalRenderedColLength = computed(() => {
   return 2 + visibleFields.value.length + placeholderStartFields.value.length + placeholderEndFields.value.length
 })
 
+// Column colors computed property
+const columnColors = computed(() => {
+  const colors: Record<string, string> = {}
+  fields.value?.forEach((field) => {
+    const columnMeta = parseProp(field.meta || {})
+    if (columnMeta.columnColor) {
+      colors[field.id!] = columnMeta.columnColor
+    }
+  })
+  return colors
+})
+
 // Fill Handle
 const fillHandleTop = ref()
 const fillHandleLeft = ref()
@@ -2317,6 +2330,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                     'min-width': gridViewCols[fields[0].id]?.width || '180px',
                     'max-width': gridViewCols[fields[0].id]?.width || '180px',
                     'width': gridViewCols[fields[0].id]?.width || '180px',
+                    'background-color': columnColors[fields[0].id!] || '',
                   }"
                   class="nc-grid-column-header"
                   :class="{
@@ -2369,6 +2383,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
                     'width': gridViewCols[col.id]?.width || '180px',
+                    'background-color': columnColors[col.id!] || '',
                   }"
                   class="nc-grid-column-header"
                   :class="{
@@ -2689,6 +2704,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
                           'max-width': gridViewCols[fields[0].id]?.width || '180px',
                           'width': gridViewCols[fields[0].id]?.width || '180px',
+                          'background-color': columnColors[fields[0].id!] || '',
                         }"
                         :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
                         v-bind="
@@ -2793,6 +2809,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
                           'max-width': gridViewCols[columnObj.id]?.width || '180px',
                           'width': gridViewCols[columnObj.id]?.width || '180px',
+                          'background-color': columnColors[columnObj.id!] || '',
                         }"
                         :data-testid="`cell-${columnObj.title}-${row.rowMeta.rowIndex}`"
                         v-bind="

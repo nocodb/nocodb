@@ -37,6 +37,7 @@ import { FormulaCellRenderer } from './Formula'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
+import { parseProp } from '#imports'
 
 const CLEANUP_INTERVAL = 1000
 
@@ -189,6 +190,8 @@ export function useGridCellHandler(params: {
     if (skipRender) return
     if (!isGroupHeader) {
       const columnState = isColumnSortedOrFiltered(column.id!)
+      const columnColor = parseProp(column.meta || {}).columnColor
+
       if (!isRowColouringEnabled.value && columnState !== undefined && !rowMeta?.isValidationFailed) {
         let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
         let borderColorProps: 'cellBorderColor' | 'cellBorderColor.hovered' | 'cellBorderColor.selected' = 'cellBorderColor'
@@ -217,9 +220,12 @@ export function useGridCellHandler(params: {
             ? rowMeta?.rowHoverColor
             : rowMeta?.rowBgColor
 
-        if (rowColor) {
+        // Apply column color if available, otherwise apply row color
+        const backgroundColor = columnColor || rowColor
+
+        if (backgroundColor) {
           roundedRect(ctx, x, y, width, height, 0, {
-            backgroundColor: rowColor,
+            backgroundColor,
             borderColor: themeV3Colors.gray['200'],
             borderWidth: 0.4,
             borders: {

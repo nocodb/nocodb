@@ -396,6 +396,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         'icon',
         'iconIdx',
         'duration',
+        'columnColor',
       ],
     },
     transformFn: (data) => {
@@ -616,6 +617,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       'is_multi',
       'is_progress',
       'max',
+      'columnColor',
     ],
   },
   transformFn: (data) => {

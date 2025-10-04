@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Nazwa domeny jest wymagana",
       "nameMaxLength256": "Nazwa musi mieć maksymalnie 256 znaków",
       "viewNameUnique": "Nazwa widoku powinna być unikalna",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Twoje wyszukiwanie dla {search}, nie znaleziono żadnych wyników",
       "invalidChar": "Nieprawidłowy znak na ścieżce folderu.",
       "invalidDbCredentials": "Nieprawidłowe poświadczenia bazy danych.",

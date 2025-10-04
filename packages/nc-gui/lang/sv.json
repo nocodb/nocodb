@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Domännamn krävs",
       "nameMaxLength256": "Namnet får vara högst 256 tecken långt",
       "viewNameUnique": "Visningsnamnet bör vara unikt",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Din sökning efter {Sök} har inga resultat",
       "invalidChar": "Ogiltigt tecken i mappbanan.",
       "invalidDbCredentials": "Ogiltiga databasuppgifter.",

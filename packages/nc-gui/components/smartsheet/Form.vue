@@ -2,6 +2,7 @@
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
+import { nextTick } from 'vue'
 import 'splitpanes/dist/splitpanes.css'
 
 import {
@@ -180,6 +181,51 @@ const focusLabel = ref<HTMLTextAreaElement>()
 const searchQuery = ref('')
 
 const autoScrollFormField = ref(false)
+
+const isHeadingComposing = ref(false)
+const headingSelectionStart = ref<number | null>(null)
+
+const captureHeadingSelection = (event?: Event) => {
+  const target = event?.target as HTMLTextAreaElement | undefined
+  headingSelectionStart.value = target?.selectionStart ?? headingSelectionStart.value
+}
+
+const restoreHeadingSelection = () => {
+  const caret = headingSelectionStart.value
+  if (caret == null) return
+
+  nextTick(() => {
+    if (typeof window === 'undefined') return
+    const el = document.querySelector<HTMLTextAreaElement>('textarea[data-title="nc-form-heading"]')
+    if (!el || typeof el.setSelectionRange !== 'function') return
+
+    requestAnimationFrame(() => {
+      try {
+        el.setSelectionRange(caret, caret)
+      } catch {}
+    })
+  })
+}
+
+const onHeadingCompositionStart = (event: CompositionEvent) => {
+  isHeadingComposing.value = true
+  captureHeadingSelection(event)
+}
+
+const onHeadingCompositionEnd = (event: CompositionEvent) => {
+  isHeadingComposing.value = false
+  captureHeadingSelection(event)
+  updateView()
+  restoreHeadingSelection()
+}
+
+const onHeadingInput = (event: InputEvent) => {
+  captureHeadingSelection(event)
+  if (!isHeadingComposing.value) {
+    updateView()
+    restoreHeadingSelection()
+  }
+}
 
 const { t } = useI18n()
 
@@ -1296,7 +1342,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                               :bordered="false"
                               :data-testid="NcForm.heading"
                               :data-title="NcForm.heading"
-                              @input="updateView"
+                              @input="onHeadingInput"
+                              @compositionstart="onHeadingCompositionStart"
+                              @compositionend="onHeadingCompositionEnd"
                               @focus="activeRow = NcForm.heading"
                               @blur="activeRow = ''"
                             />

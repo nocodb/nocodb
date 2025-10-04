@@ -794,7 +794,8 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
 
   const isChecked = isRecordSelected(row)
 
-  const isCheckboxDisabled = (!vSelectedAllRecords.value && !isChecked && isAtMaxSelection) || readOnly.value
+  const isCheckboxDisabled =
+    (!vSelectedAllRecords.value && !isChecked && isAtMaxSelection) || readOnly.value || isMobileMode.value
 
   const path = group ? generateGroupPath(group) : []
 
@@ -812,7 +813,7 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
 
   const rowColouringBoxTotalWidth = rowColouringBorderWidth.value ? rowColouringBorderWidth.value + 8 : 0
 
-  if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
+  if (readOnly.value || isMobileMode.value || !(isHover || isChecked || isRowCellSelected)) {
     regions.push({
       x: currentX,
       width: rowMetaColumnWidth.value / 2 - 8,
@@ -832,7 +833,7 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     currentX += 6
   }
 
-  if (!readOnly.value && (isChecked || isHover || isRowCellSelected) && !isPublicView.value) {
+  if (!readOnly.value && !isMobileMode.value && (isChecked || isHover || isRowCellSelected) && !isPublicView.value) {
     regions.push({
       x: currentX,
       width: 20,

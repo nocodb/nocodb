@@ -22,11 +22,11 @@ const { activeTableId } = storeToRefs(useTablesStore())
 const { isMobileMode } = useGlobal()
 
 const showSidebarBtn = computed(() => {
-  if (allowHideLeftSidebarForCurrentRoute.value) {
-    return isMobileMode.value
+  if (isMobileMode.value) {
+    return allowHideLeftSidebarForCurrentRoute.value || !!(activeViewTitleOrId.value && activeTableId.value)
   }
 
-  return !(isMobileMode.value && !activeViewTitleOrId.value && !activeTableId.value)
+  return true
 })
 </script>
 

@@ -237,7 +237,7 @@ const chunkStates = toRef(props, 'chunkStates')
 
 const isBulkOperationInProgress = toRef(props, 'isBulkOperationInProgress')
 
-const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
+const rowHeight = computed(() => (isMobileMode.value ? 40 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
 
 const rowSlice = reactive({
   start: 0,
@@ -2544,7 +2544,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       </div>
                     </div>
                     <tr
-                      class="nc-grid-row transition-all duration-500 opacity-100 !xs:h-14"
+                      class="nc-grid-row transition-all duration-500 opacity-100 !xs:h-10"
                       :style="{
                         height: `${rowHeight}px`,
                         filter:

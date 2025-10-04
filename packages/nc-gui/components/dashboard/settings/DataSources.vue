@@ -419,7 +419,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                 </div>
               </template>
               <div class="p-6 h-full">
-                <LazyDashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
+                <DashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
               </div>
             </a-tab-pane>
           </NcTabs>

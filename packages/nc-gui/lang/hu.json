@@ -2355,6 +2355,7 @@
       "domainNameRequired": "A domain név megadása kötelező",
       "nameMaxLength256": "A név legfeljebb 256 karakter hosszú lehet",
       "viewNameUnique": "A nézet neve egyedi kell legyen",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "A(z) {search} keresése nem hozott eredményt",
       "invalidChar": "Érvénytelen karakter a mappa elérési útjában.",
       "invalidDbCredentials": "Érvénytelen adatbázis hitelesítési adatok.",

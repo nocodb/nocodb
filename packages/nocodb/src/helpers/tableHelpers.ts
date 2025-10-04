@@ -4,8 +4,9 @@ import {
   type NcContext,
 } from 'nocodb-sdk';
 import { TableSystemColumns } from './columnHelpers';
+import type { UITypes } from 'nocodb-sdk';
 
-export const verifyCreateTableSystemColumns = (
+export const repopulateCreateTableSystemColumns = (
   _context: NcContext,
   { columns }: { columns: ColumnType[] },
 ) => {
@@ -19,13 +20,11 @@ export const verifyCreateTableSystemColumns = (
       return col;
     }),
     // remove all UIDT ID and Order from request
-    ...columns.filter((col) => !strictOneColumnUidt.includes(col.uidt)),
+    ...columns.filter(
+      (col) => !strictOneColumnUidt.includes(col.uidt as UITypes),
+    ),
   ];
-  for (
-    let i = result.slice(tableSystemColumns.length).length - 1;
-    i >= 0;
-    i--
-  ) {
+  for (let i = result.length - 1; i >= tableSystemColumns.length; i--) {
     const col = result[i];
     // check if title, column name or uidt is intersecting with system columns
     const intersectingSystemCols = tableSystemColumns.filter(
@@ -46,6 +45,7 @@ export const verifyCreateTableSystemColumns = (
         col.title = generateUniqueCopyName(col.title, [sysCol.title], {
           prefix: '',
           separator: '',
+          counterFormat: '{counter}',
         });
       }
       if (col.column_name && col.column_name === sysCol.column_name) {
@@ -55,6 +55,7 @@ export const verifyCreateTableSystemColumns = (
           {
             prefix: '',
             separator: '',
+            counterFormat: '{counter}',
           },
         );
       }

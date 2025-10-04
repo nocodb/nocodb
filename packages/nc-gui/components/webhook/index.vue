@@ -654,7 +654,7 @@ async function saveHooks() {
     if (hookRef.id) {
       res = await api.dbTableWebhook.update(hookRef.id, {
         ...hookRef,
-        title: hookRef.title.trim(),
+        title: hookRef.title?.trim(),
         operation: operations,
         notification: {
           ...hookRef.notification,
@@ -664,7 +664,7 @@ async function saveHooks() {
     } else {
       res = await api.dbTableWebhook.create(meta.value!.id!, {
         ...hookRef,
-        title: hookRef.title.trim(),
+        title: hookRef.title?.trim(),
         operation: operations,
         notification: {
           ...hookRef.notification,

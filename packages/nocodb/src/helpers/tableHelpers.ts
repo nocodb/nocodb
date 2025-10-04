@@ -1,54 +1,85 @@
+import {
+  type ColumnType,
+  generateUniqueCopyName,
+  type NcContext,
+} from 'nocodb-sdk';
 import { TableSystemColumns } from './columnHelpers';
-import { NcError } from './ncError';
-import type { ColumnType, NcContext, UITypes } from 'nocodb-sdk';
 
 export const verifyCreateTableSystemColumns = (
-  context: NcContext,
+  _context: NcContext,
   { columns }: { columns: ColumnType[] },
 ) => {
-  const columnNameMap = new Map<string, ColumnType>();
-  const titleMap = new Map<string, ColumnType>();
-  const addingColumn = [];
-
-  const addSystemColumn = (col) => {
-    const [allowNonSystem, ...colToAdd] = col;
-    addingColumn.push(colToAdd);
-  };
-
-  for (const systemColumn of TableSystemColumns()) {
-    const existingColumns = columns.filter(
-      (col) =>
-        col.title === systemColumn.title ||
-        col.column_name === systemColumn.column_name ||
-        col.uidt === systemColumn.column_name,
+  const tableSystemColumns = TableSystemColumns();
+  const strictOneColumnUidt = tableSystemColumns
+    .filter((col) => !col.allowNonSystem)
+    .map((col) => col.uidt);
+  const result = [
+    ...tableSystemColumns.map((col) => {
+      delete col.allowNonSystem;
+      return col;
+    }),
+    // remove all UIDT ID and Order from request
+    ...columns.filter((col) => !strictOneColumnUidt.includes(col.uidt)),
+  ];
+  for (
+    let i = result.slice(tableSystemColumns.length).length - 1;
+    i >= 0;
+    i--
+  ) {
+    const col = result[i];
+    // check if title, column name or uidt is intersecting with system columns
+    const intersectingSystemCols = tableSystemColumns.filter(
+      (sysCol) =>
+        sysCol.title === col.title || sysCol.column_name === col.column_name,
     );
-    if (existingColumns.length > 1 && !systemColumn.allowNonSystem) {
-      NcError.get(context).invalidRequestBody(
-        `Column with type ` + systemColumn.uidt + ` is only 1 allowed`,
-      );
-    }
-    if (existingColumns.length) {
-      const existingColumn = existingColumns[0];
-      const isMatch =
-        existingColumn.title === systemColumn.title &&
-        existingColumn.column_name === systemColumn.column_name &&
-        existingColumn.uidt === systemColumn.column_name;
-
-      if (!isMatch && !systemColumn.allowNonSystem) {
-        const identifier = systemColumn.title
-          ? `title '` + systemColumn.title + `'`
-          : systemColumn.column_name
-          ? `column_name '` + systemColumn.column_name + `'`
-          : `type '` + systemColumn.uidt + `'`;
-        NcError.get(context).invalidRequestBody(
-          `Column with ${identifier} does not meet specification`,
-        );
-      } else if (!isMatch && systemColumn.allowNonSystem) {
-        addSystemColumn(systemColumn);
-      } else {
+    for (const sysCol of intersectingSystemCols) {
+      if (
+        sysCol.uidt === col.uidt &&
+        (sysCol.title === col.title || col.title === undefined) &&
+        (sysCol.column_name === col.column_name ||
+          col.column_name === undefined)
+      ) {
+        // identic with system cols, so we remove it
+        result.splice(i, 1);
       }
-    } else {
-      addSystemColumn(systemColumn);
+      if (col.title && col.title === sysCol.title) {
+        col.title = generateUniqueCopyName(col.title, [sysCol.title], {
+          prefix: '',
+          separator: '',
+        });
+      }
+      if (col.column_name && col.column_name === sysCol.column_name) {
+        col.column_name = generateUniqueCopyName(
+          col.column_name,
+          [sysCol.column_name],
+          {
+            prefix: '',
+            separator: '',
+          },
+        );
+      }
+    }
+
+    {
+      // remove all properties not in documentations
+      (col as any).dt = undefined;
+      (col as any).np = undefined;
+      (col as any).ns = undefined;
+      (col as any).clen = undefined;
+      (col as any).cop = undefined;
+      (col as any).pk = undefined;
+      (col as any).rqd = undefined;
+      (col as any).un = undefined;
+      (col as any).ai = undefined;
+      (col as any).unique = undefined;
+      (col as any).cc = undefined;
+      (col as any).csn = undefined;
+      (col as any).dtx = undefined;
+      (col as any).dtxs = undefined;
+      (col as any).au = undefined;
+      (col as any).validate = undefined;
+      (col as any).system = undefined;
     }
   }
+  return result;
 };

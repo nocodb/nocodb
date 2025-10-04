@@ -156,6 +156,8 @@ export class TreeViewPage extends BasePage {
       await this.get().locator(`[data-testid="nc-tbl-title-${title}"]`).click({
         // x:10, y:10
       });
+
+      await this.rootPage.waitForLoadState('networkidle');
     }
   }
 

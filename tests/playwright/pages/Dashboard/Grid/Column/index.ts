@@ -115,8 +115,11 @@ export class ColumnPageObject extends BasePage {
       await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"] .nc-ui-dt-dropdown`).click();
       await this.rootPage.locator('li[role="menuitem"]:has-text("Insert right"):visible').click();
     } else {
+      await this.grid.get().locator('.nc-column-add').waitFor({ state: 'visible' });
       await this.grid.get().locator('.nc-column-add').click();
     }
+
+    await this.get().waitFor({ state: 'visible' });
 
     await this.rootPage.waitForTimeout(500);
     await this.fillTitle({ title });

@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Naziv domene je obavezan",
       "nameMaxLength256": "Naziv mora biti najviše 256 znakova dug",
       "viewNameUnique": "Naziv prikaza mora biti jedinstven",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Vaša potraga za {Search} nije pronašla rezultate",
       "invalidChar": "Nevažeći znak u mapi.",
       "invalidDbCredentials": "Nevažeće vjerodajnice baze podataka.",

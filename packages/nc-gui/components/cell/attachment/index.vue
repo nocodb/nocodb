@@ -370,7 +370,7 @@ onUnmounted(() => {
       </NcTooltip>
     </div>
 
-    <LazyGeneralDeleteModal
+    <GeneralDeleteModal
       v-model:visible="isConfirmModalOpen"
       entity-name="File"
       :on-delete="async () => handleFileDelete(filetoDelete.i)"
@@ -390,7 +390,7 @@ onUnmounted(() => {
           </div>
         </span>
       </template>
-    </LazyGeneralDeleteModal>
+    </GeneralDeleteModal>
   </div>
   <div v-else ref="attachmentCellRef" class="nc-attachment-cell relative group color-transition" :data-row-height="rowHeight">
     <LazyCellAttachmentCarousel v-if="selectedFile" />

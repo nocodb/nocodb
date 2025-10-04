@@ -414,7 +414,7 @@ const userRoleOptions = [
             </template>
           </GeneralDeleteModal>
 
-          <LazyAccountUsersModal :key="userMadalKey" :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
+          <AccountUsersModal :key="userMadalKey" :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
         </div>
       </div>
     </div>

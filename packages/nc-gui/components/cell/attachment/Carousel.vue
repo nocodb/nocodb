@@ -174,7 +174,7 @@ const initEmblaApi = (val: any) => {
           <NcCarouselContent>
             <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
               <div v-if="selectedIndex === index" :key="isUpdated" class="justify-center w-full h-full flex items-center">
-                <LazyCellAttachmentPreviewImage
+                <CellAttachmentPreviewImage
                   v-if="isImage(item.title, item.mimetype)"
                   class="nc-attachment-img-wrapper"
                   object-fit="contain"
@@ -184,7 +184,7 @@ const initEmblaApi = (val: any) => {
                   @error="triggerReload"
                 />
 
-                <LazyCellAttachmentPreviewVideo
+                <CellAttachmentPreviewVideo
                   v-else-if="isVideo(item.title, item.mimetype)"
                   class="flex items-center w-full"
                   :mime-type="item.mimetype"
@@ -193,7 +193,7 @@ const initEmblaApi = (val: any) => {
                   @error="triggerReload"
                 />
 
-                <LazyCellAttachmentPreviewVideo
+                <CellAttachmentPreviewVideo
                   v-else-if="isAudio(item.title, item.mimetype)"
                   class="flex items-center w-full"
                   :mime-type="item.mimetype"
@@ -202,13 +202,13 @@ const initEmblaApi = (val: any) => {
                   @error="triggerReload"
                 />
 
-                <LazyCellAttachmentPreviewPdf
+                <CellAttachmentPreviewPdf
                   v-else-if="isPdf(item.title, item.mimetype)"
                   class="keep-open"
                   :src="getPossibleAttachmentSrc(item)"
                   @error="triggerReload"
                 />
-                <LazyCellAttachmentPreviewMiscOffice
+                <CellAttachmentPreviewMiscOffice
                   v-else-if="isOffice(item.title, item.mimetype)"
                   class="keep-open"
                   :src="getPossibleAttachmentSrc(item)"
@@ -270,7 +270,7 @@ const initEmblaApi = (val: any) => {
                 @click="onThumbClick(index)"
               >
                 <div class="flex items-center justify-center">
-                  <LazyCellAttachmentPreviewThumbnail
+                  <CellAttachmentPreviewThumbnail
                     class="nc-attachment-img-wrapper h-12"
                     :attachment="item"
                     thumbnail="tiny"
@@ -340,7 +340,7 @@ const initEmblaApi = (val: any) => {
         }"
         class="bg-white max-w-88 transition-all"
       >
-        <LazySmartsheetExpandedFormSidebarComments />
+        <SmartsheetExpandedFormSidebarComments />
       </div>
     </div>
   </GeneralOverlay>

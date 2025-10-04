@@ -309,7 +309,7 @@ onUnmounted(() => {
       </span>
     </div>
     <span v-else-if="ncIsNull(vModel) && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-    <LazyCellClampedText
+    <CellClampedText
       v-else
       :value="!ncIsUndefined(vModel) && !ncIsNull(vModel) ? stringifyProp(vModel) : ''"
       :lines="rowHeight"

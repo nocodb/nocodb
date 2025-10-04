@@ -223,16 +223,16 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
           <div class="h-full flex-1 flex flex-col overflow-y-auto nc-scrollbar-thin">
             <div class="flex flex-row pt-2 px-2 items-center">
               <div class="flex-1">
-                <LazyAccountBreadcrumb />
+                <AccountBreadcrumb />
               </div>
 
-              <LazyGeneralReleaseInfo />
+              <GeneralReleaseInfo />
 
               <NcTooltip placement="bottom" class="mr-4">
                 <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
                 <div class="flex items-center">
-                  <LazyGeneralLanguage button class="cursor-pointer text-2xl hover:text-gray-800" />
+                  <GeneralLanguage button class="cursor-pointer text-2xl hover:text-gray-800" />
                 </div>
               </NcTooltip>
 

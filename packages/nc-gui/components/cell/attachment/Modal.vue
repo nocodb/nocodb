@@ -190,7 +190,7 @@ const isNewAttachmentModalOpen = ref(false)
           </template>
         </div>
       </template>
-      <LazyCellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
+      <CellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
     </div>
   </NcModal>
 </template>

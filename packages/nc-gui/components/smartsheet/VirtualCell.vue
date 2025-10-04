@@ -83,19 +83,19 @@ const virtualCellClassName = computed(() => {
     @keydown.shift.enter.exact="onNavigate(NavigateDir.PREV, $event)"
   >
     <VirtualCellLinks v-if="virtualCellType === 'link'" />
-    <LazyVirtualCellHasMany v-else-if="virtualCellType === 'hm'" />
-    <LazyVirtualCellManyToMany v-else-if="virtualCellType === 'mm'" />
-    <LazyVirtualCellBelongsTo v-else-if="virtualCellType === 'bt'" />
-    <LazyVirtualCellOneToOne v-else-if="virtualCellType === 'oo'" />
-    <LazyVirtualCellRollup v-else-if="virtualCellType === 'rollup'" />
-    <LazyVirtualCellFormula v-else-if="virtualCellType === 'formula'" />
-    <LazyVirtualCellQrCode v-else-if="virtualCellType === 'qrCode'" />
-    <LazyVirtualCellBarcode v-else-if="virtualCellType === 'barcode'" />
-    <LazyVirtualCellCount v-else-if="virtualCellType === 'count'" />
-    <LazyVirtualCellLookup v-else-if="virtualCellType === 'lookup'" />
-    <LazyVirtualCellButton v-else-if="virtualCellType === 'button'" />
-    <LazyCellDateTimeReadonly v-else-if="virtualCellType === 'createdOrLastModifiedTimeCol'" :model-value="modelValue" />
-    <LazyCellUserReadonly v-else-if="virtualCellType === 'createdOrLastModifiedByCol'" :model-value="modelValue" />
+    <VirtualCellHasMany v-else-if="virtualCellType === 'hm'" />
+    <VirtualCellManyToMany v-else-if="virtualCellType === 'mm'" />
+    <VirtualCellBelongsTo v-else-if="virtualCellType === 'bt'" />
+    <VirtualCellOneToOne v-else-if="virtualCellType === 'oo'" />
+    <VirtualCellRollup v-else-if="virtualCellType === 'rollup'" />
+    <VirtualCellFormula v-else-if="virtualCellType === 'formula'" />
+    <VirtualCellQrCode v-else-if="virtualCellType === 'qrCode'" />
+    <VirtualCellBarcode v-else-if="virtualCellType === 'barcode'" />
+    <VirtualCellCount v-else-if="virtualCellType === 'count'" />
+    <VirtualCellLookup v-else-if="virtualCellType === 'lookup'" />
+    <VirtualCellButton v-else-if="virtualCellType === 'button'" />
+    <CellDateTimeReadonly v-else-if="virtualCellType === 'createdOrLastModifiedTimeCol'" :model-value="modelValue" />
+    <CellUserReadonly v-else-if="virtualCellType === 'createdOrLastModifiedByCol'" :model-value="modelValue" />
   </div>
 </template>
 

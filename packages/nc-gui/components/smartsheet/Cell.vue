@@ -49,6 +49,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
 const isGrid = inject(IsGridInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -248,7 +250,13 @@ const showReadonlyField = computed(() => {
 })
 
 const showLockedOverlay = computed(() => {
+  /**
+   * We have to show lock overlay only on root level of the cell
+   * else overlay will cover area of rendered cell and actual value will not be visible
+   */
   return (
+    !isUnderLookup.value &&
+    !isUnderLTAR.value &&
     ((isPublic.value && readOnly.value && !isForm.value) || isSystemColumn(column.value)) &&
     cellType.value !== 'attachment' &&
     cellType.value !== 'textarea' &&

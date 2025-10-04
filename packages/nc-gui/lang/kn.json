@@ -2355,6 +2355,7 @@
       "domainNameRequired": "ಡೊಮೇನ್ ಹೆಸರು ಅಗತ್ಯವಿದೆ",
       "nameMaxLength256": "ಹೆಸರು ಗರಿಷ್ಠ 256 ಅಕ್ಷರಗಳ ಉದ್ದದಾಗಿರಬೇಕು",
       "viewNameUnique": "ವೀಕ್ಷಿಸುವ ಹೆಸರು ವಿಶಿಷ್ಟವಾಗಿರಬೇಕು",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "{search} ಯಿಗಾಗಿ ನಿಮ್ಮ ಶೋಧದಲ್ಲಿ ಯಾವುದೇ ಫಲಿತಾಂಶಗಳನ್ನು ಕಂಡುಹಿಡಿಯಲಿಲ್ಲ",
       "invalidChar": "ಫೋಲ್ಡರ್ ಪಥದಲ್ಲಿ ಅಮಾನ್ಯ ಅಕ್ಷರ.",
       "invalidDbCredentials": "ಡೇಟಾಬೇಸ್ ಪ್ರಮಾಣಪತ್ರಗಳು ಅಮಾನ್ಯ.",

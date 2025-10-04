@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Numele domeniului este necesar",
       "nameMaxLength256": "Numele trebuie să aibă cel mult 256 de caractere",
       "viewNameUnique": "Numele vizualizării trebuie să fie unic",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Căutarea dumneavoastră pentru {search} nu a găsit rezultate",
       "invalidChar": "Caracter invalid în calea dosarului.",
       "invalidDbCredentials": "Acreditive de bază de date invalide.",

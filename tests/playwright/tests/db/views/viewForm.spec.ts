@@ -332,7 +332,6 @@ test.describe('Form view with LTAR', () => {
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
     const formUrl = await dashboard.form.topbar.getSharedViewUrl();
-    console.log(formUrl);
 
     // sign-out
     await dashboard.signOut();

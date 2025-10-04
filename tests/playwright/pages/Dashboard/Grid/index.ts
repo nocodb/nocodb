@@ -469,7 +469,7 @@ export class GridPage extends BasePage {
     await expect(this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')).toBeVisible();
   }
 
-  async verifyRoleAccess(param: { role: string }) {
+  async verifyRoleAccess(param: { role: string; isToolbarOperationsRestricted?: boolean }) {
     await this.column.verifyRoleAccess(param);
     await this.cell.verifyRoleAccess(param);
     await this.toolbar.verifyRoleAccess(param);

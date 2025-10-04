@@ -107,6 +107,9 @@ const rolePermissions = {
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
+
+      // Toolbar operations will be restricted to below editor roles
+      toolbarOperations: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

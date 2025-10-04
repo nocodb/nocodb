@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { LazySmartsheetToolbarRowColorFilterDropdown } from '#components'
-
 defineProps<{
   showFullScreenToggle?: boolean
 }>()
@@ -11,7 +9,7 @@ const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrT
 
 const { isUIAllowed } = useRoles()
 
-const { isSharedBase } = useBase()
+const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
 
@@ -45,6 +43,14 @@ const isToolbarIconMode = computed(() => {
   return false
 })
 
+const isToolbarOperationsAllowed = computed(() => {
+  // Allow toolbar operations in shared base and view
+  if (isPublic.value || isSharedBase.value) return true
+
+  // Allow toolbar operations only for editor and above roles
+  return isUIAllowed('toolbarOperations')
+})
+
 provide(IsToolbarIconMode, isToolbarIconMode)
 </script>
 
@@ -66,40 +72,50 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         :class="{
           'min-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
           'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
-          'gap-1': isCalendar,
+          '!gap-1': isCalendar && isToolbarOperationsAllowed,
+          '!gap-2': isCalendar && !isToolbarOperationsAllowed,
         }"
-        class="flex items-center gap-3"
+        class="flex items-center gap-3 empty:hidden"
       >
-        <LazySmartsheetToolbarMappedBy v-if="isMap" />
-        <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
-        <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
-        <LazySmartsheetToolbarCalendarNextPrev v-if="isCalendar" />
+        <template v-if="isToolbarOperationsAllowed">
+          <LazySmartsheetToolbarMappedBy v-if="isMap" />
+          <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
+          <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
+          <LazySmartsheetToolbarCalendarNextPrev v-if="isCalendar" />
 
-        <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+          <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
-        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
+          <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
-        <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
+          <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-        <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
+          <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
-        <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+          <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
-        <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && (isGrid || isGallery || isKanban || isMap)" />
+          <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && (isGrid || isGallery || isKanban || isMap)" />
 
-        <LazySmartsheetToolbarBulkAction
-          v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute') && isViewActionsEnabled"
-        />
+          <LazySmartsheetToolbarBulkAction
+            v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute') && isViewActionsEnabled"
+          />
+        </template>
 
-        <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
+        <template v-if="isCalendar">
+          <LazySmartsheetToolbarExport v-if="!isToolbarOperationsAllowed" />
+          <LazySmartsheetToolbarOpenedViewAction :show-only-copy-id="!isToolbarOperationsAllowed" />
+        </template>
       </div>
 
       <LazySmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
 
       <template v-if="!isMobileMode">
-        <LazySmartsheetToolbarRowHeight v-if="isGrid" />
+        <LazySmartsheetToolbarRowHeight v-if="isGrid && isToolbarOperationsAllowed" />
 
-        <LazySmartsheetToolbarOpenedViewAction v-if="!isCalendar" />
+        <template v-if="!isCalendar">
+          <LazySmartsheetToolbarExport v-if="!isToolbarOperationsAllowed" />
+          <LazySmartsheetToolbarOpenedViewAction :show-only-copy-id="!isToolbarOperationsAllowed" />
+        </template>
+
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
         <div class="flex-1" />
@@ -117,14 +133,16 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
 
-      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
+      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab && isToolbarOperationsAllowed" :tab="isTab" />
 
-      <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+      <LazySmartsheetToolbarCalendarRange v-if="isCalendar && isToolbarOperationsAllowed" />
 
       <template v-if="isCalendar && !isMobileMode">
-        <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />
-        <LazySmartsheetToolbarFieldsMenu :show-system-fields="false" />
-        <LazySmartsheetToolbarColumnFilterMenu />
+        <template v-if="isToolbarOperationsAllowed">
+          <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />
+          <LazySmartsheetToolbarFieldsMenu :show-system-fields="false" />
+          <LazySmartsheetToolbarColumnFilterMenu />
+        </template>
         <LazySmartsheetToolbarCalendarToggleSideBar />
       </template>
       <LazyNcFullScreenToggleButton v-if="showFullScreenToggle" />

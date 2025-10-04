@@ -1,14 +1,14 @@
-import {
-  type ColumnType,
-  generateUniqueCopyName,
-  type NcContext,
-} from 'nocodb-sdk';
-import { TableSystemColumns } from './columnHelpers';
+import { type ColumnType, type NcContext } from 'nocodb-sdk';
 import type { UITypes } from 'nocodb-sdk';
+import { TableSystemColumns } from '~/helpers/columnHelpers';
+import {
+  getUniqueColumnAliasName,
+  getUniqueColumnName,
+} from '~/helpers/getUniqueName';
 
 export const repopulateCreateTableSystemColumns = (
   _context: NcContext,
-  { columns }: { columns: ColumnType[] },
+  { columns }: { columns: (ColumnType & { cn?: string })[] },
 ) => {
   const tableSystemColumns = TableSystemColumns();
   const strictOneColumnUidt = tableSystemColumns
@@ -17,7 +17,7 @@ export const repopulateCreateTableSystemColumns = (
   const result = [
     ...tableSystemColumns.map((col) => {
       delete col.allowNonSystem;
-      return col;
+      return col as ColumnType & { cn?: string };
     }),
     // remove all UIDT ID and Order from request
     ...columns.filter(
@@ -42,22 +42,11 @@ export const repopulateCreateTableSystemColumns = (
         result.splice(i, 1);
       }
       if (col.title && col.title === sysCol.title) {
-        col.title = generateUniqueCopyName(col.title, [sysCol.title], {
-          prefix: '',
-          separator: '',
-          counterFormat: '{counter}',
-        });
+        col.title = getUniqueColumnAliasName(result as any[], col.title);
       }
       if (col.column_name && col.column_name === sysCol.column_name) {
-        col.column_name = generateUniqueCopyName(
-          col.column_name,
-          [sysCol.column_name],
-          {
-            prefix: '',
-            separator: '',
-            counterFormat: '{counter}',
-          },
-        );
+        col.column_name = getUniqueColumnName(result as any[], col.column_name);
+        col.cn = col.column_name;
       }
     }
 

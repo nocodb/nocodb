@@ -407,9 +407,16 @@ export class IntegrationsService {
       const source = new Source(sourceObj);
 
       // update the cache with the new config(encrypted)
-      await NocoCache.update(`${CacheScope.SOURCE}:${source.id}`, {
-        integration_config: integration.config,
-      });
+      await NocoCache.update(
+        {
+          workspace_id: source.fk_workspace_id,
+          base_id: source.base_id,
+        },
+        `${CacheScope.SOURCE}:${source.id}`,
+        {
+          integration_config: integration.config,
+        },
+      );
 
       // delete the connection ref
       await NcConnectionMgrv2.deleteAwait(source);

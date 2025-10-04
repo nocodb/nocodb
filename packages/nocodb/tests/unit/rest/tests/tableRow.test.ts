@@ -769,7 +769,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/Film/group/${ratingColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/group/${ratingColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);

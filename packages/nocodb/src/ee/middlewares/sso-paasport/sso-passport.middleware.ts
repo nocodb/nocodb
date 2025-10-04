@@ -277,7 +277,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
           this.debugger.info(
             `Storing state for authorization request: ${handle}`,
           );
-          NocoCache.set(`oidc:${handle}`, state)
+          NocoCache.set('root', `oidc:${handle}`, state)
             .then(() => callback(null, handle))
             .catch((err) => {
               this.debugger.error(
@@ -288,7 +288,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
         },
         verify: (req, providedState, callback) => {
           const key = `oidc:${providedState}`;
-          NocoCache.get(key, CacheGetType.TYPE_OBJECT)
+          NocoCache.get('root', key, CacheGetType.TYPE_OBJECT)
             .then(async (state) => {
               if (!state) {
                 this.debugger.error(
@@ -304,7 +304,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
               };
               (req as any).ncRedirectHost = state.host;
 
-              await NocoCache.del(key);
+              await NocoCache.del('root', key);
               this.debugger.info(
                 `State verified for authorization request: ${providedState}`,
               );

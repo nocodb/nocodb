@@ -28,7 +28,7 @@ export default class DbServer {
 
   public static async get(dbServerId: string, ncMeta = Noco.ncMeta) {
     const key = `${CacheScope.DB_SERVERS}:${dbServerId}`;
-    let dbServer = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let dbServer = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
 
     if (!dbServer) {
       dbServer = await ncMeta.metaGet2(
@@ -43,7 +43,7 @@ export default class DbServer {
       if (!dbServer) return null;
 
       dbServer = prepareForResponse(dbServer, ['conditions']);
-      await NocoCache.set(key, dbServer);
+      await NocoCache.set('root', key, dbServer);
     }
 
     return new DbServer(dbServer);
@@ -81,6 +81,7 @@ export default class DbServer {
 
     // Append to list cache instead of clearing all
     await NocoCache.appendToList(
+      'root',
       CacheScope.DB_SERVERS,
       [],
       `${CacheScope.DB_SERVERS}:${id}`,
@@ -111,7 +112,11 @@ export default class DbServer {
     );
 
     const key = `${CacheScope.DB_SERVERS}:${dbServerId}`;
-    await NocoCache.update(key, prepareForResponse(updateObj, ['conditions']));
+    await NocoCache.update(
+      'root',
+      key,
+      prepareForResponse(updateObj, ['conditions']),
+    );
 
     return true;
   }
@@ -125,6 +130,7 @@ export default class DbServer {
     );
 
     await NocoCache.deepDel(
+      'root',
       `${CacheScope.DB_SERVERS}:${dbServerId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -133,7 +139,11 @@ export default class DbServer {
   }
 
   public static async list(_param: any = {}, ncMeta = Noco.ncMeta) {
-    const cachedList = await NocoCache.getList(CacheScope.DB_SERVERS, []);
+    const cachedList = await NocoCache.getList(
+      'root',
+      CacheScope.DB_SERVERS,
+      [],
+    );
     let { list: dbServers } = cachedList;
     const { isNoneList } = cachedList;
 
@@ -149,7 +159,7 @@ export default class DbServer {
         return new DbServer(prepareForResponse(dbServer, ['conditions']));
       });
 
-      await NocoCache.setList(CacheScope.DB_SERVERS, [], dbServers);
+      await NocoCache.setList('root', CacheScope.DB_SERVERS, [], dbServers);
     }
 
     return dbServers;
@@ -172,7 +182,7 @@ export default class DbServer {
     );
 
     const key = `${CacheScope.DB_SERVERS}:${dbServerId}`;
-    await NocoCache.del(key);
+    await NocoCache.del('root', key);
 
     return this.get(dbServerId, ncMeta);
   }
@@ -194,7 +204,7 @@ export default class DbServer {
     );
 
     const key = `${CacheScope.DB_SERVERS}:${dbServerId}`;
-    await NocoCache.del(key);
+    await NocoCache.del('root', key);
 
     return this.get(dbServerId, ncMeta);
   }

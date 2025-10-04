@@ -308,12 +308,15 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 
     await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
 
-    await dashboard.treeView.createTable({
+    const tableId = await dashboard.treeView.createTable({
       title: 'dateTimeTable',
       mode: 'Xcdb',
       baseTitle: context.base.title,
       skipOpeningModal: false,
     });
+
+    context.dateTimeTableId = tableId;
+
     await dashboard.grid.column.create({
       title: 'DateTime',
       type: 'DateTime',
@@ -346,7 +349,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    */
   test('Cell insert', async () => {
     // Verify stored value in database is UTC
-    records = await gApi.dbTableRow.list('noco', context.base.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.base.id, context.dateTimeTableId, { limit: 10 });
 
     const readDate = records.list[0].DateTime;
     // skip seconds from readDate
@@ -380,7 +383,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     });
     await dashboard.expandedForm.save();
 
-    records = await gApi.dbTableRow.list('noco', context.base.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.base.id, context.dateTimeTableId, { limit: 10 });
     const readDate = records.list[0].DateTime;
     // skip seconds from readDate
     // stored value expected to be in UTC
@@ -425,7 +428,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     expect(await dashboard.grid.cell.getClipboardText()).toBe('2021-01-01 08:00');
     await dashboard.grid.cell.pasteFromClipboard({ index: 1, columnHeader: 'DateTime' });
 
-    records = await gApi.dbTableRow.list('noco', context.base.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.base.id, context.dateTimeTableId, { limit: 10 });
     expect(records.list.length).toBe(2);
     const readDate = records.list[1].DateTime;
     // skip seconds from readDate
@@ -784,7 +787,11 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     // Hence, we skip seconds from API response
     //
 
-    const records = (await api.dbTableRow.list('noco', context.base.id, 'MyTable', { limit: 10 })) as {
+    const table = await api.dbTable.list(context.base.id);
+
+    const tableId = table.list.find(x => x.title === 'MyTable').id;
+
+    const records = (await api.dbTableRow.list('noco', context.base.id, tableId, { limit: 10 })) as {
       list: Record<string, any>[];
       pageInfo: PaginatedType;
     };

@@ -542,9 +542,13 @@ export default async function formulaQueryBuilderv2({
             error: null,
           });
           // update cache to reflect the error in UI
-          await NocoCache.update(`${CacheScope.COL_BUTTON}:${column.id}`, {
-            error: e.message,
-          });
+          await NocoCache.update(
+            context,
+            `${CacheScope.COL_BUTTON}:${column.id}`,
+            {
+              error: e.message,
+            },
+          );
         } else if (!(e instanceof ExternalTimeout)) {
           // add formula error to show in UI
           await FormulaColumn.update(context, column.id, {
@@ -552,9 +556,13 @@ export default async function formulaQueryBuilderv2({
           });
 
           // update cache to reflect the error in UI
-          await NocoCache.update(`${CacheScope.COL_FORMULA}:${column.id}`, {
-            error: e.message,
-          });
+          await NocoCache.update(
+            context,
+            `${CacheScope.COL_FORMULA}:${column.id}`,
+            {
+              error: e.message,
+            },
+          );
         }
       }
     } else {

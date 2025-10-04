@@ -74,6 +74,7 @@ export default class Source extends SourceCE implements SourceType {
 
     if (!insertObj.is_meta && !insertObj.is_local) {
       await NocoCache.incrHashField(
+        'root',
         `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
         PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
         1,
@@ -84,6 +85,7 @@ export default class Source extends SourceCE implements SourceType {
     const returnBase = await this.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
+      context,
       CacheScope.SOURCE,
       [source.baseId],
       `${CacheScope.SOURCE}:${id}`,
@@ -157,6 +159,7 @@ export default class Source extends SourceCE implements SourceType {
 
     if (!this.isMeta()) {
       await NocoCache.incrHashField(
+        'root',
         `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
         PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
         -1,
@@ -164,6 +167,7 @@ export default class Source extends SourceCE implements SourceType {
     }
 
     await NocoCache.deepDel(
+      context,
       `${CacheScope.SOURCE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -212,6 +216,7 @@ export default class Source extends SourceCE implements SourceType {
     // decrement only if not soft deleted before and not meta source
     if (!softDeleted && !this.isMeta()) {
       await NocoCache.incrHashField(
+        'root',
         `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
         PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
         -1,

@@ -67,6 +67,7 @@ export class GridsService {
     // populate  cache and add to list since the list cache already exist
     const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
+      context,
       CacheScope.VIEW,
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,

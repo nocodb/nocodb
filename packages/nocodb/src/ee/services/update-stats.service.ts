@@ -40,12 +40,14 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
     count?: number;
   }): Promise<void> {
     const updatedCount = await NocoCache.incrby(
+      'root',
       `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}`,
       count,
     );
 
     if (fk_model_id) {
       await NocoCache.set(
+        'root',
         `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}:models`,
         [fk_model_id],
       );
@@ -54,6 +56,7 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
     // TODO env
     if (+updatedCount > 100) {
       await NocoCache.del(
+        'root',
         `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}`,
       );
 

@@ -1268,7 +1268,11 @@ export async function singleQueryRead(
   const pkCondition = _wherePk(ctx.model.primaryKeys, ctx.id);
 
   if (!skipCache) {
-    const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
+    const cachedQuery = await NocoCache.get(
+      context,
+      cacheKey,
+      CacheGetType.TYPE_STRING,
+    );
     if (cachedQuery) {
       const res = await baseModel.execAndParse(
         knex
@@ -1415,7 +1419,7 @@ export async function singleQueryRead(
 
   if (!skipCache) {
     // cache query for later use
-    await NocoCache.set(cacheKey, query);
+    await NocoCache.set(context, cacheKey, query);
   }
 
   // const res = await finalQb;
@@ -1487,7 +1491,11 @@ export async function singleQueryList(
       dbDriver: knex,
     }));
   if (!skipCache) {
-    const cachedQuery = await NocoCache.get(cacheKey, CacheGetType.TYPE_STRING);
+    const cachedQuery = await NocoCache.get(
+      context,
+      cacheKey,
+      CacheGetType.TYPE_STRING,
+    );
     if (cachedQuery) {
       const startTime = process.hrtime();
       const res = await baseModel.execAndParse(
@@ -1751,7 +1759,7 @@ export async function singleQueryList(
       );
 
     // cache query for later use
-    await NocoCache.set(cacheKey, query);
+    await NocoCache.set(context, cacheKey, query);
 
     const startTime = process.hrtime();
     // run the query with actual limit and offset

@@ -48,6 +48,7 @@ export default class Widget implements IWidget {
     let widget =
       widgetId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.WIDGET}:${widgetId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -60,7 +61,11 @@ export default class Widget implements IWidget {
       );
       if (widget) {
         widget = prepareForResponse(widget, ['config', 'meta', 'position']);
-        await NocoCache.set(`${CacheScope.WIDGET}:${widget.id}`, widget);
+        await NocoCache.set(
+          context,
+          `${CacheScope.WIDGET}:${widget.id}`,
+          widget,
+        );
       }
     }
 
@@ -83,7 +88,7 @@ export default class Widget implements IWidget {
     dashboardId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Widget[]> {
-    const cachedList = await NocoCache.getList(CacheScope.WIDGET, [
+    const cachedList = await NocoCache.getList(context, CacheScope.WIDGET, [
       dashboardId,
     ]);
     let { list: widgetsList } = cachedList;
@@ -105,7 +110,12 @@ export default class Widget implements IWidget {
       for (let widget of widgetsList) {
         widget = prepareForResponse(widget, ['config', 'meta', 'position']);
       }
-      await NocoCache.setList(CacheScope.WIDGET, [dashboardId], widgetsList);
+      await NocoCache.setList(
+        context,
+        CacheScope.WIDGET,
+        [dashboardId],
+        widgetsList,
+      );
       widgetsList.sort(
         (a, b) =>
           (a.order != null ? a.order : Infinity) -
@@ -160,6 +170,7 @@ export default class Widget implements IWidget {
 
     return Widget.get(context, insertRes.id, ncMeta).then(async (widget) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.WIDGET,
         [widget.fk_dashboard_id],
         `${CacheScope.WIDGET}:${insertRes.id}`,
@@ -199,6 +210,7 @@ export default class Widget implements IWidget {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.WIDGET}:${widgetId}`,
       prepareForResponse(updateObj, ['config', 'meta', 'position']),
     );
@@ -219,6 +231,7 @@ export default class Widget implements IWidget {
     );
 
     await NocoCache.deepDel(
+      context,
       `${CacheScope.WIDGET}:${widgetId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

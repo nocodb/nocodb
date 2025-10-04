@@ -217,6 +217,10 @@ export class WorkspaceUsersService {
 
       // rollback cache
       await NocoCache.del(
+        {
+          workspace_id: param.workspaceId,
+          base_id: null,
+        },
         `${CacheScope.WORKSPACE_USER}:${param.workspaceId}:${param.userId}`,
       );
 
@@ -366,7 +370,13 @@ export class WorkspaceUsersService {
         );
 
         cacheTransaction.push(() =>
-          NocoCache.del(`${CacheScope.BASE_USER}:${base.id}:${userId}`),
+          NocoCache.del(
+            {
+              workspace_id: workspaceId,
+              base_id: base.id,
+            },
+            `${CacheScope.BASE_USER}:${base.id}:${userId}`,
+          ),
         );
         cacheTransaction.push(() =>
           Permission.clearBaseCache({
@@ -379,7 +389,13 @@ export class WorkspaceUsersService {
       res = await WorkspaceUser.softDelete(workspaceId, userId, transaction);
 
       cacheTransaction.push(() =>
-        NocoCache.del(`${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`),
+        NocoCache.del(
+          {
+            workspace_id: workspaceId,
+            base_id: null,
+          },
+          `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+        ),
       );
 
       // Handle orphan bases after user deletion
@@ -686,6 +702,10 @@ export class WorkspaceUsersService {
       for (const email of emails) {
         const user = emailUserMap.get(email);
         await NocoCache.del(
+          {
+            workspace_id: param.workspaceId,
+            base_id: null,
+          },
           `${CacheScope.WORKSPACE_USER}:${workspace.id}:${user.id}`,
         );
       }
@@ -770,6 +790,10 @@ export class WorkspaceUsersService {
         const user = emailUserMap.get(email);
         if (user) {
           await NocoCache.del(
+            {
+              workspace_id: workspace.id,
+              base_id: null,
+            },
             `${CacheScope.WORKSPACE_USER}:${workspace.id}:${user.id}`,
           );
         }

@@ -68,7 +68,7 @@ export default class User extends UserCE implements UserType {
       prepareForDb(insertObj),
     );
 
-    await NocoCache.del(CacheScope.INSTANCE_META);
+    await NocoCache.del('root', CacheScope.INSTANCE_META);
 
     return this.get(id, ncMeta);
   }
@@ -122,6 +122,7 @@ export default class User extends UserCE implements UserType {
 
     // delete the email-based cache to avoid unexpected behaviour since we can update email as well
     await NocoCache.deepDel(
+      'root',
       `${CacheScope.USER}:${existingUser.email}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -559,6 +560,7 @@ export default class User extends UserCE implements UserType {
     for (const base of bases) {
       // clear base user list caches
       await NocoCache.deepDel(
+        'root',
         `${CacheScope.BASE_USER}:${base.id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
@@ -570,6 +572,7 @@ export default class User extends UserCE implements UserType {
       ) {
         workspaces.push(base['fk_workspace_id']);
         await NocoCache.deepDel(
+          'root',
           `${CacheScope.WORKSPACE_USER}:${base['fk_workspace_id']}:list`,
           CacheDelDirection.PARENT_TO_CHILD,
         );
@@ -578,10 +581,12 @@ export default class User extends UserCE implements UserType {
 
     // clear all user related cache
     await NocoCache.deepDel(
+      'root',
       `${CacheScope.USER}:${userId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await NocoCache.deepDel(
+      'root',
       `${CacheScope.USER}:${user.email}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );

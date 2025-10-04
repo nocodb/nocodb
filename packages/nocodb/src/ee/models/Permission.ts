@@ -104,6 +104,7 @@ export default class Permission {
     ncMeta = Noco.ncMeta,
   ) {
     let permission = await NocoCache.get(
+      context,
       `${CacheScope.PERMISSION}:${permissionId}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -136,7 +137,10 @@ export default class Permission {
         .where(`${MetaTable.PERMISSIONS}.id`, permissionId)
         .where(`${MetaTable.PERMISSIONS}.fk_workspace_id`, context.workspace_id)
         .where(`${MetaTable.PERMISSIONS}.base_id`, context.base_id)
-        .groupBy(`${MetaTable.PERMISSIONS}.id`)
+        .groupBy([
+          `${MetaTable.PERMISSIONS}.base_id`,
+          `${MetaTable.PERMISSIONS}.id`,
+        ])
         .first();
 
       permission = await query;
@@ -149,6 +153,7 @@ export default class Permission {
         }
 
         await NocoCache.set(
+          context,
           `${CacheScope.PERMISSION}:${permissionId}`,
           permission,
         );
@@ -182,7 +187,9 @@ export default class Permission {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.PERMISSION, [baseId]);
+    const cachedList = await NocoCache.getList(context, CacheScope.PERMISSION, [
+      baseId,
+    ]);
 
     const { list: permissionList } = cachedList;
 
@@ -213,7 +220,10 @@ export default class Permission {
         )
         .where(`${MetaTable.PERMISSIONS}.fk_workspace_id`, context.workspace_id)
         .where(`${MetaTable.PERMISSIONS}.base_id`, context.base_id)
-        .groupBy(`${MetaTable.PERMISSIONS}.id`)
+        .groupBy([
+          `${MetaTable.PERMISSIONS}.base_id`,
+          `${MetaTable.PERMISSIONS}.id`,
+        ])
         .orderBy(`${MetaTable.PERMISSIONS}.created_at`, 'asc');
 
       const permissionsWithSubjects = await query;
@@ -228,6 +238,7 @@ export default class Permission {
       });
 
       await NocoCache.setList(
+        context,
         CacheScope.PERMISSION,
         [baseId],
         processedPermissions,
@@ -268,6 +279,7 @@ export default class Permission {
 
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.PERMISSION,
         [permission.base_id],
         `${CacheScope.PERMISSION}:${id}`,
@@ -304,6 +316,7 @@ export default class Permission {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.PERMISSION}:${permissionId}`,
       updateObj,
     );
@@ -333,6 +346,7 @@ export default class Permission {
     );
 
     await NocoCache.deepDel(
+      context,
       `${CacheScope.PERMISSION}:${permissionId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -382,6 +396,7 @@ export default class Permission {
 
     // Delete base permissions list cache
     await NocoCache.deepDel(
+      context,
       `${CacheScope.PERMISSION}:${context.base_id}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
@@ -461,9 +476,13 @@ export default class Permission {
       );
     }
 
-    await NocoCache.update(`${CacheScope.PERMISSION}:${permissionId}`, {
-      subjects: subjects,
-    });
+    await NocoCache.update(
+      context,
+      `${CacheScope.PERMISSION}:${permissionId}`,
+      {
+        subjects: subjects,
+      },
+    );
 
     return subjects;
   }
@@ -482,9 +501,13 @@ export default class Permission {
       },
     );
 
-    await NocoCache.update(`${CacheScope.PERMISSION}:${permissionId}`, {
-      subjects: [],
-    });
+    await NocoCache.update(
+      context,
+      `${CacheScope.PERMISSION}:${permissionId}`,
+      {
+        subjects: [],
+      },
+    );
 
     return res;
   }
@@ -540,6 +563,7 @@ export default class Permission {
     for (const permissionId of affectedPermissionIds) {
       const cacheKey = `${CacheScope.PERMISSION}:${permissionId}`;
       const cachedPermission = await NocoCache.get(
+        context,
         cacheKey,
         CacheGetType.TYPE_OBJECT,
       );
@@ -551,7 +575,7 @@ export default class Permission {
             !(s.type === subject.type && s.id === subject.id),
         );
 
-        await NocoCache.update(cacheKey, {
+        await NocoCache.update(context, cacheKey, {
           subjects: updatedSubjects,
         });
       }
@@ -562,6 +586,7 @@ export default class Permission {
 
   public static async clearBaseCache(context: NcContext) {
     await NocoCache.deepDel(
+      context,
       `${CacheScope.PERMISSION}:${context.base_id}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );

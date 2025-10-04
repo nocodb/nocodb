@@ -53,9 +53,14 @@ export default class Base extends BaseCE {
       return [];
     }
 
-    const cachedList = await NocoCache.getList(CacheScope.PROJECT, [
-      workspaceId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      {
+        workspace_id: workspaceId,
+        base_id: null,
+      },
+      CacheScope.PROJECT,
+      [workspaceId],
+    );
     let { list: baseList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !baseList.length) {
@@ -97,7 +102,15 @@ export default class Base extends BaseCE {
           },
         },
       );
-      await NocoCache.setList(CacheScope.PROJECT, [workspaceId], baseList);
+      await NocoCache.setList(
+        {
+          workspace_id: workspaceId,
+          base_id: null,
+        },
+        CacheScope.PROJECT,
+        [workspaceId],
+        baseList,
+      );
     }
 
     return baseList
@@ -179,10 +192,14 @@ export default class Base extends BaseCE {
       logger.error('Failed to clean command palette cache');
     });
 
-    await NocoCache.del(CacheScope.INSTANCE_META);
+    await NocoCache.del('root', CacheScope.INSTANCE_META);
     return this.getWithInfo(context, baseId, true, ncMeta).then(
       async (base) => {
         await NocoCache.appendToList(
+          {
+            workspace_id: base.fk_workspace_id,
+            base_id: null,
+          },
           CacheScope.PROJECT,
           [base.fk_workspace_id],
           `${CacheScope.PROJECT}:${baseId}`,
@@ -225,34 +242,74 @@ export default class Base extends BaseCE {
 
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
-    let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let o = await NocoCache.get(
+      {
+        workspace_id: context.workspace_id,
+        base_id: null,
+      },
+      key,
+      CacheGetType.TYPE_OBJECT,
+    );
     if (o) {
       // update data
       // new uuid is generated
       if (o.uuid && updateObj.uuid && o.uuid !== updateObj.uuid) {
-        await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.uuid}`);
+        await NocoCache.del(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${o.uuid}`,
+        );
         await NocoCache.set(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
           `${CacheScope.PROJECT_ALIAS}:${updateObj.uuid}`,
           baseId,
         );
       }
       // disable shared base
       if (o.uuid && updateObj.uuid === null) {
-        await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.uuid}`);
+        await NocoCache.del(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${o.uuid}`,
+        );
       }
       if (o.title && updateObj.title && o.title !== updateObj.title) {
-        await NocoCache.del(`${CacheScope.PROJECT_ALIAS}:${o.title}`);
+        await NocoCache.del(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
+          `${CacheScope.PROJECT_ALIAS}:${o.title}`,
+        );
         await NocoCache.set(
+          {
+            workspace_id: context.workspace_id,
+            base_id: null,
+          },
           `${CacheScope.PROJECT_ALIAS}:${updateObj.title}`,
           baseId,
         );
       }
       o = { ...o, ...updateObj };
 
-      await NocoCache.del(CacheScope.INSTANCE_META);
+      await NocoCache.del('root', CacheScope.INSTANCE_META);
 
       // set cache
-      await NocoCache.set(key, o);
+      await NocoCache.set(
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
+        key,
+        o,
+      );
     }
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
@@ -345,7 +402,7 @@ export default class Base extends BaseCE {
       await source.delete(context, ncMeta, { force: true });
     }
 
-    await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
+    await DataReflection.revokeBase(context.workspace_id, base.id, ncMeta);
 
     const res = await ncMeta.metaDelete(
       context.workspace_id,
@@ -358,21 +415,37 @@ export default class Base extends BaseCE {
       // delete <scope>:<uuid>
       // delete <scope>:<title>
       // delete <scope>:ref:<titleOfId>
-      await NocoCache.del([
-        `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
-        `${CacheScope.PROJECT_ALIAS}:${base.title}`,
-        `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
-        `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
-        `${CacheScope.BASE_TO_WORKSPACE}:${baseId}`,
-      ]);
+      await NocoCache.del(
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
+        [
+          `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
+          `${CacheScope.PROJECT_ALIAS}:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
+          `${CacheScope.BASE_TO_WORKSPACE}:${baseId}`,
+        ],
+      );
     }
 
     await NocoCache.deepDel(
+      {
+        workspace_id: context.workspace_id,
+        base_id: null,
+      },
       `${CacheScope.PROJECT}:${baseId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
-    await NocoCache.del(`${CacheScope.BASE_TO_WORKSPACE}:${baseId}`);
+    await NocoCache.del(
+      {
+        workspace_id: context.workspace_id,
+        base_id: null,
+      },
+      `${CacheScope.BASE_TO_WORKSPACE}:${baseId}`,
+    );
 
     await Noco.ncAudit.metaDelete(
       RootScopes.ROOT,
@@ -425,19 +498,29 @@ export default class Base extends BaseCE {
       // delete <scope>:<title>
       // delete <scope>:<uuid>
       // delete <scope>:ref:<titleOfId>
-      await NocoCache.del([
-        `${CacheScope.PROJECT_ALIAS}:${base.title}`,
-        `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
-        `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
-        `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
-        `${CacheScope.BASE_TO_WORKSPACE}:${baseId}`,
-      ]);
+      await NocoCache.del(
+        {
+          workspace_id: context.workspace_id,
+          base_id: null,
+        },
+        [
+          `${CacheScope.PROJECT_ALIAS}:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:${base.uuid}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.title}`,
+          `${CacheScope.PROJECT_ALIAS}:ref:${base.id}`,
+          `${CacheScope.BASE_TO_WORKSPACE}:${baseId}`,
+        ],
+      );
     }
 
-    await NocoCache.del(CacheScope.INSTANCE_META);
+    await NocoCache.del('root', CacheScope.INSTANCE_META);
 
     // remove item in cache list
     await NocoCache.deepDel(
+      {
+        workspace_id: context.workspace_id,
+        base_id: null,
+      },
       `${CacheScope.PROJECT}:${baseId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -448,7 +531,7 @@ export default class Base extends BaseCE {
 
     await FileReference.bulkDelete(context, { base_id: baseId }, ncMeta);
 
-    await DataReflection.revokeBase(base.fk_workspace_id, base.id, ncMeta);
+    await DataReflection.revokeBase(context.workspace_id, base.id, ncMeta);
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');

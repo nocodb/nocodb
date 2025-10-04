@@ -12,5 +12,5 @@ export const clearWorkspaceUserCountCache = async (workspaceId: string) => {
     `${CacheScope.WORKSPACE}:${workspaceId}:userCount:false:true`,
     `${CacheScope.WORKSPACE}:${workspaceId}:userCount:false:false`,
   ];
-  await NocoCache.del(keys);
+  await NocoCache.del('root', keys);
 };

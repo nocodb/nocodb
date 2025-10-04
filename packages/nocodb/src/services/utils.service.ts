@@ -533,14 +533,14 @@ export class UtilsService {
 
     const cacheKey = `${CacheScope.PRODUCT_FEED}:${type}:${pageNum}:${perPage}`;
 
-    const cachedData = await NocoCache.get(cacheKey, 'json');
+    const cachedData = await NocoCache.get('root', cacheKey, 'json');
 
     if (cachedData) {
       try {
         return JSON.parse(cachedData);
       } catch (e) {
         this.logger.error(e?.message, e);
-        await NocoCache.del(cacheKey);
+        await NocoCache.del('root', cacheKey);
       }
     }
 
@@ -575,6 +575,7 @@ export class UtilsService {
     // The feed includes the attachments, which has the presigned URL
     // So the cache should match the presigned URL cache
     await NocoCache.setExpiring(
+      'root',
       cacheKey,
       JSON.stringify(response.data, getCircularReplacer),
       Number.isNaN(parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS))
@@ -588,14 +589,14 @@ export class UtilsService {
   async cloudFeatures(_req: NcRequest) {
     const cacheKey = `${CacheScope.CLOUD_FEATURES}`;
 
-    const cachedData = await NocoCache.get(cacheKey, 'json');
+    const cachedData = await NocoCache.get('root', cacheKey, 'json');
 
     if (cachedData) {
       try {
         return JSON.parse(cachedData);
       } catch (e) {
         this.logger.error(e?.message, e);
-        await NocoCache.del(cacheKey);
+        await NocoCache.del('root', cacheKey);
       }
     }
 
@@ -621,6 +622,7 @@ export class UtilsService {
     }
 
     await NocoCache.setExpiring(
+      'root',
       cacheKey,
       JSON.stringify(response.data, getCircularReplacer),
       3 * 60 * 60,

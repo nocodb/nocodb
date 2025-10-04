@@ -44,7 +44,7 @@ export default class SSOClient implements SSOClientType {
 
   public static async get(clientId: string, ncMeta = Noco.ncMeta) {
     const key = `${CacheScope.SSO_CLIENT}:${clientId}`;
-    let client = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let client = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
     if (!client) {
       client = await ncMeta.metaGet2(
         RootScopes.ORG,
@@ -56,7 +56,7 @@ export default class SSOClient implements SSOClientType {
       if (!client) return null;
 
       client.config = parseMetaProp(client, 'config');
-      await NocoCache.set(key, client);
+      await NocoCache.set('root', key, client);
     }
 
     return new SSOClient(client);
@@ -84,7 +84,7 @@ export default class SSOClient implements SSOClientType {
       MetaTable.SSO_CLIENT,
       client,
     );
-    await NocoCache.del(PUBLIC_LIST_KEY);
+    await NocoCache.del('root', PUBLIC_LIST_KEY);
     return this.get(id, ncMeta);
   }
 
@@ -110,10 +110,11 @@ export default class SSOClient implements SSOClientType {
     );
 
     await NocoCache.update(
+      'root',
       `${CacheScope.SSO_CLIENT}:${clientId}`,
       prepareForResponse(updateObj, 'config'),
     );
-    await NocoCache.del(PUBLIC_LIST_KEY);
+    await NocoCache.del('root', PUBLIC_LIST_KEY);
 
     return true;
   }
@@ -131,8 +132,8 @@ export default class SSOClient implements SSOClientType {
     );
 
     const key = `${CacheScope.SSO_CLIENT}:${clientId}`;
-    await NocoCache.del(key);
-    await NocoCache.del(PUBLIC_LIST_KEY);
+    await NocoCache.del('root', key);
+    await NocoCache.del('root', PUBLIC_LIST_KEY);
 
     return true;
   }
@@ -177,6 +178,7 @@ export default class SSOClient implements SSOClientType {
     }
 
     const cacheData: { list: any[] } = await NocoCache.get(
+      'root',
       PUBLIC_LIST_KEY,
       CacheGetType.TYPE_OBJECT,
     );
@@ -201,7 +203,7 @@ export default class SSOClient implements SSOClientType {
         };
       });
 
-    await NocoCache.set(PUBLIC_LIST_KEY, { list: filteredList });
+    await NocoCache.set('root', PUBLIC_LIST_KEY, { list: filteredList });
 
     return filteredList;
   }

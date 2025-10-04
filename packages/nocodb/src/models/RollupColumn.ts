@@ -65,12 +65,14 @@ export default class RollupColumn implements RollupType {
     return this.read(context, data.fk_column_id, ncMeta).then(
       async (rollupColumn) => {
         await NocoCache.appendToList(
+          context,
           CacheScope.COL_ROLLUP,
           [data.fk_rollup_column_id],
           `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`,
         );
 
         await NocoCache.appendToList(
+          context,
           CacheScope.COL_ROLLUP,
           [data.fk_relation_column_id],
           `${CacheScope.COL_ROLLUP}:${data.fk_column_id}`,
@@ -89,6 +91,7 @@ export default class RollupColumn implements RollupType {
     let column =
       columnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COL_ROLLUP}:${columnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -99,7 +102,11 @@ export default class RollupColumn implements RollupType {
         MetaTable.COL_ROLLUP,
         { fk_column_id: columnId },
       );
-      await NocoCache.set(`${CacheScope.COL_ROLLUP}:${columnId}`, column);
+      await NocoCache.set(
+        context,
+        `${CacheScope.COL_ROLLUP}:${columnId}`,
+        column,
+      );
     }
     return column ? new RollupColumn(column) : null;
   }

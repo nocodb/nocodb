@@ -234,6 +234,15 @@ export class TreeViewPage extends BasePage {
 
     // After table create we navigate to that table and sidebar will be base homepage instead of baselist, so we have to wait for that
     await this.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
+
+    const searchTitle = title.replace(/ /g, '');
+
+    // wait for table to be visible in treeview
+    await this.get().locator(`.nc-base-tree-tbl-${searchTitle}`).waitFor({ state: 'visible' });
+
+    const tableId = await this.get().locator(`.nc-base-tree-tbl-${searchTitle}`).getAttribute('data-table-id');
+
+    return tableId;
   }
 
   async verifyTable({

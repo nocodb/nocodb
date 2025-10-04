@@ -94,6 +94,7 @@ export class UpdateStatsProcessor {
     }
 
     const updatedModels = await NocoCache.get(
+      'root',
       `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}:models`,
       CacheGetType.TYPE_ARRAY,
     );
@@ -138,6 +139,7 @@ export class UpdateStatsProcessor {
       }
 
       await NocoCache.del(
+        'root',
         `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}:models`,
       );
     } else {

@@ -109,7 +109,7 @@ export default class OrgUser {
       true,
     );
 
-    await NocoCache.del(`orgOwners`);
+    await NocoCache.del('root', `orgOwners`);
 
     return new OrgUser(user);
   }

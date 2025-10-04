@@ -31,7 +31,7 @@ export default class Domain {
 
   public static async get(domainId: string, ncMeta = Noco.ncMeta) {
     const key = `${CacheScope.ORG_DOMAIN}:${domainId}`;
-    let domain = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let domain = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
     if (!domain) {
       domain = await ncMeta.metaGet2(
         RootScopes.ORG,
@@ -45,7 +45,7 @@ export default class Domain {
       if (!domain) return null;
 
       domain.config = parseMetaProp(domain, 'config');
-      await NocoCache.set(key, domain);
+      await NocoCache.set('root', key, domain);
     }
 
     return new Domain(domain);
@@ -98,6 +98,7 @@ export default class Domain {
     );
 
     await NocoCache.update(
+      'root',
       `${CacheScope.ORG_DOMAIN}:${domainId}`,
       prepareForResponse(updateObj, 'config'),
     );
@@ -115,7 +116,7 @@ export default class Domain {
     );
 
     const key = `${CacheScope.ORG_DOMAIN}:${domainId}`;
-    await NocoCache.del(key);
+    await NocoCache.del('root', key);
 
     return true;
   }

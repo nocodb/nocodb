@@ -105,6 +105,7 @@ export class KanbansService {
 
     const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
+      context,
       CacheScope.VIEW,
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,

@@ -219,6 +219,10 @@ export class WorkspaceMembersV3Service {
       // Rollback cache, clear cache of updated users
       for (const userId of userIds) {
         await NocoCache.del(
+          {
+            workspace_id: param.workspaceId,
+            base_id: null,
+          },
           `${CacheScope.WORKSPACE_USER}:${param.workspaceId}:${userId}`,
         );
       }

@@ -65,6 +65,7 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.COL_RELATION}:${columnId}`,
       updateProps,
     );

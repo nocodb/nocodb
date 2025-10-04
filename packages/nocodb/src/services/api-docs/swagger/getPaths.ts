@@ -21,7 +21,7 @@ export default async function getPaths(
   _ncMeta = Noco.ncMeta,
 ) {
   const swaggerPaths = await getModelPaths(context, {
-    tableName: model.title,
+    tableName: model.id,
     type: model.type,
     orgs: 'v1',
     columns,
@@ -35,8 +35,8 @@ export default async function getPaths(
     Object.assign(
       swaggerPaths,
       await getViewPaths(context, {
-        tableName: model.title,
-        viewName: view.title,
+        tableName: model.id,
+        viewName: view.id,
         type: model.type,
         orgs: 'v1',
         columns: swaggerColumns,

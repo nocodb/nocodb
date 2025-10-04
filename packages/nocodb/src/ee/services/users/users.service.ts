@@ -554,6 +554,7 @@ export class UsersService extends UsersServiceCE {
     }
 
     await NocoCache.setExpiring(
+      'root',
       `user:${user.id}:delete`,
       `${Date.now()}`,
       10 * 60,
@@ -570,6 +571,7 @@ export class UsersService extends UsersServiceCE {
     const ncMeta = Noco.ncMeta;
 
     const dryRun = await NocoCache.get(
+      'root',
       `user:${param.id}:delete`,
       CacheGetType.TYPE_STRING,
     );

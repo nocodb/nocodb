@@ -20,7 +20,7 @@ export default async function getSchemas(
   _ncMeta = Noco.ncMeta,
 ) {
   const swaggerSchemas = getModelSchemas({
-    tableName: model.title,
+    tableName: model.id,
     orgs: 'v1',
     baseName: base.title,
     columns,
@@ -33,8 +33,8 @@ export default async function getSchemas(
     Object.assign(
       swaggerSchemas,
       getViewSchemas({
-        tableName: model.title,
-        viewName: view.title,
+        tableName: model.id,
+        viewName: view.id,
         orgs: 'v1',
         columns: swaggerColumns,
         baseName: base.title,

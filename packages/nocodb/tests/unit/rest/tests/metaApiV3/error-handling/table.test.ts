@@ -77,7 +77,7 @@ export default function () {
           await (
             await Base.get(
               {
-                fk_workspace_id: context.fk_workspace_id,
+                workspace_id: context.fk_workspace_id,
                 base_id: initBase.id,
               },
               initBase.id,
@@ -235,7 +235,7 @@ export default function () {
           await (
             await Base.get(
               {
-                fk_workspace_id: context.fk_workspace_id,
+                workspace_id: context.fk_workspace_id,
                 base_id: initBase.id,
               },
               initBase.id,

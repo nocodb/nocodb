@@ -6,6 +6,7 @@ import NocoCache from '~/cache/NocoCache';
 export default async function (force = false, ncMeta = Noco.ncMeta) {
   try {
     let res = await NocoCache.get(
+      'root',
       CacheScope.INSTANCE_META,
       CacheGetType.TYPE_OBJECT,
     );
@@ -64,7 +65,7 @@ export default async function (force = false, ncMeta = Noco.ncMeta) {
         tables,
         views,
       };
-      await NocoCache.set(CacheScope.INSTANCE_META, res);
+      await NocoCache.set('root', CacheScope.INSTANCE_META, res);
     }
     return res;
   } catch {

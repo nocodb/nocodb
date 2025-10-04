@@ -54,6 +54,7 @@ import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
   createHmAndBtColumn,
   createOOColumn,
+  deleteColumnSystemPropsFromRequest,
   generateFkName,
   getMMColumnNames,
   sanitizeColumnName,
@@ -2202,6 +2203,16 @@ export class ColumnsService implements IColumnsService {
       !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes)
     ) {
       NcError.get(context).sourceMetaReadOnly(source.alias);
+    }
+    if (
+      (param.column as any).system ||
+      [UITypes.Order, UITypes.ID].includes(param.column.uidt as UITypes)
+    ) {
+      NcError.get(context).invalidRequestBody(
+        `Cannot manually create system columns`,
+      );
+    } else {
+      deleteColumnSystemPropsFromRequest(param.column);
     }
 
     const base = await reuseOrSave('base', reuse, async () =>

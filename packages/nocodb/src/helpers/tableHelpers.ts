@@ -1,6 +1,9 @@
 import { type ColumnType, type NcContext } from 'nocodb-sdk';
 import type { UITypes } from 'nocodb-sdk';
-import { TableSystemColumns } from '~/helpers/columnHelpers';
+import {
+  deleteColumnSystemPropsFromRequest,
+  TableSystemColumns,
+} from '~/helpers/columnHelpers';
 import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
@@ -49,27 +52,7 @@ export const repopulateCreateTableSystemColumns = (
         col.cn = col.column_name;
       }
     }
-
-    {
-      // remove all properties not in documentations
-      delete (col as any).dt;
-      delete (col as any).np;
-      delete (col as any).ns;
-      delete (col as any).clen;
-      delete (col as any).cop;
-      delete (col as any).pk;
-      delete (col as any).rqd;
-      delete (col as any).un;
-      delete (col as any).ai;
-      delete (col as any).unique;
-      delete (col as any).cc;
-      delete (col as any).csn;
-      delete (col as any).dtx;
-      delete (col as any).dtxs;
-      delete (col as any).au;
-      delete (col as any).validate;
-      delete (col as any).system;
-    }
+    deleteColumnSystemPropsFromRequest(col);
   }
   return result;
 };

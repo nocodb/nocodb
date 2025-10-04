@@ -1,8 +1,13 @@
-import type { ViewType } from 'nocodb-sdk'
+import { type ViewType } from 'nocodb-sdk'
 import type { ExtensionManifest, ExtensionType } from '#imports'
 
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
-  (extension: Ref<ExtensionType>, extensionManifest: ComputedRef<ExtensionManifest | undefined>, activeError: Ref<any>) => {
+  (
+    extension: Ref<ExtensionType>,
+    extensionManifest: ComputedRef<ExtensionManifest | undefined>,
+    activeError: Ref<any>,
+    hasAccessToExtension: ComputedRef<boolean>,
+  ) => {
     const { $api } = useNuxtApp()
     const route = useRoute()
 
@@ -27,6 +32,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     const showExpandBtn = ref(true)
 
     const fullscreenModalSize = ref<keyof typeof modalSizes>(extensionManifest.value?.config?.modalSize || 'lg')
+
+    const disableToggleFullscreenBtn = ref(false)
 
     const activeTableId = computed(() => route.params.viewId as string | undefined)
     const activeViewId = computed(() => route.params.viewTitle as string | undefined)
@@ -200,6 +207,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       reloadData,
       reloadMeta,
       eventBus,
+      hasAccessToExtension,
+      disableToggleFullscreenBtn,
     }
   },
   'extension-helper',

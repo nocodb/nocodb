@@ -9,7 +9,9 @@ defineProps<Props>()
 
 const emits = defineEmits(['rename', 'duplicate', 'showDetails', 'clearData', 'delete'])
 
-const { activeError } = useExtensionHelperOrThrow()
+const { activeError, extension } = useExtensionHelperOrThrow()
+
+const { extensionAccess } = useExtensions()
 </script>
 
 <template>
@@ -21,13 +23,23 @@ const { activeError } = useExtensionHelperOrThrow()
 
       <template #overlay>
         <NcMenu variant="small">
+          <NcMenuItemCopyId
+            :id="extension.id!"
+            data-testid="nc-extension-item-action-copy-id"
+            :tooltip="$t('labels.clickToCopyExtensionID')"
+            :label="
+              $t('labels.extensionIdColon', {
+                extensionId: extension.id,
+              })
+            "
+          />
           <template v-if="!activeError">
-            <NcMenuItem data-rec="true" @click="emits('rename')">
+            <NcMenuItem v-if="extensionAccess.create" data-rec="true" @click="emits('rename')">
               <GeneralIcon icon="edit" />
               Rename
             </NcMenuItem>
 
-            <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_EXTENSIONS">
+            <PaymentUpgradeBadgeProvider v-if="extensionAccess.create" :feature="PlanFeatureTypes.FEATURE_EXTENSIONS">
               <template #default="{ click }">
                 <NcMenuItem
                   data-rec="true"
@@ -49,13 +61,13 @@ const { activeError } = useExtensionHelperOrThrow()
               Details
             </NcMenuItem>
 
-            <NcDivider />
+            <NcDivider v-if="extensionAccess.update || extensionAccess.delete" />
           </template>
-          <NcMenuItem data-rec="true" danger @click="emits('clearData')">
+          <NcMenuItem v-if="extensionAccess.update" data-rec="true" danger @click="emits('clearData')">
             <GeneralIcon icon="reload" />
             Clear data
           </NcMenuItem>
-          <NcMenuItem data-rec="true" danger @click="emits('delete')">
+          <NcMenuItem v-if="extensionAccess.delete" data-rec="true" danger @click="emits('delete')">
             <GeneralIcon icon="delete" />
             Delete
           </NcMenuItem>

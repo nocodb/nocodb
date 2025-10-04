@@ -73,7 +73,10 @@ export class ExtensionsService {
 
   async extensionDelete(
     context: NcContext,
-    param: { extensionId: string; req: NcRequest },
+    param: {
+      extensionId: string;
+      req: NcRequest;
+    },
   ) {
     const res = await Extension.delete(context, param.extensionId);
 

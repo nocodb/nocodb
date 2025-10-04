@@ -2355,6 +2355,7 @@
       "domainNameRequired": "È necessario inserire il nome del dominio",
       "nameMaxLength256": "Il nome deve essere lungo al più 256 caratteri",
       "viewNameUnique": "Il nome della Visualizzazione deve essere unico",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "La tua ricerca di {search} non ha trovato risultati",
       "invalidChar": "Carattere non valido nel percorso della cartella.",
       "invalidDbCredentials": "Credenziali del database non valide.",

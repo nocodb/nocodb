@@ -438,7 +438,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
     }
 
-    return await baseModel.execAndParse(outerQb);
+    return await baseModel.execAndParse(
+      baseModel.dbDriver.from(
+        baseModel.dbDriver.raw(outerQb).wrap('(', ') __nc_group_alias'),
+      ),
+    );
   };
 
   const count = async (args: {

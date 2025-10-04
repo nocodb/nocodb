@@ -148,7 +148,6 @@ const ORDER_STEP_INCREMENT = 1;
 
 const MAX_RECURSION_DEPTH = 2;
 
-const CTE_REGEX = /^(\(|)with/i;
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
 
@@ -5059,8 +5058,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (this.isPg || this.isSnowflake) {
       return (await trx.raw(query))?.rows;
-    } else if (CTE_REGEX.test(query)) {
-      return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
     } else if (SELECT_REGEX.test(query)) {
       return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
     } else if (this.isMySQL && INSERT_REGEX.test(query)) {

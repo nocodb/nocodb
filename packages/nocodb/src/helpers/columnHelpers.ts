@@ -690,3 +690,24 @@ export const TableSystemColumns = () => [
     system: true,
   },
 ];
+
+export const deleteColumnSystemPropsFromRequest = (col: any) => {
+  // remove all properties not in documentations
+  delete col.dt;
+  delete col.np;
+  delete col.ns;
+  delete col.clen;
+  delete col.cop;
+  delete col.pk;
+  delete col.rqd;
+  delete col.un;
+  delete col.ai;
+  delete col.unique;
+  delete col.cc;
+  delete col.csn;
+  delete col.dtx;
+  delete col.dtxs;
+  delete col.au;
+  delete col.validate;
+  delete col.system;
+};

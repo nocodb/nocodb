@@ -52,23 +52,23 @@ export const repopulateCreateTableSystemColumns = (
 
     {
       // remove all properties not in documentations
-      (col as any).dt = undefined;
-      (col as any).np = undefined;
-      (col as any).ns = undefined;
-      (col as any).clen = undefined;
-      (col as any).cop = undefined;
-      (col as any).pk = undefined;
-      (col as any).rqd = undefined;
-      (col as any).un = undefined;
-      (col as any).ai = undefined;
-      (col as any).unique = undefined;
-      (col as any).cc = undefined;
-      (col as any).csn = undefined;
-      (col as any).dtx = undefined;
-      (col as any).dtxs = undefined;
-      (col as any).au = undefined;
-      (col as any).validate = undefined;
-      (col as any).system = undefined;
+      delete (col as any).dt;
+      delete (col as any).np;
+      delete (col as any).ns;
+      delete (col as any).clen;
+      delete (col as any).cop;
+      delete (col as any).pk;
+      delete (col as any).rqd;
+      delete (col as any).un;
+      delete (col as any).ai;
+      delete (col as any).unique;
+      delete (col as any).cc;
+      delete (col as any).csn;
+      delete (col as any).dtx;
+      delete (col as any).dtxs;
+      delete (col as any).au;
+      delete (col as any).validate;
+      delete (col as any).system;
     }
   }
   return result;

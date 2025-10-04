@@ -81,19 +81,19 @@ const onRenameBlur = async () => {
 
 /** validate view title */
 function validate() {
-  if (!viewRenameTitle.value || viewRenameTitle.value.trim().length < 0) {
+  const trimmedTitle = viewRenameTitle.value.trim()
+  if (!viewRenameTitle.value || trimmedTitle.length < 0) {
     error.value = t('msg.error.viewNameRequired')
 
     return false
   }
 
-  if (viewRenameTitle.value.trim().length > 255) {
+  if (trimmedTitle.length > 255) {
     error.value = t('msg.error.nameMaxLength256')
 
     return false
   }
 
-  const trimmedTitle = viewRenameTitle.value.trim()
   if (views.value.some((v) => v.title?.trim() === trimmedTitle && v.id !== activeView.value!.id)) {
     error.value = t('msg.error.viewNameDuplicate')
     return false

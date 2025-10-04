@@ -145,8 +145,7 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        const trimmedTitle = v?.trim()
-        views.value.every((v1) => v1.title?.trim() !== trimmedTitle) ? resolve(true) : reject(new Error(`View name should be unique`))
+        views.value.every((v1) => v1.title?.trim() !== v?.trim()) ? resolve(true) : reject(new Error(`View name should be unique`))
       }),
     message: 'View name should be unique',
   },

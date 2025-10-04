@@ -652,7 +652,7 @@ export const TableSystemColumns = () => [
     title: 'Id',
     uidt: UITypes.ID,
     allowNonSystem: false,
-    system: true,
+    system: false,
   },
   {
     column_name: 'created_at',
@@ -666,6 +666,7 @@ export const TableSystemColumns = () => [
     title: 'UpdatedAt',
     uidt: UITypes.LastModifiedTime,
     allowNonSystem: true,
+    system: true,
   },
   {
     column_name: 'created_by',

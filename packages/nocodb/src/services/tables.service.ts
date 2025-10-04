@@ -644,6 +644,7 @@ export class TablesService {
       columns: tableCreatePayLoad.columns,
     });
 
+    //#region validating table title and table name
     if (!tableCreatePayLoad.title) {
       NcError.get(context).invalidRequestBody(
         'Missing table `title` property in request body',
@@ -748,16 +749,17 @@ export class TablesService {
         `Table name exceeds ${tableNameLengthLimit} characters`,
       );
     }
+    //#endregion validating table title and table name
 
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
     const uniqueColumnNameCount = {};
 
-    mapDefaultDisplayValue(param.table.columns);
+    mapDefaultDisplayValue(tableCreatePayLoad.columns);
 
     const virtualColumns = [];
 
-    for (const column of param.table.columns) {
+    for (const column of tableCreatePayLoad.columns) {
       if (
         !isVirtualCol(column) ||
         (isCreatedOrLastModifiedTimeCol(column) && (column as any).system) ||
@@ -797,7 +799,7 @@ export class TablesService {
     }
 
     tableCreatePayLoad.columns = await Promise.all(
-      param.table.columns
+      tableCreatePayLoad.columns
         // exclude alias columns from column list
         ?.filter((c) => {
           const allowed =

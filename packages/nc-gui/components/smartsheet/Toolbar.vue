@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { LazySmartsheetToolbarRowColorFilterDropdown } from '#components'
-
 defineProps<{
   showFullScreenToggle?: boolean
 }>()

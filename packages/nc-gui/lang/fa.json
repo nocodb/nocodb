@@ -2355,6 +2355,7 @@
       "domainNameRequired": "نام دامنه مورد نیاز است",
       "nameMaxLength256": "نام باید حداکثر ۲۵۶ کاراکتر طول داشته باشد",
       "viewNameUnique": "نام نما باید منحصر به فرد باشد",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "جست‌وجوی شما برای {search} نتیجه‌ای نداشت",
       "invalidChar": "کاراکتر نامعتبر در مسیر پوشه.",
       "invalidDbCredentials": "اعتبارنامه پایگاه داده نامعتبر است.",

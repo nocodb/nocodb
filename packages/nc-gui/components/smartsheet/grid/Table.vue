@@ -165,7 +165,7 @@ const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta
 
 const resizingColumn = ref(false)
 
-const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
+const rowHeight = computed(() => (isMobileMode.value ? 40 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
 
 // #Permissions
 const { isUIAllowed, isDataReadOnly } = useRoles()
@@ -2244,7 +2244,7 @@ onKeyStroke('ArrowDown', onDown)
                   <template #default="{ state }">
                     <tr
                       v-show="!showSkeleton"
-                      class="nc-grid-row !xs:h-14"
+                      class="nc-grid-row !xs:h-10"
                       :class="{
                         'active-row': activeCell.row === rowIndex || selectedRange._start?.row === rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,

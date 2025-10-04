@@ -314,6 +314,8 @@ export function useCanvasTable({
 
   const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
 
+  const headerRowHeight = computed(() => (isMobileMode.value ? 40 : COLUMN_HEADER_HEIGHT_IN_PX))
+
   const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled.value)
 
   const fetchMetaIds = ref<string[][]>([])
@@ -667,9 +669,16 @@ export function useCanvasTable({
 
   function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number, path: Array<number> = []) {
     const yOffset =
-      calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) -
+      calculateGroupRowTop(
+        cachedGroups.value,
+        path,
+        rowIndex,
+        rowHeight.value,
+        headerRowHeight.value,
+        isAddingEmptyRowAllowed.value,
+      ) -
       scrollTop.value +
-      COLUMN_HEADER_HEIGHT_IN_PX
+      headerRowHeight.value
     if (targetColumn.fixed) {
       let xOffset = 0
       for (let i = 0; i < columns.value.length; i++) {
@@ -779,10 +788,11 @@ export function useCanvasTable({
         groupPath,
         selection.value.end.row,
         rowHeight.value,
+        headerRowHeight.value,
         isAddingEmptyRowAllowed.value,
       ) -
       scrollTop.value +
-      COLUMN_HEADER_HEIGHT_IN_PX +
+      headerRowHeight.value +
       rowHeight.value
 
     // const startY = -partialRowHeight.value + 33 + (selection.value.end.row - rowSlice.value.start + 1) * rowHeight.value
@@ -821,6 +831,7 @@ export function useCanvasTable({
     totalGroups,
     rowSlice,
     rowHeight,
+    headerRowHeight,
     activeCell,
     dragOver,
     hoverRow,
@@ -1210,8 +1221,14 @@ export function useCanvasTable({
     if (isGroupBy.value && !path && !path?.legth) return
 
     const yOffset =
-      calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) +
-      COLUMN_HEADER_HEIGHT_IN_PX
+      calculateGroupRowTop(
+        cachedGroups.value,
+        path,
+        rowIndex,
+        rowHeight.value,
+        headerRowHeight.value,
+        isAddingEmptyRowAllowed.value,
+      ) + headerRowHeight.value
 
     let xOffset = (groupByColumns.value?.length ?? 0) * 13
     const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
@@ -1383,6 +1400,7 @@ export function useCanvasTable({
     activeCell,
     editEnabled,
     rowHeight,
+    headerRowHeight,
     totalWidth,
     columnWidths,
     columns,

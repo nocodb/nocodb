@@ -97,6 +97,7 @@ export class CellPageObject extends BasePage {
 
       if (type && [UITypes.Date, UITypes.Time, UITypes.Year, UITypes.DateTime].includes(type)) {
         await this.rootPage.keyboard.press('Enter');
+        await this.rootPage.locator('.nc-dropdown.active').waitFor({ state: 'hidden' });
       }
     } else {
       await this.get({ index, columnHeader }).locator('textarea').fill(text);

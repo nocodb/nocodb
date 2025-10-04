@@ -2353,6 +2353,7 @@
       "domainNameRequired": "需要域名",
       "nameMaxLength256": "名称长度不得超过 256 个字符",
       "viewNameUnique": "视图名称应该是唯一的",
+      "viewNameDuplicate": "视图名称已存在",
       "searchProject": "搜索： {search} 没有发现匹配的结果",
       "invalidChar": "文件夹路径中的字符无效。",
       "invalidDbCredentials": "无效的数据库凭据。",

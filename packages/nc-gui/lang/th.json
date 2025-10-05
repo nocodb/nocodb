@@ -2355,6 +2355,7 @@
       "domainNameRequired": "จำเป็นต้องมีชื่อโดเมน",
       "nameMaxLength256": "ชื่อจะต้องมีความยาวไม่เกิน 256 อักขระ",
       "viewNameUnique": "ชื่อการดูควรจะแตกต่างกัน",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "การค้นหาของคุณสำหรับ {search} ไม่พบผลลัพธ์",
       "invalidChar": "อักขระไม่ถูกต้องในเส้นทางโฟลเดอร์",
       "invalidDbCredentials": "ข้อมูลรับรองฐานข้อมูลไม่ถูกต้อง",

@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Назва домену є обов'язковою",
       "nameMaxLength256": "Ім'я має бути не більше 256 символів",
       "viewNameUnique": "Назва виду має бути унікальною",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "За вашим запитом {search} не знайдено жодного результату",
       "invalidChar": "Недійсний символ у шляху.",
       "invalidDbCredentials": "Неправильні облікові дані бази даних.",

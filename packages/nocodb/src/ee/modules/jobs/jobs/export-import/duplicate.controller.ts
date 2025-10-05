@@ -101,6 +101,7 @@ export class DuplicateController extends DuplicateControllerCE {
       user: req.user,
       baseId: base.id,
       sourceId: source.id,
+      dupWorkspaceId: dupProject.fk_workspace_id,
       dupProjectId: dupProject.id,
       options: {
         ...body.options,

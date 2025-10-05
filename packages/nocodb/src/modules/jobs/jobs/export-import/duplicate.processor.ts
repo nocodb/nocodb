@@ -280,7 +280,8 @@ export class DuplicateProcessor {
   async duplicateBase(job: Job<DuplicateBaseJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateBase})`);
 
-    const { context, sourceId, dupProjectId, req, options } = job.data;
+    const { context, sourceId, dupWorkspaceId, dupProjectId, req, options } =
+      job.data;
 
     const baseId = context.base_id;
 
@@ -298,7 +299,13 @@ export class DuplicateProcessor {
     const excludeDashboards = options?.excludeDashboards || false;
 
     const base = await Base.get(context, baseId);
-    const dupProject = await Base.get(context, dupProjectId);
+    const dupProject = await Base.get(
+      {
+        workspace_id: dupWorkspaceId,
+        base_id: null,
+      },
+      dupProjectId,
+    );
     const source = await Source.get(context, sourceId);
 
     await this.duplicateBaseJob({

@@ -116,6 +116,7 @@ export class DuplicateService {
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
+      dupWorkspaceId: dupProject.fk_workspace_id,
       options: body.options || {},
       req: {
         user: req.user,

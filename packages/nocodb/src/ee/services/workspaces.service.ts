@@ -146,6 +146,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       baseId: templateBase.id,
       sourceId: source.id,
       dupProjectId: dupBase.id,
+      dupWorkspaceId: dupBase.fk_workspace_id,
       options: {
         excludeUsers: true,
       },

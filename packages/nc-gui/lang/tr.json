@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Alan adı zorunludur",
       "nameMaxLength256": "Ad en fazla 256 karakter uzunluğunda olmalıdır",
       "viewNameUnique": "Görünüm adı benzersiz olmalıdır",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "{search} için aramanız hiç bir sonuç bulamadı",
       "invalidChar": "Klasör yolunda geçersiz karakter.",
       "invalidDbCredentials": "Veritabanı kimlik bilgileri yanlış.",

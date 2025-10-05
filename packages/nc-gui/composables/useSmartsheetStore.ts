@@ -20,11 +20,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { user, isMobileMode } = useGlobal()
 
+    const { isUIAllowed } = useRoles()
+
     const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
 
-    const { sqlUis, base } = storeToRefs(baseStore)
+    const { sqlUis, base, isSharedBase } = storeToRefs(baseStore)
 
     const sqlUi = computed(() =>
       (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
@@ -53,6 +55,14 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isExternalSource = computed(
       () => !!base.value?.sources?.some((s) => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),
     )
+
+    const isToolbarOperationsAllowed = computed(() => {
+      // Allow toolbar operations in shared base and view
+      if (isPublic.value || isSharedBase.value) return true
+
+      // Allow toolbar operations only for editor and above roles
+      return isUIAllowed('toolbarOperations')
+    })
 
     const isAlreadyShownUpgradeModal = ref(false)
 
@@ -230,6 +240,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       fetchTotalRowsWithSearchQuery,
       gridEditEnabled,
       getValidSearchQueryForColumn,
+      isToolbarOperationsAllowed,
     }
   },
   'smartsheet-store',

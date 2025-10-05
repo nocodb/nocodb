@@ -5,7 +5,7 @@ defineProps<{
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isToolbarOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -41,14 +41,6 @@ const isToolbarIconMode = computed(() => {
     return true
   }
   return false
-})
-
-const isToolbarOperationsAllowed = computed(() => {
-  // Allow toolbar operations in shared base and view
-  if (isPublic.value || isSharedBase.value) return true
-
-  // Allow toolbar operations only for editor and above roles
-  return isUIAllowed('toolbarOperations')
 })
 
 provide(IsToolbarIconMode, isToolbarIconMode)

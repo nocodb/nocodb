@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Toiminnon nimi on pakollinen",
       "nameMaxLength256": "Nimen on oltava enintään 256 merkkiä pitkä",
       "viewNameUnique": "Näkymän nimen tulisi olla yksilöllinen",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Hakusi {haku} ei löytänyt tuloksia",
       "invalidChar": "Virheellinen merkki kansioreitillä.",
       "invalidDbCredentials": "Virheelliset tietokannan tunnistetiedot.",

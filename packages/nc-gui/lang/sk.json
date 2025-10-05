@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Vyžaduje sa názov domény",
       "nameMaxLength256": "Názov môže mať najviac 256 znakov",
       "viewNameUnique": "Názov zobrazenia musí byť unikátny",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Vaše vyhľadávanie na {search} nenašlo žiadne výsledky",
       "invalidChar": "Neplatný znak v ceste k priečinku.",
       "invalidDbCredentials": "Neplatné poverenia databázy.",

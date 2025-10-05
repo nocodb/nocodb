@@ -63,6 +63,11 @@ export const useMcpSettings = createSharedComposable(() => {
     try {
       isCreatingMcpToken.value = true
 
+      // trim title before saving
+      if (newMcpTokenTitle.value) {
+        newMcpTokenTitle.value = newMcpTokenTitle.value.trim()
+      }
+
       const response = await $api.internal.postOperation(
         activeWorkspaceId.value,
         activeProjectId.value,

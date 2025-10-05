@@ -110,7 +110,7 @@ const validators = computed(() => {
           return new Promise<void>((resolve, reject) => {
             if (
               !(tables?.value || []).every(
-                (t) => t.id === table.value.id || t.title.toLowerCase() !== (value?.trim() || '').toLowerCase(),
+                (t) => t.id === table.value.id || t.title?.trim().toLowerCase() !== (value?.trim() || '').toLowerCase(),
               )
             ) {
               return reject(new Error('Duplicate table alias'))

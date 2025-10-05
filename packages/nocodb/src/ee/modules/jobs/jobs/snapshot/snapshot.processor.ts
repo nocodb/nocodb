@@ -82,7 +82,7 @@ export class SnapshotProcessor {
 
     await sourceBase.getSources(true);
 
-    const targetBase = await Base.get(context, targetBaseId);
+    const targetBase = await Base.get(targetContext, targetBaseId);
 
     const source = await Source.get(context, sourceBase.sources[0].id);
 

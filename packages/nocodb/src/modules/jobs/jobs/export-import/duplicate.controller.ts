@@ -102,6 +102,7 @@ export class DuplicateController {
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
+      dupWorkspaceId: dupProject.fk_workspace_id,
       options: {
         ...body.options,
         excludeHooks: true,

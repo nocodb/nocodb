@@ -141,6 +141,7 @@ export interface AtImportJobData extends JobData {
 
 export interface DuplicateBaseJobData extends JobData {
   sourceId: string;
+  dupWorkspaceId: string;
   dupProjectId: string;
   req: NcRequest;
   options: {

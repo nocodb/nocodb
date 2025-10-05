@@ -162,7 +162,6 @@ onUnmounted(() => {
             "
             :column="belongsToColumn"
             :show-unlink-button="true"
-            :readonly="readOnly"
             @unlink="unlinkRef(value)"
           />
         </template>

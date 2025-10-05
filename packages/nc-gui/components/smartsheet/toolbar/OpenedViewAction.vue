@@ -66,12 +66,13 @@ watch(renameInputDom, () => {
 
 const onRenameBlur = async () => {
   if (validate()) {
-    activeView.value!.title = viewRenameTitle.value
+    const trimmedTitle = viewRenameTitle.value.trim()
+    activeView.value!.title = trimmedTitle
     isRenaming.value = false
     error.value = undefined
 
     await updateView(activeView.value!.id, {
-      title: viewRenameTitle.value,
+      title: trimmedTitle,
     })
   } else {
     renameInputDom.value?.focus()
@@ -80,19 +81,20 @@ const onRenameBlur = async () => {
 
 /** validate view title */
 function validate() {
-  if (!viewRenameTitle.value || viewRenameTitle.value.trim().length < 0) {
+  const trimmedTitle = viewRenameTitle.value.trim()
+  if (!trimmedTitle) {
     error.value = t('msg.error.viewNameRequired')
 
     return false
   }
 
-  if (viewRenameTitle.value.trim().length > 255) {
+  if (trimmedTitle.length > 255) {
     error.value = t('msg.error.nameMaxLength256')
 
     return false
   }
 
-  if (views.value.some((v) => v.title === viewRenameTitle.value && v.id !== activeView.value!.id)) {
+  if (views.value.some((v) => v.title?.trim() === trimmedTitle && v.id !== activeView.value!.id)) {
     error.value = t('msg.error.viewNameDuplicate')
     return false
   }

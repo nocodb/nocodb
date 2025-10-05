@@ -62,7 +62,7 @@ const titleChange = async () => {
 
   try {
     await updateProject(currentBase.value!.id!, {
-      title: form.title,
+      title: form.title?.trim(),
     })
     dialogShow.value = false
   } catch (e: any) {

@@ -66,6 +66,12 @@ export const useBaseSettings = createSharedComposable(() => {
   const updateSnapshot = async (snapshot: SnapshotExtendedType) => {
     try {
       snapshot.loading = true
+
+      // trim title before saving
+      if (snapshot.title) {
+        snapshot.title = snapshot.title.trim()
+      }
+
       await $api.snapshot.update(activeProjectId.value, snapshot.id!, {
         title: snapshot.title,
       })

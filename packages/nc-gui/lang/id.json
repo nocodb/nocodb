@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Nama domain harus diisi",
       "nameMaxLength256": "Nama harus paling banyak 256 karakter",
       "viewNameUnique": "Nama tampilan harus unik",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Pencarian Anda untuk {Search} tidak menemukan hasil",
       "invalidChar": "Karakter tidak valid di jalur folder.",
       "invalidDbCredentials": "Kredensial basis data tidak valid.",

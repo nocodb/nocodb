@@ -2355,6 +2355,7 @@
       "domainNameRequired": "도메인 이름이 필요합니다",
       "nameMaxLength256": "이름은 최대 256자여야 합니다",
       "viewNameUnique": "뷰 이름은 고유해야 합니다",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "{search}에 대한 검색 결과가 없습니다",
       "invalidChar": "잘못된 폴더 경로입니다.",
       "invalidDbCredentials": "데이터베이스 자격 증명 오류.",

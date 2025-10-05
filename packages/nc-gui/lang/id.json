@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Akses edit akan diatur ke Editor & ke atas.",
       "confirmRevertPermissionsToDefault": "Konfirmasi setel ulang izin untuk tabel - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Field ini disembunyikan di formulir karena tidak ada yang memiliki izin untuk mengeditnya."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "bukan null."
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Akses Dibatasi",
     "editTablePermissions": "Edit izin tabel",
     "editFieldPermissions": "Edit izin field",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Lanjutkan mengedit",
     "leave": "Tinggalkan",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Hanya satu token per pengguna yang diizinkan",
     "duplicateAttachment": "File dengan nama {filename} sudah terlampir",
     "tableIdColon": "ID TABEL: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SKRIP: {scriptId}",
     "dashboardIdColon": "ID DASHBOARD: {dashboardId}",
     "viewIdColon": "ID TAMPILAN: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "untuk peran",
     "clickToCopy": "Klik untuk menyalin",
     "clickToCopyTableID": "Klik untuk menyalin ID Tabel",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klik untuk menyalin ID Skrip",
     "clickToCopyDashboardID": "Klik untuk menyalin ID Dasbor",
     "clickToCopyViewID": "Klik untuk menyalin View ID",
@@ -1488,7 +1497,8 @@
     "newScript": "Skrip Baru",
     "emptyScript": "Skrip Kosong",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Klik untuk selesaikan",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Saring berdasarkan kolom ini",
     "groupByThisField": "Kelompokkan berdasarkan kolom ini",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Tambahkan ke berbintang",
     "removeFromStarred": "Hapus dari berbintang",
     "runActions": "Jalankan Tindakan",
     "createScript": "Buat Skrip",
     "deleteAllRecords": "Hapus semua rekaman",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Tetapkan tampilan",
     "webhookDetails": "Detail Webhook",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Spasi",
     "expandShiftSpace": "Perbesar 'Shift + Spasi'",
     "selectAllMappedFields": "Pilih semua kolom yang dipetakan",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Salin kode kesalahan",
     "paidUserBadgeTooltip": "Pengguna memiliki peran Editor atau lebih tinggi di setidaknya satu basis.",
     "approachingLimit": "Mendekati batas",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Cari ikon",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Nama domain harus diisi",
       "nameMaxLength256": "Nama harus paling banyak 256 karakter",
       "viewNameUnique": "Nama tampilan harus unik",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Pencarian Anda untuk {Search} tidak menemukan hasil",
       "invalidChar": "Karakter tidak valid di jalur folder.",
       "invalidDbCredentials": "Kredensial basis data tidak valid.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Kueri pencarian tidak valid",
       "invalidSearchQueryForVisibleFields": "Kueri pencarian tidak valid untuk field yang terlihat",
       "invalidSearchQueryForDisplayField": "Kueri pencarian tidak valid untuk field tampilan",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Metadata proyek berhasil diekspor",

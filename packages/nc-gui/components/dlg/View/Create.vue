@@ -80,6 +80,8 @@ type AiSuggestedViewType = SerializedAiViewType & {
 
 const { $e } = useNuxtApp()
 
+const { isMobileMode } = useGlobal()
+
 const { metas, getMeta } = useMetas()
 
 const workspaceStore = useWorkspace()
@@ -143,7 +145,9 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        views.value.every((v1) => v1.title !== v) ? resolve(true) : reject(new Error(`View name should be unique`))
+        views.value.every((v1) => v1.title?.trim() !== v?.trim())
+          ? resolve(true)
+          : reject(new Error(`View name should be unique`))
       }),
     message: 'View name should be unique',
   },
@@ -674,6 +678,9 @@ const disableAiMode = () => {
 }
 
 const fullAuto = async (e) => {
+  // Disable full auto mode in mobile mode to avoid unexpected behavior
+  if (isMobileMode.value) return
+
   const target = e.target as HTMLElement
   if (
     !aiIntegrationAvailable.value ||
@@ -1161,7 +1168,7 @@ watch(activeBaseId, () => {
           </div>
           <AiWizardTabs v-else v-model:active-tab="activeAiTab">
             <template #AutoSuggestedContent>
-              <div class="px-5 pt-5 pb-2">
+              <div class="px-5 pt-5 pb-2 w-full">
                 <div v-if="aiError" class="w-full flex items-center gap-3">
                   <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
 
@@ -1184,11 +1191,14 @@ watch(activeBaseId, () => {
                     <div class="nc-animate-dots">Auto suggesting views for {{ meta?.title }}</div>
                   </div>
                 </div>
-                <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">
-                  <div class="flex-1 flex gap-2 flex-wrap">
+                <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start w-full">
+                  <div class="flex-1 flex gap-2 flex-wrap w-[calc(100%_-_68px)]">
                     <template v-if="activeTabPredictedViews.length">
                       <template v-for="v of activeTabPredictedViews" :key="v.title">
-                        <NcTooltip :disabled="!(activeTabSelectedViews.length >= maxSelectionCount || !!v?.description)">
+                        <NcTooltip
+                          :disabled="!(activeTabSelectedViews.length >= maxSelectionCount || !!v?.description)"
+                          class="truncate max-w-full"
+                        >
                           <template #title>
                             <div v-if="activeTabSelectedViews.length >= maxSelectionCount" class="w-[150px]">
                               You can only select {{ maxSelectionCount }} views to create at a time.
@@ -1197,7 +1207,7 @@ watch(activeBaseId, () => {
                           </template>
 
                           <a-tag
-                            class="nc-ai-suggested-tag"
+                            class="nc-ai-suggested-tag truncate max-w-full"
                             :class="{
                               'nc-disabled': isAiSaving || (!v.selected && activeTabSelectedViews.length >= maxSelectionCount),
                               'nc-selected': v.selected,
@@ -1220,7 +1230,7 @@ watch(activeBaseId, () => {
                                 }"
                               />
 
-                              <div>{{ v.title }}</div>
+                              <div class="truncate">{{ v.title }}</div>
                             </div>
                           </a-tag>
                         </NcTooltip>
@@ -1243,6 +1253,7 @@ watch(activeBaseId, () => {
                         size="xs"
                         class="!px-1"
                         type="text"
+                        mobile-size="small"
                         theme="ai"
                         :disabled="isAiSaving"
                         :loading="aiLoading && calledFunction === 'predictMore'"
@@ -1258,6 +1269,7 @@ watch(activeBaseId, () => {
                       <NcButton
                         v-e="['a:view:ai:predict-refresh']"
                         size="xs"
+                        mobile-size="small"
                         class="!px-1"
                         type="text"
                         theme="ai"
@@ -1485,7 +1497,12 @@ watch(activeBaseId, () => {
             </div>
             <template #loading> {{ $t('labels.creatingView') }} </template>
           </NcButton>
-          <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations"> Add AI integration </NcButton>
+          <NcTooltip v-else :disabled="!isMobileMode">
+            <template #title> AI integration is not available in mobile mode. </template>
+            <NcButton type="primary" size="small" :disabled="!!isMobileMode" @click="handleNavigateToIntegrations">
+              Add AI integration
+            </NcButton>
+          </NcTooltip>
         </div>
       </div>
     </div>

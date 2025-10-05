@@ -166,7 +166,7 @@ function isV0Audit(audit: AuditType) {
                 {{ audit.description }}
               </div>
             </div>
-            <div v-else-if="audit?.op_type === 'DATA_INSERT'" class="pl-9">created the record.</div>
+            <div v-else-if="['DATA_INSERT', 'DATA_BULK_INSERT'].includes(audit?.op_type)" class="pl-9">created the record.</div>
             <div v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(audit?.op_type)" class="pl-9">
               <div class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
                 <div class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-3">
@@ -204,7 +204,7 @@ function isV0Audit(audit: AuditType) {
                 </div>
               </div>
             </div>
-            <template v-else-if="audit?.op_type === 'DATA_UPDATE'">
+            <template v-else-if="['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE'].includes(audit?.op_type)">
               <div class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y">
                 <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
               </div>

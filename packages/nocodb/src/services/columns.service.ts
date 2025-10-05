@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { pluralize, singularize } from 'inflection';
 import {
   AppEvents,
@@ -25,6 +25,7 @@ import {
   substituteColumnIdWithAliasInFormula,
   UITypes,
   validateFormulaAndExtractTreeWithType,
+  WebhookActions,
 } from 'nocodb-sdk';
 import rfdc from 'rfdc';
 import type {
@@ -42,6 +43,12 @@ import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
+import {
+  type ColumnWebhookManager,
+  ColumnWebhookManagerBuilder,
+} from '~/utils/column-webhook-manager';
+import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {
@@ -83,6 +90,7 @@ import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { FiltersService } from '~/services/filters.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   convertAIRecordTypeToValue,
@@ -200,14 +208,47 @@ export interface CustomLinkProps {
   junc_ref_column_id: string;
 }
 
+const generateColumnDeleteHandler = (
+  columnWebhookManager?: ColumnWebhookManager,
+) => {
+  if (!columnWebhookManager) {
+    return {};
+  }
+  return {
+    beforeRelatedColumnDelete: async (
+      context: { base_id: string; workspace_id: string },
+      columnId: string,
+    ) => {
+      await columnWebhookManager.addOldColumnById({
+        columnId,
+        action: WebhookActions.DELETE,
+        context,
+      });
+    },
+    beforeRelatedColumnUpdate: async (
+      context: { base_id: string; workspace_id: string },
+      columnId: string,
+    ) => {
+      await columnWebhookManager.addOldColumnById({
+        columnId,
+        action: WebhookActions.UPDATE,
+        context,
+      });
+    },
+  };
+};
+
 @Injectable()
 export class ColumnsService implements IColumnsService {
+  protected logger = new Logger(ColumnsService.name);
+
   constructor(
     protected readonly metaService: MetaService,
     protected readonly appHooksService: AppHooksService,
     @Inject(forwardRef(() => 'FormulaColumnTypeChanger'))
     protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
     protected readonly viewRowColorService: ViewRowColorService,
+    protected readonly filtersService: FiltersService,
   ) {}
 
   async updateFormulas(
@@ -310,7 +351,9 @@ export class ColumnsService implements IColumnsService {
       reuse?: ReusableParams;
       apiVersion?: NcApiVersion;
       forceUpdateSystem?: boolean;
+      columnWebhookManager?: ColumnWebhookManager;
     },
+    ncMeta = Noco.ncMeta,
   ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};
 
@@ -336,6 +379,16 @@ export class ColumnsService implements IColumnsService {
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
     );
+
+    const columnWebhookManager =
+      param.columnWebhookManager ??
+      (
+        await (
+          await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+            column.fk_model_id,
+          )
+        ).addColumnById(column.id)
+      ).forUpdate();
 
     // TODO: Refactor the columnUpdate function to handle metaOnly changes and
     // DB related changes, right now both are mixed up, making this fragile
@@ -595,7 +648,7 @@ export class ColumnsService implements IColumnsService {
               baseModel: baseModel,
               tree: colBody.formula,
               model: table,
-              column: null,
+              column,
               validateFormula: true,
               parsedTree: colBody.parsed_tree,
             });
@@ -1087,7 +1140,7 @@ export class ColumnsService implements IColumnsService {
           for (const option of column.colOptions.options.filter(
             (oldOp) =>
               !colBody.colOptions.options.find(
-                (newOp) => newOp.id === oldOp.id,
+                (newOp) => newOp.id === oldOp.id || newOp.title === oldOp.title,
               ),
           )) {
             if (
@@ -1964,6 +2017,24 @@ export class ColumnsService implements IColumnsService {
     // Get all the columns in the table and return
     await table.getColumns(context, undefined, defaultViewId);
 
+    // Handle filter transformation if this is a column type change
+    if (column.uidt !== colBody.uidt) {
+      try {
+        await this.filtersService.transformFiltersForColumnTypeChange(context, {
+          columnId: column.id,
+          newColumnType: colBody.uidt as UITypes,
+          oldColumnType: column.uidt as UITypes,
+          sqlUi,
+        });
+      } catch (error) {
+        // Log error but don't fail the column update
+        this.logger.error(
+          'Failed to transform filters for column type change:',
+          error.message,
+        );
+      }
+    }
+
     const updatedColumn = await Column.get(context, { colId: param.columnId });
 
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
@@ -1993,9 +2064,15 @@ export class ColumnsService implements IColumnsService {
 
     await applyRowColorInvolvement();
 
+    if (!param.columnWebhookManager) {
+      await columnWebhookManager.populateNewColumns();
+      columnWebhookManager.emit();
+    }
+
     if (param.apiVersion === NcApiVersion.V3) {
       return column;
     }
+
     return table;
   }
 
@@ -2090,7 +2167,9 @@ export class ColumnsService implements IColumnsService {
       reuse?: ReusableParams;
       suppressFormulaError?: boolean;
       apiVersion?: T;
+      columnWebhookManager?: ColumnWebhookManager;
     },
+    ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
     let savedColumn;
     // if column_name is defined and title is not defined, set title to column_name
@@ -2128,6 +2207,14 @@ export class ColumnsService implements IColumnsService {
     const base = await reuseOrSave('base', reuse, async () =>
       source.getProject(context),
     );
+
+    const columnWebhookManager =
+      param.columnWebhookManager ??
+      (
+        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+          param.tableId,
+        )
+      ).forCreate();
 
     if (param.column.title || param.column.column_name) {
       const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
@@ -2257,6 +2344,7 @@ export class ColumnsService implements IColumnsService {
           base,
           reuse,
           colExtra,
+          columnWebhookManager,
         });
 
         this.appHooksService.emit(AppEvents.RELATION_CREATE, {
@@ -2833,6 +2921,13 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
+    await columnWebhookManager.addNewColumnById({
+      columnId: newColumn.id,
+      action: WebhookActions.INSERT,
+    });
+    if (!param.columnWebhookManager) {
+      columnWebhookManager.emit();
+    }
     return table as T extends NcApiVersion.V3 | null | undefined
       ? never
       : Model;
@@ -2846,6 +2941,7 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       forceDeleteSystem?: boolean;
       reuse?: ReusableParams;
+      columnWebhookManager?: ColumnWebhookManager;
     },
     ncMeta = this.metaService,
   ) {
@@ -2900,6 +2996,16 @@ export class ColumnsService implements IColumnsService {
         }' is a synced column and cannot be deleted.`,
       );
     }
+
+    const columnWebhookManager =
+      param.columnWebhookManager ??
+      (
+        await (
+          await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+            column.fk_model_id,
+          )
+        ).addColumnById(column.id)
+      ).forDelete();
 
     const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
       ProjectMgrv2.getSqlMgr(context, { id: source.base_id }, ncMeta),
@@ -2975,7 +3081,14 @@ export class ColumnsService implements IColumnsService {
       case UITypes.QrCode:
       case UITypes.Barcode:
       case UITypes.Button:
-        await Column.delete(context, param.columnId, ncMeta);
+        await Column.delete2(
+          context,
+          {
+            id: param.columnId,
+            ...generateColumnDeleteHandler(columnWebhookManager),
+          },
+          ncMeta,
+        );
         break;
 
       case UITypes.Formula:
@@ -3011,12 +3124,26 @@ export class ColumnsService implements IColumnsService {
             `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
-        await Column.delete(context, param.columnId, ncMeta);
+        await Column.delete2(
+          context,
+          {
+            id: param.columnId,
+            ...generateColumnDeleteHandler(columnWebhookManager),
+          },
+          ncMeta,
+        );
         break;
       }
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy: {
-        await Column.delete(context, param.columnId, ncMeta);
+        await Column.delete2(
+          context,
+          {
+            id: param.columnId,
+            ...generateColumnDeleteHandler(columnWebhookManager),
+          },
+          ncMeta,
+        );
         break;
       }
       // Since Links is just an extended version of LTAR, we can use the same logic
@@ -3065,6 +3192,7 @@ export class ColumnsService implements IColumnsService {
                   req: param.req,
                   childContext,
                   parentContext,
+                  columnWebhookManager,
                 });
               }
               break;
@@ -3084,6 +3212,7 @@ export class ColumnsService implements IColumnsService {
                   childContext,
                   parentContext,
                   column,
+                  columnWebhookManager,
                 });
               }
               break;
@@ -3118,6 +3247,7 @@ export class ColumnsService implements IColumnsService {
                       req: param.req,
                       childContext: mmContext,
                       parentContext,
+                      columnWebhookManager,
                     },
                     true,
                   );
@@ -3137,6 +3267,7 @@ export class ColumnsService implements IColumnsService {
                       req: param.req,
                       childContext: mmContext,
                       parentContext: childContext,
+                      columnWebhookManager,
                     },
                     true,
                   );
@@ -3168,7 +3299,14 @@ export class ColumnsService implements IColumnsService {
                     colOpt.fk_mm_child_column_id ===
                       relationColOpt.fk_mm_parent_column_id
                   ) {
-                    await Column.delete(refContext, c.id, ncMeta);
+                    await Column.delete2(
+                      refContext,
+                      {
+                        id: c.id,
+                        ...generateColumnDeleteHandler(columnWebhookManager),
+                      },
+                      ncMeta,
+                    );
                     if (!c.system) {
                       this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
                         table: refTable,
@@ -3183,9 +3321,12 @@ export class ColumnsService implements IColumnsService {
                   }
                 }
 
-                await Column.delete(
+                await Column.delete2(
                   context,
-                  relationColOpt.fk_column_id,
+                  {
+                    id: relationColOpt.fk_column_id,
+                    ...generateColumnDeleteHandler(columnWebhookManager),
+                  },
                   ncMeta,
                 );
                 const table =
@@ -3217,7 +3358,16 @@ export class ColumnsService implements IColumnsService {
                           ncMeta,
                         );
                       if (colOpt.type === 'bt') {
-                        await Column.delete(mmContext, c.id, ncMeta);
+                        await Column.delete2(
+                          mmContext,
+                          {
+                            id: c.id,
+                            ...generateColumnDeleteHandler(
+                              columnWebhookManager,
+                            ),
+                          },
+                          ncMeta,
+                        );
                       }
                     }
                   }
@@ -3235,7 +3385,14 @@ export class ColumnsService implements IColumnsService {
                       colOpt.fk_related_model_id ===
                       relationColOpt.fk_mm_model_id
                     ) {
-                      await Column.delete(parentContext, c.id, ncMeta);
+                      await Column.delete2(
+                        parentContext,
+                        {
+                          id: c.id,
+                          ...generateColumnDeleteHandler(columnWebhookManager),
+                        },
+                        ncMeta,
+                      );
                     }
                   }
 
@@ -3252,7 +3409,14 @@ export class ColumnsService implements IColumnsService {
                       colOpt.fk_related_model_id ===
                       relationColOpt.fk_mm_model_id
                     ) {
-                      await Column.delete(context, c.id, ncMeta);
+                      await Column.delete2(
+                        context,
+                        {
+                          id: c.id,
+                          ...generateColumnDeleteHandler(columnWebhookManager),
+                        },
+                        ncMeta,
+                      );
                     }
                   }
 
@@ -3362,7 +3526,14 @@ export class ColumnsService implements IColumnsService {
 
         await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
-        await Column.delete(context, param.columnId, ncMeta);
+        await Column.delete2(
+          context,
+          {
+            id: param.columnId,
+            ...generateColumnDeleteHandler(columnWebhookManager),
+          },
+          ncMeta,
+        );
       }
     }
 
@@ -3416,6 +3587,10 @@ export class ColumnsService implements IColumnsService {
 
     await applyRowColorInvolvement();
 
+    if (!param.columnWebhookManager) {
+      await columnWebhookManager.populateNewColumns();
+      columnWebhookManager.emit();
+    }
     return table;
   }
 
@@ -3436,6 +3611,7 @@ export class ColumnsService implements IColumnsService {
       parentContext,
       childContext,
       column,
+      columnWebhookManager,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -3451,6 +3627,7 @@ export class ColumnsService implements IColumnsService {
       parentContext: NcContext;
       childContext: NcContext;
       column?: Column;
+      columnWebhookManager?: ColumnWebhookManager;
     },
     ignoreFkDelete = false,
   ) => {
@@ -3532,7 +3709,15 @@ export class ColumnsService implements IColumnsService {
           { colId: c.id },
           ncMeta,
         );
-        await Column.delete(refContext, c.id, ncMeta);
+        await columnWebhookManager?.addOldColumnById({
+          columnId: c.id,
+          action: WebhookActions.DELETE,
+        });
+        await Column.delete2(
+          refContext,
+          { id: c.id, ...generateColumnDeleteHandler(columnWebhookManager) },
+          ncMeta,
+        );
 
         if (!colInRefTable.system) {
           this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
@@ -3549,8 +3734,19 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
+    await columnWebhookManager?.addOldColumnById({
+      columnId: relationColOpt.fk_column_id,
+      action: WebhookActions.DELETE,
+    });
     // delete virtual columns
-    await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
+    await Column.delete2(
+      context,
+      {
+        id: relationColOpt.fk_column_id,
+        ...generateColumnDeleteHandler(columnWebhookManager),
+      },
+      ncMeta,
+    );
     const isBt =
       relationColOpt.type === RelationTypes.BELONGS_TO ||
       (relationColOpt.type === RelationTypes.ONE_TO_ONE && column.meta?.bt);
@@ -3627,8 +3823,19 @@ export class ColumnsService implements IColumnsService {
       };
 
       await sqlMgr.sqlOpPlus(childSource, 'tableUpdate', tableUpdateBody);
+      await columnWebhookManager?.addOldColumnById({
+        columnId: childColumn.id,
+        action: WebhookActions.DELETE,
+      });
       // delete foreign key column
-      await Column.delete(childContext, childColumn.id, ncMeta);
+      await Column.delete2(
+        childContext,
+        {
+          id: childColumn.id,
+          ...generateColumnDeleteHandler(columnWebhookManager),
+        },
+        ncMeta,
+      );
     }
   };
 
@@ -3649,6 +3856,7 @@ export class ColumnsService implements IColumnsService {
       childContext,
       parentContext,
       column,
+      columnWebhookManager,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -3665,6 +3873,7 @@ export class ColumnsService implements IColumnsService {
       childContext: NcContext;
       parentContext: NcContext;
       column: Column;
+      columnWebhookManager?: ColumnWebhookManager;
     },
     ignoreFkDelete = false,
   ) => {
@@ -3750,7 +3959,15 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
 
-        await Column.delete(refContext, c.id, ncMeta);
+        await columnWebhookManager?.addOldColumnById({
+          columnId: c.id,
+          action: WebhookActions.DELETE,
+        });
+        await Column.delete2(
+          refContext,
+          { id: c.id, ...generateColumnDeleteHandler(columnWebhookManager) },
+          ncMeta,
+        );
 
         if (!colInRefTable.system) {
           this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
@@ -3766,8 +3983,19 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
+    await columnWebhookManager?.addOldColumnById({
+      columnId: relationColOpt.fk_column_id,
+      action: WebhookActions.DELETE,
+    });
     // delete virtual columns
-    await Column.delete(context, relationColOpt.fk_column_id, ncMeta);
+    await Column.delete2(
+      context,
+      {
+        id: relationColOpt.fk_column_id,
+        ...generateColumnDeleteHandler(columnWebhookManager),
+      },
+      ncMeta,
+    );
     const isBt = column.meta?.bt;
 
     const col = isBt ? childColumn : parentColumn;
@@ -3840,8 +4068,19 @@ export class ColumnsService implements IColumnsService {
       };
 
       await sqlMgr.sqlOpPlus(childSource, 'tableUpdate', tableUpdateBody);
+      await columnWebhookManager?.addOldColumnById({
+        columnId: childColumn.id,
+        action: WebhookActions.DELETE,
+      });
       // delete foreign key column
-      await Column.delete(childContext, childColumn.id, ncMeta);
+      await Column.delete2(
+        childContext,
+        {
+          id: childColumn.id,
+          ...generateColumnDeleteHandler(columnWebhookManager),
+        },
+        ncMeta,
+      );
     }
   };
 
@@ -3856,6 +4095,7 @@ export class ColumnsService implements IColumnsService {
       colExtra?: any;
       user: UserType;
       req: NcRequest;
+      columnWebhookManager?: ColumnWebhookManager;
     },
   ) {
     let savedColumn: Column;
@@ -4032,6 +4272,9 @@ export class ColumnsService implements IColumnsService {
         param.column['meta'],
         isLinks,
         param.colExtra,
+        undefined,
+        undefined,
+        param.columnWebhookManager,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
       // populate fk column name
@@ -4133,6 +4376,9 @@ export class ColumnsService implements IColumnsService {
         null,
         param.column['meta'],
         param.colExtra,
+        undefined,
+        undefined,
+        param.columnWebhookManager,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
       const aTn = await getJunctionTableName(param, table, refTable);
@@ -4252,6 +4498,10 @@ export class ColumnsService implements IColumnsService {
         null,
         false,
         param.colExtra,
+        undefined,
+        undefined,
+        // not need to pass columnWebhookManager here
+        undefined,
       );
       await createHmAndBtColumn(
         context,
@@ -4268,6 +4518,10 @@ export class ColumnsService implements IColumnsService {
         null,
         false,
         param.colExtra,
+        undefined,
+        undefined,
+        // not need to pass columnWebhookManager here
+        undefined,
       );
 
       let refCrossBaseLinkProps: {
@@ -4407,7 +4661,14 @@ export class ColumnsService implements IColumnsService {
           sqlMgr,
         });
       }
-
+      await param.columnWebhookManager?.addNewColumnById({
+        columnId: parentRelCol.id,
+        action: WebhookActions.INSERT,
+      });
+      await param.columnWebhookManager?.addNewColumnById({
+        columnId: savedColumn.id,
+        action: WebhookActions.INSERT,
+      });
       return savedColumn;
     }
   }
@@ -4466,6 +4727,20 @@ export class ColumnsService implements IColumnsService {
     ) {
       // Perform additional validation for rollup payload
       await validateRollupPayload(context, colBody);
+      const baseModel = await getBaseModelSqlFromModelId({
+        modelId: column.fk_model_id,
+        context,
+      });
+      await genRollupSelectv2({
+        baseModelSqlv2: baseModel,
+        knex: baseModel.dbDriver,
+        columnOptions: {
+          // colBody do not have fk_column_id
+          // fk_column_id is required to detect circular ref
+          fk_column_id: column.colOptions.fk_column_id,
+          ...colBody,
+        },
+      });
       await Column.update(context, column.id, colBody);
     }
   }
@@ -4493,6 +4768,7 @@ export class ColumnsService implements IColumnsService {
         op: 'add' | 'update' | 'delete';
         column: Partial<Column>;
       }[];
+      columnWebhookManager?: ColumnWebhookManager;
     },
     req: NcRequest,
   ) {

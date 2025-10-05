@@ -9,6 +9,7 @@ import {
   UITypes,
   type ViewType,
   isVirtualCol,
+  ncHasProperties,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
@@ -27,7 +28,6 @@ import { MouseClickType, NO_EDITABLE_CELL, getMouseClickType, parseCellWidth } f
 import {
   ADD_NEW_COLUMN_WIDTH,
   AGGREGATION_HEIGHT,
-  COLUMN_HEADER_HEIGHT_IN_PX,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
   MAX_SELECTED_ROWS,
@@ -106,6 +106,7 @@ const props = defineProps<{
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
   selectedAllRecords?: boolean
+  selectedAllRecordsSkipPks: Record<string, string>
   getRows: (start: number, end: number, path?: Array<number>) => Promise<Row[]>
   getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
@@ -129,7 +130,7 @@ const props = defineProps<{
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
 }>()
 
-const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
 
 provide(IsCanvasInjectionInj, true)
 
@@ -160,6 +161,8 @@ const {
 
 // VModels
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
+
+const vSelectedAllRecordsSkipPks = useVModel(props, 'selectedAllRecordsSkipPks', emits)
 
 const { eventBus, isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
 
@@ -269,7 +272,6 @@ let colAutoScrollTimerId: any = null
 
 const {
   isGroupBy,
-
   rowSlice,
   colSlice,
   editEnabled,
@@ -277,6 +279,7 @@ const {
   totalWidth,
   columnWidths,
   rowHeight,
+  headerRowHeight,
   updateVisibleRows,
   columns,
   findColumnIndex,
@@ -294,6 +297,7 @@ const {
   findColumnPosition,
   findColumnAtPosition,
   dragOver,
+  attachmentCellDropOver,
   dragStart,
   elementMap,
   // MouseSelectionHandler
@@ -333,6 +337,9 @@ const {
   clearCell,
   clearSelectedRangeOfCells,
 
+  // Attachment Cell Drop
+  handleAttachmentCellDrop,
+
   // Cell Click
   handleCellClick,
 
@@ -356,6 +363,7 @@ const {
   isRowDraggingEnabled,
   rowMetaColumnWidth,
   rowColouringBorderWidth,
+  isRecordSelected,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -372,6 +380,7 @@ const {
   scrollTop,
   aggregations,
   vSelectedAllRecords,
+  vSelectedAllRecordsSkipPks,
   selectedRows,
   updateRecordOrder,
   expandRows,
@@ -466,7 +475,7 @@ const isClamped = computed(() => {
   }
 
   const rawTop = editEnabled.value.y - scrollTop.value - rowHeight.value + 1
-  const clampedTop = Math.max(32, Math.min(containerRef.value.clientHeight - rowHeight.value - 36, rawTop))
+  const clampedTop = Math.max(headerRowHeight.value, Math.min(containerRef.value.clientHeight - rowHeight.value - 36, rawTop))
   const verticalStuck = clampedTop !== rawTop
 
   let horizontalStuck = false
@@ -496,7 +505,7 @@ const editEnabledCellPosition = computed(() => {
   }
 
   const top = Math.max(
-    COLUMN_HEADER_HEIGHT_IN_PX - 1,
+    headerRowHeight.value - 1,
     Math.min(
       containerRef.value?.clientHeight - rowHeight.value - AGGREGATION_HEIGHT,
       editEnabled.value.y - scrollTop.value - rowHeight.value,
@@ -522,7 +531,7 @@ const totalHeight = computed(() => {
   // For non-grouped view, use original calculation
   if (!isGroupBy.value) {
     const dataCache = getDataCache()
-    return dataCache.totalRows.value * rowHeight.value + 32 + additionalPadding
+    return dataCache.totalRows.value * rowHeight.value + headerRowHeight.value + additionalPadding
   }
 
   // Add height for all top-level groups
@@ -538,7 +547,7 @@ const totalHeight = computed(() => {
           sum += group.count * rowHeight.value
 
           if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
-            sum += COLUMN_HEADER_HEIGHT_IN_PX
+            sum += headerRowHeight.value
           }
           // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
           sum += 1
@@ -552,7 +561,7 @@ const totalHeight = computed(() => {
     return sum
   }
 
-  return rootGroupsHeight + estimateTotalHeight(cachedGroups.value) + 32 + additionalPadding // Additional padding
+  return rootGroupsHeight + estimateTotalHeight(cachedGroups.value) + headerRowHeight.value + additionalPadding // Additional padding
 })
 
 const isContextMenuOpen = computed({
@@ -582,6 +591,7 @@ function resetRowSelection() {
   })
 
   vSelectedAllRecords.value = false
+  vSelectedAllRecordsSkipPks.value = {}
 }
 
 watch(vSelectedAllRecords, (val) => {
@@ -780,8 +790,11 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false, savedColumn?: Colum
 
 function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   const isAtMaxSelection = selectedRows.value.length >= MAX_SELECTED_ROWS
-  const isCheckboxDisabled = (!row.rowMeta.selected && isAtMaxSelection) || vSelectedAllRecords.value || readOnly.value
-  const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+
+  const isChecked = isRecordSelected(row)
+
+  const isCheckboxDisabled =
+    (!vSelectedAllRecords.value && !isChecked && isAtMaxSelection) || readOnly.value || isMobileMode.value
 
   const path = group ? generateGroupPath(group) : []
 
@@ -799,7 +812,7 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
 
   const rowColouringBoxTotalWidth = rowColouringBorderWidth.value ? rowColouringBorderWidth.value + 8 : 0
 
-  if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
+  if (readOnly.value || isMobileMode.value || !(isHover || isChecked || isRowCellSelected)) {
     regions.push({
       x: currentX,
       width: rowMetaColumnWidth.value / 2 - 8,
@@ -819,7 +832,7 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
     currentX += 6
   }
 
-  if (!readOnly.value && (isChecked || isHover || isRowCellSelected) && !isPublicView.value) {
+  if (!readOnly.value && !isMobileMode.value && (isChecked || isHover || isRowCellSelected) && !isPublicView.value) {
     regions.push({
       x: currentX,
       width: 20,
@@ -877,7 +890,7 @@ const handleRowMetaClick = ({
   onlyDrag?: boolean
   group?: CanvasGroup
 }) => {
-  const { isAtMaxSelection, isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
+  const { isCheckboxDisabled, regions } = extractHoverMetaColRegions(row, group)
 
   const clickedRegion = regions.find((region) => x >= region.x && x < region.x + region.width)
 
@@ -887,11 +900,19 @@ const handleRowMetaClick = ({
 
   switch (clickedRegion.action) {
     case 'select':
-      if (!isCheckboxDisabled && (row.rowMeta?.selected || !isAtMaxSelection)) {
+      if (!isCheckboxDisabled) {
         resetActiveCell()
 
         if (onlyDrag) {
           row.rowMeta.selected = !row.rowMeta?.selected
+
+          if (vSelectedAllRecords.value && isValidValue(row.rowMeta.rowIndex)) {
+            if (ncHasProperties(vSelectedAllRecordsSkipPks.value, row.rowMeta.rowIndex!)) {
+              delete vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex!]
+            } else {
+              vSelectedAllRecordsSkipPks.value[row.rowMeta.rowIndex!] = extractPkFromRow(row.row, meta.value?.columns ?? [])
+            }
+          }
 
           const path = generateGroupPath(group)
           if (row.rowMeta?.selected && ncIsNumber(row.rowMeta.rowIndex)) {
@@ -1015,7 +1036,7 @@ async function handleMouseDown(e: MouseEvent) {
   const clickType = getMouseClickType(e)
   if (!clickType) return
   // Handle all Column Header Operations
-  if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
+  if (y <= headerRowHeight.value) {
     // If x less than 80px, use is hovering over the row meta column
     if (x > rowMetaColumnWidth.value) {
       // If the user is trying to resize the column
@@ -1227,7 +1248,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   if (editEnabled.value) return
 
   if (onMouseUpSelectionHandler(e)) {
-    if (y <= COLUMN_HEADER_HEIGHT_IN_PX || y > height.value - 36 || x <= rowMetaColumnWidth.value) {
+    if (y <= headerRowHeight.value || y > height.value - 36 || x <= rowMetaColumnWidth.value) {
       // DO_NOTHING_HERE
     } else {
       requestAnimationFrame(triggerRefreshCanvas)
@@ -1240,7 +1261,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   if (!clickType) return
 
   if (isMobileMode.value) {
-    if (y > 32 && y < height.value - 36) {
+    if (y > headerRowHeight.value && y < height.value - 36) {
       const element = _elementMap.findElementAt(x, y, [ElementTypes.ROW, ElementTypes.GROUP, ElementTypes.ADD_NEW_ROW])
       const group = element?.group
       const row = element?.row
@@ -1255,18 +1276,22 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       }
       requestAnimationFrame(triggerRefreshCanvas)
       return
-    } else if (y < 32) {
+    } else if (y < headerRowHeight.value) {
       return
     }
   }
   // Handle all Column Header Operations
-  if (y <= COLUMN_HEADER_HEIGHT_IN_PX) {
+  if (y <= headerRowHeight.value) {
     // If x less than 80px, use is hovering over the row meta column
     if (x < rowMetaColumnWidth.value + groupByColumns.value.length * 13) {
       // If the click is not normal single click, return
       if (clickType !== MouseClickType.SINGLE_CLICK || readOnly.value || isGroupBy.value) return
       if (isBoxHovered({ x: isRowDraggingEnabled.value ? 4 + 26 : 10, y: 8, height: 16, width: 16 }, mousePosition)) {
-        vSelectedAllRecords.value = !vSelectedAllRecords.value
+        if (vSelectedAllRecords.value && !ncIsEmptyObject(vSelectedAllRecordsSkipPks.value)) {
+          vSelectedAllRecordsSkipPks.value = {}
+        } else {
+          vSelectedAllRecords.value = !vSelectedAllRecords.value
+        }
         resetActiveCell()
       }
 
@@ -1290,7 +1315,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           top: `${rect.top}px`,
           left: `${plusColumnX + rect.left}px`,
           width: `${plusColumnWidth}px`,
-          height: '32px',
+          height: `${headerRowHeight.value}px`,
           position: 'fixed',
         }
         isDropdownVisible.value = true
@@ -1314,7 +1339,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             top: `${rect.top}px`,
             left: `${rect.left + xOffset}px`,
             width: `${clickedColumn.width}`,
-            height: `32px`,
+            height: `${headerRowHeight.value}px`,
             position: 'fixed',
           }
           requestAnimationFrame(triggerRefreshCanvas)
@@ -1345,7 +1370,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
               top: `${rect.top}px`,
               left: `${rect.left + xOffset}px`,
               width: `${clickedColumn.width}`,
-              height: `32px`,
+              height: `${headerRowHeight.value}px`,
               position: 'fixed',
             }
             openColumnDropdownField.value = clickedColumn.columnObj
@@ -1822,7 +1847,7 @@ const handleMouseMove = (e: MouseEvent) => {
   hideTooltip()
   const fixedCols = columns.value.filter((col) => col.fixed)
 
-  if (mousePosition.y < 32) {
+  if (mousePosition.y < headerRowHeight.value) {
     // check if it's hovering add new column
     const plusColumnX = totalColumnsWidth.value - scrollLeft.value + groupByColumns.value?.length * 13
     const plusColumnWidth = ADD_NEW_COLUMN_WIDTH
@@ -1953,7 +1978,7 @@ const handleMouseMove = (e: MouseEvent) => {
     }
   } else {
     const y = e.clientY - rect.top
-    if (y <= 32 && resizeableColumn.value) {
+    if (y <= headerRowHeight.value && resizeableColumn.value) {
       resizeMouseMove(e)
     } else if (mousePosition.y > height.value - 36) {
       cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
@@ -1981,7 +2006,7 @@ const handleMouseMove = (e: MouseEvent) => {
     }
     requestAnimationFrame(triggerRefreshCanvas)
   }
-  if (mousePosition.y > 32) {
+  if (mousePosition.y > headerRowHeight.value) {
     const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
     const row = element?.row
     const rowIndex = element?.rowIndex
@@ -2014,10 +2039,7 @@ const handleMouseMove = (e: MouseEvent) => {
   if (cursor) setCursor(cursor)
 
   // check if hovering row meta column and set cursor
-  if (
-    mousePosition.x < rowMetaColumnWidth.value + groupByColumns.value.length * 13 &&
-    mousePosition.y > COLUMN_HEADER_HEIGHT_IN_PX
-  ) {
+  if (mousePosition.x < rowMetaColumnWidth.value + groupByColumns.value.length * 13 && mousePosition.y > headerRowHeight.value) {
     // handle hovering on the aggregation dropdown
     if (mousePosition.y <= height.value - 36) {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
@@ -2045,7 +2067,10 @@ const handleMouseMove = (e: MouseEvent) => {
 
       const selectionStart = Math.min(selectedRowInfo.index, row.rowMeta.rowIndex)
 
-      const selectionEnd = Math.min(selectionStart + MAX_SELECTED_ROWS, Math.max(selectedRowInfo.index, row.rowMeta.rowIndex))
+      const selectionEnd = Math.min(
+        selectionStart + (MAX_SELECTED_ROWS - 1),
+        Math.max(selectedRowInfo.index, row.rowMeta.rowIndex),
+      )
 
       /**
        * If selection is started and the selection is not changed, then don't do anything
@@ -2141,7 +2166,7 @@ const handleScroll = (e: { left: number; top: number }) => {
     if (!rect) return
 
     // TODO: @DarkPhoenix2704
-    // hoverRow.value = Math.floor(scrollTop.value / rowHeight.value + (mousePosition.y - 32) / rowHeight.value)
+    // hoverRow.value = Math.floor(scrollTop.value / rowHeight.value + (mousePosition.y - headerRowHeight.value) / rowHeight.value)
     requestAnimationFrame(triggerRefreshCanvas)
   }, 150)
 }
@@ -2222,7 +2247,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
       top: `${rect.top}px`,
       right: `${256 - ADD_NEW_COLUMN_WIDTH}px`,
       width: `${ADD_NEW_COLUMN_WIDTH}px`,
-      height: '32px',
+      height: `${headerRowHeight.value}px`,
       position: 'fixed',
     }
 
@@ -2253,7 +2278,7 @@ function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnT
       top: `${rect.top}px`,
       left: `${rect.left + (clickedXOffset ?? xOffset)}px`,
       width: col?.width ?? '180px',
-      height: `32px`,
+      height: `${headerRowHeight.value}px`,
       position: 'fixed',
     }
 
@@ -2281,7 +2306,7 @@ function openColumnCreate(data: any) {
       top: `${rect.top}px`,
       left: `${plusColumnX + rect.left}px`,
       width: `${ADD_NEW_COLUMN_WIDTH}px`,
-      height: '32px',
+      height: `${headerRowHeight.value}px`,
       position: 'fixed',
     }
 
@@ -2612,6 +2637,114 @@ useActiveKeydownListener(
   },
 )
 
+const resetAttachmentCellDropOver = () => {
+  if (!attachmentCellDropOver.value) return
+
+  attachmentCellDropOver.value = null
+
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+const onDrop = (files: File[] | null) => {
+  if (!attachmentCellDropOver.value || !files?.length || !isDataEditAllowed.value) {
+    return
+  }
+
+  const dataCache = getDataCache(attachmentCellDropOver.value.path)
+
+  const row =
+    attachmentCellDropOver.value.rowIndex !== null
+      ? dataCache.cachedRows.value.get(attachmentCellDropOver.value.rowIndex)
+      : undefined
+
+  const column = columns.value[attachmentCellDropOver.value.colIndex]!
+
+  if (!row || !column || column.readonly) {
+    resetAttachmentCellDropOver()
+    return
+  }
+
+  selection.value.clear()
+  editEnabled.value = null
+  activeCell.value = {
+    row: attachmentCellDropOver.value.rowIndex,
+    column: attachmentCellDropOver.value.colIndex,
+    path: attachmentCellDropOver.value.path,
+  }
+  resetRowSelection()
+  onActiveCellChanged()
+
+  try {
+    handleAttachmentCellDrop(files, attachmentCellDropOver.value)
+  } finally {
+    resetAttachmentCellDropOver()
+  }
+}
+
+const onOver = (_files: File[] | null, e: DragEvent) => {
+  if (!isDataEditAllowed.value) return
+
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+
+  if (
+    clientMousePosition.clientX === e.clientX &&
+    clientMousePosition.clientY === e.clientY &&
+    mousePosition.x === e.clientX - rect.left &&
+    mousePosition.y === e.clientY - rect.top
+  ) {
+    return
+  }
+
+  clientMousePosition.clientX = e.clientX
+  clientMousePosition.clientY = e.clientY
+  mousePosition.x = e.clientX - rect.left
+  mousePosition.y = e.clientY - rect.top
+
+  // Skip on hover on header
+  if (mousePosition.y <= headerRowHeight.value) {
+    return resetAttachmentCellDropOver()
+  }
+
+  const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ROW])
+  if (!element?.row) return
+
+  const rowIndex = element?.rowIndex
+  const groupPath = generateGroupPath(element?.group)
+
+  const { column } = findClickedColumn(mousePosition.x, scrollLeft.value)
+
+  const colIndex = column ? columns.value.findIndex((col) => col.id === column.id) : -1
+
+  // If hover column is not attachment or is readonly, skip
+  if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment || column.readonly) {
+    return resetAttachmentCellDropOver()
+  }
+
+  if (
+    attachmentCellDropOver.value &&
+    attachmentCellDropOver.value.rowIndex === rowIndex &&
+    attachmentCellDropOver.value.columnId === column.id
+  ) {
+    return
+  }
+
+  attachmentCellDropOver.value = { rowIndex, colIndex, columnId: column.id, path: groupPath }
+
+  requestAnimationFrame(triggerRefreshCanvas)
+}
+
+useDropZone(canvasRef, {
+  onDrop,
+  onEnter: () => {
+    resetAttachmentCellDropOver()
+  },
+  onOver,
+  onLeave: () => {
+    resetAttachmentCellDropOver()
+  },
+})
+
 watch(
   removeInlineAddRecord,
   (newValue) => {
@@ -2702,6 +2835,7 @@ watch(
               "
               v-model:context-menu-target="contextMenuTarget"
               v-model:selected-all-records="vSelectedAllRecords"
+              v-model:selected-all-records-skip-pks="vSelectedAllRecordsSkipPks"
               :selection="selection"
               :columns="columns"
               :active-cell="activeCell"

@@ -66,7 +66,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     })
 
     const filtersFromUrlParams = computed(() => {
-      if (route.value.query.where) {
+      if (route.value.query.where && !ncIsEmptyObject(aliasColObjMap.value)) {
         return extractFilterFromXwhere(
           { api_version: NcApiVersion.V1 },
           route.value.query.where as string,
@@ -75,6 +75,14 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         )
       }
     })
+
+    const filtersFromUrlParamsReadableErrors = computed(() => {
+      return filtersFromUrlParams.value?.errors
+        ?.map((e: any) => e?.message)
+        .filter(Boolean)
+        .join(',')
+    })
+
     const validFiltersFromUrlParams = computed(() => {
       return !filtersFromUrlParams.value?.errors?.length ? filtersFromUrlParams.value?.filters || [] : []
     })
@@ -84,7 +92,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         return
       }
 
-      return route.value.query.where
+      return route.value.query.where as string
     })
 
     const totalRowsWithSearchQuery = ref(0)
@@ -213,6 +221,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isExternalSource,
       isAlreadyShownUpgradeModal,
       filtersFromUrlParams,
+      filtersFromUrlParamsReadableErrors,
       whereQueryFromUrl,
       validFiltersFromUrlParams,
       isSyncedTable,

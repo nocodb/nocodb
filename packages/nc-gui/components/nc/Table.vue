@@ -54,6 +54,8 @@ const emit = defineEmits(['update:orderBy', 'rowClick'])
 
 const defaultPaginationData = { page: 1, pageSize: 25, totalRows: 0, isLoading: true }
 
+const { isMobileMode } = useGlobal()
+
 const tableWrapper = ref<HTMLDivElement>()
 
 const tableHeader = ref<HTMLTableElement>()
@@ -237,7 +239,7 @@ watch(
       ref="tableWrapper"
       class="nc-table-wrapper relative"
       :class="{
-        'sticky-first-column': stickyFirstColumn,
+        'sticky-first-column': stickyFirstColumn && !isMobileMode,
         'h-full':
           (data.length || (isDataLoading && !data.length && (slots.tableFooter || showPagination))) && !disableTableScroll,
         'nc-scrollbar-thin !overflow-auto max-h-full': !disableTableScroll,

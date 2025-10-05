@@ -93,7 +93,7 @@ function validate(view: ViewType) {
     return t('msg.error.viewNameRequired')
   }
 
-  if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
+  if (views.value.some((v) => v.title?.trim() === view.title.trim() && v.id !== view.id)) {
     return t('msg.error.viewNameDuplicate')
   }
 
@@ -198,6 +198,7 @@ const initSortable = (el: HTMLElement) => {
     onStart: onSortStart,
     onEnd: onSortEnd,
     filter: isTouchEvent,
+    ...getDraggableAutoScrollOptions({ scrollSensitivity: 50 }),
   })
 }
 

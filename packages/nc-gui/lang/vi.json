@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Quyền chỉnh sửa sẽ được đặt cho Editor trở lên.",
       "confirmRevertPermissionsToDefault": "Xác nhận đặt lại quyền cho bảng - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Trường này bị ẩn trong form do không ai có quyền chỉnh sửa."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "không phải là null."
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Quyền truy cập bị hạn chế",
     "editTablePermissions": "Chỉnh sửa quyền bảng",
     "editFieldPermissions": "Chỉnh sửa quyền trường",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Tiếp tục chỉnh sửa",
     "leave": "Rời đi",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Chỉ cho phép một mã thông báo mỗi người dùng",
     "duplicateAttachment": "Tập tin có tên {filename} đã được đính kèm",
     "tableIdColon": "ID BẢNG: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SCRIPT: {scriptId}",
     "dashboardIdColon": "MÃ BẢNG ĐIỀU KHIỂN: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "cho vai trò",
     "clickToCopy": "Nhấp để sao chép",
     "clickToCopyTableID": "Nhấn để sao chép ID Bảng",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Nhấp để sao chép ID Script",
     "clickToCopyDashboardID": "Nhấn để sao chép mã Bảng điều khiển",
     "clickToCopyViewID": "Nhấp để sao chép ID xem",
@@ -1488,7 +1497,8 @@
     "newScript": "Kịch bản mới",
     "emptyScript": "Kịch bản trống",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Nhấp để đánh dấu đã giải quyết",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Lọc theo trường này",
     "groupByThisField": "Nhóm theo trường này",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Thêm vào mục ưa thích",
     "removeFromStarred": "Bỏ khỏi mục ưa thích",
     "runActions": "Chạy hành động",
     "createScript": "Tạo Script",
     "deleteAllRecords": "Xóa tất cả bản ghi",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Gán chế độ xem",
     "webhookDetails": "Chi tiết Webhook",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Mở rộng 'Shift + Space'",
     "selectAllMappedFields": "Chọn tất cả trường đã ánh xạ",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Sao chép mã lỗi",
     "paidUserBadgeTooltip": "Người dùng có vai trò Biên tập viên hoặc cao hơn ở ít nhất một cơ sở dữ liệu.",
     "approachingLimit": "Sắp đạt giới hạn",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Tìm kiếm biểu tượng",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Tên miền là bắt buộc",
       "nameMaxLength256": "Tên phải dài tối đa 256 ký tự",
       "viewNameUnique": "Tên chế độ xem phải là duy nhất",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả",
       "invalidChar": "Ký tự không hợp lệ trong đường dẫn thư mục.",
       "invalidDbCredentials": "Thông tin cơ sở dữ liệu không hợp lệ.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Truy vấn tìm kiếm không hợp lệ",
       "invalidSearchQueryForVisibleFields": "Truy vấn tìm kiếm không hợp lệ cho các trường hiển thị",
       "invalidSearchQueryForDisplayField": "Truy vấn tìm kiếm không hợp lệ cho trường hiển thị",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",

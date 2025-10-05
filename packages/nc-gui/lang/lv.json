@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Rediģēšanas piekļuve tiks iestatīta redaktoriem un augstākiem.",
       "confirmRevertPermissionsToDefault": "Apstiprināt tabulas \"{tableName}\" atļauju atiestatīšanu uz noklusējumu",
       "formViewFieldEditPermissionRestrictionTooltip": "Šis lauks ir paslēpts formā, jo nevienam nav atļaujas to rediģēt."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "nav null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Piekļuve ierobežota",
     "editTablePermissions": "Rediģēt tabulas atļaujas",
     "editFieldPermissions": "Rediģēt lauka atļaujas",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Turpināt rediģēt",
     "leave": "Pamest",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Katram lietotājam atļauta tikai viena atslēga",
     "duplicateAttachment": "Fails ar nosaukumu {filename} jau ir pievienots",
     "tableIdColon": "TABULAS ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SKRIPTA ID: {scriptId}",
     "dashboardIdColon": "PANEĻA ID: {dashboardId}",
     "viewIdColon": "SKATA ID: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "par lomu",
     "clickToCopy": "Noklikšķiniet, lai kopētu",
     "clickToCopyTableID": "Noklikšķiniet, lai kopētu Tabulas ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Noklikšķiniet, lai kopētu skripta ID",
     "clickToCopyDashboardID": "Klikšķiniet, lai nokopētu paneļa ID",
     "clickToCopyViewID": "Noklikšķiniet, lai kopētu Skata ID",
@@ -1488,7 +1497,8 @@
     "newScript": "Jauns skripts",
     "emptyScript": "Tukšs skripts",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Noklikšķiniet, lai atrisinātu",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtrēt pēc šī lauka",
     "groupByThisField": "Grupēt pēc šī lauka",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Pievienot izlasei",
     "removeFromStarred": "Noņemt no izlases",
     "runActions": "Palaist darbības",
     "createScript": "Izveidot skriptu",
     "deleteAllRecords": "Dzēst visus ierakstus",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Piešķirt skatu",
     "webhookDetails": "Webhook detaļas",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Izvērsiet 'Shift + Space'",
     "selectAllMappedFields": "Atlasīt visus sasaistītos laukus",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopēt kļūdas kodu",
     "paidUserBadgeTooltip": "Lietotājam ir redaktora vai augstāka loma vismaz vienā bāzē.",
     "approachingLimit": "Tuvoties limitam",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Meklēt ikonas",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Domēna nosaukums ir nepieciešams",
       "nameMaxLength256": "Nosaukumam jābūt ne vairāk kā 256 rakstzīmes garam",
       "viewNameUnique": "Skata nosaukumam jābūt unikālam",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Nav atrasti rezultāti meklējot pēc atslēgvārda {search}",
       "invalidChar": "Nederīgs simbols mapes ceļā.",
       "invalidDbCredentials": "Nederīgi datubāzes lietotājvārds un/vai parole.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Nederīga meklēšanas vaicājuma sintakse",
       "invalidSearchQueryForVisibleFields": "Nederīga meklēšanas vaicājuma sintakse redzamajiem laukiem",
       "invalidSearchQueryForDisplayField": "Nederīga meklēšanas vaicājuma sintakse attēlotajam laukam",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Projekta metadati eksportēti veiksmīgi",

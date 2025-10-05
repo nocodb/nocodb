@@ -386,7 +386,12 @@ export function useSharedView() {
 
   const fetchSharedViewGroupedData = async (
     columnId: string,
-    { sortsArr, filtersArr, include_row_color }: { sortsArr: SortType[]; filtersArr: FilterType[]; include_row_color?: boolean },
+    {
+      sortsArr,
+      filtersArr,
+      include_row_color,
+      where,
+    }: { sortsArr: SortType[]; filtersArr: FilterType[]; include_row_color?: boolean; where?: string },
   ) => {
     if (!sharedView.value) return
 
@@ -401,6 +406,7 @@ export function useSharedView() {
         filterArrJson: stringifyFilterOrSortArr(filtersArr ?? nestedFilters.value),
         sortArrJson: stringifyFilterOrSortArr(sortsArr ?? sorts.value),
         include_row_color,
+        where,
       } as any,
       {
         headers: {

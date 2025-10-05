@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "संपादन एक्सेस केवल संपादक और ऊपर को दी जाएगी।",
       "confirmRevertPermissionsToDefault": "टेबल - \"{tableName}\" के लिए डिफ़ॉल्ट अनुमतियों को रीसेट करने की पुष्टि करें",
       "formViewFieldEditPermissionRestrictionTooltip": "इस फ़ील्ड को फॉर्म में छुपाया गया है क्योंकि किसी को भी इसे संपादित करने की अनुमति नहीं है।"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "निरर्थक नहीं है"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "एक्सेस सीमित",
     "editTablePermissions": "टेबल अनुमतियाँ संपादित करें",
     "editFieldPermissions": "फ़ील्ड अनुमतियाँ संपादित करें",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "संपादन जारी रखें",
     "leave": "छोड़ें",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "प्रति उपयोगकर्ता केवल एक टोकन की अनुमति है",
     "duplicateAttachment": "फ़ाइल जिसका नाम {filename} पहले से संलग्न है",
     "tableIdColon": "टेबल आईडी: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT ID: {scriptId}",
     "dashboardIdColon": "डैशबोर्ड आईडी: {dashboardId}",
     "viewIdColon": "देखें आईडी: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "भूमिका के लिए",
     "clickToCopy": "कॉपी के लिए क्लिक करें",
     "clickToCopyTableID": "टेबल आईडी कॉपी करने के लिए क्लिक करें",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "स्क्रिप्ट ID कॉपी करने के लिए क्लिक करें",
     "clickToCopyDashboardID": "डैशबोर्ड आईडी कॉपी करने के लिए क्लिक करें",
     "clickToCopyViewID": "व्यू आईडी कॉपी करने के लिए क्लिक करें",
@@ -1488,7 +1497,8 @@
     "newScript": "नई स्क्रिप्ट",
     "emptyScript": "खाली स्क्रिप्ट",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "समाधान के लिए क्लिक करें",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "इस फ़ील्ड द्वारा फ़िल्टर करें",
     "groupByThisField": "इस फ़ील्ड द्वारा समूहित करें",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "स्टारred में जोड़ें",
     "removeFromStarred": "स्टारred से हटाएँ",
     "runActions": "क्रियाएँ चलाएँ",
     "createScript": "स्क्रिप्ट बनाएं",
     "deleteAllRecords": "सभी रिकॉर्ड हटाएँ",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "दृश्य सौंपें",
     "webhookDetails": "वेबहूक विवरण",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "'Shift + Space' विस्तृत करें",
     "selectAllMappedFields": "सभी मैप किए गए फ़ील्ड्स चुनें",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "त्रुटि कोड कॉपी करें",
     "paidUserBadgeTooltip": "उपयोगकर्ता के पास कम से कम एक बेस में एडिटर या उससे उच्च भूमिका है।",
     "approachingLimit": "सीमा के करीब",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "आइकन खोजें",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "डोमेन नाम आवश्यक है",
       "nameMaxLength256": "नाम अधिकतम 256 वर्ण लंबा होना चाहिए",
       "viewNameUnique": "व्यू नाम अद्वितीय होना चाहिए",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "{search} के लिए आपकी खोज कोई परिणाम नहीं मिला",
       "invalidChar": "फ़ोल्डर पथ में अमान्य चरित्र।",
       "invalidDbCredentials": "अमान्य डेटाबेस क्रेडेंशियल्स।",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "अमान्य खोज क्वेरी",
       "invalidSearchQueryForVisibleFields": "दृश्य फ़ील्ड्स के लिए अमान्य खोज क्वेरी",
       "invalidSearchQueryForDisplayField": "डिस्प्ले फ़ील्ड के लिए अमान्य खोज क्वेरी",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात किया गया",

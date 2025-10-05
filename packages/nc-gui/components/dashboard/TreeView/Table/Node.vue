@@ -110,7 +110,7 @@ const validators = computed(() => {
           return new Promise<void>((resolve, reject) => {
             if (
               !(tables?.value || []).every(
-                (t) => t.id === table.value.id || t.title.toLowerCase() !== (value?.trim() || '').toLowerCase(),
+                (t) => t.id === table.value.id || t.title?.trim().toLowerCase() !== (value?.trim() || '').toLowerCase(),
               )
             ) {
               return reject(new Error('Duplicate table alias'))
@@ -436,7 +436,7 @@ async function onRename() {
 
 <template>
   <div
-    class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full"
+    class="nc-tree-item nc-table-node-wrapper text-sm select-none w-full bg-inherit"
     :data-order="table.order"
     :data-id="table.id"
     :data-table-id="table.id"

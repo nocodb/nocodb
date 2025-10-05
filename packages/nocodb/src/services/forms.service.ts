@@ -7,6 +7,10 @@ import type {
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcContext, NcRequest } from '~/interface/config';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -31,6 +35,7 @@ export class FormsService {
       user: UserType;
       req: NcRequest;
       ownedBy?: string;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
@@ -54,6 +59,13 @@ export class FormsService {
       NcError.sourceDataReadOnly(source.alias);
     }
 
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+          param.tableId,
+        )
+      ).forCreate();
     const { id } = await View.insertMetaOnly(
       context,
       {
@@ -109,6 +121,10 @@ export class FormsService {
       context.socket_id,
     );
 
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
+
     return view;
   }
 
@@ -118,6 +134,7 @@ export class FormsService {
       formViewId: string;
       form: FormUpdateReqType;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
@@ -130,6 +147,16 @@ export class FormsService {
     if (!view) {
       NcError.viewNotFound(param.formViewId);
     }
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
 
     const oldFormView = await FormView.get(context, param.formViewId, ncMeta);
 
@@ -164,6 +191,9 @@ export class FormsService {
       context.socket_id,
     );
 
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
     return view;
   }
 }

@@ -12,8 +12,6 @@ const tablesStore = useTablesStore()
 const { openTable } = tablesStore
 const { activeTables } = storeToRefs(tablesStore)
 
-const { isMobileMode } = useGlobal()
-
 const { files, reset } = useFileDialog()
 
 const { $e } = useNuxtApp()
@@ -123,7 +121,7 @@ function openQuickImportDialog(type: QuickImportTypes, file: File) {
 }
 
 const hideProjectViewPage = computed(() => {
-  return isSharedBase.value || isMobileMode.value
+  return isSharedBase.value
 })
 
 const showEmptySkeleton = ref(true)

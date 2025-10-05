@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "編輯權限將設為編輯者及以上。",
       "confirmRevertPermissionsToDefault": "確定將資料表 \"{tableName}\" 權限重設為預設？",
       "formViewFieldEditPermissionRestrictionTooltip": "該欄位在表單中被隱藏，因為沒有人有權編輯它。"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "內容不為 Null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "存取受限",
     "editTablePermissions": "編輯資料表權限",
     "editFieldPermissions": "編輯欄位權限",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "繼續編輯",
     "leave": "離開",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "每位用戶僅允許一個權杖",
     "duplicateAttachment": "名為 {filename} 的檔案已經附加",
     "tableIdColon": "表格ID：{tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "指令碼 ID: {scriptId}",
     "dashboardIdColon": "儀表板 ID：{dashboardId}",
     "viewIdColon": "檢視 ID: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "針對角色",
     "clickToCopy": "點擊複製",
     "clickToCopyTableID": "點擊以複製表格ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "點擊複製指令碼 ID",
     "clickToCopyDashboardID": "點擊複製儀表板 ID",
     "clickToCopyViewID": "點擊以複製檢視 ID",
@@ -1488,7 +1497,8 @@
     "newScript": "新腳本",
     "emptyScript": "空白腳本",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "點擊解決",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "依此欄位篩選",
     "groupByThisField": "依此欄位分組",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "加入星號",
     "removeFromStarred": "從星號移除",
     "runActions": "執行動作",
     "createScript": "建立指令碼",
     "deleteAllRecords": "刪除所有紀錄",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "指派檢視",
     "webhookDetails": "Webhook詳情",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + 空白",
     "expandShiftSpace": "展開「Shift + 空白」",
     "selectAllMappedFields": "選取所有已對應欄位",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "複製錯誤代碼",
     "paidUserBadgeTooltip": "使用者在至少一個 Base 中具有編輯者或更高的角色。",
     "approachingLimit": "接近限制",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "搜索圖標",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "域名為必填",
       "nameMaxLength256": "名稱最多 256 個字元",
       "viewNameUnique": "檢視名稱應該是唯一的",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "您的搜尋 {search} 找不到結果",
       "invalidChar": "資料夾路徑有無效字元。",
       "invalidDbCredentials": "資料庫憑證無效。",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "搜尋查詢無效",
       "invalidSearchQueryForVisibleFields": "針對可見欄位的搜尋查詢無效",
       "invalidSearchQueryForDisplayField": "針對顯示欄位的搜尋查詢無效",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "專案中繼資料已成功匯出",

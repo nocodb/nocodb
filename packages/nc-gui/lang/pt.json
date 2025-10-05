@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "O acesso de edição será definido para Editores e superiores.",
       "confirmRevertPermissionsToDefault": "Confirmar redefinição de permissões para a tabela - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Este campo está oculto no formulário porque ninguém tem permissão para editá-lo."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "não é nulo"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Acesso Restrito",
     "editTablePermissions": "Editar permissões da tabela",
     "editFieldPermissions": "Editar permissões do campo",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Continuar editando",
     "leave": "Sair",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Só é permitido um token por utilizador",
     "duplicateAttachment": "Arquivo com o nome {filename} já está anexado",
     "tableIdColon": "ID TABELA: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID DO SCRIPT: {scriptId}",
     "dashboardIdColon": "ID DO PAINEL: {dashboardId}",
     "viewIdColon": "ID DE VISUALIZAÇÃO: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "para o papel",
     "clickToCopy": "Clique para copiar",
     "clickToCopyTableID": "Clique para copiar o ID da Tabela",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Clique para copiar ID do Script",
     "clickToCopyDashboardID": "Clique para copiar o ID do Painel",
     "clickToCopyViewID": "Clique para copiar ID da Visualização",
@@ -1488,7 +1497,8 @@
     "newScript": "Novo Script",
     "emptyScript": "Script Vazio",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Clique para resolver",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtrar por este campo",
     "groupByThisField": "Agrupar por este campo",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Adicionar aos favoritos",
     "removeFromStarred": "Remover dos favoritos",
     "runActions": "Executar Ações",
     "createScript": "Criar Script",
     "deleteAllRecords": "Eliminar todos os registos",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Atribuir vista",
     "webhookDetails": "Detalhes do Webhook",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Espaço",
     "expandShiftSpace": "Expandir 'Shift + Espaço'",
     "selectAllMappedFields": "Selecionar todos os campos mapeados",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Copiar código de erro",
     "paidUserBadgeTooltip": "O usuário possui função de editor ou superior em ao menos uma base.",
     "approachingLimit": "Aproximando-se do limite",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Pesquisar ícones",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Nome do domínio é obrigatório",
       "nameMaxLength256": "O nome deve ter no máximo 256 caracteres",
       "viewNameUnique": "O nome da visualização deve ser único",
+      "viewNameDuplicate": "O nome da visualização já existe",
       "searchProject": "A sua pesquisa por {search} não encontrou resultados",
       "invalidChar": "Caracter inválido no caminho da pasta.",
       "invalidDbCredentials": "Credenciais de Base de Dados inválidas.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Consulta de pesquisa inválida",
       "invalidSearchQueryForVisibleFields": "Consulta de pesquisa inválida para campos visíveis",
       "invalidSearchQueryForDisplayField": "Consulta de pesquisa inválida para campo de exibição",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Metadados do projeto exportado com sucesso",

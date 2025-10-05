@@ -9,7 +9,7 @@ const { isLoading } = toRefs(props)
 
 const workspaceStore = useWorkspace()
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen, allowHideLeftSidebarForCurrentRoute } = storeToRefs(useSidebarStore())
 
 const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 
@@ -21,7 +21,13 @@ const { activeTableId } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()
 
-const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOrId.value && !activeTableId.value))
+const showSidebarBtn = computed(() => {
+  if (isMobileMode.value) {
+    return allowHideLeftSidebarForCurrentRoute.value || !!(activeViewTitleOrId.value && activeTableId.value)
+  }
+
+  return true
+})
 </script>
 
 <template>
@@ -42,6 +48,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
         }"
         placement="bottom"
         hide-on-click
+        :disabled="!!isMobileMode"
       >
         <template #title>
           {{ isLeftSidebarOpen ? `${$t('title.hideSidebar')}` : `${$t('title.showSidebar')}` }}

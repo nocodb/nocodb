@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Redigeringsåtkomst ställs in till redaktörer och högre.",
       "confirmRevertPermissionsToDefault": "Bekräfta återställning av behörigheter för tabell – \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Detta fält är dolt i formuläret eftersom ingen har rätt att redigera det."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "är inte noll"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Åtkomst begränsad",
     "editTablePermissions": "Redigera tabellbehörigheter",
     "editFieldPermissions": "Redigera fältbehörigheter",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Fortsätt redigera",
     "leave": "Lämna",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Endast en token per användare är tillåten",
     "duplicateAttachment": "Fil med namn {filename} redan bifogad",
     "tableIdColon": "BORD ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SKRIPT-ID: {scriptId}",
     "dashboardIdColon": "DASHBOARD-ID: {dashboardId}",
     "viewIdColon": "VY-ID: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "för roll",
     "clickToCopy": "Klicka för att kopiera",
     "clickToCopyTableID": "Klicka för att kopiera bord ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klicka för att kopiera skript-ID",
     "clickToCopyDashboardID": "Klicka för att kopiera dashboard-ID",
     "clickToCopyViewID": "Klicka för att kopiera vy-ID",
@@ -1488,7 +1497,8 @@
     "newScript": "Nytt skript",
     "emptyScript": "Tomt skript",
     "enterFullscreen": "Gå till helskärm",
-    "exitFullscreen": "Avsluta helskärm"
+    "exitFullscreen": "Avsluta helskärm",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Klicka för att lösa",
@@ -1498,11 +1508,13 @@
     "removeMember": "Ta bort medlem",
     "filterByThisField": "Filtrera efter detta fält",
     "groupByThisField": "Gruppera efter detta fält",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Lägg till i favoriter",
     "removeFromStarred": "Ta bort från favoriter",
     "runActions": "Kör åtgärder",
     "createScript": "Skapa skript",
     "deleteAllRecords": "Ta bort alla poster",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Tilldela vy",
     "webhookDetails": "Webhook Detaljer",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Skift + Mellanslag",
     "expandShiftSpace": "Expandera 'Skift + Mellanslag'",
     "selectAllMappedFields": "Markera alla mappade fält",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiera felkod",
     "paidUserBadgeTooltip": "Användaren har redaktörsbehörighet eller högre i minst en bas.",
     "approachingLimit": "Närmar sig gränsen",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "Du kan inte dölja ett obligatoriskt fält.",
     "youCantRemoveARequiredField": "Du kan inte ta bort ett obligatoriskt fält.",
-    "removeFromForm": "Ta bort från formulär"
+    "removeFromForm": "Ta bort från formulär",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Sök ikoner",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Domännamn krävs",
       "nameMaxLength256": "Namnet får vara högst 256 tecken långt",
       "viewNameUnique": "Visningsnamnet bör vara unikt",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Din sökning efter {Sök} har inga resultat",
       "invalidChar": "Ogiltigt tecken i mappbanan.",
       "invalidDbCredentials": "Ogiltiga databasuppgifter.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Ogiltig sökfråga",
       "invalidSearchQueryForVisibleFields": "Ogiltig sökfråga för synliga fält",
       "invalidSearchQueryForDisplayField": "Ogiltig sökfråga för visningsfält",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Projektmetadata exporterades framgångsrikt",

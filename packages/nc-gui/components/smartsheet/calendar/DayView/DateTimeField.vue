@@ -821,7 +821,10 @@ const dropEvent = (event: DragEvent) => {
       initialClickOffsetY: number
       initialClickOffsetX: number
       isWithoutDates: boolean
-    } = JSON.parse(data)
+    } = parseProp(data)
+
+    // Not a valid record
+    if (!record?.rowMeta) return
 
     if (record.rowMeta.range?.is_readonly) return
 

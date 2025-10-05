@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Accesul la editare va fi setat pentru editori și superiori.",
       "confirmRevertPermissionsToDefault": "Confirmă resetarea permisiunilor pentru tabelul - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Acest câmp este ascuns în formular deoarece nimeni nu are permisiunea de a-l edita."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "nu este nul"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Acces restricționat",
     "editTablePermissions": "Editează permisiunile tabelului",
     "editFieldPermissions": "Editează permisiunile câmpului",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Continuă editarea",
     "leave": "Părăsește",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Este permis un singur token per utilizator",
     "duplicateAttachment": "Fișierul cu numele {filename} este deja atașat",
     "tableIdColon": "ID TABEL: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SCRIPT: {scriptId}",
     "dashboardIdColon": "ID TABLOU DE BORD: {dashboardId}",
     "viewIdColon": "VIZUALIZARE ID: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "pentru rol",
     "clickToCopy": "Fă clic pentru a copia",
     "clickToCopyTableID": "Dă clic pentru a copia ID-ul tabelului",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Fă clic pentru a copia ID-ul scriptului",
     "clickToCopyDashboardID": "Click pentru a copia ID-ul tabloului de bord",
     "clickToCopyViewID": "Click pentru a copia ID-ul Vederii",
@@ -1488,7 +1497,8 @@
     "newScript": "Script nou",
     "emptyScript": "Script gol",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Fă clic pentru a rezolva",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtrează după acest câmp",
     "groupByThisField": "Grupează după acest câmp",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Adaugă la favorite",
     "removeFromStarred": "Elimină din favorite",
     "runActions": "Rulează acțiuni",
     "createScript": "Creează script",
     "deleteAllRecords": "Șterge toate înregistrările",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Atribuie vizualizarea",
     "webhookDetails": "Detalii Webhook",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Spațiu",
     "expandShiftSpace": "Extinde 'Shift + Spațiu'",
     "selectAllMappedFields": "Selectează toate câmpurile mapate",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Copiază codul de eroare",
     "paidUserBadgeTooltip": "Utilizatorul are rol de Editor sau superior în cel puțin o bază.",
     "approachingLimit": "Aproape de limită",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Caută icoane",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Numele domeniului este necesar",
       "nameMaxLength256": "Numele trebuie să aibă cel mult 256 de caractere",
       "viewNameUnique": "Numele vizualizării trebuie să fie unic",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Căutarea dumneavoastră pentru {search} nu a găsit rezultate",
       "invalidChar": "Caracter invalid în calea dosarului.",
       "invalidDbCredentials": "Acreditive de bază de date invalide.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Interogare de căutare nevalidă",
       "invalidSearchQueryForVisibleFields": "Interogare de căutare nevalidă pentru câmpurile vizibile",
       "invalidSearchQueryForDisplayField": "Interogare de căutare nevalidă pentru câmpul de afișare",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Metadatele bazei au fost exportate cu succes",

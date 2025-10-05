@@ -26,4 +26,8 @@ export default class Dashboard {
   async getWidgets(..._args) {
     return [];
   }
+
+  static async deleteByBaseId(..._args) {
+    return true;
+  }
 }

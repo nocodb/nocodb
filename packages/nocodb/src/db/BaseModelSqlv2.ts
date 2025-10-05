@@ -26,6 +26,7 @@ import {
   NcApiVersion,
   NcErrorType,
   ncIsNull,
+  ncIsNullOrUndefined,
   ncIsObject,
   ncIsUndefined,
   PermissionEntity,
@@ -612,11 +613,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (rest.pks) {
       const pks = rest.pks.split(',');
-      qb.where((qb) => {
+      qb.where((innerQb) => {
         pks.forEach((pk) => {
-          qb.orWhere(_wherePk(this.model.primaryKeys, pk));
+          innerQb.orWhere(_wherePk(this.model.primaryKeys, pk));
         });
-        return qb;
+        return innerQb;
       });
     }
 
@@ -3608,7 +3609,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async bulkDeleteAll(
-    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+      viewId?: string;
+      skipPks?: string;
+    } = {},
     { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {
     return await new BaseModelDelete(this).bulkAll({
@@ -5488,11 +5494,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           const attachment = d[col.id][i];
 
-          if (attachment.id?.startsWith('temp_')) {
-            // Skip temporary attachments
-            continue;
-          }
-
           // Handle array of arrays (lookup case)
           for (const lookedUpAttachment of Array.isArray(attachment)
             ? attachment
@@ -5559,6 +5560,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // Skip data URLs
     if (attachment.url?.startsWith('data:')) {
+      return thumbnails;
+    }
+
+    if ('status' in attachment && attachment.status === 'uploading') {
       return thumbnails;
     }
 
@@ -6611,7 +6616,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.uidt,
         )
       ) {
-        if (data[column.column_name]) {
+        if (!ncIsNullOrUndefined(data[column.column_name])) {
           const userIds = [];
 
           if (
@@ -6999,6 +7004,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const auditUpdateObj = [];
     for (const rowId of rowIds) {
+      const prevData = typeof rowId === 'object' ? rowId : {};
+      const updateDiff = populateUpdatePayloadDiff({
+        keepUnderModified: true,
+        prev: prevData,
+        next: data,
+        exclude: extractExcludedColumnNames(this.model.columns),
+        excludeNull: false,
+        excludeBlanks: false,
+        keepNested: true,
+      }) as UpdatePayload;
+
       auditUpdateObj.push(
         await generateAuditV1Payload<DataBulkUpdateAllPayload>(
           AuditV1OperationTypes.DATA_BULK_ALL_UPDATE,
@@ -7010,13 +7026,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               row_id: this.extractPksValues(rowId, true),
             },
             details: {
-              data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
-              old_data: removeBlankPropsAndMask(rowId, [
-                'CreatedAt',
-                'UpdatedAt',
-              ]),
+              old_data: updateDiff.previous_state,
+              data: updateDiff.modifications,
               conditions: conditions,
-              column_meta: extractColsMetaForAudit(this.model.columns, data),
+              column_meta: extractColsMetaForAudit(
+                this.model.columns,
+                data,
+                prevData,
+              ),
             },
             req,
           },

@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Bewerkrechten worden ingesteld op Editors & hoger.",
       "confirmRevertPermissionsToDefault": "Bevestig reset van machtigingen voor tabel - \\\"{tableName}\\\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Dit veld is verborgen in het formulier omdat niemand toestemming heeft om het te bewerken."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "is niet NULL"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Toegang beperkt",
     "editTablePermissions": "Tabelmachtigingen bewerken",
     "editFieldPermissions": "Veldmachtigingen bewerken",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Blijf bewerken",
     "leave": "Verlaten",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Slechts één token per gebruiker toegestaan",
     "duplicateAttachment": "Bestand met naam {filename} al bijgevoegd",
     "tableIdColon": "TABEL ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT-ID: {scriptId}",
     "dashboardIdColon": "DASHBOARD-ID: {dashboardId}",
     "viewIdColon": "WEERGAVE-ID: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "voor rol",
     "clickToCopy": "Klik om te kopiëren",
     "clickToCopyTableID": "Klik om Tabel ID te kopiëren",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klik om script-ID te kopiëren",
     "clickToCopyDashboardID": "Klik om Dashboard-ID te kopiëren",
     "clickToCopyViewID": "Klik om View ID te kopiëren",
@@ -1488,7 +1497,8 @@
     "newScript": "Nieuw script",
     "emptyScript": "Leeg script",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Klik om op te lossen",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filter op dit veld",
     "groupByThisField": "Groeperen op dit veld",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Toevoegen aan favorieten",
     "removeFromStarred": "Uit favorieten verwijderen",
     "runActions": "Acties uitvoeren",
     "createScript": "Script maken",
     "deleteAllRecords": "Alle records verwijderen",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Weergave toewijzen",
     "webhookDetails": "Webhookdetails",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Spatie",
     "expandShiftSpace": "Uitvouwen 'Shift + Spatie'",
     "selectAllMappedFields": "Alle gekoppelde velden selecteren",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Foutcode kopiëren",
     "paidUserBadgeTooltip": "Gebruiker heeft een Editor- of hogere rol in ten minste één base.",
     "approachingLimit": "Nadert limiet",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Zoek pictogrammen",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Domeinnaam is vereist",
       "nameMaxLength256": "Naam mag maximaal 256 tekens lang zijn",
       "viewNameUnique": "Weergavenaam moet uniek zijn",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Uw zoekopdracht voor {search} heeft geen resultaten opgeleverd",
       "invalidChar": "Ongeldig karakter in folderlocatie.",
       "invalidDbCredentials": "Ongeldige database-inloggegevens.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Ongeldige zoekopdracht",
       "invalidSearchQueryForVisibleFields": "Ongeldige zoekopdracht voor zichtbare velden",
       "invalidSearchQueryForDisplayField": "Ongeldige zoekopdracht voor weergaveveld",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",

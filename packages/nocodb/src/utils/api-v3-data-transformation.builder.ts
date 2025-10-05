@@ -361,11 +361,14 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
       'description',
       'meta',
       'colOptions',
+      'fk_model_id',
+      'system',
     ],
     mappings: {
       uidt: 'type',
       cdf: 'default_value',
       meta: 'options',
+      fk_model_id: 'table_id',
     },
     excludeNullProps: true,
     meta: {
@@ -499,7 +502,8 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
           options = { ...rest, button_type: type };
         }
       } else if (isLinksOrLTAR(data.type)) {
-        const { type, ...rest } = data.options as Record<string, any>;
+        const { type, ...rest } =
+          (data.options as Record<string, any>) ?? options;
         options = { ...rest, relation_type: type };
       }
       options = options || data.options;

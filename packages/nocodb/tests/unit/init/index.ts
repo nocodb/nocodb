@@ -7,6 +7,7 @@ import cleanupMeta from './cleanupMeta';
 import { cleanUpSakila, resetAndSeedSakila } from './cleanupSakila';
 import type { Base } from '../../../src/models';
 import type { INestApplication } from '@nestjs/common';
+import Noco from '~/Noco';
 
 let server;
 let nestApp: INestApplication<any>;
@@ -37,6 +38,7 @@ export default async function init(forceReset = false, roles = 'editor') {
     const serverInitResult = await serverInit();
     server = serverInitResult.serverInstance;
     nestApp = serverInitResult.nestApp;
+    Noco._nestApp = nestApp;
   }
 
   // if (isSakila) {

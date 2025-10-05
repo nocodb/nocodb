@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Muokkausoikeus asetetaan editoreille ja ylemmille.",
       "confirmRevertPermissionsToDefault": "Vahvista oikeuksien palautus taululle - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Tämä kenttä on piilotettu lomakkeessa, koska kenelläkään ei ole oikeutta muokata sitä."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "ei ole nolla"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Käyttöoikeus rajoitettu",
     "editTablePermissions": "Muokkaa taulun oikeuksia",
     "editFieldPermissions": "Muokkaa kentän oikeuksia",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Jatka muokkaamista",
     "leave": "Poistu",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Vain yksi merkki käyttäjää kohden sallittu",
     "duplicateAttachment": "Tiedosto nimeltä {filename} on jo liitetty",
     "tableIdColon": "TAULUKOID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SKRIPTIN ID: {scriptId}",
     "dashboardIdColon": "KOONTINÄYTÖN ID: {dashboardId}",
     "viewIdColon": "NÄKYMÄ ID: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "roolille",
     "clickToCopy": "Klikkaa kopioidaksesi",
     "clickToCopyTableID": "Napsauta kopioidaksesi taulukon ID",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klikkaa kopioidaksesi skriptin ID",
     "clickToCopyDashboardID": "Klikkaa kopioidaksesi koontinäytön ID",
     "clickToCopyViewID": "Klikkaa kopioidaksesi näkymän ID",
@@ -1488,7 +1497,8 @@
     "newScript": "Uusi skripti",
     "emptyScript": "Tyhjä skripti",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Klikkaa ratkaistaksesi",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Suodata tämän kentän perusteella",
     "groupByThisField": "Ryhmittele tämän kentän perusteella",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Lisää suosikkeihin",
     "removeFromStarred": "Poista suosikeista",
     "runActions": "Suorita toimenpiteet",
     "createScript": "Luo skripti",
     "deleteAllRecords": "Poista kaikki tietueet",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Määritä näkymä",
     "webhookDetails": "Webhotokin tiedot",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Välilyönti",
     "expandShiftSpace": "Laajenna 'Shift + Välilyönti'",
     "selectAllMappedFields": "Valitse kaikki mapatut kentät",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopioi virhekoodi",
     "paidUserBadgeTooltip": "Käyttäjällä on vähintään Editor-rooli yhdessäkin kannassa.",
     "approachingLimit": "Lähellä rajaa",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Etsi kuvakkeita",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Toiminnon nimi on pakollinen",
       "nameMaxLength256": "Nimen on oltava enintään 256 merkkiä pitkä",
       "viewNameUnique": "Näkymän nimen tulisi olla yksilöllinen",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Hakusi {haku} ei löytänyt tuloksia",
       "invalidChar": "Virheellinen merkki kansioreitillä.",
       "invalidDbCredentials": "Virheelliset tietokannan tunnistetiedot.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Virheellinen hakulauseke",
       "invalidSearchQueryForVisibleFields": "Virheellinen hakulauseke näkyville kentille",
       "invalidSearchQueryForDisplayField": "Virheellinen hakulauseke näyttökentälle",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Project Metadata viedään onnistuneesti",

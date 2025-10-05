@@ -1004,6 +1004,8 @@ export interface FieldBaseV3Type {
 export type ViewV3Type = {
   /** Unique identifier for the view. */
   id: string;
+  /** Id of table associated with the view. */
+  table_id?: string;
   /** Indicates if this is the default view. Omitted if not the default view. */
   is_default?: boolean;
 } & ViewBaseV3Type & {
@@ -1365,7 +1367,7 @@ export interface ViewBaseInUpdateV3Type {
    *
    *  Note: Assigning view as personal using API is not supported currently
    */
-  lock_type?: 'collaborative' | 'locked';
+  lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Description of the view. */
   description?: string;
 }
@@ -1393,6 +1395,8 @@ export interface ViewListV3Type {
   list: {
     /** Unique identifier for the view. */
     id: string;
+    /** Id of table associated with the view. */
+    table_id?: string;
     /** Title of the view. */
     title: string;
     /** Description of the view. */
@@ -3211,7 +3215,7 @@ export interface HookType {
    * Event Type for the operation
    * @example after
    */
-  event?: 'after' | 'before' | 'manual';
+  event?: 'view' | 'field' | 'after' | 'before' | 'manual';
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -3277,7 +3281,7 @@ export interface HookReqType {
    * Event Type for the operation
    * @example after
    */
-  event: 'after' | 'before' | 'manual';
+  event: 'view' | 'field' | 'after' | 'before' | 'manual';
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -3352,7 +3356,7 @@ export interface HookLogType {
    * Hook Event
    * @example after
    */
-  event?: 'after' | 'before' | 'manual';
+  event?: 'field' | 'view' | 'after' | 'before' | 'manual';
   /**
    * Execution Time in milliseconds
    * @example 98
@@ -10761,6 +10765,8 @@ export class Api<
       query?: {
         where?: string;
         viewId?: string;
+        /** Comma separated list of pks */
+        skipPks?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -10801,6 +10807,8 @@ export class Api<
       query?: {
         where?: string;
         viewId?: string;
+        /** Comma separated list of pks */
+        skipPks?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -13408,7 +13416,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name SamplePayloadGet
  * @summary Get Sample Hook Payload
- * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}
+ * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{event}/{operation}/{version}
  * @response `200` `{
   \** Sample Payload Data *\
   data?: object,
@@ -13422,6 +13430,7 @@ export class Api<
  */
     samplePayloadGet: (
       tableId: IdType,
+      event: 'field' | 'view' | 'after' | 'before' | 'manual',
       operation:
         | 'insert'
         | 'update'
@@ -13442,7 +13451,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}/${version}`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${event}/${operation}/${version}`,
         method: 'GET',
         format: 'json',
         ...params,

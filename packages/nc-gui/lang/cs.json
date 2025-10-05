@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Právo na úpravu bude nastaveno pro Editory a výš.",
       "confirmRevertPermissionsToDefault": "Potvrdit reset oprávnění pro tabulku - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Toto pole je ve formuláři skryté, protože žádný uživatel nemá oprávnění je upravovat."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "není null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Přístup omezen",
     "editTablePermissions": "Upravit oprávnění tabulky",
     "editFieldPermissions": "Upravit oprávnění pole",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Pokračovat v úpravách",
     "leave": "Opustit",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Je povolen pouze jeden token na uživatele",
     "duplicateAttachment": "Soubor s názvem {filename} je již připojen",
     "tableIdColon": "ID TABULKY: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SKRIPTU: {scriptId}",
     "dashboardIdColon": "ID PŘEHLEDU: {dashboardId}",
     "viewIdColon": "ID Pohledu: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "pro roli",
     "clickToCopy": "Kliknutím zkopírujete",
     "clickToCopyTableID": "Kliknutím zkopírujete ID tabulky",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Kliknutím zkopírujete ID skriptu",
     "clickToCopyDashboardID": "Kliknutím zkopírujete ID přehledu",
     "clickToCopyViewID": "Kliknutím zkopírujete ID pohledu",
@@ -1488,7 +1497,8 @@
     "newScript": "Nový skript",
     "emptyScript": "Prázdný skript",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Kliknutím vyřešíte",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtrovat podle tohoto pole",
     "groupByThisField": "Seskupit podle tohoto pole",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Přidat k oblíbeným",
     "removeFromStarred": "Odebrat z oblíbených",
     "runActions": "Spustit akce",
     "createScript": "Vytvořit skript",
     "deleteAllRecords": "Odstranit všechny záznamy",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Přiřadit zobrazení",
     "webhookDetails": "Podrobnosti o webhooku",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Mezerník",
     "expandShiftSpace": "Rozbalit 'Shift + Mezerník'",
     "selectAllMappedFields": "Vybrat všechna namapovaná pole",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Zkopírovat chybový kód",
     "paidUserBadgeTooltip": "Uživatel má roli Editor nebo vyšší alespoň v jedné bázi.",
     "approachingLimit": "Blíží se limit",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Hledat ikony",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Název domény je povinný",
       "nameMaxLength256": "Jméno musí mít maximálně 256 znaků",
       "viewNameUnique": "Název pohledu by měl být jedinečný",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Vaše hledání na {search} nenašlo žádné výsledky",
       "invalidChar": "Neplatný znak v cestě ke složce.",
       "invalidDbCredentials": "Neplatné pověření k databázi.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Neplatný vyhledávací dotaz",
       "invalidSearchQueryForVisibleFields": "Neplatný vyhledávací dotaz pro viditelná pole",
       "invalidSearchQueryForDisplayField": "Neplatný vyhledávací dotaz pro zobrazované pole",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Úspěšný export metadat databáze",

@@ -356,6 +356,8 @@ export interface ViewList {
   list: {
     /** Unique identifier for the view. */
     id: string;
+    /** Id of table associated with the view. */
+    table_id?: string;
     /** Title of the view. */
     title: string;
     /** Description of the view. */
@@ -412,7 +414,7 @@ export interface ViewBaseInUpdate {
    *  Note: Assigning view as personal using API is not supported currently
    * @default "collaborative"
    */
-  lock_type?: 'collaborative' | 'locked';
+  lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Description of the view. */
   description?: string;
 }
@@ -691,6 +693,8 @@ export type ViewUpdate = ViewBaseInUpdate &
 export type View = {
   /** Unique identifier for the view. */
   id: string;
+  /** Id of table associated with the view. */
+  table_id?: string;
   /** Indicates if this is the default view. Omitted if not the default view. */
   is_default?: boolean;
 } & ViewBase & {
@@ -2679,7 +2683,7 @@ export class InternalApi<
          *
          * If `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view.
          *
-         * Please remember to maintain the specified format, and do not include spaces between the different condition components
+         * Please remember to maintain the specified format, for further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)
          */
         where?: string;
         /**
@@ -2912,7 +2916,7 @@ export class InternalApi<
          *
          * If `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view.
          *
-         * Please remember to maintain the specified format, and do not include spaces between the different condition components
+         * Please remember to maintain the specified format, for further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)
          */
         where?: string;
       },
@@ -2979,7 +2983,7 @@ export class InternalApi<
          *
          * You can also use other comparison operators like 'neq' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.
          *
-         * Please remember to maintain the specified format, and do not include spaces between the different condition components
+         * Please remember to maintain the specified format, for further information on this please see [the documentation](https://nocodb.com/docs/product-docs/developer-resources/rest-apis#v3-where-query-parameter)
          */
         where?: string;
         /**

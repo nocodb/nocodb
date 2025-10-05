@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Editoreek eta goragokoek izango dute editatzeko sarbidea.",
       "confirmRevertPermissionsToDefault": "Berretsi taularen baimenak berrezartzea: \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Eremu hau ezkutatuta dago formularioan inork editatzeko baimenik ez duelako."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "ez da null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Sarbidea mugatuta",
     "editTablePermissions": "Editatu taularen baimenak",
     "editFieldPermissions": "Editatu eremuen baimenak",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Editatzen jarraitu",
     "leave": "Irten",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Erabiltzaile bakoitzeko token bakarra onartzen da",
     "duplicateAttachment": "Fitxategia izenarekin {filename} jada erantsita",
     "tableIdColon": "TAULA ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT IDA: {scriptId}",
     "dashboardIdColon": "ARBELEAREN IDa: {dashboardId}",
     "viewIdColon": "Ikuspegi ID: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "rolarentzat",
     "clickToCopy": "Klikatu kopiatzeko",
     "clickToCopyTableID": "Klik egin Taula ID kopiatzeko",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Klikatu Script ID kopiatzeko",
     "clickToCopyDashboardID": "Egin klik Arbela IDa kopiatzeko",
     "clickToCopyViewID": "Klik egin Ikuspegi IDa kopiatzeko",
@@ -1488,7 +1497,8 @@
     "newScript": "Script berria",
     "emptyScript": "Script hutsik",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Egin klik ebazteko",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Iragazi eremu honen arabera",
     "groupByThisField": "Taldekatu eremu honen arabera",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Gehitu izarrei",
     "removeFromStarred": "Kendu izarretatik",
     "runActions": "Exekutatu ekintzak",
     "createScript": "Sortu scripta",
     "deleteAllRecords": "Ezabatu erregistro guztiak",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Esleitu ikuspegia",
     "webhookDetails": "Webhook xehetasunak",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Maius + Zuriune",
     "expandShiftSpace": "Zabaldu 'Maius + Zuriune'",
     "selectAllMappedFields": "Hautatu mapatutako eremu guztiak",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiatu errore kodea",
     "paidUserBadgeTooltip": "Erabiltzaileak gutxienez base bateko editore edo maila handiagoko rola du.",
     "approachingLimit": "Mugara hurbiltzen",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Bilatu ikonoak",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Domeinu izena beharrezkoa da",
       "nameMaxLength256": "Izenak gehienez 256 karaktere izan behar ditu",
       "viewNameUnique": "Ikusi izena bakarra izan behar da",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Zure {search} bilaketak ez du emaitzarik aurkitu",
       "invalidChar": "Karpetaren bidean karaktere baliogabea dago.",
       "invalidDbCredentials": "Datu-basearen egiaztagiri baliogabeak.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Bilaketa-kontsulta baliogabea",
       "invalidSearchQueryForVisibleFields": "Bilaketa-kontsulta baliogabea ikusarazten diren eremuetarako",
       "invalidSearchQueryForDisplayField": "Bilaketa-kontsulta baliogabea bistaratzen den eremuarentzat",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",

@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Düzenleme erişimi Editörler ve üstüne ayarlanacak.",
       "confirmRevertPermissionsToDefault": "Tablo için izinleri sıfırlamayı onayla - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Bu alan formda gizli, çünkü hiçbir kullanıcının düzenleme izni yok."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "null değil"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Erişim Kısıtlandı",
     "editTablePermissions": "Tablo izinlerini düzenle",
     "editFieldPermissions": "Alan izinlerini düzenle",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Düzenlemeye devam et",
     "leave": "Çık",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Kullanıcı başına yalnızca bir token oluşturulabilir",
     "duplicateAttachment": "{filename} adlı dosya zaten ekli",
     "tableIdColon": "Tablo ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT ID: {scriptId}",
     "dashboardIdColon": "PANEL ID: {dashboardId}",
     "viewIdColon": "Görünüm ID: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "rol için",
     "clickToCopy": "Kopyalamak için tıklayın",
     "clickToCopyTableID": "Tablo ID'sini kopyalamak için tıklayın",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Script ID'yi kopyalamak için tıklayın",
     "clickToCopyDashboardID": "Panel ID'sini kopyalamak için tıklayın",
     "clickToCopyViewID": "Görünüm ID'sini kopyalamak için tıklayın",
@@ -1488,7 +1497,8 @@
     "newScript": "Yeni Script",
     "emptyScript": "Boş Script",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Çözmek için tıklayın",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Bu alana göre filtrele",
     "groupByThisField": "Bu alana göre grupla",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Yıldızlılara ekle",
     "removeFromStarred": "Yıldızlılardan kaldır",
     "runActions": "Eylemleri Çalıştır",
     "createScript": "Script Oluştur",
     "deleteAllRecords": "Tüm kayıtları sil",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Görünüm ata",
     "webhookDetails": "Webhook Detayları",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Boşluk",
     "expandShiftSpace": "'Shift + Boşluk' genişlet",
     "selectAllMappedFields": "Eşlenen tüm alanları seç",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Hata kodunu kopyala",
     "paidUserBadgeTooltip": "Kullanıcının en az bir veritabanında editör veya daha yüksek bir rolü var.",
     "approachingLimit": "Sınıra yaklaşılıyor",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "İkonları ara",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Alan adı zorunludur",
       "nameMaxLength256": "Ad en fazla 256 karakter uzunluğunda olmalıdır",
       "viewNameUnique": "Görünüm adı benzersiz olmalıdır",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "{search} için aramanız hiç bir sonuç bulamadı",
       "invalidChar": "Klasör yolunda geçersiz karakter.",
       "invalidDbCredentials": "Veritabanı kimlik bilgileri yanlış.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Geçersiz arama sorgusu",
       "invalidSearchQueryForVisibleFields": "Görünen alanlar için geçersiz arama sorgusu",
       "invalidSearchQueryForDisplayField": "Görüntüleme alanı için geçersiz arama sorgusu",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Proje metaverileri başarıyla dışa aktarıldı",

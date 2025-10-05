@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "A szerkesztési jogosultságokat a szerkesztőkre és a felettük lévőkre állítjuk be.",
       "confirmRevertPermissionsToDefault": "Biztosan visszaállítja az engedélyeket a következő táblánál: \"{tableName}\"?",
       "formViewFieldEditPermissionRestrictionTooltip": "Ez a mező az űrlapon azért van rejtve, mert senkinek sincs jogosultsága szerkeszteni."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "nem null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Hozzáférés korlátozva",
     "editTablePermissions": "",
     "editFieldPermissions": "Mező-engedélyek szerkesztése",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Szerkesztés folytatása",
     "leave": "Elhagyás",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Felhasználónként csak egy token engedélyezett",
     "duplicateAttachment": "A fájl {filename} névvel már csatolva van",
     "tableIdColon": "TÁBLA ID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SZKRIPT AZONOSÍTÓ: {scriptId}",
     "dashboardIdColon": "IRÁNYÍTÓPULT AZONOSÍTÓ: {dashboardId}",
     "viewIdColon": "NÉZET AZONOSÍTÓ: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "szerepkörhöz",
     "clickToCopy": "Másoláshoz kattintson",
     "clickToCopyTableID": "Kattintson a Tábla ID másolásához",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Kattintson a szkriptazonosító másolásához",
     "clickToCopyDashboardID": "Kattintson az irányítópult azonosítójának másolásához",
     "clickToCopyViewID": "Kattintással View ID másolása",
@@ -1488,7 +1497,8 @@
     "newScript": "Új szkript",
     "emptyScript": "Üres szkript",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Kattintson a megoldáshoz",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Szűrés ezen mező szerint",
     "groupByThisField": "Csoportosítás ezen mező szerint",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Csillagozás",
     "removeFromStarred": "Csillagozás eltávolítása",
     "runActions": "Műveletek futtatása",
     "createScript": "Szkript létrehozása",
     "deleteAllRecords": "Összes rekord törlése",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Nézet hozzárendelése",
     "webhookDetails": "Webhook Részletek",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Szóköz",
     "expandShiftSpace": "„Shift + Szóköz” kibontása",
     "selectAllMappedFields": "Összes leképezett mező kijelölése",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Hibakód másolása",
     "paidUserBadgeTooltip": "A felhasználó legalább egy adatbázisban szerkesztői vagy magasabb jogosultsággal rendelkezik.",
     "approachingLimit": "Közel a határhoz",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Ikonok keresése",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "A domain név megadása kötelező",
       "nameMaxLength256": "A név legfeljebb 256 karakter hosszú lehet",
       "viewNameUnique": "A nézet neve egyedi kell legyen",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "A(z) {search} keresése nem hozott eredményt",
       "invalidChar": "Érvénytelen karakter a mappa elérési útjában.",
       "invalidDbCredentials": "Érvénytelen adatbázis hitelesítési adatok.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Érvénytelen keresési kifejezés",
       "invalidSearchQueryForVisibleFields": "Érvénytelen keresési kifejezés a látható mezőknél",
       "invalidSearchQueryForDisplayField": "Érvénytelen keresési kifejezés a megjelenítési mezőnél",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Bázis metaadatai sikeresen exportálva",

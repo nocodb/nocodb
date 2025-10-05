@@ -11,6 +11,11 @@ import {
   FilterParseError,
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from './filterHelpers';
+import { arrFlatMap } from './arrayHelpers';
+import {
+  parseLexingError,
+  parseParsingError,
+} from './parser/queryFilter/error-message-parser';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -88,7 +93,7 @@ function innerExtractFilterFromXwhere(
         },
       ],
     };
-  } else if (typeof str !== 'string' && throwErrorIfInvalid) {
+  } else if (typeof str !== 'string') {
     const message =
       'Invalid filter format. Expected string or array of strings';
     if (throwErrorIfInvalid) {
@@ -99,22 +104,31 @@ function innerExtractFilterFromXwhere(
     }
   }
   const parseResult = QueryFilterParser.parse(str);
-  if (
-    (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) &&
-    throwErrorIfInvalid
-  ) {
+  if (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) {
     if (throwErrorIfInvalid)
       throw new InvalidFilterError({
         lexingError: parseResult.lexErrors,
         parsingError: parseResult.parseErrors,
       });
     else {
-      errors.push({
-        message: 'Invalid filter format',
-      });
+      if (parseResult.lexErrors.length > 0) {
+        errors.push({
+          message: parseResult.lexErrors
+            .map((k) => parseLexingError(k))
+            .join(', '),
+        });
+      } else if (parseResult.parseErrors.length > 0) {
+        errors.push({
+          message: parseResult.parseErrors
+            .map((k) => parseParsingError(k))
+            .join(', '),
+        });
+      }
+      
       return { errors };
     }
   }
+
   const filterSubType = parseResult.parsedCst;
 
   const { filter, errors: parseErrors } = mapFilterGroupSubType(
@@ -146,6 +160,7 @@ function mapFilterGroupSubType(
           )
     )
     .filter((k) => k);
+
   if (children.length === 1) {
     return children[0];
   } else {
@@ -155,6 +170,7 @@ function mapFilterGroupSubType(
         logical_op: filter.logical_op,
         children: children.map((k) => k.filter),
       } as FilterType,
+      errors: arrFlatMap(children.map((k) => k.errors || [])).filter((k) => k),
     };
   }
 }
@@ -177,7 +193,6 @@ function mapFilterClauseSubType(
       });
       return { errors };
     }
-    return {};
   }
   const result: FilterType = {
     fk_column_id: aliasCol.id,

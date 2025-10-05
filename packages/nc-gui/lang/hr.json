@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Pristup uređivanju biti će omogućen editorima i višima.",
       "confirmRevertPermissionsToDefault": "Potvrdite resetiranje dozvola za tablicu - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Polje je skriveno u obrascu jer nitko nema dopuštenje za njegovo uređivanje."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "nije ništavan"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Pristup ograničen",
     "editTablePermissions": "Uredi dozvole tablice",
     "editFieldPermissions": "Uredi dozvole polja",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Nastavi uređivati",
     "leave": "Napusti",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Dopušten je samo jedan token po korisniku",
     "duplicateAttachment": "Datoteka s imenom {filename} već je priložena",
     "tableIdColon": "ID TABLICE: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID SKRIPTE: {scriptId}",
     "dashboardIdColon": "ID NADZORNE PLOČE: {dashboardId}",
     "viewIdColon": "ID PREGLEDA: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "za ulogu",
     "clickToCopy": "Kliknite za kopiranje",
     "clickToCopyTableID": "Kliknite za kopiranje ID-a Tabllice",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Kliknite za kopiranje ID-a skripte",
     "clickToCopyDashboardID": "Kliknite za kopiranje ID-a nadzorne ploče",
     "clickToCopyViewID": "Kliknite za kopiranje ID pogleda",
@@ -1488,7 +1497,8 @@
     "newScript": "Nova skripta",
     "emptyScript": "Prazna skripta",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Kliknite za rješavanje",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "Filtriraj prema ovom polju",
     "groupByThisField": "Grupiraj prema ovom polju",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Dodaj u označene",
     "removeFromStarred": "Ukloni iz označenih",
     "runActions": "Pokreni akcije",
     "createScript": "Stvori skriptu",
     "deleteAllRecords": "Izbriši sve zapise",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Dodijeli prikaz",
     "webhookDetails": "Detalji o webhooku",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Proširi 'Shift + Space'",
     "selectAllMappedFields": "Odaberi sva mapirana polja",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Kopiraj kod pogreške",
     "paidUserBadgeTooltip": "Korisnik ima ulogu urednika ili višu u najmanje jednoj bazi.",
     "approachingLimit": "Približavanje ograničenju",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Pretraži ikone",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Naziv domene je obavezan",
       "nameMaxLength256": "Naziv mora biti najviše 256 znakova dug",
       "viewNameUnique": "Naziv prikaza mora biti jedinstven",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Vaša potraga za {Search} nije pronašla rezultate",
       "invalidChar": "Nevažeći znak u mapi.",
       "invalidDbCredentials": "Nevažeće vjerodajnice baze podataka.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Nevažeći upit za pretragu",
       "invalidSearchQueryForVisibleFields": "Nevažeći upit za pretragu vidljivih polja",
       "invalidSearchQueryForDisplayField": "Nevažeći upit za pretragu prikaznog polja",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",

@@ -21,7 +21,6 @@ import type { TableMetaLoader } from '../loaders/TableMetaLoader'
 import {
   ADD_NEW_COLUMN_WIDTH,
   AGGREGATION_HEIGHT,
-  COLUMN_HEADER_HEIGHT_IN_PX,
   GROUP_EXPANDED_BOTTOM_PADDING,
   GROUP_HEADER_HEIGHT,
   GROUP_PADDING,
@@ -51,6 +50,7 @@ export function useCanvasRender({
   scrollTop,
   rowSlice,
   rowHeight,
+  headerRowHeight,
   activeCell,
   dragOver,
   hoverRow,
@@ -63,6 +63,7 @@ export function useCanvasRender({
   tableMetaLoader,
   partialRowHeight,
   vSelectedAllRecords,
+  vSelectedAllRecordsSkipPks,
   isRowDraggingEnabled,
   isAddingColumnAllowed,
   isAddingEmptyRowAllowed,
@@ -96,10 +97,12 @@ export function useCanvasRender({
   upgradeModalInlineState,
   rowMetaColumnWidth,
   rowColouringBorderWidth,
+  isRecordSelected,
 }: {
   width: Ref<number>
   height: Ref<number>
   rowHeight: Ref<number>
+  headerRowHeight: Ref<number>
   columns: ComputedRef<CanvasGridColumn[]>
   colSlice: Ref<{ start: number; end: number }>
   rowSlice: Ref<{ start: number; end: number }>
@@ -130,6 +133,7 @@ export function useCanvasRender({
   tableMetaLoader: TableMetaLoader
   partialRowHeight: Ref<number>
   vSelectedAllRecords: WritableComputedRef<boolean>
+  vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
@@ -175,6 +179,7 @@ export function useCanvasRender({
   }>
   rowMetaColumnWidth: ComputedRef<number>
   rowColouringBorderWidth: ComputedRef<number>
+  isRecordSelected: (row: Row) => boolean
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -189,6 +194,8 @@ export function useCanvasRender({
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
   const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
+
+  const isSelectedAllRecords = computed(() => vSelectedAllRecords.value && ncIsEmptyObject(vSelectedAllRecordsSkipPks.value))
 
   const drawShimmerEffect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, rowIdx: number) => {
     ctx.save()
@@ -229,7 +236,7 @@ export function useCanvasRender({
 
     // Header background
     ctx.fillStyle = '#f4f4f5'
-    ctx.fillRect(0, 0, columnsWidth, 32)
+    ctx.fillRect(0, 0, columnsWidth, headerRowHeight.value)
 
     // Header borders
     ctx.strokeStyle = '#e7e7e9'
@@ -237,8 +244,8 @@ export function useCanvasRender({
 
     // Bottom border
     ctx.beginPath()
-    ctx.moveTo(0, 32)
-    ctx.lineTo(columnsWidth, 32)
+    ctx.moveTo(0, headerRowHeight.value)
+    ctx.lineTo(columnsWidth, headerRowHeight.value)
     ctx.stroke()
 
     const { start: startColIndex, end: endColIndex } = colSlice.value
@@ -276,7 +283,7 @@ export function useCanvasRender({
         xOffset += width
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, 0)
-        ctx.lineTo(xOffset - scrollLeft.value, 32)
+        ctx.lineTo(xOffset - scrollLeft.value, headerRowHeight.value)
         ctx.stroke()
         continue
       }
@@ -286,7 +293,7 @@ export function useCanvasRender({
 
         if (columnState) {
           renderTag(ctx, {
-            height: 31.5,
+            height: headerRowHeight.value - 0.5,
             width,
             x: xOffset - scrollLeft.value,
             y: 0,
@@ -294,7 +301,7 @@ export function useCanvasRender({
             fillStyle: '#ffffff88',
           })
           renderTag(ctx, {
-            height: 32,
+            height: headerRowHeight.value,
             width,
             x: xOffset - scrollLeft.value,
             y: 0,
@@ -328,7 +335,7 @@ export function useCanvasRender({
           size: 13,
           color: iconConfig?.hex ?? '#6a7184',
           x: xOffset + 8 - scrollLeft.value,
-          y: 8,
+          y: headerRowHeight.value / 2 - 7,
         })
       }
 
@@ -336,11 +343,11 @@ export function useCanvasRender({
 
       const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
       const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
-      ctx.fillText(truncatedText, xOffset + 26 - scrollLeft.value, 16)
+      ctx.fillText(truncatedText, xOffset + 26 - scrollLeft.value, headerRowHeight.value / 2)
       if (isRequired) {
         ctx.save()
         ctx.fillStyle = '#EF4444'
-        ctx.fillText('*', xOffset + 28 - scrollLeft.value + ctx.measureText(truncatedText).width, 16)
+        ctx.fillText('*', xOffset + 28 - scrollLeft.value + ctx.measureText(truncatedText).width, headerRowHeight.value / 2)
         ctx.restore()
       }
 
@@ -353,7 +360,7 @@ export function useCanvasRender({
           size: 14,
           color: '#6a7184',
           x: rightOffset - scrollLeft.value,
-          y: 9,
+          y: headerRowHeight.value / 2 - 7,
         })
       } else if (meta.value?.synced && colObj?.readonly) {
         rightOffset -= 16
@@ -362,7 +369,7 @@ export function useCanvasRender({
           size: 14,
           color: '#6a7184',
           x: rightOffset - scrollLeft.value,
-          y: 9,
+          y: headerRowHeight.value / 2 - 7,
         })
       }
 
@@ -373,7 +380,7 @@ export function useCanvasRender({
           size: 14,
           color: '#FF928C',
           x: rightOffset - scrollLeft.value,
-          y: 9,
+          y: headerRowHeight.value / 2 - 7 + 1,
         })
       }
 
@@ -384,14 +391,16 @@ export function useCanvasRender({
           size: 13,
           color: '#6B7280',
           x: rightOffset - scrollLeft.value,
-          y: 9,
+          y: headerRowHeight.value / 2 - 7,
         })
       }
       xOffset += width
 
       const resizeHandleWidth = 10
       const isNearEdge =
-        mousePosition && Math.abs(xOffset - scrollLeft.value - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= 32
+        mousePosition &&
+        Math.abs(xOffset - scrollLeft.value - mousePosition.x) <= resizeHandleWidth &&
+        mousePosition.y <= headerRowHeight.value
 
       if (isNearEdge && !isLocked.value) {
         colResizeHoveredColIds.value.add(column.id)
@@ -399,7 +408,7 @@ export function useCanvasRender({
         ctx.lineWidth = 2
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, 0)
-        ctx.lineTo(xOffset - scrollLeft.value, 32)
+        ctx.lineTo(xOffset - scrollLeft.value, headerRowHeight.value)
         ctx.stroke()
 
         // Reset for regular column separator
@@ -409,30 +418,30 @@ export function useCanvasRender({
         colResizeHoveredColIds.value.delete(column.id)
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, 0)
-        ctx.lineTo(xOffset - scrollLeft.value, 32)
+        ctx.lineTo(xOffset - scrollLeft.value, headerRowHeight.value)
         ctx.stroke()
       }
     }
 
     if (isAddingColumnAllowed.value && !isMobileMode.value) {
       ctx.fillStyle = '#F9F9FA'
-      ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, 32)
+      ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, headerRowHeight.value)
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
         size: 16,
         color: '#6a7184',
         x: xOffset + plusColumnWidth / 2 - 8 - scrollLeft.value,
-        y: 8,
+        y: headerRowHeight.value / 2 - 8,
       })
 
       ctx.beginPath()
       ctx.moveTo(xOffset + plusColumnWidth - scrollLeft.value, 0)
-      ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, 32)
+      ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, headerRowHeight.value)
       ctx.stroke()
 
       ctx.beginPath()
-      ctx.moveTo(xOffset - scrollLeft.value, 32)
-      ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, 32)
+      ctx.moveTo(xOffset - scrollLeft.value, headerRowHeight.value)
+      ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, headerRowHeight.value)
       ctx.stroke()
     }
 
@@ -451,7 +460,7 @@ export function useCanvasRender({
         ctx.strokeStyle = '#f4f4f5'
         if (fillHandler && activeState?.y) {
           ctx.beginPath()
-          ctx.moveTo(xOffset - scrollLeft.value, 32)
+          ctx.moveTo(xOffset - scrollLeft.value, headerRowHeight.value)
           ctx.lineTo(xOffset - scrollLeft.value, activeState.y)
           ctx.stroke()
         }
@@ -462,9 +471,9 @@ export function useCanvasRender({
             ctx.beginPath()
 
             if (selection.value.start.col !== selection.value.end.col) {
-              ctx.moveTo(xOffset - scrollLeft.value, activeState ? activeState.y : 32)
+              ctx.moveTo(xOffset - scrollLeft.value, activeState ? activeState.y : headerRowHeight.value)
             } else {
-              let y = activeState ? activeState.y + activeState.height : 32
+              let y = activeState ? activeState.y + activeState.height : headerRowHeight.value
 
               // Adjust y position if fill handler is in the same active cell and multiple rows are selected
               if (y === fillHandler.y) y -= fillHandler.size / 2
@@ -477,13 +486,19 @@ export function useCanvasRender({
           // Draw line below the fill handler
           ctx.beginPath()
           ctx.moveTo(xOffset - scrollLeft.value, fillHandler.y + fillHandler.size / 2)
-          ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
+          ctx.lineTo(
+            xOffset - scrollLeft.value,
+            (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + headerRowHeight.value,
+          )
           ctx.stroke()
         } else if (activeState?.y && activeState?.height) {
           // Draw line below active state
           ctx.beginPath()
           ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height)
-          ctx.lineTo(xOffset - scrollLeft.value, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 32)
+          ctx.lineTo(
+            xOffset - scrollLeft.value,
+            (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + headerRowHeight.value,
+          )
           ctx.stroke()
         }
       } else if (visibleCols.filter((f) => !f.fixed).length) {
@@ -492,7 +507,7 @@ export function useCanvasRender({
         const verticalLineXOffset = Math.max(fixedColsWidth.value, xOffset - scrollLeft.value)
         ctx.strokeStyle = '#f4f4f5'
         ctx.beginPath()
-        ctx.moveTo(verticalLineXOffset, 32)
+        ctx.moveTo(verticalLineXOffset, headerRowHeight.value)
         ctx.lineTo(
           verticalLineXOffset,
           (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + 33 - partialRowHeight.value,
@@ -522,14 +537,14 @@ export function useCanvasRender({
 
         // Background
         ctx.fillStyle = '#f4f4f5'
-        ctx.fillRect(xOffset, 0, width, 32)
+        ctx.fillRect(xOffset, 0, width, headerRowHeight.value)
 
         if (column.columnObj?.id) {
           const columnState = isColumnSortedOrFiltered(column.columnObj.id, true)
 
           if (columnState) {
             renderTag(ctx, {
-              height: 31.5,
+              height: headerRowHeight.value - 0.5,
               width,
               x: xOffset,
               y: 0,
@@ -538,7 +553,7 @@ export function useCanvasRender({
             })
 
             renderTag(ctx, {
-              height: 32,
+              height: headerRowHeight.value,
               width,
               x: xOffset,
               y: 0,
@@ -560,7 +575,7 @@ export function useCanvasRender({
             size: 13,
             color: iconConfig?.hex ?? '#6a7184',
             x: xOffset + 8,
-            y: 8,
+            y: headerRowHeight.value / 2 - 7,
           })
         }
 
@@ -570,12 +585,14 @@ export function useCanvasRender({
 
         const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
         const x = xOffset + (column.uidt ? 26 : 10)
-        const y = 16
+        const y = headerRowHeight.value / 2
 
         if (column.id === 'row_number') {
           if (
             !readOnly.value &&
-            (vSelectedAllRecords.value || isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: 32 }, mousePosition)) &&
+            !isMobileMode.value &&
+            (isSelectedAllRecords.value ||
+              isBoxHovered({ x: 0, y: 0, width: canvasWidth, height: headerRowHeight.value }, mousePosition)) &&
             !isGroupBy.value
           ) {
             const checkSize = 16
@@ -585,7 +602,7 @@ export function useCanvasRender({
               ctx,
               checkboxX,
               y - 8,
-              vSelectedAllRecords.value,
+              isSelectedAllRecords.value,
               false,
               spriteLoader,
               isCheckboxHovered ? '#3366FF' : '#D9D9D9',
@@ -599,7 +616,7 @@ export function useCanvasRender({
           if (isRequired) {
             ctx.save()
             ctx.fillStyle = '#EF4444'
-            ctx.fillText('*', xOffset + 28 + ctx.measureText(truncatedText).width, 16)
+            ctx.fillText('*', xOffset + 28 + ctx.measureText(truncatedText).width, headerRowHeight.value / 2)
             ctx.restore()
           }
         }
@@ -614,7 +631,7 @@ export function useCanvasRender({
             size: 14,
             color: '#6a7184',
             x: rightOffset,
-            y: 9,
+            y: y - 7,
           })
         } else if (meta.value?.synced && colObj?.readonly) {
           rightOffset -= 16
@@ -623,7 +640,7 @@ export function useCanvasRender({
             size: 14,
             color: '#6a7184',
             x: rightOffset,
-            y: 9,
+            y: y - 7,
           })
         }
 
@@ -635,7 +652,7 @@ export function useCanvasRender({
             size: 14,
             color: '#FF928C',
             x: rightOffset,
-            y: 9,
+            y: y - 7,
           })
         }
 
@@ -647,14 +664,15 @@ export function useCanvasRender({
             size: 13,
             color: '#6B7280',
             x: rightOffset,
-            y: 9,
+            y: y - 7,
           })
         }
         xOffset += width
 
         // Border
         const resizeHandleWidth = 10
-        const isNearEdge = mousePosition && Math.abs(xOffset - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= 32
+        const isNearEdge =
+          mousePosition && Math.abs(xOffset - mousePosition.x) <= resizeHandleWidth && mousePosition.y <= headerRowHeight.value
 
         // Right border for row number field
         if (column.id === 'row_number') {
@@ -662,7 +680,7 @@ export function useCanvasRender({
           ctx.lineWidth = 2
           ctx.beginPath()
           ctx.moveTo(xOffset, 0)
-          ctx.lineTo(xOffset, 32)
+          ctx.lineTo(xOffset, headerRowHeight.value)
           ctx.stroke()
         }
 
@@ -672,7 +690,7 @@ export function useCanvasRender({
           ctx.lineWidth = 2
           ctx.beginPath()
           ctx.moveTo(xOffset, 0)
-          ctx.lineTo(xOffset, 32)
+          ctx.lineTo(xOffset, headerRowHeight.value)
           ctx.stroke()
 
           // Reset for regular column separator
@@ -688,18 +706,18 @@ export function useCanvasRender({
         ctx.beginPath()
         ctx.lineWidth = 1
         ctx.moveTo(xOffset, 0)
-        ctx.lineTo(xOffset, isGroupBy.value ? height.value : 32)
+        ctx.lineTo(xOffset, isGroupBy.value ? height.value : headerRowHeight.value)
         ctx.stroke()
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
-        ctx.rect(xOffset, 0, 4, isGroupBy.value ? height.value : 32)
+        ctx.rect(xOffset, 0, 4, isGroupBy.value ? height.value : headerRowHeight.value)
         ctx.fill()
       } else {
         ctx.strokeStyle = '#E7E7E9'
         ctx.beginPath()
         ctx.lineWidth = 1
         ctx.moveTo(xOffset, 0)
-        ctx.lineTo(xOffset, isGroupBy.value ? height.value : 32)
+        ctx.lineTo(xOffset, isGroupBy.value ? height.value : headerRowHeight.value)
         ctx.stroke()
       }
       ctx.shadowColor = 'transparent'
@@ -828,10 +846,11 @@ export function useCanvasRender({
           groupPath,
           selection.value.start.row,
           rowHeight.value,
+          headerRowHeight.value,
           isAddingEmptyRowAllowed.value,
         ) -
         scrollTop.value +
-        COLUMN_HEADER_HEIGHT_IN_PX
+        headerRowHeight.value
 
       ctx.setLineDash([2, 2])
       ctx.strokeStyle = isAiFillMode.value ? '#9751d7' : '#3366ff'
@@ -879,17 +898,17 @@ export function useCanvasRender({
     rowColor?: string,
   ) => {
     const isHover = hoverRow.value?.rowIndex === row.rowMeta.rowIndex && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
-    const isChecked = row.rowMeta?.selected || vSelectedAllRecords.value
+    const isChecked = isRecordSelected(row)
     const isRowCellSelected =
       activeCell.value.row === row.rowMeta.rowIndex && comparePath(activeCell.value.path, row?.rowMeta?.path)
-    const isDisabled = (!row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS) || vSelectedAllRecords.value
+    const isDisabled = !vSelectedAllRecords.value && !row.rowMeta.selected && selectedRows.value.length >= MAX_SELECTED_ROWS
 
     if (rowColor) {
       ctx.fillStyle = rowColor
     } else {
       ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : '#ffffff'
 
-      if (row.rowMeta.selected) ctx.fillStyle = '#F6F7FE'
+      if (isChecked) ctx.fillStyle = '#F6F7FE'
     }
 
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
@@ -901,7 +920,7 @@ export function useCanvasRender({
     /**
      * 1. Render row index
      */
-    if (readOnly.value || !(isHover || isChecked || isRowCellSelected)) {
+    if (readOnly.value || isMobileMode.value || !(isHover || isChecked || isRowCellSelected)) {
       let rowIndexFontSize = '13px'
 
       if (row.rowMeta.rowIndex! + 1 >= 1000) {
@@ -967,7 +986,7 @@ export function useCanvasRender({
     /**
      * 3. Render checkbox
      */
-    if (!readOnly.value && (isChecked || isHover || isRowCellSelected)) {
+    if (!isMobileMode.value && !readOnly.value && (isChecked || isHover || isRowCellSelected)) {
       const isCheckboxHovered = isHover && mousePosition.x >= currentX && mousePosition.x <= currentX + 24 && !isDisabled
       renderCheckbox(
         ctx,
@@ -1267,8 +1286,10 @@ export function useCanvasRender({
     const isRowCellSelected =
       activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path ?? group?.path)
 
+    const recordSelected = isRecordSelected(row)
+
     const rowColor = row?.row
-      ? row.rowMeta?.is_set_as_background && (isHovered || row.rowMeta.selected || isRowCellSelected)
+      ? row.rowMeta?.is_set_as_background && (isHovered || recordSelected || isRowCellSelected)
         ? row.rowMeta.rowHoverColor
         : row.rowMeta.rowBgColor
       : null
@@ -1313,7 +1334,7 @@ export function useCanvasRender({
           isActiveCellInCurrentGroup
 
         if (
-          row.rowMeta.selected ||
+          recordSelected ||
           (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup)
         ) {
           ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
@@ -1329,7 +1350,7 @@ export function useCanvasRender({
 
         // Vertical cell lines
         ctx.strokeStyle =
-          isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected || columnState || prevColumnState
+          isHovered || recordSelected || isColumnInSelection || isRowCellSelected || columnState || prevColumnState
             ? themeV3Colors.gray['200']
             : themeV3Colors.gray['100']
         ctx.beginPath()
@@ -1384,7 +1405,7 @@ export function useCanvasRender({
           path: groupPath,
           skipRender: isCellEditEnabled,
           isRowHovered: isHovered,
-          isRowChecked: row.rowMeta.selected,
+          isRowChecked: recordSelected,
           isCellInSelectionRange:
             selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup,
           isRootCell: true,
@@ -1406,10 +1427,7 @@ export function useCanvasRender({
             activeCell.value.column === colIdx &&
             isActiveCellInCurrentGroup
 
-          if (
-            row.rowMeta.selected ||
-            (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)
-          ) {
+          if (recordSelected || (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)) {
             ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
@@ -1469,7 +1487,7 @@ export function useCanvasRender({
               skipRender: isCellEditEnabled,
               path: groupPath,
               isRowHovered: isHovered,
-              isRowChecked: row.rowMeta.selected,
+              isRowChecked: recordSelected,
               isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup,
               isRootCell: true,
             })
@@ -1482,7 +1500,7 @@ export function useCanvasRender({
             isActiveCellInCurrentGroup
 
           ctx.strokeStyle =
-            idx !== 0 && (isHovered || row.rowMeta.selected || isColumnInSelection || isRowCellSelected || rowColor)
+            idx !== 0 && (isHovered || recordSelected || isColumnInSelection || isRowCellSelected || rowColor)
               ? themeV3Colors.gray['200']
               : themeV3Colors.gray['100']
           ctx.lineWidth = 1
@@ -1649,7 +1667,7 @@ export function useCanvasRender({
     const startRowIndex = Math.floor(scrollTop.value / rowHeight.value)
 
     const visibleCols = columns.value.slice(startColIndex, endColIndex)
-    let yOffset = -partialRowHeight.value + 33
+    let yOffset = -partialRowHeight.value + headerRowHeight.value + 1
 
     let activeState: {
       col: any
@@ -1763,18 +1781,18 @@ export function useCanvasRender({
         {
           x: 0,
           y: yOffset,
-          height: COLUMN_HEADER_HEIGHT_IN_PX,
+          height: headerRowHeight.value,
           width: adjustedWidth,
         },
         mousePosition,
       )
       ctx.fillStyle = isNewRowHovered && isAddingEmptyRowPermitted.value ? '#F9F9FA' : '#ffffff'
-      ctx.fillRect(0, yOffset, adjustedWidth, COLUMN_HEADER_HEIGHT_IN_PX)
+      ctx.fillRect(0, yOffset, adjustedWidth, headerRowHeight.value)
       // Bottom border for new row
       ctx.strokeStyle = '#f4f4f5'
       ctx.beginPath()
-      ctx.moveTo(0, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
-      ctx.lineTo(adjustedWidth, yOffset + COLUMN_HEADER_HEIGHT_IN_PX)
+      ctx.moveTo(0, yOffset + headerRowHeight.value)
+      ctx.lineTo(adjustedWidth, yOffset + headerRowHeight.value)
       ctx.stroke()
 
       spriteLoader.renderIcon(ctx, {
@@ -1794,7 +1812,7 @@ export function useCanvasRender({
             x: 0,
             y: yOffset,
             width: adjustedWidth,
-            height: COLUMN_HEADER_HEIGHT_IN_PX,
+            height: headerRowHeight.value,
             targetWidth: 258,
           },
         })
@@ -1804,7 +1822,7 @@ export function useCanvasRender({
         elementMap.addElement({
           y: yOffset,
           x: 0,
-          height: COLUMN_HEADER_HEIGHT_IN_PX,
+          height: headerRowHeight.value,
           path: [],
           type: ElementTypes.ADD_NEW_ROW,
         })
@@ -2286,13 +2304,20 @@ export function useCanvasRender({
     let targetRowLine
     if (isGroupBy.value) {
       targetRowLine =
-        calculateGroupRowTop(cachedGroups.value, path, targetRowIndex.value, rowHeight.value, isAddingEmptyRowAllowed.value) -
+        calculateGroupRowTop(
+          cachedGroups.value,
+          path,
+          targetRowIndex.value,
+          rowHeight.value,
+          headerRowHeight.value,
+          isAddingEmptyRowAllowed.value,
+        ) -
         scrollTop.value +
         // add column header height since it's not included
-        COLUMN_HEADER_HEIGHT_IN_PX
+        headerRowHeight.value
     } else {
       targetRowLine =
-        (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + COLUMN_HEADER_HEIGHT_IN_PX
+        (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + headerRowHeight.value
     }
 
     // First render the blue line indicator
@@ -2473,7 +2498,7 @@ export function useCanvasRender({
         {
           x: 0,
           y: yOffset,
-          height: COLUMN_HEADER_HEIGHT_IN_PX,
+          height: headerRowHeight.value,
           width: adjustedWidth,
         },
         mousePosition,
@@ -2483,7 +2508,7 @@ export function useCanvasRender({
         level * 13,
         yOffset,
         adjustedWidth + 2,
-        COLUMN_HEADER_HEIGHT_IN_PX,
+        headerRowHeight.value,
         {
           bottomLeft: 8,
           bottomRight: 8,
@@ -2511,7 +2536,7 @@ export function useCanvasRender({
         x: 16 + 20 + level * 13,
         y: yOffset + 2,
         fontFamily: '600 13px Inter',
-        height: COLUMN_HEADER_HEIGHT_IN_PX,
+        height: headerRowHeight.value,
         fillStyle: '#374151',
         text: `${t('activity.newRecord')}`,
       })
@@ -2532,7 +2557,7 @@ export function useCanvasRender({
           rect: {
             x: level * 13,
             y: yOffset,
-            height: COLUMN_HEADER_HEIGHT_IN_PX,
+            height: headerRowHeight.value,
             width: adjustedWidth,
             targetWidth: 258,
           },
@@ -2545,7 +2570,7 @@ export function useCanvasRender({
         width: 16,
         group,
         level,
-        height: COLUMN_HEADER_HEIGHT_IN_PX,
+        height: headerRowHeight.value,
         path: group.nestedIn,
         groupPath: group?.path,
         type: ElementTypes.EDIT_NEW_ROW_METHOD,
@@ -2557,14 +2582,14 @@ export function useCanvasRender({
           x: level * 13,
           group,
           level,
-          height: COLUMN_HEADER_HEIGHT_IN_PX,
+          height: headerRowHeight.value,
           path: group.nestedIn,
           groupPath: group?.path,
           type: ElementTypes.ADD_NEW_ROW,
         })
       }
 
-      yOffset += COLUMN_HEADER_HEIGHT_IN_PX
+      yOffset += headerRowHeight.value
     }
 
     if (warningRow) {
@@ -2700,7 +2725,7 @@ export function useCanvasRender({
         missingChunks.push(i)
       }
       const groupHeaderY = currentOffset
-      const groupHeight = calculateGroupHeight(group, rowHeight.value, isAddingEmptyRowAllowed.value)
+      const groupHeight = calculateGroupHeight(group, rowHeight.value, headerRowHeight.value, isAddingEmptyRowAllowed.value)
       const groupBottom = groupHeaderY + groupHeight
 
       // Skip if group is fully outside viewport
@@ -2737,7 +2762,7 @@ export function useCanvasRender({
           // If the group is at top, then use startIndex, else use endIndex
           const gHeight = Array.from({ length: startIndex }, (_, g) => {
             const group = groups.get(g)
-            return calculateGroupHeight(group!, rowHeight.value, isAddingEmptyRowAllowed.value)
+            return calculateGroupHeight(group!, rowHeight.value, headerRowHeight.value, isAddingEmptyRowAllowed.value)
           }).reduce((sum, c) => sum + c, 0)
 
           // todo:  figure out the 2px difference which is not expected
@@ -2776,7 +2801,7 @@ export function useCanvasRender({
             const nestedStart = Math.min(
               group.count,
               // Use the negative offset to calculate the start index, as it helps determine how many rows are hidden
-              Math.max(0, Math.floor(-(groupHeaderY + GROUP_HEADER_HEIGHT - COLUMN_HEADER_HEIGHT_IN_PX) / itemHeight)),
+              Math.max(0, Math.floor(-(groupHeaderY + GROUP_HEADER_HEIGHT - headerRowHeight.value) / itemHeight)),
             )
             // Calculate number of visible rows based on viewport height
             const visibleRowCount = Math.ceil(viewportHeight / itemHeight)
@@ -2801,6 +2826,7 @@ export function useCanvasRender({
               group.groups,
               relativeScrollTop,
               rowHeight.value,
+              headerRowHeight.value,
               group.groupCount,
               height.value - groupHeaderY - GROUP_HEADER_HEIGHT - GROUP_EXPANDED_BOTTOM_PADDING,
               true,
@@ -2871,7 +2897,7 @@ export function useCanvasRender({
             const isHovered = isBoxHovered(
               {
                 x: aggXOffset - scrollLeft.value,
-                y: Math.max(currentOffset, COLUMN_HEADER_HEIGHT_IN_PX) + 1,
+                y: Math.max(currentOffset, headerRowHeight.value) + 1,
                 width,
                 height: GROUP_HEADER_HEIGHT - 1 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
               },
@@ -3343,6 +3369,7 @@ export function useCanvasRender({
         cachedGroups.value,
         scrollTop.value,
         rowHeight.value,
+        headerRowHeight.value,
         totalGroups.value,
         height.value,
         false,
@@ -3372,7 +3399,7 @@ export function useCanvasRender({
 
     // render the active cell state and clip the header and aggregation footer areas
     ctx.beginPath()
-    ctx.rect(0, COLUMN_HEADER_HEIGHT_IN_PX, totalWidth.value, height.value - COLUMN_HEADER_HEIGHT_IN_PX - AGGREGATION_HEIGHT)
+    ctx.rect(0, headerRowHeight.value, totalWidth.value, height.value - headerRowHeight.value - AGGREGATION_HEIGHT)
     ctx.clip()
     postRenderCbk?.()
     ctx.restore()

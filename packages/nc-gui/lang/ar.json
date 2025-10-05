@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "سيتم تعيين حق الوصول للتحرير إلى المحررين وما فوق.",
       "confirmRevertPermissionsToDefault": "تأكيد إعادة تعيين الأذونات للجدول - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "هذا الحقل مخفي في النموذج لأنه لا يوجد أي شخص لديه إذن لتعديله."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "ليس فارغاً"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "الوصول مقيد",
     "editTablePermissions": "تعديل أذونات الجدول",
     "editFieldPermissions": "تعديل أذونات الحقل",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "الاستمرار في التحرير",
     "leave": "مغادرة",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "يُسمح برمز واحد فقط لكل مستخدم",
     "duplicateAttachment": "الملف باسم {filename} مرفق بالفعل",
     "tableIdColon": "معرف الجدول: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "معرّف السكربت: {scriptId}",
     "dashboardIdColon": "معرف لوحة التحكم: {dashboardId}",
     "viewIdColon": "معرف العرض: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "للدور",
     "clickToCopy": "انقر للنسخ",
     "clickToCopyTableID": "انقر لنسخ معرف الجدول",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "انقر لنسخ معرّف السكربت",
     "clickToCopyDashboardID": "انقر لنسخ معرف لوحة التحكم",
     "clickToCopyViewID": "انقر لنسخ معرف العرض",
@@ -1488,7 +1497,8 @@
     "newScript": "سكريبت جديد",
     "emptyScript": "سكريبت فارغ",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "انقر للحل",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "تصفية بواسطة هذا الحقل",
     "groupByThisField": "تجميع بواسطة هذا الحقل",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "إضافة إلى المفضلة",
     "removeFromStarred": "إزالة من المفضلة",
     "runActions": "تشغيل الإجراءات",
     "createScript": "إنشاء سكربت",
     "deleteAllRecords": "حذف جميع السجلات",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "تعيين العرض",
     "webhookDetails": "تفاصيل Webhook",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "توسيع 'Shift + Space'",
     "selectAllMappedFields": "تحديد جميع الحقول المطابَقة",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "نسخ رمز الخطأ",
     "paidUserBadgeTooltip": "لدى المستخدم دور محرر أو أعلى في قاعدة واحدة على الأقل.",
     "approachingLimit": "يقترب من الحد",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "البحث عن الأيقونات",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "اسم النطاق مطلوب",
       "nameMaxLength256": "يجب أن يكون الاسم 256 حرفًا على الأكثر",
       "viewNameUnique": "يجب أن يكون اسم العرض فريدًا",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "البحث عن {بحث} لم يتم العثور على نتائج",
       "invalidChar": "حرف غير صالح في مسار المجلد.",
       "invalidDbCredentials": "بيانات اعتماد قاعدة بيانات غير صالحة.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "استعلام البحث غير صالح",
       "invalidSearchQueryForVisibleFields": "استعلام البحث غير صالح للحقول الظاهرة",
       "invalidSearchQueryForDisplayField": "استعلام البحث غير صالح لحقل العرض",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",

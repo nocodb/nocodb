@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "גישה לעריכה תיקבע לעורכים ומעלה.",
       "confirmRevertPermissionsToDefault": "אשר איפוס הרשאות לטבלה - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "שדה זה מוסתר בטופס כי אין לאף אחד הרשאה לערוך אותו."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "לא NULL"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "גישה מוגבלת",
     "editTablePermissions": "עריכת הרשאות טבלה",
     "editFieldPermissions": "עריכת הרשאות שדה",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "המשך עריכה",
     "leave": "עזוב",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "מותר רק אסימון אחד למשתמש",
     "duplicateAttachment": "קובץ עם שם {filename} כבר מצורף",
     "tableIdColon": "מזהה טבלה: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "מזהה סקריפט: {scriptId}",
     "dashboardIdColon": "מזהה לוח בקרה: {dashboardId}",
     "viewIdColon": "מזהה תצוגה: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "עבור תפקיד",
     "clickToCopy": "לחץ כדי להעתיק",
     "clickToCopyTableID": "לחץ כדי להעתיק את מזהה הטבלה",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "לחץ כדי להעתיק את מזהה הסקריפט",
     "clickToCopyDashboardID": "לחץ להעתקת מזהה לוח בקרה",
     "clickToCopyViewID": "לחץ כדי להעתיק את מזהה התצוגה",
@@ -1488,7 +1497,8 @@
     "newScript": "סקריפט חדש",
     "emptyScript": "סקריפט ריק",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "לחץ כדי לפתור",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "סינון לפי שדה זה",
     "groupByThisField": "קבץ לפי שדה זה",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "הוסף למועדפים",
     "removeFromStarred": "הסר מהמועדפים",
     "runActions": "הפעל פעולות",
     "createScript": "צור סקריפט",
     "deleteAllRecords": "מחק את כל הרשומות",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "הקצאת תצוגה",
     "webhookDetails": "פרטי Webhook",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "הרחב 'Shift + Space'",
     "selectAllMappedFields": "בחר את כל השדות הממופים",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "העתק קוד שגיאה",
     "paidUserBadgeTooltip": "למשתמש יש תפקיד עורך או גבוה יותר לפחות בבסיס אחד.",
     "approachingLimit": "מתקרב למגבלה",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "חפש אייקונים",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "נדרש שם דומיין",
       "nameMaxLength256": "השם יכול להכיל לכל היותר 256 תווים",
       "viewNameUnique": "שם התצוגה צריך להיות ייחודי",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "חיפושך '{search}' לא הביא תוצאות",
       "invalidChar": "תו לא חוקי בנתיב התיקייה",
       "invalidDbCredentials": "אישורי מסד נתונים לא חוקיים",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "שאילתת חיפוש לא תקינה",
       "invalidSearchQueryForVisibleFields": "שאילתת חיפוש לא תקינה לשדות גלויים",
       "invalidSearchQueryForDisplayField": "שאילתת חיפוש לא תקינה לשדה תצוגה",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "פרויקט Metadata מיוצא בהצלחה",

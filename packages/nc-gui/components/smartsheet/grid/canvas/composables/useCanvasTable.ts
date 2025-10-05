@@ -8,6 +8,7 @@ import {
   isReadonlyVirtualColumn,
   isSystemColumn,
   isVirtualCol,
+  ncHasProperties,
 } from 'nocodb-sdk'
 import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
@@ -54,6 +55,7 @@ export function useCanvasTable({
   scrollToCell,
   aggregations,
   vSelectedAllRecords,
+  vSelectedAllRecordsSkipPks,
   selectedRows,
   updateRecordOrder,
   expandRows,
@@ -89,6 +91,7 @@ export function useCanvasTable({
   scrollToCell: CanvasScrollToCellFn
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
+  vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
   mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
@@ -189,6 +192,7 @@ export function useCanvasTable({
   const editEnabled = ref<CanvasEditEnabledType>(null)
   const isFillMode = ref(false)
   const dragOver = ref<{ id: string; index: number } | null>(null)
+  const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
@@ -296,7 +300,7 @@ export function useCanvasTable({
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
-  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value)
+  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value && !isMobileMode.value)
 
   const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced)
 
@@ -306,9 +310,11 @@ export function useCanvasTable({
 
   const isAddingColumnAllowed = computed(() => !readOnly.value && isFieldEditAllowed.value && !isSqlView.value)
 
-  const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
+  const rowHeight = computed(() => (isMobileMode.value ? 40 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
   const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
+
+  const headerRowHeight = computed(() => (isMobileMode.value ? 40 : COLUMN_HEADER_HEIGHT_IN_PX))
 
   const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled.value)
 
@@ -663,9 +669,16 @@ export function useCanvasTable({
 
   function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number, path: Array<number> = []) {
     const yOffset =
-      calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) -
+      calculateGroupRowTop(
+        cachedGroups.value,
+        path,
+        rowIndex,
+        rowHeight.value,
+        headerRowHeight.value,
+        isAddingEmptyRowAllowed.value,
+      ) -
       scrollTop.value +
-      COLUMN_HEADER_HEIGHT_IN_PX
+      headerRowHeight.value
     if (targetColumn.fixed) {
       let xOffset = 0
       for (let i = 0; i < columns.value.length; i++) {
@@ -775,10 +788,11 @@ export function useCanvasTable({
         groupPath,
         selection.value.end.row,
         rowHeight.value,
+        headerRowHeight.value,
         isAddingEmptyRowAllowed.value,
       ) -
       scrollTop.value +
-      COLUMN_HEADER_HEIGHT_IN_PX +
+      headerRowHeight.value +
       rowHeight.value
 
     // const startY = -partialRowHeight.value + 33 + (selection.value.end.row - rowSlice.value.start + 1) * rowHeight.value
@@ -799,6 +813,7 @@ export function useCanvasTable({
     meta,
     hasEditPermission: isDataEditAllowed,
     setCursor,
+    attachmentCellDropOver,
   })
 
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
@@ -816,6 +831,7 @@ export function useCanvasTable({
     totalGroups,
     rowSlice,
     rowHeight,
+    headerRowHeight,
     activeCell,
     dragOver,
     hoverRow,
@@ -829,6 +845,7 @@ export function useCanvasTable({
     baseRoleLoader,
     partialRowHeight,
     vSelectedAllRecords,
+    vSelectedAllRecordsSkipPks,
     isRowDraggingEnabled,
     selectedRows,
     isDragging,
@@ -861,6 +878,7 @@ export function useCanvasTable({
     upgradeModalInlineState,
     rowMetaColumnWidth,
     rowColouringBorderWidth,
+    isRecordSelected,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -892,7 +910,7 @@ export function useCanvasTable({
     isExternalSource,
   })
 
-  const { clearCell, copyValue, isPasteable } = useCopyPaste({
+  const { clearCell, copyValue, isPasteable, handleAttachmentCellDrop } = useCopyPaste({
     activeCell,
     selection,
     columns,
@@ -947,6 +965,7 @@ export function useCanvasTable({
     updateOrSaveRow,
     getRows,
     getDataCache,
+    actionManager,
   })
 
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({
@@ -1202,8 +1221,14 @@ export function useCanvasTable({
     if (isGroupBy.value && !path && !path?.legth) return
 
     const yOffset =
-      calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) +
-      COLUMN_HEADER_HEIGHT_IN_PX
+      calculateGroupRowTop(
+        cachedGroups.value,
+        path,
+        rowIndex,
+        rowHeight.value,
+        headerRowHeight.value,
+        isAddingEmptyRowAllowed.value,
+      ) + headerRowHeight.value
 
     let xOffset = (groupByColumns.value?.length ?? 0) * 13
     const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
@@ -1312,6 +1337,20 @@ export function useCanvasTable({
     makeEditable(row, clickedColumn)
   }
 
+  function isRecordSelectedInSelectedAllRecords(rowIdx?: number) {
+    return vSelectedAllRecords.value && (!ncIsNumber(rowIdx) || !ncHasProperties(vSelectedAllRecordsSkipPks.value, rowIdx))
+  }
+
+  function isRecordSelected(row: Row) {
+    if (!row?.rowMeta) return false
+
+    if (vSelectedAllRecords.value) {
+      return isRecordSelectedInSelectedAllRecords(row.rowMeta.rowIndex)
+    }
+
+    return !!row.rowMeta.selected
+  }
+
   function triggerRefreshCanvas() {
     renderCanvas()
   }
@@ -1361,6 +1400,7 @@ export function useCanvasTable({
     activeCell,
     editEnabled,
     rowHeight,
+    headerRowHeight,
     totalWidth,
     columnWidths,
     columns,
@@ -1373,6 +1413,7 @@ export function useCanvasTable({
     partialRowHeight,
     readOnly,
     dragOver,
+    attachmentCellDropOver,
 
     // columnresize related refs
     colResizeHoveredColIds,
@@ -1387,6 +1428,8 @@ export function useCanvasTable({
     findColumnAtPosition,
     findClickedColumn,
     findColumnPosition,
+    isRecordSelectedInSelectedAllRecords,
+    isRecordSelected,
 
     // GroupBy Related
     syncGroupCount,
@@ -1441,6 +1484,9 @@ export function useCanvasTable({
     clearCell,
     copyValue,
     clearSelectedRangeOfCells,
+
+    // attachment cell drop handler
+    handleAttachmentCellDrop,
 
     // Action Manager
     actionManager,

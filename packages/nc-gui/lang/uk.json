@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Доступ для редагування буде дозволено редакторам і вище.",
       "confirmRevertPermissionsToDefault": "Підтвердіть скидання дозволів для таблиці – \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Це поле приховане у формі, оскільки ніхто не має дозволу його редагувати."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "не рівне null"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "Доступ обмежено",
     "editTablePermissions": "Редагувати дозволи таблиці",
     "editFieldPermissions": "Редагувати дозволи поля",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "Якщо ви видалите, вони втратять доступ до всіх баз та даних у цьому робочому просторі. Для повторного приєднання їм знадобиться запрошення."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Продовжити редагування",
     "leave": "Залишити",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "Дозволено лише один жетон на користувача",
     "duplicateAttachment": "Файл з назвою {filename} вже додано",
     "tableIdColon": "ІДЕНТИФІКАТОР ТАБЛИЦІ: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "ID СКРИПТУ: {scriptId}",
     "dashboardIdColon": "ID ПАНЕЛІ: {dashboardId}",
     "viewIdColon": "Ідентифікатор перегляду: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "для ролі",
     "clickToCopy": "Натисніть, щоб скопіювати",
     "clickToCopyTableID": "Натисніть, щоб скопіювати ідентифікатор таблиці",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Натисніть, щоб скопіювати ID скрипту",
     "clickToCopyDashboardID": "Натисніть, щоб скопіювати ID панелі",
     "clickToCopyViewID": "Натисніть, щоб скопіювати ідентифікатор перегляду",
@@ -1488,7 +1497,8 @@
     "newScript": "Новий скрипт",
     "emptyScript": "Порожній скрипт",
     "enterFullscreen": "Повноекранний режим",
-    "exitFullscreen": "Вийти з повноекранного режиму"
+    "exitFullscreen": "Вийти з повноекранного режиму",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "Натисніть для вирішення",
@@ -1498,11 +1508,13 @@
     "removeMember": "Видалити учасника",
     "filterByThisField": "Фільтр за цим полем",
     "groupByThisField": "Групувати за цим полем",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "Додати до обраного",
     "removeFromStarred": "Видалити з обраного",
     "runActions": "Запустити дії",
     "createScript": "Створити скрипт",
     "deleteAllRecords": "Видалити всі записи",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Призначити вид",
     "webhookDetails": "Деталі вебхука",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Пробіл",
     "expandShiftSpace": "Розгорнути «Shift + Пробіл»",
     "selectAllMappedFields": "Вибрати всі зіставлені поля",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "Скопіювати код помилки",
     "paidUserBadgeTooltip": "Користувач має роль редактора або вище принаймні в одній базі.",
     "approachingLimit": "Наближається до ліміту",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Зняття попереднього повноекранного блокування...",
     "youCantHideARequiredField": "Ви не можете приховати обов'язкове поле.",
     "youCantRemoveARequiredField": "Ви не можете видалити обов'язкове поле.",
-    "removeFromForm": "Видалити з форми"
+    "removeFromForm": "Видалити з форми",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "Назва домену є обов'язковою",
       "nameMaxLength256": "Ім'я має бути не більше 256 символів",
       "viewNameUnique": "Назва виду має бути унікальною",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "За вашим запитом {search} не знайдено жодного результату",
       "invalidChar": "Недійсний символ у шляху.",
       "invalidDbCredentials": "Неправильні облікові дані бази даних.",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "Некоректний пошуковий запит",
       "invalidSearchQueryForVisibleFields": "Некоректний пошуковий запит для видимих полів",
       "invalidSearchQueryForDisplayField": "Некоректний пошуковий запит для поля відображення",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",

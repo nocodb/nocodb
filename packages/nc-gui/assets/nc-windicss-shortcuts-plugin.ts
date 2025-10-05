@@ -8,12 +8,18 @@ export default plugin(({ addUtilities }) => {
     '@supports (height: 100dvh)': {
       height: '100dvh',
     },
+    '@supports (height: 100svh)': {
+      height: '100svh',
+    },
   }
 
   utils['.nc-min-h-screen'] = {
     'min-height': '100vh',
     '@supports (min-height: 100dvh)': {
       'min-height': '100dvh',
+    },
+    '@supports (min-height: 100svh)': {
+      'min-height': '100svh',
     },
   }
 
@@ -22,12 +28,18 @@ export default plugin(({ addUtilities }) => {
     '@supports (width: 100dvw)': {
       width: '100dvw',
     },
+    '@supports (width: 100svw)': {
+      width: '100svw',
+    },
   }
 
   utils['.nc-min-w-screen'] = {
     'min-width': '100vw',
     '@supports (width: 100dvw)': {
       'min-width': '100dvw',
+    },
+    '@supports (min-width: 100svw)': {
+      'min-width': '100svw',
     },
   }
 

@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "編集アクセスが編集者以上に設定されます。",
       "confirmRevertPermissionsToDefault": "テーブル「{tableName}」の権限リセットを確認",
       "formViewFieldEditPermissionRestrictionTooltip": "このフィールドは誰も編集権限がないためフォームで非表示です。"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -699,6 +703,7 @@
     "isNotNull": "がNULLでない"
   },
   "title": {
+    "mcpServer": "MCP Server",
     "accessRestricted": "アクセス制限あり",
     "editTablePermissions": "テーブル権限の編集",
     "editFieldPermissions": "フィールド権限の編集",
@@ -924,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "編集を続ける",
     "leave": "退出",
@@ -1137,6 +1144,7 @@
     "tokenLimit": "各ユーザーに1つのトークンのみ許可されます",
     "duplicateAttachment": "名前 {filename} のファイルはすでに添付されています",
     "tableIdColon": "テーブルID: {tableId}",
+    "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "スクリプトID: {scriptId}",
     "dashboardIdColon": "ダッシュボードID: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
@@ -1179,6 +1187,7 @@
     "forRole": "役割のため",
     "clickToCopy": "クリックしてコピー",
     "clickToCopyTableID": "テーブルIDをコピーするにはクリック",
+    "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "クリックしてスクリプトIDをコピー",
     "clickToCopyDashboardID": "クリックしてダッシュボードIDをコピー",
     "clickToCopyViewID": "クリックしてView IDをコピー",
@@ -1488,7 +1497,8 @@
     "newScript": "新しいスクリプト",
     "emptyScript": "空のスクリプト",
     "enterFullscreen": "Enter fullscreen",
-    "exitFullscreen": "Exit fullscreen"
+    "exitFullscreen": "Exit fullscreen",
+    "selectRole": "Select Role"
   },
   "activity": {
     "clickToResolve": "クリックして解決",
@@ -1498,11 +1508,13 @@
     "removeMember": "Remove member",
     "filterByThisField": "このフィールドでフィルター",
     "groupByThisField": "このフィールドでグループ化",
+    "dontGroupByThisField": "Don't group by this field",
     "addToStarred": "お気に入りに追加",
     "removeFromStarred": "スターから削除",
     "runActions": "アクションを実行",
     "createScript": "スクリプトを作成",
     "deleteAllRecords": "すべてのレコードを削除",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "ビューを割り当てる",
     "webhookDetails": "Webhookの詳細",
     "webhookLogs": "Webhook Logs",
@@ -1845,6 +1857,7 @@
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "「Shift + Space」を展開",
     "selectAllMappedFields": "マッピングされたすべてのフィールドを選択",
+    "copyErrorMessage": "Copy error message",
     "copyErrorCode": "エラーコードをコピー",
     "paidUserBadgeTooltip": "ユーザーは少なくとも1つのベースでエディター以上の権限を持っています。",
     "approachingLimit": "上限に近づいています",
@@ -1868,7 +1881,15 @@
     "releasingPreviousFullscreenLock": "Releasing previous fullscreen lock...",
     "youCantHideARequiredField": "You can't hide a required field.",
     "youCantRemoveARequiredField": "You can't remove a required field.",
-    "removeFromForm": "Remove from form"
+    "removeFromForm": "Remove from form",
+    "fieldCannotBeUsedAsDisplayValueField": "{field} field cannot be used as display value field",
+    "thisFieldTypeDoesNotSupportSorting": "This field type doesn't support sorting",
+    "thisFieldTypeDoesNotSupportFiltering": "This field type doesn't support filtering",
+    "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
+    "filterByLimitExceeded": "Filter by limit exceeded",
+    "groupByLimitExceeded": "Group by limit exceeded",
+    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
   },
   "placeholder": {
     "searchIcons": "アイコンを検索",
@@ -2334,6 +2355,7 @@
       "domainNameRequired": "ドメイン名が必要です",
       "nameMaxLength256": "名前は最大256文字です",
       "viewNameUnique": "表示名は一意でなければなりません",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "{search} の検索結果が見つかりませんでした",
       "invalidChar": "フォルダパスに無効な文字が存在します",
       "invalidDbCredentials": "データベースの認証情報が無効です",
@@ -2429,7 +2451,8 @@
       "invalidSearchQuery": "検索クエリが無効です",
       "invalidSearchQueryForVisibleFields": "表示されているフィールドの検索クエリが無効です",
       "invalidSearchQueryForDisplayField": "表示フィールドの検索クエリが無効です",
-      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}"
+      "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

@@ -2355,6 +2355,7 @@
       "domainNameRequired": "域名為必填",
       "nameMaxLength256": "名稱最多 256 個字元",
       "viewNameUnique": "檢視名稱應該是唯一的",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "您的搜尋 {search} 找不到結果",
       "invalidChar": "資料夾路徑有無效字元。",
       "invalidDbCredentials": "資料庫憑證無效。",

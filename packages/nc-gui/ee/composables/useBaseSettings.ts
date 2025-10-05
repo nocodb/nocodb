@@ -151,7 +151,7 @@ export const useBaseSettings = createSharedComposable(() => {
               isCreatingSnapshot.value = false
               updateStatLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE, 1)
             } else if (data.status === JobStatus.FAILED) {
-              message.error('Failed to create snapshot')
+              message.error(data.data?.error?.message || 'Failed to create snapshot')
               isCreatingSnapshot.value = false
               isSnapshotCreationFailed.value = true
             }

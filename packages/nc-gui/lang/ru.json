@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Требуется имя домена",
       "nameMaxLength256": "Имя должно содержать не более 256 символов",
       "viewNameUnique": "Имя представления должно быть уникальным",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "По вашему запросу \"{search}\" ничего не найдено",
       "invalidChar": "Недопустимый символ в пути к папке.",
       "invalidDbCredentials": "Неверные учетные данные базы данных.",

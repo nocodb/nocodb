@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Domenenavn er nødvendig",
       "nameMaxLength256": "Navnet må være maksimalt 256 tegn langt",
       "viewNameUnique": "Visningsnavn skal være unikt",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Søket ditt etter {søk} fant ingen resultater",
       "invalidChar": "Ugyldig karakter i mappebanen.",
       "invalidDbCredentials": "Ugyldig databaseautentisering.",

@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Blijf bewerken",
     "leave": "Verlaten",
@@ -2353,6 +2355,7 @@
       "domainNameRequired": "Domeinnaam is vereist",
       "nameMaxLength256": "Naam mag maximaal 256 tekens lang zijn",
       "viewNameUnique": "Weergavenaam moet uniek zijn",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Uw zoekopdracht voor {search} heeft geen resultaten opgeleverd",
       "invalidChar": "Ongeldig karakter in folderlocatie.",
       "invalidDbCredentials": "Ongeldige database-inloggegevens.",

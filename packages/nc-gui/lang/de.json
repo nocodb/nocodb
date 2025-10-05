@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Konfigurationsfehler",
     "keepEditing": "Weiter bearbeiten",
     "leave": "Verlassen",
@@ -2353,6 +2355,7 @@
       "domainNameRequired": "Domainname ist erforderlich",
       "nameMaxLength256": "Name darf höchstens 256 Zeichen lang sein",
       "viewNameUnique": "Ansichtsname sollte eindeutig sein",
+      "viewNameDuplicate": "Ansichtsname existiert bereits",
       "searchProject": "Ihre Suche nach {search} erzielte keine Ergebnisse",
       "invalidChar": "Ungültiges Zeichen im Ordnerpfad.",
       "invalidDbCredentials": "Ungültige Datenbank-Anmeldeinformationen.",

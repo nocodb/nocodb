@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Fortsett redigering",
     "leave": "Forlat",
@@ -2353,6 +2355,7 @@
       "domainNameRequired": "Domenenavn er nødvendig",
       "nameMaxLength256": "Navnet må være maksimalt 256 tegn langt",
       "viewNameUnique": "Visningsnavn skal være unikt",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Søket ditt etter {søk} fant ingen resultater",
       "invalidChar": "Ugyldig karakter i mappebanen.",
       "invalidDbCredentials": "Ugyldig databaseautentisering.",

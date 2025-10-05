@@ -2355,6 +2355,7 @@
       "domainNameRequired": "נדרש שם דומיין",
       "nameMaxLength256": "השם יכול להכיל לכל היותר 256 תווים",
       "viewNameUnique": "שם התצוגה צריך להיות ייחודי",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "חיפושך '{search}' לא הביא תוצאות",
       "invalidChar": "תו לא חוקי בנתיב התיקייה",
       "invalidDbCredentials": "אישורי מסד נתונים לא חוקיים",

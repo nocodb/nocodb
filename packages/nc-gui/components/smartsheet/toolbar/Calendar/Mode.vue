@@ -71,7 +71,7 @@ watch(activeCalendarView, () => {
     v-else
     v-model:value="activeCalendarView"
     class="nc-select-shadow !w-21 !rounded-lg"
-    dropdown-class-name="!rounded-lg"
+    dropdown-class-name="!rounded-lg !min-w-25"
     size="small"
     data-testid="nc-calendar-view-mode"
     @click.stop

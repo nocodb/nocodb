@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Domeinu izena beharrezkoa da",
       "nameMaxLength256": "Izenak gehienez 256 karaktere izan behar ditu",
       "viewNameUnique": "Ikusi izena bakarra izan behar da",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Zure {search} bilaketak ez du emaitzarik aurkitu",
       "invalidChar": "Karpetaren bidean karaktere baliogabea dago.",
       "invalidDbCredentials": "Datu-basearen egiaztagiri baliogabeak.",

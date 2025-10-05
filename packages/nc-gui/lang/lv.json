@@ -2355,6 +2355,7 @@
       "domainNameRequired": "Domēna nosaukums ir nepieciešams",
       "nameMaxLength256": "Nosaukumam jābūt ne vairāk kā 256 rakstzīmes garam",
       "viewNameUnique": "Skata nosaukumam jābūt unikālam",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Nav atrasti rezultāti meklējot pēc atslēgvārda {search}",
       "invalidChar": "Nederīgs simbols mapes ceļā.",
       "invalidDbCredentials": "Nederīgi datubāzes lietotājvārds un/vai parole.",

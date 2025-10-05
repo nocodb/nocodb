@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Editatzen jarraitu",
     "leave": "Irten",
@@ -2353,6 +2355,7 @@
       "domainNameRequired": "Domeinu izena beharrezkoa da",
       "nameMaxLength256": "Izenak gehienez 256 karaktere izan behar ditu",
       "viewNameUnique": "Ikusi izena bakarra izan behar da",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Zure {search} bilaketak ez du emaitzarik aurkitu",
       "invalidChar": "Karpetaren bidean karaktere baliogabea dago.",
       "invalidDbCredentials": "Datu-basearen egiaztagiri baliogabeak.",

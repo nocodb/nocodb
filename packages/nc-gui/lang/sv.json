@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Fortsätt redigera",
     "leave": "Lämna",
@@ -2353,6 +2355,7 @@
       "domainNameRequired": "Domännamn krävs",
       "nameMaxLength256": "Namnet får vara högst 256 tecken långt",
       "viewNameUnique": "Visningsnamnet bör vara unikt",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Din sökning efter {Sök} har inga resultat",
       "invalidChar": "Ogiltigt tecken i mappbanan.",
       "invalidDbCredentials": "Ogiltiga databasuppgifter.",

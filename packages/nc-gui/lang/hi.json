@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "संपादन जारी रखें",
     "leave": "छोड़ें",
@@ -2353,6 +2355,7 @@
       "domainNameRequired": "डोमेन नाम आवश्यक है",
       "nameMaxLength256": "नाम अधिकतम 256 वर्ण लंबा होना चाहिए",
       "viewNameUnique": "व्यू नाम अद्वितीय होना चाहिए",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "{search} के लिए आपकी खोज कोई परिणाम नहीं मिला",
       "invalidChar": "फ़ोल्डर पथ में अमान्य चरित्र।",
       "invalidDbCredentials": "अमान्य डेटाबेस क्रेडेंशियल्स।",

@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "എഡിറ്റ് ചെയ്യുന്നത് തുടരുക",
     "leave": "വിടുക",
@@ -2353,6 +2355,7 @@
       "domainNameRequired": "ഡൊമെയിൻ പേര് ആവശ്യമാണ്",
       "nameMaxLength256": "നാമം പരമാവധി 256 അക്ഷരങ്ങൾ നീളമുള്ളതാകാം",
       "viewNameUnique": "കാഴ്ച നാമം എറ്റവും സംവേദനശീലമായിരിക്കണം",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "{search} എന്ന തിരച്ചിലിന് ഫലങ്ങളൊന്നുമില്ല",
       "invalidChar": "ഫോൾഡർ പാതയിൽ തെറ്റായ അക്ഷരം.",
       "invalidDbCredentials": "ഡാറ്റാബേസിലെ പരമിതികൾ തെറ്റാണ്.",

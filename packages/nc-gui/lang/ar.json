@@ -2355,6 +2355,7 @@
       "domainNameRequired": "اسم النطاق مطلوب",
       "nameMaxLength256": "يجب أن يكون الاسم 256 حرفًا على الأكثر",
       "viewNameUnique": "يجب أن يكون اسم العرض فريدًا",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "البحث عن {بحث} لم يتم العثور على نتائج",
       "invalidChar": "حرف غير صالح في مسار المجلد.",
       "invalidDbCredentials": "بيانات اعتماد قاعدة بيانات غير صالحة.",

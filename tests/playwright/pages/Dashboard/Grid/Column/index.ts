@@ -154,7 +154,8 @@ export class ColumnPageObject extends BasePage {
         await this.get().locator('.nc-button-type-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${buttonType}"`).click();
 
-        await this.get().locator('.nc-button-webhook-select').click();
+        if (buttonType === 'Run Webhook') await this.get().locator(`.nc-button-webhook-select`).click();
+        else if (buttonType === 'Run Script') await this.get().locator(`.nc-button-script-select`).click();
 
         await this.rootPage.waitForSelector('.nc-list-with-search', {
           state: 'visible',

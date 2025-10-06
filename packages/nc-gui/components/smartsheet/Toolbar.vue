@@ -133,11 +133,10 @@ provide(IsToolbarIconMode, isToolbarIconMode)
       <LazySmartsheetToolbarCalendarRange v-if="isCalendar && isToolbarOperationsAllowed" />
 
       <template v-if="isCalendar && !isMobileMode">
-        <template v-if="isToolbarOperationsAllowed">
-          <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />
-          <LazySmartsheetToolbarFieldsMenu :show-system-fields="false" />
-          <LazySmartsheetToolbarColumnFilterMenu />
-        </template>
+        <LazySmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && isToolbarOperationsAllowed" />
+        <LazySmartsheetToolbarFieldsMenu :show-system-fields="false" />
+        <LazySmartsheetToolbarColumnFilterMenu v-if="isToolbarOperationsAllowed" />
+
         <LazySmartsheetToolbarCalendarToggleSideBar />
       </template>
       <LazyNcFullScreenToggleButton v-if="showFullScreenToggle" />

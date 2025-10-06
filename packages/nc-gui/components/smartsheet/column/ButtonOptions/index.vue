@@ -35,8 +35,6 @@ const { isAiBetaFeaturesEnabled } = useNocoAi()
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
   useColumnCreateStoreOrThrow()
 
-const { isRowActionsEnabled } = useActionPane()
-
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const webhooksStore = useWebhooksStore()
@@ -100,7 +98,7 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  ...(isEeUI && isRowActionsEnabled.value
+  ...(isEeUI
     ? [
         {
           icon: 'ncScript',

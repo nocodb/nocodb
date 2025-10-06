@@ -18,6 +18,10 @@ test.describe('Button column: Run Script', () => {
     await unsetup(context);
   });
 
+  /*
+   * Create a button column of type 'Run Script'
+   * TBD: Execute the button and verify the script ran
+   */
   test('Create button script', async () => {
     await dashboard.treeView.createScript({
       title: 'buttonTest',

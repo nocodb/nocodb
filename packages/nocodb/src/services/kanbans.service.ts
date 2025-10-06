@@ -75,6 +75,26 @@ export class KanbansService {
       }
     }
 
+    const existingView = await View.getByTitleOrId(
+      context,
+      {
+        titleOrId: param.kanban.title,
+        fk_model_id: param.tableId,
+      },
+      ncMeta,
+    );
+    if (existingView) {
+      NcError.get(context).duplicateAlias({
+        type: 'view',
+        alias: param.kanban.title,
+        label: 'title',
+        base: context.base_id,
+        additionalTrace: {
+          table: param.tableId,
+        },
+      });
+    }
+
     const viewWebhookManager =
       param.viewWebhookManager ??
       (

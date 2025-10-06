@@ -560,7 +560,7 @@ export default class User extends UserCE implements UserType {
     for (const base of bases) {
       // clear base user list caches
       await NocoCache.deepDel(
-        'root',
+        { workspace_id: base.fk_workspace_id, base_id: base.id },
         `${CacheScope.BASE_USER}:${base.id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
@@ -572,7 +572,7 @@ export default class User extends UserCE implements UserType {
       ) {
         workspaces.push(base['fk_workspace_id']);
         await NocoCache.deepDel(
-          'root',
+          { workspace_id: base.fk_workspace_id, base_id: null },
           `${CacheScope.WORKSPACE_USER}:${base['fk_workspace_id']}:list`,
           CacheDelDirection.PARENT_TO_CHILD,
         );

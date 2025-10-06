@@ -99,7 +99,7 @@ export interface IFormulaColumn {
   error: string;
   parsed_tree?: ParsedFormulaNode;
 
-  getParsedTree(): ParsedFormulaNode;
+  getParsedTree?(): ParsedFormulaNode;
 }
 
 export type ILinkInfo = {

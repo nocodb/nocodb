@@ -21,7 +21,7 @@ const baseStore = useBase()
 
 const { isMysql, isPg } = baseStore
 
-const { meta } = useSmartsheetStoreOrThrow()
+const { meta, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const getAddnlMargin = (depth: number) => {
   if (props.maxDepth === 3) {
@@ -59,12 +59,17 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
     ></div>
     <NcDropdown
       v-if="field && column?.id"
-      :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!) || isLocked"
+      :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!) || isLocked || !isViewOperationsAllowed"
       overlay-class-name="max-h-64 relative scroll-container nc-scrollbar-thin overflow-auto"
       @click.stop
     >
       <div
-        class="flex items-center overflow-x-hidden justify-end group-aggregation hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
+        class="flex items-center overflow-x-hidden justify-end group-aggregation text-gray-500 transition-all transition-linear px-3 py-2"
+        :class="{
+          'cursor-pointer': !isLocked && isViewOperationsAllowed,
+          'hover:bg-gray-100': isViewOperationsAllowed,
+          'cursor-auto': !isViewOperationsAllowed,
+        }"
         :style="{
           'min-width': width,
           'max-width': width,
@@ -76,7 +81,7 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
             v-if="field?.aggregation === 'none' || field?.aggregation === null"
             class="text-gray-500 opacity-0 transition"
             :class="{
-              'group-hover-aggregation': !isLocked,
+              'group-hover-aggregation': !isLocked && isViewOperationsAllowed,
             }"
           >
             <GeneralIcon class="text-gray-500" icon="arrowDown" />

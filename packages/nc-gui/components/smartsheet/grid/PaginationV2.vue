@@ -120,9 +120,10 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
       >
         <div
           v-if="displayFieldComputed.field && displayFieldComputed.column?.id"
-          class="flex items-center overflow-x-hidden hover:bg-gray-100 text-gray-500 justify-end transition-all transition-linear px-3 py-2"
+          class="flex items-center overflow-x-hidden text-gray-500 justify-end transition-all transition-linear px-3 py-2"
           :class="{
             'cursor-pointer': !isLocked && isViewOperationsAllowed,
+            'hover:bg-gray-100': isViewOperationsAllowed,
           }"
           :style="{
             'min-width': displayFieldComputed?.width,
@@ -267,9 +268,10 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
-          class="flex items-center overflow-hidden justify-end group hover:bg-gray-100 text-gray-500 transition-all transition-linear px-3 py-2"
+          class="flex items-center overflow-hidden justify-end group text-gray-500 transition-all transition-linear px-3 py-2"
           :class="{
             'cursor-pointer': !isLocked && isViewOperationsAllowed,
+            'hover:bg-gray-100': isViewOperationsAllowed,
           }"
           :style="{
             'min-width': width,

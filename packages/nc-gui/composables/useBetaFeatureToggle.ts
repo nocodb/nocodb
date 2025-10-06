@@ -157,16 +157,6 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
-  {
-    id: 'row_actions',
-    title: 'Row Actions',
-    description: 'Execute scripts and webhooks to a record.',
-    enabled: true,
-    version: 2,
-    isEE: true,
-    isCloud: false,
-    isEngineering: true,
-  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

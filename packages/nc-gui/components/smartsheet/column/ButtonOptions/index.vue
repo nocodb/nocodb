@@ -35,8 +35,6 @@ const { isAiBetaFeaturesEnabled } = useNocoAi()
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
   useColumnCreateStoreOrThrow()
 
-const { isRowActionsEnabled } = useActionPane()
-
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const webhooksStore = useWebhooksStore()
@@ -100,7 +98,7 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  ...(isEeUI && isRowActionsEnabled.value
+  ...(isEeUI
     ? [
         {
           icon: 'ncScript',
@@ -559,7 +557,7 @@ const handleUpdateActionType = () => {
       v-model:selected-webhook="selectedWebhook"
     />
     <SmartsheetColumnButtonOptionsScript
-      v-if="vModel?.type === buttonActionsType.Script && isRowActionsEnabled"
+      v-if="vModel?.type === buttonActionsType.Script"
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />

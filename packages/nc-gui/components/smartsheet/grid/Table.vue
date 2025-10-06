@@ -106,7 +106,7 @@ const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlo
 
 const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
-const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
@@ -1984,7 +1984,7 @@ onKeyStroke('ArrowDown', onDown)
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
-                    'no-resize': isLocked,
+                    'no-resize': isLocked || !isViewOperationsAllowed,
                     ...headerFilteredOrSortedClass(fields?.[0]?.id),
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
@@ -2031,7 +2031,7 @@ onKeyStroke('ArrowDown', onDown)
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
-                    'no-resize': isLocked,
+                    'no-resize': isLocked || !isViewOperationsAllowed,
                     ...headerFilteredOrSortedClass(col.id),
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"

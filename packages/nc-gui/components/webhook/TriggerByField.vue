@@ -19,9 +19,11 @@ const triggerField = useVModel(props, 'triggerField', emits)
 const isDropdownOpen = ref(false)
 
 const computedTags = computed(() => {
-  return triggerFields.value?.map((colId) => {
-    return columns.value.find((k) => k.id === colId)
-  })
+  return triggerFields.value
+    ?.map((colId) => {
+      return columns.value.find((k) => k.id === colId)
+    })
+    .filter(Boolean)
 })
 
 const removeColumnId = (colId: string) => {

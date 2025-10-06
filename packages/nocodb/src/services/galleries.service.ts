@@ -45,6 +45,7 @@ export class GalleriesService {
     );
 
     const model = await Model.get(context, param.tableId, ncMeta);
+    param.gallery.title = param.gallery.title?.trim();
     const existingView = await View.getByTitleOrId(
       context,
       {

@@ -75,6 +75,7 @@ export class KanbansService {
       }
     }
 
+    param.kanban.title = param.kanban.title?.trim();
     const existingView = await View.getByTitleOrId(
       context,
       {

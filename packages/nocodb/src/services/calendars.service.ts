@@ -46,6 +46,7 @@ export class CalendarsService {
 
     const model = await Model.get(context, param.tableId, ncMeta);
 
+    param.calendar.title = param.calendar.title?.trim();
     const existingView = await View.getByTitleOrId(
       context,
       {

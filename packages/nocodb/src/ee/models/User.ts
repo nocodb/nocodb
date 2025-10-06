@@ -602,7 +602,7 @@ export default class User extends UserCE implements UserType {
       RootScopes.ROOT,
       MetaTable.USERS,
       {
-        email: `deleted_${user.id}`,
+        email: `deleted_${user.id}@user.invalid`,
         display_name: `Anonymous`,
         deleted_at: ncMeta.knex.fn.now(),
         is_deleted: true,

@@ -730,14 +730,15 @@ function onTouchEnd() {
 
 const visibleMoreOptions = computed(() => {
   const result = {
+    reloadRecord: !isEeUI,
     copyRecordUrl: !isNew.value && !!rowId.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
     deleteRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }
   return {
     ...result,
-    showMoreOptionsMenu: result.copyRecordUrl || result.duplicateRecord || result.deleteRecord,
-    allHiddenExceptCopyRecordUrl: !result.duplicateRecord && !result.deleteRecord,
+    showMoreOptionsMenu: result.reloadRecord || result.copyRecordUrl || result.duplicateRecord || result.deleteRecord,
+    allHiddenExceptCopyRecordUrl: !result.reloadRecord && !result.duplicateRecord && !result.deleteRecord,
   }
 })
 
@@ -910,6 +911,12 @@ export default {
             </NcButton>
             <template #overlay>
               <NcMenu variant="small">
+                <NcMenuItem v-if="visibleMoreOptions.reloadRecord" @click="_loadRow()">
+                  <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
+                    <component :is="iconMap.reload" class="cursor-pointer" />
+                    {{ $t('general.reload') }} {{ $t('objects.record') }}
+                  </div>
+                </NcMenuItem>
                 <NcMenuItem
                   v-if="visibleMoreOptions.copyRecordUrl"
                   type="secondary"

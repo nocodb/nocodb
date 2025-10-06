@@ -541,7 +541,7 @@ defineExpose({
           <div class="flex flex-col gap-3">
             <div>
               <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.projName') }}</div>
-              <div class="text-small leading-[18px] mb-1 text-nc-content-gray">{{ base.title }}</div>
+              <div class="text-small leading-[18px] mb-1">{{ base.title }}</div>
             </div>
 
             <div v-if="currentUserRole">

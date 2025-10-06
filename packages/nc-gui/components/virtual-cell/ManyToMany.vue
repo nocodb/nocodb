@@ -213,7 +213,6 @@ onUnmounted(() => {
             :column="m2mColumn"
             :show-unlink-button="false"
             :truncate="false"
-            :readonly="readOnly"
             @unlink="unlinkRef(cell.item)"
           />
 

@@ -44,7 +44,7 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const isClickDisabled = computed(() => {
-  return !active.value && !isExpandedForm.value
+  return (!active.value && !isExpandedForm.value) || isPublic.value || isForm.value || readonlyProp.value
 })
 
 const { open } = useExpandedFormDetached()
@@ -53,31 +53,32 @@ function openExpandedForm() {
   if (isClickDisabled.value) return
 
   const rowId = extractPkFromRow(item.value, relatedTableMeta.value.columns as ColumnType[])
-  if (!isPublic.value && !readonlyProp.value && rowId) {
-    open({
-      isOpen: true,
-      row: { row: item.value, rowMeta: {}, oldRow: { ...item.value } },
-      meta: relatedTableMeta.value,
-      rowId,
-      useMetaFields: true,
-      maintainDefaultViewOrder: true,
-      loadRow: !isPublic.value,
-      skipReload: true,
-      createdRecord: onCreatedRecord,
+
+  if (!rowId) return
+
+  open({
+    isOpen: true,
+    row: { row: item.value, rowMeta: {}, oldRow: { ...item.value } },
+    meta: relatedTableMeta.value,
+    rowId,
+    useMetaFields: true,
+    maintainDefaultViewOrder: true,
+    loadRow: !isPublic.value,
+    skipReload: true,
+    createdRecord: onCreatedRecord,
+  })
+
+  function onCreatedRecord() {
+    reloadTrigger?.trigger({
+      shouldShowLoading: false,
     })
 
-    function onCreatedRecord() {
-      reloadTrigger?.trigger({
-        shouldShowLoading: false,
-      })
-
-      reloadViewDataTrigger?.trigger({
-        shouldShowLoading: false,
-        isFromLinkRecord: true,
-        relatedTableMetaId: relatedTableMeta.value.id,
-        rowId: rowId!,
-      })
-    }
+    reloadViewDataTrigger?.trigger({
+      shouldShowLoading: false,
+      isFromLinkRecord: true,
+      relatedTableMetaId: relatedTableMeta.value.id,
+      rowId: rowId!,
+    })
   }
 }
 </script>

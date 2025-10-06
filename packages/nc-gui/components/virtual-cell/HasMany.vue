@@ -215,7 +215,6 @@ onUnmounted(() => {
             :column="hasManyColumn"
             :show-unlink-button="false"
             :truncate="false"
-            :readonly="readOnly"
             @unlink="unlinkRef(cell.item)"
           />
 

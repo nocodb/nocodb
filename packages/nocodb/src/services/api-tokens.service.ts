@@ -37,6 +37,7 @@ export class ApiTokensService {
     // Get SSO client ID if user logged in via SSO
     const ssoClientId = (param.req.user as any)?.extra?.sso_client_id;
 
+    param.tokenBody.description = param.tokenBody.description?.trim();
     const token = await ApiToken.insert({
       ...param.tokenBody,
       fk_user_id: param.userId,

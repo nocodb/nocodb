@@ -15,7 +15,7 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import Validator from 'validator';
 import type { MetaService } from '~/meta/meta.service';
 import type { Knex } from 'knex';
@@ -249,7 +249,7 @@ export async function populatePk(
   for (const pkCol of model.primaryKeys) {
     if (!pkCol.meta?.ag || insertObj[pkCol.title]) continue;
     insertObj[pkCol.title] =
-      pkCol.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+      pkCol.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : randomUUID();
   }
 }
 

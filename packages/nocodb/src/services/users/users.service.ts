@@ -1,7 +1,7 @@
 import { promisify } from 'util';
 import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, OrgUserRoles, validatePassword } from 'nocodb-sdk';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcryptjs';
 import type {
@@ -275,7 +275,7 @@ export class UsersService {
     const user = await User.getByEmail(email);
 
     if (user) {
-      const token = uuidv4();
+      const token = randomUUID();
       const updatedUser = await User.update(user.id, {
         email: user.email,
         reset_password_token: token,

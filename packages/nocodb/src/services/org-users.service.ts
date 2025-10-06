@@ -5,7 +5,7 @@ import {
   OrgUserRoles,
   PluginCategory,
 } from 'nocodb-sdk';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import validator from 'validator';
 import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
@@ -147,7 +147,7 @@ export class OrgUsersService {
       NcError.badRequest('Invalid email address : ' + invalidEmails.join(', '));
     }
 
-    const invite_token = uuidv4();
+    const invite_token = randomUUID();
     const error = [];
 
     for (const email of emails) {
@@ -238,7 +238,7 @@ export class OrgUsersService {
       NcError.userNotFound(param.userId);
     }
 
-    const invite_token = uuidv4();
+    const invite_token = randomUUID();
 
     await User.update(user.id, {
       invite_token,
@@ -284,7 +284,7 @@ export class OrgUsersService {
     if (!user) {
       NcError.userNotFound(param.userId);
     }
-    const token = uuidv4();
+    const token = randomUUID();
     await User.update(user.id, {
       email: user.email,
       reset_password_token: token,

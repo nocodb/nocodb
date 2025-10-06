@@ -1,5 +1,5 @@
 import debug from 'debug';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { RecoverDisconnectedTableNames } from './nc_job_008_recover_disconnected_table_name';
 import type { Job } from 'bull';
@@ -94,7 +94,7 @@ export class InitMigrationJobs {
     this.debugLog(`job started for ${job.id}`);
 
     // create a unique id for this run
-    const runUuid = uuidv4();
+    const runUuid = randomUUID();
 
     const migrationJobsState = await getMigrationJobsState();
 

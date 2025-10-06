@@ -1,5 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, SourceType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -545,7 +545,7 @@ export default class Source implements SourceType {
 
   async shareErd(context: NcContext, ncMeta = Noco.ncMeta) {
     if (!this.erd_uuid) {
-      const uuid = uuidv4();
+      const uuid = randomUUID();
       this.erd_uuid = uuid;
 
       // set meta

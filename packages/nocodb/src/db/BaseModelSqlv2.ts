@@ -34,7 +34,7 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -2901,7 +2901,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             d[col.title] = d[col.id];
           } else {
             d[col.title] =
-              col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+              col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : randomUUID();
           }
         }
       }

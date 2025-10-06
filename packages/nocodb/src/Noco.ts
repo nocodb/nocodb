@@ -1,9 +1,9 @@
 import '~/instrument';
 import path from 'path';
+import { randomUUID } from 'crypto';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
@@ -232,7 +232,7 @@ export default class Noco {
             MetaTable.STORE,
             {
               key: 'nc_auth_jwt_secret',
-              value: (secret = uuidv4()),
+              value: (secret = randomUUID()),
             },
             true,
           );

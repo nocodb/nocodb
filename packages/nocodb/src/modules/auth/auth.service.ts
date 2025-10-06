@@ -3,7 +3,7 @@ import { OrgUserRoles } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
 import { UsersService } from '~/services/users/users.service';
@@ -61,7 +61,7 @@ export class AuthService {
 
     const salt = await promisify(bcrypt.genSalt)(10);
     password = await promisify(bcrypt.hash)(password, salt);
-    const email_verification_token = uuidv4();
+    const email_verification_token = randomUUID();
 
     if (!user) {
       await this.registerNewUserIfAllowed({

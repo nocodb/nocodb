@@ -154,45 +154,43 @@ export const relationDataFetcher = (param: {
       const relColumn = (
         await baseModel.model.getColumns(baseModel.context)
       ).find((c) => c.id === colId);
+
       const relColOptions = (await relColumn.getColOptions(
         baseModel.context,
       )) as LinkToAnotherRecordColumn;
-      const { refContext, mmContext } = relColOptions.getRelContext(
-        baseModel.context,
-      );
+
+      const context = baseModel.context;
+      const { refContext, mmContext } = relColOptions.getRelContext(context);
 
       // const tn = baseModel.model.tn;
       // const cn = (await relColOptions.getChildColumn()).title;
-      const mmTable = await relColOptions.getMMModel(baseModel.context);
+      const mmTable = await relColOptions.getMMModel(context);
       const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
         model: mmTable,
         dbDriver: baseModel.dbDriver,
       });
       const vtn = mmBaseModel.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
+      const vcn = (await relColOptions.getMMChildColumn(mmContext)).column_name;
+      const vrcn = (await relColOptions.getMMParentColumn(mmContext))
         .column_name;
-      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
-        .column_name;
-      const rcn = (await relColOptions.getParentColumn(baseModel.context))
-        .column_name;
-      const cn = (await relColOptions.getChildColumn(baseModel.context))
-        .column_name;
-      const childTable = await (
-        await relColOptions.getParentColumn(baseModel.context)
+      const rcn = (await relColOptions.getParentColumn(refContext)).column_name;
+      const cn = (await relColOptions.getChildColumn(context)).column_name;
+      const refTable = await (
+        await relColOptions.getParentColumn(refContext)
       ).getModel(refContext);
-      const parentTable = await (
-        await relColOptions.getChildColumn(baseModel.context)
+      const table = await (
+        await relColOptions.getChildColumn(context)
       ).getModel(baseModel.context);
-      await parentTable.getColumns(baseModel.context);
-      const childBaseModel = await Model.getBaseModelSQL(refContext, {
+      await table.getColumns(context);
+      const refBaseModel = await Model.getBaseModelSQL(refContext, {
         dbDriver: baseModel.dbDriver,
-        model: childTable,
+        model: refTable,
       });
 
-      const childTn = childBaseModel.getTnPath(childTable);
-      const parentTn = baseModel.getTnPath(parentTable);
+      const refTn = refBaseModel.getTnPath(refTable);
+      const tn = baseModel.getTnPath(table);
 
-      const rtn = childTn;
+      const rtn = refTn;
       // const rtnId = childTable.id;
 
       const qb = baseModel
@@ -201,25 +199,25 @@ export const relationDataFetcher = (param: {
         .whereIn(
           `${vtn}.${vcn}`,
           baseModel
-            .dbDriver(parentTn)
+            .dbDriver(tn)
             .select(cn)
             // .where(parentTable.primaryKey.cn, id)
-            .where(_wherePk(parentTable.primaryKeys, parentId)),
+            .where(_wherePk(table.primaryKeys, parentId)),
         );
 
-      await childBaseModel.selectObject({
+      await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink(),
       });
 
-      await childTable.getViews(childBaseModel.context);
+      await refTable.getViews(refContext);
       const viewId =
-        relColumn.colOptions?.fk_target_view_id ?? childTable.views?.[0]?.id;
+        relColumn.colOptions?.fk_target_view_id ?? refTable.views?.[0]?.id;
       let view: View | null = null;
-      if (viewId) view = await View.get(childBaseModel.context, viewId);
-      await childBaseModel.applySortAndFilter({
-        table: childTable,
+      if (viewId) view = await View.get(refContext, viewId);
+      await refBaseModel.applySortAndFilter({
+        table: refTable,
         where,
         view,
         qb,
@@ -230,9 +228,9 @@ export const relationDataFetcher = (param: {
       if (!sort || sort === '') {
         const view = relColOptions.fk_target_view_id
           ? await View.get(refContext, relColOptions.fk_target_view_id)
-          : await View.getDefaultView(refContext, childTable.id);
-        const childSorts = await view.getSorts(childBaseModel.context);
-        await sortV2(childBaseModel, childSorts, qb);
+          : await View.getDefaultView(refContext, refTable.id);
+        const childSorts = await view.getSorts(refContext);
+        await sortV2(refBaseModel, childSorts, qb);
       }
 
       // todo: sanitize
@@ -245,11 +243,11 @@ export const relationDataFetcher = (param: {
       }
       qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
 
-      const children = await childBaseModel.execAndParse(
+      const children = await refBaseModel.execAndParse(
         qb,
-        await childTable.getColumns(childBaseModel.context),
+        await refTable.getColumns(refContext),
       );
-      const proto = await childBaseModel.getProto();
+      const proto = await refBaseModel.getProto();
 
       return children.map((c) => {
         c.__proto__ = proto;
@@ -711,7 +709,7 @@ export const relationDataFetcher = (param: {
       )) as LinkToAnotherRecordColumn;
 
       const context = baseModel.context;
-      const { mmContext, refContext } =  relColOptions.getRelContext(context);
+      const { mmContext, refContext } = relColOptions.getRelContext(context);
 
       const mmTable = await relColOptions.getMMModel(context);
 
@@ -721,14 +719,14 @@ export const relationDataFetcher = (param: {
       });
 
       const vtn = assocBaseModel.getTnPath(mmTable);
-      const vcn = (await relColOptions.getMMChildColumn(mmContext))
-        .column_name;
+      const vcn = (await relColOptions.getMMChildColumn(mmContext)).column_name;
       const vrcn = (await relColOptions.getMMParentColumn(mmContext))
         .column_name;
-      const rcn = (await relColOptions.getParentColumn(refContext))
-        .column_name;
-      const cn = (await relColOptions.getChildColumn(context))
-        .column_name;
+      const rcn = (await relColOptions.getParentColumn(refContext)).column_name;
+
+      console.log(relColOptions.fk_child_column_id);
+      console.log(context);
+      const cn = (await relColOptions.getChildColumn(context)).column_name;
       const refTable = await (
         await relColOptions.getParentColumn(refContext)
       ).getModel(refContext);
@@ -763,9 +761,7 @@ export const relationDataFetcher = (param: {
             // .where(table.primaryKey.cn, id)
             .where(_wherePk(table.primaryKeys, parentId)),
         );
-      const aliasColObjMap = await refTable.getAliasColObjMap(
-        refContext,
-      );
+      const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
       const { filters: filterObj } = extractFilterFromXwhere(
         refContext,
         where,

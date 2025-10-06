@@ -77,11 +77,14 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         }"
         class="flex items-center gap-3 empty:hidden"
       >
+        <template v-if="isCalendar">
+          <LazySmartsheetToolbarCalendarHeader />
+          <LazySmartsheetToolbarCalendarToday />
+          <LazySmartsheetToolbarCalendarNextPrev />
+        </template>
+
         <template v-if="isToolbarOperationsAllowed">
           <LazySmartsheetToolbarMappedBy v-if="isMap" />
-          <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
-          <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
-          <LazySmartsheetToolbarCalendarNextPrev v-if="isCalendar" />
 
           <LazySmartsheetToolbarStackedBy v-if="isKanban" />
 
@@ -133,7 +136,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
 
-      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab && isToolbarOperationsAllowed" :tab="isTab" />
+      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
 
       <LazySmartsheetToolbarCalendarRange v-if="isCalendar && isToolbarOperationsAllowed" />
 

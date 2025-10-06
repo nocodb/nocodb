@@ -33,7 +33,7 @@ const baseStore = useBase()
 
 const { isMysql, isPg } = baseStore
 
-const { meta } = useSmartsheetStoreOrThrow()
+const { meta, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const { updateAggregate, getAggregations, visibleFieldsComputed, displayFieldComputed } = useViewAggregateOrThrow()
 
@@ -115,14 +115,14 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
   <div ref="containerElement" class="bg-gray-50 w-full pr-1 border-t-1 border-gray-200 overflow-x-hidden no-scrollbar flex h-9">
     <div class="sticky flex items-center bg-gray-50 left-0">
       <NcDropdown
-        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(displayFieldComputed.column?.uidt!) || isLocked"
+        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(displayFieldComputed.column?.uidt!) || isLocked || !isViewOperationsAllowed"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
           v-if="displayFieldComputed.field && displayFieldComputed.column?.id"
           class="flex items-center overflow-x-hidden hover:bg-gray-100 text-gray-500 justify-end transition-all transition-linear px-3 py-2"
           :class="{
-            'cursor-pointer': !isLocked,
+            'cursor-pointer': !isLocked && isViewOperationsAllowed,
           }"
           :style="{
             'min-width': displayFieldComputed?.width,
@@ -169,7 +169,7 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
               <div
                 v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
                 :class="{
-                  'group-hover:opacity-100': !isLocked,
+                  'group-hover:opacity-100': !isLocked && isViewOperationsAllowed,
                 }"
                 class="text-gray-500 opacity-0 transition"
               >
@@ -263,13 +263,13 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
       ></div>
       <NcDropdown
         v-if="field && column?.id"
-        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(column?.uidt!) || isLocked"
+        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(column?.uidt!) || isLocked || !isViewOperationsAllowed"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
           class="flex items-center overflow-hidden justify-end group hover:bg-gray-100 text-gray-500 transition-all transition-linear px-3 py-2"
           :class="{
-            'cursor-pointer': !isLocked,
+            'cursor-pointer': !isLocked && isViewOperationsAllowed,
           }"
           :style="{
             'min-width': width,
@@ -281,7 +281,7 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
             <div
               v-if="field?.aggregation === 'none' || field?.aggregation === null"
               :class="{
-                'group-hover:opacity-100': !isLocked,
+                'group-hover:opacity-100': !isLocked && isViewOperationsAllowed,
               }"
               class="text-gray-500 opacity-0 transition"
             >

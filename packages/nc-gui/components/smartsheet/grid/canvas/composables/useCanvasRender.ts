@@ -98,6 +98,7 @@ export function useCanvasRender({
   rowMetaColumnWidth,
   rowColouringBorderWidth,
   isRecordSelected,
+  isViewOperationsAllowed,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -180,6 +181,7 @@ export function useCanvasRender({
   rowMetaColumnWidth: ComputedRef<number>
   rowColouringBorderWidth: ComputedRef<number>
   isRecordSelected: (row: Row) => boolean
+  isViewOperationsAllowed: ComputedRef<boolean>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -402,7 +404,7 @@ export function useCanvasRender({
         Math.abs(xOffset - scrollLeft.value - mousePosition.x) <= resizeHandleWidth &&
         mousePosition.y <= headerRowHeight.value
 
-      if (isNearEdge && !isLocked.value) {
+      if (isNearEdge && !isLocked.value && isViewOperationsAllowed.value) {
         colResizeHoveredColIds.value.add(column.id)
         ctx.strokeStyle = '#9CDAFA'
         ctx.lineWidth = 2
@@ -684,7 +686,7 @@ export function useCanvasRender({
           ctx.stroke()
         }
 
-        if (isNearEdge && column.id !== 'row_number' && !isLocked.value) {
+        if (isNearEdge && column.id !== 'row_number' && !isLocked.value && isViewOperationsAllowed.value) {
           colResizeHoveredColIds.value.add(column.id)
           ctx.strokeStyle = '#9CDAFA'
           ctx.lineWidth = 2
@@ -1900,7 +1902,7 @@ export function useCanvasRender({
   }
 
   const renderColumnDragIndicator = (ctx: CanvasRenderingContext2D) => {
-    if (!dragOver.value) return
+    if (!dragOver.value || !isViewOperationsAllowed.value) return
 
     let xPosition = 0
     for (let i = 0; i < dragOver.value.index; i++) {

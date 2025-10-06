@@ -56,12 +56,15 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       () => !!base.value?.sources?.some((s) => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),
     )
 
-    const isToolbarOperationsAllowed = computed(() => {
-      // Allow toolbar operations in shared base and view
+    /**
+     * View operations (toolbar, aggregation footer, column reorder, column resize, etc.)
+     */
+    const isViewOperationsAllowed = computed(() => {
+      // Allow view operations in shared base and view
       if (isPublic.value || isSharedBase.value) return true
 
-      // Allow toolbar operations only for editor and above roles
-      return isUIAllowed('toolbarOperations')
+      // Allow view operations only for editor and above roles
+      return isUIAllowed('viewOperations')
     })
 
     const isAlreadyShownUpgradeModal = ref(false)
@@ -240,7 +243,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       fetchTotalRowsWithSearchQuery,
       gridEditEnabled,
       getValidSearchQueryForColumn,
-      isToolbarOperationsAllowed,
+      isViewOperationsAllowed,
     }
   },
   'smartsheet-store',

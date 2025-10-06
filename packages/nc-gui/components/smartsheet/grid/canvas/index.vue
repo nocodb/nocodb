@@ -364,6 +364,7 @@ const {
   rowMetaColumnWidth,
   rowColouringBorderWidth,
   isRecordSelected,
+  isViewOperationsAllowed,
 } = useCanvasTable({
   rowHeightEnum,
   cachedRows,
@@ -1039,6 +1040,7 @@ async function handleMouseDown(e: MouseEvent) {
   if (y <= headerRowHeight.value) {
     // If x less than 80px, use is hovering over the row meta column
     if (x > rowMetaColumnWidth.value) {
+      if (!isViewOperationsAllowed.value) return
       // If the user is trying to resize the column
       // If the user is trying to resize column, we will set the resizeableColumn to column object
       // The below operation will not interfere with other column operations

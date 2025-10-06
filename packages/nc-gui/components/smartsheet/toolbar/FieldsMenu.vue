@@ -49,10 +49,10 @@ const {
   isLocalMode,
 } = useViewColumnsOrThrow()
 
-const { eventBus, isDefaultView, isSqlView, isToolbarOperationsAllowed } = useSmartsheetStoreOrThrow()
+const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const isFieldsMenuReadOnly = computed(() => {
-  return isLocked.value || !isToolbarOperationsAllowed.value
+  return isLocked.value || !isViewOperationsAllowed.value
 })
 
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)

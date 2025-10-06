@@ -506,7 +506,8 @@ export class BasesService extends BasesServiceCE {
     }
 
     // else add the current user as base owner and proceed with the update
-    if (!baseUser) {
+    // Check if baseUser.base_id is null to determine if the user exists in the base user table
+    if (!baseUser?.base_id) {
       await BaseUser.insert(context, {
         fk_user_id: param.user.id,
         base_id: param.baseId,

@@ -333,7 +333,7 @@ export class BaseUsersService {
         } catch (e) {
           this.logger.error(e.message, e.stack);
           if (emails.length === 1) {
-            throw e;
+            NcError.get(context).baseUserError('Bad Request');
           } else {
             error.push({ email, error: e.message });
           }

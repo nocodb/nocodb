@@ -431,6 +431,27 @@ export class NcErrorBase {
     });
   }
 
+  orgUserError(message: string, args?: NcErrorArgs) {
+    throw this.errorCodex.generateError(NcErrorType.ORG_USER_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  tableError(message: string, args?: NcErrorArgs) {
+    throw this.errorCodex.generateError(NcErrorType.TABLE_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  columnError(message: string, args?: NcErrorArgs) {
+    throw this.errorCodex.generateError(NcErrorType.COLUMN_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
   maxWorkspaceLimitReached(args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.MAX_WORKSPACE_LIMIT_REACHED,

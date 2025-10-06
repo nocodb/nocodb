@@ -4,7 +4,7 @@ import {
   Injectable,
   NotImplementedException,
 } from '@nestjs/common';
-import { NcApiVersion, type NcContext, type NcRequest } from 'nocodb-sdk';
+import { NcApiVersion, NcBaseError, type NcContext, type NcRequest } from 'nocodb-sdk';
 import { generateUpdateAuditV1Payload } from 'src/utils';
 import type {
   AuditV1,
@@ -26,6 +26,7 @@ import { ColumnsService } from '~/services/columns.service';
 import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql-data-migration';
 import { PgDataMigration } from '~/services/formula-column-type-changer/pg-data-migration';
 import { SqliteDataMigration } from '~/services/formula-column-type-changer/sqlite-data-migration';
+import { NcError } from 'src/helpers/ncError';
 
 export const DEFAULT_BATCH_LIMIT = 100000;
 
@@ -106,7 +107,10 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
           reuse: params.reuse,
           forceDeleteSystem: false,
         });
-        throw ex;
+        if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
+        NcError.get(context).columnError(
+          ex?.message || 'Failed to convert column',
+        );
       }
     } catch (ex) {
       // when failed during create new column for whatever reason

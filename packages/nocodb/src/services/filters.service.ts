@@ -389,13 +389,7 @@ export class FiltersService {
     filterId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    try {
-      // Delete directly from nc_filters table
-      await Filter.delete(context, filterId, ncMeta);
-    } catch (error) {
-      console.warn(`Failed to delete filter ${filterId}: ${error.message}`);
-      throw error;
-    }
+    await Filter.delete(context, filterId, ncMeta);
   }
 
   /**

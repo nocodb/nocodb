@@ -12,7 +12,12 @@ interface Props {
   truncate?: boolean
 }
 
-const { value, item, column, showUnlinkButton, border = true, readonly: readonlyProp, truncate = true } = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  border: true,
+  truncate: true,
+})
+
+const { item, value, column, readonly: readonlyProp } = toRefs(props)
 
 const emit = defineEmits(['unlink'])
 
@@ -21,6 +26,8 @@ const { relatedTableMeta, externalBaseUserRoles } = useLTARStoreOrThrow()!
 const { isUIAllowed } = useRoles()
 
 provide(IsUnderLTARInj, ref(true))
+
+provide(MetaInj, relatedTableMeta)
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -45,11 +52,11 @@ const { open } = useExpandedFormDetached()
 function openExpandedForm() {
   if (isClickDisabled.value) return
 
-  const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
-  if (!isPublic.value && !readonlyProp && rowId) {
+  const rowId = extractPkFromRow(item.value, relatedTableMeta.value.columns as ColumnType[])
+  if (!isPublic.value && !readonlyProp.value && rowId) {
     open({
       isOpen: true,
-      row: { row: item, rowMeta: {}, oldRow: { ...item } },
+      row: { row: item.value, rowMeta: {}, oldRow: { ...item.value } },
       meta: relatedTableMeta.value,
       rowId,
       useMetaFields: true,

@@ -47,7 +47,7 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, re
 await loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
 })
 
 const addIcon = computed(() => (cellValue?.value ? 'maximize' : 'plus'))
@@ -162,6 +162,7 @@ onUnmounted(() => {
             "
             :column="belongsToColumn"
             :show-unlink-button="true"
+            :readonly="readOnly"
             @unlink="unlinkRef(value)"
           />
         </template>

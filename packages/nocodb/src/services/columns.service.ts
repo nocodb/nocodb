@@ -3714,6 +3714,7 @@ export class ColumnsService implements IColumnsService {
         await columnWebhookManager?.addOldColumnById({
           columnId: c.id,
           action: WebhookActions.DELETE,
+          context: refContext,
         });
         await Column.delete2(
           refContext,
@@ -3828,6 +3829,7 @@ export class ColumnsService implements IColumnsService {
       await columnWebhookManager?.addOldColumnById({
         columnId: childColumn.id,
         action: WebhookActions.DELETE,
+        context: childContext,
       });
       // delete foreign key column
       await Column.delete2(
@@ -3964,6 +3966,7 @@ export class ColumnsService implements IColumnsService {
         await columnWebhookManager?.addOldColumnById({
           columnId: c.id,
           action: WebhookActions.DELETE,
+          context: refContext,
         });
         await Column.delete2(
           refContext,
@@ -3988,6 +3991,7 @@ export class ColumnsService implements IColumnsService {
     await columnWebhookManager?.addOldColumnById({
       columnId: relationColOpt.fk_column_id,
       action: WebhookActions.DELETE,
+      context,
     });
     // delete virtual columns
     await Column.delete2(
@@ -4073,6 +4077,7 @@ export class ColumnsService implements IColumnsService {
       await columnWebhookManager?.addOldColumnById({
         columnId: childColumn.id,
         action: WebhookActions.DELETE,
+        context: childContext,
       });
       // delete foreign key column
       await Column.delete2(

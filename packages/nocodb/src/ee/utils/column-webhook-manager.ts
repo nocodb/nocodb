@@ -260,7 +260,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
     const columnsV3Service: IColumnsV3Service =
       Noco.nestApp.get('IColumnsV3Service');
     const newColumn = await columnsV3Service.columnGet(
-      context,
+      context || this.context,
       { columnId },
       this.ncMeta,
     );
@@ -286,7 +286,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
     ) {
       return this;
     }
-    if (await ignoreColumn(this.context, { column }, this.ncMeta)) {
+    if (await ignoreColumn(context || this.context, { column }, this.ncMeta)) {
       return this;
     }
     if (
@@ -347,7 +347,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
     const columnsV3Service: IColumnsV3Service =
       Noco.nestApp.get('IColumnsV3Service');
     const newColumn = await columnsV3Service.columnGet(
-      context,
+      context || this.context,
       { columnId },
       this.ncMeta,
     );
@@ -372,7 +372,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
       return;
     }
 
-    if (await ignoreColumn(this.context, { column }, this.ncMeta)) {
+    if (await ignoreColumn(context || this.context, { column }, this.ncMeta)) {
       return this;
     }
 

@@ -318,7 +318,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (this.model.id === model.id) {
       data = await this.readByPk(...rest);
     } else {
-      context = { ...this.context, base_id: this.model.base_id };
+      context = { ...this.context, base_id: model.base_id };
       const baseModel = await Model.getBaseModelSQL(context, {
         model,
         viewId: viewId,

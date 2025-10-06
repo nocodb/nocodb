@@ -426,13 +426,9 @@ const extractLookupDependencies = async (
   const relationColumnOpts =
     await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
   const { refContext } = relationColumnOpts.getRelContext(context);
-  await extractRelationDependencies(
-    refContext,
-    relationColumn,
-    dependencyFields,
-  );
+  await extractRelationDependencies(context, relationColumn, dependencyFields);
   await extractDependencies(
-    context,
+    refContext,
     await lookupColumnOpts.getLookupColumn(refContext),
     (dependencyFields.nested[relationColumn.title] = dependencyFields.nested[
       relationColumn.title

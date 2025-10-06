@@ -321,7 +321,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
   async addNewColumnById({
     columnId,
     action,
-    context,
+    context = this.context,
   }: {
     columnId: string;
     action?: WebhookActions;
@@ -347,7 +347,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
     const columnsV3Service: IColumnsV3Service =
       Noco.nestApp.get('IColumnsV3Service');
     const newColumn = await columnsV3Service.columnGet(
-      this.context,
+      context,
       { columnId },
       this.ncMeta,
     );

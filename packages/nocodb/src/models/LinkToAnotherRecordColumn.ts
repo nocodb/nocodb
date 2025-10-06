@@ -72,7 +72,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { childContext } = await this.getParentChildContext(context);
+    const { childContext } = await this.getParentChildContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.childColumn = await Column.get(
       childContext,
       {
@@ -86,7 +89,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { mmContext } = this.getRelContext(context);
+    const { mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
 
     return (this.mmChildColumn = await Column.get(
       mmContext,
@@ -101,7 +107,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { parentContext } = await this.getParentChildContext(context);
+    const { parentContext } = await this.getParentChildContext({
+      ...context,
+      base_id: this.base_id,
+    });
 
     return (this.parentColumn = await Column.get(
       parentContext,
@@ -116,7 +125,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { mmContext } = this.getRelContext(context);
+    const { mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.mmParentColumn = await Column.get(
       mmContext,
       {
@@ -144,7 +156,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
-    const { refContext } = this.getRelContext(context);
+    const { refContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.relatedTable = await Model.getByIdOrName(
       refContext,
       {
@@ -277,7 +292,10 @@ export default class LinkToAnotherRecordColumn {
       return this._parentChildContext;
     }
 
-    const { refContext, mmContext } = this.getRelContext(context);
+    const { refContext, mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
     let childContext = context;
     let parentContext = context;
 

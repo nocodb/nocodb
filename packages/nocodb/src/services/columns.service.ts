@@ -4666,10 +4666,18 @@ export class ColumnsService implements IColumnsService {
       await param.columnWebhookManager?.addNewColumnById({
         columnId: parentRelCol.id,
         action: WebhookActions.INSERT,
+        context: {
+          ...context,
+          base_id: parentRelCol.base_id,
+        },
       });
       await param.columnWebhookManager?.addNewColumnById({
         columnId: savedColumn.id,
         action: WebhookActions.INSERT,
+        context: {
+          ...context,
+          base_id: savedColumn.base_id,
+        },
       });
       return savedColumn;
     }

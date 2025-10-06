@@ -676,6 +676,10 @@ export class WebhookInvoker {
           }
         }
 
+        if (e?.code?.includes?.('ERR_INVALID_URL')) {
+          throw new Error(`Invalid URL: ${reqPayload.url}`);
+        }
+
         throw e;
       }
     } finally {

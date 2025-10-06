@@ -476,6 +476,15 @@ export default class Hook implements HookType {
       -1,
     );
 
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.HOOK_TRIGGER_FIELDS,
+      {
+        fk_hook_id: hookId,
+      },
+    );
+
     return await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
@@ -495,6 +504,21 @@ export default class Hook implements HookType {
       MetaTable.COL_BUTTON,
       {
         condition: { fk_webhook_id: hookId },
+      },
+    );
+  }
+
+  static async deleteTriggersByColumnId(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.HOOK_TRIGGER_FIELDS,
+      {
+        fk_column_id: columnId,
       },
     );
   }

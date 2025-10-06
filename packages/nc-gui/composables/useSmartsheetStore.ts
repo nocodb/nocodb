@@ -11,7 +11,12 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
   ) => {
-    const isPublic = inject(IsPublicInj, ref(false))
+    /**
+     * In shared view mode, `isPublic` will still be false because both
+     * `useProvideSmartsheetStore` and `provide(IsPublicInj)` are called at the same
+     * component level, so the inject doesn't see the provided value.
+     */
+    const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
     const { $api, $eventBus } = useNuxtApp()
 

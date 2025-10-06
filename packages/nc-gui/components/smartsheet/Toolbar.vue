@@ -96,7 +96,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         </template>
 
         <template v-if="isCalendar">
-          <LazySmartsheetToolbarExport v-if="!isViewOperationsAllowed" />
+          <LazySmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
           <LazySmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
         </template>
       </div>
@@ -107,7 +107,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarRowHeight v-if="isGrid && isViewOperationsAllowed" />
 
         <template v-if="!isCalendar">
-          <LazySmartsheetToolbarExport v-if="!isViewOperationsAllowed" />
+          <LazySmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
           <LazySmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
         </template>
 

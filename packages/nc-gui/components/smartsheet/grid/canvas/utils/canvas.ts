@@ -619,6 +619,8 @@ export const renderMarkdownBlocks = (
     ctx.strokeStyle = fillStyle
   }
 
+  const defaultTextBaseline = ctx.textBaseline
+
   ctx.textAlign = textAlign
   ctx.textBaseline = verticalAlign
 
@@ -822,6 +824,7 @@ export const renderMarkdownBlocks = (
   ctx.font = defaultFont
   ctx.fillStyle = defaultFillStyle
   ctx.strokeStyle = defaultStrokeStyle
+  ctx.textBaseline = defaultTextBaseline
 }
 
 export function renderMultiLineText(
@@ -1559,6 +1562,7 @@ export function renderFormulaURL(
       finalText += '...'
     }
 
+    ctx.textBaseline = 'middle'
     ctx.fillStyle = url ? '#3366FF' : fillStyle
     ctx.fillText(finalText, currentX, lineY)
 

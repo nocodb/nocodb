@@ -13,6 +13,7 @@ export const DateCellRenderer: CellRenderer = {
     if (!value && selected && !readonly) {
       ctx.fillStyle = '#989FB1'
       ctx.font = '400 13px Inter'
+      ctx.textBaseline = 'middle'
       const placeholderY = Math.max(y, 36)
       const truncatedFormat = truncateText(ctx, dateFormat, width - padding * 2)
       ctx.fillText(truncatedFormat, x + padding, placeholderY + 16)

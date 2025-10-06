@@ -3714,6 +3714,7 @@ export class ColumnsService implements IColumnsService {
         await columnWebhookManager?.addOldColumnById({
           columnId: c.id,
           action: WebhookActions.DELETE,
+          context: refContext,
         });
         await Column.delete2(
           refContext,
@@ -3828,6 +3829,7 @@ export class ColumnsService implements IColumnsService {
       await columnWebhookManager?.addOldColumnById({
         columnId: childColumn.id,
         action: WebhookActions.DELETE,
+        context: childContext,
       });
       // delete foreign key column
       await Column.delete2(
@@ -3964,6 +3966,7 @@ export class ColumnsService implements IColumnsService {
         await columnWebhookManager?.addOldColumnById({
           columnId: c.id,
           action: WebhookActions.DELETE,
+          context: refContext,
         });
         await Column.delete2(
           refContext,
@@ -3988,6 +3991,7 @@ export class ColumnsService implements IColumnsService {
     await columnWebhookManager?.addOldColumnById({
       columnId: relationColOpt.fk_column_id,
       action: WebhookActions.DELETE,
+      context,
     });
     // delete virtual columns
     await Column.delete2(
@@ -4073,6 +4077,7 @@ export class ColumnsService implements IColumnsService {
       await columnWebhookManager?.addOldColumnById({
         columnId: childColumn.id,
         action: WebhookActions.DELETE,
+        context: childContext,
       });
       // delete foreign key column
       await Column.delete2(
@@ -4176,7 +4181,7 @@ export class ColumnsService implements IColumnsService {
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
-        await refTable.getColumns(context),
+        await refTable.getColumns(refContext),
         `${table.table_name}_id`,
       );
 
@@ -4281,7 +4286,7 @@ export class ColumnsService implements IColumnsService {
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
       // populate fk column name
       const fkColName = getUniqueColumnName(
-        await refTable.getColumns(context),
+        await refTable.getColumns(refContext),
         `${table.table_name}_id`,
       );
 
@@ -4666,10 +4671,18 @@ export class ColumnsService implements IColumnsService {
       await param.columnWebhookManager?.addNewColumnById({
         columnId: parentRelCol.id,
         action: WebhookActions.INSERT,
+        context: {
+          ...context,
+          base_id: parentRelCol.base_id,
+        },
       });
       await param.columnWebhookManager?.addNewColumnById({
         columnId: savedColumn.id,
         action: WebhookActions.INSERT,
+        context: {
+          ...context,
+          base_id: savedColumn.base_id,
+        },
       });
       return savedColumn;
     }

@@ -318,7 +318,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (this.model.id === model.id) {
       data = await this.readByPk(...rest);
     } else {
-      context = { ...this.context, base_id: this.model.base_id };
+      context = { ...this.context, base_id: model.base_id };
       const baseModel = await Model.getBaseModelSQL(context, {
         model,
         viewId: viewId,
@@ -5218,6 +5218,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             ltarMap[col.id] = false;
             continue;
           }
+        } else if (
+          (col.colOptions as LinkToAnotherRecordColumn)?.fk_related_base_id !==
+          this.model.base_id
+        ) {
+          const { refContext } = (
+            col.colOptions as LinkToAnotherRecordColumn
+          ).getRelContext(this.context);
+          const columns = await Column.list(refContext, {
+            fk_model_id: (col.colOptions as LinkToAnotherRecordColumn)
+              .fk_related_model_id,
+          });
+          for (const col of columns) idToAliasMap[col.id] = col.title;
         }
 
         ltarMap[col.id] = true;

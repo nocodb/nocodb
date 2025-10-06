@@ -63,7 +63,7 @@ export async function createHmAndBtColumn(
   // save bt column
   {
     const title = getUniqueColumnAliasName(
-      await child.getColumns(context),
+      await child.getColumns({ ...context, base_id: child.base_id }),
       (type === 'bt' && alias) || `${parent.title}`,
     );
 
@@ -107,6 +107,10 @@ export async function createHmAndBtColumn(
     await columnWebhookManager?.addNewColumnById({
       columnId: childRelCol.id,
       action: WebhookActions.INSERT,
+      context: {
+        ...context,
+        base_id: childRelCol.base_id,
+      },
     });
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
@@ -121,7 +125,7 @@ export async function createHmAndBtColumn(
   // save hm column
   {
     const title = getUniqueColumnAliasName(
-      await parent.getColumns(context),
+      await parent.getColumns({ ...context, base_id: parent.base_id }),
       (type === 'hm' && alias) || pluralize(child.title),
     );
     const meta = {
@@ -162,6 +166,10 @@ export async function createHmAndBtColumn(
     await columnWebhookManager?.addNewColumnById({
       columnId: savedColumn.id,
       action: WebhookActions.INSERT,
+      context: {
+        ...context,
+        base_id: savedColumn.base_id,
+      },
     });
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
@@ -266,6 +274,10 @@ export async function createOOColumn(
     await columnWebhookManager?.addNewColumnById({
       columnId: childRelCol.id,
       action: WebhookActions.INSERT,
+      context: {
+        ...context,
+        base_id: childRelCol.base_id,
+      },
     });
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table: child,
@@ -324,6 +336,10 @@ export async function createOOColumn(
     await columnWebhookManager?.addNewColumnById({
       columnId: savedColumn.id,
       action: WebhookActions.INSERT,
+      context: {
+        ...context,
+        base_id: savedColumn.base_id,
+      },
     });
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table: parent,

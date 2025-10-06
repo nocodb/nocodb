@@ -25,14 +25,17 @@ export default class RowColorCondition implements IRowColorCondition {
   }
 
   static async getById(context: NcContext, id: string, ncMeta = Noco.ncMeta) {
-    return new RowColorCondition(
-      await ncMeta.metaGet(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.ROW_COLOR_CONDITIONS,
-        id,
-      ),
+    const condition = await ncMeta.metaGet(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.ROW_COLOR_CONDITIONS,
+      id,
     );
+    if (condition) {
+      return new RowColorCondition(condition);
+    } else {
+      return undefined;
+    }
   }
 
   static async getByViewId(

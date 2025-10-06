@@ -174,13 +174,18 @@ export class FiltersService extends FiltersServiceCE {
     },
     ncMeta?: MetaService,
   ) {
+    const rowColorCondition = await RowColorCondition.getById(
+      context,
+      param.rowColorConditionsId,
+      ncMeta,
+    );
+    if (!rowColorCondition) {
+      NcError.get(context).invalidRequestBody(
+        `Condition id ${param.rowColorConditionsId} not found`,
+      );
+    }
     let innerViewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const rowColorCondition = await RowColorCondition.getById(
-        context,
-        (param as any).rowColorConditionId,
-        ncMeta,
-      );
       const view = await View.get(
         context,
         rowColorCondition.fk_view_id,

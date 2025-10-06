@@ -59,6 +59,7 @@ export class FormsService {
       NcError.sourceDataReadOnly(source.alias);
     }
 
+    param.body.title = param.body.title?.trim();
     const existingView = await View.getByTitleOrId(
       context,
       {

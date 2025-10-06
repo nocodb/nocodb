@@ -30,6 +30,7 @@ import {
   predictSelectOptionsSystemMessage,
   repairFormulaPrompt,
 } from '~/integrations/ai/module/prompts';
+import { NcError } from 'src/helpers/ncError';
 
 @Injectable()
 export class AiUtilsService {
@@ -50,7 +51,7 @@ export class AiUtilsService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -124,7 +125,7 @@ export class AiUtilsService {
     const model = await Model.get(context, tableId);
 
     if (!model) {
-      throw new Error('Model not found');
+      NcError.get(context).tableNotFound(tableId);
     }
 
     const columns = await model.getColumns(context);
@@ -135,7 +136,7 @@ export class AiUtilsService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -183,7 +184,7 @@ export class AiUtilsService {
     const model = await Model.get(context, tableId);
 
     if (!model) {
-      throw new Error('Model not found');
+      NcError.get(context).tableNotFound(tableId);
     }
 
     const unsupportedColumn = params.input.unsupportedColumn || [];
@@ -196,7 +197,7 @@ export class AiUtilsService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -333,7 +334,7 @@ export class AiUtilsService {
     const model = await Model.get(context, tableId);
 
     if (!model) {
-      throw new Error('Model not found');
+      NcError.get(context).tableNotFound(tableId);
     }
 
     const columns = await model.getColumns(context);
@@ -344,7 +345,7 @@ export class AiUtilsService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -418,7 +419,7 @@ export class AiUtilsService {
     const model = await Model.get(context, tableId);
 
     if (!model) {
-      throw new Error('Model not found');
+      NcError.get(context).tableNotFound(tableId);
     }
 
     const columns = await model.getColumns(context);
@@ -429,7 +430,7 @@ export class AiUtilsService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -531,7 +532,7 @@ export class AiUtilsService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -539,7 +540,7 @@ export class AiUtilsService {
     const base = await Base.get(context, context.base_id);
 
     if (!base) {
-      throw new Error('Base not found');
+      NcError.get(context).baseNotFound(context.base_id);
     }
 
     const tables = await Model.list(context, {
@@ -603,7 +604,7 @@ export class AiUtilsService {
     const model = await Model.get(context, tableId);
 
     if (!model) {
-      throw new Error('Model not found');
+      NcError.get(context).tableNotFound(tableId);
     }
 
     const columns = await model.getColumns(context);
@@ -614,7 +615,7 @@ export class AiUtilsService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -659,7 +660,7 @@ export class AiUtilsService {
     const model = await Model.get(context, tableId);
 
     if (!model) {
-      throw new Error('Model not found');
+      NcError.get(context).tableNotFound(tableId);
     }
 
     const columns = await model.getColumns(context);
@@ -670,7 +671,7 @@ export class AiUtilsService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();

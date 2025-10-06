@@ -25,6 +25,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
 import { DuplicateService } from '~/modules/jobs/jobs/export-import/duplicate.service';
+import { NcError } from 'src/helpers/ncError';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -73,13 +74,13 @@ export class DuplicateController extends DuplicateControllerCE {
     );
 
     if (!base) {
-      throw new Error(`Base not found for id '${sharedBaseId}'`);
+      NcError.get(context).baseNotFound(sharedBaseId);
     }
 
     const source = (await base.getSources())[0];
 
     if (!source) {
-      throw new Error(`Source not found!`);
+      NcError.get(context).noSourcesFound();
     }
 
     const dupProject = await this.basesService.baseCreate({
@@ -125,7 +126,7 @@ export class DuplicateController extends DuplicateControllerCE {
     @Param('secret') secret: string,
   ) {
     if (!secret) {
-      throw new Error('Secret missing');
+      NcError.badRequest('Secret missing');
     }
 
     return await this.remoteImportService.remoteImportProcess(secret, req);
@@ -147,13 +148,13 @@ export class DuplicateController extends DuplicateControllerCE {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const dashboard = await Dashboard.get(context, dashboardId);
 
     if (!dashboard) {
-      throw new Error(`Dashboard not found!`);
+      NcError.get(context).dashboardNotFound(dashboardId);
     }
 
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);

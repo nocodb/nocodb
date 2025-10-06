@@ -96,6 +96,9 @@ export class NcErrorBase {
       ...args,
     });
   }
+  noSourcesFound(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.NO_SOURCES_FOUND, args);
+  }
 
   tableNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.TABLE_NOT_FOUND, {
@@ -350,6 +353,17 @@ export class NcErrorBase {
       NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE,
       args
     );
+  }
+
+  webhookError(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.WEBHOOK_ERROR, args);
+  }
+
+  invalidWebhookUrl(url: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.INVALID_WEBHOOK_URL, {
+      ...args,
+      params: `Invalid URl ${url || ''}`,
+    });
   }
 
   planLimitExceeded(

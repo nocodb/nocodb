@@ -706,7 +706,8 @@ export const deleteColumnSystemPropsFromRequest = (col: any) => {
   delete col.cc;
   delete col.csn;
   delete col.dtx;
-  delete col.dtxs;
+  // dtxs is scale, used in decimal uidt
+  // delete col.dtxs;
   delete col.au;
   delete col.validate;
   delete col.system;

@@ -20,6 +20,7 @@ export const repopulateCreateTableSystemColumns = (
   const result = [
     ...tableSystemColumns.map((col) => {
       delete col.allowNonSystem;
+      (col as any).cn = col.column_name;
       return col as ColumnType & { cn?: string };
     }),
     // remove all UIDT ID and Order from request

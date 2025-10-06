@@ -39,10 +39,6 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
-import {
-  getUniqueColumnAliasName,
-  getUniqueColumnName,
-} from '~/helpers/getUniqueName';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -842,7 +838,7 @@ export class TablesService {
       )?.data?.list;
     }
 
-    const tables = await Model.list(context, {
+    const _tables = await Model.list(context, {
       base_id: base.id,
       source_id: source.id,
     });

@@ -491,22 +491,9 @@ export class BasesService extends BasesServiceCE {
 
     if (baseUser?.roles) return;
 
-    // if not, check if there is any base user with owner role
-    const ownerUser = await ncMeta
-      .knex(MetaTable.PROJECT_USERS)
-      .where('base_id', param.baseId)
-      .where('roles', ProjectRoles.OWNER)
-      .first();
-
-    // if owner user exists, block the request
-    if (ownerUser) {
-      NcError.forbidden(
-        'Only the base owner can modify the default role. Current workspace owner is not registered as base owner.',
-      );
-    }
-
-    // else add the current user as base owner and proceed with the update
-    if (!baseUser) {
+    // add the current user as base owner and proceed with the update
+    // Check if baseUser.base_id is null to determine if the user exists in the base user table
+    if (!baseUser?.base_id) {
       await BaseUser.insert(context, {
         fk_user_id: param.user.id,
         base_id: param.baseId,

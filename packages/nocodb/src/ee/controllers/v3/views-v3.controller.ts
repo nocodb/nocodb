@@ -44,7 +44,10 @@ export class ViewsV3Controller {
     );
   }
 
-  @Get(`${PREFIX_APIV3_METABASE}/views/:viewId`)
+  @Get([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId`,
+  ])
   @Acl('viewGet')
   async viewGet(
     @TenantContext() context: NcContext,
@@ -60,7 +63,7 @@ export class ViewsV3Controller {
     return view;
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/tables/:tableId/views`)
+  @Post([`${PREFIX_APIV3_METABASE}/tables/:tableId/views`])
   @HttpCode(200)
   @Acl('viewCreate')
   async viewCreate(
@@ -78,7 +81,10 @@ export class ViewsV3Controller {
     return view;
   }
 
-  @Patch(`${PREFIX_APIV3_METABASE}/views/:viewId`)
+  @Patch([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId`,
+  ])
   @Acl('viewUpdate')
   async viewUpdate(
     @TenantContext() context: NcContext,
@@ -94,7 +100,10 @@ export class ViewsV3Controller {
     return view;
   }
 
-  @Delete(`${PREFIX_APIV3_METABASE}/views/:viewId`)
+  @Delete([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId`,
+  ])
   @Acl('viewDelete')
   async viewDelete(
     @TenantContext() context: NcContext,

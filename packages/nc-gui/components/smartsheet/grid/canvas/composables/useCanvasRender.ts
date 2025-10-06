@@ -3198,6 +3198,7 @@ export function useCanvasRender({
 
         ctx.save()
         ctx.font = '700 13px Inter'
+        ctx.textBaseline = 'middle'
         const tagPaddingX = 12
         const tagSpacing = 0
         const remainingWidth = maxWidth - (xPosition - x)
@@ -3245,6 +3246,7 @@ export function useCanvasRender({
             ctx.save()
             ctx.fillStyle = '#6a7184'
             ctx.font = '400 12px Inter'
+            ctx.textBaseline = 'middle'
 
             const indicatorSpace = Math.max(24, x + maxWidth - xPosition)
 

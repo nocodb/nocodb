@@ -17,9 +17,9 @@ const props = withDefaults(defineProps<Props>(), {
   truncate: true,
 })
 
-const { item, value, column, readonly: readonlyProp } = toRefs(props)
-
 const emit = defineEmits(['unlink'])
+
+const { item, value, column, readonly: readonlyProp } = toRefs(props)
 
 const { relatedTableMeta, externalBaseUserRoles } = useLTARStoreOrThrow()!
 

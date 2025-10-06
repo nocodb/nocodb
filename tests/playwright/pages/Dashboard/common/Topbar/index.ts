@@ -37,6 +37,7 @@ export class TopbarPage extends BasePage {
   }
 
   async clickShare() {
+    await this.btn_share.waitFor({ state: 'visible' });
     await this.btn_share.click();
   }
 

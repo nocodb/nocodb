@@ -22,6 +22,8 @@ export class McpTokenService {
     payload.fk_workspace_id = context.workspace_id;
     payload.base_id = context.base_id;
 
+    payload.title = payload.title?.trim();
+
     return await MCPToken.insert(context, payload);
   }
 

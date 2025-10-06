@@ -58,6 +58,7 @@ export class IntegrationsService {
     const oldIntegration = await Integration.get(context, param.integrationId);
 
     const integrationBody = param.integration;
+    integrationBody.title = integrationBody.title?.trim();
     const integration = await Integration.updateIntegration(
       context,
       param.integrationId,
@@ -269,7 +270,7 @@ export class IntegrationsService {
       integrationBody = param.integration;
     }
     param.logger?.('Creating the integration');
-
+    integrationBody.title = integrationBody.title?.trim();
     // for SQLite check for existing integration which refers to the same file
     if (integrationBody.sub_type === 'sqlite3') {
       // get all integrations of type sqlite3

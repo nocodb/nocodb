@@ -4181,7 +4181,7 @@ export class ColumnsService implements IColumnsService {
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
-        await refTable.getColumns(context),
+        await refTable.getColumns(refContext),
         `${table.table_name}_id`,
       );
 
@@ -4286,7 +4286,7 @@ export class ColumnsService implements IColumnsService {
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
       // populate fk column name
       const fkColName = getUniqueColumnName(
-        await refTable.getColumns(context),
+        await refTable.getColumns(refContext),
         `${table.table_name}_id`,
       );
 

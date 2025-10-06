@@ -101,7 +101,7 @@ export default {
           </div>
 
           <div class="flex items-center gap-3">
-            <LazySmartsheetToolbarExport v-if="allowCSVDownload" />
+            <LazySmartsheetToolbarExportWithProvider v-if="allowCSVDownload" />
 
             <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline xs:hidden" rel="noopener">
               <NcButton size="xs"> {{ $t('labels.signUpForFree') }} </NcButton>

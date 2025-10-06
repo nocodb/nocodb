@@ -728,6 +728,19 @@ function onTouchEnd() {
   }
 }
 
+const visibleMoreOptions = computed(() => {
+  const result = {
+    copyRecordUrl: !isNew.value && !!rowId.value,
+    duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
+    deleteRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
+  }
+  return {
+    ...result,
+    showMoreOptionsMenu: result.copyRecordUrl || result.duplicateRecord || result.deleteRecord,
+    allHiddenExceptCopyRecordUrl: !result.duplicateRecord && !result.deleteRecord,
+  }
+})
+
 defineExpose({
   stopLoading,
 })
@@ -852,12 +865,11 @@ export default {
               </NcButton>
             </template>
           </PermissionsTooltip>
-          <NcTooltip>
+          <NcTooltip v-if="visibleMoreOptions.copyRecordUrl && !isMobileMode" class="!<lg:hidden">
             <template #title> {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }} </template>
             <NcButton
-              v-if="!isNew && rowId && !isMobileMode"
               :disabled="isLoading"
-              class="!<lg:hidden text-nc-content-inverted-secondary !h-7 !w-7"
+              class="text-nc-content-inverted-secondary !h-7 !w-7"
               type="text"
               size="xsmall"
               @click="copyRecordUrl()"
@@ -874,11 +886,20 @@ export default {
               </div>
             </NcButton>
           </NcTooltip>
-          <NcDropdown v-if="!isNew && rowId" placement="bottomRight">
+          <NcDropdown
+            v-if="visibleMoreOptions.showMoreOptionsMenu"
+            placement="bottomRight"
+            :class="{
+              '!lg:hidden': visibleMoreOptions.allHiddenExceptCopyRecordUrl,
+            }"
+          >
             <NcButton
               :type="isMobileMode ? 'secondary' : 'text'"
               size="xsmall"
               class="nc-expand-form-more-actions !w-7 !h-7"
+              :class="{
+                '!lg:hidden': visibleMoreOptions.allHiddenExceptCopyRecordUrl,
+              }"
               :disabled="isLoading"
             >
               <GeneralIcon
@@ -889,14 +910,8 @@ export default {
             </NcButton>
             <template #overlay>
               <NcMenu variant="small">
-                <NcMenuItem @click="_loadRow()">
-                  <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
-                    <component :is="iconMap.reload" class="cursor-pointer" />
-                    {{ $t('general.reload') }} {{ $t('objects.record') }}
-                  </div>
-                </NcMenuItem>
                 <NcMenuItem
-                  v-if="!isNew && rowId"
+                  v-if="visibleMoreOptions.copyRecordUrl"
                   type="secondary"
                   class="!lg:hidden"
                   :disabled="isLoading"
@@ -908,7 +923,7 @@ export default {
                   </div>
                 </NcMenuItem>
                 <PermissionsTooltip
-                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView && !isMobileMode"
+                  v-if="visibleMoreOptions.duplicateRecord"
                   :entity="PermissionEntity.TABLE"
                   :entity-id="meta?.id"
                   :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -929,15 +944,9 @@ export default {
                     </NcMenuItem>
                   </template>
                 </PermissionsTooltip>
-                <NcDivider
-                  v-if="
-                    isUIAllowed('dataEdit', {
-                      roles: baseRoles,
-                    }) && !isSqlView
-                  "
-                />
+                <NcDivider v-if="visibleMoreOptions.deleteRecord" />
                 <PermissionsTooltip
-                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+                  v-if="visibleMoreOptions.deleteRecord"
                   :entity="PermissionEntity.TABLE"
                   :entity-id="meta?.id"
                   :permission="PermissionKey.TABLE_RECORD_DELETE"

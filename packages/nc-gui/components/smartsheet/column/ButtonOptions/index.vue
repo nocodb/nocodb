@@ -557,7 +557,7 @@ const handleUpdateActionType = () => {
       v-model:selected-webhook="selectedWebhook"
     />
     <SmartsheetColumnButtonOptionsScript
-      v-if="vModel?.type === buttonActionsType.Script && isRowActionsEnabled"
+      v-if="vModel?.type === buttonActionsType.Script"
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />

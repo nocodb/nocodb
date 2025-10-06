@@ -1959,15 +1959,16 @@ export function useCanvasRender({
 
       const aggregationValue = column.aggregation?.toString()
 
-      const isHovered = isBoxHovered(
-        {
-          x: xOffset - scrollLeft.value,
-          y: height.value - AGGREGATION_HEIGHT,
-          width,
-          height: AGGREGATION_HEIGHT,
-        },
-        mousePosition,
-      )
+      const isHovered =
+        isBoxHovered(
+          {
+            x: xOffset - scrollLeft.value,
+            y: height.value - AGGREGATION_HEIGHT,
+            width,
+            height: AGGREGATION_HEIGHT,
+          },
+          mousePosition,
+        ) && isViewOperationsAllowed.value
       ctx.fillStyle = isHovered ? '#F4F4F5' : '#F9F9FA'
       if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
         ctx.save()
@@ -2079,7 +2080,7 @@ export function useCanvasRender({
           mousePosition,
         )
 
-        ctx.fillStyle = isHovered ? '#F4F4F5' : '#F9F9FA'
+        ctx.fillStyle = isHovered && isViewOperationsAllowed.value ? '#F4F4F5' : '#F9F9FA'
         ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
 
         ctx.fillStyle = '#6a7184'
@@ -2127,7 +2128,7 @@ export function useCanvasRender({
           const w = ctx.measureText(aggregationValue ?? '').width
           availWidth -= w
           ctx.restore()
-        } else if (isHovered) {
+        } else if (isHovered && isViewOperationsAllowed.value) {
           if (!isLocked.value) {
             ctx.save()
             ctx.beginPath()

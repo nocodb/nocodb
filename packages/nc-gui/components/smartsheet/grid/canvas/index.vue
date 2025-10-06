@@ -1428,6 +1428,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       handleUnlockView()
       return
     }
+
+    if (isLocked.value || !isViewOperationsAllowed.value) return
+
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
@@ -1983,6 +1986,8 @@ const handleMouseMove = (e: MouseEvent) => {
     if (y <= headerRowHeight.value && resizeableColumn.value) {
       resizeMouseMove(e)
     } else if (mousePosition.y > height.value - 36) {
+      if (!isViewOperationsAllowed.value) return
+
       cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
       setCursor(cursor)
       requestAnimationFrame(triggerRefreshCanvas)

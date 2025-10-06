@@ -42,7 +42,7 @@ const {
   timezoneDayjs,
 } = useCalendarViewStoreOrThrow()
 
-const { isSyncedTable } = useSmartsheetStoreOrThrow()
+const { isSyncedTable, isToolbarOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
 
@@ -469,8 +469,11 @@ const selectOption = (option) => {
           </template>
         </a-input>
       </div>
-      <div class="mx-4 gap-2 flex items-center">
-        <LazySmartsheetToolbarSortListMenu />
+      <div
+        v-if="isToolbarOperationsAllowed || (isUIAllowed('dataEdit') && props.visible && !isSyncedTable)"
+        class="mx-4 gap-2 flex items-center"
+      >
+        <LazySmartsheetToolbarSortListMenu v-if="isToolbarOperationsAllowed" />
 
         <div class="flex-1" />
 

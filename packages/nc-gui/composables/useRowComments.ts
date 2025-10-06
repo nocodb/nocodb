@@ -137,9 +137,10 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
             ...c,
             resolved_by: tempC.resolved_by ? undefined : $state.user?.value?.id,
             resolved_by_email: tempC.resolved_by ? undefined : $state.user?.value?.email,
-            resolved_display_name: tempC.resolved_by
+            resolved_display_name: tempC.resolved_by ? undefined : $state.user?.value?.display_name,
+            resolved_display_name_short: tempC.resolved_by
               ? undefined
-              : $state.user?.value?.display_name ?? $state.user?.value?.email.split('@')[0],
+              : $state.user?.value?.display_name ?? extractNameFromEmail($state.user?.value?.email),
             resolved_by_meta: tempC.resolved_by ? undefined : $state.user?.value?.meta,
           }
         }

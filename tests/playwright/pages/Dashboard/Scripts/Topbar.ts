@@ -43,7 +43,15 @@ export class ScriptsTopbar extends BasePage {
     await this.rootPage.waitForTimeout(500);
   }
 
-  async verifyRunButtonState(enabled: boolean) {
+  async verifyRunButtonVisible(): Promise<void> {
+    await expect(this.getRunButton()).toBeVisible();
+  }
+
+  async verifyRunButtonEnabled(): Promise<void> {
+    await expect(this.getRunButton()).toBeEnabled();
+  }
+
+  async verifyRunButtonState(enabled: boolean): Promise<void> {
     if (enabled) {
       await expect(this.getRunButton()).toBeEnabled();
     } else {

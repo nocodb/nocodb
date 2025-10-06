@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
 
-test.describe.only('Scripts - Base Object', () => {
+test.describe('Scripts - Base Object', () => {
   let dashboard: DashboardPage;
   let context: NcContext;
   let scriptId: string;

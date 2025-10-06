@@ -43,6 +43,7 @@ export const repopulateCreateTableSystemColumns = (
       ) {
         // identic with system cols, so we remove it
         result.splice(i, 1);
+        continue;
       }
       if (col.title && col.title === sysCol.title) {
         col.title = getUniqueColumnAliasName(result as any[], col.title);

@@ -57,6 +57,7 @@ function duplicateBaseTests() {
         jobName: 'DuplicateBase',
         baseId: context.base.id,
         context: context.ctx,
+        dupWorkspaceId: dupProject.fk_workspace_id,
         dupProjectId: dupProject.id,
         user: user as any,
         sourceId: (await context.base.getSources())[0].id,

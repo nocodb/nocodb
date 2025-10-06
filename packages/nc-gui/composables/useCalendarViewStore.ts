@@ -55,6 +55,11 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const displayField = computed(() => meta.value?.columns?.find((c) => c.pv))
 
+    /**
+     * In shared view mode, `isPublic` will still be false because both
+     * `useProvideCalendarViewStore` and `provide(IsPublicInj)` are called at the same
+     * component level, so the inject doesn't see the provided value.
+     */
     const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
     const calendarMetaData = computed<CalendarType>(() => {

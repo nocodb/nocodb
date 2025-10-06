@@ -63,7 +63,7 @@ export async function createHmAndBtColumn(
   // save bt column
   {
     const title = getUniqueColumnAliasName(
-      await child.getColumns(context),
+      await child.getColumns({ ...context, base_id: child.base_id }),
       (type === 'bt' && alias) || `${parent.title}`,
     );
 
@@ -121,7 +121,7 @@ export async function createHmAndBtColumn(
   // save hm column
   {
     const title = getUniqueColumnAliasName(
-      await parent.getColumns(context),
+      await parent.getColumns({ ...context, base_id: parent.base_id }),
       (type === 'hm' && alias) || pluralize(child.title),
     );
     const meta = {

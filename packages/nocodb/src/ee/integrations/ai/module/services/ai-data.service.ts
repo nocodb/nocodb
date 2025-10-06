@@ -414,7 +414,7 @@ export class AiDataService {
     const integration = await Integration.get(context, ai.fk_integration_id);
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -679,7 +679,7 @@ export class AiDataService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -853,7 +853,7 @@ export class AiDataService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -978,7 +978,7 @@ Please generate ${
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -1216,7 +1216,7 @@ Please generate ${
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();

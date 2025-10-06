@@ -15,6 +15,7 @@ import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.ser
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
 import { isEE } from '~/utils';
+import { NcError } from '~/helpers/ncError';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -139,7 +140,7 @@ export class AiSchemaController {
       const { input } = body;
 
       if (!input.title) {
-        throw new Error('Title is required');
+        NcError.get(context).badRequest('Title is required');
       }
 
       const base = await this.basesService.baseCreate({

@@ -63,6 +63,13 @@ export class NcErrorBase {
     );
   }
 
+  viewColumnNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.VIEW_COLUMN_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   baseNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.BASE_NOT_FOUND, {
       params: id,

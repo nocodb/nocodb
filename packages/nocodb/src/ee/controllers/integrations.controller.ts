@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
+import { IntegrationReqType, IntegrationsType, NcApiVersion } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { IntegrationsService } from '~/services/integrations.service';
@@ -19,6 +19,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
 import { maskKnexConfig } from '~/helpers/responseHelpers';
+import { NcError } from '~/helpers/ncError';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -186,7 +187,9 @@ export class IntegrationsController {
     );
 
     if (!integration) {
-      throw new Error('Integration not found!');
+      NcError.get({
+        api_version: NcApiVersion.V2,
+      }).integrationNotFound(`${type}:${subType}`);
     }
 
     return {
@@ -223,7 +226,7 @@ export class IntegrationsController {
     const integration = await Integration.get(context, integrationId);
 
     if (!integration) {
-      throw new Error('Integration not found!');
+      NcError.get(context).integrationNotFound(integrationId);
     }
 
     return await this.integrationsService.integrationStore(

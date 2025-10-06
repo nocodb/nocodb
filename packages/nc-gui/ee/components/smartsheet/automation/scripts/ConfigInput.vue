@@ -92,23 +92,23 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight config-wrapper nc-scrollbar-md">
+  <div class="p-6 overflow-y-auto bg-nc-bg-gray-extralight config-wrapper nc-scrollbar-md" data-testid="nc-script-config-panel">
     <div class="flex mx-auto flex-col max-w-130 gap-6">
-      <NcAlert v-if="!isValidConfig" type="warning" class="bg-nc-bg-default">
+      <NcAlert v-if="!isValidConfig" type="warning" class="bg-nc-bg-default" data-testid="nc-script-config-warning">
         <template #message> Setup script settings to run </template>
         <template #description> You cannot run this script without setting up the script settings first. </template>
       </NcAlert>
 
       <div>
-        <div class="text-subHeading2 text-nc-content-gray-emphasis">
+        <div class="text-subHeading2 text-nc-content-gray-emphasis" data-testid="nc-script-config-title">
           {{ config?.title || 'Script Settings' }}
         </div>
-        <div v-if="config?.description" class="text-nc-content-gray-subtle2 whitespace-pre-wrap text-body mt-2">
+        <div v-if="config?.description" class="text-nc-content-gray-subtle2 whitespace-pre-wrap text-body mt-2" data-testid="nc-script-config-description">
           {{ config?.description }}
         </div>
       </div>
 
-      <div v-for="item in config?.items" :key="item.key">
+      <div v-for="item in config?.items" :key="item.key" :data-testid="`nc-script-config-item-${item.key}`">
         <template v-if="item.type === 'table'">
           <div class="flex flex-col gap-2">
             <div v-if="item?.label || item?.key" class="text-caption text-nc-content-gray-subtle2">
@@ -120,6 +120,7 @@ onMounted(() => {
             <NcListTableSelector
               disable-label
               :value="getValue(item.key)"
+              :data-testid="`nc-script-config-table-${item.key}`"
               @update:value="(value) => handleTableChange(item.key, value)"
             />
           </div>
@@ -138,6 +139,7 @@ onMounted(() => {
               :value="getValue(item.key)"
               :disabled="canShowFieldOrView(item)"
               :table-id="getValue(item.parentTable)"
+              :data-testid="`nc-script-config-view-${item.key}`"
               @update:value="(value) => handleFieldOrViewChange(item, value)"
             />
           </div>
@@ -156,6 +158,7 @@ onMounted(() => {
               disable-label
               :table-id="getValue(item.parentTable)"
               :value="getValue(item.key)"
+              :data-testid="`nc-script-config-field-${item.key}`"
               @update:value="(value) => handleFieldOrViewChange(item, value)"
             />
           </div>
@@ -169,7 +172,12 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-input v-model:value="configValue[item.key]" type="text" class="nc-input-sm nc-input-shadow" />
+            <a-input
+              v-model:value="configValue[item.key]"
+              type="text"
+              class="nc-input-sm nc-input-shadow"
+              :data-testid="`nc-script-config-text-${item.key}`"
+            />
           </div>
         </template>
 
@@ -181,7 +189,12 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-input v-model:value="configValue[item.key]" type="number" class="nc-input-sm nc-input-shadow" />
+            <a-input
+              v-model:value="configValue[item.key]"
+              type="number"
+              class="nc-input-sm nc-input-shadow"
+              :data-testid="`nc-script-config-number-${item.key}`"
+            />
           </div>
         </template>
 
@@ -193,7 +206,12 @@ onMounted(() => {
             <div v-if="item?.description" class="text-nc-content-gray-subtle2 text-bodySm">
               {{ item.description }}
             </div>
-            <a-select v-model:value="configValue[item.key]" class="nc-select-shadow" show-search>
+            <a-select
+              v-model:value="configValue[item.key]"
+              class="nc-select-shadow"
+              show-search
+              :data-testid="`nc-script-config-select-${item.key}`"
+            >
               <template #suffixIcon>
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />
               </template>
@@ -215,7 +233,14 @@ onMounted(() => {
 
       <NcTooltip v-if="hasInput" class="w-full" :disabled="isConfigValid">
         <template #title> Please fill in all required fields </template>
-        <NcButton :loading="isLoading" class="w-full" size="small" :disabled="!isConfigValid" @click="triggerUpdate">
+        <NcButton
+          :loading="isLoading"
+          class="w-full"
+          size="small"
+          :disabled="!isConfigValid"
+          data-testid="nc-script-config-save-btn"
+          @click="triggerUpdate"
+        >
           Save
         </NcButton>
       </NcTooltip>

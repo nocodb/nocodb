@@ -161,6 +161,24 @@ export class TreeViewPage extends BasePage {
     }
   }
 
+  async openScript({ title, baseTitle }: { title: string; baseTitle?: string }) {
+    if (baseTitle) {
+      await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    }
+
+    const scriptNode = this.get().getByTestId(`view-sidebar-script-${title}`);
+
+    await scriptNode.waitFor({ state: 'visible' });
+
+    await scriptNode.click({});
+
+    // todo: remove this after fixing the issue
+    await this.rootPage.waitForTimeout(1000);
+    await scriptNode.click({
+      // x:10, y:10
+    });
+  }
+
   async createEntity({
     type,
     skipOpeningModal,

@@ -214,7 +214,7 @@ onBeforeUnmount(async () => {
     <Splitpanes>
       <Pane v-show="isCreateEditScriptAllowed" min-size="20" :size="isEditorOpen ? 70 : 0" class="flex flex-col h-full min-w-0">
         <div v-if="isEditorOpen" class="w-full flex-1">
-          <div ref="editorRef" class="h-full" />
+          <div ref="editorRef" data-testid="nc-scripts-editor" :data-code="activeAutomation?.script" class="h-full" />
         </div>
       </Pane>
       <Pane :min-size="25" :size="isCreateEditScriptAllowed && isEditorOpen ? 30 : 100">

@@ -16,32 +16,51 @@ const toggleScriptSettings = () => {
   <div v-if="!isLoadingAutomation && activeAutomation" class="flex items-center gap-2">
     <NcButton
       v-if="shouldShowSettings"
-      :class="{ '!bg-nc-bg-brand !hover:bg-brand-100/70 !text-nc-content-brand': isSettingsOpen }"
+      :class="{ '!bg-nc-bg-brand !hover:bg-brand-100/70 !text-nc-content-brand is-settings-open': isSettingsOpen }"
       type="secondary"
       size="small"
+      data-testid="nc-script-settings-btn"
       @click="toggleScriptSettings"
     >
       <GeneralIcon icon="ncSettings2" />
     </NcButton>
 
     <template v-if="isRunning">
-      <NcButton type="text" size="small" class="!text-nc-content-brand !hover:bg-nc-bg-default" :loading="isRunning">
+      <NcButton
+        type="text"
+        size="small"
+        class="!text-nc-content-brand !hover:bg-nc-bg-default"
+        :loading="isRunning"
+        data-testid="nc-script-running-indicator"
+      >
         Running Script ...
       </NcButton>
       <div class="flex items-center">
-        <NcButton type="secondary" size="small" class="!rounded-r-none" @click="stopExecution">
+        <NcButton type="secondary" size="small" class="!rounded-r-none" data-testid="nc-script-stop-btn" @click="stopExecution">
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="ncStopCircle" />
             Stop
           </div>
         </NcButton>
-        <NcButton type="secondary" size="small" class="!rounded-l-none !border-l-0" @click="restartScript">
+        <NcButton
+          type="secondary"
+          size="small"
+          class="!rounded-l-none !border-l-0"
+          data-testid="nc-script-restart-btn"
+          @click="restartScript"
+        >
           <GeneralIcon icon="ncRotateCcw" />
         </NcButton>
       </div>
     </template>
     <NcTooltip v-else :disabled="isValidConfig">
-      <NcButton size="small" :disabled="isRunning || !isValidConfig" :loading="isRunning" @click="runScript">
+      <NcButton
+        size="small"
+        :disabled="isRunning || !isValidConfig"
+        :loading="isRunning"
+        data-testid="nc-script-run-btn"
+        @click="runScript"
+      >
         <div class="flex gap-2 items-center">
           <GeneralIcon icon="ncPlay" />
           Run

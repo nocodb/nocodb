@@ -7,6 +7,7 @@ import { useAgent } from 'request-filtering-agent';
 import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
+import { NcError } from 'src/helpers/ncError';
 
 interface GoogleCloudStorageInput {
   client_email: string;
@@ -73,7 +74,7 @@ export default class Gcs implements IStorageAdapterV2 {
       await promisify(fs.unlink)(tempFile);
       return true;
     } catch (e) {
-      throw e;
+      NcError.pluginTestError(e?.message);
     }
   }
 

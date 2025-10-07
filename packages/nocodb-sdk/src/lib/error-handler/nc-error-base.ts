@@ -468,6 +468,40 @@ export class NcErrorBase {
     );
   }
 
+  pluginTestError(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.PLUGIN_TEST_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  relationFieldNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.RELATION_FIELD_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  unSupportedRelation(relation: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.UNSUPPORTED_RELATION, {
+      params: `Relation ${relation} is not supported`,
+      ...args,
+    });
+  }
+
+  externalError(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.EXTERNAL_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  externalTimeOut(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.EXTERNAL_TIMEOUT, {
+      params: message,
+      ...args,
+    });
+  }
   prohibitedSyncTableOperation(
     param: {
       modelName: string;
@@ -494,7 +528,6 @@ export class NcErrorBase {
       }
     );
   }
-
   featureNotSupported(
     props: {
       feature: PlanFeatureTypes;

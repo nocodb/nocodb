@@ -158,7 +158,8 @@ export class SSOClientService {
     } catch (e) {
       // if axios error, throw invalid metadata url error
       if (e.response) NcError.badRequest('Invalid metadata url');
-      throw e;
+      this.logger.error('Failed to read saml metadata', e);
+      NcError.internalServerError('Failed to read saml metadata');
     }
   }
 

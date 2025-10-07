@@ -50,6 +50,7 @@ import { getWorkspaceRolePower } from '~/utils/roleHelper';
 
 @Injectable()
 export class WorkspaceUsersService {
+  private logger = new Logger('WorkspaceUsersService');
   constructor(
     private appHooksService: AppHooksService,
     private usersService: UsersService,
@@ -224,7 +225,10 @@ export class WorkspaceUsersService {
         `${CacheScope.WORKSPACE_USER}:${param.workspaceId}:${param.userId}`,
       );
 
-      throw e;
+      this.logger.error('Failed to update user role', e);
+      NcError.get(param.req.context).internalServerError(
+        'Failed to update user role',
+      );
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);
@@ -408,7 +412,10 @@ export class WorkspaceUsersService {
       // rollback cache
       await Promise.all(cacheTransaction.map((fn) => fn()));
 
-      throw e;
+      this.logger.error('Failed to delete workspace user', e);
+      NcError.get(param.req.context).internalServerError(
+        'Failed to delete workspace user',
+      );
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);
@@ -710,7 +717,10 @@ export class WorkspaceUsersService {
         );
       }
 
-      throw e;
+      this.logger.error('Failed to invite users', e);
+      NcError.get(param.req.context).internalServerError(
+        'Failed to invite users',
+      );
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);

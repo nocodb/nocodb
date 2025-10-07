@@ -281,4 +281,28 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) => message,
     code: 400,
   },
+  [NcErrorType.PLUGIN_TEST_ERROR]: {
+    message: (message: string) => message,
+    code: 400,
+  },
+  [NcErrorType.UNSUPPORTED_RELATION]: {
+    message: (message: string) => message,
+    code: 400,
+  },
+  [NcErrorType.EXTERNAL_ERROR]: {
+    message: (message: string) =>
+      message ||
+      'Error running query on external source. Confirm if source is accessible.',
+    code: 502,
+  },
+  [NcErrorType.EXTERNAL_TIMEOUT]: {
+    message: (message: string) =>
+      message ||
+      'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
+    code: 504,
+  },
+  [NcErrorType.RELATION_FIELD_NOT_FOUND]: {
+    message: (id: string) => `Relation Field '${id}' not found`,
+    code: 404,
+  },
 };

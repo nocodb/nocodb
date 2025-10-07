@@ -18,6 +18,7 @@ import { extractProps } from '~/helpers/extractProps';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import { NcError } from 'src/helpers/ncError';
 
 const logger = new Logger('BaseUser');
 
@@ -104,7 +105,7 @@ export default class BaseUser extends BaseUserCE {
     );
 
     if (!wsUser) {
-      throw new Error('User is not part of workspace');
+      NcError.get(context).baseUserError('User is not part of workspace');
     }
 
     const insertObj = extractProps(baseUser, [

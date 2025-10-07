@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   arrayToNested,
   EventType,
@@ -34,6 +34,8 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {
+  protected logger = new Logger(ViewRowColorService.name);
+
   async getByViewId(params: {
     context: NcContext;
     fk_view_id?: string;
@@ -269,7 +271,10 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       };
     } catch (e) {
       await ncMetaTrans.rollback(e);
-      throw e;
+      this.logger.error('Failed to add row color condition', e);
+      NcError.get(params.context).internalServerError(
+        'Failed to add row color condition',
+      );
     }
   }
 
@@ -570,7 +575,10 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         await ncMetaTrans.commit();
       } catch (e) {
         await ncMetaTrans.rollback(e);
-        throw e;
+        this.logger.error('Failed to remove row color info', e);
+        NcError.get(params.context).internalServerError(
+          'Failed to remove row color info',
+        );
       }
     } else if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
       const viewMeta = parseProp(view.meta);

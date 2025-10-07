@@ -305,5 +305,17 @@ export class NcError {
   }): never {
     return NcError._.ajvValidationError(param);
   }
+
+  static externalError(message: string, args?: NcErrorArgs): never {
+    return NcError._.externalError(message, args);
+  }
+
+  static externalTimeOut(message?: string, args?: NcErrorArgs): never {
+    return NcError._.externalTimeOut(message, args);
+  }
+
+  static pluginTestError(message: string, args?: NcErrorArgs): never {
+    return NcError._.pluginTestError(message, args);
+  }
   /* endregion statics */
 }

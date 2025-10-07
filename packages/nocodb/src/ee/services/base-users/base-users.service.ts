@@ -52,7 +52,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     // if user is base owner then allow user management
     if (req.user?.base_roles?.[ProjectRoles.OWNER]) return;
 
-    throw NcError.forbidden(
+    NcError.forbidden(
       'User management is restricted to base owners in private bases',
     );
   }
@@ -205,7 +205,10 @@ export class BaseUsersService extends BaseUsersServiceCE {
         ...cacheWorkspaceOps.map((fn) => fn()),
       ]);
 
-      throw e;
+      this.logger.error('Failed to invite users', e);
+      NcError.get(param.req.context).internalServerError(
+        'Failed to invite users',
+      );
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);
@@ -697,7 +700,10 @@ export class BaseUsersService extends BaseUsersServiceCE {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
-      throw e;
+      this.logger.error('Failed to update user', e);
+      NcError.get(param?.req.context).internalServerError(
+        'Failed to update user',
+      );
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);
@@ -841,7 +847,10 @@ export class BaseUsersService extends BaseUsersServiceCE {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
-      throw e;
+      this.logger.error('Failed to delete user', e);
+      NcError.get(param?.req.context).internalServerError(
+        'Failed to delete user',
+      );
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);

@@ -176,9 +176,8 @@ export class PermissionsService {
         );
       }
 
-      this.logger.error(error);
-
-      throw error;
+      this.logger.error('Failed to set permission', error);
+      NcError.get(context).internalServerError('Failed to set permission');
     }
 
     await this.broadcastPermissionUpdate(context);
@@ -246,7 +245,8 @@ export class PermissionsService {
         CacheDelDirection.PARENT_TO_CHILD,
       );
 
-      throw error;
+      this.logger.error('Failed to delete permission', error);
+      NcError.get(context).internalServerError('Failed to delete permission');
     }
 
     await this.broadcastPermissionUpdate(context);
@@ -285,7 +285,8 @@ export class PermissionsService {
         CacheDelDirection.PARENT_TO_CHILD,
       );
 
-      throw error;
+      this.logger.error('Failed to delete permissions', error);
+      NcError.get(context).internalServerError('Failed to delete permissions');
     }
 
     const deletedPermissions = oldPermissions.filter(

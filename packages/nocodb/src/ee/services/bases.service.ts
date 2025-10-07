@@ -395,7 +395,8 @@ export class BasesService extends BasesServiceCE {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
-      throw e;
+      this.logger.error('Failed to soft delete base', e);
+      NcError.get(context).internalServerError('Failed to delete base');
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);

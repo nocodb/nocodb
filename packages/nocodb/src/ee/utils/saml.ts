@@ -1,11 +1,12 @@
 import { MetadataReader, toPassportConfig } from 'passport-saml-metadata';
+import { NcError } from '~/helpers/catchError';
 
 export async function parseSamlMetadata(metadataXml) {
   const reader = new MetadataReader(metadataXml);
   const config = toPassportConfig(reader, { multipleCerts: true });
 
   if (!config.entryPoint) {
-    throw new Error('Invalid SAML metadata: missing entryPoint');
+    NcError.badRequest('Invalid SAML metadata: missing entryPoint');
   }
 
   return {

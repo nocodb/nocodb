@@ -4,6 +4,8 @@ import type { Job } from 'bull';
 import { SourcesService } from '~/services/sources.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { NcError } from 'src/helpers/ncError';
+import { NcBaseError } from 'nocodb-sdk';
 
 @Injectable()
 export class SourceCreateProcessor {
@@ -38,7 +40,10 @@ export class SourceCreateProcessor {
         sourceId: createdSource.id,
         req: { user: user || req.user || {} },
       });
-      throw error;
+      if (error instanceof NcError || error instanceof NcBaseError) {
+        throw error;
+      }
+      NcError.get(context).baseError('Error creating source', error);
     }
 
     if (createdSource.isMeta()) {

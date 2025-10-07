@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import axios from 'axios';
-import { ExternalError, ExternalTimeout } from '~/helpers/catchError';
+import { ExternalError, ExternalTimeout, NcError } from '~/helpers/catchError';
 
 const logger = new Logger('MuxHelpers');
 
@@ -35,14 +35,12 @@ export async function runExternal(
     return data;
   } catch (e) {
     if (e.response?.data?.error) {
-      throw new ExternalError(e.response.data.error);
+      NcError.externalError(e.response.data.error);
     }
 
     if (e?.message.includes('timeout')) {
-      throw new ExternalTimeout(
-        new Error(
-          'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
-        ),
+      NcError.externalTimeOut(
+        'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
       );
     }
 
@@ -52,10 +50,8 @@ export async function runExternal(
       msg: e.message,
     });
 
-    throw new ExternalError(
-      new Error(
-        'Error running query on external source. Confirm if source is accessible.',
-      ),
+    NcError.externalError(
+      'Error running query on external source. Confirm if source is accessible.',
     );
   }
 }

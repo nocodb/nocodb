@@ -122,7 +122,10 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
       for (const eachRollback of rollbacks) {
         await eachRollback();
       }
-      throw e;
+      this.logger.error('Failed to invite users', e);
+      NcError.get(param.req.context).internalServerError(
+        'Failed to invite users',
+      );
     }
     for (const eachPostOperation of postOperations) {
       await eachPostOperation();

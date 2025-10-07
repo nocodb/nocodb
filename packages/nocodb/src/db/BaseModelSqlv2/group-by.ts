@@ -84,7 +84,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         (c) => c.column_name === col || c.title === col,
       );
       if (!column) {
-        throw NcError.fieldNotFound(col);
+        NcError.get(baseModel.context).fieldNotFound(col);
       }
       // if qrCode or Barcode replace it with value column nd keep the alias
       if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
@@ -469,7 +469,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           (c) => c.column_name === col || c.title === col,
         );
         if (!column) {
-          throw NcError.fieldNotFound(col);
+          NcError.fieldNotFound(col);
         }
 
         // if qrCode or Barcode replace it with value column nd keep the alias
@@ -1082,7 +1082,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               (c) => c.column_name === col || c.title === col,
             );
             if (!column) {
-              throw NcError.fieldNotFound(col);
+              NcError.fieldNotFound(col);
             }
             return column?.id;
           })

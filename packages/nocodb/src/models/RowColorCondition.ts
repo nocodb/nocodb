@@ -1,3 +1,4 @@
+import { NcError } from 'src/helpers/ncError';
 import type { NcContext } from 'nocodb-sdk';
 import { MetaTable } from '~/cli';
 import Noco from '~/Noco';
@@ -81,7 +82,9 @@ export default class RowColorCondition implements IRowColorCondition {
       await ncMetaTrans.commit();
     } catch (ex) {
       await ncMetaTrans.rollback();
-      throw ex;
+      NcError.get(context).internalServerError(
+        'Failed to remove Row Colouring',
+      );
     }
   }
 }

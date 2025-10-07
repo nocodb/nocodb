@@ -95,7 +95,10 @@ export class WorkspaceMembersV3Service {
         );
         // if already exists and has a role then return error
         if (existingWorkspaceUser?.roles) {
-          throw new Error(
+          this.logger.error(
+            `${user.email} with role ${existingWorkspaceUser.roles} already exists in this workspace`,
+          );
+          NcError.badRequest(
             `${user.email} with role ${existingWorkspaceUser.roles} already exists in this workspace`,
           );
         }
@@ -145,7 +148,10 @@ export class WorkspaceMembersV3Service {
         await eachRollback();
       }
 
-      throw e;
+      this.logger.error('Failed to invite users', e);
+      NcError.get(param.req.context).internalServerError(
+        'Failed to invite users',
+      );
     }
 
     for (const eachPostOperation of postOperations) {

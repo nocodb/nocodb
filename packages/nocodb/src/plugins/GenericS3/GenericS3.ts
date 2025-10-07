@@ -13,6 +13,7 @@ import { Upload } from '@aws-sdk/lib-storage';
 import type { PutObjectRequest, S3 as S3Client } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
+import { NcError } from 'src/helpers/ncError';
 
 interface GenericObjectStorageInput {
   bucket: string;
@@ -63,6 +64,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
       await promisify(fs.unlink)(tempFile);
       return true;
     } catch (e) {
+      NcError.pluginTestError(e?.message)
       throw e;
     }
   }

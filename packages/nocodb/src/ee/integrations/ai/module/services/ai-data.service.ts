@@ -809,7 +809,7 @@ export class AiDataService {
       return updatedRows;
     } catch (e) {
       console.error(e);
-      throw e;
+      NcError.get(context).internalServerError(e?.message);
     }
   }
 
@@ -1285,7 +1285,7 @@ Please generate ${
       return updatedRows;
     } catch (e) {
       console.error(e);
-      throw e;
+      NcError.get(context).internalServerError(e?.message);
     }
   }
 }

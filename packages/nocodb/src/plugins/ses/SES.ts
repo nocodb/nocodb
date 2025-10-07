@@ -4,6 +4,7 @@ import { SendRawEmailCommand, SES as SESClient } from '@aws-sdk/client-ses';
 import type { IEmailAdapter } from '~/types/nc-plugin';
 import type Mail from 'nodemailer/lib/mailer';
 import type { XcEmail } from '~/interface/IEmailAdapter';
+import { NcError } from '~/helpers/ncError';
 
 export default class SES implements IEmailAdapter {
   private transporter: Mail;
@@ -55,7 +56,7 @@ export default class SES implements IEmailAdapter {
       } as any);
       return true;
     } catch (e) {
-      throw e;
+      NcError.pluginTestError(e?.message);
     }
   }
 }

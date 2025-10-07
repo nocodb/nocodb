@@ -460,8 +460,8 @@ export class SyncModuleService implements OnModuleInit {
         for (const syncMapping of syncMappings) {
           await SyncMapping.delete(context, syncMapping.id);
         }
-
-        throw e;
+        this.logger.error('Failed to create sync', e);
+        NcError.get(context).internalServerError('Failed to create sync');
       }
 
       if (authWrapper?.destroy) {
@@ -497,7 +497,8 @@ export class SyncModuleService implements OnModuleInit {
         await SyncConfig.delete(context, syncConfig.id);
       }
 
-      throw e;
+      this.logger.error('Failed to create sync', e);
+      NcError.get(context).internalServerError('Failed to create sync');
     }
   }
 
@@ -1022,7 +1023,8 @@ export class SyncModuleService implements OnModuleInit {
 
       await SyncConfig.delete(context, syncConfigId);
     } catch (e) {
-      throw e;
+      this.logger.error('Failed to delete sync', e);
+      NcError.get(context).internalServerError('Failed to delete sync');
     }
 
     return syncConfig;

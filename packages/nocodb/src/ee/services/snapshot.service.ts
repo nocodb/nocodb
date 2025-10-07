@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { NcRequest, SnapshotType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Snapshot from '~/models/Snapshot';
@@ -10,6 +11,8 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class SnapshotService {
+  protected logger = new Logger(SnapshotService.name);
+
   constructor(protected readonly appHooksService: AppHooksService) {}
 
   async getSnapshots(context: NcContext, baseId: string) {
@@ -67,7 +70,8 @@ export class SnapshotService {
       return true;
     } catch (e) {
       await ncMeta.rollback();
-      throw e;
+      this.logger.error('Failed to delete snapshot', e);
+      NcError.get(req.context).internalServerError('Failed to delete snapshot');
     }
   }
 }

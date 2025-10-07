@@ -21,6 +21,7 @@ import {
   NC_DATA_REFLECTION_SETTINGS,
   revokeAccessToSchema,
 } from '~/helpers/dataReflectionHelpers';
+import { NcError } from 'src/helpers/ncError';
 
 const logger = new Logger('DataReflection');
 
@@ -243,7 +244,7 @@ export default class DataReflection extends DataReflectionCE {
     const workspace = await Workspace.get(fk_workspace_id, false, ncMeta);
 
     if (!workspace) {
-      throw new Error('Workspace not found');
+      NcError.workspaceNotFound(fk_workspace_id);
     }
 
     const sanitizedWorkspaceTitle = workspace.title.replace(/[^a-z0-9]/gi, '_');
@@ -281,7 +282,7 @@ export default class DataReflection extends DataReflectionCE {
       await knex.commit();
     } catch (e) {
       await knex.rollback();
-      throw e;
+      NcError._.internalServerError('Failed to create data reflection');
     }
 
     return DataReflection.get({ fk_workspace_id }, ncMeta);
@@ -449,7 +450,7 @@ function rewriteSASLMechanisms(buf: Buffer): Buffer {
   const filtered = saslMechs.filter((m) => m !== 'SCRAM-SHA-256-PLUS');
 
   if (filtered.length === 0) {
-    throw new Error('No valid SASL mechanisms after filtering');
+    NcError._.internalServerError('No valid SASL mechanisms after filtering');
   }
 
   const mechList = Buffer.concat(filtered.map((m) => Buffer.from(m + '\0')));

@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Nevažeći upit za pretragu vidljivih polja",
       "invalidSearchQueryForDisplayField": "Nevažeći upit za pretragu prikaznog polja",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Projektni metapodaci su uspješno izvozili",

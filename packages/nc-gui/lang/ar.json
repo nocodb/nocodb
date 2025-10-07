@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "استعلام البحث غير صالح للحقول الظاهرة",
       "invalidSearchQueryForDisplayField": "استعلام البحث غير صالح لحقل العرض",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "تصدير البيانات الوصفية للمشروع بنجاح",

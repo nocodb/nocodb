@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "คิวรีค้นหาสำหรับฟิลด์ที่แสดงไม่ถูกต้อง",
       "invalidSearchQueryForDisplayField": "คิวรีค้นหาสำหรับฟิลด์แสดงผลไม่ถูกต้อง",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "ข้อมูลเมตาของโครงการส่งออกเรียบร้อยแล้ว",

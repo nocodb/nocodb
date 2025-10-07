@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "可见字段的搜索查询无效",
       "invalidSearchQueryForDisplayField": "展示字段的搜索查询无效",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "项目元数据成功导出",

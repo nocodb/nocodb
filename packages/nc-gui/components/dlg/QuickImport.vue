@@ -976,17 +976,24 @@ watch(
                       jsonErrorText || refMonacoEditor?.error,
                   }"
                 >
-                  <LazyMonacoEditor
-                    ref="refMonacoEditor"
-                    class="nc-import-monaco-editor !h-full min-h-30"
-                    :auto-focus="false"
-                    hide-minimap
-                    :monaco-config="{
-                      lineNumbers: 'on',
-                    }"
-                    :model-value="temporaryJson"
-                    @update:model-value="handleJsonChange($event)"
-                  />
+                  <Suspense>
+                    <template #default>
+                      <LazyMonacoEditor
+                        ref="refMonacoEditor"
+                        class="nc-import-monaco-editor !h-full min-h-30"
+                        :auto-focus="false"
+                        hide-minimap
+                        :monaco-config="{
+                          lineNumbers: 'on',
+                        }"
+                        :model-value="temporaryJson"
+                        @update:model-value="handleJsonChange($event)"
+                      />
+                    </template>
+                    <template #fallback>
+                      <MonacoLoading height="!h-full" />
+                    </template>
+                  </Suspense>
                 </div>
 
                 <div v-if="jsonErrorText || refMonacoEditor?.error" class="text-nc-content-red-medium text-small mt-2">

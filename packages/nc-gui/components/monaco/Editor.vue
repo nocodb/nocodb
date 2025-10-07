@@ -36,7 +36,7 @@ const { hideMinimap, lang, validate, disableDeepCompare, autoFocus, monacoConfig
 
 let isInitialLoad = false
 
-const vModel = computed<string>({
+const vModel = computed({
   get: () => {
     const value = modelValue.value
 
@@ -99,6 +99,29 @@ const root = ref<HTMLDivElement>()
 
 let editor: MonacoEditor.IStandaloneCodeEditor
 
+// Add loading state
+const isLoading = ref(true)
+const loadError = ref(false)
+
+const retryLoad = async () => {
+  loadError.value = false
+  isLoading.value = true
+  
+  try {
+    await initializeMonaco()
+    // Re-run the initialization logic
+    if (root.value && lang) {
+      const model = monacoEditor.createModel(vModel.value || '', lang)
+      // ... rest of initialization
+      isLoading.value = false
+    }
+  } catch (error) {
+    console.error('Failed to retry Monaco Editor:', error)
+    loadError.value = true
+    isLoading.value = false
+  }
+}
+
 const format = (space = monacoConfig.tabSize || 2) => {
   try {
     const parsedValue = JSON.parse(editor?.getValue() as string)
@@ -115,97 +138,105 @@ defineExpose({
 })
 
 onMounted(async () => {
-  await initializeMonaco()
+  try {
+    await initializeMonaco()
 
-  if (root.value && lang) {
-    const model = monacoEditor.createModel(vModel.value, lang)
+    if (root.value && lang) {
+      const model = monacoEditor.createModel(vModel.value || '', lang)
 
-    if (lang === 'json') {
-      // configure the JSON language support with schemas and schema associations
-      languages.json.jsonDefaults.setDiagnosticsOptions({
-        validate: validate as boolean,
-      })
-    }
-
-    let isCustomTheme = false
-
-    if (Object.keys(monacoCustomTheme).length) {
-      monacoEditor.defineTheme('custom', monacoCustomTheme)
-      isCustomTheme = true
-    }
-
-    editor = monacoEditor.create(root.value, {
-      model,
-      contextmenu: false,
-      theme: isCustomTheme ? 'custom' : 'vs',
-      foldingStrategy: 'indentation',
-      selectOnLineNumbers: true,
-      language: props.lang,
-      scrollbar: {
-        verticalScrollbarSize: 1,
-        horizontalScrollbarSize: 1,
-      },
-      lineNumbers: 'off',
-      tabSize: monacoConfig.tabSize || 2,
-      automaticLayout: true,
-      readOnly: readOnly.value,
-      bracketPairColorization: {
-        enabled: true,
-        independentColorPoolPerBracketType: true,
-      },
-      minimap: {
-        enabled: !hideMinimap,
-      },
-      ...(lang === 'json' ? { detectIndentation: false, insertSpaces: true } : {}),
-      ...monacoConfig,
-    })
-
-    editor.onDidChangeModelContent(async () => {
-      try {
-        isValid.value = true
-        error.value = ''
-
-        if (disableDeepCompare || lang !== 'json') {
-          vModel.value = editor.getValue()
-        } else {
-          const obj = JSON.parse(editor.getValue())
-
-          if (!obj || !deepCompare(vModel.value, obj)) vModel.value = obj
-        }
-      } catch (e) {
-        isValid.value = false
-        const err = await extractSdkResponseErrorMsg(e)
-        error.value = err
-        console.log(err)
+      if (lang === 'json') {
+        // configure the JSON language support with schemas and schema associations
+        languages.json.jsonDefaults.setDiagnosticsOptions({
+          validate: validate as boolean,
+        })
       }
-    })
 
-    if (placeholder) {
-      // eslint-disable-next-line no-new
-      new PlaceholderContentWidget(placeholder, editor)
-    }
+      let isCustomTheme = false
 
-    const activeDrawerOrModal = isDrawerOrModalExist()
+      if (Object.keys(monacoCustomTheme).length) {
+        monacoEditor.defineTheme('custom', monacoCustomTheme as MonacoEditor.IStandaloneThemeData)
+        isCustomTheme = true
+      }
 
-    if (!activeDrawerOrModal && autoFocus) {
-      // auto focus on json cells only
-      editor.focus()
-    }
+      editor = monacoEditor.create(root.value, {
+        model,
+        contextmenu: false,
+        theme: isCustomTheme ? 'custom' : 'vs',
+        foldingStrategy: 'indentation',
+        selectOnLineNumbers: true,
+        language: props.lang,
+        scrollbar: {
+          verticalScrollbarSize: 1,
+          horizontalScrollbarSize: 1,
+        },
+        lineNumbers: 'off',
+        tabSize: monacoConfig.tabSize || 2,
+        automaticLayout: true,
+        readOnly: readOnly.value,
+        bracketPairColorization: {
+          enabled: true,
+          independentColorPoolPerBracketType: true,
+        },
+        minimap: {
+          enabled: !hideMinimap,
+        },
+        ...(lang === 'json' ? { detectIndentation: false, insertSpaces: true } : {}),
+        ...monacoConfig,
+      })
 
-    if (activeDrawerOrModal?.classList.contains('json-modal') && autoFocus) {
-      setTimeout(() => {
-        const lineCount = editor.getModel()?.getLineCount() ?? 0
-        const lastLineLength = editor.getModel()?.getLineContent(lineCount).length ?? 0
-        const endPosition = { lineNumber: lineCount, column: lastLineLength + 1 }
-        editor.setPosition(endPosition)
-        editor.revealPositionInCenter(endPosition)
+      editor.onDidChangeModelContent(async () => {
+        try {
+          isValid.value = true
+          error.value = ''
+
+          if (disableDeepCompare || lang !== 'json') {
+            emits('update:modelValue', editor.getValue())
+          } else {
+            const obj = JSON.parse(editor.getValue())
+
+            if (!obj || !deepCompare(vModel.value, obj)) emits('update:modelValue', obj)
+          }
+        } catch (e) {
+          isValid.value = false
+          const err = await extractSdkResponseErrorMsg(e as Error)
+          error.value = err
+          console.log(err)
+        }
+      })
+
+      if (placeholder) {
+        // eslint-disable-next-line no-new
+        new PlaceholderContentWidget(placeholder, editor)
+      }
+
+      const activeDrawerOrModal = isDrawerOrModalExist()
+
+      if (!activeDrawerOrModal && autoFocus) {
+        // auto focus on json cells only
         editor.focus()
-      }, 200)
-    }
+      }
 
-    if (lang === 'json') {
-      format()
+      if (activeDrawerOrModal?.classList.contains('json-modal') && autoFocus) {
+        setTimeout(() => {
+          const lineCount = editor.getModel()?.getLineCount() ?? 0
+          const lastLineLength = editor.getModel()?.getLineContent(lineCount).length ?? 0
+          const endPosition = { lineNumber: lineCount, column: lastLineLength + 1 }
+          editor.setPosition(endPosition)
+          editor.revealPositionInCenter(endPosition)
+          editor.focus()
+        }, 200)
+      }
+
+      if (lang === 'json') {
+        format()
+      }
     }
+    
+    isLoading.value = false
+  } catch (error) {
+    console.error('Failed to initialize Monaco Editor:', error)
+    loadError.value = true
+    isLoading.value = false
   }
 })
 
@@ -230,7 +261,32 @@ watch(readOnly, (v) => {
 </script>
 
 <template>
-  <div ref="root"></div>
+  <div class="relative h-full w-full">
+    <!-- Loading State -->
+    <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div class="text-center">
+        <a-spin size="large" />
+        <div class="mt-4 text-gray-600 dark:text-gray-400">
+          Loading Monaco Editor...
+        </div>
+      </div>
+    </div>
+    
+    <!-- Error State -->
+    <div v-else-if="loadError" class="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900">
+      <div class="text-center">
+        <div class="text-red-600 dark:text-red-400 mb-2">
+          Failed to load Monaco Editor
+        </div>
+        <NcButton @click="retryLoad">
+          Retry
+        </NcButton>
+      </div>
+    </div>
+    
+    <!-- Monaco Editor -->
+    <div ref="root" class="h-full w-full" :class="{ 'opacity-0': isLoading || loadError }" />
+  </div>
 </template>
 
 <style scoped lang="scss">

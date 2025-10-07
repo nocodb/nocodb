@@ -58,54 +58,54 @@ const onCopyToClipboard = async () => {
       </NcButton>
     </div>
     <Suspense>
-      <LazyMonacoEditor
-        class="h-72 !rounded-b-lg overflow-hidden !bg-gray-50"
-        :model-value="code"
-        :read-only="true"
-        lang="json"
-        :validate="false"
-        :disable-deep-compare="true"
-        :monaco-config="{
-          minimap: {
-            enabled: false,
-          },
-          fontSize: 13,
-          lineHeight: 18,
-          padding: {
-            top: 12,
-            bottom: 12,
-          },
-          overviewRulerBorder: false,
-          overviewRulerLanes: 0,
-          hideCursorInOverviewRuler: true,
-          lineDecorationsWidth: 12,
-          lineNumbersMinChars: 0,
-          roundedSelection: false,
-          selectOnLineNumbers: false,
-          scrollBeyondLastLine: false,
-          contextmenu: false,
-          glyphMargin: false,
-          folding: false,
-          bracketPairColorization: { enabled: false },
-          wordWrap: 'on',
-          scrollbar: {
-            horizontal: 'hidden',
-            verticalScrollbarSize: 6,
-          },
-          renderIndentGuides: false,
-          wrappingStrategy: 'advanced',
-          renderLineHighlight: 'none',
-          tabSize: 2,
-          detectIndentation: false,
-          insertSpaces: true,
-          lineNumbers: 'off',
-        }"
-        hide-minimap
-      />
+      <template #default>
+        <LazyMonacoEditor
+          class="h-72 !rounded-b-lg overflow-hidden !bg-gray-50"
+          :model-value="code"
+          :read-only="true"
+          lang="json"
+          :validate="false"
+          :disable-deep-compare="true"
+          :monaco-config="{
+            minimap: {
+              enabled: false,
+            },
+            fontSize: 13,
+            lineHeight: 18,
+            padding: {
+              top: 12,
+              bottom: 12,
+            },
+            overviewRulerBorder: false,
+            overviewRulerLanes: 0,
+            hideCursorInOverviewRuler: true,
+            lineDecorationsWidth: 12,
+            lineNumbersMinChars: 0,
+            roundedSelection: false,
+            selectOnLineNumbers: false,
+            scrollBeyondLastLine: false,
+            contextmenu: false,
+            glyphMargin: false,
+            folding: false,
+            bracketPairColorization: { enabled: false },
+            wordWrap: 'on',
+            scrollbar: {
+              horizontal: 'hidden',
+              verticalScrollbarSize: 6,
+            },
+            renderIndentGuides: false,
+            wrappingStrategy: 'advanced',
+            renderLineHighlight: 'none',
+            tabSize: 2,
+            detectIndentation: false,
+            insertSpaces: true,
+            lineNumbers: 'off',
+          }"
+          hide-minimap
+        />
+      </template>
       <template #fallback>
-        <div class="h-full w-full flex flex-col justify-center items-center mt-28">
-          <a-spin size="large" :indicator="indicator" />
-        </div>
+        <MonacoLoading height="h-72" />
       </template>
     </Suspense>
   </div>

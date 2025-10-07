@@ -62,30 +62,37 @@ const formattedPayload = computed(() => {
           <span class="text-xs leading-[18px]">Payload</span>
           <GeneralCopyButton :content="copyPayloadContent" size="xs" class="!px-1" />
         </div>
-        <LazyMonacoEditor
-          :model-value="formattedPayload"
-          class="min-w-full w-full flex-1 min-h-50 resize-y overflow-auto expanded-editor"
-          hide-minimap
-          disable-deep-compare
-          read-only
-          :monaco-config="{
-            lineNumbers: 'on',
-            scrollbar: {
-              verticalScrollbarSize: 6,
-              horizontalScrollbarSize: 6,
-            },
-          }"
-          :monaco-custom-theme="{
-            base: 'vs',
-            inherit: true,
-            rules: [],
-            colors: {
-              'editor.background': '#f9f9fa',
-            },
-          }"
-          @keydown.enter.stop
-          @keydown.alt.stop
-        />
+        <Suspense>
+          <template #default>
+            <LazyMonacoEditor
+              :model-value="formattedPayload"
+              class="min-w-full w-full flex-1 min-h-50 resize-y overflow-auto expanded-editor"
+              hide-minimap
+              disable-deep-compare
+              read-only
+              :monaco-config="{
+                lineNumbers: 'on',
+                scrollbar: {
+                  verticalScrollbarSize: 6,
+                  horizontalScrollbarSize: 6,
+                },
+              }"
+              :monaco-custom-theme="{
+                base: 'vs',
+                inherit: true,
+                rules: [],
+                colors: {
+                  'editor.background': '#f9f9fa',
+                },
+              }"
+              @keydown.enter.stop
+              @keydown.alt.stop
+            />
+          </template>
+          <template #fallback>
+            <MonacoLoading height="min-h-50" />
+          </template>
+        </Suspense>
       </div>
     </div>
   </div>

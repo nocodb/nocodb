@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Truy vấn tìm kiếm không hợp lệ cho các trường hiển thị",
       "invalidSearchQueryForDisplayField": "Truy vấn tìm kiếm không hợp lệ cho trường hiển thị",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Metadata dự án xuất khẩu thành công",

@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Ongeldige zoekopdracht voor zichtbare velden",
       "invalidSearchQueryForDisplayField": "Ongeldige zoekopdracht voor weergaveveld",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Project metadata met succes geëxporteerd",

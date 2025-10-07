@@ -26,6 +26,7 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { repopulateCreateTableSystemColumns } from '~/helpers/tableHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -38,10 +39,6 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
-import {
-  getUniqueColumnAliasName,
-  getUniqueColumnName,
-} from '~/helpers/getUniqueName';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -639,141 +636,11 @@ export class TablesService {
     }
 
     // add CreatedTime and LastModifiedTime system columns if missing in request payload
-    {
-      // FIXME: do not reassign tableCreatePayLoad.columns with .filter or .map
-      // somehow it bugged out, will check out later
-      for (let i = tableCreatePayLoad.columns.length - 1; i >= 0; i--) {
-        const col = tableCreatePayLoad.columns[i];
-        if ([UITypes.ID, UITypes.Order].includes(col.uidt as UITypes)) {
-          tableCreatePayLoad.columns.splice(i, 1);
-        } else {
-          if (source?.isMeta() && col.pk) {
-            delete col.pk;
-          }
-        }
-      }
-      for (const uidt of [
-        UITypes.ID,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-        UITypes.CreatedBy,
-        UITypes.LastModifiedBy,
-        UITypes.Order,
-      ]) {
-        const col = tableCreatePayLoad.columns.find(
-          (c) => c.uidt === uidt,
-        ) as ColumnType;
+    tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
+      columns: tableCreatePayLoad.columns,
+    });
 
-        let columnName, columnTitle;
-
-        switch (uidt) {
-          case UITypes.CreatedTime:
-            columnName = 'created_at';
-            columnTitle = 'CreatedAt';
-            break;
-          case UITypes.LastModifiedTime:
-            columnName = 'updated_at';
-            columnTitle = 'UpdatedAt';
-            break;
-          case UITypes.CreatedBy:
-            columnName = 'created_by';
-            columnTitle = 'nc_created_by';
-            break;
-          case UITypes.LastModifiedBy:
-            columnName = 'updated_by';
-            columnTitle = 'nc_updated_by';
-            break;
-          case UITypes.Order:
-            columnTitle = 'nc_order';
-            columnName = 'nc_order';
-            break;
-          case UITypes.ID:
-            columnTitle = 'Id';
-            columnName = 'id';
-            break;
-        }
-
-        const colName = getUniqueColumnName(
-          tableCreatePayLoad.columns as any[],
-          columnName,
-        );
-
-        const colAlias = getUniqueColumnAliasName(
-          tableCreatePayLoad.columns as any[],
-          columnTitle,
-        );
-
-        if (!col || (!col.system && col.uidt !== UITypes.ID)) {
-          tableCreatePayLoad.columns.push({
-            ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
-            column_name: colName,
-            cn: colName,
-            title: colAlias,
-            system: uidt !== UITypes.ID,
-          });
-        } else {
-          // temporary fix for updating if user passed system columns with duplicate names
-          if (
-            tableCreatePayLoad.columns.some(
-              (c: ColumnType) =>
-                c.uidt !== uidt && c.column_name === col.column_name,
-            )
-          ) {
-            Object.assign(col, {
-              column_name: colName,
-              cn: colName,
-            });
-          }
-          if (
-            tableCreatePayLoad.columns.some(
-              (c: ColumnType) => c.uidt !== uidt && c.title === col.title,
-            )
-          ) {
-            Object.assign(col, {
-              title: colAlias,
-            });
-          }
-        }
-      }
-    }
-
-    {
-      // set order of system columns in columns list
-      const orderOfSystemColumns = [
-        UITypes.ID,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-        UITypes.CreatedBy,
-        UITypes.LastModifiedBy,
-        UITypes.Order,
-      ];
-
-      tableCreatePayLoad.columns = tableCreatePayLoad.columns.sort((a, b) => {
-        const aIndex =
-          a.system || a.uidt === UITypes.ID
-            ? orderOfSystemColumns.indexOf(a.uidt as UITypes)
-            : -1;
-        const bIndex =
-          b.system || b.uidt === UITypes.ID
-            ? orderOfSystemColumns.indexOf(b.uidt as UITypes)
-            : -1;
-
-        if (aIndex === -1 && bIndex === -1) {
-          return 0;
-        }
-
-        if (aIndex === -1) {
-          return 1;
-        }
-
-        if (bIndex === -1) {
-          return -1;
-        }
-
-        return aIndex - bIndex;
-      });
-    }
-
+    //#region validating table title and table name
     if (!tableCreatePayLoad.title) {
       NcError.get(context).invalidRequestBody(
         'Missing table `title` property in request body',
@@ -878,16 +745,17 @@ export class TablesService {
         `Table name exceeds ${tableNameLengthLimit} characters`,
       );
     }
+    //#endregion validating table title and table name
 
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
     const uniqueColumnNameCount = {};
 
-    mapDefaultDisplayValue(param.table.columns);
+    mapDefaultDisplayValue(tableCreatePayLoad.columns);
 
     const virtualColumns = [];
 
-    for (const column of param.table.columns) {
+    for (const column of tableCreatePayLoad.columns) {
       if (
         !isVirtualCol(column) ||
         (isCreatedOrLastModifiedTimeCol(column) && (column as any).system) ||
@@ -927,7 +795,7 @@ export class TablesService {
     }
 
     tableCreatePayLoad.columns = await Promise.all(
-      param.table.columns
+      tableCreatePayLoad.columns
         // exclude alias columns from column list
         ?.filter((c) => {
           const allowed =
@@ -970,7 +838,7 @@ export class TablesService {
       )?.data?.list;
     }
 
-    const tables = await Model.list(context, {
+    const _tables = await Model.list(context, {
       base_id: base.id,
       source_id: source.id,
     });

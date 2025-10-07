@@ -645,3 +645,70 @@ export const getMMColumnNames = (parent: Model, child: Model) => {
     childCn,
   };
 };
+
+export const TableSystemColumns = () => [
+  {
+    column_name: 'id',
+    title: 'Id',
+    uidt: UITypes.ID,
+    allowNonSystem: false,
+    system: false,
+  },
+  {
+    column_name: 'created_at',
+    title: 'CreatedAt',
+    uidt: UITypes.CreatedTime,
+    allowNonSystem: true,
+    system: true,
+  },
+  {
+    column_name: 'updated_at',
+    title: 'UpdatedAt',
+    uidt: UITypes.LastModifiedTime,
+    allowNonSystem: true,
+    system: true,
+  },
+  {
+    column_name: 'created_by',
+    title: 'nc_created_by',
+    uidt: UITypes.CreatedBy,
+    allowNonSystem: true,
+    system: true,
+  },
+  {
+    column_name: 'updated_by',
+    title: 'nc_updated_by',
+    uidt: UITypes.LastModifiedBy,
+    allowNonSystem: true,
+    system: true,
+  },
+  {
+    column_name: 'nc_order',
+    title: 'nc_order',
+    uidt: UITypes.Order,
+    allowNonSystem: false,
+    system: true,
+  },
+];
+
+export const deleteColumnSystemPropsFromRequest = (col: any) => {
+  // remove all properties not in documentations
+  delete col.dt;
+  delete col.np;
+  delete col.ns;
+  delete col.clen;
+  delete col.cop;
+  delete col.pk;
+  delete col.rqd;
+  delete col.un;
+  delete col.ai;
+  delete col.unique;
+  delete col.cc;
+  delete col.csn;
+  delete col.dtx;
+  // dtxs is scale, used in decimal uidt
+  // delete col.dtxs;
+  delete col.au;
+  delete col.validate;
+  delete col.system;
+};

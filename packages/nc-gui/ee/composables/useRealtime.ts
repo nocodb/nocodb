@@ -138,11 +138,11 @@ export const useRealtime = createSharedComposable(() => {
       }
       refreshCommandPalette()
     } else if (event.action === 'column_add' || event.action === 'column_update' || event.action === 'column_delete') {
-      const { table, column } = event.payload
+      const { table, column, skipDataReload = false } = event.payload
       setMeta(table)
       if (event.action === 'column_update' || (event.action === 'column_add' && (isVirtualCol(column) || !!column.cdf))) {
         $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
-        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+        if (!skipDataReload) $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
       }
     } else if (event.action === 'view_create') {
       const views = viewsByTable.value.get(event.payload.fk_model_id) || []

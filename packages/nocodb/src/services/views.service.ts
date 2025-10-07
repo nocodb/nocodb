@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ProjectRoles, ViewTypes } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type {
-  LinkToAnotherRecordType,
   SharedViewReqType,
   UserType,
   ViewUpdateReqType,
@@ -25,8 +24,6 @@ import {
   View,
 } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
-import { CacheScope, MetaTable } from '~/utils/globals';
-import NocoCache from '~/cache/NocoCache';
 
 // todo: move
 async function xcVisibilityMetaGet(
@@ -333,40 +330,6 @@ export class ViewsService {
     ).forDelete();
 
     await View.delete(context, param.viewId, ncMeta);
-
-    // Reset view associated to LTAR/Links
-    const linksOptions: LinkToAnotherRecordType[] = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_RELATIONS,
-      {
-        condition: {
-          fk_target_view_id: param.viewId,
-        },
-      },
-    );
-    await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COL_RELATIONS,
-      {
-        fk_target_view_id: param.viewId,
-      },
-      {
-        fk_target_view_id: null,
-      },
-    );
-
-    // update column cache
-    for (const link of linksOptions) {
-      await NocoCache.update(
-        context,
-        `${CacheScope.COL_RELATION}:${link.fk_column_id}`,
-        {
-          fk_target_view_id: null,
-        },
-      );
-    }
 
     let deleteEvent = AppEvents.GRID_DELETE;
 

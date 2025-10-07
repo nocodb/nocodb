@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Neplatný vyhledávací dotaz pro viditelná pole",
       "invalidSearchQueryForDisplayField": "Neplatný vyhledávací dotaz pro zobrazované pole",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Úspěšný export metadat databáze",

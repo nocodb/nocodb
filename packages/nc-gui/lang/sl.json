@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Neveljaven iskalni niz za vidna polja",
       "invalidSearchQueryForDisplayField": "Neveljaven iskalni niz za prikazno polje",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Projekt Metapodatki se je uspešno izvozil",

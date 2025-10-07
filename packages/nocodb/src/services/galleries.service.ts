@@ -45,7 +45,26 @@ export class GalleriesService {
     );
 
     const model = await Model.get(context, param.tableId, ncMeta);
-
+    param.gallery.title = param.gallery.title?.trim();
+    const existingView = await View.getByTitleOrId(
+      context,
+      {
+        titleOrId: param.gallery.title,
+        fk_model_id: param.tableId,
+      },
+      ncMeta,
+    );
+    if (existingView) {
+      NcError.get(context).duplicateAlias({
+        type: 'view',
+        alias: param.gallery.title,
+        label: 'title',
+        base: context.base_id,
+        additionalTrace: {
+          table: param.tableId,
+        },
+      });
+    }
     const viewWebhookManager =
       param.viewWebhookManager ??
       (

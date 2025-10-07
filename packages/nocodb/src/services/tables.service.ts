@@ -644,43 +644,6 @@ export class TablesService {
       columns: tableCreatePayLoad.columns,
     });
 
-    {
-      // set order of system columns in columns list
-      const orderOfSystemColumns = [
-        UITypes.ID,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-        UITypes.CreatedBy,
-        UITypes.LastModifiedBy,
-        UITypes.Order,
-      ];
-
-      tableCreatePayLoad.columns = tableCreatePayLoad.columns.sort((a, b) => {
-        const aIndex =
-          a.system || a.uidt === UITypes.ID
-            ? orderOfSystemColumns.indexOf(a.uidt as UITypes)
-            : -1;
-        const bIndex =
-          b.system || b.uidt === UITypes.ID
-            ? orderOfSystemColumns.indexOf(b.uidt as UITypes)
-            : -1;
-
-        if (aIndex === -1 && bIndex === -1) {
-          return 0;
-        }
-
-        if (aIndex === -1) {
-          return 1;
-        }
-
-        if (bIndex === -1) {
-          return -1;
-        }
-
-        return aIndex - bIndex;
-      });
-    }
-
     if (!tableCreatePayLoad.title) {
       NcError.get(context).invalidRequestBody(
         'Missing table `title` property in request body',

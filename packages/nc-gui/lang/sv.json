@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Ogiltig sökfråga för synliga fält",
       "invalidSearchQueryForDisplayField": "Ogiltig sökfråga för visningsfält",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Projektmetadata exporterades framgångsrikt",

@@ -58,13 +58,14 @@ const copyViewConfiguration = async () => {
   <NcModal
     v-model:visible="dialogShow"
     :show-separator="false"
-    header="Copy view configuration from another view"
     size="small"
     wrap-class-name="nc-copy-view-config-from-another-view-modal-wrapper"
   >
+    <template #header>
+      <h1 class="text-base text-gray-800 font-semibold flex items-center gap-2">Copy view configuration from another view</h1>
+    </template>
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-2">
-        <label class="text-caption text-nc-content-gray-subtle2">Select view</label>
         <NcListViewSelector ref="selectViewRef" v-model:value="copyFromViewId" :table-id="tableId" :disabled="!tableId">
           <template #label> Select view </template>
         </NcListViewSelector>

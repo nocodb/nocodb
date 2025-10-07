@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Некоректний пошуковий запит для видимих полів",
       "invalidSearchQueryForDisplayField": "Некоректний пошуковий запит для поля відображення",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Метадані проєкту експортовано",

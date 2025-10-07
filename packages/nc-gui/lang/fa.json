@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "پرس و جوی جستجوی نامعتبر برای فیلدهای قابل مشاهده",
       "invalidSearchQueryForDisplayField": "پرس و جوی جستجوی نامعتبر برای فیلد نمایشی",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "فراداده پروژه با موفقیت خارج شد",

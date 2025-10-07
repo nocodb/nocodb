@@ -7,6 +7,18 @@ import { TypeGenerator } from '~/components/smartsheet/automation/scripts/utils/
 const loadMonacoEditor = () => import('monaco-editor')
 const loadMonacopilot = () => import('monacopilot')
 
+// Async setup to make this component suspensible
+const setup = async () => {
+  // Initialize Monaco Editor to make this component truly async
+  await initializeMonaco()
+  
+  // Add a small delay to ensure Suspense triggers even if Monaco is already initialized
+  await new Promise(resolve => setTimeout(resolve, 100))
+}
+
+// Call the async setup
+await setup()
+
 const editorRef = ref<HTMLDivElement | null>(null)
 
 let editor: monaco.editor.IStandaloneCodeEditor

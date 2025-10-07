@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Görünen alanlar için geçersiz arama sorgusu",
       "invalidSearchQueryForDisplayField": "Görüntüleme alanı için geçersiz arama sorgusu",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Proje metaverileri başarıyla dışa aktarıldı",

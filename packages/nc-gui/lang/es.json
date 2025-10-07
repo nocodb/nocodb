@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Consulta de búsqueda inválida para campos visibles",
       "invalidSearchQueryForDisplayField": "Consulta de búsqueda inválida para el campo de visualización",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Metadatos del proyecto exportados con éxito.",

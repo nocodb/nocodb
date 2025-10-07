@@ -1,4 +1,14 @@
-import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, RowColoringInfo, SortType, ViewType } from 'nocodb-sdk'
+import type {
+  CalendarType,
+  FilterType,
+  GalleryType,
+  KanbanType,
+  MapType,
+  RowColoringInfo,
+  SortType,
+  ViewSettingOverrideOptions,
+  ViewType,
+} from 'nocodb-sdk'
 import { ViewTypes, ViewTypes as _ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
@@ -788,7 +798,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const onOpenCopyViewConfigFromAnotherViewModal = ({
     defaultSelectedCopyViewConfigTypes,
   }: {
-    defaultSelectedCopyViewConfigTypes?: CopyViewConfigType[]
+    defaultSelectedCopyViewConfigTypes?: ViewSettingOverrideOptions[]
   } = {}) => {
     if (!isEeUI || !isUIAllowed('viewCreateOrEdit')) return
 

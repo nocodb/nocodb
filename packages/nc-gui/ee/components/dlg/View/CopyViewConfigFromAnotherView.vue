@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import { NcListViewSelector } from '#components'
+import { getCopyViewConfigOptions, type ViewSettingOverrideOptions } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: boolean
-  defaultSelectedCopyViewConfigTypes?: CopyViewConfigType[]
+  defaultSelectedCopyViewConfigTypes?: ViewSettingOverrideOptions[]
   tableId?: string
 }
 
@@ -15,8 +16,6 @@ const emits = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false })
 
-const { t } = useI18n()
-
 const isLoading = ref(false)
 
 const selectViewRef = ref<InstanceType<typeof NcListViewSelector>>()
@@ -27,9 +26,9 @@ const copyFromViewId = ref<string | undefined>()
 
 const copyFromViewOptions = computed(() => getCopyViewConfigOptions(selectViewRef.value?.selectedView?.type))
 
-const selectedCopyViewConfigTypes = ref<CopyViewConfigType[]>(props.defaultSelectedCopyViewConfigTypes ?? [])
+const selectedCopyViewConfigTypes = ref<ViewSettingOverrideOptions[]>(props.defaultSelectedCopyViewConfigTypes ?? [])
 
-const toggleCopyViewConfigType = (value: CopyViewConfigType) => {
+const toggleCopyViewConfigType = (value: ViewSettingOverrideOptions) => {
   if (selectedCopyViewConfigTypes.value.includes(value)) {
     selectedCopyViewConfigTypes.value = selectedCopyViewConfigTypes.value.filter((v) => v !== value)
   } else {

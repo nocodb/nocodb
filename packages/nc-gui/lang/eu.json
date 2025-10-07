@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Bilaketa-kontsulta baliogabea ikusarazten diren eremuetarako",
       "invalidSearchQueryForDisplayField": "Bilaketa-kontsulta baliogabea bistaratzen den eremuarentzat",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Project metadata exported successfully",

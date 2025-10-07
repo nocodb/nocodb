@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { UserInfoType, UserType, WorkspaceUserType } from 'nocodb-sdk'
+import type { UserType, WorkspaceUserType } from 'nocodb-sdk'
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
 export interface TeamMember extends WorkspaceUserType, Omit<UserType, 'roles' | 'email' | 'id'> {}
@@ -24,7 +24,7 @@ const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { collaborators, collaboratorsMap, teams } = storeToRefs(workspaceStore)
+const { collaborators, teams } = storeToRefs(workspaceStore)
 
 const teamMembers = ref<TeamMember[]>([])
 
@@ -105,7 +105,7 @@ const selectedRowConfig = computed(() => {
 const hasSelectedAllOwners = computed(() => {
   return (
     selectedRowConfig.value.selectedRowCount > 0 &&
-    teamOwners.value.every((member) => selectedRowConfig.value.selectedMembersMap.has(member?.fk_user_id!))
+    teamOwners.value.every((member) => member?.fk_user_id && selectedRowConfig.value.selectedMembersMap.has(member.fk_user_id))
   )
 })
 

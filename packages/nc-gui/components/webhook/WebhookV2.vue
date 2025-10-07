@@ -2,6 +2,10 @@
 import type { HookType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
+import { defineAsyncComponent } from 'vue'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
@@ -793,7 +797,7 @@ const toggleIncludeUser = async () => {
                       >
                         <Suspense>
                           <template #default>
-                            <LazyMonacoEditor
+                            <MonacoEditor
                               v-model="hookRef.notification.payload.body"
                               lang="handlebars"
                               read-only
@@ -838,7 +842,14 @@ const toggleIncludeUser = async () => {
                             />
                           </template>
                           <template #fallback>
-                            <MonacoLoading height="min-h-60 max-h-80" />
+                            <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                              <div class="text-center">
+                                <a-spin size="large" />
+                                <div class="mt-4 text-gray-600 dark:text-gray-400">
+                                  Loading Monaco Editor...
+                                </div>
+                              </div>
+                            </div>
                           </template>
                         </Suspense>
                       </div>
@@ -971,7 +982,7 @@ const toggleIncludeUser = async () => {
               <div v-show="isVisible">
                 <Suspense>
                   <template #default>
-                    <LazyMonacoEditor
+                    <MonacoEditor
                       v-model="sampleData"
                       read-only
                       :monaco-config="{
@@ -1020,7 +1031,14 @@ const toggleIncludeUser = async () => {
                     />
                   </template>
                   <template #fallback>
-                    <MonacoLoading height="min-h-60 max-h-80" />
+                    <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                      <div class="text-center">
+                        <a-spin size="large" />
+                        <div class="mt-4 text-gray-600 dark:text-gray-400">
+                          Loading Monaco Editor...
+                        </div>
+                      </div>
+                    </div>
                   </template>
                 </Suspense>
               </div>

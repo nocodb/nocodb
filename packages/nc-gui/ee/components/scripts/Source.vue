@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import { defineAsyncComponent } from 'vue'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
+
 interface Props {
   code: string
 }
@@ -36,7 +41,7 @@ const showCode = ref(true)
     <Transition>
       <Suspense v-if="showCode">
         <template #default>
-          <LazyMonacoEditor
+          <MonacoEditor
             class="h-[402px] !rounded-b-lg overflow-hidden !bg-gray-50"
             :model-value="code"
             :read-only="true"
@@ -82,7 +87,14 @@ const showCode = ref(true)
           />
         </template>
         <template #fallback>
-          <MonacoLoading height="h-[402px]" />
+          <div class="h-[402px] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div class="text-center">
+              <a-spin size="large" />
+              <div class="mt-4 text-gray-600 dark:text-gray-400">
+                Loading Monaco Editor...
+              </div>
+            </div>
+          </div>
         </template>
       </Suspense>
     </Transition>

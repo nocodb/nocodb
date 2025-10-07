@@ -6,7 +6,6 @@ import type {
   MapType,
   RowColoringInfo,
   SortType,
-  UserType,
   ViewSettingOverrideOptions,
   ViewType,
 } from 'nocodb-sdk'

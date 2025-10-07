@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, type TableType, type ViewType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 

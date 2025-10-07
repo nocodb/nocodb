@@ -50,7 +50,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     }
 
     // todo: update type in swagger.json
-    if (!skipRedirect && (signoutRes as any).redirect_url) {
+    if (!skipRedirect && (signoutRes as any)?.redirect_url) {
       location.href = (signoutRes as any).redirect_url
     }
 

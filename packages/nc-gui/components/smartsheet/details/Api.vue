@@ -280,7 +280,7 @@ const supportedDocs = [
             </a-tab-pane>
           </NcTabs>
           <Suspense>
-            <MonacoEditor
+            <LazyMonacoEditor
               class="h-[calc(100%_-_36px)] !bg-nc-bg-gray-extralight pl-2"
               :model-value="code"
               :read-only="true"

@@ -58,7 +58,7 @@ const onCopyToClipboard = async () => {
       </NcButton>
     </div>
     <Suspense>
-      <MonacoEditor
+      <LazyMonacoEditor
         class="h-72 !rounded-b-lg overflow-hidden !bg-gray-50"
         :model-value="code"
         :read-only="true"

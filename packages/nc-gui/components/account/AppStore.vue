@@ -12,7 +12,7 @@
     </NcPageHeader>
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div>
-        <LazyDashboardSettingsAppStore />
+        <DashboardSettingsAppStore />
       </div>
     </div>
   </div>

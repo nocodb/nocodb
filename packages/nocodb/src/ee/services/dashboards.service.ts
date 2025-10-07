@@ -63,6 +63,8 @@ export class DashboardsService {
         `You have reached the limit of ${limit} dashboard for your plan.`,
     });
 
+    insertObj.title = insertObj.title?.trim();
+
     const dashboard = await Dashboard.insert(context, insertObj);
 
     this.appHooksService.emit(AppEvents.DASHBOARD_CREATE, {
@@ -99,6 +101,8 @@ export class DashboardsService {
     if (!dashboard) {
       NcError.get(context).dashboardNotFound(dashboardId);
     }
+
+    updateObj.title = updateObj.title?.trim();
 
     const updatedDashboard = await Dashboard.update(
       context,

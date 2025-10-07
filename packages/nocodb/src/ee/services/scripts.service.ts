@@ -46,6 +46,8 @@ export class ScriptsService {
         `You have reached the limit of ${limit} scripts for your plan.`,
     });
 
+    scriptBody.title = scriptBody.title?.trim();
+
     const script = await Script.insert(context, baseId, {
       ...scriptBody,
       created_by: req.user.id,
@@ -85,6 +87,8 @@ export class ScriptsService {
     if (!script) {
       return NcError.notFound('Script not found');
     }
+
+    body.title = body.title?.trim();
 
     const updatedScript = await Script.update(context, scriptId, body);
 

@@ -57,6 +57,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const { activeTable } = storeToRefs(tablesStore)
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
   const route = router.currentRoute
 
   const allRecentViews = ref<RecentView[]>([])
@@ -161,6 +163,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const isActiveViewLocked = computed(() => activeView.value?.lock_type === 'locked')
   const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
+
+  const isCopyViewConfigFromAnotherViewFeatureEnabled = computed(() =>
+    isFeatureEnabled(FEATURE_FLAG.COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW),
+  )
 
   const refreshViewTabTitle = createEventHook<void>()
 
@@ -957,6 +963,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     lastOpenedViewId,
     activeViewRowColorInfo,
     sharedView,
+    isCopyViewConfigFromAnotherViewFeatureEnabled,
 
     // Methods
     createView,

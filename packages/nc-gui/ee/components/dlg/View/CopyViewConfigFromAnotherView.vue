@@ -3,6 +3,8 @@ import { NcListViewSelector } from '#components'
 import {
   extractSupportedViewSettingOverrideOptions,
   getCopyViewConfigOptions,
+  viewTypeAlias,
+  ViewTypes,
   type CopyViewConfigOption,
   type ViewSettingOverrideOptions,
   type ViewType,
@@ -24,22 +26,14 @@ const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false }
 
 const { destView } = toRefs(props)
 
-const { t } = useI18n()
-
 const isLoading = ref(false)
 
 const selectViewRef = ref<InstanceType<typeof NcListViewSelector>>()
-
-const searchField = ref('')
 
 const copyFromViewId = ref<string | undefined>()
 
 const copyFromViewOptions = computed(() =>
   getCopyViewConfigOptions(selectViewRef.value?.selectedView?.type, destView.value?.type),
-)
-
-const filteredCopyFromViewOptions = computed(() =>
-  copyFromViewOptions.value.filter((option) => searchCompare(t(option.i18nLabel), searchField.value)),
 )
 
 const selectedCopyViewConfigTypes = ref<ViewSettingOverrideOptions[]>(props.defaultSelectedCopyViewConfigTypes ?? [])
@@ -65,6 +59,7 @@ const selectAll = () => {
 const copyViewConfiguration = async () => {
   if (ncIsUndefined(selectViewRef.value?.selectedView?.type) || selectedCopyViewConfigTypes.value.length === 0) return
 
+  // TODO: Remove after api integration
   console.log('selected view config options', selectedCopyViewConfigTypes.value)
 }
 
@@ -89,87 +84,75 @@ watch(
     size="small"
     wrap-class-name="nc-copy-view-config-from-another-view-modal-wrapper"
   >
-    <template #header>
-      <h1 class="text-base text-gray-800 font-semibold flex items-center gap-2">Copy view configuration from another view</h1>
-    </template>
     <div class="flex flex-col gap-3">
+      <h1 class="text-base text-nc-content-gray-emphasis font-semibold flex items-center gap-2 mb-1">
+        {{ $t('objects.copyViewConfig.copyConfigurationFromAnotherView') }}
+      </h1>
+
       <div class="flex flex-col gap-2">
         <NcListViewSelector
           ref="selectViewRef"
           v-model:value="copyFromViewId"
           :table-id="destView?.fk_model_id"
           :disabled="!destView?.fk_model_id"
+          force-layout="vertical"
         >
-          <template #label> Select view </template>
+          <template #label>
+            <span class="text-body text-nc-content-gray">{{ $t('objects.copyViewConfig.selectViewToCopyFrom') }}</span>
+          </template>
         </NcListViewSelector>
       </div>
-      <div class="flex w-full gap-2 justify-between items-center">
-        <a-input v-model:value="searchField" class="w-full h-8 flex-1" size="small" placeholder="Search configuration">
-          <template #prefix>
-            <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
-          </template>
-        </a-input>
-        <div class="flex items-center gap-2">
+
+      <div>
+        <div class="text-body text-nc-content-gray pb-2">{{ $t('objects.copyViewConfig.selectConfigurationToCopy') }}</div>
+
+        <NcTooltip
+          v-for="option of copyFromViewOptions"
+          :key="option.value"
+          :data-testid="`nc-copy-view-config-option-${option.value}`"
+          class="flex flex-row items-center rounded-md transition select-none"
+          :class="{
+            'hover:bg-gray-100 cursor-pointer text-nc-content-gray': !option.disabled,
+            'cursor-not-allowed text-nc-content-gray-muted': option.disabled,
+          }"
+          :title="$t('objects.copyViewConfig.notSupportedByViewType', { view: viewTypeAlias[selectViewRef?.selectedView?.type as ViewTypes] ?$t(`objects.viewType.${viewTypeAlias[selectViewRef?.selectedView?.type as ViewTypes]}`) : $t('general.selected') })"
+          placement="left"
+          :disabled="!option.disabled || !selectViewRef?.selectedView?.type"
+          @click.stop="toggleCopyViewConfigType(option)"
+        >
+          <div class="flex flex-row items-center gap-1 w-full truncate py-[5px] px-2 cursor-inherit">
+            <span class="flex children:flex-none mr-2" @click.stop="toggleCopyViewConfigType(option)">
+              <NcSwitch
+                :checked="selectedCopyViewConfigTypes.includes(option.value)"
+                :disabled="option.disabled"
+                size="xxsmall"
+              />
+            </span>
+
+            <GeneralIcon :icon="option.icon as IconMapKey" class="w-4 h-4 flex-none opacity-80" />
+            <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
+              <template #title>
+                {{ $t(option.i18nLabel) }}
+              </template>
+              <template #default>{{ $t(option.i18nLabel) }}</template>
+            </NcTooltip>
+          </div>
+        </NcTooltip>
+
+        <div class="flex items-center gap-2 mt-2">
           <NcButton
-            size="small"
+            size="xs"
             type="text"
-            class="!text-xs"
-            :disabled="selectedCopyViewConfigTypes.length === 0"
-            @click="clearAll"
-          >
-            {{ $t('labels.clearAll') }}
-          </NcButton>
-          <NcButton
-            size="small"
-            type="text"
-            class="!text-xs"
+            class="px-1"
             :disabled="copyFromViewOptions.length === selectedCopyViewConfigTypes.length"
             @click="selectAll"
           >
-            {{ $t('general.addAll') }}
+            {{ $t('general.selectAll') }}
+          </NcButton>
+          <NcButton size="xs" type="text" class="px-1" :disabled="selectedCopyViewConfigTypes.length === 0" @click="clearAll">
+            {{ $t('labels.clearAll') }}
           </NcButton>
         </div>
-      </div>
-
-      <div class="border-1 rounded-md max-h-[350px] nc-scrollbar-thin border-nc-border-gray-medium">
-        <template v-for="option of filteredCopyFromViewOptions" :key="option.value">
-          <div
-            :data-testid="`nc-copy-view-config-option-${option.value}`"
-            class="px-3 py-1 flex flex-row items-center rounded-md"
-            :class="{
-              'hover:bg-gray-100 cursor-pointer text-nc-content-gray': !option.disabled,
-              'cursor-not-allowed text-nc-content-gray-muted': option.disabled,
-            }"
-            @click.stop="toggleCopyViewConfigType(option)"
-          >
-            <div class="flex flex-row items-center gap-1 w-full truncate ml-1 py-[5px] pr-2 cursor-inherit">
-              <GeneralIcon :icon="option.icon as IconMapKey" class="w-4 h-4 flex-none opacity-80" />
-              <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
-                <template #title>
-                  {{ $t(option.i18nLabel) }}
-                </template>
-                <template #default>{{ $t(option.i18nLabel) }}</template>
-              </NcTooltip>
-
-              <NcCheckbox
-                :checked="selectedCopyViewConfigTypes.includes(option.value)"
-                size="default"
-                :disabled="option.disabled"
-              />
-            </div>
-
-            <div class="flex-1" />
-          </div>
-        </template>
-        <NcEmptyPlaceholder v-if="!filteredCopyFromViewOptions.length" :subtitle="$t('title.noResultsMatchedYourSearch')">
-          <template #icon>
-            <img
-              src="~assets/img/placeholder/no-search-result-found.png"
-              class="!w-[164px] flex-none"
-              alt="No search results found"
-            />
-          </template>
-        </NcEmptyPlaceholder>
       </div>
 
       <div class="flex w-full gap-2 justify-end">
@@ -177,22 +160,15 @@ watch(
           {{ $t('general.cancel') }}
         </NcButton>
 
-        <NcButton :loading="isLoading" size="small" @click="copyViewConfiguration"> Copy view configuration </NcButton>
+        <NcButton
+          :loading="isLoading"
+          size="small"
+          :disabled="!copyFromViewId || selectedCopyViewConfigTypes.length === 0"
+          @click="copyViewConfiguration"
+        >
+          {{ $t('labels.copyConfiguration') }}
+        </NcButton>
       </div>
     </div>
   </NcModal>
 </template>
-
-<style scoped lang="scss">
-.ant-input::placeholder {
-  @apply text-gray-500;
-}
-
-.ant-input:placeholder-shown {
-  @apply text-gray-500 !text-md;
-}
-
-.ant-input-affix-wrapper {
-  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
-}
-</style>

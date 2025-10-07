@@ -56,7 +56,7 @@ const changeLockType = async () => {
   if (!view.value?.id) return
 
   if (changeType.value === LockType.Locked) {
-    const valid = await formValidator.value.validate()
+    const valid = await formValidator.value?.validate?.()
 
     if (!valid) return
   }
@@ -107,7 +107,7 @@ watch(
     if (changeType.value !== LockType.Locked) return
 
     try {
-      isErrored.value = !(await formValidator.value.validate())
+      isErrored.value = !(await formValidator.value?.validate?.())
     } catch (e: any) {
       isErrored.value = true
     }

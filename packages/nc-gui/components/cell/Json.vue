@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import NcModal from '../nc/Modal.vue'
+import { defineAsyncComponent } from 'vue'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 type ModelValueType = string | Record<string, any> | undefined | null
 
@@ -289,7 +293,7 @@ onUnmounted(() => {
 
       <Suspense>
         <template #default>
-          <LazyMonacoEditor
+          <MonacoEditor
             ref="inputWrapperRef"
             :model-value="localValue ?? null"
             class="min-w-full w-[40rem] resize overflow-auto expanded-editor"
@@ -307,7 +311,14 @@ onUnmounted(() => {
           />
         </template>
         <template #fallback>
-          <MonacoLoading height="h-full" />
+          <div class="h-full w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div class="text-center">
+              <a-spin size="large" />
+              <div class="mt-4 text-gray-600 dark:text-gray-400">
+                Loading Monaco Editor...
+              </div>
+            </div>
+          </div>
         </template>
       </Suspense>
 

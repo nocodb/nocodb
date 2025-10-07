@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { HTTPSnippet } from '@readme/httpsnippet'
+import { defineAsyncComponent } from 'vue'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 const props = defineProps<{
   modelValue: boolean
@@ -166,7 +170,7 @@ watch(activeLang, (newLang) => {
 
           <Suspense>
             <template #default>
-              <LazyMonacoEditor
+              <MonacoEditor
                 class="h-[60vh] border-1 border-nc-border-gray-light py-4 rounded-sm"
                 :model-value="code"
                 :read-only="true"
@@ -177,7 +181,14 @@ watch(activeLang, (newLang) => {
               />
             </template>
             <template #fallback>
-              <MonacoLoading height="h-[60vh]" />
+              <div class="h-[60vh] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                <div class="text-center">
+                  <a-spin size="large" />
+                  <div class="mt-4 text-gray-600 dark:text-gray-400">
+                    Loading Monaco Editor...
+                  </div>
+                </div>
+              </div>
             </template>
           </Suspense>
 

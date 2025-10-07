@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { HTTPSnippet } from '@readme/httpsnippet'
 import { LoadingOutlined } from '@ant-design/icons-vue'
+import { defineAsyncComponent } from 'vue'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 const { t } = useI18n()
 
@@ -281,7 +285,7 @@ const supportedDocs = [
           </NcTabs>
           <Suspense>
             <template #default>
-              <LazyMonacoEditor
+              <MonacoEditor
                 class="h-[calc(100%_-_36px)] !bg-nc-bg-gray-extralight pl-2"
                 :model-value="code"
                 :read-only="true"
@@ -326,7 +330,14 @@ const supportedDocs = [
               />
             </template>
             <template #fallback>
-              <MonacoLoading height="h-[calc(100%_-_36px)]" />
+              <div class="h-[calc(100%_-_36px)] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                <div class="text-center">
+                  <a-spin size="large" />
+                  <div class="mt-4 text-gray-600 dark:text-gray-400">
+                    Loading Monaco Editor...
+                  </div>
+                </div>
+              </div>
             </template>
           </Suspense>
         </div>

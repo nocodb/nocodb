@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
+import { defineAsyncComponent } from 'vue'
 import {
   type HookReqType,
   type HookTestReqType,
@@ -12,6 +13,9 @@ import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 interface Props {
   value: boolean
@@ -1060,7 +1064,7 @@ const webhookV2AndV3Diff = computed(() => {
               <div class="nc-item-response">
                 <Suspense>
                   <template #default>
-                    <LazyMonacoEditor
+                    <MonacoEditor
                       :model-value="item.response"
                       class="flex-1 min-h-50 resize-y overflow-auto expanded-editor"
                       hide-minimap
@@ -1091,7 +1095,14 @@ const webhookV2AndV3Diff = computed(() => {
                     />
                   </template>
                   <template #fallback>
-                    <MonacoLoading height="min-h-50" />
+                    <div class="min-h-50 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                      <div class="text-center">
+                        <a-spin size="large" />
+                        <div class="mt-4 text-gray-600 dark:text-gray-400">
+                          Loading Monaco Editor...
+                        </div>
+                      </div>
+                    </div>
                   </template>
                 </Suspense>
               </div>
@@ -1403,7 +1414,7 @@ const webhookV2AndV3Diff = computed(() => {
                       >
                         <Suspense>
                           <template #default>
-                            <LazyMonacoEditor
+                            <MonacoEditor
                               v-model="hookRef.notification.payload.body"
                               lang="handlebars"
                               disable-deep-compare
@@ -1447,7 +1458,14 @@ const webhookV2AndV3Diff = computed(() => {
                             />
                           </template>
                           <template #fallback>
-                            <MonacoLoading height="min-h-60 max-h-80" />
+                            <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                              <div class="text-center">
+                                <a-spin size="large" />
+                                <div class="mt-4 text-gray-600 dark:text-gray-400">
+                                  Loading Monaco Editor...
+                                </div>
+                              </div>
+                            </div>
                           </template>
                         </Suspense>
                       </div>
@@ -1563,7 +1581,7 @@ const webhookV2AndV3Diff = computed(() => {
                 <div v-show="isVisible">
                   <Suspense>
                     <template #default>
-                      <LazyMonacoEditor
+                      <MonacoEditor
                         v-model="sampleData"
                         read-only
                         :monaco-config="{
@@ -1612,7 +1630,14 @@ const webhookV2AndV3Diff = computed(() => {
                       />
                     </template>
                     <template #fallback>
-                      <MonacoLoading height="min-h-60 max-h-80" />
+                      <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                        <div class="text-center">
+                          <a-spin size="large" />
+                          <div class="mt-4 text-gray-600 dark:text-gray-400">
+                            Loading Monaco Editor...
+                          </div>
+                        </div>
+                      </div>
                     </template>
                   </Suspense>
                 </div>

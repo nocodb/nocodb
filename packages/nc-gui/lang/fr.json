@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Requ\u0000eate de recherche invalide pour les champs visibles",
       "invalidSearchQueryForDisplayField": "Requ\u0000eate de recherche invalide pour le champ d'affichage",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Les métadonnées de projet sont exportées avec succès",

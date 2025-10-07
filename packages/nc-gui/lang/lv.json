@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Nederīga meklēšanas vaicājuma sintakse redzamajiem laukiem",
       "invalidSearchQueryForDisplayField": "Nederīga meklēšanas vaicājuma sintakse attēlotajam laukam",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Projekta metadati eksportēti veiksmīgi",

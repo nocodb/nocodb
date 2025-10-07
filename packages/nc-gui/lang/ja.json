@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "表示されているフィールドの検索クエリが無効です",
       "invalidSearchQueryForDisplayField": "表示フィールドの検索クエリが無効です",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "プロジェクトメタデータは正常にエクスポートされました",

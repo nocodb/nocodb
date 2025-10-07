@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import type { editor as MonacoEditor } from 'monaco-editor'
-import { languages, editor as monacoEditor } from 'monaco-editor'
 import { initializeMonaco } from '../../lib/monaco'
-
 import PlaceholderContentWidget from './Placeholder'
 
 interface Props {
@@ -14,8 +11,14 @@ interface Props {
   placeholder?: string
   readOnly?: boolean
   autoFocus?: boolean
-  monacoConfig?: Partial<MonacoEditor.IStandaloneEditorConstructionOptions>
-  monacoCustomTheme?: Partial<MonacoEditor.IStandaloneThemeData>
+  monacoConfig?: any
+  monacoCustomTheme?: any
+}
+
+// Async setup to make this component suspensible
+const setup = async () => {
+  // Initialize Monaco Editor to make this component truly async
+  await initializeMonaco()
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -24,8 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
   validate: true,
   disableDeepCompare: false,
   autoFocus: true,
-  monacoConfig: () => ({} as Partial<MonacoEditor.IStandaloneEditorConstructionOptions>),
-  monacoCustomTheme: () => ({} as Partial<MonacoEditor.IStandaloneThemeData>),
+  monacoConfig: () => ({} as any),
+  monacoCustomTheme: () => ({} as any),
 })
 
 const emits = defineEmits(['update:modelValue'])
@@ -97,7 +100,7 @@ const error = ref('')
 
 const root = ref<HTMLDivElement>()
 
-let editor: MonacoEditor.IStandaloneCodeEditor
+let editor: any
 
 // Add loading state
 const isLoading = ref(true)
@@ -109,6 +112,10 @@ const retryLoad = async () => {
   
   try {
     await initializeMonaco()
+    // Dynamically import Monaco Editor
+    const monaco = await import('monaco-editor')
+    const { editor: monacoEditor } = monaco
+    
     // Re-run the initialization logic
     if (root.value && lang) {
       const model = monacoEditor.createModel(vModel.value || '', lang)
@@ -140,6 +147,10 @@ defineExpose({
 onMounted(async () => {
   try {
     await initializeMonaco()
+    
+    // Dynamically import Monaco Editor
+    const monaco = await import('monaco-editor')
+    const { languages, editor: monacoEditor } = monaco
 
     if (root.value && lang) {
       const model = monacoEditor.createModel(vModel.value || '', lang)
@@ -154,7 +165,7 @@ onMounted(async () => {
       let isCustomTheme = false
 
       if (Object.keys(monacoCustomTheme).length) {
-        monacoEditor.defineTheme('custom', monacoCustomTheme as MonacoEditor.IStandaloneThemeData)
+        monacoEditor.defineTheme('custom', monacoCustomTheme as any)
         isCustomTheme = true
       }
 

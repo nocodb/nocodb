@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Invalid search query for visible fields",
       "invalidSearchQueryForDisplayField": "Invalid search query for display field",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

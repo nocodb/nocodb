@@ -9,7 +9,6 @@ export const useUpdateChecker = createSharedComposable(() => {
   const isUpdateAvailable = ref(false)
   const CONFIRMATION_THRESHOLD = 3
   let intervalId: null | NodeJS.Timeout = null
-  let toastShown = false
   let disabled = false
 
   const { $api } = useNuxtApp()
@@ -56,7 +55,7 @@ export const useUpdateChecker = createSharedComposable(() => {
           consecutiveNewCommitCount.value++
         }
 
-        if (consecutiveNewCommitCount.value >= CONFIRMATION_THRESHOLD && !toastShown) {
+        if (consecutiveNewCommitCount.value >= CONFIRMATION_THRESHOLD) {
           isUpdateAvailable.value = true
 
           message.info({
@@ -74,7 +73,6 @@ export const useUpdateChecker = createSharedComposable(() => {
             ),
           })
 
-          toastShown = true
           currentCommit.value = newCommit
         }
       } else if (newerCommitDetected.value !== null) {

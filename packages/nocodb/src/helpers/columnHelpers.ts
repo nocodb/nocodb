@@ -652,12 +652,14 @@ export const TableSystemColumns = () => [
     title: 'Id',
     uidt: 'ID',
     allowNonSystem: false,
+    system: true,
   },
   {
     column_name: 'created_at',
     title: 'CreatedAt',
     uidt: 'CreatedTime',
     allowNonSystem: true,
+    system: true,
   },
   {
     column_name: 'updated_at',
@@ -670,17 +672,20 @@ export const TableSystemColumns = () => [
     title: 'nc_created_by',
     uidt: 'CreatedBy',
     allowNonSystem: true,
+    system: true,
   },
   {
     column_name: 'updated_by',
     title: 'nc_updated_by',
     uidt: 'LastModifiedBy',
     allowNonSystem: true,
+    system: true,
   },
   {
     column_name: 'nc_order',
     title: 'nc_order',
     uidt: 'Order',
     allowNonSystem: false,
+    system: true,
   },
 ];

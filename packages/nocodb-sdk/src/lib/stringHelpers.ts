@@ -137,7 +137,7 @@ export function generateUniqueCopyName<T = string>(
   });
 
   const getPrefix = () => {
-    return prefix && prefix !== '' ? `${prefix} ` : prefix;
+    return prefix ? `${prefix} ` : (prefix ?? '');
   };
   let newName = `${getPrefix()}${originalName}`;
   let counter = 1;

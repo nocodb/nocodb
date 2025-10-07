@@ -13,7 +13,6 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import { repopulateCreateTableSystemColumns } from 'src/helpers/tableHelpers';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
 import type { NcApiVersion } from 'nocodb-sdk';
@@ -27,6 +26,7 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { repopulateCreateTableSystemColumns } from '~/helpers/tableHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';

@@ -15,11 +15,11 @@ interface Props {
   monacoCustomTheme?: any
 }
 
-// Async setup to make this component suspensible
-const setup = async () => {
-  // Initialize Monaco Editor to make this component truly async
-  await initializeMonaco()
-}
+// Make this component async by awaiting Monaco initialization
+await initializeMonaco()
+
+// Add a small delay to ensure Suspense triggers even if Monaco is already initialized
+await new Promise(resolve => setTimeout(resolve, 100))
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',

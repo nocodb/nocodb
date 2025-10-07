@@ -13,6 +13,7 @@ import {
   isVirtualCol,
   LongTextAiMetaProp,
   NcApiVersion,
+  NcBaseError,
   ncIsNull,
   ncIsUndefined,
   parseProp,
@@ -654,8 +655,11 @@ export class ColumnsService implements IColumnsService {
               parsedTree: colBody.parsed_tree,
             });
           } catch (e) {
+            if (e instanceof NcError || e instanceof NcBaseError) throw e;
             console.error(e);
-            throw e;
+            NcError.get(context).columnError(
+              e?.message || 'Failed to update column',
+            );
           }
 
           await Column.update(context, column.id, {
@@ -2428,7 +2432,10 @@ export class ColumnsService implements IColumnsService {
           colBody.error = e.message;
           colBody.parsed_tree = null;
           if (!param.suppressFormulaError) {
-            throw e;
+            if (e instanceof NcError || e instanceof NcBaseError) throw e;
+            NcError.get(context).columnError(
+              e?.message || 'Failed to update column',
+            );
           }
         }
 

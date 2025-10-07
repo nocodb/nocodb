@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "दृश्य हुने फिल्डहरूका लागि गलत खोज प्रश्न",
       "invalidSearchQueryForDisplayField": "प्रदर्शन फिल्डका लागि गलत खोज प्रश्न",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "आधार मेटाडेटा सफलतापूर्वक निर्यात गरिएको छ",

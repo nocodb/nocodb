@@ -59,6 +59,7 @@ function duplicateBaseTests() {
         context: context.ctx,
         dupWorkspaceId: dupProject.fk_workspace_id,
         dupProjectId: dupProject.id,
+        dupWorkspaceId: context.ctx.workspace_id,
         user: user as any,
         sourceId: (await context.base.getSources())[0].id,
         title: 'Base copy',

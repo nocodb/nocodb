@@ -362,7 +362,7 @@ export class NcErrorBase {
 
   duplicateAlias(
     param: {
-      type: 'table' | 'column';
+      type: 'table' | 'column' | 'view';
       alias: string;
       base: string;
       label?: string;

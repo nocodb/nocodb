@@ -148,7 +148,7 @@ function viewRowStaticTests() {
     });
     customerColumns = await customerTable.getColumns(sakilaCtx);
     customerGridView = await createView(context, {
-      title: 'Customer Gallery',
+      title: 'Customer Grid',
       table: customerTable,
       type: ViewTypes.GRID,
     });
@@ -503,7 +503,7 @@ function viewRowTests() {
     });
     customerColumns = await customerTable.getColumns(sakilaCtx);
     customerGridView = await createView(context, {
-      title: 'Customer Gallery',
+      title: 'Customer Grid',
       table: customerTable,
       type: ViewTypes.GRID,
     });
@@ -1142,7 +1142,7 @@ function viewRowTests() {
     }
 
     const view = await createView(context, {
-      title: 'View',
+      title: 'View ' + viewType,
       table: table,
       type: viewType,
       range: calendar_range,
@@ -1189,7 +1189,7 @@ function viewRowTests() {
     }
 
     const view = await createView(context, {
-      title: 'View',
+      title: 'View ' + viewType,
       table: table,
       type: viewType,
       range: calendar_range,
@@ -1528,7 +1528,7 @@ function viewRowTests() {
     });
 
     const view = await createView(context, {
-      title: 'View',
+      title: 'View ' + viewType,
       table: table,
       type: viewType,
       range: calendar_range,
@@ -1569,7 +1569,7 @@ function viewRowTests() {
     }
 
     const view = await createView(context, {
-      title: 'View',
+      title: 'View ' + viewType,
       table: table,
       type: viewType,
       range: calendar_range,

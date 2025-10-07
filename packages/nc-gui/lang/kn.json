@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "ಗೋಚರ ಕ್ಷೇತ್ರಗಳಿಗೆ ಅಮಾನ್ಯ ಹುಡುಕಾಟ ಅನುರೋಧ",
       "invalidSearchQueryForDisplayField": "ಪ್ರದರ್ಶನ ಕ್ಷೇತ್ರಕ್ಕೆ ಅಮಾನ್ಯ ಹುಡುಕಾಟ ಅನುರೋಧ",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "ಮೂಲಮಾಹಿತಿ ಯಶಸ್ವಿಯಾಗಿ ರಫ್ತು ಮಾಡಲಾಗಿದೆ",

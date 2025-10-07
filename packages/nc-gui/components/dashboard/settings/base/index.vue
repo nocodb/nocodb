@@ -1,13 +1,13 @@
 <script setup lang="ts">
 const { isUIAllowed } = useRoles()
-
+const { appInfo } = useGlobal()
 const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('manageBaseType'))
 
 const hasPermissionForMCP = computed(() => isUIAllowed('manageMCP'))
 
 const hasPermissionForSnapshots = computed(() => isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
 
-const hasPermissionForMigrate = computed(() => !isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
+const hasPermissionForMigrate = computed(() => !isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase') && !appInfo.value.disableMigration)
 
 const hasPermissionForVisibility = computed(() => isUIAllowed('baseMiscSettings'))
 

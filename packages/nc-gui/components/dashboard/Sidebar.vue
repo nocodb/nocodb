@@ -49,7 +49,7 @@ onUnmounted(() => {
           <GeneralGift v-if="!isEeUI" />
 
           <DashboardSidebarBeforeUserInfo />
-          <div v-if="!isMobileMode && !appInfo.ee" class="flex flex-row w-full justify-between pt-0.5 truncate">
+          <div v-if="!isMobileMode && !appInfo.ee && !appInfo.company" class="flex flex-row w-full justify-between pt-0.5 truncate">
             <GeneralJoinCloud />
           </div>
           <DashboardSidebarVersion v-if="appInfo.isOnPrem" />

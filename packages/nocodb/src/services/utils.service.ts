@@ -491,7 +491,7 @@ export class UtilsService {
       ee: Noco.isEE(),
       ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
       ncMaxAttachmentsAllowed: NC_MAX_ATTACHMENTS_ALLOWED,
-      isCloud: isCloud,
+      isCloud: process.env.NC_CLOUD ?? isCloud,
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
       baseHostName: process.env.NC_BASE_HOST_NAME,
       disableEmailAuth: this.configService.get('auth.disableEmailAuth', {
@@ -506,7 +506,7 @@ export class UtilsService {
       giftUrl,
       prodReady: Noco.getConfig()?.meta?.db?.client !== DriverClient.SQLITE,
       allowLocalUrl: process.env.NC_ALLOW_LOCAL_HOOKS === 'true',
-      isOnPrem,
+      isOnPrem: process.env.NC_PREM ?? isOnPrem,
       disableSupportChat: NC_DISABLE_SUPPORT_CHAT,
       /**
        * Allow disabling onboarding flow based on env variable or development mode
@@ -518,7 +518,10 @@ export class UtilsService {
         process.env.NODE_ENV === 'development' ||
         process.env.NODE_ENV === 'test',
       eeFeatureFlags,
-      companyIconUrl: process.env.NC_COMPANY_ICON_URL,
+      company: {
+        logo: process.env.NC_COMPANY_ICON_URL
+      },
+      disableMigration: process.env.NC_MIGRATIONS_DISABLED
     };
 
     return result;

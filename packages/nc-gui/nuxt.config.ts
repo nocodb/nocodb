@@ -134,7 +134,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      ncBackendUrl: '',
+      ncBackendUrl:  process.env.NC_BACKEND_URL || 'http://localhost:3333/',
       env: 'production',
       maxPageDesignerTableRows: 100,
     },

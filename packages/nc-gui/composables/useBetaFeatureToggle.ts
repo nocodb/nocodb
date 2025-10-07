@@ -19,11 +19,11 @@ const FEATURES = [
   {
     id: 'dark_mode',
     title: 'Dark Mode',
-    // isEngineering: true,
+    isEngineering: true,
     description: 'Keep your eyes healthy with dark mode.',
     enabled: true,
     version: 1,
-    // isEE: true,
+    isEE: true,
   },
   {
     id: 'canvas_group_grid_view',
@@ -38,6 +38,7 @@ const FEATURES = [
     description: 'Show linked record display value in Link fields.',
     enabled: false,
     version: 1,
+    isEngineering: true,
   },
   {
     id: 'ai_features',
@@ -47,6 +48,7 @@ const FEATURES = [
     version: 3,
     isEE: true,
     isOnPrem: false,
+    isEngineering: true,
   },
   {
     id: 'ai_beta_features',
@@ -82,6 +84,7 @@ const FEATURES = [
     enabled: true,
     version: 2,
     isEE: true,
+    isEngineering: true,
   },
   {
     id: 'sync',
@@ -131,6 +134,7 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEE: true,
+    isEngineering: true,
   },
   {
     id: 'custom_link',
@@ -138,7 +142,8 @@ const FEATURES = [
     description: 'Allows user to create custom links using existing fields.',
     enabled: false,
     version: 1,
-    // isEE: true,
+    isEE: true,
+    isEngineering: true,
   },
   {
     id: 'table_and_field_permissions',
@@ -155,7 +160,7 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEngineering: true,
-    // isEE: true,
+    isEE: true,
   },
   {
     id: 'row_actions',
@@ -163,8 +168,8 @@ const FEATURES = [
     description: 'Execute scripts and webhooks to a record.',
     enabled: true,
     version: 2,
-    // isEE: true,
-    // isCloud: false,
+    isEE: true,
+    isCloud: false,
     isEngineering: true,
   },
 ] as const

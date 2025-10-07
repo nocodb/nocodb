@@ -49,7 +49,10 @@ export interface AppInfo {
   disableOnboardingFlow: boolean
   iframeWhitelistDomains?: Array<string>
   eeFeatureFlags?: Record<string, boolean>
-  companyIconUrl?: string | null
+  company?: {
+    logo?: string
+  }
+  disableMigration?: boolean | null
 }
 
 export interface StoredState {

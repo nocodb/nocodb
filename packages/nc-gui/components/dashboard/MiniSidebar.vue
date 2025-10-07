@@ -109,6 +109,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           }"
         >
           <GeneralLoader v-if="isWorkspacesLoading" size="large" />
+          <img v-if="appInfo.company" :src="appInfo.company.logo"
+            class="my-1 flex-none border-1 border-nc-border-gray-medium w-7 h-7 min-w-7 min-h-7 rounded-md"
+          />
           <WorkspaceMenu v-else />
         </div>
       </DashboardMiniSidebarItemWrapper>
@@ -261,7 +264,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <DashboardMiniSidebarTheme />
       </DashboardMiniSidebarItemWrapper>
 
-      <DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper v-if="!appInfo.company">
         <NcTooltip :title="$t('general.help')" placement="right" hide-on-click :arrow="false">
           <DashboardMiniSidebarHelp />
         </NcTooltip>

@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Некорректный поисковый запрос для видимых полей",
       "invalidSearchQueryForDisplayField": "Некорректный поисковый запрос для отображаемого поля",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",

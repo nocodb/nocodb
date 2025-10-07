@@ -350,3 +350,30 @@ export const ViewSettingOverrideOptionTexts = {
   [ViewSettingOverrideOptions.GROUP]: 'Group',
   [ViewSettingOverrideOptions.ROW_COLORING]: 'Row coloring',
 };
+
+const kanbanAvailableSettings = [
+  ViewSettingOverrideOptions.FIELD_VISIBILITY,
+  ViewSettingOverrideOptions.FIELD_ORDER,
+  ViewSettingOverrideOptions.FILTER_CONDITION,
+  ViewSettingOverrideOptions.SORT,
+  ViewSettingOverrideOptions.ROW_COLORING,
+];
+export const ViewSettingOverrideByViewType = {
+  [ViewTypes.GRID]: [
+    ViewSettingOverrideOptions.FIELD_VISIBILITY,
+    ViewSettingOverrideOptions.FIELD_ORDER,
+    ViewSettingOverrideOptions.COLUMN_WIDTH,
+    ViewSettingOverrideOptions.ROW_HEIGHT,
+    ViewSettingOverrideOptions.FILTER_CONDITION,
+    ViewSettingOverrideOptions.SORT,
+    ViewSettingOverrideOptions.GROUP,
+    ViewSettingOverrideOptions.ROW_COLORING,
+  ],
+  [ViewTypes.FORM]: [
+    ViewSettingOverrideOptions.FIELD_VISIBILITY,
+    ViewSettingOverrideOptions.FIELD_ORDER,
+  ],
+  [ViewTypes.KANBAN]: kanbanAvailableSettings,
+  [ViewTypes.GALLERY]: kanbanAvailableSettings,
+  [ViewTypes.CALENDAR]: kanbanAvailableSettings,
+};

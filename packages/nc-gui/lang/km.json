@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "សំណួរស្វែងរកមិនត្រឹមត្រូវសម្រាប់វាលអាចមើលឃើញ",
       "invalidSearchQueryForDisplayField": "សំណួរស្វែងរកមិនត្រឹមត្រូវសម្រាប់វាលបង្ហាញ",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "ធាតុមូលដ្ឋានត្រូវបាននាំចេញដោយជោគជ័យ",

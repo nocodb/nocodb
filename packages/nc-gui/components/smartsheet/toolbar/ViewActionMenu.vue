@@ -29,7 +29,7 @@ const view = computed(() => props.view)
 
 const table = computed(() => props.table)
 
-const { navigateToView, duplicateView, updateView } = useViewsStore()
+const { navigateToView, duplicateView, updateView, onOpenCopyViewConfigFromAnotherViewModal } = useViewsStore()
 
 const { user } = useGlobal()
 
@@ -170,6 +170,12 @@ const openReAssignDlg = () => {
   })
 
   emits('closeModal')
+}
+
+const onClickCopyViewConfig = () => {
+  emits('closeModal')
+
+  onOpenCopyViewConfigFromAnotherViewModal()
 }
 
 const isViewOwner = computed(() => {
@@ -514,6 +520,12 @@ defineOptions({
               </template>
             </PaymentUpgradeBadgeProvider>
           </SmartsheetToolbarNotAllowedTooltip>
+        </template>
+        <template v-if="isEeUI">
+          <NcMenuItem @click="onClickCopyViewConfig">
+            <GeneralIcon icon="copy" class="opacity-80" />
+            {{ $t('general.copyViewConfig') }}
+          </NcMenuItem>
         </template>
       </template>
 

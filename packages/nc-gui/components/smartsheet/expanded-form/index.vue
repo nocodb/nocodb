@@ -833,7 +833,7 @@ export default {
               class="flex items-center font-bold text-nc-content-gray text-2xl overflow-hidden"
             >
               <span class="min-w-[120px] md:min-w-[300px]">
-                <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
+                <SmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
               </span>
             </div>
           </div>

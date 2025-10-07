@@ -847,7 +847,13 @@ watch(
         </template>
         <NcButton
           size="small"
-          :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo || !extensionAccess.update || !selectedTableHasPk"
+          :disabled="
+            v$.$error ||
+            !selectedFieldConfigForBulkUpdate.length ||
+            isLoadingViewInfo ||
+            !extensionAccess.update ||
+            !selectedTableHasPk
+          "
           :loading="isLoadingViewInfo"
           @click="handleConfirmUpdate"
         >
@@ -1416,13 +1422,23 @@ watch(
           </NcTooltip>
           <NcTooltip :disabled="extensionAccess.update && selectedTableHasPk" placement="left">
             <template #title>
-              {{!extensionAccess.update ? $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension'): $t('msg.info.updateNotAllowedWithoutPK') }}
+              {{
+                !extensionAccess.update
+                  ? $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension')
+                  : $t('msg.info.updateNotAllowedWithoutPK')
+              }}
             </template>
             <NcButton
-                size="small"
-                :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo || !extensionAccess.update || !selectedTableHasPk"
-                :loading="isLoadingViewInfo"
-                @click="handleConfirmUpdate"
+              size="small"
+              :disabled="
+                v$.$error ||
+                !selectedFieldConfigForBulkUpdate.length ||
+                isLoadingViewInfo ||
+                !extensionAccess.update ||
+                !selectedTableHasPk
+              "
+              :loading="isLoadingViewInfo"
+              @click="handleConfirmUpdate"
             >
               Update Records
             </NcButton>

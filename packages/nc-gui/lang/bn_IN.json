@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "দৃশ্যমান ফিল্ডের জন্য অবৈধ সার্চ কোয়েরি",
       "invalidSearchQueryForDisplayField": "ডিসপ্লে ফিল্ডের জন্য অবৈধ সার্চ কোয়েরি",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "প্রকল্প মেটাডেটা সফলভাবে রফতানি করেছে",

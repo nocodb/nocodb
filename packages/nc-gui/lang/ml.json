@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "ദൃശ്യമാകുന്ന ഫീൽഡുകളിൽ അസാധുവായ തിരയൽ ക്വറി",
       "invalidSearchQueryForDisplayField": "പ്രദർശന ഫീൽഡിൽ അസാധുവായ തിരയൽ ക്വറി",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "അടിസ്ഥാന ഡാറ്റയുടെ മീറ്റാ വിവരങ്ങൾ വിജയകരമായി കയറ്റുമതി ചെയ്തു",

@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Interogare de căutare nevalidă pentru câmpurile vizibile",
       "invalidSearchQueryForDisplayField": "Interogare de căutare nevalidă pentru câmpul de afișare",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Metadatele bazei au fost exportate cu succes",

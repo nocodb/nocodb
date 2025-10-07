@@ -545,7 +545,7 @@ onUnmounted(() => {
               'h-[64px]': rowHeight === 4 || rowHeight === 6,
             }"
           >
-            <LazyCellAttachmentPreviewThumbnail
+            <CellAttachmentPreviewThumbnail
               :icon-width="24"
               :icon-height="24"
               class="nc-attachment rounded-lg overflow-hidden"
@@ -613,7 +613,7 @@ onUnmounted(() => {
 
     <LazyCellAttachmentModal v-if="modalRendered" />
   </div>
-  <LazyCellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
+  <CellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
 </template>
 
 <style lang="scss">

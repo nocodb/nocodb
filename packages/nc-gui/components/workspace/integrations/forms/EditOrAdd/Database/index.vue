@@ -1189,7 +1189,14 @@ watch(
                     <div class="flex flex-col gap-2">
                       <div>Edit Connection JSON</div>
                       <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
-                        <LazyMonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
+                        <Suspense>
+                          <template #default>
+                            <LazyMonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
+                          </template>
+                          <template #fallback>
+                            <MonacoLoading height="h-[400px]" />
+                          </template>
+                        </Suspense>
                       </div>
                     </div>
                   </a-collapse-panel>

@@ -287,22 +287,29 @@ onUnmounted(() => {
         <div v-else></div>
       </div>
 
-      <LazyMonacoEditor
-        ref="inputWrapperRef"
-        :model-value="localValue ?? null"
-        class="min-w-full w-[40rem] resize overflow-auto expanded-editor"
-        :hide-minimap="true"
-        :disable-deep-compare="true"
-        :auto-focus="true"
-        :read-only="readOnly"
-        :monaco-config="{
-          wordWrap: 'on',
-          wrappingStrategy: 'advanced',
-        }"
-        @update:model-value="localValue = $event"
-        @keydown.enter.stop
-        @keydown.alt.stop
-      />
+      <Suspense>
+        <template #default>
+          <LazyMonacoEditor
+            ref="inputWrapperRef"
+            :model-value="localValue ?? null"
+            class="min-w-full w-[40rem] resize overflow-auto expanded-editor"
+            :hide-minimap="true"
+            :disable-deep-compare="true"
+            :auto-focus="true"
+            :read-only="readOnly"
+            :monaco-config="{
+              wordWrap: 'on',
+              wrappingStrategy: 'advanced',
+            }"
+            @update:model-value="localValue = $event"
+            @keydown.enter.stop
+            @keydown.alt.stop
+          />
+        </template>
+        <template #fallback>
+          <MonacoLoading height="h-full" />
+        </template>
+      </Suspense>
 
       <span v-if="error" class="nc-cell-field text-xs w-full py-1 text-red-500">
         {{ error.toString() }}

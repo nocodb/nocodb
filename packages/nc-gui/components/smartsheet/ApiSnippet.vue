@@ -164,15 +164,22 @@ watch(activeLang, (newLang) => {
             </div>
           </template>
 
-          <LazyMonacoEditor
-            class="h-[60vh] border-1 border-nc-border-gray-light py-4 rounded-sm"
-            :model-value="code"
-            :read-only="true"
-            lang="typescript"
-            :validate="false"
-            :disable-deep-compare="true"
-            hide-minimap
-          />
+          <Suspense>
+            <template #default>
+              <LazyMonacoEditor
+                class="h-[60vh] border-1 border-nc-border-gray-light py-4 rounded-sm"
+                :model-value="code"
+                :read-only="true"
+                lang="typescript"
+                :validate="false"
+                :disable-deep-compare="true"
+                hide-minimap
+              />
+            </template>
+            <template #fallback>
+              <MonacoLoading height="h-[60vh]" />
+            </template>
+          </Suspense>
 
           <div v-if="activeLang?.clients" class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
             <a-select v-model:value="selectedClient" style="width: 6rem" dropdown-class-name="nc-dropdown-snippet-active-lang">

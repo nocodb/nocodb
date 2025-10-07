@@ -12,15 +12,22 @@ interface Props {
   truncate?: boolean
 }
 
-const { value, item, column, showUnlinkButton, border = true, readonly: readonlyProp, truncate = true } = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  border: true,
+  truncate: true,
+})
 
 const emit = defineEmits(['unlink'])
+
+const { item, value, column, readonly: readonlyProp } = toRefs(props)
 
 const { relatedTableMeta, externalBaseUserRoles } = useLTARStoreOrThrow()!
 
 const { isUIAllowed } = useRoles()
 
 provide(IsUnderLTARInj, ref(true))
+
+provide(MetaInj, relatedTableMeta)
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -37,7 +44,7 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const isClickDisabled = computed(() => {
-  return !active.value && !isExpandedForm.value
+  return (!active.value && !isExpandedForm.value) || isPublic.value || isForm.value || readonlyProp.value
 })
 
 const { open } = useExpandedFormDetached()
@@ -45,32 +52,33 @@ const { open } = useExpandedFormDetached()
 function openExpandedForm() {
   if (isClickDisabled.value) return
 
-  const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
-  if (!isPublic.value && !readonlyProp && rowId) {
-    open({
-      isOpen: true,
-      row: { row: item, rowMeta: {}, oldRow: { ...item } },
-      meta: relatedTableMeta.value,
-      rowId,
-      useMetaFields: true,
-      maintainDefaultViewOrder: true,
-      loadRow: !isPublic.value,
-      skipReload: true,
-      createdRecord: onCreatedRecord,
+  const rowId = extractPkFromRow(item.value, relatedTableMeta.value.columns as ColumnType[])
+
+  if (!rowId) return
+
+  open({
+    isOpen: true,
+    row: { row: item.value, rowMeta: {}, oldRow: { ...item.value } },
+    meta: relatedTableMeta.value,
+    rowId,
+    useMetaFields: true,
+    maintainDefaultViewOrder: true,
+    loadRow: !isPublic.value,
+    skipReload: true,
+    createdRecord: onCreatedRecord,
+  })
+
+  function onCreatedRecord() {
+    reloadTrigger?.trigger({
+      shouldShowLoading: false,
     })
 
-    function onCreatedRecord() {
-      reloadTrigger?.trigger({
-        shouldShowLoading: false,
-      })
-
-      reloadViewDataTrigger?.trigger({
-        shouldShowLoading: false,
-        isFromLinkRecord: true,
-        relatedTableMetaId: relatedTableMeta.value.id,
-        rowId: rowId!,
-      })
-    }
+    reloadViewDataTrigger?.trigger({
+      shouldShowLoading: false,
+      isFromLinkRecord: true,
+      relatedTableMetaId: relatedTableMeta.value.id,
+      rowId: rowId!,
+    })
   }
 }
 </script>

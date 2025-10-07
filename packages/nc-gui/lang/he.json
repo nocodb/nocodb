@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "שאילתת חיפוש לא תקינה לשדות גלויים",
       "invalidSearchQueryForDisplayField": "שאילתת חיפוש לא תקינה לשדה תצוגה",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "פרויקט Metadata מיוצא בהצלחה",

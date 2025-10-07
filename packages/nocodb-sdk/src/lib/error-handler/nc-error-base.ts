@@ -424,29 +424,36 @@ export class NcErrorBase {
       ...args,
     });
   }
-  baseUserError(message: string, args?: NcErrorArgs) {
+  baseUserError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.BASE_USER_ERROR, {
       params: message,
       ...args,
     });
   }
 
-  orgUserError(message: string, args?: NcErrorArgs) {
+  orgUserError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ORG_USER_ERROR, {
       params: message,
       ...args,
     });
   }
 
-  tableError(message: string, args?: NcErrorArgs) {
+  tableError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.TABLE_ERROR, {
       params: message,
       ...args,
     });
   }
 
-  columnError(message: string, args?: NcErrorArgs) {
+  columnError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.COLUMN_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  baseError(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.BASE_ERROR, {
       params: message,
       ...args,
     });

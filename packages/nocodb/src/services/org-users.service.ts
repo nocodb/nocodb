@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   extractRolesObj,
@@ -25,6 +25,7 @@ import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class OrgUsersService {
+  private logger = new Logger(OrgUsersService.name);
   constructor(
     protected readonly baseUsersService: BaseUsersService,
     protected readonly appHooksService: AppHooksService,
@@ -109,8 +110,8 @@ export class OrgUsersService {
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error deleting user', e);
       NcError.orgUserError('Bad Request');
-      throw e;
     }
 
     return true;

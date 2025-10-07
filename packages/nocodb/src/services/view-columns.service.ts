@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { APIContext, AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
+import { APIContext, AppEvents, EventType, NcBaseError, ViewTypes } from 'nocodb-sdk';
 import GridViewColumn from '../models/GridViewColumn';
 import GalleryViewColumn from '../models/GalleryViewColumn';
 import KanbanViewColumn from '../models/KanbanViewColumn';
@@ -24,9 +24,11 @@ import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class ViewColumnsService {
+  private logger = new Logger(ViewColumnsService.name);
   constructor(private appHooksService: AppHooksService) {}
 
   async columnList(
@@ -440,7 +442,9 @@ export class ViewColumnsService {
       return result;
     } catch (e) {
       await ncMeta.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error updating view columns', e);
+      NcError.get(context).badRequest('Bad Request');
     }
   }
 

@@ -33,6 +33,8 @@ const { modelValue, readOnly } = toRefs(props)
 
 const { hideMinimap, lang, validate, disableDeepCompare, autoFocus, monacoConfig, monacoCustomTheme, placeholder } = props
 
+const { $initMonacoWorkers } = useNuxtApp()
+
 let isInitialLoad = false
 
 const vModel = computed<string>({
@@ -114,6 +116,8 @@ defineExpose({
 })
 
 onMounted(async () => {
+  await $initMonacoWorkers()
+
   if (root.value && lang) {
     const model = monacoEditor.createModel(vModel.value, lang)
 

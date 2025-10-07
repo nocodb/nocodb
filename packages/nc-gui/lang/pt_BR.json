@@ -646,8 +646,8 @@
       "formViewFieldEditPermissionRestrictionTooltip": "Este campo está oculto no formulário porque ninguém tem permissão para editá-lo."
     },
     "deleteAllRecordDlg": {
-      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
-      "warning": "This action cannot be undone."
+      "subtitle": "Tem certeza de que deseja excluir todos os {rowCount} registros selecionados desta visualização?",
+      "warning": "Essa ação não pode ser desfeita."
     }
   },
   "datatype": {
@@ -703,7 +703,7 @@
     "isNotNull": "não é nulo"
   },
   "title": {
-    "mcpServer": "MCP Server",
+    "mcpServer": "Servidor MCP",
     "accessRestricted": "Acesso restrito",
     "editTablePermissions": "Editar permissões da tabela",
     "editFieldPermissions": "Editar permissões do campo",
@@ -929,7 +929,7 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
-    "hideEditor": "Hide Editor",
+    "hideEditor": "Ocultar editor",
     "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Continuar editando",

@@ -29,9 +29,7 @@ const view = computed(() => props.view)
 
 const table = computed(() => props.table)
 
-const { navigateToView, duplicateView, updateView, onOpenCopyViewConfigFromAnotherViewModal } = useViewsStore()
-
-const { user } = useGlobal()
+const { navigateToView, duplicateView, updateView, isUserViewOwner, onOpenCopyViewConfigFromAnotherViewModal } = useViewsStore()
 
 const { base } = storeToRefs(useBase())
 
@@ -175,15 +173,11 @@ const openReAssignDlg = () => {
 const onClickCopyViewConfig = () => {
   emits('closeModal')
 
-  onOpenCopyViewConfigFromAnotherViewModal()
+  onOpenCopyViewConfigFromAnotherViewModal({ destView: view.value })
 }
 
 const isViewOwner = computed(() => {
-  return (
-    view.value?.owned_by === user.value?.id ||
-    (!view.value?.owned_by &&
-      (user.value?.base_roles?.[ProjectRoles.OWNER] || user.value?.workspace_roles?.[WorkspaceUserRoles.OWNER]))
-  )
+  return isUserViewOwner(view.value)
 })
 
 const isDefaultView = computed(() => view.value?.is_default)
@@ -287,6 +281,54 @@ defineOptions({
           }}
         </NcMenuItem>
       </template>
+      <NcDivider v-if="isEeUI && isUIAllowed('viewCreateOrEdit') && view?.is_default" />
+      <SmartsheetToolbarNotAllowedTooltip
+        v-if="isEeUI && isUIAllowed('viewCreateOrEdit')"
+        :enabled="(isPersonalView && !isViewOwner) || lockType === LockType.Locked"
+        :message="
+          isPersonalView && !isViewOwner
+            ? $t('tooltip.onlyViewOwnerCanCopyViewConfig')
+            : $t('title.thisViewIsLockType', {
+                type: $t(viewLockIcons[lockType]?.title).toLowerCase(),
+              })
+        "
+      >
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW">
+          <template #default="{ click }">
+            <NcMenuItem
+              inner-class="w-full"
+              :disabled="(isPersonalView && !isViewOwner) || lockType === LockType.Locked"
+              @click="click(PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW, () => onClickCopyViewConfig())"
+            >
+              <div
+                v-e="[
+                  'c:navdraw:copy-view-config-from-another-view',
+                  {
+                    sidebar: props.inSidebar,
+                  },
+                ]"
+                class="w-full flex flex-row items-center gap-x-2"
+              >
+                <GeneralIcon icon="ncSettings2" class="opacity-80" />
+                <div>
+                  {{ $t('objects.copyViewConfig.copyAnotherViewConfig') }}
+                </div>
+                <div class="flex-1 w-full mr-1" />
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW"
+                  :limit-or-feature="'to access copy view configuration from another view feature.' as PlanFeatureTypes"
+                  :content="
+                    $t('upgrade.upgradeToAccessCopyViewConfigFromAnotherViewSubtitle', {
+                      plan: getPlanTitle(PlanTitles.PLUS),
+                    })
+                  "
+                  :on-click-callback="() => emits('closeModal')"
+                />
+              </div>
+            </NcMenuItem>
+          </template>
+        </PaymentUpgradeBadgeProvider>
+      </SmartsheetToolbarNotAllowedTooltip>
       <template v-if="view.type !== ViewTypes.FORM">
         <NcDivider />
         <template v-if="isUploadAllowed">
@@ -443,7 +485,7 @@ defineOptions({
           <SmartsheetToolbarNotAllowedTooltip
             v-if="isPersonalView"
             :enabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
-            message="Only owner or creator can re-assign"
+            :message="$t('tooltip.onlyOwnerOrCreatorCanReAssign')"
           >
             <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
               <template #default="{ click }">
@@ -483,7 +525,7 @@ defineOptions({
           <SmartsheetToolbarNotAllowedTooltip
             v-else
             :enabled="!isViewOwner"
-            message="Only view owner can assign as personal view"
+            :message="$t('tooltip.onlyViewOwnerCanAssignAsPersonalView')"
           >
             <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
               <template #default="{ click }">
@@ -520,12 +562,6 @@ defineOptions({
               </template>
             </PaymentUpgradeBadgeProvider>
           </SmartsheetToolbarNotAllowedTooltip>
-        </template>
-        <template v-if="isEeUI">
-          <NcMenuItem @click="onClickCopyViewConfig">
-            <GeneralIcon icon="copy" class="opacity-80" />
-            {{ $t('general.copyViewConfig') }}
-          </NcMenuItem>
         </template>
       </template>
 

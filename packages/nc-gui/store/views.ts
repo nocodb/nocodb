@@ -6,10 +6,11 @@ import type {
   MapType,
   RowColoringInfo,
   SortType,
+  UserType,
   ViewSettingOverrideOptions,
   ViewType,
 } from 'nocodb-sdk'
-import { ViewTypes, ViewTypes as _ViewTypes } from 'nocodb-sdk'
+import { ProjectRoles, ViewTypes, WorkspaceUserRoles, ViewTypes as _ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib/types'
@@ -32,7 +33,7 @@ interface RecentView {
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api, $e } = useNuxtApp()
 
-  const { ncNavigateTo } = useGlobal()
+  const { ncNavigateTo, user } = useGlobal()
 
   const router = useRouter()
 
@@ -795,19 +796,35 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  const isUserViewOwner = (view?: ViewType, _user: User | null = user.value) => {
+    if (!view || !_user) return false
+
+    return (
+      view?.owned_by === _user?.id ||
+      !!(!view?.owned_by && (_user?.base_roles?.[ProjectRoles.OWNER] || _user?.workspace_roles?.[WorkspaceUserRoles.OWNER]))
+    )
+  }
+
   const onOpenCopyViewConfigFromAnotherViewModal = ({
     defaultSelectedCopyViewConfigTypes,
+    destView = activeView.value,
   }: {
     defaultSelectedCopyViewConfigTypes?: ViewSettingOverrideOptions[]
+    destView?: ViewType
   } = {}) => {
     if (!isEeUI || !isUIAllowed('viewCreateOrEdit')) return
+
+    // If destination view is locked or if personal and user is not the owner then return
+    if (destView?.lock_type === LockType.Locked || (destView?.lock_type === LockType.Personal && !isUserViewOwner(destView))) {
+      return
+    }
 
     const isOpen = ref(true)
 
     const { close } = useDialog(DlgViewCopyViewConfigFromAnotherView, {
       'modelValue': isOpen,
       'onUpdate:modelValue': closeDialog,
-      'tableId': tablesStore.activeTableId,
+      'destView': destView,
       'defaultSelectedCopyViewConfigTypes': defaultSelectedCopyViewConfigTypes,
     })
 
@@ -959,6 +976,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     onOpenViewCreateModal,
     getViewReadableUrlSlug,
     onOpenCopyViewConfigFromAnotherViewModal,
+    isUserViewOwner,
   }
 })
 

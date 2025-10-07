@@ -19,6 +19,8 @@ export interface CopyViewConfigOption {
   supportedViewTypes: ViewTypes[];
   /** IconMapKey */
   icon: string;
+  /** Whether this option is disabled */
+  disabled?: boolean;
 }
 
 /**
@@ -43,7 +45,7 @@ export interface CopyViewConfigOption {
  */
 export const copyViewConfigOptionMap: Record<
   ViewSettingOverrideOptions,
-  CopyViewConfigOption
+  Omit<CopyViewConfigOption, 'disabled'>
 > = {
   [ViewSettingOverrideOptions.FIELD_VISIBILITY]: {
     order: 1,
@@ -149,10 +151,19 @@ export const copyViewConfigOptionMap: Record<
  * The returned options are sorted by their display order.
  *
  * @param sourceViewType - The view type from which configurations will be copied
- * @returns An array of configuration options with a 'disabled' flag indicating support status, sorted by order
+ * @param destinationViewType - The view type to which configurations will be copied
+ * @returns An array of supported destination view type configuration options with a 'disabled' flag indicating support status, sorted by order
  */
-export const getCopyViewConfigOptions = (sourceViewType?: ViewTypes) => {
+export const getCopyViewConfigOptions = (
+  sourceViewType?: ViewTypes,
+  destinationViewType?: ViewTypes
+): Omit<CopyViewConfigOption, 'supportedViewTypes'>[] => {
   return Object.values(copyViewConfigOptionMap)
+    .filter((option) => {
+      if (!destinationViewType) return true;
+
+      return option.supportedViewTypes.includes(destinationViewType);
+    })
     .map((option) => {
       const { supportedViewTypes, ...rest } = option;
       return {
@@ -173,22 +184,41 @@ export const getCopyViewConfigOptions = (sourceViewType?: ViewTypes) => {
  *
  * @param viewSettingOverrideOptions - Array of configuration types to be validated
  * @param sourceViewType - The view type from which configurations will be copied
- * @returns A filtered array containing only the configuration types supported by the source view type
+ * @param destinationViewType - The view type to which configurations will be copied
+ * @returns A filtered array containing only the configuration types supported by the source view type and destination view type
  *
  * @example
  * ```ts
  * // Validate selected config types for a Form view
  * const selectedTypes = [ViewSettingOverrideOptions.FIELD_VISIBILITY, ViewSettingOverrideOptions.FILTER_CONDITION, ViewSettingOverrideOptions.GROUP]
- * const supportedTypes = extractSupportedViewSettingOverrideOptions(selectedTypes, ViewTypes.FORM)
- * // Result: Only FieldVisibility will be included since Forms don't support Filters or Groups
+ * const supportedTypes = extractSupportedViewSettingOverrideOptions(selectedTypes, ViewTypes.FORM, ViewTypes.GRID)
+ * // Result: Only FieldVisibility will be included since destination Grid view support filter and group but source Forms don't support Filters or Groups
  * ```
  */
 export const extractSupportedViewSettingOverrideOptions = (
   viewSettingOverrideOptions: ViewSettingOverrideOptions[],
-  sourceViewType: ViewTypes
+  sourceViewType: ViewTypes,
+  destinationViewType?: ViewTypes
 ) => {
+  // extract destination view type options
+  const destinationViewTypeOptions = Object.values(
+    ViewSettingOverrideOptions
+  ).filter((option) => {
+    if (!destinationViewType) return true;
+
+    return copyViewConfigOptionMap[option].supportedViewTypes.includes(
+      destinationViewType
+    );
+  });
+
+  // return only options which supported in destination as well as source view type
   return (viewSettingOverrideOptions || []).filter((type) => {
-    if (!copyViewConfigOptionMap[type]) return false;
+    if (
+      !copyViewConfigOptionMap[type] ||
+      !destinationViewTypeOptions.includes(type)
+    ) {
+      return false;
+    }
 
     return copyViewConfigOptionMap[type].supportedViewTypes.includes(
       sourceViewType

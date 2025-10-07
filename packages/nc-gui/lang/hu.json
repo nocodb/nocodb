@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Érvénytelen keresési kifejezés a látható mezőknél",
       "invalidSearchQueryForDisplayField": "Érvénytelen keresési kifejezés a megjelenítési mezőnél",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Bázis metaadatai sikeresen exportálva",

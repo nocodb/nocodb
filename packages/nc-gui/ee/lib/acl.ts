@@ -194,6 +194,9 @@ const rolePermissions = {
       // Scripts
       scriptExecute: true,
       scriptList: true,
+
+      // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
+      viewOperations: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

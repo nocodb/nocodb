@@ -39,13 +39,13 @@ function scrollToLastAudit() {
 
 const createdByAudit = (
   comment: AuditType & {
-    created_display_name?: string
+    created_display_name_short?: string
   },
 ) => {
   if (comment.user === user.value?.email) {
     return 'You'
-  } else if (comment.created_display_name?.trim()) {
-    return comment.created_display_name || 'Shared source'
+  } else if (comment.created_display_name_short?.trim()) {
+    return comment.created_display_name_short || 'Shared source'
   } else if (comment.user) {
     return comment.user
   } else {
@@ -137,7 +137,7 @@ function isV0Audit(audit: AuditType) {
                 <GeneralUserIcon
                   :user="{
                     email: audit?.created_by_email || audit?.user,
-                    display_name: audit?.created_display_name || audit?.user,
+                    display_name: audit?.created_display_name,
                     meta: audit?.created_by_meta,
                   }"
                   class="mt-0.5"

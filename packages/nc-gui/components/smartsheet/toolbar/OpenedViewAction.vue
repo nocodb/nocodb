@@ -1,4 +1,8 @@
 <script lang="ts" setup>
+defineProps<{
+  showOnlyCopyId?: boolean
+}>()
+
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()
@@ -187,6 +191,7 @@ function openDeleteDialog() {
       <SmartsheetToolbarViewActionMenu
         :table="activeTable"
         :view="activeView"
+        :show-only-copy-id="showOnlyCopyId"
         @close-modal="isDropdownOpen = false"
         @rename="onRenameMenuClick"
         @delete="openDeleteDialog"

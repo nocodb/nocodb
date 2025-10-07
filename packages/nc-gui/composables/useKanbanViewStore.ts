@@ -41,7 +41,12 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
-    const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
+    /**
+     * In shared view mode, `isPublic` will still be false because both
+     * `useProvideSmartsheetStore` and `provide(IsPublicInj)` are called at the same
+     * component level, so the inject doesn't see the provided value.
+     */
+    const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
     const password = ref<string | null>(null)
 

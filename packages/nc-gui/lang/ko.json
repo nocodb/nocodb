@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "표시되는 필드에 대한 잘못된 검색 쿼리",
       "invalidSearchQueryForDisplayField": "표시 필드에 대한 잘못된 검색 쿼리",
       "promptHasDeletedColumn": "프롬프트에서 열({columns})을 삭제했습니다",
-      "errorOccuredWhileDroppingAttachments": "첨부 파일을 삭제하는 동안 오류가 발생했습니다"
+      "errorOccuredWhileDroppingAttachments": "첨부 파일을 삭제하는 동안 오류가 발생했습니다",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "베이스 메타 데이터를 성공적으로 내보냈습니다",

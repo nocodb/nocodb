@@ -2452,7 +2452,8 @@
       "invalidSearchQueryForVisibleFields": "Query di ricerca non valida per i campi visibili",
       "invalidSearchQueryForDisplayField": "Query di ricerca non valida per il campo di visualizzazione",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments"
+      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
+      "unableToLoadFeed": "Unable to load feed"
     },
     "toast": {
       "exportMetadata": "Metadati del progetto esportati con successo",

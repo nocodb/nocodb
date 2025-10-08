@@ -62,10 +62,8 @@ export class ViewSettingsOverrideService {
       NcError.get(context).viewNotFound(param.destinationViewId);
     }
     const settingToOverride = extractSupportedViewSettingOverrideOptions(
-      extractSupportedViewSettingOverrideOptions(
-        param.settingToOverride,
-        sourceView.type,
-      ),
+      param.settingToOverride,
+      sourceView.type,
       destView.type,
     );
     if (!settingToOverride.length) {

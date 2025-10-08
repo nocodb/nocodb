@@ -300,12 +300,12 @@ defineOptions({
               })
         "
       >
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW">
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER">
           <template #default="{ click }">
             <NcMenuItem
               inner-class="w-full"
               :disabled="(isPersonalView && !isViewOwner) || lockType === LockType.Locked"
-              @click="click(PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW, () => onClickCopyViewConfig())"
+              @click="click(PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER, () => onClickCopyViewConfig())"
             >
               <div
                 v-e="[
@@ -322,7 +322,7 @@ defineOptions({
                 </div>
                 <div class="flex-1 w-full mr-1" />
                 <LazyPaymentUpgradeBadge
-                  :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW"
+                  :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER"
                   :limit-or-feature="'to access copy view configuration from another view feature.' as PlanFeatureTypes"
                   :content="
                     $t('upgrade.upgradeToAccessCopyViewConfigFromAnotherViewSubtitle', {

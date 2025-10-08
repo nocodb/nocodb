@@ -122,16 +122,16 @@ export interface CopyViewConfigOption {
 
 /**
  * A comprehensive mapping of all available copy view configuration options.
- * 
+ *
  * This map defines the metadata and constraints for each type of view configuration that can be copied,
  * including display order, labels, i18n keys, and which view types support each configuration option.
- * 
+ *
  * @remarks
  * Use this map to:
  * - Get the configuration options available for a specific view type
  * - Determine which view types support a particular configuration option
  * - Access i18n labels and display ordering for UI rendering
- * 
+ *
  * @example
  * ```ts
  * // Get the field visibility option metadata
@@ -201,14 +201,14 @@ export const copyViewConfigOptionMap: Record<CopyViewConfigType, CopyViewConfigO
 
 /**
  * Retrieves all copy view configuration options with their availability status for a specific view type.
- * 
+ *
  * This function returns all available configuration options, marking each as enabled or disabled
  * based on whether the source view type supports that particular configuration.
  * The returned options are sorted by their display order.
- * 
+ *
  * @param copyFromViewType - The view type from which configurations will be copied
  * @returns An array of configuration options with a 'disabled' flag indicating support status, sorted by order
- * 
+ *
  * @example
  * ```ts
  * // Get all config options for copying from a Grid view
@@ -217,13 +217,13 @@ export const copyViewConfigOptionMap: Record<CopyViewConfigType, CopyViewConfigO
  * const enabledOptions = options.filter(opt => !opt.disabled)
  * ```
  */
-export const getCopyViewConfigOptions = (copyFromViewType: ViewTypes) => {
+export const getCopyViewConfigOptions = (copyFromViewType?: ViewTypes) => {
   return Object.values(copyViewConfigOptionMap)
     .map((option) => {
       const { supportedViewTypes, ...rest } = option
       return {
         ...rest,
-        disabled: !supportedViewTypes.includes(copyFromViewType),
+        disabled: !ncIsUndefined(copyFromViewType) && !supportedViewTypes.includes(copyFromViewType),
       }
     })
     .sort((a, b) => a.order - b.order)
@@ -231,14 +231,14 @@ export const getCopyViewConfigOptions = (copyFromViewType: ViewTypes) => {
 
 /**
  * Filters a list of copy view configuration types to only include those supported by the source view type.
- * 
+ *
  * This function validates each configuration type against the source view type's capabilities,
  * removing any unsupported or invalid configuration types from the list.
- * 
+ *
  * @param copyViewConfigTypes - Array of configuration types to be validated
  * @param copyFromViewType - The view type from which configurations will be copied
  * @returns A filtered array containing only the configuration types supported by the source view type
- * 
+ *
  * @example
  * ```ts
  * // Validate selected config types for a Form view

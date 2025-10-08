@@ -4,7 +4,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib/types'
 import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
-import { DlgViewCreate } from '#components'
+import { DlgViewCopyViewConfigFromAnotherView, DlgViewCreate } from '#components'
 
 // Types and Interfaces
 interface RecentView {
@@ -785,6 +785,28 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  const onOpenCopyViewConfigFromAnotherViewModal = ({
+    defaultSelectedCopyViewConfigTypes,
+  }: {
+    defaultSelectedCopyViewConfigTypes?: CopyViewConfigType[]
+  } = {}) => {
+    if (!isEeUI || !isUIAllowed('viewCreateOrEdit')) return
+
+    const isOpen = ref(true)
+
+    const { close } = useDialog(DlgViewCopyViewConfigFromAnotherView, {
+      'modelValue': isOpen,
+      'onUpdate:modelValue': closeDialog,
+      'tableId': tablesStore.activeTableId,
+      'defaultSelectedCopyViewConfigTypes': defaultSelectedCopyViewConfigTypes,
+    })
+
+    function closeDialog() {
+      isOpen.value = false
+      close(1000)
+    }
+  }
+
   function getViewReadableUrlSlug({ tableTitle, viewOrViewTitle }: { tableTitle?: string; viewOrViewTitle: ViewType | string }) {
     const viewTitle = ncIsObject(viewOrViewTitle) ? (viewOrViewTitle.is_default ? '' : viewOrViewTitle.title) : viewOrViewTitle
 
@@ -926,6 +948,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     setCurrentViewExpandedFormAttachmentColumn,
     onOpenViewCreateModal,
     getViewReadableUrlSlug,
+    onOpenCopyViewConfigFromAnotherViewModal,
   }
 })
 

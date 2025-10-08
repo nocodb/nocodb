@@ -46,12 +46,7 @@ export class InternalController extends InternalControllerCE {
     protected readonly mailService: MailService,
     protected readonly viewSettingsOverrideService: ViewSettingsOverrideService,
   ) {
-    super(
-      mcpService,
-      aclMiddleware,
-      auditsService,
-      viewSettingsOverrideService,
-    );
+    super(mcpService, aclMiddleware, auditsService);
   }
 
   protected async checkAcl(operation: string, req, scope?: string) {
@@ -402,6 +397,16 @@ export class InternalController extends InternalControllerCE {
       case 'integrationRemoteFetch': {
         return await this.integrationsService.remoteFetch(context, payload);
       }
+      case 'viewSettingOverride':
+        return await this.viewSettingsOverrideService.overrideViewSetting(
+          context,
+          {
+            destinationViewId: payload.destinationViewId,
+            settingToOverride: payload.settingToOverride,
+            sourceViewId: payload.sourceViewId,
+            req,
+          },
+        );
       default:
         return await super.internalAPIPost(
           context,

@@ -657,9 +657,7 @@ export class ColumnsService implements IColumnsService {
           } catch (e) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
             this.logger.error('Error updating column', e);
-            NcError.get(context).columnError(
-              e?.message || 'Failed to update column',
-            );
+            NcError.get(context).internalServerError('Failed to update column');
           }
 
           await Column.update(context, column.id, {
@@ -707,11 +705,11 @@ export class ColumnsService implements IColumnsService {
               });
             } catch (e) {
               console.error(e);
-              NcError.badRequest('Invalid Formula');
+              NcError.get(context).badRequest('Invalid Formula');
             }
           } else if (colBody.type === ButtonActionsType.Webhook) {
             if (!colBody.fk_webhook_id) {
-              NcError.badRequest('Webhook not found');
+              NcError.get(context).badRequest('Webhook not found');
             }
 
             const hook = await Hook.get(context, colBody.fk_webhook_id);
@@ -722,17 +720,17 @@ export class ColumnsService implements IColumnsService {
               (hook.version !== 'v3' && hook.event === 'manual') ||
               (hook.version === 'v3' && !hook.operation?.includes('trigger'))
             ) {
-              NcError.badRequest('Webhook not found');
+              NcError.get(context).badRequest('Webhook not found');
             }
           } else if (colBody.type === ButtonActionsType.Script) {
             if (!colBody.fk_script_id) {
-              NcError.badRequest('Script not found');
+              NcError.get(context).badRequest('Script not found');
             }
 
             const script = await Script.get(context, colBody.fk_script_id);
 
             if (!script) {
-              NcError.badRequest('Script not found');
+              NcError.get(context).badRequest('Script not found');
             }
           } else if (colBody.type === ButtonActionsType.Ai) {
             /*
@@ -747,7 +745,7 @@ export class ColumnsService implements IColumnsService {
                   const column = table.columns.find((c) => c.title === p1);
 
                   if (!column) {
-                    NcError.badRequest(`Field '${p1}' not found`);
+                    NcError.get(context).badRequest(`Field '${p1}' not found`);
                   }
 
                   return `{${column.id}}`;
@@ -864,7 +862,9 @@ export class ColumnsService implements IColumnsService {
           },
         );
       } else {
-        NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
+        NcError.get(context).notImplemented(
+          `Updating ${column.uidt} => ${colBody.uidt}`,
+        );
       }
     } else if (
       [
@@ -877,7 +877,9 @@ export class ColumnsService implements IColumnsService {
         UITypes.ForeignKey,
       ].includes(colBody.uidt)
     ) {
-      NcError.notImplemented(`Updating ${colBody.uidt} => ${colBody.uidt}`);
+      NcError.get(context).notImplemented(
+        `Updating ${colBody.uidt} => ${colBody.uidt}`,
+      );
     } else if (
       [
         UITypes.CreatedTime,
@@ -920,7 +922,7 @@ export class ColumnsService implements IColumnsService {
             (await KanbanView.getViewsByGroupingColId(context, column.id))
               .length > 0
           ) {
-            NcError.badRequest(
+            NcError.get(context).badRequest(
               `The column '${column.title}' is being used in Kanban View.`,
             );
           }
@@ -994,7 +996,7 @@ export class ColumnsService implements IColumnsService {
                 const values = String(el[column.column_name]).split(',');
                 if (values.length > 1) {
                   if (colBody.uidt === UITypes.SingleSelect) {
-                    NcError.badRequest(
+                    NcError.get(context).badRequest(
                       'SingleSelect cannot have comma separated values, please use MultiSelect instead.',
                     );
                   }
@@ -1034,14 +1036,14 @@ export class ColumnsService implements IColumnsService {
           if (colBody.uidt === UITypes.SingleSelect) {
             try {
               if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
-                NcError.badRequest(
+                NcError.get(context).badRequest(
                   `Default value '${colBody.cdf}' is not a select option.`,
                 );
               }
             } catch (e) {
               colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
               if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
-                NcError.badRequest(
+                NcError.get(context).badRequest(
                   `Default value '${colBody.cdf}' is not a select option.`,
                 );
               }
@@ -1050,7 +1052,7 @@ export class ColumnsService implements IColumnsService {
             try {
               for (const cdf of colBody.cdf.split(',')) {
                 if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
-                  NcError.badRequest(
+                  NcError.get(context).badRequest(
                     `Default value '${cdf}' is not a select option.`,
                   );
                 }
@@ -1059,7 +1061,7 @@ export class ColumnsService implements IColumnsService {
               colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
               for (const cdf of colBody.cdf.split(',')) {
                 if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
-                  NcError.badRequest(
+                  NcError.get(context).badRequest(
                     `Default value '${cdf}' is not a select option.`,
                   );
                 }
@@ -1086,7 +1088,7 @@ export class ColumnsService implements IColumnsService {
             return titles.indexOf(item) !== titles.lastIndexOf(item);
           })
         ) {
-          NcError.badRequest('Duplicates are not allowed!');
+          NcError.get(context).badRequest('Duplicates are not allowed!');
         }
 
         // Restrict empty options
@@ -1095,7 +1097,7 @@ export class ColumnsService implements IColumnsService {
             return item === '';
           })
         ) {
-          NcError.badRequest('Empty options are not allowed!');
+          NcError.get(context).badRequest('Empty options are not allowed!');
         }
 
         // Trim end of enum/set
@@ -1116,7 +1118,9 @@ export class ColumnsService implements IColumnsService {
             ? `${colBody.colOptions.options
                 .map((o) => {
                   if (o.title.includes(',')) {
-                    NcError.badRequest("Illegal char(',') for MultiSelect");
+                    NcError.get(context).badRequest(
+                      "Illegal char(',') for MultiSelect",
+                    );
                   }
                   return `'${o.title.replace(/'/gi, "''")}'`;
                 })
@@ -1152,7 +1156,7 @@ export class ColumnsService implements IColumnsService {
               !supportedDrivers.includes(driverType) &&
               column.uidt === UITypes.MultiSelect
             ) {
-              NcError.badRequest(
+              NcError.get(context).badRequest(
                 'Your database not yet supported for this operation. Please remove option from records manually before dropping.',
               );
             }
@@ -1240,7 +1244,7 @@ export class ColumnsService implements IColumnsService {
               !supportedDrivers.includes(driverType) &&
               column.uidt === UITypes.MultiSelect
             ) {
-              NcError.badRequest(
+              NcError.get(context).badRequest(
                 'Your database not yet supported for this operation. Please remove option from records manually before updating.',
               );
             }
@@ -1287,7 +1291,7 @@ export class ColumnsService implements IColumnsService {
                   ? `${column.colOptions.options
                       .map((o) => {
                         if (o.title.includes(',')) {
-                          NcError.badRequest(
+                          NcError.get(context).badRequest(
                             "Illegal char(',') for MultiSelect",
                           );
                         }
@@ -1626,7 +1630,7 @@ export class ColumnsService implements IColumnsService {
         });
 
         if (emailsNotPresent.length) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             `The following default users are not part of workspace: ${emailsNotPresent.join(
               ', ',
             )}`,
@@ -1839,7 +1843,7 @@ export class ColumnsService implements IColumnsService {
         (await KanbanView.getViewsByGroupingColId(context, column.id)).length >
           0
       ) {
-        NcError.badRequest(
+        NcError.get(context).badRequest(
           `The column '${column.title}' is being used in Kanban View. Please update stack by field or delete Kanban View first.`,
         );
       }
@@ -1879,7 +1883,7 @@ export class ColumnsService implements IColumnsService {
             const column = table.columns.find((c) => c.title === p1);
 
             if (!column) {
-              NcError.badRequest(`Field '${p1}' not found`);
+              NcError.get(context).badRequest(`Field '${p1}' not found`);
             }
 
             return `{${column.id}}`;
@@ -2093,7 +2097,7 @@ export class ColumnsService implements IColumnsService {
       .then((model) => model.getColumns(context))
       .then((columns) => columns.find((c) => c.pv));
     if (!oldColumn) {
-      NcError.notFound(`Column with id ${param.columnId} not found`);
+      NcError.get(context).fieldNotFound(param.columnId);
     }
     const result = await Model.updatePrimaryColumn(
       context,
@@ -2434,9 +2438,7 @@ export class ColumnsService implements IColumnsService {
           if (!param.suppressFormulaError) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
             this.logger.error('Error updating column', e);
-            NcError.get(context).columnError(
-              e?.message || 'Failed to update column',
-            );
+            NcError.get(context).internalServerError('Failed to update column');
           }
         }
 
@@ -3073,7 +3075,7 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         const table = await linkCol.getModel(context, ncMeta);
-        NcError.columnAssociatedWithLink(column.id, {
+        NcError.get(context).columnAssociatedWithLink(column.id, {
           customMessage: `Column is associated with Link column '${
             linkCol.title || linkCol.column_name
           }' (${
@@ -3122,7 +3124,7 @@ export class ColumnsService implements IColumnsService {
               )
             )?.length
           ) {
-            NcError.badRequest(
+            NcError.get(context).badRequest(
               `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
             );
           }
@@ -3139,7 +3141,7 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         if (rangesList?.length) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
@@ -3491,7 +3493,7 @@ export class ColumnsService implements IColumnsService {
         });
         break;
       case UITypes.ForeignKey: {
-        NcError.notImplemented(`Support for ${column.uidt}`);
+        NcError.get(context).notImplemented(`Support for ${column.uidt}`);
         break;
       }
       case UITypes.SingleSelect: {
@@ -3499,7 +3501,7 @@ export class ColumnsService implements IColumnsService {
           (await KanbanView.getViewsByGroupingColId(context, column.id))
             .length > 0
         ) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             `The column '${column.title}' is being used in Kanban View. Please update Kanban View first.`,
           );
         }
@@ -3513,7 +3515,7 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         if (listRanges?.length) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
@@ -4173,7 +4175,7 @@ export class ColumnsService implements IColumnsService {
       param.source.id !== refTable.source_id &&
       (!param.source.isMeta() || !refSource.isMeta())
     ) {
-      NcError.badRequest(
+      NcError.get(context).badRequest(
         'Cross base relations are only supported between meta bases',
       );
     }
@@ -4785,7 +4787,7 @@ export class ColumnsService implements IColumnsService {
     });
 
     if (!table) {
-      NcError.tableNotFound(tableId);
+      NcError.get(context).tableNotFound(tableId);
     }
 
     return {
@@ -4813,7 +4815,7 @@ export class ColumnsService implements IColumnsService {
     });
 
     if (!table) {
-      NcError.tableNotFound(tableId);
+      NcError.get(context).tableNotFound(tableId);
     }
 
     if (table.columnsHash !== params.hash) {
@@ -4825,13 +4827,13 @@ export class ColumnsService implements IColumnsService {
     const source = await Source.get(context, table.source_id);
 
     if (!source) {
-      NcError.sourceNotFound(table.source_id);
+      NcError.get(context).sourceNotFound(table.source_id);
     }
 
     const base = await source.getProject(context);
 
     if (!base) {
-      NcError.baseNotFound(source.base_id);
+      NcError.get(context).baseNotFound(source.base_id);
     }
 
     const dbDriver = await NcConnectionMgrv2.get(source);
@@ -4845,7 +4847,9 @@ export class ColumnsService implements IColumnsService {
     });
 
     if (!dbDriver || !sqlClient || !sqlMgr || !baseModel) {
-      NcError.badRequest('There was an error handling your request');
+      NcError.get(context).badRequest(
+        'There was an error handling your request',
+      );
     }
 
     const reuse: ReusableParams = {
@@ -4863,19 +4867,21 @@ export class ColumnsService implements IColumnsService {
     for (const op of ops) {
       if (op.op === 'update') {
         if (!op.column || !op.column?.id) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             'Bad request, update operation requires column id',
           );
         }
       } else if (op.op === 'delete') {
         if (!op.column || !op.column?.id) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             'Bad request, delete operation requires column id',
           );
         }
       } else if (op.op === 'add') {
         if (!op.column) {
-          NcError.badRequest('Bad request, add operation requires column');
+          NcError.get(context).badRequest(
+            'Bad request, add operation requires column',
+          );
         }
       }
     }
@@ -4966,14 +4972,14 @@ export class ColumnsService implements IColumnsService {
     });
 
     if (!userWithRoles) {
-      NcError.userNotFound(user.id);
+      NcError.get(refContext).userNotFound(user.id);
     }
 
     if (
       !userWithRoles.base_roles?.[ProjectRoles.CREATOR] &&
       !userWithRoles.base_roles?.[ProjectRoles.OWNER]
     ) {
-      NcError.forbidden(
+      NcError.get(refContext).forbidden(
         `You don't have permission to create a relation to target base ${refContext.base_id}`,
       );
     }
@@ -4999,7 +5005,7 @@ export class ColumnsService implements IColumnsService {
 
     // if not LTAR or Links throw error
     if (!isLinksOrLTAR(column)) {
-      NcError.badRequest('Invalid column id');
+      NcError.get(context).badRequest('Invalid column id');
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
@@ -5019,7 +5025,7 @@ export class ColumnsService implements IColumnsService {
       // load columns
       await table.getColumns(refContext);
     } else {
-      NcError.badRequest('Invalid table id');
+      NcError.get(context).badRequest('Invalid table id');
     }
 
     // filter out columns other than primary key and display column

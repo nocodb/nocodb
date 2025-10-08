@@ -98,7 +98,7 @@ export class ViewsService {
     const model = await Model.get(context, param.tableId);
 
     if (!model) {
-      NcError.tableNotFound(param.tableId);
+      NcError.get(context).tableNotFound(param.tableId);
     }
 
     const viewList = await xcVisibilityMetaGet(context, {
@@ -134,7 +134,7 @@ export class ViewsService {
     const view = await View.get(context, param.viewId);
 
     if (!view) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_CREATE, {
@@ -165,7 +165,7 @@ export class ViewsService {
     const oldView = await View.get(context, param.viewId, ncMeta);
 
     if (!oldView) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     if (param.view.title && param.view.title.trim() !== oldView.title) {
@@ -214,7 +214,7 @@ export class ViewsService {
     ) {
       // if owned_by is not empty then check if the user is the owner of the project
       if (ownedBy && ownedBy !== param.user.id) {
-        NcError.unauthorized('Only owner/creator can change to personal view');
+        NcError.get(context).unauthorized('Only owner/creator can change to personal view');
       }
 
       // if empty then check if current user is the owner of the project then allow and update the owned_by
@@ -226,7 +226,7 @@ export class ViewsService {
         }
       } else if (!ownedBy) {
         // todo: move to catchError
-        NcError.unauthorized('Only owner can change to personal view');
+        NcError.get(context).unauthorized('Only owner can change to personal view');
       }
     }
 
@@ -238,7 +238,7 @@ export class ViewsService {
         !(param.user as any).base_roles?.[ProjectRoles.OWNER] &&
         !(param.user as any).base_roles?.[ProjectRoles.CREATOR]
       ) {
-        NcError.unauthorized('Only owner/creator can transfer view ownership');
+        NcError.get(context).unauthorized('Only owner/creator can transfer view ownership');
       }
 
       ownedBy = param.view.owned_by;
@@ -253,7 +253,7 @@ export class ViewsService {
       );
 
       if (!baseUser) {
-        NcError.badRequest('Invalid user');
+        NcError.get(context).badRequest('Invalid user');
       }
 
       includeCreatedByAndUpdateBy = true;
@@ -395,7 +395,7 @@ export class ViewsService {
     const view = await View.get(context, param.viewId);
 
     if (!view) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(param?.req?.context).viewNotFound(param.viewId);
     }
 
     let customUrl: CustomUrl | undefined = await CustomUrl.get({
@@ -469,7 +469,7 @@ export class ViewsService {
     const view = await View.get(context, param.viewId);
 
     if (!view) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(param?.req?.context).viewNotFound(param.viewId);
     }
 
     await View.sharedViewDelete(context, param.viewId);

@@ -198,9 +198,7 @@ export class BasesService {
       await transaction.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Error deleting base', e);
-      NcError.get(context).baseError(
-        e?.message || 'Failed to delete base',
-      );
+      NcError.get(context).internalServerError('Failed to delete base');
     }
 
     this.appHooksService.emit(AppEvents.PROJECT_DELETE, {

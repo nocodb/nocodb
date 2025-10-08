@@ -161,9 +161,10 @@ export default class Filter extends FilterCE implements FilterType {
           filter.fk_parent_column_id)
       )
     ) {
-      throw new Error(
+      this.logger.error(
         `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_link_col_id(${filter.fk_link_col_id}), fk_hook_id(${filter.fk_hook_id}, fk_widget_id(${filter.fk_widget_id}), fk_parent_column_id(${filter.fk_parent_column_id})`,
       );
+      NcError.get(context).internalServerError('Error creating filter');
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;
     let value = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);

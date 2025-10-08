@@ -73,7 +73,9 @@ export class HooksService {
       !option?.isTableDuplicate &&
       !SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)
     ) {
-      NcError.badRequest('hook version is deprecated / not supported anymore');
+      NcError.get(context).badRequest(
+        'hook version is deprecated / not supported anymore',
+      );
     }
 
     if (!param.hook?.trigger_field) {
@@ -115,7 +117,7 @@ export class HooksService {
     const hook = await Hook.get(context, param.hookId);
 
     if (!hook) {
-      NcError.hookNotFound(param.hookId);
+      NcError.get(context).hookNotFound(param.hookId);
     }
 
     const buttonCols = await Hook.hookUsages(context, param.hookId);
@@ -149,7 +151,9 @@ export class HooksService {
     },
   ) {
     if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
-      NcError.badRequest('hook version is deprecated / not supported anymore');
+      NcError.get(context).badRequest(
+        'hook version is deprecated / not supported anymore',
+      );
     }
 
     if (!param.hook?.trigger_field) {
@@ -161,7 +165,7 @@ export class HooksService {
     const hook = await Hook.get(context, param.hookId);
 
     if (!hook) {
-      NcError.hookNotFound(param.hookId);
+      NcError.get(context).hookNotFound(param.hookId);
     }
 
     this.validateHookPayload(param.hook.notification);
@@ -213,7 +217,7 @@ export class HooksService {
     const hook = await Hook.get(context, param.hookId);
 
     if (!hook && hook.event !== 'manual') {
-      NcError.badRequest('Hook not found');
+      NcError.get(context).badRequest('Hook not found');
     }
 
     const row = await this.dataService.dataRead(context, {
@@ -224,7 +228,7 @@ export class HooksService {
     });
 
     if (!row) {
-      NcError.badRequest('Row not found');
+      NcError.get(context).badRequest('Row not found');
     }
 
     const model = await Model.get(context, hook.fk_model_id);

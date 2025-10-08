@@ -304,6 +304,9 @@ export const useEeConfig = createSharedComposable(() => {
       workspace = activeWorkspace.value
     }
 
+    // if full workspace details not loaded then return true to avoid blocking user
+    if (!workspace || !('payment' in workspace)) return true
+
     return ncIsString(workspace?.payment?.plan?.meta?.[type])
       ? JSON.parse(workspace?.payment?.plan?.meta?.[type])
       : workspace?.payment?.plan?.meta?.[type]

@@ -151,7 +151,7 @@ defineExpose({
     <NcListDropdown v-model:is-open="isOpenViewSelectDropdown" :disabled="disabled" :has-error="!!selectedView?.ncItemDisabled">
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedView" class="min-w-5 flex items-center justify-center">
-          <NcIconView :view="selectedView" class="text-gray-500" />
+          <NcIconView :view="selectedView" class="text-nc-content-gray-muted" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span
@@ -186,21 +186,9 @@ defineExpose({
           @update:value="handleValueUpdate"
           @escape="onEsc"
         >
-          <template #item="{ item }">
-            <div class="w-full flex items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <NcIconView :view="item" class="text-gray-500" />
-              </div>
-              <NcTooltip class="flex-1 overflow-hidden whitespace-nowrap text-ellipsis" show-on-truncate-only>
-                <template #title>{{ item.label }}</template>
-                <span>{{ item.label }}</span>
-              </NcTooltip>
-              <component
-                :is="iconMap.check"
-                v-if="modelValue === item.value"
-                id="nc-selected-item-icon"
-                class="flex-none text-primary w-4 h-4"
-              />
+          <template #listItemExtraLeft="{ option }">
+            <div class="min-w-5 flex items-center justify-center">
+              <NcIconView :view="option" class="text-nc-content-gray-muted" />
             </div>
           </template>
         </NcList>

@@ -477,7 +477,7 @@ export class AiDataService {
             }
 
             if (isJSON(col)) {
-              return `\"${parseJsonValue(row[col.title])}\"`;
+              return `"${parseJsonValue(row[col.title])}"`;
             }
 
             return row[col.title];
@@ -727,7 +727,7 @@ export class AiDataService {
             }
 
             if (isJSON(col)) {
-              return `\"${parseJsonValue(row[col.title])}\"`;
+              return `"${parseJsonValue(row[col.title])}"`;
             }
 
             return row[col.title];
@@ -1194,7 +1194,7 @@ Please generate ${
             }
 
             if (isJSON(col)) {
-              return `\"${parseJsonValue(row[col.title])}\"`;
+              return `"${parseJsonValue(row[col.title])}"`;
             }
 
             return row[col.title];

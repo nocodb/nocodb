@@ -43,7 +43,7 @@ export class MigrateController {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      NcError.get(context).baseNotFound(baseId)
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const source = (await base.getSources())[0];

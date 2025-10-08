@@ -9,6 +9,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { z } from 'zod';
+import { NcError } from '~/helpers/ncError';
 import type { NcContext } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
 import type { Column } from '~/models';
@@ -30,7 +31,6 @@ import {
   predictSelectOptionsSystemMessage,
   repairFormulaPrompt,
 } from '~/integrations/ai/module/prompts';
-import { NcError } from 'src/helpers/ncError';
 
 @Injectable()
 export class AiUtilsService {

@@ -841,7 +841,7 @@ export class TablesService {
       )?.data?.list;
     }
 
-    const _tables = await Model.list(context, {
+    await Model.list(context, {
       base_id: base.id,
       source_id: source.id,
     });

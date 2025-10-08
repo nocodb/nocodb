@@ -480,7 +480,7 @@ export class BasesService extends BasesServiceCE {
       user: UserType;
       req: NcRequest;
     },
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     // if user does not have Owner role, then block the request
     if (!param.req.user?.base_roles?.[ProjectRoles.OWNER as string]) {

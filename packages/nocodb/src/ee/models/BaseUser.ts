@@ -2,6 +2,7 @@ import { NOCO_SERVICE_USERS, ProjectRoles } from 'nocodb-sdk';
 import { BaseUser as BaseUserCE } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceRolesV3Type } from 'nocodb-sdk';
+import { NcError } from '~/helpers/ncError';
 import type { BaseType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import {
@@ -18,7 +19,6 @@ import { extractProps } from '~/helpers/extractProps';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
-import { NcError } from 'src/helpers/ncError';
 
 const logger = new Logger('BaseUser');
 

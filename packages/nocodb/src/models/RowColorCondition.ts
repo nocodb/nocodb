@@ -1,5 +1,5 @@
-import { NcError } from 'src/helpers/ncError';
 import type { NcContext } from 'nocodb-sdk';
+import { NcError } from '~/helpers/ncError';
 import { MetaTable } from '~/cli';
 import Noco from '~/Noco';
 

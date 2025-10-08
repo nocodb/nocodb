@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import axios from 'axios';
-import { ExternalError, ExternalTimeout, NcError } from '~/helpers/catchError';
+import { NcError } from '~/helpers/catchError';
 
 const logger = new Logger('MuxHelpers');
 

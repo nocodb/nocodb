@@ -10,7 +10,6 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
-import { NcError } from 'src/helpers/ncError';
 import type {
   BoolType,
   ColumnReqType,
@@ -21,6 +20,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { NcError } from '~/helpers/ncError';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';

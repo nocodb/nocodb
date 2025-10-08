@@ -7,7 +7,7 @@ import { useAgent } from 'request-filtering-agent';
 import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
-import { NcError } from 'src/helpers/ncError';
+import { NcError } from '~/helpers/ncError';
 
 interface GoogleCloudStorageInput {
   client_email: string;

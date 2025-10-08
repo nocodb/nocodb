@@ -18,7 +18,6 @@ import type {
   HookType,
   TableType,
   UpdatePayload,
-  ViewType,
 } from 'nocodb-sdk';
 import type { AxiosResponse } from 'axios';
 import type { NcContext } from '~/interface/config';

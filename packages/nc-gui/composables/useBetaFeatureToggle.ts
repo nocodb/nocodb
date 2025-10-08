@@ -157,6 +157,15 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'copy_view_config_from_another_view',
+    title: 'Copy View Config From Another View',
+    description: 'Copy view config from another view.',
+    enabled: false,
+    version: 1,
+    isEE: true,
+    isEngineering: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

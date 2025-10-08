@@ -15,12 +15,6 @@ interface Props {
   monacoCustomTheme?: any
 }
 
-// Make this component async by awaiting Monaco initialization
-await initializeMonaco()
-
-// Add a small delay to ensure Suspense triggers even if Monaco is already initialized
-await new Promise(resolve => setTimeout(resolve, 100))
-
 const props = withDefaults(defineProps<Props>(), {
   modelValue: '',
   lang: 'json',
@@ -109,16 +103,16 @@ const loadError = ref(false)
 const retryLoad = async () => {
   loadError.value = false
   isLoading.value = true
-  
+
   try {
     await initializeMonaco()
     // Dynamically import Monaco Editor
     const monaco = await import('monaco-editor')
     const { editor: monacoEditor } = monaco
-    
+
     // Re-run the initialization logic
     if (root.value && lang) {
-      const model = monacoEditor.createModel(vModel.value || '', lang)
+      monacoEditor.createModel(vModel.value || '', lang)
       // ... rest of initialization
       isLoading.value = false
     }
@@ -144,10 +138,18 @@ defineExpose({
   error,
 })
 
+// ⛔ all top-level awaits come *after* macros
+
+// Make this component async by awaiting Monaco initialization
+await initializeMonaco()
+
+// Add a small delay to ensure Suspense triggers even if Monaco is already initialized
+await new Promise((resolve) => setTimeout(resolve, 100))
+
 onMounted(async () => {
   try {
     await initializeMonaco()
-    
+
     // Dynamically import Monaco Editor
     const monaco = await import('monaco-editor')
     const { languages, editor: monacoEditor } = monaco
@@ -242,7 +244,7 @@ onMounted(async () => {
         format()
       }
     }
-    
+
     isLoading.value = false
   } catch (error) {
     console.error('Failed to initialize Monaco Editor:', error)
@@ -277,24 +279,18 @@ watch(readOnly, (v) => {
     <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div class="text-center">
         <a-spin size="large" />
-        <div class="mt-4 text-gray-600 dark:text-gray-400">
-          Loading Monaco Editor...
-        </div>
+        <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
       </div>
     </div>
-    
+
     <!-- Error State -->
     <div v-else-if="loadError" class="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900">
       <div class="text-center">
-        <div class="text-red-600 dark:text-red-400 mb-2">
-          Failed to load Monaco Editor
-        </div>
-        <NcButton @click="retryLoad">
-          Retry
-        </NcButton>
+        <div class="text-red-600 dark:text-red-400 mb-2">Failed to load Monaco Editor</div>
+        <NcButton @click="retryLoad"> Retry </NcButton>
       </div>
     </div>
-    
+
     <!-- Monaco Editor -->
     <div ref="root" class="h-full w-full" :class="{ 'opacity-0': isLoading || loadError }" />
   </div>

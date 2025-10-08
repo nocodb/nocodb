@@ -1,10 +1,20 @@
-import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, RowColoringInfo, SortType, ViewType } from 'nocodb-sdk'
-import { ViewTypes, ViewTypes as _ViewTypes } from 'nocodb-sdk'
+import type {
+  CalendarType,
+  FilterType,
+  GalleryType,
+  KanbanType,
+  MapType,
+  RowColoringInfo,
+  SortType,
+  ViewSettingOverrideOptions,
+  ViewType,
+} from 'nocodb-sdk'
+import { ProjectRoles, ViewTypes, WorkspaceUserRoles, ViewTypes as _ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib/types'
 import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
-import { DlgViewCreate } from '#components'
+import { DlgViewCopyViewConfigFromAnotherView, DlgViewCreate } from '#components'
 
 // Types and Interfaces
 interface RecentView {
@@ -22,7 +32,7 @@ interface RecentView {
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api, $e } = useNuxtApp()
 
-  const { ncNavigateTo } = useGlobal()
+  const { ncNavigateTo, user } = useGlobal()
 
   const router = useRouter()
 
@@ -45,6 +55,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
   const { activeTable } = storeToRefs(tablesStore)
+
+  const { isFeatureEnabled } = useBetaFeatureToggle()
 
   const route = router.currentRoute
 
@@ -150,6 +162,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const isActiveViewLocked = computed(() => activeView.value?.lock_type === 'locked')
   const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
+
+  const isCopyViewConfigFromAnotherViewFeatureEnabled = computed(() =>
+    isFeatureEnabled(FEATURE_FLAG.COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW),
+  )
 
   const refreshViewTabTitle = createEventHook<void>()
 
@@ -785,6 +801,44 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  const isUserViewOwner = (view?: ViewType, _user: User | null = user.value) => {
+    if (!view || !_user) return false
+
+    return (
+      view?.owned_by === _user?.id ||
+      !!(!view?.owned_by && (_user?.base_roles?.[ProjectRoles.OWNER] || _user?.workspace_roles?.[WorkspaceUserRoles.OWNER]))
+    )
+  }
+
+  const onOpenCopyViewConfigFromAnotherViewModal = ({
+    defaultSelectedCopyViewConfigTypes,
+    destView = activeView.value,
+  }: {
+    defaultSelectedCopyViewConfigTypes?: ViewSettingOverrideOptions[]
+    destView?: ViewType
+  } = {}) => {
+    if (!isEeUI || !isUIAllowed('viewCreateOrEdit')) return
+
+    // If destination view is locked or if personal and user is not the owner then return
+    if (destView?.lock_type === LockType.Locked || (destView?.lock_type === LockType.Personal && !isUserViewOwner(destView))) {
+      return
+    }
+
+    const isOpen = ref(true)
+
+    const { close } = useDialog(DlgViewCopyViewConfigFromAnotherView, {
+      'modelValue': isOpen,
+      'onUpdate:modelValue': closeDialog,
+      'destView': destView,
+      'defaultSelectedCopyViewConfigTypes': defaultSelectedCopyViewConfigTypes,
+    })
+
+    function closeDialog() {
+      isOpen.value = false
+      close(1000)
+    }
+  }
+
   function getViewReadableUrlSlug({ tableTitle, viewOrViewTitle }: { tableTitle?: string; viewOrViewTitle: ViewType | string }) {
     const viewTitle = ncIsObject(viewOrViewTitle) ? (viewOrViewTitle.is_default ? '' : viewOrViewTitle.title) : viewOrViewTitle
 
@@ -908,6 +962,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     lastOpenedViewId,
     activeViewRowColorInfo,
     sharedView,
+    isCopyViewConfigFromAnotherViewFeatureEnabled,
 
     // Methods
     createView,
@@ -926,6 +981,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     setCurrentViewExpandedFormAttachmentColumn,
     onOpenViewCreateModal,
     getViewReadableUrlSlug,
+    onOpenCopyViewConfigFromAnotherViewModal,
+    isUserViewOwner,
   }
 })
 

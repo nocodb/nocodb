@@ -7,6 +7,20 @@ import { defineAsyncComponent } from 'vue'
 import rfdc from 'rfdc'
 import type { ProgressMessageObjType } from '../../helpers/parsers/TemplateGenerator'
 
+const {
+  importType,
+  importDataOnly = false,
+  baseId,
+  sourceId,
+  transition,
+  showBackBtn,
+  wrapClassName = '',
+  showSourceSelector = true,
+  ...rest
+} = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue', 'back'])
+
 // Define Monaco Editor as an async component
 const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
@@ -21,20 +35,6 @@ interface Props {
   wrapClassName?: string
   showSourceSelector?: boolean
 }
-
-const {
-  importType,
-  importDataOnly = false,
-  baseId,
-  sourceId,
-  transition,
-  showBackBtn,
-  wrapClassName = '',
-  showSourceSelector = true,
-  ...rest
-} = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue', 'back'])
 
 enum ImportTypeTabs {
   'upload' = 'upload',
@@ -998,9 +998,7 @@ watch(
                       <div class="!h-full w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                         <div class="text-center">
                           <a-spin size="large" />
-                          <div class="mt-4 text-gray-600 dark:text-gray-400">
-                            Loading Monaco Editor...
-                          </div>
+                          <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
                         </div>
                       </div>
                     </template>

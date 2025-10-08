@@ -11,9 +11,9 @@ const loadMonacopilot = () => import('monacopilot')
 const setup = async () => {
   // Initialize Monaco Editor to make this component truly async
   await initializeMonaco()
-  
+
   // Add a small delay to ensure Suspense triggers even if Monaco is already initialized
-  await new Promise(resolve => setTimeout(resolve, 100))
+  await new Promise((resolve) => setTimeout(resolve, 100))
 }
 
 // Call the async setup

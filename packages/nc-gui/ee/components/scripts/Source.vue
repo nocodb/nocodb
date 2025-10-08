@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { LoadingOutlined } from '@ant-design/icons-vue'
 import { defineAsyncComponent } from 'vue'
+
+const props = defineProps<Props>()
 
 // Define Monaco Editor as an async component
 const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
@@ -8,14 +9,7 @@ const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Edit
 interface Props {
   code: string
 }
-const props = defineProps<Props>()
 const code = toRef(props, 'code')
-const indicator = h(LoadingOutlined, {
-  style: {
-    fontSize: '2rem',
-  },
-  spin: true,
-})
 
 const showCode = ref(true)
 </script>
@@ -90,9 +84,7 @@ const showCode = ref(true)
           <div class="h-[402px] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
             <div class="text-center">
               <a-spin size="large" />
-              <div class="mt-4 text-gray-600 dark:text-gray-400">
-                Loading Monaco Editor...
-              </div>
+              <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
             </div>
           </div>
         </template>

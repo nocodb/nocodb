@@ -176,9 +176,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
                 <div class="h-[200px] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                   <div class="text-center">
                     <a-spin size="large" />
-                    <div class="mt-4 text-gray-600 dark:text-gray-400">
-                      Loading Monaco Editor...
-                    </div>
+                    <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
                   </div>
                 </div>
               </template>

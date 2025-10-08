@@ -5,7 +5,7 @@ const props = defineProps<{
 
 const emits = defineEmits(['reload'])
 
-const { loadFeed, socialFeed, youtubeFeed, githubFeed, cloudFeed } = useProductFeed()
+const { loadFeed } = useProductFeed()
 
 const triggerReload = async () => {
   if (props.page === 'twitter') {
@@ -22,7 +22,9 @@ const triggerReload = async () => {
 
 <template>
   <div class="flex items-center justify-center">
-    <div class="w-[696px] error-box gap-6 border-1 border-nc-border-gray-medium py-6 rounded-xl flex flex-col items-center justify-center">
+    <div
+      class="w-[696px] error-box gap-6 border-1 border-nc-border-gray-medium py-6 rounded-xl flex flex-col items-center justify-center"
+    >
       <GeneralIcon icon="alertTriangle" class="text-nc-content-gray-muted w-8 h-8" />
       <span class="text-nc-content-gray-subtle2 text-base font-semibold"> {{ $t('msg.error.unableToLoadFeed') }} </span>
 

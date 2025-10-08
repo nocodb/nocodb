@@ -4,10 +4,14 @@ import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import { defineAsyncComponent } from 'vue'
 
+import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
+
+const props = defineProps<Props>()
+
+const emits = defineEmits(['close', 'update:value'])
+
 // Define Monaco Editor as an async component
 const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
-
-import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
   value: boolean
@@ -15,10 +19,6 @@ interface Props {
   hook?: HookType
   stickyScroll?: boolean
 }
-
-const props = defineProps<Props>()
-
-const emits = defineEmits(['close', 'update:value'])
 
 enum HookTab {
   Configuration = 'configuration',
@@ -845,9 +845,7 @@ const toggleIncludeUser = async () => {
                             <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                               <div class="text-center">
                                 <a-spin size="large" />
-                                <div class="mt-4 text-gray-600 dark:text-gray-400">
-                                  Loading Monaco Editor...
-                                </div>
+                                <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
                               </div>
                             </div>
                           </template>
@@ -1034,9 +1032,7 @@ const toggleIncludeUser = async () => {
                     <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
                       <div class="text-center">
                         <a-spin size="large" />
-                        <div class="mt-4 text-gray-600 dark:text-gray-400">
-                          Loading Monaco Editor...
-                        </div>
+                        <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
                       </div>
                     </div>
                   </template>

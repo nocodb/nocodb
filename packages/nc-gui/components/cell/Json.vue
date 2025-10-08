@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import NcModal from '../nc/Modal.vue'
 import { defineAsyncComponent } from 'vue'
+import NcModal from '../nc/Modal.vue'
+
+const props = defineProps<Props>()
+
+const emits = defineEmits<Emits>()
 
 // Define Monaco Editor as an async component
 const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
@@ -14,10 +18,6 @@ interface Props {
 interface Emits {
   (event: 'update:modelValue', model: string | null): void
 }
-
-const props = defineProps<Props>()
-
-const emits = defineEmits<Emits>()
 
 const { showNull } = useGlobal()
 
@@ -314,9 +314,7 @@ onUnmounted(() => {
           <div class="h-full w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
             <div class="text-center">
               <a-spin size="large" />
-              <div class="mt-4 text-gray-600 dark:text-gray-400">
-                Loading Monaco Editor...
-              </div>
+              <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
             </div>
           </div>
         </template>

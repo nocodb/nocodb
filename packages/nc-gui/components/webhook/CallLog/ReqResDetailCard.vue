@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue'
 
+const props = defineProps<Props>()
+
 // Define Monaco Editor as an async component
 const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
@@ -10,8 +12,6 @@ interface Props {
   payload: unknown
   params?: Record<string, any>
 }
-
-const props = defineProps<Props>()
 
 const copyPayloadContent = computed(() => {
   return typeof props.payload === 'object' ? JSON.stringify(props.payload, null, 2) : props.payload?.toString()
@@ -98,9 +98,7 @@ const formattedPayload = computed(() => {
             <div class="min-h-50 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
               <div class="text-center">
                 <a-spin size="large" />
-                <div class="mt-4 text-gray-600 dark:text-gray-400">
-                  Loading Monaco Editor...
-                </div>
+                <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
               </div>
             </div>
           </template>

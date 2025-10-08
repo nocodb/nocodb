@@ -191,10 +191,10 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
 
       signIn(token)
     } catch (e: any) {
-      if (e?.response?.data?.error === NcErrorType.MAX_WORKSPACE_LIMIT_REACHED) {
+      if (e?.response?.data?.error === NcErrorType.ERR_MAX_WORKSPACE_LIMIT_REACHED) {
         // Store error information in global state
         setError({
-          type: NcErrorType.MAX_WORKSPACE_LIMIT_REACHED,
+          type: NcErrorType.ERR_MAX_WORKSPACE_LIMIT_REACHED,
           message: e?.response?.data?.message || 'Maximum workspace limit reached',
         })
         // navigate to sso page and display the error details

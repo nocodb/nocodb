@@ -161,7 +161,7 @@ export const useBaseSettings = createSharedComposable(() => {
     } catch (error: any) {
       const errorInfo = await extractSdkResponseErrorMsgv2(error)
 
-      if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+      if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
         const details = errorInfo.details as PlanLimitExceededDetailsType
 
         return handleUpgradePlan({

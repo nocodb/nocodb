@@ -126,6 +126,11 @@ export class PublicMetasService {
       await this.extractRelatedMetas(context, { col, relatedMetas });
     }
 
+    // Some times related metas are null, so we need to filter them out
+    for (const key in relatedMetas) {
+      if (relatedMetas[key] == null) delete relatedMetas[key];
+    }
+
     view.relatedMetas = relatedMetas;
 
     if (

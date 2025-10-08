@@ -292,6 +292,7 @@
     "showMenu": "Show menu",
     "hideMenu": "Hide menu",
     "addAll": "Add all",
+    "selectAll": "Select all",
     "removeAll": "Remove all",
     "signUp": "SIGN UP",
     "signIn": "SIGN IN",
@@ -659,7 +660,11 @@
       "group": "Group",
       "sort": "Sort",
       "rowColoring": "Row coloring",
-      "copyAnotherViewConfig": "Copy another view configuration"
+      "copyAnotherViewConfig": "Copy another view configuration",
+      "selectConfigurationToCopy": "Select configuration(s) to copy",
+      "selectViewToCopyFrom": "Select view to copy from",
+      "copyConfigurationFromAnotherView": "Copy configuration from another view",
+      "notSupportedByViewType": "Not supported by {view} view type"
     }
   },
   "datatype": {
@@ -1510,7 +1515,8 @@
     "emptyScript": "Empty Script",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
-    "selectRole": "Select Role"
+    "selectRole": "Select Role",
+    "copyConfiguration": "Copy configuration"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

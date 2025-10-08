@@ -29,7 +29,11 @@ const view = computed(() => props.view)
 
 const table = computed(() => props.table)
 
-const { navigateToView, duplicateView, updateView, isUserViewOwner, onOpenCopyViewConfigFromAnotherViewModal } = useViewsStore()
+const viewsStore = useViewsStore()
+
+const { navigateToView, duplicateView, updateView, isUserViewOwner, onOpenCopyViewConfigFromAnotherViewModal } = viewsStore
+
+const { isCopyViewConfigFromAnotherViewFeatureEnabled } = storeToRefs(viewsStore)
 
 const { base } = storeToRefs(useBase())
 
@@ -281,9 +285,12 @@ defineOptions({
           }}
         </NcMenuItem>
       </template>
-      <NcDivider v-if="isEeUI && isUIAllowed('viewCreateOrEdit') && view?.is_default" />
+
+      <NcDivider
+        v-if="isEeUI && isUIAllowed('viewCreateOrEdit') && view?.is_default && isCopyViewConfigFromAnotherViewFeatureEnabled"
+      />
       <SmartsheetToolbarNotAllowedTooltip
-        v-if="isEeUI && isUIAllowed('viewCreateOrEdit')"
+        v-if="isEeUI && isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled"
         :enabled="(isPersonalView && !isViewOwner) || lockType === LockType.Locked"
         :message="
           isPersonalView && !isViewOwner

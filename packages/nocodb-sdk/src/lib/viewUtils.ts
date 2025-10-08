@@ -83,7 +83,7 @@ export const copyViewConfigOptionMap: Record<
     value: ViewSettingOverrideOptions.COLUMN_WIDTH,
     i18nLabel: `objects.copyViewConfig.${ViewSettingOverrideOptions.COLUMN_WIDTH}`,
     supportedViewTypes: [ViewTypes.GRID],
-    icon: 'rowHeight',
+    icon: 'columnWidth',
   },
   [ViewSettingOverrideOptions.ROW_HEIGHT]: {
     order: 4,

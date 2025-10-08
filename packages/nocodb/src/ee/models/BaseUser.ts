@@ -2,9 +2,9 @@ import { NOCO_SERVICE_USERS, ProjectRoles } from 'nocodb-sdk';
 import { BaseUser as BaseUserCE } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceRolesV3Type } from 'nocodb-sdk';
-import { NcError } from '~/helpers/ncError';
 import type { BaseType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { NcError } from '~/helpers/ncError';
 import {
   CacheDelDirection,
   CacheGetType,

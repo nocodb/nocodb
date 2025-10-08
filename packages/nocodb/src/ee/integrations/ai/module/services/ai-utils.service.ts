@@ -9,10 +9,10 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { z } from 'zod';
-import { NcError } from '~/helpers/ncError';
 import type { NcContext } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
 import type { Column } from '~/models';
+import { NcError } from '~/helpers/ncError';
 import { Base, Integration, Model } from '~/models';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 import {

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type {
   FilterCreateV3Type,
+  FilterGroupLevel3V3Type,
   FilterGroupV3Type,
   FilterReqType,
   FilterType,
@@ -157,6 +158,7 @@ export class FiltersV3Service {
     const { additionalProps } = await this.extractAdditionalProps(
       param,
       context,
+      ncMeta,
     );
     let innerViewWebhookManager: ViewWebhookManager;
 
@@ -570,5 +572,23 @@ export class FiltersV3Service {
     ncMeta?: MetaService,
   ) {
     return Filter.deleteAll(context, param.viewId, ncMeta);
+  }
+
+  withoutId(
+    filters: (FilterV3Type | (FilterGroupLevel3V3Type & { id?: string }))[],
+  ) {
+    if (!filters || !filters.length) {
+      return [];
+    }
+    return filters.map((flt) => {
+      const { id, ...rest } = flt;
+      if ('filters' in rest) {
+        return {
+          ...rest,
+          filters: this.withoutId(rest.filters),
+        };
+      }
+      return rest;
+    });
   }
 }

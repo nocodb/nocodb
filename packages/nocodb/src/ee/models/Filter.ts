@@ -90,6 +90,7 @@ export default class Filter extends FilterCE implements FilterType {
         const rowColorCondition = await RowColorCondition.getById(
           context,
           filter.fk_row_color_condition_id,
+          ncMeta,
         );
         model = await View.get(context, rowColorCondition.fk_view_id, ncMeta);
       } else if (filter.fk_parent_column_id) {

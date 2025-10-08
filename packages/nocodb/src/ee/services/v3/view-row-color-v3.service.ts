@@ -59,7 +59,7 @@ export class ViewRowColorV3Service {
       return;
     }
     validatePayload(
-      'swagger-v3.json#/components/schemas/ViewRowColorCreate',
+      'swagger-v3.json#/components/schemas/ViewRowColour',
       body,
       true,
       context,

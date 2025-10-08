@@ -181,7 +181,8 @@
     "upgradeToUseAiTextField": "Оновіться, щоб використовувати ШІ текстові поля",
     "upgradeToUseAiTextFieldSubtitle": "Оновіться до {plan} плану аби використовувати ШІ текстові поля для генерації текст на основі вашого запиту.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
-    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically."
+    "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
+    "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature."
   },
   "general": {
     "script": "Скрипт",
@@ -291,6 +292,7 @@
     "showMenu": "Показати меню",
     "hideMenu": "Сховати меню",
     "addAll": "Додати все",
+    "selectAll": "Select all",
     "removeAll": "Видалити все",
     "signUp": "Зареєструватися",
     "signIn": "Увійти",
@@ -648,6 +650,21 @@
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
       "warning": "This action cannot be undone."
+    },
+    "copyViewConfig": {
+      "fieldVisibility": "Field visibility",
+      "fieldOrder": "Field order",
+      "columnWidth": "Column width",
+      "rowHeight": "Row height",
+      "filterCondition": "Filter condition",
+      "group": "Group",
+      "sort": "Sort",
+      "rowColoring": "Row coloring",
+      "copyAnotherViewConfig": "Copy another view configuration",
+      "selectConfigurationToCopy": "Select configuration(s) to copy",
+      "selectViewToCopyFrom": "Select view to copy from",
+      "copyConfigurationFromAnotherView": "Copy configuration from another view",
+      "notSupportedByViewType": "Not supported by {view} view type"
     }
   },
   "datatype": {
@@ -1498,7 +1515,8 @@
     "emptyScript": "Порожній скрипт",
     "enterFullscreen": "Повноекранний режим",
     "exitFullscreen": "Вийти з повноекранного режиму",
-    "selectRole": "Select Role"
+    "selectRole": "Select Role",
+    "copyConfiguration": "Copy configuration"
   },
   "activity": {
     "clickToResolve": "Натисніть для вирішення",
@@ -1889,7 +1907,10 @@
     "filterByLimitExceeded": "Filter by limit exceeded",
     "groupByLimitExceeded": "Group by limit exceeded",
     "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated."
+    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated.",
+    "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
+    "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
+    "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration"
   },
   "placeholder": {
     "searchIcons": "Пошук іконок",

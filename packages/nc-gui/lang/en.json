@@ -648,6 +648,16 @@
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
       "warning": "This action cannot be undone."
+    },
+    "copyViewConfig": {
+      "fieldVisibility": "Field visibility",
+      "fieldOrder": "Field order",
+      "columnWidthAndRowHeight": "Column width and row height",
+      "rowHeight": "Row height",
+      "filters": "Filters",
+      "groups": "Groups",
+      "sorts": "Sorts",
+      "rowColoring": "Row coloring"
     }
   },
   "datatype": {

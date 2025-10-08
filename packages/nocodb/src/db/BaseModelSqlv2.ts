@@ -1530,7 +1530,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     aliasToColumnBuilder = {},
   ) {
     const formula = await column.getColOptions<FormulaColumn>(this.context);
-    if (formula.error) throw new Error(`Formula error: ${formula.error}`);
+    if (formula.error) NcError.get(this.context).formulaError(formula.error)
+
     const qb = await formulaQueryBuilderv2({
       baseModel: this,
       tree: formula.formula,
@@ -2157,7 +2158,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await this.getUniqueOrdersBeforeItem(beforeRowId, 1)
     )[0];
 
-    return await this.dbDriver(this.tnPath)
+    return this.dbDriver(this.tnPath)
       .update({
         [columns.find((c) => c.uidt === UITypes.Order).column_name]:
           newRecordOrder.toString(),
@@ -4006,7 +4007,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
-        throw new Error('ignoreWebhook value can be either true or false');
+        NcError.get(context).badRequest('ignoreWebhook value can be either true or false')
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
@@ -4086,7 +4087,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
-        throw new Error('ignoreWebhook value can be either true or false');
+        NcError.get(context).badRequest('ignoreWebhook value can be either true or false')
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {

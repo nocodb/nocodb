@@ -146,6 +146,10 @@ export const presetErrorCodexMap: Partial<
     message: (filter: string) => `Filter '${filter}' is invalid`,
     code: 422,
   },
+  [NcErrorType.ERR_UNSUPPORTED_FILTER_OPERATION]: {
+    message: (operation: string) => `Operation '${operation}' is not supported`,
+    code: 400,
+  },
   [NcErrorType.ERR_INVALID_SHARED_VIEW_PASSWORD]: {
     message: 'Invalid shared view password',
     code: 403,

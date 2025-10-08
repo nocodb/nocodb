@@ -796,7 +796,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           intermediateOrder.eq(adjacentOrder) ||
           intermediateOrder.eq(currentRowOrder)
         ) {
-          throw NcError.cannotCalculateIntermediateOrderError();
+          NcError.cannotCalculateIntermediateOrderError();
         }
 
         orders.push(intermediateOrder);
@@ -3123,7 +3123,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
-        throw new Error('ignoreWebhook value can be either true or false');
+        NcError.get(context).badRequest(
+          'ignoreWebhook value can be either true or false',
+        );
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {

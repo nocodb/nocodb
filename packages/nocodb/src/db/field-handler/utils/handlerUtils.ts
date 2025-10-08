@@ -322,7 +322,5 @@ export const unsupportedFilter = async (
   },
   _options: FilterOptions,
 ) => {
-  throw new Error(
-    `Unsupported comparison operator for ${rootArgs.column.uidt}: ${rootArgs.filter.comparison_op}`,
-  );
+  NcError._.unsupportedFilterOperation(rootArgs?.filter?.comparison_op);
 };

@@ -254,7 +254,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       this.captureException(exception, request);
 
       const responsePayload: any = {
-        msg: 'Bad Request',
+        msg: 'Internal server error',
       };
 
       // Include actual error message only in development

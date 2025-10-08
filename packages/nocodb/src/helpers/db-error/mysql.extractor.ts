@@ -148,7 +148,13 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
       case 'ER_ROW_IS_REFERENCED':
         message = 'This record is being referenced by other records.';
         break;
-
+      case 'ER_LOCK_DEADLOCK':
+        message = 'Deadlock detected. Please retry the operation.';
+        httpStatus = 409;
+        break;
+      case 'ER_TOO_MANY_ROWS':
+        message = 'Query returned too many rows.';
+        break;
       default:
         return;
     }

@@ -527,3 +527,14 @@ export enum WebhookEvents {
   VIEW = 'view',
   FIELD = 'field',
 }
+
+export enum ViewSettingOverrideOptions {
+  FIELD_VISIBILITY = 'fieldVisibility',
+  FIELD_ORDER = 'fieldOrder',
+  COLUMN_WIDTH = 'columnWidth',
+  ROW_HEIGHT = 'rowHeight',
+  FILTER_CONDITION = 'filterCondition',
+  SORT = 'sort',
+  GROUP = 'group',
+  ROW_COLORING = 'rowColoring',
+}

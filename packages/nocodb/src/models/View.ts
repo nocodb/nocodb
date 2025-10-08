@@ -1,6 +1,7 @@
 import {
   AppEvents,
   CommonAggregations,
+  EventType,
   ExpandedFormMode,
   isSystemColumn,
   parseProp,
@@ -55,6 +56,7 @@ import { CustomUrl, LinkToAnotherRecordColumn } from '~/models';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { isEE } from '~/utils';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import NocoSocket from '~/socket/NocoSocket';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -1543,9 +1545,37 @@ export default class View implements ViewType {
         },
       );
 
+      const contextRef = { ...context };
       for (const link of links) {
         await LinkToAnotherRecordColumn.update(context, link.fk_column_id, {
           fk_target_view_id: null,
+        });
+
+        // notify all sockets of the change in the related column
+        (async (l) => {
+          NocoSocket.broadcastEvent(contextRef, {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'column_update',
+              payload: await Column.get(
+                context,
+                {
+                  colId: l.fk_column_id,
+                },
+                ncMeta,
+              ).then(async (col) => ({
+                column: col,
+                table: await Model.getWithInfo(
+                  context,
+                  { id: col.fk_model_id },
+                  ncMeta,
+                ),
+                skipDataReload: true,
+              })),
+            },
+          });
+        })(link).catch((err) => {
+          console.log(`Error in related column cache clear:`, err);
         });
       }
     }

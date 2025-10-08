@@ -282,6 +282,7 @@ export default class DataReflection extends DataReflectionCE {
       await knex.commit();
     } catch (e) {
       await knex.rollback();
+      logger.error('Failed to create data reflection', e);
       NcError._.internalServerError('Failed to create data reflection');
     }
 
@@ -313,8 +314,7 @@ export default class DataReflection extends DataReflectionCE {
       await knex.commit();
     } catch (e) {
       await knex.rollback();
-      logger.error(`Failed to destroy reflection for ${fk_workspace_id}`);
-      logger.error(e);
+      logger.error(`Failed to destroy reflection for ${fk_workspace_id}`, e);
     }
   }
 

@@ -1,6 +1,6 @@
 import path from 'path';
 import { Readable } from 'stream';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   ButtonActionsType,
   IntegrationsType,
@@ -271,6 +271,7 @@ const preparePromptAttachments = async (
 
 @Injectable()
 export class AiDataService {
+  private readonly logger = new Logger(AiDataService.name);
   constructor(
     protected readonly tablesService: TablesService,
     protected readonly aiSchemaService: AiSchemaService,
@@ -808,7 +809,7 @@ export class AiDataService {
 
       return updatedRows;
     } catch (e) {
-      console.error(e);
+      this.logger.error('Failed to generate from Button', e);
       NcError.get(context).internalServerError(e?.message);
     }
   }
@@ -1284,7 +1285,7 @@ Please generate ${
 
       return updatedRows;
     } catch (e) {
-      console.error(e);
+      this.logger.error('Failed to update rows', e);
       NcError.get(context).internalServerError(e?.message);
     }
   }

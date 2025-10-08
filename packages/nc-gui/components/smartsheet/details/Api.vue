@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { HTTPSnippet } from '@readme/httpsnippet'
-import { LoadingOutlined } from '@ant-design/icons-vue'
 import { defineAsyncComponent } from 'vue'
 
 // Define Monaco Editor as an async component
@@ -20,13 +19,6 @@ const view = inject(ActiveViewInj, ref())
 const { xWhere } = useSmartsheetStoreOrThrow()
 
 const { queryParams } = useViewData(meta, view, xWhere)
-
-const indicator = h(LoadingOutlined, {
-  style: {
-    fontSize: '2rem',
-  },
-  spin: true,
-})
 
 const { copy } = useCopy()
 

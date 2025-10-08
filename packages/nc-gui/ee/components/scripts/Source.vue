@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { LoadingOutlined } from '@ant-design/icons-vue'
 import { defineAsyncComponent } from 'vue'
 
 const props = defineProps<Props>()
@@ -11,12 +10,6 @@ interface Props {
   code: string
 }
 const code = toRef(props, 'code')
-const indicator = h(LoadingOutlined, {
-  style: {
-    fontSize: '2rem',
-  },
-  spin: true,
-})
 
 const showCode = ref(true)
 </script>

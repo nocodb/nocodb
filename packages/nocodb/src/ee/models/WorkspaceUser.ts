@@ -18,6 +18,7 @@ import { PresignedUrl } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 import { clearWorkspaceUserCountCache } from '~/helpers/cacheHelpers';
+import { NcError } from '~/helpers/ncError';
 
 const logger = new Logger('WorkspaceUser');
 

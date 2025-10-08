@@ -12,6 +12,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 import { Integration } from '~/models';
+import { NcError } from '~/helpers/ncError';
 
 export default class SyncConfig {
   id: string;

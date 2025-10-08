@@ -14,6 +14,9 @@ export const useMetas = createSharedComposable(() => {
 
   const { baseTables } = storeToRefs(useTablesStore())
 
+  // keep a temporary state of deleted tables to avoid get api calls
+  const deletedTableIds = new Set<string>()
+
   const metas = useState<{ [idOrTitle: string]: TableType | any }>('metas', () => ({}))
 
   const metasWithIdAsKey = computed<Record<string, TableType>>(() => {
@@ -41,6 +44,9 @@ export const useMetas = createSharedComposable(() => {
     navigateOnNotFound = false,
   ): Promise<TableType | null> => {
     if (!tableIdOrTitle) return null
+
+    // if already deleted return null
+    if (deletedTableIds.has(tableIdOrTitle)) return null
 
     const tables = (baseId ? baseTables.value.get(baseId) : _tables.value) ?? []
 
@@ -117,12 +123,14 @@ export const useMetas = createSharedComposable(() => {
 
   const clearAllMeta = () => {
     metas.value = {}
+    deletedTableIds.clear()
   }
 
-  const removeMeta = (idOrTitle: string) => {
+  const removeMeta = (idOrTitle: string, deleted = false) => {
     const meta = metas.value[idOrTitle]
 
     if (meta) {
+      if (deleted) deletedTableIds.add(meta.id)
       delete metas.value[meta.id]
       delete metas.value[meta.title]
     }
@@ -130,7 +138,7 @@ export const useMetas = createSharedComposable(() => {
 
   // return partial metadata for related table of a meta service
   const getPartialMeta = async (linkColumnId: string, tableIdOrTitle: string): Promise<TableType | null> => {
-    if (!tableIdOrTitle || !linkColumnId) return null
+    if (!tableIdOrTitle || !linkColumnId || deletedTableIds.has(tableIdOrTitle)) return null
 
     if (metas.value[tableIdOrTitle]) {
       return metas.value[tableIdOrTitle]

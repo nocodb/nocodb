@@ -7831,8 +7831,7 @@
         },
         "required": [
           "field_id",
-          "operator",
-          "value"
+          "operator"
         ]
       },
       "FilterListResponse": {

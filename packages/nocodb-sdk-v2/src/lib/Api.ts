@@ -1459,7 +1459,7 @@ export interface Filter {
   /** Secondary comparison operator (if applicable). */
   sub_operator?: string | null;
   /** Value for comparison. */
-  value: string | number | boolean | null;
+  value?: string | number | boolean | null;
 }
 
 export interface FilterListResponse {

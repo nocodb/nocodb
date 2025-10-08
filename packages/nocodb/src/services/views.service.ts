@@ -1,18 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ProjectRoles, ViewTypes } from 'nocodb-sdk';
-import type { MetaService } from '~/meta/meta.service';
 import type {
   SharedViewReqType,
   UserType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import Noco from '~/Noco';
-import {
-  type ViewWebhookManager,
-  ViewWebhookManagerBuilder,
-} from '~/utils/view-webhook-manager';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import type { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import {
@@ -23,7 +17,13 @@ import {
   User,
   View,
 } from '~/models';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 
 // todo: move
 async function xcVisibilityMetaGet(

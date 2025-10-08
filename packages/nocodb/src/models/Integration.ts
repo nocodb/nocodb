@@ -6,6 +6,7 @@ import {
   type IntegrationType,
   type SourceType,
 } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { IntegrationWrapper } from '@noco-local-integrations/core';

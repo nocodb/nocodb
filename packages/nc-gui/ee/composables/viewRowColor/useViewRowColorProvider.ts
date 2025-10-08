@@ -112,6 +112,8 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
       reloadRowColorInfo(payload?.viewChange ?? false, payload?.rowColorInfo)
     } else if ([SmartsheetStoreEvents.FIELD_UPDATE, SmartsheetStoreEvents.FIELD_RELOAD].includes(event)) {
       reloadRowColorInfo(true)
+    } else if (event === SmartsheetStoreEvents.ROW_COLOR_RELOAD) {
+      reloadRowColorInfo(true)
     }
   })
 

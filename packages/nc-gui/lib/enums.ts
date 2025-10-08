@@ -80,6 +80,7 @@ export enum SmartsheetStoreEvents {
   CELL_SELECTED = 'cell-selected',
   FIELD_UPDATE = 'field-update',
   ROW_COLOR_UPDATE = 'row-color-update',
+  ROW_COLOR_RELOAD = 'row-color-reload',
   TRIGGER_RE_RENDER = 'trigger-re-render',
   ON_ROW_COLOUR_INFO_UPDATE = 'on-row-colour-info-update',
 }

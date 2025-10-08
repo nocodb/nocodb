@@ -88,7 +88,7 @@ const copyViewConfiguration = async () => {
   }
 
   try {
-    const response = await $api.internal.postOperation(
+    await $api.internal.postOperation(
       activeWorkspaceId.value!,
       destView.value.base_id!,
       {
@@ -108,14 +108,38 @@ const copyViewConfiguration = async () => {
         [ViewSettingOverrideOptions.ROW_HEIGHT, ViewSettingOverrideOptions.ROW_COLORING].includes(type),
       )
     ) {
-      viewsStore.loadViews({ tableId: destView.value.fk_model_id!, ignoreLoading: true, force: true })
+      await viewsStore.loadViews({ tableId: destView.value.fk_model_id!, ignoreLoading: true, force: true })
     }
 
     // Reload view meta as well as data if the destination view is the active view
     if (destView.value.id === activeView.value?.id) {
-      eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-      eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
-      eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+      if (selectedCopyViewConfigTypes.value.includes(ViewSettingOverrideOptions.SORT)) {
+        eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+      }
+
+      if (selectedCopyViewConfigTypes.value.includes(ViewSettingOverrideOptions.FILTER_CONDITION)) {
+        eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
+      }
+
+      if (selectedCopyViewConfigTypes.value.includes(ViewSettingOverrideOptions.GROUP)) {
+        eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+      }
+
+      if (
+        selectedCopyViewConfigTypes.value.some((type) =>
+          [
+            ViewSettingOverrideOptions.COLUMN_WIDTH,
+            ViewSettingOverrideOptions.FIELD_VISIBILITY,
+            ViewSettingOverrideOptions.FIELD_ORDER,
+          ].includes(type),
+        )
+      ) {
+        eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      }
+
+      if (selectedCopyViewConfigTypes.value.includes(ViewSettingOverrideOptions.ROW_COLORING)) {
+        eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_RELOAD)
+      }
 
       nextTick(() => {
         eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
@@ -123,6 +147,7 @@ const copyViewConfiguration = async () => {
     }
 
     emits('copy', selectedCopyViewConfigTypes.value)
+    dialogShow.value = false
   } catch (e) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))

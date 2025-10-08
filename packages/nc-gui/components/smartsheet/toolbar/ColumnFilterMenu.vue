@@ -67,12 +67,6 @@ const draftFilter = ref({})
 const queryFilterOpen = ref(false)
 
 eventBus.on(async (event, column: ColumnType) => {
-  if (!column) return
-
-  if (event === SmartsheetStoreEvents.FILTER_ADD) {
-    draftFilter.value = { fk_column_id: column.id }
-    open.value = true
-  }
   if (event === SmartsheetStoreEvents.FILTER_RELOAD && activeView?.value?.id) {
     await loadFilters({
       hookId: undefined,
@@ -80,6 +74,13 @@ eventBus.on(async (event, column: ColumnType) => {
       loadAllFilters: true,
     })
     filtersLength.value = nonDeletedFilters.value.length || 0
+  }
+
+  if (!column) return
+
+  if (event === SmartsheetStoreEvents.FILTER_ADD) {
+    draftFilter.value = { fk_column_id: column.id }
+    open.value = true
   }
 })
 

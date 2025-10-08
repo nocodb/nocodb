@@ -16,6 +16,7 @@ import {
   parseLexingError,
   parseParsingError,
 } from './parser/queryFilter/error-message-parser';
+import { NcContext } from './ncTypes';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -23,11 +24,25 @@ export {
   IS_WITHIN_COMPARISON_SUB_OPS,
 } from '~/lib/parser/queryFilter/query-filter-lexer';
 
+export interface FilterTypeWithMeta extends FilterType {
+  meta?: {
+    timezone?: string;
+  };
+}
+
 export function extractFilterFromXwhere(
-  str: string | string[],
-  aliasColObjMap: { [columnAlias: string]: ColumnType },
-  throwErrorIfInvalid = false,
-  errors: FilterParseError[] = []
+  context: Pick<NcContext, 'api_version'> & Pick<NcContext, 'timezone'>,
+  {
+    str,
+    aliasColObjMap,
+    throwErrorIfInvalid = false,
+    errors = [],
+  }: {
+    str: string | string[];
+    aliasColObjMap: { [columnAlias: string]: ColumnType };
+    throwErrorIfInvalid?: boolean;
+    errors?: FilterParseError[];
+  }
 ): { filters?: FilterType[]; errors?: FilterParseError[] } {
   if (!str) {
     return { filters: [] };
@@ -36,19 +51,27 @@ export function extractFilterFromXwhere(
     const column = aliasColObjMap[columnName];
     aliasColObjMap[column.id] = column;
   }
-  return innerExtractFilterFromXwhere(
+  return innerExtractFilterFromXwhere(context, {
     str,
     aliasColObjMap,
     throwErrorIfInvalid,
-    errors
-  );
+    errors,
+  });
 }
 
 function innerExtractFilterFromXwhere(
-  str: string | string[],
-  aliasColObjMap: { [columnAlias: string]: ColumnType },
-  throwErrorIfInvalid = false,
-  errors: FilterParseError[] = []
+  context: Pick<NcContext, 'api_version'> & Pick<NcContext, 'timezone'>,
+  {
+    str,
+    aliasColObjMap,
+    throwErrorIfInvalid = false,
+    errors = [],
+  }: {
+    str: string | string[];
+    aliasColObjMap: { [columnAlias: string]: ColumnType };
+    throwErrorIfInvalid?: boolean;
+    errors?: FilterParseError[];
+  }
 ): { filters?: FilterType[]; errors?: FilterParseError[] } {
   if (!str) {
     return { filters: [] };
@@ -57,7 +80,11 @@ function innerExtractFilterFromXwhere(
     // calling recursively for nested query
     const nestedFilters = [].concat(
       ...str.map((s) =>
-        extractFilterFromXwhere(s, aliasColObjMap, throwErrorIfInvalid)
+        extractFilterFromXwhere(context, {
+          str: s,
+          aliasColObjMap,
+          throwErrorIfInvalid,
+        })
       )
     );
 
@@ -124,18 +151,18 @@ function innerExtractFilterFromXwhere(
             .join(', '),
         });
       }
-      
       return { errors };
     }
   }
 
   const filterSubType = parseResult.parsedCst;
 
-  const { filter, errors: parseErrors } = mapFilterGroupSubType(
-    filterSubType,
+  const { filter, errors: parseErrors } = mapFilterGroupSubType(context, {
+    filter: filterSubType,
     aliasColObjMap,
-    throwErrorIfInvalid
-  );
+    throwErrorIfInvalid,
+    errors,
+  });
   if (parseErrors?.length > 0) {
     return { errors: parseErrors };
   }
@@ -143,21 +170,34 @@ function innerExtractFilterFromXwhere(
 }
 
 function mapFilterGroupSubType(
-  filter: FilterGroupSubType,
-  aliasColObjMap: { [columnAlias: string]: ColumnType },
-  throwErrorIfInvalid = false,
-  errors: FilterParseError[] = []
+  context: Pick<NcContext, 'api_version'> & Pick<NcContext, 'timezone'>,
+  {
+    filter,
+    aliasColObjMap,
+    throwErrorIfInvalid = false,
+    errors = [],
+  }: {
+    filter: FilterGroupSubType;
+    aliasColObjMap: { [columnAlias: string]: ColumnType };
+    throwErrorIfInvalid?: boolean;
+    errors?: FilterParseError[];
+  }
 ): { filter?: FilterType; errors?: FilterParseError[] } {
   const children = filter.children
     .map((k) =>
       k.is_group
-        ? mapFilterGroupSubType(k, aliasColObjMap, throwErrorIfInvalid, errors)
-        : mapFilterClauseSubType(
-            k as FilterClauseSubType,
+        ? mapFilterGroupSubType(context, {
+            filter: k,
             aliasColObjMap,
             throwErrorIfInvalid,
-            errors
-          )
+            errors,
+          })
+        : mapFilterClauseSubType(context, {
+            filter: k as FilterClauseSubType,
+            aliasColObjMap,
+            throwErrorIfInvalid,
+            errors,
+          })
     )
     .filter((k) => k);
 
@@ -176,10 +216,18 @@ function mapFilterGroupSubType(
 }
 
 function mapFilterClauseSubType(
-  filter: FilterClauseSubType,
-  aliasColObjMap: { [columnAlias: string]: ColumnType },
-  throwErrorIfInvalid = false,
-  errors: FilterParseError[] = []
+  context: Pick<NcContext, 'api_version'> & Pick<NcContext, 'timezone'>,
+  {
+    filter,
+    aliasColObjMap,
+    throwErrorIfInvalid = false,
+    errors = [],
+  }: {
+    filter: FilterClauseSubType;
+    aliasColObjMap: { [columnAlias: string]: ColumnType };
+    throwErrorIfInvalid?: boolean;
+    errors?: FilterParseError[];
+  }
 ): { filter?: FilterType; errors?: FilterParseError[] } {
   const aliasCol = aliasColObjMap[filter.field];
   if (!aliasCol) {
@@ -202,14 +250,27 @@ function mapFilterClauseSubType(
     comparison_sub_op: undefined,
     value: filter.value,
   };
-  return handleDataTypes(result, aliasCol, throwErrorIfInvalid, errors);
+  return handleDataTypes(context, {
+    filterType: result,
+    column: aliasCol,
+    throwErrorIfInvalid,
+    errors,
+  });
 }
 
 function handleDataTypes(
-  filterType: FilterType,
-  column: ColumnType,
-  throwErrorIfInvalid = false,
-  errors: FilterParseError[] = []
+  context: Pick<NcContext, 'api_version'> & Pick<NcContext, 'timezone'>,
+  {
+    filterType,
+    column,
+    throwErrorIfInvalid = false,
+    errors = [],
+  }: {
+    filterType: FilterTypeWithMeta;
+    column: ColumnType;
+    throwErrorIfInvalid?: boolean;
+    errors?: FilterParseError[];
+  }
 ): { filter?: FilterType; errors?: FilterParseError[] } {
   if (filterType.value === null) {
     return { filter: filterType };
@@ -267,6 +328,10 @@ function handleDataTypes(
     if (filterType.value === '') {
       filterType.value = undefined;
     }
+
+    filterType.meta = filterType.meta ?? {};
+    // use || to also include falsy values
+    filterType.meta.timezone = context.timezone || 'Etc/UTC';
   }
 
   return { filter: filterType };

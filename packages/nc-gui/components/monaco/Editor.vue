@@ -27,12 +27,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits(['update:modelValue'])
 
-// Make this component async by awaiting Monaco initialization
-await initializeMonaco()
-
-// Add a small delay to ensure Suspense triggers even if Monaco is already initialized
-await new Promise((resolve) => setTimeout(resolve, 100))
-
 const { modelValue, readOnly } = toRefs(props)
 
 const { hideMinimap, lang, validate, disableDeepCompare, autoFocus, monacoConfig, monacoCustomTheme, placeholder } = props
@@ -118,7 +112,7 @@ const retryLoad = async () => {
 
     // Re-run the initialization logic
     if (root.value && lang) {
-      const model = monacoEditor.createModel(vModel.value || '', lang)
+      monacoEditor.createModel(vModel.value || '', lang)
       // ... rest of initialization
       isLoading.value = false
     }
@@ -143,6 +137,14 @@ defineExpose({
   isValid,
   error,
 })
+
+// ⛔ all top-level awaits come *after* macros
+
+// Make this component async by awaiting Monaco initialization
+await initializeMonaco()
+
+// Add a small delay to ensure Suspense triggers even if Monaco is already initialized
+await new Promise((resolve) => setTimeout(resolve, 100))
 
 onMounted(async () => {
   try {

@@ -732,7 +732,6 @@ export const relationDataFetcher = (param: {
         await relColOptions.getParentColumn(baseModel.context)
       ).getModel(baseModel.context);
 
-      const cn = (await relColOptions.getChildColumn(context)).column_name;
       const refTable = await (
         await relColOptions.getParentColumn(refContext)
       ).getModel(refContext);

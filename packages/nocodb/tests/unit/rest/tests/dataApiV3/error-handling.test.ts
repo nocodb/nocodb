@@ -297,7 +297,7 @@ describe('dataApiV3', () => {
           },
           status: 422,
         });
-        expect(response.body.error).to.eq(`INVALID_FILTER`);
+        expect(response.body.error).to.eq(`ERR_INVALID_FILTER`);
         expect(response.body.message).to.eq(
           `Invalid filter expression: 'notInOperator' is not a recognized operator. Please use a valid comparison or logical operator`,
         );

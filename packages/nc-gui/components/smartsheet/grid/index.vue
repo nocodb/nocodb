@@ -498,7 +498,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         @update:model-value="addRowExpandOnClose(expandedFormRow)"
       />
     </Suspense>
-    <SmartsheetExpandedForm
+    <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"
       ref="expandedFormRef"
       v-model="expandedFormOnRowIdDlg"

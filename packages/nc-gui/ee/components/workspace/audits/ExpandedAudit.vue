@@ -1,5 +1,9 @@
 <script lang="ts" setup>
 import { auditV1OperationTypesAlias } from 'nocodb-sdk'
+import { defineAsyncComponent } from 'vue'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 const auditsStore = useAuditsStore()
 
@@ -161,13 +165,22 @@ function handleAutoScroll(scroll: boolean, className: string) {
 
           <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
             <Suspense>
-              <MonacoEditor
-                :model-value="selectedAudit?.details || ''"
-                read-only
-                class="nc-audit-json-perview h-[200px] w-full"
-              />
+              <template #default>
+                <MonacoEditor
+                  :model-value="selectedAudit?.details || ''"
+                  read-only
+                  class="nc-audit-json-perview h-[200px] w-full"
+                />
+              </template>
               <template #fallback>
-                <div class="h-[200px] w-full px-3"><a-skeleton active :paragraph="{ rows: 3 }" /></div>
+                <div class="h-[200px] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                  <div class="text-center">
+                    <a-spin size="large" />
+                    <div class="mt-4 text-gray-600 dark:text-gray-400">
+                      Loading Monaco Editor...
+                    </div>
+                  </div>
+                </div>
               </template>
             </Suspense>
           </div>

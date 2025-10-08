@@ -3,8 +3,12 @@ import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { type TableType, charsetOptions, charsetOptionsMap, ncHasProperties } from 'nocodb-sdk'
+import { defineAsyncComponent } from 'vue'
 import rfdc from 'rfdc'
 import type { ProgressMessageObjType } from '../../helpers/parsers/TemplateGenerator'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 interface Props {
   modelValue: boolean
@@ -737,7 +741,7 @@ watch(
           'pointer-events-none': importLoading,
         }"
       >
-        <LazyTemplateEditor
+        <TemplateEditor
           v-if="templateEditorModal"
           ref="templateEditorRef"
           :base-template="templateData"
@@ -976,17 +980,31 @@ watch(
                       jsonErrorText || refMonacoEditor?.error,
                   }"
                 >
-                  <LazyMonacoEditor
-                    ref="refMonacoEditor"
-                    class="nc-import-monaco-editor !h-full min-h-30"
-                    :auto-focus="false"
-                    hide-minimap
-                    :monaco-config="{
-                      lineNumbers: 'on',
-                    }"
-                    :model-value="temporaryJson"
-                    @update:model-value="handleJsonChange($event)"
-                  />
+                  <Suspense>
+                    <template #default>
+                      <MonacoEditor
+                        ref="refMonacoEditor"
+                        class="nc-import-monaco-editor !h-full min-h-30"
+                        :auto-focus="false"
+                        hide-minimap
+                        :monaco-config="{
+                          lineNumbers: 'on',
+                        }"
+                        :model-value="temporaryJson"
+                        @update:model-value="handleJsonChange($event)"
+                      />
+                    </template>
+                    <template #fallback>
+                      <div class="!h-full w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                        <div class="text-center">
+                          <a-spin size="large" />
+                          <div class="mt-4 text-gray-600 dark:text-gray-400">
+                            Loading Monaco Editor...
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </Suspense>
                 </div>
 
                 <div v-if="jsonErrorText || refMonacoEditor?.error" class="text-nc-content-red-medium text-small mt-2">

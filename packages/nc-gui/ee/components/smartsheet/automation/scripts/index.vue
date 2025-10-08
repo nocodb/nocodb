@@ -1,8 +1,23 @@
 <script setup lang="ts">
-import * as monaco from 'monaco-editor'
 import { Pane, Splitpanes } from 'splitpanes'
-import { registerCompletion } from 'monacopilot'
+import { initializeMonaco } from '../../../../../lib/monaco'
 import { TypeGenerator } from '~/components/smartsheet/automation/scripts/utils/TypeGenerator'
+
+// Lazy load Monaco Editor and its dependencies
+const loadMonacoEditor = () => import('monaco-editor')
+const loadMonacopilot = () => import('monacopilot')
+
+// Async setup to make this component suspensible
+const setup = async () => {
+  // Initialize Monaco Editor to make this component truly async
+  await initializeMonaco()
+  
+  // Add a small delay to ensure Suspense triggers even if Monaco is already initialized
+  await new Promise(resolve => setTimeout(resolve, 100))
+}
+
+// Call the async setup
+await setup()
 
 const editorRef = ref<HTMLDivElement | null>(null)
 
@@ -28,9 +43,10 @@ const {
   debouncedSave,
 } = useScriptStoreOrThrow()
 
-const updateTypes = () => {
+const updateTypes = async () => {
   if (!activeBaseSchema.value) return
   const typeGenerator = new TypeGenerator()
+  const monaco = await loadMonacoEditor()
 
   monaco.languages.typescript.typescriptDefaults.setExtraLibs([
     { content: typeGenerator.generateTypes(activeBaseSchema.value) },
@@ -42,7 +58,8 @@ const { completeScript } = useNocoAi()
 
 let dirty = false
 
-const updateTheme = () => {
+const updateTheme = async () => {
+  const monaco = await loadMonacoEditor()
   if (isDark.value) {
     monaco.editor.setTheme('vs-dark')
   } else {
@@ -53,7 +70,10 @@ const updateTheme = () => {
 async function setupMonacoEditor() {
   if (!editorRef.value) return
 
-  updateTypes()
+  const monaco = await loadMonacoEditor()
+  const { registerCompletion } = await loadMonacopilot()
+
+  await updateTypes()
 
   const model = monaco.editor.createModel(activeAutomation.value?.script, 'typescript')
 
@@ -150,6 +170,7 @@ watch(
 )
 
 onMounted(async () => {
+  await initializeMonaco()
   configValue.value = {
     ...(activeAutomation.value?.config ?? {}),
   }
@@ -165,19 +186,20 @@ watch(isEditorOpen, async (newVal) => {
   }
 })
 
-watch(activeBaseSchema, (newVal) => {
+watch(activeBaseSchema, async (newVal) => {
   if (newVal) {
-    updateTypes()
+    await updateTypes()
   }
 })
 
-watch(isDark, () => {
-  updateTheme()
+watch(isDark, async () => {
+  await updateTheme()
 })
 
-onBeforeUnmount(() => {
+onBeforeUnmount(async () => {
   editor?.getModel()?.dispose()
   editor?.dispose()
+  const monaco = await loadMonacoEditor()
   monaco.editor.getModels().forEach((model) => model.dispose())
 })
 </script>

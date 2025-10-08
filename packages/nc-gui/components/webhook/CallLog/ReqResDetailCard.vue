@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
+
 interface Props {
   title: string
   headers: Record<string, any>
@@ -62,30 +67,44 @@ const formattedPayload = computed(() => {
           <span class="text-xs leading-[18px]">Payload</span>
           <GeneralCopyButton :content="copyPayloadContent" size="xs" class="!px-1" />
         </div>
-        <LazyMonacoEditor
-          :model-value="formattedPayload"
-          class="min-w-full w-full flex-1 min-h-50 resize-y overflow-auto expanded-editor"
-          hide-minimap
-          disable-deep-compare
-          read-only
-          :monaco-config="{
-            lineNumbers: 'on',
-            scrollbar: {
-              verticalScrollbarSize: 6,
-              horizontalScrollbarSize: 6,
-            },
-          }"
-          :monaco-custom-theme="{
-            base: 'vs',
-            inherit: true,
-            rules: [],
-            colors: {
-              'editor.background': '#f9f9fa',
-            },
-          }"
-          @keydown.enter.stop
-          @keydown.alt.stop
-        />
+        <Suspense>
+          <template #default>
+            <MonacoEditor
+              :model-value="formattedPayload"
+              class="min-w-full w-full flex-1 min-h-50 resize-y overflow-auto expanded-editor"
+              hide-minimap
+              disable-deep-compare
+              read-only
+              :monaco-config="{
+                lineNumbers: 'on',
+                scrollbar: {
+                  verticalScrollbarSize: 6,
+                  horizontalScrollbarSize: 6,
+                },
+              }"
+              :monaco-custom-theme="{
+                base: 'vs',
+                inherit: true,
+                rules: [],
+                colors: {
+                  'editor.background': '#f9f9fa',
+                },
+              }"
+              @keydown.enter.stop
+              @keydown.alt.stop
+            />
+          </template>
+          <template #fallback>
+            <div class="min-h-50 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+              <div class="text-center">
+                <a-spin size="large" />
+                <div class="mt-4 text-gray-600 dark:text-gray-400">
+                  Loading Monaco Editor...
+                </div>
+              </div>
+            </div>
+          </template>
+        </Suspense>
       </div>
     </div>
   </div>

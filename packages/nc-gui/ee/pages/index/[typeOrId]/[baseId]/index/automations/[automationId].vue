@@ -7,5 +7,5 @@ useProvideScriptStore(activeAutomation)
 </script>
 
 <template>
-  <LazySmartsheetAutomation />
+  <SmartsheetAutomation />
 </template>

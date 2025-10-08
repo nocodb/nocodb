@@ -27,7 +27,7 @@ export class AjvError extends NcBaseError {
 
 export class NcZodError extends NcBaseErrorv2 {
   constructor(param: { message: string; errors: ZodError | ZodError[] }) {
-    super(param.message, 400, NcErrorType.INVALID_REQUEST_BODY, {
+    super(param.message, 400, NcErrorType.ERR_INVALID_REQUEST_BODY, {
       details: param.errors,
     });
     this.errors = Array.isArray(param.errors) ? param.errors : [param.errors];
@@ -38,7 +38,7 @@ export class NcZodError extends NcBaseErrorv2 {
 export class NcErrorV1 extends NcErrorBase {
   constructor() {
     super();
-    this.errorCodex.setErrorCodex(NcErrorType.INVALID_LIMIT_VALUE, {
+    this.errorCodex.setErrorCodex(NcErrorType.ERR_INVALID_LIMIT_VALUE, {
       message: `Limit value should be between ${defaultLimitConfig.limitMin} and ${defaultLimitConfig.limitMax}`,
       code: 422,
     });
@@ -49,7 +49,7 @@ export class NcErrorV1 extends NcErrorBase {
     roles: Record<string, boolean>,
     extendedScopeRoles: any,
   ): never {
-    throw this.errorCodex.generateError(NcErrorType.PERMISSION_DENIED, {
+    throw this.errorCodex.generateError(NcErrorType.ERR_PERMISSION_DENIED, {
       customMessage: generateReadablePermissionErr(
         permissionName,
         roles,
@@ -104,7 +104,7 @@ export class NcErrorV1 extends NcErrorBase {
       }
     }
 
-    throw this.errorCodex.generateError(NcErrorType.RECORD_NOT_FOUND, {
+    throw this.errorCodex.generateError(NcErrorType.ERR_RECORD_NOT_FOUND, {
       params: formatedId,
       ...args,
     });

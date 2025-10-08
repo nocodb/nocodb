@@ -804,7 +804,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       return orders;
     } catch (error) {
-      if (error.error === NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER) {
+      if (error.error === NcErrorType.ERR_CANNOT_CALCULATE_INTERMEDIATE_ORDER) {
         console.error('Error in getUniqueOrdersBeforeItem:', error);
         await this.recalculateFullOrder();
         return await this.getUniqueOrdersBeforeItem(before, amount, depth + 1);

@@ -140,6 +140,6 @@ export class DuplicateService {
     context: NcContext;
     req: NcRequest;
   }) {
-    NcError.get(context).notImplemented();
+    NcError.notImplemented();
   }
 }

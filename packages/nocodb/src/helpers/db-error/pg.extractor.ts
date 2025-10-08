@@ -180,7 +180,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
     }
 
     return {
-      error: NcErrorType.DATABASE_ERROR,
+      error: NcErrorType.ERR_DATABASE_OP_FAILED,
       message,
       code: error.code,
       httpStatus,

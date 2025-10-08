@@ -47,7 +47,11 @@ export class PaymentController {
     const valid = validatePlan(payload);
 
     if (!valid) {
-      throw new Error(ajv.errorsText(validatePlan.errors));
+      NcError.ajvValidationError({
+        message: 'Invalid plan',
+        errors: validatePlan?.errors,
+        humanReadableError: true,
+      });
     }
 
     return this.paymentService.submitPlan(payload);

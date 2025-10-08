@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 
 import { ConfigService } from '@nestjs/config';

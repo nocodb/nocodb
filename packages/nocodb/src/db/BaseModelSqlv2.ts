@@ -6261,7 +6261,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           intermediateOrder.eq(adjacentOrder) ||
           intermediateOrder.eq(currentRowOrder)
         ) {
-          throw NcError.cannotCalculateIntermediateOrderError();
+          NcError.cannotCalculateIntermediateOrderError();
         }
 
         orders.push(intermediateOrder);
@@ -6269,7 +6269,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       return orders;
     } catch (error) {
-      if (error.error === NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER) {
+      if (error.error === NcErrorType.ERR_CANNOT_CALCULATE_INTERMEDIATE_ORDER) {
         console.error('Error in getUniqueOrdersBeforeItem:', error);
         await this.recalculateFullOrder();
         return await this.getUniqueOrdersBeforeItem(before, amount, depth + 1);

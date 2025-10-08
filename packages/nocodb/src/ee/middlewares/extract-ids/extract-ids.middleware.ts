@@ -118,7 +118,7 @@ const getApiVersionFromUrl = (url: string) => {
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   async use(req, res, next): Promise<any> {
-    const { params } = req;
+    const { params, query } = req;
 
     req.ncApiVersion = getApiVersionFromUrl(req.route.path);
     req.ncSocketId = req.headers['xc-socket-id'];
@@ -168,112 +168,136 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         nc_site_url: req.ncSiteUrl,
       };
 
-      if (params.mcpTokenId) {
-        const mcpToken = await MCPToken.get(context, params.mcpTokenId);
+      const mcpTokenId = params.mcpTokenId || query.mcpTokenId;
+      const integrationId = params.integrationId || query.integrationId;
+      const tableId =
+        params.tableId || params.modelId || params.tableName || query.tableId;
+      const viewId = params.viewId || params.viewName || query.viewId;
+      const formViewId = params.formViewId || query.formViewId;
+      const gridViewId = params.gridViewId || query.gridViewId;
+      const kanbanViewId = params.kanbanViewId || query.kanbanViewId;
+      const galleryViewId = params.galleryViewId || query.galleryViewId;
+      const calendarViewId = params.calendarViewId || query.calendarViewId;
+      const publicDataUuid = params.publicDataUuid || query.publicDataUuid;
+      const sharedViewUuid = params.sharedViewUuid || query.sharedViewUuid;
+      const sharedBaseUuid = params.sharedBaseUuid || query.sharedBaseUuid;
+      const sharedDashboardUuid =
+        params.sharedDashboardUuid || query.sharedDashboardUuid;
+      const hookId = params.hookId || query.hookId;
+      const rowColorConditionId =
+        params.rowColorConditionId || query.rowColorConditionId;
+      const gridViewColumnId =
+        params.gridViewColumnId || query.gridViewColumnId;
+      const formViewColumnId =
+        params.formViewColumnId || query.formViewColumnId;
+      const galleryViewColumnId =
+        params.galleryViewColumnId || query.galleryViewColumnId;
+      const columnId = params.columnId || query.columnId;
+      const filterId = params.filterId || query.filterId;
+      const filterParentId = params.filterParentId || query.filterParentId;
+      const widgetId = params.widgetId || query.widgetId;
+      const sortId = params.sortId || query.sortId;
+      const syncId = params.syncId || query.syncId;
+      const extensionId = params.extensionId || query.extensionId;
+
+      if (mcpTokenId) {
+        const mcpToken = await MCPToken.get(context, mcpTokenId);
         if (!mcpToken) {
-          NcError.get(context).genericNotFound('MCPToken', params.mcpTokenId);
+          NcError.get(context).genericNotFound('MCPToken', mcpTokenId);
         }
-      } else if (params.integrationId) {
-        const integration = await Integration.get(
-          context,
-          params.integrationId,
-        );
+      } else if (integrationId) {
+        const integration = await Integration.get(context, integrationId);
         if (!integration) {
-          NcError.get(context).integrationNotFound(params.integrationId);
+          NcError.get(context).integrationNotFound(integrationId);
         }
-      } else if (params.tableId || params.modelId || params.tableName) {
-        const model = await Model.get(
-          context,
-          params.tableId || params.modelId || params.tableName,
-        );
+      } else if (tableId) {
+        const model = await Model.get(context, tableId);
 
         if (!model) {
-          NcError.get(context).tableNotFound(
-            params.tableId || params.modelId || params.tableName,
-          );
+          NcError.get(context).tableNotFound(tableId);
         }
 
         req.ncSourceId = model.source_id;
-      } else if (params.viewId || params.viewName) {
+      } else if (viewId) {
         const view =
-          (await View.get(context, params.viewId || params.viewName)) ||
-          (await Model.get(context, params.viewId || params.viewName));
+          (await View.get(context, viewId)) ||
+          (await Model.get(context, viewId));
 
         if (!view) {
-          NcError.get(context).viewNotFound(params.viewId || params.viewName);
+          NcError.get(context).viewNotFound(viewId);
         }
 
         req.ncSourceId = view.source_id;
       } else if (
-        params.formViewId ||
-        params.gridViewId ||
-        params.kanbanViewId ||
-        params.galleryViewId ||
-        params.calendarViewId
+        formViewId ||
+        gridViewId ||
+        kanbanViewId ||
+        galleryViewId ||
+        calendarViewId
       ) {
         const view = await View.get(
           context,
-          params.formViewId ||
-            params.gridViewId ||
-            params.kanbanViewId ||
-            params.galleryViewId ||
-            params.calendarViewId,
+          formViewId ||
+            gridViewId ||
+            kanbanViewId ||
+            galleryViewId ||
+            calendarViewId,
         );
 
         if (!view) {
           NcError.get(context).viewNotFound(
-            params.formViewId ||
-              params.gridViewId ||
-              params.kanbanViewId ||
-              params.galleryViewId ||
-              params.calendarViewId,
+            formViewId ||
+              gridViewId ||
+              kanbanViewId ||
+              galleryViewId ||
+              calendarViewId,
           );
         }
 
         req.ncSourceId = view.source_id;
-      } else if (params.publicDataUuid) {
-        const view = await View.getByUUID(context, req.params.publicDataUuid);
+      } else if (publicDataUuid) {
+        const view = await View.getByUUID(context, publicDataUuid);
 
         if (!view) {
-          NcError.get(context).viewNotFound(req.params.publicDataUuid);
+          NcError.get(context).viewNotFound(publicDataUuid);
         }
 
         req.ncSourceId = view?.source_id;
-      } else if (params.sharedViewUuid) {
-        const view = await View.getByUUID(context, req.params.sharedViewUuid);
+      } else if (sharedViewUuid) {
+        const view = await View.getByUUID(context, sharedViewUuid);
 
         if (!view) {
-          NcError.get(context).viewNotFound(req.params.sharedViewUuid);
+          NcError.get(context).viewNotFound(sharedViewUuid);
         }
 
         req.ncSourceId = view.source_id;
-      } else if (params.sharedBaseUuid) {
-        const base = await Base.getByUuid(context, req.params.sharedBaseUuid);
+      } else if (sharedBaseUuid) {
+        const base = await Base.getByUuid(context, sharedBaseUuid);
 
         if (!base) {
-          NcError.get(context).baseNotFound(req.params.sharedBaseUuid);
+          NcError.get(context).baseNotFound(sharedBaseUuid);
         }
-      } else if (params.sharedDashboardUuid) {
+      } else if (sharedDashboardUuid) {
         const dashboard = await Dashboard.getByUUID(
           context,
-          req.params.sharedDashboardUuid,
+          sharedDashboardUuid,
         );
 
         if (!dashboard) {
-          NcError.dashboardNotFound(req.params.sharedDashboardUuid);
+          NcError.dashboardNotFound(sharedDashboardUuid);
         }
-      } else if (params.hookId) {
-        const hook = await Hook.get(context, params.hookId);
+      } else if (hookId) {
+        const hook = await Hook.get(context, hookId);
 
         if (!hook) {
-          NcError.get(context).genericNotFound('Webhook', params.hookId);
+          NcError.get(context).genericNotFound('Webhook', hookId);
         }
 
         req.ncSourceId = hook.source_id;
-      } else if (params.rowColorConditionId) {
+      } else if (rowColorConditionId) {
         const rowColorCondition = await RowColorCondition.getById(
           context,
-          params.rowColorConditionId,
+          rowColorConditionId,
         );
 
         if (!rowColorCondition) {
@@ -290,90 +314,90 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = view.source_id;
-      } else if (params.gridViewColumnId) {
+      } else if (gridViewColumnId) {
         const gridViewColumn = await GridViewColumn.get(
           context,
-          params.gridViewColumnId,
+          gridViewColumnId,
         );
 
         if (!gridViewColumn) {
-          NcError.get(context).fieldNotFound(params.gridViewColumnId);
+          NcError.get(context).fieldNotFound(gridViewColumnId);
         }
 
         req.ncSourceId = gridViewColumn?.source_id;
-      } else if (params.formViewColumnId) {
+      } else if (formViewColumnId) {
         const formViewColumn = await FormViewColumn.get(
           context,
-          params.formViewColumnId,
+          formViewColumnId,
         );
 
         if (!formViewColumn) {
-          NcError.get(context).fieldNotFound(params.formViewColumnId);
+          NcError.get(context).fieldNotFound(formViewColumnId);
         }
 
         req.ncSourceId = formViewColumn.source_id;
-      } else if (params.galleryViewColumnId) {
+      } else if (galleryViewColumnId) {
         const galleryViewColumn = await GalleryViewColumn.get(
           context,
-          params.galleryViewColumnId,
+          galleryViewColumnId,
         );
 
         if (!galleryViewColumn) {
-          NcError.get(context).fieldNotFound(params.galleryViewColumnId);
+          NcError.get(context).fieldNotFound(galleryViewColumnId);
         }
 
         req.ncSourceId = galleryViewColumn.source_id;
-      } else if (params.columnId) {
-        const column = await Column.get(context, { colId: params.columnId });
+      } else if (columnId) {
+        const column = await Column.get(context, { colId: columnId });
 
         if (!column) {
-          NcError.get(context).fieldNotFound(params.columnId);
+          NcError.get(context).fieldNotFound(columnId);
         }
 
         req.ncSourceId = column.source_id;
-      } else if (params.filterId) {
-        const filter = await Filter.get(context, params.filterId);
+      } else if (filterId) {
+        const filter = await Filter.get(context, filterId);
 
         if (!filter) {
-          NcError.genericNotFound('Filter', params.filterId);
+          NcError.genericNotFound('Filter', filterId);
         }
 
         req.ncSourceId = filter.source_id;
-      } else if (params.filterParentId) {
-        const filter = await Filter.get(context, params.filterParentId);
+      } else if (filterParentId) {
+        const filter = await Filter.get(context, filterParentId);
 
         if (!filter) {
-          NcError.genericNotFound('Filter', params.filterParentId);
+          NcError.genericNotFound('Filter', filterParentId);
         }
 
         req.ncSourceId = filter.source_id;
-      } else if (params.widgetId) {
-        const widget = await Widget.get(context, params.widgetId);
+      } else if (widgetId) {
+        const widget = await Widget.get(context, widgetId);
 
         if (!widget) {
-          NcError.genericNotFound('Widget', params.widgetId);
+          NcError.genericNotFound('Widget', widgetId);
         }
-      } else if (params.sortId) {
-        const sort = await Sort.get(context, params.sortId);
+      } else if (sortId) {
+        const sort = await Sort.get(context, sortId);
 
         if (!sort) {
-          NcError.genericNotFound('Sort', params.sortId);
+          NcError.genericNotFound('Sort', sortId);
         }
 
         req.ncSourceId = sort.source_id;
-      } else if (params.syncId) {
-        const syncSource = await SyncSource.get(context, req.params.syncId);
+      } else if (syncId) {
+        const syncSource = await SyncSource.get(context, syncId);
 
         if (!syncSource) {
-          NcError.genericNotFound('Sync Source', req.params.syncId);
+          NcError.genericNotFound('Sync Source', syncId);
         }
 
         req.ncSourceId = syncSource.source_id;
-      } else if (params.extensionId) {
-        const extension = await Extension.get(context, req.params.extensionId);
+      } else if (extensionId) {
+        const extension = await Extension.get(context, extensionId);
 
         if (!extension) {
-          NcError.genericNotFound('Extension', req.params.extensionId);
+          NcError.genericNotFound('Extension', extensionId);
         }
       }
       /*

@@ -3,13 +3,14 @@ import {
   extractSupportedViewSettingOverrideOptions,
   ViewTypes,
 } from 'nocodb-sdk';
-import { ViewSettingOverrideOptions } from 'nocodb-sdk';
+import { PlanFeatureTypes, ViewSettingOverrideOptions } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { withoutId } from '~/helpers/exportImportHelpers';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/catchError';
 import {
   CalendarViewColumn,
@@ -48,6 +49,10 @@ export class ViewSettingsOverrideService {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    await checkForFeature(
+      context,
+      PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER,
+    );
     const sourceView = await View.get(context, param.sourceViewId, ncMeta);
     if (!sourceView) {
       NcError.get(context).viewNotFound(param.sourceViewId);

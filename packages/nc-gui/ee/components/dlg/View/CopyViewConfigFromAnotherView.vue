@@ -19,6 +19,10 @@ const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false }
 
 const { destView } = toRefs(props)
 
+const { $api } = useNuxtApp()
+
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
 const isLoading = ref(false)
 
 const selectViewRef = ref<InstanceType<typeof NcListViewSelector>>()
@@ -59,10 +63,31 @@ const selectAll = () => {
 }
 
 const copyViewConfiguration = async () => {
-  if (ncIsUndefined(selectViewRef.value?.selectedView?.type) || selectedCopyViewConfigTypes.value.length === 0) return
+  if (
+    ncIsUndefined(selectViewRef.value?.selectedView?.type) ||
+    selectedCopyViewConfigTypes.value.length === 0 ||
+    !destView.value
+  ) {
+    return
+  }
 
-  // TODO: Remove after api integration
-  console.log('selected view config options', selectedCopyViewConfigTypes.value)
+  try {
+    const response = await $api.internal.postOperation(
+      activeWorkspaceId.value!,
+      destView.value.base_id!,
+      {
+        operation: 'viewSettingOverride',
+      },
+      {
+        destinationViewId: destView.value.id!,
+        sourceViewId: copyFromViewId.value!,
+        settingToOverride: selectedCopyViewConfigTypes.value,
+      },
+    )
+  } catch (e) {
+    console.error(e)
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 watch(
@@ -97,6 +122,7 @@ watch(
           v-model:value="copyFromViewId"
           :table-id="destView?.fk_model_id"
           :disabled="!destView?.fk_model_id"
+          :filter-view="(view) => view.id !== destView.id"
           force-layout="vertical"
         >
           <template #label>

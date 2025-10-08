@@ -297,7 +297,7 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) =>
       message ||
       'Error running query on external source. Confirm if source is accessible.',
-    code: 502,
+    code: 400,
   },
   [NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT]: {
     message: (message: string) =>

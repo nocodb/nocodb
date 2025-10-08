@@ -2,7 +2,6 @@ import { ColumnType, FilterType } from './Api';
 import {
   OrgUserRoles,
   ProjectRoles,
-  ViewSettingOverrideOptions,
   WorkspaceUserRoles,
 } from './enums';
 import { PlanTitles } from './payment';
@@ -338,42 +337,4 @@ export const RowHeightMap = {
   [RowHeight.MEDIUM]: 'medium',
   [RowHeight.TALL]: 'tall',
   [RowHeight.EXTRA]: 'extra',
-};
-
-export const ViewSettingOverrideOptionTexts = {
-  [ViewSettingOverrideOptions.FIELD_VISIBILITY]: 'Field visibility',
-  [ViewSettingOverrideOptions.FIELD_ORDER]: 'Field order',
-  [ViewSettingOverrideOptions.COLUMN_WIDTH]: 'Field width',
-  [ViewSettingOverrideOptions.ROW_HEIGHT]: 'Row height',
-  [ViewSettingOverrideOptions.FILTER_CONDITION]: 'Filter condition',
-  [ViewSettingOverrideOptions.SORT]: 'Sort',
-  [ViewSettingOverrideOptions.GROUP]: 'Group',
-  [ViewSettingOverrideOptions.ROW_COLORING]: 'Row coloring',
-};
-
-const kanbanAvailableSettings = [
-  ViewSettingOverrideOptions.FIELD_VISIBILITY,
-  ViewSettingOverrideOptions.FIELD_ORDER,
-  ViewSettingOverrideOptions.FILTER_CONDITION,
-  ViewSettingOverrideOptions.SORT,
-  ViewSettingOverrideOptions.ROW_COLORING,
-];
-export const ViewSettingOverrideByViewType = {
-  [ViewTypes.GRID]: [
-    ViewSettingOverrideOptions.FIELD_VISIBILITY,
-    ViewSettingOverrideOptions.FIELD_ORDER,
-    ViewSettingOverrideOptions.COLUMN_WIDTH,
-    ViewSettingOverrideOptions.ROW_HEIGHT,
-    ViewSettingOverrideOptions.FILTER_CONDITION,
-    ViewSettingOverrideOptions.SORT,
-    ViewSettingOverrideOptions.GROUP,
-    ViewSettingOverrideOptions.ROW_COLORING,
-  ],
-  [ViewTypes.FORM]: [
-    ViewSettingOverrideOptions.FIELD_VISIBILITY,
-    ViewSettingOverrideOptions.FIELD_ORDER,
-  ],
-  [ViewTypes.KANBAN]: kanbanAvailableSettings,
-  [ViewTypes.GALLERY]: kanbanAvailableSettings,
-  [ViewTypes.CALENDAR]: kanbanAvailableSettings,
 };

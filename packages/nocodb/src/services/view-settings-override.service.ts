@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import {
-  ViewSettingOverrideByViewType,
-  ViewSettingOverrideOptionTexts,
-  viewTypeAlias,
+  extractSupportedViewSettingOverrideOptions,
   ViewTypes,
 } from 'nocodb-sdk';
-import type { NcRequest, ViewSettingOverrideOptions } from 'nocodb-sdk';
+import { ViewSettingOverrideOptions } from 'nocodb-sdk';
+import type { NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { withoutId } from '~/helpers/exportImportHelpers';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
@@ -23,13 +22,6 @@ import {
   View,
 } from '~/models';
 import Noco from '~/Noco';
-import {
-  type OverrideViewCalendarSetting,
-  type OverrideViewFormSetting,
-  type OverrideViewGallerySetting,
-  type OverrideViewGridSetting,
-  type OverrideViewKanbanSetting,
-} from '~/types/view-setting-override/settings';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -50,12 +42,7 @@ export class ViewSettingsOverrideService {
     param: {
       sourceViewId: string;
       destinationViewId: string;
-      settingToOverride:
-        | OverrideViewGridSetting
-        | OverrideViewKanbanSetting
-        | OverrideViewCalendarSetting
-        | OverrideViewGallerySetting
-        | OverrideViewFormSetting;
+      settingToOverride: ViewSettingOverrideOptions[];
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
@@ -69,20 +56,16 @@ export class ViewSettingsOverrideService {
     if (!destView) {
       NcError.get(context).viewNotFound(param.destinationViewId);
     }
-    if (
-      !param.settingToOverride ||
-      !Object.keys(param.settingToOverride).length ||
-      !Object.values(param.settingToOverride).some(
-        (setting) => setting === true,
-      )
-    ) {
-      NcError.get(context).invalidRequestBody(`No settings to override`);
+    const settingToOverride = extractSupportedViewSettingOverrideOptions(
+      extractSupportedViewSettingOverrideOptions(
+        param.settingToOverride,
+        sourceView.type,
+      ),
+      destView.type,
+    );
+    if (!settingToOverride.length) {
+      NcError.get(context).invalidRequestBody(`No setting to override`);
     }
-    const settingToOverride = this.validateOverrideSetting(context, {
-      sourceView,
-      destinationView: destView,
-      settingToOverride: param.settingToOverride,
-    });
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -131,17 +114,20 @@ export class ViewSettingsOverrideService {
       sourceView: View;
       destinationView: View;
       req: NcRequest;
-      settingToOverride: { [K in ViewSettingOverrideOptions]?: boolean };
+      settingToOverride: ViewSettingOverrideOptions[];
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta = Noco.ncMeta,
   ) {
+    const inSettingToOverride = (setting: ViewSettingOverrideOptions) => {
+      return settingToOverride.includes(setting);
+    };
     // #region update view columns
     if (
-      settingToOverride.fieldOrder ||
-      settingToOverride.fieldVisibility ||
-      settingToOverride.group ||
-      settingToOverride.columnWidth
+      inSettingToOverride(ViewSettingOverrideOptions.FIELD_ORDER) ||
+      inSettingToOverride(ViewSettingOverrideOptions.FIELD_VISIBILITY) ||
+      inSettingToOverride(ViewSettingOverrideOptions.GROUP) ||
+      inSettingToOverride(ViewSettingOverrideOptions.COLUMN_WIDTH)
     ) {
       const destColumns = await this.getViewColumns(
         context,
@@ -159,18 +145,20 @@ export class ViewSettingsOverrideService {
           (col) => destColumn.fk_column_id === col.fk_column_id,
         );
         if (sourceColumn) {
-          if (settingToOverride.fieldOrder) {
+          if (inSettingToOverride(ViewSettingOverrideOptions.FIELD_ORDER)) {
             destColumn.order = sourceColumn.order;
           }
-          if (settingToOverride.fieldVisibility) {
+          if (
+            inSettingToOverride(ViewSettingOverrideOptions.FIELD_VISIBILITY)
+          ) {
             destColumn.show = sourceColumn.show;
           }
-          if (settingToOverride.columnWidth) {
+          if (inSettingToOverride(ViewSettingOverrideOptions.COLUMN_WIDTH)) {
             (destColumn as GridViewColumn).width = (
               sourceColumn as GridViewColumn
             ).width;
           }
-          if (settingToOverride.group) {
+          if (inSettingToOverride(ViewSettingOverrideOptions.GROUP)) {
             (destColumn as GridViewColumn).aggregation = (
               sourceColumn as GridViewColumn
             ).aggregation;
@@ -195,7 +183,7 @@ export class ViewSettingsOverrideService {
     // #endregion update view columns
 
     // #region update view row height
-    if (settingToOverride.rowHeight) {
+    if (inSettingToOverride(ViewSettingOverrideOptions.ROW_HEIGHT)) {
       const destGridView = await destinationView.getView<GridView>(
         context,
         ncMeta,
@@ -210,9 +198,9 @@ export class ViewSettingsOverrideService {
     // #endregion update view row height
 
     if (
-      settingToOverride.sort ||
-      settingToOverride.filterCondition ||
-      settingToOverride.rowColoring
+      inSettingToOverride(ViewSettingOverrideOptions.SORT) ||
+      inSettingToOverride(ViewSettingOverrideOptions.FILTER_CONDITION) ||
+      inSettingToOverride(ViewSettingOverrideOptions.ROW_COLORING)
     ) {
       const sourceV3View = await this.viewsV3Service.getView(
         context,
@@ -220,7 +208,7 @@ export class ViewSettingsOverrideService {
         ncMeta,
       );
       // #region update view sort
-      if (settingToOverride.sort) {
+      if (inSettingToOverride(ViewSettingOverrideOptions.SORT)) {
         // skip viewWebhookManager for this, Sort.deleteAll is not a standalone operation, it's invoked by view service
         await Sort.deleteAll(context, destinationView.id, ncMeta);
         for (const sort of sourceV3View.sorts ?? []) {
@@ -237,7 +225,7 @@ export class ViewSettingsOverrideService {
         }
       }
       // #endregion update view sort
-      if (settingToOverride.filterCondition) {
+      if (inSettingToOverride(ViewSettingOverrideOptions.FILTER_CONDITION)) {
         await this.filtersV3Service.filterDeleteAll(
           context,
           { viewId: destinationView.id },
@@ -263,7 +251,7 @@ export class ViewSettingsOverrideService {
         }
       }
       // #region update row coloring
-      if (settingToOverride.rowColoring) {
+      if (inSettingToOverride(ViewSettingOverrideOptions.ROW_COLORING)) {
         await this.viewRowColorV3Service.replace(
           context,
           {
@@ -355,54 +343,5 @@ export class ViewSettingsOverrideService {
         return await FormViewColumn.update(context, column.id, column, ncMeta);
       }
     }
-  }
-
-  validateOverrideSetting(
-    context: NcContext,
-    {
-      sourceView,
-      destinationView,
-      settingToOverride,
-    }: {
-      sourceView: View;
-      destinationView: View;
-      settingToOverride:
-        | OverrideViewGridSetting
-        | OverrideViewKanbanSetting
-        | OverrideViewCalendarSetting
-        | OverrideViewGallerySetting
-        | OverrideViewFormSetting;
-    },
-  ) {
-    const result: { [K in ViewSettingOverrideOptions]?: boolean } = {};
-    for (const setting of Object.keys(settingToOverride)) {
-      if (settingToOverride[setting]) {
-        if (
-          !ViewSettingOverrideByViewType[sourceView.type].some(
-            (typeSetting) => typeSetting === setting,
-          )
-        ) {
-          NcError.get(context).invalidRequestBody(
-            `Setting ${
-              ViewSettingOverrideOptionTexts[setting]
-            } is invalid for view type [${viewTypeAlias[sourceView.type]}]`,
-          );
-        } else if (
-          !ViewSettingOverrideByViewType[destinationView.type].some(
-            (typeSetting) => typeSetting === setting,
-          )
-        ) {
-          NcError.get(context).invalidRequestBody(
-            `Setting ${
-              ViewSettingOverrideOptionTexts[setting]
-            } is invalid for view type [${
-              viewTypeAlias[destinationView.type]
-            }]`,
-          );
-        }
-        result[setting] = true;
-      }
-    }
-    return result;
   }
 }

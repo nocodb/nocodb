@@ -189,7 +189,7 @@ describe('Attachment V3', () => {
       ],
       status: 422,
     });
-    expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+    expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
   });
   it('Upload file and update from base64 error due to cell limit', async () => {
     const isEE = !!process.env.EE;
@@ -240,6 +240,6 @@ describe('Attachment V3', () => {
       status: 422,
     });
 
-    expect(rspPatch1.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+    expect(rspPatch1.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
   });
 });

@@ -142,8 +142,6 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
         headers: { 'xc-auth': $state.token.value as string },
       })
 
-      if (!plan) throw new Error('No plan found')
-
       return plan as PaymentPlan
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))

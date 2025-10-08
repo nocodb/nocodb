@@ -11,16 +11,20 @@ export async function extractSdkResponseErrorMsg(e: Error & { response?: any }) 
 
   let msg
   let errors: any[] | null = null
+
   if (e.response.data instanceof Blob) {
     try {
       const parsedData = JSON.parse(await e.response.data.text())
-      msg = parsedData.msg
+      // V2 format support
+      msg = parsedData.message || parsedData.msg
       errors = parsedData.errors
     } catch {
       msg = 'Some internal error occurred'
     }
   } else {
-    msg = e.response?.data?.msg || e.response?.data?.message || 'Some internal error occurred'
+    // V2 format: prioritize 'message' field over 'msg'
+    // V1 format: falls back to 'msg' field
+    msg = e.response?.data?.message || e.response?.data?.msg || 'Some internal error occurred'
     errors = e.response.data?.errors
   }
 

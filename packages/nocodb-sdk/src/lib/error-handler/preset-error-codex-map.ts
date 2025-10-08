@@ -325,4 +325,52 @@ export const presetErrorCodexMap: Partial<
     message: (details: string) => `Failed to stream file: ${details}`,
     code: 500,
   },
+  [NcErrorType.ERR_SUBSCRIPTION_ALREADY_EXISTS]: {
+    message: (id: string) => `Subscription already exists for ${id}`,
+    code: 409,
+  },
+  [NcErrorType.ERR_SUBSCRIPTION_NOT_FOUND]: {
+    message: (id: string) => `Subscription not found for ${id}`,
+    code: 404,
+  },
+  [NcErrorType.ERR_PLAN_NOT_AVAILABLE]: {
+    message: () => 'This plan is not available',
+    code: 400,
+  },
+  [NcErrorType.ERR_SEAT_COUNT_MISMATCH]: {
+    message: (msg: string) => msg,
+    code: 400,
+  },
+  [NcErrorType.ERR_INVALID_PAYMENT_PAYLOAD]: {
+    message: (msg: string) => msg,
+    code: 400,
+  },
+  [NcErrorType.ERR_STRIPE_CUSTOMER_NOT_FOUND]: {
+    message: (id: string) => `Stripe customer '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_STRIPE_SUBSCRIPTION_NOT_FOUND]: {
+    message: (id: string) => `Stripe subscription '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_SUBSCRIPTION_OWNERSHIP_MISMATCH]: {
+    message: (msg: string) => msg,
+    code: 403,
+  },
+  [NcErrorType.ERR_INTERNAL_CUSTOMER_NOT_SUPPORTED]: {
+    message: (msg: string) => msg,
+    code: 501,
+  },
+  [NcErrorType.ERR_SUBSCRIPTION_CREATE_FAILED]: {
+    message: (msg: string) => msg,
+    code: 500,
+  },
+  [NcErrorType.ERR_STRIPE_WEBHOOK_VERIFICATION_FAILED]: {
+    message: (msg: string) => msg,
+    code: 400,
+  },
+  [NcErrorType.ERR_PLAN_ALREADY_EXISTS]: {
+    message: (id: string) => `Plan already exists with id ${id}`,
+    code: 409,
+  },
 };

@@ -230,9 +230,11 @@ export const relationDataFetcher = (param: {
       if (!sort || sort === '') {
         const view = relColOptions.fk_target_view_id
           ? await View.get(refContext, relColOptions.fk_target_view_id)
-          : await View.getDefaultView(refContext, childTable.id);
-        const childSorts = await view.getSorts(childBaseModel.context);
-        await sortV2(childBaseModel, childSorts, qb);
+          : await View.getDefaultView(refContext, refTable.id);
+        if (view) {
+          const childSorts = await view.getSorts(refContext);
+          await sortV2(refBaseModel, childSorts, qb);
+        }
       }
 
       // todo: sanitize
@@ -730,10 +732,10 @@ export const relationDataFetcher = (param: {
         await relColOptions.getParentColumn(baseModel.context)
       ).getModel(baseModel.context);
 
-      const parentTable = await (
-        await relColOptions.getChildColumn(baseModel.context)
-      ).getModel(baseModel.context);
-      await parentTable.getColumns(baseModel.context);
+      const cn = (await relColOptions.getChildColumn(context)).column_name;
+      const refTable = await (
+        await relColOptions.getParentColumn(refContext)
+      ).getModel(refContext);
 
       const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
         dbDriver: baseModel.dbDriver,

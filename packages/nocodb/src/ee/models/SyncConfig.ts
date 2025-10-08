@@ -233,7 +233,7 @@ export default class SyncConfig {
 
   async listChildren(context: NcContext, ncMeta = Noco.ncMeta) {
     if (this.fk_parent_sync_config_id) {
-      throw new Error('This is a child sync config');
+      NcError.get(context).badRequest('This is a child sync config');
     }
 
     const syncConfigs = await ncMeta.metaList2(

@@ -61,7 +61,7 @@ export default class WorkspaceUser {
         if (wsUser.deleted) {
           await this.delete(fk_workspace_id, fk_user_id, ncMetaTrans);
         } else {
-          throw new Error('User already exists in workspace');
+          NcError.badRequest('User already exists in workspace');
         }
       }
 
@@ -132,7 +132,10 @@ export default class WorkspaceUser {
       return res;
     } catch (e) {
       await ncMetaTrans.rollback();
-      throw e;
+      logger.error('Failed to insert workspace User', e);
+      NcError.get(context).internalServerError(
+        'Failed to add user to  workspace',
+      );
     }
   }
 

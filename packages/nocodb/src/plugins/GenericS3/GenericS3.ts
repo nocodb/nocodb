@@ -64,37 +64,44 @@ export default class GenericS3 implements IStorageAdapterV2 {
       await promisify(fs.unlink)(tempFile);
       return true;
     } catch (e) {
-      NcError.pluginTestError(e?.message);
-      throw e;
+      NcError._.pluginTestError(e?.message);
     }
   }
 
   public async fileRead(key: string): Promise<any> {
-    const fileStream = await this.fileReadByStream(key);
+    try {
+      const fileStream = await this.fileReadByStream(key);
 
-    return new Promise((resolve, reject) => {
-      const chunks: any[] = [];
-      fileStream.on('data', (chunk) => {
-        chunks.push(chunk);
-      });
+      return new Promise((resolve, reject) => {
+        const chunks: any[] = [];
+        fileStream.on('data', (chunk) => {
+          chunks.push(chunk);
+        });
 
-      fileStream.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve(buffer);
-      });
+        fileStream.on('end', () => {
+          const buffer = Buffer.concat(chunks);
+          resolve(buffer);
+        });
 
-      fileStream.on('error', (err) => {
-        reject(err);
+        fileStream.on('error', (err) => {
+          reject(err);
+        });
       });
-    });
+    } catch (error) {
+      NcError._.storageFileReadError(error.message);
+    }
   }
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
-    const fileStream = fs.createReadStream(file.path);
+    try {
+      const fileStream = fs.createReadStream(file.path);
 
-    return this.fileCreateByStream(key, fileStream, {
-      mimetype: file?.mimetype,
-    });
+      return this.fileCreateByStream(key, fileStream, {
+        mimetype: file?.mimetype,
+      });
+    } catch (error) {
+      NcError._.storageFileCreateError(error.message);
+    }
   }
 
   async fileCreateByStream(
@@ -122,7 +129,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
       return await Promise.race([upload, streamError]);
     } catch (error) {
-      throw error;
+      NcError._.storageFileStreamError(error.message);
     }
   }
 
@@ -150,7 +157,9 @@ export default class GenericS3 implements IStorageAdapterV2 {
         data: response.data,
       };
     } catch (error) {
-      throw error;
+      NcError._.storageFileCreateError(
+        `Failed to create file from URL: ${error.message}`,
+      );
     }
   }
 
@@ -159,14 +168,20 @@ export default class GenericS3 implements IStorageAdapterV2 {
     expiresInSeconds = 7200,
     pathParameters?: { [key: string]: string },
   ) {
-    const command = new GetObjectCommand({
-      Key: this.patchKey(key),
-      Bucket: this.input.bucket,
-      ...pathParameters,
-    });
-    return getSignedUrl(this.s3Client, command, {
-      expiresIn: expiresInSeconds,
-    });
+    try {
+      const command = new GetObjectCommand({
+        Key: this.patchKey(key),
+        Bucket: this.input.bucket,
+        ...pathParameters,
+      });
+      return getSignedUrl(this.s3Client, command, {
+        expiresIn: expiresInSeconds,
+      });
+    } catch (error) {
+      NcError._.storageFileReadError(
+        `Failed to generate signed URL: ${error.message}`,
+      );
+    }
   }
 
   protected async upload(uploadParams: PutObjectCommandInput): Promise<any> {
@@ -183,96 +198,114 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
       return this.patchUploadReturnKey(data.Location);
     } catch (error) {
-      console.error('Error uploading file', error);
-      throw error;
+      NcError._.storageFileCreateError(error.message);
     }
   }
 
   async fileReadByStream(key: string): Promise<Readable> {
-    const command = new GetObjectCommand({
-      Key: this.patchKey(key),
-      Bucket: this.input.bucket,
-    });
+    try {
+      const command = new GetObjectCommand({
+        Key: this.patchKey(key),
+        Bucket: this.input.bucket,
+      });
 
-    const { Body } = await this.s3Client.send(command);
+      const { Body } = await this.s3Client.send(command);
 
-    const fileStream = Body as Readable;
-
-    return fileStream;
+      return Body as Readable;
+    } catch (error) {
+      NcError._.storageFileStreamError(error.message);
+    }
   }
 
   public async getDirectoryList(prefix: string): Promise<string[]> {
-    return this.s3Client
-      .listObjectsV2({
-        Prefix: prefix,
-        Bucket: this.input.bucket,
-      })
-      .then((response) => {
-        return response.Contents.map((content) => {
-          return path.basename(content.Key);
+    try {
+      return this.s3Client
+        .listObjectsV2({
+          Prefix: prefix,
+          Bucket: this.input.bucket,
+        })
+        .then((response) => {
+          return response.Contents.map((content) => {
+            return path.basename(content.Key);
+          });
         });
-      });
+    } catch (error) {
+      NcError._.storageFileReadError(
+        `Failed to list directory: ${error.message}`,
+      );
+    }
   }
 
   public async fileDelete(key: string): Promise<any> {
-    return this.s3Client
-      .deleteObject({
-        Key: this.patchKey(key),
-        Bucket: this.input.bucket,
-      })
-      .then(() => {
-        return true;
-      });
+    try {
+      return this.s3Client
+        .deleteObject({
+          Key: this.patchKey(key),
+          Bucket: this.input.bucket,
+        })
+        .then(() => {
+          return true;
+        });
+    } catch (error) {
+      NcError._.storageFileDeleteError(error.message);
+    }
   }
 
   public async scanFiles(globPattern: string): Promise<Readable> {
-    // remove all dots from the glob pattern
-    globPattern = globPattern.replace(/\./g, '');
+    try {
+      // remove all dots from the glob pattern
+      globPattern = globPattern.replace(/\./g, '');
 
-    // remove the leading slash
-    globPattern = globPattern.replace(/^\//, '');
+      // remove the leading slash
+      globPattern = globPattern.replace(/^\//, '');
 
-    // make sure pattern starts with nc/uploads/
-    if (!globPattern.startsWith('nc/uploads/')) {
-      globPattern = `nc/uploads/${globPattern}`;
-    }
+      // make sure pattern starts with nc/uploads/
+      if (!globPattern.startsWith('nc/uploads/')) {
+        globPattern = `nc/uploads/${globPattern}`;
+      }
 
-    // S3 does not support glob so remove *
-    globPattern = globPattern.replace(/\*/g, '');
+      // S3 does not support glob so remove *
+      globPattern = globPattern.replace(/\*/g, '');
 
-    const stream = new Readable({
-      read() {},
-    });
+      const stream = new Readable({
+        read() {},
+      });
 
-    stream.setEncoding('utf8');
+      stream.setEncoding('utf8');
 
-    const listObjects = async (continuationToken?: string) => {
-      this.s3Client
-        .listObjectsV2({
-          Bucket: this.input.bucket,
-          Prefix: globPattern,
-          ...(continuationToken
-            ? { ContinuationToken: continuationToken }
-            : {}),
-        })
-        .then((response) => {
-          response.Contents.forEach((content) => {
-            stream.push(content.Key);
+      const listObjects = async (continuationToken?: string) => {
+        this.s3Client
+          .listObjectsV2({
+            Bucket: this.input.bucket,
+            Prefix: globPattern,
+            ...(continuationToken
+              ? { ContinuationToken: continuationToken }
+              : {}),
+          })
+          .then((response) => {
+            response.Contents.forEach((content) => {
+              stream.push(content.Key);
+            });
+
+            if (response.IsTruncated) {
+              listObjects(response.NextContinuationToken);
+            } else {
+              stream.push(null);
+            }
+          })
+          .catch((error) => {
+            stream.emit('error', error);
           });
+      };
 
-          if (response.IsTruncated) {
-            listObjects(response.NextContinuationToken);
-          } else {
-            stream.push(null);
-          }
-        });
-    };
+      listObjects().catch((error) => {
+        stream.emit('error', error);
+      });
 
-    listObjects().catch((error) => {
-      stream.emit('error', error);
-    });
-
-    return stream;
+      return stream;
+    } catch (error) {
+      NcError._.storageFileReadError(`Failed to scan files: ${error.message}`);
+    }
   }
 
   getUploadedPath(path: string): { path?: string; url?: string } {

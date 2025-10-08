@@ -17,7 +17,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
 import { FileReference, PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
@@ -186,10 +186,15 @@ export class AttachmentsService {
     await queue.onIdle();
 
     if (errors.length) {
-      for (const error of errors) {
-        this.logger.error(error);
+      errors.forEach((error) => this.logger.error(error));
+
+      const firstError = errors[0].error;
+
+      if (firstError instanceof NcError || firstError instanceof NcBaseError) {
+        throw firstError;
       }
-      throw errors[0];
+
+      NcError.internalServerError('Failed to upload attachment');
     }
 
     const generateThumbnail = attachments.filter((attachment) =>
@@ -418,7 +423,14 @@ export class AttachmentsService {
 
     if (errors.length) {
       errors.forEach((error) => this.logger.error(error));
-      throw errors[0];
+
+      const firstError = errors[0].error;
+
+      if (firstError instanceof NcError || firstError instanceof NcBaseError) {
+        throw firstError;
+      }
+
+      NcError.internalServerError('Failed to upload attachment');
     }
 
     const generateThumbnail = attachments.filter((attachment) =>

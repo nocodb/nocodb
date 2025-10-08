@@ -15,6 +15,7 @@ export interface NcContext {
   fk_model_id?: string;
   socket_id?: string;
   nc_site_url?: string;
+  timezone?: string;
 }
 
 export interface NcRequest extends Partial<Request> {

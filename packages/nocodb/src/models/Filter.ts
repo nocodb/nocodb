@@ -48,9 +48,15 @@ export default class Filter implements FilterType {
   source_id?: string;
   column?: Column;
   order?: number;
+  meta?: any;
 
   constructor(data: Filter | FilterType) {
     Object.assign(this, data);
+    if (this.meta && typeof this.meta === 'string') {
+      try {
+        this.meta = JSON.parse(this.meta);
+      } catch {}
+    }
   }
 
   public static castType(filter: Filter): Filter {
@@ -102,6 +108,7 @@ export default class Filter implements FilterType {
       'base_id',
       'source_id',
       'order',
+      'meta',
     ]);
 
     const referencedModelColName = [
@@ -324,6 +331,7 @@ export default class Filter implements FilterType {
       'is_group',
       'logical_op',
       'fk_value_col_id',
+      'meta',
     ]);
 
     if (typeof updateObj.value === 'string')

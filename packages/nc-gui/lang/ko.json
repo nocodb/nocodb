@@ -181,7 +181,8 @@
     "upgradeToUseAiTextField": "AI 텍스트 필드를 사용하려면 업그레이드하세요",
     "upgradeToUseAiTextFieldSubtitle": "프롬프트에 따라 텍스트를 생성하기 위해 AI 텍스트 필드를 사용하려면 {plan} 요금제로 업그레이드하세요.",
     "upgradeToUseAiButtonField": "AI 버튼 필드를 사용하려면 업그레이드하세요",
-    "upgradeToUseAiButtonFieldSubtitle": "{plan} 플랜으로 업그레이드하면 AI Button이 NocoAI의 레코드 데이터를 사용하여 여러 필드를 자동으로 채울 수 있습니다."
+    "upgradeToUseAiButtonFieldSubtitle": "{plan} 플랜으로 업그레이드하면 AI Button이 NocoAI의 레코드 데이터를 사용하여 여러 필드를 자동으로 채울 수 있습니다.",
+    "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature."
   },
   "general": {
     "script": "스크립트",
@@ -291,6 +292,7 @@
     "showMenu": "메뉴 표시",
     "hideMenu": "메뉴 숨기기",
     "addAll": "모두 추가",
+    "selectAll": "Select all",
     "removeAll": "모두 제거",
     "signUp": "가입하기",
     "signIn": "로그인",
@@ -648,6 +650,21 @@
     "deleteAllRecordDlg": {
       "subtitle": "이 뷰에 있는 선택된 {rowCount}개의 항목을 모두 삭제하시겠습니까?",
       "warning": "이 작업은 실행 취소할 수 없습니다."
+    },
+    "copyViewConfig": {
+      "fieldVisibility": "Field visibility",
+      "fieldOrder": "Field order",
+      "columnWidth": "Column width",
+      "rowHeight": "Row height",
+      "filterCondition": "Filter condition",
+      "group": "Group",
+      "sort": "Sort",
+      "rowColoring": "Row coloring",
+      "copyAnotherViewConfig": "Copy another view configuration",
+      "selectConfigurationToCopy": "Select configuration(s) to copy",
+      "selectViewToCopyFrom": "Select view to copy from",
+      "copyConfigurationFromAnotherView": "Copy configuration from another view",
+      "notSupportedByViewType": "Not supported by {view} view type"
     }
   },
   "datatype": {
@@ -1498,7 +1515,8 @@
     "emptyScript": "빈 스크립트",
     "enterFullscreen": "전체 화면으로 전환",
     "exitFullscreen": "전체 화면 종료",
-    "selectRole": "권한 선택"
+    "selectRole": "권한 선택",
+    "copyConfiguration": "Copy configuration"
   },
   "activity": {
     "clickToResolve": "클릭하여 해결하세요",
@@ -1889,7 +1907,10 @@
     "filterByLimitExceeded": "한도 초과 기준 필터링",
     "groupByLimitExceeded": "그룹별 제한 초과",
     "youDoNotHavePermissionToPasteIntoThisField": "이 필드에 붙여넣을 권한이 없습니다",
-    "pasteOperationLimitedToMaxRows": "붙여넣기 작업이 최대 {max}개 행으로 제한되었습니다. 추가 행은 잘렸습니다."
+    "pasteOperationLimitedToMaxRows": "붙여넣기 작업이 최대 {max}개 행으로 제한되었습니다. 추가 행은 잘렸습니다.",
+    "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
+    "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
+    "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",

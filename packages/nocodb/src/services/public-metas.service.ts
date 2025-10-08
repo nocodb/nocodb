@@ -193,15 +193,17 @@ export class PublicMetasService {
       relatedMetas: { [key: string]: Model };
     },
   ) {
+    const { refContext, mmContext } = ltarColOption.getRelContext(context);
+
     relatedMetas[ltarColOption.fk_related_model_id] = await Model.getWithInfo(
-      context,
+      refContext,
       {
         id: ltarColOption.fk_related_model_id,
       },
     );
     if (ltarColOption.type === 'mm') {
       relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo(
-        context,
+        mmContext,
         {
           id: ltarColOption.fk_mm_model_id,
         },
@@ -222,7 +224,12 @@ export class PublicMetasService {
     const relationCol = await Column.get(context, {
       colId: lookupColOption.fk_relation_column_id,
     });
-    const lookedUpCol = await Column.get(context, {
+
+    const { refContext = context } = (
+      relationCol.colOptions as LinkToAnotherRecordColumn
+    )?.getRelContext(context);
+
+    const lookedUpCol = await Column.get(refContext, {
       colId: lookupColOption.fk_lookup_column_id,
     });
 
@@ -237,13 +244,16 @@ export class PublicMetasService {
     // extract meta for table in which looked up column belongs
     // if not already extracted
     if (!relatedMetas[lookedUpCol.fk_model_id]) {
-      relatedMetas[lookedUpCol.fk_model_id] = await Model.getWithInfo(context, {
-        id: lookedUpCol.fk_model_id,
-      });
+      relatedMetas[lookedUpCol.fk_model_id] = await Model.getWithInfo(
+        refContext,
+        {
+          id: lookedUpCol.fk_model_id,
+        },
+      );
     }
 
     // extract metas related to the looked up column
-    await this.extractRelatedMetas(context, {
+    await this.extractRelatedMetas(refContext, {
       col: lookedUpCol,
       relatedMetas,
     });

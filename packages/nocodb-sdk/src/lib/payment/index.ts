@@ -62,6 +62,7 @@ export enum PlanFeatureTypes {
   FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
+  FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW = 'feature_copy_view_config_from_another_view',
 }
 
 // todo: separate as a new enum
@@ -258,6 +259,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to target different base when duplicate table.',
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS]:
     'to target different workspace when duplicate table.',
+  [PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW]:
+    'to copy view configuration from another view.',
 };
 
 export const getUpgradeMessage = (

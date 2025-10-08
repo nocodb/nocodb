@@ -3123,7 +3123,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
-        NcError.get(context).badRequest(
+        NcError.get(this.context).badRequest(
           'ignoreWebhook value can be either true or false',
         );
       }

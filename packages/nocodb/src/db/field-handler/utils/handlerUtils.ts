@@ -322,6 +322,6 @@ export const unsupportedFilter = async (
     column: Column;
   },
   _options: FilterOptions,
-) => {
-  NcError._.unsupportedFilterOperation(rootArgs?.filter?.comparison_op);
+): Promise<never> => {
+  return NcError._.unsupportedFilterOperation(rootArgs?.filter?.comparison_op);
 };

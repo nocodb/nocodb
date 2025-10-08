@@ -134,7 +134,7 @@ export default class WorkspaceUser {
     } catch (e) {
       await ncMetaTrans.rollback();
       logger.error('Failed to insert workspace User', e);
-      NcError.get(context).internalServerError(
+      NcError._.internalServerError(
         'Failed to add user to  workspace',
       );
     }

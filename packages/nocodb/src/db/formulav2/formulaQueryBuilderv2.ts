@@ -33,7 +33,7 @@ import type {
 } from './formula-query-builder.types';
 import NocoCache from '~/cache/NocoCache';
 import { getRefColumnIfAlias } from '~/helpers';
-import { ExternalTimeout, NcBaseErrorv2, NcError } from '~/helpers/catchError';
+import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { BaseUser, ButtonColumn } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
 import Model from '~/models/Model';

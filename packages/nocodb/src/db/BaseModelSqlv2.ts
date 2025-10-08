@@ -1530,7 +1530,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     aliasToColumnBuilder = {},
   ) {
     const formula = await column.getColOptions<FormulaColumn>(this.context);
-    if (formula.error) NcError.get(this.context).formulaError(formula.error)
+    if (formula.error) NcError.get(this.context).formulaError(formula.error);
 
     const qb = await formulaQueryBuilderv2({
       baseModel: this,
@@ -4007,7 +4007,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
-        NcError.get(context).badRequest('ignoreWebhook value can be either true or false')
+        NcError.get(context).badRequest(
+          'ignoreWebhook value can be either true or false',
+        );
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
@@ -4087,7 +4089,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
-        NcError.get(context).badRequest('ignoreWebhook value can be either true or false')
+        NcError.get(context).badRequest(
+          'ignoreWebhook value can be either true or false',
+        );
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {

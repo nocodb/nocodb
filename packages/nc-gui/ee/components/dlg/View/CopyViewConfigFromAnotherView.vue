@@ -1,6 +1,11 @@
 <script lang="ts" setup>
-import { extractSupportedViewSettingOverrideOptions, getCopyViewConfigOptions, viewTypeAlias } from 'nocodb-sdk'
-import type { CopyViewConfigOption, ViewSettingOverrideOptions, ViewType, ViewTypes } from 'nocodb-sdk'
+import {
+  extractSupportedViewSettingOverrideOptions,
+  ViewSettingOverrideOptions,
+  getCopyViewConfigOptions,
+  viewTypeAlias,
+} from 'nocodb-sdk'
+import type { CopyViewConfigOption, ViewType, ViewTypes } from 'nocodb-sdk'
 import { NcListViewSelector } from '#components'
 
 interface Props {
@@ -13,15 +18,26 @@ const props = withDefaults(defineProps<Props>(), {
   defaultSelectedCopyViewConfigTypes: () => [],
 })
 
-const emits = defineEmits(['update:modelValue'])
+const emits = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'copy', value: ViewSettingOverrideOptions[]): void
+}>()
 
 const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false })
 
 const { destView } = toRefs(props)
 
-const { $api } = useNuxtApp()
+const { $api, $eventBus } = useNuxtApp()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+const viewsStore = useViewsStore()
+
+const { activeView } = storeToRefs(viewsStore)
+
+const { getMeta } = useMetas()
+
+const eventBus = $eventBus.smartsheetStoreEventBus
 
 const isLoading = ref(false)
 
@@ -84,6 +100,29 @@ const copyViewConfiguration = async () => {
         settingToOverride: selectedCopyViewConfigTypes.value,
       },
     )
+
+    await getMeta(destView.value.fk_model_id!, true)
+
+    if (
+      selectedCopyViewConfigTypes.value.some((type) =>
+        [ViewSettingOverrideOptions.ROW_HEIGHT, ViewSettingOverrideOptions.ROW_COLORING].includes(type),
+      )
+    ) {
+      viewsStore.loadViews({ tableId: destView.value.fk_model_id!, ignoreLoading: true, force: true })
+    }
+
+    // Reload view meta as well as data if the destination view is the active view
+    if (destView.value.id === activeView.value?.id) {
+      eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+      eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
+      eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+
+      nextTick(() => {
+        eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+      })
+    }
+
+    emits('copy', selectedCopyViewConfigTypes.value)
   } catch (e) {
     console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))

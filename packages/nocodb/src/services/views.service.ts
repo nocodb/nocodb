@@ -313,8 +313,9 @@ export class ViewsService {
   async viewDelete(
     context: NcContext,
     param: { viewId: string; user: UserType; req: NcRequest },
+    ncMeta = Noco.ncMeta,
   ) {
-    const view = await View.get(context, param.viewId);
+    const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
@@ -322,12 +323,13 @@ export class ViewsService {
 
     const viewWebhookManager = (
       await (
-        await new ViewWebhookManagerBuilder(context).withModelId(
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
           view.fk_model_id,
         )
       ).withViewId(view.id)
     ).forDelete();
-    await View.delete(context, param.viewId);
+
+    await View.delete(context, param.viewId, ncMeta);
 
     let deleteEvent = AppEvents.GRID_DELETE;
 

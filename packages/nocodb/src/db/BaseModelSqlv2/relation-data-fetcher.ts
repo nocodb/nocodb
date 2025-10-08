@@ -229,8 +229,10 @@ export const relationDataFetcher = (param: {
         const view = relColOptions.fk_target_view_id
           ? await View.get(refContext, relColOptions.fk_target_view_id)
           : await View.getDefaultView(refContext, refTable.id);
-        const childSorts = await view.getSorts(refContext);
-        await sortV2(refBaseModel, childSorts, qb);
+        if (view) {
+          const childSorts = await view.getSorts(refContext);
+          await sortV2(refBaseModel, childSorts, qb);
+        }
       }
 
       // todo: sanitize
@@ -724,8 +726,6 @@ export const relationDataFetcher = (param: {
         .column_name;
       const rcn = (await relColOptions.getParentColumn(refContext)).column_name;
 
-      console.log(relColOptions.fk_child_column_id);
-      console.log(context);
       const cn = (await relColOptions.getChildColumn(context)).column_name;
       const refTable = await (
         await relColOptions.getParentColumn(refContext)

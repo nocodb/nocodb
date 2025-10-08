@@ -309,15 +309,16 @@ export async function extractColumn({
               // apply filters on nested query
               await conditionV2(parentBaseModel, queryFilterObj, mmQb, alias2);
 
-              const view = column.colOptions.fk_target_view_id
-                ? await View.get(
+              const view =
+                (column.colOptions.fk_target_view_id &&
+                  (await View.get(
                     refContext,
                     column.colOptions.fk_target_view_id,
-                  )
-                : await View.getDefaultView(
-                    refContext,
-                    parentBaseModel.model.id,
-                  );
+                  ))) ||
+                (await View.getDefaultView(
+                  refContext,
+                  parentBaseModel.model.id,
+                ));
               const relatedSorts = await view.getSorts(refContext);
               // apply sorts on nested query
               if (sorts && sorts.length > 0) {

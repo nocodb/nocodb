@@ -65,13 +65,13 @@ hooks.hook('page:finish', () => {
 
         <div class="flex-1" />
 
-        <LazyGeneralReleaseInfo />
+        <GeneralReleaseInfo />
 
         <a-tooltip placement="bottom" :mouse-enter-delay="1" class="mr-4">
           <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
           <div class="flex items-center">
-            <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
+            <GeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
           </div>
         </a-tooltip>
 
@@ -132,7 +132,7 @@ hooks.hook('page:finish', () => {
       >
         <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
-        <LazyGeneralLanguage class="nc-lang-btn" />
+        <GeneralLanguage class="nc-lang-btn" />
       </NcTooltip>
 
       <div class="w-full h-full overflow-hidden nc-layout-base-inner">

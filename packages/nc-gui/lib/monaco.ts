@@ -1,10 +1,18 @@
 import getCrossOriginWorkerURL from 'crossoriginworker'
+
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&url'
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&url'
 import TypeScriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker&url'
-import * as monaco from 'monaco-editor'
 
-export default defineNuxtPlugin(async () => {
+let initialized = false
+
+export const initializeMonaco = async () => {
+  if (initialized) {
+    return
+  }
+
+  const monaco = await import('monaco-editor')
+
   const editorWorker = new Worker(
     await getCrossOriginWorkerURL(EditorWorker),
     process.env.NODE_ENV === 'development' ? { type: 'module' } : undefined,
@@ -54,4 +62,6 @@ export default defineNuxtPlugin(async () => {
       }
     },
   }
-})
+
+  initialized = true
+}

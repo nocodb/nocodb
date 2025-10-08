@@ -3,6 +3,7 @@ import { Form } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import { diff } from 'deep-object-diff'
 import { IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { defineAsyncComponent } from 'vue'
 import {
   type CertTypes,
   ClientType,
@@ -14,6 +15,9 @@ import {
   type SnowflakeConnection,
   clientTypes as _clientTypes,
 } from '#imports'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 const props = defineProps<{
   open: boolean
@@ -1189,7 +1193,21 @@ watch(
                     <div class="flex flex-col gap-2">
                       <div>Edit Connection JSON</div>
                       <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
-                        <MonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
+                        <Suspense>
+                          <template #default>
+                            <MonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
+                          </template>
+                          <template #fallback>
+                            <div class="h-[400px] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                              <div class="text-center">
+                                <a-spin size="large" />
+                                <div class="mt-4 text-gray-600 dark:text-gray-400">
+                                  Loading Monaco Editor...
+                                </div>
+                              </div>
+                            </div>
+                          </template>
+                        </Suspense>
                       </div>
                     </div>
                   </a-collapse-panel>

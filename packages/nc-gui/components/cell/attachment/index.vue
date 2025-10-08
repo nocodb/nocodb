@@ -449,7 +449,7 @@ onUnmounted(() => {
       </template>
     </div>
 
-    <LazyGeneralDeleteModal
+    <GeneralDeleteModal
       v-model:visible="isConfirmModalOpen"
       entity-name="File"
       :on-delete="async () => handleFileDelete(filetoDelete.i)"
@@ -469,7 +469,7 @@ onUnmounted(() => {
           </div>
         </span>
       </template>
-    </LazyGeneralDeleteModal>
+    </GeneralDeleteModal>
   </div>
   <div v-else ref="attachmentCellRef" class="nc-attachment-cell relative group color-transition" :data-row-height="rowHeight">
     <LazyCellAttachmentCarousel v-if="selectedFile" />
@@ -545,7 +545,7 @@ onUnmounted(() => {
               'h-[64px]': rowHeight === 4 || rowHeight === 6,
             }"
           >
-            <LazyCellAttachmentPreviewThumbnail
+            <CellAttachmentPreviewThumbnail
               :icon-width="24"
               :icon-height="24"
               class="nc-attachment rounded-lg overflow-hidden"
@@ -613,7 +613,7 @@ onUnmounted(() => {
 
     <LazyCellAttachmentModal v-if="modalRendered" />
   </div>
-  <LazyCellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
+  <CellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
 </template>
 
 <style lang="scss">

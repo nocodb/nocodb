@@ -896,8 +896,10 @@ export class TablesService {
         metaOrderColumn.column_name,
       ]);
     } catch (e) {
-      this.logger.log(`Something went wrong while creating index for nc_order`);
-      this.logger.error(e);
+      this.logger.error(
+        `Something went wrong while creating index for nc_order`,
+        e,
+      );
     }
 
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {

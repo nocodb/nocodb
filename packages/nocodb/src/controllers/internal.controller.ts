@@ -147,7 +147,7 @@ export class InternalController {
           req.user.id,
           payload.tokenId,
         );
-        return { success: true };
+        return true;
       case 'oAuthClientRegenerateSecret':
         return await this.oAuthClientService.regenerateClientSecret(context, {
           clientId: req.query.clientId as string,

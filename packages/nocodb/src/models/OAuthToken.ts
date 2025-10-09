@@ -143,17 +143,6 @@ export default class OAuthToken {
     return tokens?.map((t) => this.castType(t));
   }
 
-  static async listByClient(clientId: string, ncMeta = Noco.ncMeta) {
-    const tokens = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.OAUTH_TOKENS,
-      { condition: { client_id: clientId, is_revoked: false } },
-    );
-
-    return tokens?.map((t) => this.castType(t));
-  }
-
   static async revoke(id: string, ncMeta = Noco.ncMeta) {
     const token = await this.get(id, ncMeta);
     if (!token) {
@@ -182,32 +171,54 @@ export default class OAuthToken {
     return true;
   }
 
-  static async revokeByAccessToken(accessToken: string, ncMeta = Noco.ncMeta) {
-    const token = await this.getByAccessToken(accessToken, ncMeta);
-    if (token) {
-      return await this.revoke(token.id, ncMeta);
+  static async deleteAllByClient(clientId: string, ncMeta = Noco.ncMeta) {
+    const BATCH_SIZE = 100;
+    let deletedCount = 0;
+
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      // Fetch a batch of tokens
+      const tokens = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.OAUTH_TOKENS,
+        {
+          condition: { client_id: clientId },
+          limit: BATCH_SIZE,
+        },
+      );
+
+      if (!tokens || tokens.length === 0) {
+        break;
+      }
+
+      // Clear cache for each token in the batch
+      for (const token of tokens) {
+        await NocoCache.deepDel(
+          'root',
+          `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+
+      // Delete the batch
+      const tokenIdsToDelete = tokens.map((t) => t.id);
+      await ncMeta.metaDelete(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.OAUTH_TOKENS,
+        { id: { in: tokenIdsToDelete } },
+      );
+
+      deletedCount += tokens.length;
+
+      // If we got fewer than BATCH_SIZE, we're done
+      if (tokens.length < BATCH_SIZE) {
+        break;
+      }
     }
-    return false;
-  }
 
-  static async revokeAllByUser(userId: string, ncMeta = Noco.ncMeta) {
-    const tokens = await this.listByUser(userId, ncMeta);
-
-    for (const token of tokens) {
-      await this.revoke(token.id, ncMeta);
-    }
-
-    return true;
-  }
-
-  static async revokeAllByClient(clientId: string, ncMeta = Noco.ncMeta) {
-    const tokens = await this.listByClient(clientId, ncMeta);
-
-    for (const token of tokens) {
-      await this.revoke(token.id, ncMeta);
-    }
-
-    return true;
+    return deletedCount;
   }
 
   static async updateLastUsed(id: string, ncMeta = Noco.ncMeta) {
@@ -236,68 +247,6 @@ export default class OAuthToken {
     );
 
     return true;
-  }
-
-  static async deleteExpired(ncMeta = Noco.ncMeta) {
-    const now = new Date().toISOString();
-
-    // Get expired tokens first to clear cache
-    const expiredTokens = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.OAUTH_TOKENS,
-      {
-        condition: {
-          access_token_expires_at: { lt: now },
-        },
-      },
-    );
-
-    // Clear cache for expired tokens
-    for (const token of expiredTokens) {
-      await NocoCache.deepDel(
-        'root',
-        `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
-
-    // Delete expired tokens
-    return await ncMeta.metaDelete(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.OAUTH_TOKENS,
-      {
-        access_token_expires_at: { lt: now },
-      },
-    );
-  }
-
-  // Validate if token is still valid
-  static async validateAccessToken(
-    accessToken: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<OAuthToken | null> {
-    const token = await this.getByAccessToken(accessToken, ncMeta);
-
-    if (!token) {
-      return null;
-    }
-
-    // Check if revoked
-    if (token.is_revoked) {
-      return null;
-    }
-
-    // Check if expired
-    if (new Date(token.access_token_expires_at) < new Date()) {
-      return null;
-    }
-
-    // Update last used
-    await this.updateLastUsed(token.id, ncMeta);
-
-    return token;
   }
 
   public static castType(token: any): OAuthToken {

@@ -145,9 +145,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
             break;
 
           default:
-            NcError._.unsupportedFilterOperation(
-              filter.comparison_op
-            );
+            NcError._.unsupportedFilterOperation(filter.comparison_op);
         }
       },
     };

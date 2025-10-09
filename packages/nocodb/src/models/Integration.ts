@@ -28,6 +28,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { IntegrationStore, Source } from '~/models';
 import Integrations from '~/integrations';
 
+const logger = new Logger('Integration');
 export default class Integration implements IntegrationType {
   public static availableIntegrations: {
     type: IntegrationsType;
@@ -603,7 +604,8 @@ export default class Integration implements IntegrationType {
     );
 
     if (!integrationWrapper) {
-      throw new Error('Integration not found');
+      logger.error('Integration not found');
+      NcError._.internalServerError('Integration not found');
     }
 
     return new integrationWrapper.wrapper(config.config) as T;
@@ -611,17 +613,18 @@ export default class Integration implements IntegrationType {
 
   public wrapper: IntegrationWrapper;
 
-  getIntegrationWrapper<T = any>(logger?: (message: string) => void) {
+  getIntegrationWrapper<T = any>(pLogger?: (message: string) => void) {
     if (!this.wrapper) {
       const integrationWrapper = Integration.availableIntegrations.find(
         (el) => el.type === this.type && el.sub_type === this.sub_type,
       );
 
       if (!integrationWrapper) {
-        throw new Error('Integration not found');
+        logger.error('Integration not found');
+        NcError._.internalServerError('Integration not found');
       }
 
-      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), logger);
+      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), pLogger);
     }
 
     return this.wrapper as T;
@@ -633,7 +636,8 @@ export default class Integration implements IntegrationType {
     );
 
     if (!integrationMeta) {
-      throw new Error('Integration meta not found');
+      logger.error('Integration meta not found');
+      NcError._.internalServerError('Integration meta not found');
     }
 
     return integrationMeta?.manifest;

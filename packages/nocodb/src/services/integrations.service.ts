@@ -173,7 +173,7 @@ export class IntegrationsService {
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      this.logger.error('Error deleting integeration', e)
+      this.logger.error('Error deleting integeration', e);
       NcError.get(context).internalServerError('Error deleting integeration');
     }
 

@@ -1,4 +1,4 @@
-import { ClientType } from 'nocodb-sdk'
+import type { ClientType } from 'nocodb-sdk';
 import type BigNumber from 'bignumber.js';
 import type {
   XcFilter,

@@ -172,7 +172,7 @@ export class IntegrationsService {
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      NcError.badRequest(e);
+      NcError.get(context).badRequest(e);
     }
 
     return true;

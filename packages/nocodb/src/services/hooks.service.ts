@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AppEvents, WebhookEvents } from 'nocodb-sdk';
+import { AppEvents, NcBaseError, WebhookEvents } from 'nocodb-sdk';
 import View from '../models/View';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -242,7 +242,9 @@ export class HooksService {
         ncSiteUrl: param.req.ncSiteUrl,
       });
     } catch (e) {
-      throw e;
+      NcError.get(context).webhookError(
+        e?.message || 'Failed to trigger webhook',
+      );
     } finally {
       /*this.appHooksService.emit(AppEvents.WEBHOOK_TRIGGER, {
         hook,
@@ -299,7 +301,10 @@ export class HooksService {
         addJob: this.jobsService.add.bind(this.jobsService),
       });
     } catch (e) {
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      NcError.get(context).webhookError(
+        e?.message || 'Failed to trigger webhook',
+      );
     } finally {
       this.appHooksService.emit(AppEvents.WEBHOOK_TEST, {
         hook,

@@ -9,6 +9,7 @@ import {
   isOrderCol,
   isVirtualCol,
   ModelTypes,
+  NcBaseError,
   ProjectRoles,
   RelationTypes,
   UITypes,
@@ -438,7 +439,8 @@ export class TablesService {
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      NcError.get(context).tableError('Bad Request');
     }
 
     if (result) {

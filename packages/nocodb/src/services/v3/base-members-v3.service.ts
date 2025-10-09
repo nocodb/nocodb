@@ -120,7 +120,8 @@ export class BaseMembersV3Service {
     } catch (e) {
       // on error rollback the transaction and throw the error
       await ncMeta.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      NcError.get(context).baseUserError('Bad Request');
     }
     return this.builder().build(
       await BaseUser.getUsersList(context, {
@@ -173,7 +174,7 @@ export class BaseMembersV3Service {
     } catch (e) {
       // on error rollback the transaction and throw the error
       await ncMeta.rollback();
-      throw e;
+      NcError.get(context).baseUserError('Bad Request');
     }
     return this.builder().build(
       await BaseUser.getUsersList(context, {

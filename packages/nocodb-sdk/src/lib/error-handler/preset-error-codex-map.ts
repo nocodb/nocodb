@@ -237,6 +237,18 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) => message || 'Something went wrong',
     code: 422,
   },
+  [NcErrorType.ORG_USER_ERROR]: {
+    message: (message: string) => message || 'Something went wrong',
+    code: 422,
+  },
+  [NcErrorType.TABLE_ERROR]: {
+    message: (message: string) => message || 'Something went wrong',
+    code: 422,
+  },
+  [NcErrorType.COLUMN_ERROR]: {
+    message: (message: string) => message || 'Something went wrong',
+    code: 422,
+  },
   [NcErrorType.PROHIBITED_SYNC_TABLE_OPERATION]: {
     message: (message: string) =>
       message ||

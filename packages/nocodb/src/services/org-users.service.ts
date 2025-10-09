@@ -14,7 +14,7 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { MailService } from '~/services/mail/mail.service';
 import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError'
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { BaseUser, PresignedUrl, Store, SyncSource, User } from '~/models';
@@ -108,6 +108,8 @@ export class OrgUsersService {
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      NcError.orgUserError('Bad Request');
       throw e;
     }
 
@@ -207,7 +209,7 @@ export class OrgUsersService {
         } catch (e) {
           console.log(e);
           if (emails.length === 1) {
-            throw e;
+            NcError.orgUserError('Bad Request');
           } else {
             error.push({ email, error: e.message });
           }

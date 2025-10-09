@@ -139,7 +139,7 @@ const copyViewConfiguration = async () => {
     console.error(e)
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-    if (errorInfo.error === NcErrorType.FEATURE_NOT_SUPPORTED) {
+    if (errorInfo.error === NcErrorType.ERR_FEATURE_NOT_SUPPORTED) {
       message.error(errorInfo.message)
     } else {
       message.error(t('objects.copyViewConfig.errorOccuredWhileCopyingViewConfiguration'), undefined, {

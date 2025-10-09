@@ -177,6 +177,28 @@ export default class OAuthClient implements IOAuthClient {
     );
   }
 
+  static async regenerateSecret(clientId: string, ncMeta = Noco.ncMeta) {
+    if (!clientId) {
+      return false;
+    }
+
+    const newSecret = randomBytes(32).toString('base64url');
+
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.OAUTH_CLIENTS,
+      { client_secret: newSecret },
+      { client_id: clientId },
+    );
+
+    await NocoCache.update('root', `${CacheScope.OAUTH_CLIENT}:${clientId}`, {
+      client_secret: newSecret,
+    });
+
+    return this.getByClientId(clientId, ncMeta);
+  }
+
   static async update(
     clientId: string,
     body: Partial<OAuthClient>,

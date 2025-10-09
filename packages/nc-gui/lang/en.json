@@ -956,7 +956,7 @@
   "labels": {
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
-    "addNewClient": "Add new OAuth Client",
+    "addNewClient": "Create new OAuth Client",
     "configurationError": "Incomplete configuration",
     "keepEditing": "Keep editing",
     "leave": "Leave",

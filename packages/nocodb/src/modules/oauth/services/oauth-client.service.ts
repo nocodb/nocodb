@@ -17,7 +17,14 @@ export class OauthClientService {
     if (!req.user?.id) {
       NcError.get(context).badRequest('User not found');
     }
-    return await OAuthClient.list(req.user.id);
+    const clients = await OAuthClient.list(req.user.id);
+
+    return clients.map((client) => {
+      return {
+        ...client,
+        client_secret: null,
+      };
+    });
   }
 
   async getClient(
@@ -102,5 +109,27 @@ export class OauthClientService {
     });
 
     return await OAuthClient.delete(clientId);
+  }
+
+  async regenerateClientSecret(
+    context: NcContext,
+    { clientId, req }: { clientId: string; req: NcRequest },
+  ) {
+    const client = await this.getClient(context, {
+      clientId,
+      req,
+    });
+
+    if (!client || client.fk_user_id !== req.user.id) {
+      NcError.get(context).apiClientNotFound(clientId);
+    }
+
+    if (client.client_type !== 'confidential') {
+      NcError.get(context).badRequest(
+        'Only confidential clients can have secrets',
+      );
+    }
+
+    return await OAuthClient.regenerateSecret(clientId);
   }
 }

@@ -55,8 +55,6 @@ export const CreateOAuthClientSchema = z.object({
 
   allowed_scopes: z.string().max(1000, 'Scopes string too long').optional(),
 
-  // Removed token_endpoint_auth_method - simplified to POST only per Airtable spec
-
   registration_client_uri: z
     .string()
     .url('Invalid registration client URI format')
@@ -77,18 +75,14 @@ export const UpdateOAuthClientSchema = z.object({
     .trim()
     .optional(),
 
-  client_uri: z
-    .string()
-    .url('Invalid client URI format')
-    .optional()
-    .or(z.literal('')),
+  client_uri: z.string().optional().or(z.literal('')),
 
   client_description: z
     .string()
     .max(500, 'Description must be less than 500 characters')
     .optional(),
 
-  logo_uri: z.record(z.string(), z.unknown()).optional(), // Changed to match model (AttachmentResType)
+  logo_uri: z.record(z.string(), z.unknown()).optional(),
 
   redirect_uris: z
     .array(z.string().url('Each redirect URI must be a valid URL'))

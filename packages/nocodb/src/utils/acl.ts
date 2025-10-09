@@ -21,6 +21,7 @@ const permissionScopes = {
 
     'oAuthAuthorizationList',
     'oAuthAuthorizationRevoke',
+    'oAuthClientRegenerateSecret',
 
     // Base
     'baseList',
@@ -359,6 +360,7 @@ const rolePermissions:
       oAuthClientGet: true,
       oAuthAuthorizationList: true,
       oAuthAuthorizationRevoke: true,
+      oAuthClientRegenerateSecret: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

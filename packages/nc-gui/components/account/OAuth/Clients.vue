@@ -9,7 +9,7 @@ const { loadOAuthClients } = authClientStore
 
 const { oauthClients, isOauthClientsLoading } = storeToRefs(authClientStore)
 
-const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook') // Using 'Webhook' as the sort type since 'MCPToken' isn't defined
+const { sorts, sortDirection, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('OAuthClients')
 
 const orderBy = computed<Record<string, SordDirectionType>>({
   get: () => {
@@ -64,9 +64,35 @@ const columns = [
 ] as NcTableColumnProps[]
 
 const modalVisible = ref(false)
+const detailsModalVisible = ref(false)
+const deleteModalVisible = ref(false)
+const regenerateModalVisible = ref(false)
+const selectedClientId = ref<string | undefined>(undefined)
+const selectedClient = ref<any>(null)
 
 const addNewClient = () => {
   modalVisible.value = true
+}
+
+const viewClientDetails = (clientId: string) => {
+  selectedClientId.value = clientId
+  detailsModalVisible.value = true
+}
+
+const handleRegenerateSecret = (client: any) => {
+  selectedClient.value = client
+  regenerateModalVisible.value = true
+}
+
+const handleDeleteClient = (client: any) => {
+  selectedClient.value = client
+  deleteModalVisible.value = true
+}
+
+const onRegeneratedSecret = () => {
+  if (selectedClient.value?.client_id) {
+    viewClientDetails(selectedClient.value.client_id)
+  }
 }
 
 onMounted(async () => {
@@ -112,12 +138,8 @@ onMounted(async () => {
           row-height="44px"
           :data="sortedOAuthClients"
           class="h-full mt-5"
-          body-row-class-name="nc-base-settings-mcp-token-item group no-border-last"
-          @row-click="
-            () => {
-              console.log()
-            }
-          "
+          body-row-class-name="nc-base-settings-mcp-token-item group no-border-last cursor-pointer"
+          @row-click="(record) => viewClientDetails(record.client_id)"
         >
           <template #bodyCell="{ column, record: oAuthClient }">
             <template v-if="column.key === 'name'">
@@ -148,14 +170,21 @@ onMounted(async () => {
 
                 <template #overlay>
                   <NcMenu variant="small">
-                    <NcMenuItem>
+                    <NcMenuItem @click.stop="viewClientDetails(oAuthClient.client_id)">
+                      <GeneralIcon icon="eye" />
+                      View Details
+                    </NcMenuItem>
+                    <NcMenuItem
+                      v-if="oAuthClient.client_type === 'confidential'"
+                      @click.stop="handleRegenerateSecret(oAuthClient)"
+                    >
                       <GeneralIcon icon="refresh" />
-                      {{ $t('labels.regenerateToken') }}
+                      Regenerate Secret
                     </NcMenuItem>
                     <NcDivider />
-                    <NcMenuItem danger>
+                    <NcMenuItem danger @click.stop="handleDeleteClient(oAuthClient)">
                       <GeneralIcon icon="delete" />
-                      {{ $t('labels.deleteToken') }}
+                      Delete Client
                     </NcMenuItem>
                   </NcMenu>
                 </template>
@@ -167,5 +196,22 @@ onMounted(async () => {
     </div>
 
     <AccountOAuthModal v-model:visible="modalVisible" />
+    <AccountOAuthDetails
+      v-model:visible="detailsModalVisible"
+      :client-id="selectedClientId"
+      @deleted="loadOAuthClients({ force: true })"
+    />
+    <DlgOAuthClientDelete
+      v-if="selectedClient"
+      v-model="deleteModalVisible"
+      :oauth-client="selectedClient"
+      @deleted="loadOAuthClients({ force: true })"
+    />
+    <DlgOAuthClientRegenerateSecret
+      v-if="selectedClient"
+      v-model="regenerateModalVisible"
+      :oauth-client="selectedClient"
+      @regenerated="onRegeneratedSecret"
+    />
   </div>
 </template>

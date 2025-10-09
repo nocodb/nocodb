@@ -108,6 +108,7 @@ const permissionScopes = {
     'oAuthAuthorizationList',
     'oAuthAuthorizationRevoke',
     'oAuthClientGet',
+    'oAuthClientRegenerateSecret',
   ],
   workspace: [
     'workspaceBaseList',
@@ -337,6 +338,7 @@ const rolePermissions:
       oAuthClientGet: true,
       oAuthAuthorizationList: true,
       oAuthAuthorizationRevoke: true,
+      oAuthClientRegenerateSecret: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {

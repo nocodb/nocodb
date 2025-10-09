@@ -48,6 +48,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Base '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.VIEW_COLUMN_NOT_FOUND]: {
+    message: (id: string) => `View column '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.SOURCE_NOT_FOUND]: {
     message: (id: string) => `Source '${id}' not found`,
     code: 404,

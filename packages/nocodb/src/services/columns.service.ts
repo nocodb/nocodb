@@ -1286,7 +1286,6 @@ export class ColumnsService implements IColumnsService {
                           NcError.badRequest(
                             "Illegal char(',') for MultiSelect",
                           );
-                          throw new Error('');
                         }
                         return `'${o.title.replace(/'/gi, "''")}'`;
                       })

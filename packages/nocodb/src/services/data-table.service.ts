@@ -316,7 +316,7 @@ export class DataTableService {
     }
 
     if (param.baseId && model.base_id !== param.baseId) {
-      throw new Error('Table not belong to base');
+      NcError.get(context).tableNotFound(param.modelId);
     }
 
     let view: View;
@@ -663,7 +663,7 @@ export class DataTableService {
       operationMap.copy.fk_related_model_id !==
         operationMap.paste.fk_related_model_id
     ) {
-      throw new Error(
+      NcError.badRequest(
         'The operation is not supported on different fk_related_model_id',
       );
     }

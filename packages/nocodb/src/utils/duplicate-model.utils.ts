@@ -48,13 +48,13 @@ export class DuplicateModelUtils {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const model = await Model.get(context, modelId);
 
     if (!model) {
-      throw new Error(`Model not found!`);
+      NcError.get(context).tableNotFound(modelId);
     }
     const sourceSource = await Source.get(context, model.source_id);
 

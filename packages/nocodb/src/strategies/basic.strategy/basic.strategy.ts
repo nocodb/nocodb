@@ -3,6 +3,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig } from '~/interface/config';
+import { NcError } from 'src/helpers/ncError';
 
 @Injectable()
 export class BasicStrategy extends PassportStrategy(Strategy) {
@@ -22,6 +23,6 @@ export class BasicStrategy extends PassportStrategy(Strategy) {
     ) {
       return true;
     }
-    throw new UnauthorizedException();
+    NcError.unauthorized('UnAuthorized');
   };
 }

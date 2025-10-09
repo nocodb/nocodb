@@ -656,7 +656,7 @@ export class ColumnsService implements IColumnsService {
             });
           } catch (e) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
-            console.error(e);
+            this.logger.error('Error updating column', e);
             NcError.get(context).columnError(
               e?.message || 'Failed to update column',
             );
@@ -2433,6 +2433,7 @@ export class ColumnsService implements IColumnsService {
           colBody.parsed_tree = null;
           if (!param.suppressFormulaError) {
             if (e instanceof NcError || e instanceof NcBaseError) throw e;
+            this.logger.error('Error updating column', e);
             NcError.get(context).columnError(
               e?.message || 'Failed to update column',
             );

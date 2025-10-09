@@ -297,7 +297,7 @@ export class DatasService {
           );
         } catch (e) {
           if (e instanceof NcBaseError || e instanceof NcSDKErrorV2) throw e;
-          this.logger.error(e);
+          this.logger.error('Error fetching data', e);
           NcError.internalServerError(
             'Please check server log for more details',
           );

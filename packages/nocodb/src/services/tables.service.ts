@@ -440,6 +440,7 @@ export class TablesService {
     } catch (e) {
       await ncMeta.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error deleting table', e);
       NcError.get(context).tableError('Bad Request');
     }
 
@@ -877,16 +878,8 @@ export class TablesService {
         (c) => c.uidt === UITypes.Order,
       );
 
-      if (!source.isMeta()) {
-        const orderColumn = columns.find(
-          (c) => c.cn === metaOrderColumn.column_name,
-        );
-
-        if (!orderColumn) {
-          throw new Error(
-            `Column ${metaOrderColumn.column_name} not found in database`,
-          );
-        }
+      if (!metaOrderColumn) {
+        throw new Error('Order column not found' + result.id);
       }
 
       const dbDriver = await NcConnectionMgrv2.get(source);

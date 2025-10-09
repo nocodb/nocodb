@@ -4,8 +4,14 @@ import {
   Injectable,
   NotImplementedException,
 } from '@nestjs/common';
-import { NcApiVersion, NcBaseError, type NcContext, type NcRequest } from 'nocodb-sdk';
+import {
+  NcApiVersion,
+  NcBaseError,
+  type NcContext,
+  type NcRequest,
+} from 'nocodb-sdk';
 import { generateUpdateAuditV1Payload } from 'src/utils';
+import { NcError } from 'src/helpers/ncError';
 import type {
   AuditV1,
   ColumnReqType,
@@ -26,7 +32,6 @@ import { ColumnsService } from '~/services/columns.service';
 import { MysqlDataMigration } from '~/services/formula-column-type-changer/mysql-data-migration';
 import { PgDataMigration } from '~/services/formula-column-type-changer/pg-data-migration';
 import { SqliteDataMigration } from '~/services/formula-column-type-changer/sqlite-data-migration';
-import { NcError } from 'src/helpers/ncError';
 
 export const DEFAULT_BATCH_LIMIT = 100000;
 
@@ -67,7 +72,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       modelId: params.formulaColumn.fk_model_id,
     });
     if (!this.dataMigrationDriver[baseModel.dbDriver.clientType()]) {
-      throw new NotImplementedException(
+      NcError.get(context).notImplemented(
         `${baseModel.dbDriver.clientType()} database is not supported in this operation`,
       );
     }
@@ -120,7 +125,10 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
           title: oldTitle,
         });
       }
-      throw ex;
+      if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
+      NcError.get(context).columnError(
+        ex?.message || 'Failed to convert column',
+      );
     }
     return await Column.updateFormulaColumnToNewType(context, {
       formulaColumn: params.formulaColumn,
@@ -187,7 +195,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
     const qb = baseModelSqlV2.dbDriver;
     const dataMigrationDriver = this.dataMigrationDriver[qb.clientType()];
     if (!dataMigrationDriver) {
-      throw new NotImplementedException(
+      NcError.get(baseModelSqlV2.context).notImplemented(
         `${qb.clientType()} database is not supported in this operation`,
       );
     }

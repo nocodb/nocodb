@@ -661,9 +661,11 @@ export default class View implements ViewType {
           context,
         });
         if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        logger.error('Failed to Duplicate View', e);
         NcError.get(context).internalServerError('Failed to Duplicate View');
       }
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error('Failed to Duplicate View', e);
       NcError.get(context).internalServerError('Failed to Create View');
     }
   }
@@ -2521,9 +2523,13 @@ export default class View implements ViewType {
           req,
           context,
         });
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        logger.error('Failed to Duplicate View', e);
+        NcError.get(context).internalServerError('Failed to Duplicate View');
       }
-
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error('Failed to create View', e);
+      NcError.get(context).internalServerError('Failed to create View');
     }
   }
 

@@ -1,3 +1,4 @@
+import { ClientType } from 'nocodb-sdk'
 import type BigNumber from 'bignumber.js';
 import type {
   XcFilter,
@@ -369,7 +370,7 @@ export interface IBaseModelSqlV2 {
   get isMySQL(): boolean;
   get isSnowflake(): boolean;
   get isDatabricks(): boolean;
-  get clientType(): string;
+  get clientType(): ClientType;
   get clientMeta(): {
     isSqlite: boolean;
     isPg: boolean;

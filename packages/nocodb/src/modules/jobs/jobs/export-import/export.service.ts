@@ -1389,7 +1389,7 @@ export class ExportService {
         'exportBase',
       );
     } catch (e) {
-      throw NcError.get(context).badRequest(e);
+      NcError.get(context).badRequest(e);
     }
 
     return {

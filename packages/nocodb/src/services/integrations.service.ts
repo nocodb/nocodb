@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, ClientType } from 'nocodb-sdk';
 import { IntegrationsType } from 'nocodb-sdk';
 import type { IntegrationReqType } from 'nocodb-sdk';
@@ -19,6 +19,7 @@ import { generateUniqueName } from '~/helpers/exportImportHelpers';
 
 @Injectable()
 export class IntegrationsService {
+  protected logger = new Logger(IntegrationsService.name);
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected readonly sourcesService: SourcesService,
@@ -172,7 +173,8 @@ export class IntegrationsService {
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      NcError.get(context).badRequest(e);
+      this.logger.error('Error deleting integeration', e)
+      NcError.get(context).internalServerError('Error deleting integeration');
     }
 
     return true;
@@ -231,10 +233,13 @@ export class IntegrationsService {
       } catch (e) {
         await ncMeta.rollback(e);
         if (e instanceof NcError || e instanceof NcBaseError) throw e;
-        NcError.get(context).badRequest(e);
+        this.logger.error('Error  deleting integeration', e);
+        NcError.get(context).internalServerError('Error deleting integeration');
       }
     } catch (e) {
-      NcError.get(context).badRequest(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error  deleting integeration', e);
+      NcError.get(context).internalServerError('Error deleting integeration');
     }
 
     return true;

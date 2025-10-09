@@ -43,7 +43,7 @@ export default class Mailer implements IEmailAdapter {
       } as any);
       return true;
     } catch (e) {
-      NcError.pluginTestError(e?.message);
+      NcError._.pluginTestError(e?.message);
     }
   }
 }

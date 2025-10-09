@@ -174,7 +174,15 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
           }
         }
         break;
+      case '40001': // serialization_failure
+        message = 'Transaction serialization failure. Please retry.';
+        httpStatus = 409;
+        break;
 
+      case '53300': // too_many_connections
+        message = 'Too many database connections.';
+        httpStatus = 503;
+        break;
       default:
         return;
     }

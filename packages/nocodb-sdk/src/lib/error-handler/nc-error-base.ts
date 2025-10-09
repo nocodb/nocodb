@@ -217,6 +217,16 @@ export class NcErrorBase {
     );
   }
 
+  unsupportedFilterOperation(operation: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_UNSUPPORTED_FILTER_OPERATION,
+      {
+        params: operation,
+        ...args,
+      }
+    );
+  }
+
   valueLengthExceedLimit(
     payload: {
       column: string;

@@ -21,6 +21,7 @@ import {
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class Filter implements FilterType {
   id: string;
@@ -87,7 +88,7 @@ export default class Filter implements FilterType {
 
   public static async insert(
     context: NcContext,
-    filter: Partial<FilterType>,
+    filter: Partial<FilterType & { meta?: any | string }>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(filter, [
@@ -154,6 +155,10 @@ export default class Filter implements FilterType {
         insertObj.source_id = model.source_id;
       }
     }
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
+    insertObj.meta = stringifyMetaProp(insertObj.meta);
 
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -334,8 +339,14 @@ export default class Filter implements FilterType {
       'meta',
     ]);
 
-    if (typeof updateObj.value === 'string')
+    if (typeof updateObj.value === 'string') {
       updateObj.value = updateObj.value.slice(0, 255);
+    }
+
+    if (!updateObj.meta) {
+      updateObj.meta = {};
+    }
+    updateObj.meta = stringifyMetaProp(updateObj.meta);
 
     // set meta
     const res = await ncMeta.metaUpdate(

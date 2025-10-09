@@ -328,7 +328,7 @@ const inviteCollaborator = async () => {
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
       let errorWsId
       if (props.type === 'workspace' && props.workspaceId) {
         errorWsId = props.workspaceId
@@ -351,7 +351,7 @@ const inviteCollaborator = async () => {
         isAdminPanel: props.type === 'organization',
       })
     } else {
-      if (errorInfo.error === NcErrorType.UNKNOWN_ERROR) {
+      if (errorInfo.error === NcErrorType.ERR_UNKNOWN) {
         errorInfo.message = await extractSdkResponseErrorMsg(e)
       }
       message.error(errorInfo.message)

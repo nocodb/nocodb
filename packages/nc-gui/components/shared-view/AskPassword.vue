@@ -32,7 +32,7 @@ const onFinish = async () => {
     const error = await extractSdkResponseErrorMsgv2(e)
     console.error(error.message)
 
-    if (error.error === NcErrorType.INVALID_SHARED_VIEW_PASSWORD) {
+    if (error.error === NcErrorType.ERR_INVALID_SHARED_VIEW_PASSWORD) {
       passwordError.value = error.message
     } else {
       message.error(error.message)

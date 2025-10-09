@@ -29,6 +29,7 @@ import {
   WebhookActions,
 } from 'nocodb-sdk';
 import rfdc from 'rfdc';
+import type { ClientType } from 'nocodb-sdk/build/main/lib';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -101,6 +102,7 @@ import {
 import { MetaTable } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import NocoSocket from '~/socket/NocoSocket';
+import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -4889,9 +4891,13 @@ export class ColumnsService implements IColumnsService {
 
           await this.postColumnAdd(context, column as ColumnReqType, tableMeta);
         } catch (e) {
+          const dbError = DBErrorExtractor.get().extractDbError(e, {
+            clientType: source.type as unknown as ClientType, // Pass the client type from source
+          });
+
           failedOps.push({
             ...op,
-            error: e.message,
+            error: dbError?.message || e.message, // Use extracted message, fallback to original
           });
         }
       } else if (op.op === 'update') {
@@ -4906,9 +4912,13 @@ export class ColumnsService implements IColumnsService {
 
           await this.postColumnUpdate(context, column as ColumnReqType);
         } catch (e) {
+          const dbError = DBErrorExtractor.get().extractDbError(e, {
+            clientType: source.type as unknown as ClientType, // Pass the client type from source
+          });
+
           failedOps.push({
             ...op,
-            error: e.message,
+            error: dbError?.message || e.message, // Use extracted message, fallback to original
           });
         }
       } else if (op.op === 'delete') {
@@ -4919,9 +4929,13 @@ export class ColumnsService implements IColumnsService {
             user: req.user,
           });
         } catch (e) {
+          const dbError = DBErrorExtractor.get().extractDbError(e, {
+            clientType: source.type as unknown as ClientType, // Pass the client type from source
+          });
+
           failedOps.push({
             ...op,
-            error: e.message,
+            error: dbError?.message || e.message, // Use extracted message, fallback to original
           });
         }
       }

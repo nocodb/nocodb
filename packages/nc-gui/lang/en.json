@@ -666,7 +666,9 @@
       "copyConfigurationFromAnotherView": "Copy configuration from another view",
       "notSupportedByViewType": "Not supported by {view} view type",
       "viewConfigurationCopied": "View configuration copied successfully",
-      "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration"
+      "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
+      "copyFromAnotherView": "Copy from another view",
+      "copyFromAView": "Copy from a view"
     }
   },
   "datatype": {

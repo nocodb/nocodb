@@ -169,8 +169,9 @@ watch(
   <NcModal
     v-model:visible="dialogShow"
     :show-separator="false"
+    :mask-style="{ zIndex: 1050 }"
     size="small"
-    wrap-class-name="nc-copy-view-config-from-another-view-modal-wrapper"
+    wrap-class-name="nc-copy-view-config-from-another-view-modal-wrapper !z-1050"
   >
     <div class="flex flex-col gap-5">
       <h1 class="text-base text-nc-content-gray-emphasis font-semibold flex items-center gap-2 mb-0">

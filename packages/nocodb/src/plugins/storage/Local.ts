@@ -76,31 +76,28 @@ export default class Local implements IStorageAdapterV2 {
     key: string,
     stream: Readable,
   ): Promise<string | null> {
-    return new Promise((resolve, reject) => {
-      const destPath = validateAndNormaliseLocalPath(key);
-      try {
-        mkdirp(path.dirname(destPath))
-          .then(() => {
-            const writableStream = fs.createWriteStream(destPath);
-            writableStream.on('finish', () => {
-              this.fileRead(destPath)
-                .then(() => {
-                  resolve(null);
-                })
-                .catch((e) => {
-                  reject(e);
-                });
-            });
-            writableStream.on('error', (err) => reject(err));
-            stream.pipe(writableStream);
-          })
-          .catch((e) => {
-            reject(e);
-          });
-      } catch (e) {
-        NcError._.storageFileStreamError(e.message);
-      }
-    });
+    const destPath = validateAndNormaliseLocalPath(key);
+
+    try {
+      await mkdirp(path.dirname(destPath));
+
+      await new Promise<void>((resolve, reject) => {
+        const writableStream = fs.createWriteStream(destPath);
+
+        writableStream.on('finish', () => resolve());
+        writableStream.on('error', reject);
+
+        stream.on('error', reject);
+        stream.pipe(writableStream);
+      });
+
+      // Verify file was written successfully
+      await this.fileRead(destPath);
+
+      return null;
+    } catch (e) {
+      NcError._.storageFileStreamError(e.message);
+    }
   }
 
   public async fileReadByStream(
@@ -109,6 +106,10 @@ export default class Local implements IStorageAdapterV2 {
   ): Promise<Readable> {
     try {
       const srcPath = validateAndNormaliseLocalPath(key);
+
+      // Check if file exists before creating stream
+      await fs.promises.access(srcPath, fs.constants.R_OK);
+
       return fs.createReadStream(srcPath, {
         ...(options?.encoding && {
           encoding: options.encoding as BufferEncoding,
@@ -122,15 +123,15 @@ export default class Local implements IStorageAdapterV2 {
   public async getDirectoryList(key: string): Promise<string[]> {
     try {
       const destDir = validateAndNormaliseLocalPath(key);
-      return fs.promises.readdir(destDir);
+      return await fs.promises.readdir(destDir);
     } catch (e) {
       NcError._.storageFileReadError(`Failed to list directory: ${e.message}`);
     }
   }
 
-  fileDelete(path: string): Promise<any> {
+  async fileDelete(path: string): Promise<any> {
     try {
-      return fs.promises.unlink(validateAndNormaliseLocalPath(path));
+      return await fs.promises.unlink(validateAndNormaliseLocalPath(path));
     } catch (e) {
       NcError._.storageFileDeleteError(e.message);
     }
@@ -163,11 +164,18 @@ export default class Local implements IStorageAdapterV2 {
         globPattern = path.join('nc', 'uploads', globPattern);
       }
 
-      const stream = globStream(globPattern, {
+      const globStreamInstance = globStream(globPattern, {
         nodir: true,
       });
 
-      return Readable.from(stream);
+      const stream = Readable.from(globStreamInstance);
+
+      // Forward errors from glob stream
+      globStreamInstance.on('error', (error) => {
+        stream.destroy(error as any);
+      });
+
+      return stream;
     } catch (e) {
       NcError._.storageFileReadError(`Failed to scan files: ${e.message}`);
     }

@@ -261,4 +261,12 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) => `Filter verification failed: ${message}`,
     code: 422,
   },
+  [NcErrorType.WEBHOOK_ERROR]: {
+    message: (message: string) => message,
+    code: 400,
+  },
+  [NcErrorType.NO_SOURCES_FOUND]: {
+    message: (message: string) => message,
+    code: 400,
+  },
 };

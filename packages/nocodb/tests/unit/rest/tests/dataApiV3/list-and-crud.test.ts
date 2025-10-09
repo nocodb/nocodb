@@ -1358,7 +1358,7 @@ describe('dataApiV3', () => {
         await ncAxiosLinkAdd({
           ...validParams,
           urlParams: { ...validParams.urlParams, linkId: 9999 },
-          status: 404,
+          status: 422,
           msg: "Field '9999' not found",
         });
 
@@ -1430,7 +1430,7 @@ describe('dataApiV3', () => {
         await ncAxiosLinkRemove({
           ...validParams,
           urlParams: { ...validParams.urlParams, linkId: 9999 },
-          status: 404,
+          status: 422,
           msg: "Field '9999' not found",
         });
 
@@ -1506,7 +1506,7 @@ describe('dataApiV3', () => {
         await ncAxiosLinkGet({
           ...validParams,
           urlParams: { ...validParams.urlParams, linkId: 9999 },
-          status: 404,
+          status: 422,
           msg: "Field '9999' not found",
         });
 

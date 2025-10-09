@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
-  EventType,
+  EventType, NcBaseError,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import Noco from '~/Noco';
@@ -175,7 +175,7 @@ export class PermissionsService {
           CacheDelDirection.PARENT_TO_CHILD,
         );
       }
-
+      if (error instanceof NcError || error instanceof NcBaseError) throw error;
       this.logger.error('Failed to set permission', error);
       NcError.get(context).internalServerError('Failed to set permission');
     }
@@ -244,7 +244,7 @@ export class PermissionsService {
         `${CacheScope.PERMISSION}:${context.base_id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
-
+      if (error instanceof NcError || error instanceof NcBaseError) throw error;
       this.logger.error('Failed to delete permission', error);
       NcError.get(context).internalServerError('Failed to delete permission');
     }
@@ -284,7 +284,7 @@ export class PermissionsService {
         `${CacheScope.PERMISSION}:${context.base_id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
-
+      if (error instanceof NcError || error instanceof NcBaseError) throw error;
       this.logger.error('Failed to delete permissions', error);
       NcError.get(context).internalServerError('Failed to delete permissions');
     }

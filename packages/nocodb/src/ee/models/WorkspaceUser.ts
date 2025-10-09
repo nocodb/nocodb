@@ -1,4 +1,4 @@
-import { IconType, ProjectRoles } from 'nocodb-sdk';
+import { IconType, NcBaseError, ProjectRoles } from 'nocodb-sdk'
 import { User } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
@@ -133,6 +133,7 @@ export default class WorkspaceUser {
       return res;
     } catch (e) {
       await ncMetaTrans.rollback();
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       logger.error('Failed to insert workspace User', e);
       NcError._.internalServerError('Failed to add user to  workspace');
     }

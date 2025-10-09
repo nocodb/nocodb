@@ -7,13 +7,13 @@ import {
   ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
-  AppEvents,
+  AppEvents, NcBaseError,
   OrgUserRoles,
   ProjectRoles,
   validatePassword,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcryptjs';
@@ -779,6 +779,7 @@ export class UsersService extends UsersServiceCE {
         error_details: e?.stack,
         affected_resources: [param.id],
       });
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to Delete User', e);
       NcError.get(param?.req.context).internalServerError(
         'Failed to delete user',

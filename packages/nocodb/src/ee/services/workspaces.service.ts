@@ -4,14 +4,14 @@ import {
   CloudOrgUserRoles,
   EventType,
   IconType,
-  IntegrationsType,
+  IntegrationsType, NcBaseError,
   ProjectRoles,
   ProjectStatus,
   SqlUiFactory,
   WorkspacePlan,
   WorkspaceStatus,
   WorkspaceUserRoles,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import { ConfigService } from '@nestjs/config';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import type { OnApplicationBootstrap } from '@nestjs/common';
@@ -704,6 +704,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to delete workspace', e);
       NcError.get(param?.req.context).internalServerError(
         'Failed to delete workspace',

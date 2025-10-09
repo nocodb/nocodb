@@ -5,11 +5,11 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   EventType,
-  IntegrationsType,
+  IntegrationsType, NcBaseError,
   ncIsUndefined,
   PlanFeatureTypes,
   ProjectRoles,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import type {
   NcApiVersion,
@@ -395,6 +395,7 @@ export class BasesService extends BasesServiceCE {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to soft delete base', e);
       NcError.get(context).internalServerError('Failed to delete base');
     }

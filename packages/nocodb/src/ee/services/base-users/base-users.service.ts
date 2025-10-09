@@ -3,12 +3,12 @@ import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
   EventType,
-  extractRolesObj,
+  extractRolesObj, NcBaseError,
   OrderedProjectRoles,
   OrgUserRoles,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import type { ProjectUserReqType, ProjectUserUpdateReqType } from 'nocodb-sdk';
@@ -204,7 +204,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         ...cacheBaseOps.map((fn) => fn()),
         ...cacheWorkspaceOps.map((fn) => fn()),
       ]);
-
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to invite users', e);
       NcError.get(param.req.context).internalServerError(
         'Failed to invite users',
@@ -700,6 +700,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to update user', e);
       NcError.get(param?.req.context).internalServerError(
         'Failed to update user',
@@ -847,6 +848,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to delete user', e);
       NcError.get(param?.req.context).internalServerError(
         'Failed to delete user',

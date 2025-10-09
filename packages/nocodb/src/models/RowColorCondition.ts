@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import type { NcContext } from 'nocodb-sdk';
+import { NcBaseError, NcContext } from 'nocodb-sdk'
 import { NcError } from '~/helpers/ncError';
 import { MetaTable } from '~/cli';
 import Noco from '~/Noco';
@@ -84,6 +84,7 @@ export default class RowColorCondition implements IRowColorCondition {
       await ncMetaTrans.commit();
     } catch (ex) {
       await ncMetaTrans.rollback();
+      if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
       logger.error('Failed to remove Row Colouring', ex);
       NcError.get(context).internalServerError(
         'Failed to remove Row Colouring',

@@ -8,10 +8,10 @@ import {
   isJSON,
   isSystemColumn,
   isVirtualCol,
-  LongTextAiMetaProp,
+  LongTextAiMetaProp, NcBaseError,
   parseJsonValue,
   UITypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import mime from 'mime/lite';
 
 import { z } from 'zod';
@@ -809,6 +809,7 @@ export class AiDataService {
 
       return updatedRows;
     } catch (e) {
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to generate from Button', e);
       NcError.get(context).internalServerError(e?.message);
     }
@@ -1285,6 +1286,7 @@ Please generate ${
 
       return updatedRows;
     } catch (e) {
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to update rows', e);
       NcError.get(context).internalServerError(e?.message);
     }

@@ -2,12 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
 import { useAgent } from 'request-filtering-agent';
-import type {
-  GoogleClientConfigType,
+import {
+  GoogleClientConfigType, NcBaseError,
   OpenIDClientConfigType,
   SAMLClientConfigType,
   SSOClientType,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import SSOClient from '~/models/SSOClient';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
@@ -156,6 +156,7 @@ export class SSOClientService {
 
       return response.data;
     } catch (e) {
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       // if axios error, throw invalid metadata url error
       if (e.response) NcError.badRequest('Invalid metadata url');
       this.logger.error('Failed to read saml metadata', e);

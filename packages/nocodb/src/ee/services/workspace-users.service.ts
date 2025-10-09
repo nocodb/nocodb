@@ -8,11 +8,11 @@ import {
   CloudOrgUserRoles,
   EventType,
   extractRolesObj,
-  HigherPlan,
+  HigherPlan, NcBaseError,
   NON_SEAT_ROLES,
   parseProp,
   WorkspaceUserRoles,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
@@ -224,7 +224,7 @@ export class WorkspaceUsersService {
         },
         `${CacheScope.WORKSPACE_USER}:${param.workspaceId}:${param.userId}`,
       );
-
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to update user role', e);
       NcError.get(param.req.context).internalServerError(
         'Failed to update user role',
@@ -412,6 +412,7 @@ export class WorkspaceUsersService {
       // rollback cache
       await Promise.all(cacheTransaction.map((fn) => fn()));
 
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to delete workspace user', e);
       NcError.get(param.req.context).internalServerError(
         'Failed to delete workspace user',
@@ -718,6 +719,7 @@ export class WorkspaceUsersService {
       }
 
       this.logger.error('Failed to invite users', e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       NcError.get(param.req.context).internalServerError(
         'Failed to invite users',
       );

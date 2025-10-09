@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   arrayToNested,
-  EventType,
+  EventType, NcBaseError,
   parseProp,
   PlanFeatureTypes,
   ROW_COLORING_MODE,
   UITypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
 import type {
   ColumnReqType,
@@ -271,6 +271,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       };
     } catch (e) {
       await ncMetaTrans.rollback(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to add row color condition', e);
       NcError.get(params.context).internalServerError(
         'Failed to add row color condition',
@@ -575,6 +576,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         await ncMetaTrans.commit();
       } catch (e) {
         await ncMetaTrans.rollback(e);
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
         this.logger.error('Failed to remove row color info', e);
         NcError.get(params.context).internalServerError(
           'Failed to remove row color info',

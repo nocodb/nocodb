@@ -7,11 +7,11 @@ import {
   EventType,
   getUpgradeMessage,
   LOYALTY_GRACE_PERIOD_END_DATE,
-  LoyaltyPriceReverseLookupKeyMap,
+  LoyaltyPriceReverseLookupKeyMap, NcBaseError,
   PlanOrder,
   ReturnToBillingPage,
   WorkspaceUserRoles,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { JobTypes } from '~/interface/Jobs';
@@ -251,7 +251,7 @@ export class PaymentService {
             : CacheScope.ORG
         }:${workspaceOrOrg.id}`,
       );
-
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(e);
       return NcError.internalServerError('Failed to create subscription');
     }

@@ -148,8 +148,8 @@ export class WorkspaceMembersV3Service {
         await eachRollback();
       }
 
-      this.logger.error('Failed to invite users', e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to invite users', e);
       NcError.get(param.req.context).internalServerError(
         'Failed to invite users',
       );

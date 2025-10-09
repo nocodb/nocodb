@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ncIsArray, UITypes, ViewTypes } from 'nocodb-sdk';
+import { NcBaseError, ncIsArray, UITypes, ViewTypes } from 'nocodb-sdk'
 import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
@@ -103,6 +103,7 @@ export class PublicDatasService {
       );
       count = await baseModel.count(listArgs);
     } catch (e) {
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       console.log(e);
       NcError.get(context).internalServerError(
         'Please check server log for more details',

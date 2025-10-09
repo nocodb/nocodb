@@ -22,6 +22,7 @@ import {
   NC_DATA_REFLECTION_SETTINGS,
   revokeAccessToSchema,
 } from '~/helpers/dataReflectionHelpers';
+import { NcBaseError } from 'nocodb-sdk'
 
 const logger = new Logger('DataReflection');
 
@@ -282,6 +283,7 @@ export default class DataReflection extends DataReflectionCE {
       await knex.commit();
     } catch (e) {
       await knex.rollback();
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       logger.error('Failed to create data reflection', e);
       NcError._.internalServerError('Failed to create data reflection');
     }

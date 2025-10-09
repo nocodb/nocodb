@@ -2,14 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   type IntegrationReqType,
   IntegrationsType,
-  NcApiVersion,
+  NcApiVersion, NcBaseError,
   type NcContext,
   type NcRequest,
   RelationTypes,
   SyncTrigger,
   TARGET_TABLES_META,
   UITypes,
-} from 'nocodb-sdk';
+} from 'nocodb-sdk'
 import {
   syncSystemFields,
   syncSystemFieldsMap,
@@ -460,6 +460,7 @@ export class SyncModuleService implements OnModuleInit {
         for (const syncMapping of syncMappings) {
           await SyncMapping.delete(context, syncMapping.id);
         }
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
         this.logger.error('Failed to create sync', e);
         NcError.get(context).internalServerError('Failed to create sync');
       }
@@ -496,7 +497,7 @@ export class SyncModuleService implements OnModuleInit {
       for (const syncConfig of syncConfigsToDelete) {
         await SyncConfig.delete(context, syncConfig.id);
       }
-
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to create sync', e);
       NcError.get(context).internalServerError('Failed to create sync');
     }
@@ -1023,6 +1024,7 @@ export class SyncModuleService implements OnModuleInit {
 
       await SyncConfig.delete(context, syncConfigId);
     } catch (e) {
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to delete sync', e);
       NcError.get(context).internalServerError('Failed to delete sync');
     }

@@ -57,7 +57,7 @@ export class DatasService {
         !isLinksOrLTAR(linkColumn) ||
         linkColumn.colOptions.fk_related_model_id !== model.id
       ) {
-        NcError.fieldNotFound(param.query?.linkColumnId, {
+        NcError.get(context).fieldNotFound(param.query?.linkColumnId, {
           customMessage: `Link column with id ${param.query.linkColumnId} not found`,
         });
       }
@@ -202,7 +202,7 @@ export class DatasService {
     if (!source.isMeta()) {
       const message = await baseModel.hasLTARData(param.rowId, model);
       if (message.length) {
-        NcError.badRequest(message);
+        NcError.get(context).badRequest(message);
       }
     }
 
@@ -429,7 +429,7 @@ export class DatasService {
     });
 
     if (!row) {
-      NcError.recordNotFound(param.rowId);
+      NcError.get(context).recordNotFound(param.rowId);
     }
 
     return row;
@@ -543,7 +543,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     return await this.getDataList(context, {
       model,
@@ -568,7 +569,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -633,7 +635,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -698,7 +701,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -763,7 +767,10 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) return NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      return NcError.get(context).tableNotFound(
+        view?.fk_model_id || param.viewId,
+      );
 
     const source = await Source.get(context, model.source_id);
 
@@ -828,7 +835,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -884,7 +892,7 @@ export class DatasService {
       const model = await Model.getByIdOrName(context, {
         id: param.viewId,
       });
-      if (!model) NcError.tableNotFound(param.viewId);
+      if (!model) NcError.get(context).tableNotFound(param.viewId);
 
       const source = await Source.get(context, model.source_id);
 
@@ -907,7 +915,9 @@ export class DatasService {
       );
     } catch (e) {
       this.logger.error(e);
-      NcError.internalServerError('Please check server log for more details');
+      NcError.get(context).internalServerError(
+        'Please check server log for more details',
+      );
     }
   }
 
@@ -918,7 +928,7 @@ export class DatasService {
     const model = await Model.getByIdOrName(context, {
       id: param.viewId,
     });
-    if (!model) return NcError.tableNotFound(param.viewId);
+    if (!model) return NcError.get(context).tableNotFound(param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -943,7 +953,7 @@ export class DatasService {
     const model = await Model.getByIdOrName(context, {
       id: param.viewId,
     });
-    if (!model) NcError.tableNotFound(param.viewId);
+    if (!model) NcError.get(context).tableNotFound(param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -972,7 +982,7 @@ export class DatasService {
     const model = await Model.getByIdOrName(context, {
       id: param.viewId,
     });
-    if (!model) NcError.tableNotFound(param.viewId);
+    if (!model) NcError.get(context).tableNotFound(param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -1001,7 +1011,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -1038,7 +1049,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -1081,7 +1093,7 @@ export class DatasService {
         titleOrId: req.params.viewName,
         fk_model_id: model.id,
       }));
-    if (!model) NcError.tableNotFound(req.params.tableName);
+    if (!model) NcError.get(context).tableNotFound(req.params.tableName);
     return { model, view };
   }
 
@@ -1097,7 +1109,7 @@ export class DatasService {
         c.column_name === columnNameOrId,
     );
 
-    if (!column) NcError.fieldNotFound(columnNameOrId);
+    if (!column) NcError.get(context).fieldNotFound(columnNameOrId);
 
     return column;
   }

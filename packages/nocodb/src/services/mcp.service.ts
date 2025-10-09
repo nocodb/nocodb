@@ -35,7 +35,7 @@ export class McpTokenService {
     // Verify token exists
     const token = await MCPToken.get(context, tokenId);
     if (!token) {
-      NcError.notFound('MCP token not found');
+      NcError.get(context).notFound('MCP token not found');
     }
 
     payload.token = nanoid(32);

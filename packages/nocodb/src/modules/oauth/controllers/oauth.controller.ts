@@ -13,7 +13,6 @@ import {
 import { Response } from 'express';
 import { NcRequest } from 'nocodb-sdk';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
-import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 import { OAuthClient } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -28,7 +27,6 @@ const logger = new Logger('OAuthController');
 @Controller()
 export class OAuthController {
   constructor(
-    protected readonly oauthService: OauthClientService,
     protected readonly oauthAuthorizationService: OauthAuthorizationService,
     protected readonly oauthTokenService: OauthTokenService,
     protected readonly oauthDcrService: OauthDcrService,

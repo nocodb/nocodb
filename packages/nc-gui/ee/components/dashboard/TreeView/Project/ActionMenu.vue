@@ -18,6 +18,7 @@ interface Emits {
   (e: 'duplicateProject', base: NcProject): void
   (e: 'onDataReflection'): void
   (e: 'openBaseSettings', id: string): void
+  (e: 'openMcpServer', id: string): void
   (e: 'delete'): void
   (e: 'toggleStarred', id: string): void
 }
@@ -104,7 +105,12 @@ const isOptionVisible = computed(() => {
       <GeneralIcon icon="ncErd" />
       {{ $t('title.relations') }}
     </NcMenuItem>
-
+    <NcMenuItem key="mcp" data-testid="nc-sidebar-mcp-server" @click="emits('openMcpServer', base.id!)">
+      <div v-e="['c:base:mcp-server']" class="flex gap-2 items-center">
+        <GeneralIcon icon="mcp" />
+        {{ $t('title.mcpServer') }}
+      </div>
+    </NcMenuItem>
     <!-- Get Connection -->
     <NcMenuItem
       v-if="isOptionVisible.dataReflection"

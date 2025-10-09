@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, NcBaseError } from 'nocodb-sdk'
+import { AppEvents, NcBaseError } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { NcRequest, SnapshotType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';

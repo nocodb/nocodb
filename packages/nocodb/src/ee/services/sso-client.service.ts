@@ -2,12 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
 import { useAgent } from 'request-filtering-agent';
-import {
-  GoogleClientConfigType, NcBaseError,
+import { NcBaseError } from 'nocodb-sdk';
+import type {
+  GoogleClientConfigType,
   OpenIDClientConfigType,
   SAMLClientConfigType,
   SSOClientType,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import SSOClient from '~/models/SSOClient';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';

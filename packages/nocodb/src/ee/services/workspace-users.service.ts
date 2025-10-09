@@ -8,11 +8,12 @@ import {
   CloudOrgUserRoles,
   EventType,
   extractRolesObj,
-  HigherPlan, NcBaseError,
+  HigherPlan,
+  NcBaseError,
   NON_SEAT_ROLES,
   parseProp,
   WorkspaceUserRoles,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';

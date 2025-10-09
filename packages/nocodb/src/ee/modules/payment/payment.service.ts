@@ -7,11 +7,12 @@ import {
   EventType,
   getUpgradeMessage,
   LOYALTY_GRACE_PERIOD_END_DATE,
-  LoyaltyPriceReverseLookupKeyMap, NcBaseError,
+  LoyaltyPriceReverseLookupKeyMap,
+  NcBaseError,
   PlanOrder,
   ReturnToBillingPage,
   WorkspaceUserRoles,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { JobTypes } from '~/interface/Jobs';

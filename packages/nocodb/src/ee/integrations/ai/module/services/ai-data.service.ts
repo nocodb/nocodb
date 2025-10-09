@@ -8,10 +8,11 @@ import {
   isJSON,
   isSystemColumn,
   isVirtualCol,
-  LongTextAiMetaProp, NcBaseError,
+  LongTextAiMetaProp,
+  NcBaseError,
   parseJsonValue,
   UITypes,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import mime from 'mime/lite';
 
 import { z } from 'zod';

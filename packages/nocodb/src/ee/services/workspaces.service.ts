@@ -4,14 +4,15 @@ import {
   CloudOrgUserRoles,
   EventType,
   IconType,
-  IntegrationsType, NcBaseError,
+  IntegrationsType,
+  NcBaseError,
   ProjectRoles,
   ProjectStatus,
   SqlUiFactory,
   WorkspacePlan,
   WorkspaceStatus,
   WorkspaceUserRoles,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import type { OnApplicationBootstrap } from '@nestjs/common';

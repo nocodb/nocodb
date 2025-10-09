@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   arrayToNested,
-  EventType, NcBaseError,
+  EventType,
+  NcBaseError,
   parseProp,
   PlanFeatureTypes,
   ROW_COLORING_MODE,
   UITypes,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
 import type {
   ColumnReqType,

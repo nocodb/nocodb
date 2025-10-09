@@ -1,11 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
-  EventType, NcBaseError,
+  EventType,
+  NcBaseError,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import Noco from '~/Noco';

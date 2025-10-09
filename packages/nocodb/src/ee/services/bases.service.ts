@@ -5,11 +5,12 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   EventType,
-  IntegrationsType, NcBaseError,
+  IntegrationsType,
+  NcBaseError,
   ncIsUndefined,
   PlanFeatureTypes,
   ProjectRoles,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import type {
   NcApiVersion,

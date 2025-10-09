@@ -7,13 +7,14 @@ import {
   ListUsersCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
-  AppEvents, NcBaseError,
+  AppEvents,
+  NcBaseError,
   OrgUserRoles,
   ProjectRoles,
   validatePassword,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcryptjs';

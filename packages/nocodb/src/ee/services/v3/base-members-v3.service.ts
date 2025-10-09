@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { NcBaseError, WorkspaceUserRoles } from 'nocodb-sdk'
+import { NcBaseError, WorkspaceUserRoles } from 'nocodb-sdk';
 import { BaseMembersV3Service as BaseMembersV3ServiceCE } from 'src/services/v3/base-members-v3.service';
 import type { ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';

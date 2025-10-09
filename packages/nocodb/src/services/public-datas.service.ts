@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { NcBaseError, ncIsArray, UITypes, ViewTypes } from 'nocodb-sdk'
+import { NcBaseError, ncIsArray, UITypes, ViewTypes } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';

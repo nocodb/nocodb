@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NcBaseError, WorkspaceUserRoles } from 'nocodb-sdk'
+import { NcBaseError, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import Noco from '~/Noco';

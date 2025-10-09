@@ -2,14 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   type IntegrationReqType,
   IntegrationsType,
-  NcApiVersion, NcBaseError,
+  NcApiVersion,
+  NcBaseError,
   type NcContext,
   type NcRequest,
   RelationTypes,
   SyncTrigger,
   TARGET_TABLES_META,
   UITypes,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import {
   syncSystemFields,
   syncSystemFieldsMap,

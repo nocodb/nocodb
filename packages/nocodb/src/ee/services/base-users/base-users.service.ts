@@ -3,12 +3,13 @@ import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
   EventType,
-  extractRolesObj, NcBaseError,
+  extractRolesObj,
+  NcBaseError,
   OrderedProjectRoles,
   OrgUserRoles,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
-} from 'nocodb-sdk'
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import type { ProjectUserReqType, ProjectUserUpdateReqType } from 'nocodb-sdk';

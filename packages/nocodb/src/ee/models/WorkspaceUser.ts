@@ -1,4 +1,4 @@
-import { IconType, NcBaseError, ProjectRoles } from 'nocodb-sdk'
+import { IconType, NcBaseError, ProjectRoles } from 'nocodb-sdk';
 import { User } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceUserRoles } from 'nocodb-sdk';

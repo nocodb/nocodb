@@ -112,7 +112,7 @@ export class ViewColumnsService {
     const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     const oldViewColumn = await View.getColumn(
@@ -224,7 +224,7 @@ export class ViewColumnsService {
       : param.columns?.[APIContext.VIEW_COLUMNS];
 
     if (!columns) {
-      NcError.badRequest('Invalid request - fields not found');
+      NcError.get(context).badRequest('Invalid request - fields not found');
     }
 
     const view = await View.get(context, viewId);
@@ -235,7 +235,7 @@ export class ViewColumnsService {
     const ncMeta = await Noco.ncMeta.startTransaction();
 
     if (!view) {
-      NcError.notFound('View not found');
+      NcError.get(context).viewNotFound('View not found');
     }
 
     let viewWebhookManager: ViewWebhookManager;

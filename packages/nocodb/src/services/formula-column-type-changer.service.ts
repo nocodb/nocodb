@@ -1,9 +1,4 @@
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  NotImplementedException,
-} from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   NcApiVersion,
   NcBaseError,
@@ -11,7 +6,6 @@ import {
   type NcRequest,
 } from 'nocodb-sdk';
 import { generateUpdateAuditV1Payload } from 'src/utils';
-import { NcError } from 'src/helpers/ncError';
 import type {
   AuditV1,
   ColumnReqType,
@@ -23,6 +17,7 @@ import type { FormulaColumn } from '~/models';
 import type { ReusableParams } from '~/services/columns.service.type';
 import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-changer';
 import type { IFormulaColumnTypeChanger } from './formula-column-type-changer.types';
+import { NcError } from '~/helpers/ncError';
 import {
   getBaseModelSqlFromModelId,
   isDataAuditEnabled,
@@ -37,6 +32,7 @@ export const DEFAULT_BATCH_LIMIT = 100000;
 
 @Injectable()
 export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
+  private logger = new Logger(FormulaColumnTypeChanger.name);
   constructor(
     @Inject(forwardRef(() => ColumnsService))
     private readonly columnsService: ColumnsService,
@@ -72,6 +68,9 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       modelId: params.formulaColumn.fk_model_id,
     });
     if (!this.dataMigrationDriver[baseModel.dbDriver.clientType()]) {
+      this.logger.error(
+        `${baseModel.dbDriver.clientType()} database is not supported in this operation`,
+      );
       NcError.get(context).notImplemented(
         `${baseModel.dbDriver.clientType()} database is not supported in this operation`,
       );
@@ -113,9 +112,8 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
           forceDeleteSystem: false,
         });
         if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
-        NcError.get(context).columnError(
-          ex?.message || 'Failed to convert column',
-        );
+        this.logger.error(ex?.message || 'Failed to convert column', ex);
+        NcError.get(context).internalServerError('Failed to convert column');
       }
     } catch (ex) {
       // when failed during create new column for whatever reason
@@ -126,9 +124,8 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
         });
       }
       if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
-      NcError.get(context).columnError(
-        ex?.message || 'Failed to convert column',
-      );
+      this.logger.error(ex?.message || 'Failed to convert column', ex);
+      NcError.get(context).internalServerError('Failed to convert column');
     }
     return await Column.updateFormulaColumnToNewType(context, {
       formulaColumn: params.formulaColumn,

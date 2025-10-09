@@ -13,6 +13,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { NcError } from 'src/helpers/ncError';
 
 @Injectable()
 export class DuplicateService {
@@ -48,7 +49,7 @@ export class DuplicateService {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const source = sourceId
@@ -56,7 +57,10 @@ export class DuplicateService {
       : (await base.getSources())[0];
 
     if (!source) {
-      throw new Error(`Source not found!`);
+      if (sourceId) {
+        NcError.get(context).sourceNotFound(sourceId);
+      }
+      NcError.get(context).noSourcesFound();
     }
 
     if (
@@ -135,6 +139,6 @@ export class DuplicateService {
     context: NcContext;
     req: NcRequest;
   }) {
-    throw new NotImplementedException();
+    NcError.get(context).notImplemented();
   }
 }

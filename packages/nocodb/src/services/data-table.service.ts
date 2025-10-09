@@ -394,11 +394,13 @@ export class DataTableService {
           .join('___');
       // if duplicate then throw error
       if (keys.has(pk)) {
-        NcError.unprocessableEntity('Duplicate record with id ' + pk);
+        NcError.get(context).unprocessableEntity(
+          'Duplicate record with id ' + pk,
+        );
       }
 
       if (pk === undefined || pk === null) {
-        NcError.unprocessableEntity('Primary key is required');
+        NcError.get(context).unprocessableEntity('Primary key is required');
       }
       keys.add(pk);
     }
@@ -425,7 +427,7 @@ export class DataTableService {
     });
 
     if (!(await baseModel.exist(param.rowId))) {
-      NcError.recordNotFound(`${param.rowId}`);
+      NcError.get(context).recordNotFound(`${param.rowId}`);
     }
 
     const column = await this.getColumn(context, param);

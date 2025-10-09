@@ -1,11 +1,11 @@
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
+import { NcBaseError } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import { SourcesService } from '~/services/sources.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { NcError } from 'src/helpers/ncError';
-import { NcBaseError } from 'nocodb-sdk';
+import { NcError } from '~/helpers/ncError';
 
 @Injectable()
 export class SourceCreateProcessor {

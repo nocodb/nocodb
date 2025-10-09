@@ -214,7 +214,9 @@ export class ViewsService {
     ) {
       // if owned_by is not empty then check if the user is the owner of the project
       if (ownedBy && ownedBy !== param.user.id) {
-        NcError.get(context).unauthorized('Only owner/creator can change to personal view');
+        NcError.get(context).unauthorized(
+          'Only owner/creator can change to personal view',
+        );
       }
 
       // if empty then check if current user is the owner of the project then allow and update the owned_by
@@ -226,7 +228,9 @@ export class ViewsService {
         }
       } else if (!ownedBy) {
         // todo: move to catchError
-        NcError.get(context).unauthorized('Only owner can change to personal view');
+        NcError.get(context).unauthorized(
+          'Only owner can change to personal view',
+        );
       }
     }
 
@@ -238,7 +242,9 @@ export class ViewsService {
         !(param.user as any).base_roles?.[ProjectRoles.OWNER] &&
         !(param.user as any).base_roles?.[ProjectRoles.CREATOR]
       ) {
-        NcError.get(context).unauthorized('Only owner/creator can transfer view ownership');
+        NcError.get(context).unauthorized(
+          'Only owner/creator can transfer view ownership',
+        );
       }
 
       ownedBy = param.view.owned_by;

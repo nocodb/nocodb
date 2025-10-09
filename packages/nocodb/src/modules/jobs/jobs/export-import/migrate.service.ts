@@ -2,9 +2,9 @@ import { Readable } from 'stream';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { NcError } from 'src/helpers/ncError';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Source } from '~/models';
+import { NcError } from '~/helpers/ncError';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 
 @Injectable()

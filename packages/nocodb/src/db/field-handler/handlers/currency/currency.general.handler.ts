@@ -1,5 +1,5 @@
 import { getNumericValue, type NcContext, parseProp } from 'nocodb-sdk';
-import { NcError } from 'src/helpers/ncError';
+import { NcError } from '~/helpers/ncError';
 import { DecimalGeneralHandler } from '../decimal/decimal.general.handler';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';

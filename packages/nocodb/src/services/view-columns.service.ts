@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { APIContext, AppEvents, EventType, NcBaseError, ViewTypes } from 'nocodb-sdk';
+import {
+  APIContext,
+  AppEvents,
+  EventType,
+  NcBaseError,
+  ViewTypes,
+} from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import GridViewColumn from '../models/GridViewColumn';
 import GalleryViewColumn from '../models/GalleryViewColumn';
 import KanbanViewColumn from '../models/KanbanViewColumn';
@@ -24,7 +31,6 @@ import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
-import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class ViewColumnsService {

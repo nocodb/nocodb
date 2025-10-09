@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotImplementedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   AppEvents,
   type NcContext,
@@ -13,7 +13,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
-import { NcError } from 'src/helpers/ncError';
+import { NcError } from '~/helpers/ncError';
 
 @Injectable()
 export class DuplicateService {

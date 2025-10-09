@@ -14,7 +14,7 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { MailService } from '~/services/mail/mail.service';
 import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
-import { NcBaseError, NcError } from '~/helpers/catchError'
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { BaseUser, PresignedUrl, Store, SyncSource, User } from '~/models';

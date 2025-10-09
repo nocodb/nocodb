@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { HookReqType, HookTestReqType } from 'nocodb-sdk';
 import type { HookType } from 'nocodb-sdk';
+import { NcError } from '~/helpers/ncError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { HooksService } from '~/services/hooks.service';
@@ -20,7 +21,6 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
-import { NcError } from 'src/helpers/ncError';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)

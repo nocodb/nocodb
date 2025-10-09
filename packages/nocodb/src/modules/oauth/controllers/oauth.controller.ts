@@ -112,7 +112,7 @@ export class OAuthController {
         });
       return { redirect_url: successRedirectUrl };
     } catch (e) {
-      logger.error(e?.messagem e)
+      logger.error(e?.message, e);
       const errorRedirectUrl = this.oauthAuthorizationService.buildRedirectUrl(
         redirect_uri,
         {
@@ -213,7 +213,7 @@ export class OAuthController {
           };
       }
     } catch (error) {
-      logger.log(error)
+      logger.log(error);
       if (error.message === 'invalid_client') {
         return {
           error: 'invalid_client',

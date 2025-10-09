@@ -41,8 +41,6 @@ const { getMeta } = useMetas()
 
 const eventBus = $eventBus.smartsheetStoreEventBus
 
-const eventBusRealtime = $eventBus.realtimeViewMetaEventBus
-
 const isLoading = ref(false)
 
 const selectViewRef = ref<InstanceType<typeof NcListViewSelector>>()
@@ -119,38 +117,18 @@ const copyViewConfiguration = async () => {
 
     // Reload view meta as well as data if the destination view is the active view
     if (destView.value.id === activeView.value?.id) {
-      if (selectedCopyViewConfigTypes.value.includes(ViewSettingOverrideOptions.SORT)) {
-        eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-      }
+      eventBus.emit(SmartsheetStoreEvents.COPIED_VIEW_CONFIG, {
+        viewId: destView.value.id,
+        copiedOptions: selectedCopyViewConfigTypes.value,
+      })
 
-      if (selectedCopyViewConfigTypes.value.includes(ViewSettingOverrideOptions.FILTER_CONDITION)) {
-        eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
-      }
-
-      if (selectedCopyViewConfigTypes.value.includes(ViewSettingOverrideOptions.GROUP)) {
-        eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD, { isViewConfigCopied: true })
-      }
-
-      if (
-        selectedCopyViewConfigTypes.value.some((type) =>
-          [
-            ViewSettingOverrideOptions.COLUMN_WIDTH,
-            ViewSettingOverrideOptions.FIELD_VISIBILITY,
-            ViewSettingOverrideOptions.FIELD_ORDER,
-          ].includes(type),
-        )
-      ) {
-        eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-      }
-
-      if (selectedCopyViewConfigTypes.value.includes(ViewSettingOverrideOptions.ROW_COLORING)) {
-        eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_RELOAD)
-      }
-
-      nextTick(() => {
-        eventBusRealtime.emit('view_column_refresh', {
-          fk_view_id: destView.value.id,
-        })
+      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD, {
+        callback: () => {
+          // Load data after fields reload
+          forcedNextTick(() => {
+            eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+          })
+        },
       })
     }
 

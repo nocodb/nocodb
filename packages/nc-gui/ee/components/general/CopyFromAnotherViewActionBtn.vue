@@ -43,7 +43,7 @@ const paidBadgeVisible = false
     v-if="isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled"
     :enabled="copyViewConfigBtnAccessStatus.isDisabled"
     placement="top"
-    class="ml-auto flex items-center"
+    class="flex items-center justify-end flex-1"
   >
     <template #title>
       <div class="max-w-70">

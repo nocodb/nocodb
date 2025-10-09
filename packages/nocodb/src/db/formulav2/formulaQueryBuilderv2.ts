@@ -532,7 +532,7 @@ export default async function formulaQueryBuilderv2({
       validateFormula ||
       (column?.id &&
         e instanceof NcBaseErrorv2 &&
-        e.error === NcErrorType.FORMULA_CIRCULAR_REF_ERROR)
+        e.error === NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA)
     ) {
       console.error(e);
 

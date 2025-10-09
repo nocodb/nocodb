@@ -51,7 +51,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception.message,
       )
     ) {
-      exception = NcError._.errorCodex.generateError(NcErrorType.BAD_JSON);
+      exception = NcError._.errorCodex.generateError(
+        NcErrorType.ERR_INVALID_JSON,
+      );
     }
 
     // try to extract db error for unknown errors
@@ -78,9 +80,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof NcSDKError ||
         (exception instanceof NcBaseErrorv2 &&
           ![
-            NcErrorType.INTERNAL_SERVER_ERROR,
-            NcErrorType.DATABASE_ERROR,
-            NcErrorType.UNKNOWN_ERROR,
+            NcErrorType.ERR_INTERNAL_SERVER,
+            NcErrorType.ERR_DATABASE_OP_FAILED,
+            NcErrorType.ERR_UNKNOWN,
           ].includes(exception.error))
       )
     )

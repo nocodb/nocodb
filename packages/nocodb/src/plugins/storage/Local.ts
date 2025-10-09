@@ -6,11 +6,13 @@ import mkdirp from 'mkdirp';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import { globStream } from 'glob';
+import { Logger } from '@nestjs/common';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 
 export default class Local implements IStorageAdapterV2 {
   name = 'Local';
+  protected logger = new Logger(Local.name);
 
   public async fileCreate(key: string, file: XcFile): Promise<any> {
     const destPath = validateAndNormaliseLocalPath(key);

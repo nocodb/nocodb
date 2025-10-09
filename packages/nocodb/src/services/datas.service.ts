@@ -914,7 +914,8 @@ export class DatasService {
         dependencyFields,
       );
     } catch (e) {
-      this.logger.error(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Please check server log for more details', e);
       NcError.get(context).internalServerError(
         'Please check server log for more details',
       );

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ViewSettingOverrideOptions, type ViewType } from 'nocodb-sdk'
+import type { ViewSettingOverrideOptions, ViewType } from 'nocodb-sdk'
 
 interface Props {
   view: ViewType

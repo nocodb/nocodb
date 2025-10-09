@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, ViewSettingOverrideOptions, type ViewType } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import type { ViewSettingOverrideOptions, ViewType } from 'nocodb-sdk'
 import type { NcButtonProps } from '~/components/nc/Button.vue'
 
 interface Props {

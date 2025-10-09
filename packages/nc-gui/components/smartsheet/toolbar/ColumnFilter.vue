@@ -2,10 +2,10 @@
 import {
   type ColumnType,
   type FilterType,
+  ViewSettingOverrideOptions,
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
   isVirtualCol,
-  ViewSettingOverrideOptions,
 } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 

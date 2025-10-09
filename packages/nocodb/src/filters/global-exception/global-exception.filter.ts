@@ -245,16 +245,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // handle different types of exceptions
-    // todo: temporary hack, need to fix
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
       this.captureException(exception, request);
 
-      // todo: change the response code
-      response.status(400).json({
-        msg: exception.message,
-      });
+      const responsePayload: any = {
+        msg: 'Bad Request',
+      };
+
+      // Include actual error message only in development
+      if (process.env.NODE_ENV !== 'production') {
+        responsePayload.__msg =
+          exception?.message || 'An unexpected error occurred';
+      }
+
+      response.status(500).json(responsePayload);
     }
   }
 

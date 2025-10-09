@@ -370,7 +370,7 @@ export interface IBaseModelSqlV2 {
   get isMySQL(): boolean;
   get isSnowflake(): boolean;
   get isDatabricks(): boolean;
-  get clientType(): ClientType;
+  get clientType(): string;
   get clientMeta(): {
     isSqlite: boolean;
     isPg: boolean;

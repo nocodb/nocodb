@@ -119,7 +119,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .expect(422);
         expect(result.body.error).to.eq('ERR_BASE_NOT_FOUND');
-        expect(result.body.message).to.eq(`Base 'ERR_BASE_NOT_FOUND' not found`);
+        expect(result.body.message).to.eq(`Base 'NOT_FOUND_BASE' not found`);
       });
     });
 
@@ -148,7 +148,7 @@ export default function () {
           })
           .expect(422);
         expect(result.body.error).to.eq('ERR_BASE_NOT_FOUND');
-        expect(result.body.message).to.eq(`Base 'ERR_BASE_NOT_FOUND' not found`);
+        expect(result.body.message).to.eq(`Base 'NOT_FOUND_BASE' not found`);
       });
 
       it('will update empty title', async () => {
@@ -184,7 +184,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .expect(422);
         expect(result.body.error).to.eq('ERR_BASE_NOT_FOUND');
-        expect(result.body.message).to.eq(`Base 'ERR_BASE_NOT_FOUND' not found`);
+        expect(result.body.message).to.eq(`Base 'NOT_FOUND_BASE' not found`);
       });
     });
   });

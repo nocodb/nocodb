@@ -191,7 +191,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message: `Invalid option(s) "${exception.options.join(
           ', ',
         )}" provided for column "${exception.columnTitle}"`,
-        error: 'INVALID_VALUE_FOR_FIELD',
+        error: 'ERR_INVALID_VALUE_FOR_FIELD',
       });
     } else if (
       exception instanceof BadRequest ||

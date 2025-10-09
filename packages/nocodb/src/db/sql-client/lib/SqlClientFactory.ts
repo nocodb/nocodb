@@ -7,6 +7,7 @@ import PgClient from '~/db/sql-client/lib/pg/PgClient';
 import YugabyteClient from '~/db/sql-client/lib/pg/YugabyteClient';
 import TidbClient from '~/db/sql-client/lib/mysql/TidbClient';
 import VitessClient from '~/db/sql-client/lib/mysql/VitessClient';
+import { NcError } from 'src/helpers/ncError';
 
 export class SqlClientFactory {
   static create(connectionConfig) {
@@ -32,7 +33,9 @@ export class SqlClientFactory {
       return new PgClient(connectionConfig);
     }
 
-    throw new Error('Database not supported');
+    NcError.notImplemented(
+      `Database ${connectionConfig?.meta?.dbtype || ''} is not supported`,
+    );
   }
 }
 

@@ -8,6 +8,7 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { REGEXSTR_INTL_LETTER, REGEXSTR_NUMERIC_ARABIC } from 'nocodb-sdk';
+import { NcError } from './ncError';
 import type {
   BoolType,
   ColumnReqType,
@@ -359,7 +360,9 @@ export async function validateRollupPayload(
   ).getColOptions<LinkToAnotherRecordType>(context);
 
   if (!relation) {
-    throw new Error('Relation column not found');
+    NcError.get(context).relationFieldNotFound(
+      (payload as RollupColumnReqType).fk_relation_column_id,
+    );
   }
 
   let relatedColumn: Column;
@@ -384,14 +387,14 @@ export async function validateRollupPayload(
   );
 
   if (!rollupColumn)
-    throw new Error('Rollup column not found in related table');
+    NcError.get(context).badRequest('Rollup column not found in related table');
 
   if (
     !getAvailableRollupForUiType(rollupColumn.uidt).includes(
       (payload as RollupColumnReqType).rollup_function,
     )
   ) {
-    throw new Error(
+    NcError.get(context).badRequest(
       `Rollup function (${
         (payload as RollupColumnReqType).rollup_function
       }) not available for type (${relatedColumn.uidt})`,
@@ -417,7 +420,9 @@ export async function validateLookupPayload(
     while (lkCol) {
       // check if lookup column is same as column itself
       if (columnId === lkCol.fk_lookup_column_id)
-        throw new Error('Circular lookup reference not allowed');
+        NcError.get(context).badRequest(
+          'Circular lookup reference not allowed',
+        );
       lkCol = await Column.get(context, {
         colId: lkCol.fk_lookup_column_id,
       }).then((c: Column) => {
@@ -433,7 +438,9 @@ export async function validateLookupPayload(
   });
 
   if (!column) {
-    throw new Error('Relation column not found');
+    NcError.get(context).relationFieldNotFound(
+      (payload as LookupColumnReqType).fk_relation_column_id,
+    );
   }
 
   const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
@@ -442,7 +449,9 @@ export async function validateLookupPayload(
   const { refContext } = relation.getRelContext(context);
 
   if (!relation) {
-    throw new Error('Relation column not found');
+    NcError.get(context).relationFieldNotFound(
+      (payload as LookupColumnReqType).fk_relation_column_id,
+    );
   }
 
   let relatedColumn: Column;
@@ -473,7 +482,7 @@ export async function validateLookupPayload(
       (c) => c.id === (payload as LookupColumnReqType).fk_lookup_column_id,
     )
   )
-    throw new Error('Lookup column not found in related table');
+    NcError.get(context).badRequest('Lookup column not found in related table');
 }
 
 export const validateRequiredField = (

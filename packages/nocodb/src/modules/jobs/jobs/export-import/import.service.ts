@@ -5,6 +5,7 @@ import {
   isLinksOrLTAR,
   isVirtualCol,
   NcApiVersion,
+  NcBaseError,
   RelationTypes,
   SqlUiFactory,
   UITypes,
@@ -85,10 +86,8 @@ export class ImportService {
   ) {}
 
   async importUsers(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context: NcContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    payload: {
+    _payload: {
       users: {
         email: string;
         display_name?: string;
@@ -96,7 +95,7 @@ export class ImportService {
       req: NcRequest;
     },
   ) {
-    throw new NotImplementedException();
+    NcError.get(context).notImplemented('Import users not implemented');
   }
 
   async importScripts(
@@ -2084,7 +2083,9 @@ export class ImportService {
             elapsedTime(hrTime, `import links`, 'importBase');
           }
         } catch (e) {
-          throw new Error(e);
+          if (e instanceof NcError || e instanceof NcBaseError) throw e;
+          this.logger.error('Error Importing base', e);
+          NcError.get(context).internalServerError(e?.message);
         }
         break;
       }

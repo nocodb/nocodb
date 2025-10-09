@@ -14,6 +14,7 @@ import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import { NcError } from 'src/helpers/ncError';
 
 export default async function genRollupSelectv2({
   baseModelSqlv2,
@@ -333,6 +334,6 @@ export default async function genRollupSelectv2({
     }
 
     default:
-      throw Error(`Unsupported relation type '${relationColumnOption.type}'`);
+      NcError.get(context).unSupportedRelation(relationColumnOption.type);
   }
 }

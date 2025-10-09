@@ -3,11 +3,13 @@ import {
   CommonAggregations,
   ExpandedFormMode,
   isSystemColumn,
+  NcBaseError,
   parseProp,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { NcError } from 'src/helpers/ncError';
 import type {
   BoolType,
   ColumnReqType,
@@ -658,8 +660,11 @@ export default class View implements ViewType {
           req,
           context,
         });
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        NcError.get(context).internalServerError('Failed to Duplicate View');
       }
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      NcError.get(context).internalServerError('Failed to Create View');
     }
   }
 

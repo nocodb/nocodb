@@ -67,13 +67,13 @@ export class DuplicateController {
     );
 
     if (!base) {
-      throw new Error(`Base not found for id '${sharedBaseId}'`);
+      NcError.get(context).baseNotFound(sharedBaseId);
     }
 
     const source = (await base.getSources())[0];
 
     if (!source) {
-      throw new Error(`Source not found!`);
+      NcError.get(context).noSourcesFound();
     }
 
     const bases = await Base.list(context.workspace_id);
@@ -234,7 +234,7 @@ export class DuplicateController {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const column = await Column.get(context, {
@@ -243,13 +243,13 @@ export class DuplicateController {
     });
 
     if (!column) {
-      throw new Error(`Column not found!`);
+      NcError.get(context).fieldNotFound(columnId);
     }
 
     const model = await Model.get(context, column.fk_model_id);
 
     if (!model) {
-      throw new Error(`Model not found!`);
+      NcError.get(context).tableNotFound(column?.fk_model_id);
     }
 
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);

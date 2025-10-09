@@ -4,6 +4,7 @@ import { Client as MinioClient } from 'minio';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import { NcError } from 'src/helpers/ncError';
 
 interface MinioObjectStorageInput {
   bucket: string;
@@ -75,7 +76,7 @@ export default class Minio implements IStorageAdapterV2 {
       await this.fileCreateByStream('nc-test-file.txt', stream);
       return true;
     } catch (e) {
-      throw e;
+      NcError.pluginTestError(e?.message);
     }
   }
 

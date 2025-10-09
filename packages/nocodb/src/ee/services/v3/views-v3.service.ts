@@ -579,22 +579,31 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
     if (view.type !== ViewTypes.FORM) {
       // get filters
-      const filters = await this.filtersV3Service.filterList(context, {
-        viewId: view.id,
-      });
+      const filters = await this.filtersV3Service.filterList(
+        context,
+        {
+          viewId: view.id,
+        },
+        ncMeta,
+      );
 
       formattedView.filters = filters;
 
       // get sorts
-      const sorts = await this.sortsV3Service.sortList(context, {
-        viewId: view.id,
-      });
+      const sorts = await this.sortsV3Service.sortList(
+        context,
+        {
+          viewId: view.id,
+        },
+        ncMeta,
+      );
 
       formattedView.sorts = sorts?.length ? sorts : undefined;
 
       const rowColor = await this.viewRowColorService.getByViewId({
         context,
         fk_view_id: view.id,
+        ncMeta,
       });
       if (rowColor) {
         formattedView.row_coloring = this.v2Tov3ViewBuilders

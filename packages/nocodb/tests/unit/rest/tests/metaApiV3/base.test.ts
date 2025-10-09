@@ -147,7 +147,7 @@ export default function () {
 
         // validate error response
         expect(Object.keys(err.body)).to.include.members(['error', 'message']);
-        expect(err.body.error).to.equal('WORKSPACE_NOT_FOUND');
+        expect(err.body.error).to.equal('ERR_WORKSPACE_NOT_FOUND');
         expect(err.body.message).to.equal("Workspace 'invalidId' not found");
       }
 

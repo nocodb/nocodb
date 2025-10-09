@@ -59,6 +59,8 @@ const open = ref(false)
 
 const allFilters = ref({})
 
+const filterKey = ref(1)
+
 provide(AllFiltersInj, allFilters)
 
 useMenuCloseOnEsc(open)
@@ -75,6 +77,8 @@ eventBus.on(async (event, payload) => {
     })
 
     filtersLength.value = nonDeletedFilters.value.length || 0
+
+    filterKey.value++
   }
 
   const column = payload?.column as ColumnType | undefined
@@ -206,7 +210,7 @@ watch(
     </NcTooltip>
 
     <template #overlay>
-      <div>
+      <div :key="filterKey">
         <SmartsheetToolbarColumnFilter
           ref="filterComp"
           v-model:draft-filter="draftFilter"

@@ -37,7 +37,7 @@ const {
   updateView,
   isUserViewOwner,
   onOpenCopyViewConfigFromAnotherViewModal,
-  getViewsCountByTableId,
+  getCopyViewConfigBtnAccessStatus,
 } = viewsStore
 
 const { isCopyViewConfigFromAnotherViewFeatureEnabled } = storeToRefs(viewsStore)
@@ -216,25 +216,7 @@ const isUploadAllowed = computed(() => {
 })
 
 const copyViewConfigMenuItemStatus = computed(() => {
-  const result = {
-    isDisabled: false,
-    tooltip: '',
-  }
-
-  if (isPersonalView.value && !isViewOwner.value) {
-    result.isDisabled = true
-    result.tooltip = t('tooltip.onlyViewOwnerCanCopyViewConfig')
-  } else if (lockType.value === LockType.Locked) {
-    result.isDisabled = true
-    result.tooltip = t('title.thisViewIsLockType', {
-      type: t(viewLockIcons[lockType.value]?.title).toLowerCase(),
-    })
-  } else if (getViewsCountByTableId(table.value!.id!) < 2) {
-    result.isDisabled = true
-    result.tooltip = t('tooltip.youNeedAtLeastOneExistingViewToCopyConfigurations')
-  }
-
-  return result
+  return getCopyViewConfigBtnAccessStatus(view.value, 'view-action-menu')
 })
 
 defineOptions({

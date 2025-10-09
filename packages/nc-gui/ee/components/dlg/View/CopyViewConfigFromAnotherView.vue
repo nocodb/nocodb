@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {
-  extractSupportedViewSettingOverrideOptions,
   ViewSettingOverrideOptions,
+  extractSupportedViewSettingOverrideOptions,
   getCopyViewConfigOptions,
   viewTypeAlias,
 } from 'nocodb-sdk'

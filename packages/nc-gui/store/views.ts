@@ -32,6 +32,8 @@ interface RecentView {
 export const useViewsStore = defineStore('viewsStore', () => {
   const { $api, $e } = useNuxtApp()
 
+  const { t } = useI18n()
+
   const { ncNavigateTo, user } = useGlobal()
 
   const router = useRouter()
@@ -810,8 +812,39 @@ export const useViewsStore = defineStore('viewsStore', () => {
     )
   }
 
-  const getViewsCountByTableId = (tableId: string) => {
-    return (viewsByTable.value.get(tableId) || []).length
+  const getCopyViewConfigBtnAccessStatus = (view: ViewType, from: 'view-action-menu' | 'toolbar' = 'view-action-menu') => {
+    const result = {
+      isDisabled: false,
+      tooltip: '',
+      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit'),
+    }
+
+    if (view?.lock_type === LockType.Personal && !isUserViewOwner(view)) {
+      result.isDisabled = true
+      result.tooltip = t('tooltip.onlyViewOwnerCanCopyViewConfig')
+
+      if (from === 'toolbar') {
+        result.isVisible = false
+      }
+    } else if (view?.lock_type === LockType.Locked) {
+      result.isDisabled = true
+      result.tooltip = t('title.thisViewIsLockType', {
+        type: t(viewLockIcons[view?.lock_type]?.title).toLowerCase(),
+      })
+
+      if (from === 'toolbar') {
+        result.isVisible = false
+      }
+    } else if ((viewsByTable.value.get(view.fk_model_id) || []).length < 2) {
+      result.isDisabled = true
+      result.tooltip = t('tooltip.youNeedAtLeastOneExistingViewToCopyConfigurations')
+
+      if (from === 'toolbar') {
+        result.isVisible = false
+      }
+    }
+
+    return result
   }
 
   const onOpenCopyViewConfigFromAnotherViewModal = ({
@@ -823,10 +856,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
     destView?: ViewType
     onCopy?: (selectedCopyViewConfigTypes: ViewSettingOverrideOptions[]) => void
   } = {}) => {
-    if (!isEeUI || !isUIAllowed('viewCreateOrEdit')) return
+    if (!destView || !isEeUI || !isUIAllowed('viewCreateOrEdit')) return
 
-    // If destination view is locked or if personal and user is not the owner then return
-    if (destView?.lock_type === LockType.Locked || (destView?.lock_type === LockType.Personal && !isUserViewOwner(destView))) {
+    // If destination view is locked or if personal and user is not the owner or if table has only one view then return
+    if (getCopyViewConfigBtnAccessStatus(destView).isDisabled) {
       return
     }
 
@@ -990,7 +1023,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     getViewReadableUrlSlug,
     onOpenCopyViewConfigFromAnotherViewModal,
     isUserViewOwner,
-    getViewsCountByTableId,
+    getCopyViewConfigBtnAccessStatus,
   }
 })
 

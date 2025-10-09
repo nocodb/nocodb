@@ -400,6 +400,10 @@ const openBaseSettings = async (baseId: string) => {
   await navigateTo(`/nc/${baseId}?page=base-settings`)
 }
 
+const openMcpSettings = async (baseId: string) => {
+  await navigateTo(`/nc/${baseId}?page=base-settings&tab=mcp`)
+}
+
 const showNodeTooltip = ref(true)
 
 const shouldOpenContextMenu = computed(() => {
@@ -615,6 +619,7 @@ defineExpose({
                       @copy-project-info="copyProjectInfo()"
                       @open-erd-view="openErdView($event)"
                       @open-base-settings="openBaseSettings($event)"
+                      @open-mcp-server="openMcpSettings($event)"
                       @delete="projectDelete"
                     />
                   </template>
@@ -674,6 +679,7 @@ defineExpose({
         @copy-project-info="copyProjectInfo()"
         @open-erd-view="openErdView($event)"
         @open-base-settings="openBaseSettings($event)"
+        @open-mcp-server="openMcpSettings($event)"
         @delete="projectDelete"
       />
       <NcMenu

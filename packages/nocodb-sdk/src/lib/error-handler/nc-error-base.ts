@@ -680,4 +680,122 @@ export class NcErrorBase {
       ...args,
     });
   }
+  subscriptionAlreadyExists(
+    workspaceOrOrgId: string,
+    args?: NcErrorArgs
+  ): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SUBSCRIPTION_ALREADY_EXISTS,
+      {
+        params: workspaceOrOrgId,
+        ...args,
+      }
+    );
+  }
+
+  subscriptionNotFound(workspaceOrOrgId: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SUBSCRIPTION_NOT_FOUND,
+      {
+        params: workspaceOrOrgId,
+        ...args,
+      }
+    );
+  }
+
+  planNotAvailable(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_PLAN_NOT_AVAILABLE,
+      args
+    );
+  }
+
+  seatCountMismatch(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SEAT_COUNT_MISMATCH, {
+      params: 'There was a mismatch in the seat count, please try again',
+      ...args,
+    });
+  }
+
+  invalidPaymentPayload(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INVALID_PAYMENT_PAYLOAD,
+      {
+        params: 'Invalid payment payload',
+        ...args,
+      }
+    );
+  }
+
+  stripeCustomerNotFound(customerId: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_STRIPE_CUSTOMER_NOT_FOUND,
+      {
+        params: customerId,
+        ...args,
+      }
+    );
+  }
+
+  stripeSubscriptionNotFound(
+    subscriptionId: string,
+    args?: NcErrorArgs
+  ): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_STRIPE_SUBSCRIPTION_NOT_FOUND,
+      {
+        params: subscriptionId,
+        ...args,
+      }
+    );
+  }
+
+  subscriptionOwnershipMismatch(
+    entity: 'workspace' | 'org',
+    args?: NcErrorArgs
+  ): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SUBSCRIPTION_OWNERSHIP_MISMATCH,
+      {
+        params: `Subscription does not belong to the ${entity}`,
+        ...args,
+      }
+    );
+  }
+
+  internalCustomerNotSupported(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INTERNAL_CUSTOMER_NOT_SUPPORTED,
+      {
+        params: 'Internal customer not supported',
+        ...args,
+      }
+    );
+  }
+
+  subscriptionCreateFailed(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SUBSCRIPTION_CREATE_FAILED,
+      {
+        params: message,
+        ...args,
+      }
+    );
+  }
+
+  stripeWebhookVerificationFailed(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_STRIPE_WEBHOOK_VERIFICATION_FAILED,
+      {
+        params: 'Webhook signature verification failed',
+        ...args,
+      }
+    );
+  }
+  planAlreadyExists(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_PLAN_ALREADY_EXISTS, {
+      params: id,
+      ...args,
+    });
+  }
 }

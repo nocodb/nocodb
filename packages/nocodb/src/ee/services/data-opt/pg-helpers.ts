@@ -1503,6 +1503,7 @@ export async function singleQueryList(
     includeSortAndFilterColumns?: boolean;
     skipPaginateWrapper?: boolean;
     skipSortBasedOnOrderCol?: boolean;
+    ignoreViewFilterAndSort?: boolean;
   },
 ): Promise<
   PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
@@ -1643,22 +1644,24 @@ export async function singleQueryList(
 
   if (!sorts?.['length'] && ctx.params.sortArr?.length) {
     sorts = ctx.params.sortArr;
-  } else if (!sorts?.['length'] && ctx.view) {
+  } else if (!sorts?.['length'] && ctx.view && !ctx.ignoreViewFilterAndSort) {
     sorts = await Sort.list(context, { viewId: ctx.view.id });
   }
 
-  const viewFilters = ctx.view?.id
-    ? await Filter.rootFilterList(context, {
-        viewId: ctx.view?.id,
-      })
-    : [];
+  let viewFilters: Filter[] = [];
+
+  if (ctx.view?.id && !ctx.ignoreViewFilterAndSort) {
+    viewFilters = await Filter.rootFilterList(context, {
+      viewId: ctx.view?.id,
+    });
+  }
 
   if (viewFilters?.length && checkForStaticDateValFilters(viewFilters)) {
     skipCache = true;
   }
 
   const aggrConditionObj = [
-    ...(ctx.view
+    ...(ctx.view && !ctx.ignoreViewFilterAndSort
       ? [
           new Filter({
             children: viewFilters,
@@ -1697,10 +1700,11 @@ export async function singleQueryList(
   await conditionV2(baseModel, aggrConditionObj, countQb);
   const orderColumn = columns.find((c) => isOrderCol(c));
 
+  // apply sort on root query
+  if (sorts?.length) await sortV2(baseModel, sorts, rootQb);
+
   // apply sort on root query only if not skipped
   if (!ctx.skipSortBasedOnOrderCol) {
-    // apply sort on root query
-    if (sorts?.length) await sortV2(baseModel, sorts, rootQb);
     if (orderColumn) {
       rootQb.orderBy(orderColumn.column_name);
     }
@@ -1767,11 +1771,11 @@ export async function singleQueryList(
     }
   }
 
+  // apply the sort on final query to get the result in correct order
+  if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
+
   // apply sort on root query only if not skipped
   if (!ctx.skipSortBasedOnOrderCol) {
-    // apply the sort on final query to get the result in correct order
-    if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
-
     if (orderColumn) {
       qb.orderBy(orderColumn.column_name);
     }

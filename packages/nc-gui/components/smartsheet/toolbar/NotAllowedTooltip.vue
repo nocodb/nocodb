@@ -23,7 +23,9 @@ defineProps<{
     trigger="hover"
   >
     <template #title>
-      {{ message }}
+      <slot name="title">
+        {{ message }}
+      </slot>
     </template>
     <slot />
   </NcTooltip>

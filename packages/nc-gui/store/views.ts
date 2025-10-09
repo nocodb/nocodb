@@ -810,6 +810,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
     )
   }
 
+  const getViewsCountByTableId = (tableId: string) => {
+    return (viewsByTable.value.get(tableId) || []).length
+  }
+
   const onOpenCopyViewConfigFromAnotherViewModal = ({
     defaultSelectedCopyViewConfigTypes,
     destView = activeView.value,
@@ -986,6 +990,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     getViewReadableUrlSlug,
     onOpenCopyViewConfigFromAnotherViewModal,
     isUserViewOwner,
+    getViewsCountByTableId,
   }
 })
 

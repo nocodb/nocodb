@@ -27,7 +27,7 @@ export default function () {
           })
           .expect(404);
 
-        expect(result.body.error).to.eq('WORKSPACE_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_WORKSPACE_NOT_FOUND');
         expect(result.body.message).to.eq(
           `Workspace 'NOT_EXISTS_WS' not found`,
         );

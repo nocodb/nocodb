@@ -135,7 +135,7 @@ export default function () {
             ],
           });
         expect(response.status).to.eq(403);
-        expect(response.body.error).to.eq('FEATURE_NOT_SUPPORTED');
+        expect(response.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
       });
       it(`will handle empty name`, async () => {
         const response = await request(context.app)

@@ -317,6 +317,7 @@ export class FiltersV3Service {
             logicalOp: groupOrFilter.group_operator, // Pass the current group's logical operator
             isRoot: false, // Indicate it's not the root
             viewId,
+            viewWebhookManager,
             ncMeta,
           });
         }

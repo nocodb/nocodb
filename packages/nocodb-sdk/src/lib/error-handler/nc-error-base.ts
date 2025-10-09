@@ -653,4 +653,31 @@ export class NcErrorBase {
       }
     );
   }
+  storageFileCreateError(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_STORAGE_FILE_CREATE, {
+      params: message,
+      ...args,
+    });
+  }
+
+  storageFileReadError(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_STORAGE_FILE_READ, {
+      params: message,
+      ...args,
+    });
+  }
+
+  storageFileDeleteError(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_STORAGE_FILE_DELETE, {
+      params: message,
+      ...args,
+    });
+  }
+
+  storageFileStreamError(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_STORAGE_FILE_STREAM, {
+      params: message,
+      ...args,
+    });
+  }
 }

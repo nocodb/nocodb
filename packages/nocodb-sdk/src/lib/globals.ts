@@ -1,6 +1,6 @@
-import {ColumnType, FilterType} from './Api';
-import {OrgUserRoles, ProjectRoles, WorkspaceUserRoles} from './enums';
-import {PlanTitles} from './payment';
+import { ColumnType, FilterType } from './Api';
+import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import { PlanTitles } from './payment';
 
 export const enumColors = {
   light: [
@@ -217,6 +217,10 @@ export enum NcErrorType {
   ERR_EXTERNAL_DATA_SOURCE_TIMEOUT = 'ERR_EXTERNAL_DATA_SOURCE_TIMEOUT',
   ERR_RELATION_FIELD_NOT_FOUND = 'ERR_RELATION_FIELD_NOT_FOUND',
   ERR_UNSUPPORTED_FILTER_OPERATION = 'ERR_UNSUPPORTED_FILTER_OPERATION',
+  ERR_STORAGE_FILE_CREATE = 'ERR_STORAGE_FILE_CREATE',
+  ERR_STORAGE_FILE_READ = 'ERR_STORAGE_FILE_READ',
+  ERR_STORAGE_FILE_DELETE = 'ERR_STORAGE_FILE_DELETE',
+  ERR_STORAGE_FILE_STREAM = 'ERR_STORAGE_FILE_STREAM',
 }
 
 export enum ROW_COLORING_MODE {
@@ -297,7 +301,7 @@ interface PlanLimitExceededDetailsType {
   higherPlan?: PlanTitles;
 }
 
-export {Roles, RolesObj, RolesType, PlanLimitExceededDetailsType};
+export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };
 
 export type RowColoringMode = null | 'SELECT' | 'FILTER';
 

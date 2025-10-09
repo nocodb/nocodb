@@ -309,4 +309,20 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Relation Field '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_STORAGE_FILE_CREATE]: {
+    message: (details: string) => `Failed to create file: ${details}`,
+    code: 500,
+  },
+  [NcErrorType.ERR_STORAGE_FILE_READ]: {
+    message: (details: string) => `Failed to read file: ${details}`,
+    code: 500,
+  },
+  [NcErrorType.ERR_STORAGE_FILE_DELETE]: {
+    message: (details: string) => `Failed to delete file: ${details}`,
+    code: 500,
+  },
+  [NcErrorType.ERR_STORAGE_FILE_STREAM]: {
+    message: (details: string) => `Failed to stream file: ${details}`,
+    code: 500,
+  },
 };

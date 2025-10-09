@@ -1,4 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
@@ -14,6 +15,9 @@ import {
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
+import { NcError } from '~/helpers/ncError';
+
+const logger = new Logger('Filter');
 
 export default class Filter {
   id: string;
@@ -107,9 +111,10 @@ export default class Filter {
     ncMeta = Noco.ncMeta,
   ) {
     if (!(id && filter.fk_view_id)) {
-      throw new Error(
+      logger.error(
         `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_parent_id(${filter.fk_view_id})`,
       );
+      NcError.get(context).internalServerError(`Failed to create filter`);
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;
     let value = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

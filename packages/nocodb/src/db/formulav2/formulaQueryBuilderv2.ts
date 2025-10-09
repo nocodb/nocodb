@@ -550,9 +550,7 @@ export default async function formulaQueryBuilderv2({
             },
           );
         } else if (
-          ![
-            NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT,
-          ].includes(e.error)
+          ![NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT].includes(e.error)
         ) {
           // add formula error to show in UI
           await FormulaColumn.update(context, column.id, {

@@ -39,7 +39,7 @@ export class DuplicateService extends DuplicateServiceCE {
       !targetWsUser.workspace_roles[WorkspaceUserRoles.OWNER] &&
       !targetWsUser.workspace_roles[WorkspaceUserRoles.CREATOR]
     ) {
-      NcError.unauthorized(
+      NcError.get(context).unauthorized(
         'You are not authorized to duplicate to selected workspace',
       );
     }

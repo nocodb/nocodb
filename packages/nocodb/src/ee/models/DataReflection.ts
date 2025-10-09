@@ -244,7 +244,7 @@ export default class DataReflection extends DataReflectionCE {
     const workspace = await Workspace.get(fk_workspace_id, false, ncMeta);
 
     if (!workspace) {
-      NcError.workspaceNotFound(fk_workspace_id);
+      NcError._.workspaceNotFound(fk_workspace_id);
     }
 
     const sanitizedWorkspaceTitle = workspace.title.replace(/[^a-z0-9]/gi, '_');

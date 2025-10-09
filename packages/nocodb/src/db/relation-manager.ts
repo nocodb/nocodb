@@ -87,7 +87,7 @@ export class RelationManager {
       !column ||
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
     )
-      NcError.fieldNotFound(colId);
+      NcError.get(baseModel.context).fieldNotFound(colId);
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       baseModel.context,

@@ -35,11 +35,11 @@ export async function runExternal(
     return data;
   } catch (e) {
     if (e.response?.data?.error) {
-      NcError.externalError(e.response.data.error);
+      NcError._.externalError(e.response.data.error);
     }
 
     if (e?.message.includes('timeout')) {
-      NcError.externalTimeOut(
+      NcError._.externalTimeOut(
         'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
       );
     }
@@ -50,7 +50,7 @@ export async function runExternal(
       msg: e.message,
     });
 
-    NcError.externalError(
+    NcError._.externalError(
       'Error running query on external source. Confirm if source is accessible.',
     );
   }

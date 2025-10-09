@@ -126,7 +126,7 @@ export class DuplicateController extends DuplicateControllerCE {
     @Param('secret') secret: string,
   ) {
     if (!secret) {
-      NcError.badRequest('Secret missing');
+      NcError.get(req.context).badRequest('Secret missing');
     }
 
     return await this.remoteImportService.remoteImportProcess(secret, req);

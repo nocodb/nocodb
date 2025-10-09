@@ -46,7 +46,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               dataWrapper(refId).getByColumnNameTitleOrId(primaryKey),
             )
           ) {
-            NcError.unprocessableEntity(
+            NcError.get(baseModel.context).unprocessableEntity(
               `Validation failed: Missing primary key column "${
                 primaryKey.title
               }" in request for model "${
@@ -56,7 +56,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           }
         }
       } else if (ncIsNullOrUndefined(refId)) {
-        NcError.unprocessableEntity(
+        NcError.get(baseModel.context).unprocessableEntity(
           `Validation failed: Invalid id "${JSON.stringify(
             refId,
           )}" for model "${refModel.title}".`,
@@ -79,7 +79,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     await baseModel.model.getColumns(baseModel.context);
     const column = baseModel.model.columnsById[colId];
 
-    if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
+    if (!column || !isLinksOrLTAR(column))
+      NcError.get(baseModel.context).fieldNotFound(colId);
 
     const row = await baseModel.readByPk(
       rowId,
@@ -90,7 +91,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     // validate rowId
     if (!row) {
-      NcError.recordNotFound(rowId);
+      NcError.get(baseModel.context).recordNotFound(rowId);
     }
 
     if (!_childIds.length) return;
@@ -261,7 +262,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.recordNotFound(extractIds(missingIds));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(missingIds),
+              );
             }
 
             insertData = childRows
@@ -360,7 +363,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.recordNotFound(extractIds(missingIds));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(missingIds),
+              );
             }
           }
           const updateQb = baseModel.dbDriver(childTn).update({
@@ -430,7 +435,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             );
 
             if (!childRow) {
-              NcError.recordNotFound(extractIds(childIds, true));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(childIds, true),
+              );
             }
           }
 
@@ -540,7 +547,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     await baseModel.model.getColumns(baseModel.context);
     const column = baseModel.model.columnsById[colId];
 
-    if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
+    if (!column || !isLinksOrLTAR(column))
+      NcError.get(baseModel.context).fieldNotFound(colId);
 
     const row = await baseModel.readByPk(
       rowId,
@@ -551,7 +559,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     // validate rowId
     if (!row) {
-      NcError.recordNotFound(rowId);
+      NcError.get(baseModel.context).recordNotFound(rowId);
     }
 
     if (!childIds.length) return;
@@ -690,7 +698,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   ),
               );
 
-              NcError.recordNotFound(extractIds(missingIds));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(missingIds),
+              );
             }
           }
 
@@ -799,7 +809,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   ),
               );
 
-              NcError.recordNotFound(extractIds(missingIds));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(missingIds),
+              );
             }
           }
 
@@ -853,7 +865,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           // validate Ids
           {
             if (childIds.length > 1)
-              NcError.unprocessableEntity(
+              NcError.get(baseModel.context).unprocessableEntity(
                 'Request must contain only one parent id',
               );
 
@@ -873,7 +885,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             );
 
             if (!childRow) {
-              NcError.recordNotFound(extractIds(childIds, true));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(childIds, true),
+              );
             }
           }
 

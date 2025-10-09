@@ -1051,7 +1051,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           }
           default:
-            NcError.notImplemented(
+            NcError.get(this.context).notImplemented(
               'This database is not supported for bulk aggregation',
             );
         }
@@ -2151,7 +2151,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
 
     if (!row) {
-      NcError.recordNotFound(rowId);
+      NcError.get(this.context).recordNotFound(rowId);
     }
 
     const newRecordOrder = (
@@ -2203,7 +2203,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
 
       if (!prevData) {
-        NcError.recordNotFound(id);
+        NcError.get(this.context).recordNotFound(id);
       }
 
       await this.prepareNocoData(updateObj, false, cookie, prevData);
@@ -2856,13 +2856,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           isCreatedOrLastModifiedTimeCol(col) ||
           isCreatedOrLastModifiedByCol(col)
         ) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${col.title}" is auto generated and cannot be updated`,
           );
         }
 
         if (isVirtualCol(col) && !isLinksOrLTAR(col)) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${col.title}" is virtual and cannot be updated`,
           );
         }
@@ -2872,13 +2872,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           !allowSystemColumn &&
           [UITypes.ForeignKey].includes(col.uidt)
         ) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${col.title}" is system column and cannot be updated`,
           );
         }
 
         if (!allowSystemColumn && col.readonly) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${col.title}" is readonly column and cannot be updated`,
           );
         }
@@ -2889,7 +2889,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           col.uidt !== UITypes.Order &&
           !params.undo
         ) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${col.title}" is system column and cannot be updated`,
           );
         }
@@ -3077,7 +3077,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const pkValues = this.extractPksValues(d, true);
 
         if (!pkValues) {
-          if (throwExceptionIfNotExist) NcError.recordNotFound(pkValues);
+          if (throwExceptionIfNotExist)
+            NcError.get(this.context).recordNotFound(pkValues);
           continue;
         }
 
@@ -3101,7 +3102,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           if (!oldRecord) {
             // removed data from error param, record not found message do not use data
-            if (throwExceptionIfNotExist) NcError.recordNotFound(pk);
+            if (throwExceptionIfNotExist)
+              NcError.get(this.context).recordNotFound(pk);
             continue;
           }
           await this.prepareNocoData(data, false, cookie, oldRecord);
@@ -3344,7 +3346,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // if attachment provided error out
       for (const col of columns) {
         if (col.uidt === UITypes.Attachment && updateData[col.column_name]) {
-          NcError.notImplemented(`Attachment bulk update all`);
+          NcError.get(this.context).notImplemented(
+            `Attachment bulk update all`,
+          );
         }
       }
 
@@ -3468,7 +3472,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(pkValues);
+            NcError.get(this.context).recordNotFound(pkValues);
           }
           continue;
         }
@@ -3499,7 +3503,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (!oldRecord) {
                 // throw or skip if no record found
                 if (throwExceptionIfNotExist) {
-                  NcError.recordNotFound(pk);
+                  NcError.get(this.context).recordNotFound(pk);
                 }
                 continue;
               }
@@ -3648,7 +3652,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { allowSystemColumn = false } = params || {};
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError._.prohibitedSyncTableOperation({
+      NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
         operation: 'insert',
       });
@@ -3668,7 +3672,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { allowSystemColumn = false } = params || {};
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError._.prohibitedSyncTableOperation({
+      NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
         operation: 'insert',
       });
@@ -4102,7 +4106,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
     if (this.model.synced) {
-      NcError._.prohibitedSyncTableOperation({
+      NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
         operation: 'delete',
       });
@@ -4113,7 +4117,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeBulkDelete(_data: any, _trx: any, _req): Promise<void> {
     if (this.model.synced) {
-      NcError._.prohibitedSyncTableOperation({
+      NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
         operation: 'delete',
       });
@@ -4165,7 +4169,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           isCreatedOrLastModifiedTimeCol(column) ||
           isCreatedOrLastModifiedByCol(column)
         ) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${column.title}" is auto generated and cannot be updated`,
           );
         }
@@ -4175,13 +4179,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.system &&
           ![UITypes.ForeignKey, UITypes.Order].includes(column.uidt)
         ) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${column.title}" is system column and cannot be updated`,
           );
         }
 
         if (!allowSystemColumn && column.readonly) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${column.title}" is readonly column and cannot be updated`,
           );
         }
@@ -4244,7 +4248,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       typeof column.dtxp === 'number' &&
       column.dtxp < data[column.title]?.length
     ) {
-      NcError.badRequest(
+      NcError.get(this.context).badRequest(
         `Column "${column.title}" value exceeds the maximum length of ${column.dtxp}`,
       );
     }
@@ -4319,7 +4323,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
     }
     if (notExistedOptions.length > 0) {
-      NcError.optionsNotExists({
+      NcError.get(this.context).optionsNotExists({
         columnTitle,
         validOptions: options,
         options: notExistedOptions,
@@ -4357,7 +4361,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       !column ||
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
     )
-      NcError.fieldNotFound(colId);
+      NcError.get(this.context).fieldNotFound(colId);
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       this.context,
@@ -4663,7 +4667,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       !column ||
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
     )
-      NcError.fieldNotFound(colId);
+      NcError.get(this.context).fieldNotFound(colId);
 
     const relationManager = await RelationManager.getRelationManager(
       this,
@@ -4789,9 +4793,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const columns = await this.model.getColumns(this.context);
       const column = columns?.find((col) => col.id === args.groupColumnId);
 
-      if (!column) NcError.fieldNotFound(args.groupColumnId);
+      if (!column) NcError.get(this.context).fieldNotFound(args.groupColumnId);
       if (isVirtualCol(column))
-        NcError.notImplemented('Grouping for virtual columns');
+        NcError.get(this.context).notImplemented(
+          'Grouping for virtual columns',
+        );
 
       // extract distinct group column values
       let groupingValues: Set<any>;
@@ -4971,9 +4977,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const columns = await this.model.getColumns(this.context);
     const column = columns?.find((col) => col.id === args.groupColumnId);
 
-    if (!column) NcError.fieldNotFound(args.groupColumnId);
+    if (!column) NcError.get(this.context).fieldNotFound(args.groupColumnId);
     if (isVirtualCol(column))
-      NcError.notImplemented('Grouping for virtual columns');
+      NcError.get(this.context).notImplemented('Grouping for virtual columns');
 
     const qb = this.dbDriver(this.tnPath).count('*', { as: 'count' });
 
@@ -6094,7 +6100,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // validate rowId
       if (!row) {
-        NcError.recordNotFound(id);
+        NcError.get(this.context).recordNotFound(id);
       }
 
       const parentCol = await (
@@ -6196,7 +6202,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   findIntermediateOrder(before: BigNumber, after: BigNumber): BigNumber {
     if (after.lte(before)) {
-      NcError.cannotCalculateIntermediateOrderError();
+      NcError.get(this.context).cannotCalculateIntermediateOrderError();
     }
     return before.plus(after.minus(before).div(2));
   }
@@ -6204,7 +6210,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   async getUniqueOrdersBeforeItem(before: unknown, amount = 1, depth = 0) {
     try {
       if (depth > MAX_RECURSION_DEPTH) {
-        NcError.reorderFailed();
+        NcError.get(this.context).reorderFailed();
       }
 
       const orderColumn = this.model.columns.find((c) => isOrderCol(c));
@@ -6254,7 +6260,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           intermediateOrder.eq(adjacentOrder) ||
           intermediateOrder.eq(currentRowOrder)
         ) {
-          NcError.cannotCalculateIntermediateOrderError();
+          NcError.get(this.context).cannotCalculateIntermediateOrderError();
         }
 
         orders.push(intermediateOrder);
@@ -6302,12 +6308,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const orderColumn = this.model.columns.find((c) => isOrderCol(c));
     if (!orderColumn) {
-      NcError.badRequest('Order column not found to recalculateOrder');
+      NcError.get(this.context).badRequest(
+        'Order column not found to recalculateOrder',
+      );
     }
 
     const client = this.dbDriver.client.config.client;
     if (!sql[client]) {
-      NcError.notImplemented(
+      NcError.get(this.context).notImplemented(
         'Recalculate order not implemented for this database',
       );
     }
@@ -6467,29 +6475,33 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 data[column.column_name] &&
                 !Array.isArray(data[column.column_name])
               ) {
-                NcError.invalidAttachmentJson(data[column.column_name]);
+                NcError.get(this.context).invalidAttachmentJson(
+                  data[column.column_name],
+                );
               }
             } catch (e) {
-              NcError.invalidAttachmentJson(data[column.column_name]);
+              NcError.get(this.context).invalidAttachmentJson(
+                data[column.column_name],
+              );
             }
 
             // Confirm that all urls are valid urls
             for (const attachment of data[column.column_name] || []) {
               if (!('url' in attachment) && !('path' in attachment)) {
-                NcError.unprocessableEntity(
+                NcError.get(this.context).unprocessableEntity(
                   'Attachment object must contain either url or path',
                 );
               }
 
               if (attachment.url) {
                 if (attachment.url.startsWith('data:')) {
-                  NcError.unprocessableEntity(
+                  NcError.get(this.context).unprocessableEntity(
                     `Attachment urls do not support data urls`,
                   );
                 }
 
                 if (attachment.url.length > 8 * 1024) {
-                  NcError.unprocessableEntity(
+                  NcError.get(this.context).unprocessableEntity(
                     `Attachment url '${attachment.url}' is too long`,
                   );
                 }
@@ -6571,7 +6583,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           if (Array.isArray(data[column.column_name])) {
             for (const attachment of data[column.column_name]) {
               if (!('url' in attachment) && !('path' in attachment)) {
-                NcError.unprocessableEntity(
+                NcError.get(this.context).unprocessableEntity(
                   'Attachment object must contain either url or path',
                 );
               }
@@ -6653,7 +6665,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 if ('id' in user) {
                   const u = baseUsers.find((u) => u.id === user.id);
                   if (!u) {
-                    NcError.unprocessableEntity(
+                    NcError.get(this.context).unprocessableEntity(
                       `User with id '${user.id}' is not part of this workspace`,
                     );
                   }
@@ -6667,16 +6679,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   if (user.email.length === 0) continue;
                   const u = baseUsers.find((u) => u.email === user.email);
                   if (!u) {
-                    NcError.unprocessableEntity(
+                    NcError.get(this.context).unprocessableEntity(
                       `User with email '${user.email}' is not part of this workspace`,
                     );
                   }
                   userIds.push(u.id);
                 } else {
-                  NcError.unprocessableEntity('Invalid user object');
+                  NcError.get(this.context).unprocessableEntity(
+                    'Invalid user object',
+                  );
                 }
               } catch (e) {
-                NcError.unprocessableEntity(e.message);
+                NcError.get(this.context).unprocessableEntity(e.message);
               }
             }
           } else if (typeof data[column.column_name] === 'string') {
@@ -6689,7 +6703,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 if (user.includes('@')) {
                   const u = baseUsers.find((u) => u.email === user);
                   if (!u) {
-                    NcError.unprocessableEntity(
+                    NcError.get(this.context).unprocessableEntity(
                       `User with email '${user}' is not part of this workspace`,
                     );
                   }
@@ -6697,21 +6711,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 } else {
                   const u = baseUsers.find((u) => u.id === user);
                   if (!u) {
-                    NcError.unprocessableEntity(
+                    NcError.get(this.context).unprocessableEntity(
                       `User with id '${user}' is not part of this workspace`,
                     );
                   }
                   userIds.push(u.id);
                 }
               } catch (e) {
-                NcError.unprocessableEntity(e.message);
+                NcError.get(this.context).unprocessableEntity(e.message);
               }
             }
           } else {
             logger.error(
               `${data[column.column_name]} is not a valid user input`,
             );
-            NcError.unprocessableEntity('Invalid user object');
+            NcError.get(this.context).unprocessableEntity(
+              'Invalid user object',
+            );
           }
 
           if (userIds.length === 0) {
@@ -6720,7 +6736,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             const userSet = new Set(userIds);
 
             if (userSet.size !== userIds.length) {
-              NcError.unprocessableEntity(
+              NcError.get(this.context).unprocessableEntity(
                 'Duplicate users not allowed for user field',
               );
             }
@@ -6729,7 +6745,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               data[column.column_name] = userIds.join(',');
             } else {
               if (userIds.length > 1) {
-                NcError.unprocessableEntity(
+                NcError.get(this.context).unprocessableEntity(
                   `Multiple users not allowed for '${column.title}'`,
                 );
               } else {

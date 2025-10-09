@@ -202,13 +202,13 @@ const parseConditionV2 = async (
     const filterColumn = await filter.getColumn(context);
     if (!filterColumn) {
       if (throwErrorIfInvalid) {
-        NcError.fieldNotFound(filter.fk_column_id);
+        NcError.get(context).fieldNotFound(filter.fk_column_id);
       }
     }
     const column = await getRefColumnIfAlias(context, filterColumn);
     if (!column) {
       if (throwErrorIfInvalid) {
-        NcError.fieldNotFound(filter.fk_column_id);
+        NcError.get(context).fieldNotFound(filter.fk_column_id);
       }
     }
     if (

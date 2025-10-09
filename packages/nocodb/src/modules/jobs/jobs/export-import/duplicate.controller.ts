@@ -269,10 +269,10 @@ export class DuplicateController {
     // check if source is readonly and column type is not allowed
     if (!readonlyMetaAllowedTypes.includes(column.uidt)) {
       if (source.is_schema_readonly) {
-        NcError.sourceMetaReadOnly(source.alias);
+        NcError.get(context).sourceMetaReadOnly(source.alias);
       }
       if (source.is_data_readonly) {
-        NcError.sourceDataReadOnly(source.alias);
+        NcError.get(context).sourceDataReadOnly(source.alias);
       }
     }
 

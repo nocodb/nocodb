@@ -105,12 +105,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       let columnQuery;
       switch (column.uidt) {
         case UITypes.Attachment:
-          NcError.badRequest(
+          NcError.get(baseModel.context).badRequest(
             'Group by using attachment column is not supported',
           );
           break;
         case UITypes.Button:
-          NcError.badRequest('Group by using Button column is not supported');
+          NcError.get(baseModel.context).badRequest(
+            'Group by using Button column is not supported',
+          );
           break;
         case UITypes.Links:
         case UITypes.Rollup:
@@ -469,7 +471,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           (c) => c.column_name === col || c.title === col,
         );
         if (!column) {
-          NcError.fieldNotFound(col);
+          NcError.get(baseModel.context).fieldNotFound(col);
         }
 
         // if qrCode or Barcode replace it with value column nd keep the alias
@@ -483,12 +485,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
         switch (column.uidt) {
           case UITypes.Attachment:
-            NcError.badRequest(
+            NcError.get(baseModel.context).badRequest(
               'Group by using attachment column is not supported',
             );
             break;
           case UITypes.Button: {
-            NcError.badRequest('Group by using Button column is not supported');
+            NcError.get(baseModel.context).badRequest(
+              'Group by using Button column is not supported',
+            );
             break;
           }
           case UITypes.Rollup:
@@ -735,7 +739,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       });
 
       if (!bulkFilterList?.length) {
-        return NcError.badRequest('bulkFilterList is required');
+        return NcError.get(baseModel.context).badRequest(
+          'bulkFilterList is required',
+        );
       }
 
       for (const f of bulkFilterList) {
@@ -775,12 +781,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using attachment column is not supported',
                 );
                 break;
               case UITypes.Button: {
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using Button column is not supported',
                 );
                 break;
@@ -1006,7 +1012,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             break;
           default:
-            NcError.notImplemented(
+            NcError.get(baseModel.context).notImplemented(
               'This database does not support bulk groupBy count',
             );
         }
@@ -1053,7 +1059,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     try {
       if (!bulkFilterList?.length) {
-        return NcError.badRequest('bulkFilterList is required');
+        return NcError.get(baseModel.context).badRequest(
+          'bulkFilterList is required',
+        );
       }
 
       for (const f of bulkFilterList) {
@@ -1082,7 +1090,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               (c) => c.column_name === col || c.title === col,
             );
             if (!column) {
-              NcError.fieldNotFound(col);
+              NcError.get(baseModel.context).fieldNotFound(col);
             }
             return column?.id;
           })
@@ -1110,12 +1118,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using attachment column is not supported',
                 );
                 break;
               case UITypes.Button: {
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using Button column is not supported',
                 );
                 break;
@@ -1420,7 +1428,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             break;
           default:
-            NcError.notImplemented(
+            NcError.get(baseModel.context).notImplemented(
               'This database does not support bulk groupBy',
             );
         }

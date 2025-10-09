@@ -92,7 +92,7 @@ export class NcErrorBase {
   }
 
   apiClientNotFound(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.API_CLIENT_NOT_FOUND, {
+    throw this.errorCodex.generateError(NcErrorType.ERR_API_CLIENT_NOT_FOUND, {
       params: id,
       ...args,
     });

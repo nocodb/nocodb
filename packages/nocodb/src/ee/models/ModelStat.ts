@@ -29,7 +29,7 @@ export default class ModelStat {
     ncMeta = Noco.ncMeta,
   ) {
     let statData = await NocoCache.get(
-      context,
+      { workspace_id: workspaceId, base_id: null },
       `${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -46,7 +46,7 @@ export default class ModelStat {
       );
       if (statData) {
         await NocoCache.set(
-          context,
+          { workspace_id: workspaceId, base_id: null },
           `${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`,
           statData,
         );
@@ -101,7 +101,7 @@ export default class ModelStat {
     }
 
     await NocoCache.del(
-      context,
+      { workspace_id: workspaceId, base_id: null },
       `${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`,
     );
     await NocoCache.del(context, `${CacheScope.MODEL_STAT}:${workspaceId}:sum`);
@@ -127,11 +127,11 @@ export default class ModelStat {
       );
 
       await NocoCache.del(
-        context,
+        { workspace_id: workspaceId, base_id: null },
         `${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`,
       );
       await NocoCache.del(
-        context,
+        { workspace_id: workspaceId, base_id: null },
         `${CacheScope.MODEL_STAT}:${workspaceId}:sum`,
       );
 

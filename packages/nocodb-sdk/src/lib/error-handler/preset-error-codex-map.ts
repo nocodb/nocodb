@@ -11,99 +11,99 @@ export const presetErrorCodexMap: Partial<
     }
   >
 > = {
-  [NcErrorType.UNKNOWN_ERROR]: {
+  [NcErrorType.ERR_UNKNOWN]: {
     message: 'Something went wrong',
     code: 500,
   },
-  [NcErrorType.INTERNAL_SERVER_ERROR]: {
+  [NcErrorType.ERR_INTERNAL_SERVER]: {
     message: (message: string) => message || `Internal server error`,
     code: 500,
   },
-  [NcErrorType.DATABASE_ERROR]: {
+  [NcErrorType.ERR_DATABASE_OP_FAILED]: {
     message: (message: string) =>
       message || `There was an error while running the query`,
     code: 500,
   },
-  [NcErrorType.AUTHENTICATION_REQUIRED]: {
+  [NcErrorType.ERR_AUTHENTICATION_REQUIRED]: {
     message: (message: string) =>
       message
         ? `Authentication required - ${message}`
         : 'Authentication required to access this resource',
     code: 401,
   },
-  [NcErrorType.FORBIDDEN]: {
+  [NcErrorType.ERR_FORBIDDEN]: {
     message: (message: string) =>
       message ? `Forbidden - ${message}` : 'Forbidden to access this resource',
     code: 403,
   },
-  [NcErrorType.API_TOKEN_NOT_ALLOWED]: {
+  [NcErrorType.ERR_API_TOKEN_NOT_ALLOWED]: {
     message: 'This request is not allowed with API token',
     code: 401,
   },
-  [NcErrorType.WORKSPACE_NOT_FOUND]: {
+  [NcErrorType.ERR_WORKSPACE_NOT_FOUND]: {
     message: (id: string) => `Workspace '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.BASE_NOT_FOUND]: {
+  [NcErrorType.ERR_BASE_NOT_FOUND]: {
     message: (id: string) => `Base '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.VIEW_COLUMN_NOT_FOUND]: {
+  [NcErrorType.ERR_VIEW_COLUMN_NOT_FOUND]: {
     message: (id: string) => `View column '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.SOURCE_NOT_FOUND]: {
+  [NcErrorType.ERR_SOURCE_NOT_FOUND]: {
     message: (id: string) => `Source '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.INTEGRATION_NOT_FOUND]: {
+  [NcErrorType.ERR_INTEGRATION_NOT_FOUND]: {
     message: (id: string) => `Connection '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.INTEGRATION_LINKED_WITH_BASES]: {
+  [NcErrorType.ERR_INTEGRATION_LINKED_WITH_BASES]: {
     message: (bases) => `Connection linked with following bases '${bases}'`,
     code: 404,
   },
-  [NcErrorType.TABLE_NOT_FOUND]: {
+  [NcErrorType.ERR_TABLE_NOT_FOUND]: {
     message: (id: string) => `Table '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.VIEW_NOT_FOUND]: {
+  [NcErrorType.ERR_VIEW_NOT_FOUND]: {
     message: (id: string) => `View '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.FIELD_NOT_FOUND]: {
+  [NcErrorType.ERR_FIELD_NOT_FOUND]: {
     message: (id: string) => `Field '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.HOOK_NOT_FOUND]: {
+  [NcErrorType.ERR_HOOK_NOT_FOUND]: {
     message: (id: string) => `Hook '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.RECORD_NOT_FOUND]: {
+  [NcErrorType.ERR_RECORD_NOT_FOUND]: {
     message: (...ids: string[]) => {
       const isMultiple = Array.isArray(ids) && ids.length > 1;
       return `Record${isMultiple ? 's' : ''} '${ids.join(', ')}' not found`;
     },
     code: 404,
   },
-  [NcErrorType.GENERIC_NOT_FOUND]: {
+  [NcErrorType.ERR_GENERIC_NOT_FOUND]: {
     message: (resource: string, id: string) => `${resource} '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.WIDGET_NOT_FOUND]: {
+  [NcErrorType.ERR_WIDGET_NOT_FOUND]: {
     message: (id: string) => `Widget '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.DASHBOARD_NOT_FOUND]: {
+  [NcErrorType.ERR_DASHBOARD_NOT_FOUND]: {
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.REQUIRED_FIELD_MISSING]: {
+  [NcErrorType.ERR_REQUIRED_FIELD_MISSING]: {
     message: (field: string) => `Field '${field}' is required`,
     code: 422,
   },
-  [NcErrorType.ERROR_DUPLICATE_RECORD]: {
+  [NcErrorType.ERR_DUPLICATE_RECORD]: {
     message: (...ids: string[]) => {
       const isMultiple = Array.isArray(ids) && ids.length > 1;
       return `Record${isMultiple ? 's' : ''} '${ids.join(
@@ -112,7 +112,7 @@ export const presetErrorCodexMap: Partial<
     },
     code: 422,
   },
-  [NcErrorType.USER_NOT_FOUND]: {
+  [NcErrorType.ERR_USER_NOT_FOUND]: {
     message: (idOrEmail: string) => {
       const isEmail = idOrEmail.includes('@');
       return `User ${
@@ -121,187 +121,187 @@ export const presetErrorCodexMap: Partial<
     },
     code: 404,
   },
-  [NcErrorType.INVALID_OFFSET_VALUE]: {
+  [NcErrorType.ERR_INVALID_OFFSET_VALUE]: {
     message: (offset: string) =>
       ncIsNumber(Number(offset)) && Number(offset) > 0
         ? `Offset value '${offset}' is invalid`
         : `Offset must be a non-negative integer`,
     code: 422,
   },
-  [NcErrorType.INVALID_PAGE_VALUE]: {
+  [NcErrorType.ERR_INVALID_PAGE_VALUE]: {
     message: (page: string) => `Page value '${page}' is invalid`,
     code: 422,
   },
-  [NcErrorType.INVALID_PK_VALUE]: {
+  [NcErrorType.ERR_INVALID_PK_VALUE]: {
     message: (value: any, pkColumn: string) =>
       `Primary key value '${value}' is invalid for column '${pkColumn}'`,
     code: 422,
   },
-  [NcErrorType.INVALID_LIMIT_VALUE]: {
+  [NcErrorType.ERR_INVALID_LIMIT_VALUE]: {
     message: (limitMin: string, limitMax: string) =>
       `Limit value should be between ${limitMin} and ${limitMax}`,
     code: 422,
   },
-  [NcErrorType.INVALID_FILTER]: {
+  [NcErrorType.ERR_INVALID_FILTER]: {
     message: (filter: string) => `Filter '${filter}' is invalid`,
     code: 422,
   },
-  [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {
+  [NcErrorType.ERR_INVALID_SHARED_VIEW_PASSWORD]: {
     message: 'Invalid shared view password',
     code: 403,
   },
-  [NcErrorType.INVALID_SHARED_DASHBOARD_PASSWORD]: {
+  [NcErrorType.ERR_SHARED_DASHBOARD_PASSWORD_INVALID]: {
     message: 'Invalid shared dashboard password',
     code: 403,
   },
-  [NcErrorType.INVALID_ATTACHMENT_JSON]: {
+  [NcErrorType.ERR_INVALID_ATTACHMENT_JSON]: {
     message: (payload: string) =>
       `Invalid JSON for attachment field: ${payload}`,
     code: 400,
   },
-  [NcErrorType.NOT_IMPLEMENTED]: {
+  [NcErrorType.ERR_NOT_IMPLEMENTED]: {
     message: (feature: string) => `${feature} is not implemented`,
     code: 501,
   },
-  [NcErrorType.BAD_JSON]: {
+  [NcErrorType.ERR_INVALID_JSON]: {
     message: 'Invalid JSON in request body',
     code: 400,
   },
-  [NcErrorType.COLUMN_ASSOCIATED_WITH_LINK]: {
+  [NcErrorType.ERR_COLUMN_ASSOCIATED_WITH_LINK]: {
     message: 'Column is associated with a link, please remove the link first',
     code: 400,
   },
-  [NcErrorType.TABLE_ASSOCIATED_WITH_LINK]: {
+  [NcErrorType.ERR_TABLE_ASSOCIATED_WITH_LINK]: {
     message: 'Table is associated with a link, please remove the link first',
     code: 400,
   },
-  [NcErrorType.FORMULA_ERROR]: {
+  [NcErrorType.ERR_FORMULA]: {
     message: (message: string) => {
       return message;
     },
     code: 400,
   },
-  [NcErrorType.FORMULA_CIRCULAR_REF_ERROR]: {
+  [NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA]: {
     message: (message: string) => {
       return message;
     },
     code: 400,
   },
-  [NcErrorType.PERMISSION_DENIED]: {
+  [NcErrorType.ERR_PERMISSION_DENIED]: {
     message: 'Permission denied',
     code: 403,
   },
-  [NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE]: {
+  [NcErrorType.ERR_INVALID_ATTACHMENT_UPLOAD_SCOPE]: {
     message: 'Invalid attachment upload scope',
     code: 400,
   },
-  [NcErrorType.REORDER_FAILED]: {
+  [NcErrorType.ERR_REORDER_FAILED]: {
     message: 'Reorder failed',
     code: 400,
   },
-  [NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER]: {
+  [NcErrorType.ERR_CANNOT_CALCULATE_INTERMEDIATE_ORDER]: {
     message: 'Cannot calculate intermediate order',
     code: 400,
   },
-  [NcErrorType.PLAN_LIMIT_EXCEEDED]: {
+  [NcErrorType.ERR_PLAN_LIMIT_EXCEEDED]: {
     message: (message: string) => message || 'Plan limit exceeded',
     code: 403,
   },
-  [NcErrorType.SSO_LOGIN_REQUIRED]: {
+  [NcErrorType.ERR_SSO_LOGIN_REQUIRED]: {
     message: (_workspaceId: string) => 'SSO login required for workspace',
     code: 403,
   },
-  [NcErrorType.SSO_GENERATED_TOKEN_REQUIRED]: {
+  [NcErrorType.ERR_SSO_GENERATED_TOKEN_REQUIRED]: {
     message: (_workspaceId: string) =>
       'This workspace requires SSO-authenticated tokens. Please generate a new token after signing in with SSO',
     code: 403,
   },
-  [NcErrorType.MAX_INSERT_LIMIT_EXCEEDED]: {
+  [NcErrorType.ERR_MAX_INSERT_LIMIT_EXCEEDED]: {
     message: (limit: string) => `Maximum ${limit} records during insert`,
     code: 422,
   },
-  [NcErrorType.MAX_WORKSPACE_LIMIT_REACHED]: {
+  [NcErrorType.ERR_MAX_WORKSPACE_LIMIT_REACHED]: {
     message: () =>
       `The maximum workspace limit has been reached. Please contact your administrator to request access to a workspace.`,
     code: 403,
   },
-  [NcErrorType.INVALID_VALUE_FOR_FIELD]: {
+  [NcErrorType.ERR_INVALID_VALUE_FOR_FIELD]: {
     message: (message: string) => message,
     code: 422,
   },
-  [NcErrorType.INVALID_REQUEST_BODY]: {
+  [NcErrorType.ERR_INVALID_REQUEST_BODY]: {
     message: (message: string) => message,
     code: 400,
   },
-  [NcErrorType.BASE_USER_ERROR]: {
+  [NcErrorType.ERR_BASE_COLLABORATION]: {
     message: (message: string) => message || 'Something went wrong',
     code: 422,
   },
-  [NcErrorType.ORG_USER_ERROR]: {
+  [NcErrorType.ERR_ORG_USER]: {
     message: (message: string) => message || 'Something went wrong',
     code: 422,
   },
-  [NcErrorType.TABLE_ERROR]: {
+  [NcErrorType.ERR_TABLE_OP_FAILED]: {
     message: (message: string) => message || 'Something went wrong',
     code: 422,
   },
-  [NcErrorType.COLUMN_ERROR]: {
+  [NcErrorType.ERR_COLUMN_OP_FAILED]: {
     message: (message: string) => message || 'Something went wrong',
     code: 422,
   },
-  [NcErrorType.PROHIBITED_SYNC_TABLE_OPERATION]: {
+  [NcErrorType.ERR_SYNC_TABLE_OPERATION_PROHIBITED]: {
     message: (message: string) =>
       message ||
       `Prohibited data insert / update / delete operation on synced table`,
     code: 422,
   },
-  [NcErrorType.FEATURE_NOT_SUPPORTED]: {
+  [NcErrorType.ERR_FEATURE_NOT_SUPPORTED]: {
     message: (message: string) =>
       message || `Upgrade to a higher plan to use this feature.`,
     code: 403,
   },
-  [NcErrorType.DUPLICATE_ALIAS]: {
+  [NcErrorType.ERR_DUPLICATE_IN_ALIAS]: {
     message: (message: string) => message,
     code: 422,
   },
-  [NcErrorType.OUT_OF_SYNC]: {
+  [NcErrorType.ERR_OUT_OF_SYNC]: {
     message: (message: string) =>
       message || `Please refresh the page and try again.`,
     code: 409,
   },
-  [NcErrorType.FILTER_VERIFICATION_FAILED]: {
+  [NcErrorType.ERR_FILTER_VERIFICATION_FAILED]: {
     message: (message: string) => `Filter verification failed: ${message}`,
     code: 422,
   },
-  [NcErrorType.WEBHOOK_ERROR]: {
+  [NcErrorType.ERR_WEBHOOK_ERROR]: {
     message: (message: string) => message,
     code: 400,
   },
-  [NcErrorType.NO_SOURCES_FOUND]: {
+  [NcErrorType.ERR_DATA_SOURCES_NOT_FOUND]: {
     message: (message: string) => message,
     code: 400,
   },
-  [NcErrorType.PLUGIN_TEST_ERROR]: {
+  [NcErrorType.ERR_TEST_PLUGIN_FAILED]: {
     message: (message: string) => message,
     code: 400,
   },
-  [NcErrorType.UNSUPPORTED_RELATION]: {
+  [NcErrorType.ERR_UNSUPPORTED_RELATION]: {
     message: (message: string) => message,
     code: 400,
   },
-  [NcErrorType.EXTERNAL_ERROR]: {
+  [NcErrorType.ERR_IN_EXTERNAL_DATA_SOURCE]: {
     message: (message: string) =>
       message ||
       'Error running query on external source. Confirm if source is accessible.',
     code: 502,
   },
-  [NcErrorType.EXTERNAL_TIMEOUT]: {
+  [NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT]: {
     message: (message: string) =>
       message ||
       'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
     code: 504,
   },
-  [NcErrorType.RELATION_FIELD_NOT_FOUND]: {
+  [NcErrorType.ERR_RELATION_FIELD_NOT_FOUND]: {
     message: (id: string) => `Relation Field '${id}' not found`,
     code: 404,
   },

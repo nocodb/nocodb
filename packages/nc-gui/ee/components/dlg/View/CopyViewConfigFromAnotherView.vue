@@ -29,6 +29,8 @@ const { destView } = toRefs(props)
 
 const { $api, $eventBus } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const viewsStore = useViewsStore()
@@ -38,6 +40,8 @@ const { activeView } = storeToRefs(viewsStore)
 const { getMeta } = useMetas()
 
 const eventBus = $eventBus.smartsheetStoreEventBus
+
+const eventBusRealtime = $eventBus.realtimeViewMetaEventBus
 
 const isLoading = ref(false)
 
@@ -87,6 +91,8 @@ const copyViewConfiguration = async () => {
     return
   }
 
+  isLoading.value = true
+
   try {
     await $api.internal.postOperation(
       activeWorkspaceId.value!,
@@ -122,7 +128,7 @@ const copyViewConfiguration = async () => {
       }
 
       if (selectedCopyViewConfigTypes.value.includes(ViewSettingOverrideOptions.GROUP)) {
-        eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+        eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD, { isViewConfigCopied: true })
       }
 
       if (
@@ -142,15 +148,28 @@ const copyViewConfiguration = async () => {
       }
 
       nextTick(() => {
-        eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+        eventBusRealtime.emit('view_column_refresh', {
+          fk_view_id: destView.value.id,
+        })
       })
     }
 
     emits('copy', selectedCopyViewConfigTypes.value)
+    message.success(t('objects.copyViewConfig.viewConfigurationCopied'))
     dialogShow.value = false
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
-    message.error(await extractSdkResponseErrorMsg(e))
+    const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+    if (errorInfo.error === NcErrorType.FEATURE_NOT_SUPPORTED) {
+      message.error(errorInfo.message)
+    } else {
+      message.error(t('objects.copyViewConfig.errorOccuredWhileCopyingViewConfiguration'), undefined, {
+        copyText: errorInfo.message,
+      })
+    }
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -187,6 +206,7 @@ watch(
           :table-id="destView?.fk_model_id"
           :disabled="!destView?.fk_model_id"
           :filter-view="(view) => view.id !== destView.id"
+          label-default-view-as-default
           force-layout="vertical"
         >
           <template #label>

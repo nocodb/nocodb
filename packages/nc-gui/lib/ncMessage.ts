@@ -45,7 +45,11 @@ export interface NcMessageObjectProps extends NcAlertMessageProps, Omit<MessageA
  */
 export type NcMessageProps = NcMessageObjectProps | VueNode
 
-export interface NcMessageExtraProps extends Pick<NcMessageObjectProps, 'showDefaultMessage' | 'showCopyBtn'> {}
+/**
+ * Use `copyText` & `copyBtnTooltip` to set the copy text & tooltip for the copy button if params is primitive value
+ */
+export interface NcMessageExtraProps
+  extends Pick<NcMessageObjectProps, 'showDefaultMessage' | 'showCopyBtn' | 'copyText' | 'copyBtnTooltip'> {}
 
 const defaultNcMessageExtraProps = {
   showDefaultMessage: false,
@@ -132,7 +136,7 @@ const getMessageProps = (
       ...updatedParams,
       title: ncMessageExtraProps.showDefaultMessage || !content ? getI18n().global.t(`objects.ncMessage.${type}`) : '',
       content,
-      copyText: ncMessageExtraProps.showCopyBtn ? content ?? '' : '',
+      copyText: ncMessageExtraProps.showCopyBtn ? ncMessageExtraProps.copyText ?? content ?? '' : '',
     }
   } else if (!isNcMessageObjectProps(params)) {
     content = params
@@ -153,8 +157,8 @@ const getMessageProps = (
     let copyText = ''
 
     if (showCopyBtn) {
-      if (params?.copyText) {
-        copyText = params?.copyText
+      if (params?.copyText || ncMessageExtraProps.copyText) {
+        copyText = params?.copyText || ncMessageExtraProps.copyText
       } else if (isPrimitiveValue(params.content)) {
         copyText = params.content?.toString() ?? params.title ?? ''
       }

@@ -7,6 +7,7 @@ import {
   EventType,
   extractRolesObj,
   IntegrationsType,
+  NcBaseError,
   OrgUserRoles,
   SqlUiFactory,
 } from 'nocodb-sdk';
@@ -193,7 +194,10 @@ export class BasesService {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      NcError.get(context).baseError(
+        e?.message || 'Failed to delete base',
+      );
     }
 
     this.appHooksService.emit(AppEvents.PROJECT_DELETE, {

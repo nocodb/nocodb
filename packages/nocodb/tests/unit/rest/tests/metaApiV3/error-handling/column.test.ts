@@ -36,7 +36,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({ title: '', type: 'SingleLineText' })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.include('Invalid request body');
       });
       it('will handle duplicate alias', async () => {
@@ -50,7 +50,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({ title: 'MyColumn', type: 'SingleLineText' })
           .expect(422);
-        expect(result.body.error).to.eq('DUPLICATE_ALIAS');
+        expect(result.body.error).to.eq('ERR_DUPLICATE_IN_ALIAS');
         expect(result.body.message).to.include('Duplicate column alias');
       });
       it('will handle incorrect title length', async () => {
@@ -60,7 +60,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({ title: longTitle, type: 'SingleLineText' })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.include('Invalid request body');
       });
       it('will handle missing type', async () => {
@@ -69,7 +69,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({ title: 'NoType' })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.include('Invalid request body');
       });
       it('will handle incorrect field', async () => {
@@ -78,7 +78,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({ title: 'NoType', type: 'Barcode' })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.satisfy((msg) =>
           msg.startsWith("Missing 'fk_barcode_value_column_id'"),
         );
@@ -91,7 +91,7 @@ export default function () {
           .get(`${API_PREFIX}/fields/NOT_FOUND`)
           .set('xc-token', context.xc_token)
           .expect(422);
-        expect(result.body.error).to.eq('FIELD_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_FIELD_NOT_FOUND');
         expect(result.body.message).to.include(`Field 'NOT_FOUND' not found`);
       });
     });
@@ -114,7 +114,7 @@ export default function () {
           .send({ title: 'any' })
           .expect(422);
 
-        expect(result.body.error).to.eq('FIELD_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_FIELD_NOT_FOUND');
         expect(result.body.message).to.include(`Field 'NOT_FOUND' not found`);
       });
       it('will handle duplicate alias', async () => {
@@ -128,7 +128,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({ title: 'AnotherColumn' })
           .expect(422);
-        expect(result.body.error).to.eq('DUPLICATE_ALIAS');
+        expect(result.body.error).to.eq('ERR_DUPLICATE_IN_ALIAS');
         expect(result.body.message).to.satisfy((msg) =>
           msg.startsWith('Duplicate column alias'),
         );
@@ -140,7 +140,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({ title: longTitle })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.satisfy((msg) =>
           msg.startsWith('Column title aaaaa'),
         );
@@ -151,7 +151,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({ uidt: 'NotFoundUIDT' })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.include('Invalid request body');
       });
     });
@@ -162,7 +162,7 @@ export default function () {
           .delete(`${API_PREFIX}/fields/NOT_FOUND`)
           .set('xc-token', context.xc_token)
           .expect(422);
-        expect(result.body.error).to.eq('FIELD_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_FIELD_NOT_FOUND');
         expect(result.body.message).to.include(`Field 'NOT_FOUND' not found`);
       });
     });

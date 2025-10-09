@@ -383,8 +383,11 @@ export class NcErrorBase {
     );
   }
 
-  webhookError(args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.ERR_WEBHOOK_ERROR, args);
+  webhookError(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_WEBHOOK_ERROR, {
+      params: message,
+      ...args,
+    });
   }
 
   invalidWebhookUrl(url: string, args?: NcErrorArgs): never {

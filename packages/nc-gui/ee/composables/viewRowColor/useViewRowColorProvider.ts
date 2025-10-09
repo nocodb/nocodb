@@ -1,4 +1,11 @@
-import { ROW_COLORING_MODE, type RowColoringInfo, type RowColoringInfoFilter, type ViewType, arrayToNested } from 'nocodb-sdk'
+import {
+  ROW_COLORING_MODE,
+  type RowColoringInfo,
+  type RowColoringInfoFilter,
+  ViewSettingOverrideOptions,
+  type ViewType,
+  arrayToNested,
+} from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
 import { SmartsheetStoreEvents } from '#imports'
 
@@ -112,7 +119,7 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
       reloadRowColorInfo(payload?.viewChange ?? false, payload?.rowColorInfo)
     } else if ([SmartsheetStoreEvents.FIELD_UPDATE, SmartsheetStoreEvents.FIELD_RELOAD].includes(event)) {
       reloadRowColorInfo(true)
-    } else if (event === SmartsheetStoreEvents.ROW_COLOR_RELOAD) {
+    } else if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.ROW_COLORING, payload as any)) {
       reloadRowColorInfo(true)
     }
   })

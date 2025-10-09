@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CURRENT_USER_TOKEN, type ColumnType, type FilterType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, ViewSettingOverrideOptions, type ColumnType, type FilterType } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -66,15 +66,18 @@ useMenuCloseOnEsc(open)
 const draftFilter = ref({})
 const queryFilterOpen = ref(false)
 
-eventBus.on(async (event, column: ColumnType) => {
-  if (event === SmartsheetStoreEvents.FILTER_RELOAD && activeView?.value?.id) {
+eventBus.on(async (event, payload) => {
+  if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
     await loadFilters({
       hookId: undefined,
       isWebhook: false,
       loadAllFilters: true,
     })
+
     filtersLength.value = nonDeletedFilters.value.length || 0
   }
+
+  const column = payload?.column as ColumnType | undefined
 
   if (!column) return
 

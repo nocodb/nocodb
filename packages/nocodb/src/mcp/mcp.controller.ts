@@ -18,6 +18,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
+import { hasMinimumRole } from '~/utils/roleHelper';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard)
@@ -72,6 +73,10 @@ export class McpController {
       baseId: context.base_id,
       workspaceId: context.workspace_id,
     })) as typeof req.user;
+
+    if (!hasMinimumRole(req.user, ProjectRoles.VIEWER)) {
+      NcError.forbidden('User has no access');
+    }
 
     return await this.mcpService.handleRequest(null, context, req, res);
   }

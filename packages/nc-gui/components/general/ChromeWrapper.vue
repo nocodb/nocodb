@@ -31,7 +31,7 @@ const picked = computed({
   @apply bg-nc-bg-default;
 
   .vc-input__input {
-    @apply rounded-lg border-1 !border-nc-border-gray-extra-light shadow-none;
+    @apply rounded-lg border-1 !border-nc-border-gray-extralight shadow-none;
   }
 }
 </style>

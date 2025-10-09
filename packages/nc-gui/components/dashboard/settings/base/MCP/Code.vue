@@ -114,7 +114,7 @@ const onCopyToClipboard = async () => {
 
 <style lang="scss">
 .nc-mcp-code-tab-wrapper {
-  @apply !bg-nc-bg-gray-extra-light border-1 border-nc-border-gray-medium rounded-lg flex-1;
+  @apply !bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg flex-1;
 
   .monaco-editor {
     @apply !border-0 !rounded-b-lg pr-3 outline-none;

@@ -19,6 +19,9 @@ const permissionScopes = {
     'apiTokenCreate',
     'apiTokenDelete',
 
+    'oAuthAuthorizationList',
+    'oAuthAuthorizationRevoke',
+
     // Base
     'baseList',
     'baseCreate',
@@ -266,12 +269,6 @@ const rolePermissions:
       mcpCreate: true,
       mcpUpdate: true,
       mcpDelete: true,
-      // oAuth
-      oAuthClientList: true,
-      oAuthClientCreate: true,
-      oAuthClientUpdate: true,
-      oAuthClientDelete: true,
-      oAuthClientGet: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -353,6 +350,15 @@ const rolePermissions:
       isPluginActive: true,
       commandPalette: true,
       notification: true,
+
+      // oAuth
+      oAuthClientList: true,
+      oAuthClientCreate: true,
+      oAuthClientUpdate: true,
+      oAuthClientDelete: true,
+      oAuthClientGet: true,
+      oAuthAuthorizationList: true,
+      oAuthAuthorizationRevoke: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

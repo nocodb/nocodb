@@ -359,4 +359,48 @@ export class OauthTokenService {
 
     return true;
   }
+
+  async listUserAuthorizations(userId: string) {
+    const tokens = await OAuthToken.listByUser(userId);
+    const authorizationsList = [];
+
+    for (const token of tokens) {
+      const client = await OAuthClient.getByClientId(token.client_id);
+      if (client) {
+        authorizationsList.push({
+          id: token.id,
+          client_id: client.client_id,
+          client_name: client.client_name,
+          client_description: client.client_description,
+          client_uri: client.client_uri,
+          logo_uri: client.logo_uri,
+          scope: token.scope,
+          granted_resources: token.granted_resources,
+          created_at: token.created_at,
+          last_used_at: token.last_used_at,
+        });
+      }
+    }
+
+    return authorizationsList;
+  }
+
+  async revokeUserAuthorization(userId: string, tokenId: string) {
+    const token = await OAuthToken.get(tokenId);
+
+    if (!token) {
+      NcError.notFound('OAuth authorization not found');
+    }
+
+    if (token.fk_user_id !== userId) {
+      NcError.forbidden(
+        'You do not have permission to revoke this authorization',
+      );
+    }
+
+    // Revoke the token
+    await OAuthToken.revoke(tokenId);
+
+    return true;
+  }
 }

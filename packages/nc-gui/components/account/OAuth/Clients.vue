@@ -114,14 +114,14 @@ onMounted(async () => {
           class="h-full mt-5"
           body-row-class-name="nc-base-settings-mcp-token-item group no-border-last"
           @row-click="
-          () => {
-            console.log()
-          }
-        "
+            () => {
+              console.log()
+            }
+          "
         >
           <template #bodyCell="{ column, record: oAuthClient }">
             <template v-if="column.key === 'name'">
-              <NcTooltip class="truncate text-gray-800 font-semibold text-sm">
+              <NcTooltip class="truncate text-nc-content-gray font-semibold text-sm">
                 {{ oAuthClient.client_name }}
 
                 <template #title>

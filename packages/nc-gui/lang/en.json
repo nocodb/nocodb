@@ -185,6 +185,8 @@
     "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature."
   },
   "general": {
+    "authorization": "Authorization",
+    "revoke": "Revoke",
     "script": "Script",
     "dashboard": "Dashboard",
     "supported": "Supported",
@@ -724,6 +726,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "externalIntegrations": "External Integerations",
     "mcpServer": "MCP Server",
     "oauthClients": "OAuth Clients",
     "accessRestricted": "Access Restricted",

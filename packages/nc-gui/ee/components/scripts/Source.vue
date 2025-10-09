@@ -95,7 +95,7 @@ const showCode = ref(true)
 
 <style lang="scss">
 .nc-script-code-tab-wrapper {
-  @apply !bg-nc-bg-gray-extra-light border-1 border-nc-border-gray-medium rounded-lg;
+  @apply !bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg;
   .monaco-editor {
     @apply !border-0 !rounded-b-lg pr-3 outline-none;
   }

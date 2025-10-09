@@ -153,6 +153,20 @@ onMounted(() => {
                 </div>
               </NcMenuItem> -->
               <NcMenuItem
+                key="external-integrations"
+                :class="{
+                  active: $route.params.page === 'external-integrations',
+                }"
+                class="item"
+                @click="navigateTo('/account/external-integrations')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
+
+                  <div class="select-none">{{ $t('title.externalIntegrations') }}</div>
+                </div>
+              </NcMenuItem>
+              <NcMenuItem
                 v-if="isSetupPageAllowed"
                 key="profile"
                 class="item"

@@ -10,12 +10,12 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
-
-const logger = new Logger('Team');
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class Team {
   id: string;
   title: string;
+  meta?: Record<string, any> | string;
   fk_org_id?: string;
   fk_workspace_id?: string;
   created_at?: string;
@@ -26,7 +26,7 @@ export default class Team {
   }
 
   protected static castType(team: Team): Team {
-    return team && new Team(team);
+    return team && new Team(prepareForResponse(team, 'meta'));
   }
 
   public static async insert(
@@ -37,24 +37,29 @@ export default class Team {
     const insertObj = extractProps(team, [
       'id',
       'title',
+      'meta',
       'fk_org_id',
       'fk_workspace_id',
     ]);
+
+    // Prepare meta for database storage
+    const preparedTeam = prepareForDb(insertObj, 'meta');
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
       MetaTable.TEAMS,
-      insertObj,
+      preparedTeam,
       true,
     );
 
-    await NocoCache.set(`${CacheScope.TEAM}:${id}`, {
+    await NocoCache.set(context, `${CacheScope.TEAM}:${id}`, {
       id,
-      ...insertObj,
+      ...preparedTeam,
     });
 
     await NocoCache.appendToList(
+      context,
       CacheScope.TEAM,
       [context.workspace_id, context.base_id],
       `${CacheScope.TEAM}:${id}`,
@@ -71,6 +76,7 @@ export default class Team {
     let teamData =
       teamId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.TEAM}:${teamId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -85,6 +91,7 @@ export default class Team {
 
       if (teamData) {
         await NocoCache.set(
+          context,
           `${CacheScope.TEAM}:${teamId}`,
           teamData,
         );
@@ -105,10 +112,11 @@ export default class Team {
     } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<Team[]> {
-    const cachedList = await NocoCache.getList(CacheScope.TEAM, [
-      context.workspace_id,
-      context.base_id,
-    ]);
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.TEAM,
+      [context.workspace_id, context.base_id],
+    );
 
     let { list: teamList } = cachedList;
     const { isNoneList } = cachedList;
@@ -127,6 +135,7 @@ export default class Team {
       );
 
       await NocoCache.setList(
+        context,
         CacheScope.TEAM,
         [context.workspace_id, context.base_id],
         teamList,
@@ -144,13 +153,17 @@ export default class Team {
   ) {
     const updateObj = extractProps(team, [
       'title',
+      'meta',
       'fk_org_id',
       'fk_workspace_id',
     ]);
 
+    // Prepare meta for database storage
+    const preparedTeam = prepareForDb(updateObj, 'meta');
+
     // get existing cache
     const key = `${CacheScope.TEAM}:${teamId}`;
-    const existing = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    const existing = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
 
     if (!existing) {
       NcError.notFound(`Team with id ${teamId} not found`);
@@ -160,19 +173,19 @@ export default class Team {
       context.workspace_id,
       context.base_id,
       MetaTable.TEAMS,
-      updateObj,
+      preparedTeam,
       { id: teamId },
     );
 
-    await NocoCache.set(`${CacheScope.TEAM}:${teamId}`, {
+    await NocoCache.set(context, `${CacheScope.TEAM}:${teamId}`, {
       ...existing,
-      ...updateObj,
+      ...preparedTeam,
     });
 
     await NocoCache.deepDel(
+      context,
       CacheScope.TEAM,
       CacheDelDirection.CHILD_TO_PARENT,
-      [context.workspace_id, context.base_id],
     );
 
     return this.get(context, teamId, ncMeta);
@@ -190,12 +203,12 @@ export default class Team {
       { id: teamId },
     );
 
-    await NocoCache.del(`${CacheScope.TEAM}:${teamId}`);
+    await NocoCache.del(context, `${CacheScope.TEAM}:${teamId}`);
 
     await NocoCache.deepDel(
+      context,
       CacheScope.TEAM,
       CacheDelDirection.CHILD_TO_PARENT,
-      [context.workspace_id, context.base_id],
     );
   }
-} 
+}

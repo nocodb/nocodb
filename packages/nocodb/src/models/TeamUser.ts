@@ -16,7 +16,7 @@ const logger = new Logger('TeamUser');
 export default class TeamUser {
   fk_team_id: string;
   fk_user_id: string;
-  is_owner: boolean;
+  roles: string;
   created_at?: string;
   updated_at?: string;
 
@@ -36,7 +36,7 @@ export default class TeamUser {
     const insertObj = extractProps(teamUser, [
       'fk_team_id',
       'fk_user_id',
-      'is_owner',
+      'roles',
     ]);
 
     await ncMeta.metaInsert2(
@@ -48,11 +48,13 @@ export default class TeamUser {
     );
 
     await NocoCache.set(
+      context,
       `${CacheScope.TEAM_USER}:${insertObj.fk_team_id}:${insertObj.fk_user_id}`,
       insertObj,
     );
 
     await NocoCache.appendToList(
+      context,
       CacheScope.TEAM_USER,
       [insertObj.fk_team_id],
       `${CacheScope.TEAM_USER}:${insertObj.fk_team_id}:${insertObj.fk_user_id}`,
@@ -71,6 +73,7 @@ export default class TeamUser {
       teamId &&
       userId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.TEAM_USER}:${teamId}:${userId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -85,6 +88,7 @@ export default class TeamUser {
 
       if (teamUserData) {
         await NocoCache.set(
+          context,
           `${CacheScope.TEAM_USER}:${teamId}:${userId}`,
           teamUserData,
         );
@@ -99,7 +103,7 @@ export default class TeamUser {
     teamId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<TeamUser[]> {
-    const cachedList = await NocoCache.getList(CacheScope.TEAM_USER, [
+    const cachedList = await NocoCache.getList(context, CacheScope.TEAM_USER, [
       teamId,
     ]);
 
@@ -117,6 +121,7 @@ export default class TeamUser {
       );
 
       await NocoCache.setList(
+        context,
         CacheScope.TEAM_USER,
         [teamId],
         teamUserList,
@@ -150,11 +155,11 @@ export default class TeamUser {
     teamUser: Partial<TeamUser>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(teamUser, ['is_owner']);
+    const updateObj = extractProps(teamUser, ['roles']);
 
     // get existing cache
     const key = `${CacheScope.TEAM_USER}:${teamId}:${userId}`;
-    const existing = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    const existing = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
 
     if (!existing) {
       NcError.notFound(`Team user not found`);
@@ -168,15 +173,15 @@ export default class TeamUser {
       { fk_team_id: teamId, fk_user_id: userId },
     );
 
-    await NocoCache.set(key, {
+    await NocoCache.set(context, key, {
       ...existing,
       ...updateObj,
     });
 
     await NocoCache.deepDel(
-      CacheScope.TEAM_USER,
+      context,
+      `${CacheScope.TEAM_USER}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
-      [teamId],
     );
 
     return this.get(context, teamId, userId, ncMeta);
@@ -195,12 +200,12 @@ export default class TeamUser {
       { fk_team_id: teamId, fk_user_id: userId },
     );
 
-    await NocoCache.del(`${CacheScope.TEAM_USER}:${teamId}:${userId}`);
+    await NocoCache.del(context, `${CacheScope.TEAM_USER}:${teamId}:${userId}`);
 
     await NocoCache.deepDel(
-      CacheScope.TEAM_USER,
+      context,
+      `${CacheScope.TEAM_USER}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
-      [teamId],
     );
   }
 } 

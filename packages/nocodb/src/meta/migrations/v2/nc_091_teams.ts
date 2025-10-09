@@ -6,6 +6,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.TEAMS, (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('title', 255).notNullable();
+    table.text('meta'); // JSON field for icon, badge_color, etc.
     table.string('fk_org_id', 20);
     table.string('fk_workspace_id', 20);
     table.string('fk_created_by', 20).index('nc_teams_created_by_idx');
@@ -20,7 +21,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.TEAM_USERS, (table) => {
     table.string('fk_team_id', 20).notNullable();
     table.string('fk_user_id', 20).notNullable();
-    table.boolean('is_owner').defaultTo(false);
+    table.string('roles', 255).notNullable().defaultTo('member'); // owner, manager, member, viewer
     table.timestamps(true, true);
 
     // Primary key on composite columns

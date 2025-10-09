@@ -96,7 +96,11 @@ export default class GenericS3 implements IStorageAdapterV2 {
     try {
       const fileStream = fs.createReadStream(file.path);
 
-      return this.fileCreateByStream(key, fileStream, {
+      fileStream.on('error', (err) => {
+        NcError._.storageFileCreateError(err.message);
+      });
+
+      return await this.fileCreateByStream(key, fileStream, {
         mimetype: file?.mimetype,
       });
     } catch (error) {
@@ -174,7 +178,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
         Bucket: this.input.bucket,
         ...pathParameters,
       });
-      return getSignedUrl(this.s3Client, command, {
+      return await getSignedUrl(this.s3Client, command, {
         expiresIn: expiresInSeconds,
       });
     } catch (error) {
@@ -211,7 +215,14 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
       const { Body } = await this.s3Client.send(command);
 
-      return Body as Readable;
+      const stream = Body as Readable;
+
+      // Handle any stream errors that occur during reading
+      stream.on('error', (error) => {
+        NcError._.storageFileStreamError(error.message);
+      });
+
+      return stream;
     } catch (error) {
       NcError._.storageFileStreamError(error.message);
     }
@@ -219,16 +230,14 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
   public async getDirectoryList(prefix: string): Promise<string[]> {
     try {
-      return this.s3Client
-        .listObjectsV2({
-          Prefix: prefix,
-          Bucket: this.input.bucket,
-        })
-        .then((response) => {
-          return response.Contents.map((content) => {
-            return path.basename(content.Key);
-          });
-        });
+      const response = await this.s3Client.listObjectsV2({
+        Prefix: prefix,
+        Bucket: this.input.bucket,
+      });
+
+      return response.Contents.map((content) => {
+        return path.basename(content.Key);
+      });
     } catch (error) {
       NcError._.storageFileReadError(
         `Failed to list directory: ${error.message}`,
@@ -238,74 +247,66 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
   public async fileDelete(key: string): Promise<any> {
     try {
-      return this.s3Client
-        .deleteObject({
-          Key: this.patchKey(key),
-          Bucket: this.input.bucket,
-        })
-        .then(() => {
-          return true;
-        });
+      await this.s3Client.deleteObject({
+        Key: this.patchKey(key),
+        Bucket: this.input.bucket,
+      });
+      return true;
     } catch (error) {
       NcError._.storageFileDeleteError(error.message);
     }
   }
 
   public async scanFiles(globPattern: string): Promise<Readable> {
-    try {
-      // remove all dots from the glob pattern
-      globPattern = globPattern.replace(/\./g, '');
+    // remove all dots from the glob pattern
+    globPattern = globPattern.replace(/\./g, '');
 
-      // remove the leading slash
-      globPattern = globPattern.replace(/^\//, '');
+    // remove the leading slash
+    globPattern = globPattern.replace(/^\//, '');
 
-      // make sure pattern starts with nc/uploads/
-      if (!globPattern.startsWith('nc/uploads/')) {
-        globPattern = `nc/uploads/${globPattern}`;
-      }
-
-      // S3 does not support glob so remove *
-      globPattern = globPattern.replace(/\*/g, '');
-
-      const stream = new Readable({
-        read() {},
-      });
-
-      stream.setEncoding('utf8');
-
-      const listObjects = async (continuationToken?: string) => {
-        this.s3Client
-          .listObjectsV2({
-            Bucket: this.input.bucket,
-            Prefix: globPattern,
-            ...(continuationToken
-              ? { ContinuationToken: continuationToken }
-              : {}),
-          })
-          .then((response) => {
-            response.Contents.forEach((content) => {
-              stream.push(content.Key);
-            });
-
-            if (response.IsTruncated) {
-              listObjects(response.NextContinuationToken);
-            } else {
-              stream.push(null);
-            }
-          })
-          .catch((error) => {
-            stream.emit('error', error);
-          });
-      };
-
-      listObjects().catch((error) => {
-        stream.emit('error', error);
-      });
-
-      return stream;
-    } catch (error) {
-      NcError._.storageFileReadError(`Failed to scan files: ${error.message}`);
+    // make sure pattern starts with nc/uploads/
+    if (!globPattern.startsWith('nc/uploads/')) {
+      globPattern = `nc/uploads/${globPattern}`;
     }
+
+    // S3 does not support glob so remove *
+    globPattern = globPattern.replace(/\*/g, '');
+
+    const stream = new Readable({
+      read() {},
+    });
+
+    stream.setEncoding('utf8');
+
+    const listObjects = async (continuationToken?: string) => {
+      try {
+        const response = await this.s3Client.listObjectsV2({
+          Bucket: this.input.bucket,
+          Prefix: globPattern,
+          ...(continuationToken
+            ? { ContinuationToken: continuationToken }
+            : {}),
+        });
+
+        response.Contents.forEach((content) => {
+          stream.push(content.Key);
+        });
+
+        if (response.IsTruncated) {
+          await listObjects(response.NextContinuationToken);
+        } else {
+          stream.push(null);
+        }
+      } catch (error) {
+        stream.destroy(error);
+      }
+    };
+
+    listObjects().catch((error) => {
+      stream.destroy(error);
+    });
+
+    return stream;
   }
 
   getUploadedPath(path: string): { path?: string; url?: string } {

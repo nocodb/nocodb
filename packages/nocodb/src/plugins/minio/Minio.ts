@@ -84,7 +84,7 @@ export default class Minio implements IStorageAdapterV2 {
     try {
       const data = await this.minioClient.getObject(this.input.bucket, key);
 
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         const chunks: any[] = [];
         data.on('data', (chunk) => {
           chunks.push(chunk);
@@ -107,7 +107,8 @@ export default class Minio implements IStorageAdapterV2 {
   async fileCreate(key: string, file: XcFile): Promise<any> {
     try {
       const fileStream = fs.createReadStream(file.path);
-      return this.fileCreateByStream(key, fileStream, {
+
+      return await this.fileCreateByStream(key, fileStream, {
         mimetype: file?.mimetype,
       });
     } catch (error) {
@@ -268,62 +269,53 @@ export default class Minio implements IStorageAdapterV2 {
 
   public async fileDelete(path: string): Promise<any> {
     try {
-      return this.minioClient.removeObject(this.input.bucket, path).then(() => {
-        return true;
-      });
+      await this.minioClient.removeObject(this.input.bucket, path);
+      return true;
     } catch (error) {
       NcError._.storageFileDeleteError(error?.message);
     }
   }
 
   public async scanFiles(globPattern: string): Promise<Readable> {
-    try {
-      // Remove all dots from the glob pattern
-      globPattern = globPattern.replace(/\./g, '');
+    // Remove all dots from the glob pattern
+    globPattern = globPattern.replace(/\./g, '');
 
-      // Remove the leading slash
-      globPattern = globPattern.replace(/^\//, '');
+    // Remove the leading slash
+    globPattern = globPattern.replace(/^\//, '');
 
-      // Make sure pattern starts with nc/uploads/
-      if (!globPattern.startsWith('nc/uploads/')) {
-        globPattern = `nc/uploads/${globPattern}`;
+    // Make sure pattern starts with nc/uploads/
+    if (!globPattern.startsWith('nc/uploads/')) {
+      globPattern = `nc/uploads/${globPattern}`;
+    }
+
+    // Minio does not support glob so remove *
+    globPattern = globPattern.replace(/\*/g, '');
+
+    const stream = new Readable({
+      read() {},
+    });
+
+    stream.setEncoding('utf8');
+
+    const listObjects = async () => {
+      const objectStream = this.minioClient.listObjectsV2(
+        this.input.bucket,
+        globPattern,
+        true,
+      );
+
+      for await (const item of objectStream) {
+        stream.push(item.name);
       }
 
-      // Minio does not support glob so remove *
-      globPattern = globPattern.replace(/\*/g, '');
+      stream.push(null);
+    };
 
-      const stream = new Readable({
-        read() {},
-      });
+    listObjects().catch((error) => {
+      stream.destroy(error);
+    });
 
-      stream.setEncoding('utf8');
-
-      const listObjects = async () => {
-        try {
-          const objectStream = this.minioClient.listObjectsV2(
-            this.input.bucket,
-            globPattern,
-            true,
-          );
-
-          for await (const item of objectStream) {
-            stream.push(item.name);
-          }
-
-          stream.push(null);
-        } catch (error) {
-          stream.emit('error', error);
-        }
-      };
-
-      listObjects().catch((error) => {
-        stream.emit('error', error);
-      });
-
-      return stream;
-    } catch (error) {
-      NcError._.storageFileReadError(`Failed to scan files: ${error?.message}`);
-    }
+    return stream;
   }
 
   getUploadedPath(path: string): { path?: string; url?: string } {

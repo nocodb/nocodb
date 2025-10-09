@@ -182,14 +182,19 @@ export default class Gcs implements IStorageAdapterV2 {
   }
 
   public async fileReadByStream(key: string): Promise<Readable> {
-    try {
-      return this.storageClient
-        .bucket(this.bucketName)
-        .file(this.patchKey(key))
-        .createReadStream();
-    } catch (e) {
-      NcError._.storageFileStreamError(e.message);
+    const file = this.storageClient
+      .bucket(this.bucketName)
+      .file(this.patchKey(key));
+
+    // Check if file exists before creating stream
+    const [exists] = await file.exists();
+    if (!exists) {
+      NcError._.storageFileReadError(
+        `File ${this.patchKey(key)} does not exist`,
+      );
     }
+
+    return file.createReadStream();
   }
 
   public async getDirectoryList(path: string): Promise<string[]> {
@@ -233,23 +238,23 @@ export default class Gcs implements IStorageAdapterV2 {
   }
 
   public async scanFiles(globPattern: string): Promise<Readable> {
+    // Remove all dots from the prefix
+    globPattern = globPattern.replace(/\./g, '');
+
+    // Remove the leading slash
+    globPattern = globPattern.replace(/^\//, '');
+
+    // Make sure pattern starts with nc/uploads/
+    if (!globPattern.startsWith('nc/uploads/')) {
+      globPattern = `nc/uploads/${globPattern}`;
+    }
+
+    const stream = new Readable({
+      objectMode: true,
+      read() {},
+    });
+
     try {
-      // Remove all dots from the prefix
-      globPattern = globPattern.replace(/\./g, '');
-
-      // Remove the leading slash
-      globPattern = globPattern.replace(/^\//, '');
-
-      // Make sure pattern starts with nc/uploads/
-      if (!globPattern.startsWith('nc/uploads/')) {
-        globPattern = `nc/uploads/${globPattern}`;
-      }
-
-      const stream = new Readable({
-        objectMode: true,
-        read() {},
-      });
-
       const fileStream = this.storageClient
         .bucket(this.input.bucket)
         .getFilesStream({
@@ -258,7 +263,7 @@ export default class Gcs implements IStorageAdapterV2 {
         });
 
       fileStream.on('error', (error) => {
-        stream.emit('error', error);
+        stream.destroy(error);
       });
 
       fileStream.on('data', (file) => {
@@ -271,6 +276,7 @@ export default class Gcs implements IStorageAdapterV2 {
 
       return stream;
     } catch (e) {
+      stream.destroy(new Error(`Failed to scan files: ${e.message}`));
       NcError._.storageFileReadError(`Failed to scan files: ${e.message}`);
     }
   }

@@ -16,6 +16,7 @@ import type { Column, LinkToAnotherRecordColumn, LookupColumn } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Filter, Model } from '~/models';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
+import { NcError } from '~/helpers/ncError';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);

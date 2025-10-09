@@ -1629,10 +1629,11 @@ export async function singleQueryList(
 
   const orderColumn = columns.find((c) => isOrderCol(c));
 
+  // apply sort on root query
+  if (sorts?.length) await sortV2(baseModel, sorts, rootQb);
+
   // apply sort on root query only if not skipped
   if (!ctx.skipSortBasedOnOrderCol) {
-    // apply sort on root query
-    if (sorts?.length) await sortV2(baseModel, sorts, rootQb);
     if (orderColumn) {
       rootQb.orderBy(orderColumn.column_name);
     }
@@ -1708,10 +1709,11 @@ export async function singleQueryList(
     }
   }
 
+  // apply the sort on final query to get the result in correct order
+  if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
+
   // apply sort on root query only if not skipped
   if (!ctx.skipSortBasedOnOrderCol) {
-    // apply the sort on final query to get the result in correct order
-    if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
     if (orderColumn) {
       qb.orderBy(orderColumn.column_name);
     }

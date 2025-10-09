@@ -3,6 +3,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isOrderCol,
   isSystemColumn,
+  NcBaseError,
   ncIsNullOrUndefined,
   parseProp,
   RelationTypes,
@@ -954,6 +955,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       return result;
     } catch (ex) {
       await trxNcMeta.rollback();
+      if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
       this.logger.error('Failed to create view', ex);
       NcError.get(param.req.context).internalServerError(
         'Failed to create view',
@@ -1457,6 +1459,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       return result;
     } catch (ex) {
       await trxNcMeta.rollback();
+      if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
       this.logger.error('Failed to update view', ex);
       NcError.get(param.req.context).internalServerError(
         'Failed to update view',

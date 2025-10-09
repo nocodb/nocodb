@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WorkspaceUserRoles } from 'nocodb-sdk';
+import { NcBaseError, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import Noco from '~/Noco';
@@ -149,6 +149,7 @@ export class WorkspaceMembersV3Service {
       }
 
       this.logger.error('Failed to invite users', e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       NcError.get(param.req.context).internalServerError(
         'Failed to invite users',
       );

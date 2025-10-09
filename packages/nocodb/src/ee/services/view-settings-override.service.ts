@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import {
   extractSupportedViewSettingOverrideOptions,
+  PlanFeatureTypes,
+  ViewSettingOverrideOptions,
   ViewTypes,
 } from 'nocodb-sdk';
-import { PlanFeatureTypes, ViewSettingOverrideOptions } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import { withoutId } from '~/helpers/exportImportHelpers';
-import { FiltersV3Service } from '~/services/v3/filters-v3.service';
-import { SortsV3Service } from '~/services/v3/sorts-v3.service';
-import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
-import { checkForFeature } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/catchError';
+import { withoutId } from '~/helpers/exportImportHelpers';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import {
   CalendarViewColumn,
   FormViewColumn,
@@ -23,11 +21,14 @@ import {
   View,
 } from '~/models';
 import Noco from '~/Noco';
+import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+import { SortsV3Service } from '~/services/v3/sorts-v3.service';
+import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
+import { ViewsV3Service } from '~/services/v3/views-v3.service';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
-import { ViewsV3Service } from '~/services/v3/views-v3.service';
 
 @Injectable()
 export class ViewSettingsOverrideService {
@@ -88,6 +89,7 @@ export class ViewSettingsOverrideService {
           sourceView,
           destinationView: destView,
           settingToOverride: settingToOverride,
+          viewWebhookManager,
           req: param.req,
         },
         trxNcMeta,
@@ -228,6 +230,8 @@ export class ViewSettingsOverrideService {
         }
       }
       // #endregion update view sort
+
+      // #region update view filter
       if (inSettingToOverride(ViewSettingOverrideOptions.FILTER_CONDITION)) {
         await this.filtersV3Service.filterDeleteAll(
           context,
@@ -235,24 +239,20 @@ export class ViewSettingsOverrideService {
           ncMeta,
         );
         if (sourceV3View.filters) {
-          const insertPayload = {
-            ...sourceV3View.filters,
-            filters: this.filtersV3Service.withoutId(
-              sourceV3View.filters.filters,
-            ),
-          };
           await this.filtersV3Service.insertFilterGroup({
             context,
             param: {
               viewId: destinationView.id,
             },
-            groupOrFilter: insertPayload,
+            groupOrFilter: sourceV3View.filters,
             viewId: destinationView.id,
             viewWebhookManager,
             ncMeta,
           });
         }
       }
+      // #endregion update view filter
+
       // #region update row coloring
       if (inSettingToOverride(ViewSettingOverrideOptions.ROW_COLORING)) {
         await this.viewRowColorV3Service.replace(

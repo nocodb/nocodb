@@ -1154,7 +1154,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
   async update(
     context: NcContext,
     param: { req: NcRequest; viewId: string },
-    ncMeta?: MetaService,
+    ncMeta = Noco.ncMeta,
   ) {
     const { req, viewId } = param;
     const { body } = req;
@@ -1244,7 +1244,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         )
       ).withViewId(existingView.id)
     ).forUpdate();
-    const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
+    const trxNcMeta = await ncMeta.startTransaction();
     try {
       await this.viewsService.viewUpdate(context, {
         viewId,
@@ -1406,7 +1406,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         await this.filtersV3Service.filterDeleteAll(
           context,
           { viewId: existingView.id },
-          ncMeta,
+          trxNcMeta,
         );
         await this.filtersV3Service.insertFilterGroup({
           context,
@@ -1416,6 +1416,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           groupOrFilter: requestBody.filters,
           viewId: existingView.id,
           viewWebhookManager,
+          ncMeta: trxNcMeta,
         });
       }
       if ('row_coloring' in body) {
@@ -1451,9 +1452,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         }
       }
 
-      if (!ncMeta) {
-        await trxNcMeta.commit();
-      }
+      await trxNcMeta.commit();
       const result = await this.getView(context, { viewId, req });
       viewWebhookManager.withNewView(result).emit();
       return result;

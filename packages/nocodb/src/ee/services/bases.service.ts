@@ -6,6 +6,7 @@ import {
   AppEvents,
   EventType,
   IntegrationsType,
+  NcBaseError,
   ncIsUndefined,
   PlanFeatureTypes,
   ProjectRoles,
@@ -395,7 +396,9 @@ export class BasesService extends BasesServiceCE {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to soft delete base', e);
+      NcError.get(context).internalServerError('Failed to delete base');
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);
@@ -479,7 +482,7 @@ export class BasesService extends BasesServiceCE {
       user: UserType;
       req: NcRequest;
     },
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
   ) {
     // if user does not have Owner role, then block the request
     if (!param.req.user?.base_roles?.[ProjectRoles.OWNER as string]) {

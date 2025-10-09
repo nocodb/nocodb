@@ -655,7 +655,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           );
 
       if (!prevData) {
-        NcError.recordNotFound(id);
+        NcError.get(this.context).recordNotFound(id);
       }
 
       await this.prepareNocoData(updateObj, false, cookie, prevData);
@@ -737,7 +737,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   async getUniqueOrdersBeforeItem(before: unknown, amount = 1, depth = 0) {
     try {
       if (depth > MAX_RECURSION_DEPTH) {
-        NcError.reorderFailed();
+        NcError.get(this.context).reorderFailed();
       }
 
       const orderColumn = this.model.columns.find((c) => isOrderCol(c));
@@ -796,7 +796,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           intermediateOrder.eq(adjacentOrder) ||
           intermediateOrder.eq(currentRowOrder)
         ) {
-          throw NcError.cannotCalculateIntermediateOrderError();
+          NcError.get(this.context).cannotCalculateIntermediateOrderError();
         }
 
         orders.push(intermediateOrder);
@@ -804,7 +804,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       return orders;
     } catch (error) {
-      if (error.error === NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER) {
+      if (error.error === NcErrorType.ERR_CANNOT_CALCULATE_INTERMEDIATE_ORDER) {
         console.error('Error in getUniqueOrdersBeforeItem:', error);
         await this.recalculateFullOrder();
         return await this.getUniqueOrdersBeforeItem(before, amount, depth + 1);
@@ -843,12 +843,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     const orderColumn = this.model.columns.find((c) => isOrderCol(c));
     if (!orderColumn) {
-      NcError.badRequest('Order column not found to recalculateOrder');
+      NcError.get(this.context).badRequest(
+        'Order column not found to recalculateOrder',
+      );
     }
 
     const client = this.dbDriver.client.config.client;
     if (!sql[client]) {
-      NcError.notImplemented(
+      NcError.get(this.context).notImplemented(
         'Recalculate order not implemented for this database',
       );
     }
@@ -922,7 +924,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     );
 
     if (!row) {
-      NcError.recordNotFound(rowId);
+      NcError.get(this.context).recordNotFound(rowId);
     }
 
     const newRecordOrder = (
@@ -983,7 +985,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             .limit(1);
           const res = await this.execAndParse(query, null, { first: true });
           if (res) {
-            NcError.badRequest(
+            NcError.get(this.context).badRequest(
               `Duplicate entry for '${
                 data[column.column_name]
               }' in the field '${
@@ -1082,7 +1084,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     });
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError._.prohibitedSyncTableOperation({
+      NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
         operation: 'insert',
       });
@@ -1135,7 +1137,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     });
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError._.prohibitedSyncTableOperation({
+      NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
         operation: 'insert',
       });
@@ -1615,13 +1617,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 isCreatedOrLastModifiedTimeCol(col) ||
                 isCreatedOrLastModifiedByCol(col)
               ) {
-                NcError.badRequest(
+                NcError.get(this.context).badRequest(
                   `Column "${col.title}" is auto generated and cannot be updated`,
                 );
               }
 
               if (isVirtualCol(col) && !isLinksOrLTAR(col)) {
-                NcError.badRequest(
+                NcError.get(this.context).badRequest(
                   `Column "${col.title}" is virtual and cannot be updated`,
                 );
               }
@@ -1631,13 +1633,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 !allowSystemColumn &&
                 UITypes.ForeignKey === col.uidt
               ) {
-                NcError.badRequest(
+                NcError.get(this.context).badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
                 );
               }
 
               if (!allowSystemColumn && col.readonly) {
-                NcError.badRequest(
+                NcError.get(this.context).badRequest(
                   `Column "${col.title}" is readonly column and cannot be updated`,
                 );
               }
@@ -1648,7 +1650,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 col.uidt !== UITypes.Order &&
                 !undo
               ) {
-                NcError.badRequest(
+                NcError.get(this.context).badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
                 );
               }
@@ -2488,7 +2490,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const pkValues = this.extractPksValues(d, true);
 
         if (pkValues === null || pkValues === undefined) {
-          if (throwExceptionIfNotExist) NcError.recordNotFound(pkValues);
+          if (throwExceptionIfNotExist)
+            NcError.get(this.context).recordNotFound(pkValues);
           continue;
         }
 
@@ -2512,7 +2515,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const oldRecord = oldRecordsMap.get(pk);
 
           if (!oldRecord) {
-            if (throwExceptionIfNotExist) NcError.recordNotFound(pk);
+            if (throwExceptionIfNotExist)
+              NcError.get(this.context).recordNotFound(pk);
             continue;
           }
 
@@ -2862,7 +2866,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(pkValues);
+            NcError.get(this.context).recordNotFound(pkValues);
           }
           continue;
         }
@@ -2893,7 +2897,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               if (!oldRecord) {
                 // throw or skip if no record found
                 if (throwExceptionIfNotExist) {
-                  NcError.recordNotFound(pkValues);
+                  NcError.get(this.context).recordNotFound(pkValues);
                 }
                 continue;
               }
@@ -3123,7 +3127,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
-        throw new Error('ignoreWebhook value can be either true or false');
+        NcError.get(this.context).badRequest(
+          'ignoreWebhook value can be either true or false',
+        );
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
@@ -3464,7 +3470,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     if (permissionObj) {
       if (!user) {
-        NcError.forbidden(errorMessage);
+        NcError.get(this.context).forbidden(errorMessage);
       }
 
       const hasPermission = Permission.isAllowed(permissionObj, {
@@ -3473,7 +3479,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
 
       if (!hasPermission) {
-        NcError.forbidden(errorMessage);
+        NcError.get(this.context).forbidden(errorMessage);
       }
     }
   }

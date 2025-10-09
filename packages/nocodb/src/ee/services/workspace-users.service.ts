@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 
 import { ConfigService } from '@nestjs/config';
@@ -9,6 +9,7 @@ import {
   EventType,
   extractRolesObj,
   HigherPlan,
+  NcBaseError,
   NON_SEAT_ROLES,
   parseProp,
   WorkspaceUserRoles,
@@ -50,6 +51,7 @@ import { getWorkspaceRolePower } from '~/utils/roleHelper';
 
 @Injectable()
 export class WorkspaceUsersService {
+  private logger = new Logger('WorkspaceUsersService');
   constructor(
     private appHooksService: AppHooksService,
     private usersService: UsersService,
@@ -223,8 +225,11 @@ export class WorkspaceUsersService {
         },
         `${CacheScope.WORKSPACE_USER}:${param.workspaceId}:${param.userId}`,
       );
-
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to update user role', e);
+      NcError.get(param.req.context).internalServerError(
+        'Failed to update user role',
+      );
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);
@@ -408,7 +413,11 @@ export class WorkspaceUsersService {
       // rollback cache
       await Promise.all(cacheTransaction.map((fn) => fn()));
 
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to delete workspace user', e);
+      NcError.get(param.req.context).internalServerError(
+        'Failed to delete workspace user',
+      );
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);
@@ -710,7 +719,11 @@ export class WorkspaceUsersService {
         );
       }
 
-      throw e;
+      this.logger.error('Failed to invite users', e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      NcError.get(param.req.context).internalServerError(
+        'Failed to invite users',
+      );
     }
 
     await this.paymentService.reseatSubscription(workspace.id, ncMeta);

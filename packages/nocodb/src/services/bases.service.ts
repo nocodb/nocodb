@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import {
@@ -7,6 +7,7 @@ import {
   EventType,
   extractRolesObj,
   IntegrationsType,
+  NcBaseError,
   OrgUserRoles,
   SqlUiFactory,
 } from 'nocodb-sdk';
@@ -36,6 +37,8 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 @Injectable()
 export class BasesService {
+  protected logger = new Logger(BasesService.name);
+
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected metaService: MetaService,
@@ -193,7 +196,9 @@ export class BasesService {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error deleting base', e);
+      NcError.get(context).internalServerError('Failed to delete base');
     }
 
     this.appHooksService.emit(AppEvents.PROJECT_DELETE, {

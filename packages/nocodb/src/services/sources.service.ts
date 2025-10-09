@@ -24,7 +24,7 @@ export class SourcesService {
     const source = await Source.get(context, param.sourceId);
 
     if (!source) {
-      NcError.sourceNotFound(param.sourceId);
+      NcError.get(context).sourceNotFound(param.sourceId);
     }
 
     source.config = await source.getSourceConfig();
@@ -46,7 +46,7 @@ export class SourcesService {
     const oldSource = await Source.get(context, param.sourceId);
 
     if (!oldSource) {
-      NcError.sourceNotFound(param.sourceId);
+      NcError.get(context).sourceNotFound(param.sourceId);
     }
 
     const baseBody = param.source;
@@ -117,7 +117,7 @@ export class SourcesService {
         context,
       });
     } catch (e) {
-      NcError.badRequest(e);
+      NcError.get(context).badRequest(e);
     }
     return true;
   }
@@ -143,7 +143,7 @@ export class SourcesService {
         context.socket_id,
       );
     } catch (e) {
-      NcError.badRequest(e);
+      NcError.get(context).badRequest(e);
     }
     return true;
   }
@@ -198,7 +198,9 @@ export class SourcesService {
 
       // Check if integration exists
       if (!integration) {
-        NcError.integrationNotFound((baseBody as any).fk_integration_id);
+        NcError.get(context).integrationNotFound(
+          (baseBody as any).fk_integration_id,
+        );
       }
 
       // check if integration is of type Database

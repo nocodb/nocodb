@@ -29,7 +29,7 @@ export class AiCompletionService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = integration.getIntegrationWrapper<AiIntegration>();

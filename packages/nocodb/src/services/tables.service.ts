@@ -9,6 +9,7 @@ import {
   isOrderCol,
   isVirtualCol,
   ModelTypes,
+  NcBaseError,
   ProjectRoles,
   RelationTypes,
   UITypes,
@@ -438,7 +439,9 @@ export class TablesService {
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error deleting table', e);
+      NcError.get(context).tableError('Bad Request');
     }
 
     if (result) {
@@ -838,7 +841,7 @@ export class TablesService {
       )?.data?.list;
     }
 
-    const _tables = await Model.list(context, {
+    await Model.list(context, {
       base_id: base.id,
       source_id: source.id,
     });
@@ -875,16 +878,8 @@ export class TablesService {
         (c) => c.uidt === UITypes.Order,
       );
 
-      if (!source.isMeta()) {
-        const orderColumn = columns.find(
-          (c) => c.cn === metaOrderColumn.column_name,
-        );
-
-        if (!orderColumn) {
-          throw new Error(
-            `Column ${metaOrderColumn.column_name} not found in database`,
-          );
-        }
+      if (!metaOrderColumn) {
+        throw new Error('Order column not found' + result.id);
       }
 
       const dbDriver = await NcConnectionMgrv2.get(source);
@@ -901,8 +896,10 @@ export class TablesService {
         metaOrderColumn.column_name,
       ]);
     } catch (e) {
-      this.logger.log(`Something went wrong while creating index for nc_order`);
-      this.logger.error(e);
+      this.logger.error(
+        `Something went wrong while creating index for nc_order`,
+        e,
+      );
     }
 
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {

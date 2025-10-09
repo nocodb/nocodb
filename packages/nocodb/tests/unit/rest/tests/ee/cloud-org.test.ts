@@ -66,7 +66,7 @@ function cloudOrgTests() {
       .set('xc-auth', context.token)
       .expect(404);
 
-    expect(res.body.error).to.be.eq('WORKSPACE_NOT_FOUND');
+    expect(res.body.error).to.be.eq('ERR_WORKSPACE_NOT_FOUND');
   });
 
   it('Move workspace owned by someone else', async () => {

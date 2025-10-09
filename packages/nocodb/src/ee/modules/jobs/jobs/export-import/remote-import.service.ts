@@ -3,7 +3,7 @@ import { streamValues } from 'stream-json/streamers/StreamValues';
 import { Injectable, Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
-import { parseProp, WorkspaceUserRoles } from 'nocodb-sdk';
+import { NcApiVersion, parseProp, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { Request } from 'express';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { BasesService } from '~/services/bases.service';
@@ -126,13 +126,13 @@ export class RemoteImportService {
     );
 
     if (!base) {
-      throw new Error(`Base not found for id '${payload.baseId}'`);
+      NcError.get(context).baseNotFound(payload.baseId);
     }
 
     const source = (await base.getSources())[0];
 
     if (!source) {
-      throw new Error(`Source not found!`);
+      NcError.get(context).noSourcesFound();
     }
 
     const secret = nanoid();
@@ -287,10 +287,18 @@ export class RemoteImportService {
             baseId,
           );
 
+    if (!base) {
+      NcError.get({
+        api_version: NcApiVersion.V2,
+      }).baseNotFound(baseId);
+    }
+
     const source = (await base.getSources())[0];
 
-    if (!base || !source) {
-      throw new Error(`Base or source not found!`);
+    if (!source) {
+      NcError.get({
+        api_version: NcApiVersion.V2,
+      }).noSourcesFound();
     }
 
     log(`Importing to ${base.title}`);

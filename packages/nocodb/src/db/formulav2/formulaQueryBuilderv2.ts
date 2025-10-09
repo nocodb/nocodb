@@ -33,7 +33,7 @@ import type {
 } from './formula-query-builder.types';
 import NocoCache from '~/cache/NocoCache';
 import { getRefColumnIfAlias } from '~/helpers';
-import { ExternalTimeout, NcBaseErrorv2, NcError } from '~/helpers/catchError';
+import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { BaseUser, ButtonColumn } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
 import Model from '~/models/Model';
@@ -532,7 +532,7 @@ export default async function formulaQueryBuilderv2({
       validateFormula ||
       (column?.id &&
         e instanceof NcBaseErrorv2 &&
-        e.error === NcErrorType.FORMULA_CIRCULAR_REF_ERROR)
+        e.error === NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA)
     ) {
       console.error(e);
 
@@ -549,7 +549,9 @@ export default async function formulaQueryBuilderv2({
               error: e.message,
             },
           );
-        } else if (!(e instanceof ExternalTimeout)) {
+        } else if (
+          ![NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT].includes(e.error)
+        ) {
           // add formula error to show in UI
           await FormulaColumn.update(context, column.id, {
             error: e.message,

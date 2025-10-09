@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ProjectReqType, WorkspacePlan } from 'nocodb-sdk';
+import { NcBaseError, ProjectReqType, WorkspacePlan } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import type { WorkspaceType } from 'nocodb-sdk';
 import { WorkspacesService } from '~/services/workspaces.service';
@@ -270,6 +270,7 @@ export class WorkspacesController {
       await this.workspacesService.deleteDeprecatedWorkspaces();
       await this.workspacesService.prepopulateWorkspaces();
     } catch (e) {
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(e);
       NcError.internalServerError(
         'Failed to delete deprecated workspaces, check logs for more details.',

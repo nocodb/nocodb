@@ -50,7 +50,7 @@ export class SnapshotController {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const workspace = await Workspace.get(base.fk_workspace_id);
@@ -76,7 +76,7 @@ export class SnapshotController {
     const source = (await base.getSources())[0];
 
     if (!source) {
-      throw new Error(`Source not found!`);
+      NcError.get(context).noSourcesFound();
     }
 
     const snapshotBase = await this.basesService.baseCreate({
@@ -181,7 +181,7 @@ export class SnapshotController {
     const source = (await base.getSources())[0];
 
     if (!source) {
-      throw new Error(`Source not found!`);
+      NcError.get(context).noSourcesFound();
     }
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 

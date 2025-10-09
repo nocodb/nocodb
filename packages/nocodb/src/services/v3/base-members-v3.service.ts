@@ -8,7 +8,7 @@ import type {
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
 import Noco from '~/Noco';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import { BaseUser, User } from '~/models';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
@@ -120,7 +120,9 @@ export class BaseMembersV3Service {
     } catch (e) {
       // on error rollback the transaction and throw the error
       await ncMeta.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error inviting base members', e);
+      NcError.get(context).baseUserError('Bad Request');
     }
     return this.builder().build(
       await BaseUser.getUsersList(context, {
@@ -173,7 +175,8 @@ export class BaseMembersV3Service {
     } catch (e) {
       // on error rollback the transaction and throw the error
       await ncMeta.rollback();
-      throw e;
+      this.logger.error('Error updating base members', e);
+      NcError.get(context).baseUserError('Bad Request');
     }
     return this.builder().build(
       await BaseUser.getUsersList(context, {

@@ -236,16 +236,18 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       try {
         this.dataConfig = JSON.parse(process.env.NC_DATA_DB_JSON);
       } catch (e) {
-        throw new Error(
+        this.logger.error(
           `NC_DATA_DB_JSON is not a valid JSON: ${process.env.NC_DATA_DB_JSON}`,
         );
+        NcError.internalServerError(`Something went wrong`);
       }
       // if data db json file is set, use it for generating knex connection
     } else if (process.env.NC_DATA_DB_JSON_FILE) {
       const filePath = process.env.NC_DATA_DB_JSON_FILE;
 
       if (!(await promisify(fs.exists)(filePath))) {
-        throw new Error(`NC_DATA_DB_JSON_FILE not found: ${filePath}`);
+        this.logger.error(`NC_DATA_DB_JSON_FILE not found: ${filePath}`);
+        NcError.internalServerError('Something went wrong');
       }
 
       const fileContent = await promisify(fs.readFile)(filePath, {
@@ -254,9 +256,10 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       try {
         this.dataConfig = JSON.parse(fileContent);
       } catch (e) {
-        throw new Error(
+        this.logger.error(
           `NC_DATA_DB_JSON_FILE is not a valid JSON: ${filePath}`,
         );
+        NcError.internalServerError('Something went wrong');
       }
       // if jdbc url is set, use it for generating knex connection
     } else if (process.env.DATA_DATABASE_URL) {

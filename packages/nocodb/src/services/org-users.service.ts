@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   extractRolesObj,
@@ -14,7 +14,7 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { MailService } from '~/services/mail/mail.service';
 import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { BaseUser, PresignedUrl, Store, SyncSource, User } from '~/models';
@@ -25,6 +25,7 @@ import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class OrgUsersService {
+  private logger = new Logger(OrgUsersService.name);
   constructor(
     protected readonly baseUsersService: BaseUsersService,
     protected readonly appHooksService: AppHooksService,
@@ -108,7 +109,9 @@ export class OrgUsersService {
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback(e);
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error deleting user', e);
+      NcError.orgUserError('Bad Request');
     }
 
     return true;
@@ -207,7 +210,7 @@ export class OrgUsersService {
         } catch (e) {
           console.log(e);
           if (emails.length === 1) {
-            throw e;
+            NcError.orgUserError('Bad Request');
           } else {
             error.push({ email, error: e.message });
           }

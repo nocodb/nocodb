@@ -5,6 +5,7 @@ import {
   EventType,
   IconType,
   IntegrationsType,
+  NcBaseError,
   ProjectRoles,
   ProjectStatus,
   SqlUiFactory,
@@ -704,7 +705,11 @@ export class WorkspacesService implements OnApplicationBootstrap {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to delete workspace', e);
+      NcError.get(param?.req.context).internalServerError(
+        'Failed to delete workspace',
+      );
     }
 
     // TODO: remove optional chaining on cloud only code updated

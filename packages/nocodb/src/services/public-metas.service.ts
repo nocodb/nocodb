@@ -40,10 +40,10 @@ export class PublicMetasService {
       source?: Pick<Source, 'id' | 'type' | 'is_meta' | 'is_local'>;
     } = await View.getByUUID(context, param.sharedViewUuid);
 
-    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+    if (!view) NcError.get(context).viewNotFound(param.sharedViewUuid);
 
     if (view.password && view.password !== param.password) {
-      NcError.invalidSharedViewPassword();
+      NcError.get(context).invalidSharedViewPassword();
     }
 
     const base = await Base.get(context, view.base_id);

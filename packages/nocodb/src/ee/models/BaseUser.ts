@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common';
 import { WorkspaceRolesV3Type } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { NcError } from '~/helpers/ncError';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -104,7 +105,7 @@ export default class BaseUser extends BaseUserCE {
     );
 
     if (!wsUser) {
-      throw new Error('User is not part of workspace');
+      NcError.get(context).baseUserError('User is not part of workspace');
     }
 
     const insertObj = extractProps(baseUser, [

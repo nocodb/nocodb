@@ -4,6 +4,7 @@ import {
   EventType,
   ExpandedFormMode,
   isSystemColumn,
+  NcBaseError,
   parseProp,
   UITypes,
   ViewTypes,
@@ -19,6 +20,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { NcError } from '~/helpers/ncError';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
@@ -672,8 +674,13 @@ export default class View implements ViewType {
           req,
           context,
         });
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        logger.error('Failed to Duplicate View', e);
+        NcError.get(context).internalServerError('Failed to Duplicate View');
       }
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error('Failed to Duplicate View', e);
+      NcError.get(context).internalServerError('Failed to Create View');
     }
   }
 
@@ -2576,9 +2583,13 @@ export default class View implements ViewType {
           req,
           context,
         });
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        logger.error('Failed to Duplicate View', e);
+        NcError.get(context).internalServerError('Failed to Duplicate View');
       }
-
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error('Failed to create View', e);
+      NcError.get(context).internalServerError('Failed to create View');
     }
   }
 

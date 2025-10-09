@@ -7,6 +7,7 @@ import { useAgent } from 'request-filtering-agent';
 import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
+import { NcError } from '~/helpers/ncError';
 
 interface GoogleCloudStorageInput {
   client_email: string;
@@ -73,36 +74,46 @@ export default class Gcs implements IStorageAdapterV2 {
       await promisify(fs.unlink)(tempFile);
       return true;
     } catch (e) {
-      throw e;
+      NcError.pluginTestError(e?.message);
     }
   }
 
   public async fileRead(key: string): Promise<Buffer> {
-    const file = this.storageClient
-      .bucket(this.bucketName)
-      .file(this.patchKey(key));
-    const [exists] = await file.exists();
-    if (!exists) {
-      throw new Error(`File ${this.patchKey(key)} does not exist`);
+    try {
+      const file = this.storageClient
+        .bucket(this.bucketName)
+        .file(this.patchKey(key));
+      const [exists] = await file.exists();
+      if (!exists) {
+        NcError._.storageFileReadError(
+          `File ${this.patchKey(key)} does not exist`,
+        );
+      }
+      const [data] = await file.download();
+      return data;
+    } catch (e) {
+      NcError._.storageFileReadError(e.message);
     }
-    const [data] = await file.download();
-    return data;
   }
 
   public async fileCreate(key: string, file: XcFile): Promise<string> {
-    const [uploadResponse] = await this.storageClient
-      .bucket(this.bucketName)
-      .upload(file.path, {
-        destination: this.patchKey(key),
-        contentType: file?.mimetype || 'application/octet-stream',
-        gzip: true,
-        metadata: {
-          cacheControl: 'public, max-age=31536000',
-        },
-        ...this.aclConfig(),
-      });
+    try {
+      const [uploadResponse] = await this.storageClient
+        .bucket(this.bucketName)
+        .upload(file.path, {
+          destination: this.patchKey(key),
+          contentType: file?.mimetype || 'application/octet-stream',
+          gzip: true,
+          metadata: {
+            cacheControl: 'public, max-age=31536000',
+          },
+          ...this.aclConfig(),
+        });
 
-    return uploadResponse.publicUrl();
+      return uploadResponse.publicUrl();
+    } catch (e) {
+      NcError._.storageFileCreateError(e.message);
+    }
   }
 
   public async fileCreateByStream(
@@ -113,26 +124,30 @@ export default class Gcs implements IStorageAdapterV2 {
       size?: number;
     } = {},
   ): Promise<any> {
-    const file = this.storageClient
-      .bucket(this.bucketName)
-      .file(this.patchKey(key));
-    await new Promise<void>((resolve, reject) => {
-      stream
-        .pipe(
-          file.createWriteStream({
-            gzip: true,
-            metadata: {
-              contentType: options.mimetype || 'application/octet-stream',
-              cacheControl: 'public, max-age=31536000',
-            },
-            ...this.aclConfig(),
-          }),
-        )
-        .on('finish', () => resolve())
-        .on('error', reject);
-    });
+    try {
+      const file = this.storageClient
+        .bucket(this.bucketName)
+        .file(this.patchKey(key));
+      await new Promise<void>((resolve, reject) => {
+        stream
+          .pipe(
+            file.createWriteStream({
+              gzip: true,
+              metadata: {
+                contentType: options.mimetype || 'application/octet-stream',
+                cacheControl: 'public, max-age=31536000',
+              },
+              ...this.aclConfig(),
+            }),
+          )
+          .on('finish', () => resolve())
+          .on('error', reject);
+      });
 
-    return file.publicUrl();
+      return file.publicUrl();
+    } catch (e) {
+      NcError._.storageFileStreamError(e.message);
+    }
   }
 
   public async fileCreateByUrl(
@@ -140,34 +155,59 @@ export default class Gcs implements IStorageAdapterV2 {
     url: string,
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<{ url: string; data: any }> {
-    const response = await axios.get(url, {
-      httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-      httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-      responseType: buffer ? 'arraybuffer' : 'stream',
-    });
+    try {
+      const response = await axios.get(url, {
+        httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        responseType: buffer ? 'arraybuffer' : 'stream',
+      });
 
-    const file = this.storageClient.bucket(this.bucketName).file(destPath);
-    await file.save(response.data);
+      const file = this.storageClient.bucket(this.bucketName).file(destPath);
+      await file.save(response.data);
 
-    return { url: file.publicUrl(), data: response.data };
+      return { url: file.publicUrl(), data: response.data };
+    } catch (e) {
+      NcError._.storageFileCreateError(
+        `Failed to create file from URL: ${e.message}`,
+      );
+    }
   }
 
   public async fileDelete(path: string): Promise<void> {
-    await this.storageClient.bucket(this.bucketName).file(path).delete();
+    try {
+      await this.storageClient.bucket(this.bucketName).file(path).delete();
+    } catch (e) {
+      NcError._.storageFileDeleteError(e.message);
+    }
   }
 
   public async fileReadByStream(key: string): Promise<Readable> {
-    return this.storageClient
+    const file = this.storageClient
       .bucket(this.bucketName)
-      .file(this.patchKey(key))
-      .createReadStream();
+      .file(this.patchKey(key));
+
+    // Check if file exists before creating stream
+    const [exists] = await file.exists();
+    if (!exists) {
+      NcError._.storageFileReadError(
+        `File ${this.patchKey(key)} does not exist`,
+      );
+    }
+
+    return file.createReadStream();
   }
 
   public async getDirectoryList(path: string): Promise<string[]> {
-    const [files] = await this.storageClient.bucket(this.bucketName).getFiles({
-      prefix: path,
-    });
-    return files.map((file) => file.name);
+    try {
+      const [files] = await this.storageClient
+        .bucket(this.bucketName)
+        .getFiles({
+          prefix: path,
+        });
+      return files.map((file) => file.name);
+    } catch (e) {
+      NcError._.storageFileReadError(`Failed to list directory: ${e.message}`);
+    }
   }
 
   public async getSignedUrl(
@@ -175,20 +215,26 @@ export default class Gcs implements IStorageAdapterV2 {
     expiresInSeconds = 7200,
     pathParameters?: { [key: string]: string },
   ): Promise<string> {
-    const options: GetSignedUrlConfig = {
-      version: 'v4',
-      action: 'read',
-      expires: Date.now() + expiresInSeconds * 1000,
-      responseDisposition: pathParameters?.ResponseContentDisposition,
-      responseType: pathParameters?.ResponseContentType,
-    };
+    try {
+      const options: GetSignedUrlConfig = {
+        version: 'v4',
+        action: 'read',
+        expires: Date.now() + expiresInSeconds * 1000,
+        responseDisposition: pathParameters?.ResponseContentDisposition,
+        responseType: pathParameters?.ResponseContentType,
+      };
 
-    const [url] = await this.storageClient
-      .bucket(this.bucketName)
-      .file(this.patchKey(key))
-      .getSignedUrl(options);
+      const [url] = await this.storageClient
+        .bucket(this.bucketName)
+        .file(this.patchKey(key))
+        .getSignedUrl(options);
 
-    return url;
+      return url;
+    } catch (e) {
+      NcError._.storageFileReadError(
+        `Failed to generate signed URL: ${e.message}`,
+      );
+    }
   }
 
   public async scanFiles(globPattern: string): Promise<Readable> {
@@ -208,26 +254,31 @@ export default class Gcs implements IStorageAdapterV2 {
       read() {},
     });
 
-    const fileStream = this.storageClient
-      .bucket(this.input.bucket)
-      .getFilesStream({
-        prefix: globPattern,
-        autoPaginate: true,
+    try {
+      const fileStream = this.storageClient
+        .bucket(this.input.bucket)
+        .getFilesStream({
+          prefix: globPattern,
+          autoPaginate: true,
+        });
+
+      fileStream.on('error', (error) => {
+        stream.destroy(error);
       });
 
-    fileStream.on('error', (error) => {
-      stream.emit('error', error);
-    });
+      fileStream.on('data', (file) => {
+        stream.push(file.name);
+      });
 
-    fileStream.on('data', (file) => {
-      stream.push(file.name);
-    });
+      fileStream.on('end', () => {
+        stream.push(null);
+      });
 
-    fileStream.on('end', () => {
-      stream.push(null);
-    });
-
-    return stream;
+      return stream;
+    } catch (e) {
+      stream.destroy(new Error(`Failed to scan files: ${e.message}`));
+      NcError._.storageFileReadError(`Failed to scan files: ${e.message}`);
+    }
   }
 
   getUploadedPath(path: string): { path?: string; url?: string } {

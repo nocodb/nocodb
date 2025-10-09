@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { WorkspaceUserRoles } from 'nocodb-sdk';
+import { NcBaseError, WorkspaceUserRoles } from 'nocodb-sdk';
 import { BaseMembersV3Service as BaseMembersV3ServiceCE } from 'src/services/v3/base-members-v3.service';
 import type { ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -122,7 +122,11 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
       for (const eachRollback of rollbacks) {
         await eachRollback();
       }
-      throw e;
+      this.logger.error('Failed to invite users', e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      NcError.get(param.req.context).internalServerError(
+        'Failed to invite users',
+      );
     }
     for (const eachPostOperation of postOperations) {
       await eachPostOperation();

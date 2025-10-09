@@ -113,7 +113,7 @@ export default function () {
             ],
           });
         expect(response.status).to.eq(400);
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
       });
       it(`will handle feature not supported`, async () => {
         featureMock = await overrideFeature({
@@ -135,7 +135,7 @@ export default function () {
             ],
           });
         expect(response.status).to.eq(403);
-        expect(response.body.error).to.eq('FEATURE_NOT_SUPPORTED');
+        expect(response.body.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
       });
       it(`will handle empty name`, async () => {
         const response = await request(context.app)
@@ -153,7 +153,7 @@ export default function () {
             ],
           });
         expect(response.status).to.eq(400);
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(response.body.message).to.eq(
           'Missing view `title` property in request body',
         );
@@ -174,7 +174,7 @@ export default function () {
             type: 'grid',
           });
         expect(response.status).to.eq(400);
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(response.body.message).to.eq(
           `View title 'MyView' already exists`,
         );
@@ -202,7 +202,7 @@ export default function () {
             type: 'grid',
           });
         expect(updateResponse.status).to.eq(400);
-        expect(updateResponse.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(updateResponse.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(updateResponse.body.message).to.eq(
           `View title 'MyView' already exists`,
         );
@@ -222,7 +222,7 @@ export default function () {
             ],
           });
         expect(response.status).to.eq(400);
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
       });
       it(`will handle invalid type`, async () => {
         const response = await request(context.app)
@@ -240,7 +240,7 @@ export default function () {
             ],
           });
         expect(response.status).to.eq(400);
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
       });
 
       it(`will handle invalid sort field`, async () => {
@@ -259,7 +259,7 @@ export default function () {
             ],
           });
         expect(response.status).to.eq(400);
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
       });
 
       it(`will handle invalid table id`, async () => {
@@ -278,7 +278,7 @@ export default function () {
             ],
           });
         expect(response.status).to.eq(422);
-        expect(response.body.error).to.eq('TABLE_NOT_FOUND');
+        expect(response.body.error).to.eq('ERR_TABLE_NOT_FOUND');
       });
 
       it(`will handle invalid groups property`, async () => {
@@ -297,7 +297,7 @@ export default function () {
             },
           });
         expect(response.status).to.eq(400);
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
       });
 
       it(`will handle invalid groups field id`, async () => {
@@ -316,7 +316,7 @@ export default function () {
             },
           });
         expect(response.status).to.eq(422);
-        expect(response.body.error).to.eq('FIELD_NOT_FOUND');
+        expect(response.body.error).to.eq('ERR_FIELD_NOT_FOUND');
       });
 
       it(`will handle update incorrect view id`, async () => {
@@ -328,7 +328,7 @@ export default function () {
             type: 'grid',
           });
         expect(response.status).to.eq(422);
-        expect(response.body.error).to.eq('VIEW_NOT_FOUND');
+        expect(response.body.error).to.eq('ERR_VIEW_NOT_FOUND');
       });
     });
     describe('delete', () => {
@@ -337,7 +337,7 @@ export default function () {
           .delete(`${API_PREFIX}/views/NOTFOUNDID`)
           .set('xc-token', context.xc_token);
         expect(response.status).to.eq(422);
-        expect(response.body.error).to.eq('VIEW_NOT_FOUND');
+        expect(response.body.error).to.eq('ERR_VIEW_NOT_FOUND');
       });
     });
   });

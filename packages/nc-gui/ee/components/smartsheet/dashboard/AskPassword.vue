@@ -28,7 +28,7 @@ const onFinish = async () => {
     const error = await extractSdkResponseErrorMsgv2(e)
     console.error(error.message)
 
-    if (error.error === NcErrorType.INVALID_SHARED_DASHBOARD_PASSWORD) {
+    if (error.error === NcErrorType.ERR_SHARED_DASHBOARD_PASSWORD_INVALID) {
       passwordError.value = error.message
     } else {
       message.error(error.message)

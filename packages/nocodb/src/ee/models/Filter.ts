@@ -1,5 +1,6 @@
 import FilterCE from 'src/models/Filter';
 import RowColorCondition from 'src/models/RowColorCondition';
+import { Logger } from '@nestjs/common';
 import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Column from '~/models/Column';
@@ -17,6 +18,8 @@ import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import Widget from '~/models/Widget';
 import { Model } from '~/models';
+
+const logger = new Logger('Filter');
 
 export default class Filter extends FilterCE implements FilterType {
   fk_link_col_id?: string;
@@ -161,9 +164,10 @@ export default class Filter extends FilterCE implements FilterType {
           filter.fk_parent_column_id)
       )
     ) {
-      throw new Error(
+      logger.error(
         `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_link_col_id(${filter.fk_link_col_id}), fk_hook_id(${filter.fk_hook_id}, fk_widget_id(${filter.fk_widget_id}), fk_parent_column_id(${filter.fk_parent_column_id})`,
       );
+      NcError.get(context).internalServerError('Error creating filter');
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;
     let value = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);

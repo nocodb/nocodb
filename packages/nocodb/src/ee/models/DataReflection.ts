@@ -6,8 +6,10 @@ import { serialize } from 'pg-protocol';
 import { Parser } from 'node-sql-parser';
 import { Logger } from '@nestjs/common';
 import DataReflectionCE from 'src/models/DataReflection';
+import { NcBaseError } from 'nocodb-sdk';
 import type { Socket } from 'net';
 import type { TLSSocket } from 'tls';
+import { NcError } from '~/helpers/ncError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Base, Workspace } from '~/models';
 import Noco from '~/Noco';
@@ -243,7 +245,7 @@ export default class DataReflection extends DataReflectionCE {
     const workspace = await Workspace.get(fk_workspace_id, false, ncMeta);
 
     if (!workspace) {
-      throw new Error('Workspace not found');
+      NcError._.workspaceNotFound(fk_workspace_id);
     }
 
     const sanitizedWorkspaceTitle = workspace.title.replace(/[^a-z0-9]/gi, '_');
@@ -281,7 +283,9 @@ export default class DataReflection extends DataReflectionCE {
       await knex.commit();
     } catch (e) {
       await knex.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error('Failed to create data reflection', e);
+      NcError._.internalServerError('Failed to create data reflection');
     }
 
     return DataReflection.get({ fk_workspace_id }, ncMeta);
@@ -312,8 +316,7 @@ export default class DataReflection extends DataReflectionCE {
       await knex.commit();
     } catch (e) {
       await knex.rollback();
-      logger.error(`Failed to destroy reflection for ${fk_workspace_id}`);
-      logger.error(e);
+      logger.error(`Failed to destroy reflection for ${fk_workspace_id}`, e);
     }
   }
 
@@ -449,7 +452,7 @@ function rewriteSASLMechanisms(buf: Buffer): Buffer {
   const filtered = saslMechs.filter((m) => m !== 'SCRAM-SHA-256-PLUS');
 
   if (filtered.length === 0) {
-    throw new Error('No valid SASL mechanisms after filtering');
+    NcError._.internalServerError('No valid SASL mechanisms after filtering');
   }
 
   const mechList = Buffer.concat(filtered.map((m) => Buffer.from(m + '\0')));

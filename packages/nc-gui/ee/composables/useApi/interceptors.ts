@@ -55,8 +55,8 @@ export function addAxiosInterceptors(api: Api<any> | InternalApi<any>, skipSocke
     },
     // Handle Error
     async (error) => {
-      // if 403 and NcErrorType.SSO_LOGIN_REQUIRED error, redirect to sso login page and prefill the email
-      if (error.response?.status === 403 && error.response?.data?.error === NcErrorType.SSO_LOGIN_REQUIRED) {
+      // if 403 and NcErrorType.ERR_SSO_LOGIN_REQUIRED error, redirect to sso login page and prefill the email
+      if (error.response?.status === 403 && error.response?.data?.error === NcErrorType.ERR_SSO_LOGIN_REQUIRED) {
         const workspaceStore = useWorkspace()
 
         workspaceStore.toggleSsoLoginRequiredDlg(true)

@@ -1,6 +1,6 @@
 import path from 'path';
 import { Readable } from 'stream';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   ButtonActionsType,
   IntegrationsType,
@@ -9,6 +9,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  NcBaseError,
   parseJsonValue,
   UITypes,
 } from 'nocodb-sdk';
@@ -271,6 +272,7 @@ const preparePromptAttachments = async (
 
 @Injectable()
 export class AiDataService {
+  private readonly logger = new Logger(AiDataService.name);
   constructor(
     protected readonly tablesService: TablesService,
     protected readonly aiSchemaService: AiSchemaService,
@@ -414,7 +416,7 @@ export class AiDataService {
     const integration = await Integration.get(context, ai.fk_integration_id);
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -477,7 +479,7 @@ export class AiDataService {
             }
 
             if (isJSON(col)) {
-              return `\"${parseJsonValue(row[col.title])}\"`;
+              return `"${parseJsonValue(row[col.title])}"`;
             }
 
             return row[col.title];
@@ -679,7 +681,7 @@ export class AiDataService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -727,7 +729,7 @@ export class AiDataService {
             }
 
             if (isJSON(col)) {
-              return `\"${parseJsonValue(row[col.title])}\"`;
+              return `"${parseJsonValue(row[col.title])}"`;
             }
 
             return row[col.title];
@@ -808,8 +810,9 @@ export class AiDataService {
 
       return updatedRows;
     } catch (e) {
-      console.error(e);
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to generate from Button', e);
+      NcError.get(context).internalServerError(e?.message);
     }
   }
 
@@ -853,7 +856,7 @@ export class AiDataService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -978,7 +981,7 @@ Please generate ${
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -1194,7 +1197,7 @@ Please generate ${
             }
 
             if (isJSON(col)) {
-              return `\"${parseJsonValue(row[col.title])}\"`;
+              return `"${parseJsonValue(row[col.title])}"`;
             }
 
             return row[col.title];
@@ -1216,7 +1219,7 @@ Please generate ${
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -1284,8 +1287,9 @@ Please generate ${
 
       return updatedRows;
     } catch (e) {
-      console.error(e);
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to update rows', e);
+      NcError.get(context).internalServerError(e?.message);
     }
   }
 }

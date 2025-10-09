@@ -8,6 +8,7 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
   AppEvents,
+  NcBaseError,
   OrgUserRoles,
   ProjectRoles,
   validatePassword,
@@ -779,8 +780,11 @@ export class UsersService extends UsersServiceCE {
         error_details: e?.stack,
         affected_resources: [param.id],
       });
-
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to Delete User', e);
+      NcError.get(param?.req.context).internalServerError(
+        'Failed to delete user',
+      );
     }
   }
 

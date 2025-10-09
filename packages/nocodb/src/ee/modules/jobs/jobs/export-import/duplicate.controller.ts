@@ -11,6 +11,7 @@ import {
 import { AppEvents, ProjectStatus } from 'nocodb-sdk';
 import { DuplicateController as DuplicateControllerCE } from 'src/modules/jobs/jobs/export-import/duplicate.controller';
 import { Request } from 'express';
+import { NcError } from '~/helpers/ncError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
@@ -73,13 +74,13 @@ export class DuplicateController extends DuplicateControllerCE {
     );
 
     if (!base) {
-      throw new Error(`Base not found for id '${sharedBaseId}'`);
+      NcError.get(context).baseNotFound(sharedBaseId);
     }
 
     const source = (await base.getSources())[0];
 
     if (!source) {
-      throw new Error(`Source not found!`);
+      NcError.get(context).noSourcesFound();
     }
 
     const dupProject = await this.basesService.baseCreate({
@@ -125,7 +126,7 @@ export class DuplicateController extends DuplicateControllerCE {
     @Param('secret') secret: string,
   ) {
     if (!secret) {
-      throw new Error('Secret missing');
+      NcError.get(req.context).badRequest('Secret missing');
     }
 
     return await this.remoteImportService.remoteImportProcess(secret, req);
@@ -147,13 +148,13 @@ export class DuplicateController extends DuplicateControllerCE {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const dashboard = await Dashboard.get(context, dashboardId);
 
     if (!dashboard) {
-      throw new Error(`Dashboard not found!`);
+      NcError.get(context).dashboardNotFound(dashboardId);
     }
 
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);

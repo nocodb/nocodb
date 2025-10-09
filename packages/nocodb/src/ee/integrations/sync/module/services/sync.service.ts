@@ -3,6 +3,7 @@ import {
   type IntegrationReqType,
   IntegrationsType,
   NcApiVersion,
+  NcBaseError,
   type NcContext,
   type NcRequest,
   RelationTypes,
@@ -460,8 +461,9 @@ export class SyncModuleService implements OnModuleInit {
         for (const syncMapping of syncMappings) {
           await SyncMapping.delete(context, syncMapping.id);
         }
-
-        throw e;
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        this.logger.error('Failed to create sync', e);
+        NcError.get(context).internalServerError('Failed to create sync');
       }
 
       if (authWrapper?.destroy) {
@@ -496,8 +498,9 @@ export class SyncModuleService implements OnModuleInit {
       for (const syncConfig of syncConfigsToDelete) {
         await SyncConfig.delete(context, syncConfig.id);
       }
-
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to create sync', e);
+      NcError.get(context).internalServerError('Failed to create sync');
     }
   }
 
@@ -1022,7 +1025,9 @@ export class SyncModuleService implements OnModuleInit {
 
       await SyncConfig.delete(context, syncConfigId);
     } catch (e) {
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to delete sync', e);
+      NcError.get(context).internalServerError('Failed to delete sync');
     }
 
     return syncConfig;

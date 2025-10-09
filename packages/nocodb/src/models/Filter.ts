@@ -184,7 +184,7 @@ export default class Filter implements FilterType {
         (filter.fk_view_id || filter.fk_hook_id || filter.fk_parent_column_id)
       )
     ) {
-      throw new Error(
+      NcError.get(context).badRequest(
         `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_hook_id(${filter.fk_hook_id}), fk_parent_column_id(${filter.fk_parent_column_id})`,
       );
     }

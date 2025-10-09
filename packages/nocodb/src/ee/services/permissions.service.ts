@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   EventType,
+  NcBaseError,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
@@ -175,10 +176,9 @@ export class PermissionsService {
           CacheDelDirection.PARENT_TO_CHILD,
         );
       }
-
-      this.logger.error(error);
-
-      throw error;
+      if (error instanceof NcError || error instanceof NcBaseError) throw error;
+      this.logger.error('Failed to set permission', error);
+      NcError.get(context).internalServerError('Failed to set permission');
     }
 
     await this.broadcastPermissionUpdate(context);
@@ -245,8 +245,9 @@ export class PermissionsService {
         `${CacheScope.PERMISSION}:${context.base_id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
-
-      throw error;
+      if (error instanceof NcError || error instanceof NcBaseError) throw error;
+      this.logger.error('Failed to delete permission', error);
+      NcError.get(context).internalServerError('Failed to delete permission');
     }
 
     await this.broadcastPermissionUpdate(context);
@@ -284,8 +285,9 @@ export class PermissionsService {
         `${CacheScope.PERMISSION}:${context.base_id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
-
-      throw error;
+      if (error instanceof NcError || error instanceof NcBaseError) throw error;
+      this.logger.error('Failed to delete permissions', error);
+      NcError.get(context).internalServerError('Failed to delete permissions');
     }
 
     const deletedPermissions = oldPermissions.filter(

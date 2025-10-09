@@ -51,7 +51,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception.message,
       )
     ) {
-      exception = NcError._.errorCodex.generateError(NcErrorType.BAD_JSON);
+      exception = NcError._.errorCodex.generateError(
+        NcErrorType.ERR_INVALID_JSON,
+      );
     }
 
     // try to extract db error for unknown errors
@@ -78,9 +80,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof NcSDKError ||
         (exception instanceof NcBaseErrorv2 &&
           ![
-            NcErrorType.INTERNAL_SERVER_ERROR,
-            NcErrorType.DATABASE_ERROR,
-            NcErrorType.UNKNOWN_ERROR,
+            NcErrorType.ERR_INTERNAL_SERVER,
+            NcErrorType.ERR_DATABASE_OP_FAILED,
+            NcErrorType.ERR_UNKNOWN,
           ].includes(exception.error))
       )
     )
@@ -190,7 +192,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message: `Invalid option(s) "${exception.options.join(
           ', ',
         )}" provided for column "${exception.columnTitle}"`,
-        error: 'INVALID_VALUE_FOR_FIELD',
+        error: 'ERR_INVALID_VALUE_FOR_FIELD',
       });
     } else if (
       exception instanceof BadRequest ||
@@ -246,16 +248,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // handle different types of exceptions
-    // todo: temporary hack, need to fix
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
       this.captureException(exception, request);
 
-      // todo: change the response code
-      response.status(400).json({
-        msg: exception.message,
-      });
+      const responsePayload: any = {
+        msg: 'Internal server error',
+      };
+
+      // Include actual error message only in development
+      if (process.env.NODE_ENV !== 'production') {
+        responsePayload.__msg =
+          exception?.message || 'An unexpected error occurred';
+      }
+
+      response.status(500).json(responsePayload);
     }
   }
 

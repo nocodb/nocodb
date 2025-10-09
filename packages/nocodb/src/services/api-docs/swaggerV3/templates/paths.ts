@@ -1,4 +1,4 @@
-import { ModelTypes, UITypes } from 'nocodb-sdk';
+import { ModelTypes } from 'nocodb-sdk';
 import {
   attachmentFieldIdParam,
   fieldsParam,

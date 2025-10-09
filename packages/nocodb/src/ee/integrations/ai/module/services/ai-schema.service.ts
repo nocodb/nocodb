@@ -43,6 +43,7 @@ import {
   predictSchemaSystemMessage,
   predictViewsPrompt,
 } from '~/integrations/ai/module/prompts/index';
+import { NcError } from '~/helpers/ncError';
 
 @Injectable()
 export class AiSchemaService {
@@ -77,7 +78,7 @@ export class AiSchemaService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -218,7 +219,7 @@ export class AiSchemaService {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error('Base not found');
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const integration = await Integration.getCategoryDefault(
@@ -227,7 +228,7 @@ export class AiSchemaService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -347,7 +348,7 @@ export class AiSchemaService {
     },
   ) {
     if (!params.base && !params.baseId) {
-      throw new Error('Base not found');
+      NcError.get(context).baseNotFound(params.baseId);
     }
 
     if (params.baseId) {
@@ -468,7 +469,7 @@ export class AiSchemaService {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error('Base not found');
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const integration = await Integration.getCategoryDefault(
@@ -477,7 +478,7 @@ export class AiSchemaService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -590,7 +591,7 @@ export class AiSchemaService {
       sources.length === 0 ||
       (sourceId && !sources.find((s) => s.id === sourceId))
     ) {
-      throw new Error('No sources found');
+      NcError.get(context).sourceNotFound(sourceId);
     }
 
     const source = sourceId
@@ -610,7 +611,7 @@ export class AiSchemaService {
       const table = tables.find((t) => t.title === view.table);
 
       if (!table) {
-        throw new Error('Table not found');
+        NcError.get(context).tableNotFound(view.table);
       }
 
       await table.getColumns(context);
@@ -649,7 +650,7 @@ export class AiSchemaService {
               const columnId = getColumnId(groupBy);
 
               if (!columnId) {
-                throw new Error('Column not found');
+                NcError.get(context).fieldNotFound(columnId);
               }
 
               const viewColumn = grid.columns.find(
@@ -657,7 +658,7 @@ export class AiSchemaService {
               );
 
               if (!viewColumn) {
-                throw new Error('View column not found');
+                NcError.get(context).viewColumnNotFound(columnId);
               }
 
               await this.gridColumnsService.gridColumnUpdate(context, {
@@ -674,7 +675,7 @@ export class AiSchemaService {
               const columnId = getColumnId(sort.column);
 
               if (!columnId) {
-                throw new Error('Column not found');
+                NcError.get(context).fieldNotFound(columnId);
               }
 
               await this.sortsService.sortCreate(context, {
@@ -691,7 +692,7 @@ export class AiSchemaService {
               const columnId = getColumnId(filter.column);
 
               if (!columnId) {
-                throw new Error('Column not found');
+                NcError.get(context).fieldNotFound(columnId);
               }
 
               await this.filtersService.filterCreate(context, {
@@ -800,13 +801,13 @@ export class AiSchemaService {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error('Base not found');
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const sources = await base.getSources();
 
     if (!sources || sources.length === 0) {
-      throw new Error('No sources found');
+      NcError.get(context).noSourcesFound();
     }
 
     const integration = await Integration.getCategoryDefault(
@@ -815,7 +816,7 @@ export class AiSchemaService {
     );
 
     if (!integration) {
-      throw new Error('AI integration not found');
+      NcError.get(context).integrationNotFound('AI');
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
@@ -911,7 +912,7 @@ export class AiSchemaService {
     const sources = await base.getSources();
 
     if (!sources || sources.length === 0) {
-      throw new Error('No sources found');
+      NcError.get(context).noSourcesFound();
     }
 
     const source = sources[0];
@@ -939,7 +940,7 @@ export class AiSchemaService {
       const table = tables.find((t) => t.title === tableData.table);
 
       if (!table) {
-        throw new Error('Table not found');
+        NcError.get(context).tableNotFound(tableData.table);
       }
 
       await table.getColumns(context);
@@ -1005,7 +1006,7 @@ export class AiSchemaService {
       const toTable = tables.find((t) => t.title === relation.toTable);
 
       if (!fromTable || !toTable) {
-        throw new Error('Table not found');
+        NcError.get(context).tableNotFound(relation.fromTable);
       }
 
       const relationMeta = relations.find(
@@ -1016,7 +1017,7 @@ export class AiSchemaService {
       );
 
       if (!relationMeta) {
-        throw new Error('Relation not found');
+        NcError.get(context).badRequest('Relation not found');
       }
 
       for (const tuple of relation.fromToTuples || []) {
@@ -1052,7 +1053,7 @@ export class AiSchemaService {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error('Base not found');
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const sources = await base.getSources();
@@ -1062,7 +1063,7 @@ export class AiSchemaService {
       sources.length === 0 ||
       (sourceId && !sources.find((s) => s.id === sourceId))
     ) {
-      throw new Error('No sources found');
+      NcError.get(context).noSourcesFound();
     }
 
     const source = sourceId

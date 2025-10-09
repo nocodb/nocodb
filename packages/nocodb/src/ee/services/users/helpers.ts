@@ -3,6 +3,7 @@ import * as jwt from 'jsonwebtoken';
 import type User from '~/models/User';
 import type { NcConfig } from '~/interface/config';
 import type { Response } from 'express';
+import { NcError } from '~/helpers/catchError';
 
 export function genJwt(
   user: User & { provider?: string; extra?: Record<string, any> },
@@ -33,7 +34,7 @@ export function verifyJwt(token: string, config: NcConfig): User {
   try {
     return jwt.verify(token, config.auth.jwt.secret) as User;
   } catch (error) {
-    throw new Error('Invalid token');
+    NcError.unauthorized('Invalid token');
   }
 }
 

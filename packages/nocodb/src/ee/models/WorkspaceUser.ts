@@ -1,4 +1,4 @@
-import { IconType, ProjectRoles } from 'nocodb-sdk';
+import { IconType, NcBaseError, ProjectRoles } from 'nocodb-sdk';
 import { User } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
@@ -18,6 +18,7 @@ import { PresignedUrl } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 import { clearWorkspaceUserCountCache } from '~/helpers/cacheHelpers';
+import { NcError } from '~/helpers/ncError';
 
 const logger = new Logger('WorkspaceUser');
 
@@ -61,7 +62,7 @@ export default class WorkspaceUser {
         if (wsUser.deleted) {
           await this.delete(fk_workspace_id, fk_user_id, ncMetaTrans);
         } else {
-          throw new Error('User already exists in workspace');
+          NcError._.badRequest('User already exists in workspace');
         }
       }
 
@@ -132,7 +133,9 @@ export default class WorkspaceUser {
       return res;
     } catch (e) {
       await ncMetaTrans.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error('Failed to insert workspace User', e);
+      NcError._.internalServerError('Failed to add user to  workspace');
     }
   }
 

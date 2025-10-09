@@ -77,7 +77,7 @@ export class DataTableService {
     });
 
     if (!row) {
-      NcError.recordNotFound(param.rowId);
+      NcError.get(context).recordNotFound(param.rowId);
     }
 
     return row;
@@ -104,7 +104,9 @@ export class DataTableService {
     });
 
     if (view && view.type !== ViewTypes.GRID) {
-      NcError.badRequest('Aggregation is only supported on grid views');
+      NcError.get(context).badRequest(
+        'Aggregation is only supported on grid views',
+      );
     }
 
     const listArgs: any = { ...param.query };
@@ -530,12 +532,13 @@ export class DataTableService {
   ) {
     const column = await Column.get(context, { colId: param.columnId });
 
-    if (!column) NcError.fieldNotFound(param.columnId);
+    if (!column) NcError.get(context).fieldNotFound(param.columnId);
 
     if (column.fk_model_id !== param.modelId)
-      NcError.badRequest('Column not belong to model');
+      NcError.get(context).badRequest('Column not belong to model');
 
-    if (!isLinksOrLTAR(column)) NcError.badRequest('Column is not LTAR');
+    if (!isLinksOrLTAR(column))
+      NcError.get(context).badRequest('Column is not LTAR');
     return column;
   }
 
@@ -557,7 +560,7 @@ export class DataTableService {
       rowId: string;
     },
   ) {
-    this.validateIds(param.refRowIds);
+    this.validateIds(context, param.refRowIds);
 
     const { model, view } = await this.getModelAndView(context, param);
 
@@ -595,10 +598,10 @@ export class DataTableService {
       rowId: string;
     },
   ) {
-    this.validateIds(param.refRowIds);
+    this.validateIds(context, param.refRowIds);
 
     const { model, view } = await this.getModelAndView(context, param);
-    if (!model) NcError.tableNotFound(param.modelId);
+    if (!model) NcError.get(context).tableNotFound(param.modelId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -665,7 +668,7 @@ export class DataTableService {
       operationMap.copy.fk_related_model_id !==
         operationMap.paste.fk_related_model_id
     ) {
-      NcError.badRequest(
+      NcError.get(context).badRequest(
         'The operation is not supported on different fk_related_model_id',
       );
     }
@@ -684,7 +687,7 @@ export class DataTableService {
       operationMap.deleteAll &&
       !(await baseModel.exist(operationMap.deleteAll.rowId))
     ) {
-      NcError.recordNotFound(operationMap.deleteAll.rowId);
+      NcError.get(context).recordNotFound(operationMap.deleteAll.rowId);
     } else if (operationMap.copy && operationMap.paste) {
       const [existsCopyRow, existsPasteRow] = await Promise.all([
         baseModel.exist(operationMap.copy.rowId),
@@ -692,13 +695,13 @@ export class DataTableService {
       ]);
 
       if (!existsCopyRow && !existsPasteRow) {
-        NcError.recordNotFound(
+        NcError.get(context).recordNotFound(
           `'${operationMap.copy.rowId}' and '${operationMap.paste.rowId}'`,
         );
       } else if (!existsCopyRow) {
-        NcError.recordNotFound(operationMap.copy.rowId);
+        NcError.get(context).recordNotFound(operationMap.copy.rowId);
       } else if (!existsPasteRow) {
-        NcError.recordNotFound(operationMap.paste.rowId);
+        NcError.get(context).recordNotFound(operationMap.paste.rowId);
       }
     }
 
@@ -816,13 +819,13 @@ export class DataTableService {
     }
   }
 
-  private validateIds(rowIds: any[] | any) {
+  private validateIds(context: NcContext, rowIds: any[] | any) {
     if (Array.isArray(rowIds)) {
       const map = new Map<string, boolean>();
       const set = new Set<string>();
       for (const rowId of rowIds) {
         if (rowId === undefined || rowId === null)
-          NcError.recordNotFound(rowId);
+          NcError.get(context).recordNotFound(rowId);
         if (map.has(rowId)) {
           set.add(rowId);
         } else {
@@ -830,9 +833,9 @@ export class DataTableService {
         }
       }
 
-      if (set.size > 0) NcError.duplicateRecord([...set]);
+      if (set.size > 0) NcError.get(context).duplicateRecord([...set]);
     } else if (rowIds === undefined || rowIds === null) {
-      NcError.recordNotFound(rowIds);
+      NcError.get(context).recordNotFound(rowIds);
     }
   }
 
@@ -876,7 +879,7 @@ export class DataTableService {
     } catch (e) {}
 
     if (!bulkFilterList?.length) {
-      NcError.badRequest('Invalid bulkFilterList');
+      NcError.get(context).badRequest('Invalid bulkFilterList');
     }
 
     const results = await processConcurrently(
@@ -930,7 +933,7 @@ export class DataTableService {
     } catch (e) {}
 
     if (!bulkFilterList?.length) {
-      NcError.badRequest('Invalid bulkFilterList');
+      NcError.get(context).badRequest('Invalid bulkFilterList');
     }
 
     const [data, count] = await Promise.all([

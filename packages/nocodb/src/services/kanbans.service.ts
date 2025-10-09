@@ -189,7 +189,7 @@ export class KanbansService {
     const view = await View.get(context, param.kanbanViewId, ncMeta);
 
     if (!view) {
-      NcError.viewNotFound(param.kanbanViewId);
+      NcError.get(context).viewNotFound(param.kanbanViewId);
     }
 
     const viewWebhookManager =

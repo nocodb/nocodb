@@ -56,7 +56,7 @@ export class FormsService {
     const source = await Source.get(context, model.source_id);
 
     if (source.is_data_readonly) {
-      NcError.sourceDataReadOnly(source.alias);
+      NcError.get(context).sourceDataReadOnly(source.alias);
     }
 
     param.body.title = param.body.title?.trim();
@@ -165,7 +165,7 @@ export class FormsService {
     const view = await View.get(context, param.formViewId, ncMeta);
 
     if (!view) {
-      NcError.viewNotFound(param.formViewId);
+      NcError.get(context).viewNotFound(param.formViewId);
     }
 
     const viewWebhookManager =

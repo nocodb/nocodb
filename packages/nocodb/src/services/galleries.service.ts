@@ -154,7 +154,7 @@ export class GalleriesService {
     const view = await View.get(context, param.galleryViewId, ncMeta);
 
     if (!view) {
-      NcError.viewNotFound(param.galleryViewId);
+      NcError.get(context).viewNotFound(param.galleryViewId);
     }
 
     const viewWebhookManager =

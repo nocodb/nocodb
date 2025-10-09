@@ -81,7 +81,7 @@ export class MapsService {
     const view = await View.get(context, param.mapViewId);
 
     if (!view) {
-      NcError.viewNotFound(param.mapViewId);
+      NcError.get(context).viewNotFound(param.mapViewId);
     }
 
     await MapView.update(context, param.mapViewId, param.map);

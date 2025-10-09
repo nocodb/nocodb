@@ -399,7 +399,7 @@ export class ViewsService {
     const view = await View.get(context, param.viewId);
 
     if (!view) {
-      NcError.get(param?.req?.context).viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     let customUrl: CustomUrl | undefined = await CustomUrl.get({
@@ -473,7 +473,7 @@ export class ViewsService {
     const view = await View.get(context, param.viewId);
 
     if (!view) {
-      NcError.get(param?.req?.context).viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     await View.sharedViewDelete(context, param.viewId);

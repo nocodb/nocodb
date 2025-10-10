@@ -114,7 +114,7 @@ export class ViewSettingsOverrideService {
       }
       return result;
     } catch (ex) {
-      trxNcMeta.rollback();
+      await trxNcMeta.rollback();
       throw ex;
     }
   }
@@ -250,7 +250,6 @@ export class ViewSettingsOverrideService {
               sourceV3View.filters.filters,
             ),
           };
-          console.log('insert', insertPayload);
           await this.filtersV3Service.insertFilterGroup({
             context,
             param: {

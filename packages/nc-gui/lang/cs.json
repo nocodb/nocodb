@@ -660,11 +660,15 @@
       "group": "Group",
       "sort": "Sort",
       "rowColoring": "Row coloring",
-      "copyAnotherViewConfig": "Copy another view configuration",
+      "copyAnotherViewConfig": "Copy another view's configuration",
       "selectConfigurationToCopy": "Select configuration(s) to copy",
       "selectViewToCopyFrom": "Select view to copy from",
       "copyConfigurationFromAnotherView": "Copy configuration from another view",
-      "notSupportedByViewType": "Not supported by {view} view type"
+      "notSupportedByViewType": "Not supported by {view} view type",
+      "viewConfigurationCopied": "View configuration copied successfully",
+      "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
+      "copyFromAnotherView": "Copy from another view",
+      "copyFromAView": "Copy from a view"
     }
   },
   "datatype": {
@@ -1910,7 +1914,8 @@
     "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated.",
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
-    "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration"
+    "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
   },
   "placeholder": {
     "searchIcons": "Hledat ikony",

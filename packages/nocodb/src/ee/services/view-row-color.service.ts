@@ -119,9 +119,9 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       for (const rowColorCondition of rowColorConditions.sort(
         (k, l) => k.nc_order - l.nc_order,
       )) {
-        const filters = rawFilters.filter(
-          (k) => k.fk_row_color_condition_id === rowColorCondition.id,
-        );
+        const filters = rawFilters
+          .filter((k) => k.fk_row_color_condition_id === rowColorCondition.id)
+          .sort((k, l) => k.order - l.order);
         const nestedFilters = arrayToNested({
           data: filters,
           childAssignHandler: (filter, children) =>

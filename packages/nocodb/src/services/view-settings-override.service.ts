@@ -4,12 +4,12 @@ import {
   viewTypeAlias,
   ViewTypes,
 } from 'nocodb-sdk';
-import { withoutId } from 'src/helpers/exportImportHelpers';
-import { FiltersV3Service } from './v3/filters-v3.service';
-import { SortsV3Service } from './v3/sorts-v3.service';
-import { ViewRowColorV3Service } from './v3/view-row-color-v3.service';
 import type { NcRequest, ViewSettingOverrideOptions } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { withoutId } from '~/helpers/exportImportHelpers';
+import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+import { SortsV3Service } from '~/services/v3/sorts-v3.service';
+import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
 import { NcError } from '~/helpers/catchError';
 import {
   CalendarViewColumn,
@@ -223,7 +223,7 @@ export class ViewSettingsOverrideService {
       if (settingToOverride.sort) {
         // skip viewWebhookManager for this, Sort.deleteAll is not a standalone operation, it's invoked by view service
         await Sort.deleteAll(context, destinationView.id, ncMeta);
-        for (const sort of sourceV3View.sorts) {
+        for (const sort of sourceV3View.sorts ?? []) {
           await this.sortsV3Service.sortCreate(
             context,
             {
@@ -243,23 +243,37 @@ export class ViewSettingsOverrideService {
           { viewId: destinationView.id },
           ncMeta,
         );
-        await this.filtersV3Service.insertFilterGroup({
-          context,
-          param: {
+        if (sourceV3View.filters) {
+          const insertPayload = {
+            ...sourceV3View.filters,
+            filters: this.filtersV3Service.withoutId(
+              sourceV3View.filters.filters,
+            ),
+          };
+          console.log('insert', insertPayload);
+          await this.filtersV3Service.insertFilterGroup({
+            context,
+            param: {
+              viewId: destinationView.id,
+            },
+            groupOrFilter: insertPayload,
             viewId: destinationView.id,
-          },
-          groupOrFilter: sourceV3View.filters,
-          viewId: destinationView.id,
-          viewWebhookManager,
-        });
+            viewWebhookManager,
+            ncMeta,
+          });
+        }
       }
       // #region update row coloring
       if (settingToOverride.rowColoring) {
-        await this.viewRowColorV3Service.replace(context, {
-          viewId: destinationView.id,
-          req,
-          body: sourceV3View.row_coloring,
-        });
+        await this.viewRowColorV3Service.replace(
+          context,
+          {
+            viewId: destinationView.id,
+            req,
+            body: sourceV3View.row_coloring,
+          },
+          ncMeta,
+        );
       }
     }
     // #endregion update row coloring

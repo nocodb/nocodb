@@ -1,11 +1,6 @@
 <script lang="ts" setup>
-import {
-  ViewSettingOverrideOptions,
-  extractSupportedViewSettingOverrideOptions,
-  getCopyViewConfigOptions,
-  viewTypeAlias,
-} from 'nocodb-sdk'
-import type { CopyViewConfigOption, ViewType, ViewTypes } from 'nocodb-sdk'
+import { extractSupportedViewSettingOverrideOptions, getCopyViewConfigOptions, viewTypeAlias } from 'nocodb-sdk'
+import type { CopyViewConfigOption, ViewSettingOverrideOptions, ViewType, ViewTypes } from 'nocodb-sdk'
 import { NcListViewSelector } from '#components'
 
 interface Props {

@@ -100,7 +100,7 @@ export class OAuthTokenStrategy extends PassportStrategy(
 
         // OAuth-specific fields
         is_oauth_token: true,
-        oauth_client_id: oAuthToken.client_id,
+        oauth_client_id: oAuthToken.fk_client_id,
         oauth_granted_resources: oAuthToken.granted_resources,
         oauth_scope: oAuthToken.scope,
         oauth_token_id: oAuthToken.id,

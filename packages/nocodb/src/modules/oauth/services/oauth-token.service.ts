@@ -68,12 +68,11 @@ export class OauthTokenService {
     return jwt.sign(
       {
         sub: payload.userId,
+        email: user.email,
         client_id: payload.clientId,
         scope: payload.scope,
         iat: now,
         exp: now + this.ACCESS_TOKEN_EXPIRES_IN,
-        // User information like normal JWTs
-        email: user.email,
         id: user.id,
         roles: user.roles,
         token_version: user.token_version,
@@ -181,7 +180,7 @@ export class OauthTokenService {
     }
 
     await this.authenticateClient({
-      clientId: authCode.client_id,
+      clientId: authCode.fk_client_id,
       clientSecret,
       isPKCEFlow,
     });
@@ -197,16 +196,16 @@ export class OauthTokenService {
 
     // Generate tokens
     const accessToken = await this.generateAccessToken({
-      userId: authCode.user_id,
-      clientId: authCode.client_id,
+      userId: authCode.fk_user_id,
+      clientId: authCode.fk_client_id,
       scope: authCode.scope,
     });
 
     const refreshToken = randomBytes(64).toString('base64url');
 
     const insertObj = {
-      client_id: authCode.client_id,
-      fk_user_id: authCode.user_id,
+      fk_client_id: authCode.fk_client_id,
+      fk_user_id: authCode.fk_user_id,
       access_token: accessToken,
       access_token_expires_at: accessTokenExpiresAt,
       refresh_token: refreshToken,
@@ -267,7 +266,7 @@ export class OauthTokenService {
     });
 
     // Validate client ID
-    if (tokenRecord.client_id !== clientId) {
+    if (tokenRecord.fk_client_id !== clientId) {
       NcError.badRequest('Invalid client_id');
     }
 
@@ -283,7 +282,7 @@ export class OauthTokenService {
     // Generate new access token
     const newAccessToken = await this.generateAccessToken({
       userId: tokenRecord.fk_user_id,
-      clientId: tokenRecord.client_id,
+      clientId: tokenRecord.fk_client_id,
       scope: tokenRecord.scope,
     });
 
@@ -295,7 +294,7 @@ export class OauthTokenService {
 
     // Create new token record
     await OAuthToken.insert({
-      client_id: tokenRecord.client_id,
+      fk_client_id: tokenRecord.fk_client_id,
       fk_user_id: tokenRecord.fk_user_id,
       access_token: newAccessToken,
       access_token_expires_at: newAccessTokenExpiresAt,
@@ -350,7 +349,7 @@ export class OauthTokenService {
     }
 
     // Validate client ID
-    if (tokenRecord.client_id !== clientId) {
+    if (tokenRecord.fk_client_id !== clientId) {
       NcError.badRequest('Invalid client_id');
     }
 
@@ -365,7 +364,7 @@ export class OauthTokenService {
     const authorizationsList = [];
 
     for (const token of tokens) {
-      const client = await OAuthClient.getByClientId(token.client_id);
+      const client = await OAuthClient.getByClientId(token.fk_client_id);
       if (client) {
         authorizationsList.push({
           id: token.id,

@@ -13,8 +13,8 @@ import NocoCache from '~/cache/NocoCache';
 
 export default class OAuthAuthorizationCode {
   code: string;
-  client_id: string;
-  user_id: string;
+  fk_client_id: string;
+  fk_user_id: string;
 
   // PKCE
   code_challenge?: string;
@@ -40,8 +40,8 @@ export default class OAuthAuthorizationCode {
     ncMeta = Noco.ncMeta,
   ) {
     let insertData = extractProps(authCodeData, [
-      'client_id',
-      'user_id',
+      'fk_client_id',
+      'fk_user_id',
       'code_challenge',
       'code_challenge_method',
       'redirect_uri',
@@ -148,7 +148,7 @@ export default class OAuthAuthorizationCode {
         RootScopes.ROOT,
         MetaTable.OAUTH_AUTHORIZATION_CODES,
         {
-          condition: { client_id: clientId },
+          condition: { fk_client_id: clientId },
           limit: BATCH_SIZE,
         },
       );

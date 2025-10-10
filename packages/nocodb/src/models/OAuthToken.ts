@@ -13,7 +13,7 @@ import NocoCache from '~/cache/NocoCache';
 
 export default class OAuthToken {
   id: string;
-  client_id: string;
+  fk_client_id: string;
   fk_user_id: string;
 
   access_token: string;
@@ -42,7 +42,7 @@ export default class OAuthToken {
     ncMeta = Noco.ncMeta,
   ) {
     let insertData = extractProps(tokenData, [
-      'client_id',
+      'fk_client_id',
       'fk_user_id',
       'access_token',
       'access_token_expires_at',
@@ -183,7 +183,7 @@ export default class OAuthToken {
         RootScopes.ROOT,
         MetaTable.OAUTH_TOKENS,
         {
-          condition: { client_id: clientId },
+          condition: { fk_client_id: clientId },
           limit: BATCH_SIZE,
         },
       );

@@ -154,7 +154,9 @@ watch(open, () => {
   }
 })
 
-eventBus.on(async (event, column) => {
+eventBus.on(async (event, payload = {}) => {
+  const column = payload.column
+
   if (!column?.id) return
 
   if (event === SmartsheetStoreEvents.GROUP_BY_ADD) {

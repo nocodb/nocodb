@@ -256,7 +256,10 @@ const onArrowUp = () => {
   })
 }
 
-const handleKeydownEnter = () => {
+const handleKeydownEnter = (event: KeyboardEvent) => {
+  event.preventDefault()
+  event.stopPropagation()
+
   if (list.value[activeOptionIndex.value]) {
     handleSelectOption(list.value[activeOptionIndex.value])
   } else if (list.value[0]) {

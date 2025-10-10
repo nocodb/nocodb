@@ -813,9 +813,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const onOpenCopyViewConfigFromAnotherViewModal = ({
     defaultSelectedCopyViewConfigTypes,
     destView = activeView.value,
+    onCopy = (_: ViewSettingOverrideOptions[]) => undefined,
   }: {
     defaultSelectedCopyViewConfigTypes?: ViewSettingOverrideOptions[]
     destView?: ViewType
+    onCopy?: (selectedCopyViewConfigTypes: ViewSettingOverrideOptions[]) => void
   } = {}) => {
     if (!isEeUI || !isUIAllowed('viewCreateOrEdit')) return
 
@@ -831,6 +833,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       'onUpdate:modelValue': closeDialog,
       'destView': destView,
       'defaultSelectedCopyViewConfigTypes': defaultSelectedCopyViewConfigTypes,
+      'onCopy': onCopy,
     })
 
     function closeDialog() {

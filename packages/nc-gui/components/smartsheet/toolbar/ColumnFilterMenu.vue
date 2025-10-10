@@ -73,6 +73,14 @@ eventBus.on(async (event, column: ColumnType) => {
     draftFilter.value = { fk_column_id: column.id }
     open.value = true
   }
+  if (event === SmartsheetStoreEvents.FILTER_RELOAD && activeView?.value?.id) {
+    await loadFilters({
+      hookId: undefined,
+      isWebhook: false,
+      loadAllFilters: true,
+    })
+    filtersLength.value = nonDeletedFilters.value.length || 0
+  }
 })
 
 const combinedFilterLength = computed(() => {

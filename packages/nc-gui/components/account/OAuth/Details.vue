@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { PublicAttachmentScope } from 'nocodb-sdk'
 import type { OAuthClientType } from 'nocodb-sdk'
-import { PublicAttachmentScope } from 'nocodb-sdk/build/main/lib/enums'
 
 const props = defineProps<{
   visible: boolean

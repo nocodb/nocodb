@@ -29,12 +29,10 @@ import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
-import { ViewsService } from '~/services/views.service';
 
 @Injectable()
 export class ViewSettingsOverrideService {
   constructor(
-    protected readonly viewsService: ViewsService,
     protected readonly viewsV3Service: ViewsV3Service,
     protected readonly sortsV3Service: SortsV3Service,
     protected readonly filtersV3Service: FiltersV3Service,
@@ -102,11 +100,9 @@ export class ViewSettingsOverrideService {
         await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId());
         viewWebhookManager.emit();
       }
-      const result = await this.viewsService.viewList(context, {
-        tableId: destView.fk_model_id,
-        user: param.req.user,
-      });
-      return { data: result };
+      const resultView = await View.get(context, destView.id, ncMeta);
+      await resultView.getViewWithInfo(context);
+      return resultView as any;
     } catch (ex) {
       await trxNcMeta.rollback();
       throw ex;

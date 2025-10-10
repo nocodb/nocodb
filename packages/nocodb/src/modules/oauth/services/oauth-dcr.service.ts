@@ -54,7 +54,7 @@ export class OauthDcrService {
       }
     }
 
-    const clientType = request.client_type || OAuthClientType.PUBLIC;
+    const clientType = request.client_type || OAuthClientType.CONFIDENTIAL;
     if (
       ![OAuthClientType.PUBLIC, OAuthClientType.CONFIDENTIAL].includes(
         clientType,

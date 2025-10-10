@@ -126,16 +126,20 @@ export class OAuthController {
 
   @UseGuards(PublicApiLimiterGuard)
   @Post(['/api/v2/oauth/token'])
-  async token(@Body() body, @Headers('content-type') contentType: string) {
+  async token(
+    @Body() body,
+    @Headers('content-type') contentType: string,
+    @Res() res: Response,
+  ) {
     if (
       !contentType ||
       !contentType.includes('application/x-www-form-urlencoded')
     ) {
-      return {
+      return res.status(400).json({
         error: 'invalid_request',
         error_description:
           'Content-Type must be application/x-www-form-urlencoded',
-      };
+      });
     }
 
     const {
@@ -150,78 +154,99 @@ export class OAuthController {
     } = body;
 
     if (!grant_type) {
-      return {
+      return res.status(400).json({
         error: 'invalid_request',
         error_description: 'Missing required parameter: grant_type',
-      };
+      });
     }
 
     try {
+      let result;
       switch (grant_type) {
         case 'authorization_code':
           if (!code || !redirect_uri) {
-            return {
+            return res.status(400).json({
               error: 'invalid_request',
               error_description:
                 'Missing required parameters: code, redirect_uri',
-            };
+            });
           }
 
           if (!code_verifier) {
-            return {
+            return res.status(400).json({
               error: 'invalid_request',
               error_description: 'Missing required parameter: code_verifier',
-            };
+            });
           }
 
-          return await this.oauthTokenService.exchangeCodeForTokens({
+          result = await this.oauthTokenService.exchangeCodeForTokens({
             code,
             redirectUri: redirect_uri,
             codeVerifier: code_verifier,
             clientSecret,
             resource,
           });
+          return res.status(200).json(result);
 
         case 'refresh_token':
           if (!refresh_token) {
-            return {
+            return res.status(400).json({
               error: 'invalid_request',
               error_description: 'Missing required parameter: refresh_token',
-            };
+            });
           }
 
           if (!clientId && !clientSecret) {
-            return {
+            return res.status(400).json({
               error: 'invalid_request',
               error_description: 'Missing required parameter: client_id',
-            };
+            });
           }
 
-          return await this.oauthTokenService.refreshAccessToken({
+          result = await this.oauthTokenService.refreshAccessToken({
             refreshToken: refresh_token,
             clientId,
             clientSecret,
             resource,
           });
+          return res.status(200).json(result);
 
         default:
-          return {
+          return res.status(400).json({
             error: 'unsupported_grant_type',
             error_description: `Unsupported grant_type: ${grant_type}`,
-          };
+          });
       }
     } catch (error) {
+      if (error.message?.startsWith('invalid_client:')) {
+        return res.status(401).json({
+          error: 'invalid_client',
+          error_description: error.message.replace('invalid_client: ', ''),
+        });
+      }
+      if (error.message?.startsWith('invalid_grant:')) {
+        return res.status(400).json({
+          error: 'invalid_grant',
+          error_description: error.message.replace('invalid_grant: ', ''),
+        });
+      }
+      if (error.message?.startsWith('invalid_request:')) {
+        return res.status(400).json({
+          error: 'invalid_request',
+          error_description: error.message.replace('invalid_request: ', ''),
+        });
+      }
       if (error.message === 'invalid_client') {
-        return {
+        return res.status(401).json({
           error: 'invalid_client',
           error_description: 'Client authentication failed',
-        };
+        });
       }
       if (error.message === 'invalid_grant') {
-        return {
+        return res.status(400).json({
           error: 'invalid_grant',
           error_description: 'The provided authorization grant is invalid',
-        };
+        });
       }
       if (
         error.message?.includes('revoked') ||
@@ -230,27 +255,27 @@ export class OAuthController {
         error.message?.includes('Invalid authorization code') ||
         error.message?.includes('PKCE')
       ) {
-        return {
+        return res.status(400).json({
           error: 'invalid_grant',
           error_description:
             error.message || 'The provided authorization grant is invalid',
-        };
+        });
       }
       if (
         error.message?.includes('client_id') ||
         error.message?.includes('redirect_uri')
       ) {
-        return {
+        return res.status(400).json({
           error: 'invalid_request',
           error_description: error.message || 'Invalid request parameters',
-        };
+        });
       }
 
       logger.error('oauth_token_error', error);
-      return {
+      return res.status(500).json({
         error: 'server_error',
         error_description: 'An unexpected error occurred',
-      };
+      });
     }
   }
 

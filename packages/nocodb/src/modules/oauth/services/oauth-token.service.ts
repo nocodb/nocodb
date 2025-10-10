@@ -87,32 +87,32 @@ export class OauthTokenService {
   private async authenticateClient(params: {
     clientId: string;
     clientSecret?: string;
-    isPKCEFlow?: boolean;
   }): Promise<OAuthClient> {
-    const { clientId, clientSecret, isPKCEFlow } = params;
+    const { clientId, clientSecret } = params;
 
     const client = await OAuthClient.getByClientId(clientId);
     if (!client) {
-      NcError.badRequest('invalid_client');
+      throw new Error('invalid_client: Client not found');
     }
 
-    // If this is a PKCE flow, skip client_secret validation
-    if (isPKCEFlow) {
-      return client;
-    }
-
-    // Non-PKCE flow - validate client_secret as before
+    // Confidential clients must always authenticate
     if (client.client_secret) {
       if (!clientSecret) {
-        NcError.badRequest('invalid_client');
+        throw new Error(
+          'invalid_client: Client secret required for confidential clients',
+        );
       }
 
       if (clientSecret !== client.client_secret) {
-        NcError.badRequest('invalid_client');
+        throw new Error('invalid_client: Invalid client credentials');
       }
     } else {
+      // Public clients (no client_secret)
+      // PKCE is required for public clients, but they don't need a secret
       if (clientSecret) {
-        NcError.badRequest('invalid_client');
+        throw new Error(
+          'invalid_client: Client secret not expected for public clients',
+        );
       }
     }
 
@@ -131,7 +131,7 @@ export class OauthTokenService {
     // Get authorization code
     const authCode = await OAuthAuthorizationCode.getByCode(code);
     if (!authCode) {
-      NcError.badRequest('Invalid or expired authorization code');
+      throw new Error('invalid_grant: Invalid or expired authorization code');
     }
 
     if (
@@ -139,24 +139,26 @@ export class OauthTokenService {
       authCode.resource &&
       params.resource !== authCode.resource
     ) {
-      NcError.badRequest(
-        'resource parameter does not match authorized resource',
+      throw new Error(
+        'invalid_grant: resource parameter does not match authorized resource',
       );
     }
 
     // Check if code is already used
     if (authCode.is_used) {
-      NcError.badRequest('Authorization code has already been used');
+      throw new Error(
+        'invalid_grant: Authorization code has already been used',
+      );
     }
 
     // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
-      NcError.badRequest('Authorization code has expired');
+      throw new Error('invalid_grant: Authorization code has expired');
     }
 
     // Validate redirect URI
     if (authCode.redirect_uri !== redirectUri) {
-      NcError.badRequest('Invalid redirect_uri');
+      throw new Error('invalid_grant: Invalid redirect_uri');
     }
 
     // Determine if this is a PKCE flow
@@ -165,7 +167,9 @@ export class OauthTokenService {
     // Validate PKCE if code challenge was provided during authorization
     if (isPKCEFlow) {
       if (!codeVerifier) {
-        NcError.badRequest('code_verifier is required for PKCE flow');
+        throw new Error(
+          'invalid_request: code_verifier is required for PKCE flow',
+        );
       }
 
       const isValidPKCE = this.validatePKCE({
@@ -175,14 +179,13 @@ export class OauthTokenService {
       });
 
       if (!isValidPKCE) {
-        NcError.badRequest('Invalid code_verifier');
+        throw new Error('invalid_grant: Invalid code_verifier');
       }
     }
 
     await this.authenticateClient({
       clientId: authCode.fk_client_id,
       clientSecret,
-      isPKCEFlow,
     });
 
     const now = Date.now();
@@ -262,7 +265,6 @@ export class OauthTokenService {
     await this.authenticateClient({
       clientId,
       clientSecret,
-      isPKCEFlow: false,
     });
 
     // Validate client ID
@@ -327,7 +329,6 @@ export class OauthTokenService {
     await this.authenticateClient({
       clientId,
       clientSecret,
-      isPKCEFlow: false,
     });
 
     let tokenRecord: OAuthToken | null = null;

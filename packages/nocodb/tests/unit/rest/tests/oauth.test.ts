@@ -963,10 +963,171 @@ function oauthTests() {
       expect(tokenResponse.body.error).to.equal('invalid_client');
     });
 
-    it('Confidential Client - Token Exchange without Secret', async () => {
+    it('Confidential Client - Token Exchange with PKCE (No Secret Required)', async () => {
       const codeVerifier = generateCodeVerifier();
       const codeChallenge = generateCodeChallenge(codeVerifier);
 
+      const authResponse = await request(context.app)
+        .post('/api/v2/oauth/authorize')
+        .set('xc-auth', context.token)
+        .send({
+          client_id: clientId,
+          redirect_uri: 'https://example.com/callback',
+          approved: true,
+          code_challenge: codeChallenge,
+          code_challenge_method: 'S256',
+          base_id: baseId,
+          ...(workspaceId && { workspace_id: workspaceId }),
+        })
+        .expect(201);
+
+      const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
+        'code',
+      );
+
+      // With PKCE, client_secret is optional for confidential clients
+      const tokenResponse = await request(context.app)
+        .post('/api/v2/oauth/token')
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .send({
+          grant_type: 'authorization_code',
+          code: authCode,
+          redirect_uri: 'https://example.com/callback',
+          code_verifier: codeVerifier,
+          client_id: clientId,
+        })
+        .expect(200);
+
+      expect(tokenResponse.body).to.have.property('access_token');
+      expect(tokenResponse.body).to.have.property('refresh_token');
+    });
+
+    it('Confidential Client - Token Exchange without code_verifier (Required)', async () => {
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = generateCodeChallenge(codeVerifier);
+
+      // Create authorization with PKCE
+      const authResponse = await request(context.app)
+        .post('/api/v2/oauth/authorize')
+        .set('xc-auth', context.token)
+        .send({
+          client_id: clientId,
+          redirect_uri: 'https://example.com/callback',
+          approved: true,
+          code_challenge: codeChallenge,
+          code_challenge_method: 'S256',
+          base_id: baseId,
+          ...(workspaceId && { workspace_id: workspaceId }),
+        })
+        .expect(201);
+
+      const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
+        'code',
+      );
+
+      // Try to exchange without code_verifier - should fail (PKCE is mandatory)
+      const tokenResponse = await request(context.app)
+        .post('/api/v2/oauth/token')
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .send({
+          grant_type: 'authorization_code',
+          code: authCode,
+          redirect_uri: 'https://example.com/callback',
+          client_id: clientId,
+          client_secret: clientSecret,
+        })
+        .expect(400);
+
+      expect(tokenResponse.body).to.have.property('error');
+      expect(tokenResponse.body.error).to.equal('invalid_request');
+      expect(tokenResponse.body.error_description).to.include('code_verifier');
+    });
+
+    it('Confidential Client - Token Exchange with PKCE and Secret (Both Valid)', async () => {
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = generateCodeChallenge(codeVerifier);
+
+      const authResponse = await request(context.app)
+        .post('/api/v2/oauth/authorize')
+        .set('xc-auth', context.token)
+        .send({
+          client_id: clientId,
+          redirect_uri: 'https://example.com/callback',
+          approved: true,
+          code_challenge: codeChallenge,
+          code_challenge_method: 'S256',
+          base_id: baseId,
+          ...(workspaceId && { workspace_id: workspaceId }),
+        })
+        .expect(201);
+
+      const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
+        'code',
+      );
+
+      // With PKCE, client can optionally provide client_secret for extra security
+      const tokenResponse = await request(context.app)
+        .post('/api/v2/oauth/token')
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .send({
+          grant_type: 'authorization_code',
+          code: authCode,
+          redirect_uri: 'https://example.com/callback',
+          code_verifier: codeVerifier,
+          client_id: clientId,
+          client_secret: clientSecret,
+        })
+        .expect(200);
+
+      expect(tokenResponse.body).to.have.property('access_token');
+      expect(tokenResponse.body).to.have.property('refresh_token');
+    });
+
+    it('Confidential Client - Token Exchange with PKCE and Wrong Secret', async () => {
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = generateCodeChallenge(codeVerifier);
+
+      const authResponse = await request(context.app)
+        .post('/api/v2/oauth/authorize')
+        .set('xc-auth', context.token)
+        .send({
+          client_id: clientId,
+          redirect_uri: 'https://example.com/callback',
+          approved: true,
+          code_challenge: codeChallenge,
+          code_challenge_method: 'S256',
+          base_id: baseId,
+          ...(workspaceId && { workspace_id: workspaceId }),
+        })
+        .expect(201);
+
+      const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
+        'code',
+      );
+
+      // If client_secret is provided with PKCE, it must be valid
+      const tokenResponse = await request(context.app)
+        .post('/api/v2/oauth/token')
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .send({
+          grant_type: 'authorization_code',
+          code: authCode,
+          redirect_uri: 'https://example.com/callback',
+          code_verifier: codeVerifier,
+          client_id: clientId,
+          client_secret: 'wrong_secret',
+        })
+        .expect(401);
+
+      expect(tokenResponse.body).to.have.property('error');
+      expect(tokenResponse.body.error).to.equal('invalid_client');
+    });
+
+    it('Confidential Client - Refresh Token Requires Secret', async () => {
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = generateCodeChallenge(codeVerifier);
+
+      // Get initial tokens using PKCE (no secret required)
       const authResponse = await request(context.app)
         .post('/api/v2/oauth/authorize')
         .set('xc-auth', context.token)
@@ -995,10 +1156,77 @@ function oauthTests() {
           code_verifier: codeVerifier,
           client_id: clientId,
         })
+        .expect(200);
+
+      const refreshToken = tokenResponse.body.refresh_token;
+
+      // Try to refresh without client_secret - should fail
+      const refreshResponse = await request(context.app)
+        .post('/api/v2/oauth/token')
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .send({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+          client_id: clientId,
+        })
         .expect(401);
 
-      expect(tokenResponse.body).to.have.property('error');
-      expect(tokenResponse.body.error).to.equal('invalid_client');
+      expect(refreshResponse.body).to.have.property('error');
+      expect(refreshResponse.body.error).to.equal('invalid_client');
+    });
+
+    it('Confidential Client - Refresh Token with Secret', async () => {
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = generateCodeChallenge(codeVerifier);
+
+      // Get initial tokens
+      const authResponse = await request(context.app)
+        .post('/api/v2/oauth/authorize')
+        .set('xc-auth', context.token)
+        .send({
+          client_id: clientId,
+          redirect_uri: 'https://example.com/callback',
+          approved: true,
+          code_challenge: codeChallenge,
+          code_challenge_method: 'S256',
+          base_id: baseId,
+          ...(workspaceId && { workspace_id: workspaceId }),
+        })
+        .expect(201);
+
+      const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
+        'code',
+      );
+
+      const tokenResponse = await request(context.app)
+        .post('/api/v2/oauth/token')
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .send({
+          grant_type: 'authorization_code',
+          code: authCode,
+          redirect_uri: 'https://example.com/callback',
+          code_verifier: codeVerifier,
+          client_id: clientId,
+        })
+        .expect(200);
+
+      const refreshToken = tokenResponse.body.refresh_token;
+
+      // Refresh with client_secret - should succeed
+      const refreshResponse = await request(context.app)
+        .post('/api/v2/oauth/token')
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .send({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+          client_id: clientId,
+          client_secret: clientSecret,
+        })
+        .expect(200);
+
+      expect(refreshResponse.body).to.have.property('access_token');
+      expect(refreshResponse.body).to.have.property('refresh_token');
+      expect(refreshResponse.body.refresh_token).to.not.equal(refreshToken);
     });
   });
 }

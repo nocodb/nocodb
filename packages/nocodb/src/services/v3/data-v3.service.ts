@@ -9,6 +9,9 @@ import type {
   DataRecord,
   DataRecordWithDeleted,
   DataUpdateParams,
+  DataUpsertParams,
+  DataUpsertRequest,
+  DataUpsertResponseRecord,
   NestedDataListParams,
 } from '~/services/v3/data-v3.types';
 import type { NcContext } from '~/interface/config';
@@ -436,6 +439,131 @@ export class DataV3Service {
     return transformedFields;
   }
 
+  private resolveColumnIdentifier(
+    identifier: string,
+    columns: Column[],
+    primaryKey?: Column,
+  ): Column {
+    const normalized = identifier?.trim();
+    if (!normalized) {
+      NcError.fieldNotFound(identifier ?? '');
+    }
+
+    const normalizedLower = normalized.toLowerCase();
+    const candidates = [
+      ...(primaryKey ? [primaryKey] : []),
+      ...columns,
+    ].filter(Boolean) as Column[];
+
+    for (const column of candidates) {
+      const matchKeys = [
+        column.id,
+        column.title,
+        column.column_name,
+        column.id?.toLowerCase?.(),
+        column.title?.toLowerCase?.(),
+        column.column_name?.toLowerCase?.(),
+      ].filter(Boolean) as string[];
+
+      if (
+        matchKeys.includes(normalized) ||
+        matchKeys.includes(normalizedLower)
+      ) {
+        return column;
+      }
+    }
+
+    NcError.fieldNotFound(identifier);
+  }
+
+  private getFieldValueForColumn(
+    fields: Record<string, any>,
+    column: Column,
+  ): any {
+    if (!fields || typeof fields !== 'object') {
+      return undefined;
+    }
+
+    const candidates = [
+      column.title,
+      column.id,
+      column.column_name,
+    ].filter(Boolean) as string[];
+
+    for (const key of candidates) {
+      if (Object.prototype.hasOwnProperty.call(fields, key)) {
+        return fields[key];
+      }
+    }
+
+    return undefined;
+  }
+
+  private async findExistingRecordByMatch(
+    context: NcContext,
+    baseModel: BaseModelSqlv2,
+    model: Model,
+    columns: Column[],
+    matchColumns: Column[],
+    fields: Record<string, any>,
+  ): Promise<any | null> {
+    if (!matchColumns.length) {
+      return null;
+    }
+
+    const uniqueMatchColumns = matchColumns.filter(
+      (column, index, array) =>
+        array.findIndex((candidate) => candidate.id === column.id) === index,
+    );
+
+    const aliasInput: Record<string, any> = {};
+
+    for (const column of uniqueMatchColumns) {
+      const value = this.getFieldValueForColumn(fields, column);
+      if (value === undefined) {
+        NcError.requiredFieldMissing(column.title ?? column.id ?? '');
+      }
+      if (column.title) aliasInput[column.title] = value;
+      if (column.id) aliasInput[column.id] = value;
+    }
+
+    const mappedValues = await model.mapAliasToColumn(
+      context,
+      aliasInput,
+      baseModel.clientMeta,
+      baseModel.dbDriver,
+      columns,
+    );
+
+    const queryBuilder = baseModel.dbDriver(baseModel.tnPath).clone();
+    queryBuilder.where((qb) => {
+      for (const column of uniqueMatchColumns) {
+        const columnName = column.column_name;
+        const mappedValue =
+          mappedValues[columnName] ??
+          mappedValues[column.title] ??
+          (column.id ? mappedValues[column.id] : undefined);
+
+        if (mappedValue === undefined) {
+          NcError.requiredFieldMissing(column.title ?? column.id ?? '');
+        }
+
+        qb.andWhere(columnName, mappedValue);
+      }
+    });
+
+    const rows = await queryBuilder.limit(2);
+
+
+    if (rows.length > 1) {
+      NcError.duplicateRecord(
+        uniqueMatchColumns.map((column) => column.title ?? column.id ?? ''),
+      );
+    }
+
+    return rows[0] ?? null;
+  }
+
   /**
    * Convert a record ID from v3 format to internal format
    */
@@ -754,6 +882,268 @@ export class DataV3Service {
         reuse: {}, // Create reuse cache for this data update operation
         depth: 0, // Start at depth 0 for main records
       }),
+    };
+  }
+
+  async dataUpsert(
+    context: NcContext,
+    param: DataUpsertParams,
+  ): Promise<{
+    records: DataUpsertResponseRecord[];
+    created: number;
+    updated: number;
+  }> {
+    const { model, primaryKey, primaryKeys, columns } = await this.getModelInfo(
+      context,
+      param.modelId,
+    );
+
+    const ltarColumns = columns.filter(
+      (col) => col.uidt === UITypes.LinkToAnotherRecord,
+    );
+
+    const requestsArray = Array.isArray(param.body)
+      ? param.body
+      : param.body
+      ? [param.body]
+      : [];
+
+    if (!requestsArray.length) {
+      return { records: [], created: 0, updated: 0 };
+    }
+
+    if (requestsArray.length > V3_INSERT_LIMIT) {
+      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    }
+
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const skipSubstitutingColumnIds =
+      param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true';
+
+    type PreparedEntry =
+      | {
+          type: 'create';
+          index: number;
+          payload: DataUpsertRequest;
+          insertPayload: DataInsertRequest;
+        }
+      | {
+          type: 'update';
+          index: number;
+          payload: DataUpsertRequest;
+          updatePayload: DataUpdateRequest;
+        };
+
+    const preparedEntries: PreparedEntry[] = [];
+
+    const normalizeRecordId = (record: any) => {
+      if (!record) return undefined;
+      if (primaryKeys?.length) {
+        return getCompositePkValue(primaryKeys, record, {
+          skipSubstitutingColumnIds,
+        });
+      }
+      return record?.[primaryKey.column_name];
+    };
+
+    for (let index = 0; index < requestsArray.length; index++) {
+      const request = requestsArray[index];
+
+      if (!request || typeof request !== 'object') {
+        NcError.unprocessableEntity('Invalid upsert payload');
+      }
+
+      if (!request.fields || typeof request.fields !== 'object') {
+        NcError.requiredFieldMissing('fields');
+      }
+
+      const rawFields = request.fields;
+      const transformedFields = await this.transformLTARFieldsToInternal(
+        context,
+        rawFields,
+        ltarColumns,
+      );
+
+      let existingRecordId: string | number | undefined;
+
+      const hasValidId =
+        request.id !== undefined &&
+        request.id !== null &&
+        `${request.id}` !== '' &&
+        `${request.id}` !== 'undefined' &&
+        `${request.id}` !== 'null';
+
+      if (hasValidId) {
+        const record = await baseModel.readByPk(
+          request.id,
+          false,
+          undefined,
+          {
+            throwErrorIfInvalidParams: false,
+            apiVersion: NcApiVersion.V3,
+          },
+        );
+        existingRecordId = normalizeRecordId(record);
+      }
+
+      let matchIdentifiers: string[] = Array.isArray(request.matchBy)
+        ? request.matchBy.filter((identifier) => !!identifier)
+        : [];
+
+      if (!existingRecordId && !matchIdentifiers.length && primaryKeys?.length) {
+        const hasAllPrimaryValues = primaryKeys.every((pk) => {
+          const value = this.getFieldValueForColumn(rawFields, pk);
+          return (
+            value !== undefined &&
+            value !== null &&
+            `${value}` !== '' &&
+            `${value}` !== 'undefined' &&
+            `${value}` !== 'null'
+          );
+        });
+        if (hasAllPrimaryValues) {
+          matchIdentifiers = primaryKeys
+            .map((pk) => pk.title ?? pk.id ?? pk.column_name)
+            .filter((identifier) => !!identifier) as string[];
+        }
+      }
+
+      if (!existingRecordId && matchIdentifiers.length) {
+        const matchColumns = matchIdentifiers.map((identifier) =>
+          this.resolveColumnIdentifier(identifier, columns, primaryKey),
+        );
+
+        const record = await this.findExistingRecordByMatch(
+          context,
+          baseModel,
+          model,
+          columns,
+          matchColumns,
+          rawFields,
+        );
+        existingRecordId = normalizeRecordId(record);
+      }
+
+      if (existingRecordId !== undefined && existingRecordId !== null) {
+        const sanitizedFields = { ...transformedFields };
+        const prunePrimaryKey = (column: Column) => {
+          if (!column) return;
+          if (column.title) delete sanitizedFields[column.title];
+          if (column.id) delete sanitizedFields[column.id];
+          if (column.column_name) delete sanitizedFields[column.column_name];
+        };
+
+        if (primaryKeys?.length) {
+          primaryKeys.forEach(prunePrimaryKey);
+        } else if (primaryKey) {
+          prunePrimaryKey(primaryKey);
+        }
+
+        preparedEntries.push({
+          type: 'update',
+          index,
+          payload: request,
+          updatePayload: {
+            id: existingRecordId,
+            fields: sanitizedFields,
+          },
+        });
+      } else {
+        preparedEntries.push({
+          type: 'create',
+          index,
+          payload: request,
+          insertPayload: {
+            fields: transformedFields,
+          },
+        });
+      }
+    }
+
+    const insertPayloads = preparedEntries
+      .filter((entry) => entry.type === 'create')
+      .map((entry) => (entry as Extract<PreparedEntry, { type: 'create' }>).insertPayload);
+
+    const updatePayloads = preparedEntries
+      .filter((entry) => entry.type === 'update')
+      .map((entry) => (entry as Extract<PreparedEntry, { type: 'update' }>).updatePayload);
+
+    let createdRecords: DataRecord[] = [];
+    let updatedRecords: DataRecord[] = [];
+
+    if (insertPayloads.length) {
+      const insertResult = await this.dataInsert(context, {
+        baseId: param.baseId,
+        modelId: param.modelId,
+        viewId: param.viewId,
+        body:
+          insertPayloads.length === 1 ? insertPayloads[0] : insertPayloads,
+        cookie: param.cookie,
+      });
+      createdRecords = insertResult.records ?? [];
+    }
+
+    if (updatePayloads.length) {
+      const updateResult = await this.dataUpdate(context, {
+        baseId: param.baseId,
+        modelId: param.modelId,
+        viewId: param.viewId,
+        body:
+          updatePayloads.length === 1 ? updatePayloads[0] : updatePayloads,
+        cookie: param.cookie,
+      });
+      updatedRecords = updateResult.records ?? [];
+    }
+
+    const orderedEntries = [...preparedEntries].sort(
+      (a, b) => a.index - b.index,
+    );
+
+    let createdIndex = 0;
+    let updatedIndex = 0;
+
+    const records: DataUpsertResponseRecord[] = orderedEntries.map(
+      (entry) => {
+        if (entry.type === 'create') {
+          const record = createdRecords[createdIndex++];
+          if (record) {
+            return {
+              ...record,
+              operation: 'created' as const,
+            };
+          }
+          return {
+            id: undefined,
+            fields: entry.insertPayload.fields,
+            operation: 'created' as const,
+          };
+        }
+
+        const record = updatedRecords[updatedIndex++];
+        if (record) {
+          return {
+            ...record,
+            operation: 'updated' as const,
+          };
+        }
+        return {
+          id: entry.updatePayload.id,
+          fields: entry.updatePayload.fields,
+          operation: 'updated' as const,
+        };
+      },
+    );
+
+    return {
+      records,
+      created: createdRecords.length,
+      updated: updatedRecords.length,
     };
   }
 

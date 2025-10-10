@@ -430,7 +430,6 @@ export class GenericFieldHandler
     args: {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
-      qb: Knex.QueryBuilder;
     },
     _rootArgs: {
       knex: CustomKnex;

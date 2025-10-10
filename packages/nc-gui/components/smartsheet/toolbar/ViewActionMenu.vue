@@ -31,7 +31,14 @@ const table = computed(() => props.table)
 
 const viewsStore = useViewsStore()
 
-const { navigateToView, duplicateView, updateView, isUserViewOwner, onOpenCopyViewConfigFromAnotherViewModal } = viewsStore
+const {
+  navigateToView,
+  duplicateView,
+  updateView,
+  isUserViewOwner,
+  onOpenCopyViewConfigFromAnotherViewModal,
+  getViewsCountByTableId,
+} = viewsStore
 
 const { isCopyViewConfigFromAnotherViewFeatureEnabled } = storeToRefs(viewsStore)
 
@@ -208,6 +215,28 @@ const isUploadAllowed = computed(() => {
   )
 })
 
+const copyViewConfigMenuItemStatus = computed(() => {
+  const result = {
+    isDisabled: false,
+    tooltip: '',
+  }
+
+  if (isPersonalView.value && !isViewOwner.value) {
+    result.isDisabled = true
+    result.tooltip = t('tooltip.onlyViewOwnerCanCopyViewConfig')
+  } else if (lockType.value === LockType.Locked) {
+    result.isDisabled = true
+    result.tooltip = t('title.thisViewIsLockType', {
+      type: t(viewLockIcons[lockType.value]?.title).toLowerCase(),
+    })
+  } else if (getViewsCountByTableId(table.value!.id!) < 2) {
+    result.isDisabled = true
+    result.tooltip = t('tooltip.youNeedAtLeastOneExistingViewToCopyConfigurations')
+  }
+
+  return result
+})
+
 defineOptions({
   inheritAttrs: false,
 })
@@ -291,20 +320,18 @@ defineOptions({
       />
       <SmartsheetToolbarNotAllowedTooltip
         v-if="isEeUI && isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled"
-        :enabled="(isPersonalView && !isViewOwner) || lockType === LockType.Locked"
-        :message="
-          isPersonalView && !isViewOwner
-            ? $t('tooltip.onlyViewOwnerCanCopyViewConfig')
-            : $t('title.thisViewIsLockType', {
-                type: $t(viewLockIcons[lockType]?.title).toLowerCase(),
-              })
-        "
+        :enabled="copyViewConfigMenuItemStatus.isDisabled"
       >
+        <template #title>
+          <div class="max-w-70">
+            {{ copyViewConfigMenuItemStatus.tooltip }}
+          </div>
+        </template>
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER">
           <template #default="{ click }">
             <NcMenuItem
               inner-class="w-full"
-              :disabled="(isPersonalView && !isViewOwner) || lockType === LockType.Locked"
+              :disabled="copyViewConfigMenuItemStatus.isDisabled"
               @click="click(PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER, () => onClickCopyViewConfig())"
             >
               <div

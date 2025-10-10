@@ -660,7 +660,7 @@
       "group": "Group",
       "sort": "Sort",
       "rowColoring": "Row coloring",
-      "copyAnotherViewConfig": "Copy another view configuration",
+      "copyAnotherViewConfig": "Copy another view's configuration",
       "selectConfigurationToCopy": "Select configuration(s) to copy",
       "selectViewToCopyFrom": "Select view to copy from",
       "copyConfigurationFromAnotherView": "Copy configuration from another view",

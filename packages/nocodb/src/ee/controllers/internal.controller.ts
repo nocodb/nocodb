@@ -26,6 +26,7 @@ import { PermissionsService } from '~/services/permissions.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { ActionsService } from '~/services/actions.service';
 import { MailService } from '~/services/mail/mail.service';
+import { ViewSettingsOverrideService } from '~/services/view-settings-override.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -43,6 +44,7 @@ export class InternalController extends InternalControllerCE {
     protected readonly dashboardsService: DashboardsService,
     protected readonly actionsService: ActionsService,
     protected readonly mailService: MailService,
+    protected readonly viewSettingsOverrideService: ViewSettingsOverrideService,
   ) {
     super(mcpService, aclMiddleware, auditsService);
   }
@@ -395,6 +397,16 @@ export class InternalController extends InternalControllerCE {
       case 'integrationRemoteFetch': {
         return await this.integrationsService.remoteFetch(context, payload);
       }
+      case 'viewSettingOverride':
+        return await this.viewSettingsOverrideService.overrideViewSetting(
+          context,
+          {
+            destinationViewId: payload.destinationViewId,
+            settingToOverride: payload.settingToOverride,
+            sourceViewId: payload.sourceViewId,
+            req,
+          },
+        );
       default:
         return await super.internalAPIPost(
           context,

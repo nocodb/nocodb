@@ -252,8 +252,7 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_SSO]: false,
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: false,
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: false,
-  // Todo: make it false after testing as this is not legacy feature
-  // [PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW]: false,
+  [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]: false,
 };
 
 export const FreePlan = Plan.prepare({

@@ -269,6 +269,7 @@ const permissionScopes = {
     'mcpDelete',
 
     'viewRowColorInfo',
+    'viewSettingOverride',
 
     // Dashboard
     'dashboardList',
@@ -550,6 +551,7 @@ const rolePermissions:
     exclude: {
       createBase: true,
       manageSnapshots: true,
+      viewSettingOverride: true,
     },
   },
   [ProjectRoles.OWNER]: {
@@ -963,6 +965,7 @@ const permissionDescriptions: Record<string, string> = {
   globalAuditList: 'view list of audits',
 
   viewRowColorInfo: 'view row colouring info',
+  viewSettingOverride: 'copy view configuration from other view',
 };
 
 // Human-readable descriptions for roles

@@ -444,7 +444,9 @@ const isGroupByLimitExceeded = computed(() => {
 
 const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
   if (column?.value) {
-    eventBus.emit(event, column.value)
+    eventBus.emit(event, {
+      column: column.value,
+    })
   }
   isOpen.value = false
 }

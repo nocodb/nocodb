@@ -82,6 +82,7 @@ export enum SmartsheetStoreEvents {
   ROW_COLOR_UPDATE = 'row-color-update',
   TRIGGER_RE_RENDER = 'trigger-re-render',
   ON_ROW_COLOUR_INFO_UPDATE = 'on-row-colour-info-update',
+  COPIED_VIEW_CONFIG = 'copied-view-config',
 }
 
 export enum SmartsheetScriptActions {

@@ -13,11 +13,16 @@ const props = withDefaults(defineProps<Props>(), {
   defaultSelectedCopyViewConfigTypes: () => [],
 })
 
-const emits = defineEmits(['update:modelValue'])
+const emits = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'copy', value: ViewSettingOverrideOptions[]): void
+}>()
 
 const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false })
 
 const { destView } = toRefs(props)
+
+const viewsStore = useViewsStore()
 
 const isLoading = ref(false)
 
@@ -30,6 +35,15 @@ const copyFromViewOptions = computed(() =>
 )
 
 const selectedCopyViewConfigTypes = ref<ViewSettingOverrideOptions[]>(props.defaultSelectedCopyViewConfigTypes ?? [])
+
+// better variable name for the computed value
+const copyViewConfigSelectionStatus = computed(() => {
+  return {
+    isAllSelected:
+      selectedCopyViewConfigTypes.value.length === copyFromViewOptions.value.filter((option) => !option.disabled).length,
+    isSomeSelected: selectedCopyViewConfigTypes.value.length > 0,
+  }
+})
 
 const toggleCopyViewConfigType = (option: Omit<CopyViewConfigOption, 'supportedViewTypes'>) => {
   if (option.disabled) return
@@ -50,10 +64,27 @@ const selectAll = () => {
 }
 
 const copyViewConfiguration = async () => {
-  if (ncIsUndefined(selectViewRef.value?.selectedView?.type) || selectedCopyViewConfigTypes.value.length === 0) return
+  if (
+    ncIsUndefined(selectViewRef.value?.selectedView?.type) ||
+    selectedCopyViewConfigTypes.value.length === 0 ||
+    !destView.value
+  ) {
+    return
+  }
 
-  // TODO: Remove after api integration
-  console.log('selected view config options', selectedCopyViewConfigTypes.value)
+  isLoading.value = true
+
+  const res = await viewsStore.copyViewConfigurationFromAnotherView(
+    destView.value,
+    copyFromViewId.value!,
+    selectedCopyViewConfigTypes.value,
+  )
+
+  if (res) {
+    dialogShow.value = false
+  }
+
+  isLoading.value = false
 }
 
 watch(
@@ -74,11 +105,12 @@ watch(
   <NcModal
     v-model:visible="dialogShow"
     :show-separator="false"
+    :mask-style="{ zIndex: 1050 }"
     size="small"
-    wrap-class-name="nc-copy-view-config-from-another-view-modal-wrapper"
+    wrap-class-name="nc-copy-view-config-from-another-view-modal-wrapper !z-1050"
   >
-    <div class="flex flex-col gap-3">
-      <h1 class="text-base text-nc-content-gray-emphasis font-semibold flex items-center gap-2 mb-1">
+    <div class="flex flex-col gap-5">
+      <h1 class="text-base text-nc-content-gray-emphasis font-semibold flex items-center gap-2 mb-0">
         {{ $t('objects.copyViewConfig.copyConfigurationFromAnotherView') }}
       </h1>
 
@@ -88,6 +120,8 @@ watch(
           v-model:value="copyFromViewId"
           :table-id="destView?.fk_model_id"
           :disabled="!destView?.fk_model_id"
+          :filter-view="(view) => view.id !== destView.id"
+          label-default-view-as-default
           force-layout="vertical"
         >
           <template #label>
@@ -97,7 +131,9 @@ watch(
       </div>
 
       <div>
-        <div class="text-body text-nc-content-gray pb-2">{{ $t('objects.copyViewConfig.selectConfigurationToCopy') }}</div>
+        <div class="text-body text-nc-content-gray pb-2">
+          {{ $t('objects.copyViewConfig.selectConfigurationToCopy') }}
+        </div>
 
         <NcTooltip
           v-for="option of copyFromViewOptions"
@@ -113,7 +149,9 @@ watch(
           :disabled="!option.disabled || !selectViewRef?.selectedView?.type"
           @click.stop="toggleCopyViewConfigType(option)"
         >
-          <div class="flex flex-row items-center gap-1 w-full truncate py-[5px] px-2 cursor-inherit">
+          <div
+            class="flex flex-row items-center gap-1 w-full truncate py-[7px] px-2 cursor-inherit text-bodyDefaultSm font-medium"
+          >
             <span class="flex children:flex-none mr-2" @click.stop="toggleCopyViewConfigType(option)">
               <NcSwitch
                 :checked="selectedCopyViewConfigTypes.includes(option.value)"
@@ -136,13 +174,19 @@ watch(
           <NcButton
             size="xs"
             type="text"
-            class="px-1"
-            :disabled="copyFromViewOptions.length === selectedCopyViewConfigTypes.length"
+            class="!font-normal"
+            :disabled="copyViewConfigSelectionStatus.isAllSelected"
             @click="selectAll"
           >
             {{ $t('general.selectAll') }}
           </NcButton>
-          <NcButton size="xs" type="text" class="px-1" :disabled="selectedCopyViewConfigTypes.length === 0" @click="clearAll">
+          <NcButton
+            size="xs"
+            type="text"
+            class="!font-normal"
+            :disabled="!copyViewConfigSelectionStatus.isSomeSelected"
+            @click="clearAll"
+          >
             {{ $t('labels.clearAll') }}
           </NcButton>
         </div>

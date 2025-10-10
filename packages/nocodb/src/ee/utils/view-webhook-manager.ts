@@ -18,11 +18,15 @@ export class ViewWebhookManagerBuilder extends ViewWebhookManagerBuilderCE {
         `Need to call 'withModel' before running 'forCreate'`,
       );
     }
-    return new ViewWebhookManager(this.context, {
-      action: WebhookActions.INSERT,
-      modelId: this.modelId!,
-      modelWebhookManager: this.modelWebhookManager,
-    });
+    return new ViewWebhookManager(
+      this.context,
+      {
+        action: WebhookActions.INSERT,
+        modelId: this.modelId!,
+        modelWebhookManager: this.modelWebhookManager,
+      },
+      this.ncMeta,
+    );
   }
 
   override forUpdate() {
@@ -36,12 +40,16 @@ export class ViewWebhookManagerBuilder extends ViewWebhookManagerBuilderCE {
         `Need to call 'withView' before running 'forUpdate'`,
       );
     }
-    return new ViewWebhookManager(this.context, {
-      action: WebhookActions.UPDATE,
-      modelId: this.modelId!,
-      oldView: this.oldView,
-      modelWebhookManager: this.modelWebhookManager,
-    });
+    return new ViewWebhookManager(
+      this.context,
+      {
+        action: WebhookActions.UPDATE,
+        modelId: this.modelId!,
+        oldView: this.oldView,
+        modelWebhookManager: this.modelWebhookManager,
+      },
+      this.ncMeta,
+    );
   }
 
   override forDelete() {

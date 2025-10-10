@@ -31,7 +31,14 @@ const table = computed(() => props.table)
 
 const viewsStore = useViewsStore()
 
-const { navigateToView, duplicateView, updateView, isUserViewOwner, onOpenCopyViewConfigFromAnotherViewModal } = viewsStore
+const {
+  navigateToView,
+  duplicateView,
+  updateView,
+  isUserViewOwner,
+  onOpenCopyViewConfigFromAnotherViewModal,
+  getCopyViewConfigBtnAccessStatus,
+} = viewsStore
 
 const { isCopyViewConfigFromAnotherViewFeatureEnabled } = storeToRefs(viewsStore)
 
@@ -208,6 +215,10 @@ const isUploadAllowed = computed(() => {
   )
 })
 
+const copyViewConfigMenuItemStatus = computed(() => {
+  return getCopyViewConfigBtnAccessStatus(view.value, 'view-action-menu')
+})
+
 defineOptions({
   inheritAttrs: false,
 })
@@ -291,21 +302,19 @@ defineOptions({
       />
       <SmartsheetToolbarNotAllowedTooltip
         v-if="isEeUI && isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled"
-        :enabled="(isPersonalView && !isViewOwner) || lockType === LockType.Locked"
-        :message="
-          isPersonalView && !isViewOwner
-            ? $t('tooltip.onlyViewOwnerCanCopyViewConfig')
-            : $t('title.thisViewIsLockType', {
-                type: $t(viewLockIcons[lockType]?.title).toLowerCase(),
-              })
-        "
+        :enabled="copyViewConfigMenuItemStatus.isDisabled"
       >
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW">
+        <template #title>
+          <div class="max-w-70">
+            {{ copyViewConfigMenuItemStatus.tooltip }}
+          </div>
+        </template>
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER">
           <template #default="{ click }">
             <NcMenuItem
               inner-class="w-full"
-              :disabled="(isPersonalView && !isViewOwner) || lockType === LockType.Locked"
-              @click="click(PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW, () => onClickCopyViewConfig())"
+              :disabled="copyViewConfigMenuItemStatus.isDisabled"
+              @click="click(PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER, () => onClickCopyViewConfig())"
             >
               <div
                 v-e="[
@@ -322,7 +331,7 @@ defineOptions({
                 </div>
                 <div class="flex-1 w-full mr-1" />
                 <LazyPaymentUpgradeBadge
-                  :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW"
+                  :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER"
                   :limit-or-feature="'to access copy view configuration from another view feature.' as PlanFeatureTypes"
                   :content="
                     $t('upgrade.upgradeToAccessCopyViewConfigFromAnotherViewSubtitle', {

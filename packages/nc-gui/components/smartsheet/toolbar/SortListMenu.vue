@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, UITypesName } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import rfdc from 'rfdc'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
@@ -31,8 +31,11 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.SORT_RELOAD) {
+eventBus.on((event, payload) => {
+  if (
+    event === SmartsheetStoreEvents.SORT_RELOAD ||
+    validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.SORT, payload)
+  ) {
     loadSorts()
   }
 })

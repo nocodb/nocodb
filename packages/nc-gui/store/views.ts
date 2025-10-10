@@ -1,15 +1,5 @@
-import type {
-  CalendarType,
-  FilterType,
-  GalleryType,
-  KanbanType,
-  MapType,
-  RowColoringInfo,
-  SortType,
-  ViewSettingOverrideOptions,
-  ViewType,
-} from 'nocodb-sdk'
-import { ProjectRoles, ViewTypes, WorkspaceUserRoles, ViewTypes as _ViewTypes } from 'nocodb-sdk'
+import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, RowColoringInfo, SortType, ViewType } from 'nocodb-sdk'
+import { ViewSettingOverrideOptions, ProjectRoles, ViewTypes, WorkspaceUserRoles, ViewTypes as _ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib/types'
@@ -30,7 +20,7 @@ interface RecentView {
 }
 
 export const useViewsStore = defineStore('viewsStore', () => {
-  const { $api, $e } = useNuxtApp()
+  const { $api, $e, $eventBus } = useNuxtApp()
 
   const { t } = useI18n()
 
@@ -41,6 +31,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const { meta: metaKey, control } = useMagicKeys()
 
   const bases = useBases()
+
+  const { getMeta } = useMetas()
 
   const tablesStore = useTablesStore()
 
@@ -879,6 +871,81 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
+  const copyViewConfigurationFromAnotherView = async (
+    destView: ViewType,
+    sourceViewId: string,
+    settingToOverride: ViewSettingOverrideOptions[],
+  ) => {
+    if (!sourceViewId || settingToOverride.length === 0 || !destView) {
+      return
+    }
+
+    try {
+      await $api.internal.postOperation(
+        activeWorkspaceId.value!,
+        destView.base_id!,
+        {
+          operation: 'viewSettingOverride',
+        },
+        {
+          destinationViewId: destView.id!,
+          sourceViewId,
+          settingToOverride,
+        },
+      )
+
+      if (
+        destView.is_default &&
+        [ViewSettingOverrideOptions.FIELD_ORDER, ViewSettingOverrideOptions.FIELD_VISIBILITY].some((type) =>
+          settingToOverride.includes(type),
+        )
+      ) {
+        // default view col order and visibility is stored in column meta so we have to load it again
+        await getMeta(destView.fk_model_id!, true)
+      }
+
+      if (
+        settingToOverride.some((type) =>
+          [ViewSettingOverrideOptions.ROW_HEIGHT, ViewSettingOverrideOptions.ROW_COLORING].includes(type),
+        )
+      ) {
+        await loadViews({ tableId: destView.fk_model_id!, ignoreLoading: true, force: true })
+      }
+
+      // Reload view meta as well as data if the destination view is the active view
+      if (destView.id === activeView.value?.id) {
+        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.COPIED_VIEW_CONFIG, {
+          viewId: destView.id,
+          copiedOptions: settingToOverride,
+        })
+
+        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD, {
+          callback: () => {
+            // Load data after fields reload
+            forcedNextTick(() => {
+              $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+            })
+          },
+        })
+      }
+
+      message.toast(t('objects.copyViewConfig.viewConfigurationCopied'))
+
+      return true
+    } catch (e: any) {
+      console.error(e)
+      const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+      if (errorInfo.error === NcErrorType.ERR_FEATURE_NOT_SUPPORTED) {
+        message.error(errorInfo.message)
+      } else {
+        message.error(t('objects.copyViewConfig.errorOccuredWhileCopyingViewConfiguration'), undefined, {
+          copyText: errorInfo.message,
+        })
+      }
+    }
+  }
+
   function getViewReadableUrlSlug({ tableTitle, viewOrViewTitle }: { tableTitle?: string; viewOrViewTitle: ViewType | string }) {
     const viewTitle = ncIsObject(viewOrViewTitle) ? (viewOrViewTitle.is_default ? '' : viewOrViewTitle.title) : viewOrViewTitle
 
@@ -1022,6 +1089,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     onOpenViewCreateModal,
     getViewReadableUrlSlug,
     onOpenCopyViewConfigFromAnotherViewModal,
+    copyViewConfigurationFromAnotherView,
     isUserViewOwner,
     getCopyViewConfigBtnAccessStatus,
   }

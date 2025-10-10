@@ -27,19 +27,7 @@ const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false }
 
 const { destView } = toRefs(props)
 
-const { $api, $eventBus } = useNuxtApp()
-
-const { t } = useI18n()
-
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
 const viewsStore = useViewsStore()
-
-const { activeView } = storeToRefs(viewsStore)
-
-const { getMeta } = useMetas()
-
-const eventBus = $eventBus.smartsheetStoreEventBus
 
 const isLoading = ref(false)
 
@@ -91,72 +79,17 @@ const copyViewConfiguration = async () => {
 
   isLoading.value = true
 
-  try {
-    await $api.internal.postOperation(
-      activeWorkspaceId.value!,
-      destView.value.base_id!,
-      {
-        operation: 'viewSettingOverride',
-      },
-      {
-        destinationViewId: destView.value.id!,
-        sourceViewId: copyFromViewId.value!,
-        settingToOverride: selectedCopyViewConfigTypes.value,
-      },
-    )
+  const res = await viewsStore.copyViewConfigurationFromAnotherView(
+    destView.value,
+    copyFromViewId.value!,
+    selectedCopyViewConfigTypes.value,
+  )
 
-    if (
-      destView.value.is_default &&
-      [ViewSettingOverrideOptions.FIELD_ORDER, ViewSettingOverrideOptions.FIELD_VISIBILITY].some((type) =>
-        selectedCopyViewConfigTypes.value.includes(type),
-      )
-    ) {
-      // default view col order and visibility is stored in column meta so we have to load it again
-      await getMeta(destView.value.fk_model_id!, true)
-    }
-
-    if (
-      selectedCopyViewConfigTypes.value.some((type) =>
-        [ViewSettingOverrideOptions.ROW_HEIGHT, ViewSettingOverrideOptions.ROW_COLORING].includes(type),
-      )
-    ) {
-      await viewsStore.loadViews({ tableId: destView.value.fk_model_id!, ignoreLoading: true, force: true })
-    }
-
-    // Reload view meta as well as data if the destination view is the active view
-    if (destView.value.id === activeView.value?.id) {
-      eventBus.emit(SmartsheetStoreEvents.COPIED_VIEW_CONFIG, {
-        viewId: destView.value.id,
-        copiedOptions: selectedCopyViewConfigTypes.value,
-      })
-
-      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD, {
-        callback: () => {
-          // Load data after fields reload
-          forcedNextTick(() => {
-            eventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
-          })
-        },
-      })
-    }
-
-    emits('copy', selectedCopyViewConfigTypes.value)
-    message.toast(t('objects.copyViewConfig.viewConfigurationCopied'))
+  if (res) {
     dialogShow.value = false
-  } catch (e: any) {
-    console.error(e)
-    const errorInfo = await extractSdkResponseErrorMsgv2(e)
-
-    if (errorInfo.error === NcErrorType.ERR_FEATURE_NOT_SUPPORTED) {
-      message.error(errorInfo.message)
-    } else {
-      message.error(t('objects.copyViewConfig.errorOccuredWhileCopyingViewConfiguration'), undefined, {
-        copyText: errorInfo.message,
-      })
-    }
-  } finally {
-    isLoading.value = false
   }
+
+  isLoading.value = false
 }
 
 watch(

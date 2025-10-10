@@ -20,7 +20,6 @@ import {
   InternalGETResponseType,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
-import { ViewSettingsOverrideService } from '~/services/view-settings-override.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -29,7 +28,6 @@ export class InternalController {
     protected readonly mcpService: McpTokenService,
     protected readonly aclMiddleware: AclMiddleware,
     protected readonly auditsService: AuditsService,
-    protected readonly viewSettingsOverrideService: ViewSettingsOverrideService,
   ) {}
 
   protected get operationScopes() {
@@ -101,16 +99,6 @@ export class InternalController {
         );
       case 'mcpDelete':
         return await this.mcpService.delete(context, payload.tokenId);
-      case 'viewSettingOverride':
-        return await this.viewSettingsOverrideService.overrideViewSetting(
-          context,
-          {
-            destinationViewId: payload.destinationViewId,
-            settingToOverride: payload.settingToOverride,
-            sourceViewId: payload.sourceViewId,
-            req,
-          },
-        );
       default:
         NcError.notFound('Operation');
     }

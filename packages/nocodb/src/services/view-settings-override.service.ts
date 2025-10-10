@@ -271,6 +271,7 @@ export class ViewSettingsOverrideService {
             viewId: destinationView.id,
             req,
             body: sourceV3View.row_coloring,
+            viewWebhookManager,
           },
           ncMeta,
         );

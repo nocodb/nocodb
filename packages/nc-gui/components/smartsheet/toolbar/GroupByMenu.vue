@@ -388,6 +388,16 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
           }"
           @on-open="open = false"
         />
+        <div
+          v-else-if="view && !_groupBy.length"
+          class="flex items-center justify-end empty:hidden pl-3 pr-2 py-1.5 border-t-1 border-nc-border-gray-medium"
+        >
+          <LazyGeneralCopyFromAnotherViewActionBtn
+            :view="view"
+            :default-options="[ViewSettingOverrideOptions.GROUP]"
+            @open="open = false"
+          />
+        </div>
       </div>
     </template>
   </NcDropdown>

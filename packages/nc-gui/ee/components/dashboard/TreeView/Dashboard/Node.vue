@@ -329,6 +329,7 @@ const deleteDashboard = () => {
       trigger="hover"
       class="w-full"
       placement="right"
+      :mouse-enter-delay="0.5"
       :disabled="isEditing || isDropdownOpen || !showDashboardNodeTooltip"
     >
       <template #title>

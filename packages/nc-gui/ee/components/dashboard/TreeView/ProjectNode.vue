@@ -527,6 +527,7 @@ defineExpose({
         trigger="hover"
         :placement="isProjectHeader ? 'rightTop' : 'right'"
         hide-on-click
+        :mouse-enter-delay="0.5"
         :disabled="
           editMode ||
           isOptionsOpen ||

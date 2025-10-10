@@ -162,9 +162,8 @@ const FEATURES = [
     title: 'Copy View Config From Another View',
     description: 'Copy view config from another view.',
     enabled: false,
-    version: 1,
+    version: 2,
     isEE: true,
-    isEngineering: true,
   },
 ] as const
 

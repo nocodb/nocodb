@@ -35,13 +35,14 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
         tableAlias: alias,
       })
     ).builder;
+    const parsedTree = formula.getParsedTree();
     return parseConditionV2(
       baseModelSqlv2,
       new Filter({
         ...filter,
         value: knex.raw('?', [
           // convert value to number if formulaDataType if numeric
-          formula.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
+          parsedTree?.dataType === FormulaDataTypes.NUMERIC &&
           !isNaN(+filter.value)
             ? +filter.value
             : filter.value ?? null, // in gp_null value is undefined

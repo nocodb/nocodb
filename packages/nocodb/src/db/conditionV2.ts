@@ -16,7 +16,8 @@ import type { FilterType, NcContext } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { Column, Model } from '~/models';
+import type { Model } from '~/models';
+import { Column } from '~/models';
 import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
@@ -237,6 +238,7 @@ const parseConditionV2 = async (
         UITypes.Rating,
         UITypes.Percent,
         UITypes.User,
+        UITypes.DateTime,
       ].includes(column.uidt) ||
       ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
         !customWhereClause)
@@ -244,6 +246,29 @@ const parseConditionV2 = async (
       return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
         filter,
         column,
+        {
+          alias,
+          conditionParser: parseConditionV2,
+          depth: aliasCount,
+          context,
+          throwErrorIfInvalid,
+          customWhereClause,
+        },
+      );
+    }
+    if (
+      [UITypes.Formula].includes(column.uidt) &&
+      customWhereClause &&
+      [UITypes.DateTime, UITypes.Date].includes(
+        getEquivalentUIType({ formulaColumn: column }) as UITypes,
+      )
+    ) {
+      return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
+        filter,
+        new Column({
+          ...column,
+          uidt: getEquivalentUIType({ formulaColumn: column }) as UITypes,
+        }),
         {
           alias,
           conditionParser: parseConditionV2,
@@ -434,7 +459,7 @@ const parseConditionV2 = async (
             ].includes(column.uidt)
           ) {
             // if the filter has meta.timezone, we use that
-            let useTimezone = 'Utc/ETC';
+            let useTimezone = 'Etc/UTC';
             if (parseProp(filter.meta)?.timezone) {
               useTimezone = parseProp(filter.meta)?.timezone;
             }

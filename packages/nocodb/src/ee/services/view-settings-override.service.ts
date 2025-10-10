@@ -29,10 +29,12 @@ import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
+import { ViewsService } from '~/services/views.service';
 
 @Injectable()
 export class ViewSettingsOverrideService {
   constructor(
+    protected readonly viewsService: ViewsService,
     protected readonly viewsV3Service: ViewsV3Service,
     protected readonly sortsV3Service: SortsV3Service,
     protected readonly filtersV3Service: FiltersV3Service,
@@ -83,7 +85,7 @@ export class ViewSettingsOverrideService {
 
     const trxNcMeta = await ncMeta.startTransaction();
     try {
-      const result = await this._performOverrideViewSetting(
+      await this._performOverrideViewSetting(
         context,
         {
           sourceView,
@@ -100,7 +102,11 @@ export class ViewSettingsOverrideService {
         await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId());
         viewWebhookManager.emit();
       }
-      return result;
+      const result = await this.viewsService.viewList(context, {
+        tableId: destView.fk_model_id,
+        user: param.req.user,
+      });
+      return { data: result };
     } catch (ex) {
       await trxNcMeta.rollback();
       throw ex;

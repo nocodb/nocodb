@@ -432,6 +432,10 @@ const openBaseSettings = async (baseId: string) => {
   await navigateTo(`/${route.value.params.typeOrId}/${baseId}?page=base-settings`)
 }
 
+const openMcpSettings = async (baseId: string) => {
+  await navigateTo(`/${route.value.params.typeOrId}/${baseId}?page=base-settings&tab=mcp`)
+}
+
 const showNodeTooltip = ref(true)
 
 const shouldOpenContextMenu = computed(() => {
@@ -714,6 +718,7 @@ defineExpose({
                       @open-erd-view="openErdView($event)"
                       @on-data-reflection="onDataReflection"
                       @open-base-settings="openBaseSettings($event)"
+                      @open-mcp-server="openMcpSettings($event)"
                       @delete="isProjectDeleteDialogVisible = true"
                     />
                   </template>
@@ -779,6 +784,7 @@ defineExpose({
         @open-erd-view="openErdView($event)"
         @on-data-reflection="onDataReflection"
         @open-base-settings="openBaseSettings($event)"
+        @open-mcp-server="openMcpSettings($event)"
         @delete="isProjectDeleteDialogVisible = true"
       />
 

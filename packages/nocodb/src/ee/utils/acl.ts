@@ -368,7 +368,6 @@ const rolePermissions:
       orgUserList: true,
       orgBaseList: true,
       orgSsoClientList: true,
-      viewSettingOverride: true,
     },
   },
 
@@ -552,6 +551,7 @@ const rolePermissions:
     exclude: {
       createBase: true,
       manageSnapshots: true,
+      viewSettingOverride: true,
     },
   },
   [ProjectRoles.OWNER]: {

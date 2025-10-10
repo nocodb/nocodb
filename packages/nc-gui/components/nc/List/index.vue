@@ -372,6 +372,7 @@ const handleEscape = (event: KeyboardEvent) => {
           :class="`nc-theme-${theme}`"
           allow-clear
           :bordered="inputBordered"
+          autocomplete="off"
           @keydown.enter.stop="handleKeydownEnter"
           @change="handleResetHoverEffect(false, 0)"
         >

@@ -881,7 +881,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
 
     try {
-      await $api.internal.postOperation(
+      const res = await $api.internal.postOperation(
         activeWorkspaceId.value!,
         destView.base_id!,
         {
@@ -904,12 +904,17 @@ export const useViewsStore = defineStore('viewsStore', () => {
         await getMeta(destView.fk_model_id!, true)
       }
 
-      if (
-        settingToOverride.some((type) =>
-          [ViewSettingOverrideOptions.ROW_HEIGHT, ViewSettingOverrideOptions.ROW_COLORING].includes(type),
-        )
-      ) {
-        await loadViews({ tableId: destView.fk_model_id!, ignoreLoading: true, force: true })
+      if (res?.view && destView.fk_model_id) {
+        const tableViews = viewsByTable.value.get(destView.fk_model_id) || []
+        const viewIndex = tableViews.findIndex((v) => v.id === destView.id)
+
+        if (viewIndex !== -1) {
+          // Replace with the response from API
+          tableViews[viewIndex] = res.view
+          viewsByTable.value.set(destView.fk_model_id, [...tableViews])
+
+          refreshCommandPalette()
+        }
       }
 
       // Reload view meta as well as data if the destination view is the active view

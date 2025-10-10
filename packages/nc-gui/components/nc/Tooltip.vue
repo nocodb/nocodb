@@ -49,6 +49,7 @@ interface NcTooltipProps {
   overlayClassName?: string
   wrapChild?: keyof HTMLElementTagNameMap
   mouseLeaveDelay?: number
+  mouseEnterDelay?: number
   overlayInnerStyle?: object
   /**
    * Whether to show the arrow or not
@@ -80,6 +81,7 @@ const {
   wrapChild,
   attrs: attributes,
   color,
+  mouseEnterDelay,
 } = toRefs(props)
 
 const el = ref()
@@ -92,7 +94,13 @@ const showTooltip = controlledRef(false, {
   },
 })
 
-const isHovering = useElementHover(() => el.value)
+/**
+ * mouseEnterDelay is in seconds and useElementHover is in milliseconds
+ * So we have to multiply by 1000 to convert it to milliseconds
+ */
+const isHovering = useElementHover(() => el.value, {
+  delayEnter: mouseEnterDelay.value ? mouseEnterDelay.value * 1000 : undefined,
+})
 
 const isOverlayHovering = useElementHover(() => element.value)
 
@@ -208,6 +216,7 @@ const onClick = () => {
     :trigger="[]"
     :placement="placement"
     :mouse-leave-delay="mouseLeaveDelay"
+    :mouse-enter-delay="mouseEnterDelay"
   >
     <template #title>
       <div ref="element">

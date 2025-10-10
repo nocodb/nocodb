@@ -438,6 +438,7 @@ defineExpose({
 
 <template>
   <NcDropdown
+    v-model:visible="isProjectNodeContextMenuOpen"
     :trigger="[isProjectHeader ? 'click' : 'contextmenu']"
     overlay-class-name="nc-dropdown-tree-view-context-menu"
     :disabled="isProjectHeader ? editMode || isSharedBase || !!isMobileMode : undefined"
@@ -455,6 +456,7 @@ defineExpose({
         trigger="hover"
         :placement="isProjectHeader ? 'rightTop' : 'right'"
         hide-on-click
+        :mouse-enter-delay="0.5"
         :disabled="
           editMode ||
           isOptionsOpen ||

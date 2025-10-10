@@ -89,6 +89,8 @@ export enum MetaTable {
   DB_SERVERS = 'nc_db_servers',
   PERMISSIONS = 'nc_permissions',
   PERMISSION_SUBJECTS = 'nc_permission_subjects',
+  PRINCIPALS = 'nc_principals',
+  PRINCIPAL_ASSIGNMENTS = 'nc_principal_assignments',
   DASHBOARDS = 'nc_dashboards_v2',
   WIDGETS = 'nc_widgets_v2',
   OAUTH_CLIENTS = 'nc_oauth_clients',

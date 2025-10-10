@@ -154,6 +154,16 @@ const permissionScopes = {
 
     'cloud-org_paymentSeatCount',
     'cloud-org_manageSubscription',
+
+    // Teams
+    'teamList',
+    'teamCreate',
+    'teamGet',
+    'teamUpdate',
+    'teamDelete',
+    'teamUserAdd',
+    'teamUserRemove',
+    'teamUserUpdate',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',

@@ -154,7 +154,7 @@ export class InternalController {
           req,
         });
       default:
-        NcError.notFound('Operation');
+        NcError.get(context).notFound('Operation');
     }
   }
 }

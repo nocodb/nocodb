@@ -1,5 +1,5 @@
 import 'mocha';
-import { isEE } from 'playwright/setup/db';
+import { isEE } from '../../../utils/helpers';
 import request from 'supertest';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import init from '../../../init';
@@ -21,7 +21,7 @@ export default function () {
     return true;
   }
 
-  describe(`Teams v3`, () => {
+  describe.only(`Teams v3`, () => {
     let context: any = {};
     let workspaceId: string;
     let featureMock: any;

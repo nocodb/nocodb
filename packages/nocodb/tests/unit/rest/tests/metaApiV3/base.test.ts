@@ -1,7 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { isEE } from 'playwright/setup/db';
+import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
 
 interface CreateBaseArgs {

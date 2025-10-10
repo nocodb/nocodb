@@ -1,4 +1,4 @@
-import { isEE } from 'playwright/setup/db';
+import { isEE } from './helpers';
 import { nanoid } from 'nanoid';
 import { CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';

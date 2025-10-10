@@ -63,9 +63,13 @@ const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
 
-eventBus.on((event) => {
+eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
-    loadViewColumns()
+    try {
+      await loadViewColumns()
+    } finally {
+      payload?.callback?.()
+    }
   } else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
     loadViewColumns()
   }

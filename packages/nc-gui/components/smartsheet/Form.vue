@@ -91,7 +91,7 @@ const {
   checkFieldVisibility,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
-const { isSyncedTable } = useSmartsheetStoreOrThrow()
+const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 
@@ -110,6 +110,12 @@ reloadEventHook.on(
     }
   }),
 )
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.COPIED_VIEW_CONFIG) {
+    reloadEventHook.trigger()
+  }
+})
 
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()
 

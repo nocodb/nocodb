@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CURRENT_USER_TOKEN, type ColumnType, type FilterType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -59,6 +59,8 @@ const open = ref(false)
 
 const allFilters = ref({})
 
+const filterKey = ref(1)
+
 provide(AllFiltersInj, allFilters)
 
 useMenuCloseOnEsc(open)
@@ -66,7 +68,21 @@ useMenuCloseOnEsc(open)
 const draftFilter = ref({})
 const queryFilterOpen = ref(false)
 
-eventBus.on(async (event, column: ColumnType) => {
+eventBus.on(async (event, payload) => {
+  if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
+    await loadFilters({
+      hookId: undefined,
+      isWebhook: false,
+      loadAllFilters: true,
+    })
+
+    filtersLength.value = nonDeletedFilters.value.length || 0
+
+    filterKey.value++
+  }
+
+  const column = payload?.column as ColumnType | undefined
+
   if (!column) return
 
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
@@ -194,7 +210,7 @@ watch(
     </NcTooltip>
 
     <template #overlay>
-      <div>
+      <div :key="filterKey">
         <SmartsheetToolbarColumnFilter
           ref="filterComp"
           v-model:draft-filter="draftFilter"

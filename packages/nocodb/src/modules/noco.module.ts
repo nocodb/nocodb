@@ -314,6 +314,7 @@ export const nocoModuleMetadata = {
     McpService,
     ViewRowColorService,
     ViewRowColorV3Service,
+    ViewsV3Service,
 
     /* Datas */
     DataTableService,
@@ -325,7 +326,6 @@ export const nocoModuleMetadata = {
     PublicDatasService,
     PublicDatasExportService,
     DataV3Service,
-    ViewsV3Service,
 
     {
       provide: 'IViewsV3Service',

@@ -1,11 +1,4 @@
-import {
-  ROW_COLORING_MODE,
-  type RowColoringInfo,
-  type RowColoringInfoFilter,
-  ViewSettingOverrideOptions,
-  type ViewType,
-  arrayToNested,
-} from 'nocodb-sdk'
+import { ROW_COLORING_MODE, type RowColoringInfo, type RowColoringInfoFilter, type ViewType, arrayToNested } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
 import { SmartsheetStoreEvents } from '#imports'
 
@@ -43,8 +36,6 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
       ? customPayload || (await $api.dbView.getViewRowColor(viewId.value))
       : (activeView.value as ViewType & { viewRowColorInfo: RowColoringInfo | null })?.viewRowColorInfo
 
-    eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE)
-
     if (!rowColorInfoResponse) {
       if (isViewChange) {
         // need to remove conditions first
@@ -53,6 +44,10 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
         conditions?.splice(0)
         activeViewRowColorInfo.value = defaultRowColorInfo
       }
+
+      await ncDelay(100)
+      eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE)
+
       return
     }
 
@@ -74,7 +69,8 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
     }
 
     // add some delay before re-render as it is not reflecting immediately otherwise
-    setTimeout(() => eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE), 100)
+    await ncDelay(100)
+    eventBus.emit(SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE)
   }
 
   const evtListener = (evt: string, payload: any) => {
@@ -118,8 +114,9 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
     if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE].includes(event)) {
       reloadRowColorInfo(payload?.viewChange ?? false, payload?.rowColorInfo)
     } else if ([SmartsheetStoreEvents.FIELD_UPDATE, SmartsheetStoreEvents.FIELD_RELOAD].includes(event)) {
-      reloadRowColorInfo(true)
-    } else if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.ROW_COLORING, payload as any)) {
+      /**
+       * No need to check view config copied event as we call `SmartsheetStoreEvents.FIELD_RELOAD` after it
+       */
       reloadRowColorInfo(true)
     }
   })

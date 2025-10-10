@@ -133,7 +133,7 @@ const copyViewConfiguration = async () => {
     }
 
     emits('copy', selectedCopyViewConfigTypes.value)
-    message.success(t('objects.copyViewConfig.viewConfigurationCopied'))
+    message.toast(t('objects.copyViewConfig.viewConfigurationCopied'))
     dialogShow.value = false
   } catch (e: any) {
     console.error(e)

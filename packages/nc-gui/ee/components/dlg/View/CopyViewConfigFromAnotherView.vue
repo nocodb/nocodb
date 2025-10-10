@@ -105,7 +105,15 @@ const copyViewConfiguration = async () => {
       },
     )
 
-    await getMeta(destView.value.fk_model_id!, true)
+    if (
+      destView.value.is_default &&
+      [ViewSettingOverrideOptions.FIELD_ORDER, ViewSettingOverrideOptions.FIELD_VISIBILITY].some((type) =>
+        selectedCopyViewConfigTypes.value.includes(type),
+      )
+    ) {
+      // default view col order and visibility is stored in column meta so we have to load it again
+      await getMeta(destView.value.fk_model_id!, true)
+    }
 
     if (
       selectedCopyViewConfigTypes.value.some((type) =>

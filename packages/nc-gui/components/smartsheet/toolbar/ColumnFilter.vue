@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { type ColumnType, type FilterType, isCreatedOrLastModifiedTimeCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type FilterType,
+  isCreatedOrLastModifiedTimeCol,
+  isSystemColumn,
+  isVirtualCol,
+  ViewSettingOverrideOptions,
+} from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 
 interface Props {
@@ -1043,7 +1050,7 @@ defineExpose({
         <template v-if="isEeUI && !isPublic">
           <div
             v-if="!readOnly && filtersCount < getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW) && !hiddenAddNewFilter"
-            class="flex gap-2"
+            class="flex gap-2 w-full pr-4"
             :class="{
               'mt-1 mb-2': filters.length,
             }"
@@ -1079,6 +1086,13 @@ defineExpose({
                 {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
               </div>
             </NcButton>
+
+            <LazyGeneralCopyFromAnotherViewActionBtn
+              v-if="activeView"
+              :view="activeView"
+              :default-options="[ViewSettingOverrideOptions.FILTER_CONDITION]"
+              @open="isOpen = false"
+            />
           </div>
         </template>
 

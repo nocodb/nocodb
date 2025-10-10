@@ -51,11 +51,15 @@ export class ViewWebhookManagerBuilder {
         `Need to call 'withModel' before running 'forCreate'`,
       );
     }
-    return new ViewWebhookManager(this.context, {
-      action: WebhookActions.INSERT,
-      modelId: this.modelId!,
-      modelWebhookManager: this.modelWebhookManager,
-    });
+    return new ViewWebhookManager(
+      this.context,
+      {
+        action: WebhookActions.INSERT,
+        modelId: this.modelId!,
+        modelWebhookManager: this.modelWebhookManager,
+      },
+      this.ncMeta,
+    );
   }
 
   forUpdate() {
@@ -64,12 +68,16 @@ export class ViewWebhookManagerBuilder {
         `Need to call 'withModel' before running 'forUpdate'`,
       );
     }
-    return new ViewWebhookManager(this.context, {
-      action: WebhookActions.UPDATE,
-      modelId: this.modelId!,
-      oldView: this.oldView,
-      modelWebhookManager: this.modelWebhookManager,
-    });
+    return new ViewWebhookManager(
+      this.context,
+      {
+        action: WebhookActions.UPDATE,
+        modelId: this.modelId!,
+        oldView: this.oldView,
+        modelWebhookManager: this.modelWebhookManager,
+      },
+      this.ncMeta,
+    );
   }
 
   forDelete() {

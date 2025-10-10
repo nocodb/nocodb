@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  ViewSettingOverrideByViewType,
   ViewSettingOverrideOptionTexts,
   viewTypeAlias,
   ViewTypes,
@@ -28,7 +29,6 @@ import {
   type OverrideViewGallerySetting,
   type OverrideViewGridSetting,
   type OverrideViewKanbanSetting,
-  viewOverrideAvailableSettings,
 } from '~/types/view-setting-override/settings';
 import {
   type ViewWebhookManager,
@@ -379,7 +379,7 @@ export class ViewSettingsOverrideService {
     for (const setting of Object.keys(settingToOverride)) {
       if (settingToOverride[setting]) {
         if (
-          !viewOverrideAvailableSettings[sourceView.type].some(
+          !ViewSettingOverrideByViewType[sourceView.type].some(
             (typeSetting) => typeSetting === setting,
           )
         ) {
@@ -389,7 +389,7 @@ export class ViewSettingsOverrideService {
             } is invalid for view type [${viewTypeAlias[sourceView.type]}]`,
           );
         } else if (
-          !viewOverrideAvailableSettings[destinationView.type].some(
+          !ViewSettingOverrideByViewType[destinationView.type].some(
             (typeSetting) => typeSetting === setting,
           )
         ) {

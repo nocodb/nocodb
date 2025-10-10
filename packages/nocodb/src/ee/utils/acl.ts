@@ -367,6 +367,7 @@ const rolePermissions:
       orgUserList: true,
       orgBaseList: true,
       orgSsoClientList: true,
+      viewSettingOverride: true,
     },
   },
 
@@ -963,6 +964,7 @@ const permissionDescriptions: Record<string, string> = {
   globalAuditList: 'view list of audits',
 
   viewRowColorInfo: 'view row colouring info',
+  viewSettingOverride: 'copy view configuration from other view',
 };
 
 // Human-readable descriptions for roles

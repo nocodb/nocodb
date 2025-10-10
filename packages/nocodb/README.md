@@ -230,6 +230,8 @@ By default, SQLite is used for storing metadata. However, you can specify your d
 
 Please refer to the [Environment variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
+- `NC_MAX_TEXT_LENGTH`: Maximum allowed length for long text and JSON field values (default: `100000`).
+
 # Development Setup
 
 Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)

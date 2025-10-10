@@ -2,6 +2,7 @@
 import { expect } from 'chai';
 import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
+import { NC_MAX_TEXT_LENGTH } from '../../../../../src/constants';
 import { createBulkRows } from '../../../factory/row';
 import { createTable, getTable } from '../../../factory/table';
 import { createUser } from '../../../factory/user';
@@ -417,14 +418,8 @@ describe('dataApiV3', () => {
         textBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
-      it(`will handle update length exceed 100k`, async () => {
-        const base50 = '01234567890123456789012345678901234567890123456789';
-        // Generate ~100001-character string by repeating the above 40 times and adding '1'
-        const content100k1Length =
-          Array.from(
-            { length: 500 },
-            () => base50 + base50 + base50 + base50,
-          ).join('') + '1'; // 500 * 200 + 1 = 100001
+      it(`will handle update length exceeding configured limit`, async () => {
+        const exceedingLengthValue = 'a'.repeat(NC_MAX_TEXT_LENGTH + 1);
 
         const response = await ncAxiosPatch({
           url: `${textBasedUrlPrefix}/${table.id}/records`,
@@ -432,7 +427,7 @@ describe('dataApiV3', () => {
             {
               id: 1,
               fields: {
-                SingleLineText: content100k1Length,
+                SingleLineText: exceedingLengthValue,
               },
             },
           ],
@@ -440,7 +435,7 @@ describe('dataApiV3', () => {
         });
         expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
         expect(response.body.message).to.eq(
-          `Value length '100001' is exceeding allowed limit '100000' for type 'SingleLineText' on column 'SingleLineText'`,
+          `Value length '${NC_MAX_TEXT_LENGTH + 1}' is exceeding allowed limit '${NC_MAX_TEXT_LENGTH}' for type 'SingleLineText' on column 'SingleLineText'`,
         );
       });
 

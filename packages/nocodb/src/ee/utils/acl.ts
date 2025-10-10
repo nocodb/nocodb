@@ -269,6 +269,7 @@ const permissionScopes = {
     'mcpDelete',
 
     'viewRowColorInfo',
+    'viewSettingOverride',
 
     // Dashboard
     'dashboardList',

@@ -102,7 +102,7 @@ export class ViewSettingsOverrideService {
       }
       const resultView = await View.get(context, destView.id, ncMeta);
       await resultView.getViewWithInfo(context);
-      return resultView as any;
+      return { view: resultView } as any;
     } catch (ex) {
       await trxNcMeta.rollback();
       throw ex;

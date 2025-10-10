@@ -2,14 +2,15 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
-import { PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes, isVirtualCol } from 'nocodb-sdk'
+import type { Attachment } from '~/lib/types'
+import { CoverImageObjectFit, CoverImageSize } from '~/lib/enums'
 import type { Row as RowType } from '#imports'
 
-interface Attachment {
-  url: string
-}
-
 const INFINITY_SCROLL_THRESHOLD = 100
+const IMAGE_MIME_REGEX = /^image\//i
+const IMAGE_EXTENSION_REGEX = /\.(apng|avif|bmp|gif|jpe?g|png|svg|webp)$/i
 
 const meta = inject(MetaInj, ref())
 
@@ -103,18 +104,69 @@ const fieldsWithoutDisplay = computed(() => fields.value.filter((f) => !isPrimar
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value.includes(c)) ?? null)
 
-const coverImageColumn: any = computed(() =>
-  meta.value?.columnsById
-    ? meta.value.columnsById[kanbanMetaData.value?.fk_cover_image_col_id as keyof typeof meta.value.columnsById]
-    : {},
-)
+const visibleAttachmentColumns = computed<ColumnType[]>(() => {
+  if (!meta.value?.columnsById) return []
+
+  const visibleColumnIds = new Set(
+    (fields.value || []).map((field: any) => field?.fk_column_id).filter((id): id is string => Boolean(id)),
+  )
+
+  return [...visibleColumnIds]
+    .map((columnId) => meta.value!.columnsById![columnId as keyof typeof meta.value.columnsById] as ColumnType | undefined)
+    .filter((column): column is ColumnType => column?.uidt === UITypes.Attachment)
+})
+
+const fallbackAttachmentColumn = computed<ColumnType | null>(() => {
+  if (!meta.value?.columns) return null
+
+  return visibleAttachmentColumns.value[0] ?? meta.value.columns.find((column) => column.uidt === UITypes.Attachment) ?? null
+})
+
+const coverImageColumn = computed<ColumnType | null>(() => {
+  if (!meta.value?.columnsById) return null
+
+  const coverColumnId = kanbanMetaData.value?.fk_cover_image_col_id
+  if (coverColumnId === null) {
+    return null
+  }
+
+  if (coverColumnId) {
+    const explicitColumn = meta.value.columnsById[coverColumnId as keyof typeof meta.value.columnsById] as ColumnType | undefined
+    if (explicitColumn) {
+      return explicitColumn
+    }
+  }
+
+  return fallbackAttachmentColumn.value
+})
 
 const coverImageObjectFitStyle = computed(() => {
   const fk_cover_image_object_fit = parseProp(kanbanMetaData.value?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
 
   if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return 'contain'
   if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return 'cover'
+  return 'contain'
 })
+
+const coverImageSize = computed(() => {
+  return parseProp(kanbanMetaData.value?.meta)?.fk_cover_image_size || CoverImageSize.MEDIUM
+})
+
+const coverImageHeight = computed(() => {
+  switch (coverImageSize.value) {
+    case CoverImageSize.SMALL:
+      return 128
+    case CoverImageSize.LARGE:
+      return 288
+    default:
+      return 208
+  }
+})
+
+const coverImageContainerStyle = computed(() => ({
+  height: `${coverImageHeight.value}px`,
+  minHeight: `${coverImageHeight.value}px`,
+}))
 
 const isRequiredGroupingFieldColumn = computed(() => {
   return !!groupingFieldColumn.value?.rqd
@@ -138,37 +190,70 @@ eventBus.on((event) => {
   }
 })
 
+let attachmentsCache = new WeakMap<any, Attachment[]>()
+
+const isImageAttachment = (attachment: any): attachment is Attachment => {
+  if (!attachment || typeof attachment !== 'object') return false
+
+  const mimeType = attachment.mimetype ?? attachment.type ?? attachment.contentType
+  if (typeof mimeType === 'string' && IMAGE_MIME_REGEX.test(mimeType)) return true
+
+  const fileName = attachment.title ?? attachment.name ?? attachment.filename ?? attachment.path
+  return typeof fileName === 'string' && IMAGE_EXTENSION_REGEX.test(fileName)
+}
+
+const parseAttachmentValue = (value: any): Attachment[] => {
+  const normalised = typeof value === 'string' ? JSON.parse(value) : value
+  const candidateList = Array.isArray(normalised) ? normalised.flat() : [normalised]
+
+  return candidateList
+    .map((candidate) => (typeof candidate === 'string' ? JSON.parse(candidate) : candidate))
+    .filter((candidate) => isImageAttachment(candidate))
+}
+
 const attachments = (record: any): Attachment[] => {
-  if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
+  if (!coverImageColumn.value?.title || !record?.row) return []
+
+  const cached = attachmentsCache.get(record)
+  if (cached) return cached
+
+  const rawValue =
+    record.row[coverImageColumn.value.title] ?? (coverImageColumn.value.id ? record.row[coverImageColumn.value.id] : undefined)
+
+  if (!rawValue) {
+    attachmentsCache.set(record, [])
+    return []
+  }
 
   try {
-    const att =
-      typeof record.row[coverImageColumn.value.title] === 'string'
-        ? JSON.parse(record.row[coverImageColumn.value.title])
-        : record.row[coverImageColumn.value.title]
-
-    if (Array.isArray(att)) {
-      return att
-        .flat()
-        .map((a) => (typeof a === 'string' ? JSON.parse(a) : a))
-        .filter((a) => a && !Array.isArray(a) && typeof a === 'object' && Object.keys(a).length)
-    }
-
-    return []
+    const parsed = parseAttachmentValue(rawValue)
+    attachmentsCache.set(record, parsed)
+    return parsed
   } catch (e) {
+    attachmentsCache.set(record, [])
     return []
   }
 }
 
+const primaryAttachment = (record: any): Attachment | null => attachments(record)[0] ?? null
+
 const reloadAttachments = ref(false)
 
 reloadViewMetaHook?.on(async () => {
+  attachmentsCache = new WeakMap()
   reloadAttachments.value = true
 
   nextTick(() => {
     reloadAttachments.value = false
   })
 })
+
+watch(
+  () => [coverImageColumn.value?.id, reloadAttachments.value],
+  () => {
+    attachmentsCache = new WeakMap()
+  },
+)
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
@@ -821,60 +906,33 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                     Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
                                     could reference a non-existent column. This is a workaround to handle such scenarios properly.
                                   -->
-                                  <template v-if="coverImageColumn?.id" #cover>
-                                    <template v-if="!reloadAttachments && attachments(record).length">
-                                      <a-carousel
-                                        :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
-                                        class="gallery-carousel !border-b-1 !border-gray-200 !bg-white"
-                                        arrows
-                                      >
-                                        <template #customPaging>
-                                          <a>
-                                            <div>
-                                              <div></div>
-                                            </div>
-                                          </a>
-                                        </template>
-
-                                        <template #prevArrow>
-                                          <div class="z-10 arrow">
-                                            <NcButton
-                                              type="secondary"
-                                              size="xsmall"
-                                              class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
-                                            >
-                                              <GeneralIcon icon="arrowLeft" class="text-gray-700 w-4 h-4" />
-                                            </NcButton>
-                                          </div>
-                                        </template>
-
-                                        <template #nextArrow>
-                                          <div class="z-10 arrow">
-                                            <NcButton
-                                              type="secondary"
-                                              size="xsmall"
-                                              class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
-                                            >
-                                              <GeneralIcon icon="arrowRight" class="text-gray-700 w-4 h-4" />
-                                            </NcButton>
-                                          </div>
-                                        </template>
-
-                                        <template v-for="attachment in attachments(record)" :key="attachment.path">
-                                          <LazyCellAttachmentPreviewThumbnail
-                                            :attachment="attachment"
-                                            class="h-52"
-                                            image-class="!w-full"
-                                            thumbnail="card_cover"
-                                            :object-fit="coverImageObjectFitStyle"
-                                            @click="expandFormClick($event, record)"
-                                          />
-                                        </template>
-                                      </a-carousel>
-                                    </template>
+                                  <template v-if="coverImageColumn" #cover>
+                                    <div
+                                      v-if="!reloadAttachments && primaryAttachment(record)"
+                                      class="relative w-full !border-b-1 !border-gray-200 !bg-white overflow-hidden"
+                                      :style="[
+                                        coverImageContainerStyle,
+                                        extractRowBackgroundColorStyle(record).rowBgColor,
+                                        extractRowBackgroundColorStyle(record).rowBorderColor,
+                                      ]"
+                                    >
+                                      <LazyCellAttachmentPreviewThumbnail
+                                        :attachment="primaryAttachment(record)"
+                                        class="w-full h-full"
+                                        image-class="!w-full !h-full"
+                                        thumbnail="card_cover"
+                                        :object-fit="coverImageObjectFitStyle"
+                                        @click="expandFormClick($event, record)"
+                                      />
+                                    </div>
                                     <div
                                       v-else
-                                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center bg-white"
+                                      class="w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center bg-white"
+                                      :style="[
+                                        coverImageContainerStyle,
+                                        extractRowBackgroundColorStyle(record).rowBgColor,
+                                        extractRowBackgroundColorStyle(record).rowBorderColor,
+                                      ]"
                                     >
                                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                                     </div>

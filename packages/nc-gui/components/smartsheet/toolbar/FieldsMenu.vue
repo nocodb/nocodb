@@ -4,6 +4,7 @@ import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
+import { CoverImageObjectFit, CoverImageSize } from '~/lib/enums'
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -238,7 +239,7 @@ const coverImageObjectFitOptions = [
 
 const coverImageObjectFitDropdown = ref<{
   isOpen: boolean
-  isSaving: keyof typeof CoverImageObjectFit | null
+  isSaving: string | null
 }>({
   isOpen: false,
   isSaving: null,
@@ -267,6 +268,61 @@ const coverImageObjectFit = computed({
       })
 
       await updateCoverImageObjectFit(val)
+    }
+    coverImageObjectFitDropdown.value.isSaving = null
+    coverImageObjectFitDropdown.value.isOpen = false
+  },
+})
+
+const updateCoverImageSize = async (val: string) => {
+  if (
+    ![ViewTypes.GALLERY, ViewTypes.KANBAN].includes(activeView.value?.type as ViewTypes) ||
+    !activeView.value?.id ||
+    !activeView.value?.view
+  ) {
+    return
+  }
+
+  const payload = {
+    ...parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta),
+    fk_cover_image_size: val,
+  }
+
+  await updateViewMeta(activeView.value?.id, activeView.value?.type, {
+    meta: payload,
+  })
+}
+
+const coverImageSizeOptions = [
+  { value: CoverImageSize.SMALL, label: t('labels.coverImageSizeSmall') },
+  { value: CoverImageSize.MEDIUM, label: t('labels.coverImageSizeMedium') },
+  { value: CoverImageSize.LARGE, label: t('labels.coverImageSizeLarge') },
+]
+
+const coverImageSize = computed({
+  get: () => {
+    return [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(activeView.value?.type as ViewTypes) && activeView.value?.view
+      ? parseProp(activeView.value?.view?.meta)?.fk_cover_image_size || CoverImageSize.MEDIUM
+      : undefined
+  },
+  set: async (val) => {
+    if (val !== coverImageSize.value) {
+      const previousSize = coverImageSize.value ?? CoverImageSize.MEDIUM
+      coverImageObjectFitDropdown.value.isSaving = val
+
+      addUndo({
+        undo: {
+          fn: updateCoverImageSize,
+          args: [previousSize],
+        },
+        redo: {
+          fn: updateCoverImageSize,
+          args: [val],
+        },
+        scope: defineViewScope({ view: activeView.value }),
+      })
+
+      await updateCoverImageSize(val)
     }
     coverImageObjectFitDropdown.value.isSaving = null
     coverImageObjectFitDropdown.value.isOpen = false
@@ -646,10 +702,13 @@ const onAddColumnDropdownVisibilityChange = () => {
                 />
               </button>
               <template #overlay>
-                <NcMenu class="nc-cover-image-object-fit-dropdown-menu min-w-[168px]">
+                <NcMenu class="nc-cover-image-object-fit-dropdown-menu min-w-[188px] flex flex-col gap-1 py-1">
+                  <div class="px-3 pt-2 pb-1 text-xs font-medium text-nc-content-secondary uppercase">
+                    {{ $t('labels.coverImageArea') }}
+                  </div>
                   <NcMenuItem
                     v-for="option in coverImageObjectFitOptions"
-                    :key="option.value"
+                    :key="`fit-${option.value}`"
                     class="!children:w-full"
                     @click.stop="coverImageObjectFit = option.value"
                   >
@@ -665,6 +724,31 @@ const onAddColumnDropdownVisibilityChange = () => {
 
                     <GeneralIcon
                       v-else-if="option.value === coverImageObjectFit"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </NcMenuItem>
+                  <div class="px-3 pt-2 pb-1 text-xs font-medium text-nc-content-secondary uppercase">
+                    {{ $t('labels.coverImageSize') }}
+                  </div>
+                  <NcMenuItem
+                    v-for="option in coverImageSizeOptions"
+                    :key="`size-${option.value}`"
+                    class="!children:w-full"
+                    @click.stop="coverImageSize = option.value"
+                  >
+                    <span>
+                      {{ option.label }}
+                    </span>
+
+                    <GeneralLoader
+                      v-if="option.value === coverImageObjectFitDropdown.isSaving"
+                      size="regular"
+                      class="flex-none"
+                    />
+
+                    <GeneralIcon
+                      v-else-if="option.value === coverImageSize"
                       icon="check"
                       class="flex-none text-primary w-4 h-4"
                     />

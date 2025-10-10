@@ -188,6 +188,12 @@ export enum CoverImageObjectFit {
   COVER = 'cover',
 }
 
+export enum CoverImageSize {
+  SMALL = 'small',
+  MEDIUM = 'medium',
+  LARGE = 'large',
+}
+
 export enum AuditLogsDateRange {
   Last24H = 'last24H',
   PastWeek = 'pastWeek',

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { OAuthClientType } from 'nocodb-sdk'
+import { PublicAttachmentScope } from 'nocodb-sdk/build/main/lib/enums'
 const props = defineProps<{
   visible: boolean
 }>()
@@ -274,7 +275,12 @@ function copyToClipboard(text: string, label: string) {
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">Image shown during authorization (square recommended)</span>
               </template>
-              <NcUpload v-model:attachment="clientRef.logo_uri" upload-path="clients/logos" :max-file-size="5">
+              <NcUpload
+                v-model:attachment="clientRef.logo_uri"
+                :upload-scope="PublicAttachmentScope.OAUTHCLIENTS"
+                upload-path="clients/logos"
+                :max-file-size="5"
+              >
                 <template #content>
                   <div v-if="clientRef.logo_uri" class="flex items-center space-x-3">
                     <CellAttachmentPreviewImage

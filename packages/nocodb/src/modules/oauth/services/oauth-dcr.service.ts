@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { OAuthClientType } from 'nocodb-sdk';
+import { OAuthClientType, PublicAttachmentScope } from 'nocodb-sdk';
+import type { NcRequest } from '~/interface/config';
 import { OAuthClient } from '~/models';
+import { AttachmentsService } from '~/services/attachments.service';
 
 export interface DcrRegistrationRequest {
   redirect_uris: string[];
@@ -11,18 +13,17 @@ export interface DcrRegistrationRequest {
   response_types?: string[];
   client_type?: OAuthClientType;
 }
-
 @Injectable()
 export class OauthDcrService {
-  async registerClient(request: DcrRegistrationRequest) {
-    if (
-      !request.redirect_uris ||
-      !Array.isArray(request.redirect_uris) ||
-      request.redirect_uris.length === 0
-    ) {
-      throw new Error(
-        'invalid_client_metadata: redirect_uris is required and must be a non-empty array',
-      );
+  constructor(private readonly attachmentsService: AttachmentsService) {}
+
+  async registerClient(request: DcrRegistrationRequest, req: NcRequest) {
+    if (!request.redirect_uris) {
+      throw new Error('invalid_redirect_uri: redirect_uris is required');
+    }
+
+    if (request.redirect_uris.length === 0) {
+      throw new Error('invalid_redirect_uri: redirect_uris cannot be empty');
     }
 
     for (const uri of request.redirect_uris) {
@@ -53,7 +54,7 @@ export class OauthDcrService {
       }
     }
 
-    const clientType = request.client_type || OAuthClientType.CONFIDENTIAL;
+    const clientType = request.client_type || OAuthClientType.PUBLIC;
     if (
       ![OAuthClientType.PUBLIC, OAuthClientType.CONFIDENTIAL].includes(
         clientType,
@@ -66,6 +67,25 @@ export class OauthDcrService {
 
     const issuedAt = Math.floor(Date.now() / 1000);
 
+    let uploadedLogoUri = null;
+    if (request.logo_uri) {
+      try {
+        const attachments = await this.attachmentsService.uploadViaURL({
+          urls: [{ url: request.logo_uri }],
+          req,
+          scope: PublicAttachmentScope.OAUTHCLIENTS,
+        });
+
+        if (attachments && attachments.length > 0) {
+          uploadedLogoUri = attachments[0];
+        }
+      } catch (error) {
+        throw new Error(
+          `invalid_client_metadata: Failed to upload logo: ${error.message}`,
+        );
+      }
+    }
+
     const clientData = {
       client_name: request.client_name || 'Dynamically Registered Client',
       client_uri: request.client_uri,
@@ -75,13 +95,13 @@ export class OauthDcrService {
       response_types: responseTypes,
       client_id_issued_at: issuedAt,
       client_secret_expires_at: 0,
+      logo_uri: uploadedLogoUri,
     };
 
     const res = await OAuthClient.insert(clientData);
 
-    return {
+    const response: any = {
       client_id: res.client_id,
-      client_secret: res.client_secret,
       client_id_issued_at: res.client_id_issued_at,
       client_secret_expires_at: res.client_secret_expires_at,
       redirect_uris: res.redirect_uris,
@@ -90,17 +110,27 @@ export class OauthDcrService {
       client_type: res.client_type,
       grant_types: res.allowed_grant_types,
       response_types: res.response_types,
-      ...(res.logo_uri
-        ? {
-            logo_uri: res.logo_uri,
-          }
-        : {}),
     };
+
+    if (clientType === OAuthClientType.CONFIDENTIAL && res.client_secret) {
+      response.client_secret = res.client_secret;
+    }
+
+    if (uploadedLogoUri) {
+      response.logo_uri = uploadedLogoUri;
+    }
+
+    return response;
   }
 
   private isValidRedirectUri(uri: string): boolean {
     try {
       const url = new URL(uri);
+
+      // Reject URIs with fragments
+      if (url.hash) {
+        return false;
+      }
 
       if (url.protocol === 'https:') {
         return true;

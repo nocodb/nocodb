@@ -275,6 +275,19 @@ export default class Column<T = any> implements ColumnType {
       ncMeta,
     );
 
+    if (insertObj.pv === true) {
+      await Model.updatePrimaryColumn(
+        context,
+        column.fk_model_id,
+        row.id,
+        ncMeta,
+      ).catch((e) => {
+        logger.error(
+          `Failed to update primary column for model ${column.fk_model_id}: ${e?.message}`,
+        );
+      });
+    }
+
     await View.clearSingleQueryCache(context, column.fk_model_id, null, ncMeta);
 
     cleanBaseSchemaCacheForBase(context.base_id).catch(() => {

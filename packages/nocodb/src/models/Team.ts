@@ -5,6 +5,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -46,8 +47,8 @@ export default class Team {
     const preparedTeam = prepareForDb(insertObj, 'meta');
 
     const { id } = await ncMeta.metaInsert2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.TEAMS,
       preparedTeam,
       true,
@@ -61,7 +62,7 @@ export default class Team {
     await NocoCache.appendToList(
       context,
       CacheScope.TEAM,
-      [context.workspace_id, context.base_id],
+      [context.workspace_id ?? context.org_id],
       `${CacheScope.TEAM}:${id}`,
     );
 
@@ -83,18 +84,14 @@ export default class Team {
 
     if (!teamData) {
       teamData = await ncMeta.metaGet(
-        context.workspace_id,
-        context.base_id,
+        RootScopes.ROOT,
+        RootScopes.ROOT,
         MetaTable.TEAMS,
         teamId,
       );
 
       if (teamData) {
-        await NocoCache.set(
-          context,
-          `${CacheScope.TEAM}:${teamId}`,
-          teamData,
-        );
+        await NocoCache.set(context, `${CacheScope.TEAM}:${teamId}`, teamData);
       }
     }
 
@@ -112,19 +109,17 @@ export default class Team {
     } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<Team[]> {
-    const cachedList = await NocoCache.getList(
-      context,
-      CacheScope.TEAM,
-      [context.workspace_id, context.base_id],
-    );
+    const cachedList = await NocoCache.getList(context, CacheScope.TEAM, [
+      context.workspace_id ?? context.org_id,
+    ]);
 
     let { list: teamList } = cachedList;
     const { isNoneList } = cachedList;
 
     if (!isNoneList && !teamList.length) {
       teamList = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
+        RootScopes.ROOT,
+        RootScopes.ROOT,
         MetaTable.TEAMS,
         {
           condition: {
@@ -137,7 +132,7 @@ export default class Team {
       await NocoCache.setList(
         context,
         CacheScope.TEAM,
-        [context.workspace_id, context.base_id],
+        [context.workspace_id ?? context.org_id],
         teamList,
       );
     }
@@ -163,15 +158,19 @@ export default class Team {
 
     // get existing cache
     const key = `${CacheScope.TEAM}:${teamId}`;
-    const existing = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
+    const existing = await NocoCache.get(
+      context,
+      key,
+      CacheGetType.TYPE_OBJECT,
+    );
 
     if (!existing) {
       NcError.notFound(`Team with id ${teamId} not found`);
     }
 
     await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.TEAMS,
       preparedTeam,
       { id: teamId },
@@ -196,12 +195,9 @@ export default class Team {
     teamId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    await ncMeta.metaDelete(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.TEAMS,
-      { id: teamId },
-    );
+    await ncMeta.metaDelete(RootScopes.ROOT, RootScopes.ROOT, MetaTable.TEAMS, {
+      id: teamId,
+    });
 
     await NocoCache.del(context, `${CacheScope.TEAM}:${teamId}`);
 

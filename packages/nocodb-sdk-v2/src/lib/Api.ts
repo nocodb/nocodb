@@ -1716,6 +1716,209 @@ export type WorkspaceUserDelete = {
   user_id: string;
 }[];
 
+/** Team information for v3 API */
+export interface TeamV3 {
+  /**
+   * Unique team identifier
+   * @example "t12345"
+   */
+  id: string;
+  /**
+   * Team name
+   * @maxLength 50
+   * @example "Design Team"
+   */
+  name: string;
+  /**
+   * Team icon (emoji or icon identifier)
+   * @example "🎨"
+   */
+  icon?: string;
+  /**
+   * Team badge color (hex code)
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   * @example "#FF5733"
+   */
+  badge_color?: string;
+  /**
+   * Number of team members
+   * @example 10
+   */
+  members_count: number;
+  /** Organization ID (for Cloud Enterprise) */
+  fk_org_id?: string;
+  /** Workspace ID (for other plans) */
+  fk_workspace_id?: string;
+  /**
+   * Team creation timestamp
+   * @format date-time
+   */
+  created_at?: string;
+  /**
+   * Team last update timestamp
+   * @format date-time
+   */
+  updated_at?: string;
+}
+
+/** Team creation request for v3 API */
+export interface TeamCreateV3Req {
+  /**
+   * Team name
+   * @minLength 1
+   * @maxLength 50
+   * @example "Design Team"
+   */
+  name: string;
+  /**
+   * Team icon (emoji or icon identifier)
+   * @example "🎨"
+   */
+  icon?: string;
+  /**
+   * Team badge color (hex code)
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   * @example "#FF5733"
+   */
+  badge_color?: string;
+  /** Initial team members */
+  members?: TeamMemberV3[];
+}
+
+/** Team update request for v3 API */
+export interface TeamUpdateV3Req {
+  /**
+   * Updated team name
+   * @minLength 1
+   * @maxLength 50
+   * @example "Updated Team Name"
+   */
+  name?: string;
+  /**
+   * Updated team icon (emoji or icon identifier)
+   * @example "🛠️"
+   */
+  icon?: string;
+  /**
+   * Updated team badge color (hex code)
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   * @example "#00AEEF"
+   */
+  badge_color?: string;
+}
+
+/** Detailed team information for v3 API */
+export interface TeamDetailV3 {
+  /**
+   * Team name
+   * @example "Design Team"
+   */
+  name: string;
+  /**
+   * Team icon (emoji or icon identifier)
+   * @example "🎨"
+   */
+  icon?: string;
+  /**
+   * Team badge color (hex code)
+   * @example "#FF5733"
+   */
+  badge_color?: string;
+  /** Team members */
+  members: TeamMemberV3Response[];
+}
+
+/** Team member information for v3 API */
+export interface TeamMemberV3 {
+  /**
+   * User ID
+   * @example "xxxx"
+   */
+  user_id: string;
+  /**
+   * Team role
+   * @example "member"
+   */
+  team_role: 'member' | 'manager';
+}
+
+/** Team member response for v3 API */
+export interface TeamMemberV3Response {
+  /**
+   * User email address
+   * @format email
+   * @example "user@nocodb.com"
+   */
+  user_email: string;
+  /**
+   * User ID
+   * @example "id"
+   */
+  user_id: string;
+  /**
+   * Team role
+   * @example "member"
+   */
+  team_role: 'member' | 'manager';
+}
+
+/** Add team members request for v3 API */
+export interface TeamMembersAddV3Req {
+  /**
+   * User ID to add
+   * @example "xxxx"
+   */
+  user_id: string;
+  /**
+   * Team role to assign
+   * @example "member"
+   */
+  team_role: 'member' | 'manager';
+}
+
+/** Remove team members request for v3 API */
+export interface TeamMembersRemoveV3Req {
+  /**
+   * User ID to remove
+   * @example "user123"
+   */
+  user_id: string;
+}
+
+/** Update team members request for v3 API */
+export interface TeamMembersUpdateV3Req {
+  /**
+   * User ID to update
+   * @example "user123"
+   */
+  user_id: string;
+  /**
+   * New team role
+   * @example "member"
+   */
+  team_role: 'member' | 'manager';
+}
+
+/** Team user relationship */
+export interface TeamUser {
+  /** Team ID */
+  fk_team_id: string;
+  /** User ID */
+  fk_user_id: string;
+  /** Whether user is team owner */
+  is_owner: boolean;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  created_at?: string;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updated_at?: string;
+}
+
 /** Button */
 type BaseFieldOptionsButton = object;
 
@@ -3113,6 +3316,230 @@ export class InternalApi<
       >({
         path: `/api/v3/data/${baseId}/${tableId}/links/${linkFieldId}/${recordId}`,
         method: 'DELETE',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Retrieve a list of teams associated with a Workspace or ORG
+     *
+     * @tags Teams
+     * @name TeamsListV3
+     * @summary List Teams
+     * @request GET:/api/v3/meta/{workspaceId}/teams
+     */
+    teamsListV3: (
+      workspaceId: string,
+      query?: {
+        /** Include workspace teams */
+        include_workspace?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<TeamV3[], any>({
+        path: `/api/v3/meta/${workspaceId}/teams`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create a new team
+     *
+     * @tags Teams
+     * @name TeamsCreateV3
+     * @summary Create Team
+     * @request POST:/api/v3/meta/{workspaceId}/teams
+     */
+    teamsCreateV3: (
+      workspaceId: string,
+      data: TeamCreateV3Req,
+      query?: {
+        /** Include workspace teams */
+        include_workspace?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<TeamV3, any>({
+        path: `/api/v3/meta/${workspaceId}/teams`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Fetch details of a specific team
+     *
+     * @tags Teams
+     * @name TeamsGetV3
+     * @summary Get Team
+     * @request GET:/api/v3/meta/{workspaceId}/teams/{teamId}
+     */
+    teamsGetV3: (
+      workspaceId: string,
+      teamId: string,
+      query?: {
+        /** Include workspace teams */
+        include_workspace?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<TeamDetailV3, any>({
+        path: `/api/v3/meta/${workspaceId}/teams/${teamId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update name, icon, or badge color
+     *
+     * @tags Teams
+     * @name TeamsUpdateV3
+     * @summary Update Team
+     * @request PATCH:/api/v3/meta/{workspaceId}/teams/{teamId}
+     */
+    teamsUpdateV3: (
+      workspaceId: string,
+      teamId: string,
+      data: TeamUpdateV3Req,
+      query?: {
+        /** Include workspace teams */
+        include_workspace?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<TeamV3, any>({
+        path: `/api/v3/meta/${workspaceId}/teams/${teamId}`,
+        method: 'PATCH',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Delete a team
+     *
+     * @tags Teams
+     * @name TeamsDeleteV3
+     * @summary Delete Team
+     * @request DELETE:/api/v3/meta/{workspaceId}/teams/{teamId}
+     */
+    teamsDeleteV3: (
+      workspaceId: string,
+      teamId: string,
+      query?: {
+        /** Include workspace teams */
+        include_workspace?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          /** @example "Team has been deleted successfully" */
+          msg?: string;
+        },
+        any
+      >({
+        path: `/api/v3/meta/${workspaceId}/teams/${teamId}`,
+        method: 'DELETE',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Add members to a team
+     *
+     * @tags Teams
+     * @name TeamsMembersAddV3
+     * @summary Add Members to Team
+     * @request POST:/api/v3/meta/{workspaceId}/teams/{teamId}/members
+     */
+    teamsMembersAddV3: (
+      workspaceId: string,
+      teamId: string,
+      data: TeamMembersAddV3Req[],
+      query?: {
+        /** Include workspace teams */
+        include_workspace?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<TeamUser[], any>({
+        path: `/api/v3/meta/${workspaceId}/teams/${teamId}/members`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Remove members from a team
+     *
+     * @tags Teams
+     * @name TeamsMembersRemoveV3
+     * @summary Remove Member from Team
+     * @request DELETE:/api/v3/meta/{workspaceId}/teams/{teamId}/members
+     */
+    teamsMembersRemoveV3: (
+      workspaceId: string,
+      teamId: string,
+      data: TeamMembersRemoveV3Req[],
+      query?: {
+        /** Include workspace teams */
+        include_workspace?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        {
+          user_id?: string;
+        }[],
+        any
+      >({
+        path: `/api/v3/meta/${workspaceId}/teams/${teamId}/members`,
+        method: 'DELETE',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update member roles in a team
+     *
+     * @tags Teams
+     * @name TeamsMembersUpdateV3
+     * @summary Update Member Role
+     * @request PATCH:/api/v3/meta/{workspaceId}/teams/{teamId}/members
+     */
+    teamsMembersUpdateV3: (
+      workspaceId: string,
+      teamId: string,
+      data: TeamMembersUpdateV3Req[],
+      query?: {
+        /** Include workspace teams */
+        include_workspace?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<TeamUser[], any>({
+        path: `/api/v3/meta/${workspaceId}/teams/${teamId}/members`,
+        method: 'PATCH',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',

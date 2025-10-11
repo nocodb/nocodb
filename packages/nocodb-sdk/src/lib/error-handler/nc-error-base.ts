@@ -125,6 +125,13 @@ export class NcErrorBase {
     });
   }
 
+  teamNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TEAM_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   viewNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_VIEW_NOT_FOUND, {
       params: id,

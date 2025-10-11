@@ -5,6 +5,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -40,8 +41,8 @@ export default class TeamUser {
     ]);
 
     await ncMeta.metaInsert2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.TEAM_USERS,
       insertObj,
       true,
@@ -60,7 +61,12 @@ export default class TeamUser {
       `${CacheScope.TEAM_USER}:${insertObj.fk_team_id}:${insertObj.fk_user_id}`,
     );
 
-    return this.get(context, insertObj.fk_team_id, insertObj.fk_user_id, ncMeta);
+    return this.get(
+      context,
+      insertObj.fk_team_id,
+      insertObj.fk_user_id,
+      ncMeta,
+    );
   }
 
   public static async get(
@@ -80,8 +86,8 @@ export default class TeamUser {
 
     if (!teamUserData) {
       teamUserData = await ncMeta.metaGet(
-        context.workspace_id,
-        context.base_id,
+        RootScopes.ROOT,
+        RootScopes.ROOT,
         MetaTable.TEAM_USERS,
         { fk_team_id: teamId, fk_user_id: userId },
       );
@@ -112,8 +118,8 @@ export default class TeamUser {
 
     if (!isNoneList && !teamUserList.length) {
       teamUserList = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
+        RootScopes.ROOT,
+        RootScopes.ROOT,
         MetaTable.TEAM_USERS,
         {
           condition: { fk_team_id: teamId },
@@ -137,8 +143,8 @@ export default class TeamUser {
     ncMeta = Noco.ncMeta,
   ): Promise<TeamUser[]> {
     const teamUserList = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.TEAM_USERS,
       {
         condition: { fk_user_id: userId },
@@ -159,15 +165,19 @@ export default class TeamUser {
 
     // get existing cache
     const key = `${CacheScope.TEAM_USER}:${teamId}:${userId}`;
-    const existing = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
+    const existing = await NocoCache.get(
+      context,
+      key,
+      CacheGetType.TYPE_OBJECT,
+    );
 
     if (!existing) {
       NcError.notFound(`Team user not found`);
     }
 
     await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.TEAM_USERS,
       updateObj,
       { fk_team_id: teamId, fk_user_id: userId },
@@ -194,8 +204,8 @@ export default class TeamUser {
     ncMeta = Noco.ncMeta,
   ) {
     await ncMeta.metaDelete(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.TEAM_USERS,
       { fk_team_id: teamId, fk_user_id: userId },
     );
@@ -208,4 +218,4 @@ export default class TeamUser {
       CacheDelDirection.CHILD_TO_PARENT,
     );
   }
-} 
+}

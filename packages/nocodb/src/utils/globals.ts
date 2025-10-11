@@ -340,6 +340,8 @@ export const RootScopeTables = {
     MetaTable.OAUTH_CLIENTS,
     MetaTable.OAUTH_AUTHORIZATION_CODES,
     MetaTable.OAUTH_TOKENS,
+    MetaTable.TEAMS,
+    MetaTable.TEAM_USERS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss

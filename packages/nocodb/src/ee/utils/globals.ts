@@ -313,6 +313,8 @@ export const RootScopeTables = {
     MetaTable.OAUTH_CLIENTS,
     MetaTable.OAUTH_AUTHORIZATION_CODES,
     MetaTable.OAUTH_TOKENS,
+    MetaTable.TEAMS,
+    MetaTable.TEAM_USERS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

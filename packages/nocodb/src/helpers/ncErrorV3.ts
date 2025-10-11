@@ -59,4 +59,11 @@ export class NcErrorV3 extends NcErrorV1 {
       params: message,
     });
   }
+
+  override teamNotFound(id: string, args?: any): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TEAM_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
 }

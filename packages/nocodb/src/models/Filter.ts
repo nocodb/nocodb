@@ -333,6 +333,7 @@ export default class Filter implements FilterType {
       'logical_op',
       'fk_value_col_id',
       'meta',
+      'order',
     ]);
 
     if (typeof updateObj.value === 'string') {

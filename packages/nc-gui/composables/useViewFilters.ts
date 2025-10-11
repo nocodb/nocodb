@@ -5,6 +5,8 @@ import {
   type LookupType,
   type ViewType,
   getEquivalentUIType,
+  isDateType,
+  parseProp,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { SelectProps } from 'ant-design-vue'
@@ -215,7 +217,11 @@ export function useViewFilters(
 
   const placeholderFilter = (): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
-    return {
+    const defaultColumn = fieldsToFilter?.value?.filter((col) => {
+      return !isSystemColumn(col)
+    })?.[0]
+
+    const filter: ColumnFilterType = {
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
         isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
       )?.[0]?.value as FilterType['comparison_op'],
@@ -223,12 +229,23 @@ export function useViewFilters(
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
       // set the default column to the first column in the list, excluding system columns
-      fk_column_id:
-        fieldsToFilter?.value?.filter((col) => {
-          return !isSystemColumn(col)
-        })?.[0]?.id ?? undefined,
+      fk_column_id: defaultColumn?.id ?? undefined,
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
     }
+
+    // Set timezone for DateTime columns
+    if (defaultColumn && isDateType(defaultColumn.uidt as UITypes)) {
+      const columnMeta = parseProp(defaultColumn.meta)
+      const columnTimezone = columnMeta?.timezone
+      const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+      const timezone = columnTimezone || browserTimezone
+
+      filter.meta = {
+        timezone,
+      }
+    }
+
+    return filter
   }
 
   const placeholderGroupFilter = (): ColumnFilterType => {

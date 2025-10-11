@@ -158,7 +158,7 @@ export default class Filter implements FilterType {
     if (!insertObj.meta) {
       insertObj.meta = {};
     }
-    insertObj.meta = stringifyMetaProp(insertObj.meta);
+    insertObj.meta = stringifyMetaProp(insertObj);
 
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -346,8 +346,8 @@ export default class Filter implements FilterType {
     if (!updateObj.meta) {
       updateObj.meta = {};
     }
-    updateObj.meta = stringifyMetaProp(updateObj.meta);
-
+    updateObj.meta = stringifyMetaProp(updateObj);
+    console.log('updateObj', updateObj);
     // set meta
     const res = await ncMeta.metaUpdate(
       context.workspace_id,

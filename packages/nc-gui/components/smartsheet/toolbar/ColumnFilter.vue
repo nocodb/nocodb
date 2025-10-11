@@ -6,6 +6,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
   isVirtualCol,
+  parseProp,
 } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 
@@ -257,6 +258,18 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
         filter.comparison_sub_op = 'exactDate'
       }
     }
+    
+    // Set timezone for DateTime columns
+    const columnMeta = parseProp(col.meta)
+    const columnTimezone = columnMeta?.timezone
+    const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const timezone = columnTimezone || browserTimezone
+    
+    // Initialize filter.meta if it doesn't exist
+    if (!filter.meta) {
+      filter.meta = {}
+    }
+    filter.meta.timezone = timezone
   }
 
   if (!isFilterDraft(filter, col)) {

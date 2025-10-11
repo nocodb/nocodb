@@ -50,8 +50,7 @@ async function onRevoke() {
       <div class="text-nc-content-gray-subtle text-sm">
         Are you sure you want to revoke access to
 
-        <span class="font-semibold">{{ authorization.client_name }}</span
-        >.
+        <span class="font-semibold">{{ authorization.client_name }} </span>.
       </div>
 
       <div class="flex flex-row items-center mt-2 py-2 px-3 bg-gray-50 rounded-lg text-gray-700">

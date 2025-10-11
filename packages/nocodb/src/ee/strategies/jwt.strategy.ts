@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { NOCO_SERVICE_USERS, ProjectRoles } from 'nocodb-sdk';
-import { OAuthToken, User } from '~/models';
+import { User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
 import { NcError } from '~/helpers/catchError';
 
@@ -19,7 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (
       !jwtPayload?.email ||
       jwtPayload?.is_api_token ||
-      jwtPayload.is_oauth_token
+      jwtPayload?.is_oauth_token
     )
       return jwtPayload;
 

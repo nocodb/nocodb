@@ -66,7 +66,7 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
           canActivate = await this.extractBoolVal(
             oauthGuard.canActivate(context),
           );
-        } catch (e) {}
+        } catch {}
       }
 
       if (canActivate) {

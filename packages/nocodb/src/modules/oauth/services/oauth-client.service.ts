@@ -22,7 +22,7 @@ export class OauthClientService {
     return clients.map((client) => {
       return {
         ...client,
-        client_secret: null,
+        client_secret: undefined,
       };
     });
   }

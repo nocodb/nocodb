@@ -5,7 +5,7 @@ const up = async (knex: Knex) => {
   // OAuth Clients Table
   await knex.schema.createTable(MetaTable.OAUTH_CLIENTS, (table) => {
     table.string('client_id', 32).primary();
-    table.string('client_secret', 64);
+    table.string('client_secret', 128);
     table.string('client_type');
     table.string('client_name');
     table.text('client_description');

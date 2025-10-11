@@ -1,7 +1,9 @@
 import { randomBytes } from 'crypto';
+import { promisify } from 'util';
 import { nanoid } from 'nanoid';
+import bcrypt from 'bcryptjs';
 import { OAuthClientType } from 'nocodb-sdk';
-import type { AttachmentResType } from 'nocodb-sdk/build/main/lib';
+import type { AttachmentResType } from 'nocodb-sdk';
 import type { OAuthClient as IOAuthClient } from 'nocodb-sdk';
 import {
   CacheDelDirection,
@@ -60,7 +62,6 @@ export default class OAuthClient implements IOAuthClient {
       'client_id_issued_at',
       'client_secret_expires_at',
       'fk_user_id',
-      'client_secret',
     ]);
 
     insertData.client_id = nanoid(32);
@@ -75,8 +76,14 @@ export default class OAuthClient implements IOAuthClient {
       client_id_issued_at: Date.now(),
     };
 
+    let plaintextSecret;
     if (clientType === OAuthClientType.CONFIDENTIAL) {
-      insertData.client_secret = randomBytes(32).toString('base64url');
+      plaintextSecret = randomBytes(32).toString('base64url');
+      const salt = await promisify(bcrypt.genSalt)(10);
+      insertData.client_secret = await promisify(bcrypt.hash)(
+        plaintextSecret,
+        salt,
+      );
     }
 
     if (insertData.logo_uri) {
@@ -106,6 +113,10 @@ export default class OAuthClient implements IOAuthClient {
         [],
         `${CacheScope.OAUTH_CLIENT}:${res.client_id}`,
       );
+      // Attach plaintext secret to response
+      if (plaintextSecret) {
+        (client as any).client_secret = plaintextSecret;
+      }
       return client;
     });
   }
@@ -182,21 +193,29 @@ export default class OAuthClient implements IOAuthClient {
       return false;
     }
 
-    const newSecret = randomBytes(32).toString('base64url');
+    // Generate plaintext secret for response
+    const plaintextSecret = randomBytes(32).toString('base64url');
+    // Hash the secret for storage
+    const salt = await promisify(bcrypt.genSalt)(10);
+    const hashedSecret = await promisify(bcrypt.hash)(plaintextSecret, salt);
 
     await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.OAUTH_CLIENTS,
-      { client_secret: newSecret },
+      { client_secret: hashedSecret },
       { client_id: clientId },
     );
 
     await NocoCache.update('root', `${CacheScope.OAUTH_CLIENT}:${clientId}`, {
-      client_secret: newSecret,
+      client_secret: hashedSecret,
     });
 
-    return this.getByClientId(clientId, ncMeta);
+    const client = await this.getByClientId(clientId, ncMeta);
+    if (client) {
+      (client as any).client_secret = plaintextSecret;
+    }
+    return client;
   }
 
   static async update(

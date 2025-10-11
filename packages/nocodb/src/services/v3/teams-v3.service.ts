@@ -21,15 +21,17 @@ import { MetaTable } from '~/utils/globals';
 export class TeamsV3Service {
   protected readonly logger = new Logger(TeamsV3Service.name);
 
-  async getTeamMembersCount(context: NcContext, teamId: string): Promise<number> {
-    const teamUsers = await TeamUser.listByTeam(context, teamId);
-    return teamUsers.length;
+  async getTeamMembersCount(
+    context: NcContext,
+    teamId: string,
+  ): Promise<number> {
+    return await TeamUser.countByTeam(context, teamId);
   }
 
   async getUserById(context: NcContext, userId: string) {
     const user = await User.get(userId);
     if (!user) {
-      NcError.notFound(`User with id ${userId} not found`);
+      NcError.get(context).userNotFound(userId);
     }
     return user;
   }
@@ -48,10 +50,10 @@ export class TeamsV3Service {
     // Get teams with member counts using optimized query
     const teamsWithCounts = await Promise.all(
       teams.map(async (team) => {
-        const teamUsers = await TeamUser.listByTeam(context, team.id);
+        const membersCount = await TeamUser.countByTeam(context, team.id);
         return {
           ...team,
-          members_count: teamUsers.length,
+          members_count: membersCount,
         };
       }),
     );
@@ -69,14 +71,14 @@ export class TeamsV3Service {
     const team = await Team.get(context, param.teamId);
 
     if (!team) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     // Verify team belongs to the workspace/org
     const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     // Get team members with user details using optimized query
@@ -111,10 +113,16 @@ export class TeamsV3Service {
     );
 
     // Check for duplicate team name in the same workspace
-    const existingTeams = await Team.list(context, { fk_workspace_id: param.workspaceOrOrgId });
-    const duplicateTeam = existingTeams.find(team => team.title === param.team.name);
+    const existingTeams = await Team.list(context, {
+      fk_workspace_id: param.workspaceOrOrgId,
+    });
+    const duplicateTeam = existingTeams.find(
+      (team) => team.title === param.team.title,
+    );
     if (duplicateTeam) {
-      NcError.badRequest(`Team with name '${param.team.name}' already exists`);
+      NcError.get(context).invalidRequestBody(
+        `Team with name '${param.team.name}' already exists`,
+      );
     }
 
     // Generate team ID
@@ -123,7 +131,7 @@ export class TeamsV3Service {
     // Create team with enhanced fields
     const teamData = {
       id: teamId,
-      title: param.team.name,
+      title: param.team.title,
       meta: {
         icon: param.team.icon,
         badge_color: param.team.badge_color,
@@ -139,14 +147,14 @@ export class TeamsV3Service {
         // Verify user exists and belongs to workspace/org
         const user = await User.get(member.user_id);
         if (!user) {
-          NcError.badRequest(`User with id '${member.user_id}' not found`);
+          NcError.get(context).userNotFound(member.user_id);
         }
 
         // Add user to team
         await TeamUser.insert(context, {
           fk_team_id: teamId,
           fk_user_id: member.user_id,
-          roles: member.team_role === 'manager' ? 'owner' : member.team_role,
+          roles: member.team_role,
         });
       }
     }
@@ -159,7 +167,7 @@ export class TeamsV3Service {
         await TeamUser.insert(context, {
           fk_team_id: teamId,
           fk_user_id: creatorId,
-          roles: 'owner',
+          roles: 'manager',
         });
       }
     }
@@ -184,28 +192,28 @@ export class TeamsV3Service {
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     // Check if user is team owner
     const userId = param.req.user?.id;
     if (userId) {
       const teamUser = await TeamUser.get(context, param.teamId, userId);
-      if (!teamUser || teamUser.roles !== 'owner') {
+      if (!teamUser || teamUser.roles !== 'manager') {
         NcError.get(context).forbidden(
-          'Only team owners can update team information',
+          'Only team managers can update team information',
         );
       }
     }
 
     const updateData: any = {};
-    if (param.team.name !== undefined) updateData.title = param.team.name;
+    if (param.team.title !== undefined) updateData.title = param.team.title;
     if (param.team.icon !== undefined || param.team.badge_color !== undefined) {
       const existingMeta =
         typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
@@ -234,24 +242,24 @@ export class TeamsV3Service {
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     // Check if user is team owner or org owner
     const userId = param.req.user?.id;
     if (userId) {
       const teamUser = await TeamUser.get(context, param.teamId, userId);
-      const isTeamOwner = teamUser && teamUser.roles === 'owner';
+      const isTeamManager = teamUser && teamUser.roles === 'manager';
 
       // TODO: Add org owner check when org ownership is implemented
-      if (!isTeamOwner) {
-        NcError.get(context).forbidden('Only team owners can delete teams');
+      if (!isTeamManager) {
+        NcError.get(context).forbidden('Only team managers can delete teams');
       }
     }
 
@@ -279,21 +287,21 @@ export class TeamsV3Service {
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     // Check if user is team owner
     const userId = param.req.user?.id;
     if (userId) {
       const teamUser = await TeamUser.get(context, param.teamId, userId);
-      if (!teamUser || teamUser.roles !== 'owner') {
-        NcError.get(context).forbidden('Only team owners can add members');
+      if (!teamUser || teamUser.roles !== 'manager') {
+        NcError.get(context).forbidden('Only team managers can add members');
       }
     }
 
@@ -303,7 +311,7 @@ export class TeamsV3Service {
       // Check if user exists
       const user = await User.get(member.user_id);
       if (!user) {
-        NcError.badRequest(`User with id '${member.user_id}' not found`);
+        NcError.get(context).userNotFound(member.user_id);
       }
 
       // Check if user is already in team
@@ -313,7 +321,7 @@ export class TeamsV3Service {
         member.user_id,
       );
       if (existingTeamUser) {
-        NcError.get(context).badRequest(
+        NcError.get(context).invalidRequestBody(
           `User ${member.user_id} is already a member of this team`,
         );
       }
@@ -321,7 +329,7 @@ export class TeamsV3Service {
       const teamUser = await TeamUser.insert(context, {
         fk_team_id: param.teamId,
         fk_user_id: member.user_id,
-        roles: member.team_role === 'manager' ? 'owner' : member.team_role,
+        roles: member.team_role === 'manager' ? 'manager' : member.team_role,
       });
 
       addedMembers.push(teamUser);
@@ -342,13 +350,13 @@ export class TeamsV3Service {
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     const userId = param.req.user?.id;
@@ -362,7 +370,7 @@ export class TeamsV3Service {
         member.user_id,
       );
       if (!teamUser) {
-        NcError.badRequest(
+        NcError.get(context).badRequest(
           `User ${member.user_id} not found in this team`,
         );
       }
@@ -371,25 +379,26 @@ export class TeamsV3Service {
       const isTeamOwner =
         (userId &&
           (await TeamUser.get(context, param.teamId, userId).then(
-            (tu) => tu?.roles === 'owner',
+            (tu) => tu?.roles === 'manager',
           ))) ||
         false;
       const isSelfRemoval = userId === member.user_id;
 
       if (!isTeamOwner && !isSelfRemoval) {
         NcError.get(context).forbidden(
-          'Only team owners can remove members or users can remove themselves',
+          'Only team managers can remove members or users can remove themselves',
         );
       }
 
-      // If removing the last owner, prevent it
-      if (teamUser.roles === 'owner') {
-        const teamUsers = await TeamUser.listByTeam(context, param.teamId);
-        const ownerCount = teamUsers.filter(
-          (tu) => tu.roles === 'owner',
-        ).length;
-        if (ownerCount === 1) {
-          NcError.badRequest('Cannot remove the last owner');
+      // If removing the last manager, prevent it
+      if (teamUser.roles === 'manager') {
+        const managerCount = await TeamUser.countByTeamAndRole(
+          context,
+          param.teamId,
+          'manager',
+        );
+        if (managerCount === 1) {
+          NcError.get(context).invalidRequestBody('Cannot remove the last manager');
         }
       }
 
@@ -412,22 +421,22 @@ export class TeamsV3Service {
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
-      NcError.notFound(`Team with id ${param.teamId} not found`);
+      NcError.get(context).teamNotFound(param.teamId);
     }
 
     // Check if user is team owner
     const userId = param.req.user?.id;
     if (userId) {
       const teamUser = await TeamUser.get(context, param.teamId, userId);
-      if (!teamUser || teamUser.roles !== 'owner') {
+      if (!teamUser || teamUser.roles !== 'manager') {
         NcError.get(context).forbidden(
-          'Only team owners can update member roles',
+          'Only team managers can update member roles',
         );
       }
     }
@@ -442,7 +451,7 @@ export class TeamsV3Service {
         member.user_id,
       );
       if (!teamUser) {
-        NcError.badRequest(
+        NcError.get(context).invalidRequestBody(
           `User ${member.user_id} not found in this team`,
         );
       }
@@ -451,7 +460,7 @@ export class TeamsV3Service {
         context,
         param.teamId,
         member.user_id,
-        { roles: member.team_role === 'manager' ? 'owner' : member.team_role },
+        { roles:  member.team_role },
       );
 
       updatedMembers.push(updatedTeamUser);

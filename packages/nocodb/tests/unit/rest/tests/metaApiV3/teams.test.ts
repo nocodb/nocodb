@@ -46,14 +46,14 @@ export default function () {
       expect(team).to.be.an('object');
       expect(Object.keys(team)).to.include.members([
         'id',
-        'name',
+        'title',
         'members_count',
         'created_at',
         'updated_at',
       ]);
 
       expect(team).to.have.property('id').that.is.a('string');
-      expect(team).to.have.property('name').that.is.a('string');
+      expect(team).to.have.property('title').that.is.a('string');
       expect(team).to.have.property('members_count').that.is.a('number');
       expect(team).to.have.property('created_at').that.is.a('string');
       expect(team).to.have.property('updated_at').that.is.a('string');
@@ -118,7 +118,7 @@ export default function () {
     it('List Teams v3', async () => {
       // Create a team first
       const createData = {
-        name: 'Test Team',
+        title: 'Test Team',
         icon: '🎨',
         badge_color: '#FF5733',
       };
@@ -136,14 +136,14 @@ export default function () {
         .expect(200);
 
       // Validation
-      const teams = listTeams.body;
+      const teams = listTeams.body.list;
       expect(teams).to.be.an('array').that.is.not.empty;
       await _validateTeam(teams[0]);
     });
 
     it('Create Team v3 - Basic', async () => {
       const createData = {
-        name: 'Design Team',
+        title: 'Design Team',
         icon: '🎨',
         badge_color: '#FF5733',
       };
@@ -157,10 +157,10 @@ export default function () {
       // Validation
       const team = createTeam.body;
       await _validateTeam(team);
-      expect(team).to.have.property('name', 'Design Team');
+      expect(team).to.have.property('title', 'Design Team');
       expect(team).to.have.property('icon', '🎨');
       expect(team).to.have.property('badge_color', '#FF5733');
-      expect(team).to.have.property('members_count', 1); // Creator becomes owner
+      expect(team).to.have.property('members_count', 1); // Creator becomes manager
     });
 
     it('Create Team v3 - With Members', async () => {
@@ -169,7 +169,7 @@ export default function () {
       });
 
       const createData = {
-        name: 'Development Team',
+        title: 'Development Team',
         icon: '💻',
         badge_color: '#00FF00',
         members: [
@@ -189,7 +189,7 @@ export default function () {
       // Validation
       const team = createTeam.body;
       await _validateTeam(team);
-      expect(team).to.have.property('name', 'Development Team');
+      expect(team).to.have.property('title', 'Development Team');
       expect(team).to.have.property('members_count', 2); // Creator + member
     });
 
@@ -214,7 +214,7 @@ export default function () {
 
     it('Create Team v3 - Duplicate Name', async () => {
       const createData = {
-        name: 'Unique Team',
+        title: 'Unique Team',
         icon: '🎨',
         badge_color: '#FF5733',
       };
@@ -241,7 +241,7 @@ export default function () {
 
     it('Create Team v3 - Invalid Badge Color', async () => {
       const createData = {
-        name: 'Test Team',
+        title: 'Test Team',
         icon: '🎨',
         badge_color: 'invalid-color', // Invalid hex color
       };
@@ -261,7 +261,7 @@ export default function () {
     it('Get Team v3', async () => {
       // Create a team first
       const createData = {
-        name: 'Test Team',
+        title: 'Test Team',
         icon: '🎨',
         badge_color: '#FF5733',
       };
@@ -283,10 +283,10 @@ export default function () {
       // Validation
       const teamDetail = getTeam.body;
       await _validateTeamDetail(teamDetail);
-      expect(teamDetail).to.have.property('name', 'Test Team');
+      expect(teamDetail).to.have.property('title', 'Test Team');
       expect(teamDetail).to.have.property('icon', '🎨');
       expect(teamDetail).to.have.property('badge_color', '#FF5733');
-      expect(teamDetail.members).to.have.length(1); // Creator becomes owner
+      expect(teamDetail.members).to.have.length(1); // Creator becomes manager
     });
 
     it('Get Team v3 - Not Found', async () => {
@@ -304,7 +304,7 @@ export default function () {
     it('Update Team v3 - Name and Icon', async () => {
       // Create a team first
       const createData = {
-        name: 'Original Team',
+        title: 'Original Team',
         icon: '🎨',
         badge_color: '#FF5733',
       };
@@ -319,7 +319,7 @@ export default function () {
 
       // Update team
       const updateData = {
-        name: 'Updated Team',
+        title: 'Updated Team',
         icon: '💻',
       };
 
@@ -332,7 +332,7 @@ export default function () {
       // Validation
       const team = updateTeam.body;
       await _validateTeam(team);
-      expect(team).to.have.property('name', 'Updated Team');
+      expect(team).to.have.property('title', 'Updated Team');
       expect(team).to.have.property('icon', '💻');
       expect(team).to.have.property('badge_color', '#FF5733'); // Should remain unchanged
     });
@@ -340,7 +340,7 @@ export default function () {
     it('Update Team v3 - Badge Color Only', async () => {
       // Create a team first
       const createData = {
-        name: 'Test Team',
+        title: 'Test Team',
         icon: '🎨',
         badge_color: '#FF5733',
       };
@@ -367,14 +367,14 @@ export default function () {
       // Validation
       const team = updateTeam.body;
       await _validateTeam(team);
-      expect(team).to.have.property('name', 'Test Team'); // Should remain unchanged
+      expect(team).to.have.property('title', 'Test Team'); // Should remain unchanged
       expect(team).to.have.property('icon', '🎨'); // Should remain unchanged
       expect(team).to.have.property('badge_color', '#00FF00');
     });
 
     it('Update Team v3 - Not Found', async () => {
       const updateData = {
-        name: 'Updated Team',
+        title: 'Updated Team',
       };
 
       const updateTeam = await request(context.app)
@@ -392,7 +392,7 @@ export default function () {
     it('Delete Team v3', async () => {
       // Create a team first
       const createData = {
-        name: 'Team To Delete',
+        title: 'Team To Delete',
         icon: '🗑️',
         badge_color: '#FF0000',
       };
@@ -445,7 +445,7 @@ export default function () {
 
       // Create a team first
       const createData = {
-        name: 'Team With Members',
+        title: 'Team With Members',
         icon: '👥',
         badge_color: '#0000FF',
       };
@@ -490,7 +490,7 @@ export default function () {
 
       // Create a team first
       const createData = {
-        name: 'Team With Multiple Members',
+        title: 'Team With Multiple Members',
         icon: '👥',
         badge_color: '#0000FF',
       };
@@ -536,7 +536,7 @@ export default function () {
     it('Add Members to Team v3 - User Not Found', async () => {
       // Create a team first
       const createData = {
-        name: 'Team For Testing',
+        title: 'Team For Testing',
         icon: '🧪',
         badge_color: '#FF00FF',
       };
@@ -576,7 +576,7 @@ export default function () {
 
       // Create a team with a member
       const createData = {
-        name: 'Team For Removal',
+        title: 'Team For Removal',
         icon: '👥',
         badge_color: '#FF0000',
         members: [
@@ -617,10 +617,10 @@ export default function () {
       );
     });
 
-    it('Remove Members from Team v3 - Last Owner Prevention', async () => {
-      // Create a team (creator becomes owner)
+    it('Remove Members from Team v3 - Last Manager Prevention', async () => {
+      // Create a team (creator becomes manager)
       const createData = {
-        name: 'Team With Only Owner',
+        title: 'Team With Only Manager',
         icon: '👑',
         badge_color: '#FFD700',
       };
@@ -641,7 +641,7 @@ export default function () {
 
       const creatorId = getTeam.body.members[0].user_id;
 
-      // Try to remove the last owner
+      // Try to remove the last manager
       const removeMemberData = [
         {
           user_id: creatorId,
@@ -657,7 +657,7 @@ export default function () {
       // Validation
       const error = removeMember.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('msg').that.includes('last owner');
+      expect(error).to.have.property('msg').that.includes('last manager');
     });
 
     it('Update Team Members v3 - Role Change', async () => {
@@ -667,7 +667,7 @@ export default function () {
 
       // Create a team with a member
       const createData = {
-        name: 'Team For Promotion',
+        title: 'Team For Promotion',
         icon: '📈',
         badge_color: '#00FF00',
         members: [
@@ -711,7 +711,7 @@ export default function () {
     it('Update Team Members v3 - Member Not Found', async () => {
       // Create a team first
       const createData = {
-        name: 'Team For Testing',
+        title: 'Team For Testing',
         icon: '🧪',
         badge_color: '#FF00FF',
       };

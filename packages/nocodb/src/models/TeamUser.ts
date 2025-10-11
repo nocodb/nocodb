@@ -218,4 +218,39 @@ export default class TeamUser {
       CacheDelDirection.CHILD_TO_PARENT,
     );
   }
+
+  public static async countByTeam(
+    context: NcContext,
+    teamId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    const count = await ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAM_USERS,
+      {
+        condition: { fk_team_id: teamId },
+      },
+    );
+
+    return count;
+  }
+
+  public static async countByTeamAndRole(
+    context: NcContext,
+    teamId: string,
+    role: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    const count = await ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAM_USERS,
+      {
+        condition: { fk_team_id: teamId, roles: role },
+      },
+    );
+
+    return count;
+  }
 }

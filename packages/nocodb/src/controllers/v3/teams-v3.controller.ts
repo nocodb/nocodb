@@ -59,7 +59,7 @@ export class TeamsV3Controller {
   async teamList(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
-  ): Promise<TeamV3ResponseType[]> {
+  ): Promise<{ list: TeamV3ResponseType[] }> {
     await this.canExecute(context);
     const teamsWithCounts = await this.teamsV3Service.teamList(context, {
       workspaceOrOrgId,
@@ -73,7 +73,7 @@ export class TeamsV3Controller {
           : team.meta || {};
       return {
         id: team.id,
-        name: team.title,
+        title: team.title,
         icon: meta.icon || undefined,
         badge_color: meta.badge_color || undefined,
         members_count: team.members_count,
@@ -82,7 +82,7 @@ export class TeamsV3Controller {
       };
     });
 
-    return teamsV3;
+    return { list: teamsV3 };
   }
 
   @Get('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
@@ -102,15 +102,13 @@ export class TeamsV3Controller {
     const members = membersWithUsers.map(({ teamUser, user }) => ({
       user_email: user.email,
       user_id: user.id,
-      team_role: (teamUser.roles === 'owner'
-        ? 'manager'
-        : teamUser.roles) as 'member' | 'manager' | 'owner',
+      team_role: teamUser.roles as 'member' | 'manager',
     }));
 
     const meta =
       typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
     const teamDetail: TeamDetailV3Type = {
-      name: team.title,
+      title: team.title,
       icon: meta.icon || undefined,
       badge_color: meta.badge_color || undefined,
       members,
@@ -143,7 +141,7 @@ export class TeamsV3Controller {
       typeof team.meta === 'string'
         ? JSON.parse(team.meta)
         : team.meta || {};
-    
+
     return {
       id: team.id,
       name: team.title,
@@ -180,10 +178,10 @@ export class TeamsV3Controller {
       typeof team.meta === 'string'
         ? JSON.parse(team.meta)
         : team.meta || {};
-    
+
     return {
       id: team.id,
-      name: team.title,
+      name: team.name,
       icon: meta.icon || undefined,
       badge_color: meta.badge_color || undefined,
       members_count: teamUsers,

@@ -24,7 +24,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.TEAM_USERS, (table) => {
     table.string('fk_team_id', 20).notNullable();
     table.string('fk_user_id', 20).notNullable();
-    table.string('roles', 255).notNullable().defaultTo('member'); // owner, manager, member, viewer
+    table.string('roles', 255).notNullable().defaultTo('member'); // manager, member
     table.timestamps(true, true);
 
     // Primary key on composite columns

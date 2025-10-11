@@ -12,7 +12,7 @@ export interface TeamV3Type {
 
 export interface TeamV3ResponseType {
   id: string;
-  name: string;
+  title: string;
   icon?: string;
   badge_color?: string;
   members_count: number;
@@ -21,31 +21,31 @@ export interface TeamV3ResponseType {
 }
 
 export interface TeamCreateV3ReqType {
-  name: string;
+  title: string;
   icon?: string;
   badge_color?: string;
   members?: TeamMemberV3Type[];
 }
 
 export interface TeamUpdateV3ReqType {
-  name?: string;
+  title?: string;
   icon?: string;
   badge_color?: string;
 }
 
 export interface TeamMemberV3Type {
   user_id: string;
-  team_role: 'member' | 'manager' | 'owner';
+  team_role: 'member' | 'manager';
 }
 
 export interface TeamMemberV3ResponseType {
   user_email: string;
   user_id: string;
-  team_role: 'member' | 'manager' | 'owner';
+  team_role: 'member' | 'manager';
 }
 
 export interface TeamDetailV3Type {
-  name: string;
+  title: string;
   icon?: string;
   badge_color?: string;
   members: TeamMemberV3ResponseType[];
@@ -53,7 +53,7 @@ export interface TeamDetailV3Type {
 
 export interface TeamMembersAddV3ReqType {
   user_id: string;
-  team_role: 'member' | 'manager' | 'owner';
+  team_role: 'member' | 'manager';
 }
 
 export interface TeamMembersRemoveV3ReqType {
@@ -62,5 +62,5 @@ export interface TeamMembersRemoveV3ReqType {
 
 export interface TeamMembersUpdateV3ReqType {
   user_id: string;
-  team_role: 'member' | 'manager' | 'owner';
+  team_role: 'member' | 'manager';
 }

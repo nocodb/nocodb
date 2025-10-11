@@ -22,11 +22,24 @@ export class ScriptsPage extends BasePage {
   get() {
     return this.dashboardPage.get().locator('.nc-scripts-content-resizable-wrapper');
   }
-  // Editor methods
+
+  getEditor() {
+    return this.rootPage.getByTestId('nc-scripts-editor');
+  }
+
+  async isEditorVisible(): Promise<boolean> {
+    return await this.getEditor().isVisible();
+  }
+
   async getEditorContent(): Promise<string> {
-    const editorContainer = this.rootPage.getByTestId('nc-scripts-editor');
+    const editorContainer = this.getEditor();
     const content = await editorContainer.getAttribute('data-code');
     return content || '';
+  }
+
+  async verifyEditorHasContent(): Promise<void> {
+    const content = await this.getEditorContent();
+    expect(content.length).toBeGreaterThan(0);
   }
 
   async setEditorContent(
@@ -55,5 +68,28 @@ export class ScriptsPage extends BasePage {
   async verifyEditorContentContains(text: string): Promise<void> {
     const content = await this.getEditorContent();
     expect(content).toContain(text);
+  }
+
+  getBottomBar() {
+    return this.dashboardPage.get().locator('.h-9.border-t-1');
+  }
+
+  async toggleEditor(): Promise<void> {
+    const toggleButton = this.getBottomBar().locator('button').first();
+    await toggleButton.click();
+    await this.rootPage.waitForTimeout(300);
+  }
+
+  async verifyEditorToggleState(isOpen: boolean): Promise<void> {
+    const toggleButton = this.getBottomBar().locator('button').first();
+    if (isOpen) {
+      await expect(toggleButton).toHaveClass(/bg-nc-bg-brand/);
+    } else {
+      await expect(toggleButton).not.toHaveClass(/bg-nc-bg-brand/);
+    }
+  }
+
+  async isPlaygroundVisible(): Promise<boolean> {
+    return await this.playground.get().isVisible();
   }
 }

@@ -164,27 +164,41 @@ export function validateRowFilters(params: {
           switch (filter.comparison_op as any) {
             case 'eq':
             case 'gb_eq':
-              res = dayjs.tz(dataVal, getTimezone()).isSame(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isSame(filterVal, 'day');
               break;
             case 'neq':
-              res = !dayjs.tz(dataVal, getTimezone()).isSame(filterVal, 'day');
+              res = !dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isSame(filterVal, 'day');
               break;
             case 'gt':
-              res = dayjs.tz(dataVal, getTimezone()).isAfter(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isAfter(filterVal, 'day');
               break;
             case 'lt':
-              res = dayjs.tz(dataVal, getTimezone()).isBefore(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isBefore(filterVal, 'day');
               break;
             case 'lte':
             case 'le':
               res = dayjs
-                .tz(dataVal, getTimezone())
+                .utc(dataVal)
+                .tz(getTimezone())
                 .isSameOrBefore(filterVal, 'day');
               break;
             case 'gte':
             case 'ge':
               res = dayjs
-                .tz(dataVal, getTimezone())
+                .utc(dataVal)
+                .tz(getTimezone())
                 .isSameOrAfter(filterVal, 'day');
               break;
             case 'empty':
@@ -211,7 +225,8 @@ export function validateRowFilters(params: {
                 case 'pastYear':
                 case 'pastNumberOfDays':
                   res = dayjs
-                    .tz(dataVal, getTimezone())
+                    .utc(dataVal)
+                    .tz(getTimezone())
                     .isBetween(filterVal, now, 'day');
                   break;
                 case 'nextWeek':
@@ -219,7 +234,8 @@ export function validateRowFilters(params: {
                 case 'nextYear':
                 case 'nextNumberOfDays':
                   res = dayjs
-                    .tz(dataVal, getTimezone())
+                    .utc(dataVal)
+                    .tz(getTimezone())
                     .isBetween(now, filterVal, 'day');
                   break;
               }

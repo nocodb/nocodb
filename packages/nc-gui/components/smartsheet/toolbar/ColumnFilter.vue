@@ -269,7 +269,9 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     if (!filter.meta) {
       filter.meta = {}
     }
-    filter.meta.timezone = timezone
+    if (!filter.meta.timezone) {
+      filter.meta.timezone = timezone
+    }
   }
 
   if (!isFilterDraft(filter, col)) {

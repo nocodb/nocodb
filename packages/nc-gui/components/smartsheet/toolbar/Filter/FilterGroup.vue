@@ -96,7 +96,9 @@ const handleFilterChange = async (filter) => {
     if (!filter.meta) {
       filter.meta = {}
     }
-    filter.meta.timezone = timezone
+    if (!filter.meta.timezone) {
+      filter.meta.timezone = timezone
+    }
   }
 
   filterPrevComparisonOp.value[filter.id!] = filter.comparison_op!

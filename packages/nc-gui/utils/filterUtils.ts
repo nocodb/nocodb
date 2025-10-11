@@ -250,7 +250,9 @@ export const adjustFilterWhenColumnChange = ({
     if (!filter.meta) {
       filter.meta = {}
     }
-    filter.meta.timezone = timezone
+    if (!filter.meta.timezone) {
+      filter.meta.timezone = timezone
+    }
   } else {
     // reset
     filter.comparison_sub_op = null

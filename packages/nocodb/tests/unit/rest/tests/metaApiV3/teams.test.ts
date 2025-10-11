@@ -1,7 +1,7 @@
 import 'mocha';
-import { isEE } from '../../../utils/helpers';
 import request from 'supertest';
 import { PlanFeatureTypes } from 'nocodb-sdk';
+import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
 import { createUser } from '../../../factory/user';
 import { overrideFeature } from '../../../utils/plan.utils';
@@ -21,7 +21,7 @@ export default function () {
     return true;
   }
 
-  describe.only(`Teams v3`, () => {
+  describe(`Teams v3`, () => {
     let context: any = {};
     let workspaceId: string;
     let featureMock: any;
@@ -31,7 +31,7 @@ export default function () {
       workspaceId = context.fk_workspace_id;
       featureMock = await overrideFeature({
         workspace_id: context.fk_workspace_id,
-        feature: `${PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT}`,
+        feature: `${PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT}`,
         allowed: true,
       });
     });
@@ -74,10 +74,7 @@ export default function () {
 
     async function _validateTeamDetail(teamDetail) {
       expect(teamDetail).to.be.an('object');
-      expect(Object.keys(teamDetail)).to.include.members([
-        'name',
-        'members',
-      ]);
+      expect(Object.keys(teamDetail)).to.include.members(['name', 'members']);
 
       expect(teamDetail).to.have.property('name').that.is.a('string');
       expect(teamDetail).to.have.property('members').that.is.an('array');
@@ -110,7 +107,10 @@ export default function () {
       ]);
 
       expect(member).to.have.property('user_id').that.is.a('string');
-      expect(member).to.have.property('user_email').that.is.a('string').and.includes('@');
+      expect(member)
+        .to.have.property('user_email')
+        .that.is.a('string')
+        .and.includes('@');
       expect(member).to.have.property('team_role').that.is.a('string');
       expect(member.team_role).to.be.oneOf(['manager', 'member']);
     }
@@ -414,7 +414,10 @@ export default function () {
       // Validation
       const response = deleteTeam.body;
       expect(response).to.be.an('object');
-      expect(response).to.have.property('msg', 'Team has been deleted successfully');
+      expect(response).to.have.property(
+        'msg',
+        'Team has been deleted successfully',
+      );
 
       // Verify team is deleted
       const getTeam = await request(context.app)
@@ -523,10 +526,10 @@ export default function () {
       expect(members).to.be.an('array').that.has.length(2);
       await Promise.all(members.map(_validateTeamMember));
 
-      const member1 = members.find(m => m.user_id === user1.id);
+      const member1 = members.find((m) => m.user_id === user1.id);
       expect(member1).to.have.property('team_role', 'member');
 
-      const member2 = members.find(m => m.user_id === user2.id);
+      const member2 = members.find((m) => m.user_id === user2.id);
       expect(member2).to.have.property('team_role', 'manager');
     });
 
@@ -608,7 +611,10 @@ export default function () {
       // Validation
       const response = removeMember.body;
       expect(response).to.be.an('object');
-      expect(response).to.have.property('msg', 'Members have been removed successfully');
+      expect(response).to.have.property(
+        'msg',
+        'Members have been removed successfully',
+      );
     });
 
     it('Remove Members from Team v3 - Last Owner Prevention', async () => {
@@ -741,7 +747,7 @@ export default function () {
     it('Forbidden due to plan not sufficient', async () => {
       featureMock = await overrideFeature({
         workspace_id: context.fk_workspace_id,
-        feature: `${PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT}`,
+        feature: `${PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT}`,
         allowed: false,
       });
 
@@ -754,7 +760,8 @@ export default function () {
       // Validation
       const error = listTeams.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('msg').that.includes('not sufficient');
+      expect(error).to.have.property('error', 'ERR_FORBIDDEN');
+      expect(error).to.have.property('message').that.includes('not sufficient');
     });
   });
 }

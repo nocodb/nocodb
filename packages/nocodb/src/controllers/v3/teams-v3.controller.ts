@@ -44,13 +44,12 @@ export class TeamsV3Controller {
   async canExecute(context: NcContext) {
     if (
       !(await getFeature(
-        PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT,
+        PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
         context.workspace_id,
       ))
     ) {
-    await this.canExecute(context);
-      NcError.get(context).invalidRequestBody(
-        'Accessing Teams API is only available on paid plans. Please upgrade your workspace plan to enable this feature.',
+      NcError.forbidden(
+        'Accessing Teams API is only available on paid plans. Please upgrade your workspace plan to enable this feature. Your current plan is not sufficient.',
       );
     }
   }

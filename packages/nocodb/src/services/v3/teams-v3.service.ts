@@ -363,7 +363,7 @@ export class TeamsV3Service {
       );
       if (!teamUser) {
         NcError.badRequest(
-          `User ${member.user_id} is not a member of this team`,
+          `User ${member.user_id} not found in this team`,
         );
       }
 
@@ -443,7 +443,7 @@ export class TeamsV3Service {
       );
       if (!teamUser) {
         NcError.badRequest(
-          `User ${member.user_id} is not a member of this team`,
+          `User ${member.user_id} not found in this team`,
         );
       }
 

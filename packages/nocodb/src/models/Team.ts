@@ -54,10 +54,15 @@ export default class Team {
       true,
     );
 
-    await NocoCache.set(context, `${CacheScope.TEAM}:${id}`, {
+    // Get the full record with timestamps
+    const fullTeam = await ncMeta.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAMS,
       id,
-      ...preparedTeam,
-    });
+    );
+
+    await NocoCache.set(context, `${CacheScope.TEAM}:${id}`, fullTeam);
 
     await NocoCache.appendToList(
       context,
@@ -66,7 +71,7 @@ export default class Team {
       `${CacheScope.TEAM}:${id}`,
     );
 
-    return this.get(context, id, ncMeta);
+    return this.castType(fullTeam);
   }
 
   public static async get(
@@ -176,10 +181,15 @@ export default class Team {
       { id: teamId },
     );
 
-    await NocoCache.set(context, `${CacheScope.TEAM}:${teamId}`, {
-      ...existing,
-      ...preparedTeam,
-    });
+    // Get the full updated record with timestamps
+    const fullTeam = await ncMeta.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAMS,
+      teamId,
+    );
+
+    await NocoCache.set(context, `${CacheScope.TEAM}:${teamId}`, fullTeam);
 
     await NocoCache.deepDel(
       context,
@@ -187,7 +197,7 @@ export default class Team {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
-    return this.get(context, teamId, ncMeta);
+    return this.castType(fullTeam);
   }
 
   public static async delete(

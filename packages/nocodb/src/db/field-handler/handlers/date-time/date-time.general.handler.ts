@@ -326,7 +326,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     }
 
     return await this.handleFilter(
-      { val: anchorDate.valueOf(), sourceField: field },
+      { val: anchorDate?.valueOf(), sourceField: field },
       { knex, filter, column },
       options,
     );

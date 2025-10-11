@@ -8,7 +8,7 @@ test.describe('Scripts - Basic Functionality', () => {
   let scriptId: string;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: false });
+    context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.base);
 
     await dashboard.treeView.createScript({

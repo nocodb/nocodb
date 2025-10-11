@@ -367,6 +367,7 @@ const onChangeToDynamic = async () => {
     index: props.index,
   })
 }
+
 // #endregion
 </script>
 
@@ -591,6 +592,7 @@ const onChangeToDynamic = async () => {
             </template>
           </template>
           <div v-else class="flex-grow"></div>
+          <SmartsheetToolbarFilterTimezoneAbbreviation :column="column" :filter="vModel" />
         </div>
       </template>
       <div :class="{ 'cursor-wait': isLoadingFilter }">

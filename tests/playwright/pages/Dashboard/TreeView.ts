@@ -171,43 +171,53 @@ export class TreeViewPage extends BasePage {
     mode?: string;
     baseTitle: string;
   }) {
-    if (skipOpeningModal) return;
+    if (type === 'script') {
+      await this.createNewButton.click();
+      await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
+      await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
+    } else {
+      if (skipOpeningModal) return;
 
-    await this.dashboard.leftSidebar.miniSidebarActionClick({ type: 'base' });
-    await this.rootPage.waitForTimeout(500);
+      await this.dashboard.leftSidebar.miniSidebarActionClick({ type: 'base' });
+      await this.rootPage.waitForTimeout(500);
 
-    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
-    const verifyBaseListOpen = true;
+      await this.dashboard.leftSidebar.verifyBaseListOpen(true);
+      const verifyBaseListOpen = true;
 
-    switch (type) {
-      case 'table': {
-        if (verifyBaseListOpen) {
-          await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
+      switch (type) {
+        case 'table': {
+          if (verifyBaseListOpen) {
+            await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
 
-          await this.get()
-            .getByTestId(`nc-sidebar-base-${baseTitle}`)
-            .getByTestId('nc-sidebar-add-base-entity')
-            .click();
-        } else {
-          const isCreateNewDropdown = (await this.createNewButton.getAttribute('class')).includes(
-            'nc-home-create-new-dropdown-btn'
-          );
-
-          if (!isCreateNewDropdown) {
-            return await this.createNewButton.click();
+            await this.get()
+              .getByTestId(`nc-sidebar-base-${baseTitle}`)
+              .getByTestId('nc-sidebar-add-base-entity')
+              .click();
           } else {
-            await this.createNewButton.click();
-            await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
+            const isCreateNewDropdown = (await this.createNewButton.getAttribute('class')).includes(
+              'nc-home-create-new-dropdown-btn'
+            );
 
-            await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
+            if (!isCreateNewDropdown) {
+              return await this.createNewButton.click();
+            } else {
+              await this.createNewButton.click();
+              await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
+
+              await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
+            }
           }
+          break;
         }
-        break;
-      }
-      case 'script': {
-        // Todo:
       }
     }
+  }
+
+  async createScript({ title, baseTitle }: { title: string; baseTitle: string }) {
+    await this.createEntity({ type: 'script', skipOpeningModal: false, baseTitle });
+    await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
+    await this.dashboard.get().getByPlaceholder('Enter script name').fill(title);
+    await this.dashboard.get().locator('.ant-modal.active').locator('button:has-text("Create Script")').click();
   }
 
   async createTable({

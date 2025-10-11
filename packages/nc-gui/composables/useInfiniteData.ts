@@ -1884,29 +1884,35 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     const whereFilter = await callbacks?.getWhereFilter?.(path)
+    const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
 
     try {
       const { count } = isPublic?.value
         ? await fetchCount({
-            filtersArr: nestedFilters.value,
+            filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
             where: whereFilter,
           })
         : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
             where: whereFilter,
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
+            ...(isUIAllowed('filterSync')
+              ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
+              : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
           })
 
       if (fetchTotalRowsWithSearchQuery.value) {
         const { count: _count } = isPublic?.value
           ? await fetchCount({
-              filtersArr: nestedFilters.value,
+              filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
               where: whereQueryFromUrl.value as string,
             })
           : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
               where: whereQueryFromUrl.value as string,
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
+              ...(isUIAllowed('filterSync')
+                ? {
+                    filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr),
+                  }
+                : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
             })
-
         if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
           totalRowsWithoutSearchQuery.value = Math.max(Math.min(200, _count as number), _count as number)
         } else {

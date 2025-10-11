@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc.js';
-import { parseDateTimeValue, parseProp } from 'nocodb-sdk';
+import { getNodejsTimezone, parseDateTimeValue, parseProp } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { MetaService } from '~/meta/meta.service';
@@ -160,20 +160,11 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
   ) {
     const { context } = options;
 
-    let useTimezone = 'Etc/UTC';
-    if (parseProp(filter.meta)?.timezone) {
-      useTimezone = parseProp(filter.meta)?.timezone;
-    }
-    // if not and column has timezone, use that
-    else if (parseProp(column.meta)?.timezone) {
-      useTimezone = parseProp(column.meta)?.timezone;
-    }
-    // if not but context has timezone, use that
-    else if (context.timezone) {
-      useTimezone = context.timezone;
-    }
-
-    return useTimezone;
+    return getNodejsTimezone(
+      parseProp(filter.meta)?.timezone,
+      parseProp(column.meta)?.timezone,
+      context.timezone,
+    );
   }
 
   protected getNow(

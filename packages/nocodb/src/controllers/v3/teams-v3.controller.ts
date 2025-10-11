@@ -10,12 +10,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
+  TeamDetailV3Type,
   TeamMembersAddV3ReqType,
   TeamMembersRemoveV3ReqType,
   TeamMembersUpdateV3ReqType,
   TeamV3ResponseType,
-  TeamDetailV3Type,
 } from '~/services/v3/teams-v3.types';
 import {
   TeamCreateV3ReqType,
@@ -28,7 +29,6 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { getFeature } from '~/helpers/paymentHelpers';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -68,9 +68,7 @@ export class TeamsV3Controller {
     // Transform to v3 response format
     const teamsV3: TeamV3ResponseType[] = teamsWithCounts.map((team) => {
       const meta =
-        typeof team.meta === 'string'
-          ? JSON.parse(team.meta)
-          : team.meta || {};
+        typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
       return {
         id: team.id,
         title: team.title,
@@ -93,10 +91,13 @@ export class TeamsV3Controller {
     @Param('teamId') teamId: string,
   ): Promise<TeamDetailV3Type> {
     await this.canExecute(context);
-    const { team, membersWithUsers } = await this.teamsV3Service.teamGet(context, {
-      workspaceOrOrgId,
-      teamId,
-    });
+    const { team, membersWithUsers } = await this.teamsV3Service.teamGet(
+      context,
+      {
+        workspaceOrOrgId,
+        teamId,
+      },
+    );
 
     // Transform members to v3 response format with email
     const members = membersWithUsers.map(({ teamUser, user }) => ({
@@ -134,13 +135,14 @@ export class TeamsV3Controller {
     });
 
     // Get member count for the created team
-    const teamUsers = await this.teamsV3Service.getTeamMembersCount(context, team.id);
+    const teamUsers = await this.teamsV3Service.getTeamMembersCount(
+      context,
+      team.id,
+    );
 
     // Transform to v3 response format
     const meta =
-      typeof team.meta === 'string'
-        ? JSON.parse(team.meta)
-        : team.meta || {};
+      typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
 
     return {
       id: team.id,
@@ -171,13 +173,14 @@ export class TeamsV3Controller {
     });
 
     // Get member count for the updated team
-    const teamUsers = await this.teamsV3Service.getTeamMembersCount(context, team.id);
+    const teamUsers = await this.teamsV3Service.getTeamMembersCount(
+      context,
+      team.id,
+    );
 
     // Transform to v3 response format
     const meta =
-      typeof team.meta === 'string'
-        ? JSON.parse(team.meta)
-        : team.meta || {};
+      typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
 
     return {
       id: team.id,
@@ -227,7 +230,10 @@ export class TeamsV3Controller {
     // Transform to v3 response format with email
     const members = await Promise.all(
       addedMembers.map(async (teamUser) => {
-        const user = await this.teamsV3Service.getUserById(context, teamUser.fk_user_id);
+        const user = await this.teamsV3Service.getUserById(
+          context,
+          teamUser.fk_user_id,
+        );
         return {
           user_id: user.id,
           user_email: user.email,
@@ -273,17 +279,23 @@ export class TeamsV3Controller {
     @Body() body: TeamMembersUpdateV3ReqType[],
   ) {
     await this.canExecute(context);
-    const updatedMembers = await this.teamsV3Service.teamMembersUpdate(context, {
-      workspaceOrOrgId,
-      teamId,
-      members: body,
-      req,
-    });
+    const updatedMembers = await this.teamsV3Service.teamMembersUpdate(
+      context,
+      {
+        workspaceOrOrgId,
+        teamId,
+        members: body,
+        req,
+      },
+    );
 
     // Transform to v3 response format with email
     const members = await Promise.all(
       updatedMembers.map(async (teamUser) => {
-        const user = await this.teamsV3Service.getUserById(context, teamUser.fk_user_id);
+        const user = await this.teamsV3Service.getUserById(
+          context,
+          teamUser.fk_user_id,
+        );
         return {
           user_id: user.id,
           user_email: user.email,

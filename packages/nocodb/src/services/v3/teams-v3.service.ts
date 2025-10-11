@@ -2,16 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   TeamCreateV3ReqType,
-  TeamDetailV3Type,
   TeamMembersAddV3ReqType,
   TeamMembersRemoveV3ReqType,
   TeamMembersUpdateV3ReqType,
-  TeamMemberV3ResponseType,
   TeamUpdateV3ReqType,
-  TeamV3Type,
 } from './teams-v3.types';
 import { NcError } from '~/helpers/catchError';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Team, TeamUser, User } from '~/models';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
@@ -121,12 +117,12 @@ export class TeamsV3Service {
     );
     if (duplicateTeam) {
       NcError.get(context).invalidRequestBody(
-        `Team with name '${param.team.name}' already exists`,
+        `Team with name '${param.team.title}' already exists`,
       );
     }
 
     // Generate team ID
-    const teamId = await Noco.ncMeta.genNanoid(MetaTable.TEAMS);
+    const teamId = (await Noco.ncMeta.genNanoid(MetaTable.TEAMS)) as string;
 
     // Create team with enhanced fields
     const teamData = {
@@ -398,7 +394,9 @@ export class TeamsV3Service {
           'manager',
         );
         if (managerCount === 1) {
-          NcError.get(context).invalidRequestBody('Cannot remove the last manager');
+          NcError.get(context).invalidRequestBody(
+            'Cannot remove the last manager',
+          );
         }
       }
 
@@ -460,7 +458,7 @@ export class TeamsV3Service {
         context,
         param.teamId,
         member.user_id,
-        { roles:  member.team_role },
+        { roles: member.team_role },
       );
 
       updatedMembers.push(updatedTeamUser);

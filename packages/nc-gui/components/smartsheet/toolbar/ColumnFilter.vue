@@ -625,18 +625,18 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
       ? lastFilters.value.findIndex((item) => item.id === changedLogicalOperatorEl?.id)
       : -1
 
+    await saveOrUpdate(element, elementIndex, false, false, false, lastFilterElIndex)
+
     if (changedLogicalOperatorEl) {
       await saveOrUpdate(
         changedLogicalOperatorEl,
         changedLogicalOperatorElIndex,
         false,
         false,
-        true,
+        false,
         lastFilterChangedLogicalOperatorElIndex,
       )
     }
-
-    await saveOrUpdate(element, elementIndex, false, false, false, lastFilterElIndex)
   }
 }
 

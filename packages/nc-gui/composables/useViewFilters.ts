@@ -217,6 +217,7 @@ export function useViewFilters(
 
   const placeholderFilter = (): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
+
     const defaultColumn = fieldsToFilter?.value?.find((col) => {
       return !isSystemColumn(col)
     })
@@ -231,6 +232,7 @@ export function useViewFilters(
       // set the default column to the first column in the list, excluding system columns
       fk_column_id: defaultColumn?.id ?? undefined,
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
+      order: Math.max(...filters.value.map((item) => item?.order ?? 0)) + 1,
     }
 
     // Set timezone for DateTime columns
@@ -256,6 +258,7 @@ export function useViewFilters(
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
+      order: Math.max(...filters.value.map((item) => item?.order ?? 0)) + 1,
     }
   }
 
@@ -272,7 +275,7 @@ export function useViewFilters(
       if (filter.id && filter.is_group) {
         // Load children filters from the backend
         const childFilterPromise = $api.dbTableFilter.childrenRead(filter.id).then((response) => {
-          const childFilters = response.list as ColumnFilterType[]
+          const childFilters = (response.list as ColumnFilterType[]).sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
           allChildFilters.push(...childFilters)
           return loadAllChildFilters(childFilters)
         })
@@ -444,28 +447,49 @@ export function useViewFilters(
       const lastFilter = lastFilters.value[lastFilterIndex]
 
       if (lastFilter) {
-        const delta = clone(getFieldDelta(filter, lastFilter))
-        if (Object.keys(delta).length > 0) {
+        const delta = clone(getFieldDelta(filter, lastFilter)) as Partial<ColumnFilterType>
+        const keys = Object.keys(delta)
+
+        if (keys.length > 0) {
+          // Define extra keys to track
+          const extraKeys = ['value', 'order', 'logical_op']
+
+          // Always include the 0th key + any of the extra ones present
+          const targetKeys = Array.from(
+            new Set([
+              keys[0], // backward compat
+              ...keys.filter((k) => extraKeys.includes(k)), // allowed extras
+            ]),
+          )
+
+          const undoChanges = Object.fromEntries(targetKeys.map((k) => [k, delta[k as keyof ColumnFilterType]]))
+          const redoChanges = Object.fromEntries(targetKeys.map((k) => [k, filter[k as keyof ColumnFilterType]]))
+
           addUndo({
             undo: {
-              fn: (prop: string, data: any) => {
-                const f = filters.value[i]
+              fn: (changes: Partial<ColumnFilterType>, index: number) => {
+                const f = filters.value[index]
+
                 if (f) {
-                  f[prop as keyof ColumnFilterType] = data
-                  saveOrUpdate(f, i, force, true)
+                  for (const [prop, val] of Object.entries(changes)) {
+                    f[prop as keyof ColumnFilterType] = val
+                  }
+                  saveOrUpdate(f, index, force, true)
                 }
               },
-              args: [Object.keys(delta)[0], Object.values(delta)[0]],
+              args: [undoChanges, i],
             },
             redo: {
-              fn: (prop: string, data: any) => {
-                const f = filters.value[i]
+              fn: (changes: Partial<ColumnFilterType>, index: number) => {
+                const f = filters.value[index]
                 if (f) {
-                  f[prop as keyof ColumnFilterType] = data
-                  saveOrUpdate(f, i, force, true)
+                  for (const [prop, val] of Object.entries(changes)) {
+                    f[prop as keyof ColumnFilterType] = val
+                  }
+                  saveOrUpdate(f, index, force, true)
                 }
               },
-              args: [Object.keys(delta)[0], filter[Object.keys(delta)[0] as keyof ColumnFilterType]],
+              args: [redoChanges, lastFilterIndex],
             },
             scope: defineViewScope({ view: activeView.value }),
           })
@@ -475,7 +499,7 @@ export function useViewFilters(
     try {
       if (nestedMode.value) {
         filters.value[i] = { ...filter }
-        filters.value = [...filters.value]
+        filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
       } else if (!autoApply?.value && !force) {
         filter.status = filter.id ? 'update' : 'create'
       } else if (filters.value[i]?.id && filters.value[i]?.status !== 'create') {
@@ -486,10 +510,15 @@ export function useViewFilters(
         $e('a:filter:update', {
           logical: filter.logical_op,
           comparison: filter.comparison_op,
+          order: filter.order,
           link: !!isLink,
           widget: !!isWidget,
           webHook: !!isWebhook,
         })
+
+        if (undo) {
+          filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
+        }
       } else {
         if (linkColId?.value) {
           const savedFilter = await $api.dbTableLinkFilter.create(linkColId.value, {
@@ -530,6 +559,8 @@ export function useViewFilters(
             id: savedFilter.id,
             status: undefined,
           }
+
+          filters.value = filters.value.sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
         }
         if (!isLink && !isWebhook && !isWidget) allFilters.value.push(filters.value[+i] as FilterType)
       }
@@ -587,7 +618,7 @@ export function useViewFilters(
     // if shared or sync permission not allowed simply remove it from array
     if (nestedMode.value) {
       filters.value.splice(i, 1)
-      filters.value = [...filters.value]
+      filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
       if (!isWebhook && !isLink && !isWidget) reloadData?.()
     } else {
       if (filter.id) {
@@ -654,6 +685,7 @@ export function useViewFilters(
 
   const addFilterGroup = async () => {
     const child = placeholderFilter()
+    child.order = 1
 
     const placeHolderGroupFilter: ColumnFilterType = placeholderGroupFilter()
 
@@ -736,6 +768,7 @@ export function useViewFilters(
       const index = filters.value.findIndex((f) => f.id === payload.id)
       if (index !== -1) {
         filters.value[index] = payload
+        filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
       }
 
       const allIndex = allFilters.value.findIndex((f) => f.id === payload.id)

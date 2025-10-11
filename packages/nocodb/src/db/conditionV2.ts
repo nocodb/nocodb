@@ -142,13 +142,15 @@ const parseConditionV2 = async (
     return {
       rootApply: (qbP) => {
         for (const qb1 of qbs) {
-          qb1.rootApply?.(qbP);
+          qb1?.rootApply?.(qbP);
         }
       },
       clause: (qbP) => {
         qbP[getLogicalOpMethod(filter)]((qb) => {
           for (const [i, qb1] of Object.entries(qbs)) {
-            qb[getLogicalOpMethod(children[i])](qb1.clause);
+            if (qb1) {
+              qb[getLogicalOpMethod(children[i])](qb1.clause);
+            }
           }
         });
       },

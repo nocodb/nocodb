@@ -8,6 +8,7 @@ import type {
   FieldHandlerInterface,
   FilterOperation,
   FilterOperationHandlers,
+  FilterOperationResult,
   FilterOptions,
   FilterVerificationResult,
 } from '~/db/field-handler/field-handler.interface';
@@ -51,7 +52,7 @@ export class GenericFieldHandler
     filter: Filter,
     column: Column,
     options: FilterOptions,
-  ) {
+  ): Promise<FilterOperationResult> {
     const { alias } = options;
     const val = filter.value;
     const field =
@@ -75,7 +76,7 @@ export class GenericFieldHandler
       column: Column;
     },
     options: FilterOptions,
-  ) {
+  ): Promise<FilterOperationResult> {
     const { sourceField, val } = args;
     const { filter } = rootArgs;
     let filterOperation: FilterOperation;

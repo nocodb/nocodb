@@ -79,7 +79,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       workspace_id: RootScopes.BYPASS,
       base_id: RootScopes.BYPASS,
       api_version: getApiVersionFromUrl(req.route.path),
-      timezone: req.get('timezone'),
+      timezone: req.query?.whereTz,
     };
     req.ncApiVersion = context.api_version;
 

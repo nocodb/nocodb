@@ -1884,6 +1884,7 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     const whereFilter = await callbacks?.getWhereFilter?.(path)
+    const filterArrJson = (await callbacks?.getWhereFilterArr?.(path)) ?? []
 
     try {
       const { count } = isPublic?.value
@@ -1893,7 +1894,9 @@ export function useInfiniteData(args: {
           })
         : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
             where: whereFilter,
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
+            ...(isUIAllowed('filterSync')
+              ? { filterArrJson: stringifyFilterOrSortArr(filterArrJson) }
+              : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value ?? []), ...filterArrJson]) }),
           })
 
       if (fetchTotalRowsWithSearchQuery.value) {

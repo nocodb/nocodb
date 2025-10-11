@@ -10,6 +10,16 @@ export interface TeamV3Type {
   updated_at?: string;
 }
 
+export interface TeamV3ResponseType {
+  id: string;
+  name: string;
+  icon?: string;
+  badge_color?: string;
+  members_count: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface TeamCreateV3ReqType {
   name: string;
   icon?: string;

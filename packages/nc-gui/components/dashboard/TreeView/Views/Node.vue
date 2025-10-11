@@ -298,6 +298,7 @@ watch(isDropdownOpen, async () => {
     <NcTooltip
       :tooltip-style="{ width: '240px', zIndex: '1049' }"
       :overlay-inner-style="{ width: '240px' }"
+      :mouse-enter-delay="0.5"
       trigger="hover"
       placement="right"
       :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip || isMobileMode"

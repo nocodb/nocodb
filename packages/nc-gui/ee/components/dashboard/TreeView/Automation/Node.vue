@@ -259,6 +259,7 @@ const deleteScript = () => {
       :tooltip-style="{ width: '240px', zIndex: '1049' }"
       placement="right"
       trigger="hover"
+      :mouse-enter-delay="0.5"
     >
       <template #title>
         <div class="flex flex-col gap-3">

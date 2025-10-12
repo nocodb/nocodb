@@ -30,6 +30,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { getFeature } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/catchError';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
@@ -67,8 +68,7 @@ export class TeamsV3Controller {
 
     // Transform to v3 response format
     const teamsV3: TeamV3ResponseType[] = teamsWithCounts.map((team) => {
-      const meta =
-        typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
+      const meta = parseMetaProp(team);
       return {
         id: team.id,
         title: team.title,
@@ -141,12 +141,11 @@ export class TeamsV3Controller {
     );
 
     // Transform to v3 response format
-    const meta =
-      typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
+    const meta = parseMetaProp(team);
 
     return {
       id: team.id,
-      name: team.title,
+      title: team.title,
       icon: meta.icon || undefined,
       badge_color: meta.badge_color || undefined,
       members_count: teamUsers,
@@ -179,12 +178,11 @@ export class TeamsV3Controller {
     );
 
     // Transform to v3 response format
-    const meta =
-      typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
+    const meta = parseMetaProp(team);
 
     return {
       id: team.id,
-      name: team.name,
+      title: team.title,
       icon: meta.icon || undefined,
       badge_color: meta.badge_color || undefined,
       members_count: teamUsers,
@@ -237,9 +235,7 @@ export class TeamsV3Controller {
         return {
           user_id: user.id,
           user_email: user.email,
-          team_role: (teamUser.roles === 'owner'
-            ? 'manager'
-            : teamUser.roles) as 'member' | 'manager' | 'owner',
+          team_role: teamUser.roles as 'member' | 'manager' | 'owner',
         };
       }),
     );
@@ -299,9 +295,7 @@ export class TeamsV3Controller {
         return {
           user_id: user.id,
           user_email: user.email,
-          team_role: (teamUser.roles === 'owner'
-            ? 'manager'
-            : teamUser.roles) as 'member' | 'manager' | 'owner',
+          team_role: teamUser.roles as 'member' | 'manager' | 'owner',
         };
       }),
     );

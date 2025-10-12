@@ -230,6 +230,7 @@ export default class TeamUser {
       MetaTable.TEAM_USERS,
       {
         condition: { fk_team_id: teamId },
+        aggField: 'fk_user_id',
       },
     );
 
@@ -248,6 +249,7 @@ export default class TeamUser {
       MetaTable.TEAM_USERS,
       {
         condition: { fk_team_id: teamId, roles: role },
+        aggField: 'fk_user_id',
       },
     );
 

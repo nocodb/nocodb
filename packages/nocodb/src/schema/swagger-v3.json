@@ -4466,15 +4466,6 @@
               "type": "string"
             },
             "description": "Workspace ID"
-          },
-          {
-            "name": "include_workspace",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Include workspace teams"
           }
         ],
         "responses": {
@@ -4483,10 +4474,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/TeamV3"
-                  }
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TeamV3"
+                      }
+                    }
+                  },
+                  "required": ["list"]
                 }
               }
             }
@@ -4509,15 +4506,6 @@
               "type": "string"
             },
             "description": "Workspace ID"
-          },
-          {
-            "name": "include_workspace",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Include workspace teams"
           }
         ],
         "requestBody": {
@@ -4826,13 +4814,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "user_id": {
-                        "type": "string"
-                      }
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "Members have been removed successfully"
                     }
                   }
                 }
@@ -9009,7 +8995,7 @@
             "description": "Unique team identifier",
             "example": "t12345"
           },
-          "name": {
+          "title": {
             "type": "string",
             "description": "Team name",
             "example": "Design Team",
@@ -9052,7 +9038,7 @@
         },
         "required": [
           "id",
-          "name",
+          "title",
           "members_count"
         ]
       },
@@ -9060,7 +9046,7 @@
         "type": "object",
         "description": "Team creation request for v3 API",
         "properties": {
-          "name": {
+          "title": {
             "type": "string",
             "description": "Team name",
             "example": "Design Team",
@@ -9087,14 +9073,14 @@
           }
         },
         "required": [
-          "name"
+          "title"
         ]
       },
       "TeamUpdateV3Req": {
         "type": "object",
         "description": "Team update request for v3 API",
         "properties": {
-          "name": {
+          "title": {
             "type": "string",
             "description": "Updated team name",
             "example": "Updated Team Name",
@@ -9118,7 +9104,7 @@
         "type": "object",
         "description": "Detailed team information for v3 API",
         "properties": {
-          "name": {
+          "title": {
             "type": "string",
             "description": "Team name",
             "example": "Design Team"
@@ -9142,7 +9128,7 @@
           }
         },
         "required": [
-          "name",
+          "title",
           "members"
         ]
       },

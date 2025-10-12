@@ -36,6 +36,7 @@ export default class Team {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(team, [
+      'id',
       'title',
       'meta',
       'fk_org_id',

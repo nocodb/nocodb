@@ -74,9 +74,9 @@ export default function () {
 
     async function _validateTeamDetail(teamDetail) {
       expect(teamDetail).to.be.an('object');
-      expect(Object.keys(teamDetail)).to.include.members(['name', 'members']);
+      expect(Object.keys(teamDetail)).to.include.members(['title', 'members']);
 
-      expect(teamDetail).to.have.property('name').that.is.a('string');
+      expect(teamDetail).to.have.property('title').that.is.a('string');
       expect(teamDetail).to.have.property('members').that.is.an('array');
 
       // Optional fields
@@ -195,7 +195,7 @@ export default function () {
 
     it('Create Team v3 - Name Too Long', async () => {
       const createData = {
-        name: 'A'.repeat(51), // Exceeds 50 character limit
+        title: 'A'.repeat(51), // Exceeds 50 character limit
         icon: '🎨',
         badge_color: '#FF5733',
       };
@@ -236,7 +236,7 @@ export default function () {
       // Validation
       const error = duplicateTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('msg').that.includes('already exists');
+      expect(error).to.have.property('message').that.includes('already exists');
     });
 
     it('Create Team v3 - Invalid Badge Color', async () => {
@@ -293,12 +293,12 @@ export default function () {
       const getTeam = await request(context.app)
         .get(`/api/v3/meta/workspaces/${workspaceId}/teams/non-existent-team`)
         .set('xc-token', context.xc_token)
-        .expect(404);
+        .expect(422);
 
       // Validation
       const error = getTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('msg').that.includes('not found');
+      expect(error).to.have.property('message').that.includes('not found');
     });
 
     it('Update Team v3 - Name and Icon', async () => {
@@ -381,12 +381,12 @@ export default function () {
         .patch(`/api/v3/meta/workspaces/${workspaceId}/teams/non-existent-team`)
         .set('xc-token', context.xc_token)
         .send(updateData)
-        .expect(404);
+        .expect(422);
 
       // Validation
       const error = updateTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('msg').that.includes('not found');
+      expect(error).to.have.property('message').that.includes('not found');
     });
 
     it('Delete Team v3', async () => {
@@ -420,22 +420,24 @@ export default function () {
       );
 
       // Verify team is deleted
-      const getTeam = await request(context.app)
+      await request(context.app)
         .get(`/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}`)
         .set('xc-token', context.xc_token)
-        .expect(404);
+        .expect(422);
     });
 
     it('Delete Team v3 - Not Found', async () => {
       const deleteTeam = await request(context.app)
-        .delete(`/api/v3/meta/workspaces/${workspaceId}/teams/non-existent-team`)
+        .delete(
+          `/api/v3/meta/workspaces/${workspaceId}/teams/non-existent-team`,
+        )
         .set('xc-token', context.xc_token)
-        .expect(404);
+        .expect(422);
 
       // Validation
       const error = deleteTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('msg').that.includes('not found');
+      expect(error).to.have.property('message').that.includes('not found');
     });
 
     it('Add Members to Team v3 - Single Member', async () => {
@@ -561,12 +563,12 @@ export default function () {
         .post(`/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`)
         .set('xc-token', context.xc_token)
         .send(addMemberData)
-        .expect(400);
+        .expect(422);
 
       // Validation
       const error = addMember.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('msg').that.includes('not found');
+      expect(error).to.have.property('message').that.includes('not found');
     });
 
     it('Remove Members from Team v3 - Single Member', async () => {
@@ -603,7 +605,9 @@ export default function () {
       ];
 
       const removeMember = await request(context.app)
-        .delete(`/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`)
+        .delete(
+          `/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`,
+        )
         .set('xc-token', context.xc_token)
         .send(removeMemberData)
         .expect(200);
@@ -649,7 +653,9 @@ export default function () {
       ];
 
       const removeMember = await request(context.app)
-        .delete(`/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`)
+        .delete(
+          `/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`,
+        )
         .set('xc-token', context.xc_token)
         .send(removeMemberData)
         .expect(400);
@@ -657,7 +663,7 @@ export default function () {
       // Validation
       const error = removeMember.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('msg').that.includes('last manager');
+      expect(error).to.have.property('message').that.includes('last manager');
     });
 
     it('Update Team Members v3 - Role Change', async () => {
@@ -741,7 +747,7 @@ export default function () {
       // Validation
       const error = updateMember.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('msg').that.includes('not found');
+      expect(error).to.have.property('message').that.includes('not found');
     });
 
     it('Forbidden due to plan not sufficient', async () => {

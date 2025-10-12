@@ -106,6 +106,7 @@ export class TeamsV3Service {
     validatePayload(
       'swagger-v3.json#/components/schemas/TeamCreateV3Req',
       param.team,
+      true,
     );
 
     // Check for duplicate team name in the same workspace
@@ -117,7 +118,7 @@ export class TeamsV3Service {
     );
     if (duplicateTeam) {
       NcError.get(context).invalidRequestBody(
-        `Team with name '${param.team.title}' already exists`,
+        `Team with title '${param.team.title}' already exists`,
       );
     }
 
@@ -366,9 +367,7 @@ export class TeamsV3Service {
         member.user_id,
       );
       if (!teamUser) {
-        NcError.get(context).badRequest(
-          `User ${member.user_id} not found in this team`,
-        );
+        NcError.get(context).userNotFound(member.user_id);
       }
 
       // Check permissions: team owner or user removing themselves

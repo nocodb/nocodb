@@ -5,7 +5,6 @@ import type { SwaggerColumn } from './getSwaggerColumnMetas';
 import type { SwaggerView } from './getSwaggerJSON';
 import Noco from '~/Noco';
 
-
 export default async function getSchemas(
   context,
   {

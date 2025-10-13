@@ -50,8 +50,8 @@ export default class OAuthToken {
       'refresh_token_expires_at',
       'resource',
       'audience',
-      // 'granted_resources',
-      // 'scope',
+      'granted_resources',
+      'scope',
     ]);
 
     insertData.id = nanoid(20);

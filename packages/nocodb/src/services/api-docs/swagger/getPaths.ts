@@ -5,7 +5,6 @@ import type { SwaggerView } from './getSwaggerJSON';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 
-
 export default async function getPaths(
   context: NcContext,
   {
@@ -26,6 +25,7 @@ export default async function getPaths(
 ) {
   const swaggerPaths = await getModelPaths(context, {
     tableName,
+    tableId: model.id,
     type: model.type,
     orgs: 'v1',
     columns,
@@ -40,7 +40,9 @@ export default async function getPaths(
       swaggerPaths,
       await getViewPaths(context, {
         tableName,
+        tableId: model.id,
         viewName: view.title,
+        viewId: view.id,
         type: model.type,
         orgs: 'v1',
         columns: swaggerColumns,

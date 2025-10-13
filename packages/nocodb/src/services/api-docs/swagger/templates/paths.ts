@@ -20,13 +20,14 @@ export const getModelPaths = async (
   context: NcContext,
   ctx: {
     tableName: string;
+    tableId: string;
     orgs: string;
     type: ModelTypes;
     columns: SwaggerColumn[];
     baseName: string;
   },
 ): Promise<{ [path: string]: any }> => ({
-  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}`]: {
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}`]: {
     get: {
       summary: `${ctx.tableName} list`,
       operationId: `${ctx.tableName.toLowerCase()}-db-table-row-list`,
@@ -85,7 +86,7 @@ export const getModelPaths = async (
         }
       : {}),
   },
-  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}`]: {
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/{rowId}`]: {
     parameters: [rowIdParam],
     ...(ctx.type === ModelTypes.TABLE
       ? {
@@ -150,7 +151,7 @@ export const getModelPaths = async (
         }
       : {}),
   },
-  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/count`]: {
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/count`]: {
     get: {
       summary: `${ctx.tableName} count`,
       operationId: `${ctx.tableName.toLowerCase()}-count`,
@@ -169,7 +170,7 @@ export const getModelPaths = async (
       },
     },
   },
-  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/find-one`]: {
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/find-one`]: {
     get: {
       summary: `${ctx.tableName} find-one`,
       operationId: `${ctx.tableName.toLowerCase()}-db-table-row-find-one`,
@@ -190,7 +191,7 @@ export const getModelPaths = async (
       },
     },
   },
-  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/groupby`]: {
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/groupby`]: {
     get: {
       summary: `${ctx.tableName} groupby`,
       operationId: `${ctx.tableName.toLowerCase()}-groupby`,
@@ -231,7 +232,7 @@ export const getModelPaths = async (
   },
   ...(ctx.type === ModelTypes.TABLE
     ? {
-        [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}`]: {
+        [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}`]: {
           post: {
             summary: `${ctx.tableName} bulk insert`,
             description:
@@ -305,7 +306,7 @@ export const getModelPaths = async (
             },
           },
         },
-        [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/all`]:
+        [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/all`]:
           {
             parameters: [whereParam],
             patch: {
@@ -353,7 +354,7 @@ export const getModelPaths = async (
 
         ...(isRelationExist(ctx.columns)
           ? {
-              [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}`]:
+              [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/{rowId}/{relationType}/{columnName}`]:
                 {
                   parameters: [
                     rowIdParam,
@@ -377,7 +378,7 @@ export const getModelPaths = async (
                     parameters: [limitParam, offsetParam],
                   },
                 },
-              [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/{refRowId}`]:
+              [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/{rowId}/{relationType}/{columnName}/{refRowId}`]:
                 {
                   parameters: [
                     rowIdParam,
@@ -418,7 +419,7 @@ export const getModelPaths = async (
                     tags: [ctx.tableName],
                   },
                 },
-              [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/exclude`]:
+              [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/{rowId}/{relationType}/{columnName}/exclude`]:
                 {
                   parameters: [
                     rowIdParam,
@@ -453,14 +454,16 @@ export const getViewPaths = async (
   context: NcContext,
   ctx: {
     tableName: string;
+    tableId: string;
     viewName: string;
+    viewId: string;
     type: ModelTypes;
     orgs: string;
     baseName: string;
     columns: SwaggerColumn[];
   },
 ): Promise<any> => ({
-  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}`]:
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/views/${ctx.viewId}`]:
     {
       get: {
         summary: `${ctx.viewName} list`,
@@ -517,7 +520,7 @@ export const getViewPaths = async (
           }
         : {}),
     },
-  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}/count`]:
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/views/${ctx.viewId}/count`]:
     {
       get: {
         summary: `${ctx.viewName} count`,
@@ -544,7 +547,7 @@ export const getViewPaths = async (
     },
   ...(ctx.type === ModelTypes.TABLE
     ? {
-        [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableName}/views/${ctx.viewName}/{rowId}`]:
+        [`/api/v1/db/data/${ctx.orgs}/${ctx.baseName}/${ctx.tableId}/views/${ctx.viewId}/{rowId}`]:
           {
             parameters: [rowIdParam],
             get: {

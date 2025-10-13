@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (
       !jwtPayload?.email ||
       jwtPayload?.is_api_token ||
-      jwtPayload.is_oauth_token
+      jwtPayload?.is_oauth_token
     )
       return jwtPayload;
 

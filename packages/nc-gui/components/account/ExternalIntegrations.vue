@@ -269,10 +269,10 @@ onMounted(async () => {
                       />
                       <NcTooltip class="truncate max-w-[150px]">
                         <template #title>
-                          {{ workspaceMap[authorization.granted_resources.workspace_id]?.title }}
+                          {{ workspaceMap[authorization.granted_resources.workspace_id].title }}
                         </template>
                         <span class="truncate">
-                          {{ workspaceMap[authorization.granted_resources.workspace_id]?.title }}
+                          {{ workspaceMap[authorization.granted_resources.workspace_id].title }}
                         </span>
                       </NcTooltip>
                     </template>
@@ -295,10 +295,10 @@ onMounted(async () => {
                       />
                       <NcTooltip class="truncate max-w-[150px]">
                         <template #title>
-                          {{ baseMap[authorization.granted_resources.base_id]?.title }}
+                          {{ baseMap[authorization.granted_resources.base_id].title }}
                         </template>
                         <span class="truncate">
-                          {{ baseMap[authorization.granted_resources.base_id]?.title }}
+                          {{ baseMap[authorization.granted_resources.base_id].title }}
                         </span>
                       </NcTooltip>
                     </template>

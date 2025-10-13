@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { NcRequest } from 'nocodb-sdk/build/main/lib';
+import type { NcRequest } from 'nocodb-sdk';
 
 @Injectable()
 export class OauthMetadataService {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { PublicAttachmentScope } from 'nocodb-sdk'
-import type { OAuthClientType } from 'nocodb-sdk'
+import { OAuthClientType, PublicAttachmentScope } from 'nocodb-sdk'
+
 const props = defineProps<{
   visible: boolean
 }>()
@@ -33,7 +33,7 @@ const useForm = Form.useForm
 // Form data
 const clientRef = reactive({
   client_name: '',
-  client_type: 'public' as OAuthClientType,
+  client_type: OAuthClientType.PUBLIC,
   client_description: '',
   client_uri: '',
   logo_uri: null,
@@ -130,8 +130,7 @@ async function handleSubmit() {
       redirect_uris,
     }
 
-    const created = await createOAuthClient(payload)
-    createdClient.value = created
+    createdClient.value = await createOAuthClient(payload)
     showSuccessView.value = true
 
     // Show success message

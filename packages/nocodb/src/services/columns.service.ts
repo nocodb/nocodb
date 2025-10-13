@@ -28,6 +28,7 @@ import {
   WebhookActions,
 } from 'nocodb-sdk';
 import rfdc from 'rfdc';
+import type { ClientType } from 'nocodb-sdk';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,

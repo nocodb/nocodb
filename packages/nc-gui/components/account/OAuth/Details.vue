@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { PublicAttachmentScope } from 'nocodb-sdk'
-import type { OAuthClientType } from 'nocodb-sdk'
+import { OAuthClientType, PublicAttachmentScope } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -26,7 +25,7 @@ const useForm = Form.useForm
 // Form data
 const clientRef = ref({
   client_name: '',
-  client_type: 'public' as OAuthClientType,
+  client_type: OAuthClientType.PUBLIC,
   client_description: '',
   client_uri: '',
   logo_uri: null,
@@ -108,7 +107,7 @@ async function loadClientData(clientId: string) {
         client_description: client.client_description || '',
         client_uri: client.client_uri || '',
         logo_uri: client.logo_uri || null,
-        redirect_uris: Array.isArray(client.redirect_uris) ? client.redirect_uris.join('\n') : '',
+        redirect_uris: Array.isArray(client.redirect_uris) ? (client.redirect_uris || []).join('\n') : '',
         client_id: client.client_id,
         client_secret: client.client_secret || '',
         created_at: client.created_at || '',
@@ -354,12 +353,12 @@ function copyToClipboard(text: string, label: string) {
                 <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
               </div>
               <NuxtLink
-                href="https://docs.nocodb.com/nc-gui/oauth-client-setup"
+                href="https://nocodb.com/docs/product-docs/developer-resources/oauth-clients"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"
               >
-                NocoDB OAuth Client Setup
+                Create OAuth Clients
               </NuxtLink>
             </div>
             <div class="flex items-center gap-1">
@@ -367,7 +366,7 @@ function copyToClipboard(text: string, label: string) {
                 <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
               </div>
               <NuxtLink
-                href="https://docs.nocodb.com/nc-gui/oauth-client-management"
+                href="https://nocodb.com/docs/product-docs/developer-resources/oauth-clients/manage"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"

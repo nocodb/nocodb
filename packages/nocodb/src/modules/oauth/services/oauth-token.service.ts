@@ -1,5 +1,7 @@
 import { createHash, randomBytes } from 'crypto';
+import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
+import bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import {
   OAuthAuthorizationCode,
@@ -101,9 +103,15 @@ export class OauthTokenService {
     if (client.client_secret) {
       // If PKCE is used, client_secret is optional
       if (isPKCEFlow) {
-        // If client_secret is provided with PKCE, validate it
-        if (clientSecret && clientSecret !== client.client_secret) {
-          throw new Error('invalid_client: Invalid client credentials');
+        // If client_secret is provided with PKCE, validate it using bcrypt
+        if (clientSecret) {
+          const isValidSecret = await promisify(bcrypt.compare)(
+            clientSecret,
+            client.client_secret,
+          );
+          if (!isValidSecret) {
+            throw new Error('invalid_client: Invalid client credentials');
+          }
         }
         // PKCE validation will happen separately, so we're good here
       } else {
@@ -114,7 +122,12 @@ export class OauthTokenService {
           );
         }
 
-        if (clientSecret !== client.client_secret) {
+        // Validate client_secret using bcrypt
+        const isValidSecret = await promisify(bcrypt.compare)(
+          clientSecret,
+          client.client_secret,
+        );
+        if (!isValidSecret) {
           throw new Error('invalid_client: Invalid client credentials');
         }
       }

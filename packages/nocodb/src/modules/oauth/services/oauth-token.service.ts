@@ -21,8 +21,8 @@ export interface PKCEValidationParams {
 @Injectable()
 export class OauthTokenService {
   private readonly JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-  private readonly ACCESS_TOKEN_EXPIRES_IN = 3600; // 1 hour in seconds
-  private readonly REFRESH_TOKEN_EXPIRES_IN = 7 * 24 * 3600; // 7 days in seconds
+  private readonly ACCESS_TOKEN_EXPIRES_IN = 60 * 60; // 60 minutes in seconds
+  private readonly REFRESH_TOKEN_EXPIRES_IN = 60 * 24 * 3600; // 60 days in seconds
 
   validatePKCE(params: PKCEValidationParams): boolean {
     const { codeVerifier, codeChallenge, codeChallengeMethod } = params;

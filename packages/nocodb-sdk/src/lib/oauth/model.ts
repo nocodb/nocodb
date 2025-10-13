@@ -1,15 +1,91 @@
+export enum ClientType {
+  CONFIDENTIAL = 'confidential',
+  PUBLIC = 'public',
+}
+
+export enum TokenEndpointAuthMethod {
+  CLIENT_SECRET_BASIC = 'client_secret_basic',
+  CLIENT_SECRET_POST = 'client_secret_post',
+  NONE = 'none',
+}
+
+export enum ConsentStatus {
+  ACTIVE = 'active',
+  REVOKED = 'revoked',
+}
+
 export interface OAuthClient {
   client_id: string;
-  client_secret: string;
+  client_secret?: string | null;
+  client_type: ClientType;
 
   client_name: string;
-  description?: string;
+  client_uri?: string;
+  logo_uri?: string;
 
-  redirect_uri: string[]; // json string redirect uris
-  allowed_scopes: string[]; // json string allowed scopes
+  redirect_uris: string[];
+  allowed_grant_types: string[];
+  response_types: string[];
+  allowed_scopes: string; // comma separated
 
-  fk_user_id: string; // user who created the client
+  token_endpoint_auth_method: TokenEndpointAuthMethod;
 
+  // DCR metadata
+  registration_access_token?: string;
+  registration_client_uri?: string;
+
+  client_id_issued_at?: number;
+  client_secret_expires_at?: number;
+
+  fk_user_id?: string;
   created_at: string;
   updated_at: string;
+}
+
+// Authorization Code
+export interface OAuthAuthorizationCode {
+  id: string;
+  code: string;
+  client_id: string;
+  user_id: string;
+
+  // PKCE
+  code_challenge: string;
+  code_challenge_method: string; // Default: 'S256'
+
+  redirect_uri: string;
+  scope: string;
+  state?: string;
+
+  resource: string;
+  granted_resources?: Record<string, any>;
+
+  expires_at: string;
+  is_used: boolean;
+  created_at: string;
+}
+
+// Access + Refresh Tokens
+export interface OAuthToken {
+  id: string;
+  client_id: string;
+  fk_user_id: string;
+
+  access_token: string;
+  access_token_expires_at: string;
+
+  refresh_token?: string;
+  refresh_token_expires_at?: string;
+
+  // MCP Requirements
+  resource: string;
+  audience: string;
+
+  granted_resources?: Record<string, any>;
+  scope: string;
+  // token_type: string; // Default: "Bearer"
+  is_revoked: boolean;
+
+  created_at: string;
+  last_used_at?: string;
 }

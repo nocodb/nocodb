@@ -102,19 +102,6 @@ export function useSharedView() {
 
     let order = 1
 
-    // Required for Calendar View
-    const rangeFields: Array<string> = []
-    if ((sharedView.value?.view as CalendarType)?.calendar_range?.length) {
-      for (const range of (sharedView.value?.view as CalendarType)?.calendar_range ?? []) {
-        if (range.fk_from_column_id) {
-          rangeFields.push(range.fk_from_column_id)
-        }
-        if ((range as any).fk_to_column_id) {
-          rangeFields.push((range as any).fk_to_column_id)
-        }
-      }
-    }
-
     if (meta.value) {
       meta.value.columns = [...viewMeta.model.columns].map((c) => ({ ...c, order: order++ })).sort((a, b) => a.order - b.order)
     }

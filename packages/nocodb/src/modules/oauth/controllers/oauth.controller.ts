@@ -77,6 +77,7 @@ export class OAuthController {
         });
       return { redirect_url: successRedirectUrl };
     } catch (e) {
+      console.error(e);
       const errorRedirectUrl = this.oauthAuthorizationService.buildRedirectUrl(
         redirect_uri,
         {

@@ -37,7 +37,7 @@ export class OauthClientService {
     const client = await OAuthClient.getByClientId(clientId);
 
     if (!clientId || client.fk_user_id !== req.user.id) {
-      NcError.get(context).apiClientNotFound(clientId);
+      NcError.get(context).notFound(clientId);
     }
 
     return client;

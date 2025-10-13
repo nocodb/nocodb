@@ -93,33 +93,33 @@ export class OauthTokenService {
     // Get authorization code
     const authCode = await OAuthAuthorizationCode.getByCode(code);
     if (!authCode) {
-      throw NcError.badRequest('Invalid or expired authorization code');
+      NcError.badRequest('Invalid or expired authorization code');
     }
 
     // Check if code is already used
     if (authCode.is_used) {
-      throw NcError.badRequest('Authorization code has already been used');
+      NcError.badRequest('Authorization code has already been used');
     }
 
     // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
-      throw NcError.badRequest('Authorization code has expired');
+      NcError.badRequest('Authorization code has expired');
     }
 
     // Validate client ID
     if (authCode.client_id !== clientId) {
-      throw NcError.badRequest('Invalid client_id');
+      NcError.badRequest('Invalid client_id');
     }
 
     // Validate redirect URI
     if (authCode.redirect_uri !== redirectUri) {
-      throw NcError.badRequest('Invalid redirect_uri');
+      NcError.badRequest('Invalid redirect_uri');
     }
 
     // Validate PKCE if code challenge was provided during authorization
     if (authCode.code_challenge) {
       if (!codeVerifier) {
-        throw NcError.badRequest('code_verifier is required for PKCE');
+        NcError.badRequest('code_verifier is required for PKCE');
       }
 
       const isValidPKCE = this.validatePKCE({
@@ -129,14 +129,14 @@ export class OauthTokenService {
       });
 
       if (!isValidPKCE) {
-        throw NcError.badRequest('Invalid code_verifier');
+        NcError.badRequest('Invalid code_verifier');
       }
     }
 
     // Get client to verify it exists
     const client = await OAuthClient.getByClientId(clientId);
     if (!client) {
-      throw NcError.badRequest('Invalid client');
+      NcError.badRequest('Invalid client');
     }
 
     // Generate tokens
@@ -193,12 +193,12 @@ export class OauthTokenService {
     // Get token by refresh token
     const tokenRecord = await OAuthToken.getByRefreshToken(refreshToken);
     if (!tokenRecord) {
-      throw NcError.badRequest('Invalid refresh token');
+      NcError.badRequest('Invalid refresh token');
     }
 
     // Check if token is revoked
     if (tokenRecord.is_revoked) {
-      throw NcError.badRequest('Refresh token has been revoked');
+      NcError.badRequest('Refresh token has been revoked');
     }
 
     // Check if refresh token is expired
@@ -206,12 +206,12 @@ export class OauthTokenService {
       tokenRecord.refresh_token_expires_at &&
       new Date(tokenRecord.refresh_token_expires_at) < new Date()
     ) {
-      throw NcError.badRequest('Refresh token has expired');
+      NcError.badRequest('Refresh token has expired');
     }
 
     // Validate client ID
     if (tokenRecord.client_id !== clientId) {
-      throw NcError.badRequest('Invalid client_id');
+      NcError.badRequest('Invalid client_id');
     }
 
     // Generate new access token
@@ -286,7 +286,7 @@ export class OauthTokenService {
 
     // Validate client ID
     if (tokenRecord.client_id !== clientId) {
-      throw NcError.badRequest('Invalid client_id');
+      NcError.badRequest('Invalid client_id');
     }
 
     // Revoke the token

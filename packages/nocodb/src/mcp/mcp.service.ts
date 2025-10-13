@@ -200,13 +200,19 @@ export class McpService {
             .optional()
             .describe('Page number for pagination (default: 1)'),
           where: z.string().optional().describe(whereDescription),
-          sort: z.array(
-            z.object({
-              field: z.string().describe('Field Name'),
-              description: z.enum(['asc', 'desc']).describe('Sort Direction'),
-            }),
-          ),
-          fields: z.array(z.string()).optional().describe('Fields to fetch'),
+          sort: z
+            .array(
+              z.object({
+                field: z.string().describe('Field Name'),
+                description: z.enum(['asc', 'desc']).describe('Sort Direction'),
+              }),
+            )
+            .optional(),
+          fields: z
+            .array(z.string())
+            .optional()
+            .describe('Fields to fetch')
+            .optional(),
         },
         annotations: {
           readOnlyHint: true,

@@ -54,21 +54,25 @@ export class McpController {
     return await this.mcpService.handleRequest(tokenId, context, req, res);
   }
 
-  @All('mcp')
   @UseGuards(GlobalGuard)
+  @All('mcp')
   async handleMcpOAuthRequest(@Request() req: NcRequest, @Response() res) {
-    const ctx = (req.user as any).oauth_granted_resources;
+    const context = {
+      workspace_id: (req.user as any)?.oauth_granted_resources?.workspace_id,
+      base_id: (req.user as any)?.oauth_granted_resources?.base_id,
+      user: req.user,
+      nc_site_url: req.ncSiteUrl,
+    };
 
-    return await this.mcpService.handleRequest(
-      null,
-      {
-        workspace_id: ctx.workspace_id,
-        base_id: ctx.base_id,
-        user: req.user,
-        nc_site_url: req.ncSiteUrl,
-      },
-      req,
-      res,
-    );
+    if (!context.workspace_id || !context.base_id) {
+      NcError.baseNotFound('Base not found');
+    }
+
+    req.user = (await User.getWithRoles(context, req.user.id, {
+      baseId: context.base_id,
+      workspaceId: context.workspace_id,
+    })) as typeof req.user;
+
+    return await this.mcpService.handleRequest(null, context, req, res);
   }
 }

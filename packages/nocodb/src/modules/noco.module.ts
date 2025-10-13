@@ -154,6 +154,7 @@ import { AttachmentUrlUploadHandler } from '~/services/emit-handler/attachment-u
 /* ACL */
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataAttachmentV3Service } from '~/services/v3/data-attachment-v3.service';
+import { OAuthModule } from '~/modules/oauth/oauth.module';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -167,6 +168,7 @@ export const nocoModuleMetadata = {
         files: NC_MAX_ATTACHMENTS_ALLOWED,
       },
     }),
+    OAuthModule,
 
     // put it at the bottom most since it's route not found handling
     // resorting to import to be resolved the last

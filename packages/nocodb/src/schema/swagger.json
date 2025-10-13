@@ -20426,6 +20426,42 @@
           "in": "query",
           "description": "Cursor",
           "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "clientId",
+          "in": "query",
+          "description": "Client ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tokenId",
+          "in": "query",
+          "description": "Token ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "dashboardId",
+          "in": "query",
+          "description": "Dashboard ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "widgetId",
+          "in": "query",
+          "description": "Widget ID",
+          "required": false
         }
       ]
     }

@@ -232,7 +232,7 @@ export function useViewFilters(
       // set the default column to the first column in the list, excluding system columns
       fk_column_id: defaultColumn?.id ?? undefined,
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
-      order: Math.max(...filters.value.map((item) => item?.order ?? 0)) + 1,
+      order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
     }
 
     // Set timezone for DateTime columns
@@ -258,7 +258,7 @@ export function useViewFilters(
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
-      order: Math.max(...filters.value.map((item) => item?.order ?? 0)) + 1,
+      order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
     }
   }
 

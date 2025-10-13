@@ -97,19 +97,29 @@ export class OauthTokenService {
 
     const client = await OAuthClient.getByClientId(clientId);
     if (!client) {
+      console.log('Client not found');
       NcError.badRequest('invalid_client');
     }
 
     if (client.client_secret) {
+      console.log('Client Secret Exists in DB');
       if (!clientSecret) {
+        console.log('Client Secret Not Found in user req');
         NcError.badRequest('invalid_client');
       }
 
       if (clientSecret !== client.client_secret) {
+        console.log(
+          'Client Secret Mismatch',
+          clientSecret,
+          client.client_secret,
+        );
         NcError.badRequest('invalid_client');
       }
     } else {
+      console.log('Client Secret Not in db');
       if (clientSecret) {
+        console.log('Client Secret Not Expected');
         NcError.badRequest('invalid_client');
       }
     }

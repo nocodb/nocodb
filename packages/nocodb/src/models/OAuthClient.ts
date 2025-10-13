@@ -80,7 +80,9 @@ export default class OAuthClient implements IOAuthClient {
     }
 
     if (insertData.logo_uri) {
-      insertData.logo_uri = this.serializeAttachmentJSON(insertData.logo_uri);
+      insertData.logo_uri = this.serializeAttachmentJSON(
+        insertData.logo_uri,
+      ) as any;
     }
 
     insertData = prepareForDb(insertData, [
@@ -195,7 +197,9 @@ export default class OAuthClient implements IOAuthClient {
     ]);
 
     if (updateObj.logo_uri) {
-      updateObj.logo_uri = this.serializeAttachmentJSON(updateObj.logo_uri);
+      updateObj.logo_uri = this.serializeAttachmentJSON(
+        updateObj.logo_uri,
+      ) as any;
     }
 
     await ncMeta.metaUpdate(

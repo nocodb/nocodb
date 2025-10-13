@@ -5,11 +5,6 @@ import type { SwaggerColumn } from './getSwaggerColumnMetasV3';
 import type { SwaggerView } from './getSwaggerJSONV3';
 import Noco from '~/Noco';
 
-// Helper function to sanitize names for use in schema names
-function sanitizeSchemaName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_]/g, '_');
-}
-
 export default async function getSchemasV3(
   context,
   {

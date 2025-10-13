@@ -67,6 +67,13 @@ const permissionScopes = {
 
     // AI
     'aiSchema',
+
+    // OauthClients
+    'oAuthClientList',
+    'oAuthClientCreate',
+    'oAuthClientUpdate',
+    'oAuthClientDelete',
+    'oAuthClientGet',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',

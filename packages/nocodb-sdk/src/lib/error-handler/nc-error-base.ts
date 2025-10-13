@@ -83,6 +83,14 @@ export class NcErrorBase {
       ...args,
     });
   }
+
+  apiClientNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.API_CLIENT_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   sourceNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.SOURCE_NOT_FOUND, {
       params: id,

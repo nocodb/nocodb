@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { OAuthClientType, OAuthTokenEndpointAuthMethod } from 'nocodb-sdk';
-import type { OAuthClient } from 'nocodb-sdk';
+import type { OAuthClient as IOAuthClient } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -13,7 +13,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 
-export default class OAuthClientModel implements OAuthClient {
+export default class OAuthClient implements IOAuthClient {
   client_id: string;
   client_secret?: string | null;
   client_type: OAuthClientType;
@@ -33,7 +33,7 @@ export default class OAuthClientModel implements OAuthClient {
   created_at: string;
   updated_at: string;
 
-  constructor(client: Partial<OAuthClientModel | OAuthClient>) {
+  constructor(client: Partial<IOAuthClient | OAuthClient>) {
     Object.assign(this, client);
   }
 
@@ -90,7 +90,7 @@ export default class OAuthClientModel implements OAuthClient {
       true,
     );
 
-    return this.getByClientId(res.client_id).then(async (client) => {
+    return this.getByClientId(res.client_id, ncMeta).then(async (client) => {
       await NocoCache.appendToList(
         CacheScope.OAUTH_CLIENT,
         [],
@@ -150,7 +150,48 @@ export default class OAuthClientModel implements OAuthClient {
     );
   }
 
-  public static castType(client: any): OAuthClientModel {
+  static async update(
+    clientId: string,
+    body: Partial<OAuthClient>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!clientId) {
+      return false;
+    }
+
+    let updateObj = extractProps(body, [
+      'client_name',
+      'client_uri',
+      'logo_uri',
+      'redirect_uris',
+      'allowed_grant_types',
+      'response_types',
+      'allowed_scopes',
+      'token_endpoint_auth_method',
+      'registration_client_uri',
+      'client_secret_expires_at',
+    ]);
+
+    updateObj = prepareForDb(updateObj, [
+      'redirect_uris',
+      'allowed_grant_types',
+      'response_types',
+    ]);
+
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.OAUTH_CLIENTS,
+      updateObj,
+      { client_id: clientId },
+    );
+
+    await NocoCache.update(`${CacheScope.API_TOKEN}:${clientId}`, updateObj);
+
+    return this.getByClientId(clientId, ncMeta);
+  }
+
+  public static castType(client: any): OAuthClient {
     if (!client) return null;
 
     client = prepareForResponse(client, [
@@ -159,6 +200,6 @@ export default class OAuthClientModel implements OAuthClient {
       'response_types',
     ]);
 
-    return new OAuthClientModel(client);
+    return new OAuthClient(client);
   }
 }

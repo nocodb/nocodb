@@ -1,9 +1,14 @@
 import { getModelPaths, getViewPaths } from './templates/paths';
-import type { Base, Model } from '~/models';
+import type { Base, Model, Source } from '~/models';
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
 import type { SwaggerView } from './getSwaggerJSON';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
+
+// Helper function to sanitize names for use in schema names
+function sanitizeSchemaName(name: string): string {
+  return name.replace(/[^a-zA-Z0-9_]/g, '_');
+}
 
 export default async function getPaths(
   context: NcContext,
@@ -12,16 +17,20 @@ export default async function getPaths(
     model,
     columns,
     views,
+    sourcesMap,
+    tableName,
   }: {
     base: Base;
     model: Model;
     columns: SwaggerColumn[];
     views: SwaggerView[];
+    sourcesMap: Map<string, Source>;
+    tableName: string;
   },
   _ncMeta = Noco.ncMeta,
 ) {
   const swaggerPaths = await getModelPaths(context, {
-    tableName: model.id,
+    tableName,
     type: model.type,
     orgs: 'v1',
     columns,
@@ -35,8 +44,8 @@ export default async function getPaths(
     Object.assign(
       swaggerPaths,
       await getViewPaths(context, {
-        tableName: model.id,
-        viewName: view.id,
+        tableName,
+        viewName: sanitizeSchemaName(view.title),
         type: model.type,
         orgs: 'v1',
         columns: swaggerColumns,

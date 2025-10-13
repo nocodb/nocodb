@@ -241,59 +241,34 @@ async function handleSubmit() {
             :model="clientRef"
             name="create-oauth-client"
             layout="vertical"
-            class="flex flex-col gap-6"
+            class="flex flex-col gap-3"
             @finish="handleSubmit"
           >
-            <!-- Application Name -->
-            <a-form-item label="Application Name" v-bind="validateInfos.client_name" class="mb-0">
-              <template #label>
-                <span class="text-gray-700 font-medium">Application Name <span class="text-red-500">*</span></span>
-              </template>
-              <a-input
-                ref="titleDomRef"
-                v-model:value="clientRef.client_name"
-                size="large"
-                placeholder="My Awesome App"
-                class="nc-input-shadow !rounded-lg"
-              />
-              <div class="text-xs text-gray-500 mt-1">Something users will recognize and trust</div>
-            </a-form-item>
+            <div class="flex gap-2">
+              <a-form-item label="Application Name" v-bind="validateInfos.client_name" class="mb-0 flex-1">
+                <template #label>
+                  <span class="text-gray-700 font-medium">Application Name <span class="text-red-500">*</span></span>
+                </template>
+                <a-input
+                  ref="titleDomRef"
+                  v-model:value="clientRef.client_name"
+                  placeholder="Example App"
+                  class="nc-input-shadow !rounded-lg"
+                />
+              </a-form-item>
 
-            <!-- Client Type -->
-            <a-form-item label="Client Type" v-bind="validateInfos.client_type" class="mb-0">
-              <template #label>
-                <span class="text-gray-700 font-medium">Client Type <span class="text-red-500">*</span></span>
-              </template>
-              <a-radio-group v-model:value="clientRef.client_type" class="flex flex-col gap-3">
-                <a-radio
-                  v-for="option in clientTypeOptions"
-                  :key="option.value"
-                  :value="option.value"
-                  class="!flex !items-start p-3 border rounded-lg hover:border-primary transition-colors"
-                >
-                  <div class="ml-2 flex-1">
-                    <div class="font-medium">{{ option.label }}</div>
-                    <div class="text-sm text-gray-500 mt-1">{{ option.description }}</div>
-                  </div>
-                </a-radio>
-              </a-radio-group>
-            </a-form-item>
+              <a-form-item label="Homepage URL" v-bind="validateInfos.client_uri" class="mb-0 flex-1">
+                <template #label>
+                  <span class="text-gray-700 font-medium">Homepage URL</span>
+                </template>
+                <a-input
+                  v-model:value="clientRef.client_uri"
+                  placeholder="https://example.com"
+                  class="nc-input-shadow !rounded-lg"
+                />
+              </a-form-item>
+            </div>
 
-            <!-- Homepage URL -->
-            <a-form-item label="Homepage URL" v-bind="validateInfos.client_uri" class="mb-0">
-              <template #label>
-                <span class="text-gray-700 font-medium">Homepage URL</span>
-              </template>
-              <a-input
-                v-model:value="clientRef.client_uri"
-                size="large"
-                placeholder="https://example.com"
-                class="nc-input-shadow !rounded-lg"
-              />
-              <div class="text-xs text-gray-500 mt-1">The full URL to your application homepage</div>
-            </a-form-item>
-
-            <!-- Logo URL -->
             <a-form-item label="Logo URL" v-bind="validateInfos.logo_uri" class="mb-0">
               <template #label>
                 <span class="text-gray-700 font-medium">Logo URL</span>

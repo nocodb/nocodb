@@ -34,10 +34,6 @@ export default async function getSwaggerJSONV3(
   const sources = await base.getSources(false, ncMeta);
   const sourcesMap = new Map(sources.map((source) => [source.id, source]));
 
-  // Helper function to sanitize names for use in schema names
-  function sanitizeSchemaName(name: string): string {
-    return name.replace(/[^a-zA-Z0-9_]/g, '_');
-  }
 
   // Pre-construct table names for all models to avoid repeated construction and handle duplicates
   const tableNamesMap = new Map<string, string>();
@@ -47,8 +43,8 @@ export default async function getSwaggerJSONV3(
     const source = sourcesMap.get(model.source_id);
     const sourcePrefix = source?.isMeta()
       ? ''
-      : `${sanitizeSchemaName(source?.alias || 'Source')}_`;
-    const tableName = `${sourcePrefix}${sanitizeSchemaName(model.title)}`;
+      : `${source?.alias || 'Source'}_`;
+    const tableName = `${sourcePrefix}${model.title}`;
 
     // Handle duplicate table names by adding a number suffix
     let finalTableName = tableName;

@@ -5,10 +5,6 @@ import type { SwaggerView } from './getSwaggerJSON';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 
-// Helper function to sanitize names for use in schema names
-function sanitizeSchemaName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_]/g, '_');
-}
 
 export default async function getPaths(
   context: NcContext,
@@ -44,7 +40,7 @@ export default async function getPaths(
       swaggerPaths,
       await getViewPaths(context, {
         tableName,
-        viewName: sanitizeSchemaName(view.title),
+        viewName: view.title,
         type: model.type,
         orgs: 'v1',
         columns: swaggerColumns,

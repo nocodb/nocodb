@@ -17,7 +17,6 @@ export default async function getPaths(
     model,
     columns,
     views,
-    sourcesMap,
     tableName,
   }: {
     base: Base;

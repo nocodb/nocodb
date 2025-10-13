@@ -17,13 +17,11 @@ import { McpService } from '~/mcp/mcp.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { GlobalGuard } from '~/guards/global/global.guard';
-import { hasMinimumRole } from '~/utils/roleHelper';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard)
 export class McpController {
-  constructor(private readonly mcpService: McpService) {}
+  constructor(protected readonly mcpService: McpService) {}
 
   @All('mcp/:mcpTokenId')
   async handleMcpRequest(
@@ -53,31 +51,5 @@ export class McpController {
     }
 
     return await this.mcpService.handleRequest(tokenId, context, req, res);
-  }
-
-  @UseGuards(GlobalGuard)
-  @All('mcp')
-  async handleMcpOAuthRequest(@Request() req: NcRequest, @Response() res) {
-    const context = {
-      workspace_id: (req.user as any)?.oauth_granted_resources?.workspace_id,
-      base_id: (req.user as any)?.oauth_granted_resources?.base_id,
-      user: req.user,
-      nc_site_url: req.ncSiteUrl,
-    };
-
-    if (!context.workspace_id || !context.base_id) {
-      NcError.baseNotFound('Base not found');
-    }
-
-    req.user = (await User.getWithRoles(context, req.user.id, {
-      baseId: context.base_id,
-      workspaceId: context.workspace_id,
-    })) as typeof req.user;
-
-    if (!hasMinimumRole(req.user, ProjectRoles.VIEWER)) {
-      NcError.forbidden('User has no access');
-    }
-
-    return await this.mcpService.handleRequest(null, context, req, res);
   }
 }

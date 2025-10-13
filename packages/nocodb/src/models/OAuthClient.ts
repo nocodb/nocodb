@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import { OAuthClientType, OAuthTokenEndpointAuthMethod } from 'nocodb-sdk';
+import type { AttachmentResType } from 'nocodb-sdk/build/main/lib';
 import type { OAuthClient as IOAuthClient } from 'nocodb-sdk';
 import {
   CacheDelDirection,
@@ -12,18 +13,21 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
+import { deserializeJSON, serializeJSON } from '~/utils/serialize';
+import { PresignedUrl } from '~/models/index';
 
 export default class OAuthClient implements IOAuthClient {
   client_id: string;
   client_secret?: string | null;
   client_type: OAuthClientType;
   client_name: string;
+  client_description?: string;
   client_uri?: string;
-  logo_uri?: string;
+  logo_uri?: AttachmentResType;
   redirect_uris: string[];
-  allowed_grant_types: string[];
-  response_types: string[];
-  allowed_scopes: string;
+  allowed_grant_types: string[]; // 'refresh token, authorization'
+  response_types: string[]; //
+  allowed_scopes: string; //
   token_endpoint_auth_method: OAuthTokenEndpointAuthMethod;
   registration_access_token?: string;
   registration_client_uri?: string;
@@ -45,11 +49,12 @@ export default class OAuthClient implements IOAuthClient {
       'client_type',
       'client_name',
       'client_uri',
+      'client_description',
       'logo_uri',
       'redirect_uris',
       'allowed_grant_types',
       'response_types',
-      'allowed_scopes',
+      // 'allowed_scopes', TODO: Implement Scopes
       'token_endpoint_auth_method',
       'registration_client_uri',
       'registration_access_token',
@@ -58,23 +63,20 @@ export default class OAuthClient implements IOAuthClient {
       'fk_user_id',
     ]);
 
-    if (
-      ![
-        OAuthTokenEndpointAuthMethod.CLIENT_SECRET_BASIC,
-        OAuthTokenEndpointAuthMethod.CLIENT_SECRET_POST,
-      ].includes(insertData.token_endpoint_auth_method)
-    ) {
-      insertData.token_endpoint_auth_method =
-        OAuthTokenEndpointAuthMethod.CLIENT_SECRET_BASIC;
-    }
-
     insertData.client_id = nanoid(32);
-    insertData.client_secret =
-      clientData.client_type === OAuthClientType.CONFIDENTIAL
-        ? nanoid(64)
-        : null;
 
-    insertData.client_id_issued_at = Date.now();
+    insertData = {
+      ...insertData,
+      client_type: OAuthClientType.PUBLIC,
+      allowed_grant_types: ['authorization_code', 'refresh_token'],
+      response_types: ['code'],
+      token_endpoint_auth_method: OAuthTokenEndpointAuthMethod.NONE,
+      client_id_issued_at: Date.now(),
+    };
+
+    if (insertData.logo_uri) {
+      insertData.logo_uri = this.serializeAttachmentJSON(insertData.logo_uri);
+    }
 
     insertData = prepareForDb(insertData, [
       'redirect_uris',
@@ -118,7 +120,18 @@ export default class OAuthClient implements IOAuthClient {
       }
     }
 
-    return data && this.castType(data);
+    if (data && data.logo_uri) {
+      const convertedAttachment = await this.convertAttachmentType(
+        {
+          logo_uri: data.logo_uri,
+        },
+        ncMeta,
+      );
+
+      data.logo_uri = convertedAttachment.logo_uri;
+    }
+
+    return data && (await this.castType(data));
   }
 
   static async list(userId?: string, ncMeta = Noco.ncMeta) {
@@ -129,7 +142,7 @@ export default class OAuthClient implements IOAuthClient {
       MetaTable.OAUTH_CLIENTS,
       { condition },
     );
-    return clients?.map((c) => this.castType(c));
+    return await Promise.all(clients?.map(async (c) => await this.castType(c)));
   }
 
   static async delete(clientId: string, ncMeta = Noco.ncMeta) {
@@ -162,12 +175,10 @@ export default class OAuthClient implements IOAuthClient {
     let updateObj = extractProps(body, [
       'client_name',
       'client_uri',
+      'client_description',
       'logo_uri',
       'redirect_uris',
-      'allowed_grant_types',
-      'response_types',
-      'allowed_scopes',
-      'token_endpoint_auth_method',
+      // 'allowed_scopes', TODO: Implement Scopes
       'registration_client_uri',
       'client_secret_expires_at',
     ]);
@@ -177,6 +188,10 @@ export default class OAuthClient implements IOAuthClient {
       'allowed_grant_types',
       'response_types',
     ]);
+
+    if (updateObj.logo_uri) {
+      updateObj.logo_uri = this.serializeAttachmentJSON(updateObj.logo_uri);
+    }
 
     await ncMeta.metaUpdate(
       RootScopes.ROOT,
@@ -191,7 +206,7 @@ export default class OAuthClient implements IOAuthClient {
     return this.getByClientId(clientId, ncMeta);
   }
 
-  public static castType(client: any): OAuthClient {
+  public static async castType(client: any): Promise<OAuthClient> {
     if (!client) return null;
 
     client = prepareForResponse(client, [
@@ -200,6 +215,61 @@ export default class OAuthClient implements IOAuthClient {
       'response_types',
     ]);
 
+    if (client && client.logo_uri) {
+      const convertedAttachment = await this.convertAttachmentType(
+        {
+          logo_uri: client.logo_uri,
+        },
+        client,
+      );
+
+      client.logo_uri = convertedAttachment.logo_uri;
+    }
+
     return new OAuthClient(client);
+  }
+
+  static serializeAttachmentJSON(attachment): string | null {
+    if (attachment) {
+      return serializeJSON(
+        extractProps(deserializeJSON(attachment), [
+          'url',
+          'path',
+          'title',
+          'mimetype',
+          'size',
+          'icon',
+        ]),
+      );
+    }
+    return attachment;
+  }
+
+  protected static async convertAttachmentType<K extends Record<string, any>>(
+    attachmentObjs: K,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ [P in keyof K]: AttachmentResType }> {
+    try {
+      if (attachmentObjs) {
+        const promises = [];
+
+        for (const key in attachmentObjs) {
+          if (attachmentObjs[key] && typeof attachmentObjs[key] === 'string') {
+            attachmentObjs[key] = deserializeJSON(attachmentObjs[key]);
+          }
+
+          promises.push(
+            PresignedUrl.signAttachment(
+              {
+                attachment: attachmentObjs[key],
+              },
+              ncMeta,
+            ),
+          );
+        }
+        await Promise.all(promises);
+      }
+    } catch {}
+    return attachmentObjs;
   }
 }

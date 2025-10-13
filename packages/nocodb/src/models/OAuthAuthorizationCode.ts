@@ -136,38 +136,52 @@ export default class OAuthAuthorizationCode {
     );
   }
 
-  static async deleteExpired(ncMeta = Noco.ncMeta) {
-    const expiredCodes = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.OAUTH_AUTHORIZATION_CODES,
-      {
-        condition: {
-          expires_at: {
-            lt: new Date().toISOString(),
-          },
-        },
-      },
-    );
+  static async deleteAllByClient(clientId: string, ncMeta = Noco.ncMeta) {
+    const BATCH_SIZE = 100;
+    let deletedCount = 0;
 
-    for (const expiredCode of expiredCodes) {
-      await NocoCache.deepDel(
-        'root',
-        `${CacheScope.OAUTH_AUTH_CODE}:${expiredCode.code}`,
-        CacheDelDirection.CHILD_TO_PARENT,
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      // Fetch a batch of codes
+      const codes = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.OAUTH_AUTHORIZATION_CODES,
+        {
+          condition: { client_id: clientId },
+          limit: BATCH_SIZE,
+        },
       );
+
+      if (!codes || codes.length === 0) {
+        break;
+      }
+
+      for (const code of codes) {
+        await NocoCache.deepDel(
+          'root',
+          `${CacheScope.OAUTH_AUTH_CODE}:${code.code}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+
+      const codesToDelete = codes.map((c) => c.code);
+      await ncMeta.metaDelete(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.OAUTH_AUTHORIZATION_CODES,
+        { code: { in: codesToDelete } },
+      );
+
+      deletedCount += codes.length;
+
+      // If we got fewer than BATCH_SIZE, we're done
+      if (codes.length < BATCH_SIZE) {
+        break;
+      }
     }
 
-    return await ncMeta.metaDelete(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.OAUTH_AUTHORIZATION_CODES,
-      {
-        expires_at: {
-          lt: new Date().toISOString(),
-        },
-      },
-    );
+    return deletedCount;
   }
 
   public static castType(authCode: any): OAuthAuthorizationCode {

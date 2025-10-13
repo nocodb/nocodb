@@ -8,7 +8,7 @@ import {
   CreateOAuthClientSchema,
   UpdateOAuthClientSchema,
 } from '~/modules/oauth/dto';
-import { OAuthClient } from '~/models';
+import { OAuthAuthorizationCode, OAuthClient, OAuthToken } from '~/models';
 import { NcError } from '~/helpers/ncError';
 
 @Injectable()
@@ -107,6 +107,10 @@ export class OauthClientService {
       clientId,
       req,
     });
+
+    await OAuthToken.deleteAllByClient(clientId);
+
+    await OAuthAuthorizationCode.deleteAllByClient(clientId);
 
     return await OAuthClient.delete(clientId);
   }

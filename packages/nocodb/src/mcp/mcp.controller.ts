@@ -17,6 +17,7 @@ import { McpService } from '~/mcp/mcp.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcError } from '~/helpers/catchError';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { GlobalGuard } from '~/guards/global/global.guard';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard)
@@ -54,8 +55,9 @@ export class McpController {
   }
 
   @All('mcp')
+  @UseGuards(GlobalGuard)
   async handleMcpOAuthRequest(@Request() req: NcRequest, @Response() res) {
-    const ctx = req.user.oauth_granted_resources;
+    const ctx = (req.user as any).oauth_granted_resources;
 
     return await this.mcpService.handleRequest(
       null,

@@ -17,6 +17,7 @@ export interface TokenResponse {
   refresh_token?: string;
   refresh_expires_in?: number;
   scope?: string;
+  resource?: string;
 }
 
 export interface PKCEValidationParams {
@@ -234,6 +235,7 @@ export class OauthTokenService {
     refreshToken: string;
     clientId: string;
     clientSecret?: string;
+    resource?: string;
   }): Promise<TokenResponse> {
     const { refreshToken, clientId, clientSecret } = params;
 

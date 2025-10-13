@@ -73,6 +73,8 @@ export enum MetaTable {
   PERMISSION_SUBJECTS = 'nc_permission_subjects',
   DASHBOARDS = 'nc_dashboards_v2',
   WIDGETS = 'nc_widgets_v2',
+  MODEL_STAT = 'nc_model_stat',
+  OAUTH_CLIENTS = 'nc_oauth_clients',
 }
 
 export enum MetaTableOldV2 {
@@ -227,6 +229,7 @@ export enum CacheScope {
   PERMISSION_USER = 'permissionUser',
   DASHBOARD = 'dashboard',
   WIDGET = 'widget',
+  OAUTH_CLIENT = 'oAuthClient',
 }
 
 export enum CacheGetType {

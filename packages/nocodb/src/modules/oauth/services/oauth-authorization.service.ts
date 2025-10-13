@@ -61,7 +61,7 @@ export class OauthAuthorizationService {
       if (url.protocol !== 'https:' && url.protocol !== 'http:') {
         NcError.badRequest('invalid_redirect_uri');
       }
-      // Exact match required for security
+      // Exact match required
       if (!client.redirect_uris.includes(redirectUri)) {
         NcError.badRequest('invalid_redirect_uri');
       }
@@ -102,10 +102,7 @@ export class OauthAuthorizationService {
 
     const grantedResources: Record<string, any> = {};
     if (workspaceId) {
-      const wsUser = await WorkspaceUser.get({
-        workspaceId,
-        baseId,
-      });
+      const wsUser = await WorkspaceUser.get(workspaceId, userId);
 
       if (wsUser) {
         grantedResources.workspace_id = workspaceId;

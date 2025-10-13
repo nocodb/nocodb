@@ -57,10 +57,6 @@ export class OauthTokenService {
     return computedChallenge === codeChallenge;
   }
 
-  private generateSecureToken(length: number = 32): string {
-    return randomBytes(length).toString('base64url');
-  }
-
   private async generateAccessToken(payload: {
     userId: string;
     clientId: string;

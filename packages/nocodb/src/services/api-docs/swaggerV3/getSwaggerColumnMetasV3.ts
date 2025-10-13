@@ -1,9 +1,10 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { FormulaDataTypes } from 'nocodb-sdk';
-import type { Base, Column, LinkToAnotherRecordColumn } from '~/models';
+import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
 import type { DriverClient } from '~/utils/nc-config';
+import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
 
@@ -106,18 +107,26 @@ async function processColumnToSwaggerField(
         );
         if (colOpt) {
           const relationCol = await colOpt.getRelationColumn(context);
-          const lookupCol = await colOpt.getLookupColumn(context);
           const relationColOpt =
             await relationCol.getColOptions<LinkToAnotherRecordColumn>(
               context,
               ncMeta,
             );
+          const { refContext } = await relationColOpt.getRelContext(context);
+
+          const lookupCol = await colOpt.getLookupColumn(refContext);
+
+          const refBase =
+            !relationColOpt.fk_related_base_id ||
+            base.id === relationColOpt.fk_related_base_id
+              ? base
+              : await Base.get(refContext, relationColOpt.fk_related_base_id);
 
           // Get the type of the lookup column by recursively processing it
           const lookupField = await processColumnToSwaggerField(
-            context,
+            refContext,
             lookupCol,
-            base,
+            refBase,
             ncMeta,
             true,
             dbType,

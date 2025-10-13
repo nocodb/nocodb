@@ -15,6 +15,10 @@ import { UITypes, isSystemColumn } from 'nocodb-sdk'
 export type ColumnFilterType = FilterType & {
   status?: string
   id?: string
+  /**
+   * temp_id is used to keep reference when not yet saved
+   */
+  temp_id?: string
   // used in new viewmodel to keep reference when not yet saved
   tmp_id?: string
   tmp_fk_parent_id: string
@@ -97,6 +101,16 @@ export function useViewFilters(
       _filters.value = value
     },
   })
+
+  const getDraftFilterId = (): string => {
+    let id: string
+
+    do {
+      id = generateRandomUUID()
+    } while ((filters.value || []).find((f) => f.id === id || f.tmp_id === id))
+
+    return id
+  }
 
   // when a filter is deleted with auto apply disabled, the status is marked as 'delete'
   // nonDeletedFilters are those filters that are not deleted physically & virtually
@@ -223,6 +237,7 @@ export function useViewFilters(
     })
 
     const filter: ColumnFilterType = {
+      temp_id: getDraftFilterId(),
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
         isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
       )?.[0]?.value as FilterType['comparison_op'],
@@ -254,6 +269,7 @@ export function useViewFilters(
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
 
     return {
+      temp_id: getDraftFilterId(),
       is_group: true,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',

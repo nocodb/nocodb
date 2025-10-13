@@ -571,7 +571,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
       moved: { newIndex = 0, oldIndex = 0, element },
     } = event
 
-    if (!element?.id || visibleFilters.value.length === 1) return
+    if ((!element?.id && !element.temp_id) || visibleFilters.value.length === 1) return
 
     let nextOrder: number
     let changedLogicalOperatorEl: ColumnFilterType | undefined = undefined
@@ -620,12 +620,17 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 
     element.order = _nextOrder
 
-    const elementIndex = visibleFilters.value.findIndex((item) => item?.id === element?.id)
+    const elementIndex =
+      visibleFilters.value.findIndex((item) => item?.id === element?.id) ||
+      visibleFilters.value.findIndex((item) => item?.temp_id === element?.temp_id)
 
-    const lastFilterElIndex = lastFilters.value.findIndex((item) => item.id === element.id)
+    const lastFilterElIndex =
+      lastFilters.value.findIndex((item) => item.id === element.id) ||
+      lastFilters.value.findIndex((item) => item.temp_id === element.temp_id)
 
     const lastFilterChangedLogicalOperatorElIndex = changedLogicalOperatorEl
-      ? lastFilters.value.findIndex((item) => item.id === changedLogicalOperatorEl?.id)
+      ? lastFilters.value.findIndex((item) => item.id === changedLogicalOperatorEl?.id) ||
+        lastFilters.value.findIndex((item) => item.temp_id === changedLogicalOperatorEl?.temp_id)
       : -1
 
     await saveOrUpdate(element, elementIndex, false, false, false, lastFilterElIndex)

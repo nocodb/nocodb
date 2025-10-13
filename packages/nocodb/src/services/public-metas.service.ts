@@ -12,6 +12,7 @@ import type {
   CalendarView,
   LinkToAnotherRecordColumn,
   LookupColumn,
+  RollupColumn,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
 import {
@@ -108,6 +109,13 @@ export class PublicMetasService {
               view.columns.some((vc) => vc.fk_column_id === c1.id && vc.show) &&
               (<LinkToAnotherRecordColumn>c1.colOptions).fk_child_column_id ===
                 c.fk_column_id,
+          ) ||
+          view.model.columns.some(
+            (c1) =>
+              (UITypes.Lookup === c1.uidt || UITypes.Rollup === c1.uidt) &&
+              c1.colOptions &&
+              (<LookupColumn | RollupColumn>c1.colOptions)
+                .fk_relation_column_id === c.fk_column_id,
           )
         );
       })

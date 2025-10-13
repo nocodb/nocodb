@@ -119,13 +119,12 @@ export class OauthTokenService {
 
   async exchangeCodeForTokens(params: {
     code: string;
-    clientId: string;
     redirectUri: string;
     codeVerifier?: string;
     clientSecret?: string;
     resource?: string;
   }): Promise<TokenResponse> {
-    const { code, clientId, redirectUri, codeVerifier, clientSecret } = params;
+    const { code, redirectUri, codeVerifier, clientSecret } = params;
 
     // Get authorization code
     const authCode = await OAuthAuthorizationCode.getByCode(code);
@@ -155,12 +154,6 @@ export class OauthTokenService {
     if (new Date(authCode.expires_at) < new Date()) {
       console.log('Authorization code has expired');
       NcError.badRequest('Authorization code has expired');
-    }
-
-    // Validate client ID
-    if (authCode.client_id !== clientId) {
-      console.log('Invalid client_id');
-      NcError.badRequest('Invalid client_id');
     }
 
     // Validate redirect URI
@@ -194,7 +187,7 @@ export class OauthTokenService {
 
     // Authenticate the client
     await this.authenticateClient({
-      clientId,
+      clientId: authCode.client_id,
       clientSecret,
     });
 
@@ -222,7 +215,7 @@ export class OauthTokenService {
     console.log('Generated refresh token');
 
     const insertObj = {
-      client_id: clientId,
+      client_id: authCode.client_id,
       fk_user_id: authCode.user_id,
       access_token: accessToken,
       access_token_expires_at: accessTokenExpiresAt,

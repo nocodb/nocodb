@@ -162,12 +162,12 @@ export class OAuthController {
     try {
       switch (grant_type) {
         case 'authorization_code':
-          if (!code || !redirect_uri || !clientId) {
-            console.log('code, redirect_uri, client_id missing');
+          if (!code || !redirect_uri) {
+            console.log('code, redirect_uri missing');
             return {
               error: 'invalid_request',
               error_description:
-                'Missing required parameters: code, redirect_uri, client_id',
+                'Missing required parameters: code, redirect_uri',
             };
           }
 
@@ -181,7 +181,6 @@ export class OAuthController {
 
           return await this.oauthTokenService.exchangeCodeForTokens({
             code,
-            clientId,
             redirectUri: redirect_uri,
             codeVerifier: code_verifier,
             clientSecret,

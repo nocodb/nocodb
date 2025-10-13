@@ -1,6 +1,5 @@
 import { randomBytes } from 'crypto';
 import { Injectable } from '@nestjs/common';
-import { nanoid } from 'nanoid';
 import { OAuthClientType } from 'nocodb-sdk';
 import { OAuthClient } from '~/models';
 
@@ -55,7 +54,7 @@ export class OauthDcrService {
       }
     }
 
-    const clientType = request.client_type || OAuthClientType.PUBLIC;
+    const clientType = request.client_type || OAuthClientType.CONFIDENTIAL;
     if (
       ![OAuthClientType.PUBLIC, OAuthClientType.CONFIDENTIAL].includes(
         clientType,
@@ -67,7 +66,7 @@ export class OauthDcrService {
     }
 
     const clientSecret =
-      clientType === 'confidential'
+      clientType === OAuthClientType.CONFIDENTIAL
         ? randomBytes(32).toString('base64url')
         : undefined;
     const issuedAt = Math.floor(Date.now() / 1000);

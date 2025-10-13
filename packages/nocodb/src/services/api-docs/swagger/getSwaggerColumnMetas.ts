@@ -35,12 +35,15 @@ async function processColumnToSwaggerField(
           const relTable = await colOpt.getRelatedTable(context, ncMeta);
           if (colOpt.type === RelationTypes.BELONGS_TO) {
             field.type = undefined;
-            if (!relTable || relTable.base_id !== context.base_id) {
+
+            // skip if refTable undefined or cross base link
+            if (relTable && relTable.base_id === context.base_id) {
               field.$ref = `#/components/schemas/${relTable.title}Request`;
             }
           } else {
             field.type = 'array';
-            if (!relTable || relTable.base_id !== context.base_id) {
+            // skip if refTable undefined or cross base link
+            if (relTable && relTable.base_id === context.base_id) {
               field.items = {
                 $ref: `#/components/schemas/${relTable.title}Request`,
               };

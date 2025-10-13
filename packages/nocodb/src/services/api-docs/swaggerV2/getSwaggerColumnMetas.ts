@@ -35,7 +35,7 @@ async function processColumnToSwaggerField(
           const relTable = await colOpt.getRelatedTable(context, ncMeta);
           field.type = undefined;
           // skip if refTable undefined or cross base link
-          if (!relTable || relTable.base_id !== context.base_id) {
+          if (relTable && relTable.base_id === context.base_id) {
             field.$ref = `#/components/schemas/${relTable.title}Request`;
           }
         }

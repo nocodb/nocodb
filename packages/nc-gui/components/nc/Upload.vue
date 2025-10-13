@@ -175,8 +175,6 @@ const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
       fileToUpload,
     )
 
-    console.log(uploadResult)
-
     attachment.value = uploadResult?.[0]
   } catch (error: any) {
     console.error(error)

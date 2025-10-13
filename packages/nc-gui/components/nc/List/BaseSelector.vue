@@ -90,10 +90,10 @@ watch(
   baseList,
   (newBaseList) => {
     if (newBaseList && newBaseList.length > 0) {
-      const newBaseListMap = new Map(newBaseList.map((base) => [base.value, base]))
+      const baseValueSet = new Set(newBaseList.map((base) => base.value))
 
       // Check if current value exists in the new base list
-      if (modelValue.value && !newBaseListMap.has(modelValue.value)) {
+      if (modelValue.value && !baseValueSet.has(modelValue.value)) {
         // Current value is not in the list, set null to clear it
         modelValue.value = null
         return
@@ -101,14 +101,12 @@ watch(
 
       // Auto-select logic (only if autoSelect is enabled and no current value)
       if (!modelValue.value && props.autoSelect) {
-        const newBaseId = newBaseList[0]?.value
+        const firstBase = newBaseList[0]
 
-        const baseObj = newBaseListMap.get(newBaseId)
-
-        if (baseObj && baseObj.ncItemDisabled && baseObj.value === newBaseList[0]?.value) {
-          modelValue.value = newBaseList.find((base) => !base.ncItemDisabled)?.value || newBaseList[0]?.value
+        if (firstBase.ncItemDisabled) {
+          modelValue.value = newBaseList.find((base) => !base.ncItemDisabled)?.value || firstBase.value
         } else {
-          modelValue.value = newBaseId
+          modelValue.value = firstBase.value
         }
       }
     }

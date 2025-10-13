@@ -102,11 +102,12 @@ export class OauthAuthorizationService {
 
     const grantedResources: Record<string, any> = {};
     if (workspaceId) {
-      const workspaces = await WorkspaceUser.workspaceList({
-        fk_user_id: userId,
+      const wsUser = await WorkspaceUser.get({
+        workspaceId,
+        baseId,
       });
 
-      if (workspaces.find((w) => w.id === workspaceId)) {
+      if (wsUser) {
         grantedResources.workspace_id = workspaceId;
       } else {
         NcError.badRequest('invalid_workspace_id');

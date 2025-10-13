@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Headers,
+  Logger,
   Param,
   Post,
   Req,
@@ -21,6 +22,8 @@ import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-author
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 import { OauthDcrService } from '~/modules/oauth/services/oauth-dcr.service';
 import { OauthMetadataService } from '~/modules/oauth/services/oauth-metadata.service';
+
+const logger = new Logger('OAuthController');
 
 @Controller()
 export class OAuthController {
@@ -109,7 +112,7 @@ export class OAuthController {
         });
       return { redirect_url: successRedirectUrl };
     } catch (e) {
-      console.error(e);
+      logger.error(e?.messagem e)
       const errorRedirectUrl = this.oauthAuthorizationService.buildRedirectUrl(
         redirect_uri,
         {
@@ -210,7 +213,7 @@ export class OAuthController {
           };
       }
     } catch (error) {
-      console.log(error);
+      logger.log(error)
       if (error.message === 'invalid_client') {
         return {
           error: 'invalid_client',

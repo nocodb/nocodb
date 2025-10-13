@@ -4,7 +4,10 @@ import type {
   CreateOAuthClientDto,
   UpdateOAuthClientDto,
 } from '~/modules/oauth/dto';
-import { CreateOAuthClientSchema } from '~/modules/oauth/dto';
+import {
+  CreateOAuthClientSchema,
+  UpdateOAuthClientSchema,
+} from '~/modules/oauth/dto';
 import { OAuthClient } from '~/models';
 import { NcError } from '~/helpers/ncError';
 
@@ -71,6 +74,15 @@ export class OauthClientService {
       req: NcRequest;
     },
   ) {
+    const validatedBody = UpdateOAuthClientSchema.safeParse(body);
+
+    if (validatedBody.error) {
+      NcError.get(context).zodError({
+        message: 'Request body is invalid',
+        errors: validatedBody.error,
+      });
+    }
+
     const client = await OAuthClient.getByClientId(clientId);
 
     if (!client || client.fk_user_id !== req.user.id) {

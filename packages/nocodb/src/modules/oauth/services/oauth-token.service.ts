@@ -27,8 +27,8 @@ export interface PKCEValidationParams {
 
 @Injectable()
 export class OauthTokenService {
-  private readonly ACCESS_TOKEN_EXPIRES_IN = 60 * 60;
-  private readonly REFRESH_TOKEN_EXPIRES_IN = 60 * 24 * 60 * 60;
+  private readonly ACCESS_TOKEN_EXPIRES_IN = 60 * 60; // 1 hour in seconds
+  private readonly REFRESH_TOKEN_EXPIRES_IN = 60 * 24 * 60 * 60; // 60 days in seconds
 
   validatePKCE(params: PKCEValidationParams): boolean {
     const { codeVerifier, codeChallenge, codeChallengeMethod } = params;
@@ -66,14 +66,15 @@ export class OauthTokenService {
     scope?: string;
   }): Promise<string> {
     const user = await User.get(payload.userId);
+    const now = Math.floor(Date.now() / 1000);
 
     return jwt.sign(
       {
         sub: payload.userId,
         client_id: payload.clientId,
         scope: payload.scope,
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + this.ACCESS_TOKEN_EXPIRES_IN,
+        iat: now,
+        exp: now + this.ACCESS_TOKEN_EXPIRES_IN,
         // User information like normal JWTs
         email: user.email,
         id: user.id,
@@ -173,6 +174,15 @@ export class OauthTokenService {
       clientSecret,
     });
 
+    const now = Date.now();
+    const accessTokenExpiresAt = new Date(
+      now + this.ACCESS_TOKEN_EXPIRES_IN * 1000,
+    ).toISOString();
+
+    const refreshTokenExpiresAt = new Date(
+      now + this.REFRESH_TOKEN_EXPIRES_IN * 1000,
+    ).toISOString();
+
     // Generate tokens
     const accessToken = await this.generateAccessToken({
       userId: authCode.user_id,
@@ -182,16 +192,7 @@ export class OauthTokenService {
 
     const refreshToken = randomBytes(64).toString('base64url');
 
-    const accessTokenExpiresAt = new Date(
-      Date.now() + this.ACCESS_TOKEN_EXPIRES_IN * 1000,
-    ).toISOString();
-
-    const refreshTokenExpiresAt = new Date(
-      Date.now() + this.REFRESH_TOKEN_EXPIRES_IN * 1000,
-    ).toISOString();
-
-    // Store token in database
-    await OAuthToken.insert({
+    const insertObj = {
       client_id: clientId,
       fk_user_id: authCode.user_id,
       access_token: accessToken,
@@ -201,7 +202,8 @@ export class OauthTokenService {
       scope: authCode.scope,
       granted_resources: authCode.granted_resources,
       resource: authCode.resource,
-    });
+    };
+    await OAuthToken.insert(insertObj);
 
     // Mark authorization code as used
     await OAuthAuthorizationCode.markAsUsed(code);
@@ -252,6 +254,15 @@ export class OauthTokenService {
       NcError.badRequest('Invalid client_id');
     }
 
+    const now = Date.now();
+    const newAccessTokenExpiresAt = new Date(
+      now + this.ACCESS_TOKEN_EXPIRES_IN * 1000,
+    ).toISOString();
+
+    const newRefreshTokenExpiresAt = new Date(
+      now + this.REFRESH_TOKEN_EXPIRES_IN * 1000,
+    ).toISOString();
+
     // Generate new access token
     const newAccessToken = await this.generateAccessToken({
       userId: tokenRecord.fk_user_id,
@@ -259,15 +270,8 @@ export class OauthTokenService {
       scope: tokenRecord.scope,
     });
 
-    const newAccessTokenExpiresAt = new Date(
-      Date.now() + this.ACCESS_TOKEN_EXPIRES_IN * 1000,
-    ).toISOString();
-
     // Rotate refresh tokens for security
     const newRefreshToken = randomBytes(64).toString('base64url');
-    const newRefreshTokenExpiresAt = new Date(
-      Date.now() + this.REFRESH_TOKEN_EXPIRES_IN * 1000,
-    ).toISOString();
 
     // Revoke old token
     await OAuthToken.revoke(tokenRecord.id);

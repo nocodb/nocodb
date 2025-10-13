@@ -4,7 +4,7 @@ import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
 import type { DriverClient } from '~/utils/nc-config';
-import { Base, Base } from '~/models';
+import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
 

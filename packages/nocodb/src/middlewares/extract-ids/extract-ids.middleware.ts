@@ -82,6 +82,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     };
     req.ncApiVersion = context.api_version;
 
+    const isInternalApi = !!req.path?.startsWith('/api/v2/internal');
+
+    const isInternalOrgScope = isInternalApi && params.baseId === 'nc';
+
     // extract base id based on request path params
 
     if (params.mcpTokenId) {
@@ -94,7 +98,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId = mcpToken.base_id;
     }
 
-    if (params.baseId || params.baseName) {
+    if ((params.baseId || params.baseName) && !isInternalOrgScope) {
       // We allow title for backward compatibility - TODO: we should get rid of it in future
       const base = await Base.getByTitleOrId(
         context,

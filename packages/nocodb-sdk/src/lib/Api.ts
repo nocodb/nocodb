@@ -335,7 +335,7 @@ export interface FilterV3Type {
   /** Secondary comparison operator (if applicable). */
   sub_operator?: string | null;
   /** Value for comparison. */
-  value: string | number | boolean | null;
+  value?: string | number | boolean | null;
 }
 
 export type FieldUpdateV3Type = FieldBaseV3Type &
@@ -5140,6 +5140,36 @@ export interface SnapshotType {
   created_by?: IdType;
   /** Status of the Snapshot */
   status?: string;
+}
+
+/**
+ * Model for Script
+ */
+export interface ScriptType {
+  /** Unique ID */
+  id?: string;
+  /** Title of the Script */
+  title?: string;
+  /** Description of the Script */
+  description?: string;
+  /** Meta data for the Script */
+  meta?: object;
+  /** Config for the Script */
+  config?: object;
+  /** Order of the Script */
+  order?: number;
+  /** Base ID */
+  base_id?: IdType;
+  /** Workspace ID */
+  fk_workspace_id?: IdType;
+  /** User ID of the creator */
+  created_by?: IdType;
+  /** Code of the script */
+  script?: string;
+  /** Last updated time */
+  updated_at?: string;
+  /** Creation time */
+  created_at?: string;
 }
 
 export interface ExtensionReqType {
@@ -12470,6 +12500,180 @@ export class Api<
         ...params,
       }),
   };
+  oAuth = {
+    /**
+ * @description Retrieve public information about an OAuth client for authorization display
+ * 
+ * @tags OAuth
+ * @name V2PublicOauthClientDetail
+ * @summary Get OAuth Client Information
+ * @request GET:/api/v2/public/oauth/client/{clientId}
+ * @response `200` `{
+  \** OAuth client identifier *\
+  client_id: string,
+  \** Application name *\
+  client_name: string,
+  \**
+   * Application homepage URL
+   * @format uri
+   *\
+  client_uri?: string,
+  \** Application logo URL or file metadata *\
+  logo_uri?: (string | {
+  path?: string,
+  title?: string,
+  mimetype?: string,
+  size?: number,
+
+}),
+  \** Application description *\
+  client_description?: string,
+  \** Registered redirect URIs *\
+  redirect_uris: (string)[],
+  \** OAuth client type *\
+  client_type: "public" | "confidential",
+
+}` OAuth client information
+ * @response `400` `{
+  \** @example invalid_client_id *\
+  error?: string,
+  \** @example The client ID format is invalid *\
+  error_description?: string,
+
+}` Invalid client ID format
+ * @response `404` `{
+  \** @example client_not_found *\
+  error?: string,
+  \** @example The requested OAuth client does not exist *\
+  error_description?: string,
+
+}` OAuth client not found
+ */
+    v2PublicOauthClientDetail: (clientId: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          /** OAuth client identifier */
+          client_id: string;
+          /** Application name */
+          client_name: string;
+          /**
+           * Application homepage URL
+           * @format uri
+           */
+          client_uri?: string;
+          /** Application logo URL or file metadata */
+          logo_uri?:
+            | string
+            | {
+                path?: string;
+                title?: string;
+                mimetype?: string;
+                size?: number;
+              };
+          /** Application description */
+          client_description?: string;
+          /** Registered redirect URIs */
+          redirect_uris: string[];
+          /** OAuth client type */
+          client_type: 'public' | 'confidential';
+        },
+        | {
+            /** @example invalid_client_id */
+            error?: string;
+            /** @example The client ID format is invalid */
+            error_description?: string;
+          }
+        | {
+            /** @example client_not_found */
+            error?: string;
+            /** @example The requested OAuth client does not exist */
+            error_description?: string;
+          }
+      >({
+        path: `/api/v2/public/oauth/client/${clientId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Handle OAuth authorization request with user approval/denial
+ * 
+ * @tags OAuth
+ * @name Authorize
+ * @summary OAuth Authorization
+ * @request POST:/api/v2/oauth/authorize
+ * @response `200` `{
+  \**
+   * URL to redirect the user to
+   * @format uri
+   *\
+  redirect_url?: string,
+
+}` Authorization processed successfully
+ * @response `400` `{
+  \** @example Missing required parameters: client_id, redirect_uri *\
+  message?: string,
+
+}` Missing required parameters
+ */
+    authorize: (
+      data: {
+        /**
+         * The client identifier
+         * @example your-client-id
+         */
+        client_id: string;
+        /**
+         * The client redirection URI
+         * @format uri
+         * @example https://your-app.com/callback
+         */
+        redirect_uri: string;
+        /**
+         * Opaque value used to maintain state between request and callback
+         * @example xyz123
+         */
+        state?: string;
+        /**
+         * Whether the user approved the authorization request
+         * @example true
+         */
+        approved?: boolean;
+        /**
+         * PKCE code challenge
+         * @example dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+         */
+        code_challenge?: string;
+        /**
+         * PKCE code challenge method
+         * @example S256
+         */
+        code_challenge_method?: 'S256' | 'plain';
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /**
+           * URL to redirect the user to
+           * @format uri
+           */
+          redirect_url?: string;
+        },
+        {
+          /** @example Missing required parameters: client_id, redirect_uri */
+          message?: string;
+        }
+      >({
+        path: `/api/v2/oauth/authorize`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
   utils = {
     /**
  * @description List all comments
@@ -15218,6 +15422,14 @@ export class Api<
         row_id?: string;
         /** Cursor */
         cursor?: string;
+        /** Client ID */
+        clientId?: string;
+        /** Token ID */
+        tokenId?: string;
+        /** Dashboard ID */
+        dashboardId?: string;
+        /** Widget ID */
+        widgetId?: string;
       },
       data: Record<string, any>,
       params: RequestParams = {}
@@ -15253,6 +15465,14 @@ export class Api<
         row_id?: string;
         /** Cursor */
         cursor?: string;
+        /** Client ID */
+        clientId?: string;
+        /** Token ID */
+        tokenId?: string;
+        /** Dashboard ID */
+        dashboardId?: string;
+        /** Widget ID */
+        widgetId?: string;
       },
       params: RequestParams = {}
     ) =>

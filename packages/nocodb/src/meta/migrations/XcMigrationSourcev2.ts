@@ -78,7 +78,6 @@ import * as nc_088_add_sso_client_to_api_tokens from '~/meta/migrations/v2/nc_08
 import * as nc_089_dashboard_sharing from '~/meta/migrations/v2/nc_089_dashboard_sharing';
 import * as nc_090_add_is_new_user_to_users from '~/meta/migrations/v2/nc_090_add_is_new_user_to_users';
 import * as nc_091_unify_model from '~/meta/migrations/v2/nc_091_unify_model';
-import * as nc_092_composite_pk from '~/meta/migrations/v2/nc_092_composite_pk';
 import * as nc_093_oauth_server from '~/meta/migrations/v2/nc_093_oauth_server';
 
 // Create a custom migration source class
@@ -169,7 +168,6 @@ export default class XcMigrationSourcev2 {
       'nc_089_dashboard_sharing',
       'nc_090_add_is_new_user_to_users',
       'nc_091_unify_model',
-      'nc_092_composite_pk',
       'nc_093_oauth_server',
     ]);
   }
@@ -340,8 +338,6 @@ export default class XcMigrationSourcev2 {
         return nc_090_add_is_new_user_to_users;
       case 'nc_091_unify_model':
         return nc_091_unify_model;
-      case 'nc_092_composite_pk':
-        return nc_092_composite_pk;
       case 'nc_093_oauth_server':
         return nc_093_oauth_server;
     }

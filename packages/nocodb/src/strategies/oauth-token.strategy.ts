@@ -27,7 +27,12 @@ export class OAuthTokenStrategy extends PassportStrategy(
 
       // Get OAuth token from database
       const oAuthToken = await OAuthToken.getByAccessToken(token);
+
       if (!oAuthToken) {
+        return callback({ msg: 'Invalid OAuth token' });
+      }
+
+      if (oAuthToken.is_revoked) {
         return callback({ msg: 'Invalid OAuth token' });
       }
 

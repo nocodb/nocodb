@@ -74,7 +74,6 @@ export default class OAuthToken {
     return this.getByAccessToken(insertData.access_token, ncMeta).then(
       async (token) => {
         await NocoCache.appendToList(
-          'root',
           CacheScope.OAUTH_TOKEN,
           [],
           `${CacheScope.OAUTH_TOKEN}:${insertData.access_token}`,
@@ -97,7 +96,6 @@ export default class OAuthToken {
 
   static async getByAccessToken(accessToken: string, ncMeta = Noco.ncMeta) {
     let data = await NocoCache.get(
-      'root',
       `${CacheScope.OAUTH_TOKEN}:${accessToken}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -110,11 +108,7 @@ export default class OAuthToken {
         { access_token: accessToken },
       );
       if (data) {
-        await NocoCache.set(
-          'root',
-          `${CacheScope.OAUTH_TOKEN}:${accessToken}`,
-          data,
-        );
+        await NocoCache.set(`${CacheScope.OAUTH_TOKEN}:${accessToken}`, data);
       }
     }
 
@@ -163,7 +157,6 @@ export default class OAuthToken {
 
     // Update cache by access token
     await NocoCache.update(
-      'root',
       `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
       updateData,
     );
@@ -195,7 +188,6 @@ export default class OAuthToken {
       // Clear cache for each token in the batch
       for (const token of tokens) {
         await NocoCache.deepDel(
-          'root',
           `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -241,7 +233,6 @@ export default class OAuthToken {
 
     // Update cache by access token
     await NocoCache.update(
-      'root',
       `${CacheScope.OAUTH_TOKEN}:${token.access_token}`,
       updateData,
     );

@@ -76,7 +76,6 @@ export default class OAuthAuthorizationCode {
 
   static async getByCode(code: string, ncMeta = Noco.ncMeta) {
     let data = await NocoCache.get(
-      'root',
       `${CacheScope.OAUTH_AUTH_CODE}:${code}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -90,7 +89,6 @@ export default class OAuthAuthorizationCode {
       );
       if (data) {
         await NocoCache.setExpiring(
-          'root',
           `${CacheScope.OAUTH_AUTH_CODE}:${code}`,
           data,
           600,
@@ -110,7 +108,7 @@ export default class OAuthAuthorizationCode {
       { code }, // Using code as the primary key
     );
 
-    await NocoCache.update('root', `${CacheScope.OAUTH_AUTH_CODE}:${code}`, {
+    await NocoCache.update(`${CacheScope.OAUTH_AUTH_CODE}:${code}`, {
       is_used: true,
     });
 
@@ -123,7 +121,6 @@ export default class OAuthAuthorizationCode {
     }
 
     await NocoCache.deepDel(
-      'root',
       `${CacheScope.OAUTH_AUTH_CODE}:${code}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -159,7 +156,6 @@ export default class OAuthAuthorizationCode {
 
       for (const code of codes) {
         await NocoCache.deepDel(
-          'root',
           `${CacheScope.OAUTH_AUTH_CODE}:${code.code}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );

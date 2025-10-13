@@ -116,10 +116,7 @@ export function useSharedView() {
     }
 
     if (meta.value) {
-      meta.value.columns = [...viewMeta.model.columns]
-        .filter((c) => c.show || rangeFields.includes(c.id) || (sharedView.value?.type === ViewTypes.GRID && c?.group_by))
-        .map((c) => ({ ...c, order: order++ }))
-        .sort((a, b) => a.order - b.order)
+      meta.value.columns = [...viewMeta.model.columns].map((c) => ({ ...c, order: order++ })).sort((a, b) => a.order - b.order)
     }
 
     await setMeta(viewMeta.model)

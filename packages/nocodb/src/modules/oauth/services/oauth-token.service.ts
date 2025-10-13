@@ -90,26 +90,38 @@ export class OauthTokenService {
   }): Promise<OAuthClient> {
     const { clientId, clientSecret } = params;
 
+    console.log(params);
+
     const client = await OAuthClient.getByClientId(clientId);
+
+    console.log(client);
+
     if (!client) {
+      console.log('Invalid Client - Client Not FOund');
       throw new Error('invalid_client: Client not found');
     }
 
     // Confidential clients must always authenticate
     if (client.client_secret) {
+      console.log('Conidential Client - Client Secret Required');
+
       if (!clientSecret) {
+        console.log('Invalid Client - Client Secret Required');
         throw new Error(
           'invalid_client: Client secret required for confidential clients',
         );
       }
 
       if (clientSecret !== client.client_secret) {
+        console.log('Invalid Client - Invalid Client Credentials');
         throw new Error('invalid_client: Invalid client credentials');
       }
     } else {
+      console.log('Public Client - Client Secret Not Required');
       // Public clients (no client_secret)
       // PKCE is required for public clients, but they don't need a secret
       if (clientSecret) {
+        console.log('Invalid Client - Client Secret Not Required');
         throw new Error(
           'invalid_client: Client secret not expected for public clients',
         );
@@ -127,6 +139,8 @@ export class OauthTokenService {
     resource?: string;
   }): Promise<TokenResponse> {
     const { code, redirectUri, codeVerifier, clientSecret } = params;
+
+    console.log(params);
 
     // Get authorization code
     const authCode = await OAuthAuthorizationCode.getByCode(code);
@@ -153,11 +167,13 @@ export class OauthTokenService {
 
     // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
+      console.log('Invalid Authorization Code - Expired');
       throw new Error('invalid_grant: Authorization code has expired');
     }
 
     // Validate redirect URI
     if (authCode.redirect_uri !== redirectUri) {
+      console.log('Invalid Redirect URI');
       throw new Error('invalid_grant: Invalid redirect_uri');
     }
 
@@ -167,6 +183,7 @@ export class OauthTokenService {
     // Validate PKCE if code challenge was provided during authorization
     if (isPKCEFlow) {
       if (!codeVerifier) {
+        console.log('Invalid PKCE - Code Verifier Required');
         throw new Error(
           'invalid_request: code_verifier is required for PKCE flow',
         );

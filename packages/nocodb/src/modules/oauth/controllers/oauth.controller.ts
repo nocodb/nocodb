@@ -211,7 +211,6 @@ export class OAuthController {
           };
       }
     } catch (error) {
-      logger.log(error);
       if (error.message === 'invalid_client') {
         return {
           error: 'invalid_client',
@@ -224,6 +223,30 @@ export class OAuthController {
           error_description: 'The provided authorization grant is invalid',
         };
       }
+      if (
+        error.message?.includes('revoked') ||
+        error.message?.includes('expired') ||
+        error.message?.includes('Invalid refresh token') ||
+        error.message?.includes('Invalid authorization code') ||
+        error.message?.includes('PKCE')
+      ) {
+        return {
+          error: 'invalid_grant',
+          error_description:
+            error.message || 'The provided authorization grant is invalid',
+        };
+      }
+      if (
+        error.message?.includes('client_id') ||
+        error.message?.includes('redirect_uri')
+      ) {
+        return {
+          error: 'invalid_request',
+          error_description: error.message || 'Invalid request parameters',
+        };
+      }
+
+      logger.error('oauth_token_error', error);
       return {
         error: 'server_error',
         error_description: 'An unexpected error occurred',
@@ -283,43 +306,46 @@ export class OAuthController {
   @UseGuards(PublicApiLimiterGuard)
   @Post(['/api/v2/oauth/register'])
   async registerClient(
+    @Req() req: NcRequest,
     @Body() body,
     @Headers('content-type') contentType: string,
+    @Res() res: Response,
   ) {
     if (!contentType || !contentType.includes('application/json')) {
-      return {
+      return res.status(400).json({
         error: 'invalid_request',
         error_description:
           'Content-Type must be application/json for client registration',
-      };
+      });
     }
 
     try {
-      return await this.oauthDcrService.registerClient(body);
+      const client = await this.oauthDcrService.registerClient(body, req);
+      return res.status(201).json(client);
     } catch (error) {
       if (error.message.startsWith('invalid_client_metadata:')) {
-        return {
+        return res.status(400).json({
           error: 'invalid_client_metadata',
           error_description: error.message.replace(
             'invalid_client_metadata: ',
             '',
           ),
-        };
+        });
       }
       if (error.message.startsWith('invalid_redirect_uri:')) {
-        return {
+        return res.status(400).json({
           error: 'invalid_redirect_uri',
           error_description: error.message.replace(
             'invalid_redirect_uri: ',
             '',
           ),
-        };
+        });
       }
-      return {
+      return res.status(500).json({
         error: 'server_error',
         error_description:
           'An unexpected error occurred during client registration',
-      };
+      });
     }
   }
 

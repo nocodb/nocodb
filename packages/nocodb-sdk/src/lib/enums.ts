@@ -493,6 +493,7 @@ export enum PublicAttachmentScope {
   WORKSPACEPICS = 'workspacePics',
   PROFILEPICS = 'profilePics',
   ORGANIZATIONPICS = 'organizationPics',
+  OAUTHCLIENTS = 'oauthClients',
 }
 
 export enum IconType {

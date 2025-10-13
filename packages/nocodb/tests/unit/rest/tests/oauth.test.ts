@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
 import crypto from 'crypto';
+import { OAuthClientType } from 'nocodb-sdk';
 import init from '../../init';
 import { createProject } from '../../factory/base';
 import type { IInitContext } from '../../init';
@@ -380,6 +381,7 @@ function oauthTests() {
         .set('Content-Type', 'application/json')
         .send({
           client_name: 'Minimal Public Client',
+          client_type: OAuthClientType.PUBLIC,
           redirect_uris: ['https://example.com/callback'],
         })
         .expect(201);
@@ -706,6 +708,7 @@ function oauthTests() {
         .send({
           client_name: 'DCR Flow Test Client',
           redirect_uris: ['https://example.com/callback'],
+          client_type: OAuthClientType.PUBLIC,
         })
         .expect(201);
 

@@ -130,12 +130,15 @@ export class OAuthController {
       !contentType ||
       !contentType.includes('application/x-www-form-urlencoded')
     ) {
+      console.log('Error here');
       return {
         error: 'invalid_request',
         error_description:
           'Content-Type must be application/x-www-form-urlencoded',
       };
     }
+
+    console.log(body);
 
     const {
       grant_type,
@@ -149,6 +152,7 @@ export class OAuthController {
     const { client_id: clientId, client_secret: clientSecret } = body;
 
     if (!grant_type) {
+      console.log('grant_type missing');
       return {
         error: 'invalid_request',
         error_description: 'Missing required parameter: grant_type',
@@ -159,6 +163,7 @@ export class OAuthController {
       switch (grant_type) {
         case 'authorization_code':
           if (!code || !redirect_uri || !clientId) {
+            console.log('code, redirect_uri, client_id missing');
             return {
               error: 'invalid_request',
               error_description:
@@ -167,6 +172,7 @@ export class OAuthController {
           }
 
           if (!code_verifier) {
+            console.log('code_verifier missing');
             return {
               error: 'invalid_request',
               error_description: 'Missing required parameter: code_verifier',
@@ -184,6 +190,7 @@ export class OAuthController {
 
         case 'refresh_token':
           if (!refresh_token) {
+            console.log('refresh_token missing');
             return {
               error: 'invalid_request',
               error_description: 'Missing required parameter: refresh_token',
@@ -191,6 +198,7 @@ export class OAuthController {
           }
 
           if (!clientId && !clientSecret) {
+            console.log('client_id or client_secret missing');
             return {
               error: 'invalid_request',
               error_description: 'Missing required parameter: client_id',
@@ -205,6 +213,7 @@ export class OAuthController {
           });
 
         default:
+          console.log('Unsupported grant_type');
           return {
             error: 'unsupported_grant_type',
             error_description: `Unsupported grant_type: ${grant_type}`,
@@ -212,17 +221,20 @@ export class OAuthController {
       }
     } catch (error) {
       if (error.message === 'invalid_client') {
+        console.log('invalid_client');
         return {
           error: 'invalid_client',
           error_description: 'Client authentication failed',
         };
       }
       if (error.message === 'invalid_grant') {
+        console.log('invalid_grant');
         return {
           error: 'invalid_grant',
           error_description: 'The provided authorization grant is invalid',
         };
       }
+      console.log('server_error');
       return {
         error: 'server_error',
         error_description: 'An unexpected error occurred',

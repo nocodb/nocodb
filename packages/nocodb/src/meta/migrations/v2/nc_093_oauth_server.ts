@@ -30,8 +30,8 @@ const up = async (knex: Knex) => {
     MetaTable.OAUTH_AUTHORIZATION_CODES,
     (table) => {
       table.string('code', 32).primary();
-      table.string('client_id', 32);
-      table.string('user_id', 20);
+      table.string('fk_client_id', 32);
+      table.string('fk_user_id', 20);
 
       // PKCE
       table.string('code_challenge');
@@ -49,19 +49,19 @@ const up = async (knex: Knex) => {
       table.timestamps(true, true);
 
       // Indexes for performance
-      table.index('client_id');
-      table.index('user_id');
+      table.index('fk_client_id');
+      table.index('fk_user_id');
       table.index('code');
       table.index('expires_at');
       table.index('is_used');
-      table.index(['client_id', 'user_id']);
+      table.index(['fk_client_id', 'fk_user_id']);
     },
   );
 
   // OAuth Tokens Table
   await knex.schema.createTable(MetaTable.OAUTH_TOKENS, (table) => {
     table.string('id', 20).primary();
-    table.string('client_id', 32);
+    table.string('fk_client_id', 32);
     table.string('fk_user_id');
 
     table.text('access_token');
@@ -82,7 +82,7 @@ const up = async (knex: Knex) => {
     table.timestamp('last_used_at').nullable();
 
     // Indexes for performance
-    table.index('client_id');
+    table.index('fk_client_id');
     table.index('fk_user_id');
     table.index('access_token');
     table.index('refresh_token');
@@ -90,7 +90,7 @@ const up = async (knex: Knex) => {
     table.index('refresh_token_expires_at');
     table.index('is_revoked');
     table.index('last_used_at');
-    table.index(['client_id', 'fk_user_id']);
+    table.index(['fk_client_id', 'fk_user_id']);
     table.index(['is_revoked', 'access_token_expires_at']);
   });
 };

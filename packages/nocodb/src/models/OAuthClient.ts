@@ -241,7 +241,7 @@ export default class OAuthClient implements IOAuthClient {
 
     await NocoCache.update(
       'root',
-      `${CacheScope.API_TOKEN}:${clientId}`,
+      `${CacheScope.OAUTH_CLIENT}:${clientId}`,
       updateObj,
     );
 

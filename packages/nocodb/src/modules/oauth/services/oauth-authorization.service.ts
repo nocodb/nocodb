@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { NcBaseError } from 'nocodb-sdk';
 import {
   BaseUser,
   OAuthAuthorizationCode,
@@ -9,6 +10,8 @@ import { NcError } from '~/helpers/ncError';
 
 @Injectable()
 export class OauthAuthorizationService {
+  // Authorization code expires in 10 minutes
+  private readonly AUTHORIZATION_CODE_EXPIRES_IN_MS = 10 * 60 * 1000;
   buildRedirectUrl(redirectUri: string, params: Record<string, string>) {
     const url = new URL(redirectUri);
 
@@ -46,6 +49,7 @@ export class OauthAuthorizationService {
       resource,
     } = params;
 
+    // Validate client exists
     const client = await OAuthClient.getByClientId(clientId);
     if (!client) {
       NcError.badRequest('invalid_client');
@@ -98,33 +102,58 @@ export class OauthAuthorizationService {
       NcError.badRequest('invalid_code_challenge');
     }
 
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const expiresAt = new Date(
+      Date.now() + this.AUTHORIZATION_CODE_EXPIRES_IN_MS,
+    );
 
     const grantedResources: Record<string, any> = {};
-    if (workspaceId) {
-      const wsUser = await WorkspaceUser.get(workspaceId, userId);
 
-      if (wsUser) {
+    // Validate workspace access if specified
+    if (workspaceId) {
+      try {
+        const wsUser = await WorkspaceUser.get(workspaceId, userId);
+
+        if (!wsUser) {
+          NcError.forbidden(
+            'User does not have access to the specified workspace',
+          );
+        }
+
         grantedResources.workspace_id = workspaceId;
-      } else {
+      } catch (error) {
+        if (error instanceof NcError || error instanceof NcBaseError)
+          throw error;
         NcError.badRequest('invalid_workspace_id');
       }
     }
+
+    // Validate base access if specified
     if (baseId) {
-      const bases = await BaseUser.getProjectsList(userId, {});
+      try {
+        const bases = await BaseUser.getProjectsList(userId, {});
 
-      const base = bases.find((b) => b.id === baseId);
+        const base = bases?.find?.((b) => b.id === baseId);
 
-      if (base && base.fk_workspace_id === workspaceId) {
+        if (!base) {
+          NcError.forbidden('User does not have access to the specified base');
+        }
+
+        // If workspace is specified, ensure base belongs to that workspace
+        if (workspaceId && base.fk_workspace_id !== workspaceId) {
+          NcError.badRequest('Base does not belong to the specified workspace');
+        }
+
         grantedResources.base_id = baseId;
-      } else {
+      } catch (error) {
+        if (error instanceof NcError || error instanceof NcBaseError)
+          throw error;
         NcError.badRequest('invalid_base_id');
       }
     }
 
     return await OAuthAuthorizationCode.insert({
-      client_id: clientId,
-      user_id: userId,
+      fk_client_id: clientId,
+      fk_user_id: userId,
       redirect_uri: redirectUri,
       state,
       code_challenge: codeChallenge,

@@ -3,12 +3,14 @@ import { Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { OAuthAuthorizationCode, OAuthClient, OAuthToken } from '~/models';
 import { NcError } from '~/helpers/ncError';
+import Noco from '~/Noco';
 
 export interface TokenResponse {
   access_token: string;
   token_type: string;
   expires_in: number;
   refresh_token?: string;
+  refresh_expires_in?: number;
   scope?: string;
 }
 
@@ -20,9 +22,8 @@ export interface PKCEValidationParams {
 
 @Injectable()
 export class OauthTokenService {
-  private readonly JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-  private readonly ACCESS_TOKEN_EXPIRES_IN = 60 * 60; // 60 minutes in seconds
-  private readonly REFRESH_TOKEN_EXPIRES_IN = 60 * 24 * 3600; // 60 days in seconds
+  private readonly ACCESS_TOKEN_EXPIRES_IN = 60 * 60;
+  private readonly REFRESH_TOKEN_EXPIRES_IN = 60 * 24 * 60 * 60;
 
   validatePKCE(params: PKCEValidationParams): boolean {
     const { codeVerifier, codeChallenge, codeChallengeMethod } = params;
@@ -31,34 +32,29 @@ export class OauthTokenService {
       return false;
     }
 
-    let computedChallenge: string;
-
-    switch (codeChallengeMethod) {
-      case 'S256':
-        computedChallenge = createHash('sha256')
-          .update(codeVerifier)
-          .digest('base64url');
-        break;
-      case 'plain':
-        computedChallenge = codeVerifier;
-        break;
-      default:
-        return false;
+    if (codeChallengeMethod !== 'S256') {
+      return false;
     }
+
+    if (codeVerifier.length < 43 || codeVerifier.length > 128) {
+      return false;
+    }
+    const allowedChars = /^[a-zA-Z0-9._~-]+$/;
+    if (!allowedChars.test(codeVerifier)) {
+      return false;
+    }
+
+    const computedChallenge = createHash('sha256')
+      .update(codeVerifier)
+      .digest('base64url');
 
     return computedChallenge === codeChallenge;
   }
 
-  /**
-   * Generate a secure random token
-   */
   private generateSecureToken(length: number = 32): string {
     return randomBytes(length).toString('base64url');
   }
 
-  /**
-   * Generate JWT access token
-   */
   private generateAccessToken(payload: {
     userId: string;
     clientId: string;
@@ -72,23 +68,49 @@ export class OauthTokenService {
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + this.ACCESS_TOKEN_EXPIRES_IN,
       },
-      this.JWT_SECRET,
+      Noco.config.auth.jwt.secret,
       {
         algorithm: 'HS256',
       },
     );
   }
 
-  /**
-   * Exchange authorization code for tokens (with PKCE validation)
-   */
+  private async authenticateClient(params: {
+    clientId: string;
+    clientSecret?: string;
+  }): Promise<OAuthClient> {
+    const { clientId, clientSecret } = params;
+
+    const client = await OAuthClient.getByClientId(clientId);
+    if (!client) {
+      NcError.badRequest('invalid_client');
+    }
+
+    if (client.client_secret) {
+      if (!clientSecret) {
+        NcError.badRequest('invalid_client');
+      }
+
+      if (clientSecret !== client.client_secret) {
+        NcError.badRequest('invalid_client');
+      }
+    } else {
+      if (clientSecret) {
+        NcError.badRequest('invalid_client');
+      }
+    }
+
+    return client;
+  }
+
   async exchangeCodeForTokens(params: {
     code: string;
     clientId: string;
     redirectUri: string;
     codeVerifier?: string;
+    clientSecret?: string;
   }): Promise<TokenResponse> {
-    const { code, clientId, redirectUri, codeVerifier } = params;
+    const { code, clientId, redirectUri, codeVerifier, clientSecret } = params;
 
     // Get authorization code
     const authCode = await OAuthAuthorizationCode.getByCode(code);
@@ -133,11 +155,11 @@ export class OauthTokenService {
       }
     }
 
-    // Get client to verify it exists
-    const client = await OAuthClient.getByClientId(clientId);
-    if (!client) {
-      NcError.badRequest('Invalid client');
-    }
+    // Authenticate the client
+    await this.authenticateClient({
+      clientId,
+      clientSecret,
+    });
 
     // Generate tokens
     const accessToken = this.generateAccessToken({
@@ -146,7 +168,7 @@ export class OauthTokenService {
       scope: authCode.scope,
     });
 
-    const refreshToken = this.generateSecureToken(64);
+    const refreshToken = randomBytes(64).toString('base64url');
 
     const accessTokenExpiresAt = new Date(
       Date.now() + this.ACCESS_TOKEN_EXPIRES_IN * 1000,
@@ -177,18 +199,17 @@ export class OauthTokenService {
       token_type: 'Bearer',
       expires_in: this.ACCESS_TOKEN_EXPIRES_IN,
       refresh_token: refreshToken,
+      refresh_expires_in: this.REFRESH_TOKEN_EXPIRES_IN,
       scope: authCode.scope,
     };
   }
 
-  /**
-   * Refresh access token using refresh token
-   */
   async refreshAccessToken(params: {
     refreshToken: string;
     clientId: string;
+    clientSecret?: string;
   }): Promise<TokenResponse> {
-    const { refreshToken, clientId } = params;
+    const { refreshToken, clientId, clientSecret } = params;
 
     // Get token by refresh token
     const tokenRecord = await OAuthToken.getByRefreshToken(refreshToken);
@@ -209,6 +230,11 @@ export class OauthTokenService {
       NcError.badRequest('Refresh token has expired');
     }
 
+    await this.authenticateClient({
+      clientId,
+      clientSecret,
+    });
+
     // Validate client ID
     if (tokenRecord.client_id !== clientId) {
       NcError.badRequest('Invalid client_id');
@@ -225,8 +251,8 @@ export class OauthTokenService {
       Date.now() + this.ACCESS_TOKEN_EXPIRES_IN * 1000,
     ).toISOString();
 
-    // Generate new refresh token (rotate refresh tokens for security)
-    const newRefreshToken = this.generateSecureToken(64);
+    // Rotate refresh tokens for security
+    const newRefreshToken = randomBytes(64).toString('base64url');
     const newRefreshTokenExpiresAt = new Date(
       Date.now() + this.REFRESH_TOKEN_EXPIRES_IN * 1000,
     ).toISOString();
@@ -252,19 +278,24 @@ export class OauthTokenService {
       token_type: 'Bearer',
       expires_in: this.ACCESS_TOKEN_EXPIRES_IN,
       refresh_token: newRefreshToken,
+      refresh_expires_in: this.REFRESH_TOKEN_EXPIRES_IN,
       scope: tokenRecord.scope,
     };
   }
 
-  /**
-   * Revoke a token (access or refresh)
-   */
   async revokeToken(params: {
     token: string;
     clientId: string;
+    clientSecret?: string;
     tokenTypeHint?: 'access_token' | 'refresh_token';
   }): Promise<boolean> {
-    const { token, clientId, tokenTypeHint } = params;
+    const { token, clientId, clientSecret, tokenTypeHint } = params;
+
+    // Authenticate the client
+    await this.authenticateClient({
+      clientId,
+      clientSecret,
+    });
 
     let tokenRecord: OAuthToken | null = null;
 
@@ -280,7 +311,7 @@ export class OauthTokenService {
     }
 
     if (!tokenRecord) {
-      // OAuth spec says to return success even if token doesn't exist
+      // Return success even if token doesn't exist
       return true;
     }
 

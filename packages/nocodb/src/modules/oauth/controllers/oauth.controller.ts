@@ -40,9 +40,16 @@ export class OAuthController {
   @Post('/api/v2/oauth/authorize')
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async authorize(@Body() body, @Req() req: NcRequest) {
-    const { client_id, redirect_uri, state, approved } = body;
+    const {
+      client_id,
+      redirect_uri,
+      state,
+      approved,
+      code_challenge,
+      code_challenge_method,
+      scope,
+    } = body;
 
-    // Validate required parameters
     if (!client_id || !redirect_uri) {
       NcError.badRequest(
         'Missing required parameters: client_id, redirect_uri',
@@ -66,8 +73,9 @@ export class OAuthController {
           userId: req.user.id,
           redirectUri: redirect_uri,
           state,
-          codeChallenge: body.code_challenge,
-          codeChallengeMethod: body.code_challenge_method,
+          codeChallenge: code_challenge,
+          codeChallengeMethod: code_challenge_method,
+          scope,
         });
 
       const successRedirectUrl =
@@ -94,59 +102,82 @@ export class OAuthController {
   @UseGuards(PublicApiLimiterGuard)
   @Post(['/api/v2/oauth/token'])
   async token(@Body() body) {
-    const {
-      grant_type,
-      code,
-      redirect_uri,
-      client_id,
-      code_verifier,
-      refresh_token,
-    } = body;
+    const { grant_type, code, redirect_uri, code_verifier, refresh_token } =
+      body;
 
-    // Validate required parameters based on grant type
+    const { client_id: clientId, client_secret: clientSecret } = body;
+
     if (!grant_type) {
-      NcError.badRequest('Missing required parameter: grant_type');
+      return {
+        error: 'invalid_request',
+        error_description: 'Missing required parameter: grant_type',
+      };
     }
 
     try {
       switch (grant_type) {
         case 'authorization_code':
-          // Validate required parameters for authorization code flow
-          if (!code || !redirect_uri || !client_id) {
-            NcError.badRequest(
-              'Missing required parameters: code, redirect_uri, client_id',
-            );
+          if (!code || !redirect_uri || !clientId) {
+            return {
+              error: 'invalid_request',
+              error_description:
+                'Missing required parameters: code, redirect_uri, client_id',
+            };
+          }
+
+          if (!code_verifier) {
+            return {
+              error: 'invalid_request',
+              error_description: 'Missing required parameter: code_verifier',
+            };
           }
 
           return await this.oauthTokenService.exchangeCodeForTokens({
             code,
-            clientId: client_id,
+            clientId,
             redirectUri: redirect_uri,
-            codeVerifier: code_verifier, // PKCE code verifier
+            codeVerifier: code_verifier,
+            clientSecret,
           });
 
         case 'refresh_token':
-          // Validate required parameters for refresh token flow
-          if (!refresh_token || !client_id) {
-            NcError.badRequest(
-              'Missing required parameters: refresh_token, client_id',
-            );
+          if (!refresh_token) {
+            return {
+              error: 'invalid_request',
+              error_description: 'Missing required parameter: refresh_token',
+            };
+          }
+
+          if (!clientId && !clientSecret) {
+            return {
+              error: 'invalid_request',
+              error_description: 'Missing required parameter: client_id',
+            };
           }
 
           return await this.oauthTokenService.refreshAccessToken({
             refreshToken: refresh_token,
-            clientId: client_id,
+            clientId,
+            clientSecret,
           });
 
         default:
-          NcError.badRequest(`Unsupported grant_type: ${grant_type}`);
+          return {
+            error: 'unsupported_grant_type',
+            error_description: `Unsupported grant_type: ${grant_type}`,
+          };
       }
     } catch (error) {
-      // Return OAuth 2.0 compliant error response
-      if (error.message) {
+      if (error.message === 'invalid_client') {
         return {
-          error: 'invalid_request',
-          error_description: error.message,
+          error: 'invalid_client',
+          error_description: 'Client authentication failed',
+        };
+      }
+      if (error.message === 'invalid_grant') {
+        return {
+          error: 'invalid_grant',
+          error_description: 'The provided authorization grant is invalid',
         };
       }
       return {
@@ -159,33 +190,36 @@ export class OAuthController {
   @UseGuards(PublicApiLimiterGuard)
   @Post(['/api/v2/oauth/revoke'])
   async revoke(@Body() body) {
-    const { token, client_id, token_type_hint } = body;
+    const { token, token_type_hint } = body;
 
-    // Validate required parameters
-    if (!token || !client_id) {
-      NcError.badRequest('Missing required parameters: token, client_id');
+    const { client_id: clientId, client_secret: clientSecret } = body;
+
+    if (!token || !clientId) {
+      return {
+        error: 'invalid_request',
+        error_description: 'Missing required parameters: token, client_id',
+      };
     }
 
     try {
       await this.oauthTokenService.revokeToken({
         token,
-        clientId: client_id,
+        clientId,
+        clientSecret,
         tokenTypeHint: token_type_hint,
       });
 
-      // OAuth 2.0 spec requires 200 OK response for successful revocation
       return { success: true };
     } catch (error) {
-      // Return OAuth 2.0 compliant error response
-      if (error.message) {
+      if (error.message === 'invalid_client') {
         return {
-          error: 'invalid_request',
-          error_description: error.message,
+          error: 'invalid_client',
+          error_description: 'Client authentication failed',
         };
       }
       return {
-        error: 'server_error',
-        error_description: 'An unexpected error occurred',
+        error: 'invalid_request',
+        error_description: error.message || 'Token revocation failed',
       };
     }
   }

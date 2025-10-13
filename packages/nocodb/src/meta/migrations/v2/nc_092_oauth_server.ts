@@ -15,7 +15,6 @@ const up = async (knex: Knex) => {
     table.text('allowed_grant_types'); // JSON stored as text
     table.text('response_types'); // JSON stored as text
     table.text('allowed_scopes');
-    table.string('token_endpoint_auth_method');
     table.string('registration_access_token');
     table.string('registration_client_uri');
     table.bigInteger('client_id_issued_at');

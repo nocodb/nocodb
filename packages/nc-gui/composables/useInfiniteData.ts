@@ -196,7 +196,7 @@ export function useInfiniteData(args: {
 
   const computedWhereFilter = computed(() => {
     const { filters: filter } = extractFilterFromXwhere(
-      { api_version: NcApiVersion.V1 },
+      { api_version: NcApiVersion.V1, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
       where?.value ?? '',
       columnsByAlias.value,
     )

@@ -11,6 +11,10 @@ const modalVisible = useVModel(props, 'visible', emits)
 
 const { t } = useI18n()
 
+const oauthStore = useOAuthClients()
+
+const { createOAuthClient } = oauthStore
+
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const supportedDocs = [
@@ -111,13 +115,11 @@ function resetForm() {
   clearValidate()
 }
 
-// Handle form submission
 async function handleSubmit() {
   try {
     await validate()
     loading.value = true
 
-    // Parse redirect URIs
     const redirect_uris = clientRef.redirect_uris
       .split('\n')
       .map((uri) => uri.trim())
@@ -128,29 +130,17 @@ async function handleSubmit() {
       redirect_uris,
     }
 
-    // Call API to create OAuth client
-    // const response = await $api.oauth.clientCreate(payload)
-
-    // Emit success event
-    // emits('created', response)
-
-    // Close modal and reset form
+    await createOAuthClient(payload)
     modalVisible.value = false
     resetForm()
 
     // Show success message
     message.success('OAuth client created successfully!')
   } catch (error: any) {
-    console.error('Failed to create OAuth client:', error)
-
     if (error.errorFields) {
       // Form validation errors - these will be displayed automatically
       return
     }
-
-    // API errors
-    const errorMsg = error.response?.data?.message || error.message || 'Failed to create OAuth client'
-    message.error(errorMsg)
   } finally {
     loading.value = false
   }
@@ -166,7 +156,7 @@ async function handleSubmit() {
           <span class="text-gray-900 truncate font-semibold text-xl"> Create OAuth Client </span>
         </div>
 
-        <div class="flex justify-end items-center gap-3 pr-0.5 flex-1">
+        <div class="flex justify-end items-center gap-3 pr-0.5 flex-1" @click="handleSubmit">
           <NcButton type="primary" html-type="submit" size="small" :loading="loading">
             {{ loading ? 'Creating...' : 'Create OAuth Client' }}
           </NcButton>
@@ -183,13 +173,7 @@ async function handleSubmit() {
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"
       >
         <div class="flex flex-col max-w-[640px] w-full mx-auto gap-3">
-          <a-form
-            :model="clientRef"
-            name="create-oauth-client"
-            layout="vertical"
-            class="flex flex-col gap-6"
-            @finish="handleSubmit"
-          >
+          <a-form :model="clientRef" name="create-oauth-client" layout="vertical" class="flex flex-col gap-6">
             <a-form-item label="Application Name" v-bind="validateInfos.client_name" class="!mb-0 flex-1">
               <template #label>
                 <span class="text-gray-700 font-medium">Application Name <span class="text-red-500">*</span></span>
@@ -217,9 +201,9 @@ async function handleSubmit() {
               <template #label>
                 <span class="text-gray-700 font-medium">Application Description</span>
               </template>
-              <a-input
+              <a-textarea
                 ref="titleDomRef"
-                v-model:value="clientRef.client_name"
+                v-model:value="clientRef.client_description"
                 placeholder="Example App"
                 class="nc-input-shadow !rounded-lg"
               />

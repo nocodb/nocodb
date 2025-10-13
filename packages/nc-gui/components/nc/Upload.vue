@@ -273,7 +273,7 @@ onUnmounted(() => {
           <img :src="previewImage.src" alt="Preview Image" />
         </div>
       </div>
-      <div class="flex justify-between items-center space-x-4">
+      <div class="flex justify-between items-center mt-4 space-x-4">
         <div class="flex items-center space-x-4">
           <NcButton type="secondary" size="small" :disabled="isLoading" @click="showCropper = false"> Cancel </NcButton>
         </div>
@@ -305,7 +305,7 @@ onUnmounted(() => {
       :class="{
         'mt-4': attachment,
       }"
-      class="flex items-center justify-center gap-2"
+      class="flex items-center gap-2"
     >
       <NcButton type="secondary" size="small" @click="openFileDialog">
         <div class="flex gap-2 items-center">

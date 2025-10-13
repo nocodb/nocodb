@@ -49,6 +49,7 @@ export class InternalController {
       oAuthClientGet: 'org',
       oAuthAuthorizationList: 'org',
       oAuthAuthorizationRevoke: 'org',
+      oAuthClientRegenerateSecret: 'org',
     } as const;
   }
 
@@ -147,6 +148,11 @@ export class InternalController {
           payload.tokenId,
         );
         return { success: true };
+      case 'oAuthClientRegenerateSecret':
+        return await this.oAuthClientService.regenerateClientSecret(context, {
+          clientId: req.query.clientId as string,
+          req,
+        });
       default:
         NcError.notFound('Operation');
     }

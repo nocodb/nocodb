@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { OAuthClientType } from 'nocodb-sdk'
+
 const props = defineProps<{
   visible: boolean
+  clientId?: string
 }>()
 
-const emits = defineEmits(['update:visible'])
+const emits = defineEmits(['update:visible', 'deleted'])
 
 const modalVisible = useVModel(props, 'visible', emits)
 
@@ -12,39 +14,31 @@ const { t } = useI18n()
 
 const oauthStore = useOAuthClients()
 
-const { createOAuthClient } = oauthStore
+const { updateOAuthClient, regenerateClientSecret } = oauthStore
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const supportedDocs = [
-  {
-    title: 'NocoDB OAuth Client Setup',
-    href: 'https://docs.nocodb.com/nc-gui/oauth-client-setup',
-  },
-  {
-    title: 'NocoDB OAuth Client Setup',
-    href: 'https://docs.nocodb.com/nc-gui/oauth-client-setup',
-  },
-]
+const { copy } = useCopy()
 
 const useForm = Form.useForm
 
 // Form data
-const clientRef = reactive({
+const clientRef = ref({
   client_name: '',
   client_type: 'public' as OAuthClientType,
   client_description: '',
   client_uri: '',
   logo_uri: null,
   redirect_uris: '',
-  allowed_grant_types: ['authorization_code', 'refresh_token'],
-  response_types: ['code'],
+  client_id: '',
+  client_secret: '',
+  created_at: '',
 })
 
 const loading = ref(false)
-const titleDomRef = ref<HTMLInputElement>()
-const createdClient = ref<any>(null)
-const showSuccessView = ref(false)
+const regenerateModalVisible = ref(false)
+const showSecret = ref(false)
+const secretJustRegenerated = ref(false)
 
 // Validation rules
 const validators = computed(() => ({
@@ -54,17 +48,7 @@ const validators = computed(() => ({
   ],
   client_uri: [
     {
-      validator: (_: any, _value: string) => {
-        return Promise.resolve()
-      },
-    },
-  ],
-  logo_uri: [
-    {
       validator: (_: any, value: string) => {
-        if (!value) {
-          return Promise.reject(new Error('Please select a valid File'))
-        }
         return Promise.resolve()
       },
     },
@@ -84,60 +68,81 @@ const validators = computed(() => ({
           return Promise.reject(new Error('At least one redirect URI is required'))
         }
 
-        for (const uri of uris) {
-          if (!isValidURL(uri)) {
-            // return Promise.reject(new Error(`Invalid URL: ${uri}`))
-          }
-        }
-
         return Promise.resolve()
       },
     },
   ],
 }))
 
-const { validate, validateInfos, clearValidate } = useForm(clientRef, validators)
+const { validate, validateInfos } = useForm(clientRef, validators)
 
-function resetForm() {
-  Object.assign(clientRef, {
-    client_name: '',
-    client_type: 'public' as OAuthClientType,
-    client_description: '',
-    client_uri: '',
-    logo_uri: '',
-    redirect_uris: '',
-    allowed_grant_types: ['authorization_code', 'refresh_token'],
-    response_types: ['code'],
-  })
-  clearValidate()
-  showSuccessView.value = false
-  createdClient.value = null
+// Load client data
+watch(
+  () => props.clientId,
+  async (newClientId) => {
+    if (newClientId && modalVisible.value) {
+      await loadClientData(newClientId)
+    }
+  },
+  { immediate: true },
+)
+
+watch(modalVisible, async (newVal) => {
+  if (newVal && props.clientId) {
+    await loadClientData(props.clientId)
+  } else if (!newVal) {
+    showSecret.value = false
+    secretJustRegenerated.value = false
+  }
+})
+
+async function loadClientData(clientId: string) {
+  try {
+    loading.value = true
+    const client = await oauthStore.loadOAuthClient(clientId)
+    if (client) {
+      clientRef.value = {
+        client_name: client.client_name,
+        client_type: client.client_type,
+        client_description: client.client_description || '',
+        client_uri: client.client_uri || '',
+        logo_uri: client.logo_uri || null,
+        redirect_uris: Array.isArray(client.redirect_uris) ? client.redirect_uris.join('\n') : '',
+        client_id: client.client_id,
+        client_secret: client.client_secret || '',
+        created_at: client.created_at || '',
+      }
+    }
+  } catch (error) {
+    console.error('Error loading client:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
-async function handleSubmit() {
+async function handleSave() {
   try {
     await validate()
     loading.value = true
 
-    const redirect_uris = clientRef.redirect_uris
+    const redirect_uris = clientRef.value.redirect_uris
       .split('\n')
       .map((uri) => uri.trim())
       .filter(Boolean)
 
     const payload = {
-      ...clientRef,
+      client_name: clientRef.value.client_name,
+      client_description: clientRef.value.client_description,
+      client_uri: clientRef.value.client_uri,
+      logo_uri: clientRef.value.logo_uri,
       redirect_uris,
     }
 
-    const created = await createOAuthClient(payload)
-    createdClient.value = created
-    showSuccessView.value = true
-
-    // Show success message
-    message.success('OAuth client created successfully!')
+    await updateOAuthClient(props.clientId!, payload)
+    message.success('OAuth client updated successfully!')
+    modalVisible.value = false
   } catch (error: any) {
     if (error.errorFields) {
-      // Form validation errors - these will be displayed automatically
       return
     }
   } finally {
@@ -145,12 +150,15 @@ async function handleSubmit() {
   }
 }
 
-function handleClose() {
-  modalVisible.value = false
-  resetForm()
+function handleRegenerateSecret() {
+  regenerateModalVisible.value = true
 }
 
-const { copy } = useCopy()
+async function onRegeneratedSecret() {
+  await loadClientData(props.clientId!)
+  showSecret.value = true
+  secretJustRegenerated.value = true
+}
 
 function copyToClipboard(text: string, label: string) {
   copy(text)
@@ -159,27 +167,19 @@ function copyToClipboard(text: string, label: string) {
 </script>
 
 <template>
-  <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-oauth-client-create-edit">
+  <NcModal v-model:visible="modalVisible" :show-separator="true" size="large" wrap-class-name="nc-modal-oauth-client-details">
     <template #header>
       <div class="flex w-full items-center p-2 justify-between">
         <div class="flex items-center gap-3 pl-1 flex-1">
           <GeneralIcon class="text-nc-content-gray-emphasis h-5 w-5" icon="ncLock" />
-          <span class="text-nc-content-gray-emphasis truncate font-semibold text-xl"> Create OAuth Client </span>
+          <span class="text-nc-content-gray-emphasis truncate font-semibold text-xl"> Edit OAuth Client </span>
         </div>
 
         <div class="flex justify-end items-center gap-3 pr-0.5 flex-1">
-          <NcButton
-            v-if="!showSuccessView"
-            type="primary"
-            html-type="submit"
-            size="small"
-            :loading="loading"
-            @click="handleSubmit"
-          >
-            {{ loading ? 'Creating...' : 'Create OAuth Client' }}
+          <NcButton type="primary" size="small" :loading="loading" @click="handleSave">
+            {{ loading ? 'Saving...' : 'Save Changes' }}
           </NcButton>
-          <NcButton v-if="showSuccessView" type="primary" size="small" @click="handleClose"> Done </NcButton>
-          <NcButton type="text" size="small" data-testid="nc-close-oauth-modal" @click.stop="handleClose">
+          <NcButton type="text" size="small" data-testid="nc-close-oauth-modal" @click.stop="modalVisible = false">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>
@@ -191,41 +191,9 @@ function copyToClipboard(text: string, label: string) {
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"
       >
-        <!-- Success View -->
-        <div v-if="showSuccessView" class="flex flex-col max-w-[640px] w-full mx-auto gap-6">
-          <NcAlert type="info">
-            <template #message> OAuth Client Created Successfully! </template>
-            <template #description>
-              Make sure to copy your client credentials now. You won't be able to see the secret again.
-            </template>
-          </NcAlert>
-
-          <div class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-              <label class="text-nc-content-gray-subtle font-medium text-sm">Client ID</label>
-              <div class="flex items-center gap-2">
-                <a-input :value="createdClient?.client_id" readonly class="nc-input-shadow !rounded-lg flex-1" />
-                <NcButton type="secondary" size="small" @click="copyToClipboard(createdClient?.client_id, 'Client ID')">
-                  <GeneralIcon icon="copy" />
-                </NcButton>
-              </div>
-            </div>
-
-            <div v-if="createdClient?.client_secret" class="flex flex-col gap-2">
-              <label class="text-nc-content-gray-subtle font-medium text-sm">Client Secret</label>
-              <div class="flex items-center gap-2">
-                <a-input :value="createdClient?.client_secret" readonly class="nc-input-shadow !rounded-lg flex-1" />
-                <NcButton type="secondary" size="small" @click="copyToClipboard(createdClient?.client_secret, 'Client Secret')">
-                  <GeneralIcon icon="copy" />
-                </NcButton>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Create Form -->
-        <div v-else class="flex flex-col max-w-[640px] w-full mx-auto gap-3">
-          <a-form :model="clientRef" name="create-oauth-client" layout="vertical" class="flex flex-col gap-6">
+        <div class="flex flex-col max-w-[640px] w-full mx-auto gap-3">
+          <a-form :model="clientRef" name="edit-oauth-client" layout="vertical" class="flex flex-col gap-6">
+            <!-- Application Name -->
             <a-form-item v-bind="validateInfos.client_name" class="!mb-0 flex-1">
               <template #label>
                 <span class="text-nc-content-gray-subtle font-medium">Application Name <span class="text-red-500">*</span></span>
@@ -233,14 +201,10 @@ function copyToClipboard(text: string, label: string) {
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">Shown to users during authorization</span>
               </template>
-              <a-input
-                ref="titleDomRef"
-                v-model:value="clientRef.client_name"
-                placeholder="My Application"
-                class="nc-input-shadow !rounded-lg"
-              />
+              <a-input v-model:value="clientRef.client_name" placeholder="My Application" class="nc-input-shadow !rounded-lg" />
             </a-form-item>
 
+            <!-- Application Description -->
             <a-form-item v-bind="validateInfos.client_description" class="!mb-0 flex-1">
               <template #label>
                 <span class="text-nc-content-gray-subtle font-medium">Application Description</span>
@@ -256,6 +220,7 @@ function copyToClipboard(text: string, label: string) {
               />
             </a-form-item>
 
+            <!-- Homepage URL -->
             <a-form-item label="Homepage URL" v-bind="validateInfos.client_uri" class="!mb-0 flex-1">
               <template #label>
                 <span class="text-nc-content-gray-subtle font-medium">Homepage URL</span>
@@ -267,7 +232,8 @@ function copyToClipboard(text: string, label: string) {
               />
             </a-form-item>
 
-            <a-form-item class="items-start !mb-0" v-bind="validateInfos.logo_uri">
+            <!-- Logo -->
+            <a-form-item label="Logo" class="items-start !mb-0">
               <template #label>
                 <span class="text-nc-content-gray-subtle font-medium">Logo</span>
               </template>
@@ -287,7 +253,7 @@ function copyToClipboard(text: string, label: string) {
               </NcUpload>
             </a-form-item>
 
-            <!-- Client Type -->
+            <!-- Client Type (Read-only) -->
             <a-form-item class="!mb-0 flex-1">
               <template #label>
                 <span class="text-nc-content-gray-subtle font-medium">Client Type</span>
@@ -297,14 +263,14 @@ function copyToClipboard(text: string, label: string) {
                   Public: mobile/web apps (PKCE required). Confidential: secure servers (can store secrets)
                 </span>
               </template>
-              <a-radio-group v-model:value="clientRef.client_type" class="nc-input-shadow">
+              <a-radio-group v-model:value="clientRef.client_type" disabled class="nc-input-shadow">
                 <a-radio value="public">Public</a-radio>
                 <a-radio value="confidential">Confidential</a-radio>
               </a-radio-group>
             </a-form-item>
 
-            <!-- Redirect URIs -->
-            <a-form-item v-bind="validateInfos.redirect_uris" class="mb-0">
+            <!-- Authorization Callback URLs -->
+            <a-form-item label="Authorization Callback URLs" v-bind="validateInfos.redirect_uris" class="mb-0">
               <template #label>
                 <span class="text-nc-content-gray-subtle font-medium"
                   >Authorization Callback URLs <span class="text-red-500">*</span></span
@@ -323,39 +289,114 @@ function copyToClipboard(text: string, label: string) {
               />
             </a-form-item>
           </a-form>
+
+          <a-divider class="!my-2" />
+
+          <!-- Client ID (Read-only) -->
+          <div class="flex flex-col gap-2">
+            <label class="text-nc-content-gray-subtle font-medium text-sm">Client ID</label>
+            <div class="flex items-center gap-2">
+              <a-input :value="clientRef.client_id" readonly class="nc-input-shadow !rounded-lg flex-1" />
+              <NcButton type="secondary" size="small" @click="copyToClipboard(clientRef.client_id, 'Client ID')">
+                <GeneralIcon icon="copy" />
+              </NcButton>
+            </div>
+          </div>
+
+          <!-- Client Secret (Read-only, with show/hide) -->
+          <div v-if="clientRef.client_type === 'confidential'" class="flex flex-col gap-2">
+            <label class="text-nc-content-gray-subtle font-medium text-sm">Client Secret</label>
+            <div v-if="clientRef.client_secret" class="flex items-center gap-2">
+              <a-input
+                :value="showSecret ? clientRef.client_secret : '••••••••••••••••••••••••••••••••'"
+                readonly
+                class="nc-input-shadow !rounded-lg flex-1"
+              />
+              <NcButton type="secondary" size="small" @click="showSecret = !showSecret">
+                <GeneralIcon :icon="showSecret ? 'eye' : 'eyeSlash'" />
+              </NcButton>
+              <NcButton
+                v-if="showSecret"
+                type="secondary"
+                size="small"
+                @click="copyToClipboard(clientRef.client_secret, 'Client Secret')"
+              >
+                <GeneralIcon icon="copy" />
+              </NcButton>
+            </div>
+            <div v-if="secretJustRegenerated" class="text-xs text-orange-600">
+              ⚠️ Make sure to copy your client secret now. You won't be able to see it again!
+            </div>
+            <div v-else class="text-xs text-nc-content-gray-muted">
+              The secret is hidden for security and is not visible again. You can regenerate it if needed.
+            </div>
+            <NcButton type="secondary" size="small" class="mt-2 w-fit" @click="handleRegenerateSecret">
+              <div class="flex gap-2">
+                <GeneralIcon icon="refresh" />
+                Regenerate Secret
+              </div>
+            </NcButton>
+          </div>
         </div>
       </div>
       <div class="h-full bg-nc-bg-gray-extralight border-l-1 w-80 p-5 rounded-br-2xl border-nc-border-gray-medium">
         <div class="w-full flex flex-col gap-3">
           <h2 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
           <div>
-            <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">
+            <div class="flex items-center gap-1">
               <div class="h-7 w-7 flex items-center justify-center">
                 <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
               </div>
               <NuxtLink
-                :href="doc.href"
+                href="https://docs.nocodb.com/nc-gui/oauth-client-setup"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"
               >
-                {{ doc.title }}
+                NocoDB OAuth Client Setup
+              </NuxtLink>
+            </div>
+            <div class="flex items-center gap-1">
+              <div class="h-7 w-7 flex items-center justify-center">
+                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
+              </div>
+              <NuxtLink
+                href="https://docs.nocodb.com/nc-gui/oauth-client-management"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"
+              >
+                Managing OAuth Clients
               </NuxtLink>
             </div>
           </div>
           <NcDivider />
+
+          <div v-if="clientRef.client_id" class="flex flex-col gap-2">
+            <h3 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">Client Information</h3>
+            <div class="text-xs text-nc-content-gray-muted space-y-1">
+              <div>
+                <span class="font-medium">Type:</span> {{ clientRef.client_type === 'public' ? 'Public' : 'Confidential' }}
+              </div>
+              <div><span class="font-medium">Created:</span> {{ new Date(clientRef.created_at).toLocaleDateString() }}</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </NcModal>
+
+  <DlgOAuthClientRegenerateSecret
+    v-if="clientRef.client_id"
+    v-model="regenerateModalVisible"
+    :oauth-client="clientRef as any"
+    @regenerated="onRegeneratedSecret"
+  />
 </template>
 
 <style lang="scss">
-.nc-modal-oauth-client-create-edit {
+.nc-modal-oauth-client-details {
   z-index: 1050;
-  a {
-    @apply !no-underline !text-gray-700 !hover:text-primary;
-  }
   .nc-modal {
     @apply !p-0;
     height: min(calc(100vh - 100px), 1024px);

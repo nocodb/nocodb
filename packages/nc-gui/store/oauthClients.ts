@@ -143,6 +143,34 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
     }
   }
 
+  const regenerateClientSecret = async (clientId: string) => {
+    try {
+      const updated = await $api.internal.postOperation(
+        NO_SCOPE,
+        NO_SCOPE,
+        {
+          operation: 'oAuthClientRegenerateSecret',
+          clientId,
+        },
+        {},
+      )
+
+      const index = oauthClients.value.findIndex((c) => c.client_id === clientId)
+
+      if (index !== -1) {
+        oauthClients.value[index] = updated as any
+      }
+
+      $e('a:oauth-client:regenerate-secret')
+
+      return updated
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      return null
+    }
+  }
+
   return {
     oauthClients,
     isOauthClientsLoading,
@@ -151,6 +179,7 @@ export const useOAuthClients = defineStore('oauthClientsStore', () => {
     createOAuthClient,
     updateOAuthClient,
     deleteOAuthClient,
+    regenerateClientSecret,
   }
 })
 

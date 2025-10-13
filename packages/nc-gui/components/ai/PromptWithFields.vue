@@ -137,7 +137,7 @@ const editor = useEditor({
       const text = event.clipboardData?.getData('text/plain') ?? ''
       if (!text.includes('{')) return false
 
-      const regex = /\{([^{}]+)\}/g
+      const regex = /\{([^{}]*?)\}/g
       const tr = view.state.tr
       let lastIndex = 0
       let match

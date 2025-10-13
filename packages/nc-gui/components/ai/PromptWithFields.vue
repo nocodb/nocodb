@@ -49,6 +49,13 @@ const { autoFocus, readOnly } = toRefs(props)
 
 const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagTooltip, 500)
 
+const serializeNode = (node: any) => {
+  if (node.type.name === 'mention') return `{${node.attrs.id}}`
+  if (node.text) return node.text
+  if (node.type.name === 'paragraph' || node.type.name === 'hardBreak') return '\n'
+  return ''
+}
+
 const editor = useEditor({
   content: vModel.value,
   enableInputRules: props.markdown,
@@ -101,15 +108,7 @@ const editor = useEditor({
 
     // replace all mentions with id & prepare vModel
     editor.state.doc.descendants((node) => {
-      if (node.type.name === 'mention') {
-        text += `{${node.attrs.id}}`
-      } else if (node.text) {
-        text += node.text
-      } else if (node.type.name === 'paragraph') {
-        text += '\n'
-      } else if (node.type.name === 'hardBreak') {
-        text += '\n'
-      }
+      text += serializeNode(node)
     })
 
     // remove leading & trailing new lines
@@ -121,7 +120,45 @@ const editor = useEditor({
   },
   editable: !readOnly.value,
   autofocus: autoFocus.value,
-  editorProps: { scrollThreshold: 100 },
+  editorProps: {
+    scrollThreshold: 100,
+    clipboardTextSerializer: (slice) => {
+      let text = ''
+      slice.content.descendants((node) => {
+        text += serializeNode(node)
+      })
+
+      // remove leading & trailing new lines
+      text = text.trim()
+
+      return text
+    },
+    handlePaste(view, event) {
+      const text = event.clipboardData?.getData('text/plain') ?? ''
+      if (!text.includes('{')) return false
+
+      const regex = /\{([^{}]+)\}/g
+      const tr = view.state.tr
+      let lastIndex = 0
+      let match
+
+      while ((match = regex.exec(text)) !== null) {
+        const [fullMatch, id] = match
+        if (match.index > lastIndex) {
+          tr.insertText(text.slice(lastIndex, match.index))
+        }
+        tr.replaceSelectionWith(view.state.schema.nodes.mention.create({ id }))
+        lastIndex = match.index + fullMatch.length
+      }
+
+      if (lastIndex < text.length) {
+        tr.insertText(text.slice(lastIndex))
+      }
+
+      view.dispatch(tr)
+      return true
+    },
+  },
 })
 
 const newFieldSuggestionNode = () => {

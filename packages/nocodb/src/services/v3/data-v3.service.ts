@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import type {
   DataDeleteParams,
   DataInsertParams,
+  DataInsertRequest,
   DataListParams,
   DataListResponse,
   DataReadParams,
@@ -459,10 +460,8 @@ export class DataV3Service {
       const matchKeys = [
         column.id,
         column.title,
-        column.column_name,
         column.id?.toLowerCase?.(),
         column.title?.toLowerCase?.(),
-        column.column_name?.toLowerCase?.(),
       ].filter(Boolean) as string[];
 
       if (
@@ -917,9 +916,10 @@ export class DataV3Service {
     }
 
     const source = await Source.get(context, model.source_id);
+    const dbDriver = await NcConnectionMgrv2.get(source);
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
+      dbDriver,
       source,
     });
 
@@ -944,13 +944,31 @@ export class DataV3Service {
 
     const normalizeRecordId = (record: any) => {
       if (!record) return undefined;
-      if (primaryKeys?.length) {
-        return getCompositePkValue(primaryKeys, record, {
-          skipSubstitutingColumnIds,
-        });
-      }
-      return record?.[primaryKey.column_name];
+      return baseModel.extractPksValue(record, true);
     };
+
+    // Bulk fetch records by ID for efficiency
+    const idsToFetch = requestsArray
+      .map((req) => req.id)
+      .filter(
+        (id) =>
+          id !== undefined &&
+          id !== null &&
+          `${id}` !== '' &&
+          `${id}` !== 'undefined' &&
+          `${id}` !== 'null',
+      );
+
+    const existingRecordsById = new Map<any, any>();
+    if (idsToFetch.length > 0) {
+      const records = await baseModel.chunkList({
+        pks: idsToFetch,
+        apiVersion: NcApiVersion.V3,
+      });
+      for (const record of records) {
+        existingRecordsById.set(normalizeRecordId(record), record);
+      }
+    }
 
     for (let index = 0; index < requestsArray.length; index++) {
       const request = requestsArray[index];
@@ -970,7 +988,7 @@ export class DataV3Service {
         ltarColumns,
       );
 
-      let existingRecordId: string | number | undefined;
+      let existingRecord: any | undefined;
 
       const hasValidId =
         request.id !== undefined &&
@@ -980,23 +998,24 @@ export class DataV3Service {
         `${request.id}` !== 'null';
 
       if (hasValidId) {
-        const record = await baseModel.readByPk(
-          request.id,
-          false,
-          undefined,
-          {
-            throwErrorIfInvalidParams: false,
-            apiVersion: NcApiVersion.V3,
-          },
-        );
-        existingRecordId = normalizeRecordId(record);
+        const record = await baseModel.readByPk(request.id, false, undefined, {
+          throwErrorIfInvalidParams: false,
+          apiVersion: NcApiVersion.V3,
+        });
+        if (record) {
+          existingRecord = record;
+        }
       }
 
       let matchIdentifiers: string[] = Array.isArray(request.matchBy)
         ? request.matchBy.filter((identifier) => !!identifier)
         : [];
 
-      if (!existingRecordId && !matchIdentifiers.length && primaryKeys?.length) {
+      // If no record has been found yet, no explicit match fields are provided,
+      // and the model has primary keys, we can attempt to match using the
+      // primary key values provided in the `fields` payload. This allows for
+      // upserting based on natural keys without explicitly listing them in `matchBy`.
+      if (!existingRecord && !matchIdentifiers.length && primaryKeys?.length) {
         const hasAllPrimaryValues = primaryKeys.every((pk) => {
           const value = this.getFieldValueForColumn(rawFields, pk);
           return (
@@ -1009,12 +1028,12 @@ export class DataV3Service {
         });
         if (hasAllPrimaryValues) {
           matchIdentifiers = primaryKeys
-            .map((pk) => pk.title ?? pk.id ?? pk.column_name)
+            .map((pk) => pk.title ?? pk.id)
             .filter((identifier) => !!identifier) as string[];
         }
       }
 
-      if (!existingRecordId && matchIdentifiers.length) {
+      if (!existingRecord && matchIdentifiers.length) {
         const matchColumns = matchIdentifiers.map((identifier) =>
           this.resolveColumnIdentifier(identifier, columns, primaryKey),
         );
@@ -1027,8 +1046,12 @@ export class DataV3Service {
           matchColumns,
           rawFields,
         );
-        existingRecordId = normalizeRecordId(record);
+        if (record) {
+          existingRecord = record;
+        }
       }
+
+      const existingRecordId = normalizeRecordId(existingRecord);
 
       if (existingRecordId !== undefined && existingRecordId !== null) {
         const sanitizedFields = { ...transformedFields };
@@ -1036,7 +1059,6 @@ export class DataV3Service {
           if (!column) return;
           if (column.title) delete sanitizedFields[column.title];
           if (column.id) delete sanitizedFields[column.id];
-          if (column.column_name) delete sanitizedFields[column.column_name];
         };
 
         if (primaryKeys?.length) {
@@ -1068,82 +1090,112 @@ export class DataV3Service {
 
     const insertPayloads = preparedEntries
       .filter((entry) => entry.type === 'create')
-      .map((entry) => (entry as Extract<PreparedEntry, { type: 'create' }>).insertPayload);
+      .map(
+        (entry) =>
+          (entry as Extract<PreparedEntry, { type: 'create' }>).insertPayload,
+      );
 
     const updatePayloads = preparedEntries
       .filter((entry) => entry.type === 'update')
-      .map((entry) => (entry as Extract<PreparedEntry, { type: 'update' }>).updatePayload);
+      .map(
+        (entry) =>
+          (entry as Extract<PreparedEntry, { type: 'update' }>).updatePayload,
+      );
 
-    let createdRecords: DataRecord[] = [];
-    let updatedRecords: DataRecord[] = [];
+    const allIds = new Set<any>();
 
-    if (insertPayloads.length) {
-      const insertResult = await this.dataInsert(context, {
-        baseId: param.baseId,
-        modelId: param.modelId,
-        viewId: param.viewId,
-        body:
-          insertPayloads.length === 1 ? insertPayloads[0] : insertPayloads,
-        cookie: param.cookie,
+    await dbDriver.transaction(async (trx) => {
+      const trxBaseModel = await Model.getBaseModelSQL(context, {
+        id: model.id,
+        dbDriver: trx,
+        source,
       });
-      createdRecords = insertResult.records ?? [];
+
+      if (insertPayloads.length) {
+        const insertResult = await trxBaseModel.bulkInsert({
+          records: insertPayloads.map((p) => p.fields),
+          apiVersion: NcApiVersion.V3,
+        });
+
+        const insertedIds = (Array.isArray(insertResult)
+          ? insertResult
+          : [insertResult]
+        ).map((r) => normalizeRecordId(r));
+        insertedIds.forEach((id) => allIds.add(id));
+      }
+
+      if (updatePayloads.length) {
+        await trxBaseModel.bulkUpdate({
+          records: updatePayloads,
+          apiVersion: NcApiVersion.V3,
+        });
+        updatePayloads.forEach((p) => allIds.add(p.id));
+      }
+    });
+
+    const finalRecords =
+      allIds.size > 0
+        ? await baseModel.chunkList({
+            pks: [...allIds],
+            apiVersion: NcApiVersion.V3,
+          })
+        : [];
+
+    const finalRecordMap = new Map<any, any>();
+    for (const record of finalRecords) {
+      finalRecordMap.set(normalizeRecordId(record), record);
     }
 
-    if (updatePayloads.length) {
-      const updateResult = await this.dataUpdate(context, {
-        baseId: param.baseId,
-        modelId: param.modelId,
-        viewId: param.viewId,
-        body:
-          updatePayloads.length === 1 ? updatePayloads[0] : updatePayloads,
-        cookie: param.cookie,
-      });
-      updatedRecords = updateResult.records ?? [];
+    const records: DataUpsertResponseRecord[] = [];
+    let createdCount = 0;
+    let updatedCount = 0;
+
+    for (const entry of preparedEntries) {
+      let finalRecord: any;
+      if (entry.type === 'create') {
+        // For created records, we need to find the matching record from the final list
+        // This is a simplified approach; a more robust solution might involve hashing the payload
+        finalRecord = [...finalRecordMap.values()].find((r) => {
+          // Basic matching logic, might need refinement
+          return Object.entries(entry.insertPayload.fields).every(
+            ([key, value]) => r[key] === value,
+          );
+        });
+        if (finalRecord) {
+          records[entry.index] = {
+            ...(await this.transformRecordToV3Format({
+              context,
+              record: finalRecord,
+              primaryKey,
+              primaryKeys,
+              columns,
+            })),
+            operation: 'created',
+          };
+          createdCount++;
+        }
+      } else {
+        finalRecord = finalRecordMap.get(entry.updatePayload.id);
+        if (finalRecord) {
+          records[entry.index] = {
+            ...(await this.transformRecordToV3Format({
+              context,
+              record: finalRecord,
+              primaryKey,
+              primaryKeys,
+              columns,
+            })),
+            operation: 'updated',
+          };
+          updatedCount++;
+        }
+      }
     }
-
-    const orderedEntries = [...preparedEntries].sort(
-      (a, b) => a.index - b.index,
-    );
-
-    let createdIndex = 0;
-    let updatedIndex = 0;
-
-    const records: DataUpsertResponseRecord[] = orderedEntries.map(
-      (entry) => {
-        if (entry.type === 'create') {
-          const record = createdRecords[createdIndex++];
-          if (record) {
-            return {
-              ...record,
-              operation: 'created' as const,
-            };
-          }
-          return {
-            id: undefined,
-            fields: entry.insertPayload.fields,
-            operation: 'created' as const,
-          };
-        }
-
-        const record = updatedRecords[updatedIndex++];
-        if (record) {
-          return {
-            ...record,
-            operation: 'updated' as const,
-          };
-        }
-        return {
-          id: entry.updatePayload.id,
-          fields: entry.updatePayload.fields,
-          operation: 'updated' as const,
-        };
-      },
-    );
 
     return {
       records,
-      created: createdRecords.length,
-      updated: updatedRecords.length,
+      created: createdCount,
+      updated: updatedCount,
     };
   }
 

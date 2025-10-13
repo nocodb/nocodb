@@ -144,9 +144,9 @@ export class OAuthController {
       code_verifier,
       refresh_token,
       resource,
+      client_id: clientId,
+      client_secret: clientSecret,
     } = body;
-
-    const { client_id: clientId, client_secret: clientSecret } = body;
 
     if (!grant_type) {
       return {

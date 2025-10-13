@@ -905,6 +905,29 @@ interface GroupKeysStorage {
   }
 }
 
+interface OAuthAuthorization {
+  id: string
+  client_id: string
+  client_name: string
+  client_description?: string
+  client_uri?: string
+  logo_uri?: {
+    url?: string
+    signedUrl?: string
+    path?: string
+    title?: string
+    mimetype?: string
+    size?: number
+  }
+  scope?: string
+  granted_resources?: {
+    workspace_id?: string
+    base_id?: string
+  }
+  created_at: string
+  last_used_at?: string
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -974,4 +997,5 @@ export type {
   NcClipboardDataItemType,
   AttachmentCellDropOverType,
   GroupKeysStorage,
+  OAuthAuthorization,
 }

@@ -124,7 +124,7 @@ watch(isPanelExpanded, (newValue) => {
 
 <style lang="scss" scoped>
 .nc-action-pane {
-  @apply flex flex-col bg-nc-bg-gray-extra-light rounded-l-xl border-1 border-nc-border-gray-medium z-30 -mt-1px;
+  @apply flex flex-col bg-nc-bg-gray-extralight rounded-l-xl border-1 border-nc-border-gray-medium z-30 -mt-1px;
 
   box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
 }

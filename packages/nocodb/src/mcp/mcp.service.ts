@@ -200,13 +200,19 @@ export class McpService {
             .optional()
             .describe('Page number for pagination (default: 1)'),
           where: z.string().optional().describe(whereDescription),
-          sort: z.array(
-            z.object({
-              field: z.string().describe('Field Name'),
-              description: z.enum(['asc', 'desc']).describe('Sort Direction'),
-            }),
-          ),
-          fields: z.array(z.string()).optional().describe('Fields to fetch'),
+          sort: z
+            .array(
+              z.object({
+                field: z.string().describe('Field Name'),
+                description: z.enum(['asc', 'desc']).describe('Sort Direction'),
+              }),
+            )
+            .optional(),
+          fields: z
+            .array(z.string())
+            .optional()
+            .describe('Fields to fetch')
+            .optional(),
         },
         annotations: {
           readOnlyHint: true,
@@ -728,55 +734,6 @@ export class McpService {
           }
         },
       );
-
-      /*
-      TODO: Enable once audit is ready
-      server.registerTool(
-        'readAuditLogs',
-        {
-          tableId: z.string().describe('Table ID (fk_model_id)'),
-          rowId: z.string().describe('Record/Row ID to filter logs for'),
-          limit: z
-            .number()
-            .optional()
-            .default(25)
-            .describe('Number of logs to retrieve (default: 25, max: 1000)'),
-          offset: z
-            .number()
-            .optional()
-            .default(0)
-            .describe('Offset for pagination (default: 0)'),
-        },
-        async ({ tableId, rowId, limit = 25, offset = 0 }) => {
-          limit = Math.max(1, Math.min(limit || 25, 1000));
-          try {
-            const audits = await this.auditService.recordAuditList({
-              query: {
-                row_id: rowId,
-                fk_model_id: tableId,
-                limit,
-                offset,
-              },
-            });
-
-            return {
-              content: [
-                { type: 'text', text: JSON.stringify(audits, null, 2) },
-              ],
-            };
-          } catch (error) {
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: `Error retrieving audit logs: ${error.message}`,
-                },
-              ],
-              isError: true,
-            };
-          }
-        },
-      );*/
     }
   }
 }

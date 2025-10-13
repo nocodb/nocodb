@@ -60,6 +60,19 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
         canActivate = await this.extractBoolVal(guard.canActivate(context));
       } catch {}
 
+      // If API token validation failed and we have a Bearer token, try OAuth token validation
+      if (
+        !canActivate &&
+        req.headers?.authorization?.toLowerCase().startsWith('bearer ')
+      ) {
+        try {
+          const oauthGuard = new (AuthGuard('oauth-token'))(context);
+          canActivate = await this.extractBoolVal(
+            oauthGuard.canActivate(context),
+          );
+        } catch {}
+      }
+
       if (canActivate) {
         if (req.ncWorkspace) {
           await checkLimit({

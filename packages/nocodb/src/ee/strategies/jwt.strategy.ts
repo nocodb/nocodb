@@ -16,7 +16,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req, jwtPayload) {
-    if (!jwtPayload?.email || jwtPayload?.is_api_token) return jwtPayload;
+    if (
+      !jwtPayload?.email ||
+      jwtPayload?.is_api_token ||
+      jwtPayload?.is_oauth_token
+    )
+      return jwtPayload;
 
     if (jwtPayload?.email === NOCO_SERVICE_USERS.AUTOMATION_USER.email) {
       // Avoid service user to get access to other workspaces and bases
@@ -66,7 +71,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       })),
       provider: jwtPayload.provider ?? undefined,
       isAuthorized: true,
-
       extra: {
         org_id: jwtPayload.org_id,
         workspace_id: jwtPayload.workspace_id,

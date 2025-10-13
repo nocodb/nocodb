@@ -50,6 +50,20 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       })
       break
     }
+    case 'oauth-clients': {
+      payload.push({
+        title: t('title.oauthClients'),
+        active: true,
+      })
+      break
+    }
+    case 'external-integrations': {
+      payload.push({
+        title: t('title.externalIntegrations'),
+        active: true,
+      })
+      break
+    }
     case 'tokens': {
       payload.push({
         title: t('title.tokens'),

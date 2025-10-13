@@ -19,6 +19,7 @@ import bulkV1Test from './tests/bulk-v1.test';
 import metaTestV3 from './tests/metaApiV3/index.test';
 import tableTests from './tests/meta-apis/table.test';
 import { paymentTest } from './tests/payment/payment.test';
+import oauthTests from './tests/oauth.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -59,6 +60,7 @@ function restTests() {
     columnTest();
     integrationTest();
     paymentTest();
+    oauthTests();
     bulkV1Test();
   }
 

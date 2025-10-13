@@ -91,6 +91,9 @@ export enum MetaTable {
   PERMISSION_SUBJECTS = 'nc_permission_subjects',
   DASHBOARDS = 'nc_dashboards_v2',
   WIDGETS = 'nc_widgets_v2',
+  OAUTH_CLIENTS = 'nc_oauth_clients',
+  OAUTH_AUTHORIZATION_CODES = 'nc_oauth_authorization_codes',
+  OAUTH_TOKENS = 'nc_oauth_tokens',
 }
 
 export const BaseRelatedMetaTables = [
@@ -280,6 +283,9 @@ export enum CacheScope {
   PERMISSION_USER = 'permissionUser',
   DASHBOARD = 'dashboard',
   WIDGET = 'widget',
+  OAUTH_CLIENT = 'oAuthClient',
+  OAUTH_AUTH_CODE = 'oAuthAuthCode',
+  OAUTH_TOKEN = 'oAuthToken',
 }
 
 export const RootScopeTables = {
@@ -302,6 +308,9 @@ export const RootScopeTables = {
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
     MetaTable.DB_SERVERS,
+    MetaTable.OAUTH_CLIENTS,
+    MetaTable.OAUTH_AUTHORIZATION_CODES,
+    MetaTable.OAUTH_TOKENS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

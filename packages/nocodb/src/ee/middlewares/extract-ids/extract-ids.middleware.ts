@@ -130,9 +130,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // this is a special route for ws operations we pass 'nc' as base id
     const isInternalApi = !!req.path?.startsWith('/api/v2/internal');
     const isInternalWorkspaceScope = isInternalApi && params.baseId === 'nc';
+    const isInternalOrgScope = isInternalApi && params.workspaceId === 'nc';
 
     // We don't extract ncBaseId here intentionally to keep single source of truth
-    if (!isInternalWorkspaceScope && (params.baseId || params.baseName)) {
+    if (
+      !(isInternalWorkspaceScope || isInternalOrgScope) &&
+      (params.baseId || params.baseName)
+    ) {
       // We only allow base id to be used for EE edition
       const base = await Base.get(context, params.baseId ?? params.baseName);
 
@@ -165,7 +169,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = mcpToken.base_id;
       req.ncWorkspaceId = mcpToken.fk_workspace_id;
-    } else if (params.baseId && !isInternalWorkspaceScope) {
+    } else if (
+      params.baseId &&
+      !(isInternalWorkspaceScope || isInternalOrgScope)
+    ) {
       req.ncBaseId = params.baseId;
     } else if (params.integrationId) {
       const integration = await Integration.get(context, params.integrationId);
@@ -485,7 +492,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     if (
       (params.baseId || params.baseName) &&
       !req.ncBaseId &&
-      !isInternalWorkspaceScope
+      !(isInternalWorkspaceScope || isInternalOrgScope)
     ) {
       // we expect project_name to be id for EE
       const base = await Base.get(context, params.baseId ?? params.baseName);
@@ -509,14 +516,17 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       } else {
         NcError.baseNotFound(params.baseId ?? params.baseName);
       }
-    } else if (req.ncBaseId && !isInternalWorkspaceScope) {
+    } else if (
+      req.ncBaseId &&
+      !(isInternalWorkspaceScope || isInternalOrgScope)
+    ) {
       const base = await Base.get(context, req.ncBaseId);
       if (base) {
         req.ncWorkspaceId = (base as Base).fk_workspace_id;
       } else {
         NcError.baseNotFound(req.ncBaseId);
       }
-    } else if (req.params.workspaceId) {
+    } else if (req.params.workspaceId && !isInternalOrgScope) {
       req.ncWorkspaceId = req.params.workspaceId;
     } else if (req.params.workspaceOrOrgId) {
       const workspace = await Workspace.get(req.params.workspaceOrOrgId);

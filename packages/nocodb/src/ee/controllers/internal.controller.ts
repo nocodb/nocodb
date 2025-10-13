@@ -27,6 +27,8 @@ import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { ActionsService } from '~/services/actions.service';
 import { MailService } from '~/services/mail/mail.service';
 import { ViewSettingsOverrideService } from '~/services/view-settings-override.service';
+import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
+import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -45,8 +47,16 @@ export class InternalController extends InternalControllerCE {
     protected readonly actionsService: ActionsService,
     protected readonly mailService: MailService,
     protected readonly viewSettingsOverrideService: ViewSettingsOverrideService,
+    protected readonly oAuthClientService: OauthClientService,
+    protected readonly oAuthTokenService: OauthTokenService,
   ) {
-    super(mcpService, aclMiddleware, auditsService);
+    super(
+      mcpService,
+      aclMiddleware,
+      auditsService,
+      oAuthClientService,
+      oAuthTokenService,
+    );
   }
 
   protected async checkAcl(operation: string, req, scope?: string) {
@@ -102,7 +112,7 @@ export class InternalController extends InternalControllerCE {
       triggerAction: 'base',
       sendEmail: 'base',
       integrationRemoteFetch: 'base',
-    };
+    } as const;
   }
 
   @Get(['/api/v2/internal/:workspaceId/:baseId'])
@@ -190,7 +200,7 @@ export class InternalController extends InternalControllerCE {
           context,
           workspaceId,
           baseId,
-          operation,
+          operation as any,
           req,
         );
     }
@@ -412,7 +422,7 @@ export class InternalController extends InternalControllerCE {
           context,
           workspaceId,
           baseId,
-          operation,
+          operation as any,
           payload,
           req,
         );

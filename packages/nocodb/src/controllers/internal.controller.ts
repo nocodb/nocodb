@@ -20,6 +20,8 @@ import {
   InternalGETResponseType,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
+import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
+import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -28,6 +30,8 @@ export class InternalController {
     protected readonly mcpService: McpTokenService,
     protected readonly aclMiddleware: AclMiddleware,
     protected readonly auditsService: AuditsService,
+    protected readonly oAuthClientService: OauthClientService,
+    protected readonly oAuthTokenService: OauthTokenService,
   ) {}
 
   protected get operationScopes() {
@@ -36,11 +40,24 @@ export class InternalController {
       mcpCreate: 'base',
       mcpUpdate: 'base',
       mcpDelete: 'base',
+      mcpGet: 'base',
       recordAuditList: 'base',
-    };
+      oAuthClientList: 'org',
+      oAuthClientCreate: 'org',
+      oAuthClientUpdate: 'org',
+      oAuthClientDelete: 'org',
+      oAuthClientGet: 'org',
+      oAuthAuthorizationList: 'org',
+      oAuthAuthorizationRevoke: 'org',
+      oAuthClientRegenerateSecret: 'org',
+    } as const;
   }
 
-  protected async checkAcl(operation: string, req, scope?: string) {
+  protected async checkAcl(
+    operation: keyof typeof this.operationScopes,
+    req: NcRequest,
+    scope?: string,
+  ) {
     await this.aclMiddleware.aclFn(
       operation,
       {
@@ -56,7 +73,7 @@ export class InternalController {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Query('operation') operation: string,
+    @Query('operation') operation: keyof typeof this.operationScopes,
     @Req() req: NcRequest,
   ): InternalGETResponseType {
     await this.checkAcl(operation, req, this.operationScopes[operation]);
@@ -72,6 +89,15 @@ export class InternalController {
           fk_model_id: req.query.fk_model_id as string,
           cursor: req.query.cursor as string,
         });
+      case 'oAuthClientGet':
+        return await this.oAuthClientService.getClient(context, {
+          clientId: req.query.clientId as string,
+          req,
+        });
+      case 'oAuthClientList':
+        return await this.oAuthClientService.listClients(context, req);
+      case 'oAuthAuthorizationList':
+        return await this.oAuthTokenService.listUserAuthorizations(req.user.id);
       default:
         return NcError.notFound('Operation');
     }
@@ -82,7 +108,7 @@ export class InternalController {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Query('operation') operation: string,
+    @Query('operation') operation: keyof typeof this.operationScopes,
     @Body() payload: any,
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {
@@ -99,8 +125,36 @@ export class InternalController {
         );
       case 'mcpDelete':
         return await this.mcpService.delete(context, payload.tokenId);
+      case 'oAuthClientCreate':
+        return await this.oAuthClientService.createClient(
+          context,
+          payload,
+          req,
+        );
+      case 'oAuthClientUpdate':
+        return await this.oAuthClientService.updateClient(context, {
+          clientId: req.query.clientId as string,
+          body: payload,
+          req,
+        });
+      case 'oAuthClientDelete':
+        return await this.oAuthClientService.deleteClient(context, {
+          clientId: req.query.clientId as string,
+          req,
+        });
+      case 'oAuthAuthorizationRevoke':
+        await this.oAuthTokenService.revokeUserAuthorization(
+          req.user.id,
+          payload.tokenId,
+        );
+        return true;
+      case 'oAuthClientRegenerateSecret':
+        return await this.oAuthClientService.regenerateClientSecret(context, {
+          clientId: req.query.clientId as string,
+          req,
+        });
       default:
-        NcError.notFound('Operation');
+        NcError.get(context).notFound('Operation');
     }
   }
 }

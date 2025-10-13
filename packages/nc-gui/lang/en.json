@@ -185,6 +185,8 @@
     "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature."
   },
   "general": {
+    "authorization": "Authorization",
+    "revoke": "Revoke",
     "script": "Script",
     "dashboard": "Dashboard",
     "supported": "Supported",
@@ -724,7 +726,9 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "externalIntegrations": "External Integerations",
     "mcpServer": "MCP Server",
+    "oauthClients": "OAuth Clients",
     "accessRestricted": "Access Restricted",
     "editTablePermissions": "Edit table permissions",
     "editFieldPermissions": "Edit field permissions",
@@ -952,6 +956,7 @@
   "labels": {
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
+    "addNewClient": "Create new OAuth Client",
     "configurationError": "Incomplete configuration",
     "keepEditing": "Keep editing",
     "leave": "Leave",

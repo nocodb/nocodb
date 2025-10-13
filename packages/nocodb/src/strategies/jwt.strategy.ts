@@ -15,9 +15,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req, jwtPayload) {
-    if (!jwtPayload?.email || jwtPayload?.is_api_token) {
+    if (
+      !jwtPayload?.email ||
+      jwtPayload?.is_api_token ||
+      jwtPayload?.is_oauth_token
+    )
       return jwtPayload;
-    }
 
     const user = await User.getByEmail(jwtPayload?.email);
 

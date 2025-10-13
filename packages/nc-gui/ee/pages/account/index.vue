@@ -138,6 +138,34 @@ onMounted(() => {
                   <div class="select-none">{{ $t('labels.modelContextProtocol') }}</div>
                 </div>
               </NcMenuItem> -->
+              <!--              <NcMenuItem
+                key="oauth"
+                :class="{
+                  active: $route.params.page === 'oauth-clients',
+                }"
+                class="item"
+                @click="navigateTo('/account/oauth-clients')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncLock" class="h-4 w-4 flex-none" />
+
+                  <div class="select-none">{{ $t('title.oauthClients') }}</div>
+                </div>
+              </NcMenuItem> -->
+              <NcMenuItem
+                key="external-integrations"
+                :class="{
+                  active: $route.params.page === 'external-integrations',
+                }"
+                class="item"
+                @click="navigateTo('/account/external-integrations')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
+
+                  <div class="select-none">{{ $t('title.externalIntegrations') }}</div>
+                </div>
+              </NcMenuItem>
               <NcMenuItem
                 v-if="isSetupPageAllowed"
                 key="profile"

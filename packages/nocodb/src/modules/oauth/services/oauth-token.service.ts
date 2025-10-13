@@ -1,0 +1,437 @@
+import { createHash, randomBytes } from 'crypto';
+import { promisify } from 'util';
+import { Injectable } from '@nestjs/common';
+import bcrypt from 'bcryptjs';
+import * as jwt from 'jsonwebtoken';
+import {
+  OAuthAuthorizationCode,
+  OAuthClient,
+  OAuthToken,
+  User,
+} from '~/models';
+import { NcError } from '~/helpers/ncError';
+import Noco from '~/Noco';
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  refresh_token?: string;
+  refresh_expires_in?: number;
+  scope?: string;
+  resource?: string;
+}
+
+export interface PKCEValidationParams {
+  codeVerifier: string;
+  codeChallenge: string;
+  codeChallengeMethod: string;
+}
+
+@Injectable()
+export class OauthTokenService {
+  private readonly ACCESS_TOKEN_EXPIRES_IN = 60 * 60; // 1 hour in seconds
+  private readonly REFRESH_TOKEN_EXPIRES_IN = 60 * 24 * 60 * 60; // 60 days in seconds
+
+  validatePKCE(params: PKCEValidationParams): boolean {
+    const { codeVerifier, codeChallenge, codeChallengeMethod } = params;
+
+    if (!codeChallenge || !codeVerifier) {
+      return false;
+    }
+
+    if (codeChallengeMethod !== 'S256') {
+      return false;
+    }
+
+    if (codeVerifier.length < 43 || codeVerifier.length > 128) {
+      return false;
+    }
+    const allowedChars = /^[a-zA-Z0-9._~-]+$/;
+    if (!allowedChars.test(codeVerifier)) {
+      return false;
+    }
+
+    const computedChallenge = createHash('sha256')
+      .update(codeVerifier)
+      .digest('base64url');
+
+    return computedChallenge === codeChallenge;
+  }
+
+  private async generateAccessToken(payload: {
+    userId: string;
+    clientId: string;
+    scope?: string;
+  }): Promise<string> {
+    const user = await User.get(payload.userId);
+    const now = Math.floor(Date.now() / 1000);
+
+    return jwt.sign(
+      {
+        sub: payload.userId,
+        email: user.email,
+        client_id: payload.clientId,
+        scope: payload.scope,
+        iat: now,
+        exp: now + this.ACCESS_TOKEN_EXPIRES_IN,
+        id: user.id,
+        roles: user.roles,
+        token_version: user.token_version,
+      },
+      Noco.config.auth.jwt.secret,
+      {
+        algorithm: 'HS256',
+      },
+    );
+  }
+
+  private async authenticateClient(params: {
+    clientId: string;
+    clientSecret?: string;
+    isPKCEFlow?: boolean;
+  }): Promise<OAuthClient> {
+    const { clientId, clientSecret, isPKCEFlow = false } = params;
+
+    const client = await OAuthClient.getByClientId(clientId);
+
+    if (!client) {
+      throw new Error('invalid_client: Client not found');
+    }
+
+    // Confidential clients: require client_secret OR valid PKCE
+    if (client.client_secret) {
+      // If PKCE is used, client_secret is optional
+      if (isPKCEFlow) {
+        // If client_secret is provided with PKCE, validate it using bcrypt
+        if (clientSecret) {
+          const isValidSecret = await promisify(bcrypt.compare)(
+            clientSecret,
+            client.client_secret,
+          );
+          if (!isValidSecret) {
+            throw new Error('invalid_client: Invalid client credentials');
+          }
+        }
+        // PKCE validation will happen separately, so we're good here
+      } else {
+        // Non-PKCE flow: client_secret is required
+        if (!clientSecret) {
+          throw new Error(
+            'invalid_client: Client secret required for confidential clients without PKCE',
+          );
+        }
+
+        // Validate client_secret using bcrypt
+        const isValidSecret = await promisify(bcrypt.compare)(
+          clientSecret,
+          client.client_secret,
+        );
+        if (!isValidSecret) {
+          throw new Error('invalid_client: Invalid client credentials');
+        }
+      }
+    } else {
+      // Public clients (no client_secret)
+      // PKCE is required for public clients, but they don't need a secret
+      if (clientSecret) {
+        throw new Error(
+          'invalid_client: Client secret not expected for public clients',
+        );
+      }
+    }
+
+    return client;
+  }
+
+  async exchangeCodeForTokens(params: {
+    code: string;
+    redirectUri: string;
+    codeVerifier?: string;
+    clientSecret?: string;
+    resource?: string;
+  }): Promise<TokenResponse> {
+    const { code, redirectUri, codeVerifier, clientSecret } = params;
+
+    // Get authorization code
+    const authCode = await OAuthAuthorizationCode.getByCode(code);
+    if (!authCode) {
+      throw new Error('invalid_grant: Invalid or expired authorization code');
+    }
+
+    if (
+      params.resource &&
+      authCode.resource &&
+      params.resource !== authCode.resource
+    ) {
+      throw new Error(
+        'invalid_grant: resource parameter does not match authorized resource',
+      );
+    }
+
+    // Check if code is already used
+    if (authCode.is_used) {
+      throw new Error(
+        'invalid_grant: Authorization code has already been used',
+      );
+    }
+
+    // Check if code is expired
+    if (new Date(authCode.expires_at) < new Date()) {
+      throw new Error('invalid_grant: Authorization code has expired');
+    }
+
+    // Validate redirect URI
+    if (authCode.redirect_uri !== redirectUri) {
+      throw new Error('invalid_grant: Invalid redirect_uri');
+    }
+
+    // Determine if this is a PKCE flow
+    const isPKCEFlow = !!authCode.code_challenge;
+
+    // Validate PKCE if code challenge was provided during authorization
+    if (isPKCEFlow) {
+      if (!codeVerifier) {
+        throw new Error(
+          'invalid_request: code_verifier is required for PKCE flow',
+        );
+      }
+
+      const isValidPKCE = this.validatePKCE({
+        codeVerifier,
+        codeChallenge: authCode.code_challenge,
+        codeChallengeMethod: authCode.code_challenge_method,
+      });
+
+      if (!isValidPKCE) {
+        throw new Error('invalid_grant: Invalid code_verifier');
+      }
+    }
+
+    // Authenticate client - PKCE makes client_secret optional for confidential clients
+    await this.authenticateClient({
+      clientId: authCode.fk_client_id,
+      clientSecret,
+      isPKCEFlow,
+    });
+
+    const now = Date.now();
+    const accessTokenExpiresAt = new Date(
+      now + this.ACCESS_TOKEN_EXPIRES_IN * 1000,
+    ).toISOString();
+
+    const refreshTokenExpiresAt = new Date(
+      now + this.REFRESH_TOKEN_EXPIRES_IN * 1000,
+    ).toISOString();
+
+    // Generate tokens
+    const accessToken = await this.generateAccessToken({
+      userId: authCode.fk_user_id,
+      clientId: authCode.fk_client_id,
+      scope: authCode.scope,
+    });
+
+    const refreshToken = randomBytes(64).toString('base64url');
+
+    const insertObj = {
+      fk_client_id: authCode.fk_client_id,
+      fk_user_id: authCode.fk_user_id,
+      access_token: accessToken,
+      access_token_expires_at: accessTokenExpiresAt,
+      refresh_token: refreshToken,
+      refresh_token_expires_at: refreshTokenExpiresAt,
+      scope: authCode.scope,
+      granted_resources: authCode.granted_resources,
+      resource: authCode.resource,
+    };
+
+    await OAuthToken.insert(insertObj);
+
+    // Mark authorization code as used
+    await OAuthAuthorizationCode.markAsUsed(code);
+
+    return {
+      access_token: accessToken,
+      token_type: 'Bearer',
+      expires_in: this.ACCESS_TOKEN_EXPIRES_IN,
+      refresh_token: refreshToken,
+      refresh_expires_in: this.REFRESH_TOKEN_EXPIRES_IN,
+      scope: 'mcp',
+      resource: authCode.resource,
+    };
+  }
+
+  async refreshAccessToken(params: {
+    refreshToken: string;
+    clientId: string;
+    clientSecret?: string;
+    resource?: string;
+  }): Promise<TokenResponse> {
+    const { refreshToken, clientId, clientSecret } = params;
+
+    // Get token by refresh token
+    const tokenRecord = await OAuthToken.getByRefreshToken(refreshToken);
+    if (!tokenRecord) {
+      NcError.badRequest('Invalid refresh token');
+    }
+
+    // Check if token is revoked
+    if (tokenRecord.is_revoked) {
+      NcError.badRequest('Refresh token has been revoked');
+    }
+
+    // Check if refresh token is expired
+    if (
+      tokenRecord.refresh_token_expires_at &&
+      new Date(tokenRecord.refresh_token_expires_at) < new Date()
+    ) {
+      NcError.badRequest('Refresh token has expired');
+    }
+
+    // For refresh token flow, require client authentication
+    // Note: Refresh tokens don't use PKCE, so client_secret is required for confidential clients
+    await this.authenticateClient({
+      clientId,
+      clientSecret,
+      isPKCEFlow: false, // Refresh token flow doesn't use PKCE
+    });
+
+    // Validate client ID
+    if (tokenRecord.fk_client_id !== clientId) {
+      NcError.badRequest('Invalid client_id');
+    }
+
+    const now = Date.now();
+    const newAccessTokenExpiresAt = new Date(
+      now + this.ACCESS_TOKEN_EXPIRES_IN * 1000,
+    ).toISOString();
+
+    const newRefreshTokenExpiresAt = new Date(
+      now + this.REFRESH_TOKEN_EXPIRES_IN * 1000,
+    ).toISOString();
+
+    // Generate new access token
+    const newAccessToken = await this.generateAccessToken({
+      userId: tokenRecord.fk_user_id,
+      clientId: tokenRecord.fk_client_id,
+      scope: tokenRecord.scope,
+    });
+
+    // Rotate refresh tokens for security
+    const newRefreshToken = randomBytes(64).toString('base64url');
+
+    // Revoke old token
+    await OAuthToken.revoke(tokenRecord.id);
+
+    // Create new token record
+    await OAuthToken.insert({
+      fk_client_id: tokenRecord.fk_client_id,
+      fk_user_id: tokenRecord.fk_user_id,
+      access_token: newAccessToken,
+      access_token_expires_at: newAccessTokenExpiresAt,
+      refresh_token: newRefreshToken,
+      refresh_token_expires_at: newRefreshTokenExpiresAt,
+      scope: tokenRecord.scope,
+      granted_resources: tokenRecord.granted_resources,
+      resource: tokenRecord.resource,
+    });
+
+    return {
+      access_token: newAccessToken,
+      token_type: 'Bearer',
+      expires_in: this.ACCESS_TOKEN_EXPIRES_IN,
+      refresh_token: newRefreshToken,
+      refresh_expires_in: this.REFRESH_TOKEN_EXPIRES_IN,
+      scope: tokenRecord.scope,
+    };
+  }
+
+  async revokeToken(params: {
+    token: string;
+    clientId: string;
+    clientSecret?: string;
+    tokenTypeHint?: 'access_token' | 'refresh_token';
+  }): Promise<boolean> {
+    const { token, clientId, clientSecret, tokenTypeHint } = params;
+
+    // For token revocation, require client authentication
+    // Note: Revocation doesn't use PKCE, so client_secret is required for confidential clients
+    await this.authenticateClient({
+      clientId,
+      clientSecret,
+      isPKCEFlow: false, // Revocation doesn't use PKCE
+    });
+
+    let tokenRecord: OAuthToken | null = null;
+
+    // Try to find token based on hint or try both types
+    if (tokenTypeHint === 'refresh_token') {
+      tokenRecord = await OAuthToken.getByRefreshToken(token);
+    } else {
+      // Try access token first, then refresh token
+      tokenRecord = await OAuthToken.getByAccessToken(token);
+      if (!tokenRecord) {
+        tokenRecord = await OAuthToken.getByRefreshToken(token);
+      }
+    }
+
+    if (!tokenRecord) {
+      // Return success even if token doesn't exist
+      return true;
+    }
+
+    // Validate client ID
+    if (tokenRecord.fk_client_id !== clientId) {
+      NcError.badRequest('Invalid client_id');
+    }
+
+    // Revoke the token
+    await OAuthToken.revoke(tokenRecord.id);
+
+    return true;
+  }
+
+  async listUserAuthorizations(userId: string) {
+    const tokens = await OAuthToken.listByUser(userId);
+    const authorizationsList = [];
+
+    for (const token of tokens) {
+      const client = await OAuthClient.getByClientId(token.fk_client_id);
+      if (client) {
+        authorizationsList.push({
+          id: token.id,
+          client_id: client.client_id,
+          client_name: client.client_name,
+          client_description: client.client_description,
+          client_uri: client.client_uri,
+          logo_uri: client.logo_uri,
+          scope: token.scope,
+          granted_resources: token.granted_resources,
+          created_at: token.created_at,
+          last_used_at: token.last_used_at,
+        });
+      }
+    }
+
+    return authorizationsList;
+  }
+
+  async revokeUserAuthorization(userId: string, tokenId: string) {
+    const token = await OAuthToken.get(tokenId);
+
+    if (!token) {
+      NcError.notFound('OAuth authorization not found');
+    }
+
+    if (token.fk_user_id !== userId) {
+      NcError.forbidden(
+        'You do not have permission to revoke this authorization',
+      );
+    }
+
+    // Revoke the token
+    await OAuthToken.revoke(tokenId);
+
+    return true;
+  }
+}

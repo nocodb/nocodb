@@ -19,6 +19,10 @@ const permissionScopes = {
     'apiTokenCreate',
     'apiTokenDelete',
 
+    'oAuthAuthorizationList',
+    'oAuthAuthorizationRevoke',
+    'oAuthClientRegenerateSecret',
+
     // Base
     'baseList',
     'baseCreate',
@@ -67,6 +71,13 @@ const permissionScopes = {
 
     // AI
     'aiSchema',
+
+    // OauthClients
+    'oAuthClientList',
+    'oAuthClientCreate',
+    'oAuthClientUpdate',
+    'oAuthClientDelete',
+    'oAuthClientGet',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -340,6 +351,16 @@ const rolePermissions:
       isPluginActive: true,
       commandPalette: true,
       notification: true,
+
+      // oAuth
+      oAuthClientList: true,
+      oAuthClientCreate: true,
+      oAuthClientUpdate: true,
+      oAuthClientDelete: true,
+      oAuthClientGet: true,
+      oAuthAuthorizationList: true,
+      oAuthAuthorizationRevoke: true,
+      oAuthClientRegenerateSecret: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

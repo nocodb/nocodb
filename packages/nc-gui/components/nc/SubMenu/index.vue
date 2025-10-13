@@ -123,7 +123,7 @@ const responsiveVariant = computed(() => {
 }
 
 .nc-submenu-popup {
-  @apply !rounded-lg border-1 border-nc-border-gray-extra-light min-w-[144px];
+  @apply !rounded-lg border-1 border-nc-border-gray-extralight min-w-[144px];
 
   .ant-dropdown-menu.ant-dropdown-menu-sub {
     @apply !rounded-lg !shadow-lg shadow-gray-200;

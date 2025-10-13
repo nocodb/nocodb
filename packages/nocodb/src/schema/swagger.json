@@ -13453,6 +13453,242 @@
         }
       }
     },
+    "/api/v2/public/oauth/client/{clientId}": {
+      "parameters": [{
+        "schema": {
+          "type": "string",
+          "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+        },
+        "name": "clientId",
+        "in": "path",
+        "required": true,
+        "description": "Client Id"
+      }],
+      "get": {
+        "summary": "Get OAuth Client Information",
+        "description": "Retrieve public information about an OAuth client for authorization display",
+        "tags": ["OAuth"],
+        "responses": {
+          "200": {
+            "description": "OAuth client information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "client_id": {
+                      "type": "string",
+                      "description": "OAuth client identifier"
+                    },
+                    "client_name": {
+                      "type": "string",
+                      "description": "Application name"
+                    },
+                    "client_uri": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Application homepage URL"
+                    },
+                    "logo_uri": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "mimetype": {
+                              "type": "string"
+                            },
+                            "size": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "Application logo URL or file metadata"
+                    },
+                    "client_description": {
+                      "type": "string",
+                      "description": "Application description"
+                    },
+                    "redirect_uris": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "description": "Registered redirect URIs"
+                    },
+                    "client_type": {
+                      "type": "string",
+                      "enum": ["public", "confidential"],
+                      "description": "OAuth client type"
+                    }
+                  },
+                  "required": ["client_id", "client_name", "redirect_uris", "client_type"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "OAuth client not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "client_not_found"
+                    },
+                    "error_description": {
+                      "type": "string",
+                      "example": "The requested OAuth client does not exist"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid client ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "invalid_client_id"
+                    },
+                    "error_description": {
+                      "type": "string",
+                      "example": "The client ID format is invalid"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/oauth/authorize": {
+      "post": {
+        "tags": ["OAuth"],
+        "summary": "OAuth Authorization",
+        "description": "Handle OAuth authorization request with user approval/denial",
+        "operationId": "authorize",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["client_id", "redirect_uri"],
+                "properties": {
+                  "client_id": {
+                    "type": "string",
+                    "description": "The client identifier",
+                    "example": "your-client-id"
+                  },
+                  "redirect_uri": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The client redirection URI",
+                    "example": "https://your-app.com/callback"
+                  },
+                  "state": {
+                    "type": "string",
+                    "description": "Opaque value used to maintain state between request and callback",
+                    "example": "xyz123"
+                  },
+                  "approved": {
+                    "type": "boolean",
+                    "description": "Whether the user approved the authorization request",
+                    "example": true
+                  },
+                  "code_challenge": {
+                    "type": "string",
+                    "description": "PKCE code challenge",
+                    "example": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+                  },
+                  "code_challenge_method": {
+                    "type": "string",
+                    "enum": ["S256", "plain"],
+                    "description": "PKCE code challenge method",
+                    "example": "S256"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorization processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "redirect_url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "URL to redirect the user to"
+                    }
+                  }
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Successful authorization",
+                    "value": {
+                      "redirect_url": "https://your-app.com/callback?code=auth_code_123&state=xyz123"
+                    }
+                  },
+                  "denied": {
+                    "summary": "User denied authorization",
+                    "value": {
+                      "redirect_url": "https://your-app.com/callback?error=access_denied&error_description=User%20denied%20the%20request&state=xyz123"
+                    }
+                  },
+                  "error": {
+                    "summary": "Server error occurred",
+                    "value": {
+                      "redirect_url": "https://your-app.com/callback?error=server_error&error_description=Authorization%20server%20encountered%20an%20error&state=xyz123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Missing required parameters: client_id, redirect_uri"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/public/shared-view/{sharedViewUuid}/bulk/dataList": {
       "parameters": [
         {
@@ -20425,6 +20661,42 @@
           "name": "cursor",
           "in": "query",
           "description": "Cursor",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "clientId",
+          "in": "query",
+          "description": "Client ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tokenId",
+          "in": "query",
+          "description": "Token ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "dashboardId",
+          "in": "query",
+          "description": "Dashboard ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "widgetId",
+          "in": "query",
+          "description": "Widget ID",
           "required": false
         }
       ]

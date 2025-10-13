@@ -17,6 +17,8 @@ import {
   parseParsingError,
 } from './parser/queryFilter/error-message-parser';
 import { NcContext } from './ncTypes';
+import { getNodejsTimezone } from './timezoneUtils';
+import { parseProp } from './helperFunctions';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
@@ -331,7 +333,10 @@ function handleDataTypes(
 
     filterType.meta = filterType.meta ?? {};
     // use || to also include falsy values
-    filterType.meta.timezone = context.timezone || 'Etc/UTC';
+    filterType.meta.timezone = getNodejsTimezone(
+      parseProp(column.meta)?.timezone,
+      context.timezone
+    );
   }
 
   return { filter: filterType };

@@ -101,6 +101,7 @@ export default class OAuthClient implements IOAuthClient {
 
     return this.getByClientId(res.client_id, ncMeta).then(async (client) => {
       await NocoCache.appendToList(
+        'root',
         CacheScope.OAUTH_CLIENT,
         [],
         `${CacheScope.OAUTH_CLIENT}:${res.client_id}`,
@@ -111,6 +112,7 @@ export default class OAuthClient implements IOAuthClient {
 
   static async getByClientId(clientId: string, ncMeta = Noco.ncMeta) {
     let data = await NocoCache.get(
+      'root',
       `${CacheScope.OAUTH_CLIENT}:${clientId}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -123,7 +125,11 @@ export default class OAuthClient implements IOAuthClient {
         { client_id: clientId },
       );
       if (data) {
-        await NocoCache.set(`${CacheScope.OAUTH_CLIENT}:${clientId}`, data);
+        await NocoCache.set(
+          'root',
+          `${CacheScope.OAUTH_CLIENT}:${clientId}`,
+          data,
+        );
       }
     }
 
@@ -158,6 +164,7 @@ export default class OAuthClient implements IOAuthClient {
     }
 
     await NocoCache.deepDel(
+      'root',
       `${CacheScope.OAUTH_CLIENT}:${clientId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -210,7 +217,11 @@ export default class OAuthClient implements IOAuthClient {
       { client_id: clientId },
     );
 
-    await NocoCache.update(`${CacheScope.API_TOKEN}:${clientId}`, updateObj);
+    await NocoCache.update(
+      'root',
+      `${CacheScope.API_TOKEN}:${clientId}`,
+      updateObj,
+    );
 
     return this.getByClientId(clientId, ncMeta);
   }

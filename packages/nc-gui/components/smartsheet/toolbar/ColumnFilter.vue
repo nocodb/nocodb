@@ -571,7 +571,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
       moved: { newIndex = 0, oldIndex = 0, element },
     } = event
 
-    if ((!element?.id && !element.temp_id) || visibleFilters.value.length === 1) return
+    if (!element || (!element.id && !element.temp_id) || visibleFilters.value.length === 1) return
 
     let nextOrder: number
     let changedLogicalOperatorEl: ColumnFilterType | undefined
@@ -916,7 +916,7 @@ defineExpose({
                       v-if="!filter.readOnly && !readOnly && isViewFilter"
                       type="text"
                       size="small"
-                      class="nc-filter-item-remove-btn nc-column-filter-drag-handler self-center"
+                      class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
                       :shadow="false"
                       :disabled="visibleFilters.length === 1"
                     >
@@ -1174,7 +1174,7 @@ defineExpose({
               v-if="!filter.readOnly && !readOnly && isViewFilter"
               type="text"
               size="small"
-              class="nc-filter-item-remove-btn nc-column-filter-drag-handler self-center"
+              class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
               :shadow="false"
               :disabled="visibleFilters.length === 1"
             >
@@ -1303,7 +1303,8 @@ defineExpose({
 </template>
 
 <style scoped lang="scss">
-.nc-filter-item-remove-btn {
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn {
   @apply text-gray-600 hover:text-gray-800;
 }
 

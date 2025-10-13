@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { OAuthAuthorizationCode, OAuthClient } from '~/models';
+import {
+  BaseUser,
+  OAuthAuthorizationCode,
+  OAuthClient,
+  WorkspaceUser,
+} from '~/models';
 import { NcError } from '~/helpers/ncError';
 
 @Injectable()
@@ -95,10 +100,26 @@ export class OauthAuthorizationService {
 
     const grantedResources: Record<string, any> = {};
     if (workspaceId) {
-      grantedResources.workspace_id = workspaceId;
+      const workspaces = await WorkspaceUser.workspaceList({
+        fk_user_id: userId,
+      });
+
+      if (workspaces.find((w) => w.id === workspaceId)) {
+        grantedResources.workspace_id = workspaceId;
+      } else {
+        NcError.badRequest('invalid_workspace_id');
+      }
     }
     if (baseId) {
-      grantedResources.base_id = baseId;
+      const bases = await BaseUser.getProjectsList(userId, {});
+
+      const base = bases.find((b) => b.id === baseId);
+
+      if (base && base.fk_workspace_id === workspaceId) {
+        grantedResources.base_id = baseId;
+      } else {
+        NcError.badRequest('invalid_base_id');
+      }
     }
 
     return await OAuthAuthorizationCode.insert({

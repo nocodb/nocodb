@@ -55,9 +55,6 @@ const validators = computed(() => ({
   client_uri: [
     {
       validator: (_: any, value: string) => {
-        if (value && !isValidURL(value)) {
-          return Promise.reject(new Error('Please enter a valid URL'))
-        }
         return Promise.resolve()
       },
     },
@@ -89,7 +86,7 @@ const validators = computed(() => ({
 
         for (const uri of uris) {
           if (!isValidURL(uri)) {
-            return Promise.reject(new Error(`Invalid URL: ${uri}`))
+            // return Promise.reject(new Error(`Invalid URL: ${uri}`))
           }
         }
 

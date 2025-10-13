@@ -30,8 +30,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(
     MetaTable.OAUTH_AUTHORIZATION_CODES,
     (table) => {
-      table.string('id').primary();
-      table.string('code');
+      table.string('code').primary();
       table.string('client_id');
       table.string('user_id');
 

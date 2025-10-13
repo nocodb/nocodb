@@ -13581,6 +13581,114 @@
         }
       }
     },
+    "/api/v2/oauth/authorize": {
+      "post": {
+        "tags": ["OAuth"],
+        "summary": "OAuth Authorization",
+        "description": "Handle OAuth authorization request with user approval/denial",
+        "operationId": "authorize",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["client_id", "redirect_uri"],
+                "properties": {
+                  "client_id": {
+                    "type": "string",
+                    "description": "The client identifier",
+                    "example": "your-client-id"
+                  },
+                  "redirect_uri": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The client redirection URI",
+                    "example": "https://your-app.com/callback"
+                  },
+                  "state": {
+                    "type": "string",
+                    "description": "Opaque value used to maintain state between request and callback",
+                    "example": "xyz123"
+                  },
+                  "approved": {
+                    "type": "boolean",
+                    "description": "Whether the user approved the authorization request",
+                    "example": true
+                  },
+                  "code_challenge": {
+                    "type": "string",
+                    "description": "PKCE code challenge",
+                    "example": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+                  },
+                  "code_challenge_method": {
+                    "type": "string",
+                    "enum": ["S256", "plain"],
+                    "description": "PKCE code challenge method",
+                    "example": "S256"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorization processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "redirect_url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "URL to redirect the user to"
+                    }
+                  }
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Successful authorization",
+                    "value": {
+                      "redirect_url": "https://your-app.com/callback?code=auth_code_123&state=xyz123"
+                    }
+                  },
+                  "denied": {
+                    "summary": "User denied authorization",
+                    "value": {
+                      "redirect_url": "https://your-app.com/callback?error=access_denied&error_description=User%20denied%20the%20request&state=xyz123"
+                    }
+                  },
+                  "error": {
+                    "summary": "Server error occurred",
+                    "value": {
+                      "redirect_url": "https://your-app.com/callback?error=server_error&error_description=Authorization%20server%20encountered%20an%20error&state=xyz123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Missing required parameters: client_id, redirect_uri"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/public/shared-view/{sharedViewUuid}/bulk/dataList": {
       "parameters": [
         {

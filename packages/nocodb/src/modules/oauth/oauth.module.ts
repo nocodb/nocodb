@@ -3,13 +3,14 @@ import { forwardRef, Module } from '@nestjs/common';
 import { NocoModule } from '~/modules/noco.module';
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 import { OAuthController } from '~/modules/oauth/controllers/oauth.controller';
+import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-authorization.service';
 
 export const oAuthModuleMetadata = {
   imports: [forwardRef(() => NocoModule)],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [OAuthController] : []),
   ],
-  providers: [OauthClientService],
+  providers: [OauthClientService, OauthAuthorizationService],
   exports: [OauthClientService],
 };
 

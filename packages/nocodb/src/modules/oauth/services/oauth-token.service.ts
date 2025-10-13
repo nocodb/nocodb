@@ -91,51 +91,37 @@ export class OauthTokenService {
   }): Promise<OAuthClient> {
     const { clientId, clientSecret, isPKCEFlow = false } = params;
 
-    console.log(params);
-
     const client = await OAuthClient.getByClientId(clientId);
 
-    console.log(client);
-
     if (!client) {
-      console.log('Invalid Client - Client Not Found');
       throw new Error('invalid_client: Client not found');
     }
 
     // Confidential clients: require client_secret OR valid PKCE
     if (client.client_secret) {
-      console.log('Confidential Client - Checking Authentication');
-
       // If PKCE is used, client_secret is optional
       if (isPKCEFlow) {
-        console.log('PKCE Flow - Client Secret Optional');
         // If client_secret is provided with PKCE, validate it
         if (clientSecret && clientSecret !== client.client_secret) {
-          console.log('Invalid Client - Invalid Client Credentials');
           throw new Error('invalid_client: Invalid client credentials');
         }
         // PKCE validation will happen separately, so we're good here
       } else {
         // Non-PKCE flow: client_secret is required
-        console.log('Non-PKCE Flow - Client Secret Required');
         if (!clientSecret) {
-          console.log('Invalid Client - Client Secret Required');
           throw new Error(
             'invalid_client: Client secret required for confidential clients without PKCE',
           );
         }
 
         if (clientSecret !== client.client_secret) {
-          console.log('Invalid Client - Invalid Client Credentials');
           throw new Error('invalid_client: Invalid client credentials');
         }
       }
     } else {
-      console.log('Public Client - Client Secret Not Required');
       // Public clients (no client_secret)
       // PKCE is required for public clients, but they don't need a secret
       if (clientSecret) {
-        console.log('Invalid Client - Client Secret Not Expected');
         throw new Error(
           'invalid_client: Client secret not expected for public clients',
         );
@@ -153,8 +139,6 @@ export class OauthTokenService {
     resource?: string;
   }): Promise<TokenResponse> {
     const { code, redirectUri, codeVerifier, clientSecret } = params;
-
-    console.log(params);
 
     // Get authorization code
     const authCode = await OAuthAuthorizationCode.getByCode(code);
@@ -181,13 +165,11 @@ export class OauthTokenService {
 
     // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
-      console.log('Invalid Authorization Code - Expired');
       throw new Error('invalid_grant: Authorization code has expired');
     }
 
     // Validate redirect URI
     if (authCode.redirect_uri !== redirectUri) {
-      console.log('Invalid Redirect URI');
       throw new Error('invalid_grant: Invalid redirect_uri');
     }
 
@@ -197,7 +179,6 @@ export class OauthTokenService {
     // Validate PKCE if code challenge was provided during authorization
     if (isPKCEFlow) {
       if (!codeVerifier) {
-        console.log('Invalid PKCE - Code Verifier Required');
         throw new Error(
           'invalid_request: code_verifier is required for PKCE flow',
         );

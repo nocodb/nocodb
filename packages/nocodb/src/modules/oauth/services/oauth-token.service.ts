@@ -98,36 +98,25 @@ export class OauthTokenService {
 
     const client = await OAuthClient.getByClientId(clientId);
     if (!client) {
-      console.log('Client not found');
       NcError.badRequest('invalid_client');
     }
 
     // If this is a PKCE flow, skip client_secret validation
     if (isPKCEFlow) {
-      console.log('PKCE flow detected - skipping client_secret validation');
       return client;
     }
 
     // Non-PKCE flow - validate client_secret as before
     if (client.client_secret) {
-      console.log('Client Secret Exists in DB');
       if (!clientSecret) {
-        console.log('Client Secret Not Found in user req');
         NcError.badRequest('invalid_client');
       }
 
       if (clientSecret !== client.client_secret) {
-        console.log(
-          'Client Secret Mismatch',
-          clientSecret,
-          client.client_secret,
-        );
         NcError.badRequest('invalid_client');
       }
     } else {
-      console.log('Client Secret Not in db');
       if (clientSecret) {
-        console.log('Client Secret Not Expected');
         NcError.badRequest('invalid_client');
       }
     }
@@ -147,7 +136,6 @@ export class OauthTokenService {
     // Get authorization code
     const authCode = await OAuthAuthorizationCode.getByCode(code);
     if (!authCode) {
-      console.log('Invalid or expired authorization code');
       NcError.badRequest('Invalid or expired authorization code');
     }
 
@@ -156,7 +144,6 @@ export class OauthTokenService {
       authCode.resource &&
       params.resource !== authCode.resource
     ) {
-      console.log('resource parameter does not match authorized resource');
       NcError.badRequest(
         'resource parameter does not match authorized resource',
       );
@@ -164,19 +151,16 @@ export class OauthTokenService {
 
     // Check if code is already used
     if (authCode.is_used) {
-      console.log('Authorization code has already been used');
       NcError.badRequest('Authorization code has already been used');
     }
 
     // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
-      console.log('Authorization code has expired');
       NcError.badRequest('Authorization code has expired');
     }
 
     // Validate redirect URI
     if (authCode.redirect_uri !== redirectUri) {
-      console.log('Invalid redirect_uri');
       NcError.badRequest('Invalid redirect_uri');
     }
 
@@ -185,9 +169,7 @@ export class OauthTokenService {
 
     // Validate PKCE if code challenge was provided during authorization
     if (isPKCEFlow) {
-      console.log('PKCE flow - validating code_verifier');
       if (!codeVerifier) {
-        console.log('code_verifier is required for PKCE flow');
         NcError.badRequest('code_verifier is required for PKCE flow');
       }
 
@@ -198,11 +180,8 @@ export class OauthTokenService {
       });
 
       if (!isValidPKCE) {
-        console.log('Invalid code_verifier');
         NcError.badRequest('Invalid code_verifier');
       }
-    } else {
-      console.log('Non-PKCE flow - client_secret authentication required');
     }
 
     await this.authenticateClient({
@@ -211,7 +190,6 @@ export class OauthTokenService {
       isPKCEFlow,
     });
 
-    console.log('Authenticated the client');
     const now = Date.now();
     const accessTokenExpiresAt = new Date(
       now + this.ACCESS_TOKEN_EXPIRES_IN * 1000,
@@ -228,11 +206,7 @@ export class OauthTokenService {
       scope: authCode.scope,
     });
 
-    console.log('Generated access token');
-
     const refreshToken = randomBytes(64).toString('base64url');
-
-    console.log('Generated refresh token');
 
     const insertObj = {
       client_id: authCode.client_id,
@@ -246,14 +220,11 @@ export class OauthTokenService {
       resource: authCode.resource,
     };
 
-    console.log('Inserting token record');
     await OAuthToken.insert(insertObj);
 
-    console.log('Marking authorization code as used');
     // Mark authorization code as used
     await OAuthAuthorizationCode.markAsUsed(code);
 
-    console.log('Returning token response');
     return {
       access_token: accessToken,
       token_type: 'Bearer',

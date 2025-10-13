@@ -87,8 +87,9 @@ export class OauthTokenService {
   private async authenticateClient(params: {
     clientId: string;
     clientSecret?: string;
+    isPKCEFlow?: boolean;
   }): Promise<OAuthClient> {
-    const { clientId, clientSecret } = params;
+    const { clientId, clientSecret, isPKCEFlow = false } = params;
 
     console.log(params);
 
@@ -97,31 +98,44 @@ export class OauthTokenService {
     console.log(client);
 
     if (!client) {
-      console.log('Invalid Client - Client Not FOund');
+      console.log('Invalid Client - Client Not Found');
       throw new Error('invalid_client: Client not found');
     }
 
-    // Confidential clients must always authenticate
+    // Confidential clients: require client_secret OR valid PKCE
     if (client.client_secret) {
-      console.log('Conidential Client - Client Secret Required');
+      console.log('Confidential Client - Checking Authentication');
 
-      if (!clientSecret) {
-        console.log('Invalid Client - Client Secret Required');
-        throw new Error(
-          'invalid_client: Client secret required for confidential clients',
-        );
-      }
+      // If PKCE is used, client_secret is optional
+      if (isPKCEFlow) {
+        console.log('PKCE Flow - Client Secret Optional');
+        // If client_secret is provided with PKCE, validate it
+        if (clientSecret && clientSecret !== client.client_secret) {
+          console.log('Invalid Client - Invalid Client Credentials');
+          throw new Error('invalid_client: Invalid client credentials');
+        }
+        // PKCE validation will happen separately, so we're good here
+      } else {
+        // Non-PKCE flow: client_secret is required
+        console.log('Non-PKCE Flow - Client Secret Required');
+        if (!clientSecret) {
+          console.log('Invalid Client - Client Secret Required');
+          throw new Error(
+            'invalid_client: Client secret required for confidential clients without PKCE',
+          );
+        }
 
-      if (clientSecret !== client.client_secret) {
-        console.log('Invalid Client - Invalid Client Credentials');
-        throw new Error('invalid_client: Invalid client credentials');
+        if (clientSecret !== client.client_secret) {
+          console.log('Invalid Client - Invalid Client Credentials');
+          throw new Error('invalid_client: Invalid client credentials');
+        }
       }
     } else {
       console.log('Public Client - Client Secret Not Required');
       // Public clients (no client_secret)
       // PKCE is required for public clients, but they don't need a secret
       if (clientSecret) {
-        console.log('Invalid Client - Client Secret Not Required');
+        console.log('Invalid Client - Client Secret Not Expected');
         throw new Error(
           'invalid_client: Client secret not expected for public clients',
         );
@@ -200,9 +214,11 @@ export class OauthTokenService {
       }
     }
 
+    // Authenticate client - PKCE makes client_secret optional for confidential clients
     await this.authenticateClient({
       clientId: authCode.fk_client_id,
       clientSecret,
+      isPKCEFlow,
     });
 
     const now = Date.now();
@@ -278,10 +294,12 @@ export class OauthTokenService {
       NcError.badRequest('Refresh token has expired');
     }
 
-    // For refresh token flow, always require client authentication
+    // For refresh token flow, require client authentication
+    // Note: Refresh tokens don't use PKCE, so client_secret is required for confidential clients
     await this.authenticateClient({
       clientId,
       clientSecret,
+      isPKCEFlow: false, // Refresh token flow doesn't use PKCE
     });
 
     // Validate client ID
@@ -342,10 +360,12 @@ export class OauthTokenService {
   }): Promise<boolean> {
     const { token, clientId, clientSecret, tokenTypeHint } = params;
 
-    // For token revocation, always require client authentication
+    // For token revocation, require client authentication
+    // Note: Revocation doesn't use PKCE, so client_secret is required for confidential clients
     await this.authenticateClient({
       clientId,
       clientSecret,
+      isPKCEFlow: false, // Revocation doesn't use PKCE
     });
 
     let tokenRecord: OAuthToken | null = null;

@@ -21,6 +21,7 @@ import {
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
+import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -30,6 +31,7 @@ export class InternalController {
     protected readonly aclMiddleware: AclMiddleware,
     protected readonly auditsService: AuditsService,
     protected readonly oAuthClientService: OauthClientService,
+    protected readonly oAuthTokenService: OauthTokenService,
   ) {}
 
   protected get operationScopes() {
@@ -45,6 +47,8 @@ export class InternalController {
       oAuthClientUpdate: 'org',
       oAuthClientDelete: 'org',
       oAuthClientGet: 'org',
+      oAuthAuthorizationList: 'org',
+      oAuthAuthorizationRevoke: 'org',
     } as const;
   }
 
@@ -91,6 +95,8 @@ export class InternalController {
         });
       case 'oAuthClientList':
         return await this.oAuthClientService.listClients(context, req);
+      case 'oAuthAuthorizationList':
+        return await this.oAuthTokenService.listUserAuthorizations(req.user.id);
       default:
         return NcError.notFound('Operation');
     }
@@ -135,6 +141,12 @@ export class InternalController {
           clientId: req.query.clientId as string,
           req,
         });
+      case 'oAuthAuthorizationRevoke':
+        await this.oAuthTokenService.revokeUserAuthorization(
+          req.user.id,
+          payload.tokenId,
+        );
+        return { success: true };
       default:
         NcError.notFound('Operation');
     }

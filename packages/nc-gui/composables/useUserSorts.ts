@@ -9,7 +9,7 @@ import type { UsersSortType } from '~/lib/types'
  * @param {string} roleType - The type of role for which user sorts are managed ('Workspace', 'Org', or 'Project').
  * @returns {object} An object containing reactive values and functions related to user sorts.
  */
-export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organization' | 'Webhook') {
+export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organization' | 'Webhook' | 'OAuthAuthorization') {
   const clone = rfdc()
 
   const { user } = useGlobal()

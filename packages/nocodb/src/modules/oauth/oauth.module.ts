@@ -20,7 +20,7 @@ export const oAuthModuleMetadata = {
     OauthDcrService,
     OauthMetadataService,
   ],
-  exports: [OauthClientService],
+  exports: [OauthClientService, OauthTokenService],
 };
 
 @Module(oAuthModuleMetadata)

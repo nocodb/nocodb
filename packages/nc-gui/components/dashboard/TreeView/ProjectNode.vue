@@ -771,7 +771,7 @@ defineExpose({
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-7.5 h-7 !xs:(pl-6 h-[3rem]) !pr-0.5 !py-0 hover:bg-nc-bg-gray-medium xs:(hover:bg-nc-bg-gray-extra-light) !rounded-md;
+  @apply !mx-0 !pl-7.5 h-7 !xs:(pl-6 h-[3rem]) !pr-0.5 !py-0 hover:bg-nc-bg-gray-medium xs:(hover:bg-nc-bg-gray-extralight) !rounded-md;
 
   .ant-collapse-arrow {
     @apply !right-1 !xs:(flex-none border-1 border-nc-border-gray-medium w-6.5 h-6.5 mr-1);

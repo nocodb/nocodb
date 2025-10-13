@@ -149,8 +149,8 @@ async function handleSubmit() {
     <template #header>
       <div class="flex w-full items-center p-2 justify-between">
         <div class="flex items-center gap-3 pl-1 flex-1">
-          <GeneralIcon class="text-gray-900 h-5 w-5" icon="ncLock" />
-          <span class="text-gray-900 truncate font-semibold text-xl"> Create OAuth Client </span>
+          <GeneralIcon class="text-nc-content-gray-emphasis h-5 w-5" icon="ncLock" />
+          <span class="text-nc-content-gray-emphasis truncate font-semibold text-xl"> Create OAuth Client </span>
         </div>
 
         <div class="flex justify-end items-center gap-3 pr-0.5 flex-1" @click="handleSubmit">
@@ -164,7 +164,7 @@ async function handleSubmit() {
       </div>
     </template>
 
-    <div class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
+    <div class="flex bg-nc-bg-default rounded-b-2xl h-[calc(100%_-_66px)]">
       <div
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"
@@ -173,7 +173,7 @@ async function handleSubmit() {
           <a-form :model="clientRef" name="create-oauth-client" layout="vertical" class="flex flex-col gap-6">
             <a-form-item label="Application Name" v-bind="validateInfos.client_name" class="!mb-0 flex-1">
               <template #label>
-                <span class="text-gray-700 font-medium">Application Name <span class="text-red-500">*</span></span>
+                <span class="text-nc-content-gray-subtle font-medium">Application Name <span class="text-red-500">*</span></span>
               </template>
               <a-input
                 ref="titleDomRef"
@@ -185,7 +185,7 @@ async function handleSubmit() {
 
             <a-form-item label="Homepage URL" v-bind="validateInfos.client_uri" class="!mb-0 flex-1">
               <template #label>
-                <span class="text-gray-700 font-medium">Homepage URL</span>
+                <span class="text-nc-content-gray-subtle font-medium">Homepage URL</span>
               </template>
               <a-input
                 v-model:value="clientRef.client_uri"
@@ -196,7 +196,7 @@ async function handleSubmit() {
 
             <a-form-item label="Application Description" v-bind="validateInfos.client_description" class="!mb-0 flex-1">
               <template #label>
-                <span class="text-gray-700 font-medium">Application Description</span>
+                <span class="text-nc-content-gray-subtle font-medium">Application Description</span>
               </template>
               <a-textarea
                 ref="titleDomRef"
@@ -208,7 +208,7 @@ async function handleSubmit() {
 
             <a-form-item label="Logo URL" class="items-start !mb-0" v-bind="validateInfos.logo_uri">
               <template #label>
-                <span class="text-gray-700 font-medium">Logo URL</span>
+                <span class="text-nc-content-gray-subtle font-medium">Logo URL</span>
               </template>
               <NcUpload v-model:attachment="clientRef.logo_uri" upload-path="clients/logos" :max-file-size="5">
                 <template #content>
@@ -226,7 +226,9 @@ async function handleSubmit() {
             <!-- Redirect URIs -->
             <a-form-item label="Authorization Callback URLs" v-bind="validateInfos.redirect_uris" class="mb-0">
               <template #label>
-                <span class="text-gray-700 font-medium">Authorization Callback URLs <span class="text-red-500">*</span></span>
+                <span class="text-nc-content-gray-subtle font-medium"
+                  >Authorization Callback URLs <span class="text-red-500">*</span></span
+                >
               </template>
               <a-textarea
                 v-model:value="clientRef.redirect_uris"
@@ -238,19 +240,19 @@ async function handleSubmit() {
           </a-form>
         </div>
       </div>
-      <div class="h-full bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
+      <div class="h-full bg-nc-bg-gray-extralight border-l-1 w-80 p-5 rounded-br-2xl border-nc-border-gray-medium">
         <div class="w-full flex flex-col gap-3">
-          <h2 class="text-sm text-gray-700 font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
+          <h2 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
           <div>
             <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">
               <div class="h-7 w-7 flex items-center justify-center">
-                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-500" />
+                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
               </div>
               <NuxtLink
                 :href="doc.href"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="!text-gray-500 text-sm !no-underline !hover:underline"
+                class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"
               >
                 {{ doc.title }}
               </NuxtLink>

@@ -45,6 +45,13 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       })
       break
     }
+    case 'external-integrations': {
+      payload.push({
+        title: t('title.externalIntegrations'),
+        active: true,
+      })
+      break
+    }
     case 'audit': {
       payload.push({
         title: t('title.auditLogs'),

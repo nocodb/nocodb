@@ -62,7 +62,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.OAUTH_TOKENS, (table) => {
     table.string('id', 20).primary();
     table.string('fk_client_id', 32);
-    table.string('fk_user_id');
+    table.string('fk_user_id', 20);
 
     table.text('access_token');
     table.timestamp('access_token_expires_at');

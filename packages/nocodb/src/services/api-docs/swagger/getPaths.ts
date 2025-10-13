@@ -1,5 +1,5 @@
 import { getModelPaths, getViewPaths } from './templates/paths';
-import type { Base, Model } from '~/models';
+import type { Base, Model, Source } from '~/models';
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
 import type { SwaggerView } from './getSwaggerJSON';
 import type { NcContext } from '~/interface/config';
@@ -12,16 +12,20 @@ export default async function getPaths(
     model,
     columns,
     views,
+    tableName,
   }: {
     base: Base;
     model: Model;
     columns: SwaggerColumn[];
     views: SwaggerView[];
+    sourcesMap: Map<string, Source>;
+    tableName: string;
   },
   _ncMeta = Noco.ncMeta,
 ) {
   const swaggerPaths = await getModelPaths(context, {
-    tableName: model.id,
+    tableName,
+    tableId: model.id,
     type: model.type,
     orgs: 'v1',
     columns,
@@ -35,8 +39,10 @@ export default async function getPaths(
     Object.assign(
       swaggerPaths,
       await getViewPaths(context, {
-        tableName: model.id,
-        viewName: view.id,
+        tableName,
+        tableId: model.id,
+        viewName: view.title,
+        viewId: view.id,
         type: model.type,
         orgs: 'v1',
         columns: swaggerColumns,

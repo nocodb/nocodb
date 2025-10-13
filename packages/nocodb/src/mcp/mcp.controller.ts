@@ -52,4 +52,21 @@ export class McpController {
 
     return await this.mcpService.handleRequest(tokenId, context, req, res);
   }
+
+  @All('mcp')
+  async handleMcpOAuthRequest(@Request() req: NcRequest, @Response() res) {
+    const ctx = req.user.oauth_granted_resources;
+
+    return await this.mcpService.handleRequest(
+      null,
+      {
+        workspace_id: ctx.workspace_id,
+        base_id: ctx.base_id,
+        user: req.user,
+        nc_site_url: req.ncSiteUrl,
+      },
+      req,
+      res,
+    );
+  }
 }

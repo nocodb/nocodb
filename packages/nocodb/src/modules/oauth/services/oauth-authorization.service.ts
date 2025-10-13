@@ -31,6 +31,7 @@ export class OauthAuthorizationService {
     scope?: string;
     workspaceId?: string;
     baseId?: string;
+    resource?: string;
   }): Promise<OAuthAuthorizationCode> {
     const {
       clientId,
@@ -42,6 +43,7 @@ export class OauthAuthorizationService {
       scope,
       workspaceId,
       baseId,
+      resource,
     } = params;
 
     const client = await OAuthClient.getByClientId(clientId);
@@ -130,6 +132,7 @@ export class OauthAuthorizationService {
       code_challenge: codeChallenge,
       code_challenge_method: codeChallengeMethod,
       scope,
+      resource,
       granted_resources:
         Object.keys(grantedResources).length > 0 ? grantedResources : null,
       expires_at: expiresAt.toISOString(),

@@ -2,11 +2,14 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   Post,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { NcRequest } from 'nocodb-sdk';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
@@ -16,6 +19,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { OauthAuthorizationService } from '~/modules/oauth/services/oauth-authorization.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
+import { OauthDcrService } from '~/modules/oauth/services/oauth-dcr.service';
+import { OauthMetadataService } from '~/modules/oauth/services/oauth-metadata.service';
 
 @Controller()
 export class OAuthController {
@@ -23,6 +28,8 @@ export class OAuthController {
     protected readonly oauthService: OauthClientService,
     protected readonly oauthAuthorizationService: OauthAuthorizationService,
     protected readonly oauthTokenService: OauthTokenService,
+    protected readonly oauthDcrService: OauthDcrService,
+    protected readonly oauthMetadataService: OauthMetadataService,
   ) {}
 
   @UseGuards(PublicApiLimiterGuard)
@@ -50,6 +57,7 @@ export class OAuthController {
       scope,
       workspace_id,
       base_id,
+      resource,
     } = body;
 
     if (!client_id || !redirect_uri) {
@@ -80,6 +88,7 @@ export class OAuthController {
           scope,
           workspaceId: workspace_id,
           baseId: base_id,
+          resource,
         });
 
       const successRedirectUrl =
@@ -105,9 +114,26 @@ export class OAuthController {
 
   @UseGuards(PublicApiLimiterGuard)
   @Post(['/api/v2/oauth/token'])
-  async token(@Body() body) {
-    const { grant_type, code, redirect_uri, code_verifier, refresh_token } =
-      body;
+  async token(@Body() body, @Headers('content-type') contentType: string) {
+    if (
+      !contentType ||
+      !contentType.includes('application/x-www-form-urlencoded')
+    ) {
+      return {
+        error: 'invalid_request',
+        error_description:
+          'Content-Type must be application/x-www-form-urlencoded',
+      };
+    }
+
+    const {
+      grant_type,
+      code,
+      redirect_uri,
+      code_verifier,
+      refresh_token,
+      resource,
+    } = body;
 
     const { client_id: clientId, client_secret: clientSecret } = body;
 
@@ -142,6 +168,7 @@ export class OAuthController {
             redirectUri: redirect_uri,
             codeVerifier: code_verifier,
             clientSecret,
+            resource,
           });
 
         case 'refresh_token':
@@ -163,6 +190,7 @@ export class OAuthController {
             refreshToken: refresh_token,
             clientId,
             clientSecret,
+            resource,
           });
 
         default:
@@ -193,7 +221,18 @@ export class OAuthController {
 
   @UseGuards(PublicApiLimiterGuard)
   @Post(['/api/v2/oauth/revoke'])
-  async revoke(@Body() body) {
+  async revoke(@Body() body, @Headers('content-type') contentType: string) {
+    if (
+      !contentType ||
+      !contentType.includes('application/x-www-form-urlencoded')
+    ) {
+      return {
+        error: 'invalid_request',
+        error_description:
+          'Content-Type must be application/x-www-form-urlencoded',
+      };
+    }
+
     const { token, token_type_hint } = body;
 
     const { client_id: clientId, client_secret: clientSecret } = body;
@@ -226,5 +265,73 @@ export class OAuthController {
         error_description: error.message || 'Token revocation failed',
       };
     }
+  }
+
+  // Dynamic Client Registration (DCR) Endpoints
+  @UseGuards(PublicApiLimiterGuard)
+  @Post(['/api/v2/oauth/register'])
+  async registerClient(
+    @Body() body,
+    @Headers('content-type') contentType: string,
+  ) {
+    if (!contentType || !contentType.includes('application/json')) {
+      return {
+        error: 'invalid_request',
+        error_description:
+          'Content-Type must be application/json for client registration',
+      };
+    }
+
+    try {
+      return await this.oauthDcrService.registerClient(body);
+    } catch (error) {
+      if (error.message.startsWith('invalid_client_metadata:')) {
+        return {
+          error: 'invalid_client_metadata',
+          error_description: error.message.replace(
+            'invalid_client_metadata: ',
+            '',
+          ),
+        };
+      }
+      if (error.message.startsWith('invalid_redirect_uri:')) {
+        return {
+          error: 'invalid_redirect_uri',
+          error_description: error.message.replace(
+            'invalid_redirect_uri: ',
+            '',
+          ),
+        };
+      }
+      return {
+        error: 'server_error',
+        error_description:
+          'An unexpected error occurred during client registration',
+      };
+    }
+  }
+
+  @Get(['/.well-known/oauth-authorization-server'])
+  async getAuthorizationServerMetadata(
+    @Req() req: NcRequest,
+    @Res() res: Response,
+  ) {
+    const metadata =
+      this.oauthMetadataService.getAuthorizationServerMetadata(req);
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    return res.json(metadata);
+  }
+
+  @Get(['/.well-known/oauth-protected-resource'])
+  async getProtectedResourceMetadata(
+    @Req() req: NcRequest,
+    @Res() res: Response,
+  ) {
+    const metadata =
+      this.oauthMetadataService.getProtectedResourceMetadata(req);
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+    return res.json(metadata);
   }
 }

@@ -11,6 +11,7 @@ const redirect_uri = computed(() => route.query.redirect_uri as string)
 const responseType = computed(() => route.query.response_type as string)
 const state = computed(() => route.query.state as string)
 const codeChallenge = computed(() => route.query.code_challenge as string)
+const resource = computed(() => route.query.resource as string)
 const codeChallengeMethod = computed(() => route.query.code_challenge_method as string)
 
 const loading = ref(true)
@@ -81,6 +82,7 @@ async function approveAuthorization() {
       code_challenge: codeChallenge.value,
       code_challenge_method: codeChallengeMethod.value,
       base_id: selectedBase.value?.id,
+      resource: resource.value,
     }
 
     if (isEeUI && selectedWorkspace.value?.id) {

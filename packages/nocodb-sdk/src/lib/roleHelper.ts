@@ -1,5 +1,6 @@
-import { OrderedProjectRoles, OrderedWorkspaceRoles } from './enums';
+import { OrderedProjectRoles, OrderedWorkspaceRoles, WorkspaceRolesToProjectRoles } from './enums';
 import type { ProjectRoles, WorkspaceUserRoles } from './enums';
+import { extractRolesObj } from './helperFunctions';
 
 export function extractProjectRolePower(
   user: any,
@@ -32,6 +33,59 @@ export function extractProjectRolePower(
   }
 
   return ind;
+}
+
+/**
+ * Get the power of the workspace role of the user.
+ * @param user - The user object.
+ * @returns The power of the workspace role of the user.
+ */
+export function extractWorkspaceRolePower(
+  user: any,
+  /**
+   * forbiddenCallback is used to keep old function behaviour
+   */ forbiddenCallback?: () => void
+) {
+  const reverseOrderedWorkspaceRoles = [...OrderedWorkspaceRoles].reverse();
+
+  if (!user.workspace_roles) {
+    return -1;
+  }
+
+  // get most powerful role of user (TODO moving forward we will confirm that user has only one role)
+  let role: string | null = null;
+  let power = -1;
+  for (const r of Object.keys(user.workspace_roles)) {
+    const ind = reverseOrderedWorkspaceRoles.indexOf(r as WorkspaceUserRoles);
+    if (ind > power) {
+      role = r as WorkspaceUserRoles;
+      power = ind;
+    }
+  }
+  const ind = reverseOrderedWorkspaceRoles.indexOf(role as WorkspaceUserRoles);
+
+  if (ind === -1) {
+    forbiddenCallback?.();
+  }
+
+  return ind;
+}
+
+/**
+ * Map the workspace roles object to the project roles object.
+ * @param wsRoles - The workspace roles object.
+ * @returns The project roles object.
+ */
+export function mapWorkspaceRolesObjToProjectRolesObj(wsRoles: any) {
+  wsRoles = extractRolesObj(wsRoles);
+  let baseRoles: Record<string, any> | null = null;
+  if (wsRoles) {
+    for (const r of Object.keys(wsRoles)) {
+      if (!baseRoles) baseRoles = {};
+      baseRoles[WorkspaceRolesToProjectRoles[r]] = wsRoles[r];
+    }
+  }
+  return baseRoles;
 }
 
 export function getProjectRole(user, inheritFromWorkspace = false) {

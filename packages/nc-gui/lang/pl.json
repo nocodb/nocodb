@@ -1169,6 +1169,7 @@
     "scriptIdColon": "SKRYPT ID: {scriptId}",
     "dashboardIdColon": "ID PULPITU: {dashboardId}",
     "viewIdColon": "ID WIDOKU: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "Adresat",
     "subject": "Temat",
     "body": "Treść",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "Kliknij, aby skopiować ID skryptu",
     "clickToCopyDashboardID": "Kliknij, aby skopiować ID pulpitu",
     "clickToCopyViewID": "Kliknij, aby skopiować ID widoku",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "Tryb widoku",
     "assignAsPersonalView": "Przypisz jako widok osobisty",
     "reAssignView": "Przypisz widok ponownie",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "Wyszukaj ikony",
@@ -2005,6 +2011,7 @@
     "manageConnections": "Zarządzaj połączeniami dla swoich integracji.",
     "invalidConfiguration": "Nieprawidłowa konfiguracja przycisku",
     "invalidColumnConfiguration": "Nieprawidłowa konfiguracja pola",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "Wybierz prawidłowy motyw",
     "invalidColor": "Wybierz prawidłowy kolor",
     "invalidType": "Typ przycisku może być ‚webhook’ lub ‚url’",

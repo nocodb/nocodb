@@ -167,8 +167,8 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     const { context } = options;
 
     return getNodejsTimezone(
-      parseProp(filter.meta)?.timezone,
-      parseProp(column.meta)?.timezone,
+      parseProp(filter.meta).timezone,
+      parseProp(column.meta).timezone,
       context.timezone,
     );
   }

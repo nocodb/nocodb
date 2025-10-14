@@ -1169,6 +1169,7 @@
     "scriptIdColon": "ಸ್ಕ್ರಿಪ್ಟ್ ID: {scriptId}",
     "dashboardIdColon": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಐಡಿ: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "ವಿಳಾಸಕ್ಕೆ",
     "subject": "ವಿಷಯ",
     "body": "ದೇಹ",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "ಸ್ಕ್ರಿಪ್ಟ್ ID ಅನ್ನು ಪ್ರತಿಕರಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToCopyDashboardID": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಐಡಿಯನ್ನು ನಕಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToCopyViewID": "ವೀಕ್ಷಣೆ ID ನಕಲು ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "ನೋಟ ಸ್ಥಿತಿ",
     "assignAsPersonalView": "ವೈಯಕ್ತಿಕ ವೀಕ್ಷಣೆಯಾಗಿ ನಿಯೋಜಿಸಿ",
     "reAssignView": "ದೃಶ್ಯವನ್ನು ಮರು-ನಿಯೋಜಿಸಿ",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "ಐಕಾನ್‌ಗಳನ್ನು ಹುಡುಕಿ",
@@ -2005,6 +2011,7 @@
     "manageConnections": "ನಿಮ್ಮ ಸಂಯೋಜನೆಗಳ ಕನೆಕ್ಷನ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಿ.",
     "invalidConfiguration": "ಅಮಾನ್ಯ ಬಟನ್ ಸಂರಚನೆ",
     "invalidColumnConfiguration": "ಅಮಾನ್ಯ ಫೀಲ್ಡ್ ಸಂರಚನೆ",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "ಮಾನ್ಯವಾದ ಥೀಮ್ ಆಯ್ಕೆಮಾಡಿ",
     "invalidColor": "ಮಾನ್ಯವಾದ ಬಣ್ಣ ಆಯ್ಕೆಮಾಡಿ",
     "invalidType": "ಬಟನ್ ಪ್ರಕಾರ 'ವೆಬ್‌ಹುಕ್' ಅಥವಾ 'url' ಇರಬಹುದು",

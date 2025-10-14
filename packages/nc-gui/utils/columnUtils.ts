@@ -341,7 +341,7 @@ const isColumnInvalid = ({
         }
       } else if (!colOptions.type) {
         result.isInvalid = true
-        result.tooltip = 'msg.invalidColumnConfiguration'
+        result.tooltip = 'msg.buttonTypeIsMissing'
       }
       break
     }

@@ -160,27 +160,9 @@ export default class BaseUser extends BaseUserCE {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!baseUser || !baseUser.roles) {
-      const base = await Base.get(context, baseId, ncMeta);
-      const workspace_id = base.fk_workspace_id;
       const queryBuilder = ncMeta
         .knex(MetaTable.USERS)
-        .select(
-          `${MetaTable.USERS}.id`,
-          `${MetaTable.USERS}.email`,
-          `${MetaTable.USERS}.display_name`,
-          `${MetaTable.USERS}.invite_token`,
-          `${MetaTable.USERS}.roles as main_roles`,
-          `${MetaTable.USERS}.created_at as created_at`,
-          `${MetaTable.USERS}.meta`,
-          `${MetaTable.PROJECT_USERS}.base_id`,
-          `${MetaTable.PROJECT_USERS}.roles as roles`,
-          ...(workspace_id
-            ? [
-                `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
-                `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
-              ]
-            : []),
-        );
+        .select(this.selectBaseUserProps(context, ncMeta));
 
       queryBuilder
         .innerJoin(MetaTable.WORKSPACE_USER, function () {
@@ -191,7 +173,7 @@ export default class BaseUser extends BaseUserCE {
           ).andOn(
             `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
             '=',
-            ncMeta.knex.raw('?', [workspace_id]),
+            ncMeta.knex.raw('?', [context.workspace_id]),
           );
         })
         .leftJoin(MetaTable.PROJECT_USERS, function () {
@@ -277,27 +259,9 @@ export default class BaseUser extends BaseUserCE {
     ];
 
     if (strict_in_record || (!isNoneList && !baseUsers.length)) {
-      const queryBuilder = ncMeta.knex(MetaTable.USERS).select(
-        `${MetaTable.USERS}.id`,
-        `${MetaTable.USERS}.email`,
-        `${MetaTable.USERS}.display_name`,
-        `${MetaTable.USERS}.id as fk_user_id`,
-
-        `${MetaTable.USERS}.invite_token`,
-        `${MetaTable.USERS}.roles as main_roles`,
-        `${MetaTable.USERS}.meta`,
-        ncMeta.knex.raw(
-          `COALESCE(${MetaTable.PROJECT_USERS}.created_at, ${MetaTable.WORKSPACE_USER}.created_at) as created_at`,
-        ),
-        ncMeta.knex.raw(
-          `COALESCE(${MetaTable.PROJECT_USERS}.updated_at, ${MetaTable.WORKSPACE_USER}.updated_at) as updated_at`,
-        ),
-        `${MetaTable.PROJECT_USERS}.base_id`,
-        `${MetaTable.PROJECT_USERS}.roles as roles`,
-        `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
-        `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
-        `${MetaTable.WORKSPACE_USER}.deleted as deleted`,
-      );
+      const queryBuilder = ncMeta
+        .knex(MetaTable.USERS)
+        .select(this.selectBaseUserProps(context, ncMeta));
 
       const joinClause = strict_in_record ? 'innerJoin' : 'leftJoin';
       queryBuilder
@@ -475,5 +439,34 @@ export default class BaseUser extends BaseUserCE {
     } else {
       return [];
     }
+  }
+
+  static selectBaseUserProps(context: NcContext, ncMeta = Noco.ncMeta) {
+    return [
+      `${MetaTable.USERS}.id`,
+      `${MetaTable.USERS}.email`,
+      `${MetaTable.USERS}.display_name`,
+      `${MetaTable.USERS}.id as fk_user_id`,
+      `${MetaTable.USERS}.invite_token`,
+      `${MetaTable.USERS}.roles as main_roles`,
+      `${MetaTable.USERS}.meta`,
+
+      ncMeta.knex.raw(
+        `COALESCE(${MetaTable.PROJECT_USERS}.created_at, ${MetaTable.WORKSPACE_USER}.created_at) as created_at`,
+      ),
+      ncMeta.knex.raw(
+        `COALESCE(${MetaTable.PROJECT_USERS}.updated_at, ${MetaTable.WORKSPACE_USER}.updated_at) as updated_at`,
+      ),
+
+      `${MetaTable.PROJECT_USERS}.base_id`,
+      `${MetaTable.PROJECT_USERS}.roles as roles`,
+      ...(context.workspace_id
+        ? [
+            `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
+            `${MetaTable.WORKSPACE_USER}.fk_workspace_id as workspace_id`,
+            `${MetaTable.WORKSPACE_USER}.deleted as deleted`,
+          ]
+        : []),
+    ];
   }
 }

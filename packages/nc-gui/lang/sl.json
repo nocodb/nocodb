@@ -1169,6 +1169,7 @@
     "scriptIdColon": "ID SKRIPTE: {scriptId}",
     "dashboardIdColon": "ID NADZORNE PLOŠČE: {dashboardId}",
     "viewIdColon": "OGLED ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "Na naslov",
     "subject": "Zadeva",
     "body": "Telo",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "Kliknite za kopiranje ID skripte",
     "clickToCopyDashboardID": "Kliknite za kopiranje ID-ja nadzorne plošče",
     "clickToCopyViewID": "Klikni za kopiranje ogleda ID",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "Način pogleda",
     "assignAsPersonalView": "Dodeli kot osebni pogled",
     "reAssignView": "Ponovno dodeli pogled",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "Iskanje ikon",
@@ -2005,6 +2011,7 @@
     "manageConnections": "Upravljajte povezave za svoje integracije.",
     "invalidConfiguration": "Neveljavna konfiguracija gumba",
     "invalidColumnConfiguration": "Neveljavna konfiguracija polja",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "Izberite veljavno temo",
     "invalidColor": "Izberite veljavno barvo",
     "invalidType": "Tip gumba je lahko bodisi 'webhook' ali 'url'",

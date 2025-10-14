@@ -19107,9 +19107,16 @@
           },
           {
             "schema": {
+              "enum": [
+                "owner",
+                "creator",
+                "editor",
+                "commenter",
+                "viewer"
+              ],
               "type": "string"
             },
-            "name": "extensionEntry",
+            "name": "minAccessRole",
             "in": "query"
           }
         ]
@@ -19186,9 +19193,16 @@
           },
           {
             "schema": {
+              "enum": [
+                "owner",
+                "creator",
+                "editor",
+                "commenter",
+                "viewer"
+              ],
               "type": "string"
             },
-            "name": "extensionEntry",
+            "name": "minAccessRole",
             "in": "query"
           }
         ]
@@ -19216,9 +19230,16 @@
           },
           {
             "schema": {
+              "enum": [
+                "owner",
+                "creator",
+                "editor",
+                "commenter",
+                "viewer"
+              ],
               "type": "string"
             },
-            "name": "extensionEntry",
+            "name": "minAccessRole",
             "in": "query"
           }
         ]

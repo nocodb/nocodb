@@ -1169,6 +1169,7 @@
     "scriptIdColon": "SCRIPT ID: {scriptId}",
     "dashboardIdColon": "डैशबोर्ड आईडी: {dashboardId}",
     "viewIdColon": "देखें आईडी: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "पता",
     "subject": "विषय",
     "body": "शरीर",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "स्क्रिप्ट ID कॉपी करने के लिए क्लिक करें",
     "clickToCopyDashboardID": "डैशबोर्ड आईडी कॉपी करने के लिए क्लिक करें",
     "clickToCopyViewID": "व्यू आईडी कॉपी करने के लिए क्लिक करें",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "दृश्य मोड",
     "assignAsPersonalView": "पर्सनल व्यू के रूप में असाइन करें",
     "reAssignView": "Re-assign view",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "आइकन खोजें",
@@ -2005,6 +2011,7 @@
     "manageConnections": "अपने इंटीग्रेशनों के लिए कनेक्शन प्रबंधित करें।",
     "invalidConfiguration": "अमान्य बटन विन्यास",
     "invalidColumnConfiguration": "अमान्य फ़ील्ड विन्यास",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "एक मान्य थीम चुनें",
     "invalidColor": "एक मान्य रंग चुनें",
     "invalidType": "बटन प्रकार 'वेबहुक' या 'url' हो सकता है",

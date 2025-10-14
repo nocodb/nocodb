@@ -1169,6 +1169,7 @@
     "scriptIdColon": "स्क्रिप्ट ID: {scriptId}",
     "dashboardIdColon": "ड्यासबोर्ड ID: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "ठेगाना तर्फ",
     "subject": "विषय",
     "body": "शरीर",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "स्क्रिप्ट ID कॉपी गर्न क्लिक गर्नुहोस्",
     "clickToCopyDashboardID": "ड्यासबोर्ड ID कपी गर्न थिच्नुहोस्",
     "clickToCopyViewID": "View ID प्रतिलिपि गर्न क्लिक गर्नुहोस्",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "हेर्ने तरिका",
     "assignAsPersonalView": "व्यक्तिगत दृश्यको रूपमा असाइन गर्नुहोस्",
     "reAssignView": "दृश्य पुन: तोक्नुहोस्",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "आइकनहरू खोज्नुहोस्",
@@ -2005,6 +2011,7 @@
     "manageConnections": "आफ्ना एकीकरणहरूको जडान व्यवस्थापन गर्नुहोस्।",
     "invalidConfiguration": "अवैध बटन कन्फिगरेसन",
     "invalidColumnConfiguration": "अवैध फील्ड कन्फिगरेसन",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "वैध थिम चयन गर्नुहोस्",
     "invalidColor": "वैध रंग चयन गर्नुहोस्",
     "invalidType": "बटनको प्रकार 'webhook' वा 'url' मध्ये एक हुन सक्छ",

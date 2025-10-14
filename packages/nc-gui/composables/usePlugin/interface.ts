@@ -35,7 +35,6 @@ export interface ExtensionManifest {
   /**
    * The minimum access role required to access the extension.
    * @default 'creator'
-   * Todo: @rameshmane7218
    */
   minAccessRole?: 'owner' | 'creator' | 'editor' | 'commenter' | 'viewer'
   /**

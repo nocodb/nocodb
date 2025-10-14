@@ -121,7 +121,8 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource, isViewOperationsAllowed } =
+  useSmartsheetStoreOrThrow()
 
 const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
@@ -237,7 +238,7 @@ const chunkStates = toRef(props, 'chunkStates')
 
 const isBulkOperationInProgress = toRef(props, 'isBulkOperationInProgress')
 
-const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
+const rowHeight = computed(() => (isMobileMode.value ? 40 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
 
 const rowSlice = reactive({
   start: 0,
@@ -2321,7 +2322,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
-                    'no-resize': isLocked,
+                    'no-resize': isLocked || !isViewOperationsAllowed,
                     ...headerFilteredOrSortedClass(fields?.[0]?.id),
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
@@ -2373,7 +2374,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
-                    'no-resize': isLocked,
+                    'no-resize': isLocked || !isViewOperationsAllowed,
                     ...headerFilteredOrSortedClass(col.id),
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
@@ -2544,7 +2545,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       </div>
                     </div>
                     <tr
-                      class="nc-grid-row transition-all duration-500 opacity-100 !xs:h-14"
+                      class="nc-grid-row transition-all duration-500 opacity-100 !xs:h-10"
                       :style="{
                         height: `${rowHeight}px`,
                         filter:

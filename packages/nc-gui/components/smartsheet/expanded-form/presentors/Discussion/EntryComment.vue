@@ -31,13 +31,13 @@ const hasEditPermission = computed(() => isUIAllowed('commentEdit'))
 
 const createdBy = (
   comment: CommentType & {
-    created_display_name?: string
+    created_display_name_short?: string
   },
 ) => {
   if (comment.created_by === user.value?.id) {
     return 'You'
-  } else if (comment.created_display_name?.trim()) {
-    return comment.created_display_name || 'Shared source'
+  } else if (comment.created_display_name_short?.trim()) {
+    return comment.created_display_name_short || 'Shared source'
   } else if (comment.created_by_email) {
     return comment.created_by_email
   } else {
@@ -228,7 +228,7 @@ async function copyComment(comment: CommentType) {
             <template #title>Click to resolve</template>
           </NcTooltip>
           <NcTooltip v-else-if="props.comment.resolved_by">
-            <template #title>{{ `Resolved by ${props.comment.resolved_display_name}` }}</template>
+            <template #title>{{ `Resolved by ${props.comment.resolved_display_name_short}` }}</template>
             <NcButton
               class="!h-7 !w-7 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
               size="xsmall"

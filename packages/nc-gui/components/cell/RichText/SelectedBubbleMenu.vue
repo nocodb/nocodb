@@ -131,7 +131,7 @@ const closeTextArea = () => {
     class="bubble-menu flex-row gap-x-1 rounded-lg"
     :class="{
       'nc-form-field-bubble-menu inline-flex py-0': isFormField,
-      'flex bg-gray-100 px-1 py-1': !isFormField,
+      'flex bg-nc-bg-gray-light px-1 py-1': !isFormField,
       'embed-mode': embedMode,
       'full-mode': !embedMode,
       'edit-column-mode': isEditColumn,
@@ -418,7 +418,7 @@ const closeTextArea = () => {
       </NcButton>
     </NcTooltip>
 
-    <div v-if="enableCloseButton" class="!sticky right-0 pr-0.5 bg-white">
+    <div v-if="enableCloseButton" class="!sticky right-0 pr-0.5 bg-nc-bg-default">
       <NcButton type="text" size="small" @click="closeTextArea">
         <GeneralIcon icon="close" />
       </NcButton>
@@ -438,16 +438,16 @@ const closeTextArea = () => {
 }
 
 .bubble-text-format-button-icon {
-  @apply px-1.5 py-0 border-1 border-gray-300 rounded-sm items-center justify-center;
+  @apply px-1.5 py-0 border-1 border-nc-border-gray-dark rounded-sm items-center justify-center;
   font-size: 0.8rem;
   font-weight: 600;
 }
 .bubble-text-format-button {
-  @apply rounded-md py-1 my-0 pl-2.5 pr-3 cursor-pointer items-center gap-x-2.5 hover:bg-gray-100;
+  @apply rounded-md py-1 my-0 pl-2.5 pr-3 cursor-pointer items-center gap-x-2.5 hover:bg-nc-bg-gray-light;
 }
 
 .bubble-menu.full-mode {
-  @apply border-gray-100
+  @apply border-nc-border-gray-light
   box-shadow: 0px 0px 1.2rem 0 rgb(230, 230, 230) !important;
 }
 
@@ -462,7 +462,7 @@ const closeTextArea = () => {
   @apply !py-0 !my-0 !border-0;
 
   .divider {
-    @apply my-0 !h-11 border-gray-100;
+    @apply my-0 !h-11 border-nc-border-gray-light;
   }
 
   .nc-button {
@@ -472,22 +472,22 @@ const closeTextArea = () => {
 
 .bubble-menu {
   // shadow
-  @apply bg-white;
+  @apply bg-nc-bg-default;
   border-width: 1px;
 
   &.nc-form-field-bubble-menu {
     .divider {
-      @apply border-r-1 border-gray-200 my-0;
+      @apply border-r-1 border-nc-border-gray-medium my-0;
     }
   }
 
   .nc-button.is-active {
-    @apply !hover:outline-gray-200 bg-gray-100 text-brand-500;
+    @apply !hover:outline-nc-gray-200 bg-nc-bg-gray-light text-nc-content-brand;
     outline: 1px;
   }
   &:not(.nc-form-field-bubble-menu) {
     .divider {
-      @apply border-r-1 border-gray-200 !h-6 !mx-0.5 my-1;
+      @apply border-r-1 border-nc-border-gray-medium !h-6 !mx-0.5 my-1;
     }
   }
   .ant-select-selector {

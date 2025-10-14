@@ -164,6 +164,7 @@ export class SourcesService {
 
     // type | base | baseId
     const baseBody = param.source;
+    baseBody.alias = baseBody.alias?.trim();
     const base = await Base.getWithInfo(context, param.baseId);
 
     let error;

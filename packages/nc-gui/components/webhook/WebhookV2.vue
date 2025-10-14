@@ -2,8 +2,16 @@
 import type { HookType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
+import { defineAsyncComponent } from 'vue'
 
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
+
+const props = defineProps<Props>()
+
+const emits = defineEmits(['close', 'update:value'])
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 interface Props {
   value: boolean
@@ -11,10 +19,6 @@ interface Props {
   hook?: HookType
   stickyScroll?: boolean
 }
-
-const props = defineProps<Props>()
-
-const emits = defineEmits(['close', 'update:value'])
 
 enum HookTab {
   Configuration = 'configuration',
@@ -791,49 +795,61 @@ const toggleIncludeUser = async () => {
                         style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
                         class="my-3 mx-1 rounded-lg"
                       >
-                        <LazyMonacoEditor
-                          v-model="hookRef.notification.payload.body"
-                          lang="handlebars"
-                          read-only
-                          disable-deep-compare
-                          :validate="false"
-                          class="min-h-60 max-h-80 !rounded-lg"
-                          :monaco-config="{
-                            minimap: {
-                              enabled: false,
-                            },
-                            padding: {
-                              top: 8,
-                              bottom: 8,
-                            },
-                            fontSize: 14.5,
-                            overviewRulerBorder: false,
-                            overviewRulerLanes: 0,
-                            hideCursorInOverviewRuler: true,
-                            lineDecorationsWidth: 8,
-                            lineNumbersMinChars: 0,
-                            roundedSelection: false,
-                            selectOnLineNumbers: false,
-                            scrollBeyondLastLine: false,
-                            contextmenu: false,
-                            glyphMargin: false,
-                            folding: false,
-                            bracketPairColorization: {
-                              enabled: false,
-                            },
-                            wordWrap: 'on',
-                            scrollbar: {
-                              horizontal: 'hidden',
-                              verticalScrollbarSize: 6,
-                            },
-                            wrappingStrategy: 'advanced',
-                            renderLineHighlight: 'none',
-                            tabSize: 4,
-                            stickyScroll: {
-                              enabled: props.stickyScroll,
-                            },
-                          }"
-                        />
+                        <Suspense>
+                          <template #default>
+                            <MonacoEditor
+                              v-model="hookRef.notification.payload.body"
+                              lang="handlebars"
+                              read-only
+                              disable-deep-compare
+                              :validate="false"
+                              class="min-h-60 max-h-80 !rounded-lg"
+                              :monaco-config="{
+                                minimap: {
+                                  enabled: false,
+                                },
+                                padding: {
+                                  top: 8,
+                                  bottom: 8,
+                                },
+                                fontSize: 14.5,
+                                overviewRulerBorder: false,
+                                overviewRulerLanes: 0,
+                                hideCursorInOverviewRuler: true,
+                                lineDecorationsWidth: 8,
+                                lineNumbersMinChars: 0,
+                                roundedSelection: false,
+                                selectOnLineNumbers: false,
+                                scrollBeyondLastLine: false,
+                                contextmenu: false,
+                                glyphMargin: false,
+                                folding: false,
+                                bracketPairColorization: {
+                                  enabled: false,
+                                },
+                                wordWrap: 'on',
+                                scrollbar: {
+                                  horizontal: 'hidden',
+                                  verticalScrollbarSize: 6,
+                                },
+                                wrappingStrategy: 'advanced',
+                                renderLineHighlight: 'none',
+                                tabSize: 4,
+                                stickyScroll: {
+                                  enabled: props.stickyScroll,
+                                },
+                              }"
+                            />
+                          </template>
+                          <template #fallback>
+                            <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                              <div class="text-center">
+                                <a-spin size="large" />
+                                <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                              </div>
+                            </div>
+                          </template>
+                        </Suspense>
                       </div>
                     </a-tab-pane>
                   </NcTabs>
@@ -842,7 +858,7 @@ const toggleIncludeUser = async () => {
 
               <div v-if="hookRef.notification.type === 'Slack'" class="flex flex-col w-full gap-3">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                  <LazyWebhookChannelMultiSelect
+                  <WebhookChannelMultiSelect
                     v-model="hookRef.notification.payload.channels"
                     :selected-channel-list="hookRef.notification.payload.channels"
                     :available-channel-list="slackChannels"
@@ -853,7 +869,7 @@ const toggleIncludeUser = async () => {
 
               <div v-if="hookRef.notification.type === 'Microsoft Teams'" class="flex flex-col w-full gap-3">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                  <LazyWebhookChannelMultiSelect
+                  <WebhookChannelMultiSelect
                     v-model="hookRef.notification.payload.channels"
                     :selected-channel-list="hookRef.notification.payload.channels"
                     :available-channel-list="teamsChannels"
@@ -875,7 +891,7 @@ const toggleIncludeUser = async () => {
 
               <div v-if="hookRef.notification.type === 'Mattermost'" class="flex flex-col w-full gap-3">
                 <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                  <LazyWebhookChannelMultiSelect
+                  <WebhookChannelMultiSelect
                     v-model="hookRef.notification.payload.channels"
                     :selected-channel-list="hookRef.notification.payload.channels"
                     :available-channel-list="mattermostChannels"
@@ -962,53 +978,65 @@ const toggleIncludeUser = async () => {
                 </NcButton>
               </div>
               <div v-show="isVisible">
-                <LazyMonacoEditor
-                  v-model="sampleData"
-                  read-only
-                  :monaco-config="{
-                    minimap: {
-                      enabled: false,
-                    },
-                    fontSize: 14.5,
-                    overviewRulerBorder: false,
-                    overviewRulerLanes: 0,
-                    hideCursorInOverviewRuler: true,
-                    lineDecorationsWidth: 12,
-                    lineNumbersMinChars: 0,
-                    scrollBeyondLastLine: false,
-                    renderLineHighlight: 'none',
-                    lineNumbers: 'off',
-                    glyphMargin: false,
-                    folding: false,
-                    bracketPairColorization: { enabled: false },
-                    wordWrap: 'on',
-                    scrollbar: {
-                      horizontal: 'hidden',
-                      verticalScrollbarSize: 6,
-                    },
-                    wrappingStrategy: 'advanced',
-                    tabSize: 4,
-                    readOnly: true,
-                  }"
-                  :monaco-custom-theme="{
-                    base: 'vs',
-                    inherit: true,
-                    rules: [
-                      { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
-                      { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
-                      { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
-                      { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
-                      { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
-                    ],
-                    colors: {},
-                  }"
-                  class="transition-all border-1 rounded-lg"
-                  style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-                  :class="{
-                    'w-0 min-w-0': !isVisible,
-                    'min-h-60 max-h-80': isVisible,
-                  }"
-                />
+                <Suspense>
+                  <template #default>
+                    <MonacoEditor
+                      v-model="sampleData"
+                      read-only
+                      :monaco-config="{
+                        minimap: {
+                          enabled: false,
+                        },
+                        fontSize: 14.5,
+                        overviewRulerBorder: false,
+                        overviewRulerLanes: 0,
+                        hideCursorInOverviewRuler: true,
+                        lineDecorationsWidth: 12,
+                        lineNumbersMinChars: 0,
+                        scrollBeyondLastLine: false,
+                        renderLineHighlight: 'none',
+                        lineNumbers: 'off',
+                        glyphMargin: false,
+                        folding: false,
+                        bracketPairColorization: { enabled: false },
+                        wordWrap: 'on',
+                        scrollbar: {
+                          horizontal: 'hidden',
+                          verticalScrollbarSize: 6,
+                        },
+                        wrappingStrategy: 'advanced',
+                        tabSize: 4,
+                        readOnly: true,
+                      }"
+                      :monaco-custom-theme="{
+                        base: 'vs',
+                        inherit: true,
+                        rules: [
+                          { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
+                          { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
+                          { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
+                          { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
+                          { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
+                        ],
+                        colors: {},
+                      }"
+                      class="transition-all border-1 rounded-lg"
+                      style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                      :class="{
+                        'w-0 min-w-0': !isVisible,
+                        'min-h-60 max-h-80': isVisible,
+                      }"
+                    />
+                  </template>
+                  <template #fallback>
+                    <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                      <div class="text-center">
+                        <a-spin size="large" />
+                        <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                      </div>
+                    </div>
+                  </template>
+                </Suspense>
               </div>
             </div>
           </a-form>

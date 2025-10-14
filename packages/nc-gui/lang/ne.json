@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "सम्पादन पहुँच सम्पादक तथा माथिका प्रयोगकर्ताहरूमा सेट गरिनेछ।",
       "confirmRevertPermissionsToDefault": "तालिका - \"{tableName}\" का लागि अनुमति रिसेट गर्न पुष्टि गर्नुहोस्",
       "formViewFieldEditPermissionRestrictionTooltip": "यो फिल्ड फारममा लुकेको छ किनकि कसैसँग पनि यो सम्पादन गर्न अनुमति छैन।"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "सम्पादन जारी राख्नुहोस्",
     "leave": "छोड्नुहोस्",
@@ -1508,6 +1514,7 @@
     "runActions": "कार्यहरू चलाउनुहोस्",
     "createScript": "स्क्रिप्ट सिर्जना गर्नुहोस्",
     "deleteAllRecords": "सबै रेकर्ड मेट्नुहोस्",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "दृश्य तोक्नुहोस्",
     "webhookDetails": "वेबहुक विवरणहरू",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "डोमेन नाम आवश्यक छ",
       "nameMaxLength256": "नाम बढीमा २५६ वर्ण लामो हुनुपर्छ",
       "viewNameUnique": "दृश्य नाम अद्वितीय हुनुपर्छ",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "तपाईंको {search} को लागि खोजीले कुनै परिणाम भेटेन",
       "invalidChar": "फोल्डर मार्गमा अमान्य अक्षर।",
       "invalidDbCredentials": "अमान्य डाटाबेस प्रमाणहरू।",

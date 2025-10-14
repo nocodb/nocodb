@@ -256,7 +256,10 @@ const onArrowUp = () => {
   })
 }
 
-const handleKeydownEnter = () => {
+const handleKeydownEnter = (event: KeyboardEvent) => {
+  event.preventDefault()
+  event.stopPropagation()
+
   if (list.value[activeOptionIndex.value]) {
     handleSelectOption(list.value[activeOptionIndex.value])
   } else if (list.value[0]) {
@@ -369,6 +372,7 @@ const handleEscape = (event: KeyboardEvent) => {
           :class="`nc-theme-${theme}`"
           allow-clear
           :bordered="inputBordered"
+          autocomplete="off"
           @keydown.enter.stop="handleKeydownEnter"
           @change="handleResetHoverEffect(false, 0)"
         >

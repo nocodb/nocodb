@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "سيتم تعيين حق الوصول للتحرير إلى المحررين وما فوق.",
       "confirmRevertPermissionsToDefault": "تأكيد إعادة تعيين الأذونات للجدول - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "هذا الحقل مخفي في النموذج لأنه لا يوجد أي شخص لديه إذن لتعديله."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "الاستمرار في التحرير",
     "leave": "مغادرة",
@@ -1508,6 +1514,7 @@
     "runActions": "تشغيل الإجراءات",
     "createScript": "إنشاء سكربت",
     "deleteAllRecords": "حذف جميع السجلات",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "تعيين العرض",
     "webhookDetails": "تفاصيل Webhook",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "اسم النطاق مطلوب",
       "nameMaxLength256": "يجب أن يكون الاسم 256 حرفًا على الأكثر",
       "viewNameUnique": "يجب أن يكون اسم العرض فريدًا",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "البحث عن {بحث} لم يتم العثور على نتائج",
       "invalidChar": "حرف غير صالح في مسار المجلد.",
       "invalidDbCredentials": "بيانات اعتماد قاعدة بيانات غير صالحة.",

@@ -17,6 +17,8 @@ export function useColumnFilteredOrSorted() {
     const extractFilterArray = (filters: FilterType[]) => {
       if (filters && filters.length > 0) {
         for (const eachFilter of filters) {
+          if (!eachFilter) continue
+
           if (eachFilter.is_group) {
             if ((eachFilter.children?.length ?? 0) > 0) {
               extractFilterArray(eachFilter.children!)

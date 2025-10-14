@@ -1,5 +1,13 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue'
 import NcModal from '../nc/Modal.vue'
+
+const props = defineProps<Props>()
+
+const emits = defineEmits<Emits>()
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 type ModelValueType = string | Record<string, any> | undefined | null
 
@@ -10,10 +18,6 @@ interface Props {
 interface Emits {
   (event: 'update:modelValue', model: string | null): void
 }
-
-const props = defineProps<Props>()
-
-const emits = defineEmits<Emits>()
 
 const { showNull } = useGlobal()
 
@@ -287,29 +291,41 @@ onUnmounted(() => {
         <div v-else></div>
       </div>
 
-      <LazyMonacoEditor
-        ref="inputWrapperRef"
-        :model-value="localValue ?? null"
-        class="min-w-full w-[40rem] resize overflow-auto expanded-editor"
-        :hide-minimap="true"
-        :disable-deep-compare="true"
-        :auto-focus="true"
-        :read-only="readOnly"
-        :monaco-config="{
-          wordWrap: 'on',
-          wrappingStrategy: 'advanced',
-        }"
-        @update:model-value="localValue = $event"
-        @keydown.enter.stop
-        @keydown.alt.stop
-      />
+      <Suspense>
+        <template #default>
+          <MonacoEditor
+            ref="inputWrapperRef"
+            :model-value="localValue ?? null"
+            class="min-w-full w-[40rem] resize overflow-auto expanded-editor"
+            :hide-minimap="true"
+            :disable-deep-compare="true"
+            :auto-focus="true"
+            :read-only="readOnly"
+            :monaco-config="{
+              wordWrap: 'on',
+              wrappingStrategy: 'advanced',
+            }"
+            @update:model-value="localValue = $event"
+            @keydown.enter.stop
+            @keydown.alt.stop
+          />
+        </template>
+        <template #fallback>
+          <div class="h-full w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div class="text-center">
+              <a-spin size="large" />
+              <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+            </div>
+          </div>
+        </template>
+      </Suspense>
 
       <span v-if="error" class="nc-cell-field text-xs w-full py-1 text-red-500">
         {{ error.toString() }}
       </span>
     </div>
     <span v-else-if="ncIsNull(vModel) && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-    <LazyCellClampedText
+    <CellClampedText
       v-else
       :value="!ncIsUndefined(vModel) && !ncIsNull(vModel) ? stringifyProp(vModel) : ''"
       :lines="rowHeight"

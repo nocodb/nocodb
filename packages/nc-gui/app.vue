@@ -3,6 +3,8 @@ import ErrorBoundary from './components/nc/ErrorBoundary.vue'
 
 const router = useRouter()
 
+useUpdateChecker()
+
 const route = router.currentRoute
 
 const { showOnboardingFlow } = useOnboardingFlow()

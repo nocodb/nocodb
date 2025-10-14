@@ -400,6 +400,10 @@ const openBaseSettings = async (baseId: string) => {
   await navigateTo(`/nc/${baseId}?page=base-settings`)
 }
 
+const openMcpSettings = async (baseId: string) => {
+  await navigateTo(`/nc/${baseId}?page=base-settings&tab=mcp`)
+}
+
 const showNodeTooltip = ref(true)
 
 const shouldOpenContextMenu = computed(() => {
@@ -434,6 +438,7 @@ defineExpose({
 
 <template>
   <NcDropdown
+    v-model:visible="isProjectNodeContextMenuOpen"
     :trigger="[isProjectHeader ? 'click' : 'contextmenu']"
     overlay-class-name="nc-dropdown-tree-view-context-menu"
     :disabled="isProjectHeader ? editMode || isSharedBase || !!isMobileMode : undefined"
@@ -451,6 +456,7 @@ defineExpose({
         trigger="hover"
         :placement="isProjectHeader ? 'rightTop' : 'right'"
         hide-on-click
+        :mouse-enter-delay="0.5"
         :disabled="
           editMode ||
           isOptionsOpen ||
@@ -463,7 +469,10 @@ defineExpose({
       >
         <template #title>
           <div class="flex flex-col gap-3">
-            <div class="text-small leading-[18px] mb-1">{{ base.title }}</div>
+            <div>
+              <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.projName') }}</div>
+              <div class="text-small leading-[18px] mb-1">{{ base.title }}</div>
+            </div>
             <div v-if="currentUserRole">
               <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
                 {{ $t('title.yourBaseRole') }}
@@ -612,6 +621,7 @@ defineExpose({
                       @copy-project-info="copyProjectInfo()"
                       @open-erd-view="openErdView($event)"
                       @open-base-settings="openBaseSettings($event)"
+                      @open-mcp-server="openMcpSettings($event)"
                       @delete="projectDelete"
                     />
                   </template>
@@ -671,6 +681,7 @@ defineExpose({
         @copy-project-info="copyProjectInfo()"
         @open-erd-view="openErdView($event)"
         @open-base-settings="openBaseSettings($event)"
+        @open-mcp-server="openMcpSettings($event)"
         @delete="projectDelete"
       />
       <NcMenu

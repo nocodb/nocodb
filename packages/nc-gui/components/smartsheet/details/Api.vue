@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { HTTPSnippet } from '@readme/httpsnippet'
-import { LoadingOutlined } from '@ant-design/icons-vue'
+import { defineAsyncComponent } from 'vue'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 const { t } = useI18n()
 
@@ -16,13 +19,6 @@ const view = inject(ActiveViewInj, ref())
 const { xWhere } = useSmartsheetStoreOrThrow()
 
 const { queryParams } = useViewData(meta, view, xWhere)
-
-const indicator = h(LoadingOutlined, {
-  style: {
-    fontSize: '2rem',
-  },
-  spin: true,
-})
 
 const { copy } = useCopy()
 
@@ -280,52 +276,57 @@ const supportedDocs = [
             </a-tab-pane>
           </NcTabs>
           <Suspense>
-            <MonacoEditor
-              class="h-[calc(100%_-_36px)] !bg-nc-bg-gray-extralight pl-2"
-              :model-value="code"
-              :read-only="true"
-              lang="typescript"
-              :validate="false"
-              :disable-deep-compare="true"
-              :monaco-config="{
-                minimap: {
-                  enabled: false,
-                },
-                fontSize: 13,
-                lineHeight: 18,
-                padding: {
-                  top: 12,
-                  bottom: 12,
-                },
-                overviewRulerBorder: false,
-                overviewRulerLanes: 0,
-                hideCursorInOverviewRuler: true,
-                lineDecorationsWidth: 12,
-                lineNumbersMinChars: 0,
-                roundedSelection: false,
-                selectOnLineNumbers: false,
-                scrollBeyondLastLine: false,
-                contextmenu: false,
-                glyphMargin: false,
-                folding: false,
-                bracketPairColorization: { enabled: false },
-                wordWrap: 'on',
-                scrollbar: {
-                  horizontal: 'hidden',
-                  verticalScrollbarSize: 6,
-                },
-                wrappingStrategy: 'advanced',
-                renderLineHighlight: 'none',
-                tabSize: 4,
-                detectIndentation: false,
-                insertSpaces: true,
-                lineNumbers: 'off',
-              }"
-              hide-minimap
-            />
+            <template #default>
+              <MonacoEditor
+                class="h-[calc(100%_-_36px)] !bg-nc-bg-gray-extralight pl-2"
+                :model-value="code"
+                :read-only="true"
+                lang="typescript"
+                :validate="false"
+                :disable-deep-compare="true"
+                :monaco-config="{
+                  minimap: {
+                    enabled: false,
+                  },
+                  fontSize: 13,
+                  lineHeight: 18,
+                  padding: {
+                    top: 12,
+                    bottom: 12,
+                  },
+                  overviewRulerBorder: false,
+                  overviewRulerLanes: 0,
+                  hideCursorInOverviewRuler: true,
+                  lineDecorationsWidth: 12,
+                  lineNumbersMinChars: 0,
+                  roundedSelection: false,
+                  selectOnLineNumbers: false,
+                  scrollBeyondLastLine: false,
+                  contextmenu: false,
+                  glyphMargin: false,
+                  folding: false,
+                  bracketPairColorization: { enabled: false },
+                  wordWrap: 'on',
+                  scrollbar: {
+                    horizontal: 'hidden',
+                    verticalScrollbarSize: 6,
+                  },
+                  wrappingStrategy: 'advanced',
+                  renderLineHighlight: 'none',
+                  tabSize: 4,
+                  detectIndentation: false,
+                  insertSpaces: true,
+                  lineNumbers: 'off',
+                }"
+                hide-minimap
+              />
+            </template>
             <template #fallback>
-              <div class="h-full w-full flex flex-col justify-center items-center mt-28">
-                <a-spin size="large" :indicator="indicator" />
+              <div class="h-[calc(100%_-_36px)] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                <div class="text-center">
+                  <a-spin size="large" />
+                  <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                </div>
               </div>
             </template>
           </Suspense>

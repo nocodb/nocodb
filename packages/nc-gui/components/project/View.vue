@@ -190,7 +190,7 @@ onMounted(() => {
           <GeneralProjectIcon
             :color="parseProp(currentBase?.meta).iconColor"
             :type="currentBase?.type"
-            class="h-5 w-5 md:(h-4 w-4) flex-none"
+            class="h-6 w-6 md:(h-4 w-4) flex-none"
           />
           <NcTooltip
             class="flex font-bold text-base md:text-sm capitalize truncate max-w-150 text-nc-content-gray"

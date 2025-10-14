@@ -136,12 +136,15 @@ export function generateUniqueCopyName<T = string>(
     return String((item as any).title);
   });
 
-  let newName = `${prefix} ${originalName}`;
+  const getPrefix = () => {
+    return prefix ? `${prefix} ` : (prefix ?? '');
+  };
+  let newName = `${getPrefix()}${originalName}`;
   let counter = 1;
 
   while (existingNames.includes(newName)) {
     const counterText = counterFormat.replace('{counter}', counter.toString());
-    newName = `${prefix} ${originalName}${separator}${counterText}`;
+    newName = `${getPrefix()}${originalName}${separator}${counterText}`;
     counter++;
   }
 
@@ -172,7 +175,10 @@ export const trimMatchingQuotes = (str?: string | null): string => {
  * Note: Since we are using ES2017, `String.prototype.matchAll` is not available.
  * This function acts as a fallback to achieve the same behavior.
  */
-export function stringAllMatches(str: string, regex: RegExp): RegExpExecArray[] {
+export function stringAllMatches(
+  str: string,
+  regex: RegExp
+): RegExpExecArray[] {
   // Ensure regex has the global flag, because exec() needs it to iterate
   const globalRegex = new RegExp(
     regex.source,

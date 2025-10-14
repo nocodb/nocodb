@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Akses edit akan diatur ke Editor & ke atas.",
       "confirmRevertPermissionsToDefault": "Konfirmasi setel ulang izin untuk tabel - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Field ini disembunyikan di formulir karena tidak ada yang memiliki izin untuk mengeditnya."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Lanjutkan mengedit",
     "leave": "Tinggalkan",
@@ -1508,6 +1514,7 @@
     "runActions": "Jalankan Tindakan",
     "createScript": "Buat Skrip",
     "deleteAllRecords": "Hapus semua rekaman",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Tetapkan tampilan",
     "webhookDetails": "Detail Webhook",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "Nama domain harus diisi",
       "nameMaxLength256": "Nama harus paling banyak 256 karakter",
       "viewNameUnique": "Nama tampilan harus unik",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Pencarian Anda untuk {Search} tidak menemukan hasil",
       "invalidChar": "Karakter tidak valid di jalur folder.",
       "invalidDbCredentials": "Kredensial basis data tidak valid.",

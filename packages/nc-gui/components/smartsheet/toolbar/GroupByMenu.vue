@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { RelationTypes, UITypes, ViewSettingOverrideOptions, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
@@ -154,7 +154,9 @@ watch(open, () => {
   }
 })
 
-eventBus.on(async (event, column) => {
+eventBus.on(async (event, payload = {}) => {
+  const column = payload.column
+
   if (!column?.id) return
 
   if (event === SmartsheetStoreEvents.GROUP_BY_ADD) {
@@ -243,7 +245,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
         />
         <div
           v-else
-          class="flex flex-col bg-white overflow-auto nc-group-by-list menu-filter-dropdown w-100 p-4"
+          class="flex flex-col bg-nc-bg-default overflow-auto nc-group-by-list menu-filter-dropdown w-100 p-4"
           data-testid="nc-group-by-menu"
         >
           <div class="max-h-100" @click.stop>
@@ -337,38 +339,47 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               </template>
             </Draggable>
           </div>
-          <NcDropdown
-            v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
-            v-model:visible="showCreateGroupBy"
-            :trigger="['click']"
-            overlay-class-name="nc-toolbar-dropdown"
-            :disabled="isLocked"
-          >
-            <NcButton
-              v-e="['c:group-by:add']"
-              type="text"
-              size="small"
-              style="width: fit-content"
-              class="nc-add-group-by-btn mt-2"
-              :class="{
-                '!text-brand-500': !isLocked,
-              }"
+          <div class="flex items-center justify-between children:flex-none mt-2 empty:hidden">
+            <NcDropdown
+              v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
+              v-model:visible="showCreateGroupBy"
+              :trigger="['click']"
+              overlay-class-name="nc-toolbar-dropdown"
               :disabled="isLocked"
-              @click.stop="showCreateGroupBy = true"
             >
-              <div class="flex gap-1 items-center">
-                <GeneralIcon icon="plus" />
-                {{ $t('activity.addSubGroup') }}
-              </div>
-            </NcButton>
-            <template #overlay>
-              <SmartsheetToolbarCreateGroupBy
-                :is-parent-open="showCreateGroupBy"
-                :columns="fieldsToGroupBy"
-                @created="addFieldToGroupBy"
-              />
-            </template>
-          </NcDropdown>
+              <NcButton
+                v-e="['c:group-by:add']"
+                type="text"
+                size="small"
+                style="width: fit-content"
+                class="nc-add-group-by-btn"
+                :class="{
+                  '!text-brand-500': !isLocked,
+                }"
+                :disabled="isLocked"
+                @click.stop="showCreateGroupBy = true"
+              >
+                <div class="flex gap-1 items-center">
+                  <GeneralIcon icon="plus" />
+                  {{ $t('activity.addSubGroup') }}
+                </div>
+              </NcButton>
+              <template #overlay>
+                <SmartsheetToolbarCreateGroupBy
+                  :is-parent-open="showCreateGroupBy"
+                  :columns="fieldsToGroupBy"
+                  @created="addFieldToGroupBy"
+                />
+              </template>
+            </NcDropdown>
+
+            <LazyGeneralCopyFromAnotherViewActionBtn
+              v-if="view"
+              :view="view"
+              :default-options="[ViewSettingOverrideOptions.GROUP]"
+              @open="open = false"
+            />
+          </div>
         </div>
         <GeneralLockedViewFooter
           v-if="isLocked"
@@ -377,6 +388,16 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
           }"
           @on-open="open = false"
         />
+        <div
+          v-else-if="view && !_groupBy.length"
+          class="flex items-center justify-end empty:hidden pl-3 pr-2 py-1.5 border-t-1 border-nc-border-gray-medium"
+        >
+          <LazyGeneralCopyFromAnotherViewActionBtn
+            :view="view"
+            :default-options="[ViewSettingOverrideOptions.GROUP]"
+            @open="open = false"
+          />
+        </div>
       </div>
     </template>
   </NcDropdown>

@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "編集アクセスが編集者以上に設定されます。",
       "confirmRevertPermissionsToDefault": "テーブル「{tableName}」の権限リセットを確認",
       "formViewFieldEditPermissionRestrictionTooltip": "このフィールドは誰も編集権限がないためフォームで非表示です。"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "編集を続ける",
     "leave": "退出",
@@ -1508,6 +1514,7 @@
     "runActions": "アクションを実行",
     "createScript": "スクリプトを作成",
     "deleteAllRecords": "すべてのレコードを削除",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "ビューを割り当てる",
     "webhookDetails": "Webhookの詳細",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "ドメイン名が必要です",
       "nameMaxLength256": "名前は最大256文字です",
       "viewNameUnique": "表示名は一意でなければなりません",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "{search} の検索結果が見つかりませんでした",
       "invalidChar": "フォルダパスに無効な文字が存在します",
       "invalidDbCredentials": "データベースの認証情報が無効です",

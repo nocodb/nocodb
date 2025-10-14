@@ -11,17 +11,18 @@ import type {
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
-import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
-import RowColorCondition from '~/models/RowColorCondition';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Filter, Hook, View } from '~/models';
+import RowColorCondition from '~/models/RowColorCondition';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { FiltersService } from '~/services/filters.service';
 import {
   filterBuilder,
   filterRevBuilder,
 } from '~/utils/api-v3-data-transformation.builder';
-import { FiltersService } from '~/services/filters.service';
-import { validatePayload } from '~/helpers';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
 function extractLogicalOp(group_operator: 'AND' | 'OR') {
   return group_operator?.toLowerCase() as 'and' | 'or';
@@ -130,7 +131,7 @@ export class FiltersV3Service {
     isRoot = true, // Flag to check if it's the root group
     viewId,
     viewWebhookManager,
-    ncMeta,
+    ncMeta = Noco.ncMeta,
   }: {
     context: any;
     param:
@@ -157,9 +158,9 @@ export class FiltersV3Service {
     const { additionalProps } = await this.extractAdditionalProps(
       param,
       context,
+      ncMeta,
     );
     let innerViewWebhookManager: ViewWebhookManager;
-
     if ((param as any).viewId && !viewWebhookManager) {
       const view = await View.get(context, (param as any).viewId, ncMeta);
       innerViewWebhookManager = (param as any).viewId
@@ -171,7 +172,7 @@ export class FiltersV3Service {
             ).withViewId(view.id)
           ).forUpdate()
         : null;
-    } else if ((param as any).rowColorConditionId) {
+    } else if ((param as any).rowColorConditionId && !viewWebhookManager) {
       const rowColorCondition = await RowColorCondition.getById(
         context,
         (param as any).rowColorConditionId,
@@ -195,11 +196,15 @@ export class FiltersV3Service {
     if (!logicalOp) {
       logicalOp =
         (
-          await this.extractGroup(context, {
-            viewId: viewId,
-            parentFilterId:
-              parentId || (groupOrFilter as any)?.parent_id || 'root',
-          })
+          await this.extractGroup(
+            context,
+            {
+              viewId: viewId,
+              parentFilterId:
+                parentId || (groupOrFilter as any)?.parent_id || 'root',
+            },
+            ncMeta,
+          )
         )?.group_operator || 'AND';
     }
 
@@ -261,6 +266,7 @@ export class FiltersV3Service {
             fk_parent_id: null, // Root groups have no parent
             logical_op: extractLogicalOp(logicalOp),
             ...additionalProps,
+            id: undefined,
           },
           ncMeta,
         );
@@ -277,6 +283,7 @@ export class FiltersV3Service {
           fk_parent_id: parentId, // Root groups have no parent
           logical_op: extractLogicalOp(logicalOp),
           ...additionalProps,
+          id: undefined,
         },
         ncMeta,
       );
@@ -310,6 +317,8 @@ export class FiltersV3Service {
             logicalOp: groupOrFilter.group_operator, // Pass the current group's logical operator
             isRoot: false, // Indicate it's not the root
             viewId,
+            viewWebhookManager,
+            ncMeta,
           });
         }
       }
@@ -322,6 +331,7 @@ export class FiltersV3Service {
           fk_parent_id: currentParentId, // Link to the parent group or root
           logical_op: extractLogicalOp(logicalOp), // Pass the logical operator
           ...additionalProps,
+          id: undefined,
         },
         ncMeta,
       );
@@ -487,11 +497,16 @@ export class FiltersV3Service {
       viewId: string;
       parentFilterId: string;
     },
+    ncMeta = Noco.ncMeta,
   ) {
     // get nested list
-    const list = await this.filterList(context, {
-      viewId: param.viewId,
-    });
+    const list = await this.filterList(
+      context,
+      {
+        viewId: param.viewId,
+      },
+      ncMeta,
+    );
 
     if (param.parentFilterId === 'root') {
       return list;
@@ -517,21 +532,34 @@ export class FiltersV3Service {
   async filterList(
     context: NcContext,
     param: { viewId: string } | { hookId: string } | { linkColumnId: string },
+    ncMeta = Noco.ncMeta,
   ) {
     let filters = [];
 
     if ('hookId' in param && param.hookId) {
-      filters = await Filter.allHookFilterList(context, {
-        hookId: param.hookId,
-      });
+      filters = await Filter.allHookFilterList(
+        context,
+        {
+          hookId: param.hookId,
+        },
+        ncMeta,
+      );
     } else if ('linkColumnId' in param && param.linkColumnId) {
-      filters = await Filter.allLinkFilterList(context, {
-        linkColumnId: param.linkColumnId,
-      });
+      filters = await Filter.allLinkFilterList(
+        context,
+        {
+          linkColumnId: param.linkColumnId,
+        },
+        ncMeta,
+      );
     } else if ('viewId' in param && param.viewId) {
-      filters = await Filter.allViewFilterList(context, {
-        viewId: param.viewId,
-      });
+      filters = await Filter.allViewFilterList(
+        context,
+        {
+          viewId: param.viewId,
+        },
+        ncMeta,
+      );
     }
 
     return addDummyRootAndNest(filterBuilder().build(filters) as Filter[]);

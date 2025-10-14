@@ -17,6 +17,7 @@ interface Emits {
   (e: 'openErdView', value: SourceType): void
   (e: 'duplicateProject', base: NcProject): void
   (e: 'openBaseSettings', id: string): void
+  (e: 'openMcpServer', id: string): void
   (e: 'copyProjectInfo'): void
   (e: 'delete'): void
 }
@@ -101,6 +102,13 @@ const isOptionVisible = computed(() => {
       <div v-e="['c:base:erd']" class="flex gap-2 items-center">
         <GeneralIcon icon="ncErd" />
         {{ $t('title.relations') }}
+      </div>
+    </NcMenuItem>
+
+    <NcMenuItem key="mcp" data-testid="nc-sidebar-mcp-server" @click="emits('openMcpServer', base.id!)">
+      <div v-e="['c:base:mcp-server']" class="flex gap-2 items-center">
+        <GeneralIcon icon="mcp" />
+        {{ $t('title.mcpServer') }}
       </div>
     </NcMenuItem>
 

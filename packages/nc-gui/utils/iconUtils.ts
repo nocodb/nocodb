@@ -43,6 +43,7 @@ import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
 import VscodeIconsExcelColored from '~icons/vscode-icons/file-type-excel'
 import PhCsvThin from '~icons/ph/file-csv'
 import PhSplitVerticalThin from '~icons/material-symbols/height-rounded'
+import PhSplitHorizontalThin from '~icons/material-symbols/arrow-range-rounded'
 import LogosDiscordIcon from '~icons/logos/discord-icon'
 import LogosRedditIcon from '~icons/logos/reddit-icon'
 import RiTwitterXFill from '~icons/ri/twitter-x-line'
@@ -1180,6 +1181,7 @@ export const iconMap = {
   'view': h('span', { class: 'material-symbols' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols' }, 'height'),
   'rowHeight': h(PhSplitVerticalThin, { style: { fontSize: '14px' } }),
+  'columnWidth': h(PhSplitHorizontalThin, { style: { fontSize: '14px' } }),
   'closeCircle': h('span', { class: 'material-symbols' }, 'cancel'),
   'closeBox': h('span', { class: 'material-symbols' }, 'close'),
   'close': MSCloseRounded,

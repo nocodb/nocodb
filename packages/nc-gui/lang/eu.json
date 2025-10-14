@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Editoreek eta goragokoek izango dute editatzeko sarbidea.",
       "confirmRevertPermissionsToDefault": "Berretsi taularen baimenak berrezartzea: \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Eremu hau ezkutatuta dago formularioan inork editatzeko baimenik ez duelako."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Editatzen jarraitu",
     "leave": "Irten",
@@ -1508,6 +1514,7 @@
     "runActions": "Exekutatu ekintzak",
     "createScript": "Sortu scripta",
     "deleteAllRecords": "Ezabatu erregistro guztiak",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Esleitu ikuspegia",
     "webhookDetails": "Webhook xehetasunak",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "Domeinu izena beharrezkoa da",
       "nameMaxLength256": "Izenak gehienez 256 karaktere izan behar ditu",
       "viewNameUnique": "Ikusi izena bakarra izan behar da",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Zure {search} bilaketak ez du emaitzarik aurkitu",
       "invalidChar": "Karpetaren bidean karaktere baliogabea dago.",
       "invalidDbCredentials": "Datu-basearen egiaztagiri baliogabeak.",

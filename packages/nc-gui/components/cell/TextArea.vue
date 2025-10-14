@@ -473,7 +473,7 @@ useResizeObserver(inputWrapperRef, () => {
             'pt-11': !readOnly,
           }"
         >
-          <LazyCellRichText
+          <CellRichText
             v-model:value="vModel"
             :class="{
               'border-t-1 border-gray-100 allow-vertical-resize': !readOnly,
@@ -635,7 +635,7 @@ useResizeObserver(inputWrapperRef, () => {
 
       <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
-      <LazyCellClampedText
+      <CellClampedText
         v-else-if="rowHeight"
         :value="vModel"
         :lines="rowHeightTruncateLines(localRowHeight)"
@@ -850,7 +850,7 @@ useResizeObserver(inputWrapperRef, () => {
           />
         </div>
 
-        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
+        <CellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
       </div>
     </a-modal>
   </div>

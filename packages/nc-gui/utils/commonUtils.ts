@@ -167,7 +167,7 @@ export const antSelectFilterOption = (
 export const extractNameFromEmail = (email?: string) => {
   if (!email) return ''
 
-  return email?.slice(0, email.indexOf('@'))
+  return email?.slice(0, email.indexOf('@')) ?? ''
 }
 
 /**

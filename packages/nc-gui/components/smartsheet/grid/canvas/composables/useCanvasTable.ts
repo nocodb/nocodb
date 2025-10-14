@@ -228,6 +228,7 @@ export function useCanvasTable({
     isExternalSource,
     isAlreadyShownUpgradeModal,
     gridEditEnabled,
+    isViewOperationsAllowed,
   } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
@@ -300,7 +301,7 @@ export function useCanvasTable({
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
-  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value)
+  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value && !isMobileMode.value)
 
   const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced)
 
@@ -310,9 +311,11 @@ export function useCanvasTable({
 
   const isAddingColumnAllowed = computed(() => !readOnly.value && isFieldEditAllowed.value && !isSqlView.value)
 
-  const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
+  const rowHeight = computed(() => (isMobileMode.value ? 40 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
   const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
+
+  const headerRowHeight = computed(() => (isMobileMode.value ? 40 : COLUMN_HEADER_HEIGHT_IN_PX))
 
   const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled.value)
 
@@ -667,9 +670,16 @@ export function useCanvasTable({
 
   function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number, path: Array<number> = []) {
     const yOffset =
-      calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) -
+      calculateGroupRowTop(
+        cachedGroups.value,
+        path,
+        rowIndex,
+        rowHeight.value,
+        headerRowHeight.value,
+        isAddingEmptyRowAllowed.value,
+      ) -
       scrollTop.value +
-      COLUMN_HEADER_HEIGHT_IN_PX
+      headerRowHeight.value
     if (targetColumn.fixed) {
       let xOffset = 0
       for (let i = 0; i < columns.value.length; i++) {
@@ -779,10 +789,11 @@ export function useCanvasTable({
         groupPath,
         selection.value.end.row,
         rowHeight.value,
+        headerRowHeight.value,
         isAddingEmptyRowAllowed.value,
       ) -
       scrollTop.value +
-      COLUMN_HEADER_HEIGHT_IN_PX +
+      headerRowHeight.value +
       rowHeight.value
 
     // const startY = -partialRowHeight.value + 33 + (selection.value.end.row - rowSlice.value.start + 1) * rowHeight.value
@@ -821,6 +832,7 @@ export function useCanvasTable({
     totalGroups,
     rowSlice,
     rowHeight,
+    headerRowHeight,
     activeCell,
     dragOver,
     hoverRow,
@@ -868,6 +880,7 @@ export function useCanvasTable({
     rowMetaColumnWidth,
     rowColouringBorderWidth,
     isRecordSelected,
+    isViewOperationsAllowed,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -1011,6 +1024,7 @@ export function useCanvasTable({
     columns,
     colSlice,
     scrollLeft,
+    isViewOperationsAllowed,
     (columnId, width) =>
       handleColumnWidth(columnId, width, (normalizedWidth) => (gridViewCols.value[columnId]!.width = normalizedWidth)),
     (columnId, width) =>
@@ -1021,72 +1035,81 @@ export function useCanvasTable({
     dragStart: columnDragStart,
     startDrag,
     findColumnAtPosition,
-  } = useColumnReorder(canvasRef, columns, colSlice, scrollLeft, triggerRefreshCanvas, dragOver, (event, fromIndex, toIndex) => {
-    const toBeReorderedCol = columns.value[fromIndex]
-    const toCol = columns.value[toIndex]
-    if (!toBeReorderedCol || !toCol || !meta.value?.columns) return
+  } = useColumnReorder(
+    canvasRef,
+    columns,
+    colSlice,
+    scrollLeft,
+    triggerRefreshCanvas,
+    dragOver,
+    (event, fromIndex, toIndex) => {
+      const toBeReorderedCol = columns.value[fromIndex]
+      const toCol = columns.value[toIndex]
+      if (!toBeReorderedCol || !toCol || !meta.value?.columns) return
 
-    const toBeReorderedViewCol = gridViewCols.value[toBeReorderedCol.id]
-    const toViewCol = gridViewCols.value[toCol.id]
-    if (!toBeReorderedViewCol || !toViewCol) return
+      const toBeReorderedViewCol = gridViewCols.value[toBeReorderedCol.id]
+      const toViewCol = gridViewCols.value[toCol.id]
+      if (!toBeReorderedViewCol || !toViewCol) return
 
-    const nextToColField = toIndex < columns.value.length - 1 ? columns.value[toIndex + 1] : null
-    const nextToViewCol = nextToColField ? gridViewCols.value[nextToColField.id] : null
+      const nextToColField = toIndex < columns.value.length - 1 ? columns.value[toIndex + 1] : null
+      const nextToViewCol = nextToColField ? gridViewCols.value[nextToColField.id] : null
 
-    const lastCol = columns.value[columns.value.length - 1]
-    const lastViewCol = gridViewCols.value[lastCol.id]
+      const lastCol = columns.value[columns.value.length - 1]
+      const lastViewCol = gridViewCols.value[lastCol.id]
 
-    if (nextToViewCol === null && lastViewCol === null) return
+      if (nextToViewCol === null && lastViewCol === null) return
 
-    const newOrder = nextToViewCol ? toViewCol.order + (nextToViewCol.order - toViewCol.order) / 2 : lastViewCol.order + 1
-    const oldOrder = toBeReorderedViewCol.order
+      const newOrder = nextToViewCol ? toViewCol.order + (nextToViewCol.order - toViewCol.order) / 2 : lastViewCol.order + 1
+      const oldOrder = toBeReorderedViewCol.order
 
-    toBeReorderedViewCol.order = newOrder
+      toBeReorderedViewCol.order = newOrder
 
-    if (isDefaultView.value && toBeReorderedViewCol.fk_column_id) {
-      meta.value.columns = (meta.value?.columns ?? [])?.map((c) => {
-        if (c.id !== toBeReorderedViewCol.fk_column_id) return c
-        c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: newOrder }
-        return c
-      })
+      if (isDefaultView.value && toBeReorderedViewCol.fk_column_id) {
+        meta.value.columns = (meta.value?.columns ?? [])?.map((c) => {
+          if (c.id !== toBeReorderedViewCol.fk_column_id) return c
+          c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: newOrder }
+          return c
+        })
 
-      if (meta.value?.columnsById?.[toBeReorderedViewCol.fk_column_id]) {
-        meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta = {
-          ...parseProp(meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta),
-          defaultViewColOrder: newOrder,
+        if (meta.value?.columnsById?.[toBeReorderedViewCol.fk_column_id]) {
+          meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta = {
+            ...parseProp(meta.value.columnsById[toBeReorderedViewCol.fk_column_id].meta),
+            defaultViewColOrder: newOrder,
+          }
         }
       }
-    }
 
-    addUndo({
-      undo: {
-        fn: async () => {
-          toBeReorderedViewCol.order = oldOrder
-          if (isDefaultView.value) {
-            updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, oldOrder)
-          }
-          await updateGridViewColumn(toBeReorderedCol.id, { order: oldOrder })
-          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      addUndo({
+        undo: {
+          fn: async () => {
+            toBeReorderedViewCol.order = oldOrder
+            if (isDefaultView.value) {
+              updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, oldOrder)
+            }
+            await updateGridViewColumn(toBeReorderedCol.id, { order: oldOrder })
+            eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+          },
+          args: [],
         },
-        args: [],
-      },
-      redo: {
-        fn: async () => {
-          toBeReorderedViewCol.order = newOrder
-          if (isDefaultView.value) {
-            updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
-          }
-          await updateGridViewColumn(toBeReorderedCol.id, { order: newOrder })
-          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+        redo: {
+          fn: async () => {
+            toBeReorderedViewCol.order = newOrder
+            if (isDefaultView.value) {
+              updateDefaultViewColumnOrder(toBeReorderedViewCol.fk_column_id, newOrder)
+            }
+            await updateGridViewColumn(toBeReorderedCol.id, { order: newOrder })
+            eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+          },
+          args: [],
         },
-        args: [],
-      },
-      scope: defineViewScope({ view: activeView.value }),
-    })
+        scope: defineViewScope({ view: activeView.value }),
+      })
 
-    updateGridViewColumn(toBeReorderedCol.id, { order: newOrder }, true)
-    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-  })
+      updateGridViewColumn(toBeReorderedCol.id, { order: newOrder }, true)
+      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    },
+    isViewOperationsAllowed,
+  )
 
   useKeyboardNavigation({
     activeCell,
@@ -1210,8 +1233,14 @@ export function useCanvasTable({
     if (isGroupBy.value && !path && !path?.legth) return
 
     const yOffset =
-      calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) +
-      COLUMN_HEADER_HEIGHT_IN_PX
+      calculateGroupRowTop(
+        cachedGroups.value,
+        path,
+        rowIndex,
+        rowHeight.value,
+        headerRowHeight.value,
+        isAddingEmptyRowAllowed.value,
+      ) + headerRowHeight.value
 
     let xOffset = (groupByColumns.value?.length ?? 0) * 13
     const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
@@ -1383,6 +1412,7 @@ export function useCanvasTable({
     activeCell,
     editEnabled,
     rowHeight,
+    headerRowHeight,
     totalWidth,
     columnWidths,
     columns,
@@ -1490,5 +1520,6 @@ export function useCanvasTable({
     rowMetaColumnWidth,
     isRowColouringEnabled,
     rowColouringBorderWidth,
+    isViewOperationsAllowed,
   }
 }

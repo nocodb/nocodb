@@ -259,11 +259,11 @@ export class NcErrorBase {
     });
   }
 
-  formulaCircularRefError(message: string, args?: NcErrorArgs): never {
+  formulaCircularRefError(message?: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.FORMULA_CIRCULAR_REF_ERROR,
       {
-        params: message,
+        params: message ?? 'Circular reference detected in formula',
         ...args,
       }
     );
@@ -362,7 +362,7 @@ export class NcErrorBase {
 
   duplicateAlias(
     param: {
-      type: 'table' | 'column';
+      type: 'table' | 'column' | 'view';
       alias: string;
       base: string;
       label?: string;

@@ -5,7 +5,7 @@ const props = defineProps<{
 
 const emits = defineEmits(['reload'])
 
-const { loadFeed, socialFeed, youtubeFeed, githubFeed, cloudFeed } = useProductFeed()
+const { loadFeed } = useProductFeed()
 
 const triggerReload = async () => {
   if (props.page === 'twitter') {
@@ -13,33 +13,25 @@ const triggerReload = async () => {
     return
   }
 
-  const data = (await loadFeed({
+  await loadFeed({
     type: props.page,
     loadMore: false,
-  }))!.filter((item) => item['Feed Source'] !== 'Twitter')
-
-  if (props.page === 'all') {
-    socialFeed.value = data
-  } else if (props.page === 'youtube') {
-    youtubeFeed.value = data
-  } else if (props.page === 'github') {
-    githubFeed.value = data
-  } else if (props.page === 'cloud') {
-    cloudFeed.value = data
-  }
+  })
 }
 </script>
 
 <template>
   <div class="flex items-center justify-center">
-    <div class="w-[696px] error-box gap-6 border-1 border-gray-200 py-6 rounded-xl flex flex-col items-center justify-center">
-      <GeneralIcon icon="alertTriangle" class="text-gray-500 w-8 h-8" />
-      <span class="text-gray-600 text-base font-semibold"> Unable to load feed </span>
+    <div
+      class="w-[696px] error-box gap-6 border-1 border-nc-border-gray-medium py-6 rounded-xl flex flex-col items-center justify-center"
+    >
+      <GeneralIcon icon="alertTriangle" class="text-nc-content-gray-muted w-8 h-8" />
+      <span class="text-nc-content-gray-subtle2 text-base font-semibold"> {{ $t('msg.error.unableToLoadFeed') }} </span>
 
       <NcButton type="secondary" size="small" @click="triggerReload">
-        <div class="flex items-center text-gray-700 gap-2">
+        <div class="flex items-center text-nc-content-gray-subtle gap-2">
           <GeneralIcon icon="refreshCw" />
-          <span class="text-sm"> Refresh </span>
+          <span class="text-sm"> {{ $t('general.refresh') }} </span>
         </div>
       </NcButton>
     </div>

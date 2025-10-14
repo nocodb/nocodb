@@ -49,7 +49,11 @@ const {
   isLocalMode,
 } = useViewColumnsOrThrow()
 
-const { eventBus, isDefaultView, isSqlView } = useSmartsheetStoreOrThrow()
+const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+
+const isFieldsMenuReadOnly = computed(() => {
+  return isLocked.value || !isViewOperationsAllowed.value
+})
 
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
@@ -59,9 +63,13 @@ const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
 
-eventBus.on((event) => {
+eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
-    loadViewColumns()
+    try {
+      await loadViewColumns()
+    } finally {
+      payload?.callback?.()
+    }
   } else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
     loadViewColumns()
   }
@@ -334,7 +342,7 @@ const isDisabledShowAllColumns = computed(() => {
     !searchCompare(
       fields.value?.map((f) => f.title),
       filterQuery.value,
-    ) || isLocked.value
+    ) || isFieldsMenuReadOnly.value
   )
 })
 
@@ -478,7 +486,7 @@ const showAddLookupDropdown = (field: Field) => {
 }
 
 function conditionalToggleFieldVisibility(field: Field) {
-  if (showAddLookupDropdown(field) || isLocked.value) {
+  if (showAddLookupDropdown(field) || isFieldsMenuReadOnly.value) {
     return
   }
 
@@ -539,7 +547,7 @@ const onAddColumnDropdownVisibilityChange = () => {
         class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0"
         size="small"
         type="secondary"
-        :show-as-disabled="isLocked"
+        :show-as-disabled="isFieldsMenuReadOnly"
       >
         <div class="flex items-center gap-1">
           <div class="flex items-center gap-2 min-h-5">
@@ -578,7 +586,7 @@ const onAddColumnDropdownVisibilityChange = () => {
           <div
             class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s max-w-[206px]"
             :class="{
-              'nc-disabled': isLocked,
+              'nc-disabled': isFieldsMenuReadOnly,
             }"
           >
             <a-select
@@ -586,7 +594,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               class="flex-1 max-w-[calc(100%_-_33px)]"
               dropdown-class-name="nc-dropdown-cover-image !rounded-lg"
               :bordered="false"
-              :disabled="isLocked"
+              :disabled="isFieldsMenuReadOnly"
               @click.stop
             >
               <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
@@ -626,12 +634,12 @@ const onAddColumnDropdownVisibilityChange = () => {
             <NcDropdown
               v-if="coverImageObjectFit"
               v-model:visible="coverImageObjectFitDropdown.isOpen"
-              :disabled="isLocked"
+              :disabled="isFieldsMenuReadOnly"
               placement="bottomRight"
             >
               <button
                 class="flex items-center px-2 border-l-1 border-gray-200 disabled:(cursor-not-allowed opacity-80)"
-                :disabled="isLocked"
+                :disabled="isFieldsMenuReadOnly"
               >
                 <GeneralIcon
                   icon="settings"
@@ -715,7 +723,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               v-model="fields"
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"
-              :disabled="isLocked"
+              :disabled="isFieldsMenuReadOnly"
               @change="onMove($event)"
               @start="isDragging = true"
               @end="isDragging = false"
@@ -727,7 +735,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                   :data-testid="`nc-fields-menu-${field.title}`"
                   class="nc-fields-menu-item pl-2 flex flex-row items-center rounded-md"
                   :class="{
-                    'hover:bg-gray-100': !isLocked,
+                    'hover:bg-gray-100': !isFieldsMenuReadOnly,
                   }"
                   @click.stop
                 >
@@ -735,8 +743,8 @@ const onAddColumnDropdownVisibilityChange = () => {
                     :is="iconMap.drag"
                     class="!h-3.75 text-gray-600 mr-1"
                     :class="{
-                      'cursor-not-allowed': isLocked,
-                      'cursor-move': !isLocked,
+                      'cursor-not-allowed': isFieldsMenuReadOnly,
+                      'cursor-move': !isFieldsMenuReadOnly,
                     }"
                   />
                   <SmartsheetToolbarAddLookupsDropdown
@@ -752,7 +760,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                         v-e="['a:fields:show-hide']"
                         class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2"
                         :class="{
-                          'cursor-pointer': !isLocked,
+                          'cursor-pointer': !isFieldsMenuReadOnly,
                           'is-opened-add-lookup': isOpened,
                         }"
                         @click="conditionalToggleFieldVisibility(field)"
@@ -806,7 +814,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                             class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
                             size="xsmall"
                             type="text"
-                            :disabled="isLocked"
+                            :disabled="isFieldsMenuReadOnly"
                             @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
                           >
                             <component :is="iconMap.bold" class="!w-3.5 !h-3.5" />
@@ -824,7 +832,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                             class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
                             size="xsmall"
                             type="text"
-                            :disabled="isLocked"
+                            :disabled="isFieldsMenuReadOnly"
                             @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
                           >
                             <component :is="iconMap.italic" class="!w-3.5 !h-3.5" />
@@ -841,7 +849,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                             class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
                             size="xsmall"
                             type="text"
-                            :disabled="isLocked"
+                            :disabled="isFieldsMenuReadOnly"
                             @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
                           >
                             <component :is="iconMap.underline" class="!w-3.5 !h-3.5" />
@@ -854,7 +862,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                         <span class="flex children:flex-none" @click.stop="conditionalToggleFieldVisibility(field)">
                           <NcSwitch
                             :checked="field.show"
-                            :disabled="field.isViewEssentialField || isLocked || isLoadingShowAllColumns"
+                            :disabled="field.isViewEssentialField || isFieldsMenuReadOnly || isLoadingShowAllColumns"
                             size="xxsmall"
                             @change="$e('a:fields:show-hide')"
                             @click="handleFieldVisibilityClick(field)"
@@ -879,7 +887,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             class="nc-fields-show-system-fields !px-2 !font-semibold"
             size="small"
             type="text"
-            :disabled="isLocked"
+            :disabled="isFieldsMenuReadOnly"
             @click="showSystemField = !showSystemField"
           >
             <GeneralIcon :icon="showSystemField ? 'eyeSlash' : 'eye'" class="!w-4 !h-4 mr-2" />

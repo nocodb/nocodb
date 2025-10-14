@@ -24,7 +24,10 @@ import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 export class SortsV3Controller {
   constructor(private readonly sortsV3Service: SortsV3Service) {}
 
-  @Get(`${PREFIX_APIV3_METABASE}/views/:viewId/sorts`)
+  @Get([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId/sorts`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId/sorts`,
+  ])
   @Acl('sortList')
   async sortList(
     @TenantContext() context: NcContext,
@@ -37,7 +40,10 @@ export class SortsV3Controller {
     };
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/views/:viewId/sorts/`)
+  @Post([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId/sorts`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId/sorts`,
+  ])
   @HttpCode(200)
   @Acl('sortCreate')
   async sortCreate(
@@ -54,7 +60,10 @@ export class SortsV3Controller {
     return sort;
   }
 
-  @Patch(`${PREFIX_APIV3_METABASE}/views/:viewId/sorts`)
+  @Patch([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId/sorts`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId/sorts`,
+  ])
   @Acl('sortUpdate')
   async sortUpdate(
     @TenantContext() context: NcContext,
@@ -71,7 +80,10 @@ export class SortsV3Controller {
     return sort;
   }
 
-  @Delete(`${PREFIX_APIV3_METABASE}/views/:viewId/sorts`)
+  @Delete([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId/sorts`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId/sorts`,
+  ])
   @Acl('sortDelete')
   async sortDelete(
     @TenantContext() context: NcContext,

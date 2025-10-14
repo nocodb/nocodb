@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { isLoading } = useGlobal()
+const { isLoading, appInfo } = useGlobal()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
@@ -101,9 +101,15 @@ export default {
           </div>
 
           <div class="flex items-center gap-3">
-            <LazySmartsheetToolbarExport v-if="allowCSVDownload" />
+            <LazySmartsheetToolbarExportWithProvider v-if="allowCSVDownload" />
 
-            <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline xs:hidden" rel="noopener">
+            <a
+              v-if="!appInfo.isOnPrem"
+              href="https://app.nocodb.com/#/signin"
+              target="_blank"
+              class="!no-underline xs:hidden"
+              rel="noopener"
+            >
               <NcButton size="xs"> {{ $t('labels.signUpForFree') }} </NcButton>
             </a>
           </div>

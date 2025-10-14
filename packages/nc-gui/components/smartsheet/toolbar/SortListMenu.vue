@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, UITypesName } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import rfdc from 'rfdc'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
@@ -31,8 +31,11 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.SORT_RELOAD) {
+eventBus.on((event, payload) => {
+  if (
+    event === SmartsheetStoreEvents.SORT_RELOAD ||
+    validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.SORT, payload)
+  ) {
     loadSorts()
   }
 })
@@ -220,57 +223,63 @@ onMounted(() => {
             </div>
           </div>
 
-          <NcDropdown
-            v-if="availableColumns.length"
-            v-model:visible="showCreateSort"
-            :trigger="['click']"
-            :disabled="isLocked"
-            overlay-class-name="nc-toolbar-dropdown"
-          >
-            <template v-if="isEeUI && !isPublic">
-              <NcButton
-                v-if="sorts.length < getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW)"
-                v-e="['c:sort:add']"
-                class="mt-1 mb-2"
-                :class="{
-                  '!text-brand-500': !isLocked,
-                }"
-                type="text"
-                size="small"
-                :disabled="isLocked"
-                @click.stop="showCreateSort = true"
-              >
-                <div class="flex gap-1 items-center">
-                  <component :is="iconMap.plus" />
-                  <!-- Add Sort Option -->
-                  {{ $t('activity.addSort') }}
-                </div>
-              </NcButton>
-              <span v-else></span>
-            </template>
-            <template v-else>
-              <NcButton
-                v-e="['c:sort:add']"
-                class="mt-1 mb-2"
-                :class="{
-                  '!text-brand-500': !isLocked,
-                }"
-                type="text"
-                size="small"
-                :disabled="isLocked"
-                @click.stop="showCreateSort = true"
-              >
-                <div class="flex gap-1 items-center">
-                  <component :is="iconMap.plus" />
-                  <!-- Add Sort Option -->
-                  {{ $t('activity.addSort') }}
-                </div>
-              </NcButton>
-            </template>
-            <template #overlay>
-              <SmartsheetToolbarCreateSort :is-parent-open="showCreateSort" @created="addSort" />
-            </template>
-          </NcDropdown>
+          <div class="flex items-center justify-between children:flex-none empty:hidden pr-4 mt-1 mb-2">
+            <NcDropdown
+              v-if="availableColumns.length"
+              v-model:visible="showCreateSort"
+              :trigger="['click']"
+              :disabled="isLocked"
+              overlay-class-name="nc-toolbar-dropdown"
+            >
+              <template v-if="isEeUI && !isPublic">
+                <NcButton
+                  v-if="sorts.length < getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW)"
+                  v-e="['c:sort:add']"
+                  :class="{
+                    '!text-brand-500': !isLocked,
+                  }"
+                  type="text"
+                  size="small"
+                  :disabled="isLocked"
+                  @click.stop="showCreateSort = true"
+                >
+                  <div class="flex gap-1 items-center">
+                    <component :is="iconMap.plus" />
+                    <!-- Add Sort Option -->
+                    {{ $t('activity.addSort') }}
+                  </div>
+                </NcButton>
+                <span v-else></span>
+              </template>
+              <template v-else>
+                <NcButton
+                  v-e="['c:sort:add']"
+                  :class="{
+                    '!text-brand-500': !isLocked,
+                  }"
+                  type="text"
+                  size="small"
+                  :disabled="isLocked"
+                  @click.stop="showCreateSort = true"
+                >
+                  <div class="flex gap-1 items-center">
+                    <component :is="iconMap.plus" />
+                    <!-- Add Sort Option -->
+                    {{ $t('activity.addSort') }}
+                  </div>
+                </NcButton>
+              </template>
+              <template #overlay>
+                <SmartsheetToolbarCreateSort :is-parent-open="showCreateSort" @created="addSort" />
+              </template>
+            </NcDropdown>
+            <LazyGeneralCopyFromAnotherViewActionBtn
+              v-if="view"
+              :view="view"
+              :default-options="[ViewSettingOverrideOptions.SORT]"
+              @open="open = false"
+            />
+          </div>
         </div>
         <GeneralLockedViewFooter
           v-if="isLocked"
@@ -279,6 +288,16 @@ onMounted(() => {
           }"
           @on-open="open = false"
         />
+        <div
+          v-else-if="view && !sorts.length"
+          class="flex items-center justify-end empty:hidden pl-3 pr-2 py-1.5 border-t-1 border-nc-border-gray-medium"
+        >
+          <LazyGeneralCopyFromAnotherViewActionBtn
+            :view="view"
+            :default-options="[ViewSettingOverrideOptions.SORT]"
+            @open="open = false"
+          />
+        </div>
       </div>
     </template>
   </NcDropdown>

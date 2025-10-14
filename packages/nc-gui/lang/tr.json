@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Düzenleme erişimi Editörler ve üstüne ayarlanacak.",
       "confirmRevertPermissionsToDefault": "Tablo için izinleri sıfırlamayı onayla - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Bu alan formda gizli, çünkü hiçbir kullanıcının düzenleme izni yok."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Düzenlemeye devam et",
     "leave": "Çık",
@@ -1508,6 +1514,7 @@
     "runActions": "Eylemleri Çalıştır",
     "createScript": "Script Oluştur",
     "deleteAllRecords": "Tüm kayıtları sil",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Görünüm ata",
     "webhookDetails": "Webhook Detayları",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "Alan adı zorunludur",
       "nameMaxLength256": "Ad en fazla 256 karakter uzunluğunda olmalıdır",
       "viewNameUnique": "Görünüm adı benzersiz olmalıdır",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "{search} için aramanız hiç bir sonuç bulamadı",
       "invalidChar": "Klasör yolunda geçersiz karakter.",
       "invalidDbCredentials": "Veritabanı kimlik bilgileri yanlış.",

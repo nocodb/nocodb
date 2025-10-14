@@ -35,17 +35,20 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { sorts, nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters, eventBus, xWhere } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
 
     const { isUIAllowed } = useRoles()
 
-    const isPublic = ref(shared) || inject(IsPublicInj, ref(false))
+    /**
+     * In shared view mode, `isPublic` will still be false because both
+     * `useProvideSmartsheetStore` and `provide(IsPublicInj)` are called at the same
+     * component level, so the inject doesn't see the provided value.
+     */
+    const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
     const password = ref<string | null>(null)
-
-    const { search, getValidSearchQueryForColumn } = useFieldQuery()
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -59,32 +62,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     // save history of stack changes for undo/redo
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
-
-    const xWhere = computed(() => {
-      let where
-      const col =
-        (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
-        (meta.value as TableType)?.columns?.find((v) => v.pv)
-
-      const searchQuery = search.value.query.trim()
-
-      if (!col || !searchQuery) {
-        search.value.isValidFieldQuery = true
-
-        return where
-      }
-
-      const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, { getWhereQueryAs: 'string' })
-
-      if (!colWhereQuery) {
-        search.value.isValidFieldQuery = false
-        return where
-      }
-
-      search.value.isValidFieldQuery = true
-
-      return colWhereQuery
-    })
 
     provide(SharedViewPasswordInj, password)
 
@@ -269,6 +246,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           sortsArr: sorts.value,
           filtersArr: nestedFilters.value,
           include_row_color: true,
+          where: xWhere.value,
         })
       } else {
         groupData = await api.dbViewRow.groupedDataList(

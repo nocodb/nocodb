@@ -1,17 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ProjectRoles, ViewTypes } from 'nocodb-sdk';
-import type { MetaService } from '~/meta/meta.service';
 import type {
   SharedViewReqType,
   UserType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import {
-  type ViewWebhookManager,
-  ViewWebhookManagerBuilder,
-} from '~/utils/view-webhook-manager';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import type { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import {
@@ -22,7 +17,13 @@ import {
   User,
   View,
 } from '~/models';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 
 // todo: move
 async function xcVisibilityMetaGet(
@@ -155,22 +156,46 @@ export class ViewsService {
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewUpdateReq',
       param.view,
     );
-    const oldView = await View.get(context, param.viewId);
+    const oldView = await View.get(context, param.viewId, ncMeta);
 
     if (!oldView) {
       NcError.viewNotFound(param.viewId);
+    }
+
+    if (param.view.title && param.view.title.trim() !== oldView.title) {
+      param.view.title = param.view.title?.trim();
+      const existingView = await View.getByTitleOrId(
+        context,
+        {
+          titleOrId: param.view.title,
+          fk_model_id: oldView.fk_model_id,
+        },
+        ncMeta,
+      );
+      if (existingView) {
+        NcError.get(context).duplicateAlias({
+          type: 'view',
+          alias: param.view.title,
+          label: 'title',
+          base: context.base_id,
+          additionalTrace: {
+            table: oldView.fk_model_id,
+          },
+        });
+      }
     }
 
     const viewWebhookManager =
       param.viewWebhookManager ??
       (
         await (
-          await new ViewWebhookManagerBuilder(context).withModelId(
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
             oldView.fk_model_id,
           )
         ).withViewId(param.viewId)
@@ -224,6 +249,7 @@ export class ViewsService {
         context,
         context.base_id,
         param.view.owned_by,
+        ncMeta,
       );
 
       if (!baseUser) {
@@ -242,12 +268,13 @@ export class ViewsService {
         created_by: createdBy,
       },
       includeCreatedByAndUpdateBy,
+      ncMeta,
     );
 
     let owner = param.req.user;
 
     if (ownedBy && ownedBy !== param.req.user?.id) {
-      owner = await User.get(ownedBy);
+      owner = await User.get(ownedBy, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
@@ -262,7 +289,7 @@ export class ViewsService {
       owner,
     });
 
-    await result.getView(context);
+    await result.getView(context, ncMeta);
 
     NocoSocket.broadcastEvent(
       context,

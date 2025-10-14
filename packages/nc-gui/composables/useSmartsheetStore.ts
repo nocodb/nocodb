@@ -11,7 +11,12 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
   ) => {
-    const isPublic = inject(IsPublicInj, ref(false))
+    /**
+     * In shared view mode, `isPublic` will still be false because both
+     * `useProvideSmartsheetStore` and `provide(IsPublicInj)` are called at the same
+     * component level, so the inject doesn't see the provided value.
+     */
+    const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
     const { $api, $eventBus } = useNuxtApp()
 
@@ -20,11 +25,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { user, isMobileMode } = useGlobal()
 
+    const { isUIAllowed } = useRoles()
+
     const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
 
-    const { sqlUis, base } = storeToRefs(baseStore)
+    const { sqlUis, base, isSharedBase } = storeToRefs(baseStore)
 
     const sqlUi = computed(() =>
       (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
@@ -53,6 +60,17 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isExternalSource = computed(
       () => !!base.value?.sources?.some((s) => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),
     )
+
+    /**
+     * View operations (toolbar, aggregation footer, column reorder, column resize, etc.)
+     */
+    const isViewOperationsAllowed = computed(() => {
+      // Allow view operations in shared base and view
+      if (isPublic.value || isSharedBase.value) return true
+
+      // Allow view operations only for editor and above roles
+      return isUIAllowed('viewOperations')
+    })
 
     const isAlreadyShownUpgradeModal = ref(false)
 
@@ -92,7 +110,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         return
       }
 
-      return route.value.query.where
+      return route.value.query.where as string
     })
 
     const totalRowsWithSearchQuery = ref(0)
@@ -230,6 +248,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       fetchTotalRowsWithSearchQuery,
       gridEditEnabled,
       getValidSearchQueryForColumn,
+      isViewOperationsAllowed,
     }
   },
   'smartsheet-store',

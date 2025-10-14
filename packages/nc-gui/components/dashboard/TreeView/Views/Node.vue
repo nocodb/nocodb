@@ -172,6 +172,9 @@ const onRenameMenuClick = () => {
   if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {
+    // close dropdown when rename menu is clicked and show inline view rename input
+    isDropdownOpen.value = false
+
     isEditing.value = true
     _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
@@ -200,7 +203,7 @@ async function onRename() {
     return
   }
 
-  if (vModel.value.title === '' || vModel.value.title === _title.value) {
+  if (vModel.value.title === '' || vModel.value.title?.trim() === _title.value) {
     onCancel()
     return
   }
@@ -295,6 +298,7 @@ watch(isDropdownOpen, async () => {
     <NcTooltip
       :tooltip-style="{ width: '240px', zIndex: '1049' }"
       :overlay-inner-style="{ width: '240px' }"
+      :mouse-enter-delay="0.5"
       trigger="hover"
       placement="right"
       :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip || isMobileMode"

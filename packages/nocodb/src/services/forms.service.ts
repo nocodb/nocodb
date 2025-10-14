@@ -59,6 +59,26 @@ export class FormsService {
       NcError.sourceDataReadOnly(source.alias);
     }
 
+    param.body.title = param.body.title?.trim();
+    const existingView = await View.getByTitleOrId(
+      context,
+      {
+        titleOrId: param.body.title,
+        fk_model_id: param.tableId,
+      },
+      ncMeta,
+    );
+    if (existingView) {
+      NcError.get(context).duplicateAlias({
+        type: 'view',
+        alias: param.body.title,
+        label: 'title',
+        base: context.base_id,
+        additionalTrace: {
+          table: param.tableId,
+        },
+      });
+    }
     const viewWebhookManager =
       param.viewWebhookManager ??
       (

@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "L'acc\u0000e8s en modification sera d\u0000e9fini pour les \u0000c9diteurs et les r\u0000f4les sup\u0000e9rieurs.",
       "confirmRevertPermissionsToDefault": "Confirmer la r\u0000e9initialisation des permissions pour la table - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Ce champ est masqu\u0000e9 dans le formulaire car personne n'a la permission de le modifier."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Continuer la modification",
     "leave": "Quitter",
@@ -1508,6 +1514,7 @@
     "runActions": "Exécuter les actions",
     "createScript": "Créer un script",
     "deleteAllRecords": "Supprimer toutes les entrées",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Affecter la vue",
     "webhookDetails": "Détails du Webhook",
     "webhookLogs": "Logs des webhooks",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "Le nom de domaine est requis",
       "nameMaxLength256": "Le nom doit comporter au maximum 256 caractères",
       "viewNameUnique": "Le nom de la vue doit être unique",
+      "viewNameDuplicate": "Le nom de la vue existe déjà",
       "searchProject": "Votre recherche pour {search} n'a renvoyé aucun résultat",
       "invalidChar": "Caractère invalide dans le chemin du dossier.",
       "invalidDbCredentials": "Identifiants de base de données invalides.",

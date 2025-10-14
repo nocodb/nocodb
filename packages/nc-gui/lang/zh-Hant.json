@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "編輯權限將設為編輯者及以上。",
       "confirmRevertPermissionsToDefault": "確定將資料表 \"{tableName}\" 權限重設為預設？",
       "formViewFieldEditPermissionRestrictionTooltip": "該欄位在表單中被隱藏，因為沒有人有權編輯它。"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "繼續編輯",
     "leave": "離開",
@@ -1508,6 +1514,7 @@
     "runActions": "執行動作",
     "createScript": "建立指令碼",
     "deleteAllRecords": "刪除所有紀錄",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "指派檢視",
     "webhookDetails": "Webhook詳情",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "域名為必填",
       "nameMaxLength256": "名稱最多 256 個字元",
       "viewNameUnique": "檢視名稱應該是唯一的",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "您的搜尋 {search} 找不到結果",
       "invalidChar": "資料夾路徑有無效字元。",
       "invalidDbCredentials": "資料庫憑證無效。",

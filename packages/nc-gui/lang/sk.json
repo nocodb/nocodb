@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Prístup na úpravy bude nastavený len pre editorov a vyššie.",
       "confirmRevertPermissionsToDefault": "Potvrďte obnovenie oprávnení pre tabuľku – \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Toto pole je v formulári skryté, pretože nikto nemá oprávnenie ho upravovať."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Pokračovať v úpravách",
     "leave": "Odísť",
@@ -1508,6 +1514,7 @@
     "runActions": "Spustiť akcie",
     "createScript": "Vytvoriť skript",
     "deleteAllRecords": "Odstrániť všetky záznamy",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Priradiť zobrazenie",
     "webhookDetails": "Detaily Webhooku",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "Vyžaduje sa názov domény",
       "nameMaxLength256": "Názov môže mať najviac 256 znakov",
       "viewNameUnique": "Názov zobrazenia musí byť unikátny",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Vaše vyhľadávanie na {search} nenašlo žiadne výsledky",
       "invalidChar": "Neplatný znak v ceste k priečinku.",
       "invalidDbCredentials": "Neplatné poverenia databázy.",

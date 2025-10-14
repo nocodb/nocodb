@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Redigeringsåtkomst ställs in till redaktörer och högre.",
       "confirmRevertPermissionsToDefault": "Bekräfta återställning av behörigheter för tabell – \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Detta fält är dolt i formuläret eftersom ingen har rätt att redigera det."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Fortsätt redigera",
     "leave": "Lämna",
@@ -1508,6 +1514,7 @@
     "runActions": "Kör åtgärder",
     "createScript": "Skapa skript",
     "deleteAllRecords": "Ta bort alla poster",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Tilldela vy",
     "webhookDetails": "Webhook Detaljer",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "Domännamn krävs",
       "nameMaxLength256": "Namnet får vara högst 256 tecken långt",
       "viewNameUnique": "Visningsnamnet bör vara unikt",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Din sökning efter {Sök} har inga resultat",
       "invalidChar": "Ogiltigt tecken i mappbanan.",
       "invalidDbCredentials": "Ogiltiga databasuppgifter.",

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
+import { defineAsyncComponent } from 'vue'
 import {
   type HookReqType,
   type HookTestReqType,
@@ -13,6 +14,13 @@ import { onKeyDown } from '@vueuse/core'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
+const props = defineProps<Props>()
+
+const emits = defineEmits(['close', 'update:value', 'cancel'])
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
+
 interface Props {
   value: boolean
   eventList: Record<string, any>[]
@@ -21,10 +29,6 @@ interface Props {
   sampleDataV2?: any
   stickyScroll?: boolean
 }
-
-const props = defineProps<Props>()
-
-const emits = defineEmits(['close', 'update:value', 'cancel'])
 
 enum HookTab {
   Configuration = 'configuration',
@@ -56,8 +60,6 @@ const { appInfo } = useGlobal()
 const { activeTable } = toRefs(useTablesStore())
 
 const { updateStatLimit, showWebhookLogsFeatureAccessModal } = useEeConfig()
-
-const { activeBaseAutomations } = storeToRefs(useAutomationStore())
 
 const defaultHookName = t('labels.webhook')
 
@@ -211,14 +213,16 @@ const notificationTypes = computed(() => {
   ]
 })
 
-const automationOptions = computed(() => {
-  return activeBaseAutomations.value
-    .filter((automation) => automation.script && !hasInputCalls(automation.script))
-    .map((automation) => ({
-      label: automation.title,
-      value: automation.id,
-    }))
-})
+const filterScripts = (automation: any) => {
+  if (hasInputCalls(automation.script)) {
+    return {
+      ...automation,
+      ncItemDisabled: true,
+      ncItemTooltip: `Script with user inputs can't be used with webhooks`,
+    }
+  }
+  return automation
+}
 
 const toggleOperation = (operation: string) => {
   const ops = [...hookRef.operation]
@@ -654,6 +658,7 @@ async function saveHooks() {
     if (hookRef.id) {
       res = await api.dbTableWebhook.update(hookRef.id, {
         ...hookRef,
+        title: hookRef.title?.trim(),
         operation: operations,
         notification: {
           ...hookRef.notification,
@@ -663,6 +668,7 @@ async function saveHooks() {
     } else {
       res = await api.dbTableWebhook.create(meta.value!.id!, {
         ...hookRef,
+        title: hookRef.title?.trim(),
         operation: operations,
         notification: {
           ...hookRef.notification,
@@ -1056,35 +1062,47 @@ const webhookV2AndV3Diff = computed(() => {
             <div v-for="(item, idx) of webhookV2AndV3Diff" :key="idx" class="nc-item">
               <div class="nc-item-title">{{ item.title }}</div>
               <div class="nc-item-response">
-                <LazyMonacoEditor
-                  :model-value="item.response"
-                  class="flex-1 min-h-50 resize-y overflow-auto expanded-editor"
-                  hide-minimap
-                  disable-deep-compare
-                  read-only
-                  :monaco-config="{
-                    lineNumbers: 'on',
-                    scrollbar: {
-                      verticalScrollbarSize: 6,
-                      horizontalScrollbarSize: 6,
-                    },
-                    padding: {
-                      top: 12,
-                      bottom: 12,
-                    },
-                    scrollBeyondLastLine: false,
-                  }"
-                  :monaco-custom-theme="{
-                    base: 'vs',
-                    inherit: true,
-                    rules: [],
-                    colors: {
-                      'editor.background': '#f9f9fa',
-                    },
-                  }"
-                  @keydown.enter.stop
-                  @keydown.alt.stop
-                />
+                <Suspense>
+                  <template #default>
+                    <MonacoEditor
+                      :model-value="item.response"
+                      class="flex-1 min-h-50 resize-y overflow-auto expanded-editor"
+                      hide-minimap
+                      disable-deep-compare
+                      read-only
+                      :monaco-config="{
+                        lineNumbers: 'on',
+                        scrollbar: {
+                          verticalScrollbarSize: 6,
+                          horizontalScrollbarSize: 6,
+                        },
+                        padding: {
+                          top: 12,
+                          bottom: 12,
+                        },
+                        scrollBeyondLastLine: false,
+                      }"
+                      :monaco-custom-theme="{
+                        base: 'vs',
+                        inherit: true,
+                        rules: [],
+                        colors: {
+                          'editor.background': '#f9f9fa',
+                        },
+                      }"
+                      @keydown.enter.stop
+                      @keydown.alt.stop
+                    />
+                  </template>
+                  <template #fallback>
+                    <div class="min-h-50 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                      <div class="text-center">
+                        <a-spin size="large" />
+                        <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                      </div>
+                    </div>
+                  </template>
+                </Suspense>
               </div>
             </div>
           </div>
@@ -1317,15 +1335,15 @@ const webhookV2AndV3Diff = computed(() => {
 
                   <template v-if="isEeUI && hookRef.notification.type === 'Script'">
                     <a-form-item class="flex w-full my-3" v-bind="validateInfos['notification.payload.scriptId']">
-                      <NcSelect
+                      <NcListAutomationSelector
                         v-model:value="hookRef.notification.payload.scriptId"
-                        :options="automationOptions"
-                        class="w-full nc-select-shadow nc-select-hook-scrip-type"
                         data-testid="nc-dropdown-hook-notification-type"
-                        placeholder="Select a script"
-                        show-search
-                        :filter-option="(input, option) => antSelectFilterOption(input, option, ['label'])"
-                      ></NcSelect>
+                        class="nc-select-hook-scrip-type"
+                        :base-id="activeTable.base_id"
+                        :disable-label="true"
+                        :map-script="filterScripts"
+                        :auto-select="false"
+                      />
                     </a-form-item>
                   </template>
 
@@ -1392,48 +1410,60 @@ const webhookV2AndV3Diff = computed(() => {
                         style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
                         class="my-3 mx-1 rounded-lg overflow-hidden"
                       >
-                        <LazyMonacoEditor
-                          v-model="hookRef.notification.payload.body"
-                          lang="handlebars"
-                          disable-deep-compare
-                          :validate="false"
-                          class="min-h-60 max-h-80 !rounded-lg"
-                          :monaco-config="{
-                            minimap: {
-                              enabled: false,
-                            },
-                            padding: {
-                              top: 8,
-                              bottom: 8,
-                            },
-                            fontSize: 14.5,
-                            overviewRulerBorder: false,
-                            overviewRulerLanes: 0,
-                            hideCursorInOverviewRuler: true,
-                            lineDecorationsWidth: 8,
-                            lineNumbersMinChars: 0,
-                            roundedSelection: false,
-                            selectOnLineNumbers: false,
-                            scrollBeyondLastLine: false,
-                            contextmenu: false,
-                            glyphMargin: false,
-                            folding: false,
-                            bracketPairColorization: {
-                              enabled: false,
-                            },
-                            wordWrap: 'on',
-                            scrollbar: {
-                              horizontal: 'hidden',
-                              verticalScrollbarSize: 6,
-                            },
-                            wrappingStrategy: 'advanced',
-                            renderLineHighlight: 'none',
-                            tabSize: 4,
-                            stickyScroll: {
-                              enabled: props.stickyScroll,
-                            },
-                          }"
-                        />
+                        <Suspense>
+                          <template #default>
+                            <MonacoEditor
+                              v-model="hookRef.notification.payload.body"
+                              lang="handlebars"
+                              disable-deep-compare
+                              :validate="false"
+                              class="min-h-60 max-h-80 !rounded-lg"
+                              :monaco-config="{
+                                minimap: {
+                                  enabled: false,
+                                },
+                                padding: {
+                                  top: 8,
+                                  bottom: 8,
+                                },
+                                fontSize: 14.5,
+                                overviewRulerBorder: false,
+                                overviewRulerLanes: 0,
+                                hideCursorInOverviewRuler: true,
+                                lineDecorationsWidth: 8,
+                                lineNumbersMinChars: 0,
+                                roundedSelection: false,
+                                selectOnLineNumbers: false,
+                                scrollBeyondLastLine: false,
+                                contextmenu: false,
+                                glyphMargin: false,
+                                folding: false,
+                                bracketPairColorization: {
+                                  enabled: false,
+                                },
+                                wordWrap: 'on',
+                                scrollbar: {
+                                  horizontal: 'hidden',
+                                  verticalScrollbarSize: 6,
+                                },
+                                wrappingStrategy: 'advanced',
+                                renderLineHighlight: 'none',
+                                tabSize: 4,
+                                stickyScroll: {
+                                  enabled: props.stickyScroll,
+                                },
+                              }"
+                            />
+                          </template>
+                          <template #fallback>
+                            <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                              <div class="text-center">
+                                <a-spin size="large" />
+                                <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                              </div>
+                            </div>
+                          </template>
+                        </Suspense>
                       </div>
                     </a-tab-pane>
                   </NcTabs>
@@ -1446,7 +1476,7 @@ const webhookV2AndV3Diff = computed(() => {
               >
                 <div v-if="hookRef.notification.type === 'Slack'" class="flex flex-col w-full gap-3">
                   <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                    <LazyWebhookChannelMultiSelect
+                    <WebhookChannelMultiSelect
                       v-model="hookRef.notification.payload.channels"
                       :selected-channel-list="hookRef.notification.payload.channels"
                       :available-channel-list="slackChannels"
@@ -1457,7 +1487,7 @@ const webhookV2AndV3Diff = computed(() => {
 
                 <div v-if="hookRef.notification.type === 'Microsoft Teams'" class="flex flex-col w-full gap-3">
                   <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                    <LazyWebhookChannelMultiSelect
+                    <WebhookChannelMultiSelect
                       v-model="hookRef.notification.payload.channels"
                       :selected-channel-list="hookRef.notification.payload.channels"
                       :available-channel-list="teamsChannels"
@@ -1468,7 +1498,7 @@ const webhookV2AndV3Diff = computed(() => {
 
                 <div v-if="hookRef.notification.type === 'Discord'" class="flex flex-col w-full gap-3">
                   <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                    <LazyWebhookChannelMultiSelect
+                    <WebhookChannelMultiSelect
                       v-model="hookRef.notification.payload.channels"
                       :selected-channel-list="hookRef.notification.payload.channels"
                       :available-channel-list="discordChannels"
@@ -1479,7 +1509,7 @@ const webhookV2AndV3Diff = computed(() => {
 
                 <div v-if="hookRef.notification.type === 'Mattermost'" class="flex flex-col w-full gap-3">
                   <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                    <LazyWebhookChannelMultiSelect
+                    <WebhookChannelMultiSelect
                       v-model="hookRef.notification.payload.channels"
                       :selected-channel-list="hookRef.notification.payload.channels"
                       :available-channel-list="mattermostChannels"
@@ -1545,53 +1575,65 @@ const webhookV2AndV3Diff = computed(() => {
                   </NcButton>
                 </div>
                 <div v-show="isVisible">
-                  <LazyMonacoEditor
-                    v-model="sampleData"
-                    read-only
-                    :monaco-config="{
-                      minimap: {
-                        enabled: false,
-                      },
-                      fontSize: 14.5,
-                      overviewRulerBorder: false,
-                      overviewRulerLanes: 0,
-                      hideCursorInOverviewRuler: true,
-                      lineDecorationsWidth: 12,
-                      lineNumbersMinChars: 0,
-                      scrollBeyondLastLine: false,
-                      renderLineHighlight: 'none',
-                      lineNumbers: 'off',
-                      glyphMargin: false,
-                      folding: false,
-                      bracketPairColorization: { enabled: false },
-                      wordWrap: 'on',
-                      scrollbar: {
-                        horizontal: 'hidden',
-                        verticalScrollbarSize: 6,
-                      },
-                      wrappingStrategy: 'advanced',
-                      tabSize: 4,
-                      readOnly: true,
-                    }"
-                    :monaco-custom-theme="{
-                      base: 'vs',
-                      inherit: true,
-                      rules: [
-                        { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
-                        { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
-                        { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
-                        { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
-                        { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
-                      ],
-                      colors: {},
-                    }"
-                    class="transition-all border-1 rounded-lg"
-                    style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-                    :class="{
-                      'w-0 min-w-0': !isVisible,
-                      'min-h-60 max-h-80': isVisible,
-                    }"
-                  />
+                  <Suspense>
+                    <template #default>
+                      <MonacoEditor
+                        v-model="sampleData"
+                        read-only
+                        :monaco-config="{
+                          minimap: {
+                            enabled: false,
+                          },
+                          fontSize: 14.5,
+                          overviewRulerBorder: false,
+                          overviewRulerLanes: 0,
+                          hideCursorInOverviewRuler: true,
+                          lineDecorationsWidth: 12,
+                          lineNumbersMinChars: 0,
+                          scrollBeyondLastLine: false,
+                          renderLineHighlight: 'none',
+                          lineNumbers: 'off',
+                          glyphMargin: false,
+                          folding: false,
+                          bracketPairColorization: { enabled: false },
+                          wordWrap: 'on',
+                          scrollbar: {
+                            horizontal: 'hidden',
+                            verticalScrollbarSize: 6,
+                          },
+                          wrappingStrategy: 'advanced',
+                          tabSize: 4,
+                          readOnly: true,
+                        }"
+                        :monaco-custom-theme="{
+                          base: 'vs',
+                          inherit: true,
+                          rules: [
+                            { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
+                            { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
+                            { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
+                            { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
+                            { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
+                          ],
+                          colors: {},
+                        }"
+                        class="transition-all border-1 rounded-lg"
+                        style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                        :class="{
+                          'w-0 min-w-0': !isVisible,
+                          'min-h-60 max-h-80': isVisible,
+                        }"
+                      />
+                    </template>
+                    <template #fallback>
+                      <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                        <div class="text-center">
+                          <a-spin size="large" />
+                          <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                        </div>
+                      </div>
+                    </template>
+                  </Suspense>
                 </div>
               </div>
             </a-form>

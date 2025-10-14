@@ -1,4 +1,5 @@
-import { type RowColoringInfo, ViewTypes } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
+import type { RowColoringInfo, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { iconMap } from './iconUtils'
 import type { Language } from '~/lib/types'
 import UsersIcon from '~icons/nc-icons/users'
@@ -78,4 +79,21 @@ export const getDefaultViewMetas = (viewType: ViewTypes) => {
       }
   }
   return {}
+}
+
+export const validateViewConfigOverrideEvent = (
+  event: SmartsheetStoreEvents | string,
+  optionToValidate: ViewSettingOverrideOptions,
+  params?: { viewId: string; copiedOptions: ViewSettingOverrideOptions[] },
+) => {
+  if (
+    event !== SmartsheetStoreEvents.COPIED_VIEW_CONFIG ||
+    !optionToValidate ||
+    !ncIsObject(params) ||
+    !ncIsArray(params?.copiedOptions)
+  ) {
+    return false
+  }
+
+  return params.copiedOptions.includes(optionToValidate)
 }

@@ -158,14 +158,12 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'row_actions',
-    title: 'Row Actions',
-    description: 'Execute scripts and webhooks to a record.',
-    enabled: true,
+    id: 'copy_view_config_from_another_view',
+    title: 'Copy View Config From Another View',
+    description: 'Copy view config from another view.',
+    enabled: false,
     version: 2,
     isEE: true,
-    isCloud: false,
-    isEngineering: true,
   },
 ] as const
 

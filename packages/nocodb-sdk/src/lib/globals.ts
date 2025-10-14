@@ -1,5 +1,9 @@
 import { ColumnType, FilterType } from './Api';
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import {
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from './enums';
 import { PlanTitles } from './payment';
 
 export const enumColors = {

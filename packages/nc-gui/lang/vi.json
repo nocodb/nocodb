@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "Quyền chỉnh sửa sẽ được đặt cho Editor trở lên.",
       "confirmRevertPermissionsToDefault": "Xác nhận đặt lại quyền cho bảng - \"{tableName}\"",
       "formViewFieldEditPermissionRestrictionTooltip": "Trường này bị ẩn trong form do không ai có quyền chỉnh sửa."
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Tiếp tục chỉnh sửa",
     "leave": "Rời đi",
@@ -1508,6 +1514,7 @@
     "runActions": "Chạy hành động",
     "createScript": "Tạo Script",
     "deleteAllRecords": "Xóa tất cả bản ghi",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "Gán chế độ xem",
     "webhookDetails": "Chi tiết Webhook",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "Tên miền là bắt buộc",
       "nameMaxLength256": "Tên phải dài tối đa 256 ký tự",
       "viewNameUnique": "Tên chế độ xem phải là duy nhất",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Tìm kiếm của bạn cho {search} tìm thấy không có kết quả",
       "invalidChar": "Ký tự không hợp lệ trong đường dẫn thư mục.",
       "invalidDbCredentials": "Thông tin cơ sở dữ liệu không hợp lệ.",

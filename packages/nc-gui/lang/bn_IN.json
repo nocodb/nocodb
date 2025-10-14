@@ -644,6 +644,10 @@
       "resetFieldPermissionsDescription": "এডিট অ্যাক্সেস এডিটর এবং তার ওপরে সেট করা হবে।",
       "confirmRevertPermissionsToDefault": "টেবিল - \"{tableName}\"-এর জন্য রিসেট পারমিশন কনফার্ম করুন",
       "formViewFieldEditPermissionRestrictionTooltip": "এই ফিল্ডটি ফর্মে লুকানো কারণ কোনো ব্যবহারকারীর সম্পাদনার অনুমতি নেই।"
+    },
+    "deleteAllRecordDlg": {
+      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "warning": "This action cannot be undone."
     }
   },
   "datatype": {
@@ -925,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "সম্পাদনা চালিয়ে যান",
     "leave": "ছেড়ে দিন",
@@ -1508,6 +1514,7 @@
     "runActions": "অ্যাকশন চালান",
     "createScript": "স্ক্রিপ্ট তৈরি করুন",
     "deleteAllRecords": "সব রেকর্ড মুছে ফেলুন",
+    "deleteAllSelectedRecords": "Delete all selected records",
     "assignView": "ভিউ নির্ধারণ করুন",
     "webhookDetails": "ওয়েবহুকের বিবরণ",
     "webhookLogs": "Webhook Logs",
@@ -2348,6 +2355,7 @@
       "domainNameRequired": "ডোমেইন নাম প্রয়োজন",
       "nameMaxLength256": "নাম সর্বাধিক ২৫৬ অক্ষরের হতে হবে",
       "viewNameUnique": "দেখার নাম অনন্য হওয়া উচিত",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "আপনার অনুসন্ধান {search} এর জন্য কোনও ফলাফল পাওয়া যায় নি",
       "invalidChar": "ফোল্ডার পথে অবৈধ চরিত্র।",
       "invalidDbCredentials": "অবৈধ ডাটাবেস শংসাপত্রগুলি।",

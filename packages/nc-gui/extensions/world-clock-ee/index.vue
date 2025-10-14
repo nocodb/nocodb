@@ -10,7 +10,9 @@ import { type ClockInstance, type SavedData, type SelectOption } from './types'
 import { calculateTimeDifference, formatTime, getDateForTimezone } from './utils'
 import { themes } from './theming'
 
-const { fullscreen, extension } = useExtensionHelperOrThrow()
+const { extensionAccess } = useExtensions()
+
+const { fullscreen, extension, disableToggleFullscreenBtn } = useExtensionHelperOrThrow()
 const { $e } = useNuxtApp()
 
 const EXTENSION_ID = extension.value.extensionId
@@ -132,6 +134,16 @@ watch(
   () => clockInstances.value.length,
   () => {
     selectedCities.value = clockInstances.value.map((item) => item.city)
+  },
+  {
+    immediate: true,
+  },
+)
+
+watch(
+  () => extensionAccess.value.update,
+  (newValue) => {
+    disableToggleFullscreenBtn.value = !newValue
   },
   {
     immediate: true,

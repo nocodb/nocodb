@@ -96,6 +96,8 @@ interface ImportConfigPayloadType {
 const { fullscreen, fullscreenModalSize, extension, tables, insertData, getTableMeta, reloadData, activeTableId } =
   useExtensionHelperOrThrow()
 
+const { extensionAccess } = useExtensions()
+
 const { getMeta } = useMetas()
 
 const { t } = useI18n()
@@ -1086,7 +1088,14 @@ const errorMsgsTableColumns = [
     <template #headerExtra>
       <template v-if="importPayload.step === 2 || importPayload.step === 3 || viewImportHistory">
         <div class="flex justify-end">
-          <NcButton size="small" @click="newImport">New Import</NcButton>
+          <NcTooltip :disabled="extensionAccess.update || viewImportHistory">
+            <template #title>
+              {{ $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension') }}
+            </template>
+            <NcButton size="small" :disabled="!extensionAccess.update && !viewImportHistory" @click="newImport">
+              New Import
+            </NcButton>
+          </NcTooltip>
         </div>
       </template>
       <template v-else-if="importPayload.step === 0 && !fileInfo.processingFile && importHistory.length">
@@ -1162,7 +1171,14 @@ const errorMsgsTableColumns = [
         </div>
 
         <div v-if="!fullscreen" class="flex justify-end p-3 border-t-1 border-t-nc-border-gray-medium bg-white">
-          <NcButton size="small" @click="newImport">New Import</NcButton>
+          <NcTooltip :disabled="extensionAccess.update || viewImportHistory" placement="left">
+            <template #title>
+              {{ $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension') }}
+            </template>
+            <NcButton :disabled="!extensionAccess.update && !viewImportHistory" size="small" @click="newImport">
+              New Import
+            </NcButton>
+          </NcTooltip>
         </div>
       </div>
       <template v-else-if="importPayload.step === 0">
@@ -1226,6 +1242,7 @@ const errorMsgsTableColumns = [
                   dropdown-class-name="w-[160px]"
                   :filter-option="filterOption"
                   show-search
+                  :disabled="!extensionAccess.update"
                   @change="updateImportConfig"
                 >
                   <a-select-option v-for="delimiter of delimiters" :key="delimiter.label" :value="delimiter.value">
@@ -1255,6 +1272,7 @@ const errorMsgsTableColumns = [
                   dropdown-class-name="w-[190px]"
                   :filter-option="filterOption"
                   show-search
+                  :disabled="!extensionAccess.update"
                   @change="updateImportConfig"
                 >
                   <a-select-option v-for="encoding of charsetOptions" :key="encoding.label" :value="encoding.value">
@@ -1275,21 +1293,27 @@ const errorMsgsTableColumns = [
               </a-form-item>
             </div>
           </div>
-          <a-upload-dragger
-            v-model:file-list="fileList"
-            name="file"
-            accept=".csv"
-            class="nc-csv-file-uploader !flex-1"
-            :multiple="false"
-            @change="handleChange"
-          >
-            <p class="ant-upload-drag-icon !mb-2">
-              <GeneralIcon class="h-6 w-6" icon="upload" />
-            </p>
-            <p class="ant-upload-text !text-nc-content-gray !text-sm">
-              Drop your CSV here or <span class="text-nc-content-brand hover:underline">browse file</span>
-            </p>
-          </a-upload-dragger>
+          <NcTooltip :disabled="extensionAccess.update" class="!flex !flex-1 w-full children:w-full">
+            <template #title>
+              {{ $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension') }}
+            </template>
+            <a-upload-dragger
+              v-model:file-list="fileList"
+              name="file"
+              accept=".csv"
+              class="nc-csv-file-uploader !flex-1"
+              :multiple="false"
+              :disabled="!extensionAccess.update"
+              @change="handleChange"
+            >
+              <p class="ant-upload-drag-icon !mb-2">
+                <GeneralIcon class="h-6 w-6" icon="upload" />
+              </p>
+              <p class="ant-upload-text !text-nc-content-gray !text-sm">
+                Drop your CSV here or <span class="text-nc-content-brand hover:underline">browse file</span>
+              </p>
+            </a-upload-dragger>
+          </NcTooltip>
           <div v-if="importHistory.length && !fullscreen" class="flex items-center justify-end">
             <NcButton size="small" type="secondary" @click="viewImportHistory = true">View Import History</NcButton>
           </div>

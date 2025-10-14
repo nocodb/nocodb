@@ -259,6 +259,13 @@ const permissionScopes = {
 
     'manageSnapshots',
 
+    // Extensions
+    'extensionList',
+    'extensionRead',
+    'extensionCreate',
+    'extensionUpdate',
+    'extensionDelete',
+
     // Scripts
     'createScript',
     'updateScript',
@@ -470,6 +477,10 @@ const rolePermissions:
 
       baseUserList: true,
 
+      // Extensions
+      extensionList: true,
+      extensionRead: true,
+
       jobList: true,
       commentList: true,
       commentsCount: true,
@@ -565,6 +576,9 @@ const rolePermissions:
       widgetDuplicate: true,
       widgetUpdate: true,
       widgetDelete: true,
+
+      // Extensions
+      extensionUpdate: true,
     },
   },
   [ProjectRoles.CREATOR]: {

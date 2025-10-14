@@ -554,7 +554,7 @@ defineExpose({
                 {{ $t('title.yourBaseRole') }}
               </div>
               <div
-                class="text-xs font-medium flex items-start gap-2 flex items-center gap-1"
+                class="text-xs font-medium flex items-center gap-2 gap-1"
                 :class="{
                   'text-nc-purple-200': RoleColors[currentUserRole] === 'purple',
                   'text-nc-blue-200': RoleColors[currentUserRole] === 'blue',

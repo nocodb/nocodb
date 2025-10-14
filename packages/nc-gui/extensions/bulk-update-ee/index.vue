@@ -87,8 +87,11 @@ const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
   selected: true,
 }
 
-const { extension, tables, fullscreen, eventBus, getViewsForTable, getTableMeta, reloadData } = useExtensionHelperOrThrow()
+const { extension, tables, fullscreen, eventBus, getViewsForTable, getTableMeta, reloadData, disableToggleFullscreenBtn } =
+  useExtensionHelperOrThrow()
 const EXTENSION_ID = extension.value.extensionId
+
+const { extensionAccess } = useExtensions()
 
 const views = ref<ViewType[]>([])
 
@@ -402,6 +405,8 @@ async function saveChanges() {
 }
 
 const handleUpdateFieldConfigExpansionPanel = (key: string, expand = false) => {
+  if (!extensionAccess.value.update) return
+
   if (!fullscreen.value) {
     fullscreen.value = true
   }
@@ -434,7 +439,7 @@ const getNewFieldConfigId = (initId = 'fieldConfig') => {
 }
 
 function addNewAction() {
-  if (!bulkUpdatePayload.value) return
+  if (!bulkUpdatePayload.value || !extensionAccess.value.update) return
 
   const configId = getNewFieldConfigId()
 
@@ -821,19 +826,40 @@ const { row } = useProvideSmartsheetRowStore(
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
+
+watch(
+  () => extensionAccess.value.update,
+  (newValue) => {
+    disableToggleFullscreenBtn.value = !newValue
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <ExtensionsExtensionWrapper>
     <template v-if="fullscreen" #headerExtra>
-      <NcButton
-        size="small"
-        :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo || !selectedTableHasPk"
-        :loading="isLoadingViewInfo"
-        @click="handleConfirmUpdate"
-      >
-        Update Records
-      </NcButton>
+      <NcTooltip :disabled="extensionAccess.update">
+        <template #title>
+          {{ $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension') }}
+        </template>
+        <NcButton
+          size="small"
+          :disabled="
+            v$.$error ||
+            !selectedFieldConfigForBulkUpdate.length ||
+            isLoadingViewInfo ||
+            !extensionAccess.update ||
+            !selectedTableHasPk
+          "
+          :loading="isLoadingViewInfo"
+          @click="handleConfirmUpdate"
+        >
+          Update Records
+        </NcButton>
+      </NcTooltip>
     </template>
 
     <div
@@ -845,12 +871,15 @@ provide(IsGalleryInj, ref(false))
       <div v-if="!fullscreen" class="p-3 flex">
         <div
           class="nc-bulk-update-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-full"
+          :class="{
+            'bg-nc-bg-gray-light': !extensionAccess.update,
+          }"
         >
           <a-form-item class="!my-0 min-w-1/2">
             <NcSelect
               v-model:value="savedPayloads.selectedTableId"
               placeholder="-select table-"
-              :disabled="isExporting"
+              :disabled="isExporting || !extensionAccess.update"
               class="nc-bulk-update-table-select nc-select-shadow"
               :filter-option="filterOption"
               dropdown-class-name="w-[250px]"
@@ -881,7 +910,7 @@ provide(IsGalleryInj, ref(false))
             <NcSelect
               v-model:value="savedPayloads.selectedViewId"
               placeholder="-select view-"
-              :disabled="isExporting"
+              :disabled="isExporting || !extensionAccess.update"
               class="nc-bulk-update-view-select nc-select-shadow"
               dropdown-class-name="w-[250px]"
               :filter-option="filterOption"
@@ -935,7 +964,7 @@ provide(IsGalleryInj, ref(false))
                 <NcSelect
                   v-model:value="savedPayloads.selectedTableId"
                   placeholder="-select table-"
-                  :disabled="isExporting"
+                  :disabled="isExporting || !extensionAccess.update"
                   class="nc-bulk-update-table-select-sidebar nc-select-shadow"
                   :filter-option="filterOption"
                   dropdown-class-name="w-[250px]"
@@ -968,7 +997,7 @@ provide(IsGalleryInj, ref(false))
                 <NcSelect
                   v-model:value="savedPayloads.selectedViewId"
                   placeholder="-select view-"
-                  :disabled="isExporting"
+                  :disabled="isExporting || !extensionAccess.update"
                   class="nc-bulk-update-view-select-sidebar nc-select-shadow"
                   dropdown-class-name="w-[250px]"
                   :filter-option="filterOption"
@@ -1075,7 +1104,7 @@ provide(IsGalleryInj, ref(false))
 
                         <div v-else class="flex-1 flex text-nc-content-gray w-[calc(100%_-_32px)]">
                           <div class="flex items-center gap-3 w-full">
-                            <NcCheckbox v-model:checked="fieldConfig.selected" @click.stop />
+                            <NcCheckbox v-model:checked="fieldConfig.selected" :disabled="!extensionAccess.update" @click.stop />
                             <div class="flex items-center gap-1 w-[calc(100%_-_36px)]">
                               {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
                               <NcBadge color="grey" :border="false" class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium">
@@ -1128,6 +1157,7 @@ provide(IsGalleryInj, ref(false))
                           size="xs"
                           type="text"
                           icon-only
+                          :disabled="!extensionAccess.update"
                           class="!px-0 -my-1"
                           @click.stop="handleRemoveFieldConfig(fieldConfig.id)"
                         >
@@ -1151,6 +1181,7 @@ provide(IsGalleryInj, ref(false))
                         <NcSelect
                           :value="fieldConfig.columnId || undefined"
                           show-search
+                          :disabled="!extensionAccess.update"
                           :filter-option="filterOption"
                           class="nc-field-select-input w-full nc-select-shadow"
                           placeholder="-select a field-"
@@ -1208,7 +1239,7 @@ provide(IsGalleryInj, ref(false))
                         <NcSelect
                           :value="fieldConfig.opType || undefined"
                           show-search
-                          :disabled="!fieldConfig.columnId"
+                          :disabled="!fieldConfig.columnId || !extensionAccess.update"
                           :filter-option="filterOption"
                           class="nc-field-update-type-select-input w-full nc-select-shadow"
                           placeholder="-select an update type-"
@@ -1263,6 +1294,7 @@ provide(IsGalleryInj, ref(false))
                             v-model="fieldConfig.value"
                             :row="row"
                             class="nc-input"
+                            read-only="!extensionAccess.update"
                             :column="meta.columnsById[fieldConfig.columnId]"
                             @update:model-value="saveChanges()"
                           />
@@ -1279,7 +1311,7 @@ provide(IsGalleryInj, ref(false))
 
                       <div class="w-full flex items-center justify-between">
                         <div>
-                          <NcCheckbox v-model:checked="fieldConfig.selected" @click.stop>
+                          <NcCheckbox v-model:checked="fieldConfig.selected" :disabled="!extensionAccess.update" @click.stop>
                             <span class="ml-1">
                               {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
                             </span>
@@ -1290,6 +1322,7 @@ provide(IsGalleryInj, ref(false))
                           size="xs"
                           class="flex-none"
                           icon-position="right"
+                          :disabled="!extensionAccess.update"
                           @click="handleRemoveFieldConfig(fieldConfig.id)"
                         >
                           <template #icon>
@@ -1311,12 +1344,17 @@ provide(IsGalleryInj, ref(false))
                   }"
                 >
                   <div>No fields set</div>
-                  <NcButton v-if="!fullscreen" size="small" :disabled="isAllFieldSelected" @click="addNewAction">
-                    <template #icon>
-                      <GeneralIcon icon="ncPlus" />
+                  <NcTooltip v-if="!fullscreen" :disabled="extensionAccess.update">
+                    <template #title>
+                      {{ $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension') }}
                     </template>
-                    Add fields to update
-                  </NcButton>
+                    <NcButton size="small" :disabled="isAllFieldSelected || !extensionAccess.update" @click="addNewAction">
+                      <template #icon>
+                        <GeneralIcon icon="ncPlus" />
+                      </template>
+                      Add fields to update
+                    </NcButton>
+                  </NcTooltip>
                 </div>
               </a-form>
               <div v-if="bulkUpdatePayload?.config?.length && fullscreen" class="-mt-2"></div>
@@ -1328,8 +1366,22 @@ provide(IsGalleryInj, ref(false))
                   'border-t-1 border-nc-border-gray-medium': !isScrolledToBottom,
                 }"
               >
-                <NcTooltip :disabled="!isAllFieldSelected" title="No more fields to add" class="w-full max-w-[520px] !mx-auto">
-                  <NcButton type="secondary" size="medium" class="w-full" :disabled="isAllFieldSelected" @click="addNewAction">
+                <NcTooltip
+                  :disabled="!isAllFieldSelected && extensionAccess.update"
+                  :title="
+                    !extensionAccess.update
+                      ? $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension')
+                      : 'No more fields to add'
+                  "
+                  class="w-full max-w-[520px] !mx-auto"
+                >
+                  <NcButton
+                    type="secondary"
+                    size="medium"
+                    class="w-full"
+                    :disabled="isAllFieldSelected || !extensionAccess.update"
+                    @click="addNewAction"
+                  >
                     <template #icon>
                       <GeneralIcon icon="ncPlus" />
                     </template>
@@ -1348,18 +1400,43 @@ provide(IsGalleryInj, ref(false))
             'p-3 border-t-1 border-t-nc-border-gray-medium bg-white': !fullscreen,
           }"
         >
-          <NcTooltip :disabled="!isAllFieldSelected" title="No more fields to add">
-            <NcButton size="small" type="secondary" :disabled="isAllFieldSelected" @click="addNewAction">
+          <NcTooltip
+            :disabled="!isAllFieldSelected && extensionAccess.update"
+            :title="
+              !extensionAccess.update
+                ? $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension')
+                : 'No more fields to add'
+            "
+          >
+            <NcButton
+              size="small"
+              type="secondary"
+              :disabled="isAllFieldSelected || !extensionAccess.update"
+              @click="addNewAction"
+            >
               <template #icon>
                 <GeneralIcon icon="ncPlus" />
               </template>
               New Action
             </NcButton>
           </NcTooltip>
-          <NcTooltip :title="$t('msg.info.updateNotAllowedWithoutPK')" :disabled="selectedTableHasPk" placement="left">
+          <NcTooltip :disabled="extensionAccess.update && selectedTableHasPk" placement="left">
+            <template #title>
+              {{
+                !extensionAccess.update
+                  ? $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension')
+                  : $t('msg.info.updateNotAllowedWithoutPK')
+              }}
+            </template>
             <NcButton
               size="small"
-              :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo || !selectedTableHasPk"
+              :disabled="
+                v$.$error ||
+                !selectedFieldConfigForBulkUpdate.length ||
+                isLoadingViewInfo ||
+                !extensionAccess.update ||
+                !selectedTableHasPk
+              "
               :loading="isLoadingViewInfo"
               @click="handleConfirmUpdate"
             >
@@ -1379,9 +1456,13 @@ provide(IsGalleryInj, ref(false))
         </div>
         <div class="flex items-center gap-3 justify-end">
           <NcButton size="small" type="secondary" :disabled="isUpdating" @click="isOpenConfigModal = false">Cancel</NcButton>
-          <NcButton size="small" :disabled="isUpdating" :loading="isUpdating" @click="handleBulkUpdate">{{
-            isUpdating ? 'Updating records' : 'Confirm Update'
-          }}</NcButton>
+          <NcButton
+            size="small"
+            :disabled="isUpdating || !extensionAccess.update"
+            :loading="isUpdating"
+            @click="handleBulkUpdate"
+            >{{ isUpdating ? 'Updating records' : 'Confirm Update' }}</NcButton
+          >
         </div>
       </div>
     </NcModal>

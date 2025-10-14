@@ -18,7 +18,7 @@ watch(
   { immediate: true },
 )
 
-const draggable = true
+const draggable = computed(() => !props.disabled)
 const throttleDrag = 1
 const edgeDraggable = false
 const startDragRotate = 0

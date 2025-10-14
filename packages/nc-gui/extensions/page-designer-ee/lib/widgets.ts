@@ -3,6 +3,7 @@ import type { PageDesignerPayload } from './payload'
 
 export interface PageDesignerWidgetComponentProps {
   id: number | string
+  disabled?: boolean
 }
 
 export enum PageDesignerWidgetType {

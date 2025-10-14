@@ -27,5 +27,6 @@
   },
   "order": 4,
   "beta": false,
-  "disabled": false
+  "disabled": false,
+  "minAccessRole": "editor"
 }

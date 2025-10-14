@@ -15,11 +15,15 @@ import SettingsHeader from './Settings/SettingsHeader.vue'
 const payload = inject(PageDesignerPayloadInj)!
 const row = inject(PageDesignerRowInj)!
 
+const { extensionAccess } = useExtensions()
+
 const pageTypeOptions = Object.values(PageType)
 
 const pageOrientationOptions = Object.values(PageOrientation)
 
 function addWidget(widget: PageDesignerWidget) {
+  if (!extensionAccess.value.update) return
+
   PageDesignerWidgetFactory.create(payload, widget)
 }
 
@@ -57,7 +61,13 @@ const togglePreviewMode = () => {
         </div>
       </div>
     </GroupedSettings>
-    <GroupedSettings title="Add Elements">
+    <GroupedSettings
+      title="Add Elements"
+      :disabled="!extensionAccess.update"
+      :disabled-tooltip="
+        !extensionAccess.update ? $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension') : undefined
+      "
+    >
       <div class="flex flex-col gap-4 -mt-2">
         <span class="text-nc-content-gray-subtle2 text-[13px] font-500">Drag and drop elements into the edit area.</span>
         <div class="flex">

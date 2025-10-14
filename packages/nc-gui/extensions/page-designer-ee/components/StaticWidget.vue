@@ -9,6 +9,8 @@ const props = defineProps<{
   last?: boolean
 }>()
 
+const { extensionAccess } = useExtensions()
+
 const dragging = ref(false)
 
 function onDragStart(e: DragEvent) {
@@ -22,9 +24,9 @@ function onDragStart(e: DragEvent) {
 
 <template>
   <div
-    draggable="true"
-    class="static-widget p-3 border-1 flex-1 border-nc-border-gray-medium flex flex-col justify-center items-center gap-2 cursor-pointer"
-    :class="{ first, last, dragging }"
+    :draggable="extensionAccess.update"
+    class="static-widget p-3 border-1 flex-1 border-nc-border-gray-medium flex flex-col justify-center items-center gap-2"
+    :class="{ first, last, dragging, 'cursor-pointer': extensionAccess.update, 'cursor-not-allowed': !extensionAccess.update }"
     @dragstart="onDragStart"
   >
     <img draggable="false" :src="icon" class="w-10 h-10" />

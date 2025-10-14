@@ -522,11 +522,6 @@ const parseConditionV2 = async (
             }
 
             if (dayjs.isDayjs(genVal)) {
-              // turn genVal to utc first to be queried in database
-              // do not turn to utc if: Date
-              if (column.uidt !== UITypes.Date) {
-                genVal = genVal.utc();
-              }
               // turn `val` in dayjs object format to string
               genVal = genVal.format(dateFormat).toString();
               // keep YYYY-MM-DD only for date

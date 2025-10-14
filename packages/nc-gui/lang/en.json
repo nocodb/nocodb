@@ -2010,6 +2010,7 @@
     "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Invalid button configuration",
     "invalidColumnConfiguration": "Invalid field configuration",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "Select a valid theme",
     "invalidColor": "Select a valid color",
     "invalidType": "Button type can be either 'webhook' or 'url'",

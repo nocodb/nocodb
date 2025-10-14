@@ -2171,7 +2171,7 @@ const { message: templatedMessage } = useTemplatedMessage(
       <div class="text-center bg-white px-6 py-8 rounded-xl max-w-lg">
         <div class="text-2xl text-gray-800 font-bold">
           {{ $t('msg.info.yourCurrentRoleIs') }}
-          '<span class="capitalize"> {{ Object.keys(user.base_roles)?.[0] ?? ProjectRoles.NO_ACCESS }}</span
+          '<span class="capitalize"> {{ Object.keys(user?.base_roles ?? {})?.[0] ?? ProjectRoles.NO_ACCESS }}</span
           >'.
         </div>
         <div class="text-sm text-gray-700 pt-6">

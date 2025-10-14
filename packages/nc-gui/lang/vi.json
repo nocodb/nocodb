@@ -1169,6 +1169,7 @@
     "scriptIdColon": "ID SCRIPT: {scriptId}",
     "dashboardIdColon": "MÃ BẢNG ĐIỀU KHIỂN: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "Đến địa chỉ",
     "subject": "Chủ đề",
     "body": "Nội dung",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "Nhấp để sao chép ID Script",
     "clickToCopyDashboardID": "Nhấn để sao chép mã Bảng điều khiển",
     "clickToCopyViewID": "Nhấp để sao chép ID xem",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "Chế độ xem",
     "assignAsPersonalView": "Gán làm chế độ xem cá nhân",
     "reAssignView": "Giao lại chế độ xem",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "Tìm kiếm biểu tượng",
@@ -2005,6 +2011,7 @@
     "manageConnections": "Quản lý kết nối cho các tích hợp của bạn.",
     "invalidConfiguration": "Cấu hình nút không hợp lệ",
     "invalidColumnConfiguration": "Cấu hình trường không hợp lệ",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "Chọn một chủ đề hợp lệ",
     "invalidColor": "Chọn một màu hợp lệ",
     "invalidType": "Loại nút có thể là 'webhook' hoặc 'url'",

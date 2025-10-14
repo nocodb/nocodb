@@ -1169,6 +1169,7 @@
     "scriptIdColon": "스크립트 ID: {scriptId}",
     "dashboardIdColon": "대시보드 ID: {dashboardId}",
     "viewIdColon": "뷰 ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "받는 사람",
     "subject": "제목",
     "body": "내용",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "스크립트 ID를 복사하려면 클릭",
     "clickToCopyDashboardID": "대시보드 ID를 복사하려면 클릭하세요",
     "clickToCopyViewID": "클릭하여 뷰 ID 복사",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "뷰 모드",
     "assignAsPersonalView": "개인 뷰로 지정",
     "reAssignView": "개인 뷰 재지정",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "소유자 또는 작성자만 재할당할 수 있습니다",
     "onlyViewOwnerCanAssignAsPersonalView": "개인 뷰로 할당할 수 있는 것은 뷰 소유자뿐입니다",
     "onlyViewOwnerCanCopyViewConfig": "뷰 소유자만 뷰 구성을 복사할 수 있습니다",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "구성을 복사하려면 최소 하나 이상의 기존 뷰가 필요합니다. 이 옵션을 활성화하려면 먼저 뷰를 만드세요."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "구성을 복사하려면 최소 하나 이상의 기존 뷰가 필요합니다. 이 옵션을 활성화하려면 먼저 뷰를 만드세요.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "아이콘 검색",
@@ -2005,6 +2011,7 @@
     "manageConnections": "연동된 외부 서비스를 관리합니다.",
     "invalidConfiguration": "잘못된 버튼 구성",
     "invalidColumnConfiguration": "잘못된 필드 구성",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "유효한 테마 선택",
     "invalidColor": "유효한 색상을 선택",
     "invalidType": "버튼 유형은 'webhook' 또는 'url'일 수 있습니다.",

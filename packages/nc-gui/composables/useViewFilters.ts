@@ -217,9 +217,9 @@ export function useViewFilters(
 
   const placeholderFilter = (): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
-    const defaultColumn = fieldsToFilter?.value?.filter((col) => {
+    const defaultColumn = fieldsToFilter?.value?.find((col) => {
       return !isSystemColumn(col)
-    })?.[0]
+    })
 
     const filter: ColumnFilterType = {
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>

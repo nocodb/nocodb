@@ -550,3 +550,21 @@ export const getNodejsTimezone = (...timezones: string[]) => {
   }
   return 'Etc/UTC';
 };
+
+export const isDateTimeStringHasTimezone = (datetimeString: string) => {
+  if (!datetimeString) {
+    return false;
+  }
+  // Regex patterns for common timezone formats
+  const timezonePatterns = [
+    /Z$/, // UTC indicator (Z)
+    /[+-]\d{2}:\d{2}$/, // Offset format (+05:30, -08:00)
+    /[+-]\d{4}$/, // Offset without colon (+0530, -0800)
+    /\s+[A-Z]{3,5}$/, // Timezone abbreviation (EST, PST, GMT, etc.)
+    /\s+\([A-Z]{3,5}\)$/, // Timezone in parentheses (EST), (PST)
+  ];
+
+  return timezonePatterns.some((pattern) =>
+    pattern.test(datetimeString.trim())
+  );
+};

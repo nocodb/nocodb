@@ -16,9 +16,10 @@ withDefaults(defineProps<Props>(), {
 
 const { $e } = useNuxtApp()
 
-const { eventBus, getExtensionAssetsUrl, duplicateExtension, showExtensionDetails } = useExtensions()
+const { eventBus, getExtensionAssetsUrl, duplicateExtension, showExtensionDetails, extensionAccess } = useExtensions()
 
-const { fullscreen, collapsed, extension, extensionManifest, activeError, showExpandBtn } = useExtensionHelperOrThrow()
+const { fullscreen, collapsed, extension, extensionManifest, activeError, showExpandBtn, disableToggleFullscreenBtn } =
+  useExtensionHelperOrThrow()
 const EXTENSION_ID = extension.value.extensionId
 
 const titleInput = ref<HTMLInputElement | null>(null)
@@ -32,6 +33,8 @@ const showExpandButton = computed(() => {
 })
 
 const enableEditMode = () => {
+  if (!extensionAccess.value.create) return
+
   titleEditMode.value = true
   tempTitle.value = extension.value.title
   nextTick(() => {
@@ -88,7 +91,13 @@ const toggleFullScreen = () => {
     @click="expandExtension"
   >
     <slot v-if="isFullscreen" name="prefix"></slot>
-    <NcButton v-if="!isFullscreen" size="xs" type="text" class="nc-extension-drag-handler !px-1" @click.stop>
+    <NcButton
+      v-if="!isFullscreen && extensionAccess.create"
+      size="xs"
+      type="text"
+      class="nc-extension-drag-handler !px-1"
+      @click.stop
+    >
       <GeneralIcon icon="ncDrag" class="flex-none text-gray-500" />
     </NcButton>
 
@@ -98,7 +107,8 @@ const toggleFullScreen = () => {
       alt="icon"
       class="h-8 w-8 object-contain flex-none"
       :class="{
-        'mx-1': !isFullscreen,
+        'mx-1': !isFullscreen && extensionAccess.create,
+        'mr-1': !isFullscreen && !extensionAccess.create,
       }"
     />
     <div
@@ -131,10 +141,11 @@ const toggleFullScreen = () => {
           {{ extension.title }}
         </template>
         <span
-          class="extension-title cursor-pointer"
+          class="extension-title"
           :class="{
             'text-[20px] font-semibold ': isFullscreen,
             'mr-1': !isFullscreen,
+            'cursor-pointer': extensionAccess.create,
           }"
           @dblclick.stop="enableEditMode"
           @click.stop
@@ -162,6 +173,7 @@ const toggleFullScreen = () => {
         v-if="showExpandButton"
         size="xs"
         type="text"
+        :disabled="disableToggleFullscreenBtn"
         class="nc-extension-expand-btn !px-1"
         @click.stop="toggleFullScreen"
       >

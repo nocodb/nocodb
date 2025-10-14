@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+defineProps<{
+  showAccessPermissionOverlay?: boolean
+}>()
 /**
  * ExtensionHeaderWrapper component.
  *
@@ -32,10 +35,27 @@ const { height } = useElementSize(headerRef)
       :class="{
         'fullscreen nc-scrollbar-thin': fullscreen,
         'h-full': !fullscreen,
+        'relative': showAccessPermissionOverlay,
       }"
       :style="fullscreen ? { height: height ? `calc(100% - ${height}px)` : 'calc(100% - 64px)' } : {}"
     >
       <slot />
+
+      <general-overlay
+        v-if="showAccessPermissionOverlay"
+        :model-value="true"
+        inline
+        transition
+        class="!bg-opacity-15 rounded-xl overflow-hidden"
+      >
+        <slot name="accessPermissionOverlay">
+          <div class="flex flex-col items-center justify-center h-full w-full !bg-white !bg-opacity-80">
+            <div class="max-w-sm text-center !font-semibold" :class="fullscreen ? 'text-bodyLg' : 'text-body'">
+              {{ $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension') }}
+            </div>
+          </div>
+        </slot>
+      </general-overlay>
     </div>
   </div>
 </template>

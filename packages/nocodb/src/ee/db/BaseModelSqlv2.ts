@@ -401,18 +401,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     try {
       const columns = await this.model.getColumns(this.context);
 
-      // exclude auto increment columns in body
-      for (const col of columns) {
-        if (col.ai) {
-          const keyName =
-            data?.[col.column_name] !== undefined ? col.column_name : col.title;
-
-          if (data[keyName]) {
-            delete data[keyName];
-          }
-        }
-      }
-
       await populatePk(this.context, this.model, data);
 
       // todo: filter based on view

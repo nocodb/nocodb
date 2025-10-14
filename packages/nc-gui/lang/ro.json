@@ -1169,6 +1169,7 @@
     "scriptIdColon": "ID SCRIPT: {scriptId}",
     "dashboardIdColon": "ID TABLOU DE BORD: {dashboardId}",
     "viewIdColon": "VIZUALIZARE ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "Adresa Destinatarului",
     "subject": "Subiect",
     "body": "Conținut",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "Fă clic pentru a copia ID-ul scriptului",
     "clickToCopyDashboardID": "Click pentru a copia ID-ul tabloului de bord",
     "clickToCopyViewID": "Click pentru a copia ID-ul Vederii",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "Mod vizualizare",
     "assignAsPersonalView": "Atribuie ca vizualizare personală",
     "reAssignView": "Reatribuie vizualizarea",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "Caută icoane",
@@ -2005,6 +2011,7 @@
     "manageConnections": "Gestionați conexiunile pentru integrările dvs.",
     "invalidConfiguration": "Configurație buton invalidă",
     "invalidColumnConfiguration": "Configurație câmp invalidă",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "Selectează o temă validă",
     "invalidColor": "Selectează o culoare validă",
     "invalidType": "Tipul de buton poate fi fie 'webhook', fie 'url'",

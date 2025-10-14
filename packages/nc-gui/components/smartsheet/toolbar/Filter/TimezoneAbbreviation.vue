@@ -8,9 +8,7 @@ const props = defineProps<Props>()
 
 const timezoneAbbreviation = computed(() => {
   if (!props.column || !isDateType(props.column.uidt)) return null
-  const filterTimezone = props.filter?.meta?.timezone
-  const timezone = filterTimezone
-  return getTimeZoneFromName(timezone)?.abbreviation
+  return getTimeZoneFromName(props.filter?.meta?.timezone)?.abbreviation
 })
 </script>
 

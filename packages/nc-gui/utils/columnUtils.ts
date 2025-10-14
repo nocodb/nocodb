@@ -339,6 +339,9 @@ const isColumnInvalid = ({
           result.isInvalid = true
           result.tooltip = `Input prompt has deleted column(s): ${missingIds.map((id) => id.title).join(', ')}`
         }
+      } else if (!colOptions.type) {
+        result.isInvalid = true
+        result.tooltip = 'msg.buttonTypeIsMissing'
       }
       break
     }

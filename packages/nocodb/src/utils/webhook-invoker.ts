@@ -224,8 +224,8 @@ export class WebhookInvoker {
   }
 
   // flatten filter tree and id dummy id if no id is present
-  flattenFilter(filters: Filter[], flattenedFilters = [], parentId = null) {
-    for (const filter of filters) {
+  flattenFilter(filters?: Filter[], flattenedFilters = [], parentId = null) {
+    for (const filter of filters || []) {
       // if parent id is present then set it as fk_parent_id
       if (parentId && !filter.fk_parent_id) {
         filter.fk_parent_id = parentId;

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, ROW_COLORING_MODE } from 'nocodb-sdk'
+import { type ColumnType, ProjectRoles, ROW_COLORING_MODE } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 import type { NcListItemType } from '../../../../../components/nc/List/index.vue'
 
@@ -119,7 +119,8 @@ const listOptions = computed<ListOptionType[]>(() => [
       @on-open="isOpenVModel = false"
     >
       <template v-if="!isLocked" #title>
-        Editing restricted for <span class="capitalize"> {{ Object.keys(user.base_roles)?.[0] ?? ProjectRoles.NO_ACCESS }}</span>
+        Editing restricted for
+        <span class="capitalize"> {{ Object.keys(user?.base_roles ?? {})?.[0] ?? ProjectRoles.NO_ACCESS }}</span>
       </template>
     </GeneralLockedViewFooter>
   </div>

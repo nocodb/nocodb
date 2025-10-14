@@ -88,7 +88,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
           <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 
-          <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && (isGrid || isGallery || isKanban)" />
+          <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && (isGrid || isGallery || isKanban)" />
 
           <SmartsheetToolbarBulkAction
             v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute') && isViewActionsEnabled"
@@ -133,7 +133,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
       <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed" />
 
       <template v-if="isCalendar && !isMobileMode">
-        <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && isViewOperationsAllowed" />
+        <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && isViewOperationsAllowed" />
         <SmartsheetToolbarFieldsMenu :show-system-fields="false" />
         <SmartsheetToolbarColumnFilterMenu v-if="isViewOperationsAllowed" />
 

@@ -1169,6 +1169,7 @@
     "scriptIdColon": "ID SKRIP: {scriptId}",
     "dashboardIdColon": "ID DASHBOARD: {dashboardId}",
     "viewIdColon": "ID TAMPILAN: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "Ke Alamat",
     "subject": "Subjek",
     "body": "Badan",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "Klik untuk menyalin ID Skrip",
     "clickToCopyDashboardID": "Klik untuk menyalin ID Dasbor",
     "clickToCopyViewID": "Klik untuk menyalin View ID",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "Mode tampilan",
     "assignAsPersonalView": "Tetapkan sebagai tampilan personal",
     "reAssignView": "Alihkan kepemilikan tampilan",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "Cari ikon",
@@ -2005,6 +2011,7 @@
     "manageConnections": "Kelola koneksi untuk integrasi Anda.",
     "invalidConfiguration": "Konfigurasi tombol tidak valid",
     "invalidColumnConfiguration": "Konfigurasi bidang tidak valid",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "Pilih tema yang valid",
     "invalidColor": "Pilih warna yang valid",
     "invalidType": "Jenis tombol bisa berupa 'webhook' atau 'url'",

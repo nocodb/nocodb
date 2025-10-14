@@ -153,6 +153,15 @@ const componentProps = computed(() => {
           generatingColumnRows.value.includes(column.value.id)),
     }
   }
+
+  // If button type is missing then keep it as disabled
+  if (!column.value.colOptions.type) {
+    return {
+      disabled: true,
+    }
+  }
+
+  return {}
 })
 
 const afterActionStatus = ref<{
@@ -163,6 +172,8 @@ const afterActionStatus = ref<{
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
   afterActionStatus.value = null
+
+  if (!colOptions.type) return
 
   if (colOptions.type === ButtonActionsType.Url) {
     confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)

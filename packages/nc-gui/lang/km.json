@@ -1169,6 +1169,7 @@
     "scriptIdColon": "លេខសម្គាល់ស្គ្រីប: {scriptId}",
     "dashboardIdColon": "ID ផ្ទាំងគ្រប់គ្រង៖ {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "ទៅទូទៅ",
     "subject": "ប្រធានបទ",
     "body": "ខ្លឹមសារ",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "ចុចដើម្បីចម្លងលេខសម្គាល់ស្គ្រីប",
     "clickToCopyDashboardID": "ចុចដើម្បីចម្លង ID ផ្ទាំងគ្រប់គ្រង",
     "clickToCopyViewID": "ចុចដើម្បីចម្លងទិដ្ឋភាព ID",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "មើលមុខ",
     "assignAsPersonalView": "ផ្ដល់ជាទិដ្ឋភាពផ្ទាល់ខ្លួន",
     "reAssignView": "ប្តូរអ្នកកាន់ទិដ្ឋភាព",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "ស្វែងរកនិមិត្តសញ្ញា",
@@ -2005,6 +2011,7 @@
     "manageConnections": "គ្រប់គ្រងការតភ្ជាប់សម្រាប់ការរួមបញ្ចូលរបស់អ្នក។",
     "invalidConfiguration": "កំណត់រចនាសម្ព័ន្ធប៊ូតុងមិនត្រឹមត្រូវ",
     "invalidColumnConfiguration": "ការកំណត់រចនាសម្ព័ន្ធវាលមិនត្រឹមត្រូវ",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "ជ្រើសរើសស្បែកអចិន្ត្រៃយ៍ត្រឹមត្រូវ",
     "invalidColor": "ជ្រើសរើសពណ៌ត្រឹមត្រូវ",
     "invalidType": "ប្រភេទប៊ូតុងអាចបើក \"webhook\" ឬ \"url\"",

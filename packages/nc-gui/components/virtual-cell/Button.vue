@@ -350,7 +350,7 @@ const triggerAction = async () => {
     box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px #3069fe;
   }
   &[disabled] {
-    @apply opacity-50;
+    @apply opacity-50 cursor-not-allowed;
   }
 
   &.is-expanded-form {

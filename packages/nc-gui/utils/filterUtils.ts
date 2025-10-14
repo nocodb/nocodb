@@ -240,21 +240,20 @@ export const adjustFilterWhenColumnChange = ({
       filter.comparison_sub_op = 'exactDate'
     }
 
-    // Set timezone for DateTime columns
-    const columnMeta = parseProp(column.meta)
-    const columnTimezone = columnMeta?.timezone
-    const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    const timezone = columnTimezone || browserTimezone
-
     // Initialize filter.meta if it doesn't exist
     if (!filter.meta) {
       filter.meta = {}
     }
     if (!filter.meta.timezone) {
-      filter.meta.timezone = timezone
+      filter.meta.timezone = getTimezoneFromColumn(column)
     }
   } else {
     // reset
     filter.comparison_sub_op = null
   }
+}
+
+export function getTimezoneFromColumn(col: ColumnType, defaultValue = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  const columnMeta = parseProp(col.meta)
+  return columnMeta.timezone || defaultValue
 }

@@ -258,19 +258,13 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
         filter.comparison_sub_op = 'exactDate'
       }
     }
-    
-    // Set timezone for DateTime columns
-    const columnMeta = parseProp(col.meta)
-    const columnTimezone = columnMeta?.timezone
-    const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    const timezone = columnTimezone || browserTimezone
-    
+
     // Initialize filter.meta if it doesn't exist
     if (!filter.meta) {
       filter.meta = {}
     }
     if (!filter.meta.timezone) {
-      filter.meta.timezone = timezone
+      filter.meta.timezone = getTimezoneFromColumn(col)
     }
   }
 

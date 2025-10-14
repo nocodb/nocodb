@@ -52,20 +52,6 @@ import {
 } from '~/utils/column-webhook-manager';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import {
-  BaseUser,
-  CalendarRange,
-  Column,
-  Filter,
-  FormulaColumn,
-  Hook,
-  KanbanView,
-  Model,
-  Script,
-  Source,
-  User,
-  View,
-} from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import {

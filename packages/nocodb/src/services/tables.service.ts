@@ -10,18 +10,18 @@ import {
   isServiceUser,
   isVirtualCol,
   ModelTypes,
-  NcApiVersion,
   NcBaseError,
   ProjectRoles,
   RelationTypes,
   ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
-import { MetaDiffsService } from '~/services/meta-diffs.service';
-import { ColumnsService } from '~/services/columns.service';
 import type { NcApiVersion } from 'nocodb-sdk';
+import { MetaDiffsService } from './meta-diffs.service';
+import { ColumnsService } from './columns.service';
 import type {
   ColumnType,
+  NcApiVersion,
   NormalColumnRequestType,
   TableReqType,
   TableType,

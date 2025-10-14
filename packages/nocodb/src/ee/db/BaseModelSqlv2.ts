@@ -4,7 +4,6 @@ import {
   convertDurationToSeconds,
   enumColors,
   EventType,
-  extractFilterFromXwhere,
   isAIPromptCol,
   isAttachment,
   isCreatedOrLastModifiedByCol,

@@ -1169,6 +1169,7 @@
     "scriptIdColon": "脚本ID: {scriptId}",
     "dashboardIdColon": "仪表板 ID: {dashboardId}",
     "viewIdColon": "查看 ID:{viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "目的地址",
     "subject": "主题",
     "body": "Body",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "点击复制脚本ID",
     "clickToCopyDashboardID": "点击复制仪表板 ID",
     "clickToCopyViewID": "点击复制视图ID",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "视图模式",
     "assignAsPersonalView": "设置为个人视图",
     "reAssignView": "重新分配视图",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "搜索图标",
@@ -2005,6 +2011,7 @@
     "manageConnections": "管理您的集成连接。",
     "invalidConfiguration": "按钮配置无效",
     "invalidColumnConfiguration": "字段配置无效",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "选择有效的主题",
     "invalidColor": "选择有效颜色",
     "invalidType": "按钮类型可以是 \"webhook \"或 \"url",

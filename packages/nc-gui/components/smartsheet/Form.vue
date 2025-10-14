@@ -188,50 +188,55 @@ const searchQuery = ref('')
 
 const autoScrollFormField = ref(false)
 
-const isHeadingComposing = ref(false)
-const headingSelectionStart = ref<number | null>(null)
+const headingTextareaRef = ref<HTMLTextAreaElement | null>(null)
+const headingDraft = ref('')
+const headingFocused = ref(false)
+const headingComposing = ref(false)
 
-const captureHeadingSelection = (event?: Event) => {
-  const target = event?.target as HTMLTextAreaElement | undefined
-  headingSelectionStart.value = target?.selectionStart ?? headingSelectionStart.value
-}
-
-const restoreHeadingSelection = () => {
-  const caret = headingSelectionStart.value
-  if (caret == null) return
-
-  nextTick(() => {
-    if (typeof window === 'undefined') return
-    const el = document.querySelector<HTMLTextAreaElement>('textarea[data-title="nc-form-heading"]')
-    if (!el || typeof el.setSelectionRange !== 'function') return
-
-    requestAnimationFrame(() => {
-      try {
-        el.setSelectionRange(caret, caret)
-      } catch {}
-    })
-  })
-}
-
-const onHeadingCompositionStart = (event: CompositionEvent) => {
-  isHeadingComposing.value = true
-  captureHeadingSelection(event)
-}
-
-const onHeadingCompositionEnd = (event: CompositionEvent) => {
-  isHeadingComposing.value = false
-  captureHeadingSelection(event)
+const commitHeading = (value: string) => {
+  if (!formViewData.value) return
+  if (formViewData.value.heading === value) return
+  formViewData.value.heading = value
   updateView()
-  restoreHeadingSelection()
 }
 
-const onHeadingInput = (event: InputEvent) => {
-  captureHeadingSelection(event)
-  if (!isHeadingComposing.value) {
-    updateView()
-    restoreHeadingSelection()
+const getHeadingValue = (): string => {
+  return headingTextareaRef.value?.value ?? headingDraft.value
+}
+
+const onHeadingInput = (event: Event) => {
+  const target = event.target as HTMLTextAreaElement | null
+  if (!target) return
+  headingDraft.value = target.value
+  if (!headingComposing.value) {
+    commitHeading(target.value)
   }
 }
+
+const onHeadingCompositionStart = () => {
+  headingComposing.value = true
+}
+
+const onHeadingCompositionEnd = (event: Event) => {
+  const target = event.target as HTMLTextAreaElement | null
+  if (!target) return
+  headingComposing.value = false
+  commitHeading(target.value)
+  headingDraft.value = target.value
+}
+
+watch(
+  () => formViewData.value?.heading,
+  (val) => {
+    if (!headingFocused.value && !headingComposing.value && typeof val === 'string') {
+      headingDraft.value = val
+      if (headingTextareaRef.value) {
+        headingTextareaRef.value.value = val
+      }
+    }
+  },
+  { immediate: true },
+)
 
 const { t } = useI18n()
 
@@ -1334,13 +1339,14 @@ const { message: templatedMessage } = useTemplatedMessage(
                             <a-textarea
                               v-model:value="formViewData.heading"
                               class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
+                              ref="headingTextareaRef"
+                              :value="headingDraft"
                               :style="{
                                 'borderRightWidth': '0px !important',
                                 'height': '70px',
                                 'max-height': '250px',
                                 'resize': 'vertical',
                               }"
-                              auto-size
                               size="large"
                               hide-details
                               :disabled="isLocked"
@@ -1351,7 +1357,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               @input="onHeadingInput"
                               @compositionstart="onHeadingCompositionStart"
                               @compositionend="onHeadingCompositionEnd"
-                              @focus="activeRow = NcForm.heading"
+                              @focus="activeRow = NcForm.subheading"
                               @blur="activeRow = ''"
                             />
                           </a-form-item>

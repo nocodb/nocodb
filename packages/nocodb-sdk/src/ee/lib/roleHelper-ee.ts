@@ -1,12 +1,6 @@
 import { OrderedProjectRoles, OrderedWorkspaceRoles } from '~/lib/enums';
 import type { WorkspaceUserRoles, ProjectRoles } from '~/lib/enums';
 
-export {
-  getProjectRole,
-  extractWorkspaceRolePower,
-  mapWorkspaceRolesObjToProjectRolesObj,
-} from '~/lib/roleHelper';
-
 /**
  * Get the power of the project role of the user.
  * @param user - The user object.

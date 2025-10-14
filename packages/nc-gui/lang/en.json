@@ -1921,8 +1921,7 @@
     "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
-    "youDoNotHaveSufficientPermissionToDeleteExtension": "You do not have sufficient permission to delete extension",
-    "youDoNotHaveSufficientPermissionToAccessThisExtension": "You do not have sufficient permission to access this extension"
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "Search icons",

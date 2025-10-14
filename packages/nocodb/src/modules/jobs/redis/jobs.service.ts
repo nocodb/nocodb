@@ -28,17 +28,17 @@ export class JobsService implements OnModuleInit {
       await this.jobsQueue.pause(true);
     }
 
-    await this.jobsQueue.add(
-      {
-        jobName: JobTypes.DataExportCleanUp,
-        context: {},
-      },
-      {
-        jobId: JobTypes.DataExportCleanUp,
-        // run every 5 hours
-        repeat: { cron: '0 */5 * * *' },
-      },
-    );
+    // await this.jobsQueue.add(
+    //   {
+    //     jobName: JobTypes.DataExportCleanUp,
+    //     context: {},
+    //   },
+    //   {
+    //     jobId: JobTypes.DataExportCleanUp,
+    //     // run every 5 hours
+    //     repeat: { cron: '0 */5 * * *' },
+    //   },
+    // );
 
     await this.toggleQueue();
 
@@ -136,6 +136,7 @@ export class JobsService implements OnModuleInit {
 
     const job = await this.jobsQueue.add(data, {
       jobId: jobData.id,
+      removeOnFail: 1000,
       ...options,
     });
 

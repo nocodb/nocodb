@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { type TimeZone } from '@vvo/tzdb'
+import { isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, isBoxHovered, truncateText } from '../utils/canvas'
 import { timeCellMaxWidthMap, timeFormatsObj } from '../utils/cell'
 
@@ -20,7 +21,8 @@ export const DateTimeCellRenderer: CellRenderer = {
 
     const is12hrFormat = columnMeta?.is12hrFormat
     const isValueValid = value && dayjs(value).isValid()
-    const timezoneWidth = isValueValid && isDisplayTimezone ? ctx.measureText(timezone.abbreviation).width + 8 : 0
+    const timezoneWidth =
+      isValueValid && isDisplayTimezone && timezone?.abbreviation ? ctx.measureText(timezone.abbreviation).width + 8 : 0
 
     const totalAvailableWidth = width - padding * 3
     const dateTimeWidth = totalAvailableWidth - timezoneWidth
@@ -61,13 +63,13 @@ export const DateTimeCellRenderer: CellRenderer = {
     const timeStr = dateTimeValue?.format(is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat) ?? ''
     const truncatedTime = truncateText(ctx, timeStr, timeWidth)
     ctx.fillText(truncatedTime, x + dateWidth + padding * 2, textY)
-    if (timezoneWidth && timezoneWidth > 0) {
+    if (timezoneWidth && timezoneWidth > 0 && timezone?.abbreviation) {
       const gray400 = '#6A7184'
       const oldFillStyle = ctx.fillStyle
       const oldFont = ctx.font
       ctx.font = ctx.font = `500 11px Inter`
       ctx.fillStyle = gray400
-      ctx.fillText(timezone!.abbreviation, x + dateTimeWidth + padding * 3.5, textY)
+      ctx.fillText(timezone.abbreviation, x + dateTimeWidth + padding * 3.5, textY)
       ctx.font = oldFont
       ctx.fillStyle = oldFillStyle
     }
@@ -77,7 +79,7 @@ export const DateTimeCellRenderer: CellRenderer = {
     const { row, column, makeCellEditable, getCellPosition, mousePosition, value, selected } = ctx
     const bound = getCellPosition(column, row.rowMeta.rowIndex)
     const padding = 8
-    if (!selected || column.readonly) return false
+    if (!selected || column.readonly || isCreatedOrLastModifiedTimeCol(column.uidt)) return false
 
     const canvasContext = defaultOffscreen2DContext
 
@@ -133,7 +135,7 @@ export const DateTimeCellRenderer: CellRenderer = {
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
-    if (column.readonly || !column?.isCellEditable) return
+    if (column.readonly || !column?.isCellEditable || isCreatedOrLastModifiedTimeCol(column.uidt)) return
     if (e.key.length === 1) {
       makeCellEditable(row, column)
       return true

@@ -1,3 +1,4 @@
+import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
 import type {
   AttachmentResType,
   PublicAttachmentScope,
@@ -14,16 +15,18 @@ export enum MigrationJobTypes {
   Thumbnail = 'thumbnail',
   RecoverLinks = 'recover-links',
   CleanupDuplicateColumns = 'cleanup-duplicate-columns',
-  OrderColumnCreation = 'order-column-creation',
   NoOpMigration = 'no-op-migration',
+  OrderColumnCreation = 'order-column-creation',
   RecoverOrderColumnMigration = 'recover-order-column-migration',
   RecoverDisconnectedTableNames = 'recover-disconnected-table-names',
+  AuditMigration = 'audit-migration',
 }
 
 export enum JobTypes {
   DuplicateBase = 'duplicate-base',
   DuplicateModel = 'duplicate-model',
   DuplicateColumn = 'duplicate-column',
+  DuplicateDashboard = 'duplicate-dashboard',
   AtImport = 'at-import',
   MetaSync = 'meta-sync',
   SourceCreate = 'source-create',
@@ -45,7 +48,12 @@ export enum JobTypes {
   ListenImport = 'listen-import',
   SyncModuleSyncData = 'sync-module-sync-data',
   SyncModuleMigrateSync = 'sync-module-migrate-sync',
+  SyncModuleRefreshData = 'sync-module-refresh-data',
+  SyncModuleSchedule = 'sync-module-schedule',
   UpdateUsageStats = 'update-usage-stats',
+  CloudDbMigrate = 'cloud-db-migrate',
+  AttachmentUrlUpload = 'attachment-url-upload',
+  ExecuteAction = 'execute-action',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -57,6 +65,8 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.UpdateModelStat,
   JobTypes.UpdateWsStat,
   JobTypes.UpdateSrcStat,
+  JobTypes.UpdateUsageStats,
+  JobTypes.SyncModuleSchedule,
 ];
 
 export enum JobStatus {
@@ -93,8 +103,9 @@ export const InstanceTypes = {
 export enum InstanceCommands {
   RESUME_LOCAL = 'resumeLocal',
   PAUSE_LOCAL = 'pauseLocal',
-  RESET = 'reset',
   RELEASE = 'release',
+  ASSIGN_WORKER_GROUP = 'assignWorkerGroup',
+  STOP_OTHER_WORKER_GROUPS = 'stopOtherWorkerGroups',
 }
 
 export interface JobData {
@@ -123,6 +134,7 @@ export interface AtImportJobData extends JobData {
     syncRollup?: boolean;
     syncUsers?: boolean;
     syncData?: boolean;
+    syncFormula?: boolean;
   };
   user: any;
 }
@@ -137,11 +149,14 @@ export interface DuplicateBaseJobData extends JobData {
     excludeHooks?: boolean;
     excludeComments?: boolean;
     excludeUsers?: boolean;
+    excludeScripts?: boolean;
+    excludeDashboards?: boolean;
   };
 }
 
 export interface DuplicateModelJobData extends JobData {
   sourceId: string;
+  targetSourceId: string;
   modelId: string;
   title: string;
   req: NcRequest;
@@ -150,6 +165,8 @@ export interface DuplicateModelJobData extends JobData {
     excludeViews?: boolean;
     excludeHooks?: boolean;
     excludeComments?: boolean;
+    targetBaseId?: string;
+    targetWorkspaceId?: string;
   };
 }
 
@@ -163,10 +180,18 @@ export interface DuplicateColumnJobData extends JobData {
   };
 }
 
+export interface DuplicateDashboardJobData extends JobData {
+  dashboardId: string;
+  req: NcRequest;
+  options: never;
+}
+
 export interface HandleWebhookJobData extends JobData {
   hookId: string;
   modelId: string;
   viewId: string;
+  hookName: string;
+  ncSiteUrl: string;
   prevData;
   newData;
 }
@@ -212,4 +237,14 @@ export interface SyncDataSyncModuleJobData extends JobData {
   trigger: SyncTrigger;
   bulk?: boolean;
   req: NcRequest;
+}
+
+export type AttachmentUrlUploadJobData = AttachmentUrlUploadParam & JobData;
+
+export interface ExecuteActionJobData extends JobData {
+  req: NcRequest;
+  records?: any[];
+  modelId?: string;
+  viewId?: string;
+  scriptId: string;
 }

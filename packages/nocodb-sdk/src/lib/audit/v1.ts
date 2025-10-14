@@ -73,6 +73,10 @@ enum AuditV1OperationTypes {
   LINK_FILTER_UPDATE = 'LINK_FILTER_UPDATE',
   LINK_FILTER_DELETE = 'LINK_FILTER_DELETE',
 
+  WIDGET_FILTER_CREATE = 'WIDGET_FILTER_CREATE',
+  WIDGET_FILTER_UPDATE = 'WIDGET_FILTER_UPDATE',
+  WIDGET_FILTER_DELETE = 'WIDGET_FILTER_DELETE',
+
   VIEW_SORT_CREATE = 'VIEW_SORT_CREATE',
   VIEW_SORT_UPDATE = 'VIEW_SORT_UPDATE',
   VIEW_SORT_DELETE = 'VIEW_SORT_DELETE',
@@ -124,17 +128,43 @@ enum AuditV1OperationTypes {
   DATA_IMPORT = 'DATA_IMPORT',
   DATA_EXPORT = 'DATA_EXPORT',
   USER_PROFILE_UPDATE = 'USER_PROFILE_UPDATE',
+
+  SCRIPT_CREATE = 'SCRIPT_CREATE',
+  SCRIPT_UPDATE = 'SCRIPT_UPDATE',
+  SCRIPT_DELETE = 'SCRIPT_DELETE',
+
+  SCRIPT_DUPLICATE = 'SCRIPT_DUPLICATE',
+
+  DASHBOARD_CREATE = 'DASHBOARD_CREATE',
+  DASHBOARD_UPDATE = 'DASHBOARD_UPDATE',
+  DASHBOARD_DELETE = 'DASHBOARD_DELETE',
+
+  DASHBOARD_DUPLICATE = 'DASHBOARD_DUPLICATE',
+  DASHBOARD_DUPLICATE_ERROR = 'DASHBOARD_DUPLICATE_ERROR',
+
+  SHARED_DASHBOARD_CREATE = 'SHARED_DASHBOARD_CREATE',
+  SHARED_DASHBOARD_DELETE = 'SHARED_DASHBOARD_DELETE',
+  SHARED_DASHBOARD_UPDATE = 'SHARED_DASHBOARD_UPDATE',
+
+  WIDGET_CREATE = 'WIDGET_CREATE',
+  WIDGET_UPDATE = 'WIDGET_UPDATE',
+  WIDGET_DELETE = 'WIDGET_DELETE',
+  WIDGET_DUPLICATE = 'WIDGET_DUPLICATE',
+
+  PERMISSION_CREATE = 'PERMISSION_CREATE',
+  PERMISSION_UPDATE = 'PERMISSION_UPDATE',
+  PERMISSION_DELETE = 'PERMISSION_DELETE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
   AuditV1OperationTypes
 ).reduce((acc, key) => {
   // Convert snake_case or UPPER_SNAKE_CASE to readable format
-  const readableKey = key
+  // Capitalize each word
+  acc[key] = key
     .replace(/_/g, ' ') // Replace underscores with spaces
     .toLowerCase() // Convert to lowercase
-    .replace(/\b[a-z]/g, (char) => char.toUpperCase()); // Capitalize each word
-  acc[key] = readableKey;
+    .replace(/\b[a-z]/g, (char) => char.toUpperCase());
   return acc;
 }, {} as Record<string, string>);
 
@@ -250,6 +280,27 @@ export const auditV1OperationsCategory: Record<
     value: 'ORG',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('ORG_')
+    ),
+  },
+  SCRIPT: {
+    label: 'general.script',
+    value: 'SCRIPT',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('SCRIPT_')
+    ),
+  },
+  DASHBOARD: {
+    label: 'objects.dashboard',
+    value: 'DASHBOARD',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('DASHBOARD_')
+    ),
+  },
+  WIDGET: {
+    label: 'objects.widget',
+    value: 'WIDGET',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('WIDGET_')
     ),
   },
 };
@@ -673,6 +724,10 @@ export type FilterPayload =
   | {
       link_field_title: string;
       link_field_id: string;
+    }
+  | {
+      widget_title: string;
+      widget_id: string;
     };
 
 export type FilterCreatePayload = FilterPayload & {
@@ -864,6 +919,131 @@ export interface DataImportPayload {
   import_type: 'excel' | 'csv';
 }
 
+export interface ScriptCreatePayload {
+  script_title: string;
+  script_id: string;
+  script_content: string;
+  script_description: string;
+  script_config: string;
+}
+
+export interface ScriptUpdatePayload extends UpdatePayload {
+  script_title: string;
+  script_id: string;
+}
+
+export interface ScriptDeletePayload {
+  script_title: string;
+  script_id: string;
+}
+
+export interface ScriptDuplicatePayload {
+  duplicated_script_title: string;
+  duplicated_script_id: string;
+  source_script_title: string;
+  source_script_id: string;
+  error?: string;
+}
+
+export interface DashboardCreatePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+  dashboard_description: string;
+}
+
+export interface DashboardUpdatePayload extends UpdatePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+  dashboard_description: string;
+}
+
+export interface DashboardDeletePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+}
+
+export interface DashboardDuplicatePayload {
+  duplicated_dashboard_title: string;
+  duplicated_dashboard_id: string;
+  source_dashboard_title: string;
+  source_dashboard_id: string;
+  error?: string;
+}
+
+export interface SharedDashboardCreatePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+}
+
+export interface SharedDashboardUpdatePayload extends UpdatePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+}
+
+export interface SharedDashboardDeletePayload {
+  dashboard_title: string;
+  dashboard_id: string;
+}
+
+export interface WidgetCreatePayload {
+  widget_title: string;
+  widget_id: string;
+  widget_type: string;
+  widget_description: string;
+  widget_config: Record<string, any>;
+}
+
+export interface WidgetUpdatePayload extends UpdatePayload {
+  widget_title: string;
+  widget_id: string;
+  widget_type: string;
+}
+
+export interface WidgetDeletePayload {
+  widget_title: string;
+  widget_id: string;
+  widget_type: string;
+}
+
+export interface WidgetDuplicatePayload {
+  duplicated_widget_title: string;
+  duplicated_widget_id: string;
+  source_widget_title: string;
+  source_widget_id: string;
+  error?: string;
+}
+
+export interface PermissionCreatePayload {
+  permission_id: string;
+  permission: string;
+  entity: string;
+  entity_id: string;
+  granted_type?: string;
+  granted_role?: string;
+  enforce_for_form?: boolean;
+  enforce_for_automation?: boolean;
+  subjects?: Array<{ type: 'user' | 'group'; id: string }>;
+}
+
+export interface PermissionUpdatePayload {
+  permission_id: string;
+  permission: string;
+  entity: string;
+  entity_id: string;
+  granted_type?: string;
+  granted_role?: string;
+  enforce_for_form?: boolean;
+  enforce_for_automation?: boolean;
+  subjects?: Array<{ type: 'user' | 'group'; id: string }>;
+}
+
+export interface PermissionDeletePayload {
+  permission_id: string;
+  permission: string;
+  entity: string;
+  entity_id: string;
+}
+
 export interface AuditV1<T = any> {
   // auto generated
   id?: string;
@@ -1018,6 +1198,65 @@ const descriptionTemplates = {
     audit: AuditV1<FilterCreatePayload>
   ) =>
     `Filter with column '${audit.details.filter_field_id}' and operation '${audit.details.filter_comparison_op}' has been created`,
+  [AuditV1OperationTypes.SCRIPT_CREATE]: (
+    audit: AuditV1<ScriptCreatePayload>
+  ) => `Script '${audit.details.script_title}' has been created`,
+  [AuditV1OperationTypes.SCRIPT_UPDATE]: (
+    audit: AuditV1<ScriptUpdatePayload>
+  ) => `Script '${audit.details.script_title}' has been updated`,
+  [AuditV1OperationTypes.SCRIPT_DELETE]: (
+    audit: AuditV1<ScriptDeletePayload>
+  ) => `Script '${audit.details.script_title}' has been deleted`,
+  [AuditV1OperationTypes.SCRIPT_DUPLICATE]: (
+    audit: AuditV1<ScriptDuplicatePayload>
+  ) => `Script '${audit.details.source_script_title}' has been duplicated`,
+
+  [AuditV1OperationTypes.DASHBOARD_CREATE]: (
+    audit: AuditV1<DashboardCreatePayload>
+  ) => `Dashboard '${audit.details.dashboard_title}' has been created`,
+  [AuditV1OperationTypes.DASHBOARD_UPDATE]: (
+    audit: AuditV1<DashboardUpdatePayload>
+  ) => `Dashboard '${audit.details.dashboard_title}' has been updated`,
+  [AuditV1OperationTypes.DASHBOARD_DELETE]: (
+    audit: AuditV1<DashboardDeletePayload>
+  ) => `Dashboard '${audit.details.dashboard_title}' has been deleted`,
+  [AuditV1OperationTypes.DASHBOARD_DUPLICATE]: (
+    audit: AuditV1<DashboardDuplicatePayload>
+  ) =>
+    `Dashboard '${audit.details.source_dashboard_title}' has been duplicated`,
+  [AuditV1OperationTypes.SHARED_DASHBOARD_CREATE]: (
+    audit: AuditV1<SharedDashboardCreatePayload>
+  ) => `Shared dashboard '${audit.details.dashboard_title}' has been created`,
+  [AuditV1OperationTypes.SHARED_DASHBOARD_DELETE]: (
+    audit: AuditV1<SharedDashboardDeletePayload>
+  ) => `Shared dashboard '${audit.details.dashboard_title}' has been deleted`,
+  [AuditV1OperationTypes.SHARED_DASHBOARD_UPDATE]: (
+    audit: AuditV1<SharedDashboardUpdatePayload>
+  ) => `Shared dashboard '${audit.details.dashboard_title}' has been updated`,
+  [AuditV1OperationTypes.WIDGET_CREATE]: (
+    audit: AuditV1<WidgetCreatePayload>
+  ) => `Widget '${audit.details.widget_title}' has been created`,
+  [AuditV1OperationTypes.WIDGET_UPDATE]: (
+    audit: AuditV1<WidgetUpdatePayload>
+  ) => `Widget '${audit.details.widget_title}' has been updated`,
+  [AuditV1OperationTypes.WIDGET_DELETE]: (
+    audit: AuditV1<WidgetDeletePayload>
+  ) => `Widget '${audit.details.widget_title}' has been deleted`,
+  [AuditV1OperationTypes.WIDGET_DUPLICATE]: (
+    audit: AuditV1<WidgetDuplicatePayload>
+  ) => `Widget '${audit.details.duplicated_widget_title}' has been duplicated`,
+  [AuditV1OperationTypes.PERMISSION_CREATE]: (
+    audit: AuditV1<PermissionCreatePayload>
+  ) =>
+    `Permission '${audit.details.permission}' has been created for entity '${audit.details.entity}' with ID '${audit.details.entity_id}'`,
+  [AuditV1OperationTypes.PERMISSION_UPDATE]: (
+    audit: AuditV1<PermissionUpdatePayload>
+  ) =>
+    `Permission '${audit.details.permission}' has been updated for entity '${audit.details.entity}' with ID '${audit.details.entity_id}'`,
+  [AuditV1OperationTypes.PERMISSION_DELETE]: (
+    audit: AuditV1<PermissionDeletePayload>
+  ) =>
+    `Permission '${audit.details.permission}' has been deleted for entity '${audit.details.entity}' with ID '${audit.details.entity_id}'`,
 };
 
 function auditDescription(audit: AuditV1) {

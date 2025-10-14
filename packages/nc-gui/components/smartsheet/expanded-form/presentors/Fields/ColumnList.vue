@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -9,7 +9,7 @@ const props = defineProps<{
   isHiddenCol?: boolean
 }>()
 
-const { changedColumns, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
+const { changedColumns, localOnlyChanges, isNew, loadRow: _loadRow, row: _row } = useExpandedFormStoreOrThrow()
 
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
@@ -17,13 +17,20 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
-const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
+const { isMobileMode } = useGlobal()
 
-const shouldApplyDataCell = (column: ColumnType) =>
-  !(isBarcode(column) || isQrCode(column) || isBoolean(column) || isRating(column))
+const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
 
 const showCol = (col: ColumnType) => {
   return props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
+}
+
+const revertLocalOnlyChanges = (col: string) => {
+  if (localOnlyChanges.value[col]) {
+    _row.value.row[col] = localOnlyChanges.value[col]
+    changedColumns.value.delete(col)
+    delete localOnlyChanges.value[col]
+  }
 }
 </script>
 
@@ -40,14 +47,14 @@ const showCol = (col: ColumnType) => {
     <div
       class="flex items-start nc-expanded-cell min-h-[32px]"
       :class="{
-        'flex-row sm:(gap-x-2) <lg:(flex-col w-full)': !props.forceVerticalMode,
+        'flex-row <lg:(flex-col w-full)': !props.forceVerticalMode,
         'flex-col w-full': props.forceVerticalMode,
       }"
     >
       <div
         class="flex-none flex items-center rounded-lg overflow-hidden"
         :class="{
-          'w-45 <lg:(w-full px-0 mb-2) h-[32px] xs:(h-auto)': !props.forceVerticalMode,
+          'w-45 <lg:(w-full px-0 mb-2) h-[32px] xs:(h-auto) sm:(mx-2)': !props.forceVerticalMode,
           'w-full px-0 mb-2 h-auto': props.forceVerticalMode,
         }"
       >
@@ -56,8 +63,15 @@ const showCol = (col: ColumnType) => {
           :column="col"
           class="nc-expanded-cell-header h-full flex-none"
           :is-hidden-col="isHiddenCol"
+          show-lock-icon
         />
-        <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header flex-none" :is-hidden-col="isHiddenCol" />
+        <LazySmartsheetHeaderCell
+          v-else
+          :column="col"
+          class="nc-expanded-cell-header flex-none"
+          :is-hidden-col="isHiddenCol"
+          show-lock-icon
+        />
       </div>
 
       <a-skeleton-input
@@ -74,43 +88,66 @@ const showCol = (col: ColumnType) => {
           'w-full !flex-none': props.forceVerticalMode,
           'lg:max-w-[calc(100%_-_188px)]': !props.forceVerticalMode,
         }"
-        placement="right"
-        :disabled="!isReadOnlyVirtualCell(col) || !shouldApplyDataCell(col) || isLinksOrLTAR(col)"
+        :placement="isMobileMode ? 'top' : 'right'"
+        :disabled="!showReadonlyColumnTooltip(col)"
+        :arrow="false"
       >
         <template #title>{{ $t('msg.info.fieldReadonly') }}</template>
-        <SmartsheetDivDataCell
+        <PermissionsTooltip
           v-if="col.title"
-          class="flex-1 bg-white px-1 min-h-8 flex items-center relative"
-          :class="{
-            'w-full': props.forceVerticalMode,
-            '!select-text nc-system-field bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled cursor-pointer':
-              isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col),
-            '!select-text nc-readonly-div-data-cell': readOnly,
-          }"
+          class="w-full"
+          :tooltip-style="{ zIndex: '1049' }"
+          :entity="PermissionEntity.FIELD"
+          :entity-id="col.id"
+          :permission="PermissionKey.RECORD_FIELD_EDIT"
+          :placement="isMobileMode ? 'top' : 'right'"
+          :show-pointer-event-none="false"
+          hide-on-click
+          :disabled="showReadonlyColumnTooltip(col) || !showEditRestrictedColumnTooltip(col)"
         >
-          <LazySmartsheetVirtualCell
-            v-if="isVirtualCol(col)"
-            v-model="_row.row[col.title]"
-            :column="col"
-            :read-only="readOnly"
-            :row="_row"
-          />
+          <template #default="{ isAllowed }">
+            <SmartsheetDivDataCell
+              class="flex-1 bg-nc-bg-default px-1 min-h-8 flex items-center relative"
+              :class="{
+                'w-full': props.forceVerticalMode,
+                '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
+                  showReadonlyColumnTooltip(col),
+                '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed,
+              }"
+            >
+              <LazySmartsheetVirtualCell
+                v-if="isVirtualCol(col)"
+                v-model="_row.row[col.title]"
+                :column="col"
+                :read-only="readOnly || !isAllowed"
+                :row="_row"
+                :is-allowed="isAllowed"
+              />
 
-          <LazySmartsheetCell
-            v-else
-            v-model="_row.row[col.title]"
-            :active="true"
-            :column="col"
-            :edit-enabled="true"
-            :read-only="
-              ncIsPlaywright()
-                ? readOnly
-                : readOnly || (isReadOnlyVirtualCell(col) && shouldApplyDataCell(col) && !isLinksOrLTAR(col))
-            "
-            @update:model-value="changedColumns.add(col.title)"
-          />
-        </SmartsheetDivDataCell>
+              <LazySmartsheetCell
+                v-else
+                v-model="_row.row[col.title]"
+                :active="true"
+                :column="col"
+                :edit-enabled="true"
+                :read-only="ncIsPlaywright() ? readOnly || !isAllowed : readOnly || !isAllowed || showReadonlyColumnTooltip(col)"
+                :is-allowed="isAllowed"
+                @update:model-value="changedColumns.add(col.title)"
+              />
+            </SmartsheetDivDataCell>
+          </template>
+        </PermissionsTooltip>
       </NcTooltip>
+      <div
+        v-if="col.title && localOnlyChanges[col.title]"
+        class="flex items-center justify-center cursor-pointer relative"
+        @click="revertLocalOnlyChanges(col.title)"
+      >
+        <GeneralIcon
+          class="absolute right-1 top-2 text-nc-content-gray-muted hover:text-nc-content-gray-subtle my-auto"
+          icon="reload"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -141,7 +178,7 @@ const showCol = (col: ColumnType) => {
 
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
 
     .nc-cell,
     .nc-virtual-cell {
@@ -151,18 +188,22 @@ const showCol = (col: ColumnType) => {
 
   &.nc-readonly-div-data-cell:focus-within,
   &.nc-system-field:focus-within {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
   }
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
     @apply !shadow-selected;
   }
-  :deep(.nc-qrcode-container) {
-    height: 100%;
-  }
-  :deep(.nc-multi-select) {
-    > div {
-      margin-top: 3px;
+
+  :deep(.nc-lookup-cell) {
+    .nc-qrcode-container {
+      height: 100%;
+    }
+
+    .nc-multi-select {
+      > div {
+        margin-top: 3px;
+      }
     }
   }
   &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
@@ -180,12 +221,12 @@ const showCol = (col: ColumnType) => {
     }
     :deep(.nc-virtual-cell-qrcode) {
       img {
-        @apply !h-full border-1 border-solid border-gray-200 rounded;
+        @apply !h-full border-1 border-solid border-nc-border-gray-medium rounded;
       }
     }
     :deep(.nc-virtual-cell-barcode) {
       .nc-barcode-container {
-        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
+        @apply border-1 rounded-lg border-nc-border-gray-medium h-[64px] max-w-full p-2;
         svg {
           @apply !h-full;
         }
@@ -200,11 +241,11 @@ const showCol = (col: ColumnType) => {
 
 .nc-mentioned-cell {
   box-shadow: 0px 0px 0px 2px var(--ant-primary-color-outline) !important;
-  @apply !border-brand-500 !border-1;
+  @apply !border-nc-border-brand !border-1;
 }
 
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500;
+  @apply !border-1 !border-nc-border-brand;
 }
 
 :deep(.nc-system-field input) {

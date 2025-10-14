@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { APIContext, AppEvents, ViewTypes } from 'nocodb-sdk';
+import { APIContext, AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
 import GridViewColumn from '../models/GridViewColumn';
 import GalleryViewColumn from '../models/GalleryViewColumn';
 import KanbanViewColumn from '../models/KanbanViewColumn';
@@ -15,18 +15,26 @@ import type {
   ViewColumnUpdateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
+import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { CalendarViewColumn, Column, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
+import NocoSocket from '~/socket/NocoSocket';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
 @Injectable()
 export class ViewColumnsService {
   constructor(private appHooksService: AppHooksService) {}
 
-  async columnList(context: NcContext, param: { viewId: string }) {
-    return await View.getColumns(context, param.viewId, undefined);
+  async columnList(
+    context: NcContext,
+    param: { viewId: string },
+    ncMeta?: MetaService,
+  ) {
+    return await View.getColumns(context, param.viewId, ncMeta);
   }
 
   async columnAdd(
@@ -35,12 +43,28 @@ export class ViewColumnsService {
       viewId: string;
       column: ViewColumnReqType;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewColumnReq',
       param.column,
     );
+
+    let viewWebhookManager: ViewWebhookManager;
+    if (!param.viewWebhookManager) {
+      const view = await View.get(context, param.viewId, ncMeta);
+      viewWebhookManager =
+        param.viewWebhookManager ??
+        (
+          await (
+            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+              view.fk_model_id,
+            )
+          ).withViewId(view.id)
+        ).forUpdate();
+    }
 
     const viewColumn = await View.insertOrUpdateColumn(
       context,
@@ -57,6 +81,12 @@ export class ViewColumnsService {
     //   context,
     // });
 
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
+
     return viewColumn;
   }
 
@@ -68,14 +98,16 @@ export class ViewColumnsService {
       column: ViewColumnUpdateReqType;
       req: NcRequest;
       internal?: boolean;
+      viewWebhookManager?: ViewWebhookManager;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewColumnUpdateReq',
       param.column,
     );
 
-    const view = await View.get(context, param.viewId);
+    const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);
@@ -85,23 +117,43 @@ export class ViewColumnsService {
       context,
       param.viewId,
       param.columnId,
+      ncMeta,
     );
 
-    const column = await Column.get(context, {
-      colId: oldViewColumn.fk_column_id,
-    });
+    const column = await Column.get(
+      context,
+      {
+        colId: oldViewColumn.fk_column_id,
+      },
+      ncMeta,
+    );
+
+    let viewWebhookManager: ViewWebhookManager;
+    if (!param.viewWebhookManager) {
+      viewWebhookManager =
+        param.viewWebhookManager ??
+        (
+          await (
+            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+              view.fk_model_id,
+            )
+          ).withViewId(view.id)
+        ).forUpdate();
+    }
 
     const result = await View.updateColumn(
       context,
       param.viewId,
       param.columnId,
       param.column,
+      ncMeta,
     );
 
     const viewColumn = await View.getColumn(
       context,
       param.viewId,
       param.columnId,
+      ncMeta,
     );
 
     this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
@@ -113,6 +165,27 @@ export class ViewColumnsService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_column_update',
+          payload: {
+            ...oldViewColumn,
+            ...viewColumn,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
+    if (viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
 
     return result;
   }
@@ -139,6 +212,7 @@ export class ViewColumnsService {
             >
           >;
       req: any;
+      viewWebhookManager?: ViewWebhookManager;
     },
   ) {
     const { viewId } = param;
@@ -160,6 +234,19 @@ export class ViewColumnsService {
 
     if (!view) {
       NcError.notFound('View not found');
+    }
+
+    let viewWebhookManager: ViewWebhookManager;
+    if (!param.viewWebhookManager) {
+      viewWebhookManager =
+        param.viewWebhookManager ??
+        (
+          await (
+            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+              view.fk_model_id,
+            )
+          ).withViewId(view.id)
+        ).forUpdate();
     }
 
     try {
@@ -343,6 +430,12 @@ export class ViewColumnsService {
       await ncMeta.commit();
 
       await View.clearSingleQueryCache(context, view.fk_model_id, [view]);
+
+      if (viewWebhookManager) {
+        (
+          await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+        ).emit();
+      }
 
       return result;
     } catch (e) {

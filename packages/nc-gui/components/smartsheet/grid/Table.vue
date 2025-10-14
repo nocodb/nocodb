@@ -106,7 +106,7 @@ const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlo
 
 const scrollParent = inject(ScrollParentInj, ref<undefined>())
 
-const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
@@ -165,7 +165,7 @@ const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta
 
 const resizingColumn = ref(false)
 
-const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
+const rowHeight = computed(() => (isMobileMode.value ? 40 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
 
 // #Permissions
 const { isUIAllowed, isDataReadOnly } = useRoles()
@@ -493,7 +493,7 @@ const colMeta = computed(() => {
   return fields.value.map((col) => {
     return {
       isVirtualCol: isVirtualCol(col),
-      isReadonly: isReadonly(col),
+      isReadonly: isReadonlyVirtualColumn(col),
     }
   })
 })
@@ -1080,7 +1080,7 @@ async function clearSelectedRangeOfCells() {
       }
 
       // skip readonly columns
-      if (isReadonly(col)) continue
+      if (isReadonlyVirtualColumn(col)) continue
 
       if (col.readonly) continue
 
@@ -1867,7 +1867,7 @@ const cellFilteredOrSortedClass = (colId: string) => {
 }
 
 const headerFilteredOrSortedClass = (colId: string) => {
-  const columnState = isColumnSortedOrFiltered(colId)
+  const columnState = isColumnSortedOrFiltered(colId, true)
   if (columnState) {
     const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
     if (headerBgClass) {
@@ -1912,7 +1912,7 @@ onKeyStroke('ArrowDown', onDown)
         class="flex items-center justify-center bg-white/80 absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
       >
         <div class="flex flex-col items-center justify-center gap-2">
-          <GeneralLoader size="xlarge" />
+          <a-spin size="large" />
           <span class="text-center" v-html="loaderText"></span>
         </div>
       </div>
@@ -1984,7 +1984,7 @@ onKeyStroke('ArrowDown', onDown)
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
-                    'no-resize': isLocked,
+                    'no-resize': isLocked || !isViewOperationsAllowed,
                     ...headerFilteredOrSortedClass(fields?.[0]?.id),
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
@@ -2031,7 +2031,7 @@ onKeyStroke('ArrowDown', onDown)
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
-                    'no-resize': isLocked,
+                    'no-resize': isLocked || !isViewOperationsAllowed,
                     ...headerFilteredOrSortedClass(col.id),
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
@@ -2244,7 +2244,7 @@ onKeyStroke('ArrowDown', onDown)
                   <template #default="{ state }">
                     <tr
                       v-show="!showSkeleton"
-                      class="nc-grid-row !xs:h-14"
+                      class="nc-grid-row !xs:h-10"
                       :class="{
                         'active-row': activeCell.row === rowIndex || selectedRange._start?.row === rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,
@@ -2259,9 +2259,9 @@ onKeyStroke('ArrowDown', onDown)
                         :data-testid="`cell-Id-${rowIndex}`"
                         @contextmenu="contextMenuTarget = null"
                       >
-                        <div class="w-[64px] pl-2 pr-1 items-center flex gap-0.5">
+                        <div class="w-[64px] pl-2 pr-1 items-center w-full flex gap-0.5">
                           <div
-                            class="nc-row-no sm:min-w-4 text-gray-500"
+                            class="nc-row-no sm:min-w-4 text-gray-500 flex items-center justify-between h-4 w-full"
                             :class="{
                               'toggle': !readOnly,
                               'hidden': row.rowMeta.selected,
@@ -2274,7 +2274,10 @@ onKeyStroke('ArrowDown', onDown)
                                 ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 < 1000,
                             }"
                           >
-                            {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
+                            <span>
+                              {{ ((paginationDataRef?.page ?? 1) - 1) * (paginationDataRef?.pageSize ?? 25) + rowIndex + 1 }}
+                            </span>
+                            <div class="inline-block min-w-[4px] h-full rounded-full"></div>
                           </div>
                           <div
                             v-if="!readOnly"
@@ -2555,7 +2558,8 @@ onKeyStroke('ArrowDown', onDown)
 
             <NcMenuItem
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly"
-              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+              class="nc-base-menu-item"
+              danger
               data-testid="nc-delete-row"
               @click="deleteSelectedRows"
             >
@@ -2564,12 +2568,12 @@ onKeyStroke('ArrowDown', onDown)
                 v-e="['a:row:delete']"
                 class="flex gap-2 items-center"
               >
-                <component :is="iconMap.delete" />
+                <GeneralIcon icon="delete" />
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
               <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
-                <component :is="iconMap.delete" />
+                <GeneralIcon icon="delete" />
                 <!-- Delete Selected Rows -->
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
@@ -2688,7 +2692,8 @@ onKeyStroke('ArrowDown', onDown)
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item"
+                danger
                 @click="confirmDeleteRow(contextMenuTarget.row)"
               >
                 <div v-e="['a:row:delete']" class="flex gap-2 items-center">
@@ -2699,11 +2704,12 @@ onKeyStroke('ArrowDown', onDown)
               </NcMenuItem>
               <NcMenuItem
                 v-else-if="contextMenuTarget && deleteRangeOfRows"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item"
+                danger
                 @click="deleteSelectedRangeOfRows"
               >
                 <div v-e="['a:row:delete']" class="flex gap-2 items-center">
-                  <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
+                  <GeneralIcon icon="delete" />
                   <!-- Delete Rows -->
                   {{ $t('activity.deleteRows') }}
                 </div>
@@ -3108,7 +3114,7 @@ onKeyStroke('ArrowDown', onDown)
   }
 
   td.active.readonly::after {
-    @apply text-primary bg-grey-50 bg-opacity-5 !border-gray-200;
+    @apply text-primary bg-gray-50 bg-opacity-5 !border-gray-200;
   }
 
   td.active-cell::after {
@@ -3337,9 +3343,9 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 .col-filtered {
-  background: var(--nc-background-coloured-green, #ecfff2) !important;
+  background: var(--nc-bg-coloured-green, #ecfff2) !important;
 }
 .col-sorted {
-  background: var(--nc-background-coloured-marooon, #fff0f7) !important;
+  background: var(--nc-bg-coloured-marooon, #fff0f7) !important;
 }
 </style>

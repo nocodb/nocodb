@@ -62,8 +62,8 @@ onKeyUp('Enter', async () => {
 })
 
 function scrollToTarget() {
-  const element = document.querySelector('.cmdk-action.selected')
-  element?.scrollIntoView()
+  const element = document.querySelector('.cmdk-action.cmd-l.selected')
+  element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
 const moveUp = () => {
@@ -200,7 +200,7 @@ onMounted(() => {
               :class="{
                 selected: selected === cmdOption.tableID + cmdOption.viewName,
               }"
-              class="cmdk-action"
+              class="cmdk-action cmd-l"
               @click="changeView({ viewId: cmdOption.viewId!, tableId: cmdOption.tableID, baseId: cmdOption.baseId })"
             >
               <div class="cmdk-action-content">
@@ -290,7 +290,7 @@ onMounted(() => {
     &.selected {
       cursor: pointer;
       background-color: rgb(248, 249, 251);
-      border-left: 4px solid #36f;
+      border-left: 4px solid #3366ff;
       outline: none;
     }
 

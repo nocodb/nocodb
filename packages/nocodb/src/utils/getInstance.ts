@@ -1,3 +1,4 @@
+import { ModelTypes } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from './globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -41,6 +42,7 @@ export default async function (force = false, ncMeta = Noco.ncMeta) {
         .then((c) => c.count);
       const tables = await ncMeta
         .knex(MetaTable.MODELS)
+        .whereIn('type', [ModelTypes.TABLE, ModelTypes.VIEW])
         .count('id as count')
         .first()
         .then((c) => c.count);

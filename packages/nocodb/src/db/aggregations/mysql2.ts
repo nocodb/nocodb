@@ -24,7 +24,7 @@ export function genMysql2AggregatedQuery({
   column: Column;
   baseModelSqlv2: BaseModelSqlv2;
   aggregation: string;
-  column_query: string;
+  column_query: string | Knex.QueryBuilder;
   parsedFormulaType?: FormulaDataTypes;
   aggType:
     | 'common'

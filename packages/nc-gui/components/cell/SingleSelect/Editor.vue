@@ -1,16 +1,15 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import type { SelectOptionType } from 'nocodb-sdk'
-import { getOptions } from './utils'
+import { type LocalSelectOptionType, getOptions } from './utils'
 
 interface Props {
   modelValue?: string | undefined
   rowIndex?: number
   disableOptionCreation?: boolean
-  selectOptions?: (SelectOptionType & { value?: string })[]
+  options?: LocalSelectOptionType[]
 }
 
-const { modelValue, disableOptionCreation, selectOptions } = defineProps<Props>()
+const { modelValue, disableOptionCreation, options: selectOptions } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -210,18 +209,6 @@ const onKeydown = (e: KeyboardEvent) => {
   }
 }
 
-const handleKeyDownList = (e: KeyboardEvent) => {
-  switch (e.key) {
-    case 'ArrowUp':
-    case 'ArrowDown':
-    case 'ArrowRight':
-    case 'ArrowLeft':
-      // skip
-      e.stopPropagation()
-      break
-  }
-}
-
 const onSelect = () => {
   isOpen.value = false
   isEditable.value = false
@@ -279,15 +266,14 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 onMounted(() => {
-  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value && !isEditColumn.value) {
     forcedNextTick(() => {
       const key = canvasCellEventData.keyboardKey
       if (key && isSinglePrintableKey(key)) {
-        onFocus()
         searchVal.value = key
-      } else if (key === 'Enter') {
-        onFocus()
       }
+
+      onFocus()
     })
   }
 })
@@ -301,46 +287,13 @@ onMounted(() => {
     @keydown.enter.stop.prevent="toggleMenu"
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <a-radio-group
-        v-model:value="vModel"
+      <CellSingleSelectLayoutList
+        v-model="vModel"
+        :options="options"
         :disabled="readOnly || !editAllowed"
-        class="nc-field-layout-list"
-        @keydown="handleKeyDownList"
-        @click.stop
-      >
-        <a-radio
-          v-for="op of options"
-          :key="op.title"
-          :value="op.title"
-          :data-testid="`select-option-${column.title}-${rowIndex}`"
-          :class="`nc-select-option-${column.title}-${op.title}`"
-        >
-          <a-tag class="rounded-tag max-w-full" :color="op.color">
-            <span
-              :style="{
-                color: getSelectTypeOptionTextColor(op.color),
-              }"
-              class="text-small"
-            >
-              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-                <template #title>
-                  {{ op.title }}
-                </template>
-                <span
-                  class="text-ellipsis overflow-hidden"
-                  :style="{
-                    wordBreak: 'keep-all',
-                    whiteSpace: 'nowrap',
-                    display: 'inline',
-                  }"
-                >
-                  {{ op.title }}
-                </span>
-              </NcTooltip>
-            </span>
-          </a-tag>
-        </a-radio>
-      </a-radio-group>
+        :row-index="rowIndex"
+      />
+
       <div
         v-if="!readOnly && editAllowed && vModel"
         class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800"
@@ -380,7 +333,13 @@ onMounted(() => {
         :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
-        <a-tag class="rounded-tag !h-[22px] max-w-full" :color="op.color">
+        <a-tag
+          class="rounded-tag max-w-full"
+          :color="op.color"
+          :class="{
+            '!h-[22px]': isGrid && !isExpandedForm,
+          }"
+        >
           <span
             :style="{
               color: getSelectTypeOptionTextColor(op.color),

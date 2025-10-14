@@ -6,40 +6,23 @@ interface Props {
 
 interface Emits {
   (event: 'update:modelValue', data: boolean): void
-  (event: 'deleted'): void
 }
 
 const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const { refreshCommandPalette } = useCommandPalette()
-
 const { view } = props
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const { api } = useApi()
+const viewsStore = useViewsStore()
 
-const { $e } = useNuxtApp()
-
-/** Delete a view */
 async function onDelete() {
   if (!props.view) return
 
-  try {
-    await api.dbView.delete(props.view.id)
-
-    vModel.value = false
-    emits('deleted')
-    $e('a:view:delete', { view: props.view.type })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    refreshCommandPalette()
-  }
-
-  // telemetry event
+  await viewsStore.deleteView(props.view)
+  vModel.value = false
 }
 </script>
 

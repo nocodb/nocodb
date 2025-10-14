@@ -1,6 +1,31 @@
 import { extractLimitAndOffset } from '.';
 import type { NcContext, PaginatedType, PaginatedV3Type } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
+import { extractProps } from '~/helpers/extractProps';
+
+type SearchParamValue = string | number | boolean | null | undefined;
+type SearchParamsObject = {
+  [key: string]: SearchParamValue | SearchParamValue[];
+};
+
+// handle fields[] in array format
+function objectToSearchParams(obj: SearchParamsObject): URLSearchParams {
+  const params = new URLSearchParams();
+
+  Object.entries(obj).forEach(([key, value]) => {
+    if (Array.isArray(value)) {
+      value.forEach((item) => {
+        if (item !== null && item !== undefined) {
+          params.append(key, String(item));
+        }
+      });
+    } else if (value !== null && value !== undefined) {
+      params.append(key, String(value));
+    }
+  });
+
+  return params;
+}
 
 // a utility function which accept baseUrl, path and query params and constructs a url
 export function constructUrl({
@@ -14,7 +39,7 @@ export function constructUrl({
 }) {
   let url = `${baseUrl}${path}`;
   if (query) {
-    const queryStr = new URLSearchParams(query).toString();
+    const queryStr = objectToSearchParams(query).toString();
     url = `${url}?${queryStr}`;
   }
   return url;
@@ -99,10 +124,18 @@ export class PagedResponseV3Impl<T> {
 
     const commonProps = {
       baseUrl,
-      path: `/api/v3/${context.base_id}/${tableId}`,
+      path: `/api/v3/data/${context.base_id}/${tableId}/records`,
     };
 
-    const commonQueryParams = {};
+    const commonQueryParams = extractProps(queryParams || {}, [
+      'sort',
+      'where',
+      'viewId',
+      'pageSize',
+      'fieldIdOnResult',
+      'fields',
+      'nestedPage',
+    ]);
 
     if (!pagedResponse.pageInfo.isFirstPage && pagedResponse.pageInfo.page) {
       pageInfo.prev = constructUrl({

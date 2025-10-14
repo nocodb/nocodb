@@ -4,15 +4,11 @@ import { isString } from '@vue/shared'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useBase = defineStore('baseStore', () => {
-  const { $e } = useNuxtApp()
-
   const { api, isLoading } = useApi()
 
   const router = useRouter()
 
   const route = router.currentRoute
-
-  const { setTheme, theme } = useTheme()
 
   const { loadRoles } = useRoles()
 
@@ -65,6 +61,10 @@ export const useBase = defineStore('baseStore', () => {
     }
   })
 
+  const isPrivateBase = computed(() => false)
+
+  const showBaseAccessRequestOverlay = computed(() => false)
+
   const sqlUis = computed(() => {
     const temp: Record<string, any> = {}
     for (const source of sources.value) {
@@ -78,6 +78,17 @@ export const useBase = defineStore('baseStore', () => {
     return temp
   })
 
+  /**
+   * @Note - Always use this fn inside computed as `sqlUis` is computed property
+   */
+  function getSqlUiBySourceId(sourceId?: string): any {
+    if (sourceId && sqlUis.value[sourceId]) {
+      return sqlUis.value[sourceId]
+    }
+
+    return Object.values(sqlUis.value)[0]
+  }
+
   function getBaseType(sourceId?: string) {
     return sources.value.find((source) => source.id === sourceId)?.type || ClientType.MYSQL
   }
@@ -88,10 +99,6 @@ export const useBase = defineStore('baseStore', () => {
 
   function isSqlite(sourceId?: string) {
     return getBaseType(sourceId) === ClientType.SQLITE
-  }
-
-  function isMssql(sourceId?: string) {
-    return getBaseType(sourceId) === 'mssql'
   }
 
   function isPg(sourceId?: string) {
@@ -197,7 +204,7 @@ export const useBase = defineStore('baseStore', () => {
   }
 
   async function saveTheme(_theme: Partial<ThemeConfig>) {
-    const fullTheme = {
+    /* const fullTheme = {
       primaryColor: theme.value.primaryColor,
       accentColor: theme.value.accentColor,
       ..._theme,
@@ -210,10 +217,9 @@ export const useBase = defineStore('baseStore', () => {
         theme: fullTheme,
       },
     })
-
+*/
     // setTheme(fullTheme)
-
-    $e('c:themes:change')
+    // $e('c:themes:change')
   }
 
   async function hasEmptyOrNullFilters() {
@@ -224,14 +230,24 @@ export const useBase = defineStore('baseStore', () => {
     // base.value = {}
     // tables.value = []
     baseMetaInfo.value = undefined
-    setTheme()
+    // setTheme()
   }
 
   const setProject = (baseVal: BaseType) => {
     sharedProject.value = baseVal
   }
 
-  const baseUrl = ({ id, type: _type, isSharedBase }: { id: string; type: 'database'; isSharedBase?: boolean }) => {
+  const baseUrl = ({
+    id,
+    type: _type,
+    isSharedBase,
+    projectPage,
+  }: {
+    id: string
+    type: 'database'
+    isSharedBase?: boolean
+    projectPage?: ProjectPageType
+  }) => {
     if (isSharedBase) {
       const typeOrId = route.value.params.typeOrId as string
       const baseId = route.value.params.baseId as string
@@ -239,7 +255,9 @@ export const useBase = defineStore('baseStore', () => {
       return `/${typeOrId}/${baseId}`
     }
 
-    return `/nc/${id}`
+    const basUrl = `/nc/${id}`
+
+    return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
   }
 
   watch(
@@ -261,7 +279,13 @@ export const useBase = defineStore('baseStore', () => {
     },
   )
 
-  const navigateToProjectPage = async ({ page }: { page: 'all-table' | 'collaborator' | 'data-source' }) => {
+  const navigateToProjectPage = async ({
+    page,
+    action,
+  }: {
+    page: 'overview' | 'collaborator' | 'data-source'
+    action?: string
+  }) => {
     await router.push({
       name: 'index-typeOrId-baseId-index-index',
       params: {
@@ -270,6 +294,7 @@ export const useBase = defineStore('baseStore', () => {
       },
       query: {
         page,
+        ...(action ? { action } : {}),
       },
     })
   }
@@ -283,12 +308,12 @@ export const useBase = defineStore('baseStore', () => {
     updateProject,
     loadTables,
     isMysql,
-    isMssql,
     isPg,
     isSqlite,
     isSnowflake,
     isDatabricks,
     sqlUis,
+    getSqlUiBySourceId,
     isSharedBase,
     isSharedErd,
     loadProjectMetaInfo,
@@ -306,6 +331,8 @@ export const useBase = defineStore('baseStore', () => {
     getBaseType,
     navigateToProjectPage,
     idUserMap,
+    isPrivateBase,
+    showBaseAccessRequestOverlay,
   }
 })
 

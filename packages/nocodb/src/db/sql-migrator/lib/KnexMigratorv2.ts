@@ -332,9 +332,6 @@ export default class KnexMigratorv2 {
   //             freshProject = require('./templates/pg.template.js');
   //             break;
   //
-  //           case 'mssql':
-  //             freshProject = require('./templates/mssql.template.js');
-  //             break;
   //
   //           case 'oracle':
   //             freshProject = require('./templates/oracle.template.js');
@@ -998,7 +995,7 @@ export default class KnexMigratorv2 {
    * Creates xmigrator folder in pwd, within which migrations for all dbs will be sored
    *
    * @param {object} args
-   * @param {String} args.type - type of database (mysql | pg | oracle | mssql | sqlite)
+   * @param {String} args.type - type of database (mysql | pg | oracle | sqlite)
    * @param {String} args.title - Name of Base
    * @param {String} args.folder - Base Dir
    * @memberof KnexMigrator

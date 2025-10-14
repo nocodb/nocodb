@@ -2,6 +2,7 @@ import { SilentTypeConversionError } from '~/lib/error';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../../column.interface';
+import { LookupHelper } from '../Lookup';
 
 export class HasManyHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -18,6 +19,6 @@ export class HasManyHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
-    return this.parseValue(value, params) ?? '';
+    return new LookupHelper().parsePlainCellValue(value, params) ?? '';
   }
 }

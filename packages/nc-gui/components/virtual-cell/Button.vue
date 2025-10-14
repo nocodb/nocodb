@@ -10,7 +10,7 @@ const column = inject(ColumnInj) as Ref<
 
 const cellValue = inject(CellValueInj, ref())
 
-const { currentRow } = useSmartsheetRowStoreOrThrow()
+const { currentRow, displayValue, changedColumns } = useSmartsheetRowStoreOrThrow()
 
 const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
@@ -28,11 +28,15 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { $api } = useNuxtApp()
 
+const { t } = useI18n()
+
 const rowId = computed(() => {
   return extractPkFromRow(currentRow.value?.row, meta.value!.columns!)
 })
 
 const { runScript, activeExecutions, fieldIDRowMapping } = useScriptExecutor()
+
+const { addScriptExecution } = useActionPane()
 
 const automationStore = useAutomationStore()
 
@@ -45,8 +49,10 @@ const pk = computed(() => {
   return extractPkFromRow(currentRow.value?.row, meta.value.columns)
 })
 
+const isAiButtonType = computed(() => column.value?.colOptions?.type === ButtonActionsType.Ai)
+
 const isFieldAiIntegrationAvailable = computed(() => {
-  if (column.value?.colOptions?.type !== ButtonActionsType.Ai) return true
+  if (!isAiButtonType.value) return true
 
   const fkIntegrationId = column.value?.colOptions?.fk_integration_id
 
@@ -69,7 +75,8 @@ const generate = async () => {
 
   generatingColumns.value.push(...(outputColumnIds ?? []))
 
-  const res = await generateRows(meta.value.id, column.value.id, [pk.value])
+  // In expanded form get preview data and update local state so that expanded form save btn works properly
+  const res = await generateRows(meta.value.id, column.value.id, [pk.value], false, isExpandedForm.value)
 
   if (res?.length) {
     const resRow = res[0]
@@ -77,6 +84,8 @@ const generate = async () => {
     if (outputColumnIds) {
       for (const col of outputColumns) {
         if (col && currentRow.value.row) {
+          changedColumns.value.add(col.title!)
+
           currentRow.value.row[col.title!] = resRow[col.title!]
         }
       }
@@ -96,6 +105,8 @@ const isExecuting = computed(
     fieldIDRowMapping.value.get(`${pk.value}:${column.value.id}`) === 'running',
 )
 
+const invalidUrlTooltip = ref('')
+
 const componentProps = computed(() => {
   if (column.value.colOptions.type === ButtonActionsType.Url) {
     let url = addMissingUrlSchma(cellValue.value?.url)
@@ -107,12 +118,14 @@ const componentProps = computed(() => {
       url = encodeURI(url)
     }
 
+    const isValidUrl = isValidURL(url, { require_tld: !appInfo.value?.allowLocalUrl })
+
+    invalidUrlTooltip.value = !isValidUrl ? t('msg.error.invalidURL') : ''
+
     return {
       href: url,
       target: '_blank',
-      ...(column.value?.colOptions.error || !isValidURL(url, { require_tld: !appInfo.value?.allowLocalUrl })
-        ? { disabled: true }
-        : {}),
+      ...(column.value?.colOptions.error || !isValidUrl ? { disabled: true } : {}),
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Webhook) {
     return {
@@ -142,8 +155,14 @@ const componentProps = computed(() => {
   }
 })
 
+const afterActionStatus = ref<{
+  status: 'success' | 'error'
+  tooltip?: string
+} | null>(null)
+
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
+  afterActionStatus.value = null
 
   if (colOptions.type === ButtonActionsType.Url) {
     confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)
@@ -152,9 +171,21 @@ const triggerAction = async () => {
       isLoading.value = true
 
       await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
-    } catch (e) {
+
+      afterActionStatus.value = { status: 'success' }
+      ncDelay(2000).then(() => {
+        afterActionStatus.value = null
+      })
+    } catch (e: any) {
       console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e))
+
+      const errorMsg = await extractSdkResponseErrorMsg(e)
+      message.error(errorMsg)
+
+      afterActionStatus.value = { status: 'error', tooltip: errorMsg }
+      ncDelay(3000).then(() => {
+        afterActionStatus.value = null
+      })
     } finally {
       isLoading.value = false
     }
@@ -166,15 +197,42 @@ const triggerAction = async () => {
 
       const script = await loadAutomation(colOptions.fk_script_id)
 
-      const id = await runScript(script, currentRow.value.row, {
-        pk: pk.value,
-        fieldId: column.value.id,
+      if (!script) {
+        throw new Error('Script not found')
+      }
+
+      const rowId = pk.value
+
+      const scriptExecutionId = await runScript(script, currentRow.value.row, {
+        pk: rowId!,
+        fieldId: column.value.id!,
+        executionId: `${rowId}-${column.value.id!}-${Date.now()}`,
       })
 
-      isExecutingId.value = id
-    } catch (e) {
+      addScriptExecution(scriptExecutionId, {
+        recordId: rowId as string,
+        displayValue: displayValue.value,
+        scriptId: script?.id as string,
+        scriptName: script?.title || 'Untitled Script',
+        buttonFieldName: column.value.title || 'Button',
+      })
+
+      isExecutingId.value = scriptExecutionId
+
+      afterActionStatus.value = { status: 'success' }
+      ncDelay(2000).then(() => {
+        afterActionStatus.value = null
+      })
+    } catch (e: any) {
       console.log(e)
-      message.error(await extractSdkResponseErrorMsg(e))
+
+      const errorMsg = await extractSdkResponseErrorMsg(e)
+      message.error(errorMsg)
+
+      afterActionStatus.value = { status: 'error', tooltip: errorMsg }
+      ncDelay(3000).then(() => {
+        afterActionStatus.value = null
+      })
     } finally {
       isLoading.value = false
     }
@@ -189,9 +247,22 @@ const triggerAction = async () => {
     }"
     class="w-full flex items-center"
   >
-    <NcTooltip :disabled="isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit')" class="flex">
+    <NcTooltip
+      :disabled="
+        isAiButtonType
+          ? isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit')
+          : !invalidUrlTooltip && !afterActionStatus?.tooltip
+      "
+      class="flex"
+    >
       <template #title>
-        {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
+        {{
+          isAiButtonType
+            ? aiIntegrations.length
+              ? $t('tooltip.aiIntegrationReConfigure')
+              : $t('tooltip.aiIntegrationAddAndReConfigure')
+            : afterActionStatus?.tooltip || invalidUrlTooltip
+        }}
       </template>
       <component
         :is="column.colOptions.type === ButtonActionsType.Url ? 'a' : 'button'"
@@ -199,28 +270,28 @@ const triggerAction = async () => {
         data-testid="nc-button-cell"
         :class="[
           `${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`,
-          { '!w-6': !column.colOptions.label, 'disabled': componentProps.disabled },
+          { '!w-6': !column.colOptions.label, 'disabled': componentProps.disabled, 'is-expanded-form': isExpandedForm },
         ]"
-        class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center h-6"
+        class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center"
         @click.prevent="triggerAction"
       >
+        <GeneralIcon
+          v-if="afterActionStatus"
+          :icon="afterActionStatus.status === 'success' ? 'ncCheck' : 'ncInfo'"
+          class="w-4 h-4 flex-none text-current"
+        />
         <GeneralLoader
-          v-if="
+          v-else-if="
             isLoading ||
             isExecuting ||
             (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))
           "
-          :class="{
-            solid: column.colOptions.theme === 'solid',
-            text: column.colOptions.theme === 'text',
-            light: column.colOptions.theme === 'light',
-          }"
-          class="flex btn-cell-colors !bg-transparent w-4 h-4"
+          class="flex w-4 h-4 !text-current"
           size="medium"
         />
         <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
         <NcTooltip v-if="column.colOptions.label" class="!truncate" show-on-truncate-only>
-          <span class="text-[13px] truncate font-medium">
+          <span class="truncate font-medium" :class="{ 'text-sm': isExpandedForm, 'text-[13px]': !isExpandedForm }">
             {{ column.colOptions.label }}
           </span>
           <template #title>
@@ -243,6 +314,10 @@ const triggerAction = async () => {
     }
   }
 
+  &:has(.nc-cell-button.is-expanded-form) {
+    @apply -mt-1 -ml-1;
+  }
+
   .nc-cell-attachment {
     @apply !border-none;
   }
@@ -255,16 +330,24 @@ const triggerAction = async () => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-md px-2 flex items-center gap-2 transition-all justify-center;
+  @apply px-2 flex items-center gap-2 transition-all justify-center;
   &:not([class*='text']) {
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
   }
   &:focus-within {
     @apply outline-none ring-0;
-    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+    box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px #3069fe;
   }
   &[disabled] {
     @apply opacity-50;
+  }
+
+  &.is-expanded-form {
+    @apply h-8 rounded-lg my-1;
+  }
+
+  &:not(.is-expanded-form) {
+    @apply h-6 rounded-md;
   }
 }
 
@@ -274,72 +357,42 @@ const triggerAction = async () => {
 
     &.brand {
       @apply bg-brand-500 hover:not(.disabled):bg-brand-600;
-      .nc-loader {
-        @apply !text-brand-500;
-      }
     }
 
     &.red {
       @apply bg-red-600 hover:not(.disabled):bg-red-700;
-      .nc-loader {
-        @apply !text-red-600;
-      }
     }
 
     &.green {
       @apply bg-green-600 hover:not(.disabled):bg-green-700;
-      .nc-loader {
-        @apply !text-green-600;
-      }
     }
 
     &.maroon {
       @apply bg-maroon-600 hover:not(.disabled):bg-maroon-700;
-      .nc-loader {
-        @apply !text-maroon-600;
-      }
     }
 
     &.blue {
       @apply bg-blue-600 hover:not(.disabled):bg-blue-700;
-      .nc-loader {
-        @apply !text-blue-600;
-      }
     }
 
     &.orange {
       @apply bg-orange-600 hover:not(.disabled):bg-orange-700;
-      .nc-loader {
-        @apply !text-orange-600;
-      }
     }
 
     &.pink {
       @apply bg-pink-600 hover:not(.disabled):bg-pink-700;
-      .nc-loader {
-        @apply !text-pink-600;
-      }
     }
 
     &.purple {
       @apply bg-purple-500 hover:not(.disabled):bg-purple-700;
-      .nc-loader {
-        @apply !text-purple-600;
-      }
     }
 
     &.yellow {
       @apply bg-yellow-600 hover:not(.disabled):bg-yellow-700;
-      .nc-loader {
-        @apply !text-yellow-600;
-      }
     }
 
     &.gray {
       @apply bg-gray-600 hover:not(.disabled):bg-gray-700;
-      .nc-loader {
-        @apply !text-gray-600;
-      }
     }
   }
 
@@ -397,72 +450,42 @@ const triggerAction = async () => {
 
     &.brand {
       @apply text-brand-500;
-      .nc-loader {
-        @apply !text-brand-500;
-      }
     }
 
     &.red {
       @apply text-red-600;
-      .nc-loader {
-        @apply !text-red-600;
-      }
     }
 
     &.green {
       @apply text-green-600;
-      .nc-loader {
-        @apply !text-green-600;
-      }
     }
 
     &.maroon {
       @apply text-maroon-600;
-      .nc-loader {
-        @apply !text-maroon-600;
-      }
     }
 
     &.blue {
       @apply text-blue-600;
-      .nc-loader {
-        @apply !text-blue-600;
-      }
     }
 
     &.orange {
       @apply text-orange-600;
-      .nc-loader {
-        @apply !text-orange-600;
-      }
     }
 
     &.pink {
       @apply text-pink-600;
-      .nc-loader {
-        @apply !text-pink-600;
-      }
     }
 
     &.purple {
       @apply text-purple-500;
-      .nc-loader {
-        @apply !text-purple-600;
-      }
     }
 
     &.yellow {
       @apply text-yellow-600;
-      .nc-loader {
-        @apply !text-yellow-600;
-      }
     }
 
     &.gray {
       @apply text-gray-600;
-      .nc-loader {
-        @apply !text-gray-600;
-      }
     }
   }
 }

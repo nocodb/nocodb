@@ -23,6 +23,9 @@ export enum PlanLimitTypes {
   LIMIT_VIEW_PER_TABLE = 'limit_view_per_table',
   LIMIT_FILTER_PER_VIEW = 'limit_filter_per_view',
   LIMIT_SORT_PER_VIEW = 'limit_sort_per_view',
+  LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
+  LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
+  LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
 }
 
 export enum PlanFeatureTypes {
@@ -42,40 +45,56 @@ export enum PlanFeatureTypes {
   FEATURE_GROUP_BY_AGGREGATIONS = 'feature_group_by_aggregations',
   FEATURE_HIDE_BRANDING = 'feature_hide_branding',
   FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER = 'feature_ltar_limit_selection_by_filter',
+  FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER = 'feature_lookup_limit_records_by_filter',
+  FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER = 'feature_rollup_limit_records_by_filter',
   FEATURE_PERSONAL_VIEWS = 'feature_personal_views',
-  FEATURE_SCRIPTS = 'feature_scripts',
   FEATURE_SSO = 'feature_sso',
   FEATURE_WEBHOOK_CUSTOM_PAYLOAD = 'feature_webhook_custom_payload',
   FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
   FEATURE_CURRENT_USER_FILTER = 'feature_current_user_filter',
+  FEATURE_ROW_COLOUR = 'feature_row_colour',
+  FEATURE_TABLE_AND_FIELD_PERMISSIONS = 'feature_table_and_field_permissions',
+  FEATURE_PRIVATE_BASES = 'feature_private_bases',
+  FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
+  FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
+  FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
+  FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
+  FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
+  FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
+  FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
+  FEATURE_COPY_VIEW_SETTING_FROM_OTHER = 'feature_copy_view_setting_other',
 }
 
+// todo: separate as a new enum
 export enum PlanTitles {
   FREE = 'Free',
-  TEAM = 'Team',
+  PLUS = 'Plus',
   BUSINESS = 'Business',
   ENTERPRISE = 'Enterprise',
+
+  // on-prem
+  ENTERPRISE_STARTER = 'EnterpriseStarter',
 }
 
 export enum PlanPriceLookupKeys {
-  TEAM_MONTHLY = 'team_monthly',
-  TEAM_YEARLY = 'team_yearly',
+  PLUS_MONTHLY = 'plus_monthly',
+  PLUS_YEARLY = 'plus_yearly',
   BUSINESS_MONTHLY = 'business_monthly',
   BUSINESS_YEARLY = 'business_yearly',
 }
 
 export const LoyaltyPriceLookupKeyMap = {
-  [PlanPriceLookupKeys.TEAM_MONTHLY]: 'loyalty_team_monthly',
-  [PlanPriceLookupKeys.TEAM_YEARLY]: 'loyalty_team_yearly',
+  [PlanPriceLookupKeys.PLUS_MONTHLY]: 'loyalty_plus_monthly',
+  [PlanPriceLookupKeys.PLUS_YEARLY]: 'loyalty_plus_yearly',
   [PlanPriceLookupKeys.BUSINESS_MONTHLY]: 'loyalty_business_monthly',
   [PlanPriceLookupKeys.BUSINESS_YEARLY]: 'loyalty_business_yearly',
 };
 
 export const LoyaltyPriceReverseLookupKeyMap = {
-  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_MONTHLY]]:
-    PlanPriceLookupKeys.TEAM_MONTHLY,
-  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.TEAM_YEARLY]]:
-    PlanPriceLookupKeys.TEAM_YEARLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.PLUS_MONTHLY]]:
+    PlanPriceLookupKeys.PLUS_MONTHLY,
+  [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.PLUS_YEARLY]]:
+    PlanPriceLookupKeys.PLUS_YEARLY,
   [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_MONTHLY]]:
     PlanPriceLookupKeys.BUSINESS_MONTHLY,
   [LoyaltyPriceLookupKeyMap[PlanPriceLookupKeys.BUSINESS_YEARLY]]:
@@ -93,8 +112,8 @@ export const PlanMeta = {
     border: '#E7E7E9',
     chartFillColor: '#6A7184',
   },
-  [PlanTitles.TEAM]: {
-    title: PlanTitles.TEAM,
+  [PlanTitles.PLUS]: {
+    title: PlanTitles.PLUS,
     color: '#EDF9FF',
     accent: '#AFE5FF',
     primary: '#207399',
@@ -105,13 +124,13 @@ export const PlanMeta = {
   },
   [PlanTitles.BUSINESS]: {
     title: PlanTitles.BUSINESS,
-    color: '#FFF5EF',
-    accent: '#FDCDAD',
-    primary: '#C86827',
-    bgLight: '#FFF5EF',
-    bgDark: '#FEE6D6',
-    border: '#FDCDAD',
-    chartFillColor: '#C86827',
+    color: '#FAF5FF',
+    accent: '#FEB0E8',
+    primary: '#972377',
+    bgLight: '#FFEEFB',
+    bgDark: '#FED8F4',
+    border: '#FEB0E8',
+    chartFillColor: '#972377',
   },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,
@@ -127,7 +146,7 @@ export const PlanMeta = {
 
 export const PlanOrder = {
   [PlanTitles.FREE]: 0,
-  [PlanTitles.TEAM]: 1,
+  [PlanTitles.PLUS]: 1,
   [PlanTitles.BUSINESS]: 2,
   [PlanTitles.ENTERPRISE]: 3,
 };
@@ -141,14 +160,14 @@ export const PlanOrderToPlan = Object.entries(PlanOrder).reduce(
 );
 
 export const HigherPlan = {
-  [PlanTitles.FREE]: PlanTitles.TEAM,
-  [PlanTitles.TEAM]: PlanTitles.BUSINESS,
+  [PlanTitles.FREE]: PlanTitles.PLUS,
+  [PlanTitles.PLUS]: PlanTitles.BUSINESS,
   [PlanTitles.BUSINESS]: PlanTitles.ENTERPRISE,
 } as Record<string, PlanTitles>;
 
 export const GRACE_PERIOD_DURATION = 14;
 
-export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-05-30';
+export const LOYALTY_GRACE_PERIOD_END_DATE = '2025-09-03';
 
 export const SEAT_PRICE_CAP = 9;
 
@@ -183,6 +202,12 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: 'to add more views in a table.',
   [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: 'to add more filters in a view.',
   [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 'to add more sort rules in a view.',
+  [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]:
+    'to add more attachments in a cell.',
+  [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]:
+    'to add more scripts in a workspace.',
+  [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
+    'to add more dashboards in a workspace.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -207,8 +232,11 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: 'to remove branding.',
   [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]:
     'to limit row selection by filters.',
+  [PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER]:
+    'to limit lookup records by filters.',
+  [PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER]:
+    'to limit rollup records by filters.',
   [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: 'to use personal views.',
-  [PlanFeatureTypes.FEATURE_SCRIPTS]: 'to enable scripts.',
   [PlanFeatureTypes.FEATURE_SSO]: 'to enable SSO (Single Sign-On).',
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]:
     'to send custom webhook payloads.',
@@ -216,6 +244,23 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to upload a custom image as workspace avatar',
   [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]:
     'to filter view by current user',
+  [PlanFeatureTypes.FEATURE_ROW_COLOUR]: 'to use row colouring.',
+  [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]:
+    'to use table and field permissions.',
+  [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: 'to use private bases.',
+  [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]:
+    'to use member management api.',
+  [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
+  [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
+    'to visualize records in a calendar range.',
+  [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
+  [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: 'to use AI button fields.',
+  [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE]:
+    'to target different base when duplicate table.',
+  [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS]:
+    'to target different workspace when duplicate table.',
+  [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]:
+    'to copy view configuration from another view.',
 };
 
 export const getUpgradeMessage = (
@@ -233,3 +278,9 @@ export const getUpgradeMessage = (
 
   return limitOrFeature;
 };
+
+export enum ReturnToBillingPage {
+  ORG = 'org',
+  ACCOUNT = 'account',
+  WS = 'ws',
+}

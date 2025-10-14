@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CURRENT_USER_TOKEN, type ColumnType, type FilterType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -23,6 +23,7 @@ const {
   eventBus,
   filtersFromUrlParams,
   whereQueryFromUrl,
+  filtersFromUrlParamsReadableErrors,
 } = useSmartsheetStoreOrThrow()
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
@@ -58,6 +59,8 @@ const open = ref(false)
 
 const allFilters = ref({})
 
+const filterKey = ref(1)
+
 provide(AllFiltersInj, allFilters)
 
 useMenuCloseOnEsc(open)
@@ -65,7 +68,21 @@ useMenuCloseOnEsc(open)
 const draftFilter = ref({})
 const queryFilterOpen = ref(false)
 
-eventBus.on(async (event, column: ColumnType) => {
+eventBus.on(async (event, payload) => {
+  if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
+    await loadFilters({
+      hookId: undefined,
+      isWebhook: false,
+      loadAllFilters: true,
+    })
+
+    filtersLength.value = nonDeletedFilters.value.length || 0
+
+    filterKey.value++
+  }
+
+  const column = payload?.column as ColumnType | undefined
+
   if (!column) return
 
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
@@ -127,12 +144,18 @@ if (isEeUI) {
     },
   )
 }
+
+watch(
+  () => nonDeletedFilters.value.length,
+  () => {
+    filtersLength.value = nonDeletedFilters.value.length || 0
+  },
+)
 </script>
 
 <template>
   <NcDropdown
     v-model:visible="open"
-    :trigger="['click']"
     overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown overflow-hidden"
     class="!xs:hidden"
   >
@@ -187,7 +210,7 @@ if (isEeUI) {
     </NcTooltip>
 
     <template #overlay>
-      <div>
+      <div :key="filterKey">
         <SmartsheetToolbarColumnFilter
           ref="filterComp"
           v-model:draft-filter="draftFilter"
@@ -253,7 +276,13 @@ if (isEeUI) {
                 class="px-2 transition-margin duration-500"
                 :class="{ 'mb-2': queryFilterOpen }"
               >
-                <NcAlert type="error" message="Error" :description="$t('msg.urlFilterError')" />
+                <NcAlert
+                  type="error"
+                  message="Error"
+                  :description="$t('msg.urlFilterError')"
+                  :copy-text="filtersFromUrlParamsReadableErrors"
+                  :copy-btn-tooltip="$t('tooltip.copyErrorMessage')"
+                />
               </div>
             </div>
           </div>
@@ -279,10 +308,10 @@ if (isEeUI) {
 }
 
 .nc-info-icon {
-  color: var(--nc-content-grey-muted);
+  color: var(--nc-content-gray-muted);
 }
 
 .nc-chevron-icon {
-  color: var(--nc-content-grey-subtle);
+  color: var(--nc-content-gray-subtle);
 }
 </style>

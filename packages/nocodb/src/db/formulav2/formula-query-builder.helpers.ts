@@ -1,8 +1,10 @@
 import type CustomKnex from '~/db/CustomKnex';
 
-export const getAggregateFn: (
-  fnName: string,
-) => (args: { qb; knex?: CustomKnex; cn }) => any = (parentFn) => {
+export interface IGetAggregateFn {
+  (fnName: string): (args: { qb; knex?: CustomKnex; cn }) => any;
+}
+
+export const getAggregateFn: IGetAggregateFn = (parentFn) => {
   switch (parentFn?.toUpperCase()) {
     case 'MIN':
       return ({ qb, cn }) => qb.clear('select').min(cn);
@@ -17,6 +19,10 @@ export const getAggregateFn: (
 
     case 'AVG':
       return ({ qb, cn }) => qb.clear('select').sum(cn);
+
+    case 'ARRAY_AGG':
+      return ({ qb, knex, cn }) =>
+        qb.clear('select').select(knex.raw(`ARRAY_AGG(??)`, [cn]));
 
     // todo:
     //   return ({ qb, cn, knex, argsCount }) =>

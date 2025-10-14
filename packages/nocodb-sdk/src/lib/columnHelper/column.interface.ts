@@ -1,4 +1,6 @@
 import { ColumnType, TableType, UserType } from '../Api';
+import { getClipboardConfigForColumn } from './utils/clipboard-config';
+import { populateFillHandleStrictCopy } from './utils/fill-handler';
 
 export default abstract class AbstractColumnHelper {
   public columnDefaultMeta?: Record<string, any> = {};
@@ -50,8 +52,24 @@ export default abstract class AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string;
 
-  public equalityComparison(a: any, b:any, _param: SerializerOrParserFnProps['params']): boolean {
-    return a == b
+  public equalityComparison(
+    a: any,
+    b: any,
+    _param: SerializerOrParserFnProps['params']
+  ): boolean {
+    return a == b;
+  }
+
+  public populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }) {
+    return populateFillHandleStrictCopy(params);
+  }
+
+  public getClipboardConfig(params: SerializerOrParserFnProps['params']) {
+    return getClipboardConfigForColumn({ col: params.col });
   }
 }
 
@@ -64,11 +82,24 @@ export interface SerializerOrParserFnProps {
     metas?: { [idOrTitle: string]: TableType };
     baseUsers?: Map<string, UserType[]>;
     isMysql?: (sourceId: string) => boolean;
-    isMssql?: (sourceId: string) => boolean;
     isXcdbBase?: (sourceId: string) => boolean;
     isPg?: (sourceId: string) => boolean;
     isUnderLookup?: boolean;
     rowId?: string | null;
     isMultipleCellPaste?: boolean;
+    serializeSearchQuery?: boolean;
+    t?: (key: string, params?: Record<string, any>) => string;
+    isAggregation?: boolean;
+    clipboardItem?: NcClipboardItemType;
   };
 }
+
+export type NcClipboardDataType = Record<string, NcClipboardItemType>;
+
+export interface NcClipboardItemType {
+  rowId: string;
+  dbCellValue: any;
+  column: Partial<ColumnType>;
+}
+
+export interface NcClipboardItemForColumnType {}

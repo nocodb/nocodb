@@ -53,6 +53,7 @@ export class DataAliasController {
       disableOptimization: opt === 'false',
       getHiddenColumns: getHiddenColumns === 'true',
       includeSortAndFilterColumns: includeSortAndFilterColumns === 'true',
+      includeRowColorColumns: req.query.include_row_color === 'true',
     });
     const elapsedMilliSeconds = parseHrtimeToMilliSeconds(
       process.hrtime(startTime),

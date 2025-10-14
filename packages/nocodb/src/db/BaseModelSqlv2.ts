@@ -12,8 +12,10 @@ import {
   AuditV1OperationTypes,
   convertDurationToSeconds,
   enumColors,
+  EventType,
   extractFilterFromXwhere,
   isAIPromptCol,
+  isAttachment,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -23,20 +25,16 @@ import {
   LongTextAiMetaProp,
   NcApiVersion,
   NcErrorType,
-  ncIsArray,
   ncIsNull,
+  ncIsNullOrUndefined,
   ncIsObject,
   ncIsUndefined,
+  PermissionEntity,
+  PermissionKey,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { addOrRemoveLinks } from './BaseModelSqlv2/add-remove-links';
-import { baseModelInsert } from './BaseModelSqlv2/insert';
-import { NestedLinkPreparator } from './BaseModelSqlv2/nested-link-preparator';
-import { relationDataFetcher } from './BaseModelSqlv2/relation-data-fetcher';
-import { selectObject } from './BaseModelSqlv2/select-object';
-import { FieldHandler } from './field-handler';
 import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
@@ -68,6 +66,15 @@ import type {
 } from '~/models';
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
+import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
+import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
+import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
+import { FieldHandler } from '~/db/field-handler';
+import { selectObject } from '~/db/BaseModelSqlv2/select-object';
+import { relationDataFetcher } from '~/db/BaseModelSqlv2/relation-data-fetcher';
+import { NestedLinkPreparator } from '~/db/BaseModelSqlv2/nested-link-preparator';
+import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
+import { addOrRemoveLinks } from '~/db/BaseModelSqlv2/add-remove-links';
 import applyAggregation from '~/db/aggregation';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2 from '~/db/conditionV2';
@@ -79,8 +86,10 @@ import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import {
   _wherePk,
   applyPaginate,
+  dataWrapper,
   extractSortsObject,
   formatDataForAudit,
+  getBaseModelSqlFromModelId,
   getCompositePkValue,
   getListArgs,
   haveFormulaColumn,
@@ -88,7 +97,7 @@ import {
   isPrimitiveType,
   nanoidv2,
   populatePk,
-  transformObject,
+  transformObjectKeys,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
@@ -117,11 +126,15 @@ import {
   generateAuditV1Payload,
   nocoExecute,
   populateUpdatePayloadDiff,
+  processConcurrently,
   remapWithAlias,
   removeBlankPropsAndMask,
 } from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import NocoSocket from '~/socket/NocoSocket';
+import { supportsThumbnails } from '~/utils/attachmentUtils';
 
 dayjs.extend(utc);
 
@@ -135,6 +148,9 @@ const ORDER_STEP_INCREMENT = 1;
 
 const MAX_RECURSION_DEPTH = 2;
 
+const SELECT_REGEX = /^(\(|)select/i;
+const INSERT_REGEX = /^(\(|)insert/i;
+
 /**
  * Base class for models
  *
@@ -142,7 +158,10 @@ const MAX_RECURSION_DEPTH = 2;
  * @classdesc Base class for models
  */
 class BaseModelSqlv2 implements IBaseModelSqlV2 {
+  /** The base database driver (always non-transactional) */
   protected _dbDriver: XKnex;
+  /** Optional transaction instance - when set, operations use this instead of _dbDriver */
+  protected _activeTransaction?: XKnex;
   protected _viewId: string;
   public get viewId() {
     return this._viewId;
@@ -156,7 +175,38 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public static config: any = defaultLimitConfig;
 
+  /**
+   * Returns the active database driver for operations.
+   * If a transaction is active, returns the transaction; otherwise returns the base driver.
+   * This ensures all operations within a transaction use the same transaction context.
+   */
   public get dbDriver() {
+    return this._activeTransaction || this._dbDriver;
+  }
+
+  /**
+   * Creates a new BaseModelSqlv2 instance that uses the base database driver
+   * instead of any active transaction. This is useful for operations that need
+   * to run outside of the current transaction context, such as broadcasting
+   * link updates to avoid transaction conflicts.
+   *
+   * @returns A new BaseModelSqlv2 instance with non-transactional database access
+   */
+  public getNonTransactionalClone() {
+    return new BaseModelSqlv2({
+      dbDriver: this._dbDriver,
+      model: this.model,
+      viewId: this.viewId,
+      context: this.context,
+      schema: this.schema,
+    });
+  }
+
+  /**
+   * Returns the base (non-transactional) database driver.
+   * This is always the original database connection, regardless of transaction state.
+   */
+  public get knex() {
     return this._dbDriver;
   }
 
@@ -166,12 +216,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     viewId,
     context,
     schema,
+    transaction,
   }: {
     [key: string]: any;
     model: Model;
     schema?: string;
   }) {
     this._dbDriver = dbDriver;
+    this._activeTransaction = transaction;
     this.model = model;
     this._viewId = viewId;
     this.context = context;
@@ -211,6 +263,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOnlyPrimaries,
       extractOrderColumn,
       apiVersion,
+      skipSubstitutingColumnIds:
+        this.context.api_version === NcApiVersion.V3 &&
+        query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
 
     await this.selectObject({
@@ -226,6 +281,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data = await this.execAndParse(qb, null, {
         first: true,
         apiVersion,
+        skipSubstitutingColumnIds:
+          this.context.api_version === NcApiVersion.V3 &&
+          query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       });
     } catch (e) {
       if (
@@ -408,6 +466,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       validateFormula?: boolean;
       throwErrorIfInvalidParams?: boolean;
       limitOverride?: number;
+      skipSubstitutingColumnIds?: boolean;
+      skipSortBasedOnOrderCol?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -416,6 +476,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       validateFormula = false,
       throwErrorIfInvalidParams = false,
       limitOverride,
+      skipSortBasedOnOrderCol = false,
     } = options;
 
     const columns = await this.model.getColumns(this.context);
@@ -444,6 +505,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       rest?.sort,
       aliasColObjMap,
       throwErrorIfInvalidParams,
+      args?.apiVersion,
     );
     const { filters: filterObj } = extractFilterFromXwhere(
       this.context,
@@ -526,13 +588,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await sortV2(this, sorts, qb, undefined, throwErrorIfInvalidParams);
     }
 
-    const orderColumn = columns.find((c) => isOrderCol(c));
-    // sort by primary key if not autogenerated string
-    // if autogenerated string sort by created_at column if present
+    // skip sorting based on order column if specified in options
+    if (!skipSortBasedOnOrderCol) {
+      const orderColumn = columns.find((c) => isOrderCol(c));
 
-    if (orderColumn) {
-      qb.orderBy(orderColumn.column_name);
-    } else if (this.model.primaryKey && this.model.primaryKey.ai) {
+      // sort by order column if present
+      if (orderColumn) {
+        qb.orderBy(orderColumn.column_name);
+      }
+    }
+
+    // Ensure stable ordering:
+    // - Use auto-increment PK if available
+    // - Otherwise, fallback to system CreatedTime
+    // This avoids issues when order column has duplicates
+    if (this.model.primaryKey && this.model.primaryKey.ai) {
       qb.orderBy(this.model.primaryKey.column_name);
     } else {
       const createdCol = this.model.columns.find(
@@ -543,11 +613,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (rest.pks) {
       const pks = rest.pks.split(',');
-      qb.where((qb) => {
+      qb.where((innerQb) => {
         pks.forEach((pk) => {
-          qb.orWhere(_wherePk(this.model.primaryKeys, pk));
+          innerQb.orWhere(_wherePk(this.model.primaryKeys, pk));
         });
-        return qb;
+        return innerQb;
       });
     }
 
@@ -564,7 +634,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     let data;
     try {
       data = await this.execAndParse(qb, undefined, {
-        apiVersion: args.apiVersion,
+        apiVersion: args.apiVersion ?? this.context.api_version,
+        skipSubstitutingColumnIds: options.skipSubstitutingColumnIds,
       });
     } catch (e) {
       if (validateFormula || !haveFormulaColumn(columns)) throw e;
@@ -798,7 +869,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       where?: string;
       filterArrJson?: string | Filter[];
     }>,
-    view: View,
+    view?: View,
   ) {
     try {
       if (!bulkFilterList?.length) {
@@ -809,27 +880,47 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const columns = await this.model.getColumns(this.context);
 
-      let viewColumns = (
-        await GridViewColumn.list(this.context, this.viewId)
-      ).filter((c) => {
-        const col = this.model.columnsById[c.fk_column_id];
-        return c.show && (view.show_system_fields || !isSystemColumn(col));
-      });
+      let viewColumns: any[];
+      if (this.viewId) {
+        viewColumns = (
+          await GridViewColumn.list(this.context, this.viewId)
+        ).filter((c) => {
+          const col = this.model.columnsById[c.fk_column_id];
+          return c.show && (view?.show_system_fields || !isSystemColumn(col));
+        });
 
-      // By default, the aggregation is done based on the columns configured in the view
-      // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
-      // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
-      if (aggregation?.length) {
-        viewColumns = viewColumns
-          .map((c) => {
-            const agg = aggregation.find((a) => a.field === c.fk_column_id);
-            return new GridViewColumn({
-              ...c,
-              show: !!agg,
-              aggregation: agg ? agg.type : c.aggregation,
-            });
-          })
-          .filter((c) => c.show);
+        // By default, the aggregation is done based on the columns configured in the view
+        // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
+        // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
+        if (aggregation?.length) {
+          viewColumns = viewColumns
+            .map((c) => {
+              const agg = aggregation.find((a) => a.field === c.fk_column_id);
+              return new GridViewColumn({
+                ...c,
+                show: !!agg,
+                aggregation: agg ? agg.type : c.aggregation,
+              });
+            })
+            .filter((c) => c.show);
+        }
+      } else {
+        // If no viewId, use all model columns or those specified in aggregation
+        if (aggregation?.length) {
+          viewColumns = aggregation
+            .map((agg) => {
+              const col = this.model.columnsById[agg.field];
+              if (!col) return null;
+              return {
+                fk_column_id: col.id,
+                aggregation: agg.type,
+                show: true,
+              };
+            })
+            .filter(Boolean);
+        } else {
+          viewColumns = [];
+        }
       }
 
       const aliasColObjMap = await this.model.getAliasColObjMap(
@@ -867,9 +958,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         return {};
       }
 
-      const viewFilterList = await Filter.rootFilterList(this.context, {
-        viewId: this.viewId,
-      });
+      let viewFilterList = [];
+      if (this.viewId) {
+        viewFilterList = await Filter.rootFilterList(this.context, {
+          viewId: this.viewId,
+        });
+      }
 
       const selectors = [] as Array<Knex.Raw>;
       // Generate a knex raw query for each filter in the bulkFilterList
@@ -990,33 +1084,49 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async aggregate(args: { filterArr?: Filter[]; where?: string }, view: View) {
+  async aggregate(args: { filterArr?: Filter[]; where?: string }, view?: View) {
     try {
       const { where, aggregation } = this._getListArgs(args as any);
 
       const columns = await this.model.getColumns(this.context);
 
-      let viewColumns = (
-        await GridViewColumn.list(this.context, this.viewId)
-      ).filter((c) => {
-        const col = this.model.columnsById[c.fk_column_id];
-        return c.show && (view.show_system_fields || !isSystemColumn(col));
-      });
+      let viewColumns: any[];
+      if (this.viewId) {
+        viewColumns = (
+          await GridViewColumn.list(this.context, this.viewId)
+        ).filter((c) => {
+          const col = this.model.columnsById[c.fk_column_id];
+          return c.show && (view?.show_system_fields || !isSystemColumn(col));
+        });
 
-      // By default, the aggregation is done based on the columns configured in the view
-      // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
-      // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
-      if (aggregation?.length) {
-        viewColumns = viewColumns
-          .map((c) => {
-            const agg = aggregation.find((a) => a.field === c.fk_column_id);
-            return new GridViewColumn({
-              ...c,
-              show: !!agg,
-              aggregation: agg ? agg.type : c.aggregation,
-            });
-          })
-          .filter((c) => c.show);
+        if (aggregation?.length) {
+          viewColumns = viewColumns
+            .map((c) => {
+              const agg = aggregation.find((a) => a.field === c.fk_column_id);
+              return new GridViewColumn({
+                ...c,
+                show: !!agg,
+                aggregation: agg ? agg.type : c.aggregation,
+              });
+            })
+            .filter((c) => c.show);
+        }
+      } else {
+        if (aggregation?.length) {
+          viewColumns = aggregation
+            .map((agg) => {
+              const col = this.model.columnsById[agg.field];
+              if (!col) return null;
+              return {
+                fk_column_id: col.id,
+                aggregation: agg.type,
+                show: true,
+              };
+            })
+            .filter(Boolean);
+        } else {
+          viewColumns = [];
+        }
       }
 
       const aliasColObjMap = await this.model.getAliasColObjMap(
@@ -1323,16 +1433,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     where,
     qb,
     sort,
+    filters,
     onlySort = false,
     skipViewFilter = false,
+    skipSort = false,
   }: {
     table: Model;
     view?: View;
     where: string;
+    filters?: Filter[];
     qb;
-    sort: string;
+    sort?: string;
     onlySort?: boolean;
     skipViewFilter?: boolean;
+    skipSort?: boolean;
   }) {
     const childAliasColMap = await table.getAliasColObjMap(this.context);
 
@@ -1357,33 +1471,56 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               ]
             : []),
           ...(filter || []),
+          ...(filters || []),
         ],
         qb,
       );
     }
 
+    // First priority on v3 api is sort object if exists
+    if (this.context.api_version === NcApiVersion.V3 && sort) {
+      const sortObj = extractSortsObject(
+        this.context,
+        sort,
+        childAliasColMap,
+        undefined,
+        this.context.api_version,
+      );
+      if (sortObj) await sortV2(this, sortObj, qb);
+    }
     // First priority View Sort
-    if (view) {
+    if (view && !skipSort) {
       const sortObj = await view.getSorts(this.context);
       await sortV2(this, sortObj, qb);
     }
 
-    let orderColumnBy = '';
-    await table.getColumns(this.context);
-    const orderCol = table.columns?.find((col) => col.uidt === UITypes.Order);
-    const childTn = await this.getTnPath(table);
-    if (orderCol) {
-      orderColumnBy = `${childTn}.${orderCol.column_name}`;
-    }
-    // Second priority Order column sort
-    if (orderColumnBy) {
-      qb.orderBy(orderColumnBy);
-    }
+    if (!skipSort) {
+      let orderColumnBy = '';
+      await table.getColumns(this.context);
+      const orderCol = table.columns?.find((col) => col.uidt === UITypes.Order);
+      const childTn = await this.getTnPath(table);
+      if (orderCol) {
+        orderColumnBy = `${childTn}.${orderCol.column_name}`;
+      }
+      // Second priority Order column sort
+      if (orderColumnBy) {
+        qb.orderBy(orderColumnBy);
+      }
 
-    // Third priority query string sort
-    if (!sort) return;
-    const sortObj = extractSortsObject(this.context, sort, childAliasColMap);
-    if (sortObj) await sortV2(this, sortObj, qb);
+      // backward compatibility: if not v3, apply sort on this priority
+      if (this.context.api_version !== NcApiVersion.V3) {
+        // Third priority query string sort
+        if (!sort) return;
+        const sortObj = extractSortsObject(
+          this.context,
+          sort,
+          childAliasColMap,
+          undefined,
+          this.context.api_version,
+        );
+        if (sortObj) await sortV2(this, sortObj, qb);
+      }
+    }
   }
 
   async getSelectQueryBuilderForFormula(
@@ -1804,8 +1941,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       qb.orderByRaw('RAND()');
     } else if (this.isPg || this.isSqlite) {
       qb.orderByRaw('RANDOM()');
-    } else if (this.isMssql) {
-      qb.orderByRaw('NEWID()');
     }
   }
 
@@ -2129,15 +2264,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
-    const schema = (this.dbDriver as any).searchPath?.();
     if (this.isPg && this.schema) {
       return `${this.schema}.${tn}${alias ? ` as ${alias}` : ``}`;
-    } else if (this.isMssql && schema) {
-      return this.dbDriver.raw(`??.??${alias ? ' as ??' : ''}`, [
-        schema,
-        tn,
-        ...(alias ? [alias] : []),
-      ]);
     } else if (this.isSnowflake) {
       return `${[
         this.dbDriver.client.config.connection.database,
@@ -2156,7 +2284,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public get clientMeta() {
     return {
       isSqlite: this.isSqlite,
-      isMssql: this.isMssql,
       isPg: this.isPg,
       isMySQL: this.isMySQL,
       // isSnowflake: this.isSnowflake,
@@ -2165,10 +2292,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   get isSqlite() {
     return this.clientType === 'sqlite3';
-  }
-
-  get isMssql() {
-    return this.clientType === 'mssql';
   }
 
   get isPg() {
@@ -2230,13 +2353,31 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       let rowId = null;
 
       const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
-      const { postInsertOps, preInsertOps, postInsertAuditOps } =
+      // eslint-disable-next-line prefer-const
+      let { postInsertOps, preInsertOps, postInsertAuditOps } =
         await this.prepareNestedLinkQb({
           nestedCols,
           data,
           insertObj,
           req: request,
         });
+      const attachmentOperations =
+        await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
+          this,
+          {
+            attachmentCols: columns.filter((c) => isAttachment(c)),
+            data: insertObj,
+            req: request,
+          },
+        );
+      postInsertOps = [
+        ...(postInsertOps ?? []),
+        ...(attachmentOperations.postInsertOps ?? []),
+      ];
+      preInsertOps = [
+        ...(preInsertOps ?? []),
+        ...(attachmentOperations.preInsertOps ?? []),
+      ];
 
       await this.validate(insertObj, columns);
 
@@ -2253,7 +2394,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       let response;
       const query = this.dbDriver(this.tnPath).insert(insertObj);
 
-      if ((this.isPg || this.isMssql) && this.model.primaryKey) {
+      if (this.isPg && this.model.primaryKey) {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
@@ -2575,7 +2716,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
 
           responses =
-            !raw && (this.isPg || this.isMssql)
+            !raw && this.isPg
               ? await trx
                   .batchInsert(this.tnPath, toInsert, chunkSize)
                   .returning(
@@ -2658,7 +2799,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async chunkList(args: { pks: string[]; chunkSize?: number }) {
+  async chunkList(args: {
+    pks: string[];
+    chunkSize?: number;
+    apiVersion?: NcApiVersion;
+    args?: Record<string, any>;
+  }) {
     const { pks, chunkSize = 1000 } = args;
 
     const data = [];
@@ -2669,6 +2815,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const chunkData = await this.list(
         {
           pks: chunk.join(','),
+          apiVersion: args.apiVersion,
+          ...(args.args || {}),
         },
         {
           limitOverride: chunk.length,
@@ -2811,7 +2959,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   // Helper method to format date
   private formatDate(val: string): any {
-    const { isMySQL, isSqlite, isMssql, isPg } = this.clientMeta;
+    const { isMySQL, isSqlite, isPg } = this.clientMeta;
     if (val.indexOf('-') < 0 && val.indexOf('+') < 0 && val.slice(-1) !== 'Z') {
       // if no timezone is given,
       // then append +00:00 to make it as UTC
@@ -2844,14 +2992,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return this.dbDriver.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
         dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
       ]);
-    } else if (isMssql) {
-      // convert ot UTC
-      // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
-      // then convert to db timezone
-      return this.dbDriver.raw(
-        `SWITCHOFFSET(CONVERT(datetimeoffset, ?), DATENAME(TzOffset, SYSDATETIMEOFFSET()))`,
-        [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
-      );
     } else {
       // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
       return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
@@ -2943,6 +3083,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         pkAndData.push({ pk: pkValues, data: d });
       }
 
+      const attachmentCols = columns.filter((col) => isAttachment(col));
+      let postUpdateOps: (() => Promise<string>)[] = [];
+
       for (let i = 0; i < pkAndData.length; i += readChunkSize) {
         const chunk = pkAndData.slice(i, i + readChunkSize);
         const pksToRead = chunk.map((v) => v.pk);
@@ -2960,9 +3103,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             if (throwExceptionIfNotExist) NcError.recordNotFound(pk);
             continue;
           }
-
           await this.prepareNocoData(data, false, cookie, oldRecord);
           prevData.push(oldRecord);
+          if (attachmentCols.length > 0) {
+            const attachmentOperation =
+              await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
+                this,
+                {
+                  attachmentCols,
+                  data,
+                  req: cookie,
+                },
+              );
+            postUpdateOps = postUpdateOps.concat(
+              attachmentOperation.postInsertOps.map((ops) => {
+                return () => ops(pk);
+              }),
+            );
+          }
 
           const wherePk = await this._wherePk(pk, true);
           toBeUpdated.push({ d: data, wherePk });
@@ -2980,35 +3138,35 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       transaction = await this.dbDriver.transaction();
-
-      if (
-        this.model.primaryKeys.length === 1 &&
-        (this.isPg || this.isMySQL || this.isSqlite)
-      ) {
-        await batchUpdate(
-          transaction,
-          this.tnPath,
-          toBeUpdated.map((o) => o.d),
-          this.model.primaryKey.column_name,
-        );
-      } else {
-        for (const o of toBeUpdated) {
-          await transaction(this.tnPath).update(o.d).where(o.wherePk);
+      try {
+        if (
+          this.model.primaryKeys.length === 1 &&
+          (this.isPg || this.isMySQL || this.isSqlite)
+        ) {
+          await batchUpdate(
+            transaction,
+            this.tnPath,
+            toBeUpdated.map((o) => o.d),
+            this.model.primaryKey.column_name,
+          );
+        } else {
+          for (const o of toBeUpdated) {
+            await transaction(this.tnPath).update(o.d).where(o.wherePk);
+          }
         }
+
+        await transaction.commit();
+      } catch (ex) {
+        await transaction.rollback();
       }
 
-      await transaction.commit();
-
-      // todo: wrap with transaction
       if (apiVersion === NcApiVersion.V3) {
-        for (const d of datas) {
-          // remove LTAR/Links if part of the update request
-          await this.updateLTARCols({
-            rowId: this.extractPksValues(d, true),
-            cookie,
-            newData: d,
-          });
-        }
+        // remove LTAR/Links if part of the update request
+        await this.updateLTARCols({
+          datas,
+          cookie,
+        });
+        await Promise.all(postUpdateOps.map((ops) => ops()));
       }
 
       if (!raw) {
@@ -3056,91 +3214,104 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  async updateLTARCols({
-    rowId,
-    newData,
-    cookie,
-  }: {
-    newData: any;
-    rowId: string;
-    cookie;
-  }) {
-    for (const col of this.model.columns) {
-      // skip if not LTAR or Links
-      if (!isLinksOrLTAR(col)) continue;
+  async updateLTARCols({ datas, cookie }: { datas: any[]; cookie: NcRequest }) {
+    const trx = await this.dbDriver.transaction();
 
-      // skip if value is not part of the update
-      if (!(col.title in newData)) continue;
+    // Create a BaseModelSqlv2 instance that uses the transaction for operations
+    // while preserving the original dbDriver reference for non-transactional operations
+    const trxBaseModel = await Model.getBaseModelSQL(this.context, {
+      model: this.model,
+      transaction: trx,
+      dbDriver: this.dbDriver,
+    });
 
-      // extract existing link values to current record
-      let existingLinks = [];
+    try {
+      for (const col of this.model.columns) {
+        // skip if not LTAR or Links
+        if (!isLinksOrLTAR(col)) continue;
 
-      if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
-        existingLinks = await this.mmList({
-          colId: col.id,
-          parentId: rowId,
-        });
-      } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
-        existingLinks = await this.hmList({
-          colId: col.id,
-          id: rowId,
-        });
-      } else {
-        existingLinks = await this.btRead({
-          colId: col.id,
-          id: rowId,
-        });
-      }
+        for (const d of datas) {
+          const rowId = this.extractPksValues(d, true);
 
-      existingLinks = existingLinks || [];
+          // skip if value is not part of the update
+          if (!(col.title in d)) continue;
 
-      if (!Array.isArray(existingLinks)) {
-        existingLinks = [existingLinks];
-      }
+          // extract existing link values to current record
+          let existingLinks = [];
 
-      const idsToLink = [
-        ...(Array.isArray(newData[col.title])
-          ? newData[col.title]
-          : [newData[col.title]]
-        ).map((rec) => this.extractPksValues(rec, true)),
-      ];
-
-      // check for any missing links then unlink
-      const idsToUnlink = existingLinks
-        .map((link) => this.extractPksValues(link, true))
-        .filter((existingLinkPk) => {
-          const index = idsToLink.findIndex((linkPk) => {
-            return existingLinkPk === linkPk;
-          });
-
-          // if found remove from both list
-          if (index > -1) {
-            idsToLink.splice(index, 1);
-            return false;
+          if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
+            existingLinks = await trxBaseModel.mmList({
+              colId: col.id,
+              parentId: rowId,
+            });
+          } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
+            existingLinks = await trxBaseModel.hmList({
+              colId: col.id,
+              id: rowId,
+            });
+          } else {
+            existingLinks = await trxBaseModel.btRead({
+              colId: col.id,
+              id: rowId,
+            });
           }
 
-          return true;
-        });
+          existingLinks = existingLinks || [];
 
-      // check for missing links in new data and unlink them
-      if (idsToUnlink?.length) {
-        await this.removeLinks({
-          colId: col.id,
-          childIds: idsToUnlink,
-          cookie,
-          rowId,
-        });
+          if (!Array.isArray(existingLinks)) {
+            existingLinks = [existingLinks];
+          }
+
+          const idsToLink = [
+            ...(Array.isArray(d[col.title])
+              ? d[col.title]
+              : [d[col.title]]
+            ).map((rec) => this.extractPksValues(rec, true)),
+          ];
+
+          // check for any missing links then unlink
+          const idsToUnlink = existingLinks
+            .map((link) => this.extractPksValues(link, true))
+            .filter((existingLinkPk) => {
+              const index = idsToLink.findIndex((linkPk) => {
+                return existingLinkPk === linkPk;
+              });
+
+              // if found remove from both list
+              if (index > -1) {
+                idsToLink.splice(index, 1);
+                return false;
+              }
+
+              return true;
+            });
+
+          // check for missing links in new data and unlink them
+          if (idsToUnlink?.length) {
+            await trxBaseModel.removeLinks({
+              colId: col.id,
+              childIds: idsToUnlink,
+              cookie,
+              rowId,
+            });
+          }
+
+          // check for new data and link them
+          if (idsToLink?.length) {
+            await trxBaseModel.addLinks({
+              colId: col.id,
+              childIds: idsToLink,
+              cookie,
+              rowId,
+            });
+          }
+        }
       }
 
-      // check for new data and link them
-      if (idsToLink?.length) {
-        await this.addLinks({
-          colId: col.id,
-          childIds: idsToLink,
-          cookie,
-          rowId,
-        });
-      }
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback();
+      throw e;
     }
   }
 
@@ -3438,255 +3609,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async bulkDeleteAll(
-    args: { where?: string; filterArr?: Filter[]; viewId?: string } = {},
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+      viewId?: string;
+      skipPks?: string;
+    } = {},
     { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
   ) {
-    let trx: Knex.Transaction;
-    try {
-      const columns = await this.model.getColumns(this.context);
-      const { where } = this._getListArgs(args);
-      const qb = this.dbDriver(this.tnPath);
-      const aliasColObjMap = await this.model.getAliasColObjMap(
-        this.context,
-        columns,
-      );
-      const { filters: filterObj } = extractFilterFromXwhere(
-        this.context,
-        where,
-        aliasColObjMap,
-        true,
-      );
-
-      await conditionV2(
-        this,
-        [
-          new Filter({
-            children: args.filterArr || [],
-            is_group: true,
-            logical_op: 'and',
-          }),
-          new Filter({
-            children: filterObj,
-            is_group: true,
-            logical_op: 'and',
-          }),
-          ...(args.viewId
-            ? await Filter.rootFilterList(this.context, {
-                viewId: args.viewId,
-              })
-            : []),
-        ],
-        qb,
-        undefined,
-        true,
-      );
-      const execQueries: ((trx: Knex.Transaction, qb: any) => Promise<any>)[] =
-        [];
-      // qb.del();
-
-      for (const column of this.model.columns) {
-        if (!isLinksOrLTAR(column)) continue;
-
-        const colOptions =
-          await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
-
-        const { refContext, mmContext, parentContext, childContext } =
-          await colOptions.getParentChildContext(this.context);
-
-        if (colOptions.type === 'bt') {
-          continue;
-        }
-
-        const childColumn = await colOptions.getChildColumn(childContext);
-        const parentColumn = await colOptions.getParentColumn(parentContext);
-        const parentTable = await parentColumn.getModel(parentContext);
-        const childTable = await childColumn.getModel(childContext);
-        await childTable.getColumns(childContext);
-        await parentTable.getColumns(parentContext);
-
-        const childBaseModel = await Model.getBaseModelSQL(childContext, {
-          model: childTable,
-          dbDriver: this.dbDriver,
-        });
-
-        const childTn = childBaseModel.getTnPath(childTable);
-
-        switch (colOptions.type) {
-          case 'mm':
-            {
-              const vChildCol = await colOptions.getMMChildColumn(mmContext);
-              const vTable = await colOptions.getMMModel(mmContext);
-              const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
-                model: vTable,
-                dbDriver: this.dbDriver,
-              });
-              const vTn = assocBaseModel.getTnPath(vTable);
-
-              execQueries.push(() =>
-                this.dbDriver(vTn)
-                  .where({
-                    [vChildCol.column_name]: this.dbDriver(childTn)
-                      .select(childColumn.column_name)
-                      .first(),
-                  })
-                  .delete(),
-              );
-            }
-            break;
-          case 'hm':
-            {
-              // skip if it's an mm table column
-              const relatedTable = await colOptions.getRelatedTable(refContext);
-              if (relatedTable.mm) {
-                break;
-              }
-
-              const childColumn = await Column.get(childContext, {
-                colId: colOptions.fk_child_column_id,
-              });
-
-              execQueries.push((trx, qb) =>
-                trx(childTn)
-                  .where({
-                    [childColumn.column_name]: this.dbDriver.from(
-                      qb
-                        .select(parentColumn.column_name)
-                        // .where(_wherePk(parentTable.primaryKeys, rowId))
-                        .first()
-                        .as('___cn_alias'),
-                    ),
-                  })
-                  .update({
-                    [childColumn.column_name]: null,
-                  }),
-              );
-            }
-            break;
-        }
-      }
-
-      const source = await this.getSource();
-
-      // remove FileReferences for attachments
-      const attachmentColumns = columns.filter(
-        (c) => c.uidt === UITypes.Attachment,
-      );
-
-      // paginate all the records and find file reference ids
-      const selectQb = qb
-        .clone()
-        .select(
-          attachmentColumns
-            .map((c) => c.column_name)
-            .concat(this.model.primaryKeys.map((pk) => pk.column_name)),
-        );
-
-      const response = [];
-
-      let offset = 0;
-      const limit = 100;
-
-      const fileReferenceIds: string[] = [];
-
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const rows = await this.execAndParse(
-          selectQb
-            .clone()
-            .offset(offset)
-            .limit(limit + 1),
-          null,
-          {
-            raw: true,
-          },
-        );
-
-        if (rows.length === 0) {
-          break;
-        }
-
-        let lastPage = false;
-
-        if (rows.length > limit) {
-          rows.pop();
-        } else {
-          lastPage = true;
-        }
-
-        for (const row of rows) {
-          for (const c of attachmentColumns) {
-            if (row[c.column_name]) {
-              try {
-                let attachments;
-                if (typeof row[c.column_name] === 'string') {
-                  attachments = JSON.parse(row[c.column_name]);
-                  for (const attachment of attachments) {
-                    if (attachment.id) {
-                      fileReferenceIds.push(attachment.id);
-                    }
-                  }
-                }
-
-                if (Array.isArray(attachments)) {
-                  for (const attachment of attachments) {
-                    if (attachment.id) {
-                      fileReferenceIds.push(attachment.id);
-                    }
-                  }
-                }
-              } catch (e) {
-                // ignore error
-              }
-            }
-          }
-
-          const primaryData = {};
-
-          for (const pk of this.model.primaryKeys) {
-            primaryData[pk.title] = row[pk.column_name];
-          }
-
-          response.push(primaryData);
-        }
-
-        if (lastPage) {
-          break;
-        }
-
-        offset += limit;
-      }
-
-      // insert records updating record details to audit table
-      await this.bulkAudit({
-        qb: qb.clone(),
-        conditions: filterObj,
-        req: cookie,
-        event: AuditV1OperationTypes.DATA_BULK_DELETE,
-      });
-
-      await FileReference.delete(this.context, fileReferenceIds);
-
-      trx = await this.dbDriver.transaction();
-
-      // unlink LTAR data
-      if (source.isMeta()) {
-        for (const execQuery of execQueries) {
-          await execQuery(trx, qb.clone());
-        }
-      }
-
-      await qb.clone().transacting(trx).del();
-
-      await trx.commit();
-
-      if (!skip_hooks) {
-        await this.afterBulkDelete(response, this.dbDriver, cookie, true);
-      }
-
-      return response;
-    } catch (e) {
-      throw e;
-    }
+    return await new BaseModelDelete(this).bulkAll({
+      args,
+      cookie,
+      skip_hooks,
+    });
   }
 
   /**
@@ -3712,7 +3647,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { allowSystemColumn = false } = params || {};
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError.badRequest('Cannot insert into synced table');
+      NcError._.prohibitedSyncTableOperation({
+        modelName: this.model.title,
+        operation: 'insert',
+      });
     }
 
     await this.handleHooks('before.insert', null, data, req);
@@ -3729,7 +3667,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { allowSystemColumn = false } = params || {};
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError.badRequest('Cannot insert into synced table');
+      NcError._.prohibitedSyncTableOperation({
+        modelName: this.model.title,
+        operation: 'insert',
+      });
     }
 
     await this.handleHooks('before.bulkInsert', null, data, req);
@@ -3790,7 +3731,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // disable external source audit in cloud
     if (!req.ncParentAuditId && (await this.isDataAuditEnabled())) {
-      parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+      parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
       await Audit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(
@@ -3889,13 +3830,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data: any,
     _trx: any,
     req,
-    isBulkAllOperation = false,
+    _isBulkAllOperation = false,
   ): Promise<void> {
-    if (!isBulkAllOperation) {
-      await this.handleHooks('after.bulkDelete', null, data, req);
-    }
+    await this.handleHooks('after.bulkDelete', null, data, req);
 
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
     // disable external source audit in cloud
     if (await this.isDataAuditEnabled()) {
@@ -3963,7 +3902,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     if (newData && newData.length > 0) {
-      const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+      const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
       // disable external source audit in cloud
       if (await this.isDataAuditEnabled()) {
@@ -4158,7 +4097,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
     if (this.model.synced) {
-      NcError.badRequest('Cannot delete from synced table');
+      NcError._.prohibitedSyncTableOperation({
+        modelName: this.model.title,
+        operation: 'delete',
+      });
     }
 
     await this.handleHooks('before.delete', null, data, req);
@@ -4166,7 +4108,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeBulkDelete(_data: any, _trx: any, _req): Promise<void> {
     if (this.model.synced) {
-      NcError.badRequest('Cannot delete from synced table');
+      NcError._.prohibitedSyncTableOperation({
+        modelName: this.model.title,
+        operation: 'delete',
+      });
     }
   }
 
@@ -4189,42 +4134,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   // todo: handle composite primary key
   public extractPksValues(data: any, asString = false) {
-    // if data is not object return as it is
-    if (!data || typeof data !== 'object') {
-      if (asString && !ncIsNull(data) && !ncIsUndefined(data)) {
-        return `${data}`;
-      }
-      return data;
-    }
-
-    // data can be still inserted without PK
-
-    // if composite primary key return an object with all the primary keys
-    if (this.model.primaryKeys.length > 1) {
-      const pkValues = {};
-      for (const pk of this.model.primaryKeys) {
-        pkValues[pk.title] =
-          data[pk.title] ?? data[pk.column_name] ?? data[pk.id];
-      }
-      return asString
-        ? Object.values(pkValues)
-            .map((val) => val?.toString?.().replaceAll('_', '\\_'))
-            .join('___')
-        : pkValues;
-    } else if (this.model.primaryKey) {
-      let pkValue;
-      if (typeof data === 'object') {
-        pkValue =
-          data[this.model.primaryKey.title] ??
-          data[this.model.primaryKey.column_name] ??
-          data[this.model.primaryKey.id];
-      } else {
-        pkValue = data;
-      }
-      if (pkValue !== undefined) return asString ? `${pkValue}` : pkValue;
-    } else {
-      return 'N/A';
-    }
+    return dataWrapper(data).extractPksValue(this.model, asString);
   }
 
   protected async errorDelete(_e, _id, _trx, _cookie) {}
@@ -4390,7 +4300,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (Array.isArray(columnValue)) {
         columnValueArr = columnValue;
       } else {
-        columnValueArr = `${columnValue}`.split(',');
+        columnValueArr = `${columnValue}`.split(',').map((val) => val.trim());
       }
     } else {
       columnValueArr = [columnValue];
@@ -4427,6 +4337,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     onlyUpdateAuditLogs?: boolean;
     prevData?: Record<string, any>;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: cookie?.user,
+      req: cookie,
+    });
+
     await this.model.getColumns(this.context);
     const column = this.model.columnsById[colId];
 
@@ -4726,6 +4644,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     childId: string;
     cookie?: any;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: cookie?.user,
+      req: cookie,
+    });
+
     await this.model.getColumns(this.context);
     const column = this.model.columnsById[colId];
     if (
@@ -5132,9 +5058,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (this.isPg || this.isSnowflake) {
       return (await trx.raw(query))?.rows;
-    } else if (!this.isMssql && /^(\(|)select/i.test(query)) {
+    } else if (SELECT_REGEX.test(query)) {
       return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
-    } else if (this.isMySQL && /^(\(|)insert/i.test(query)) {
+    } else if (this.isMySQL && INSERT_REGEX.test(query)) {
       const res = await trx.raw(query);
       if (res && res[0] && res[0].insertId) {
         return res[0].insertId;
@@ -5236,9 +5162,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return data;
   }
 
-  protected sanitizeQuery(query: string | string[]) {
+  sanitizeQuery(query: string | string[]) {
     const fn = (q: string) => {
-      if (!this.isPg && !this.isMssql && !this.isSnowflake) {
+      if (!this.isPg && !this.isSnowflake) {
         return unsanitize(q);
       } else {
         return sanitize(q);
@@ -5248,7 +5174,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {
-    const queries = await Promise.all(ops);
+    const queries = (await Promise.all(ops)).filter((query) =>
+      ncIsStringHasValue(query),
+    );
     for (const query of queries) {
       await trx.raw(query);
     }
@@ -5266,9 +5194,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     const idToAliasMap: Record<string, string> = {};
-    const idToAliasPromiseMap: Record<string, Promise<string>> = {};
     const ltarMap: Record<string, boolean> = {};
+    const missingColumnIds = new Set<string>();
 
+    // Build initial maps and collect missing column IDs
     for (let col of modelColumns) {
       if (aliasColumns && col.id in aliasColumns) {
         aliasColumns[col.id].id = col.id;
@@ -5277,97 +5206,112 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       idToAliasMap[col.id] = col.title;
-      if ([UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt)) {
+
+      const isLtarColumn = [
+        UITypes.LinkToAnotherRecord,
+        UITypes.Lookup,
+      ].includes(col.uidt);
+      if (isLtarColumn) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);
           if (nestedCol?.uidt !== UITypes.LinkToAnotherRecord) {
+            ltarMap[col.id] = false;
             continue;
           }
         }
 
         ltarMap[col.id] = true;
-        const linkData = Object.values(data).find(
+
+        // Find any data that contains this column and collect missing column IDs
+        const linkData = data.find(
           (d) =>
             d[col.id] &&
-            // we need this check because Object.keys of array exists with 0 length
-            // so if it's an array we need to check if it contains item
-            ((!Array.isArray(d[col.id]) && Object.keys(d[col.id])) ||
+            ((!Array.isArray(d[col.id]) && Object.keys(d[col.id]).length > 0) ||
               (Array.isArray(d[col.id]) && d[col.id].length > 0)),
         );
-        if (linkData) {
-          if (typeof linkData[col.id] === 'object') {
-            for (const k of Object.keys(
-              Array.isArray(linkData[col.id])
-                ? linkData[col.id][0] || {}
-                : linkData[col.id],
-            )) {
-              const linkAlias = idToAliasMap[k];
-              if (!linkAlias) {
-                idToAliasPromiseMap[k] = Column.get(this.context, {
-                  colId: k,
-                })
-                  .then((col) => {
-                    return col?.title;
-                  })
-                  .catch((e) => {
-                    return Promise.resolve(e);
-                  });
-              }
+
+        if (linkData && typeof linkData[col.id] === 'object') {
+          const sampleData = Array.isArray(linkData[col.id])
+            ? linkData[col.id][0] || {}
+            : linkData[col.id];
+
+          Object.keys(sampleData).forEach((k) => {
+            if (!idToAliasMap[k]) {
+              missingColumnIds.add(k);
             }
-          } else {
-            // Has Many BT
-            const linkAlias = idToAliasMap[col.id];
-            if (!linkAlias) {
-              idToAliasPromiseMap[col.id] = Column.get(this.context, {
-                colId: col.id,
-              })
-                .then((col) => {
-                  return col?.title;
-                })
-                .catch((e) => {
-                  return Promise.resolve(e);
-                });
-            }
-          }
+          });
         }
       } else {
         ltarMap[col.id] = false;
       }
     }
-    for (const k of Object.keys(idToAliasPromiseMap)) {
-      idToAliasMap[k] = await idToAliasPromiseMap[k];
-      if ((idToAliasMap[k] as unknown) instanceof Error) {
-        throw idToAliasMap[k];
-      }
-    }
-    data.forEach((item) => {
-      Object.entries(item).forEach(([key, value]) => {
-        const alias = idToAliasMap[key];
-        if (alias) {
-          if (ltarMap[key]) {
-            // Handle LTAR/Lookup columns
-            if (ncIsArray(value) && value.length > 0 && ncIsObject(value[0])) {
-              // Transform array of objects
-              item[alias] = value.map((arrVal) =>
-                transformObject(arrVal, idToAliasMap),
-              );
-            } else if (ncIsObject(value) && !ncIsArray(value)) {
-              // Transform non-array objects
-              item[alias] = transformObject(value, idToAliasMap);
-            } else {
-              // Directly assign arrays of primitives or primitive values
-              item[alias] = value;
-            }
-          } else {
-            // Non-LTAR/Lookup columns: direct assignment
-            item[alias] = value;
-          }
-          delete item[key];
+
+    // Fetch all missing column aliases concurrently
+    if (missingColumnIds.size > 0) {
+      const columnPromises = Array.from(missingColumnIds).map(async (k) => {
+        try {
+          const col = await Column.get(this.context, { colId: k });
+          return { id: k, title: col?.title };
+        } catch (e) {
+          // ignore error to avoid breaking the entire response
+          return {};
         }
       });
-    });
 
-    return data;
+      const columnResults = await Promise.all(columnPromises);
+
+      // Update the alias map with fetched columns
+      columnResults.forEach(({ id, title }) => {
+        if (title) {
+          idToAliasMap[id] = title;
+        }
+      });
+    }
+
+    // Transform data in a single pass
+    return data.map((item) => {
+      const transformedItem = {};
+
+      Object.entries(item).forEach(([key, value]) => {
+        const alias = idToAliasMap[key];
+        const targetKey = alias || key;
+
+        if (alias && ltarMap[key]) {
+          // Handle LTAR/Lookup columns
+          if (
+            Array.isArray(value) &&
+            value.length > 0 &&
+            value[0] &&
+            typeof value[0] === 'object' &&
+            !Array.isArray(value[0])
+          ) {
+            // Transform array of objects
+            transformedItem[targetKey] = value.map((arrVal) => {
+              if (!arrVal || typeof arrVal !== 'object') return arrVal;
+              return transformObjectKeys(arrVal, idToAliasMap);
+            });
+          } else if (
+            value &&
+            typeof value === 'object' &&
+            !Array.isArray(value)
+          ) {
+            // Transform non-array objects
+            transformedItem[targetKey] = transformObjectKeys(
+              value,
+              idToAliasMap,
+            );
+          } else {
+            // Directly assign arrays of primitives or primitive values
+            transformedItem[targetKey] = value;
+          }
+        } else {
+          // Non-LTAR/Lookup columns or unmapped columns: direct assignment
+          transformedItem[targetKey] = value;
+        }
+      });
+
+      return transformedItem;
+    });
   }
 
   protected async convertUserFormat(
@@ -5377,68 +5321,84 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     // user is stored as id within the database
     // convertUserFormat is used to convert the response in id to user object in API response
-    if (data) {
-      let userColumns = [];
+    if (!data) {
+      return data;
+    }
 
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
-      for (const col of columns) {
-        if (col.uidt === UITypes.Lookup) {
-          if (
-            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-              (await this.getNestedColumn(col))?.uidt as UITypes,
-            )
-          ) {
-            userColumns.push(col);
-          }
-        } else {
-          if (
-            [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
-              col.uidt,
-            )
-          ) {
-            userColumns.push(col);
-          }
-        }
-      }
+    // Separate columns by type for more efficient processing
+    const directUserColumns = [];
+    const lookupColumns = [];
 
-      // filter user columns that are not present in data
-      if (userColumns.length) {
-        if (Array.isArray(data)) {
-          const row = data[0];
-          if (row) {
-            userColumns = userColumns.filter((col) => col.id in row);
-          }
-        } else {
-          userColumns = userColumns.filter((col) => col.id in data);
-        }
-      }
-
-      // process user columns that are present in data
-      if (userColumns.length) {
-        const baseUsers = await BaseUser.getUsersList(this.context, {
-          base_id: this.model.base_id,
-        });
-
-        await PresignedUrl.signMetaIconImage(baseUsers);
-
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) =>
-              this._convertUserFormat(userColumns, baseUsers, d, apiVersion),
-            ),
-          );
-        } else {
-          data = this._convertUserFormat(
-            userColumns,
-            baseUsers,
-            data,
-            apiVersion,
-          );
-        }
+    for (const col of columns) {
+      if (col.uidt === UITypes.Lookup) {
+        lookupColumns.push(col);
+      } else if (
+        [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+          col.uidt,
+        )
+      ) {
+        directUserColumns.push(col);
       }
     }
-    return data;
+
+    // Process lookup columns in parallel to find user columns
+    const lookupUserColumns =
+      lookupColumns.length > 0
+        ? await Promise.all(
+            lookupColumns.map(async (col) => {
+              try {
+                const nestedCol = await this.getNestedColumn(col);
+                return [
+                  UITypes.User,
+                  UITypes.CreatedBy,
+                  UITypes.LastModifiedBy,
+                ].includes(nestedCol?.uidt as UITypes)
+                  ? col
+                  : null;
+              } catch {
+                return null;
+              }
+            }),
+          ).then((results) => results.filter(Boolean))
+        : [];
+
+    const allUserColumns = [...directUserColumns, ...lookupUserColumns];
+
+    if (!allUserColumns.length) {
+      return data;
+    }
+
+    // Fetch users and sign meta icons in parallel
+    const baseUsers = await BaseUser.getUsersList(this.context, {
+      base_id: this.model.base_id,
+      include_internal_user: true,
+    });
+
+    await PresignedUrl.signMetaIconImage(baseUsers);
+
+    if (Array.isArray(data)) {
+      const userMap = new Map(baseUsers.map((user) => [user.id, user]));
+      return Promise.all(
+        data.map((d) =>
+          this._convertUserFormat(
+            allUserColumns,
+            baseUsers,
+            d,
+            apiVersion,
+            userMap,
+          ),
+        ),
+      );
+    } else {
+      return this._convertUserFormat(
+        allUserColumns,
+        baseUsers,
+        data,
+        apiVersion,
+      );
+    }
   }
 
   protected _convertUserFormat(
@@ -5446,19 +5406,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     baseUsers: Partial<User>[],
     d: Record<string, any>,
     apiVersion?: NcApiVersion,
+    userMapInit?: Map<string, Partial<User> & BaseUser>,
   ) {
     try {
-      if (d) {
+      if (d && baseUsers.length) {
+        const userMap =
+          userMapInit || new Map(baseUsers.map((user) => [user.id, user]));
+
         const availableUserColumns = userColumns.filter(
           (col) => d[col.id] && d[col.id].length,
         );
+
         for (const col of availableUserColumns) {
           d[col.id] = d[col.id].split(',');
 
           d[col.id] = d[col.id].map((fid) => {
-            const { id, email, display_name, meta } = baseUsers.find(
-              (u) => u.id === fid,
-            );
+            const user = userMap.get(fid);
+            if (!user) {
+              return { id: fid, email: null, display_name: null, meta: null };
+            }
+
+            const { id, email, display_name, meta } = user;
 
             let metaObj: any;
             if (apiVersion !== NcApiVersion.V3) {
@@ -5490,188 +5458,150 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     d: Record<string, any>,
   ) {
     try {
-      if (d) {
-        const promises = [];
-        for (const col of attachmentColumns) {
-          if (d[col.id] && typeof d[col.id] === 'string') {
+      if (!d || !attachmentColumns.length) {
+        return d;
+      }
+
+      const allAttachments = [];
+      const allThumbnails = [];
+
+      // First pass: parse JSON and collect all attachment instances (no deduplication)
+      for (const col of attachmentColumns) {
+        if (!d[col.id]) continue;
+
+        // Parse JSON if needed
+        if (typeof d[col.id] === 'string') {
+          try {
             d[col.id] = JSON.parse(d[col.id]);
+          } catch {
+            continue;
+          }
+        }
+
+        if (!Array.isArray(d[col.id]) || !d[col.id].length) continue;
+
+        // Process each attachment instance individually
+        for (let i = 0; i < d[col.id].length; i++) {
+          const item = d[col.id][i];
+
+          if (typeof item === 'string') {
+            try {
+              d[col.id][i] = JSON.parse(item);
+            } catch {
+              continue;
+            }
           }
 
-          if (d[col.id]?.length) {
-            for (let i = 0; i < d[col.id].length; i++) {
-              if (typeof d[col.id][i] === 'string') {
-                d[col.id][i] = JSON.parse(d[col.id][i]);
-              }
+          const attachment = d[col.id][i];
 
-              const attachment = d[col.id][i];
-
-              // we expect array of array of attachments in case of lookup
-              if (Array.isArray(attachment)) {
-                for (const lookedUpAttachment of attachment) {
-                  if (lookedUpAttachment?.path) {
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: lookedUpAttachment,
-                        filename: lookedUpAttachment.title,
-                      }),
-                    );
-
-                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
-                      continue;
-                    }
-
-                    lookedUpAttachment.thumbnails = {
-                      tiny: {},
-                      small: {},
-                      card_cover: {},
-                    };
-
-                    const thumbnailPath = `thumbnails/${lookedUpAttachment.path.replace(
-                      /^download[/\\]/i,
-                      '',
-                    )}`;
-
-                    for (const key of Object.keys(
-                      lookedUpAttachment.thumbnails,
-                    )) {
-                      promises.push(
-                        PresignedUrl.signAttachment({
-                          attachment: {
-                            ...lookedUpAttachment,
-                            path: `${thumbnailPath}/${key}.jpg`,
-                          },
-                          filename: lookedUpAttachment.title,
-                          mimetype: 'image/jpeg',
-                          nestedKeys: ['thumbnails', key],
-                        }),
-                      );
-                    }
-                  } else if (lookedUpAttachment?.url) {
-                    if (lookedUpAttachment?.url.startsWith('data:')) {
-                      continue;
-                    }
-
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: lookedUpAttachment,
-                        filename: lookedUpAttachment.title,
-                      }),
-                    );
-
-                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
-                      continue;
-                    }
-
-                    const thumbnailUrl = lookedUpAttachment.url.replace(
-                      'nc/uploads',
-                      'nc/thumbnails',
-                    );
-
-                    lookedUpAttachment.thumbnails = {
-                      tiny: {},
-                      small: {},
-                      card_cover: {},
-                    };
-
-                    for (const key of Object.keys(
-                      lookedUpAttachment.thumbnails,
-                    )) {
-                      promises.push(
-                        PresignedUrl.signAttachment({
-                          attachment: {
-                            ...lookedUpAttachment,
-                            url: `${thumbnailUrl}/${key}.jpg`,
-                          },
-                          filename: lookedUpAttachment.title,
-                          mimetype: 'image/jpeg',
-                          nestedKeys: ['thumbnails', key],
-                        }),
-                      );
-                    }
-                  }
-                }
-              } else {
-                if (attachment?.path) {
-                  promises.push(
-                    PresignedUrl.signAttachment({
-                      attachment,
-                      filename: attachment.title,
-                    }),
-                  );
-
-                  if (!attachment.mimetype?.startsWith('image/')) {
-                    continue;
-                  }
-
-                  const thumbnailPath = `thumbnails/${attachment.path.replace(
-                    /^download[/\\]/i,
-                    '',
-                  )}`;
-
-                  attachment.thumbnails = {
-                    tiny: {},
-                    small: {},
-                    card_cover: {},
-                  };
-
-                  for (const key of Object.keys(attachment.thumbnails)) {
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: {
-                          ...attachment,
-                          path: `${thumbnailPath}/${key}.jpg`,
-                        },
-                        filename: attachment.title,
-                        mimetype: 'image/jpeg',
-                        nestedKeys: ['thumbnails', key],
-                      }),
-                    );
-                  }
-                } else if (attachment?.url) {
-                  if (attachment?.url.startsWith('data:')) {
-                    continue;
-                  }
-
-                  promises.push(
-                    PresignedUrl.signAttachment({
-                      attachment,
-                      filename: attachment.title,
-                    }),
-                  );
-
-                  const thumbhailUrl = attachment.url.replace(
-                    'nc/uploads',
-                    'nc/thumbnails',
-                  );
-
-                  attachment.thumbnails = {
-                    tiny: {},
-                    small: {},
-                    card_cover: {},
-                  };
-
-                  for (const key of Object.keys(attachment.thumbnails)) {
-                    promises.push(
-                      PresignedUrl.signAttachment({
-                        attachment: {
-                          ...attachment,
-                          url: `${thumbhailUrl}/${key}.jpg`,
-                        },
-                        filename: attachment.title,
-                        mimetype: 'image/jpeg',
-                        nestedKeys: ['thumbnails', key],
-                      }),
-                    );
-                  }
-                }
-              }
+          // Handle array of arrays (lookup case)
+          for (const lookedUpAttachment of Array.isArray(attachment)
+            ? attachment
+            : [attachment]) {
+            const thumbnails =
+              this.prepareAttachmentForSigning(lookedUpAttachment);
+            if (
+              lookedUpAttachment &&
+              (lookedUpAttachment.path || lookedUpAttachment.url)
+            ) {
+              allAttachments.push(lookedUpAttachment);
+              allThumbnails.push(...thumbnails);
             }
           }
         }
-        await Promise.all(promises);
       }
-    } catch {}
+
+      await processConcurrently(
+        allAttachments,
+        async (item) => {
+          try {
+            await PresignedUrl.signAttachment({
+              attachment: item,
+              filename: item.title,
+            });
+          } catch (e) {}
+        },
+        15,
+      );
+
+      await processConcurrently(
+        allThumbnails,
+        async ({ attachment, thumbnailKey, thumbnailPath }) => {
+          try {
+            await PresignedUrl.signAttachment({
+              attachment: {
+                ...attachment,
+                ...(attachment.path
+                  ? { path: thumbnailPath }
+                  : { url: thumbnailPath }),
+              },
+              filename: attachment.title,
+              mimetype: 'image/jpeg',
+              nestedKeys: ['thumbnails', thumbnailKey],
+            });
+          } catch (e) {}
+        },
+        15,
+      );
+    } catch (error) {
+      // Log error but don't throw to avoid breaking the entire response
+      console.warn('Error in _convertAttachmentType:', error.message);
+    }
+
     return d;
+  }
+
+  private prepareAttachmentForSigning(attachment: any) {
+    const thumbnails = [];
+
+    if (!attachment || (!attachment.path && !attachment.url)) {
+      return thumbnails;
+    }
+
+    // Skip data URLs
+    if (attachment.url?.startsWith('data:')) {
+      return thumbnails;
+    }
+
+    if ('status' in attachment && attachment.status === 'uploading') {
+      return thumbnails;
+    }
+
+    // Process thumbnails for images
+    if (supportsThumbnails(attachment)) {
+      attachment.thumbnails = {
+        tiny: {},
+        small: {},
+        card_cover: {},
+      };
+
+      const thumbnailKeys = Object.keys(attachment.thumbnails);
+
+      for (const key of thumbnailKeys) {
+        let thumbnailPath: string;
+
+        if (attachment.path) {
+          const cleanPath = attachment.path.replace(/^download[/\\]/i, '');
+          thumbnailPath = `thumbnails/${cleanPath}/${key}.jpg`;
+        } else if (attachment.url) {
+          const thumbnailUrl = attachment.url.replace(
+            'nc/uploads',
+            'nc/thumbnails',
+          );
+          thumbnailPath = `${thumbnailUrl}/${key}.jpg`;
+        }
+
+        if (thumbnailPath) {
+          thumbnails.push({
+            attachment,
+            thumbnailKey: key,
+            thumbnailPath,
+          });
+        }
+      }
+    }
+
+    return thumbnails;
   }
 
   protected async _convertJsonType(
@@ -5748,69 +5678,86 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     // buttons & AI result are stringified json in Sqlite and need to be parsed
     // converJsonTypes is used to convert the response in string to object in API response
-    if (data) {
-      const jsonCols = [];
+    if (!data) {
+      return data;
+    }
 
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
-      for (const col of columns) {
-        if (col.uidt === UITypes.Lookup) {
-          const lookupNestedCol = await this.getNestedColumn(col);
+    // Separate JSON and lookup columns for efficient processing
+    const directJsonColumns = [];
+    const lookupColumns = [];
 
-          if (
-            JSON_COLUMN_TYPES.includes(lookupNestedCol.uidt) ||
-            isAIPromptCol(lookupNestedCol)
-          ) {
-            jsonCols.push(col);
-          }
-        } else {
-          if (JSON_COLUMN_TYPES.includes(col.uidt) || isAIPromptCol(col)) {
-            jsonCols.push(col);
-          }
-        }
-      }
-
-      if (jsonCols.length) {
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) => this._convertJsonType(jsonCols, d)),
-          );
-        } else {
-          data = await this._convertJsonType(jsonCols, data);
-        }
+    for (const col of columns) {
+      if (JSON_COLUMN_TYPES.includes(col.uidt) || isAIPromptCol(col)) {
+        directJsonColumns.push(col);
+      } else if (col.uidt === UITypes.Lookup) {
+        lookupColumns.push(col);
       }
     }
-    return data;
+
+    // Process lookup columns in parallel to find JSON columns
+    const lookupJsonColumns =
+      lookupColumns.length > 0
+        ? await Promise.all(
+            lookupColumns.map(async (col) => {
+              try {
+                const lookupNestedCol = await this.getNestedColumn(col);
+                return JSON_COLUMN_TYPES.includes(lookupNestedCol.uidt) ||
+                  isAIPromptCol(lookupNestedCol)
+                  ? col
+                  : null;
+              } catch (error) {
+                // Log error but continue processing
+                console.warn(
+                  `Error processing lookup column ${col.id}:`,
+                  error,
+                );
+                return null;
+              }
+            }),
+          ).then((results) => results.filter(Boolean))
+        : [];
+
+    const allJsonColumns = [...directJsonColumns, ...lookupJsonColumns];
+
+    if (!allJsonColumns.length) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return Promise.all(
+        data.map((d) => this._convertJsonType(allJsonColumns, d)),
+      );
+    } else {
+      return this._convertJsonType(allJsonColumns, data);
+    }
   }
 
   public async convertMultiSelectTypes(
     data: Record<string, any>,
     dependencyColumns?: Column[],
   ) {
-    if (data) {
-      const multiSelectColumns = [];
-
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
-
-      for (const col of columns) {
-        if (col.uidt === UITypes.MultiSelect) {
-          multiSelectColumns.push(col);
-        }
-      }
-
-      if (multiSelectColumns.length) {
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) =>
-              this._convertMultiSelectType(multiSelectColumns, d),
-            ),
-          );
-        } else {
-          data = await this._convertMultiSelectType(multiSelectColumns, data);
-        }
-      }
+    if (!data) {
+      return data;
     }
-    return data;
+
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const multiSelectColumns = columns.filter(
+      (col) => col.uidt === UITypes.MultiSelect,
+    );
+
+    if (!multiSelectColumns.length) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return Promise.all(
+        data.map((d) => this._convertMultiSelectType(multiSelectColumns, d)),
+      );
+    } else {
+      return this._convertMultiSelectType(multiSelectColumns, data);
+    }
   }
 
   public async convertAttachmentType(
@@ -5819,34 +5766,60 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
-    if (data) {
-      const attachmentColumns = [];
+    if (!data) {
+      return data;
+    }
 
-      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+    const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
-      for (const col of columns) {
-        if (col.uidt === UITypes.Lookup) {
-          if ((await this.getNestedColumn(col))?.uidt === UITypes.Attachment) {
-            attachmentColumns.push(col);
-          }
-        } else {
-          if (col.uidt === UITypes.Attachment) {
-            attachmentColumns.push(col);
-          }
-        }
-      }
+    // Separate attachment and lookup columns for efficient processing
+    const directAttachmentColumns = [];
+    const lookupColumns = [];
 
-      if (attachmentColumns.length) {
-        if (Array.isArray(data)) {
-          data = await Promise.all(
-            data.map((d) => this._convertAttachmentType(attachmentColumns, d)),
-          );
-        } else {
-          data = await this._convertAttachmentType(attachmentColumns, data);
-        }
+    for (const col of columns) {
+      if (col.uidt === UITypes.Attachment) {
+        directAttachmentColumns.push(col);
+      } else if (col.uidt === UITypes.Lookup) {
+        lookupColumns.push(col);
       }
     }
-    return data;
+
+    // Process lookup columns in parallel to find attachment columns
+    const lookupAttachmentColumns =
+      lookupColumns.length > 0
+        ? await Promise.all(
+            lookupColumns.map(async (col) => {
+              try {
+                const nestedCol = await this.getNestedColumn(col);
+                return nestedCol?.uidt === UITypes.Attachment ? col : null;
+              } catch (error) {
+                // Log error but continue processing
+                console.warn(
+                  `Error processing lookup column ${col.id}:`,
+                  error,
+                );
+                return null;
+              }
+            }),
+          ).then((results) => results.filter(Boolean))
+        : [];
+
+    const allAttachmentColumns = [
+      ...directAttachmentColumns,
+      ...lookupAttachmentColumns,
+    ];
+
+    if (!allAttachmentColumns.length) {
+      return data;
+    }
+
+    if (Array.isArray(data)) {
+      return Promise.all(
+        data.map((d) => this._convertAttachmentType(allAttachmentColumns, d)),
+      );
+    } else {
+      return this._convertAttachmentType(allAttachmentColumns, data);
+    }
   }
 
   // TODO(timezone): retrieve the format from the corresponding column meta
@@ -5855,9 +5828,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     d: Record<string, any>,
   ) {
     if (!d) return d;
+
+    // Cache timezone and regex patterns at the method level for better performance
+    const cachedTimeZone = this.isSqlite
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone
+      : null;
+
+    // Pre-compile regex patterns to avoid repeated compilation
+    // the pre-compiled patterns have mutable `lastIndex` property that we use below, so it cannot be made global to avoid race condition
+    const isoRegex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/g;
+    const datetimeRegex =
+      /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g;
+    const noTimezoneRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
+
     for (const col of dateTimeColumns) {
       if (!d[col.id]) continue;
-
       if (col.uidt === UITypes.Formula) {
         if (!d[col.id] || typeof d[col.id] !== 'string') {
           continue;
@@ -5866,70 +5851,63 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         // remove milliseconds
         if (this.isMySQL) {
           d[col.id] = d[col.id].replace(/\.000000/g, '');
-        } else if (this.isMssql) {
-          d[col.id] = d[col.id].replace(/\.0000000 \+00:00/g, '');
         }
 
-        if (/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g.test(d[col.id])) {
+        // Reset regex lastIndex for reuse
+        isoRegex.lastIndex = 0;
+        if (isoRegex.test(d[col.id])) {
           // convert ISO string (e.g. in MSSQL) to YYYY-MM-DD hh:mm:ssZ
           // e.g. 2023-05-18T05:30:00.000Z -> 2023-05-18 11:00:00+05:30
-          d[col.id] = d[col.id].replace(
-            /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z/g,
-            (d: string) => {
-              if (!dayjs(d).isValid()) return d;
-              if (this.isSqlite) {
-                // e.g. DATEADD formula
-                return dayjs(d).utc().format('YYYY-MM-DD HH:mm:ssZ');
-              }
-              return dayjs(d).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
-            },
-          );
+          isoRegex.lastIndex = 0; // Reset for replace
+          d[col.id] = d[col.id].replace(isoRegex, (dateStr: string) => {
+            if (!dayjs(dateStr).isValid()) return dateStr;
+            if (this.isSqlite) {
+              // e.g. DATEADD formula
+              return dayjs(dateStr).utc().format('YYYY-MM-DD HH:mm:ssZ');
+            }
+            return dayjs(dateStr).utc(true).format('YYYY-MM-DD HH:mm:ssZ');
+          });
           continue;
         }
 
         // convert all date time values to utc
         // the datetime is either YYYY-MM-DD hh:mm:ss (xcdb)
         // or YYYY-MM-DD hh:mm:ss+/-xx:yy (ext)
-        d[col.id] = d[col.id].replace(
-          /\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?/g,
-          (d: string) => {
-            if (!dayjs(d).isValid()) {
-              return d;
-            }
+        datetimeRegex.lastIndex = 0; // Reset for replace
+        d[col.id] = d[col.id].replace(datetimeRegex, (dateStr: string) => {
+          if (!dayjs(dateStr).isValid()) {
+            return dateStr;
+          }
 
-            if (this.isSqlite) {
-              // if there is no timezone info,
-              // we assume the input is on NocoDB server timezone
-              // then we convert to UTC from server timezone
-              // example: datetime without timezone
-              // we need to display 2023-04-27 10:00:00 (in HKT)
-              // we convert d (e.g. 2023-04-27 18:00:00) to utc, i.e. 2023-04-27 02:00:00+00:00
-              // if there is timezone info,
-              // we simply convert it to UTC
-              // example: datetime with timezone
-              // e.g. 2023-04-27 10:00:00+05:30  -> 2023-04-27 04:30:00+00:00
-              return dayjs(d)
-                .tz(Intl.DateTimeFormat().resolvedOptions().timeZone)
-                .utc()
-                .format('YYYY-MM-DD HH:mm:ssZ');
-            }
+          if (this.isSqlite) {
+            // if there is no timezone info,
+            // we assume the input is on NocoDB server timezone
+            // then we convert to UTC from server timezone
+            // example: datetime without timezone
+            // we need to display 2023-04-27 10:00:00 (in HKT)
+            // we convert d (e.g. 2023-04-27 18:00:00) to utc, i.e. 2023-04-27 02:00:00+00:00
+            // if there is timezone info,
+            // we simply convert it to UTC
+            // example: datetime with timezone
+            // e.g. 2023-04-27 10:00:00+05:30  -> 2023-04-27 04:30:00+00:00
+            return dayjs(dateStr)
+              .tz(cachedTimeZone)
+              .utc()
+              .format('YYYY-MM-DD HH:mm:ssZ');
+          }
 
-            // set keepLocalTime to true if timezone info is not found
-            const keepLocalTime = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/g.test(
-              d,
-            );
+          // set keepLocalTime to true if timezone info is not found
+          const keepLocalTime = noTimezoneRegex.test(dateStr);
 
-            return dayjs(d).utc(keepLocalTime).format('YYYY-MM-DD HH:mm:ssZ');
-          },
-        );
+          return dayjs(dateStr)
+            .utc(keepLocalTime)
+            .format('YYYY-MM-DD HH:mm:ssZ');
+        });
         continue;
       }
 
       if (col.uidt === UITypes.Date) {
-        const dateFormat = col.meta?.date_format;
-        if (dateFormat) {
-          d[col.title] = dayjs(d[col.title], dateFormat).format(dateFormat);
-        }
+        d[col.id] = dayjs(d[col.id]).format('YYYY-MM-DD');
         continue;
       }
 
@@ -6008,20 +5986,87 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async addLinks(params: {
     cookie: any;
-    childIds: (string | number | Record<string, any>)[];
+    childIds: (string | number)[];
     colId: string;
     rowId: string;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: params.colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: params.cookie?.user,
+      req: params.cookie,
+    });
+
     return addOrRemoveLinks(this).addLinks(params);
   }
 
   async removeLinks(params: {
     cookie: any;
-    childIds: (string | number | Record<string, any>)[];
+    childIds: (string | number)[];
     colId: string;
     rowId: string;
   }) {
+    await this.checkPermission({
+      entity: PermissionEntity.FIELD,
+      entityId: params.colId,
+      permission: PermissionKey.RECORD_FIELD_EDIT,
+      user: params.cookie?.user,
+      req: params.cookie,
+    });
+
     return addOrRemoveLinks(this).removeLinks(params);
+  }
+
+  async ooRead(
+    { colId, id }: { colId; id; apiVersion?: NcApiVersion },
+    _args: { limit?; offset?; fieldSet?: Set<string> } = {},
+  ) {
+    try {
+      await this.model.getColumns(this.context);
+
+      const relColumn = this.model.columnsById[colId];
+      if (!relColumn) {
+        NcError.get(this.context).fieldNotFound(colId);
+      }
+      const relColOptions = (await relColumn.getColOptions(
+        this.context,
+      )) as LinkToAnotherRecordColumn;
+      const relatedContext = await relColOptions.getRelContext(this.context);
+      const relatedBaseModel = await getBaseModelSqlFromModelId({
+        modelId: relColOptions.fk_related_model_id,
+        context: relatedContext.refContext,
+      });
+      const joinIds = [
+        relColOptions.fk_child_column_id,
+        relColOptions.fk_parent_column_id,
+      ];
+      const relatedColumn = (
+        await relatedBaseModel.model.getColumns(relatedBaseModel.context)
+      ).find((col) => joinIds.includes(col.id));
+
+      const row = await relatedBaseModel.execAndParse(
+        relatedBaseModel
+          .dbDriver(
+            relatedBaseModel.getTnPath(relatedBaseModel.model.table_name),
+          )
+          .where(relatedColumn.column_name, '=', id),
+        null,
+        { raw: true, first: true },
+      );
+
+      // validate rowId
+      if (!row) {
+        return {};
+      }
+
+      return relatedBaseModel.readByPk(
+        relatedBaseModel.extractPksValues(row, true),
+        row.id,
+      );
+    } catch (e) {
+      throw e;
+    }
   }
 
   async btRead(
@@ -6331,12 +6376,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             UITypes.PhoneNumber,
             UITypes.Email,
             UITypes.JSON,
+            UITypes.Currency,
           ].includes(column.uidt as UITypes))
       ) {
         data[column.column_name] = (
           await FieldHandler.fromBaseModel(this).parseUserInput({
             value: data[column.column_name],
             column,
+            oldData,
             row: data,
             options: {
               context: this.context,
@@ -6387,47 +6434,59 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           data[column.column_name] = isInsertData ? null : cookie?.user?.id;
         }
       }
-      if (column.uidt === UITypes.Attachment) {
+      if (
+        column.uidt === UITypes.Attachment &&
+        this.context.api_version === NcApiVersion.V3
+      ) {
+        if (column.column_name in data) {
+          if (
+            data &&
+            data[column.column_name] &&
+            typeof data[column.column_name] === 'object'
+          ) {
+            data[column.column_name] = JSON.stringify(data[column.column_name]);
+          }
+        }
+      } else if (
+        column.uidt === UITypes.Attachment &&
+        this.context.api_version !== NcApiVersion.V3
+      ) {
         if (column.column_name in data) {
           if (data && data[column.column_name]) {
-            if (this.context.api_version !== NcApiVersion.V3) {
-              try {
-                if (typeof data[column.column_name] === 'string') {
-                  data[column.column_name] = JSON.parse(
-                    data[column.column_name],
-                  );
-                }
-
-                if (
-                  data[column.column_name] &&
-                  !Array.isArray(data[column.column_name])
-                ) {
-                  NcError.invalidAttachmentJson(data[column.column_name]);
-                }
-              } catch (e) {
-                NcError.invalidAttachmentJson(data[column.column_name]);
+            try {
+              if (typeof data[column.column_name] === 'string') {
+                data[column.column_name] = JSON.parse(data[column.column_name]);
               }
 
-              // Confirm that all urls are valid urls
-              for (const attachment of data[column.column_name] || []) {
-                if (!('url' in attachment) && !('path' in attachment)) {
+              if (
+                data[column.column_name] &&
+                !Array.isArray(data[column.column_name])
+              ) {
+                NcError.invalidAttachmentJson(data[column.column_name]);
+              }
+            } catch (e) {
+              NcError.invalidAttachmentJson(data[column.column_name]);
+            }
+
+            // Confirm that all urls are valid urls
+            for (const attachment of data[column.column_name] || []) {
+              if (!('url' in attachment) && !('path' in attachment)) {
+                NcError.unprocessableEntity(
+                  'Attachment object must contain either url or path',
+                );
+              }
+
+              if (attachment.url) {
+                if (attachment.url.startsWith('data:')) {
                   NcError.unprocessableEntity(
-                    'Attachment object must contain either url or path',
+                    `Attachment urls do not support data urls`,
                   );
                 }
 
-                if (attachment.url) {
-                  if (attachment.url.startsWith('data:')) {
-                    NcError.unprocessableEntity(
-                      `Attachment urls do not support data urls`,
-                    );
-                  }
-
-                  if (attachment.url.length > 8 * 1024) {
-                    NcError.unprocessableEntity(
-                      `Attachment url '${attachment.url}' is too long`,
-                    );
-                  }
+                if (attachment.url.length > 8 * 1024) {
+                  NcError.unprocessableEntity(
+                    `Attachment url '${attachment.url}' is too long`,
+                  );
                 }
               }
             }
@@ -6557,7 +6616,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.uidt,
         )
       ) {
-        if (data[column.column_name]) {
+        if (!ncIsNullOrUndefined(data[column.column_name])) {
           const userIds = [];
 
           if (
@@ -6574,6 +6633,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             // deleted user may still exists on some fields
             // it's still valid as a historical record
             include_ws_deleted: true,
+            include_internal_user: true,
           });
 
           if (typeof data[column.column_name] === 'object') {
@@ -6690,8 +6750,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else if (isAIPromptCol(column) && !extra?.raw) {
         if (data[column.column_name]) {
           let value = data[column.column_name];
+          /**
+           * IsAiEdited is used to fix edited by ai issue in expanded form as cookie?.system will be undefined in that case
+           */
+          let isAiEdited = false;
 
           if (typeof value === 'object') {
+            isAiEdited = value.isAiEdited;
+            delete value.isAiEdited;
+
             value = value.value;
           }
 
@@ -6702,7 +6769,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             isStale?: string;
           } = {};
 
-          if (cookie?.system === true) {
+          if (cookie?.system === true || isAiEdited) {
             Object.assign(obj, {
               value,
               lastModifiedBy: null,
@@ -6736,11 +6803,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public now() {
     return dayjs()
       .utc()
-      .format(
-        this.isMySQL || this.isMssql
-          ? 'YYYY-MM-DD HH:mm:ss'
-          : 'YYYY-MM-DD HH:mm:ssZ',
-      );
+      .format(this.isMySQL ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
   }
 
   async getCustomConditionsAndApply(params: {
@@ -6830,7 +6893,38 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  protected async bulkAudit({
+  private async broadcastLinkUpdateAwaited(ids: Array<string>) {
+    const ast = await getAst(this.context, {
+      model: this.model,
+    });
+
+    const list = await this.chunkList({
+      pks: ids,
+      chunkSize: 100,
+      args: ast.dependencyFields,
+    });
+
+    for (const item of list) {
+      const extractedId = this.extractPksValues(item);
+      NocoSocket.broadcastEvent(this.context, {
+        event: EventType.DATA_EVENT,
+        payload: {
+          action: 'update',
+          payload: item,
+          id: extractedId,
+        },
+        scopes: [this.model.id],
+      });
+    }
+  }
+
+  public async broadcastLinkUpdates(ids: Array<string>) {
+    this.broadcastLinkUpdateAwaited(ids).catch((e) => {
+      logger.error(e);
+    });
+  }
+
+  async bulkAudit({
     qb,
     data,
     conditions,
@@ -6910,6 +7004,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const auditUpdateObj = [];
     for (const rowId of rowIds) {
+      const prevData = typeof rowId === 'object' ? rowId : {};
+      const updateDiff = populateUpdatePayloadDiff({
+        keepUnderModified: true,
+        prev: prevData,
+        next: data,
+        exclude: extractExcludedColumnNames(this.model.columns),
+        excludeNull: false,
+        excludeBlanks: false,
+        keepNested: true,
+      }) as UpdatePayload;
+
       auditUpdateObj.push(
         await generateAuditV1Payload<DataBulkUpdateAllPayload>(
           AuditV1OperationTypes.DATA_BULK_ALL_UPDATE,
@@ -6921,13 +7026,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               row_id: this.extractPksValues(rowId, true),
             },
             details: {
-              data: removeBlankPropsAndMask(data, ['CreatedAt', 'UpdatedAt']),
-              old_data: removeBlankPropsAndMask(rowId, [
-                'CreatedAt',
-                'UpdatedAt',
-              ]),
+              old_data: updateDiff.previous_state,
+              data: updateDiff.modifications,
               conditions: conditions,
-              column_meta: extractColsMetaForAudit(this.model.columns, data),
+              column_meta: extractColsMetaForAudit(
+                this.model.columns,
+                data,
+                prevData,
+              ),
             },
             req,
           },
@@ -6954,6 +7060,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async statsUpdate(_args: { count: number }) {}
+
+  async checkPermission(_params: {
+    entity: PermissionEntity;
+    entityId: string | string[];
+    permission: PermissionKey;
+    user: any;
+    req: any;
+  }) {}
 }
 
 export { BaseModelSqlv2 };

@@ -2,6 +2,7 @@
 interface Prop {
   extensionId: string
   error?: any
+  clearError?: () => void
 }
 
 const props = defineProps<Prop>()
@@ -29,6 +30,10 @@ const extension = computed(() => {
 const extensionManifest = computed<ExtensionManifest | undefined>(() => {
   return availableExtensions.value.find((ext) => ext.id === extension.value?.extensionId)
 })
+
+const activeExtensionId = computed(() => extensionManifest.value?.id ?? '')
+
+provide(ExtensionConfigInj, ref({ activeExtensionId }))
 
 const {
   fullscreen,
@@ -59,6 +64,11 @@ const closeFullscreen = (e: MouseEvent) => {
   }
 }
 
+const onClearData = () => {
+  extension.value.clear()
+  props.clearError?.()
+}
+
 onMounted(() => {
   until(extensionsLoaded)
     .toMatch((v) => v)
@@ -73,6 +83,7 @@ onMounted(() => {
           isLoadedExtension.value = false
         })
         .catch((e) => {
+          isLoadedExtension.value = false
           throw new Error(e)
         })
     })
@@ -101,6 +112,21 @@ useEventListener('keydown', (e) => {
 const noExplicitHeightExtensions = ['nc-data-exporter']
 
 const isNoExplicitHeightExtension = computed(() => noExplicitHeightExtensions.includes(extension.value.extensionId))
+
+/**
+ * Log extension error so that we can debug easily.
+ */
+watch(
+  activeError,
+  (newVal) => {
+    if (!newVal) return
+
+    console.error(newVal)
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -138,7 +164,7 @@ const isNoExplicitHeightExtension = computed(() => noExplicitHeightExtensions.in
           <a-result status="error" title="Extension Error" class="nc-extension-error">
             <template #subTitle>{{ activeError }}</template>
             <template #extra>
-              <NcButton size="small" @click="extension.clear()">
+              <NcButton size="small" @click="onClearData">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="reload" />
                   Clear Data
@@ -168,7 +194,7 @@ const isNoExplicitHeightExtension = computed(() => noExplicitHeightExtensions.in
               :class="{
                 'extension-modal-content': fullscreen,
                 'h-full': !fullscreen,
-                '!h-screen !w-screen': fullscreen && currentExtensionModalSize === 'fullscreen',
+                '!nc-h-screen !nc-w-screen': fullscreen && currentExtensionModalSize === 'fullscreen',
               }"
               :style="
                 fullscreen

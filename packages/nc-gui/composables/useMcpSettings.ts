@@ -11,15 +11,13 @@ export type MCPTokenExtendedType = MCPTokenType & {
 export const useMcpSettings = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
-  const { user } = useGlobal()
-
   const { t } = useI18n()
 
   const basesStore = useBases()
 
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  const { activeWorkspaceId, activeWorkspace } = storeToRefs(useWorkspace())
 
-  const { activeProjectId } = storeToRefs(basesStore)
+  const { activeProjectId, openedProject } = storeToRefs(basesStore)
 
   const { basesUser } = storeToRefs(basesStore)
 
@@ -64,6 +62,11 @@ export const useMcpSettings = createSharedComposable(() => {
 
     try {
       isCreatingMcpToken.value = true
+
+      // trim title before saving
+      if (newMcpTokenTitle.value) {
+        newMcpTokenTitle.value = newMcpTokenTitle.value.trim()
+      }
 
       const response = await $api.internal.postOperation(
         activeWorkspaceId.value,
@@ -170,9 +173,10 @@ export const useMcpSettings = createSharedComposable(() => {
   }
 
   const addNewMcpToken = () => {
-    newMcpTokenTitle.value = `MCP - ${user.value?.display_name ?? user.value?.email?.split('@')?.[0]} - ${dayjs().format(
+    newMcpTokenTitle.value = `${openedProject.value?.title || 'Base'}(${activeWorkspace.value?.title}) : ${dayjs().format(
       'D MMMM YYYY, h:mm A',
     )}`
+
     mcpTokens.value = [
       {
         title: newMcpTokenTitle.value,

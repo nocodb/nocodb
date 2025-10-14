@@ -32,7 +32,7 @@ const rowHeight = inject(RowHeightInj, ref())
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 
 const listItemsDlg = ref(false)
 
@@ -56,7 +56,7 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, un
 await loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
 })
 
 const localCellValue = computed<any[]>(() => {

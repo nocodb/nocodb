@@ -15,7 +15,11 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
 
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt'],
+  ignore: [
+    // 'pages/playground/**/*'
+  ],
+
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   ssr: false,
 
   router: {
@@ -23,7 +27,16 @@ export default defineNuxtConfig({
       hashMode: true,
     },
   },
-
+  chatwoot: {
+    init: {
+      websiteToken: 'ke2YjiPnKw9gnz4PCq4RuQqR',
+      baseUrl: 'https://app.chatwoot.com',
+    },
+    settings: {
+      darkMode: 'light',
+      hideMessageBubble: true,
+    },
+  },
   spaLoadingTemplate: false,
 
   app: {
@@ -116,7 +129,7 @@ export default defineNuxtConfig({
     'virtual:windi-devtools',
     '~/assets/css/global.css',
     '~/assets/style.scss',
-    '~/assets/css/typesense-docsearch.css',
+    '~/assets/css/theme-overrides.scss',
   ],
 
   runtimeConfig: {
@@ -259,7 +272,7 @@ export default defineNuxtConfig({
         'fflate',
         'file-saver',
         'fuse.js',
-        'httpsnippet',
+        '@readme/httpsnippet',
         'isomorphic-dompurify',
         'jsbarcode',
         'locale-codes',
@@ -295,6 +308,9 @@ export default defineNuxtConfig({
         '@floating-ui/vue',
         'validator',
         '@stripe/stripe-js',
+        'typesense',
+        'vue3-moveable',
+        'vue-fullscreen',
       ],
       esbuildOptions: {
         define: {

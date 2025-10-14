@@ -1,4 +1,6 @@
-import { NcBaseError, NcErrorBase, NcErrorType } from 'nocodb-sdk';
+import { NcApiVersion } from 'nocodb-sdk';
+import { NcErrorV1 } from './NcErrorV1';
+import { NcErrorV3 } from './ncErrorV3';
 import type { ErrorObject } from 'ajv';
 import type {
   BaseType,
@@ -7,112 +9,18 @@ import type {
   SourceType,
   UITypes,
 } from 'nocodb-sdk';
-import { generateReadablePermissionErr } from '~/utils/acl';
-import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
+export { AjvError } from './NcErrorV1';
 
-export class AjvError extends NcBaseError {
-  humanReadableError: boolean;
-  constructor(param: {
-    message: string;
-    errors: ErrorObject[];
-    humanReadableError?: boolean;
-  }) {
-    super(param.message);
-    this.errors = param.errors;
-    this.humanReadableError = param.humanReadableError || false;
-  }
+export class NcError {
+  static _ = new NcErrorV1();
+  static _V3 = new NcErrorV3();
 
-  errors: ErrorObject[];
-}
-
-export class NcError extends NcErrorBase {
-  static _instance: NcError;
-  static get _() {
-    if (!this._instance) {
-      this._instance = new NcError();
+  // return ncError based on api version
+  static get(context?: { api_version?: NcApiVersion }) {
+    if (context?.api_version === NcApiVersion.V3) {
+      return NcError._V3;
     }
-    return this._instance;
-  }
-  constructor() {
-    super();
-    this.errorCodex.setErrorCodex(NcErrorType.INVALID_LIMIT_VALUE, {
-      message: `Limit value should be between ${defaultLimitConfig.limitMin} and ${defaultLimitConfig.limitMax}`,
-      code: 422,
-    });
-  }
-
-  permissionDenied(
-    permissionName: string,
-    roles: Record<string, boolean>,
-    extendedScopeRoles: any,
-  ): never {
-    throw this.errorCodex.generateError(NcErrorType.PERMISSION_DENIED, {
-      customMessage: generateReadablePermissionErr(
-        permissionName,
-        roles,
-        extendedScopeRoles,
-      ),
-      details: {
-        permissionName,
-        roles,
-        extendedScopeRoles,
-      },
-    });
-  }
-
-  recordNotFound(
-    id: string | string[] | Record<string, string> | Record<string, string>[],
-    args?: NcErrorArgs,
-  ): never {
-    let formatedId: string | string[] = '';
-    if (!id) {
-      formatedId = 'unknown';
-    } else if (typeof id === 'string') {
-      formatedId = [id];
-    } else if (typeof id === 'number') {
-      formatedId = [(id as number).toString()];
-    } else if (Array.isArray(id)) {
-      if (id.every((i) => typeof i === 'string')) {
-        formatedId = id as string[];
-      } else {
-        formatedId = id.map((val) => {
-          const idsArr = Object.values(val);
-          if (idsArr.length > 1) {
-            return idsArr
-              .map((idVal) => idVal?.toString?.().replaceAll('_', '\\_'))
-              .join('___');
-          } else if (idsArr.length) {
-            return idsArr[0] as any;
-          } else {
-            return 'unknown';
-          }
-        });
-      }
-    } else {
-      const idsArr = Object.values(id);
-      if (idsArr.length > 1) {
-        formatedId = idsArr
-          .map((idVal) => idVal?.toString?.().replaceAll('_', '\\_'))
-          .join('___');
-      } else if (idsArr.length) {
-        formatedId = idsArr[0] as any;
-      } else {
-        formatedId = 'unknown';
-      }
-    }
-
-    throw this.errorCodex.generateError(NcErrorType.RECORD_NOT_FOUND, {
-      params: formatedId,
-      ...args,
-    });
-  }
-
-  ajvValidationError(param: {
-    message: string;
-    errors: ErrorObject[];
-    humanReadableError: boolean;
-  }): never {
-    throw new AjvError(param);
+    return NcError._;
   }
 
   // backward compatibility
@@ -140,8 +48,13 @@ export class NcError extends NcErrorBase {
   static baseNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.baseNotFound(id, args);
   }
-  static baseNotFoundV3(id: string, args?: NcErrorArgs): never {
-    return NcError._.baseNotFoundV3(id, args);
+
+  static widgetNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.widgetNotFound(id, args);
+  }
+
+  static dashboardNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.dashboardNotFound(id, args);
   }
 
   static sourceNotFound(id: string, args?: NcErrorArgs): never {
@@ -152,20 +65,12 @@ export class NcError extends NcErrorBase {
     return NcError._.tableNotFound(id, args);
   }
 
-  static tableNotFoundV3(id: string, args?: NcErrorArgs): never {
-    return NcError._.tableNotFoundV3(id, args);
-  }
-
   static userNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.userNotFound(id, args);
   }
 
   static viewNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.viewNotFound(id, args);
-  }
-
-  static viewNotFoundV3(id: string, args?: NcErrorArgs): never {
-    return NcError._.viewNotFoundV3(id, args);
   }
 
   static hookNotFound(id: string, args?: NcErrorArgs): never {
@@ -190,10 +95,6 @@ export class NcError extends NcErrorBase {
 
   static fieldNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.fieldNotFound(id, args);
-  }
-
-  static fieldNotFoundV3(id: string, args?: NcErrorArgs): never {
-    return NcError._.fieldNotFoundV3(id, args);
   }
 
   static invalidOffsetValue(
@@ -222,10 +123,6 @@ export class NcError extends NcErrorBase {
     return NcError._.invalidFilter(filter, args);
   }
 
-  static invalidFilterV3(message: string, args?: NcErrorArgs): never {
-    return NcError._.invalidFilterV3(message, args);
-  }
-
   static invalidValueForField(
     payload:
       | string
@@ -237,6 +134,10 @@ export class NcError extends NcErrorBase {
 
   static invalidSharedViewPassword(args?: NcErrorArgs): never {
     return NcError._.invalidSharedViewPassword(args);
+  }
+
+  static invalidSharedDashboardPassword(args?: NcErrorArgs): never {
+    return NcError._.invalidSharedDashboardPassword(args);
   }
 
   static invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {
@@ -312,6 +213,9 @@ export class NcError extends NcErrorBase {
 
   static allowedOnlySSOAccess(ncWorkspaceId: string): never {
     return NcError._.allowedOnlySSOAccess(ncWorkspaceId);
+  }
+  static allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
+    return NcError._.allowedOnlySSOGeneratedToken(ncWorkspaceId);
   }
   static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
     return NcError._.maxInsertLimitExceeded(limit, args);

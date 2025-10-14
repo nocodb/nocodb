@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { RoleLabels } from 'nocodb-sdk';
+import { ncIsArray, RoleLabels } from 'nocodb-sdk';
 import { render } from '@react-email/render';
 import type { NcRequest } from 'nocodb-sdk';
-import type { MailParams } from '~/interface/Mail';
+import type { MailParams, RawMailParams } from '~/interface/Mail';
 import type { ComponentProps } from 'react';
 import * as MailTemplates from '~/services/mail/templates';
 import { MailEvent } from '~/interface/Mail';
@@ -20,9 +20,9 @@ type TemplateProps<K extends keyof typeof MailTemplates> = ComponentProps<
 @Injectable()
 export class MailService {
   protected logger = new Logger(MailService.name);
-  async getAdapter() {
+  async getAdapter(ncMeta = Noco.ncMeta) {
     try {
-      return await NcPluginMgrv2.emailAdapter();
+      return await NcPluginMgrv2.emailAdapter(undefined, ncMeta);
     } catch (e) {
       this.logger.error('Email Plugin not configured / active');
       return null;
@@ -107,8 +107,38 @@ export class MailService {
     return url;
   }
 
-  async sendMail(params: MailParams) {
-    const mailerAdapter = await this.getAdapter();
+  async sendMailRaw(params: RawMailParams, ncMeta = Noco.ncMeta) {
+    const mailerAdapter = await this.getAdapter(ncMeta);
+    if (!mailerAdapter) {
+      this.logger.error('Email Plugin not configured / active');
+      return false;
+    }
+
+    if (!params.to || !params.subject || (!params.html && !params.text)) {
+      this.logger.error('Missing required parameters');
+      return false;
+    }
+
+    try {
+      await mailerAdapter.mailSend({
+        to: params.to,
+        subject: params.subject,
+        text: params.text,
+        html: params.html,
+        cc: ncIsArray(params.cc) ? params?.cc?.join(',') : params?.cc,
+        bcc: ncIsArray(params.bcc) ? params?.bcc?.join(',') : params?.bcc,
+        attachments: params.attachments,
+      });
+    } catch (e) {
+      this.logger.error(e);
+      return false;
+    }
+
+    return true;
+  }
+
+  async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {
+    const mailerAdapter = await this.getAdapter(ncMeta);
     if (!mailerAdapter) {
       this.logger.error('Email Plugin not configured / active');
       return false;

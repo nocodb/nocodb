@@ -40,7 +40,7 @@ test.describe('Expanded form files mode', () => {
   test('Mode switch and functionality', async () => {
     test.slow();
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await dashboard.grid.column.create({
       title: 'testAttach',
       type: 'Attachment',
@@ -71,7 +71,7 @@ test.describe('Expanded form files mode', () => {
   test('Various file types correct rendering', async () => {
     test.slow();
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await dashboard.grid.column.create({
       title: 'testAttach',
       type: 'Attachment',

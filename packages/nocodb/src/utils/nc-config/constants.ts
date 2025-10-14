@@ -4,7 +4,6 @@ export const driverClientMapping = {
   postgres: 'pg',
   postgresql: 'pg',
   sqlite: 'sqlite3',
-  mssql: 'mssql',
 };
 
 export const defaultClientPortMapping = {
@@ -12,7 +11,6 @@ export const defaultClientPortMapping = {
   mysql2: 3306,
   postgres: 5432,
   pg: 5432,
-  mssql: 1433,
 };
 
 export const defaultConnectionConfig: any = {
@@ -78,9 +76,16 @@ export const knownQueryParams = [
 export enum DriverClient {
   MYSQL = 'mysql2',
   MYSQL_LEGACY = 'mysql',
-  MSSQL = 'mssql',
   PG = 'pg',
   SQLITE = 'sqlite3',
   SNOWFLAKE = 'snowflake',
   DATABRICKS = 'databricks',
 }
+
+export const CHATWOOT_IDENTITY_KEY = process.env.CHATWOOT_IDENTITY_KEY;
+
+export const NC_DISABLE_SUPPORT_CHAT =
+  process.env.NC_DISABLE_SUPPORT_CHAT === 'true';
+
+export const NC_IFRAME_WHITELIST_DOMAINS =
+  process.env.NC_IFRAME_WHITELIST_DOMAINS || '';

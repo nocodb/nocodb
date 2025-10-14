@@ -1,5 +1,6 @@
 import { ncIsUndefined } from 'nocodb-sdk';
 import type { Knex } from 'knex';
+import { MAX_CONCURRENT_TRANSFORMS } from '~/constants';
 
 export function getAliasGenerator(prefix = '__nc_') {
   let aliasC = 0;
@@ -164,10 +165,56 @@ export function batchUpdate(
       `CASE ?? ${filteredData
         .map(() => 'WHEN ? THEN ?')
         .join(' ')} ELSE ?? END`,
-      [pk, ...filteredData.flatMap((row) => [row[pk], row[column]]), column],
+      [
+        pk,
+        ...filteredData.flatMap((row) => [
+          row[pk],
+          typeof row[column] === 'object' || typeof row[column] === 'boolean'
+            ? row[column]
+            : `${row[column]}`,
+        ]),
+        column,
+      ],
     );
   });
 
   // Build and return the query
   return kn(tn).update(updateObj).whereIn(pk, pks);
+}
+
+// Reusable params interface for caching expensive operations
+export interface ReusableParams {
+  [key: string]: any;
+}
+
+// Helper function to cache expensive operations
+export async function reuseOrSave(
+  tp: string,
+  params: ReusableParams,
+  get: () => Promise<any>,
+): Promise<any> {
+  if (params[tp]) {
+    return params[tp];
+  }
+
+  const res = await get();
+  params[tp] = res;
+  return res;
+}
+
+// Helper function to process arrays with concurrency control
+export async function processConcurrently<T, R>(
+  items: T[],
+  processor: (item: T) => Promise<R>,
+  maxConcurrency: number = MAX_CONCURRENT_TRANSFORMS,
+): Promise<R[]> {
+  const results: R[] = [];
+
+  for (let i = 0; i < items.length; i += maxConcurrency) {
+    const batch = items.slice(i, i + maxConcurrency);
+    const batchResults = await Promise.all(batch.map(processor));
+    results.push(...batchResults);
+  }
+
+  return results;
 }

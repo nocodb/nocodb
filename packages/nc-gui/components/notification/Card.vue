@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia'
 import InfiniteLoading from 'v3-infinite-loading'
 
 const emits = defineEmits(['close'])
@@ -46,7 +45,7 @@ const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, no
       >
         {{ $t('activity.markAllAsRead') }}
       </div>
-      <NcTabs v-model:activeKey="notificationTab">
+      <NcTabs v-model:active-key="notificationTab">
         <a-tab-pane key="unread">
           <template #tab>
             <span

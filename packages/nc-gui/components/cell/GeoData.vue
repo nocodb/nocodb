@@ -135,7 +135,7 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
-
+const isEditColumn = inject(EditColumnInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
 const handleBlur = (e: Event) => {
@@ -151,7 +151,7 @@ const handleBlur = (e: Event) => {
 }
 
 onMounted(() => {
-  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value && !isEditColumn.value) {
     forcedNextTick(() => {
       isExpanded.value = true
     })

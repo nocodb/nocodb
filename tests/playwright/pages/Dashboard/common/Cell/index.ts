@@ -97,6 +97,7 @@ export class CellPageObject extends BasePage {
 
       if (type && [UITypes.Date, UITypes.Time, UITypes.Year, UITypes.DateTime].includes(type)) {
         await this.rootPage.keyboard.press('Enter');
+        await this.rootPage.locator('.nc-dropdown.active').waitFor({ state: 'hidden' });
       }
     } else {
       await this.get({ index, columnHeader }).locator('textarea').fill(text);
@@ -126,6 +127,10 @@ export class CellPageObject extends BasePage {
   }
 
   async verify({ index, columnHeader, value }: CellProps & { value: string | string[] }) {
+    if (this.parent instanceof GridPage) {
+      await this.parent.waitForRowSaveSpinnerToDisappear(index);
+    }
+
     const _verify = async text => {
       // await expect
       //   .poll(async () => {
@@ -387,6 +392,7 @@ export class CellPageObject extends BasePage {
     // For HM/MM columns
     else {
       await cell.locator('.nc-datatype-link').click();
+      await this.rootPage.locator('.nc-links-dropdown.active').waitFor({ state: 'visible' });
       await this.rootPage
         .locator(`[data-testid="nc-child-list-item"]`)
         .last()
@@ -400,7 +406,7 @@ export class CellPageObject extends BasePage {
             .locator('button.nc-list-item-link-unlink-btn')
             .click({ force: true, timeout: 3000 }),
         requestUrlPathToMatch: '/api/v1/db/data/noco',
-        httpMethodsToMatch: ['GET'],
+        httpMethodsToMatch: ['DELETE'],
       });
 
       await this.rootPage.keyboard.press('Escape');

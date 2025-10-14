@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 const { sharedView, meta, nestedFilters } = useSharedView()
 
+const { xWhere } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
+
 const reloadEventHook = createEventHook()
 
 provide(ReloadViewDataHookInj, reloadEventHook)
@@ -15,19 +17,21 @@ provide(IsPublicInj, ref(true))
 
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
 
-useProvideSmartsheetLtarHelpers(meta)
+useProvideViewGroupBy(sharedView, meta, xWhere, true)
 
-useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
+useProvideSmartsheetLtarHelpers(meta)
 
 useProvideKanbanViewStore(meta, sharedView)
 
-useProvideCalendarViewStore(meta, sharedView, true, nestedFilters)
+useProvideCalendarViewStore(meta, sharedView, true, xWhere)
+
+useViewRowColorProvider({ shared: true })
 </script>
 
 <template>
   <div class="nc-container h-full">
     <div class="flex flex-col h-full flex-1 min-w-0">
-      <LazySmartsheetToolbar />
+      <LazySmartsheetToolbar show-full-screen-toggle />
       <div class="h-full flex-1 min-w-0 min-h-0">
         <LazySmartsheetCalendar />
       </div>

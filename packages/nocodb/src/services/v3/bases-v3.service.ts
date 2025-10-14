@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
+import { extractRolesObj, NcApiVersion, OrgUserRoles } from 'nocodb-sdk';
 import type {
   BaseUpdateV3Type,
   BaseV3Type,
@@ -7,16 +7,20 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { BaseMetaProps } from '~/types/metaProps/base-meta-props';
 import { NcError } from '~/helpers/catchError';
 import { Base, BaseUser, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import { RootScopes } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
 import { baseBuilder, sourceBuilder } from '~/utils/builders/base';
+import { BaseMemberHelpers } from '~/services/v3/members/base-member-helpers';
 
 @Injectable()
 export class BasesV3Service {
-  constructor(protected readonly basesService: BasesService) {}
+  constructor(protected readonly basesService: BasesService) {
+    this.baseMemberHelpers = new BaseMemberHelpers();
+  }
 
   protected async getBaseList(
     context: NcContext,
@@ -29,6 +33,8 @@ export class BasesV3Service {
       ? await Base.list()
       : await BaseUser.getProjectsList(param.user.id, param.query);
   }
+
+  baseMemberHelpers: BaseMemberHelpers;
 
   async baseList(
     context: NcContext,
@@ -72,7 +78,7 @@ export class BasesV3Service {
 
   async getProjectWithInfo(
     context: NcContext,
-    param: { baseId: string; includeConfig?: boolean },
+    param: { baseId: string; qsInclude?: string[]; includeConfig?: boolean },
   ) {
     const base = await this.basesService.getProjectWithInfo(context, param);
 
@@ -84,6 +90,12 @@ export class BasesV3Service {
     return {
       ...baseBuilder().build(base),
       sources: sources?.length ? sourceBuilder().build(sources) : undefined,
+      ...(param.qsInclude?.includes('members')
+        ? await this.baseMemberHelpers.getBaseMember(context, {
+            baseId: param.baseId,
+            isPrivateBase: base.default_role === 'no-access',
+          })
+        : {}),
     } as BaseV3Type;
   }
 
@@ -100,15 +112,34 @@ export class BasesV3Service {
       'swagger-v3.json#/components/schemas/BaseUpdate',
       param.base,
       true,
+      {
+        api_version: NcApiVersion.V3,
+      },
     );
     const meta = param.base.meta as unknown as Record<string, unknown>;
 
     if (meta?.icon_color) {
       meta.iconColor = meta.icon_color;
-      meta.icon_color = undefined;
+      delete meta.icon_color;
+    }
+    if (meta) {
+      const metaParsed = BaseMetaProps.safeParse(meta);
+      if (metaParsed.error) {
+        NcError.get({ api_version: NcApiVersion.V3 }).zodError({
+          message: `'meta' property invalid`,
+          errors: metaParsed.error,
+        });
+      }
     }
 
-    await this.basesService.baseUpdate(context, param);
+    await this.basesService.baseUpdate(context, {
+      ...param,
+      base: {
+        ...param.base,
+        ...(await this.parseBaseRequest(context, param.base)),
+      },
+      apiVersion: NcApiVersion.V3,
+    });
     return this.getProjectWithInfo(context, { baseId: param.baseId });
   }
 
@@ -122,24 +153,41 @@ export class BasesV3Service {
       'swagger-v3.json#/components/schemas/BaseCreate',
       param.base,
       true,
+      {
+        api_version: NcApiVersion.V3,
+      },
     );
 
     const base = {
       ...param.base,
       fk_workspace_id: param.workspaceId,
       type: 'database',
+      ...(await this.parseBaseRequest(
+        { workspace_id: param.workspaceId } as any,
+        param.base,
+      )),
     } as ProjectReqType;
 
     const meta = param.base.meta as unknown as Record<string, unknown>;
 
     if (meta?.icon_color) {
       meta.iconColor = meta.icon_color;
-      meta.icon_color = undefined;
+      delete meta.icon_color;
+    }
+    if (meta) {
+      const metaParsed = BaseMetaProps.safeParse(meta);
+      if (metaParsed.error) {
+        NcError.get({ api_version: NcApiVersion.V3 }).zodError({
+          message: `'meta' property invalid`,
+          errors: metaParsed.error,
+        });
+      }
     }
 
     const res = await this.basesService.baseCreate({
       ...param,
       base,
+      apiVersion: NcApiVersion.V3,
     });
     return this.getProjectWithInfo(
       { workspace_id: res.fk_workspace_id, base_id: RootScopes.WORKSPACE },
@@ -153,5 +201,9 @@ export class BasesV3Service {
   ) {
     await this.basesService.baseSoftDelete(context, param);
     return {};
+  }
+
+  async parseBaseRequest(_context: { workspace_id: string }, _base: any) {
+    return {} as any;
   }
 }

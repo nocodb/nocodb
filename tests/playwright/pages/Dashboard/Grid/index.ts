@@ -95,6 +95,12 @@ export class GridPage extends BasePage {
     return this.get().locator(`tr[data-testid="grid-row-${index}"]`);
   }
 
+  async waitForRowSaveSpinnerToDisappear(index: number) {
+    const isRowSaving = this.rootPage.getByTestId(`row-save-spinner-${index}`);
+    // if required field is present then isRowSaving will be hidden (not present in DOM)
+    await isRowSaving?.waitFor({ state: 'hidden' });
+  }
+
   async renderColumn(columnHeader: string) {
     // we have virtual grid, so we need to make sure the column is rendered
     const headerRow = this.get().locator('.nc-grid-header').first();
@@ -179,9 +185,7 @@ export class GridPage extends BasePage {
 
     const rowCount = index + 1;
 
-    const isRowSaving = this.rootPage.getByTestId(`row-save-spinner-${rowCount}`);
-    // if required field is present then isRowSaving will be hidden (not present in DOM)
-    await isRowSaving?.waitFor({ state: 'hidden' });
+    await this.waitForRowSaveSpinnerToDisappear(rowCount);
 
     // fallback
     await this.rootPage.waitForTimeout(400);
@@ -465,7 +469,7 @@ export class GridPage extends BasePage {
     await expect(this.cell.get({ index: 0, columnHeader: 'Cities' }).locator('.nc-action-icon.nc-plus')).toBeVisible();
   }
 
-  async verifyRoleAccess(param: { role: string }) {
+  async verifyRoleAccess(param: { role: string; isToolbarOperationsRestricted?: boolean }) {
     await this.column.verifyRoleAccess(param);
     await this.cell.verifyRoleAccess(param);
     await this.toolbar.verifyRoleAccess(param);

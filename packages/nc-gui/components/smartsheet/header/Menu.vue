@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { ColumnType } from 'nocodb-sdk'
 import { isColumnInvalid } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
@@ -15,9 +16,11 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
+const meta = inject(MetaInj, ref())
+
 const { isUIAllowed } = useRoles()
 
-const { aiIntegrations } = useNocoAi()
+const { aiIntegrations, isNocoAiAvailable } = useNocoAi()
 
 const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
   if (!column?.value) {
@@ -27,7 +30,13 @@ const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
     }
   }
 
-  return isColumnInvalid(column.value, aiIntegrations.value, isPublic.value || !isUIAllowed('dataEdit'))
+  return isColumnInvalid({
+    col: column.value,
+    aiIntegrations: aiIntegrations.value,
+    isReadOnly: isPublic.value || !isUIAllowed('dataEdit'),
+    isNocoAiAvailable: isNocoAiAvailable.value,
+    columns: meta.value?.columns as ColumnType[],
+  })
 })
 
 const openDropdown = () => {
@@ -56,7 +65,7 @@ const emitEdit = (...args: any[]) => {
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
       <NcTooltip v-if="column?.description?.length && !isExpandedForm" class="flex">
         <template #title>
-          {{ column?.description }}
+          <div class="whitespace-pre-wrap break-words">{{ column?.description }}</div>
         </template>
         <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
       </NcTooltip>

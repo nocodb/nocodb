@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
-import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, type TableType, type ViewType } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = withDefaults(
@@ -8,6 +8,7 @@ const props = withDefaults(
     view: ViewType
     table: TableType
     inSidebar?: boolean
+    showOnlyCopyId?: boolean
   }>(),
   {
     inSidebar: false,
@@ -20,7 +21,7 @@ const { isUIAllowed, isDataReadOnly } = useRoles()
 
 const isPublicView = inject(IsPublicInj, ref(false))
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -28,17 +29,24 @@ const view = computed(() => props.view)
 
 const table = computed(() => props.table)
 
-const { loadViews, navigateToView, duplicateView } = useViewsStore()
+const viewsStore = useViewsStore()
 
-const { user } = useGlobal()
+const {
+  navigateToView,
+  duplicateView,
+  updateView,
+  isUserViewOwner,
+  onOpenCopyViewConfigFromAnotherViewModal,
+  getCopyViewConfigBtnAccessStatus,
+} = viewsStore
+
+const { isCopyViewConfigFromAnotherViewFeatureEnabled } = storeToRefs(viewsStore)
 
 const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
 
 const { showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
-
-const isSqlView = computed(() => (table.value as TableType)?.type === 'view')
 
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
@@ -52,7 +60,7 @@ const onDescriptionUpdateClick = () => {
   emits('descriptionUpdate')
 }
 
-const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
+const quickImportDialogTypes: ImportType[] = [ImportType.CSV, ImportType.EXCEL]
 
 const importAlias = {
   csv: {
@@ -71,7 +79,7 @@ const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<bo
     return acc
   },
   {},
-) as Record<QuickImportDialogType, Ref<boolean>>
+) as Record<ImportType, Ref<boolean>>
 
 const onImportClick = (dialog: any) => {
   emits('closeModal')
@@ -119,10 +127,10 @@ async function changeLockType(type: LockType) {
 
   try {
     view.value.lock_type = type
-    await $api.dbView.update(view.value.id as string, {
+
+    await updateView(view.value?.id, {
       lock_type: type,
     })
-
     message.success(`Successfully Switched to ${type} view`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -141,15 +149,11 @@ async function onDuplicate() {
 
   refreshCommandPalette()
 
-  await loadViews({
-    force: true,
-    tableId: table.value!.id!,
-  })
-
   if (duplicatedView) {
     navigateToView({
       view: duplicatedView,
       tableId: table.value!.id!,
+      tableTitle: table.value.title,
       baseId: base.value.id!,
       hardReload: duplicatedView.type === ViewTypes.FORM,
     })
@@ -177,15 +181,47 @@ const openReAssignDlg = () => {
   emits('closeModal')
 }
 
+const onClickCopyViewConfig = () => {
+  emits('closeModal')
+
+  onOpenCopyViewConfigFromAnotherViewModal({ destView: view.value })
+}
+
 const isViewOwner = computed(() => {
-  return (
-    view.value?.owned_by === user.value?.id ||
-    (!view.value?.owned_by &&
-      (user.value.base_roles?.[ProjectRoles.OWNER] || user.value.workspace_roles?.[WorkspaceUserRoles.OWNER]))
-  )
+  return isUserViewOwner(view.value)
 })
 
 const isDefaultView = computed(() => view.value?.is_default)
+
+const isPersonalView = computed(() => view.value?.lock_type === LockType.Personal)
+
+const disablePersonalView = computed(() => {
+  // Default view can't be made personal
+  if (isDefaultView.value) return true
+
+  // If view is not owned by the current user, then disable
+  if (!isViewOwner.value) return true
+
+  return false
+})
+
+const isUploadAllowed = computed(() => {
+  return (
+    isUIAllowed('csvTableImport') &&
+    !isPublicView.value &&
+    !isDataReadOnly.value &&
+    table.value?.type !== 'view' && // isSqlView
+    !table.value?.synced
+  )
+})
+
+const copyViewConfigMenuItemStatus = computed(() => {
+  return getCopyViewConfigBtnAccessStatus(view.value, 'view-action-menu')
+})
+
+defineOptions({
+  inheritAttrs: false,
+})
 
 /**
  * ## Known Issue and Fix
@@ -203,6 +239,7 @@ const isDefaultView = computed(() => view.value?.is_default)
 <template>
   <NcMenu
     v-if="view"
+    v-bind="$attrs"
     :data-testid="`view-sidebar-view-actions-${view!.alias || view!.title}`"
     class="!min-w-70"
     data-id="toolbar-actions"
@@ -218,21 +255,11 @@ const isDefaultView = computed(() => view.value?.is_default)
         })
       "
     />
-
-    <template v-if="!view?.is_default && isUIAllowed('viewCreateOrEdit')">
-      <NcDivider />
-      <template v-if="inSidebar">
-        <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
-          <GeneralIcon icon="rename" class="opacity-80" />
-          {{
-            $t('general.renameEntity', {
-              entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
-            })
-          }}
-        </NcMenuItem>
-        <NcTooltip v-else>
-          <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
-          <NcMenuItem disabled>
+    <template v-if="!showOnlyCopyId">
+      <template v-if="!view?.is_default && isUIAllowed('viewCreateOrEdit')">
+        <NcDivider />
+        <template v-if="inSidebar">
+          <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
             <GeneralIcon icon="rename" class="opacity-80" />
             {{
               $t('general.renameEntity', {
@@ -241,27 +268,169 @@ const isDefaultView = computed(() => view.value?.is_default)
               })
             }}
           </NcMenuItem>
-        </NcTooltip>
-        <NcMenuItem v-show="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
-          <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
+          <NcTooltip v-else>
+            <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
+            <NcMenuItem disabled>
+              <GeneralIcon icon="rename" class="opacity-80" />
+              {{
+                $t('general.renameEntity', {
+                  entity:
+                    view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
+                })
+              }}
+            </NcMenuItem>
+          </NcTooltip>
+          <NcMenuItem v-show="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
+            <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
 
-          {{ $t('labels.editDescription') }}
+            {{ $t('labels.editDescription') }}
+          </NcMenuItem>
+        </template>
+        <NcMenuItem @click="onDuplicate">
+          <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
+          <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
+          {{
+            $t('general.duplicateEntity', {
+              entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
+            })
+          }}
         </NcMenuItem>
       </template>
-      <NcMenuItem @click="onDuplicate">
-        <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
-        <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
-        {{
-          $t('general.duplicateEntity', {
-            entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
-          })
-        }}
-      </NcMenuItem>
-    </template>
-    <template v-if="view.type !== ViewTypes.FORM">
-      <NcDivider />
-      <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isDataReadOnly && !isSqlView">
-        <NcSubMenu key="upload" variant="small">
+
+      <NcDivider
+        v-if="isEeUI && isUIAllowed('viewCreateOrEdit') && view?.is_default && isCopyViewConfigFromAnotherViewFeatureEnabled"
+      />
+      <SmartsheetToolbarNotAllowedTooltip
+        v-if="isEeUI && isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled"
+        :enabled="copyViewConfigMenuItemStatus.isDisabled"
+      >
+        <template #title>
+          <div class="max-w-70">
+            {{ copyViewConfigMenuItemStatus.tooltip }}
+          </div>
+        </template>
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER">
+          <template #default="{ click }">
+            <NcMenuItem
+              inner-class="w-full"
+              :disabled="copyViewConfigMenuItemStatus.isDisabled"
+              @click="click(PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER, () => onClickCopyViewConfig())"
+            >
+              <div
+                v-e="[
+                  'c:navdraw:copy-view-config-from-another-view',
+                  {
+                    sidebar: props.inSidebar,
+                  },
+                ]"
+                class="w-full flex flex-row items-center gap-x-2"
+              >
+                <GeneralIcon icon="ncSettings2" class="opacity-80" />
+                <div>
+                  {{ $t('objects.copyViewConfig.copyAnotherViewConfig') }}
+                </div>
+                <div class="flex-1 w-full mr-1" />
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER"
+                  :limit-or-feature="'to access copy view configuration from another view feature.' as PlanFeatureTypes"
+                  :content="
+                    $t('upgrade.upgradeToAccessCopyViewConfigFromAnotherViewSubtitle', {
+                      plan: getPlanTitle(PlanTitles.PLUS),
+                    })
+                  "
+                  :on-click-callback="() => emits('closeModal')"
+                />
+              </div>
+            </NcMenuItem>
+          </template>
+        </PaymentUpgradeBadgeProvider>
+      </SmartsheetToolbarNotAllowedTooltip>
+      <template v-if="view.type !== ViewTypes.FORM">
+        <NcDivider />
+        <template v-if="isUploadAllowed">
+          <NcSubMenu key="upload" variant="small">
+            <template #title>
+              <div
+                v-e="[
+                  'c:navdraw:preview-as',
+                  {
+                    sidebar: props.inSidebar,
+                  },
+                ]"
+                class="nc-base-menu-item group"
+              >
+                <GeneralIcon icon="upload" class="opacity-80" />
+                {{ $t('general.upload') }}
+              </div>
+            </template>
+
+            <NcMenuItemLabel>
+              {{ $t('activity.uploadData') }}
+            </NcMenuItemLabel>
+
+            <template v-for="(dialog, type) in quickImportDialogs">
+              <PermissionsTooltip
+                v-if="isUIAllowed(`${type}TableImport`) && !isPublicView"
+                :key="type"
+                :entity="PermissionEntity.TABLE"
+                :entity-id="table.id"
+                :permission="PermissionKey.TABLE_RECORD_ADD"
+                placement="right"
+                :description="$t('objects.permissions.uploadDataTooltip')"
+              >
+                <template #default="{ isAllowed }">
+                  <NcMenuItem :disabled="!isAllowed" @click="onImportClick(dialog)">
+                    <div
+                      v-e="[
+                        `a:upload:${type}`,
+                        {
+                          sidebar: props.inSidebar,
+                        },
+                      ]"
+                      :class="{ disabled: lockType === LockType.Locked }"
+                      class="nc-base-menu-item"
+                    >
+                      <component
+                        :is="importAlias[type].icon"
+                        v-if="importAlias[type]?.icon"
+                        :class="{ 'opacity-80': isAllowed, '!opacity-50': !isAllowed }"
+                      />
+                      {{ importAlias[type]?.title }}
+                    </div>
+                  </NcMenuItem>
+                </template>
+              </PermissionsTooltip>
+            </template>
+          </NcSubMenu>
+        </template>
+        <NcSubMenu key="download" variant="small">
+          <template #title>
+            <div
+              v-e="[
+                'c:download',
+                {
+                  sidebar: props.inSidebar,
+                },
+              ]"
+              class="nc-base-menu-item group nc-view-context-download-option"
+            >
+              <GeneralIcon icon="download" class="opacity-80" />
+              {{ $t('general.download') }}
+            </div>
+          </template>
+
+          <LazySmartsheetToolbarExportSubActions />
+        </NcSubMenu>
+      </template>
+
+      <template v-if="isUIAllowed('viewCreateOrEdit')">
+        <NcDivider />
+        <NcSubMenu
+          key="lock-type"
+          variant="small"
+          :disabled="!isViewOwner && !isUIAllowed('reAssignViewOwner') && isPersonalView"
+          class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
+        >
           <template #title>
             <div
               v-e="[
@@ -270,181 +439,163 @@ const isDefaultView = computed(() => view.value?.is_default)
                   sidebar: props.inSidebar,
                 },
               ]"
-              class="nc-base-menu-item group"
+              class="flex flex-row items-center gap-x-3"
             >
-              <GeneralIcon icon="upload" class="opacity-80" />
-              {{ $t('general.upload') }}
+              <div>
+                {{ $t('labels.viewMode') }}
+              </div>
+              <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
+                <LazySmartsheetToolbarLockType
+                  :type="lockType"
+                  class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink !cursor-auto"
+                  hide-tick
+                />
+              </div>
+              <div class="flex flex-grow"></div>
             </div>
           </template>
 
           <NcMenuItemLabel>
-            {{ $t('activity.uploadData') }}
+            {{ $t('labels.viewMode') }}
           </NcMenuItemLabel>
-
-          <template v-for="(dialog, type) in quickImportDialogs">
-            <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
-              <div
-                v-e="[
-                  `a:upload:${type}`,
-                  {
-                    sidebar: props.inSidebar,
-                  },
-                ]"
-                :class="{ disabled: lockType === LockType.Locked }"
-                class="nc-base-menu-item"
-              >
-                <component :is="importAlias[type].icon" v-if="importAlias[type]?.icon" class="opacity-80" />
-                {{ importAlias[type]?.title }}
-              </div>
-            </NcMenuItem>
-          </template>
+          <NcMenuItem
+            class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
+            data-testid="nc-view-action-lock-subaction-Collaborative"
+            :disabled="!isUIAllowed('fieldAdd')"
+            @click="changeLockType(LockType.Collaborative)"
+          >
+            <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="!isUIAllowed('fieldAdd')" />
+          </NcMenuItem>
+          <SmartsheetToolbarNotAllowedTooltip
+            v-if="isEeUI"
+            :enabled="disablePersonalView"
+            :message="isDefaultView ? 'Default view can\'t be made personal' : 'Only view owner can change to personal view'"
+          >
+            <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
+              <template #default="{ click }">
+                <NcMenuItem
+                  data-testid="nc-view-action-lock-subaction-Personal"
+                  :disabled="disablePersonalView"
+                  class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px] children:w-full children:children:w-full group"
+                  @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => changeLockType(LockType.Personal))"
+                >
+                  <SmartsheetToolbarLockType
+                    :type="LockType.Personal"
+                    :disabled="disablePersonalView"
+                    @cancel="emits('closeModal')"
+                  />
+                </NcMenuItem>
+              </template>
+            </PaymentUpgradeBadgeProvider>
+          </SmartsheetToolbarNotAllowedTooltip>
+          <NcMenuItem
+            data-testid="nc-view-action-lock-subaction-Locked"
+            class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction"
+            :disabled="!isUIAllowed('fieldAdd')"
+            @click="changeLockType(LockType.Locked)"
+          >
+            <SmartsheetToolbarLockType :type="LockType.Locked" :disabled="!isUIAllowed('fieldAdd')" />
+          </NcMenuItem>
         </NcSubMenu>
+        <template v-if="isEeUI && !isDefaultView">
+          <SmartsheetToolbarNotAllowedTooltip
+            v-if="isPersonalView"
+            :enabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
+            :message="$t('tooltip.onlyOwnerOrCreatorCanReAssign')"
+          >
+            <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
+              <template #default="{ click }">
+                <NcMenuItem
+                  inner-class="w-full"
+                  :disabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
+                  @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => openReAssignDlg())"
+                >
+                  <div
+                    v-e="[
+                      'c:navdraw:reassign-personal-view',
+                      {
+                        sidebar: props.inSidebar,
+                      },
+                    ]"
+                    class="w-full flex flex-row items-center gap-x-3"
+                  >
+                    <div>
+                      {{ $t('labels.reAssignView') }}
+                    </div>
+                    <div class="flex-1 w-full" />
+                    <LazyPaymentUpgradeBadge
+                      :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+                      :limit-or-feature="'to access re-assign personal view feature.' as PlanFeatureTypes"
+                      :content="
+                        $t('upgrade.upgradeToAccessReassignViewSubtitle', {
+                          plan: getPlanTitle(PlanTitles.PLUS),
+                        })
+                      "
+                      :on-click-callback="() => emits('closeModal')"
+                    />
+                  </div>
+                </NcMenuItem>
+              </template>
+            </PaymentUpgradeBadgeProvider>
+          </SmartsheetToolbarNotAllowedTooltip>
+          <SmartsheetToolbarNotAllowedTooltip
+            v-else
+            :enabled="!isViewOwner"
+            :message="$t('tooltip.onlyViewOwnerCanAssignAsPersonalView')"
+          >
+            <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
+              <template #default="{ click }">
+                <NcMenuItem
+                  inner-class="w-full"
+                  :disabled="!isViewOwner"
+                  @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => openReAssignDlg())"
+                >
+                  <div
+                    v-e="[
+                      'c:navdraw:assign-personal-view',
+                      {
+                        sidebar: props.inSidebar,
+                      },
+                    ]"
+                    class="w-full flex flex-row items-center gap-x-3"
+                  >
+                    <div>
+                      {{ $t('labels.assignAsPersonalView') }}
+                    </div>
+                    <div class="flex-1 w-full" />
+                    <LazyPaymentUpgradeBadge
+                      :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+                      :limit-or-feature="'to access assign as personal view feature.' as PlanFeatureTypes"
+                      :content="
+                        $t('upgrade.upgradeToAccessAssignAsPersonalViewSubtitle', {
+                          plan: getPlanTitle(PlanTitles.PLUS),
+                        })
+                      "
+                      :on-click-callback="() => emits('closeModal')"
+                    />
+                  </div>
+                </NcMenuItem>
+              </template>
+            </PaymentUpgradeBadgeProvider>
+          </SmartsheetToolbarNotAllowedTooltip>
+        </template>
       </template>
-      <NcSubMenu key="download" variant="small">
-        <template #title>
-          <div
-            v-e="[
-              'c:download',
-              {
-                sidebar: props.inSidebar,
-              },
-            ]"
-            class="nc-base-menu-item group nc-view-context-download-option"
-          >
-            <GeneralIcon icon="download" class="opacity-80" />
-            {{ $t('general.download') }}
-          </div>
-        </template>
 
-        <LazySmartsheetToolbarExportSubActions />
-      </NcSubMenu>
-    </template>
-
-    <template v-if="isUIAllowed('viewCreateOrEdit')">
-      <NcDivider />
-      <NcSubMenu
-        key="lock-type"
-        variant="small"
-        :disabled="!isViewOwner && !isUIAllowed('reAssignViewOwner') && view.lock_type === LockType.Personal"
-        class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
-      >
-        <template #title>
-          <div
-            v-e="[
-              'c:navdraw:preview-as',
-              {
-                sidebar: props.inSidebar,
-              },
-            ]"
-            class="flex flex-row items-center gap-x-3"
-          >
-            <div>
-              {{ $t('labels.viewMode') }}
-            </div>
-            <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
-              <LazySmartsheetToolbarLockType
-                :type="lockType"
-                class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink !cursor-auto"
-                hide-tick
-              />
-            </div>
-            <div class="flex flex-grow"></div>
-          </div>
-        </template>
-
-        <NcMenuItemLabel>
-          {{ $t('labels.viewMode') }}
-        </NcMenuItemLabel>
-        <NcMenuItem
-          class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
-          data-testid="nc-view-action-lock-subaction-Collaborative"
-          :disabled="!isUIAllowed('fieldAdd')"
-          @click="changeLockType(LockType.Collaborative)"
-        >
-          <LazySmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="!isUIAllowed('fieldAdd')" />
-        </NcMenuItem>
-        <SmartsheetToolbarNotAllowedTooltip
-          v-if="isEeUI"
-          :enabled="!isViewOwner || !!isDefaultView"
-          :message="isDefaultView ? 'Default view can\'t be made personal' : 'Only view owner can change to personal view'"
-        >
-          <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
-            <template #default="{ click }">
-              <NcMenuItem
-                data-testid="nc-view-action-lock-subaction-Personal"
-                :disabled="!isViewOwner || !!isDefaultView"
-                class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px] children:w-full children:children:w-full group"
-                @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => changeLockType(LockType.Personal))"
-              >
-                <LazySmartsheetToolbarLockType
-                  :type="LockType.Personal"
-                  :disabled="!isViewOwner || !!isDefaultView"
-                  @cancel="emits('closeModal')"
-                />
-              </NcMenuItem>
-            </template>
-          </PaymentUpgradeBadgeProvider>
-        </SmartsheetToolbarNotAllowedTooltip>
-        <NcMenuItem
-          data-testid="nc-view-action-lock-subaction-Locked"
-          class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction"
-          :disabled="!isUIAllowed('fieldAdd')"
-          @click="changeLockType(LockType.Locked)"
-        >
-          <LazySmartsheetToolbarLockType :type="LockType.Locked" :disabled="!isUIAllowed('fieldAdd')" />
-        </NcMenuItem>
-      </NcSubMenu>
-      <SmartsheetToolbarNotAllowedTooltip
-        v-if="isEeUI && !isDefaultView"
-        :enabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
-        message="Only owner or creator can re-assign"
-      >
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
-          <template #default="{ click }">
-            <NcMenuItem
-              :disabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
-              @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => openReAssignDlg())"
-            >
-              <div
-                v-e="[
-                  'c:navdraw:preview-as',
-                  {
-                    sidebar: props.inSidebar,
-                  },
-                ]"
-                class="flex flex-row items-center gap-x-3"
-              >
-                <div>
-                  {{ $t('labels.reAssignView') }}
-                </div>
-                <LazyPaymentUpgradeBadge
-                  :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
-                  :limit-or-feature="'to access re-assign view feature.' as PlanFeatureTypes"
-                  :content="
-                    $t('upgrade.upgradeToAccessReassignViewSubtitle', {
-                      plan: getPlanTitle(PlanTitles.TEAM),
-                    })
-                  "
-                  :callback="
-                    (type) => {
-                      if (type !== 'ok') return
-                      emits('closeModal')
-                    }
-                  "
-                />
-                <div class="flex flex-grow"></div>
-              </div>
-            </NcMenuItem>
-          </template>
-        </PaymentUpgradeBadgeProvider>
-      </SmartsheetToolbarNotAllowedTooltip>
-    </template>
-
-    <template v-if="!view.is_default && isUIAllowed('viewCreateOrEdit')">
-      <NcDivider />
-      <NcTooltip v-if="lockType === LockType.Locked">
-        <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
-        <NcMenuItem class="!cursor-not-allowed !text-gray-400" disabled>
+      <template v-if="!view.is_default && isUIAllowed('viewCreateOrEdit')">
+        <NcDivider />
+        <NcTooltip v-if="lockType === LockType.Locked">
+          <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
+          <NcMenuItem disabled>
+            <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
+            {{
+              $t('general.deleteEntity', {
+                entity:
+                  view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
+              })
+            }}
+          </NcMenuItem>
+        </NcTooltip>
+        <NcMenuItem v-else danger @click="onDelete">
           <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
           {{
             $t('general.deleteEntity', {
@@ -452,29 +603,23 @@ const isDefaultView = computed(() => view.value?.is_default)
             })
           }}
         </NcMenuItem>
-      </NcTooltip>
-      <NcMenuItem v-else class="!hover:bg-red-50 !text-red-500" @click="onDelete">
-        <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
-        {{
-          $t('general.deleteEntity', {
-            entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
-          })
-        }}
-      </NcMenuItem>
-    </template>
-    <template v-if="table?.base_id && currentSourceId">
-      <LazyDlgQuickImport
-        v-for="tp in quickImportDialogTypes"
-        :key="tp"
-        v-model="quickImportDialogs[tp].value"
-        :import-data-only="true"
-        :import-type="tp"
-        :base-id="table.base_id"
-        :source-id="currentSourceId"
-      />
+      </template>
     </template>
   </NcMenu>
-  <span v-else></span>
+  <span v-else v-bind="$attrs"></span>
+
+  <template v-if="table?.base_id && currentSourceId && isUploadAllowed">
+    <!-- Don't add this inside the NcMenu else it will show 2 modals at the same time -->
+    <LazyDlgQuickImport
+      v-for="tp in quickImportDialogTypes"
+      :key="tp"
+      v-model="quickImportDialogs[tp].value"
+      :import-data-only="true"
+      :import-type="tp"
+      :base-id="table.base_id"
+      :source-id="currentSourceId"
+    />
+  </template>
 </template>
 
 <style lang="scss" scoped>

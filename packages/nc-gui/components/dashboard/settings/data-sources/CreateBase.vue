@@ -119,7 +119,6 @@ const validators = computed(() => {
       }
       break
     case ClientType.PG:
-    case ClientType.MSSQL:
       clientValidations['dataSource.searchPath.0'] = selectedIntegration.value ? [] : [fieldRequiredValidator()]
       break
   }
@@ -659,8 +658,8 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                           <!-- Schema name -->
                           <a-form-item
                             v-if="
-                              ([ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client) ||
-                                [ClientType.MSSQL, ClientType.PG].includes(selectedIntegration?.sub_type)) &&
+                              ([ClientType.PG].includes(formState.dataSource.client) ||
+                                [ClientType.PG].includes(selectedIntegration?.sub_type)) &&
                               formState.dataSource.searchPath
                             "
                             :label="$t('labels.schemaName')"
@@ -681,8 +680,8 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                   <div class="nc-form-section-title">Permissions</div>
                   <div class="nc-form-section-body">
                     <DashboardSettingsDataSourcesSourceRestrictions
-                      v-model:allowMetaWrite="allowMetaWrite"
-                      v-model:allowDataWrite="allowDataWrite"
+                      v-model:allow-meta-write="allowMetaWrite"
+                      v-model:allow-data-write="allowDataWrite"
                     />
                   </div>
                 </div>

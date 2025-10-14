@@ -182,7 +182,7 @@ const tabIndex = computed(() => {
     :editor="editor"
     :tippy-options="{
       duration: 100,
-      maxWidth: 600,
+      maxWidth: 400,
       onMount: onMountLinkOptions,
     }"
     :should-show="(checkLinkMark as any)"

@@ -179,9 +179,9 @@ export const useBases = defineStore('basesStore', () => {
       await updateIfBaseOrderIsNullOrDuplicate()
 
       return _projects
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      message.error(e.message)
+      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isProjectsLoading.value = false
       isProjectsLoaded.value = true
@@ -325,17 +325,19 @@ export const useBases = defineStore('basesStore', () => {
     bases.value.clear()
   }
 
-  const navigateToProject = async ({ baseId, page }: { baseId: string; page?: 'collaborators' }) => {
+  const navigateToProject = async ({ baseId, page, query }: { baseId: string; page?: 'collaborators'; query?: any }) => {
     if (!baseId) return
 
     const base = bases.value.get(baseId)
     if (!base) return
 
-    if (page) {
-      return await navigateTo(`/nc/${baseId}?page=${page}`)
-    }
-
-    await navigateTo(`/nc/${baseId}`)
+    return await navigateTo({
+      path: `/nc/${baseId}`,
+      query: {
+        ...(page ? { page } : {}),
+        ...(query || {}),
+      },
+    })
   }
 
   async function updateIfBaseOrderIsNullOrDuplicate() {
@@ -403,24 +405,30 @@ export const useBases = defineStore('basesStore', () => {
    * Will have to show base home page sidebar if any base/table/view/script is active
    */
   watch(
-    [
-      () => route.value.params.baseId,
-      () => route.value.params.viewId,
-      () => route.value.params.viewTitle,
-      () => basesList.value.length,
-    ],
-    ([newBaseId, newTableId, newViewId, newBasesListLength], [oldBaseId, oldTableId, oldViewId]) => {
-      const shouldShowProjectList =
-        !newBasesListLength || !((newBaseId && newBaseId !== oldBaseId) || newTableId !== oldTableId || newViewId !== oldViewId)
+    [() => route.value.params.baseId, () => route.value.params.viewId, () => route.value.params.viewTitle],
+    ([newBaseId, newTableId, newViewId], [oldBaseId, oldTableId, oldViewId]) => {
+      const shouldShowProjectList = !(
+        (newBaseId && newBaseId !== oldBaseId) ||
+        newTableId !== oldTableId ||
+        newViewId !== oldViewId
+      )
 
-      if (!showProjectList.value && shouldShowProjectList) {
-        showProjectList.value = shouldShowProjectList
-        return
-      }
+      if (showProjectList.value === shouldShowProjectList) return
 
       showProjectList.value = shouldShowProjectList
     },
   )
+
+  watch([() => basesList.value.length, () => isProjectsLoaded.value], ([baseListLength, newIsProjectsLoaded]) => {
+    /**
+     * Use case:
+     * If project list is empty and showProjectList is false,
+     * then we have to show project list else it will stuck in loading state (blank sidebar state)
+     */
+    if (baseListLength || !newIsProjectsLoaded || showProjectList.value) return
+
+    showProjectList.value = true
+  })
 
   watch(activeProjectId, () => {
     ncLastVisitedBase().set(activeProjectId.value)

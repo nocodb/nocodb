@@ -24,8 +24,8 @@ const {
   hideMiniSidebar,
   hideSidebar,
   showTopbar,
-  isNewSidebarEnabled,
   miniSidebarWidth,
+  isFullScreen,
 } = storeToRefs(useSidebarStore())
 
 const { isSharedBase } = storeToRefs(useBase())
@@ -109,6 +109,7 @@ watch(
 function handleMouseMove(e: MouseEvent) {
   if (isMobileMode.value) return
   if (!wrapperRef.value) return
+  if (isFullScreen.value) return
   if (sidebarState.value === 'openEnd') return
 
   if (e.clientX < 4 + miniSidebarWidth.value && ['hiddenEnd', 'peekCloseEnd'].includes(sidebarState.value)) {
@@ -217,11 +218,11 @@ function onResize(widthPercent: any) {
 
 const isMiniSidebarVisible = computed(() => {
   return (
-    isNewSidebarEnabled.value &&
     !hideMiniSidebar.value &&
     slots.sidebar &&
     !isSharedBase.value &&
-    (!isMobileMode.value || isLeftSidebarOpen.value)
+    (!isMobileMode.value || isLeftSidebarOpen.value) &&
+    !isFullScreen.value
   )
 })
 </script>
@@ -233,16 +234,17 @@ const isMiniSidebarVisible = computed(() => {
     <div
       :class="{
         'w-[calc(100vw_-_var(--mini-sidebar-width))] flex-none': isMiniSidebarVisible,
-        'w-screen flex-none': !isMiniSidebarVisible,
+        'nc-w-screen flex-none': !isMiniSidebarVisible,
       }"
     >
       <DashboardTopbar v-if="showTopbar" :workspace-id="workspaceId" />
       <Splitpanes
         class="nc-sidebar-content-resizable-wrapper h-full"
         :class="{
+          'sidebar-closed': !isLeftSidebarOpen,
           'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
           '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isMiniSidebarVisible && !isSharedBase,
-          '!w-screen': !isMiniSidebarVisible || isSharedBase,
+          '!nc-w-screen': !isMiniSidebarVisible || isSharedBase,
         }"
         @ready="() => onWindowResize()"
         @resize="(event: any) => onResize(event[0].size)"
@@ -262,12 +264,11 @@ const isMiniSidebarVisible = computed(() => {
         >
           <div
             ref="wrapperRef"
-            class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-140) absolute overflow-visible"
+            class="nc-sidebar-wrapper relative nc-new-sidebar flex flex-col h-full justify-center !sm:(max-w-140) absolute overflow-visible"
             :class="{
               'mobile': isMobileMode,
               'minimized-height': !isLeftSidebarOpen,
               'hide-sidebar': ['hiddenStart', 'hiddenEnd', 'peekCloseEnd'].includes(sidebarState),
-              'nc-new-sidebar': isNewSidebarEnabled,
             }"
             :style="{
               width: sidebarState === 'hiddenEnd' ? '0px' : `${sidebarWidth}px`,
@@ -294,7 +295,7 @@ const isMiniSidebarVisible = computed(() => {
 <style lang="scss">
 .nc-sidebar-wrapper.minimized-height {
   & > * {
-    @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-gray-200 shadow-lg);
+    @apply h-4/5 pb-2 !(rounded-r-lg border-1 border-nc-border-gray-medium shadow-lg);
     width: calc(100% + 4px);
   }
 
@@ -309,7 +310,7 @@ const isMiniSidebarVisible = computed(() => {
 
 .nc-sidebar-wrapper > * {
   transition: all 0.2s ease-in-out;
-  @apply z-10 absolute;
+  @apply z-501 absolute;
 }
 
 .nc-sidebar-wrapper.hide-sidebar {
@@ -324,23 +325,24 @@ const isMiniSidebarVisible = computed(() => {
 
 /** Split pane CSS */
 
-.nc-sidebar-content-resizable-wrapper > {
+.nc-sidebar-content-resizable-wrapper {
   .splitpanes__splitter {
     @apply !w-0 relative overflow-visible;
   }
+
   .splitpanes__splitter:before {
-    @apply bg-gray-200 w-0.25 absolute left-0 top-0 h-full z-40;
+    @apply bg-nc-bg-gray-medium w-0.25 absolute left-0 top-0 h-full z-40;
     content: '';
   }
 
   .splitpanes__splitter:hover:before {
-    @apply bg-scrollbar;
+    @apply bg-nc-border-gray-medium;
     width: 3px !important;
     left: 0px;
   }
 
   .splitpanes--dragging .splitpanes__splitter:before {
-    @apply bg-scrollbar;
+    @apply bg-nc-border-gray-medium;
     width: 3px !important;
     left: 0px;
   }
@@ -348,9 +350,19 @@ const isMiniSidebarVisible = computed(() => {
   .splitpanes--dragging .splitpanes__splitter {
     @apply w-1 mr-0;
   }
+
+  &.sidebar-closed {
+    .splitpanes__splitter {
+      display: none !important;
+
+      &:before {
+        display: none !important;
+      }
+    }
+  }
 }
 
-.nc-sidebar-content-resizable-wrapper.hide-resize-bar > {
+.nc-sidebar-content-resizable-wrapper.hide-resize-bar {
   .splitpanes__splitter {
     cursor: default !important;
     opacity: 0 !important;

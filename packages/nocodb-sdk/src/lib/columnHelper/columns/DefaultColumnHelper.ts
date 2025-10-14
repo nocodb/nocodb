@@ -16,6 +16,6 @@ export class DefaultColumnHelper extends AbstractColumnHelper {
   }
 
   parsePlainCellValue(value: any): string {
-    return this.parsePlainCellValue(value) ?? '';
+    return this.parseValue(value) ?? '';
   }
 }

@@ -62,7 +62,7 @@ export function isReadOnlyVirtualCell(col: ColumnType) {
   );
 }
 
-export const isReadonly = (col: ColumnType) => {
+export const isReadonlyVirtualColumn = (col: ColumnType) => {
   return (
     isSystemColumn(col) ||
     isLookup(col) ||

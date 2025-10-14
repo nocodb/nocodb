@@ -179,8 +179,7 @@ export class RecoverDisconnectedTableNames {
         source,
         dbDriver,
       });
-      const tnPath = baseModel.getTnPath(model.table_name);
-      let tableName = typeof tnPath === 'string' ? tnPath : tnPath.toQuery();
+      let tableName = baseModel.getTnPath(model.table_name);
       if (['pg', 'postgres'].includes(source.type)) {
         tableName = replaceQuestionMarkWithPlaceholderPg(tableName);
       }

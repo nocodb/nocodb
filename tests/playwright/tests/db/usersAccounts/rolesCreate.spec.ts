@@ -7,10 +7,10 @@ import { getDefaultPwd } from '../../../tests/utils/general';
 import { isEE } from '../../../setup/db';
 
 const roleDb = [
-  { email: 'creator@nocodb.com', role: 'creator', url: '' },
-  { email: 'editor@nocodb.com', role: 'editor', url: '' },
-  { email: 'commenter@nocodb.com', role: 'commenter', url: '' },
-  { email: 'viewer@nocodb.com', role: 'viewer', url: '' },
+  { email: 'creator@nocodb.com', role: 'creator', url: '', isToolbarOperationsRestricted: false },
+  { email: 'editor@nocodb.com', role: 'editor', url: '', isToolbarOperationsRestricted: false },
+  { email: 'commenter@nocodb.com', role: 'commenter', url: '', isToolbarOperationsRestricted: true },
+  { email: 'viewer@nocodb.com', role: 'viewer', url: '', isToolbarOperationsRestricted: true },
 ];
 
 test.describe.skip('User roles', () => {
@@ -38,11 +38,10 @@ test.describe.skip('User roles', () => {
 
     for (let i = 0; i < roleDb.length; i++) {
       await dashboard.baseView.btn_share.click();
-      roleDb[i].url = await settings.teams.invite({
+      roleDb[i].url = await dashboard.settings.teams.invite({
         email: roleDb[i].email,
         role: roleDb[i].role,
       });
-      console.log(roleDb[i].url);
     }
 
     // Role test
@@ -57,7 +56,7 @@ test.describe.skip('User roles', () => {
       role: roleDb[roleIdx].role,
     });
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.validateRoleAccess({
       role: roleDb[roleIdx].role,
@@ -69,10 +68,12 @@ test.describe.skip('User roles', () => {
 
     await dashboard.treeView.validateRoleAccess({
       role: roleDb[roleIdx].role,
+      context,
     });
 
     await dashboard.grid.verifyRoleAccess({
       role: roleDb[roleIdx].role,
+      isToolbarOperationsRestricted: roleDb[roleIdx].isToolbarOperationsRestricted,
     });
 
     await dashboard.grid.openExpandedRow({ index: 0 });

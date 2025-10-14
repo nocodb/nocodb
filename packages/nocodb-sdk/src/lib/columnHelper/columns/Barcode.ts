@@ -13,6 +13,8 @@ export class BarcodeHelper extends AbstractColumnHelper {
     _value: any,
     params: SerializerOrParserFnProps['params']
   ): undefined {
+    if (params.serializeSearchQuery) return null;
+
     if (params.isMultipleCellPaste) {
       return undefined;
     } else {

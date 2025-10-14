@@ -1,8 +1,14 @@
-import { extractFilterFromXwhere, UITypes } from 'nocodb-sdk';
+import { extractFilterFromXwhere, FormulaDataTypes, UITypes } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { BarcodeColumn, QrCodeColumn, RollupColumn, View } from '~/models';
+import type {
+  BarcodeColumn,
+  FormulaColumn,
+  QrCodeColumn,
+  RollupColumn,
+  View,
+} from '~/models';
 import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
 import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
@@ -16,8 +22,35 @@ import {
   getColumnName,
 } from '~/helpers/dbHelpers';
 import { BaseUser, Column, Filter, Sort } from '~/models';
-import { getAliasGenerator } from '~/utils';
+import { getAliasGenerator, isOnPrem } from '~/utils';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
+
+// Returns a SQL expression that converts blank (null or '') values to NULL
+const sqlNullIfBlank = ({
+  baseModel,
+  columnName,
+  isStringType = false,
+}: {
+  baseModel: IBaseModelSqlV2;
+  columnName: string | Knex.QueryBuilder | Knex.Raw;
+  isStringType?: boolean;
+}) => {
+  if (baseModel.isPg && !isStringType) {
+    return baseModel.dbDriver.raw(
+      `CASE 
+        WHEN (pg_typeof(:column:) = 'text'::regtype 
+          OR pg_typeof(:column:) = 'varchar'::regtype 
+          OR pg_typeof(:column:) = 'char'::regtype) 
+          AND (:column:)::text = '' 
+        THEN NULL
+        ELSE :column:
+      END`,
+      { column: columnName },
+    );
+  }
+
+  return baseModel.dbDriver.raw(`NULLIF(??, '')`, [columnName]);
+};
 
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   const list = async (args: {
@@ -41,7 +74,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     const selectors = [];
     const groupBySelectors = [];
     const getAlias = getAliasGenerator('__nc_gb');
-    const subGroupColumn = columns.find(
+    const _subGroupColumn = columns.find(
       (c) =>
         c.title === subGroupColumnName || c.column_name === subGroupColumnName,
     );
@@ -100,6 +133,19 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               column,
             );
             columnQuery = _selectQb.builder;
+
+            // if postgres and formula output defined as string then cast to text for consistent output
+            if (
+              baseModel.isPg &&
+              (column.colOptions as FormulaColumn).getParsedTree().dataType ===
+                FormulaDataTypes.STRING
+            ) {
+              columnQuery = sqlNullIfBlank({
+                columnName: baseModel.dbDriver.raw(`??::text`, [columnQuery]),
+                baseModel,
+                isStringType: true,
+              });
+            }
           } catch (e) {
             logger.log(e);
             columnQuery = baseModel.dbDriver.raw(`'ERR'`);
@@ -187,10 +233,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             column,
             columns,
           );
-          columnQuery = baseModel.dbDriver.raw('??', [defaultColumnName]);
+          const defaultColumnNameQb = sqlNullIfBlank({
+            columnName: defaultColumnName,
+            baseModel,
+          });
+          columnQuery = baseModel.dbDriver.raw('??', [defaultColumnNameQb]);
           if (!isSubGroup) {
             selectors.push(
-              baseModel.dbDriver.raw(`?? as ??`, [defaultColumnName, alias]),
+              baseModel.dbDriver.raw(`?? as ??`, [defaultColumnNameQb, alias]),
             );
           }
           break;
@@ -212,10 +262,15 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       const subGroupQuery = await processColumn(subGroupColumnName, true);
       qb.select(
         baseModel.dbDriver.raw(
-          `COUNT(DISTINCT COALESCE(${
-            baseModel.isPg ? '(??)::text' : '??'
-          }, '__null__')) as ??`,
-          [baseModel.dbDriver.raw(subGroupQuery), '__sub_group_count__'],
+          `COUNT(DISTINCT COALESCE(${sqlNullIfBlank({
+            columnName: baseModel.dbDriver.raw(
+              baseModel.isPg ? '(??)::text' : '??',
+              [baseModel.dbDriver.raw(subGroupQuery)],
+            ),
+            baseModel,
+            isStringType: true,
+          })}, '__null__')) as ??`,
+          ['__sub_group_count__'],
         ),
       );
     }
@@ -280,20 +335,26 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
     }
 
-    // if sort is provided filter out the group by columns sort and apply
-    // since we are grouping by the column and applying sort on any other column is not required
+    // group by using the column aliases
+    qb.groupBy(...groupBySelectors);
+
+    // Wrap in a CTE to allow referencing grouped/aliased columns in subqueries (esp. for Postgres)
+    // We'll use: WITH grouped AS (<qb>) SELECT ... FROM grouped g
+    const outerQb = baseModel.dbDriver
+      .with('grouped', qb.clone())
+      .select('*')
+      .from({ g: 'grouped' });
+
+    if (!isOnPrem) {
+      applyPaginate(outerQb, rest);
+    }
+
+    // Apply order by on the outer query, referencing g.<alias>
     for (const sort of sorts || []) {
       if (!groupByColumns[sort.fk_column_id]) {
         continue;
       }
-
       const column = groupByColumns[sort.fk_column_id];
-      const columnName = await getColumnName(
-        baseModel.context,
-        column,
-        columns,
-      );
-
       if (
         [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
           column.uidt as UITypes,
@@ -301,13 +362,19 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       ) {
         const baseUsers = await BaseUser.getUsersList(baseModel.context, {
           base_id: column.base_id,
+          include_internal_user: true,
         });
-
+        const groupedCol = getAs(column);
+        const groupedColQb = sqlNullIfBlank({
+          columnName: baseModel.dbDriver.raw('??.??', ['g', groupedCol]),
+          baseModel,
+          isStringType: true,
+        });
         let finalStatement = '';
         if (baseModel.dbDriver.clientType() === 'pg') {
           finalStatement = `(${replaceDelimitedWithKeyValuePg({
             knex: baseModel.dbDriver,
-            needleColumn: columnName,
+            needleColumn: groupedColQb as any,
             stack: baseUsers.map((user) => ({
               key: user.id,
               value: user.display_name || user.email,
@@ -316,35 +383,34 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
           finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
             knex: baseModel.dbDriver,
-            needleColumn: columnName,
+            needleColumn: groupedColQb as any,
             stack: baseUsers.map((user) => ({
               key: user.id,
               value: user.display_name || user.email,
             })),
           })})`;
         } else {
-          // use the original replace
           finalStatement = baseUsers.reduce((acc, user) => {
-            const qb = baseModel.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
+            const qbReplace = baseModel.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
               user.id,
               user.display_name || user.email,
             ]);
-            return qb.toQuery();
-          }, baseModel.dbDriver.raw(`??`, [columnName]).toQuery());
+            return qbReplace.toQuery();
+          }, groupedColQb.toQuery());
         }
         if (!['asc', 'desc'].includes(sort.direction)) {
-          qb.orderBy(
-            'count',
+          outerQb.orderBy(
+            'g.count',
             sort.direction === 'count-desc' ? 'desc' : 'asc',
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
           );
-          qb.orderBy(
+          outerQb.orderBy(
             sanitize(baseModel.dbDriver.raw(finalStatement)),
             sort.direction,
-            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+            'FIRST',
           );
         } else {
-          qb.orderBy(
+          outerQb.orderBy(
             sanitize(baseModel.dbDriver.raw(finalStatement)),
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
@@ -352,19 +418,19 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         }
       } else {
         if (!['asc', 'desc'].includes(sort.direction)) {
-          qb.orderBy(
-            'count',
+          outerQb.orderBy(
+            'g.count',
             sort.direction === 'count-desc' ? 'desc' : 'asc',
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
           );
-          qb.orderBy(
-            getAs(column),
+          outerQb.orderBy(
+            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
-            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+            'FIRST',
           );
         } else {
-          qb.orderBy(
-            getAs(column),
+          outerQb.orderBy(
+            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
           );
@@ -372,11 +438,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
     }
 
-    // group by using the column aliases
-    qb.groupBy(...groupBySelectors);
-    applyPaginate(qb, rest);
-
-    return await baseModel.execAndParse(qb);
+    return await baseModel.execAndParse(
+      baseModel.dbDriver.from(
+        baseModel.dbDriver.raw(outerQb).wrap('(', ') __nc_group_alias'),
+      ),
+    );
   };
 
   const count = async (args: {
@@ -451,7 +517,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               );
 
               selectQb = baseModel.dbDriver.raw(`?? as ??`, [
-                _selectQb.builder,
+                sqlNullIfBlank({
+                  columnName: _selectQb.builder,
+                  baseModel,
+                }),
                 getAs(column),
               ]);
             } catch (e) {
@@ -569,7 +638,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 columns,
               );
               selectors.push(
-                baseModel.dbDriver.raw('?? as ??', [columnName, getAs(column)]),
+                baseModel.dbDriver.raw('?? as ??', [
+                  sqlNullIfBlank({ columnName, baseModel }),
+                  getAs(column),
+                ]),
               );
               groupBySelectors.push(getAs(column));
             }
@@ -578,6 +650,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }),
     );
 
+    // Build the group-by query
     const qb = baseModel.dbDriver(baseModel.tnPath);
     qb.count(`${baseModel.model.primaryKey?.column_name || '*'} as count`);
     qb.select(...selectors);
@@ -622,9 +695,15 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     qb.groupBy(...groupBySelectors);
 
+    // Wrap in a CTE so that we can reference grouped columns safely in all engines
+    // SELECT COUNT(*) FROM (WITH grouped AS (<qb>) SELECT * FROM grouped g) sub
+    const groupedCte = baseModel.dbDriver
+      .with('grouped', qb.clone())
+      .select('*')
+      .from({ g: 'grouped' });
     const qbP = baseModel.dbDriver
       .count('*', { as: 'count' })
-      .from(qb.as('groupby'));
+      .from(groupedCte.as('sub'));
 
     return (await baseModel.execAndParse(qbP, null, { raw: true, first: true }))
       ?.count;
@@ -1247,8 +1326,16 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               column,
               columns,
             );
+
+            const columnNameQb = sqlNullIfBlank({
+              columnName,
+              baseModel,
+              isStringType: true,
+            });
+
             const baseUsers = await BaseUser.getUsersList(baseModel.context, {
               base_id: column.base_id,
+              include_internal_user: true,
             });
 
             // create nested replace statement for each user
@@ -1258,7 +1345,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 user.display_name || user.email,
               ]);
               return qb.toQuery();
-            }, baseModel.dbDriver.raw(`??`, [columnName]).toQuery());
+            }, columnNameQb.toQuery());
 
             if (!['asc', 'desc'].includes(sort.direction)) {
               tQb.orderBy(

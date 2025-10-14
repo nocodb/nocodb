@@ -6,7 +6,6 @@ import {
   UITypes,
   getUITypesForFormulaDataType,
   isHiddenCol,
-  isVirtualCol,
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
@@ -27,11 +26,22 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
 }
 
-const { setAdditionalValidations, sqlUi, column, validateInfos } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, sqlUi, column, validateInfos } =
+  useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
 const meta = inject(MetaInj, ref())
+
+const defaultEditorError = {
+  isError: false,
+  message: '',
+  position: {
+    column: -1,
+    row: -1,
+  },
+}
+const editorError = ref(defaultEditorError)
 
 const { base: activeBase } = storeToRefs(useBase())
 
@@ -58,7 +68,6 @@ const validators = {
       validator: (_: any, formula: any) => {
         return (async () => {
           if (!formula?.trim()) throw new Error('Required')
-
           try {
             await validateFormulaAndExtractTreeWithType({
               column: column.value,
@@ -66,13 +75,21 @@ const validators = {
               columns: supportedColumns.value,
               clientOrSqlUi: sqlUi.value,
               getMeta,
+              trackPosition: true,
             })
+            editorError.value = { ...defaultEditorError }
           } catch (e: any) {
-            if (e instanceof FormulaError && e.extra?.key) {
-              throw new Error(t(e.extra.key, e.extra))
+            const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
+            if (e instanceof FormulaError && e.extra?.position) {
+              editorError.value = {
+                isError: true,
+                message: errorMessage,
+                position: e.extra.position,
+              }
+            } else {
+              editorError.value = { ...defaultEditorError }
             }
-
-            throw new Error(e.message)
+            throw new Error(errorMessage)
           }
         })()
       },
@@ -118,6 +135,7 @@ const debouncedValidate = useDebounceFn(async () => {
       column: column.value ?? undefined,
       clientOrSqlUi: source.value?.type as any,
       getMeta: async (modelId) => await getMeta(modelId),
+      trackPosition: true,
     })
 
     // Update parsedTree only if this is the latest invocation
@@ -163,6 +181,10 @@ setAdditionalValidations({
   ...validators,
 })
 
+setAvoidShowingToastMsgForValidations({
+  formula_raw: true,
+})
+
 const activeKey = ref('formula')
 
 const supportedFormulaAlias = computed(() => {
@@ -172,14 +194,11 @@ const supportedFormulaAlias = computed(() => {
       return {
         value: uidt,
         label: t(`datatype.${uidt}`),
-        icon: h(
-          isVirtualCol(uidt) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
-          {
-            columnMeta: {
-              uidt,
-            },
+        icon: h(resolveComponent('SmartsheetHeaderIcon'), {
+          column: {
+            uidt,
           },
-        ),
+        }),
       }
     })
   } catch (e) {
@@ -205,7 +224,7 @@ watch(
 
 <template>
   <div class="formula-wrapper relative">
-    <NcTabs v-model:activeKey="activeKey">
+    <NcTabs v-model:active-key="activeKey">
       <a-tab-pane key="formula">
         <template #tab>
           <div class="tab">
@@ -216,6 +235,7 @@ watch(
           <SmartsheetColumnFormulaInputHelper
             v-model:value="vModel.formula_raw"
             :error="validateInfos.formula_raw?.validateStatus === 'error'"
+            :editor-error="editorError"
           />
         </div>
       </a-tab-pane>
@@ -242,7 +262,7 @@ watch(
               <a-select-option v-for="option in supportedFormulaAlias" :key="option.value" :value="option.value">
                 <div class="flex w-full items-center gap-2 justify-between">
                   <div class="w-full">
-                    <component :is="option.icon" class="w-4 h-4 !text-gray-600" />
+                    <component :is="option.icon" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
                     {{ option.label }}
                   </div>
                   <component

@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -115,20 +116,24 @@ export class HooksController {
   }
 
   @Get([
-    '/api/v1/db/meta/tables/:tableId/hooks/samplePayload/:operation/:version',
-    '/api/v2/meta/tables/:tableId/hooks/samplePayload/:operation/:version',
+    '/api/v1/db/meta/tables/:tableId/hooks/samplePayload/:event/:operation/:version',
+    '/api/v2/meta/tables/:tableId/hooks/samplePayload/:event/:operation/:version',
   ])
   @Acl('tableSampleData')
   async tableSampleData(
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
-    @Param('operation') operation: HookType['operation'],
+    @Param('event') event: HookType['event'][number],
+    @Param('operation') operation: HookType['operation'][number],
     @Param('version') version: HookType['version'],
+    @Query('includeUser') includeUser: string,
   ) {
     return await this.hooksService.tableSampleData(context, {
       tableId,
+      event,
       operation,
       version,
+      includeUser: includeUser === 'true',
     });
   }
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 interface Prop {
   modelValue?: boolean
@@ -299,6 +299,9 @@ const linkOrUnLink = (rowRef: Record<string, string>, id: string) => {
 }
 
 watch([filterQueryRef, isDataExist], () => {
+  // Don't focus input on open dropdown in mobile mode
+  if (isMobileMode.value) return
+
   if (readOnly.value || isPublic.value ? isDataExist.value : true) {
     filterQueryRef.value?.focus()
   }
@@ -327,6 +330,9 @@ const linkedShortcuts = (e: KeyboardEvent) => {
 onMounted(() => {
   loadRelatedTableMeta()
   window.addEventListener('keydown', linkedShortcuts)
+
+  // Don't focus input on open dropdown in mobile mode
+  if (isMobileMode.value) return
   setTimeout(() => {
     filterQueryRef.value?.focus()
   }, 100)
@@ -444,6 +450,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 :attachment="attachmentCol"
                 :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                 :fields="fields"
+                :display-value-column="relatedTableDisplayValueColumn"
                 :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
                 :is-loading="isChildrenListLoading[Number.parseInt(id)]"
                 :is-selected="!!(isSearchInputFocused && childrenListPagination.query && Number.parseInt(id) === 0)"
@@ -483,20 +490,34 @@ const handleKeyDown = (e: KeyboardEvent) => {
 
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11">
         <div class="flex items-center gap-2">
-          <NcButton
+          <PermissionsTooltip
             v-if="
-              !isPublic && !isDataReadOnly && isUIAllowed('dataEdit', externalBaseUserRoles) && isUIAllowed('dataEdit') && !isForm
+              !isPublic &&
+              !isDataReadOnly &&
+              isUIAllowed('dataEdit', externalBaseUserRoles) &&
+              isUIAllowed('dataEdit') &&
+              !isForm &&
+              !relatedTableMeta?.synced
             "
-            v-e="['c:row-expand:open']"
-            size="small"
-            class="!hover:(bg-white text-brand-500) !h-7 !text-small"
-            type="secondary"
-            @click="addNewRecord"
+            :entity="PermissionEntity.TABLE"
+            :entity-id="relatedTableMeta?.id"
+            :permission="PermissionKey.TABLE_RECORD_ADD"
           >
-            <div class="flex items-center gap-1">
-              <MdiPlus v-if="!isMobileMode" class="h-4 w-4" /> {{ $t('activity.newRecord') }}
-            </div>
-          </NcButton>
+            <template #default="{ isAllowed }">
+              <NcButton
+                v-e="['c:row-expand:open']"
+                size="small"
+                class="!hover:(bg-white text-brand-500) !h-7 !text-small"
+                type="secondary"
+                :disabled="!isAllowed"
+                @click="addNewRecord"
+              >
+                <div class="flex items-center gap-1">
+                  <MdiPlus v-if="!isMobileMode" class="h-4 w-4" /> {{ $t('activity.newRecord') }}
+                </div>
+              </NcButton>
+            </template>
+          </PermissionsTooltip>
           <NcButton
             v-if="!readOnly && (childrenListCount > 0 || (childrenList?.list ?? state?.[colTitle] ?? []).length > 0)"
             v-e="['c:links:link']"

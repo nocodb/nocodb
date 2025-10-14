@@ -61,7 +61,7 @@ export const usePlugin = createSharedComposable(() => {
         query: '?raw',
         import: 'default',
       }),
-      [PluginLib.scripts]: import.meta.glob('../../scripts/*/index.js', {
+      [PluginLib.scripts]: import.meta.glob('../../scripts/*/index.txt', {
         query: '?raw',
         import: 'default',
       }),
@@ -102,6 +102,8 @@ export const usePlugin = createSharedComposable(() => {
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
   const isPluginsEnabled = computed(() => isEeUI)
+
+  const isBetaPluginsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.EXTENSIONS))
 
   const availablePlugins = computed<PluginManifest[]>(() => [...availableExtensions.value, ...availableScripts.value])
 
@@ -263,12 +265,10 @@ export const usePlugin = createSharedComposable(() => {
   }
 
   watch(
-    [() => isPluginsEnabled.value, () => appInfo.value?.isOnPrem],
-    async ([newValue]) => {
+    [() => isBetaPluginsEnabled.value, () => isPluginsEnabled.value, () => appInfo.value?.isOnPrem],
+    async () => {
       availableExtensions.value = []
       availableScripts.value = []
-
-      if (!newValue) return
 
       await loadPlugins()
     },
@@ -276,18 +276,6 @@ export const usePlugin = createSharedComposable(() => {
       immediate: true,
     },
   )
-  onMounted(async () => {
-    watch(
-      async () => {
-        availableExtensions.value = []
-        availableScripts.value = []
-        await loadPlugins()
-      },
-      {
-        immediate: true,
-      },
-    )
-  })
 
   /**
    * Find a plugin by ID regardless of type

@@ -6,6 +6,7 @@ import { DocsSidebarPage } from './DocsSidebar';
 import { SidebarUserMenuObject } from './UserMenu';
 import { SidebarProjectNodeObject } from './ProjectNode';
 import { SidebarTableNodeObject } from './TableNode';
+import { isEE } from '../../../setup/db';
 
 export class SidebarPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -52,6 +53,8 @@ export class SidebarPage extends BasePage {
   }
 
   async verifyCreateProjectBtn({ isVisible }: { isVisible: boolean }) {
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
+
     if (isVisible) await expect(this.createProjectBtn).toBeVisible();
     else await expect(this.createProjectBtn).toHaveCount(0);
   }
@@ -67,21 +70,25 @@ export class SidebarPage extends BasePage {
     title,
     type,
     networkValidation = true,
+    navigateTobase = true,
   }: {
     title: string;
     type: ProjectTypes;
     networkValidation?: boolean;
+    navigateTobase?: boolean;
   }) {
+    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
+
     await this.createProjectBtn.click();
     if (type === ProjectTypes.DOCUMENTATION) {
       await this.dashboard.get().locator('.nc-create-base-btn-docs').click();
     }
-    /*
-    TODO uncomment when AI Features are enabled by default
 
-    await this.rootPage.locator('.nc-create-base').waitFor();
-    await this.rootPage.locator('.nc-create-base').click();
-    */
+    if (isEE()) {
+      await this.rootPage.locator('.nc-create-base').waitFor();
+      await this.rootPage.locator('.nc-create-base').click();
+    }
+
     await this.dashboard.get().locator('.nc-metadb-base-name').clear();
     await this.dashboard.get().locator('.nc-metadb-base-name').fill(title);
 
@@ -97,6 +104,13 @@ export class SidebarPage extends BasePage {
 
     if (type === ProjectTypes.DOCUMENTATION) {
       await this.dashboard.docs.pagesList.waitForOpen({ title });
+    }
+
+    // By default we navigate to base home page sidebar
+    // If we want to show base list then wait for base homepage sidebar load and then try to show baselist sidebar
+    if (!navigateTobase) {
+      await this.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
+      await this.dashboard.leftSidebar.verifyBaseListOpen(true);
     }
   }
 

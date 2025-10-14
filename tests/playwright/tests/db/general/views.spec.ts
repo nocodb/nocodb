@@ -2,16 +2,19 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import setup, { unsetup } from '../../../setup';
+import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 
 test.describe('Views CRUD Operations', () => {
   let dashboard: DashboardPage;
   let context: any;
   let toolbar: ToolbarPage;
+  let topbar: TopbarPage;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
+    topbar = dashboard.grid.topbar;
   });
 
   test.afterEach(async () => {
@@ -19,7 +22,7 @@ test.describe('Views CRUD Operations', () => {
   });
 
   test('Create views, reorder and delete', async () => {
-    await dashboard.treeView.openTable({ title: 'City' });
+    await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
     await dashboard.viewSidebar.createGridView({ title: 'CityGrid' });
     await dashboard.viewSidebar.verifyView({ title: 'CityGrid', index: 0 });
     await dashboard.viewSidebar.renameView({
@@ -89,15 +92,25 @@ test.describe('Views CRUD Operations', () => {
   });
 
   test('Save search query for each table and view', async () => {
-    await dashboard.treeView.openTable({ title: 'City' });
+    /**
+     * On switching to different view we reset the search query now
+     * If we switch the tab from data to details then search query should retain
+     */
+    await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
 
     await toolbar.searchData.verify('');
     await toolbar.searchData.get().fill('City-City');
+    await toolbar.searchData.verify('City-City');
+    await topbar.btn_details.click();
+    await topbar.btn_data.click();
     await toolbar.searchData.verify('City-City');
 
     await dashboard.viewSidebar.createGridView({ title: 'CityGrid' });
     await toolbar.searchData.verify('');
     await toolbar.searchData.get().fill('City-CityGrid');
+    await toolbar.searchData.verify('City-CityGrid');
+    await topbar.btn_details.click();
+    await topbar.btn_data.click();
     await toolbar.searchData.verify('City-CityGrid');
 
     await dashboard.viewSidebar.createGridView({ title: 'CityGrid2' });
@@ -107,25 +120,28 @@ test.describe('Views CRUD Operations', () => {
 
     await dashboard.viewSidebar.openView({ title: 'CityGrid' });
     await dashboard.rootPage.waitForTimeout(1000);
-    await toolbar.searchData.verify('City-CityGrid');
+    await toolbar.searchData.verify('');
 
-    await dashboard.treeView.openTable({ title: 'City' });
+    await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
     await dashboard.rootPage.waitForTimeout(1000);
-    await toolbar.searchData.verify('City-City');
+    await toolbar.searchData.verify('');
 
-    await dashboard.treeView.openTable({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
     await toolbar.searchData.verify('');
 
     await dashboard.viewSidebar.createGridView({ title: 'ActorGrid' });
     await toolbar.searchData.verify('');
     await toolbar.searchData.get().fill('Actor-ActorGrid');
     await toolbar.searchData.verify('Actor-ActorGrid');
+    await topbar.btn_details.click();
+    await topbar.btn_data.click();
+    await toolbar.searchData.verify('Actor-ActorGrid');
 
-    await dashboard.treeView.openTable({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
     await dashboard.rootPage.waitForTimeout(1000);
     await toolbar.searchData.verify('');
 
-    await dashboard.treeView.openTable({ title: 'City', mode: '' });
-    await toolbar.searchData.verify('City-City');
+    await dashboard.treeView.openTable({ title: 'City', mode: '', baseTitle: context.base.title });
+    await toolbar.searchData.verify('');
   });
 });

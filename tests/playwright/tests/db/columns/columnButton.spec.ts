@@ -32,16 +32,17 @@ test.describe('Button column', () => {
     await unsetup(context);
   });
 
-  test('Create and verify Button Column,', async ({ context, request, page }) => {
+  test('Create and verify Button Column,', async ({ request, page }) => {
     await page.waitForTimeout(1000);
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await clearServerData({ request });
 
     await webhook.create({
       title: 'hook-1',
-      event: 'Manual Trigger',
+      event: 'Manual',
+      operation: 'trigger',
     });
     await clearServerData({ request });
 

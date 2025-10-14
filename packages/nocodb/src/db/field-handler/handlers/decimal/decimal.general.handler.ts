@@ -30,6 +30,8 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       'ge',
       'le',
       'in',
+      'like',
+      'nlike',
       'empty',
       'notempty',
       'null',
@@ -100,8 +102,11 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
   ) {
     const { sourceField } = args;
 
-    return (qb: Knex.QueryBuilder) => {
-      qb.whereNull(sourceField as any);
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.whereNull(sourceField as any);
+      },
     };
   }
 
@@ -115,8 +120,11 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
   ) {
     const { sourceField } = args;
 
-    return (qb: Knex.QueryBuilder) => {
-      qb.whereNotNull(sourceField as any);
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.whereNotNull(sourceField as any);
+      },
     };
   }
 }

@@ -505,10 +505,9 @@ class PGClient extends KnexClient {
       ).rows?.[0];
 
       if (!schemaExists) {
-        await this.sqlClient.raw(
-          `CREATE SCHEMA IF NOT EXISTS ??  AUTHORIZATION ?? `,
-          [schemaName, this.connectionConfig.connection.user],
-        );
+        await this.sqlClient.raw(`CREATE SCHEMA IF NOT EXISTS ??`, [
+          schemaName,
+        ]);
       }
 
       // this.sqlClient = knex(this.connectionConfig);
@@ -849,7 +848,7 @@ class PGClient extends KnexClient {
                 tc1.CONSTRAINT_TYPE = 'UNIQUE'
                 and tc1.TABLE_NAME = c.TABLE_NAME
                 and cu.COLUMN_NAME = c.COLUMN_NAME
-                and tc1.TABLE_SCHEMA=c.TABLE_SCHEMA) IsUnique,
+                and tc1.TABLE_SCHEMA=c.TABLE_SCHEMA) is_unique,
                 (SELECT
         string_agg(enumlabel, ',')
         FROM "pg_enum" "e"
@@ -894,6 +893,7 @@ class PGClient extends KnexClient {
         column.clen = response.rows[i].clen;
         column.dp = response.rows[i].dp;
         column.cop = response.rows[i].cop;
+        column.unique = !!response.rows[i].is_unique;
 
         // todo : there are lot of types in pg - handle them
         //column.dtx = this.getKnexDataType(column.dt);
@@ -1350,7 +1350,7 @@ class PGClient extends KnexClient {
           LEFT JOIN pg_class f_tbl ON f_tbl.oid = pc.confrelid
           LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
           LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
-        WHERE pc.contype = 'f' AND sch.nspname = ?
+        WHERE pc.contype = 'f' AND sch.nspname = ? AND f_sch.nspname = sch.nspname
         ORDER BY tn;`,
         [this.getEffectiveSchema(args)],
       );

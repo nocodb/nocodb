@@ -51,11 +51,12 @@ export function useGridViewData(
     toggleExpand,
     groupByColumns,
     isGroupBy,
-    buildNestedWhere,
+    buildNestedFilterArr,
     clearGroupCache,
     syncCount: groupSyncCount,
     fetchMissingGroupChunks,
     updateGroupAggregations,
+    toggleExpandAll,
   } = useInfiniteGroups(viewMeta, meta, where, {
     syncVisibleData,
   })
@@ -89,6 +90,7 @@ export function useGridViewData(
     loadData,
     updateRecordOrder,
     selectedAllRecords,
+    selectedAllRecordsSkipPks,
     loadAggCommentsCount,
     navigateToSiblingRow,
     getRows,
@@ -100,7 +102,8 @@ export function useGridViewData(
     callbacks: {
       syncVisibleData,
       getCount,
-      getWhereFilter: getGroupFilter,
+      getWhereFilter: async (_path?: Array<number>) => where?.value ?? '',
+      getWhereFilterArr: getGroupFilterArr,
       reloadAggregate: triggerAggregateReload,
       findGroupByPath: (path?: Array<number>) => {
         return findGroupByPath(cachedGroups.value, path)
@@ -203,7 +206,7 @@ export function useGridViewData(
     return targetGroup.count
   }
 
-  async function getGroupFilter(path: Array<number> = [], ignoreWhereFilter = false) {
+  async function getGroupFilterArr(path: Array<number> = [], _ignoreWhereFilter = false) {
     let group = findGroupByPath(cachedGroups.value, path)
 
     if (!group) {
@@ -227,7 +230,7 @@ export function useGridViewData(
           }
 
           if (!currentGroup.isExpanded || !currentGroup.groups) {
-            return ''
+            return []
           }
 
           parentGroup = currentGroup
@@ -241,11 +244,11 @@ export function useGridViewData(
         group = findGroupByPath(cachedGroups.value, path)
       } catch (error) {
         console.error(`Failed to load group for path ${path}:`, error)
-        return ''
+        return []
       }
     }
 
-    return buildNestedWhere(group, ignoreWhereFilter ? '' : where?.value)
+    return buildNestedFilterArr(group)
   }
 
   function syncVisibleData() {
@@ -942,6 +945,7 @@ export function useGridViewData(
       await $api.dbTableRow.bulkDeleteAll('noco', base.value.id!, meta.value.id!, {
         where: where?.value,
         viewId: viewMeta.value?.id,
+        skipPks: Object.values(selectedAllRecordsSkipPks.value).join(','),
       })
     } catch (error) {
     } finally {
@@ -987,6 +991,7 @@ export function useGridViewData(
     isBulkOperationInProgress,
     updateRecordOrder,
     selectedAllRecords,
+    selectedAllRecordsSkipPks,
     getRows,
     getDataCache,
     groupDataCache,
@@ -999,5 +1004,6 @@ export function useGridViewData(
     groupSyncCount,
     fetchMissingGroupChunks,
     clearGroupCache,
+    toggleExpandAll,
   }
 }

@@ -3,13 +3,13 @@ definePageMeta({
   hideHeader: true,
 })
 
+const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
+
 const { isUIAllowed } = useRoles()
 
 const $route = useRoute()
 
 const { appInfo, signedIn, signOut } = useGlobal()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const selectedKeys = computed(() => [
   /^\/account\/users\/?$/.test($route.fullPath)
@@ -29,8 +29,6 @@ const logout = async () => {
 
 const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isOnPrem))
 
-const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
-
 watchEffect(() => {
   if (isSetupPageAllowed.value) {
     loadSetupApps()
@@ -49,8 +47,8 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
           <div class="h-full bg-white nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
             <NcMenu
-              v-model:openKeys="openKeys"
-              v-model:selectedKeys="selectedKeys"
+              v-model:open-keys="openKeys"
+              v-model:selected-keys="selectedKeys"
               :inline-indent="16"
               class="tabs-menu h-full"
               mode="inline"
@@ -127,6 +125,20 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   <MdiShieldKeyOutline />
 
                   <div class="select-none">{{ $t('title.tokens') }}</div>
+                </div>
+              </NcMenuItem>
+              <NcMenuItem
+                key="tokens"
+                :class="{
+                  active: $route.params.page === 'mcp',
+                }"
+                class="item"
+                @click="navigateTo('/account/mcp')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="mcp" class="h-4 w-4 flex-none" />
+
+                  <div class="select-none">{{ $t('labels.modelContextProtocol') }}</div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
@@ -211,23 +223,18 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
           <div class="h-full flex-1 flex flex-col overflow-y-auto nc-scrollbar-thin">
             <div class="flex flex-row pt-2 px-2 items-center">
               <div class="flex-1">
-                <LazyAccountBreadcrumb />
+                <AccountBreadcrumb />
               </div>
 
-              <LazyGeneralReleaseInfo />
+              <GeneralReleaseInfo />
 
-              <a-tooltip
-                v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem"
-                placement="bottom"
-                :mouse-enter-delay="1"
-                class="mr-4"
-              >
-                <template #title>{{ $t('title.switchLanguage') }}</template>
+              <NcTooltip placement="bottom" class="mr-4">
+                <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
                 <div class="flex items-center">
-                  <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />
+                  <GeneralLanguage button class="cursor-pointer text-2xl hover:text-gray-800" />
                 </div>
-              </a-tooltip>
+              </NcTooltip>
 
               <template v-if="signedIn">
                 <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">

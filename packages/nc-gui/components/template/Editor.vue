@@ -3,6 +3,8 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
 import {
+  PermissionEntity,
+  PermissionKey,
   SqlUiFactory,
   UITypes,
   getDateFormat,
@@ -43,6 +45,8 @@ const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
+const { isAllowed } = usePermissions()
+
 const meta = inject(MetaInj, ref())
 
 const filterForDestinationColumn = (col: ColumnType): boolean => {
@@ -53,7 +57,30 @@ const filterForDestinationColumn = (col: ColumnType): boolean => {
   }
 }
 
-const columns = computed(() => meta.value?.columns?.filter((col) => filterForDestinationColumn(col)) || [])
+const columns = computed(() =>
+  (meta.value?.columns || [])
+    ?.filter((col) => filterForDestinationColumn(col))
+    .map((col) => {
+      // If it is import data only, then we need to check if the field is editable
+      const isEditAllowed = importDataOnly ? isAllowed(PermissionEntity.FIELD, col.id!, PermissionKey.RECORD_FIELD_EDIT) : true
+
+      // We allow to link record throw foreign key, so we don't need to check if the field is readonly
+      const isReadonlyCol = col.readonly && col.uidt !== UITypes.ForeignKey
+
+      return {
+        ...col,
+        readonly: isReadonlyCol || !isEditAllowed,
+        permissions: {
+          isEditAllowed,
+          tooltip: isReadonlyCol
+            ? t('msg.info.fieldReadonly')
+            : !isEditAllowed
+            ? t('tooltip.youDontHavePermissionToEditThisField')
+            : '',
+        },
+      }
+    }),
+)
 
 const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -67,7 +94,7 @@ const { bases } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 
-const { isMysql, isMssql, isPg } = baseStore
+const { isMysql, isPg } = baseStore
 
 const { base: activeBase } = storeToRefs(baseStore)
 
@@ -154,8 +181,6 @@ const validators = computed(() =>
               tableNameLengthLimit = 64
             } else if (isPg(sourceId)) {
               tableNameLengthLimit = 63
-            } else if (isMssql(sourceId)) {
-              tableNameLengthLimit = 128
             }
 
             const basePrefix = base?.value?.prefix || ''
@@ -761,7 +786,7 @@ function mapDefaultColumns() {
     for (const col of importColumns[i]) {
       const o = { srcCn: col.column_name, srcTitle: col.title, destCn: undefined, enabled: true }
       if (columns.value) {
-        const tableColumn = columns.value.find((c) => c.title === col.title || c.column_name === col.column_name)
+        const tableColumn = columns.value.find((c) => !c.readonly && (c.title === col.title || c.column_name === col.column_name))
         if (tableColumn) {
           o.destCn = tableColumn.title as string
         } else {
@@ -809,7 +834,7 @@ function handleCheckAllRecord(event: CheckboxChangeEvent, tableName: string) {
   }
 }
 
-const setErrorState = (errorsFields: any[]) => {
+const setErrorState = (errorsFields: any[] = []) => {
   const errorMap: any = {}
   for (const error of errorsFields) {
     errorMap[error.name] = error.errors
@@ -840,7 +865,7 @@ watch(formRef, () => {
       formError.value = null
     } catch (e: any) {
       emit('error', e)
-      setErrorState(e.errorFields)
+      setErrorState(e?.errorFields)
     }
   }, 500)
 })
@@ -852,7 +877,7 @@ watch(modelRef, async () => {
     formError.value = null
   } catch (e: any) {
     emit('error', e)
-    setErrorState(e.errorFields)
+    setErrorState(e?.errorFields)
   }
 })
 
@@ -906,7 +931,7 @@ function getErrorByTableName(tableName: string) {
 
       <a-collapse
         v-if="data.tables && data.tables.length"
-        v-model:activeKey="expansionPanel"
+        v-model:active-key="expansionPanel"
         class="template-collapse !rounded-lg !overflow-hidden"
         accordion
         expand-icon-position="right"
@@ -1055,12 +1080,17 @@ function getErrorByTableName(tableName: string) {
                         v-for="(col, i) of getUnselectedFields(record, table.table_name)"
                         :key="i"
                         :value="col.title"
+                        :disabled="col.readonly"
                       >
                         <div class="flex items-center gap-2 w-full">
-                          <component :is="getUIDTIcon(col.uidt)" class="flex-none w-3.5 h-3.5" />
-                          <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                          <SmartsheetHeaderIcon
+                            :column="col"
+                            class="flex-none w-3.5 h-3.5 !mx-0"
+                            color="text-nc-content-gray-muted"
+                          />
+                          <NcTooltip class="truncate flex-1" :show-on-truncate-only="!col.readonly">
                             <template #title>
-                              {{ col.title }}
+                              {{ col.readonly ? col.permissions?.tooltip || t('msg.info.fieldReadonly') : col.title }}
                             </template>
                             {{ col.title }}
                           </NcTooltip>
@@ -1093,7 +1123,7 @@ function getErrorByTableName(tableName: string) {
       <a-form ref="formRef" :model="data" name="template-editor-form" @keydown.enter="emit('import')">
         <a-collapse
           v-if="data.tables && data.tables.length"
-          v-model:activeKey="expansionPanel"
+          v-model:active-key="expansionPanel"
           class="template-collapse !rounded-lg !overflow-hidden"
           accordion
           expand-icon-position="right"

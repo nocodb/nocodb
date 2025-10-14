@@ -57,15 +57,6 @@ const listBasesWithLongIds = async (knex: Knex) => {
 
       return bases.map((row: any) => row.id);
     }
-    case 'mssql': {
-      const bases = await knex.raw(
-        `SELECT id FROM ?? WHERE LEN(id) > 20`,
-        MetaTable.PROJECT,
-      );
-
-      return bases.map((row: any) => row.id);
-    }
-
     default:
       throw new Error(`Unsupported database: ${sourceType}`);
   }

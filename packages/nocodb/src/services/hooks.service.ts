@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, WebhookEvents } from 'nocodb-sdk';
 import View from '../models/View';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -9,12 +9,15 @@ import { NcError } from '~/helpers/catchError';
 import {
   populateSamplePayload,
   populateSamplePayloadV2,
+  populateSamplePayloadView,
 } from '~/helpers/populateSamplePayload';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
 import { ButtonColumn, Hook, HookLog, Model } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+
+const SUPPORTED_HOOK_VERSION = ['v3'];
 
 @Injectable()
 export class HooksService {
@@ -33,8 +36,12 @@ export class HooksService {
           : notificationJsonOrObject;
     } catch {}
 
-    if (notification.type !== 'URL' && process.env.NC_CLOUD === 'true') {
-      NcError.badRequest('Only URL notification is supported');
+    if (
+      notification.type !== 'URL' &&
+      notification.type !== 'Script' &&
+      process.env.NC_CLOUD === 'true'
+    ) {
+      NcError.badRequest('Only URL and Script notifications are supported');
     }
   }
 
@@ -57,15 +64,39 @@ export class HooksService {
       hook: HookReqType;
       req: NcRequest;
     },
+    option?: {
+      isTableDuplicate?: boolean;
+    },
   ) {
-    validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    // if isTableDuplicate, we let v2 to be created
+    if (
+      !option?.isTableDuplicate &&
+      !SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)
+    ) {
+      NcError.badRequest('hook version is deprecated / not supported anymore');
+    }
 
+    if (!param.hook?.trigger_field) {
+      param.hook.trigger_field = false;
+    }
+
+    if (!option?.isTableDuplicate) {
+      validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
+    }
     this.validateHookPayload(param.hook.notification);
 
-    const hook = await Hook.insert(context, {
-      ...param.hook,
-      fk_model_id: param.tableId,
-    } as any);
+    // if version is not in SUPPORTED_HOOK_VERSION, that means it's a duplicate table activity
+    // then we use v2 insert
+    // otherwise v3 insert
+    const hook = !SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)
+      ? await Hook.insertV2(context, {
+          ...param.hook,
+          fk_model_id: param.tableId,
+        } as any)
+      : await Hook.insert(context, {
+          ...param.hook,
+          fk_model_id: param.tableId,
+        } as any);
 
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,
@@ -117,6 +148,14 @@ export class HooksService {
       req: NcRequest;
     },
   ) {
+    if (!SUPPORTED_HOOK_VERSION.includes((param.hook as any).version)) {
+      NcError.badRequest('hook version is deprecated / not supported anymore');
+    }
+
+    if (!param.hook?.trigger_field) {
+      param.hook.trigger_field = false;
+    }
+
     validatePayload('swagger.json#/components/schemas/HookReq', param.hook);
 
     const hook = await Hook.get(context, param.hookId);
@@ -199,6 +238,8 @@ export class HooksService {
         newData: row,
         user: param.req.user,
         context,
+        hookName: 'manual.trigger',
+        ncSiteUrl: param.req.ncSiteUrl,
       });
     } catch (e) {
       throw e;
@@ -233,17 +274,29 @@ export class HooksService {
       hook,
       payload: { data, user },
     } = param.hookTest;
+
+    let view = null;
+
+    if ((hook?.notification as any)?.trigger_form_id) {
+      view = await View.get(
+        context,
+        (hook.notification as any).trigger_form_id,
+      );
+    }
     try {
       await invokeWebhook(context, {
         hook: new Hook(hook),
         model: model,
-        view: null,
-        prevData: null,
+        view: view,
+        prevData: data?.previous_rows ?? null,
         newData: data.rows,
         user: user,
         testFilters: (hook as any)?.filters,
         throwErrorOnFailure: true,
         testHook: true,
+        hookName: hook.event + '.' + hook.operation[0],
+        ncSiteUrl: param.req.ncSiteUrl,
+        addJob: this.jobsService.add.bind(this.jobsService),
       });
     } catch (e) {
       throw e;
@@ -259,12 +312,56 @@ export class HooksService {
     return true;
   }
 
+  async hookSamplePayload(
+    context: NcContext,
+    param: {
+      tableId: string;
+      event: string;
+      operation: string;
+      version: string;
+      includeUser?: boolean;
+      user?: any;
+    },
+  ) {
+    const model = await Model.getByIdOrName(context, { id: param.tableId });
+
+    if (param.version === 'v1') {
+      return await populateSamplePayload(
+        context,
+        model,
+        false,
+        param.operation,
+      );
+    }
+    if (param.event === WebhookEvents.VIEW) {
+      return await populateSamplePayloadView(context, {
+        viewOrModel: model,
+        operation: param.operation,
+        includeUser: param.includeUser,
+        user: param.user,
+        version: param.version,
+      });
+    }
+
+    return await populateSamplePayloadV2(
+      context,
+      model,
+      false,
+      param.operation,
+      'records',
+      param.includeUser,
+      param.user,
+    );
+  }
+
   async tableSampleData(
     context: NcContext,
     param: {
       tableId: string;
-      operation: HookType['operation'];
+      event: HookType['event'][number];
+      operation: HookType['operation'][number];
       version: any; // HookType['version'];
+      includeUser?: boolean;
     },
   ) {
     const model = new Model(
@@ -279,11 +376,25 @@ export class HooksService {
         param.operation,
       );
     }
+    if (param.event === WebhookEvents.VIEW) {
+      return await populateSamplePayloadView(context, {
+        viewOrModel: model,
+        operation: param.operation,
+        includeUser: param.includeUser,
+        user: undefined,
+        version: param.version,
+      });
+    }
+
     return await populateSamplePayloadV2(
       context,
       model,
       false,
       param.operation,
+      undefined,
+      param.includeUser,
+      undefined,
+      param.version,
     );
   }
 

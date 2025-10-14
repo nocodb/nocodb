@@ -2,25 +2,34 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { INITIAL_LEFT_SIDEBAR_WIDTH, MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
+  const route = useRoute()
+
   const { width } = useWindowSize()
+
   const isViewPortMobile = () => {
     return width.value < MAX_WIDTH_FOR_MOBILE_MODE
   }
+
   const { isMobileMode, leftSidebarSize: _leftSidebarSize, isLeftSidebarOpen: _isLeftSidebarOpen } = useGlobal()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
-  const isNewSidebarEnabled = computed(() => {
-    return isFeatureEnabled(FEATURE_FLAG.IMPROVED_SIDEBAR_UI)
-  })
-
   const miniSidebarWidth = computed(() => {
-    return isNewSidebarEnabled.value ? MINI_SIDEBAR_WIDTH : 0
+    return MINI_SIDEBAR_WIDTH
   })
+
+  const isFullScreen = ref(false)
 
   const tablesStore = useTablesStore()
+
+  const allowHideLeftSidebarForCurrentRoute = computed(() => {
+    return ['index-typeOrId-baseId-index-index', 'index-typeOrId-settings'].includes(route.name as string)
+  })
+
   const isLeftSidebarOpen = computed({
     get() {
+      if (isMobileMode.value && allowHideLeftSidebarForCurrentRoute.value) {
+        return _isLeftSidebarOpen.value
+      }
+
       return (isMobileMode.value && !tablesStore.activeTableId) || _isLeftSidebarOpen.value
     },
     set(value) {
@@ -88,6 +97,29 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
+  const ncIsIframeFullscreenSupported = ref(false)
+
+  const toggleFullScreenState = () => {
+    if (isFullScreen.value) {
+      isLeftSidebarOpen.value = true
+      if ((!ncIsIframe() || ncIsIframeFullscreenSupported.value) && document?.exitFullscreen && document?.fullscreenElement) {
+        document.exitFullscreen().catch((err) => {
+          console.warn('Exit fullscreen failed:', err)
+        })
+      }
+    } else {
+      isLeftSidebarOpen.value = false
+
+      if ((!ncIsIframe() || ncIsIframeFullscreenSupported.value) && document?.documentElement?.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.warn('Request fullscreen failed:', err)
+        })
+      }
+    }
+
+    isFullScreen.value = !isFullScreen.value
+  }
+
   onMounted(() => {
     if (!isViewPortMobile() || tablesStore.activeTableId) return
 
@@ -110,8 +142,11 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     hideMiniSidebar,
     hideSidebar,
     showTopbar,
-    isNewSidebarEnabled,
     miniSidebarWidth,
+    isFullScreen,
+    toggleFullScreenState,
+    ncIsIframeFullscreenSupported,
+    allowHideLeftSidebarForCurrentRoute,
   }
 })
 

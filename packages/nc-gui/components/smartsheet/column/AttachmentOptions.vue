@@ -108,7 +108,7 @@ watch(searchValue, (value) => {
           <a-input-search v-model:value="searchValue" class="mt-[5px] mb-[15px]" placeholder="Search" />
           <a-tree
             v-model:expanded-keys="expandedKeys"
-            v-model:checkedKeys="vModel.meta.supportedAttachmentMimeTypes"
+            v-model:checked-keys="vModel.meta.supportedAttachmentMimeTypes"
             checkable
             :height="250"
             :tree-data="fileMimeTypes"

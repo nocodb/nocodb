@@ -1,4 +1,8 @@
-import type { BoolType, GridColumnType } from 'nocodb-sdk';
+import {
+  type BoolType,
+  type GridColumnType,
+  VIEW_GRID_DEFAULT_WIDTH,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type Upgrader from '~/Upgrader';
 import View from '~/models/View';
@@ -120,7 +124,7 @@ export default class GridViewColumn implements GridColumnType {
       insertObj.source_id = viewRef.source_id;
     }
 
-    insertObj.width = column?.width ?? '180px';
+    insertObj.width = column?.width ?? VIEW_GRID_DEFAULT_WIDTH + 'px';
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,

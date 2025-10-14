@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/vue-3'
+import { ncIsArray } from 'nocodb-sdk'
 
 // refer - https://stackoverflow.com/a/11752084
 export const isMac = () => /Mac/i.test(navigator.platform)
@@ -10,7 +11,14 @@ export const isNestedExpandedFormOpenExist = () => document.querySelectorAll('.n
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
 export const isExtensionPaneActive = () => document.querySelector('.nc-extension-pane')
 export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
-export const isSelectActive = () => document.querySelector('.ant-select-dropdown')
+export const isSelectActive = () => {
+  const els = document.querySelectorAll<HTMLElement>('.ant-select-dropdown')
+  return Array.from(els).some((el) => {
+    const style = window.getComputedStyle(el)
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0'
+  })
+}
+
 export const isViewSearchActive = () => document.querySelector('.nc-view-search-data') === document.activeElement
 export const isCreateViewActive = () => document.querySelector('.nc-view-create-modal')
 export const isActiveElementInsideExtension = () =>
@@ -20,6 +28,8 @@ export const isActiveElementInsideExtension = () =>
 export const isTiptapDropdownExistInsideEditor = () => {
   return document.querySelector('.tippy-box')
 }
+
+export const ncIsIframe = () => window.self !== window.top
 
 export const isSidebarNodeRenameActive = () => document.querySelector('input.animate-sidebar-node-input-padding')
 export function hasAncestorWithClass(element: HTMLElement, className: string | Array<string>): boolean {
@@ -163,3 +173,41 @@ export const handleOnEscRichTextEditor = (event: KeyboardEvent, editor?: Editor)
     }
   }
 }
+
+export const estimateTagWidth = ({
+  text,
+  fontSize = 14,
+  fontWeight = 600,
+  paddingX = 16, // left + right padding
+  iconWidth = 0, // icon width (if you have icon)
+  border = 2,
+}: {
+  text: string
+  fontSize?: number
+  fontWeight?: number
+  paddingX?: number
+  iconWidth?: number
+  border?: number
+}) => {
+  // Dummy average char width per font-weight/font-size
+  const avgCharWidth = fontWeight >= 600 ? fontSize * 0.6 : fontSize * 0.5
+
+  const textWidth = text.length * avgCharWidth
+
+  const totalWidth = textWidth + paddingX + iconWidth + border
+
+  return totalWidth
+}
+
+/**
+ * Remove query params from the URL
+ * @param keysToRemove - The keys to remove from the URL
+ */
+export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
+  const url = new URL(window.location.href)
+  keysToRemove.forEach((key) => url.searchParams.delete(key))
+  window.history.replaceState({}, '', url.toString())
+}
+
+// Feature detection.
+export const supportsKeyboardLock = 'keyboard' in navigator && navigator.keyboard && 'lock' in (navigator.keyboard as any)

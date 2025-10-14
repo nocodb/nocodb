@@ -64,7 +64,7 @@ const fetchMissingTableMetas = async (localTables: TableType[]) => {
   }
 
   // filter out tables that are already loaded and are not from the same source
-  const filteredTables = localTables.filter((t) => !metas.value[t.id!] && t.source_id === props.sourceId)
+  const filteredTables = localTables.filter((t: TableType) => !metas.value[t.id!] && t.source_id === props.sourceId)
 
   // Split the tables into chunks and process each chunk sequentially to avoid hitting throttling limits
   for (let i = 0; i < filteredTables.length; i += chunkSize) {
@@ -81,10 +81,10 @@ const populateTables = async () => {
 
     // if table is provided only get the table and its related tables
     localTables = baseTables.value.filter(
-      (t) =>
+      (t: TableType) =>
         t.id === props.table?.id ||
-        tableMeta.columns?.find((column) => {
-          return isLinksOrLTAR(column.uidt) && (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id
+        tableMeta?.columns?.find((column) => {
+          return isLinksOrLTAR(column.uidt!) && (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id === t.id
         }),
     )
   } else {
@@ -101,7 +101,7 @@ const populateTables = async () => {
         // Show mm table if it's the selected table
         t.id === props.table?.id,
     )
-    .filter((t) => config.singleTableMode || (!config.showViews && t.type !== 'view') || config.showViews)
+    .filter((t: TableType) => config.singleTableMode || (!config.showViews && t.type !== 'view') || config.showViews)
 
   isLoading.value = false
 }
@@ -121,12 +121,20 @@ watch(config, populateTables, {
 })
 
 const filteredTables = computed(() =>
-  tables.value.filter((t) =>
+  tables.value.filter((t: TableType) =>
     props?.sourceId
       ? t.source_id === props.sourceId
-      : t.source_id === sources.value?.filter((source: SourceType) => source.enabled)[0].id,
+      : t.source_id === sources.value?.filter((source: SourceType) => source.enabled)[0]?.id,
   ),
 )
+
+const currentSource = computed(() => {
+  return sources.value?.find((source: SourceType) => (props?.sourceId ? source.id === props.sourceId : source.enabled))
+})
+
+const isExternalSource = computed(() => {
+  return currentSource.value && !currentSource.value.is_meta && !currentSource.value.is_local
+})
 
 watch(
   () => config.showAllColumns,
@@ -148,7 +156,7 @@ onMounted(async () => {
   <div
     class="w-full bg-white border-1 border-gray-100 rounded-lg"
     :class="{
-      'z-100 h-screen w-screen fixed top-0 left-0 right-0 bottom-0': config.isFullScreen,
+      'z-100 nc-h-screen nc-w-screen fixed top-0 left-0 right-0 bottom-0': config.isFullScreen,
       'nc-erd-vue-flow-single-table': config.singleTableMode,
       'nc-erd-vue-flow': !config.singleTableMode,
     }"
@@ -163,8 +171,8 @@ onMounted(async () => {
         </GeneralOverlay>
 
         <ErdFullScreenToggle :config="config" @toggle-full-screen="toggleFullScreen" />
-        <ErdConfigPanel :config="config" />
-        <ErdHistogramPanel v-if="!config.singleTableMode" />
+        <ErdConfigPanel v-if="props.table" :config="config" />
+        <ErdHistogramPanel v-if="!config.singleTableMode && isExternalSource" />
       </LazyErdFlow>
     </div>
   </div>

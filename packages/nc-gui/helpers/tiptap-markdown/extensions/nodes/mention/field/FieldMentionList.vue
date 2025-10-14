@@ -1,6 +1,9 @@
 <script>
+/** @typedef {import('nocodb-sdk').ColumnType} ColumnType */
+
 export default {
   props: {
+    /** @type {ColumnType[]} */
     items: {
       type: Array,
       required: true,
@@ -110,7 +113,12 @@ export default {
         class="py-2 flex hover:bg-gray-100 rounded-md transition-all cursor-pointer items-center gap-2 text-gray-800 pl-4"
         @click="selectItem(index, $event)"
       >
-        <component :is="getUIDTIcon(item.uidt)" v-if="item?.uidt" class="flex-none w-3.5 h-3.5" />
+        <SmartsheetHeaderIcon
+          v-if="item?.uidt"
+          :column="item"
+          class="flex-none w-3.5 h-3.5"
+          color="text-nc-content-gray-subtle2"
+        />
         <NcTooltip class="truncate" show-on-truncate-only :tooltip-style="{ zIndex: '10000' }">
           <template #title>
             {{ item?.title || '' }}

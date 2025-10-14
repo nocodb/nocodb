@@ -1,15 +1,21 @@
 <script lang="ts" setup>
-import { type ColumnType, isSystemColumn } from 'nocodb-sdk'
+import { type ButtonType, type ColumnType, isSystemColumn } from 'nocodb-sdk'
 
-const props = defineProps<{
-  // As we need to focus search box when the parent is opened
-  isParentOpen: boolean
-  toolbarMenu: 'groupBy' | 'sort' | 'globalSearch'
-  searchInputPlaceholder?: string
-  selectedOptionId?: string
-  options: ColumnType[]
-  showSelectedOption?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    // As we need to focus search box when the parent is opened
+    isParentOpen: boolean
+    toolbarMenu: 'groupBy' | 'sort' | 'globalSearch'
+    searchInputPlaceholder?: string
+    selectedOptionId?: string
+    options: ColumnType[]
+    showSelectedOption?: boolean
+    inputBordered?: boolean
+  }>(),
+  {
+    inputBordered: true,
+  },
+)
 
 const emits = defineEmits<{ selected: [ColumnType] }>()
 
@@ -18,6 +24,8 @@ const { isParentOpen, toolbarMenu, searchInputPlaceholder, selectedOptionId, sho
 const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
 
 const { $e } = useNuxtApp()
+
+const { t } = useI18n()
 
 const options = computed(() =>
   (props.options || [])
@@ -82,43 +90,69 @@ const handleSelect = (c: ColumnType) => {
 }
 
 const isLocked = inject(IsLockedInj)
+
+const fieldSearchBasisOptions = computed<NcListSearchBasisOptionType[]>(() => [
+  {
+    searchBasisInfo: t('msg.info.matchedByButtonLabel'),
+    filterCallback: (query, option) => {
+      if (!option) return false
+
+      const column = option as ColumnType
+
+      return isButton(column) && searchCompare([(column.colOptions as ButtonType)?.label], query)
+    },
+  },
+  {
+    searchBasisInfo: t('msg.info.matchedByFieldDescription'),
+    filterCallback: (query, option) => {
+      if (!option) return false
+
+      const column = option as ColumnType
+
+      if (!column.description) return false
+
+      return searchCompare([column.description], query)
+    },
+  },
+])
 </script>
 
 <template>
   <NcList
     class="field-list-with-search"
+    :class="{
+      'nc-input-bordered': inputBordered,
+    }"
     :search-input-placeholder="searchInputPlaceholder"
     :show-selected-option="showSelectedOption"
     option-label-key="title"
     option-value-key="id"
-    :input-bordered="true"
+    :input-bordered="inputBordered"
+    :hide-top-divider="inputBordered"
     :open="isParentOpen"
-    :is-locked="isLocked"
+    :is-locked="isLocked && toolbarMenu !== 'globalSearch'"
     show-search-always
     :item-class-name="configByToolbarMenu.optionClassName"
     :list="options"
     :value="selectedOptionId"
-    :item-height="32"
+    variant="medium"
+    :search-basis-options="fieldSearchBasisOptions"
     @change="handleSelect"
   >
     <template #listItemExtraLeft="{ option }">
-      <SmartsheetHeaderIcon :column="option" class="!w-3.5 !h-3.5 !text-gray-500" />
+      <SmartsheetHeaderIcon :column="option" class="!w-3.5 !h-3.5" color="text-nc-content-gray-muted" />
     </template>
   </NcList>
 </template>
 
 <style lang="scss">
 .field-list-with-search {
-  .nc-divider {
-    display: none !important;
-  }
-
-  .nc-toolbar-dropdown-search-field-input {
+  &.nc-input-bordered .nc-toolbar-dropdown-search-field-input {
     @apply rounded-lg mb-2;
   }
 
   .nc-list-item {
-    @apply h-8 hover:bg-nc-background-grey-light gap-x-1.5;
+    @apply h-8 hover:bg-nc-bg-gray-light gap-x-1.5;
   }
 }
 </style>

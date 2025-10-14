@@ -3,8 +3,26 @@ import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { type TableType, charsetOptions, charsetOptionsMap, ncHasProperties } from 'nocodb-sdk'
+import { defineAsyncComponent } from 'vue'
 import rfdc from 'rfdc'
 import type { ProgressMessageObjType } from '../../helpers/parsers/TemplateGenerator'
+
+const {
+  importType,
+  importDataOnly = false,
+  baseId,
+  sourceId,
+  transition,
+  showBackBtn,
+  wrapClassName = '',
+  showSourceSelector = true,
+  ...rest
+} = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue', 'back'])
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 interface Props {
   modelValue: boolean
@@ -14,11 +32,9 @@ interface Props {
   importDataOnly?: boolean
   transition?: string
   showBackBtn?: boolean
+  wrapClassName?: string
+  showSourceSelector?: boolean
 }
-
-const { importType, importDataOnly = false, baseId, sourceId, transition, showBackBtn, ...rest } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue', 'back'])
 
 enum ImportTypeTabs {
   'upload' = 'upload',
@@ -80,6 +96,12 @@ const activeTab = ref<ImportTypeTabs>(ImportTypeTabs.upload)
 const isError = ref(false)
 
 const refMonacoEditor = ref()
+
+const sourceSelectorRef = ref()
+
+const customSourceId = computed(() => {
+  return sourceSelectorRef.value?.customSourceId || sourceId
+})
 
 const useForm = Form.useForm
 
@@ -690,7 +712,7 @@ watch(
     :closable="false"
     :width="templateEditorModal && importDataOnly ? '640px' : '448px'"
     class="!top-[12.5vh]"
-    wrap-class-name="nc-modal-quick-import"
+    :wrap-class-name="`nc-modal-quick-import ${wrapClassName}`"
     :transition-name="transition"
     @keydown.esc="dialogShow = false"
   >
@@ -704,7 +726,7 @@ watch(
         <GeneralIcon :icon="importMeta.icon" class="w-6 h-6" />
         {{ importMeta.header }}
         <a
-          href="https://docs.nocodb.com/tables/create-table-via-import/"
+          href="https://nocodb.com/docs/product-docs/tables/create-table-via-import"
           class="!text-nc-content-gray-subtle2 text-sm font-weight-500 ml-auto"
           target="_blank"
           rel="noopener"
@@ -719,7 +741,7 @@ watch(
           'pointer-events-none': importLoading,
         }"
       >
-        <LazyTemplateEditor
+        <TemplateEditor
           v-if="templateEditorModal"
           ref="templateEditorRef"
           :base-template="templateData"
@@ -729,7 +751,7 @@ watch(
           :quick-import-type="importType"
           :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
           :base-id="baseId"
-          :source-id="sourceId"
+          :source-id="customSourceId"
           :import-worker="importWorker"
           :table-icon="importMeta.icon"
           class="nc-quick-import-template-editor"
@@ -738,7 +760,7 @@ watch(
           @change="onChange"
         />
         <div v-else>
-          <NcTabs v-model:activeKey="activeTab" class="nc-quick-import-tabs" @update:active-key="handleResetImportError">
+          <NcTabs v-model:active-key="activeTab" class="nc-quick-import-tabs" @update:active-key="handleResetImportError">
             <a-tab-pane :key="ImportTypeTabs.upload" :disabled="preImportLoading" class="!h-full">
               <template #tab>
                 <div class="flex gap-2 items-center">
@@ -747,7 +769,7 @@ watch(
               </template>
               <div class="relative mt-5">
                 <a-upload-dragger
-                  v-model:fileList="importState.fileList"
+                  v-model:file-list="importState.fileList"
                   name="file"
                   class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
                   :class="{
@@ -958,17 +980,29 @@ watch(
                       jsonErrorText || refMonacoEditor?.error,
                   }"
                 >
-                  <LazyMonacoEditor
-                    ref="refMonacoEditor"
-                    class="nc-import-monaco-editor !h-full min-h-30"
-                    :auto-focus="false"
-                    hide-minimap
-                    :monaco-config="{
-                      lineNumbers: 'on',
-                    }"
-                    :model-value="temporaryJson"
-                    @update:model-value="handleJsonChange($event)"
-                  />
+                  <Suspense>
+                    <template #default>
+                      <MonacoEditor
+                        ref="refMonacoEditor"
+                        class="nc-import-monaco-editor !h-full min-h-30"
+                        :auto-focus="false"
+                        hide-minimap
+                        :monaco-config="{
+                          lineNumbers: 'on',
+                        }"
+                        :model-value="temporaryJson"
+                        @update:model-value="handleJsonChange($event)"
+                      />
+                    </template>
+                    <template #fallback>
+                      <div class="!h-full w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                        <div class="text-center">
+                          <a-spin size="large" />
+                          <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                        </div>
+                      </div>
+                    </template>
+                  </Suspense>
                 </div>
 
                 <div v-if="jsonErrorText || refMonacoEditor?.error" class="text-nc-content-red-medium text-small mt-2">
@@ -1001,6 +1035,16 @@ watch(
       />
 
       <div v-if="!templateEditorModal" class="mt-5">
+        <div class="mb-4">
+          <NcListSourceSelector
+            ref="sourceSelectorRef"
+            :base-id="baseId"
+            :source-id="sourceId"
+            :show-source-selector="showSourceSelector"
+            force-layout="vertical"
+          />
+        </div>
+
         <NcButton type="text" size="small" @click="collapseKey = !collapseKey ? 'advanced-settings' : ''">
           {{ $t('title.advancedSettings') }}
           <GeneralIcon
@@ -1067,7 +1111,7 @@ watch(
           size="small"
           class="nc-btn-import"
           :loading="preImportLoading"
-          :disabled="disablePreImportButton || preImportLoading"
+          :disabled="disablePreImportButton || preImportLoading || sourceSelectorRef?.selectedSource?.ncItemDisabled"
           @click="handlePreImport"
         >
           {{ importBtnText }}
@@ -1136,6 +1180,9 @@ watch(
 }
 .nc-import-collapse :deep(.ant-collapse-header) {
   display: none !important;
+}
+.nc-import-collapse :deep(.ant-collapse-content-box) {
+  @apply !pr-0.2;
 }
 span:has(> .nc-modern-drag-import) {
   display: flex;

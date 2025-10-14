@@ -7,6 +7,7 @@ import { createTable, getTable } from '../../../factory/table';
 import { createUser } from '../../../factory/user';
 import { isPg } from '../../../init/db';
 import { customColumns } from '../../../factory/column';
+import { initTblCountry } from '../../../init/initTblCountry';
 import {
   beforeEachAttachment,
   beforeEachCheckbox,
@@ -20,7 +21,7 @@ import {
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
 import { getUsers } from './helpers';
-import type { ITestContext } from './helpers';
+import type { ITestContext } from '../../../init';
 import type { Column, Model } from '../../../../../src/models';
 import type { INcAxios } from './ncAxios';
 
@@ -37,11 +38,13 @@ describe('dataApiV3', () => {
     let ncAxiosLinkGet: INcAxios['ncAxiosLinkGet'];
     let ncAxiosLinkAdd: INcAxios['ncAxiosLinkAdd'];
     let ncAxiosLinkRemove: INcAxios['ncAxiosLinkRemove'];
+    let countryTable: Model;
+    let cityTable: Model;
 
     beforeEach(async () => {
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
-      urlPrefix = `/api/${API_VERSION}/${testContext.sakilaProject.id}`;
+      urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
 
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
@@ -50,12 +53,18 @@ describe('dataApiV3', () => {
       ncAxiosLinkGet = testAxios.ncAxiosLinkGet;
       ncAxiosLinkAdd = testAxios.ncAxiosLinkAdd;
       ncAxiosLinkRemove = testAxios.ncAxiosLinkRemove;
+      const tables = await initTblCountry(
+        testContext.context,
+        testContext.base,
+      );
+      countryTable = tables.countryTable;
+      cityTable = tables.cityTable;
     });
 
     describe('general', () => {
       it('token header not exists', async () => {
         const response = await request(testContext.context.app)
-          .get(`${urlPrefix}/${testContext.countryTable.id}`)
+          .get(`${urlPrefix}/${countryTable.id}/records`)
           .send({});
         expect(response.status).to.equal(401);
         expect(response.body.error).to.equal('AUTHENTICATION_REQUIRED');
@@ -65,7 +74,7 @@ describe('dataApiV3', () => {
       });
       it('token invalid', async () => {
         const response = await request(testContext.context.app)
-          .get(`${urlPrefix}/${testContext.countryTable.id}`)
+          .get(`${urlPrefix}/${countryTable.id}/records`)
           .set('xc-token', 'invalid token')
           .send({});
         expect(response.status).to.equal(401);
@@ -89,7 +98,7 @@ describe('dataApiV3', () => {
         ).body.token;
 
         const response = await request(testContext.context.app)
-          .get(`${urlPrefix}/${testContext.countryTable.id}`)
+          .get(`${urlPrefix}/${countryTable.id}/records`)
           .set('xc-token', notPermittedXcToken)
           .send({});
         expect(response.status).to.equal(403);
@@ -103,28 +112,28 @@ describe('dataApiV3', () => {
       // or incorrect format
       it.skip('Invalid Page Size', async () => {
         let response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             limit: 0,
           },
         });
         console.log(response.status);
         response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             limit: 1000,
           },
         });
         console.log(response.status);
         response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             limit: -1,
           },
         });
         console.log(response.status);
         response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             limit: 'Hello',
           },
@@ -134,7 +143,7 @@ describe('dataApiV3', () => {
 
       it('tableId not found', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/123456789`,
+          url: `${urlPrefix}/123456789/records`,
           status: 422,
         });
         expect(response.body.error).to.eq('TABLE_NOT_FOUND');
@@ -142,14 +151,14 @@ describe('dataApiV3', () => {
       });
       it('baseId not found', async () => {
         const response = await ncAxiosGet({
-          url: `/api/v3/234567890/123456789`,
+          url: `/api/v3/data/234567890/123456789/records`,
           status: 422,
         });
         expect(response.body.error).to.equal('BASE_NOT_FOUND');
         expect(response.body.message).to.eq(`Base '234567890' not found`);
       });
-      // TODO: reenable after fix/not-found-module
-      it.skip('invalid api version', async () => {
+
+      it('invalid api version', async () => {
         const response = await ncAxiosGet({
           url: `/api/v4/1234567890/2134567890`,
           status: 404,
@@ -171,7 +180,7 @@ describe('dataApiV3', () => {
       });
       it('invalid view param', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}?viewId=123456890`,
+          url: `${urlPrefix}/${countryTable.id}/records?viewId=123456890`,
           status: 422,
         });
         expect(response.body.error).to.eq(`VIEW_NOT_FOUND`);
@@ -179,7 +188,7 @@ describe('dataApiV3', () => {
       });
       it('invalid page', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             page: 500,
           },
@@ -189,7 +198,7 @@ describe('dataApiV3', () => {
       });
       it('invalid page (minus)', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             page: -1,
           },
@@ -201,7 +210,7 @@ describe('dataApiV3', () => {
       });
       it('invalid page (string)', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             page: 'hello',
           },
@@ -213,9 +222,11 @@ describe('dataApiV3', () => {
       });
       it('invalid sort field', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
-            sort: 'NotFoundField',
+            sort: JSON.stringify([
+              { direction: 'asc', field: 'NotFoundField' },
+            ]),
           },
           status: 422,
         });
@@ -227,7 +238,7 @@ describe('dataApiV3', () => {
 
       it('invalid filter field (column not found)', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             where: '(NotFoundField,eq,1)',
           },
@@ -240,7 +251,7 @@ describe('dataApiV3', () => {
 
       it('invalid filter (invalid parsing)', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             where: '(NotFoundField,eq',
           },
@@ -253,7 +264,7 @@ describe('dataApiV3', () => {
 
       it('invalid filter (missing comma)', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             where: '(NotFoundField',
           },
@@ -265,32 +276,24 @@ describe('dataApiV3', () => {
       });
 
       it('invalid filter value format', async () => {
-        const paymentTable = await getTable({
-          base: testContext.sakilaProject,
-          name: 'payment',
-        });
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${paymentTable.id}`,
+          url: `${urlPrefix}/${cityTable.id}/records`,
           query: {
-            where: '(Amount,eq,HELLO)',
+            where: '(Area,eq,HELLO)',
           },
           status: 422,
         });
-        expect(response.body.error).to.eq(`INVALID_FILTER`);
+        expect(response.body.error).to.eq(`FILTER_VERIFICATION_FAILED`);
         expect(response.body.message).to.eq(
-          `Invalid filter expression: Value HELLO is not supported for type Decimal on column Amount`,
+          `Filter verification failed: Value HELLO is not supported for type Decimal on column Area`,
         );
       });
 
       it('invalid filter operator', async () => {
-        const paymentTable = await getTable({
-          base: testContext.sakilaProject,
-          name: 'payment',
-        });
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${paymentTable.id}`,
+          url: `${urlPrefix}/${cityTable.id}/records`,
           query: {
-            where: '(Amount,notInOperator,HELLO)',
+            where: '(Area,notInOperator,HELLO)',
           },
           status: 422,
         });
@@ -302,7 +305,7 @@ describe('dataApiV3', () => {
 
       it('invalid select field', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             fields: ['Country', 'NotFoundField'],
           },
@@ -313,7 +316,7 @@ describe('dataApiV3', () => {
       // our api can accept array or not array
       it.skip('field parameter malformed', async () => {
         await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}`,
+          url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             fields: 'Country',
           },
@@ -323,7 +326,7 @@ describe('dataApiV3', () => {
 
       it('record id not found', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/1032`,
+          url: `${urlPrefix}/${countryTable.id}/records/1032`,
           status: 404,
         });
         expect(response.body.message).to.eq("Record '1032' not found");
@@ -331,41 +334,37 @@ describe('dataApiV3', () => {
 
       it('primary key not in correct data type (CountryId = number)', async () => {
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${testContext.countryTable.id}/text-primary-key`,
+          url: `${urlPrefix}/${countryTable.id}/records/text-primary-key`,
           status: 422,
         });
         expect(response.body.error).to.eq('INVALID_PK_VALUE');
         expect(response.body.message).to.eq(
-          `Primary key value 'text-primary-key' is invalid for column 'CountryId'`,
+          `Primary key value 'text-primary-key' is invalid for column 'Id'`,
         );
       });
 
       it('primary key not in correct data type (Id)', async () => {
-        const table = await createTable(
-          testContext.context,
-          testContext.sakilaProject,
-          {
-            table_name: 'testTable',
-            title: 'TestTable',
-            columns: [
-              {
-                column_name: 'id',
-                title: 'Id',
-                uidt: UITypes.ID,
-                pk: true,
-              },
-              {
-                column_name: 'text',
-                title: 'Text',
-                uidt: UITypes.SingleLineText,
-                pk: false,
-                pv: true,
-              },
-            ],
-          },
-        );
+        const table = await createTable(testContext.context, testContext.base, {
+          table_name: 'testTable',
+          title: 'TestTable',
+          columns: [
+            {
+              column_name: 'id',
+              title: 'Id',
+              uidt: UITypes.ID,
+              pk: true,
+            },
+            {
+              column_name: 'text',
+              title: 'Text',
+              uidt: UITypes.SingleLineText,
+              pk: false,
+              pv: true,
+            },
+          ],
+        });
         await createBulkRows(testContext.context, {
-          base: testContext.sakilaProject,
+          base: testContext.base,
           table,
           values: [
             {
@@ -376,7 +375,7 @@ describe('dataApiV3', () => {
         });
 
         const response = await ncAxiosGet({
-          url: `${urlPrefix}/${table.id}/text-primary-key`,
+          url: `${urlPrefix}/${table.id}/records/text-primary-key`,
           status: 422,
         });
         expect(response.body.error).to.eq('INVALID_PK_VALUE');
@@ -385,8 +384,7 @@ describe('dataApiV3', () => {
         );
       });
 
-      // TODO: reenable after fix/not-found-module
-      it.skip('url path not found', async () => {
+      it('url path not found', async () => {
         const response = await ncAxiosGet({
           url: `/api/v3/mybase/mytable/unknown-path/1234`,
           status: 404,
@@ -416,7 +414,7 @@ describe('dataApiV3', () => {
           ...columns,
         ];
         insertedRecords = initResult.insertedRecords;
-        textBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        textBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it(`will handle update length exceed 100k`, async () => {
@@ -429,11 +427,13 @@ describe('dataApiV3', () => {
           ).join('') + '1'; // 500 * 200 + 1 = 100001
 
         const response = await ncAxiosPatch({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           body: [
             {
-              Id: 1,
-              SingleLineText: content100k1Length,
+              id: 1,
+              fields: {
+                SingleLineText: content100k1Length,
+              },
             },
           ],
           status: 422,
@@ -446,15 +446,19 @@ describe('dataApiV3', () => {
 
       it(`will handle update record not found`, async () => {
         const response = await ncAxiosPatch({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           body: [
             {
-              Id: 1,
-              SingleLineText: 'Hello',
+              id: 1,
+              fields: {
+                SingleLineText: 'Hello',
+              },
             },
             {
-              Id: 998091,
-              SingleLineText: 'Hello',
+              id: 998091,
+              fields: {
+                SingleLineText: 'Hello',
+              },
             },
           ],
           status: 404,
@@ -465,13 +469,13 @@ describe('dataApiV3', () => {
 
       it(`will handle delete record not found`, async () => {
         const response = await ncAxiosDelete({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           body: [
             {
-              Id: 1,
+              id: 1,
             },
             {
-              Id: 998091,
+              id: 998091,
             },
           ],
           status: 404,
@@ -481,10 +485,10 @@ describe('dataApiV3', () => {
       });
       it(`will handle delete id format invalid`, async () => {
         const response = await ncAxiosDelete({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           body: [
             {
-              Id: 'text-primary-key',
+              id: 'text-primary-key',
             },
           ],
           status: 422,
@@ -496,10 +500,12 @@ describe('dataApiV3', () => {
       });
       it(`will handle email wrong format`, async () => {
         const response = await ncAxiosPost({
-          url: `${textBasedUrlPrefix}/${table.id}`,
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
           body: [
             {
-              Email: '++notanemail321',
+              fields: {
+                Email: '++notanemail321',
+              },
             },
           ],
           status: 422,
@@ -529,17 +535,17 @@ describe('dataApiV3', () => {
           ...columns,
         ];
         insertedRecords = initResult.insertedRecords;
-        numberBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        numberBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it(`will handle insert and update zero record`, async () => {
         let response = await ncAxiosPost({
-          url: `${numberBasedUrlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}/records`,
           body: [],
           status: 200,
         });
         response = await ncAxiosPatch({
-          url: `${numberBasedUrlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}/records`,
           body: [],
           status: 200,
         });
@@ -549,10 +555,12 @@ describe('dataApiV3', () => {
           return;
         }
         const response = await ncAxiosPost({
-          url: `${numberBasedUrlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}/records`,
           body: [
             {
-              Number: 'HELLOW',
+              fields: {
+                Number: 'HELLOW',
+              },
             },
           ],
           status: 422,
@@ -566,9 +574,11 @@ describe('dataApiV3', () => {
         const values = ['HELLOW', -1, 9999];
         for (const value of values) {
           const response = await ncAxiosPost({
-            url: `${numberBasedUrlPrefix}/${table.id}`,
+            url: `${numberBasedUrlPrefix}/${table.id}/records`,
             body: {
-              Rating: value,
+              fields: {
+                Rating: value,
+              },
             },
             status: 422,
           });
@@ -585,10 +595,12 @@ describe('dataApiV3', () => {
           return;
         }
         const response = await ncAxiosPost({
-          url: `${numberBasedUrlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}/records`,
           body: [
             {
-              Rating: 99,
+              fields: {
+                Rating: 99,
+              },
             },
           ],
           status: 422,
@@ -604,10 +616,12 @@ describe('dataApiV3', () => {
         }
         for (const year of [99, 19999, 'HELLOW', 19.778, -123]) {
           const response = await ncAxiosPost({
-            url: `${numberBasedUrlPrefix}/${table.id}`,
+            url: `${numberBasedUrlPrefix}/${table.id}/records`,
             body: [
               {
-                Year: year,
+                fields: {
+                  Year: year,
+                },
               },
             ],
             status: 422,
@@ -625,9 +639,11 @@ describe('dataApiV3', () => {
         const values = ['HELLOW', -1, 1.365];
         for (const value of values) {
           const response = await ncAxiosPost({
-            url: `${numberBasedUrlPrefix}/${table.id}`,
+            url: `${numberBasedUrlPrefix}/${table.id}/records`,
             body: {
-              Duration: value,
+              fields: {
+                Duration: value,
+              },
             },
             status: 422,
           });
@@ -643,16 +659,20 @@ describe('dataApiV3', () => {
       it(`will handle insert field more than 10 rows`, async () => {
         const insertObj = [
           {
-            Number: 1,
+            fields: {
+              Number: 1,
+            },
           },
         ];
         for (let i = 2; i < 30; i++) {
           insertObj.push({
-            Number: i,
+            fields: {
+              Number: i,
+            },
           });
         }
         const response = await ncAxiosPost({
-          url: `${numberBasedUrlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}/records`,
           body: insertObj,
           status: 422,
         });
@@ -664,11 +684,13 @@ describe('dataApiV3', () => {
           return;
         }
         const response = await ncAxiosPatch({
-          url: `${numberBasedUrlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}/records`,
           body: [
             {
-              Id: 1,
-              Number: 'HELLOW',
+              id: 1,
+              fields: {
+                Number: 'HELLOW',
+              },
             },
           ],
           status: 422,
@@ -680,11 +702,13 @@ describe('dataApiV3', () => {
       });
       it(`will handle update field id format not valid`, async () => {
         const response = await ncAxiosPatch({
-          url: `${numberBasedUrlPrefix}/${table.id}`,
+          url: `${numberBasedUrlPrefix}/${table.id}/records`,
           body: [
             {
-              Id: 'HELLOW',
-              Number: 1,
+              id: 'HELLOW',
+              fields: {
+                Number: 1,
+              },
             },
           ],
           status: 422,
@@ -707,7 +731,7 @@ describe('dataApiV3', () => {
         table = initResult.table;
         columns = initResult.columns;
         insertedRecords = initResult.insertedRecords;
-        dateBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        dateBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it(`will handle insert field format not valid`, async () => {
@@ -715,10 +739,12 @@ describe('dataApiV3', () => {
           return;
         }
         const response = await ncAxiosPost({
-          url: `${dateBasedUrlPrefix}/${table.id}`,
+          url: `${dateBasedUrlPrefix}/${table.id}/records`,
           body: [
             {
-              Date: 'HELLOW',
+              fields: {
+                Date: 'HELLOW',
+              },
             },
           ],
           status: 422,
@@ -741,26 +767,26 @@ describe('dataApiV3', () => {
         table = initResult.table;
         columns = initResult.columns;
         insertedRecords = initResult.insertedRecords;
-        selectBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        selectBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it('insert with value outside of options', async () => {
         const rspSingle = await ncAxiosPost({
-          url: `${selectBasedUrlPrefix}/${table.id}`,
-          body: [
-            {
+          url: `${selectBasedUrlPrefix}/${table.id}/records`,
+          body: {
+            fields: {
               SingleSelect: 'jan2',
             },
-          ],
+          },
           status: 422,
         });
         const rspMulti = await ncAxiosPost({
-          url: `${selectBasedUrlPrefix}/${table.id}`,
-          body: [
-            {
+          url: `${selectBasedUrlPrefix}/${table.id}/records`,
+          body: {
+            fields: {
               MultiSelect: 'jan2,feb,mar2',
             },
-          ],
+          },
           status: 422,
         });
         expect(rspSingle.body.error).to.equal('INVALID_VALUE_FOR_FIELD');
@@ -782,28 +808,34 @@ describe('dataApiV3', () => {
         const initResult = await beforeEachCheckbox(testContext);
         table = initResult.table;
         columns = initResult.columns;
-        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it(`will handle insert field format not valid`, async () => {
         const insertCases = [
           [
             {
-              Checkbox: 'anythingelse',
+              fields: {
+                Checkbox: 'anythingelse',
+              },
             },
           ],
           [
             {
-              Checkbox: 'true',
+              fields: {
+                Checkbox: 'true',
+              },
             },
             {
-              Checkbox: 'anythingelse',
+              fields: {
+                Checkbox: 'anythingelse',
+              },
             },
           ],
         ];
         for (const insertCase of insertCases) {
           const response = await ncAxiosPost({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             body: insertCase,
             status: 422,
           });
@@ -825,28 +857,34 @@ describe('dataApiV3', () => {
         const initResult = await beforeEachJSON(testContext);
         table = initResult.table;
         columns = initResult.columns;
-        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       });
 
       it(`will handle insert field format not valid`, async () => {
         const insertCases = [
           [
             {
-              JSON: 'anythingelse',
+              fields: {
+                JSON: 'anythingelse',
+              },
             },
           ],
           [
             {
-              JSON: '{}',
+              fields: {
+                JSON: '{}',
+              },
             },
             {
-              JSON: 'anythingelse',
+              fields: {
+                JSON: 'anythingelse',
+              },
             },
           ],
         ];
         for (const insertCase of insertCases) {
           const response = await ncAxiosPost({
-            url: `${urlPrefix}/${table.id}`,
+            url: `${urlPrefix}/${table.id}/records`,
             body: insertCase,
             status: 422,
           });
@@ -868,7 +906,7 @@ describe('dataApiV3', () => {
       beforeEach(async () => {
         const initResult = await beforeEachUserBased(testContext);
 
-        userBasedUrlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
+        userBasedUrlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
         table = initResult.table;
         columns = initResult.columns;
       });
@@ -877,11 +915,13 @@ describe('dataApiV3', () => {
         const userList = await getUsers(testContext);
 
         const newRecord1 = {
-          userFieldSingle: userList[0].id,
-          userFieldMulti: `${userList[0].id},${userList[0].id}`,
+          fields: {
+            userFieldSingle: userList[0].id,
+            userFieldMulti: `${userList[0].id},${userList[0].id}`,
+          },
         };
         const rsp = await ncAxiosPost({
-          url: `${userBasedUrlPrefix}/${table.id}`,
+          url: `${userBasedUrlPrefix}/${table.id}/records`,
           body: newRecord1,
           status: 422,
         });
@@ -892,11 +932,13 @@ describe('dataApiV3', () => {
         ).to.equal(true);
 
         const newRecord2 = {
-          userFieldSingle: `${userList[0].id},${userList[1].id}`,
-          userFieldMulti: `${userList[0].id},${userList[1].id}`,
+          fields: {
+            userFieldSingle: `${userList[0].id},${userList[1].id}`,
+            userFieldMulti: `${userList[0].id},${userList[1].id}`,
+          },
         };
         const rsp2 = await ncAxiosPost({
-          url: `${userBasedUrlPrefix}/${table.id}`,
+          url: `${userBasedUrlPrefix}/${table.id}/records`,
           body: newRecord2,
           status: 422,
         });
@@ -909,10 +951,12 @@ describe('dataApiV3', () => {
 
       it('Create record : ID not exists', async function () {
         const newRecord1 = {
-          userFieldSingle: 'afcdef',
+          fields: {
+            userFieldSingle: 'afcdef',
+          },
         };
         const rsp = await ncAxiosPost({
-          url: `${userBasedUrlPrefix}/${table.id}`,
+          url: `${userBasedUrlPrefix}/${table.id}/records`,
           body: newRecord1,
           status: 422,
         });
@@ -920,16 +964,6 @@ describe('dataApiV3', () => {
         expect(
           rsp.body.message.startsWith(`Invalid value 'afcdef' for type `),
         ).to.equal(true);
-      });
-    });
-
-    describe.skip('attachment', () => {
-      let table: Model;
-      const columns: Column[] = [];
-
-      beforeEach(async function () {
-        const initResult = await beforeEachAttachment(testContext);
-        urlPrefix = `/api/${API_VERSION}/${testContext.base.id}`;
       });
     });
   });

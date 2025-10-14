@@ -2,6 +2,7 @@ import { expect, Locator } from '@playwright/test';
 import BasePage from '../../Base';
 import { DashboardPage } from '..';
 import { DateTimeCellPageObject } from '../common/Cell/DateTimeCell';
+import { isEE } from '../../../setup/db';
 
 export class ExpandedFormPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -210,6 +211,7 @@ export class ExpandedFormPage extends BasePage {
 
   async openChildCard(param: { column: string; title: string }) {
     const childField = this.get().locator(`[data-testid="nc-expand-col-${param.column}"]`);
+    await childField.locator('.nc-datatype-link').waitFor({ state: 'visible' });
     await childField.locator('.nc-datatype-link').click();
 
     const card = await this.rootPage.locator(`.ant-card:has-text("${param.title}")`);
@@ -225,14 +227,25 @@ export class ExpandedFormPage extends BasePage {
     const role = param.role.toLowerCase();
 
     // expect(await this.btn_moreActions.count()).toBe(1);
-    await this.btn_moreActions.click();
+    if (await this.btn_moreActions.isVisible()) {
+      // In large screen, the more actions button will be hidden as copy record url button will be visible inline (outside)
+      await this.btn_moreActions.click();
+    }
 
     if (role === 'owner' || role === 'editor' || role === 'creator') {
-      await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toBeVisible();
+      if (!isEE()) {
+        await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toBeVisible();
+      } else {
+        await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toHaveCount(0);
+      }
       await expect(this.rootPage.getByTestId('nc-expanded-form-duplicate')).toBeVisible();
       await expect(this.rootPage.getByTestId('nc-expanded-form-delete')).toBeVisible();
     } else {
-      await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toBeVisible();
+      if (!isEE()) {
+        await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toBeVisible();
+      } else {
+        await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toHaveCount(0);
+      }
       await expect(this.rootPage.getByTestId('nc-expanded-form-duplicate')).toHaveCount(0);
       await expect(this.rootPage.getByTestId('nc-expanded-form-delete')).toHaveCount(0);
     }
@@ -250,7 +263,7 @@ export class ExpandedFormPage extends BasePage {
     }
 
     // press escape to close the expanded form
-    await this.rootPage.keyboard.press('Escape');
+    await this.close();
   }
 
   async moveToNextField() {

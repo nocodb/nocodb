@@ -102,16 +102,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!base) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.baseNotFoundV3(params.baseId ?? params.baseName);
-        } else {
-          NcError.baseNotFound(params.baseId ?? params.baseName);
-        }
+        NcError.get(context).baseNotFound(params.baseId ?? params.baseName);
       }
-
       if (base) {
         req.ncBaseId = base.id;
-        if (params.tableName) {
+        if (params.tableId || params.tableName || params.modelId) {
           // extract model and then source id from model
           const model = await Model.getByAliasOrId(
             {
@@ -120,16 +115,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
             },
             {
               base_id: base.id,
-              aliasOrId: params.tableName,
+              aliasOrId: params.tableId || params.tableName || params.modelId,
             },
           );
-
           if (!model) {
-            if (context.api_version === NcApiVersion.V3) {
-              NcError.tableNotFoundV3(params.tableId || params.modelId);
-            } else {
-              NcError.tableNotFound(req.params.tableName);
-            }
+            NcError.get(context).tableNotFound(
+              params.tableId || req.params.tableName || params.modelId,
+            );
           }
 
           req.ncSourceId = model?.source_id;
@@ -146,11 +138,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.tableNotFoundV3(params.tableId || params.modelId);
-        } else {
-          NcError.tableNotFound(params.tableId || params.modelId);
-        }
+        NcError.get(context).tableNotFound(params.tableId || params.modelId);
       }
 
       req.ncBaseId = model.base_id;
@@ -224,7 +212,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const hook = await Hook.get(context, params.hookId);
 
       if (!hook) {
-        NcError.hookNotFound(params.hookId);
+        NcError.get(context).hookNotFound(params.hookId);
       }
 
       req.ncBaseId = hook.base_id;
@@ -236,7 +224,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!gridViewColumn) {
-        NcError.fieldNotFound(params.gridViewColumnId);
+        NcError.get(context).fieldNotFound(params.gridViewColumnId);
       }
 
       req.ncBaseId = gridViewColumn.base_id;
@@ -248,7 +236,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!formViewColumn) {
-        NcError.fieldNotFound(params.formViewColumnId);
+        NcError.get(context).fieldNotFound(params.formViewColumnId);
       }
 
       req.ncBaseId = formViewColumn.base_id;
@@ -260,7 +248,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!galleryViewColumn) {
-        NcError.fieldNotFound(params.galleryViewColumnId);
+        NcError.get(context).fieldNotFound(params.galleryViewColumnId);
       }
 
       req.ncBaseId = galleryViewColumn.base_id;
@@ -269,7 +257,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const column = await Column.get(context, { colId: params.columnId });
 
       if (!column) {
-        NcError.fieldNotFound(params.columnId);
+        NcError.get(context).fieldNotFound(params.columnId);
       }
 
       req.ncBaseId = column.base_id;
@@ -321,12 +309,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
     // extract fk_model_id from query params only if it's audit post endpoint
     else if (
-      [
-        '/api/v1/db/meta/audits/rows/:rowId/update',
-        '/api/v2/meta/audits/rows/:rowId/update',
-        '/api/v1/db/meta/comments',
-        '/api/v2/meta/comments',
-      ].some(
+      ['/api/v1/db/meta/comments', '/api/v2/meta/comments'].some(
         (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
       ) &&
       req.method === 'POST' &&
@@ -337,11 +320,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.tableNotFoundV3(params.tableId || params.modelId);
-        } else {
-          NcError.tableNotFound(req.body.fk_model_id);
-        }
+        NcError.get(context).tableNotFound(req.body.fk_model_id);
       }
 
       req.ncBaseId = model.base_id;
@@ -354,8 +333,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         '/api/v1/db/meta/comments/count',
         '/api/v2/meta/comments',
         '/api/v1/db/meta/comments',
-        '/api/v1/db/meta/audits',
-        '/api/v2/meta/audits',
       ].some((auditReadPath) => req.route.path === auditReadPath) &&
       req.method === 'GET' &&
       req.query.fk_model_id
@@ -365,11 +342,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       });
 
       if (!model) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.tableNotFoundV3(params.tableId || params.modelId);
-        } else {
-          NcError.tableNotFound(req.query?.fk_model_id);
-        }
+        NcError.get(context).tableNotFound(req.query?.fk_model_id);
       }
 
       req.ncBaseId = model.base_id;

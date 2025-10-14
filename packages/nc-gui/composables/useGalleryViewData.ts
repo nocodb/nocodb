@@ -8,8 +8,6 @@ export function useGalleryViewData(
 ) {
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { $api } = useNuxtApp()
-
   const tablesStore = useTablesStore()
 
   const { activeTable } = storeToRefs(tablesStore)
@@ -18,7 +16,7 @@ export function useGalleryViewData(
 
   const meta = computed(() => _meta.value || activeTable.value)
 
-  const viewData = ref<GalleryType | undefined>()
+  const viewData = computed(() => (isPublic.value ? (sharedView.value?.view as GalleryType) : viewMeta.value?.view))
 
   const {
     cachedRows,
@@ -42,17 +40,11 @@ export function useGalleryViewData(
     isPublic,
   })
 
-  async function loadGalleryData() {
-    if (!viewMeta?.value?.id) return
-    viewData.value = isPublic.value ? (sharedView.value?.view as GalleryType) : await $api.dbView.galleryRead(viewMeta.value.id)
-  }
-
   return {
     cachedRows,
     deleteRow,
     loadData,
     navigateToSiblingRow,
-    loadGalleryData,
     viewData,
     totalRows,
     clearCache,

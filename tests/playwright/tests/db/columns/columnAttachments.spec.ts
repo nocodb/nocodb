@@ -14,11 +14,11 @@ test.describe('Attachment column', () => {
     await unsetup(context);
   });
 
-  test('Create and verify attachment column, verify it in shared form,', async ({ context }) => {
+  test('Create and verify attachment column, verify it in shared form,', async ({ context: _context }) => {
     // run tests slowly
     test.slow();
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     await dashboard.grid.column.create({
       title: 'testAttach',
       type: 'Attachment',
@@ -60,10 +60,10 @@ test.describe('Attachment column', () => {
     });
     await dashboard.rootPage.waitForTimeout(500);
     const sharedFormUrl = await dashboard.form.topbar.getSharedViewUrl();
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     // Verify attachment in shared form
-    const newPage = await context.newPage();
+    const newPage = await _context.newPage();
     await newPage.goto(sharedFormUrl);
     const sharedForm = new SharedFormPage(newPage);
 

@@ -1,3 +1,5 @@
+import type { ProjectRoles } from 'nocodb-sdk'
+
 export interface ExtensionManifest {
   id: string
   title: string
@@ -27,8 +29,22 @@ export interface ExtensionManifest {
   order: number
   disabled?: boolean
   type: 'extension'
+  /**
+   * `beta` used for extension visibility.
+   */
   beta?: boolean
   onPrem?: boolean
+  /**
+   * The minimum access role required to access the extension.
+   * @default ProjectRoles.CREATOR
+   * Todo: @rameshmane7218
+   */
+  minAccessRole?: ProjectRoles
+  /**
+   * `showAsBeta` released as a beta extension.
+   * We will add beta tab in market, details and extension places.
+   */
+  showAsBeta?: boolean
 }
 
 export interface ScriptManifest {
@@ -61,3 +77,9 @@ export interface ScriptManifest {
 }
 
 export type PluginManifest = ExtensionManifest | ScriptManifest
+
+export interface ExtensionConfigInjType {
+  activeExtensionId?: string
+  isPageDesignerPreviewPanel?: boolean
+  [key: string]: any
+}

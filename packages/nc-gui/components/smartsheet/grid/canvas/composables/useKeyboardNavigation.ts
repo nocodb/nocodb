@@ -22,6 +22,7 @@ export function useKeyboardNavigation({
   expandForm,
   cachedGroups,
   isAddingEmptyRowAllowed,
+  isAddingEmptyRowPermitted,
   addEmptyRow,
   addNewColumn,
   onActiveCellChanged,
@@ -34,7 +35,7 @@ export function useKeyboardNavigation({
   activeCell: Ref<{ row: number; column: number; path?: Array<number> }>
   triggerReRender: () => void
   columns: ComputedRef<CanvasGridColumn[]>
-  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
+  scrollToCell: CanvasScrollToCellFn
   selection: Ref<CellRange>
   editEnabled: Ref<{
     rowIndex: number
@@ -48,10 +49,11 @@ export function useKeyboardNavigation({
   copyValue: (target?: Cell, path?: Array<number>) => void
   clearCell: (ctx: { row: number; col: number; path?: Array<number> } | null, skipUpdate?: boolean) => Promise<void>
   clearSelectedRangeOfCells: (path?: Array<number>) => Promise<void>
-  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: MakeCellEditableFn
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   cachedGroups: Ref<Map<number, CanvasGroup>>
   isAddingEmptyRowAllowed: ComputedRef<boolean>
+  isAddingEmptyRowPermitted: ComputedRef<boolean>
   addNewColumn: () => void
   addEmptyRow: (
     addAfter?: number,
@@ -118,6 +120,10 @@ export function useKeyboardNavigation({
       defaultData = getDefaultGroupData(group)
     }
 
+    if (cmdOrCtrl && e.key === 'f' && editEnabled.value) {
+      editEnabled.value = null
+    }
+
     const dataCache = getDataCache(groupPath)
 
     const { cachedRows, totalRows } = dataCache
@@ -178,7 +184,12 @@ export function useKeyboardNavigation({
       switch (e.keyCode) {
         case 82: {
           // ALT + R
-          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
+          if (
+            isAddingEmptyRowAllowed.value &&
+            isAddingEmptyRowPermitted.value &&
+            !removeInlineAddRecord.value &&
+            isAddingEmptyRowPermitted.value
+          ) {
             $e('c:shortcut', { key: 'ALT + R' })
             addEmptyRow(undefined, undefined, undefined, defaultData, groupPath)
             activeCell.value.row = totalRows.value
@@ -237,7 +248,7 @@ export function useKeyboardNavigation({
 
               const row = cachedRows.value.get(activeCell.value.row)
 
-              makeCellEditable(row, columns.value[activeCell.value.column]!)
+              makeCellEditable(row, columns.value[activeCell.value.column]!, true)
               selection.value.clear()
             }
           }
@@ -274,7 +285,7 @@ export function useKeyboardNavigation({
               col: selection.value._end?.col ?? activeCell.value.column,
             }
             selection.value.endRange(newEnd)
-            scrollToCell(newEnd.row, newEnd.col, groupPath)
+            scrollToCell(newEnd.row, newEnd.col, groupPath, false)
             movedSelection = true
           } else {
             activeCell.value.row = newRow
@@ -348,7 +359,7 @@ export function useKeyboardNavigation({
         let isAdded = false
         e.preventDefault()
         if (!e.shiftKey && activeCell.value.row === lastRow && activeCell.value.column === lastCol) {
-          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value) {
+          if (isAddingEmptyRowAllowed.value && !removeInlineAddRecord.value && isAddingEmptyRowPermitted.value) {
             addEmptyRow(undefined, false, undefined, defaultData, groupPath)
             isAdded = true
           }
@@ -384,10 +395,12 @@ export function useKeyboardNavigation({
         selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
       }
 
+      const horizontalScroll = e.key !== 'ArrowUp' && e.key !== 'ArrowDown'
+
       if (moved) {
-        scrollToCell(activeCell.value.row, activeCell.value.column, groupPath)
+        scrollToCell(activeCell.value.row, activeCell.value.column, groupPath, horizontalScroll)
       } else if (movedSelection) {
-        scrollToCell(selection.value._end!.row, selection.value._end!.col, groupPath)
+        scrollToCell(selection.value._end!.row, selection.value._end!.col, groupPath, horizontalScroll)
       }
     }
     triggerReRender()

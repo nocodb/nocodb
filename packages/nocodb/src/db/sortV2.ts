@@ -1,4 +1,4 @@
-import { isAIPromptCol, NcApiVersion, UITypes } from 'nocodb-sdk';
+import { isAIPromptCol, UITypes } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
 import type { ButtonColumn, FormulaColumn, RollupColumn } from '~/models';
@@ -38,11 +38,7 @@ export default async function sortV2(
     );
     if (!column) {
       if (throwErrorIfInvalid) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.fieldNotFoundV3(sort.fk_column_id);
-        } else {
-          NcError.fieldNotFound(sort.fk_column_id);
-        }
+        NcError.get(context).fieldNotFound(sort.fk_column_id);
       }
       continue;
     }
@@ -134,14 +130,6 @@ export default async function sortV2(
             sort.direction || 'asc',
             nulls,
           );
-        } else if (clientType === 'mssql') {
-          qb.orderBy(
-            sanitize(
-              knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name]),
-            ),
-            sort.direction || 'asc',
-            nulls,
-          );
         } else {
           qb.orderBy(
             sanitize(column.column_name),
@@ -156,14 +144,6 @@ export default async function sortV2(
         if (clientType === 'mysql' || clientType === 'mysql2') {
           qb.orderBy(
             sanitize(knex.raw('CONCAT(??)', [column.column_name])),
-            sort.direction || 'asc',
-            nulls,
-          );
-        } else if (clientType === 'mssql') {
-          qb.orderBy(
-            sanitize(
-              knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name]),
-            ),
             sort.direction || 'asc',
             nulls,
           );
@@ -182,6 +162,7 @@ export default async function sortV2(
         const base = await Base.get(context, model.base_id);
         const baseUsers = await BaseUser.getUsersList(context, {
           base_id: base.id,
+          include_internal_user: true,
         });
 
         // create nested replace statement for each user
@@ -214,8 +195,6 @@ export default async function sortV2(
             ]);
           } else if (knex.clientType() === 'sqlite3') {
             col = knex.raw(`json_extract(??, '$.value')`, [column.column_name]);
-          } else if (knex.clientType() === 'mssql') {
-            col = knex.raw(`JSON_VALUE(??, '$.value')`, [column.column_name]);
           }
 
           qb.orderBy(col, sort.direction || 'asc', nulls);

@@ -5,6 +5,7 @@ import { Strategy } from 'passport-custom';
 import type { NcRequest } from '~/interface/config';
 import { ApiToken, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { getApiTokenFromHeader } from '~/helpers';
 
 @Injectable()
 export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
@@ -12,8 +13,12 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
   async validate(req: NcRequest, callback: Function) {
     try {
       let user;
-      if (req.headers['xc-token']) {
-        const apiToken = await ApiToken.getByToken(req.headers['xc-token']);
+
+      // Extract token from either xc-token header or Authorization Bearer header
+      const token = getApiTokenFromHeader(req);
+
+      if (token) {
+        const apiToken = await ApiToken.getByToken(token);
         if (!apiToken) {
           return callback({ msg: 'Invalid token' });
         }
@@ -48,12 +53,15 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           display_name: dbUser.display_name,
           roles: extractRolesObj(dbUser.roles),
           base_roles: extractRolesObj(dbUser.base_roles),
+          is_new_user: dbUser.is_new_user,
           ...(dbUser.workspace_roles
             ? { workspace_roles: extractRolesObj(dbUser.workspace_roles) }
             : {}),
           ...(dbUser.org_roles
             ? { org_roles: extractRolesObj(dbUser.org_roles) }
             : {}),
+          // Add SSO client information from the API token if available
+          extra: await apiToken.getExtraForUserPayload(),
         });
       }
       return callback(null, sanitiseUserObj(user));

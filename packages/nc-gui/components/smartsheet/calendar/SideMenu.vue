@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { UITypes } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 const props = defineProps<{
@@ -32,7 +32,6 @@ const {
   activeDates,
   activeCalendarView,
   isSidebarLoading,
-  isCalendarMetaLoading,
   formattedSideBarData,
   calDataType,
   loadMoreSidebarData,
@@ -42,6 +41,8 @@ const {
   timezone,
   timezoneDayjs,
 } = useCalendarViewStoreOrThrow()
+
+const { isSyncedTable, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
 
@@ -261,14 +262,26 @@ const newRecord = () => {
     ...rowDefaultData(meta.value?.columns),
   }
 
+  let fromDate
   if (activeCalendarView.value === 'day') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format(updateFormat.value)
+    fromDate = selectedDate.value
   } else if (activeCalendarView.value === 'week') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDateRange.value.start.format(updateFormat.value)
+    fromDate = selectedDateRange.value.start
   } else if (activeCalendarView.value === 'month') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = (selectedDate.value ?? selectedMonth.value).format(updateFormat.value)
+    fromDate = selectedDate.value ?? selectedMonth.value
   } else if (activeCalendarView.value === 'year') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format(updateFormat.value)
+    fromDate = selectedDate.value
+  }
+
+  // Set the from date
+  if (calendarRange.value[0]?.fk_from_col) {
+    row[calendarRange.value[0].fk_from_col.title!] = fromDate.format(updateFormat.value)
+  }
+
+  // Set the to date if to_col is configured (same as from date + 1 hour)
+  if (calendarRange.value[0]?.fk_to_col) {
+    const toDate = fromDate.endOf('hour')
+    row[calendarRange.value[0].fk_to_col.title!] = toDate.format(updateFormat.value)
   }
 
   emit('newRecord', { row, oldRow: {}, rowMeta: { new: true } })
@@ -327,7 +340,7 @@ const selectOption = (option) => {
       '!min-w-[100svw]': props.visible && isMobileMode,
       'nc-calendar-side-menu-open': props.visible,
     }"
-    class="h-full relative border-l-1 min-w-[288px] border-gray-200 transition transition-all"
+    class="h-full relative border-l-1 min-w-[288px] border-nc-border-gray-medium transition transition-all"
     data-testid="nc-calendar-side-menu"
   >
     <div class="flex min-w-[288px] flex-col">
@@ -385,7 +398,7 @@ const selectOption = (option) => {
             class="font-medium text-nc-content-gray cursor-pointer gap-2 flex items-center font-bold leading-6"
             data-testid="nc-calendar-sidebar-filter"
           >
-            <div>
+            <div class="truncate">
               <span class="capitalize">
                 {{ sideBarFilterOption !== 'allRecords' ? $t('objects.records') : '' }}
               </span>
@@ -419,7 +432,7 @@ const selectOption = (option) => {
           data-testid="nc-calendar-sidebar-search-btn"
           size="small"
           :class="{
-            '!bg-brand-50 nc-calendar-sidebar-search-active !text-nc-content-brand': showSearch,
+            '!bg-nc-brand-50 nc-calendar-sidebar-search-active !text-nc-content-brand': showSearch,
           }"
           :shadow="false"
           class="!h-7 !rounded-md nc-calendar-sidebar-search-btn !border-0"
@@ -439,43 +452,57 @@ const selectOption = (option) => {
           ref="searchRef"
           v-model:value="searchQuery.value"
           :class="{
-            '!border-brand-500': searchQuery.value.length > 0,
             '!hidden': !showSearch,
           }"
-          class="!rounded-lg !h-8 !placeholder:text-gray-500 !border-gray-200 !px-4"
+          class="!rounded-lg !h-8 !placeholder:text-nc-content-gray-muted !px-4"
           data-testid="nc-calendar-sidebar-search"
           placeholder="Search records"
           @keydown.esc="toggleSearch"
         >
           <template #prefix>
-            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
+            <component :is="iconMap.search" class="h-4 w-4 mr-1 text-nc-content-gray-muted" />
+          </template>
+          <template v-if="searchQuery.value?.trim() && !searchQuery.isValidFieldQuery" #suffix>
+            <NcTooltip :title="$t('msg.error.invalidSearchQueryForDisplayField')" class="flex" placement="topRight">
+              <GeneralIcon icon="ncInfo" class="flex-noneh-4 w-4 text-nc-content-red-medium" />
+            </NcTooltip>
           </template>
         </a-input>
       </div>
-      <div class="mx-4 gap-2 flex items-center">
-        <LazySmartsheetToolbarSortListMenu />
+      <div
+        v-if="isViewOperationsAllowed || (isUIAllowed('dataEdit') && props.visible && !isSyncedTable)"
+        class="mx-4 gap-2 flex items-center"
+      >
+        <LazySmartsheetToolbarSortListMenu v-if="isViewOperationsAllowed" />
 
         <div class="flex-1" />
 
-        <NcButton
-          v-if="isUIAllowed('dataEdit') && props.visible"
-          v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
-          data-testid="nc-calendar-side-menu-new-btn"
-          class="!h-7 !rounded-md"
-          size="small"
-          type="secondary"
-          @click="newRecord"
+        <PermissionsTooltip
+          v-if="isUIAllowed('dataEdit') && props.visible && !isSyncedTable"
+          :entity="PermissionEntity.TABLE"
+          :entity-id="meta?.id"
+          :permission="PermissionKey.TABLE_RECORD_ADD"
+          placement="left"
+          show-overlay
         >
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.plus" />
-
-            Record
-          </div>
-        </NcButton>
+          <NcButton
+            v-e="['c:calendar:calendar-sidemenu-new-record-btn']"
+            data-testid="nc-calendar-side-menu-new-btn"
+            class="!h-7 !rounded-md"
+            size="small"
+            type="secondary"
+            @click="newRecord"
+          >
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="ncPlus" />
+              Record
+            </div>
+          </NcButton>
+        </PermissionsTooltip>
       </div>
 
       <div
-        v-if="calendarRange?.length && !isCalendarMetaLoading"
+        v-if="calendarRange?.length"
         :ref="sideBarListRef"
         :class="{
           '!h-[calc(100svh-22.15rem)]':
@@ -495,43 +522,24 @@ const selectOption = (option) => {
           '!h-[calc(100svh-16.6rem)]':
             height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
         }"
-        class="nc-scrollbar-md pl-4 pr-4 overflow-y-auto"
+        class="nc-scrollbar-md px-4 pb-4 overflow-y-auto"
         data-testid="nc-calendar-side-menu-list"
         @scroll="sideBarListScrollHandle"
       >
         <div v-if="renderData.length === 0 || isSidebarLoading" class="flex h-full items-center justify-center">
           <GeneralLoader v-if="isSidebarLoading" size="large" />
 
-          <div v-else class="text-gray-500">
+          <div v-else class="text-nc-content-gray-muted">
             {{ t('msg.noRecordsFound') }}
           </div>
         </div>
         <template v-else-if="renderData.length > 0">
           <div class="gap-2 flex flex-col">
-            <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
+            <SmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
               <LazySmartsheetCalendarSideRecordCard
                 :draggable="sideBarFilterOption === 'withoutDates' && activeCalendarView !== 'year'"
-                :from-date="
-                record.rowMeta.range?.fk_from_col
-                  ? calDataType === UITypes.Date
-                    ? timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM')
-                    : timezoneDayjs.timezonize(record.row[record.rowMeta.range.fk_from_col.title!]).format('D MMM • h:mm A')
-                  : null
-              "
-                :invalid="
-                record.rowMeta.range!.fk_to_col &&
-                timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_from_col.title!]).isAfter(
-                  timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]),
-                )
-              "
                 :row="record"
-                :to-date="
-                record.rowMeta.range!.fk_to_col && dayjs(record.row[record.rowMeta.range!.fk_to_col.title!])?.isValid()
-                  ? calDataType === UITypes.Date
-                    ? timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM')
-                    : timezoneDayjs.timezonize(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A')
-                  : null
-              "
+                :cal-data-type="calDataType"
                 data-testid="nc-sidebar-record-card"
                 @click="emit('expandRecord', record)"
                 @dragstart="dragStart($event, record)"
@@ -541,38 +549,13 @@ const selectOption = (option) => {
                   <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                 </template>
                 <template v-else>
-                  <span class="text-gray-500"> - </span>
+                  <span class="text-nc-content-gray-muted"> - </span>
                 </template>
               </LazySmartsheetCalendarSideRecordCard>
-            </LazySmartsheetRow>
+            </SmartsheetRow>
           </div>
         </template>
       </div>
-      <template v-else-if="isCalendarMetaLoading">
-        <div
-          :class="{
-            '!h-[calc(100svh-22.15rem)]':
-              height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-            '!h-[calc(100svh-24.9rem)]':
-              height > 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-            '!h-[calc(100svh-13.85rem)]':
-              height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && !showSearch,
-            '!h-[calc(100svh-16.61rem)]':
-              height <= 700 && (activeCalendarView === 'month' || activeCalendarView === 'year') && showSearch,
-            '!h-[calc(100svh-30.15rem)]':
-              height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-            ' !h-[calc(100svh-32.9rem)]':
-              height > 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-            '!h-[calc(100svh-13.8rem)]':
-              height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && !showSearch,
-            '!h-[calc(100svh-16.6rem)]':
-              height <= 700 && (activeCalendarView === 'day' || activeCalendarView === 'week') && showSearch,
-          }"
-          class="flex items-center justify-center h-full"
-        >
-          <GeneralLoader size="xlarge" />
-        </div>
-      </template>
       <div
         v-else
         :class="{

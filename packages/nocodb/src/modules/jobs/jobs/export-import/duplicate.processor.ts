@@ -7,6 +7,7 @@ import {
   isLinksOrLTAR,
   isVirtualCol,
   RelationTypes,
+  UITypes,
 } from 'nocodb-sdk';
 import { Injectable, NotImplementedException } from '@nestjs/common';
 import type { Job } from 'bull';
@@ -16,6 +17,7 @@ import type {
   DuplicateColumnJobData,
   DuplicateModelJobData,
 } from '~/interface/Jobs';
+import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import {
@@ -31,6 +33,7 @@ import { ImportService } from '~/modules/jobs/jobs/export-import/import.service'
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
 import { TelemetryService } from '~/services/telemetry.service';
+import { DuplicateModelUtils } from '~/utils/duplicate-model.utils';
 
 @Injectable()
 export class DuplicateProcessor {
@@ -60,6 +63,7 @@ export class DuplicateProcessor {
       excludeHooks?: boolean;
       excludeViews?: boolean;
       excludeComments?: boolean;
+      excludeDashboards?: boolean;
     };
   }) {
     throw new NotImplementedException();
@@ -87,6 +91,8 @@ export class DuplicateProcessor {
       excludeViews?: boolean;
       excludeComments?: boolean;
       excludeUsers?: boolean;
+      excludeScripts?: boolean;
+      excludeDashboards?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -125,16 +131,46 @@ export class DuplicateProcessor {
         (m) => m.source_id === dataSource.id && !m.mm && m.type === 'table',
       );
 
-      const exportedModels = await this.exportService.serializeModels(context, {
-        modelIds: models.map((m) => m.id),
-        ...options,
-      });
+      const { serializedModels: exportedModels, idMap: exportModelMap } =
+        await this.exportService.serializeModels(context, {
+          modelIds: models.map((m) => m.id),
+          ...options,
+        });
 
       elapsedTime(
         hrTime,
         `serialize models schema for ${dataSource.base_id}::${dataSource.id}`,
         operation,
       );
+
+      let exportedScripts = null;
+      if (!options?.excludeScripts) {
+        exportedScripts = await this.exportService.serializeScripts(context);
+
+        elapsedTime(
+          hrTime,
+          `serialize scripts schema for ${dataSource.base_id}`,
+          operation,
+        );
+      }
+
+      let exportedDashboards = null;
+
+      if (!options.excludeDashboards) {
+        exportedDashboards = await this.exportService.serializeDashboards(
+          context,
+          {
+            idMap: exportModelMap,
+          },
+          req,
+        );
+
+        elapsedTime(
+          hrTime,
+          `serialize dashboards schema for ${dataSource.base_id}`,
+          operation,
+        );
+      }
 
       if (!exportedModels) {
         throw new Error(`Export failed for source '${dataSource.id}'`);
@@ -144,13 +180,32 @@ export class DuplicateProcessor {
 
       const targetBaseSource = targetBase.sources[0];
 
-      const idMap = await this.importService.importModels(targetContext, {
+      let idMap = await this.importService.importModels(targetContext, {
         user,
         baseId: targetBase.id,
         sourceId: targetBaseSource.id,
         data: exportedModels,
         req: req,
       });
+
+      if (exportedScripts) {
+        await this.importService.importScripts(targetContext, {
+          user,
+          baseId: targetBase.id,
+          data: exportedScripts,
+          req: req,
+        });
+      }
+
+      if (exportedDashboards?.length) {
+        idMap = await this.importService.importDashboards(targetContext, {
+          user,
+          baseId: targetBase.id,
+          data: exportedDashboards,
+          req,
+          idMap,
+        });
+      }
 
       elapsedTime(hrTime, `import models schema`, operation);
 
@@ -204,7 +259,7 @@ export class DuplicateProcessor {
         error: err.message,
       });
 
-      this.telemetryService.sendSystemEvent({
+      await this.telemetryService.sendSystemEvent({
         event_type: 'priority_error',
         error_trigger: 'duplicateBase',
         error_type: err?.name,
@@ -239,6 +294,8 @@ export class DuplicateProcessor {
     const excludeViews = options?.excludeViews || false;
     const excludeComments = options?.excludeComments || excludeData || false;
     const excludeUsers = options?.excludeUsers || false;
+    const excludeScripts = options?.excludeScripts || false;
+    const excludeDashboards = options?.excludeDashboards || false;
 
     const base = await Base.get(context, baseId);
     const dupProject = await Base.get(context, dupProjectId);
@@ -256,6 +313,8 @@ export class DuplicateProcessor {
         excludeViews,
         excludeComments,
         excludeUsers,
+        excludeScripts,
+        excludeDashboards,
       },
       operation: JobTypes.DuplicateBase,
     });
@@ -268,7 +327,17 @@ export class DuplicateProcessor {
 
     const hrTime = initTime();
 
-    const { context, sourceId, modelId, title, req, options } = job.data;
+    const {
+      context,
+      sourceId,
+      targetSourceId: _targetSourceId,
+      modelId,
+      title,
+      req,
+      options,
+    } = job.data;
+    const { context: targetContext, isDifferent: _isTargetContextDifferent } =
+      await DuplicateModelUtils._.getTargetContext(context, options);
 
     const baseId = context.base_id;
 
@@ -287,9 +356,13 @@ export class DuplicateProcessor {
     );
 
     const sourceModel = models.find((m) => m.id === modelId);
-
     const createdModels: string[] = [];
 
+    // TODO: replace this with the one that's generated by table webhook manager
+    // currently this one is to prevent webhook to trigger when duplicate model
+    const columnWebhookManager = (
+      await new ColumnWebhookManagerBuilder(context).withModelId(modelId)
+    ).forCreate();
     try {
       await sourceModel.getColumns(context);
 
@@ -310,7 +383,7 @@ export class DuplicateProcessor {
           excludeData,
           excludeComments,
         })
-      )[0];
+      ).serializedModels[0];
 
       elapsedTime(
         hrTime,
@@ -327,11 +400,13 @@ export class DuplicateProcessor {
 
       const idMap = await this.importService.importModels(context, {
         baseId,
+        targetContext,
         sourceId,
         data: [exportedModel],
         user,
         req,
         externalModels: relatedModels,
+        columnWebhookManager,
       });
 
       elapsedTime(hrTime, 'import model schema', 'duplicateModel');
@@ -363,11 +438,11 @@ export class DuplicateProcessor {
           }
         }
 
-        await this.importModelsData(context, context, {
+        await this.importModelsData(targetContext, context, {
           idMap,
           sourceProject: base,
           sourceModels: [sourceModel],
-          destProject: base,
+          destProject: await Base.get(targetContext, targetContext.base_id),
           destBase: source,
           hrTime,
           modelFieldIds: fields,
@@ -411,7 +486,7 @@ export class DuplicateProcessor {
         }
       }
 
-      this.telemetryService.sendSystemEvent({
+      await this.telemetryService.sendSystemEvent({
         event_type: 'priority_error',
         error_trigger: 'duplicateModel',
         error_type: e?.name,
@@ -431,7 +506,6 @@ export class DuplicateProcessor {
 
   async duplicateColumn(job: Job<DuplicateColumnJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateColumn})`);
-
     const hrTime = initTime();
 
     const { context, sourceId, columnId, extra, req, options } = job.data;
@@ -477,8 +551,9 @@ export class DuplicateProcessor {
         excludeData,
         excludeHooks: true,
         excludeViews: true,
+        excludeRowColorConditions: true,
       })
-    )[0];
+    ).serializedModels[0];
 
     elapsedTime(
       hrTime,
@@ -494,6 +569,11 @@ export class DuplicateProcessor {
       c.id.includes(columnId),
     );
 
+    const columnWebhookManager = (
+      await new ColumnWebhookManagerBuilder(context).withModelId(
+        sourceColumn.fk_model_id,
+      )
+    ).forCreate();
     try {
       // save old default value
       const oldCdf = replacedColumn.cdf;
@@ -521,6 +601,7 @@ export class DuplicateProcessor {
         externalModels: relatedModels,
         existingModel: sourceModel,
         importColumnIds: [columnId],
+        columnWebhookManager,
       });
 
       elapsedTime(hrTime, 'import model schema', 'duplicateColumn');
@@ -529,7 +610,18 @@ export class DuplicateProcessor {
         throw new Error(`Import failed for model '${sourceModel.id}'`);
       }
 
-      if (!excludeData) {
+      if (
+        !excludeData &&
+        // ignore data if replaced column is derivative types
+        ![
+          UITypes.Button,
+          UITypes.Formula,
+          UITypes.Barcode,
+          UITypes.QrCode,
+          UITypes.Rollup,
+          UITypes.Lookup,
+        ].includes(replacedColumn.uidt)
+      ) {
         const fields: Record<string, string[]> = {};
 
         fields[sourceModel.id] = [sourceModel.primaryKey.id];
@@ -552,7 +644,6 @@ export class DuplicateProcessor {
             fields[md.id].push(...bts);
           }
         }
-
         await this.importModelsData(context, context, {
           idMap,
           sourceProject: base,
@@ -587,6 +678,7 @@ export class DuplicateProcessor {
           },
           user: req.user,
           req,
+          columnWebhookManager,
         });
       }
 
@@ -605,6 +697,8 @@ export class DuplicateProcessor {
         req,
         context,
       });
+
+      await columnWebhookManager.emit();
       return res;
     } catch (e) {
       this.appHooksService.emit(AppEvents.COLUMN_DUPLICATE_FAIL, {
@@ -653,6 +747,8 @@ export class DuplicateProcessor {
       options,
       req,
     } = param;
+
+    // TODO: [duplicate column optimization] - maybe can only get data related with duplicated column id
 
     let handledLinks = [];
 

@@ -59,7 +59,7 @@ defineExpose({
 </script>
 
 <template>
-  <NcButton v-bind="restButtonProps" @click="copyContent">
+  <NcButton v-bind="restButtonProps" @click="copyContent()">
     <div class="flex children:flex-none relative h-4 w-4">
       <Transition name="icon-fade" :duration="200">
         <GeneralIcon v-if="isCopied" icon="check" class="h-4 w-4 opacity-80" />

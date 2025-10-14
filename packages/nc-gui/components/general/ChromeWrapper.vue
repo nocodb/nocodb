@@ -25,3 +25,13 @@ const picked = computed({
 <template>
   <Chrome v-model="picked" />
 </template>
+
+<style lang="scss">
+.vc-chrome-body {
+  @apply bg-nc-bg-default;
+
+  .vc-input__input {
+    @apply rounded-lg border-1 !border-nc-border-gray-extra-light shadow-none;
+  }
+}
+</style>

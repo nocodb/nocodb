@@ -1,14 +1,28 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Inject, Logger } from '@nestjs/common';
 import { Job } from 'bull';
+import { Timer } from 'nocodb-sdk';
 import type { JobData } from '~/interface/Jobs';
-import { JOB_REQUEUE_LIMIT, JOBS_QUEUE, JobVersions } from '~/interface/Jobs';
+import {
+  JOB_REQUEUE_LIMIT,
+  JOBS_QUEUE,
+  JobTypes,
+  JobVersions,
+} from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobsMap } from '~/modules/jobs/jobs-map.service';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobStatus } from '~/interface/Jobs';
 
 const NC_WORKER_CONCURRENCY = process.env.NC_WORKER_CONCURRENCY ?? 10;
+
+const LOCAL_CONCURRENCY_LIMIT = {
+  [JobTypes.AtImport]: 2,
+  [JobTypes.ThumbnailGenerator]: 1,
+  [JobTypes.AttachmentUrlUpload]: 1,
+};
+
+const LOCAL_JOB_COUNT_MAP = new Map<string, number>();
 
 @Processor(JOBS_QUEUE)
 export class JobsProcessor {
@@ -48,11 +62,44 @@ export class JobsProcessor {
       }
     }
 
+    const localRunning = LOCAL_JOB_COUNT_MAP.get(jobName)!;
+
+    if (localRunning && localRunning >= LOCAL_CONCURRENCY_LIMIT[jobName]) {
+      job.data._jobDelay = 0;
+      job.data._jobAttempt = 1;
+
+      await this.requeue(job);
+      return;
+    }
+
+    if (localRunning) {
+      LOCAL_JOB_COUNT_MAP.set(jobName, localRunning + 1);
+    } else {
+      LOCAL_JOB_COUNT_MAP.set(jobName, 1);
+    }
+
+    let warningTime = 1;
+    const longProcessWarning = Timer.start(async (timer) => {
+      this.logger.log(
+        `Job '${job.id}' is taking ${
+          warningTime++ * 10
+        } minutes and stil processing`,
+      );
+      if (warningTime <= 2) {
+        timer.start();
+      }
+    }, 10 * 60 * 1000);
     try {
-      return await processor[fn](job);
+      const result = await processor[fn](job);
+      return result;
     } catch (e) {
       this.logger.error(`Error processing job ${jobName}`, e);
       throw e;
+    } finally {
+      const localRunning = LOCAL_JOB_COUNT_MAP.get(jobName)!;
+
+      LOCAL_JOB_COUNT_MAP.set(jobName, localRunning - 1);
+      longProcessWarning.stop();
     }
   }
 

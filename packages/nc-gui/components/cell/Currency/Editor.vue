@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import { roundUpToPrecision } from 'nocodb-sdk'
 
 interface Props {
   modelValue: number | null | undefined
   placeholder?: string
   hidePrefix?: boolean
+  location?: 'cell' | 'filter'
 }
 
 const props = defineProps<Props>()
@@ -23,12 +25,15 @@ const _vModel = useVModel(props, 'modelValue', emit)
 const lastSaved = ref()
 const cellFocused = ref(false)
 
-const inputType = computed(() => (isExpandedFormOpen.value && !cellFocused.value ? 'text' : 'number'))
+const inputType = computed(() =>
+  isExpandedFormOpen.value && !cellFocused.value && props.location !== 'filter' ? 'text' : 'number',
+)
 
 const currencyMeta = computed(() => {
   return {
     currency_locale: 'en-US',
     currency_code: 'USD',
+    precision: 2,
     ...parseProp(column?.value?.meta),
   }
 })
@@ -38,10 +43,16 @@ const currency = computed(() => {
     if (_vModel.value === null || _vModel.value === undefined || isNaN(_vModel.value)) {
       return _vModel.value
     }
+
+    // Round the value to the specified precision
+    const roundedValue = roundUpToPrecision(Number(_vModel.value), currencyMeta.value.precision ?? 2)
+
     return new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
       style: 'currency',
       currency: currencyMeta.value.currency_code || 'USD',
-    }).format(_vModel.value)
+      minimumFractionDigits: currencyMeta.value.precision ?? 2,
+      maximumFractionDigits: currencyMeta.value.precision ?? 2,
+    }).format(roundedValue)
   } catch (e) {
     return _vModel.value
   }

@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
-import { ViewTypes, isVirtualCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 interface Attachment {
@@ -45,31 +45,32 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { getPossibleAttachmentSrc } = useAttachment()
-
 const { metaColumnById } = useViewColumnsOrThrow(view, meta)
+
+const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
 
 const {
   loadKanbanData,
   loadMoreKanbanData,
-  loadKanbanMeta,
   kanbanMetaData,
   formattedData,
   updateOrSaveRow,
-  updateKanbanMeta,
   addEmptyRow,
   groupingFieldColOptions,
-  updateKanbanStackMeta,
   groupingField,
+  stackMetaObj,
   groupingFieldColumn,
   countByStack,
   deleteStack,
+  updateKanbanMeta,
   shouldScrollToRight,
   deleteRow,
   moveHistory,
   addNewStackId,
   removeRowFromUncategorizedStack,
   uncategorizedStackId,
+  updateStackProperty,
+  updateAllStacksProperty,
 } = useKanbanViewStoreOrThrow()
 
 const { isViewDataLoading } = storeToRefs(useViewsStore())
@@ -92,7 +93,9 @@ provide(IsGridInj, ref(false))
 
 provide(IsKanbanInj, ref(true))
 
-const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+const hasEditPermission = computed(
+  () => isUIAllowed('dataEdit') && (!isSyncedTable.value || !groupingFieldColumn.value?.readonly),
+)
 
 const fields = inject(FieldsInj, ref([]))
 
@@ -117,16 +120,23 @@ const isRequiredGroupingFieldColumn = computed(() => {
   return !!groupingFieldColumn.value?.rqd
 })
 
+const { isRowColouringEnabled } = useViewRowColorRender()
+
 const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
 
 reloadViewDataHook?.on(
   withLoading(async () => {
-    await loadKanbanMeta()
     await loadKanbanData()
   }),
 )
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.DATA_RELOAD) {
+    reloadViewDataHook?.trigger()
+  }
+})
 
 const attachments = (record: any): Attachment[] => {
   if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
@@ -153,8 +163,6 @@ const attachments = (record: any): Attachment[] => {
 const reloadAttachments = ref(false)
 
 reloadViewMetaHook?.on(async () => {
-  await loadKanbanMeta()
-
   reloadAttachments.value = true
 
   nextTick(() => {
@@ -233,31 +241,55 @@ function onMoveCallback(event: { draggedContext: { futureIndex: number } }) {
 async function onMoveStack(event: any, undo = false) {
   if (event.moved) {
     const { oldIndex, newIndex } = event.moved
-    const { fk_grp_col_id, meta: stack_meta } = kanbanMetaData.value
-    groupingFieldColOptions.value[oldIndex].order = newIndex
-    groupingFieldColOptions.value[newIndex].order = oldIndex
-    const stackMetaObj = parseProp(stack_meta) || {}
-    stackMetaObj[fk_grp_col_id as string] = groupingFieldColOptions.value
+
+    // Create a copy of the current stack metadata
+    const stackMeta = [...groupingFieldColOptions.value]
+
+    // Update both stacks in the local copy
+    stackMeta[oldIndex] = { ...stackMeta[oldIndex], order: newIndex }
+    stackMeta[newIndex] = { ...stackMeta[newIndex], order: oldIndex }
+
+    // Prepare the updated stack metadata object
+    const updatedStackMetaObj = {
+      ...stackMetaObj.value,
+      [kanbanMetaData.value.fk_grp_col_id!]: stackMeta,
+    }
+
     await updateKanbanMeta({
-      meta: stackMetaObj,
+      meta: updatedStackMetaObj,
     })
+
     if (!undo) {
       addUndo({
         undo: {
           fn: async (e: any) => {
-            const temp = groupingFieldColOptions.value.splice(e.moved.newIndex, 1)
-            groupingFieldColOptions.value.splice(e.moved.oldIndex, 0, temp[0])
-            await onMoveStack(e, true)
+            const undoStackMeta = [...groupingFieldColOptions.value]
+            undoStackMeta[e.moved.newIndex] = { ...undoStackMeta[e.moved.newIndex], order: e.moved.oldIndex }
+            undoStackMeta[e.moved.oldIndex] = { ...undoStackMeta[e.moved.oldIndex], order: e.moved.newIndex }
+
+            const undoStackMetaObj = {
+              ...stackMetaObj.value,
+              [kanbanMetaData.value.fk_grp_col_id!]: undoStackMeta,
+            }
+
+            await updateKanbanMeta({ meta: undoStackMetaObj })
           },
           args: [{ moved: { oldIndex, newIndex } }],
         },
         redo: {
           fn: async (e: any) => {
-            const temp = groupingFieldColOptions.value.splice(e.moved.oldIndex, 1)
-            groupingFieldColOptions.value.splice(e.moved.newIndex, 0, temp[0])
-            await onMoveStack(e, true)
+            const redoStackMeta = [...groupingFieldColOptions.value]
+            redoStackMeta[e.moved.oldIndex] = { ...redoStackMeta[e.moved.oldIndex], order: e.moved.newIndex }
+            redoStackMeta[e.moved.newIndex] = { ...redoStackMeta[e.moved.newIndex], order: e.moved.oldIndex }
+
+            const redoStackMetaObj = {
+              ...stackMetaObj.value,
+              [kanbanMetaData.value.fk_grp_col_id!]: redoStackMeta,
+            }
+
+            await updateKanbanMeta({ meta: redoStackMetaObj })
           },
-          args: [{ moved: { oldIndex, newIndex } }, true],
+          args: [{ moved: { oldIndex, newIndex } }],
         },
         scope: defineViewScope({ view: view.value }),
       })
@@ -330,38 +362,31 @@ const handleDeleteStackConfirmClick = async () => {
 }
 
 const handleCollapseStack = async (stackIdx: number) => {
-  groupingFieldColOptions.value[stackIdx].collapsed = !groupingFieldColOptions.value[stackIdx].collapsed
-  if (!isPublic.value) {
-    await updateKanbanStackMeta()
-  }
+  const currentCollapsed = groupingFieldColOptions.value[stackIdx].collapsed
+  await updateStackProperty(stackIdx, { collapsed: !currentCollapsed })
+}
+
+const handleCollapseAllStack = async () => {
+  await updateAllStacksProperty((stack) => {
+    if (stack.id !== addNewStackId && !stack.collapsed) {
+      return { collapsed: true }
+    }
+    return null // No update needed
+  })
+}
+
+const handleExpandAllStack = async () => {
+  await updateAllStacksProperty((stack) => {
+    if (stack.id !== addNewStackId && stack.collapsed) {
+      return { collapsed: false }
+    }
+    return null // No update needed
+  })
 }
 
 const handleCellClick = (col, event) => {
   if (isButton(col)) {
     event.stopPropagation()
-  }
-}
-
-const handleCollapseAllStack = async () => {
-  groupingFieldColOptions.value.forEach((stack) => {
-    if (stack.id !== addNewStackId && !stack.collapsed) {
-      stack.collapsed = true
-    }
-  })
-
-  if (!isPublic.value) {
-    await updateKanbanStackMeta()
-  }
-}
-const handleExpandAllStack = async () => {
-  groupingFieldColOptions.value.forEach((stack) => {
-    if (stack.id !== addNewStackId && stack.collapsed) {
-      stack.collapsed = false
-    }
-  })
-
-  if (!isPublic.value) {
-    await updateKanbanStackMeta()
   }
 }
 
@@ -390,43 +415,27 @@ watch(contextMenu, () => {
   }
 })
 
-watch(
-  view,
-  async (nextView) => {
-    if (nextView?.type === ViewTypes.KANBAN) {
-      isViewDataLoading.value = true
+onMounted(async () => {
+  try {
+    isViewDataLoading.value = true
+    await loadKanbanData()
 
-      try {
-        // load kanban meta
-        await loadKanbanMeta()
-
-        isViewDataLoading.value = false
-
-        // load kanban data
-        await loadKanbanData()
-
-        // horizontally scroll to the end of the kanban container
-        // when a new option is added within kanban view
-        nextTick(() => {
-          if (shouldScrollToRight.value && kanbanContainerRef.value) {
-            kanbanContainerRef.value.scrollTo({
-              left: kanbanContainerRef.value.scrollWidth,
-              behavior: 'smooth',
-            })
-            // reset shouldScrollToRight
-            shouldScrollToRight.value = false
-          }
+    nextTick(() => {
+      if (shouldScrollToRight.value && kanbanContainerRef.value) {
+        kanbanContainerRef.value.scrollTo({
+          left: kanbanContainerRef.value.scrollWidth,
+          behavior: 'smooth',
         })
-      } catch (error) {
-        console.error(error)
-        isViewDataLoading.value = false
+        // reset shouldScrollToRight
+        shouldScrollToRight.value = false
       }
-    }
-  },
-  {
-    immediate: true,
-  },
-)
+    })
+    isViewDataLoading.value = false
+  } catch (error) {
+    console.error(error)
+    isViewDataLoading.value = false
+  }
+})
 
 const getRowId = (row: RowType) => {
   const pk = extractPkFromRow(row.row, meta.value!.columns!)
@@ -450,12 +459,10 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
   isRenameOrNewStack.value = null
 
   if (stack && stack?.title && stack?.color && stackIdx !== undefined) {
-    groupingFieldColOptions.value[stackIdx].title = stack.title
-    groupingFieldColOptions.value[stackIdx].color = stack.color
-  }
-
-  if (loadMeta) {
-    await loadKanbanMeta()
+    await updateStackProperty(stackIdx, {
+      title: stack.title,
+      color: stack.color,
+    })
   }
 
   isSavingStack.value = null
@@ -472,6 +479,7 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
 
   return !!(
     eventTarget &&
+    target &&
     target.contains(eventTarget) &&
     closestNotDraggable &&
     (target.contains(closestNotDraggable) || closestNotDraggable === target)
@@ -479,8 +487,10 @@ const draggableCardFilter = (event: Event, target: HTMLElement) => {
   // || isTouchEvent(event) // allow drag and drop for touch devices for now
 }
 
-const handleOpenNewRecordForm = (_stackTitle?: string) => {
+const handleOpenNewRecordForm = (stackTitle?: string) => {
   if (showRecordPlanLimitExceededModal()) return
+
+  selectedStackTitle.value = stackTitle ?? ''
 
   openNewRecordFormHook.trigger()
 }
@@ -496,11 +506,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
   >
     <div
       ref="kanbanContainerRef"
-      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg"
-      :style="{
-        minHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
-        maxHeight: isMobileMode ? 'calc(100%  - 2rem)' : 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 0.4rem)',
-      }"
+      class="nc-kanban-container flex p-3 overflow-y-hidden w-full nc-scrollbar-x-lg min-h-[calc(100%_-_0.4rem)] max-h-[calc(100%_-_0.4rem)]"
     >
       <div v-if="isViewDataLoading" class="flex flex-row min-h-full gap-x-2">
         <a-skeleton-input v-for="index of Array(20)" :key="index" class="!min-w-80 !min-h-full !rounded-xl overflow-hidden" />
@@ -515,6 +521,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
           <!-- Draggable Stack -->
           <Draggable
             v-model="groupingFieldColOptions"
+            v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
             class="flex gap-3"
             item-key="id"
             group="kanban-stack"
@@ -664,22 +671,27 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
 
                           <template #overlay>
                             <NcMenu variant="small">
-                              <NcMenuItem
-                                v-if="hasEditPermission && !isPublic"
-                                v-e="['c:kanban:add-new-record']"
-                                data-testid="nc-kanban-context-menu-add-new-record"
-                                @click="
-                                  () => {
-                                    selectedStackTitle = stack.title
-                                    handleOpenNewRecordForm(stack.title)
-                                  }
-                                "
+                              <PermissionsTooltip
+                                v-if="hasEditPermission && !isPublic && !isSyncedTable"
+                                :entity="PermissionEntity.TABLE"
+                                :entity-id="meta?.id"
+                                :permission="PermissionKey.TABLE_RECORD_ADD"
+                                placement="right"
                               >
-                                <div class="flex gap-2 items-center">
-                                  <component :is="iconMap.plus" class="flex-none w-4 h-4" />
-                                  {{ $t('activity.newRecord') }}
-                                </div>
-                              </NcMenuItem>
+                                <template #default="{ isAllowed }">
+                                  <NcMenuItem
+                                    v-e="['c:kanban:add-new-record']"
+                                    data-testid="nc-kanban-context-menu-add-new-record"
+                                    :disabled="!isAllowed"
+                                    @click="handleOpenNewRecordForm(stack.title)"
+                                  >
+                                    <div class="flex gap-2 items-center">
+                                      <component :is="iconMap.plus" class="flex-none w-4 h-4" />
+                                      {{ $t('activity.newRecord') }}
+                                    </div>
+                                  </NcMenuItem>
+                                </template>
+                              </PermissionsTooltip>
                               <NcMenuItem
                                 v-if="stack.title !== null && hasEditPermission && !isPublic && !isLocked"
                                 v-e="['c:kanban:rename-stack']"
@@ -730,7 +742,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                 <NcDivider />
                                 <NcMenuItem
                                   v-e="['c:kanban:delete-stack']"
-                                  class="!text-red-600 !hover:bg-red-50"
+                                  danger
                                   data-testid="nc-kanban-context-menu-delete-stack"
                                   @click="handleDeleteStackClick(stack.title, stackIdx)"
                                 >
@@ -769,11 +781,13 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                       >
                         <!-- Draggable Record Card -->
                         <Draggable
+                          v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 150 })"
                           :list="formattedData.get(stack.title)"
                           item-key="row.Id"
                           draggable=".nc-kanban-item"
                           group="kanban-card"
                           class="flex flex-col h-full"
+                          :disabled="isMobileMode"
                           :filter="draggableCardFilter"
                           @start="(e) => e.target.classList.add('grabbing')"
                           @end="(e) => e.target.classList.remove('grabbing')"
@@ -784,26 +798,34 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                               <LazySmartsheetRow :row="record">
                                 <a-card
                                   :key="`${getRowId(record)}-${index}`"
-                                  class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer"
-                                  :body-style="{ padding: '16px !important' }"
+                                  class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
+                                  :body-style="{
+                                    padding: '12px !important',
+                                    flex: 1,
+                                    display: 'flex',
+                                  }"
                                   :data-stack="stack.title"
                                   :data-testid="`nc-gallery-card-${record.row.id}`"
                                   :class="{
                                     'not-draggable': !hasEditPermission || isPublic,
                                     '!cursor-default': !hasEditPermission || isPublic,
                                   }"
+                                  :style="{
+                                    ...extractRowBackgroundColorStyle(record).rowBgColor,
+                                    ...extractRowBackgroundColorStyle(record).rowBorderColor,
+                                  }"
                                   @click="expandFormClick($event, record)"
                                   @contextmenu="showContextMenu($event, record)"
                                 >
                                   <!--
-                                     Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
-                                     could reference a non-existent column. This is a workaround to handle such scenarios properly.
-                                 -->
+                                    Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
+                                    could reference a non-existent column. This is a workaround to handle such scenarios properly.
+                                  -->
                                   <template v-if="coverImageColumn?.id" #cover>
                                     <template v-if="!reloadAttachments && attachments(record).length">
                                       <a-carousel
                                         :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
-                                        class="gallery-carousel !border-b-1 !border-gray-200"
+                                        class="gallery-carousel !border-b-1 !border-gray-200 !bg-white"
                                         arrows
                                       >
                                         <template #customPaging>
@@ -838,102 +860,116 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                           </div>
                                         </template>
 
-                                        <template v-for="attachment in attachments(record)">
-                                          <LazyCellAttachmentPreviewImage
-                                            v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
-                                            :key="attachment.path"
+                                        <template v-for="attachment in attachments(record)" :key="attachment.path">
+                                          <LazyCellAttachmentPreviewThumbnail
+                                            :attachment="attachment"
                                             class="h-52"
+                                            image-class="!w-full"
+                                            thumbnail="card_cover"
                                             :object-fit="coverImageObjectFitStyle"
-                                            :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
+                                            @click="expandFormClick($event, record)"
                                           />
                                         </template>
                                       </a-carousel>
                                     </template>
                                     <div
                                       v-else
-                                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center"
+                                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center bg-white"
                                     >
                                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                                     </div>
                                   </template>
-                                  <div class="flex flex-col gap-3 !children:pointer-events-none">
-                                    <h2
-                                      v-if="displayField"
-                                      class="nc-card-display-value-wrapper"
-                                      :class="{
-                                        '!children:pointer-events-auto':
-                                          isButton(displayField) ||
-                                          (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
-                                      }"
-                                    >
-                                      <template
-                                        v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)"
-                                      >
-                                        <LazySmartsheetVirtualCell
-                                          v-if="isVirtualCol(displayField)"
-                                          v-model="record.row[displayField.title]"
-                                          class="!text-brand-500"
-                                          :column="displayField"
-                                          :row="record"
-                                        />
-
-                                        <LazySmartsheetCell
-                                          v-else
-                                          v-model="record.row[displayField.title]"
-                                          class="!text-brand-500"
-                                          :column="displayField"
-                                          :edit-enabled="false"
-                                          :read-only="true"
-                                        />
-                                      </template>
-                                      <template v-else> -</template>
-                                    </h2>
-
+                                  <div class="flex-1 flex content-stretch gap-3 w-full">
                                     <div
-                                      v-for="col in fieldsWithoutDisplay"
-                                      :key="`record-${record.row.id}-${col.id}`"
-                                      class="nc-card-col-wrapper"
+                                      v-if="isRowColouringEnabled"
+                                      class="w-1 flex-none min-h-4 rounded-sm"
+                                      :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
+                                    ></div>
+                                    <div
+                                      class="flex-1 flex flex-col gap-3 !children:pointer-events-none"
                                       :class="{
-                                        '!children:pointer-events-auto':
-                                          isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
+                                        'w-[calc(100%_-_16px)]': isRowColouringEnabled,
+                                        'w-full': !isRowColouringEnabled,
                                       }"
-                                      @click="handleCellClick(col, $event)"
                                     >
-                                      <div class="flex flex-col rounded-lg w-full">
-                                        <div class="flex flex-row w-full justify-start">
-                                          <div class="nc-card-col-header w-full !children:text-gray-500">
-                                            <LazySmartsheetHeaderVirtualCell
-                                              v-if="isVirtualCol(col)"
-                                              :column="col"
-                                              :hide-menu="true"
-                                            />
-
-                                            <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
-                                          </div>
-                                        </div>
-
-                                        <div
-                                          v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)"
-                                          class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                      <h2
+                                        v-if="displayField"
+                                        class="nc-card-display-value-wrapper"
+                                        :class="{
+                                          '!children:pointer-events-auto':
+                                            isButton(displayField) ||
+                                            (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
+                                        }"
+                                      >
+                                        <template
+                                          v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)"
                                         >
                                           <LazySmartsheetVirtualCell
-                                            v-if="isVirtualCol(col)"
-                                            v-model="record.row[col.title]"
-                                            :column="col"
+                                            v-if="isVirtualCol(displayField)"
+                                            v-model="record.row[displayField.title]"
+                                            class="!text-brand-500"
+                                            :column="displayField"
                                             :row="record"
-                                            class="!text-gray-800"
                                           />
 
                                           <LazySmartsheetCell
                                             v-else
-                                            v-model="record.row[col.title]"
-                                            :column="col"
+                                            v-model="record.row[displayField.title]"
+                                            class="!text-brand-500"
+                                            :column="displayField"
                                             :edit-enabled="false"
                                             :read-only="true"
-                                            class="!text-gray-800"
                                           />
+                                        </template>
+                                        <template v-else> -</template>
+                                      </h2>
+
+                                      <div
+                                        v-for="col in fieldsWithoutDisplay"
+                                        :key="`record-${record.row.id}-${col.id}`"
+                                        class="nc-card-col-wrapper"
+                                        :class="{
+                                          '!children:pointer-events-auto':
+                                            isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
+                                        }"
+                                        @click="handleCellClick(col, $event)"
+                                      >
+                                        <div class="flex flex-col rounded-lg w-full">
+                                          <div class="flex flex-row w-full justify-start">
+                                            <div class="nc-card-col-header w-full !children:text-gray-500">
+                                              <LazySmartsheetHeaderVirtualCell
+                                                v-if="isVirtualCol(col)"
+                                                :column="col"
+                                                :hide-menu="true"
+                                              />
+
+                                              <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                            </div>
+                                          </div>
+
+                                          <div
+                                            v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)"
+                                            class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                          >
+                                            <LazySmartsheetVirtualCell
+                                              v-if="isVirtualCol(col)"
+                                              v-model="record.row[col.title]"
+                                              :column="col"
+                                              :row="record"
+                                              class="!text-gray-800"
+                                            />
+
+                                            <LazySmartsheetCell
+                                              v-else
+                                              v-model="record.row[col.title]"
+                                              :column="col"
+                                              :edit-enabled="false"
+                                              :read-only="true"
+                                              class="!text-gray-800"
+                                            />
+                                          </div>
+                                          <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
                                         </div>
-                                        <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
                                       </div>
                                     </div>
                                   </div>
@@ -951,23 +987,28 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                                   {{ $t('title.looksLikeThisStackIsEmpty') }}
                                 </span>
                               </div>
-                              <NcButton
-                                v-if="isUIAllowed('dataInsert')"
-                                size="xs"
-                                type="secondary"
-                                @click="
-                                  () => {
-                                    selectedStackTitle = stack.title
-                                    handleOpenNewRecordForm(stack.title)
-                                  }
-                                "
+                              <PermissionsTooltip
+                                v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+                                :entity="PermissionEntity.TABLE"
+                                :entity-id="meta?.id"
+                                :permission="PermissionKey.TABLE_RECORD_ADD"
+                                placement="right"
                               >
-                                <div class="flex items-center gap-2">
-                                  <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
+                                <template #default="{ isAllowed }">
+                                  <NcButton
+                                    size="xs"
+                                    type="secondary"
+                                    :disabled="!isAllowed"
+                                    @click="handleOpenNewRecordForm(stack.title)"
+                                  >
+                                    <div class="flex items-center gap-2">
+                                      <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
 
-                                  {{ $t('activity.newRecord') }}
-                                </div>
-                              </NcButton>
+                                      {{ $t('activity.newRecord') }}
+                                    </div>
+                                  </NcButton>
+                                </template>
+                              </PermissionsTooltip>
                             </div>
                           </template>
                         </Draggable>
@@ -975,23 +1016,27 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
                     </a-layout-content>
                     <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-gray-100">
                       <div class="flex items-center justify-between">
-                        <NcButton
-                          v-if="isUIAllowed('dataInsert')"
-                          size="xs"
-                          type="secondary"
-                          @click="
-                            () => {
-                              selectedStackTitle = stack.title
-                              handleOpenNewRecordForm(stack.title)
-                            }
-                          "
+                        <PermissionsTooltip
+                          v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+                          :entity="PermissionEntity.TABLE"
+                          :entity-id="meta?.id"
+                          :permission="PermissionKey.TABLE_RECORD_ADD"
                         >
-                          <div class="flex items-center gap-2">
-                            <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
+                          <template #default="{ isAllowed }">
+                            <NcButton
+                              size="xs"
+                              type="secondary"
+                              :disabled="!isAllowed"
+                              @click="handleOpenNewRecordForm(stack.title)"
+                            >
+                              <div class="flex items-center gap-2">
+                                <component :is="iconMap.plus" v-if="!isPublic && !isLocked" class="" />
 
-                            {{ $t('activity.newRecord') }}
-                          </div>
-                        </NcButton>
+                                {{ $t('activity.newRecord') }}
+                              </div>
+                            </NcButton>
+                          </template>
+                        </PermissionsTooltip>
                         <div v-else>&nbsp;</div>
 
                         <!-- Record Count -->
@@ -1183,22 +1228,27 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
               </div>
             </NcMenuItem>
             <NcDivider />
-            <NcMenuItem
+            <PermissionsTooltip
               v-if="contextMenuTarget"
-              v-e="['a:kanban:delete-record']"
-              class="!text-red-600 !hover:bg-red-50"
-              @click="deleteRow(contextMenuTarget)"
+              :entity="PermissionEntity.TABLE"
+              :entity-id="meta?.id"
+              :permission="PermissionKey.TABLE_RECORD_DELETE"
+              placement="right"
             >
-              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
-                <component :is="iconMap.delete" class="flex" />
-                <!-- Delete Record -->
-                {{
-                  $t('general.deleteEntity', {
-                    entity: $t('objects.record').toLowerCase(),
-                  })
-                }}
-              </div>
-            </NcMenuItem>
+              <template #default="{ isAllowed }">
+                <NcMenuItem v-e="['a:kanban:delete-record']" danger :disabled="!isAllowed" @click="deleteRow(contextMenuTarget)">
+                  <div class="flex items-center gap-2 nc-kanban-context-menu-item">
+                    <GeneralIcon icon="delete" class="flex" />
+                    <!-- Delete Record -->
+                    {{
+                      $t('general.deleteEntity', {
+                        entity: $t('objects.record').toLowerCase(),
+                      })
+                    }}
+                  </div>
+                </NcMenuItem>
+              </template>
+            </PermissionsTooltip>
           </NcMenu>
         </template>
       </NcDropdown>
@@ -1214,6 +1264,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
       :meta="meta"
       :load-row="!isPublic"
       :view="view"
+      :allow-null-field-ids="groupingFieldColumn?.id ? [groupingFieldColumn.id] : []"
       @cancel="removeRowFromUncategorizedStack"
     />
   </Suspense>
@@ -1228,6 +1279,7 @@ const handleOpenNewRecordForm = (_stackTitle?: string) => {
       :expand-form="expandForm"
       :row-id="route.query.rowId"
       :view="view"
+      :allow-null-field-ids="groupingFieldColumn?.id ? [groupingFieldColumn.id] : []"
     />
   </Suspense>
 

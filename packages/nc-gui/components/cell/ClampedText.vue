@@ -3,11 +3,15 @@ const props = defineProps<{
   value?: string | number | null
   lines?: number
 }>()
+
+const renderedValue = computed(() => {
+  return Array.isArray(props.value) ? props.value.join(',') : props.value
+})
 </script>
 
 <template>
   <div v-if="!props.lines || props.lines === 1" class="text-ellipsis overflow-hidden">
-    <span :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }">{{ props.value ?? '' }}</span>
+    <span :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }">{{ renderedValue ?? '' }}</span>
   </div>
 
   <div
@@ -21,6 +25,6 @@ const props = defineProps<{
       'word-break': 'break-all',
     }"
   >
-    {{ props.value ?? '' }}
+    {{ renderedValue ?? '' }}
   </div>
 </template>

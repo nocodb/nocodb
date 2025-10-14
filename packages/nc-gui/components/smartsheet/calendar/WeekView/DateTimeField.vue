@@ -18,7 +18,10 @@ const {
   showSideMenu,
   updateFormat,
   timezoneDayjs,
+  isSyncedFromColumn,
 } = useCalendarViewStoreOrThrow()
+
+const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
@@ -333,7 +336,7 @@ const recordsAcrossAllRange = computed<{
       .filter((record) => {
         if (fromCol && toCol) {
           const fromDate = timezoneDayjs.timezonize(record.row[fromCol.title!])
-          const toDate = timezoneDayjs.timezonize(record.row[toCol.title!])
+          const toDate = record.row[toCol.title!] ? timezoneDayjs.timezonize(record.row[toCol.title!]) : fromDate.add(1, 'hour')
 
           if (fromDate.isValid() && toDate.isValid()) {
             const isMultiDay = !fromDate.isSame(toDate, 'day')
@@ -356,7 +359,9 @@ const recordsAcrossAllRange = computed<{
       if (fromCol && toCol) {
         const { startDate, endDate } = calculateNewDates({
           startDate: timezoneDayjs.timezonize(record.row[fromCol.title!]),
-          endDate: timezoneDayjs.timezonize(record.row[toCol.title!]),
+          endDate: record.row[toCol.title!]
+            ? timezoneDayjs.timezonize(record.row[toCol.title!])
+            : timezoneDayjs.timezonize(record.row[fromCol.title!]).add(1, 'hour'),
           scheduleStart,
           scheduleEnd,
         })
@@ -869,7 +874,7 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (resizeInProgress.value) return
+  if (resizeInProgress.value || isSyncedFromColumn.value) return
   let target = event.target as HTMLElement
 
   isDragging.value = false
@@ -911,7 +916,10 @@ const dropEvent = (event: DragEvent) => {
       record,
     }: {
       record: Row
-    } = JSON.parse(data)
+    } = parseProp(data)
+
+    // Not a valid record
+    if (!record?.rowMeta) return
 
     if (record.rowMeta.range?.is_readonly) return
 
@@ -964,7 +972,7 @@ const isOverflowAcrossHourRange = (hour: dayjs.Dayjs) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value) return
+  if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
   const fromCol = calendarRange.value[0].fk_from_col
   if (!fromCol) return
   const newRecord = {
@@ -978,7 +986,7 @@ const addRecord = (date: dayjs.Dayjs) => {
 watch(
   () => recordsAcrossAllRange.value,
   () => {
-    if (dragRecord.value) return
+    if (dragRecord.value || resizeRecord.value) return
     const records = document.querySelectorAll('.draggable-record')
     if (records.length) records.item(0)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     else document.querySelectorAll('.nc-calendar-day-hour').item(9)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -1030,19 +1038,19 @@ watch(
         >
           {{ currTime.format('hh:mm A') }}
         </span>
-        <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-brand-500"></div>
+        <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-nc-border-brand"></div>
       </div>
     </div>
-    <div class="flex sticky h-6 z-4 top-0 pl-16 bg-gray-50 w-full">
+    <div class="flex sticky h-6 z-4 top-0 pl-16 bg-nc-bg-gray-extra-light w-full">
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
         :class="{
-          'text-brand-500': date[0].isSame(timezoneDayjs.dayjsTz(), 'date'),
+          'text-nc-content-brand': date[0].isSame(timezoneDayjs.dayjsTz(), 'date'),
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"
-        class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-gray-500 w-full py-1 border-gray-200 last:border-r-0 border-b-1 border-l-1 border-r-0 bg-gray-50"
+        class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted w-full py-1 border-nc-border-gray-medium last:border-r-0 border-b-1 border-l-1 border-r-0 bg-nc-bg-gray-extra-light"
       >
         {{ timezoneDayjs.dayjsTz(date[0]).format('DD ddd') }}
       </div>
@@ -1053,19 +1061,19 @@ watch(
         'top-32': isExpanded && isRangeEnabled,
         '!top-0': !recordsAcrossAllRange.spanningRecords?.length,
       }"
-      class="absolute bg-white w-16 z-1"
+      class="absolute bg-nc-bg-default w-16 z-1"
     >
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
-        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-right pr-2 font-semibold text-xs text-gray-500 py-1"
+        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-right pr-2 font-semibold text-xs text-nc-content-gray-muted py-1"
       >
         {{ hour.format('hh a') }}
       </div>
     </div>
     <div
       v-if="isRangeEnabled && recordsAcrossAllRange.spanningRecords?.length"
-      class="sticky top-6 bg-white z-4 inset-x-0 w-full"
+      class="sticky top-6 nc-bg-default z-4 inset-x-0 w-full"
     >
       <SmartsheetCalendarDateTimeSpanningContainer
         ref="spanningRecordsContainer"
@@ -1096,13 +1104,13 @@ watch(
           v-for="(hour, hourIndex) in date"
           :key="hourIndex"
           :class="{
-            'border-1 !border-brand-500 !bg-gray-100':
+            'border-1 !border-nc-border-brand !bg-nc-bg-gray-light':
               hour.isSame(selectedTime, 'hour') && (hour.get('day') === 6 || hour.get('day') === 0),
             'selected-hour': hour.isSame(selectedTime, 'hour'),
-            'bg-gray-50 hover:bg-gray-100': hour.get('day') === 0 || hour.get('day') === 6,
-            'hover:bg-gray-50': hour.get('day') !== 0 && hour.get('day') !== 6,
+            'bg-nc-bg-gray-extra-light hover:nc-bg-gray-light': hour.get('day') === 0 || hour.get('day') === 6,
+            'hover:bg-nc-bg-gray-extra-light': hour.get('day') !== 0 && hour.get('day') !== 6,
           }"
-          class="text-center relative transition h-13 text-sm text-gray-500 w-full py-1 border-transparent border-1 border-x-gray-100 border-t-gray-100 border-l-gray-200"
+          class="text-center relative transition h-13 text-sm text-nc-content-gray-muted w-full py-1 border-transparent border-1 border-x-nc-border-gray-light border-t-nc-border-gray-light border-l-nc-border-gray-light"
           data-testid="nc-calendar-week-hour"
           @dblclick="addRecord(hour)"
           @click="
@@ -1116,7 +1124,7 @@ watch(
           <NcDropdown v-if="isOverflowAcrossHourRange(hour).isOverflow" :trigger="['click']">
             <NcButton
               v-e="`['c:calendar:week-view-more']`"
-              class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
+              class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-nc-content-gray-muted"
               size="xxsmall"
               type="secondary"
               @click="viewMore(hour)"
@@ -1128,7 +1136,7 @@ watch(
               </span>
             </NcButton>
             <template #overlay>
-              <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
+              <div class="bg-nc-bg-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
                 <LazySmartsheetCalendarSideRecordCard
                   v-for="record in isOverflowAcrossHourRange(hour).overflowRecords"
                   :key="record?.rowMeta?.id"
@@ -1145,7 +1153,7 @@ watch(
                     <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                   </template>
                   <template v-else>
-                    <span class="text-gray-500"> - </span>
+                    <span class="text-nc-content-gray-muted"> - </span>
                   </template>
                 </LazySmartsheetCalendarSideRecordCard>
               </div>
@@ -1204,7 +1212,7 @@ watch(
                   />
                 </template>
                 <template #time>
-                  <div class="text-xs font-medium text-gray-400">
+                  <div class="text-xs font-medium text-nc-content-gray-disabled">
                     {{ timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
                   </div>
                 </template>

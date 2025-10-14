@@ -59,7 +59,6 @@ const accountUrl = computed(() => {
 
 <template>
   <div class="flex flex-col border-gray-200 gap-y-1">
-    <LazyGeneralMaintenanceAlert />
     <div class="flex items-center justify-between">
       <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
         <div
@@ -69,14 +68,14 @@ const accountUrl = computed(() => {
             'active border-primary shadow-selected': isMenuOpen,
           }"
           data-testid="nc-sidebar-userinfo"
+          :data-email="user?.email"
         >
           <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />
         </div>
         <template #overlay>
-          <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
+          <NcMenu variant="small">
             <div
               class="flex flex-col justify-center py-1 px-3 gap-x-2 text-gray-700 rounded-lg min-h-8 text-small leading-[18px]"
-              data-testid="nc-sidebar-userinfo"
             >
               <div v-if="name?.trim()" class="capitalize text-nc-content-gray font-bold">
                 {{ name }}

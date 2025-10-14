@@ -1,4 +1,5 @@
 import { ViewTypes } from 'nocodb-sdk'
+import type { RowColoringInfo, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { iconMap } from './iconUtils'
 import type { Language } from '~/lib/types'
 import UsersIcon from '~icons/nc-icons/users'
@@ -54,4 +55,45 @@ export const viewLockIcons = {
     icon: LockIcon,
     subtitle: 'msg.info.lockedView',
   },
+}
+
+export const defaultRowColorInfo: RowColoringInfo = {
+  mode: null,
+  conditions: [],
+  fk_column_id: null,
+  color: null,
+  is_set_as_background: null,
+}
+
+export const getDefaultViewMetas = (viewType: ViewTypes) => {
+  switch (viewType) {
+    case ViewTypes.FORM:
+      return {
+        submit_another_form: false,
+        show_blank_form: false,
+        meta: {
+          hide_branding: false,
+          background_color: '#F9F9FA',
+          hide_banner: false,
+        },
+      }
+  }
+  return {}
+}
+
+export const validateViewConfigOverrideEvent = (
+  event: SmartsheetStoreEvents | string,
+  optionToValidate: ViewSettingOverrideOptions,
+  params?: { viewId: string; copiedOptions: ViewSettingOverrideOptions[] },
+) => {
+  if (
+    event !== SmartsheetStoreEvents.COPIED_VIEW_CONFIG ||
+    !optionToValidate ||
+    !ncIsObject(params) ||
+    !ncIsArray(params?.copiedOptions)
+  ) {
+    return false
+  }
+
+  return params.copiedOptions.includes(optionToValidate)
 }

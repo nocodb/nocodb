@@ -1,11 +1,11 @@
-import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
-import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
+import { Catch, Logger, NotFoundException } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
+
 import { ThrottlerException } from '@nestjs/throttler';
 import hash from 'object-hash';
 import {
   NcApiVersion,
   NcErrorType,
-  NcErrorTypeMap,
   NcSDKError,
   NcSDKErrorV2,
   BadRequest as SdkBadRequest,
@@ -33,9 +33,7 @@ import {
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  constructor(
-    @Optional() @InjectSentry() protected readonly sentryClient: SentryService,
-  ) {}
+  constructor() {}
 
   protected logger = new Logger(GlobalExceptionFilter.name);
 
@@ -231,7 +229,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response.status(422).json({ msg: exception.message });
     } else if (exception instanceof NcSDKErrorV2) {
       return response.status(exception.getStatus?.() ?? 422).json({
-        error: NcErrorTypeMap[exception.errorType] ?? exception.errorType,
+        error: exception.errorType,
         message: exception.message,
       });
     } else if (exception instanceof TestConnectionError) {
@@ -240,7 +238,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         .json({ msg: exception.message, sql_code: exception.sql_code });
     } else if (exception instanceof NcBaseErrorv2) {
       return response.status(exception.code).json({
-        error: NcErrorTypeMap[exception.error] ?? exception.error,
+        error: exception.error,
         message: exception.message,
         details: exception.details,
       });
@@ -261,7 +259,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 
   protected captureException(exception: any, _request: any) {
-    this.sentryClient?.instance().captureException(exception);
+    Sentry.captureException(exception);
   }
 
   protected logError(exception: any, _request: any) {

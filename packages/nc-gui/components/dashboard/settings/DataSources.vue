@@ -68,11 +68,22 @@ async function updateIfSourceOrderIsNullOrDuplicate() {
     return (a.order ?? 0) - (b.order ?? 0)
   })
 
+  let initialOrder = 1
+
+  if (!(sources.value[0]!.is_local || sources.value[0]!.is_meta)) {
+    // If default source not found, and only one source, return
+    if (sources.value.length === 1) return
+
+    // If default source not found and more than one source, set initial order to 2
+    // because order 1 is for default source
+    initialOrder = 2
+  }
+
   // update the local state
-  sources.value = sources.value.map((source, i) => {
+  sources.value = sources.value.map((source) => {
     return {
       ...source,
-      order: i + 1,
+      order: initialOrder++,
     }
   })
 
@@ -201,6 +212,10 @@ const moveBase = async (e: any) => {
 watch(
   projectPageTab,
   () => {
+    if (searchQuery.value) {
+      searchQuery.value = ''
+    }
+
     if (projectPageTab.value === 'data-source') {
       loadBases()
     }
@@ -236,10 +251,6 @@ watch(
         break
       case ClientType.SQLITE:
         clientType.value = ClientType.SQLITE
-        vState.value = DataSourcesSubTab.New
-        break
-      case ClientType.MSSQL:
-        clientType.value = ClientType.MSSQL
         vState.value = DataSourcesSubTab.New
         break
       case ClientType.SNOWFLAKE:
@@ -359,7 +370,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
             </NcButton>
           </div>
 
-          <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full h-[calc(100%_-_58px)] max-h-[calc(100%_-_58px)]">
+          <NcTabs v-model:active-key="openedTab" class="nc-source-tab w-full h-[calc(100%_-_58px)] max-h-[calc(100%_-_58px)]">
             <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
               <template #tab>
                 <div class="tab" data-testid="nc-connection-tab">
@@ -408,7 +419,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                 </div>
               </template>
               <div class="p-6 h-full">
-                <LazyDashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
+                <DashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
               </div>
             </a-tab-pane>
           </NcTabs>
@@ -439,7 +450,13 @@ const handleClickRow = (source: SourceType, tab?: string) => {
             </div>
           </div>
           <div class="ds-table-body relative">
-            <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
+            <Draggable
+              v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 56 })"
+              :list="sources"
+              item-key="id"
+              handle=".ds-table-handle"
+              @end="moveBase"
+            >
               <template v-if="'default'.includes(searchQuery.toLowerCase())" #header>
                 <div
                   v-if="sources[0]"
@@ -559,7 +576,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                             </NcMenuItem>
 
                             <NcDivider />
-                            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="openDeleteBase(source)">
+                            <NcMenuItem danger @click.stop="openDeleteBase(source)">
                               <GeneralIcon icon="delete" />
                               {{ $t('general.remove') }}
                             </NcMenuItem>
@@ -592,7 +609,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
             class="flex items-center justify-center absolute left-0 top-0 w-full h-[calc(100%_-_45px)] z-10 pb-10 pointer-events-none"
           >
             <div class="flex flex-col justify-center items-center gap-2">
-              <GeneralLoader size="xlarge" />
+              <a-spin size="large" />
               <span class="text-center">{{ $t('general.loading') }}</span>
             </div>
           </div>

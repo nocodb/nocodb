@@ -13,24 +13,30 @@ import { ApiToken } from '~/models';
 export class OrgTokensService {
   constructor(protected readonly appHooksService: AppHooksService) {}
 
-  async apiTokenList(param: { user: User; query: any }) {
+  async apiTokenList(param: { user: User; query: any; req?: NcRequest }) {
     const fk_user_id = param.user.id;
     let includeUnmappedToken = false;
     if (extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN]) {
       includeUnmappedToken = true;
     }
+    // Check if user logged in via SSO
+    const ssoClientId = param.req?.user
+      ? (param.req.user as any)?.extra?.sso_client_id
+      : undefined;
 
     return new PagedResponseImpl(
       await ApiToken.listWithCreatedBy({
         ...param.query,
         fk_user_id,
         includeUnmappedToken,
+        ssoClientId,
       }),
       {
         ...param.query,
         count: await ApiToken.count({
           includeUnmappedToken,
           fk_user_id,
+          ssoClientId,
         }),
       },
     );
@@ -46,9 +52,13 @@ export class OrgTokensService {
       param.apiToken,
     );
 
+    // Get SSO client ID if user logged in via SSO
+    const ssoClientId = (param.req.user as any)?.extra?.sso_client_id;
+
     const apiToken = await ApiToken.insert({
       ...param.apiToken,
       fk_user_id: param['user'].id,
+      fk_sso_client_id: ssoClientId || null,
     });
 
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_CREATE, {

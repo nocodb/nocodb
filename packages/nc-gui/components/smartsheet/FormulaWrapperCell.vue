@@ -54,23 +54,23 @@ provide(ColumnInj, column)
     }"
   >
     <template v-if="showNull && (ncIsNull(cellValue) || ncIsUndefined(cellValue))">
-      <LazyCellText model-value="NULL" />
+      <CellText model-value="NULL" />
     </template>
-    <LazyCellCheckbox v-else-if="isBoolean(column)" :model-value="cellValue" />
-    <LazyCellCurrency v-else-if="isCurrency(column)" :model-value="cellValue" />
-    <LazyCellDecimal v-else-if="isDecimal(column)" :model-value="cellValue" />
+    <CellCheckbox v-else-if="isBoolean(column)" :model-value="cellValue" />
+    <CellCurrency v-else-if="isCurrency(column)" :model-value="cellValue" />
+    <CellDecimal v-else-if="isDecimal(column)" :model-value="cellValue" />
     <div v-else-if="isPercent(column)" class="flex" :class="{ 'h-[30px] min-h-[30px]': parseProp(column.meta)?.is_progress }">
-      <LazyCellPercentReadonly :model-value="cellValue" />
+      <CellPercentReadonly :model-value="cellValue" />
     </div>
-    <LazyCellRating v-else-if="isRating(column)" :model-value="cellValue" />
-    <LazyCellDateReadonly v-else-if="isDate(column, '')" :model-value="cellValue" />
-    <LazyCellDateTimeReadonly v-else-if="isDateTime(column, '')" :model-value="cellValue" />
-    <LazyCellTime v-else-if="isTime(column, '')" :model-value="cellValue" />
-    <LazyCellEmail v-else-if="isEmail(column)" :model-value="cellValue" />
-    <LazyCellUrl v-else-if="isURL(column)" :model-value="cellValue" />
-    <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" :model-value="cellValue" />
+    <CellRating v-else-if="isRating(column)" :model-value="cellValue" />
+    <CellDateReadonly v-else-if="isDate(column, '')" :model-value="cellValue" />
+    <CellDateTimeReadonly v-else-if="isDateTime(column, '')" :model-value="cellValue" />
+    <CellTime v-else-if="isTime(column, '')" :model-value="cellValue" />
+    <CellEmail v-else-if="isEmail(column)" :model-value="cellValue" />
+    <CellUrl v-else-if="isURL(column)" :model-value="cellValue" />
+    <CellPhoneNumber v-else-if="isPhoneNumber(column)" :model-value="cellValue" />
     <LazyCellTextArea v-else-if="isTextArea(column) && showAsLongText" :model-value="cellValue" />
-    <LazyCellText v-else :model-value="cellValue" />
+    <CellText v-else :model-value="cellValue" />
   </div>
 </template>
 

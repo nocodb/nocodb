@@ -23,10 +23,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const lastPopulatedWorkspaceId = ref<string | null>(null)
 
-  const { setTheme, theme } = useTheme()
-
-  const { $e } = useNuxtApp()
-
   const { appInfo, ncNavigateTo } = useGlobal()
 
   const workspaces = ref<Map<string, any>>(new Map())
@@ -43,6 +39,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
   const workspaceUserCount = ref<number | undefined>(undefined)
+  const workspaceOwnerCount = ref<number | undefined>(undefined)
+
+  const upgradeWsDlg = ref(false)
+  const upgradeWsJobId = ref<string | null>(null)
+
+  const removingCollaboratorMap = ref<Record<string, boolean>>({})
 
   const activePage = computed<'workspace' | 'recent' | 'shared' | 'starred'>(
     () => (route.value.query.page as 'workspace' | 'recent' | 'shared' | 'starred') ?? 'recent',
@@ -175,7 +177,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const moveWorkspace = async (..._args: any) => {}
 
   async function saveTheme(_theme: Partial<ThemeConfig>) {
-    const fullTheme = {
+    // Not Implemented
+    /* const fullTheme = {
       primaryColor: theme.value.primaryColor,
       accentColor: theme.value.accentColor,
       ..._theme,
@@ -190,7 +193,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     setTheme(fullTheme)
 
-    $e('c:themes:change')
+    $e('c:themes:change') */
   }
 
   async function clearWorkspaces() {
@@ -206,7 +209,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    await ncNavigateTo({
+    ncNavigateTo({
       workspaceId,
     })
   }
@@ -291,6 +294,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     lastPopulatedWorkspaceId,
     isWorkspaceSettingsPageOpened,
     workspaceUserCount,
+    workspaceOwnerCount,
     getPlanLimit,
     workspaceRole,
     moveToOrg,
@@ -300,6 +304,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isFeedPageOpened,
     deletingWorkspace,
     isWorkspacesLoading,
+    upgradeWsDlg,
+    upgradeWsJobId,
+    removingCollaboratorMap,
   }
 })
 

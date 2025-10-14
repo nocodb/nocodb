@@ -1,7 +1,6 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import type { SmartsheetStoreEvents } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (
@@ -12,28 +11,35 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
   ) => {
-    const isPublic = inject(IsPublicInj, ref(false))
+    /**
+     * In shared view mode, `isPublic` will still be false because both
+     * `useProvideSmartsheetStore` and `provide(IsPublicInj)` are called at the same
+     * component level, so the inject doesn't see the provided value.
+     */
+    const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
-    const { $api } = useNuxtApp()
+    const { $api, $eventBus } = useNuxtApp()
 
     const router = useRouter()
     const route = router.currentRoute
 
-    const { user } = useGlobal()
+    const { user, isMobileMode } = useGlobal()
+
+    const { isUIAllowed } = useRoles()
 
     const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
 
-    const { sqlUis, base } = storeToRefs(baseStore)
+    const { sqlUis, base, isSharedBase } = storeToRefs(baseStore)
 
     const sqlUi = computed(() =>
       (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
     )
 
-    const { search } = useFieldQuery()
+    const { search, getValidSearchQueryForColumn } = useFieldQuery()
 
-    const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
+    const eventBus = $eventBus.smartsheetStoreEventBus
 
     const isLocked = computed(
       () =>
@@ -49,10 +55,22 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isSharedForm = computed(() => isForm.value && shared)
     const isDefaultView = computed(() => view.value?.is_default)
+    const gridEditEnabled = ref(true)
 
     const isExternalSource = computed(
       () => !!base.value?.sources?.some((s) => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),
     )
+
+    /**
+     * View operations (toolbar, aggregation footer, column reorder, column resize, etc.)
+     */
+    const isViewOperationsAllowed = computed(() => {
+      // Allow view operations in shared base and view
+      if (isPublic.value || isSharedBase.value) return true
+
+      // Allow view operations only for editor and above roles
+      return isUIAllowed('viewOperations')
+    })
 
     const isAlreadyShownUpgradeModal = ref(false)
 
@@ -66,7 +84,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     })
 
     const filtersFromUrlParams = computed(() => {
-      if (route.value.query.where) {
+      if (route.value.query.where && !ncIsEmptyObject(aliasColObjMap.value)) {
         return extractFilterFromXwhere(
           { api_version: NcApiVersion.V1 },
           route.value.query.where as string,
@@ -75,6 +93,14 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         )
       }
     })
+
+    const filtersFromUrlParamsReadableErrors = computed(() => {
+      return filtersFromUrlParams.value?.errors
+        ?.map((e: any) => e?.message)
+        .filter(Boolean)
+        .join(',')
+    })
+
     const validFiltersFromUrlParams = computed(() => {
       return !filtersFromUrlParams.value?.errors?.length ? filtersFromUrlParams.value?.filters || [] : []
     })
@@ -84,7 +110,15 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
         return
       }
 
-      return route.value.query.where
+      return route.value.query.where as string
+    })
+
+    const totalRowsWithSearchQuery = ref(0)
+
+    const totalRowsWithoutSearchQuery = ref(0)
+
+    const fetchTotalRowsWithSearchQuery = computed(() => {
+      return search.value.query?.trim() && !isMobileMode.value && (isGrid.value || isGallery.value)
     })
 
     const xWhere = computed(() => {
@@ -98,25 +132,33 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       const col =
         (meta.value as TableType)?.columns?.find(({ id }) => id === search.value.field) ||
         (meta.value as TableType)?.columns?.find((v) => v.pv)
-      if (!col) return where
 
-      if (!search.value.query.trim()) return where
+      const searchQuery = search.value.query.trim()
 
-      // concat the where clause if query is present
-      if (sqlUi.value && ['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
-        where = `${where ? `${where}~and` : ''}(${col.title},like,%${search.value.query.trim()}%)`
-      } else {
-        where = `${where ? `${where}~and` : ''}(${col.title},eq,${search.value.query.trim()})`
+      if (!col || !searchQuery) {
+        search.value.isValidFieldQuery = true
+
+        return where
       }
 
-      return where
+      const colWhereQuery = getValidSearchQueryForColumn(col, searchQuery, meta.value as TableType, {
+        getWhereQueryAs: 'string',
+      }) as string
+
+      if (!colWhereQuery) {
+        search.value.isValidFieldQuery = false
+        return where
+      }
+
+      search.value.isValidFieldQuery = true
+
+      return `${where ? `${where}~and` : ''}${colWhereQuery}`
     })
 
-    const isActionPaneActive = ref(false)
-
-    const actionPaneSize = ref(40)
-
     const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
+
+    const isSyncedTable = computed(() => !!(meta.value as TableType)?.synced)
+
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
@@ -192,15 +234,21 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       sqlUi,
       allFilters,
       isDefaultView,
-      actionPaneSize,
-      isActionPaneActive,
       viewColumnsMap,
       getViewColumns,
       isExternalSource,
       isAlreadyShownUpgradeModal,
       filtersFromUrlParams,
+      filtersFromUrlParamsReadableErrors,
       whereQueryFromUrl,
       validFiltersFromUrlParams,
+      isSyncedTable,
+      totalRowsWithSearchQuery,
+      totalRowsWithoutSearchQuery,
+      fetchTotalRowsWithSearchQuery,
+      gridEditEnabled,
+      getValidSearchQueryForColumn,
+      isViewOperationsAllowed,
     }
   },
   'smartsheet-store',

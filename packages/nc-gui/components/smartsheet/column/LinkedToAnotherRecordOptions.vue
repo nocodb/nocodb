@@ -2,7 +2,6 @@
 import {
   type LinkToAnotherRecordType,
   ModelTypes,
-  MssqlUi,
   PlanFeatureTypes,
   PlanTitles,
   ProjectRoles,
@@ -32,8 +31,16 @@ const crossBase = ref((vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_
 
 const { basesList } = storeToRefs(useBases())
 
-const { setAdditionalValidations, setPostSaveOrUpdateCbk, validateInfos, onDataTypeChange, sqlUi, isXcdbBase, updateFieldName } =
-  useColumnCreateStoreOrThrow()
+const {
+  setAdditionalValidations,
+  setAvoidShowingToastMsgForValidations,
+  setPostSaveOrUpdateCbk,
+  validateInfos,
+  onDataTypeChange,
+  sqlUi,
+  isXcdbBase,
+  updateFieldName,
+} = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 const { tables } = storeToRefs(baseStore)
@@ -51,10 +58,13 @@ if (!isEdit.value) {
   setAdditionalValidations({
     childId: [{ required: true, message: t('general.required') }],
   })
+
+  setAvoidShowingToastMsgForValidations({
+    childId: true,
+  })
 }
 
-const onUpdateDeleteOptions =
-  sqlUi instanceof MssqlUi ? ['NO ACTION'] : ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
+const onUpdateDeleteOptions = ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT']
 
 if (!isEdit.value) {
   if (!vModel.value.parentId) vModel.value.parentId = meta.value?.id
@@ -270,6 +280,7 @@ const onCustomSwitchToggle = () => {
       ...cusValidators,
       ...(vModel.value.type === RelationTypes.MANY_TO_MANY ? cusJuncTableValidations : {}),
     })
+
     vModel.value.virtual = true
   } else
     setAdditionalValidations({
@@ -278,6 +289,8 @@ const onCustomSwitchToggle = () => {
 }
 
 const onCustomSwitchLabelClick = () => {
+  if (isEdit.value) return
+
   vModel.value.is_custom_link = !vModel.value.is_custom_link
   onCustomSwitchToggle()
 }
@@ -324,6 +337,14 @@ const toggleCrossBase = () => {
 
   crossBase.value = !crossBase.value
   onCrossBaseToggle()
+}
+
+const handleScrollIntoView = () => {
+  filterRef.value?.$el?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+    inline: 'nearest',
+  })
 }
 </script>
 
@@ -482,11 +503,20 @@ const toggleCrossBase = () => {
         ></a-switch>
         <span
           v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
-          class="text-s cursor-pointer"
+          class="cursor-pointer inline-flex items-center gap-1"
           data-testid="nc-limit-record-view"
           @click="onViewLabelClick"
-          >{{ $t('labels.limitRecordSelectionToView') }}</span
         >
+          {{ $t('labels.limitRecordSelectionToView') }}
+
+          <a
+            href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-view"
+            target="_blank"
+            class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
+            @click.stop
+          >
+            <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" /> </a
+        ></span>
       </div>
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
         <NcSelect
@@ -533,24 +563,33 @@ const toggleCrossBase = () => {
               <span
                 v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
                 data-testid="nc-limit-record-filters"
-                class="cursor-pointer"
+                class="cursor-pointer inline-flex items-center gap-1"
                 @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
               >
                 {{ $t('labels.limitRecordSelectionToFilters') }}
+
+                <a
+                  href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-filter-"
+                  target="_blank"
+                  class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
+                  @click.stop
+                >
+                  <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" />
+                </a>
               </span>
               <LazyPaymentUpgradeBadge
                 v-if="!limitRecToCond"
                 :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
                 :content="
                   $t('upgrade.upgradeToAddLimitRecordSelection', {
-                    plan: getPlanTitle(PlanTitles.TEAM),
+                    plan: getPlanTitle(PlanTitles.PLUS),
                   })
                 "
               />
             </div>
           </template>
         </PaymentUpgradeBadgeProvider>
-        <div v-if="limitRecToCond" class="overflow-auto">
+        <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
             v-model="vModel.filters"
@@ -560,6 +599,8 @@ const toggleCrossBase = () => {
             :link="true"
             :root-meta="meta"
             :link-col-id="vModel.id"
+            @add-filter="handleScrollIntoView"
+            @add-filter-group="handleScrollIntoView"
           />
         </div>
       </div>

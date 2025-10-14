@@ -1,4 +1,3 @@
-import { getI18n } from '../../../../../plugins/a.i18n'
 import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTagLabel } from '../utils/canvas'
 
 export const UrlCellRenderer: CellRenderer = {
@@ -62,7 +61,7 @@ export const UrlCellRenderer: CellRenderer = {
       }
     }
   },
-  async handleHover({ column, row, getCellPosition, value, mousePosition, selected }) {
+  async handleHover({ column, row, getCellPosition, value, mousePosition, selected, t }) {
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
@@ -98,7 +97,7 @@ export const UrlCellRenderer: CellRenderer = {
 
       tryShowTooltip({
         rect: box,
-        text: getI18n().global.t('msg.error.invalidURL'),
+        text: t('msg.error.invalidURL'),
         mousePosition,
       })
     }

@@ -53,105 +53,109 @@ export class JsonPgHandler extends JsonGeneralHandler {
       alias ? `${alias}.${column.column_name}` : column.column_name,
     );
     let val = filter.value;
-    return (qb: Knex.QueryBuilder) => {
-      switch (filter.comparison_op) {
-        case 'eq':
-          if (!ncIsStringHasValue(val)) {
-            appendIsNull({ qb, field, knex });
-          } else {
-            const { jsonVal, isValidJson } = this.parseJsonValue(val);
-            if (isValidJson) {
-              qb.where(knex.raw('??::jsonb = ?::jsonb', [field, jsonVal]));
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        switch (filter.comparison_op) {
+          case 'eq':
+            if (!ncIsStringHasValue(val)) {
+              appendIsNull({ qb, field, knex });
             } else {
-              qb.where(knex.raw('??::text = ?', [field, jsonVal]));
-            }
-          }
-          break;
-
-        case 'neq':
-        case 'not':
-          if (!ncIsStringHasValue(val)) {
-            appendIsNotNull({ qb, field, knex });
-          } else {
-            const { jsonVal, isValidJson } = this.parseJsonValue(val);
-            qb.where((nestedQb) => {
+              const { jsonVal, isValidJson } = this.parseJsonValue(val);
               if (isValidJson) {
-                nestedQb.where(
-                  knex.raw('??::jsonb != ?::jsonb', [field, jsonVal]),
-                );
+                qb.where(knex.raw('??::jsonb = ?::jsonb', [field, jsonVal]));
               } else {
-                nestedQb.where(knex.raw('??::text != ?', [field, jsonVal]));
+                qb.where(knex.raw('??::text = ?', [field, jsonVal]));
               }
-              nestedQb.orWhereNull(field);
-            });
-          }
-          break;
+            }
+            break;
 
-        case 'like':
-          if (!ncIsStringHasValue(val)) {
+          case 'neq':
+          case 'not':
+            if (!ncIsStringHasValue(val)) {
+              appendIsNotNull({ qb, field, knex });
+            } else {
+              const { jsonVal, isValidJson } = this.parseJsonValue(val);
+              qb.where((nestedQb) => {
+                if (isValidJson) {
+                  nestedQb.where(
+                    knex.raw('??::jsonb != ?::jsonb', [field, jsonVal]),
+                  );
+                } else {
+                  nestedQb.where(knex.raw('??::text != ?', [field, jsonVal]));
+                }
+                nestedQb.orWhereNull(field);
+              });
+            }
+            break;
+
+          case 'like':
+            if (!ncIsStringHasValue(val)) {
+              appendIsNull({ qb, knex, field });
+            } else {
+              val = `%${val}%`;
+              qb.where(knex.raw('??::text ilike ?', [field, val]));
+            }
+            break;
+
+          case 'nlike':
+            if (!ncIsStringHasValue(val)) {
+              appendIsNotNull({ qb, knex, field });
+            } else {
+              val = `%${val}%`;
+
+              qb.where((nestedQb) => {
+                nestedQb.where(knex.raw('??::text not ilike ?', [field, val]));
+                nestedQb.orWhereNull(field);
+              });
+            }
+            break;
+
+          case 'blank':
             appendIsNull({ qb, knex, field });
-          } else {
-            val = `%${val}%`;
-            qb.where(knex.raw('??::text ilike ?', [field, val]));
-          }
-          break;
+            break;
 
-        case 'nlike':
-          if (!ncIsStringHasValue(val)) {
+          case 'notblank':
             appendIsNotNull({ qb, knex, field });
-          } else {
-            val = `%${val}%`;
+            break;
 
-            qb.where((nestedQb) => {
-              nestedQb.where(knex.raw('??::text not ilike ?', [field, val]));
-              nestedQb.orWhereNull(field);
-            });
-          }
-          break;
-
-        case 'blank':
-          appendIsNull({ qb, knex, field });
-          break;
-
-        case 'notblank':
-          appendIsNotNull({ qb, knex, field });
-          break;
-
-        case 'is':
-          switch (val) {
-            case 'blank':
-            case 'empty': {
-              appendIsNull({ qb, knex, field });
-              break;
+          case 'is':
+            switch (val) {
+              case 'blank':
+              case 'empty': {
+                appendIsNull({ qb, knex, field });
+                break;
+              }
+              case 'notblank':
+              case 'notempty': {
+                appendIsNotNull({ qb, knex, field });
+                break;
+              }
             }
-            case 'notblank':
-            case 'notempty': {
-              appendIsNotNull({ qb, knex, field });
-              break;
-            }
-          }
-          break;
+            break;
 
-        case 'isnot':
-          switch (val) {
-            case 'blank':
-            case 'empty': {
-              appendIsNotNull({ qb, knex, field });
-              break;
+          case 'isnot':
+            switch (val) {
+              case 'blank':
+              case 'empty': {
+                appendIsNotNull({ qb, knex, field });
+                break;
+              }
+              case 'notblank':
+              case 'notempty': {
+                appendIsNull({ qb, knex, field });
+                break;
+              }
             }
-            case 'notblank':
-            case 'notempty': {
-              appendIsNull({ qb, knex, field });
-              break;
-            }
-          }
-          break;
+            break;
 
-        default:
-          throw new Error(
-            `Unsupported comparison operator for JSON: ${filter.comparison_op}`,
-          );
-      }
+          default:
+            throw new Error(
+              `Unsupported comparison operator for JSON: ${filter.comparison_op}`,
+            );
+        }
+      },
     };
   }
 }

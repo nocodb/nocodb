@@ -7,7 +7,7 @@ import { NcContext, NcRequest } from '~/interface/config';
 @UseGuards(PublicApiLimiterGuard)
 @Controller()
 export class PublicMetasController {
-  constructor(private readonly publicMetasService: PublicMetasService) {}
+  constructor(protected readonly publicMetasService: PublicMetasService) {}
 
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/meta',

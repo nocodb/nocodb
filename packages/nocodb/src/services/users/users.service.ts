@@ -100,12 +100,18 @@ export class UsersService {
     params: {
       display_name?: string;
       avatar?: string;
+      is_new_user?: boolean;
       meta?: MetaType;
     };
     req: NcRequest;
   }) {
     const oldUser = await User.get(id);
-    const updateObj = extractProps(params, ['display_name', 'avatar', 'meta']);
+    const updateObj = extractProps(params, [
+      'display_name',
+      'avatar',
+      'is_new_user',
+      'meta',
+    ]);
 
     const user = await User.update(id, updateObj);
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ColumnType, KanbanType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import type { KanbanType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 provide(IsKanbanInj, ref(true))
@@ -20,7 +20,7 @@ const isToolbarIconMode = inject(
 
 const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
-const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
+const { kanbanMetaData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -42,9 +42,6 @@ const updateGroupingField = async (v: string) => {
   await updateKanbanMeta({
     fk_grp_col_id: v,
   })
-  await loadKanbanMeta()
-  await loadKanbanData()
-  ;(activeView.value?.view as KanbanType).fk_grp_col_id = v
 }
 
 const groupingFieldColumnId = computed({
@@ -76,7 +73,6 @@ const updateHideEmptyStack = async (v: boolean) => {
   await updateKanbanMeta({
     meta: payload,
   })
-  await loadKanbanMeta()
   ;(activeView.value?.view as KanbanType).meta = payload
 }
 
@@ -121,11 +117,6 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
 const handleChange = () => {
   open.value = false
 }
-
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
 </script>
 
 <template>
@@ -188,10 +179,11 @@ const getIcon = (c: ColumnType) =>
                 <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
                   <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                      <component
-                        :is="getIcon(metaColumnById[option.value])"
-                        v-if="option.value"
-                        class="!w-3.5 !h-3.5 !text-current opacity-80 !ml-0"
+                      <SmartsheetHeaderIcon
+                        v-if="option.value && metaColumnById[option.value]"
+                        :column="metaColumnById[option.value]"
+                        class="!w-3.5 !h-3.5 opacity-80 !ml-0"
+                        color="text-current"
                       />
 
                       <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>

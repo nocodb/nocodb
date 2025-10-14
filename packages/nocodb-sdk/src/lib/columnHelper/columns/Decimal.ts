@@ -3,6 +3,9 @@ import { parseDecimalValue, precisionFormats, serializeDecimalValue } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { populateFillHandleStringNumber } from '../utils/fill-handler';
+import { ColumnType } from '~/lib/Api';
+import { ncIsNaN } from '~/lib/is';
 
 export class DecimalHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -14,10 +17,10 @@ export class DecimalHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): number | null {
-    value = serializeDecimalValue(value);
+    value = serializeDecimalValue(value, undefined, params);
 
     if (value === null) {
-      if (params.isMultipleCellPaste) {
+      if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
         throw new SilentTypeConversionError();
@@ -42,6 +45,19 @@ export class DecimalHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
+    if (params.isAggregation && ncIsNaN(value)) {
+      value = 0;
+    }
+
     return `${parseDecimalValue(value, params.col) ?? ''}`;
+  }
+
+  // using string number fill handler
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStringNumber(params);
   }
 }

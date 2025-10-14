@@ -1,0 +1,37 @@
+export const defaultBases = [
+  {
+    pRdVnZXPZgA: {
+      title: 'base1',
+      sources: [
+        {
+          upgraderQueries: [],
+          id: 'bmpgnvh49n8i51l',
+          base_id: 'pRdVnZXPZgA',
+          alias: null,
+          meta: null,
+          is_meta: false,
+          type: 'pg',
+          inflection_column: 'camelize',
+          inflection_table: 'camelize',
+          created_at: '2025-04-21 06:57:38+00:00',
+          updated_at: '2025-04-21 06:57:38+00:00',
+          enabled: true,
+          order: 1,
+          description: null,
+          erd_uuid: null,
+          deleted: false,
+          is_schema_readonly: false,
+          is_data_readonly: false,
+          is_local: true,
+          fk_sql_executor_id: null,
+          fk_workspace_id: 'wv4stxso',
+          fk_integration_id: null,
+          is_encrypted: false,
+          integration_title: null,
+        },
+      ],
+    },
+    pRM4cuGWOeM: { title: 'base2' },
+    p6nSSXzed7v: { title: 'base3' },
+  },
+]

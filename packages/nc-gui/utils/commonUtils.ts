@@ -1,4 +1,6 @@
 import type { DefaultOptionType } from 'ant-design-vue/lib/select'
+import type { SortableOptions } from 'sortablejs'
+import type { AutoScrollOptions } from 'sortablejs/plugins'
 
 export const modalSizes = {
   xs: {
@@ -109,15 +111,25 @@ export const isUnicodeEmoji = (emoji: string) => {
  * searchCompare("test", undefined); // true
  * ```
  */
-export const searchCompare = (source?: NestedArray<string | number | undefined>, query?: string): boolean => {
+export const searchCompare = (
+  source?: NestedArray<string | number | undefined>,
+  query?: string,
+  onMatch?: (source: string | number | undefined) => void,
+): boolean => {
   if (ncIsArray(source)) {
-    return source.some((item) => searchCompare(item, query))
+    return source.some((item) => searchCompare(item, query, onMatch))
   }
 
-  return (source || '')
+  const isMatch = (source || '')
     .toString()
     .toLowerCase()
     .includes((query || '').toLowerCase())
+
+  if (isMatch && onMatch) {
+    onMatch(source)
+  }
+
+  return isMatch
 }
 
 /**
@@ -130,8 +142,8 @@ export const searchCompare = (source?: NestedArray<string | number | undefined>,
  */
 export const antSelectFilterOption = (
   inputValue: string,
-  option?: DefaultOptionType,
-  searchKey: keyof DefaultOptionType | (keyof DefaultOptionType)[] = 'key',
+  option?: DefaultOptionType | NcListItemType,
+  searchKey: keyof DefaultOptionType | keyof NcListItemType | (keyof NcListItemType)[] | (keyof DefaultOptionType)[] = 'key',
 ) => {
   if (!option) return false
 
@@ -155,5 +167,65 @@ export const antSelectFilterOption = (
 export const extractNameFromEmail = (email?: string) => {
   if (!email) return ''
 
-  return email?.slice(0, email.indexOf('@'))
+  return email?.slice(0, email.indexOf('@')) ?? ''
+}
+
+/**
+ * Wait for a condition to be truthy
+ * @param conditionFn - Function that returns the condition to check
+ * @param interval - Polling interval in milliseconds (default: 100)
+ * @returns Promise that resolves when condition becomes truthy
+ */
+export function waitForCondition(conditionFn: () => unknown, interval: number = 100): Promise<void> {
+  return new Promise((resolve) => {
+    const check = (): void => {
+      if (conditionFn()) {
+        resolve()
+      } else {
+        setTimeout(check, interval)
+      }
+    }
+    check()
+  })
+}
+
+export const pollUntil = <T>(conditionFn: () => T | null | undefined | false, interval: number = 100): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    const check = () => {
+      try {
+        const result = conditionFn()
+        if (result) {
+          resolve(result)
+        } else {
+          setTimeout(check, interval)
+        }
+      } catch (error) {
+        reject(error)
+      }
+    }
+
+    check()
+  })
+}
+
+export const getDraggableAutoScrollOptions = (
+  params: Partial<AutoScrollOptions & { direction: SortableOptions['direction'] }> = {},
+): Partial<AutoScrollOptions & { direction: SortableOptions['direction'] }> => {
+  return {
+    /**
+     * scroll property is used to enable auto scroll plugin
+     */
+    scroll: true,
+    /**
+     * force the autoscroll fallback to kick in
+     * if this value is false then updated `scrollSensitivity` will not work
+     */
+    forceAutoScrollFallback: true,
+    /**
+     * px, how near the mouse must be to an edge to start scrolling.
+     */
+    scrollSensitivity: 50,
+    direction: 'vertical',
+    ...params,
+  }
 }

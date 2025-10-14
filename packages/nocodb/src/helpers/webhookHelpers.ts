@@ -1,31 +1,31 @@
+import { Logger } from '@nestjs/common';
+import axios from 'axios';
+import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import Handlebars from 'handlebars';
 import handlebarsHelpers from 'handlebars-helpers-v2';
-import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
-import { Logger } from '@nestjs/common';
-import dayjs from 'dayjs';
-import { ColumnHelper, isDateMonthFormat, UITypes } from 'nocodb-sdk';
-import isBetween from 'dayjs/plugin/isBetween';
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
-import NcPluginMgrv2 from './NcPluginMgrv2';
-import type { AxiosResponse } from 'axios';
-import type { HookType } from 'jsep';
+import {
+  ColumnHelper,
+  HookOperationCode,
+  isDateMonthFormat,
+  UITypes,
+} from 'nocodb-sdk';
 import type {
   ColumnType,
   FormColumnType,
-  HookLogType,
+  HookType,
   TableType,
-  UserType,
+  UpdatePayload,
   ViewType,
 } from 'nocodb-sdk';
+import type { AxiosResponse } from 'axios';
 import type { NcContext } from '~/interface/config';
-import type { Column, FormView, Hook, Model, View } from '~/models';
-import { Filter, HookLog, Source } from '~/models';
-import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
-import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
-import { isEE, isOnPrem } from '~/utils';
+import type { Column, FormView, Hook, Model, Source, View } from '~/models';
+import { Filter } from '~/models';
+import { populateUpdatePayloadDiff } from '~/utils';
+import { WebhookInvoker } from '~/utils/webhook-invoker';
 
 handlebarsHelpers({ handlebars: Handlebars });
 
@@ -379,163 +379,22 @@ export async function validateCondition(
   return isValid;
 }
 
-export function constructWebHookData(hook, model, view, prevData, newData) {
-  if (hook.version === 'v2') {
-    // extend in the future - currently only support records
-    const scope = 'records';
+/**
+ * Sanitizes user object to include only safe, non-sensitive information
+ */
+export function sanitizeUserForHook(user: any) {
+  if (!user || !user.id || !user.email) return null;
 
-    return {
-      type: `${scope}.${hook.event}.${hook.operation}`,
-      id: uuidv4(),
-      data: {
-        table_id: model.id,
-        table_name: model.title,
-        // webhook are table specific, so no need to send view_id and view_name
-        // view_id: view?.id,
-        // view_name: view?.title,
-        ...(prevData && {
-          previous_rows: Array.isArray(prevData) ? prevData : [prevData],
-        }),
-        ...(hook.operation !== 'bulkInsert' &&
-          newData && { rows: Array.isArray(newData) ? newData : [newData] }),
-        ...(hook.operation === 'bulkInsert' && {
-          rows_inserted: Array.isArray(newData)
-            ? newData.length
-            : newData
-            ? 1
-            : 0,
-        }),
-      },
-    };
-  }
-
-  // for v1, keep it as it is
-  return newData;
-}
-
-function populateAxiosReq({
-  apiMeta: _apiMeta,
-  hook,
-  model,
-  view,
-  prevData,
-  newData,
-}: {
-  apiMeta: any;
-  user: UserType;
-  hook: HookType | Hook;
-  model: TableType;
-  view?: ViewType;
-  prevData: Record<string, unknown>;
-  newData: Record<string, unknown>;
-}) {
-  if (!_apiMeta) {
-    _apiMeta = {};
-  }
-
-  const contentType = _apiMeta.headers?.find(
-    (header) => header.name?.toLowerCase() === 'content-type' && header.enabled,
-  );
-
-  if (!contentType) {
-    if (!_apiMeta.headers) {
-      _apiMeta.headers = [];
-    }
-
-    _apiMeta.headers.push({
-      name: 'Content-Type',
-      enabled: true,
-      value: 'application/json',
-    });
-  }
-
-  const webhookData = constructWebHookData(
-    hook,
-    model,
-    view,
-    prevData,
-    newData,
-  );
-  // const reqPayload = axiosRequestMake(
-  //   _apiMeta,
-  //   user,
-  //   webhookData,
-  // );
-
-  const apiMeta = { ..._apiMeta };
-  // if it's a string try to parse and apply handlebar
-  // or if object then convert into JSON string and parse it
-  if (apiMeta.body) {
-    try {
-      apiMeta.body = JSON.parse(
-        typeof apiMeta.body === 'string'
-          ? apiMeta.body
-          : JSON.stringify(apiMeta.body),
-        (_key, value) => {
-          return typeof value === 'string'
-            ? parseBody(value, webhookData)
-            : value;
-        },
-      );
-    } catch (e) {
-      // if string parsing failed then directly apply the handlebar
-      apiMeta.body = parseBody(apiMeta.body, webhookData);
-    }
-  }
-  if (apiMeta.auth) {
-    try {
-      apiMeta.auth = JSON.parse(
-        typeof apiMeta.auth === 'string'
-          ? apiMeta.auth
-          : JSON.stringify(apiMeta.auth),
-        (_key, value) => {
-          return typeof value === 'string'
-            ? parseBody(value, webhookData)
-            : value;
-        },
-      );
-    } catch (e) {
-      apiMeta.auth = parseBody(apiMeta.auth, webhookData);
-    }
-  }
-  apiMeta.response = {};
-  const url = parseBody(apiMeta.path, webhookData);
-
-  const reqPayload = {
-    params: apiMeta.parameters
-      ? apiMeta.parameters.reduce((paramsObj, param) => {
-          if (param.name && param.enabled) {
-            paramsObj[param.name] = parseBody(param.value, webhookData);
-          }
-          return paramsObj;
-        }, {})
-      : {},
-    url: url,
-    method: apiMeta.method,
-    data: apiMeta.body,
-    headers: apiMeta.headers
-      ? apiMeta.headers.reduce((headersObj, header) => {
-          if (header.name && header.enabled) {
-            headersObj[header.name] = parseBody(header.value, webhookData);
-          }
-          return headersObj;
-        }, {})
-      : {},
-    withCredentials: true,
-    ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
-      ? {
-          httpAgent: useAgent(url, {
-            stopPortScanningByUrlRedirection: true,
-          }),
-          httpsAgent: useAgent(url, {
-            stopPortScanningByUrlRedirection: true,
-          }),
-        }
-      : {}),
-    timeout: 30 * 1000,
+  return {
+    id: user.id,
+    email: user.email,
+    display_name: user.display_name,
+    // Explicitly exclude sensitive fields like:
+    // - tokens
+    // - password hashes
+    // - api tokens
+    // - personal information not needed in webhooks
   };
-
-  return reqPayload;
 }
 
 function extractReqPayloadForLog(reqPayload, response?: AxiosResponse<any>) {
@@ -575,308 +434,25 @@ export async function handleHttpWebHook({
   };
 }
 
-// flatten filter tree and id dummy id if no id is present
-function flattenFilter(
-  filters: Filter[],
-  flattenedFilters = [],
-  parentId = null,
-) {
-  for (const filter of filters) {
-    // if parent id is present then set it as fk_parent_id
-    if (parentId && !filter.fk_parent_id) {
-      filter.fk_parent_id = parentId;
-    }
-
-    if (filter.is_group) {
-      flattenedFilters.push(filter);
-      // this is to group the filters
-      if (!filter.id) {
-        filter.id = uuidv4();
-      }
-      flattenFilter(filter.children, flattenedFilters, filter.id);
-    } else {
-      flattenedFilters.push(filter);
-    }
-  }
-  return flattenedFilters;
-}
-
 export async function invokeWebhook(
   context: NcContext,
   param: {
     hook: Hook;
     model: Model;
     view: View;
+    hookName: string;
     prevData;
     newData;
     user;
     testFilters?;
     throwErrorOnFailure?: boolean;
     testHook?: boolean;
+    ncSiteUrl?: string;
+    addJob?: (name: string, data: any) => Promise<void>;
   },
 ) {
-  const {
-    hook,
-    model,
-    view,
-    prevData,
-    user,
-    testFilters = null,
-    throwErrorOnFailure = false,
-    testHook = false,
-  } = param;
-
-  let { newData } = param;
-
-  let hookLog: HookLogType;
-  const startTime = process.hrtime();
-  const source = await Source.get(context, model.source_id);
-  let notification, filters;
-  let reqPayload;
-  try {
-    notification =
-      typeof hook.notification === 'string'
-        ? JSON.parse(hook.notification)
-        : hook.notification;
-
-    const isBulkOperation = Array.isArray(newData);
-
-    if (isBulkOperation && notification?.type !== 'URL') {
-      // only URL hook is supported for bulk operations
-      return;
-    }
-
-    if (hook.condition && !testHook) {
-      filters = testFilters || (await hook.getFilters(context));
-
-      if (isBulkOperation) {
-        const filteredData = [];
-        for (let i = 0; i < newData.length; i++) {
-          const data = newData[i];
-
-          // disable until we have a way to extract prevData for bulk operations
-          // const pData = prevData[i] ? prevData[i] : null;
-          //
-          // // if condition is satisfied for prevData then return
-          // // if filters are not defined then skip the check
-          // if (
-          //   pData &&
-          //   filters.length &&
-          //   (await validateCondition(filters, pData))
-          // ) {
-          //   continue;
-          // }
-
-          if (
-            await validateCondition(
-              context,
-              testFilters || (await hook.getFilters(context)),
-              data,
-              { client: source?.type },
-            )
-          ) {
-            filteredData.push(data);
-          }
-        }
-        if (!filteredData.length) {
-          return;
-        }
-        newData = filteredData;
-      } else {
-        // if condition is satisfied for prevData then return
-        // if filters are not defined then skip the check
-        if (
-          prevData &&
-          filters.length &&
-          (await validateCondition(context, filters, prevData, {
-            client: source?.type,
-          }))
-        ) {
-          return;
-        }
-        if (
-          !(await validateCondition(
-            context,
-            testFilters || (await hook.getFilters(context)),
-            newData,
-            { client: source?.type },
-          ))
-        ) {
-          return;
-        }
-      }
-    }
-
-    switch (notification?.type) {
-      case 'Email':
-        {
-          const parsedPayload = {
-            to: parseBody(notification?.payload?.to, newData),
-            subject: parseBody(notification?.payload?.subject, newData),
-            html: parseBody(notification?.payload?.body, newData),
-          };
-          const res = await (
-            await NcPluginMgrv2.emailAdapter(false)
-          )?.mailSend(parsedPayload);
-          if (
-            process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
-            (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
-          ) {
-            hookLog = {
-              ...hook,
-              fk_hook_id: hook.id,
-              type: notification.type,
-              payload: JSON.stringify(parsedPayload),
-              response: JSON.stringify(res),
-              triggered_by: user?.email,
-              conditions: JSON.stringify(filters),
-            };
-          }
-        }
-        break;
-      case 'URL':
-        {
-          reqPayload = populateAxiosReq({
-            apiMeta: notification?.payload,
-            user,
-            hook,
-            model,
-            view,
-            prevData,
-            newData,
-          });
-
-          const { requestPayload, responsePayload } = await handleHttpWebHook({
-            reqPayload,
-          });
-
-          if (
-            process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
-            (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
-          ) {
-            hookLog = {
-              ...hook,
-              fk_hook_id: hook.id,
-              type: notification.type,
-              payload: JSON.stringify(requestPayload),
-              response: JSON.stringify(responsePayload),
-              triggered_by: user?.email,
-              conditions: JSON.stringify(filters),
-            };
-          }
-        }
-        break;
-      default:
-        {
-          const res = await (
-            await NcPluginMgrv2.webhookNotificationAdapters(notification.type)
-          ).sendMessage(
-            parseBody(notification?.payload?.body, newData),
-            JSON.parse(JSON.stringify(notification?.payload), (_key, value) => {
-              return typeof value === 'string'
-                ? parseBody(value, newData)
-                : value;
-            }),
-          );
-
-          if (
-            process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
-            (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
-          ) {
-            hookLog = {
-              ...hook,
-              fk_hook_id: hook.id,
-              type: notification.type,
-              payload: JSON.stringify(notification?.payload),
-              response: JSON.stringify({
-                status: res.status,
-                statusText: res.statusText,
-                headers: res.headers,
-                config: {
-                  url: res.config.url,
-                  method: res.config.method,
-                  data: res.config.data,
-                  headers: res.config.headers,
-                  params: res.config.params,
-                },
-              }),
-              triggered_by: user?.email,
-              conditions: JSON.stringify(filters),
-            };
-          }
-        }
-        break;
-    }
-  } catch (e) {
-    if (e.response) {
-      logger.error({
-        data: e.response.data,
-        status: e.response.status,
-        url: e.response.config?.url,
-        message: e.message,
-      });
-    } else {
-      logger.error(e.message, e.stack);
-    }
-    if (
-      ['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL) ||
-      isEE
-    ) {
-      hookLog = {
-        ...hook,
-        type: notification.type,
-        payload: JSON.stringify(
-          reqPayload
-            ? extractReqPayloadForLog(reqPayload, e.response)
-            : notification?.payload,
-        ),
-        fk_hook_id: hook.id,
-        error_code: e.error_code,
-        error_message: e.message,
-        error: JSON.stringify(e),
-        triggered_by: user?.email,
-        conditions: filters
-          ? JSON.stringify(
-              addDummyRootAndNest(
-                filterBuilder().build(flattenFilter(filters)) as Filter[],
-              ),
-            )
-          : null,
-        response: e.response
-          ? JSON.stringify(extractResPayloadForLog(e.response))
-          : null,
-      };
-    }
-    if (throwErrorOnFailure) {
-      if (e.isAxiosError) {
-        if (
-          e.message.includes('private IP address') ||
-          e.response?.data?.message?.includes('private IP address')
-        ) {
-          throw new Error(
-            `Connection to a private network IP is blocked for security reasons.` +
-              // shoe env var only if it's not EE or it's on-prem
-              (!isEE || isOnPrem
-                ? `If this is intentional, set NC_ALLOW_LOCAL_HOOKS=true to allow local network webhooks.`
-                : ''),
-          );
-        }
-      }
-
-      throw e;
-    }
-  } finally {
-    if (hookLog) {
-      hookLog.execution_time = parseHrtimeToMilliSeconds(
-        process.hrtime(startTime),
-      );
-      HookLog.insert(context, { ...hookLog, test_call: testHook }).catch(
-        (e) => {
-          logger.error(e.message, e.stack);
-        },
-      );
-    }
-  }
+  // backward compatibility
+  return new WebhookInvoker().invoke(context, param);
 }
 
 export function _transformSubmittedFormDataForEmail(
@@ -927,7 +503,6 @@ export function transformDataForMailRendering(
     try {
       serializedValue = ColumnHelper.serializeValue(data[col.title], {
         col,
-        isMssql: () => source.type === 'mssql',
         isMysql: () => source.type.startsWith('mysql'),
         isPg: () => source.type === 'pg',
         isXcdbBase: () => !!source.isMeta(),
@@ -966,7 +541,83 @@ export function transformDataForMailRendering(
   return transformedData;
 }
 
-function parseHrtimeToMilliSeconds(hrtime) {
-  const milliseconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);
-  return milliseconds;
+export function operationArrToCode(value: HookType['operation']) {
+  let result = 0;
+  for (const operation of value) {
+    result += HookOperationCode[operation];
+  }
+  return result.toString();
+}
+export function operationCodeToArr(code: number | string) {
+  const numberCode = typeof code === 'number' ? code : Number(code);
+  const result: HookType['operation'] = [];
+  for (const operation of Object.keys(HookOperationCode)) {
+    const operationCode = HookOperationCode[operation];
+    if ((numberCode & operationCode) === operationCode) {
+      result.push(operation as any);
+    }
+  }
+  return result;
+}
+export function compareOperationCode(param: {
+  code: string | number;
+  operation: string;
+}) {
+  const numberCode =
+    typeof param.code === 'number' ? param.code : Number(param.code);
+  return (
+    (HookOperationCode[param.operation] & numberCode) ===
+    HookOperationCode[param.operation]
+  );
+}
+
+export async function getAffectedColumns(
+  context: NcContext,
+  {
+    hookName,
+    prevData,
+    newData,
+    model,
+  }: {
+    hookName: string;
+    prevData: any;
+    newData: any;
+    model: Model;
+  },
+) {
+  if (hookName !== 'after.update' && hookName !== 'after.bulkUpdate') {
+    return undefined;
+  }
+  let affectedCols = [];
+  if (typeof prevData === 'undefined' || prevData === null) {
+    return undefined;
+  }
+  const compareSingle = (prev, next) => {
+    const updatePayload = populateUpdatePayloadDiff({
+      prev,
+      next,
+      keepUnderModified: true,
+    }) as UpdatePayload;
+    if (updatePayload) {
+      affectedCols = affectedCols.concat(
+        Object.keys(updatePayload.modifications),
+      );
+    }
+  };
+  if (Array.isArray(prevData)) {
+    for (let i = 0; i < prevData.length; i++) {
+      compareSingle(prevData[i], newData[i]);
+    }
+  } else {
+    compareSingle(prevData, newData);
+  }
+  if (affectedCols.length) {
+    affectedCols = [...new Set(affectedCols)];
+    const columns = await model.getColumns(context);
+    return affectedCols.map(
+      (title) => columns.find((col) => col.title === title).id,
+    );
+  } else {
+    return undefined;
+  }
 }

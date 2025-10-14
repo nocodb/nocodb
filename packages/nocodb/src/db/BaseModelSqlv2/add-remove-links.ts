@@ -1,6 +1,7 @@
 import {
   AuditV1OperationTypes,
   isLinksOrLTAR,
+  ncIsNullOrUndefined,
   RelationTypes,
 } from 'nocodb-sdk';
 import type { AuditOperationSubTypes, NcRequest } from 'nocodb-sdk';
@@ -9,13 +10,61 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import {
   _wherePk,
+  dataWrapper,
   extractIds,
   getOppositeRelationType,
   getRelatedLinksColumn,
 } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 
+/**
+ * Transaction Handling Strategy for Link Operations:
+ *
+ * This module handles adding and removing links between records. To prevent transaction
+ * conflicts and ensure reliable broadcasting of link updates, we use a specific pattern:
+ *
+ * 1. Core link operations (insert/delete) run within the main transaction
+ * 2. Broadcasting operations use non-transactional clones to avoid conflicts
+ * 3. This separation ensures that broadcasting doesn't interfere with the main
+ *    transaction's commit/rollback behavior
+ *
+ * The getNonTransactionalClone() method creates a new BaseModelSqlv2 instance
+ * that uses the base database driver instead of any active transaction, allowing
+ * broadcasting operations to run independently.
+ */
+
 export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
+  const validateRefIds = (
+    refIds: (string | number | Record<string, any>)[],
+    refModel: Model,
+  ) => {
+    for (const refId of Array.isArray(refIds) ? refIds : [refIds]) {
+      if (typeof refId === 'object') {
+        for (const primaryKey of refModel.primaryKeys) {
+          if (
+            ncIsNullOrUndefined(
+              dataWrapper(refId).getByColumnNameTitleOrId(primaryKey),
+            )
+          ) {
+            NcError.unprocessableEntity(
+              `Validation failed: Missing primary key column "${
+                primaryKey.title
+              }" in request for model "${
+                refModel.title
+              }". RefId: ${JSON.stringify(refId)}`,
+            );
+          }
+        }
+      } else if (ncIsNullOrUndefined(refId)) {
+        NcError.unprocessableEntity(
+          `Validation failed: Invalid id "${JSON.stringify(
+            refId,
+          )}" for model "${refModel.title}".`,
+        );
+      }
+    }
+  };
+
   const addLinks = async ({
     cookie,
     childIds: _childIds,
@@ -23,7 +72,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     rowId,
   }: {
     cookie: any;
-    childIds: (string | number | Record<string, any>)[];
+    childIds: (string | number)[];
     colId: string;
     rowId: string;
   }) => {
@@ -103,6 +152,11 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         : RelationTypes.HAS_MANY;
       childIds = childIds.slice(0, 1);
 
+      validateRefIds(
+        childIds,
+        relationType === RelationTypes.BELONGS_TO ? parentTable : childTable,
+      );
+
       // unlink
       await baseModel.execAndParse(
         baseModel
@@ -134,6 +188,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
+          validateRefIds(childIds, parentTable);
+
           const vChildCol = await colOptions.getMMChildColumn(mmContext);
           const vParentCol = await colOptions.getMMParentColumn(mmContext);
           const vTable = await colOptions.getMMModel(mmContext);
@@ -177,10 +233,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               childRowsQb.whereIn(
                 `${parentTn}.${parentTable.primaryKey.column_name}`,
                 typeof childIds[0] === 'object'
-                  ? childIds.map(
-                      (c) =>
-                        c[parentTable.primaryKey.title] ??
-                        c[parentTable.primaryKey.column_name],
+                  ? childIds.map((c) =>
+                      dataWrapper(c).getByColumnNameTitleOrId(
+                        parentTable.primaryKey,
+                      ),
                     )
                   : childIds,
               );
@@ -214,10 +270,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               // generate insert data for new links
               .map((childRow) => ({
                 [vParentCol.column_name]:
-                  childRow[parentColumn.title] ??
-                  childRow[parentColumn.column_name],
+                  dataWrapper(childRow).getByColumnNameTitleOrId(parentColumn),
                 [vChildCol.column_name]:
-                  row[childColumn.title] ?? row[childColumn.column_name],
+                  dataWrapper(row).getByColumnNameTitleOrId(childColumn),
               }));
 
             // if no new links, return true
@@ -239,10 +294,22 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             cookie,
           });
 
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel
+              .getNonTransactionalClone()
+              .broadcastLinkUpdates(childIds as string[]);
+          });
+
           await childBaseModel.updateLastModified({
             model: childTable,
             rowIds: [rowId],
             cookie,
+          });
+
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await childBaseModel
+              .getNonTransactionalClone()
+              .broadcastLinkUpdates([rowId]);
           });
 
           auditConfig.parentModel =
@@ -253,6 +320,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         break;
       case RelationTypes.HAS_MANY:
         {
+          validateRefIds(childIds, childTable);
           // validate Ids
           {
             const childRowsQb = baseModel
@@ -269,10 +337,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               childRowsQb.whereIn(
                 parentTable.primaryKey.column_name,
                 typeof childIds[0] === 'object'
-                  ? childIds.map(
-                      (c) =>
-                        c[parentTable.primaryKey.title] ??
-                        c[parentTable.primaryKey.column_name],
+                  ? childIds.map((c) =>
+                      dataWrapper(c).getByColumnNameTitleOrId(
+                        parentTable.primaryKey,
+                      ),
                     )
                   : childIds,
               );
@@ -315,10 +383,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             updateQb.whereIn(
               childTable.primaryKey.column_name,
               typeof childIds[0] === 'object'
-                ? childIds.map(
-                    (c) =>
-                      c[childTable.primaryKey.title] ??
-                      c[childTable.primaryKey.column_name],
+                ? childIds.map((c) =>
+                    dataWrapper(c).getByColumnNameTitleOrId(
+                      childTable.primaryKey,
+                    ),
                   )
                 : childIds,
             );
@@ -330,10 +398,17 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [rowId],
             cookie,
           });
+
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel
+              .getNonTransactionalClone()
+              .broadcastLinkUpdates([rowId]);
+          });
         }
         break;
       case RelationTypes.BELONGS_TO:
         {
+          validateRefIds(childIds, parentTable);
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
           const refBaseModel = parentBaseModel;
@@ -383,6 +458,12 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [rowId],
             cookie,
           });
+
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel
+              .getNonTransactionalClone()
+              .broadcastLinkUpdates([rowId]);
+          });
         }
         break;
     }
@@ -408,38 +489,41 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           rowId: _childId,
           refRowId: rowId,
           refDisplayValue:
-            row[childColumn.title] ?? row[childColumn.column_name],
+            dataWrapper(row).getByColumnNameTitleOrId(childColumn),
           type: getOppositeRelationType(colOptions.type),
         });
       }
     }
 
-    await baseModel.afterAddOrRemoveChild(
-      {
-        opType: AuditV1OperationTypes.DATA_LINK,
-        model: auditConfig.parentModel,
-        refModel: auditConfig.childModel,
-        columnTitle: auditConfig.parentColTitle,
-        columnId: auditConfig.parentColId,
-        refColumnTitle: auditConfig.childColTitle,
-        refColumnId: auditConfig.childColId,
-        req: cookie,
-      },
-      parentAuditObj,
-    );
-    await baseModel.afterAddOrRemoveChild(
-      {
-        opType: AuditV1OperationTypes.DATA_LINK,
-        model: auditConfig.childModel,
-        refModel: auditConfig.parentModel,
-        columnTitle: auditConfig.childColTitle,
-        columnId: auditConfig.childColId,
-        refColumnTitle: auditConfig.parentColTitle,
-        refColumnId: auditConfig.parentColId,
-        req: cookie,
-      },
-      childAuditObj,
-    );
+    baseModel.dbDriver.attachToTransaction(async () => {
+      const baseModelClone = baseModel.getNonTransactionalClone();
+      await baseModelClone.afterAddOrRemoveChild(
+        {
+          opType: AuditV1OperationTypes.DATA_LINK,
+          model: auditConfig.parentModel,
+          refModel: auditConfig.childModel,
+          columnTitle: auditConfig.parentColTitle,
+          columnId: auditConfig.parentColId,
+          refColumnTitle: auditConfig.childColTitle,
+          refColumnId: auditConfig.childColId,
+          req: cookie,
+        },
+        parentAuditObj,
+      );
+      await baseModelClone.afterAddOrRemoveChild(
+        {
+          opType: AuditV1OperationTypes.DATA_LINK,
+          model: auditConfig.childModel,
+          refModel: auditConfig.parentModel,
+          columnTitle: auditConfig.childColTitle,
+          columnId: auditConfig.childColId,
+          refColumnTitle: auditConfig.parentColTitle,
+          refColumnId: auditConfig.parentColId,
+          req: cookie,
+        },
+        childAuditObj,
+      );
+    });
   };
 
   const removeLinks = async ({
@@ -449,7 +533,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     rowId,
   }: {
     cookie: any;
-    childIds: (string | number | Record<string, any>)[];
+    childIds: (string | number)[];
     colId: string;
     rowId: string;
   }) => {
@@ -504,7 +588,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       baseModel.model.id === parentTable.id ? childTable : parentTable,
     );
 
-    const auditUpdateObj = [] as {
+    const _auditUpdateObj = [] as {
       columnTitle: string;
       columnId: string;
       refColumnTitle?: string;
@@ -540,6 +624,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
         {
+          validateRefIds(childIds, parentTable);
           const vChildCol = await colOptions.getMMChildColumn(mmContext);
           const vParentCol = await colOptions.getMMParentColumn(mmContext);
           const vTable = await colOptions.getMMModel(mmContext);
@@ -565,10 +650,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             } else if (typeof childIds[0] === 'object') {
               childRowsQb.whereIn(
                 `${parentTn}.${parentTable.primaryKey.column_name}`,
-                childIds.map(
-                  (c) =>
-                    c[parentTable.primaryKey.title] ||
-                    c[parentTable.primaryKey.column_name],
+                childIds.map((c) =>
+                  dataWrapper(c).getByColumnNameTitleOrId(
+                    parentTable.primaryKey,
+                  ),
                 ),
               );
             } else {
@@ -598,8 +683,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                     (r) =>
                       r[parentColumn.column_name] ===
                       (typeof id === 'object'
-                        ? id[parentTable.primaryKey.title] ??
-                          id[parentTable.primaryKey.column_name]
+                        ? dataWrapper(id).getByColumnNameTitleOrId(
+                            parentTable.primaryKey,
+                          )
                         : id),
                   ),
               );
@@ -624,10 +710,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           delQb.whereIn(
             `${vTable.table_name}.${vParentCol.column_name}`,
             typeof childIds[0] === 'object'
-              ? childIds.map(
-                  (c) =>
-                    c[parentTable.primaryKey.title] ??
-                    c[parentTable.primaryKey.column_name],
+              ? childIds.map((c) =>
+                  dataWrapper(c).getByColumnNameTitleOrId(
+                    parentTable.primaryKey,
+                  ),
                 )
               : childIds,
           );
@@ -638,10 +724,23 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: childIds,
             cookie,
           });
+
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel
+              .getNonTransactionalClone()
+              .broadcastLinkUpdates(childIds as string[]);
+          });
+
           await childBaseModel.updateLastModified({
             model: childTable,
             rowIds: [rowId],
             cookie,
+          });
+
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await childBaseModel
+              .getNonTransactionalClone()
+              .broadcastLinkUpdates([rowId]);
           });
 
           auditConfig.parentModel =
@@ -652,6 +751,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
         break;
       case RelationTypes.HAS_MANY:
         {
+          validateRefIds(childIds, childTable);
           // validate Ids
           {
             const childRowsQb = baseModel
@@ -667,10 +767,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             } else if (typeof childIds[0] === 'object') {
               childRowsQb.whereIn(
                 parentTable.primaryKey.column_name,
-                childIds.map(
-                  (c) =>
-                    c[parentTable.primaryKey.title] ??
-                    c[parentTable.primaryKey.column_name],
+                childIds.map((c) =>
+                  dataWrapper(c).getByColumnNameTitleOrId(
+                    parentTable.primaryKey,
+                  ),
                 ),
               );
             } else {
@@ -692,8 +792,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                     (r) =>
                       r[parentColumn.column_name] ===
                       (typeof id === 'object'
-                        ? id[parentTable.primaryKey.title] ??
-                          id[parentTable.primaryKey.column_name]
+                        ? dataWrapper(id).getByColumnNameTitleOrId(
+                            parentTable.primaryKey,
+                          )
                         : id),
                   ),
               );
@@ -714,10 +815,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             childRowsQb.whereIn(
               parentTable.primaryKey.column_name,
               typeof childIds[0] === 'object'
-                ? childIds.map(
-                    (c) =>
-                      c[parentTable.primaryKey.title] ??
-                      c[parentTable.primaryKey.column_name],
+                ? childIds.map((c) =>
+                    dataWrapper(c).getByColumnNameTitleOrId(
+                      parentTable.primaryKey,
+                    ),
                   )
                 : childIds,
             );
@@ -734,10 +835,17 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [rowId],
             cookie,
           });
+
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel
+              .getNonTransactionalClone()
+              .broadcastLinkUpdates([rowId]);
+          });
         }
         break;
       case RelationTypes.BELONGS_TO:
         {
+          validateRefIds(childIds, parentTable);
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
 
@@ -790,6 +898,12 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [childIds[0]],
             cookie,
           });
+
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await parentBaseModel
+              .getNonTransactionalClone()
+              .broadcastLinkUpdates([childIds[0] as string]);
+          });
         }
         break;
     }
@@ -806,7 +920,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       parentAuditObj.push({
         rowId,
         refRowId: _childId,
-        displayValue: row[column.title] ?? row[column.column_name],
+        displayValue: dataWrapper(row).getByColumnNameTitleOrId(column),
         type: colOptions.type as RelationTypes,
       });
 
@@ -815,39 +929,42 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           rowId: _childId,
           refRowId: rowId,
           refDisplayValue:
-            row[childColumn.title] ?? row[childColumn.column_name],
+            dataWrapper(row).getByColumnNameTitleOrId(childColumn),
           type: getOppositeRelationType(colOptions.type),
         });
       }
     }
 
-    await parentBaseModel.afterAddOrRemoveChild(
-      {
-        opType: AuditV1OperationTypes.DATA_UNLINK,
-        model: auditConfig.parentModel,
-        refModel: auditConfig.childModel,
-        columnTitle: auditConfig.parentColTitle,
-        columnId: auditConfig.parentColId,
-        refColumnTitle: auditConfig.childColTitle,
-        refColumnId: auditConfig.childColId,
-        req: cookie,
-      },
-      parentAuditObj,
-    );
-    await childBaseModel.afterAddOrRemoveChild(
-      {
-        opType: AuditV1OperationTypes.DATA_UNLINK,
-        model: auditConfig.childModel,
-        refModel: auditConfig.parentModel,
-        columnTitle: auditConfig.childColTitle,
-        columnId: auditConfig.childColId,
-        refColumnTitle: auditConfig.parentColTitle,
-        refColumnId: auditConfig.parentColId,
-        req: cookie,
-      },
-      childAuditObj,
-    );
+    baseModel.dbDriver.attachToTransaction(async () => {
+      await parentBaseModel.getNonTransactionalClone().afterAddOrRemoveChild(
+        {
+          opType: AuditV1OperationTypes.DATA_UNLINK,
+          model: auditConfig.parentModel,
+          refModel: auditConfig.childModel,
+          columnTitle: auditConfig.parentColTitle,
+          columnId: auditConfig.parentColId,
+          refColumnTitle: auditConfig.childColTitle,
+          refColumnId: auditConfig.childColId,
+          req: cookie,
+        },
+        parentAuditObj,
+      );
+      await childBaseModel.getNonTransactionalClone().afterAddOrRemoveChild(
+        {
+          opType: AuditV1OperationTypes.DATA_UNLINK,
+          model: auditConfig.childModel,
+          refModel: auditConfig.parentModel,
+          columnTitle: auditConfig.childColTitle,
+          columnId: auditConfig.childColId,
+          refColumnTitle: auditConfig.parentColTitle,
+          refColumnId: auditConfig.parentColId,
+          req: cookie,
+        },
+        childAuditObj,
+      );
+    });
   };
+
   return {
     addLinks,
     removeLinks,

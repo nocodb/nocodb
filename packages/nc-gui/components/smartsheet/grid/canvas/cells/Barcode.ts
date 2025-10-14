@@ -1,6 +1,5 @@
 import { isBoxHovered, renderBarcode } from '../utils/canvas'
 import { validateBarcode } from '../utils/cell'
-import { getI18n } from '../../../../../plugins/a.i18n'
 
 export const BarcodeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -41,7 +40,7 @@ export const BarcodeCellRenderer: CellRenderer = {
 
     return false
   },
-  async handleHover({ column, row, getCellPosition, value, mousePosition }) {
+  async handleHover({ column, row, getCellPosition, value, mousePosition, t }) {
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
     const { tryShowTooltip } = useTooltipStore()
@@ -51,7 +50,7 @@ export const BarcodeCellRenderer: CellRenderer = {
       const box = { x: x + width - 23, y: y + 9, width: 16, height: 16 }
       tryShowTooltip({
         rect: box,
-        text: getI18n().global.t('msg.warning.barcode.renderError'),
+        text: t('msg.warning.barcode.renderError'),
         mousePosition,
       })
     }

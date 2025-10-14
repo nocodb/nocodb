@@ -9,6 +9,9 @@ export * from '~/lib/enums';
 export * from '~/lib/formulaHelpers';
 export * from '~/lib/regex';
 export * from '~/lib/payment';
+export * from '~/lib/permission';
+export * from '~/lib/realtime';
+export * from '~/lib/scripts';
 export {
   default as UITypes,
   UITypesName,
@@ -39,6 +42,7 @@ export {
   isReadOnlyColumn,
   isDateOrDateTimeCol,
   customLinkSupportedTypes,
+  UITypesSearchTerms,
 } from '~/lib/UITypes';
 export { default as CustomAPI, FileType } from '~/lib/CustomAPI';
 export { default as TemplateGenerator } from '~/lib/TemplateGenerator';
@@ -48,6 +52,7 @@ export * from '~/lib/dateTimeHelper';
 export * from '~/lib/form';
 export * from '~/lib/aggregationHelper';
 export * from '~/lib/connectionConfigUtils';
+export * from '~/lib/currencyHelpers';
 export * from '~/lib/filterHelpers';
 export * from '~/lib/errorUtils';
 export * from '~/lib/formBuilder';
@@ -64,3 +69,12 @@ export * from '~/lib/error-handler';
 export * from '~/lib/geoDataUtils';
 export * from '~/lib/stringHelpers';
 export * from '~/lib/filter';
+export * from '~/lib/dashboard';
+export * from '~/lib/arrayHelpers';
+export * from '~/lib/objectHelpers';
+export * from '~/lib/roleHelpers';
+export * from '~/lib/system';
+export * from '~/lib/timer.utils';
+export * from '~/lib/commonUtils';
+export * from '~/lib/CircularRefContext';
+export * from '~/lib/viewUtils';

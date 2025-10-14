@@ -61,7 +61,7 @@ const quickVerify = async ({
   airtableImport?: boolean;
   context: NcContext;
 }) => {
-  await dashboard.treeView.openTable({ title: 'Film' });
+  await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
   // Verify tables
   for (let i = 0; i < tn.length; i++) {
@@ -145,7 +145,7 @@ const quickVerify = async ({
     submitAnotherForm: true,
   });
 
-  await dashboard.treeView.openTable({ title: 'Actor' });
+  await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
 
   if (!airtableImport) {
     // Verify webhooks
@@ -223,7 +223,7 @@ const quickVerify = async ({
     // Verify views
     // todo: Wait for 800ms, issue related to vue router
     await dashboard.rootPage.waitForTimeout(800);
-    await dashboard.treeView.openTable({ title: 'Producer' });
+    await dashboard.treeView.openTable({ title: 'Producer', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.verifyView({ index: 0, title: 'Grid view' });
     await dashboard.viewSidebar.verifyView({ index: 1, title: 'Grid 2' });

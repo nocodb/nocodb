@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, UITypesSearchTerms, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   UITypes,
@@ -14,6 +14,7 @@ import { AiWizardTabsType, type PredictedFieldType, type UiTypesType } from '#im
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
+import { isEeUI } from '#imports'
 
 const props = defineProps<{
   preload?: Partial<ColumnType>
@@ -37,6 +38,7 @@ const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 const {
   formState,
   isWebhookCreateModalOpen,
+  isAiButtonConfigModalOpen,
   generateNewColumnMeta,
   addOrUpdate,
   onAlter,
@@ -50,7 +52,7 @@ const {
   defaultFormState,
 } = useColumnCreateStoreOrThrow()
 
-const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
+const { isAiFeaturesEnabled, isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
 
 const {
   aiMode: aiAutoSuggestMode,
@@ -97,6 +99,8 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
+const { showUpgradeToUseAiPromptField, blockAiPromptField, showUpgradeToUseAiButtonField, blockAiButtonField } = useEeConfig()
+
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const columnLabel = computed(() => props.columnLabel || t('objects.field'))
@@ -119,7 +123,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnly = computed(() => props.readonly)
 
-const { isMysql, isMssql, isDatabricks, isXcdbBase } = useBase()
+const { isMysql, isDatabricks, isXcdbBase } = useBase()
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
@@ -130,6 +134,21 @@ const mounted = ref(false)
 const showDefaultValueInput = ref(false)
 
 const showHoverEffectOnSelectedType = ref(true)
+
+const columnUidt = computed({
+  get: () => formState.value.uidt,
+  set: (value: UITypes) => {
+    if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
+      return
+    }
+
+    if (value === AIButton && showUpgradeToUseAiButtonField()) {
+      return
+    }
+
+    formState.value.uidt = value
+  },
+})
 
 const isVisibleDefaultValueInput = computed({
   get: () => {
@@ -185,8 +204,8 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isFeatureEnabled(FEATURE_FLAG.AI_FEATURES) && !isEdit.value : true
-  const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
+  const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI : true
+  const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
   const showLTAR =
     t.name === UITypes.LinkToAnotherRecord ? isFeatureEnabled(FEATURE_FLAG.LINK_TO_ANOTHER_RECORD) && !isEdit.value : true
@@ -292,6 +311,8 @@ const handleScrollDebounce = useDebounceFn(() => {
 const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSearchList = false) => {
   let preload
 
+  if ((uidt === AIPrompt && blockAiPromptField.value) || (uidt === AIButton && blockAiButtonField.value)) return
+
   if (fromSearchList && !isEdit.value && aiAutoSuggestMode.value) {
     onInit()
   }
@@ -362,6 +383,11 @@ const saveSubmitted = async () => {
   setTimeout(() => {
     advancedOptions.value = false
   }, 500)
+
+  if (isAiButtonConfigModalOpen.value) {
+    isAiButtonConfigModalOpen.value = false
+  }
+
   emit('submit', savedColumn)
 
   if (isForm.value) {
@@ -487,7 +513,7 @@ onMounted(() => {
 })
 
 const handleEscape = (event: KeyboardEvent): void => {
-  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value) return
+  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value || isAiButtonConfigModalOpen.value) return
 
   if (event.key === 'Escape') emit('cancel')
 }
@@ -547,8 +573,20 @@ const submitBtnLabel = computed(() => {
   }
 })
 
+const searchBasisInfoMap = ref<Record<string, string>>({})
+
 const filterOption = (input: string, option: { value: UITypes }) => {
-  return searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)
+  delete searchBasisInfoMap.value[option.value]
+
+  // Step 1: apply default filter
+  if (searchCompare([option.value, ...(UITypesName[option.value] ? [UITypesName[option.value]] : [])], input)) return true
+
+  // Step 2: apply search basis options
+  return searchCompare([...(UITypesSearchTerms[option.value as string] || [])], input, (matchKeyword) => {
+    if (!matchKeyword) return
+
+    searchBasisInfoMap.value[option.value] = `Matched by keyword: ${matchKeyword}`
+  })
 }
 
 const triggerDescriptionEnable = () => {
@@ -558,6 +596,7 @@ const triggerDescriptionEnable = () => {
     enableDescription.value = true
     setTimeout(() => {
       descInputEl.value?.focus()
+      descInputEl.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }, 100)
   }
   nextTick(() => {
@@ -670,6 +709,17 @@ watch(activeAiTab, (newValue) => {
   }
   onSelectedTagClick()
 })
+
+const isLookupOrRollup = computed(() => {
+  return formState.value.uidt === UITypes.Lookup || formState.value.uidt === UITypes.Rollup
+})
+
+const lookupRollupFilterEnabled = computed(() => {
+  return isLookupOrRollup.value && !!parseProp(formState.value?.meta)?.enableConditions
+})
+
+const easterEggCount = ref(0)
+const easterEgg = computed(() => easterEggCount.value >= 2)
 </script>
 
 <template>
@@ -680,9 +730,9 @@ watch(activeAiTab, (newValue) => {
     :class="{
       'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[416px]': !props.embedMode,
-      'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
-      'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
+      '!w-[600px]': isLinksOrLTAR(formState.uidt),
+      '!min-w-[560px]': lookupRollupFilterEnabled,
+      'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
       'h-full': props.fromTableExplorer,
@@ -692,6 +742,7 @@ watch(activeAiTab, (newValue) => {
     @keydown="handleEscape"
     @click.stop
     @scroll="handleScrollDebounce"
+    @dblclick="easterEggCount += 1"
   >
     <a-form
       v-model="formState"
@@ -710,33 +761,14 @@ watch(activeAiTab, (newValue) => {
         >
           <div class="flex items-center gap-3">
             <div class="flex-1 text-base font-bold text-nc-content-gray">{{ $t('general.new') }} {{ $t('objects.field') }}</div>
-            <div
-              :class="{
-                'cursor-wait': aiLoading,
-              }"
-            >
-              <NcButton
-                v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
-                type="text"
-                size="small"
-                class="-my-1.5 !text-nc-content-purple-dark hover:text-nc-content-purple-dark"
-                :class="{
-                  '!pointer-events-none !cursor-not-allowed': aiLoading,
-                  '!bg-nc-bg-purple-dark hover:!bg-gray-100': aiAutoSuggestMode,
-                }"
-                @click.stop="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
-              >
-                <div class="flex items-center justify-center">
-                  <GeneralIcon icon="ncAutoAwesome" />
-                  <span
-                    class="overflow-hidden trasition-all ease duration-200"
-                    :class="{ 'w-[0px] invisible': aiAutoSuggestMode, 'ml-1 w-[78px]': !aiAutoSuggestMode }"
-                  >
-                    Use NocoAI
-                  </span>
-                </div>
-              </NcButton>
-            </div>
+
+            <AiToggleButton
+              v-if="isAiFeaturesEnabled"
+              :ai-mode="aiAutoSuggestMode"
+              :ai-loading="aiLoading"
+              :off-tooltip="`Auto suggest fields for ${meta?.title || 'the current table'}`"
+              @click="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
+            />
           </div>
           <template v-if="aiAutoSuggestMode">
             <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 py-2">
@@ -1094,7 +1126,7 @@ watch(activeAiTab, (newValue) => {
             >
             <a-select
               v-model:open="isColumnTypeOpen"
-              v-model:value="formState.uidt"
+              v-model:value="columnUidt"
               show-search
               class="nc-column-type-input nc-select-shadow !rounded-lg"
               :class="{
@@ -1150,9 +1182,20 @@ watch(activeAiTab, (newValue) => {
                       "
                       class="nc-field-type-icon w-4 h-4 !opacity-90 text-current"
                     />
-                    <div class="flex-1">
+                    <div
+                      :class="{
+                        'flex-1': !searchBasisInfoMap[opt.name],
+                      }"
+                    >
                       {{ UITypesName[opt.name] }}
                     </div>
+
+                    <div v-if="searchBasisInfoMap[opt.name]" class="flex-1 flex">
+                      <NcTooltip :title="searchBasisInfoMap[opt.name]" class="flex cursor-help">
+                        <GeneralIcon icon="info" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
+                      </NcTooltip>
+                    </div>
+
                     <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                     <span
                       v-if="opt.isNew || (isAiButtonSelectOption(opt.name) && !isColumnTypeOpen)"
@@ -1273,8 +1316,7 @@ watch(activeAiTab, (newValue) => {
         <template v-if="!readOnly && isFullUpdateAllowed">
           <div class="nc-column-options-wrapper flex flex-col gap-4">
             <!--
-            Default Value for JSON & LongText is not supported in MySQL
-            Default Value is Disabled for MSSQL -->
+            Default Value for JSON & LongText is not supported in MySQL  -->
             <LazySmartsheetColumnRichLongTextDefaultValue
               v-if="isTextArea(formState) && formState.meta?.richMode"
               v-model:value="formState"
@@ -1284,7 +1326,6 @@ watch(activeAiTab, (newValue) => {
               v-else-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
-          !isMssql(meta!.source_id) &&
           !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
           !(isDatabricks(meta!.source_id) && formState.unique) &&
           !isAI(formState)
@@ -1302,31 +1343,33 @@ watch(activeAiTab, (newValue) => {
               </NcSwitch>
             </div>
           </div>
-
-          <div
-            v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
-            class="text-xs text-gray-400 flex items-center justify-end"
-          >
+          <template v-if="easterEgg || (appInfo.ee && isAttachment(formState))">
+            <!-- TODO: Refactor the if condition and verify AttachmentOption -->
             <div
-              class="nc-more-options flex items-center gap-1 cursor-pointer select-none"
-              @click="advancedOptions = !advancedOptions"
+              v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
+              class="text-xs text-gray-400 flex items-center justify-end"
             >
-              {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
-              <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+              <div
+                class="nc-more-options flex items-center gap-1 cursor-pointer select-none"
+                @click="advancedOptions = !advancedOptions"
+              >
+                {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+                <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
+              </div>
             </div>
-          </div>
 
-          <Transition name="layout" mode="out-in">
-            <div v-if="advancedOptions" class="overflow-hidden">
-              <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
+            <Transition name="layout" mode="out-in">
+              <div v-if="advancedOptions" class="overflow-hidden">
+                <LazySmartsheetColumnAttachmentOptions v-if="appInfo.ee && isAttachment(formState)" v-model:value="formState" />
 
-              <LazySmartsheetColumnAdvancedOptions
-                v-if="formState.uidt !== UITypes.Attachment"
-                v-model:value="formState"
-                :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
-              />
-            </div>
-          </Transition>
+                <LazySmartsheetColumnAdvancedOptions
+                  v-if="formState.uidt !== UITypes.Attachment"
+                  v-model:value="formState"
+                  :advanced-db-options="advancedOptions || formState.uidt === UITypes.SpecificDBType"
+                />
+              </div>
+            </Transition>
+          </template>
         </template>
 
         <a-form-item
@@ -1360,7 +1403,7 @@ watch(activeAiTab, (newValue) => {
           />
         </a-form-item>
 
-        <template v-if="props.fromTableExplorer">
+        <template v-if="props.fromTableExplorer || aiAutoSuggestMode">
           <a-form-item
             v-if="!enableDescription"
             :class="{

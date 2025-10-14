@@ -25,11 +25,16 @@ const webhooksStore = useWebhooksStore()
 const { hooks } = toRefs(webhooksStore)
 
 const manualHooks = computed(() => {
-  return hooks.value.filter((hook) => hook.event === 'manual' && hook.active)
+  return hooks.value.filter((hook) =>
+    hook.version === 'v3' ? hook.operation?.includes('trigger') : hook.event === 'manual' && hook.active,
+  )
 })
 
 const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
+  {
+    text: [`${t('general.manual')} ${t('general.trigger')}`, `${t('general.manual')} ${t('general.trigger')}`],
+    value: ['manual', 'trigger'],
+  },
 ])
 
 const { isWebhookCreateModalOpen } = useColumnCreateStoreOrThrow()
@@ -59,7 +64,6 @@ const editWebhook = () => {
 }
 
 const onSelectWebhook = (hook: HookType) => {
-  console.log(vModel.value)
   vModel.value.fk_webhook_id = hook.id
   selectedWebhook.value = hook
   isWebHookSelectionDropdownOpen.value = false
@@ -81,7 +85,7 @@ watch(isWebhookModal, (newVal) => {
       {{ $t('labels.webhook') }}
       <a
         class="font-medium"
-        href="https://docs.nocodb.com/fields/field-types/custom-types/button#create-a-button-field"
+        href="https://nocodb.com/docs/product-docs/fields/field-types/custom-types/button#create-a-button-field"
         target="_blank"
       >
         Docs

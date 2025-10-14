@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import {
   AppEvents,
+  EventType,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -12,9 +13,9 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import { NcApiVersion } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnType,
   NormalColumnRequestType,
@@ -25,6 +26,8 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { repopulateCreateTableSystemColumns } from '~/helpers/tableHelpers';
+import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -36,11 +39,8 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
-import {
-  getUniqueColumnAliasName,
-  getUniqueColumnName,
-} from '~/helpers/getUniqueName';
 import { MetaTable } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class TablesService {
@@ -71,7 +71,7 @@ export class TablesService {
     const source = base.sources.find((b) => b.id === model.source_id);
 
     if (model.base_id !== base.id) {
-      NcError.badRequest('Model does not belong to base');
+      NcError.get(context).invalidRequestBody('Model does not belong to base');
     }
 
     // if meta/description present update and return
@@ -86,16 +86,31 @@ export class TablesService {
         context,
       });
 
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'table_update',
+            payload: {
+              ...model,
+              ...param.table,
+            },
+          },
+        },
+        context.socket_id,
+      );
+
       return true;
     }
 
     // allow user to only update meta json data when source is restricted changes to schema
     if (source?.is_schema_readonly) {
-      NcError.sourceMetaReadOnly(source.alias);
+      NcError.get(context).sourceMetaReadOnly(source.alias);
     }
 
     if (!param.table.table_name) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         'Missing table name `table_name` property in request body',
       );
     }
@@ -116,14 +131,14 @@ export class TablesService {
 
     // validate table name
     if (/^\s+|\s+$/.test(param.table.table_name)) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         'Leading or trailing whitespace not allowed in table names',
       );
     }
     const specialCharRegex = /[./\\]/g;
     if (specialCharRegex.test(param.table.table_name)) {
       const match = param.table.table_name.match(specialCharRegex);
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         'Following characters are not allowed ' +
           match.map((m) => JSON.stringify(m)).join(', '),
       );
@@ -144,7 +159,12 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.badRequest('Duplicate table name');
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: param.table.table_name,
+        base: context.base_id,
+        label: 'name',
+      });
     }
 
     if (!param.table.title) {
@@ -162,7 +182,11 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.badRequest('Duplicate table alias');
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: param.table.title,
+        base: context.base_id,
+      });
     }
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
@@ -174,12 +198,10 @@ export class TablesService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
-    } else if (sqlClientType === 'mssql') {
-      tableNameLengthLimit = 128;
     }
 
     if (param.table.table_name.length > tableNameLengthLimit) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Table name exceeds ${tableNameLengthLimit} characters`,
       );
     }
@@ -198,12 +220,26 @@ export class TablesService {
       param.table.table_name,
     );
 
+    const result = await Model.get(context, param.tableId);
+
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
       table: param.table,
       prevTable: model,
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_update',
+          payload: result,
+        },
+      },
+      context.socket_id,
+    );
 
     return true;
   }
@@ -226,6 +262,21 @@ export class TablesService {
       context,
     } as any);
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_update',
+          payload: {
+            ...model,
+            order: param.order,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     return res;
   }
 
@@ -242,7 +293,9 @@ export class TablesService {
     const table = await Model.getByIdOrName(context, { id: param.tableId });
 
     if (table?.synced && !param.forceDeleteSyncs) {
-      NcError.badRequest('Synced tables cannot be deleted');
+      NcError.get(context).invalidRequestBody(
+        'Synced tables cannot be deleted',
+      );
     }
 
     await table.getColumns(context);
@@ -280,7 +333,7 @@ export class TablesService {
         }),
       );
 
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
       );
     } else {
@@ -323,12 +376,18 @@ export class TablesService {
             .then((t) => t?.title),
         ),
       );
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
           ', ',
         )}. Delete LinkToAnotherRecord columns and try again.`,
       );
     }
+
+    // TODO: replace this with the one that's generated by table webhook manager
+    // currently this one is to prevent webhook to trigger when delete table
+    const columnWebhookManager = (
+      await new ColumnWebhookManagerBuilder(context).withModelId(table.id)
+    ).forDelete();
 
     // start a transaction
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
@@ -353,6 +412,7 @@ export class TablesService {
             columnId: c.id,
             user: param.user,
             forceDeleteSystem: true,
+            columnWebhookManager,
           },
           ncMeta,
         );
@@ -374,6 +434,14 @@ export class TablesService {
         });
       }
 
+      result = await table.delete(context, ncMeta);
+      await ncMeta.commit();
+    } catch (e) {
+      await ncMeta.rollback();
+      throw e;
+    }
+
+    if (result) {
       this.appHooksService.emit(AppEvents.TABLE_DELETE, {
         table,
         user: param.user,
@@ -381,12 +449,19 @@ export class TablesService {
         context,
       });
 
-      result = await table.delete(context, ncMeta);
-      await ncMeta.commit();
-    } catch (e) {
-      await ncMeta.rollback();
-      throw e;
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'table_delete',
+            payload: table,
+          },
+        },
+        context.socket_id,
+      );
     }
+
     return result;
   }
 
@@ -539,8 +614,12 @@ export class TablesService {
     if (!param.table.title && param.table.table_name) {
       param.table.title = param.table.table_name;
     }
-
-    validatePayload('swagger.json#/components/schemas/TableReq', param.table);
+    validatePayload(
+      'swagger.json#/components/schemas/TableReq',
+      param.table,
+      false,
+      context,
+    );
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
       columns: (ColumnType & { cn?: string })[];
@@ -557,131 +636,15 @@ export class TablesService {
     }
 
     // add CreatedTime and LastModifiedTime system columns if missing in request payload
-    {
-      for (const uidt of [
-        ...(param.apiVersion === NcApiVersion.V3 ? [UITypes.ID] : []),
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-        UITypes.CreatedBy,
-        UITypes.LastModifiedBy,
-        UITypes.Order,
-      ]) {
-        const col = tableCreatePayLoad.columns.find(
-          (c) => c.uidt === uidt,
-        ) as ColumnType;
+    tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
+      columns: tableCreatePayLoad.columns,
+    });
 
-        let columnName, columnTitle;
-
-        switch (uidt) {
-          case UITypes.CreatedTime:
-            columnName = 'created_at';
-            columnTitle = 'CreatedAt';
-            break;
-          case UITypes.LastModifiedTime:
-            columnName = 'updated_at';
-            columnTitle = 'UpdatedAt';
-            break;
-          case UITypes.CreatedBy:
-            columnName = 'created_by';
-            columnTitle = 'nc_created_by';
-            break;
-          case UITypes.LastModifiedBy:
-            columnName = 'updated_by';
-            columnTitle = 'nc_updated_by';
-            break;
-          case UITypes.Order:
-            columnTitle = 'nc_order';
-            columnName = 'nc_order';
-            break;
-          case UITypes.ID:
-            columnTitle = 'Id';
-            columnName = 'id';
-            break;
-        }
-
-        const colName = getUniqueColumnName(
-          tableCreatePayLoad.columns as any[],
-          columnName,
-        );
-
-        const colAlias = getUniqueColumnAliasName(
-          tableCreatePayLoad.columns as any[],
-          columnTitle,
-        );
-
-        if (!col || (!col.system && col.uidt !== UITypes.ID)) {
-          tableCreatePayLoad.columns.push({
-            ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
-            column_name: colName,
-            cn: colName,
-            title: colAlias,
-            system: uidt !== UITypes.ID,
-          });
-        } else {
-          // temporary fix for updating if user passed system columns with duplicate names
-          if (
-            tableCreatePayLoad.columns.some(
-              (c: ColumnType) =>
-                c.uidt !== uidt && c.column_name === col.column_name,
-            )
-          ) {
-            Object.assign(col, {
-              column_name: colName,
-              cn: colName,
-            });
-          }
-          if (
-            tableCreatePayLoad.columns.some(
-              (c: ColumnType) => c.uidt !== uidt && c.title === col.title,
-            )
-          ) {
-            Object.assign(col, {
-              title: colAlias,
-            });
-          }
-        }
-      }
-    }
-
-    {
-      // set order of system columns in columns list
-      const orderOfSystemColumns = [
-        UITypes.ID,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-        UITypes.CreatedBy,
-        UITypes.LastModifiedBy,
-        UITypes.Order,
-      ];
-
-      tableCreatePayLoad.columns = tableCreatePayLoad.columns.sort((a, b) => {
-        const aIndex =
-          a.system || a.uidt === UITypes.ID
-            ? orderOfSystemColumns.indexOf(a.uidt as UITypes)
-            : -1;
-        const bIndex =
-          b.system || b.uidt === UITypes.ID
-            ? orderOfSystemColumns.indexOf(b.uidt as UITypes)
-            : -1;
-
-        if (aIndex === -1 && bIndex === -1) {
-          return 0;
-        }
-
-        if (aIndex === -1) {
-          return 1;
-        }
-
-        if (bIndex === -1) {
-          return -1;
-        }
-
-        return aIndex - bIndex;
-      });
-    }
-
+    //#region validating table title and table name
     if (!tableCreatePayLoad.title) {
-      NcError.badRequest('Missing table `title` property in request body');
+      NcError.get(context).invalidRequestBody(
+        'Missing table `title` property in request body',
+      );
     }
 
     if (!tableCreatePayLoad.table_name) {
@@ -695,7 +658,11 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.badRequest('Duplicate table alias');
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: tableCreatePayLoad.title,
+        base: context.base_id,
+      });
     }
 
     if (source.type === 'databricks') {
@@ -713,25 +680,26 @@ export class TablesService {
     tableCreatePayLoad.table_name = DOMPurify.sanitize(
       tableCreatePayLoad.table_name,
     );
-
     // validate table name
     if (/^\s+|\s+$/.test(tableCreatePayLoad.table_name)) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         'Leading or trailing whitespace not allowed in table names',
       );
     }
     const specialCharRegex = /[./\\]/g;
-    if (specialCharRegex.test(param.table.table_name)) {
-      const match = param.table.table_name.match(specialCharRegex);
-      NcError.badRequest(
+    if (specialCharRegex.test(param.table.table_name ?? param.table.title)) {
+      const match = (param.table.title ?? param.table.table_name).match(
+        specialCharRegex,
+      );
+      NcError.get(context).invalidRequestBody(
         'Following characters are not allowed ' +
           match.map((m) => JSON.stringify(m)).join(', '),
       );
     }
 
     const replaceCharRegex = /[$?]/g;
-    if (replaceCharRegex.test(param.table.table_name)) {
-      tableCreatePayLoad.table_name = param.table.table_name.replace(
+    if (replaceCharRegex.test(tableCreatePayLoad.table_name)) {
+      tableCreatePayLoad.table_name = tableCreatePayLoad.table_name.replace(
         replaceCharRegex,
         '_',
       );
@@ -744,7 +712,12 @@ export class TablesService {
         source_id: source.id,
       }))
     ) {
-      NcError.badRequest('Duplicate table name');
+      NcError.get(context).duplicateAlias({
+        type: 'table',
+        alias: tableCreatePayLoad.table_name,
+        base: context.base_id,
+        label: 'name',
+      });
     }
 
     if (!tableCreatePayLoad.title) {
@@ -765,25 +738,24 @@ export class TablesService {
       tableNameLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       tableNameLengthLimit = 63;
-    } else if (sqlClientType === 'mssql') {
-      tableNameLengthLimit = 128;
     }
 
     if (tableCreatePayLoad.table_name.length > tableNameLengthLimit) {
-      NcError.badRequest(
+      NcError.get(context).invalidRequestBody(
         `Table name exceeds ${tableNameLengthLimit} characters`,
       );
     }
+    //#endregion validating table title and table name
 
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
     const uniqueColumnNameCount = {};
 
-    mapDefaultDisplayValue(param.table.columns);
+    mapDefaultDisplayValue(tableCreatePayLoad.columns);
 
     const virtualColumns = [];
 
-    for (const column of param.table.columns) {
+    for (const column of tableCreatePayLoad.columns) {
       if (
         !isVirtualCol(column) ||
         (isCreatedOrLastModifiedTimeCol(column) && (column as any).system) ||
@@ -816,14 +788,14 @@ export class TablesService {
       }
 
       if (column.title && column.title.length > 255) {
-        NcError.badRequest(
+        NcError.get(context).invalidRequestBody(
           `Column title ${column.title} exceeds 255 characters`,
         );
       }
     }
 
     tableCreatePayLoad.columns = await Promise.all(
-      param.table.columns
+      tableCreatePayLoad.columns
         // exclude alias columns from column list
         ?.filter((c) => {
           const allowed =
@@ -866,7 +838,7 @@ export class TablesService {
       )?.data?.list;
     }
 
-    const tables = await Model.list(context, {
+    const _tables = await Model.list(context, {
       base_id: base.id,
       source_id: source.id,
     });
@@ -895,7 +867,6 @@ export class TablesService {
           order: tableCreatePayLoad.columns.length + i + 1,
         })),
       ],
-      order: +(tables?.pop()?.order ?? 0) + 1,
     } as any);
 
     try {
@@ -944,6 +915,18 @@ export class TablesService {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_create',
+          payload: result,
+        },
+      },
+      context.socket_id,
+    );
 
     return result;
   }

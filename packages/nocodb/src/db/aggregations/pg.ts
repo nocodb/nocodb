@@ -23,7 +23,7 @@ export function genPgAggregateQuery({
   alias,
 }: {
   column: Column;
-  column_query: string;
+  column_query: string | Knex.QueryBuilder;
   baseModelSqlv2: BaseModelSqlv2;
   aggregation: string;
   parsedFormulaType?: FormulaDataTypes;
@@ -418,6 +418,10 @@ export function replaceDelimitedWithKeyValuePg(params: {
 }) {
   const delimiter = params.delimiter ?? ',';
   const knex = params.knex;
+
+  if (!params.stack || params.stack.length === 0) {
+    return knex.raw(`??`, [params.needleColumn]).toQuery();
+  }
 
   // create union replace statement for each user
   const mapUnion = params.stack

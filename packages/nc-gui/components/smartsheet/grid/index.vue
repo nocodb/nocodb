@@ -68,6 +68,7 @@ const {
   applySorting,
   isBulkOperationInProgress,
   selectedAllRecords,
+  selectedAllRecordsSkipPks,
   bulkDeleteAll,
   getRows,
   getDataCache,
@@ -78,6 +79,7 @@ const {
   toggleExpand,
   totalGroups,
   clearGroupCache,
+  toggleExpandAll,
   groupDataCache,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
@@ -121,13 +123,21 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
   if (rowId && !isPublic.value) {
     expandedFormRow.value = undefined
 
-    router.push({
+    const routeParams = {
       query: {
         ...routeQuery.value,
         rowId,
-        path: path.join('-'),
+        path: ncIsEmptyArray(path) ? undefined : path.join('-'),
+        // Remove expand from query to avoid triggering the expanded form on closing the dialog
+        expand: undefined,
       },
-    })
+    }
+    // if expand is true, replace the route to avoid adding a new history entry
+    if (routeQuery.value.expand) {
+      router.replace(routeParams)
+    } else {
+      router.push(routeParams)
+    }
   } else {
     expandedFormRow.value = row
     expandedFormDlg.value = true
@@ -282,11 +292,23 @@ const updateRowCommentCount = (count: number) => {
     syncVisibleData?.()
   } else {
     const aggCommentCountIndex = pAggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+
     const currentRowIndex = pData.value.findIndex(
       (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
     )
 
-    if (aggCommentCountIndex === -1 || currentRowIndex === -1) return
+    if (currentRowIndex === -1) return
+
+    if (aggCommentCountIndex === -1) {
+      pAggCommentCount.value.push({
+        row_id: routeQuery.value.rowId,
+        count,
+      })
+
+      pData.value[currentRowIndex]!.rowMeta.commentCount = count
+
+      return
+    }
 
     if (Number(pAggCommentCount.value[aggCommentCountIndex].count) === count) return
     pAggCommentCount.value[aggCommentCountIndex].count = count
@@ -374,6 +396,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
       "
       ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"
+      v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
       :load-data="loadData"
       :call-add-empty-row="_addEmptyRow"
       :delete-row="deleteRow"
@@ -408,6 +431,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
       :group-sync-count="groupSyncCount"
       :fetch-missing-group-chunks="fetchMissingGroupChunks"
       :is-bulk-operation-in-progress="isBulkOperationInProgress"
+      :toggle-expand-all="toggleExpandAll"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateTrigger"
     />
@@ -416,6 +440,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
       v-else-if="!isGroupBy"
       ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"
+      v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
       :load-data="loadData"
       :call-add-empty-row="_addEmptyRow"
       :delete-row="deleteRow"
@@ -473,7 +498,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         @update:model-value="addRowExpandOnClose(expandedFormRow)"
       />
     </Suspense>
-    <SmartsheetExpandedForm
+    <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"
       ref="expandedFormRef"
       v-model="expandedFormOnRowIdDlg"

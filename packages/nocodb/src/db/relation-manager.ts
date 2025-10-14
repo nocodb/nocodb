@@ -291,12 +291,17 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
           });
+
+          await parentBaseModel.broadcastLinkUpdates([parentId]);
+
           await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
           });
+
+          await childBaseModel.broadcastLinkUpdates([childId]);
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -368,12 +373,16 @@ export class RelationManager {
             cookie: req,
           });
 
+          await childBaseModel.broadcastLinkUpdates([childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
           });
+
+          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -410,6 +419,7 @@ export class RelationManager {
               direction: 'child_parent',
               type: getOppositeRelationType(colOptions.type),
             });
+
             await parentBaseModel.updateLastModified({
               baseModel: parentBaseModel,
               model: parentTable,
@@ -444,12 +454,16 @@ export class RelationManager {
             cookie: req,
           });
 
+          await childBaseModel.broadcastLinkUpdates([childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
           });
+
+          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
       case RelationTypes.ONE_TO_ONE:
@@ -584,12 +598,17 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
           });
+
+          await childBaseModel.broadcastLinkUpdates([childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: parentId,
             cookie: req,
           });
+
+          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
     }
@@ -683,12 +702,17 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
           });
+
+          await parentBaseModel.broadcastLinkUpdates([parentId]);
+
           await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
           });
+
+          await childBaseModel.broadcastLinkUpdates([childId]);
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -713,12 +737,17 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
           });
+
+          await childBaseModel.broadcastLinkUpdates([childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
           });
+
+          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -744,12 +773,17 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
           });
+
+          await childBaseModel.broadcastLinkUpdates([childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
-            rowIds: [childId],
+            rowIds: [parentId],
             cookie: req,
           });
+
+          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
       case RelationTypes.ONE_TO_ONE:
@@ -769,12 +803,16 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
           });
+
+          await childBaseModel.broadcastLinkUpdates([childId]);
+
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
-            rowIds: [childId],
+            rowIds: [parentId],
             cookie: req,
           });
+          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
     }

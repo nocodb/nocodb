@@ -16,15 +16,6 @@ services:
       resources:
         limits:
           memory: 500M
-  mssql:
-    image: "mcr.microsoft.com/mssql/server:2017-latest"
-    environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: Password123.
-    deploy:
-      resources:
-        limits:
-          memory: 1000M
   mysql:
     environment:
       MYSQL_DATABASE: root_db

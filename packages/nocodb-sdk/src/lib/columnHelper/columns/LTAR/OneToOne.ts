@@ -4,6 +4,7 @@ import AbstractColumnHelper, {
 } from '../../column.interface';
 import { LinkToAnotherRecordType } from '~/lib/Api';
 import { SilentTypeConversionError } from '~/lib/error';
+import { LookupHelper } from '../Lookup';
 
 export class OneToOneHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -42,6 +43,6 @@ export class OneToOneHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string {
-    return this.parseValue(value, params) ?? '';
+    return new LookupHelper().parsePlainCellValue(value, params) ?? '';
   }
 }

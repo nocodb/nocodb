@@ -7,7 +7,7 @@ interface Props {
 
 const { bases = [] } = defineProps<Props>()
 
-const emit = defineEmits(['delete-base'])
+const emit = defineEmits(['deleteBase'])
 
 const { $e } = useNuxtApp()
 
@@ -69,7 +69,7 @@ const formatTitle = (title?: string) =>
           <component :is="iconMap.arrowDown" class="menu-icon" />
           <template #overlay>
             <a-menu>
-              <a-menu-item @click.stop="emit('delete-base', base)">
+              <a-menu-item @click.stop="emit('deleteBase', base)">
                 <div class="grid grid-cols-6 cursor-pointer flex items-center p-2">
                   <component :is="iconMap.delete" class="col-span-2 mr-1 mt-[1px] text-red text-lg" />
                   <div class="col-span-4 text-sm xl:text-md">{{ $t('general.delete') }}</div>

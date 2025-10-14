@@ -16,7 +16,8 @@ const { fields, hiddenFields } = useExpandedFormStoreOrThrow()
 .mini-columns-wrapper {
   .nc-expanded-cell-header {
     @apply !bg-transparent;
-    .nc-cell-name-wrapper {
+    .nc-cell-name-wrapper,
+    .nc-virtual-cell-name-wrapper {
       @apply !px-0;
       .name.truncate {
         @apply flex items-center pl-2;
@@ -24,7 +25,7 @@ const { fields, hiddenFields } = useExpandedFormStoreOrThrow()
           @apply !text-xs font-weight-500 !leading-[14px];
         }
       }
-      svg.nc-icon:not(.invisible):not(.nc-column-context-menu) {
+      svg.nc-icon:not(.invisible):not(.nc-column-context-menu):not(.nc-column-lock-icon) {
         @apply !w-4 !h-4 !mx-0;
       }
     }

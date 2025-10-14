@@ -8,6 +8,7 @@ import tinycolor from 'tinycolor2';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import debug from 'debug';
 import { Injectable, Logger } from '@nestjs/common';
+import PQueue from 'p-queue';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
 import { importData } from './helpers/readAndProcessData';
@@ -102,6 +103,7 @@ const selectColors = {
 @Injectable()
 export class AtImportProcessor {
   private readonly debugLog = debug('nc:jobs:at-import');
+  private attachmentQueue = new PQueue({ concurrency: 1 });
 
   constructor(
     private readonly tablesService: TablesService,
@@ -130,7 +132,7 @@ export class AtImportProcessor {
 
     const syncDB = job.data;
 
-    const parentAuditId = await Noco.ncMeta.genNanoid(MetaTable.AUDIT);
+    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
     const req = {
       user: {
         id: syncDB.user.id,
@@ -616,6 +618,41 @@ export class AtImportProcessor {
           // not supported datatype: pure formula field
           // allow formula based computed fields (created time/ modified time to go through)
           if (ncCol.uidt === UITypes.Formula) {
+            if (!syncDB.options.syncFormula) {
+              updateMigrationSkipLog(
+                tblSchema[i].name,
+                ncName.title,
+                col.type,
+                'column type not supported yet',
+              );
+              continue;
+            } else {
+              ncCol.formula = '""';
+              ncCol.formula_raw = '""';
+
+              let formulaTextParsed = col.typeOptions?.formulaTextParsed || '';
+              // Replace any column_*_fldId pattern with the corresponding column title
+              formulaTextParsed = formulaTextParsed.replace(
+                /{column_[^{}]*?_(fld[a-zA-Z0-9]+)}/g,
+                (match, fldId) => {
+                  const colSchema = aTbl_getColumnName(fldId);
+                  return colSchema ? `{${colSchema.cn}}` : match;
+                },
+              );
+              formulaTextParsed = formulaTextParsed.replace(
+                /column_[^{}]*?_(fld[a-zA-Z0-9]+)/g,
+                (match, fldId) => {
+                  const colSchema = aTbl_getColumnName(fldId);
+                  return colSchema ? `{${colSchema.cn}}` : match;
+                },
+              );
+              ncCol.description = formulaTextParsed;
+            }
+          }
+
+          // not supported datatype: pure button field
+          // allow button based fields
+          if (ncCol.uidt === UITypes.Button) {
             updateMigrationSkipLog(
               tblSchema[i].name,
               ncName.title,
@@ -1477,12 +1514,13 @@ export class AtImportProcessor {
         // retrieve datatype
         const dt = table.columns.find((x) => x.title === key)?.uidt;
 
-        // always process LTAR, Lookup, and Rollup columns as we delete the key after processing
+        // always process LTAR, Lookup, Formula and Rollup columns as we delete the key after processing
         if (
           !value &&
           !isLinksOrLTAR(dt) &&
           dt !== UITypes.Lookup &&
-          dt !== UITypes.Rollup
+          dt !== UITypes.Rollup &&
+          dt !== UITypes.Formula
         ) {
           rec[key] = null;
           continue;
@@ -1569,27 +1607,44 @@ export class AtImportProcessor {
           case UITypes.Attachment:
             if (!syncDB.options.syncAttachment) rec[key] = null;
             else {
-              let tempArr = [];
+              const tempArr = [];
 
               try {
                 logBasic(
-                  ` :: Retrieving attachment :: ${value
+                  ` :: Retrieving ${value?.length || 0} attachment(s) :: ${value
                     ?.map((a) => a.filename?.split('?')?.[0])
                     .join(', ')}`,
                 );
                 const path = `${moment().format('YYYY/MM/DD')}/${hash(
                   syncDB.user.id,
                 )}`;
-                tempArr = await this.attachmentsService.uploadViaURL({
-                  path,
-                  urls: value?.map((attachment) => ({
-                    fileName: attachment.filename?.split('?')?.[0],
-                    url: attachment.url,
-                    size: attachment.size,
-                    mimetype: attachment.type,
-                  })),
-                  req,
-                });
+
+                // Queue each attachment download individually to process one URL at a time
+                for (const attachment of value || []) {
+                  const uploadedAttachment = await this.attachmentQueue.add(
+                    async () => {
+                      const result = await this.attachmentsService.uploadViaURL(
+                        {
+                          path,
+                          urls: [
+                            {
+                              fileName: attachment.filename?.split('?')?.[0],
+                              url: attachment.url,
+                              size: attachment.size,
+                              mimetype: attachment.type,
+                            },
+                          ],
+                          req,
+                        },
+                      );
+                      return result[0]; // uploadViaURL returns an array, we want the first item
+                    },
+                  );
+
+                  if (uploadedAttachment) {
+                    tempArr.push(uploadedAttachment);
+                  }
+                }
               } catch (e) {
                 logger.log(e);
               }
@@ -1608,6 +1663,11 @@ export class AtImportProcessor {
           case UITypes.LongText:
             // eslint-disable-next-line no-control-regex
             rec[key] = value.replace(/\u0000/g, '');
+            break;
+
+          case UITypes.Formula:
+            // we need to delete to avoid writing
+            delete rec[key];
             break;
 
           default:
@@ -2614,27 +2674,6 @@ export class AtImportProcessor {
                   baseModel.dbDriver.raw(`(SELECT MAX(id) FROM ??)`, [
                     baseModel.getTnPath(ncTblList.list[i].table_name),
                   ]),
-                ],
-              );
-            } else if (source.type === 'mssql') {
-              const baseModel = await Model.getBaseModelSQL(context, {
-                id: ncTblList.list[i].id,
-                viewId: null,
-                dbDriver: await NcConnectionMgrv2.get(source),
-              });
-              const res = await baseModel.execAndGetRows(
-                baseModel.dbDriver
-                  .raw(`SELECT MAX(id) as mx FROM ??`, [
-                    baseModel.getTnPath(ncTblList.list[i].table_name),
-                  ])
-                  .toQuery(),
-              );
-
-              await baseModel.dbDriver.raw(
-                `DBCC CHECKIDENT ('??', RESEED, ?)`,
-                [
-                  baseModel.getTnPath(ncTblList.list[i].table_name),
-                  res?.[0]?.mx || 1,
                 ],
               );
             }

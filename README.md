@@ -1,12 +1,12 @@
 <h1 align="center" style="border-bottom: none">
     <div>
         <a style="color:#36f" href="https://www.nocodb.com">
-            <img src="/packages/nc-gui/assets/img/icons/512x512.png" width="80" />
+            <img src="/packages/nc-gui/assets/img/brand/nocodb-full.png" height="80" />
             <br>
-            NocoDB
+    The Open Source Airtable Alternative 
         </a>
+        <br>
     </div>
-    The Open Source Airtable Alternative <br>
 </h1>
 
 <p align="center">
@@ -72,42 +72,6 @@ docker run -d \
   -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
   -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
   nocodb/nocodb:latest
-```
-
-## Nix
-
-```
-nix run github:nocodb/nocodb
-```
-
-## NixOS
-To use NocoDB as a NixOS module, a flake.nix would be as follows:
-
-```
-{
-  description = "Bane's NixOS configuration";
-
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nocodb.url = "github:nocodb/nocodb";
-  };
-
-  outputs = inputs@{ nixpkgs, nocodb, ... }: {
-    nixosConfigurations = {
-      hostname = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          ./configuration.nix
-          nocodb.nixosModules.nocodb
-
-          {
-            services.nocodb.enable = true;
-          }
-        ];
-      };
-    };
-  };
-}
 ```
 
 ## Auto-upstall

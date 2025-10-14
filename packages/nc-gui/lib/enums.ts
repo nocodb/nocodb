@@ -79,6 +79,10 @@ export enum SmartsheetStoreEvents {
   FILTER_ADD = 'filter-add',
   CELL_SELECTED = 'cell-selected',
   FIELD_UPDATE = 'field-update',
+  ROW_COLOR_UPDATE = 'row-color-update',
+  TRIGGER_RE_RENDER = 'trigger-re-render',
+  ON_ROW_COLOUR_INFO_UPDATE = 'on-row-colour-info-update',
+  COPIED_VIEW_CONFIG = 'copied-view-config',
 }
 
 export enum SmartsheetScriptActions {
@@ -88,6 +92,18 @@ export enum SmartsheetScriptActions {
 
   RELOAD_VIEW = 'reload-view',
   RELOAD_ROW = 'reload-row',
+
+  UPDATE_STEP_TITLE = 'update-step-title',
+  START_CELL_UPDATE = 'start-cell-update',
+  COMPLETE_CELL_UPDATE = 'complete-cell-update',
+  CLEAR_SCRIPT_CELL_UPDATES = 'clear-script-cell-updates',
+
+  BULK_ACTION_START = 'bulk-action-start',
+  BULK_ACTION_END = 'bulk-action-end',
+  BUTTON_ACTION_START = 'button-action-start',
+  BUTTON_ACTION_COMPLETE = 'button-action-complete',
+  BUTTON_ACTION_PROGRESS = 'button-action-progress',
+  BUTTON_ACTION_ERROR = 'button-action-error',
 }
 
 export enum DataSourcesSubTab {
@@ -195,4 +211,11 @@ export enum WorkspaceIconType {
   IMAGE = 'IMAGE',
   EMOJI = 'EMOJI',
   ICON = 'ICON',
+}
+
+export const EventBusEnum = {
+  SmartsheetStore: Symbol('SmartsheetStore'),
+  RealtimeBaseUser: Symbol('RealtimeBaseUser'),
+  RealtimeViewMeta: Symbol('RealtimeViewMeta'),
+  SmartsheetActions: Symbol('SmartSheetActions'),
 }

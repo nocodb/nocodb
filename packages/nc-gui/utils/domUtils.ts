@@ -42,6 +42,20 @@ const waitForScrollEnd = (element: HTMLElement | Window = window) => {
 }
 
 function isScrollbarAlwaysVisible() {
+  /**
+   * Guard against cases where `document.body` is temporarily unavailable.
+   *
+   * This can happen if:
+   *  - The code runs before <body> is parsed (very early in page lifecycle)
+   *  - During SSR hydration (document exists but <body> not yet attached)
+   *  - Immediately after a route/navigation change, when Vue is tearing down
+   *    the old page and <body> may briefly be null
+   *
+   * Without this check, `document.body.appendChild(...)` can throw:
+   * "Cannot read properties of null (reading 'appendChild')".
+   */
+  if (!document?.body) return false
+
   const testElement = document.createElement('div')
   testElement.style.width = '100px'
   testElement.style.height = '100px'

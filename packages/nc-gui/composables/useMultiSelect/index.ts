@@ -98,12 +98,22 @@ export function useMultiSelect(
 
   const { meta: metaKey } = useMagicKeys()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
+  const { isAiFeaturesEnabled } = useNocoAi()
 
   const { isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
 
-  const { blockExternalSourceRecordVisibility } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, showUpgradeToAddMoreAttachmentsInCell, maxAttachmentsAllowedInCell } =
+    useEeConfig()
 
+  const { batchUploadFiles } = useAttachment()
+
+  const {
+    setCellClipboardDataItem,
+    getClipboardItemId,
+    getCurrentCopiedCellClipboardData,
+    extractCellClipboardData,
+    waitingCellClipboardDataIds,
+  } = useNcClipboardData()
   const aiMode = ref(false)
 
   const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
@@ -156,54 +166,34 @@ export function useMultiSelect(
     activeCell.col = col
   }
 
-  const valueToCopy = (rowObj: Row, columnObj: ColumnType) => {
-    const textToCopy = (columnObj.title && rowObj.row[columnObj.title]) ?? ''
-
-    return ColumnHelper.parseValue(textToCopy, {
-      col: columnObj,
-      isMysql,
+  const copyTable = async (rows: Row[], cols: ColumnType[]) => {
+    const {
+      html: copyHTML,
+      text: copyPlainText,
+      clipboardItemConfig,
+    } = serializeRange(rows, cols, {
       isPg,
+      isMysql,
       meta: meta.value,
       metas: metas.value,
-      rowId: isMm(columnObj) ? extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) : null,
     })
-  }
-
-  const serializeRange = (rows: Row[], cols: ColumnType[]) => {
-    let html = '<table>'
-    let text = ''
-    const json: string[][] = []
-
-    rows.forEach((row, i) => {
-      let copyRow = '<tr>'
-      const jsonRow: string[] = []
-      cols.forEach((col, i) => {
-        const value = valueToCopy(row, col)
-        copyRow += `<td>${value}</td>`
-        text = `${text}${value}${cols.length - 1 !== i ? '\t' : ''}`
-        jsonRow.push(value)
-      })
-      html += `${copyRow}</tr>`
-      if (rows.length - 1 !== i) {
-        text = `${text}\n`
-      }
-      json.push(jsonRow)
-    })
-    html += '</table>'
-
-    return { html, text, json }
-  }
-
-  const copyTable = async (rows: Row[], cols: ColumnType[]) => {
-    const { html: copyHTML, text: copyPlainText } = serializeRange(rows, cols)
 
     const blobHTML = new Blob([copyHTML], { type: 'text/html' })
     const blobPlainText = new Blob([copyPlainText], { type: 'text/plain' })
 
-    return (
-      navigator.clipboard?.write([new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText })]) ??
-      copy(copyPlainText)
-    )
+    const clipboardItem: NcClipboardDataItemType = {
+      ...clipboardItemConfig,
+      tableId: meta.value?.id,
+      id: getClipboardItemId(),
+    }
+
+    const res = await (navigator.clipboard?.write([
+      new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText }),
+    ]) ?? copy(copyPlainText))
+
+    setCellClipboardDataItem(clipboardItem)
+
+    return res
   }
 
   async function copyValue(ctx?: Cell) {
@@ -244,9 +234,27 @@ export function useMultiSelect(
           if (!rowObj) return
           const columnObj = unref(fields)[cpCol]
 
-          const textToCopy = valueToCopy(rowObj, columnObj)
+          const { textToCopy, cellValue, clipboardColumn, rowId } = valueToCopy(rowObj, columnObj, {
+            meta: meta.value,
+            metas: metas.value,
+            isPg,
+            isMysql,
+          })
 
-          await copy(textToCopy)
+          const plainTextValue = isValidValue(textToCopy) ? textToCopy : ''
+
+          await copy(plainTextValue)
+
+          const clipboardItem: NcClipboardDataItemType = {
+            dbCellValueArr: [[cellValue]],
+            columns: [clipboardColumn],
+            copiedPlainText: plainTextValue,
+            rowIds: [rowId],
+            tableId: meta.value?.id,
+            id: getClipboardItemId(),
+          }
+
+          setCellClipboardDataItem(clipboardItem)
           message.toast(
             t(`msg.toast.nCellCopied`, {
               n: 1,
@@ -418,6 +426,88 @@ export function useMultiSelect(
     return true
   }
 
+  const v2HandleFillValue = async ({
+    rawMatrix,
+    cpCols,
+    rowToPaste,
+    data,
+  }: {
+    rawMatrix: string[][]
+    cpCols: (ColumnType & {
+      extra?: any | never
+    })[]
+    rowToPaste: { start: number; end: number }
+    data: Row[]
+  }) => {
+    if (rawMatrix.length === 0) return
+    const direction = rowToPaste.end - rowToPaste.start > 0 ? 1 : -1
+    // reverse if going up
+    const rawMatrixFromDirection = direction === -1 ? rawMatrix.reverse() : rawMatrix
+    // we transform from rows to cols based
+    const rawMatrixTransposed = rawMatrixFromDirection[0]!.map((_, colIndex) =>
+      rawMatrixFromDirection.map((row) => row[colIndex]),
+    )
+    const fillValuesByCols: any[][] = []
+    const numberOfRows = Math.abs(rowToPaste.end - rowToPaste.start) + 1
+
+    for (const [i, rowsOfCol] of rawMatrixTransposed.entries()) {
+      const cpCol = cpCols[i]
+      const populatedFillHandle = ColumnHelper.populateFillHandle({
+        column: cpCol!,
+        highlightedData: rowsOfCol,
+        numberOfRows,
+      })
+      if (populatedFillHandle) {
+        fillValuesByCols.push(populatedFillHandle)
+      }
+      // TODO: else, but should not happen
+    }
+
+    // apply the populated fill handle to rows
+    // maybe TODO: extract to other function
+    const rowsToPaste: Row[] = []
+    let incrementIndex = 0
+    // We can use this if we want to avoid same info multiple times per column
+    const isColInfoShown = {} as Record<string, boolean>
+    for (
+      let rowIndex = rowToPaste.start + direction * rawMatrix.length;
+      direction === 1 ? rowIndex <= rowToPaste.end : rowIndex >= rowToPaste.end;
+      // Increment/decrement row counter based on fill direction
+      rowIndex += direction
+    ) {
+      const rowObj = data[rowIndex]
+      if (rowObj) {
+        for (const [colIndex, cpCol] of cpCols.entries()) {
+          const pasteValue = convertCellData(
+            {
+              value: fillValuesByCols[colIndex!]![incrementIndex],
+              to: cpCol.uidt as UITypes,
+              column: cpCol,
+              appInfo: unref(appInfo),
+              maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+              showUpgradeToAddMoreAttachmentsInCell,
+              isInfoShown: isColInfoShown[cpCol.title!],
+              markInfoShown: () => {
+                isColInfoShown[cpCol.title!] = true
+              },
+            },
+            isMysql(meta.value?.source_id),
+            true,
+          )
+          rowObj.row[cpCol.title] = pasteValue
+        }
+        rowsToPaste.push(rowObj)
+      }
+      incrementIndex++
+    }
+
+    // If not in AI fill mode, perform a regular bulk update
+    await bulkUpdateRows?.(
+      rowsToPaste,
+      cpCols.map((k) => k.title!),
+    )
+  }
+
   const handleMouseUp = (_event: MouseEvent) => {
     if (isFillMode.value) {
       try {
@@ -425,6 +515,8 @@ export function useMultiSelect(
 
         isFillMode.value = false
         aiMode.value = false
+        // We can use this if we want to avoid same info multiple times per column
+        const isColInfoShown = {} as Record<string, boolean>
 
         if (fillRange._start === null || fillRange._end === null) return
 
@@ -443,9 +535,49 @@ export function useMultiSelect(
 
           const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
-          const rawMatrix = serializeRange(cprows, cpcols).json
+          const rawMatrix = serializeRange(cprows, cpcols, {
+            isPg,
+            isMysql,
+            meta: meta.value,
+            metas: metas.value,
+          }).json
 
           const fillDirection = fillRange._start.row <= fillRange._end.row ? 1 : -1
+          const startRangeBottomMost = Math.max(
+            selectedRange.start.row,
+            selectedRange.end.row,
+            fillRange._start.row,
+            fillRange._end.row,
+          )
+          const startRangeTopMost = Math.min(
+            selectedRange.start.row,
+            selectedRange.end.row,
+            fillRange._start.row,
+            fillRange._end.row,
+          )
+          // if not localAiMode, use the new v2 handle fill logic
+          if (!localAiMode) {
+            const dataArray: Row[] = isArrayStructure
+              ? (unref(data) as Row[])
+              : unref(data) instanceof Map
+              ? Array.from(unref(data) as Map<number, Row>, ([_name, value]) => value)
+              : (unref(data) as Row[])
+            return v2HandleFillValue({
+              data: dataArray,
+              rawMatrix,
+              cpCols: cpcols,
+              rowToPaste: {
+                start: fillDirection === 1 ? startRangeTopMost : startRangeBottomMost,
+                end: fillDirection === 1 ? startRangeBottomMost : startRangeTopMost,
+              },
+            }).then(() => {
+              if (fillRange._start === null || fillRange._end === null) return
+              selectedRange.startRange(tempActiveCell)
+              selectedRange.endRange(fillRange._end)
+              makeActive(tempActiveCell.row, tempActiveCell.col)
+              fillRange.clear()
+            })
+          }
 
           let fillIndex = fillDirection === 1 ? 0 : rawMatrix.length - 1
 
@@ -502,6 +634,12 @@ export function useMultiSelect(
                       to: colObj.uidt as UITypes,
                       column: colObj,
                       appInfo: unref(appInfo),
+                      maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                      showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[colObj.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[colObj.title!] = true
+                      },
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -929,6 +1067,13 @@ export function useMultiSelect(
     // Replace \" with " in clipboard data
     let clipboardData = e.clipboardData?.getData('text/plain') || ''
 
+    const storedCopiedData = getCurrentCopiedCellClipboardData(clipboardData)
+
+    // Add the waiting clipboard data id so that if setClipboardData fn is called during this operation, it will not remove the currentCopiedCellClipboardDataItem from the clipboard data
+    if (storedCopiedData && !waitingCellClipboardDataIds.value.includes(storedCopiedData.id)) {
+      waitingCellClipboardDataIds.value.push(storedCopiedData.id)
+    }
+
     if (clipboardData?.endsWith('\n')) {
       // Remove '\n' from the end of the clipboardData
       // When copying from XLS/XLSX files, there is an extra '\n' appended to the end
@@ -1057,6 +1202,8 @@ export function useMultiSelect(
         const newRows: Row[] = []
         const propsToPaste: string[] = []
         let isInfoShown = false
+        // We can use this if we want to avoid same info multiple times per column
+        const isColInfoShown = {} as Record<string, boolean>
 
         for (let i = 0; i < selectionRowCount; i++) {
           const clipboardRowIndex = i % clipboardMatrix.length
@@ -1112,6 +1259,13 @@ export function useMultiSelect(
                     column,
                     appInfo: unref(appInfo),
                     oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
+                    maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                    showUpgradeToAddMoreAttachmentsInCell,
+                    isInfoShown: isColInfoShown[column.title!],
+                    markInfoShown: () => {
+                      isColInfoShown[column.title!] = true
+                    },
+                    clipboardItem: extractCellClipboardData(storedCopiedData, clipboardRowIndex, j),
                   },
                   isMysql(meta.value?.source_id),
                   true,
@@ -1172,6 +1326,7 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -1208,6 +1363,7 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -1487,6 +1643,9 @@ export function useMultiSelect(
                 files:
                   columnObj.uidt === UITypes.Attachment && e.clipboardData?.files?.length ? e.clipboardData?.files : undefined,
                 oldValue: rowObj.row[columnObj.title!],
+                maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                showUpgradeToAddMoreAttachmentsInCell,
+                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
               },
               isMysql(meta.value?.source_id),
             )
@@ -1543,6 +1702,8 @@ export function useMultiSelect(
 
           let pasteValue
           let isInfoShown = false
+          // We can use this if we want to avoid same info multiple times per column
+          const isColInfoShown = {} as Record<string, boolean>
 
           const files = e.clipboardData?.files
 
@@ -1573,6 +1734,13 @@ export function useMultiSelect(
                       appInfo: unref(appInfo),
                       files,
                       oldValue: row.row[col.title],
+                      maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                      showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[col.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[col.title!] = true
+                      },
+                      clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1593,6 +1761,13 @@ export function useMultiSelect(
                       column: col,
                       appInfo: unref(appInfo),
                       oldValue: row.row[col.title],
+                      maxAttachmentsAllowedInCell: maxAttachmentsAllowedInCell.value,
+                      showUpgradeToAddMoreAttachmentsInCell,
+                      isInfoShown: isColInfoShown[col.title!],
+                      markInfoShown: () => {
+                        isColInfoShown[col.title!] = true
+                      },
+                      clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
                     },
                     isMysql(meta.value?.source_id),
                     true,
@@ -1632,6 +1807,11 @@ export function useMultiSelect(
         console.error(error, (error as SuppressedError).isErrorSuppressed)
         message.error(await extractSdkResponseErrorMsg(error))
       }
+    } finally {
+      // After paste operation is completed, remove the waiting clipboard data id so that on setClipboardDateItem can remove the item from the clipboard data
+      if (storedCopiedData && waitingCellClipboardDataIds.value.includes(storedCopiedData.id)) {
+        waitingCellClipboardDataIds.value = waitingCellClipboardDataIds.value.filter((id) => id !== storedCopiedData.id)
+      }
     }
   }
 
@@ -1641,7 +1821,7 @@ export function useMultiSelect(
     }
 
     isFillMode.value = true
-    if (metaKey?.value && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)) {
+    if (metaKey?.value && isAiFeaturesEnabled.value) {
       aiMode.value = true
     }
 
@@ -1657,14 +1837,7 @@ export function useMultiSelect(
     const newAttachments: AttachmentType[] = []
 
     try {
-      const data = await api.storage.upload(
-        {
-          path: [NOCO, base.value.id, meta.value?.id, columnId].join('/'),
-        },
-        {
-          files,
-        },
-      )
+      const data = await batchUploadFiles(files, [NOCO, base.value.id, meta.value?.id, columnId].join('/'))
 
       // add suffix in duplicate file title
       for (const uploadedFile of data) {
@@ -1679,7 +1852,7 @@ export function useMultiSelect(
       }
       return newAttachments
     } catch (e: any) {
-      message.error(e.message || t('msg.error.internalError'))
+      message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
     }
   }
 

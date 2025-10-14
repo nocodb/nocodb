@@ -79,39 +79,35 @@ onBeforeMount(async () => {
 </script>
 
 <template>
-  <a-skeleton v-if="isLoading" />
   <div
-    v-else
     class="h-full"
     :class="{
-      'flex items-center justify-center': !hookLogs.length,
+      'flex items-center justify-center': !hookLogs.length && !isLoading,
     }"
   >
-    <!--    <a-card class="!mb-[20px]" :body-style="{ padding: '10px' }">
-      <span v-if="appInfo.automationLogLevel === AutomationLogLevel.OFF">
-        The NC_AUTOMATION_LOG_LEVEL is set to “OFF”, no logs will be displayed.
-      </span>
-      <span v-if="appInfo.automationLogLevel === AutomationLogLevel.ERROR">
-        The NC_AUTOMATION_LOG_LEVEL is set to “ERROR”, only error logs will be displayed.
-      </span>
-      <span v-if="appInfo.automationLogLevel === AutomationLogLevel.ALL">
-        <span v-if="appInfo.ee">
-          The NC_AUTOMATION_LOG_LEVEL is set to “ALL”, both error and success logs will be displayed.
-        </span>
-        <span v-else> Upgrade to Enterprise Edition to show all the logs. </span>
-      </span>
-      <span>
-        For additional configuration options, please refer the documentation
-        <a href="https://docs.nocodb.com/developer-resources/webhooks#call-log" target="_blank" rel="noopener">here</a>.
-      </span>
-    </a-card> -->
-
     <template v-if="showLogs">
-      <a-empty v-if="!hookLogs.length" />
+      <a-empty v-if="!hookLogs.length && !isLoading" />
       <div v-else class="flex h-full">
         <div class="min-w-80 border-r-1 h-full">
+          <div
+            v-if="isLoading"
+            class="p-3 h-full flex flex-col gap-3 children:(border-b-1 border-nc-border-medium) overflow-auto nc-scrollbar-thin"
+          >
+            <a-skeleton
+              v-for="idx in 7"
+              :key="idx"
+              :loading="isLoading"
+              active
+              :avatar="{ size: 'small' }"
+              :paragraph="{
+                rows: 2,
+              }"
+              :title="false"
+            />
+          </div>
           <WebhookCallLogList
-            v-model:activeItem="activeItem"
+            v-else
+            v-model:active-item="activeItem"
             :hook-logs="hookLogs"
             :log-pagination-data="logPaginationData"
             @page-size-change="loadHookLogs(undefined, $event)"
@@ -119,7 +115,52 @@ onBeforeMount(async () => {
           />
         </div>
         <div class="flex-grow min-w-100">
-          <WebhookCallLogDetails :item="activeItem" />
+          <div v-if="isLoading" class="h-full p-3 overflow-auto nc-scrollbar-thin flex flex-col gap-6">
+            <a-skeleton
+              active
+              :paragraph="false"
+              class="!children:children:mt-0"
+              :title="{
+                width: '50%',
+              }"
+            />
+
+            <div class="flex gap-x-5">
+              <div class="min-w-80 flex-1">
+                <a-skeleton
+                  v-for="idx in 3"
+                  :key="idx"
+                  :loading="isLoading"
+                  active
+                  :paragraph="{
+                    rows: 1,
+                    width: '90%',
+                  }"
+                  :title="false"
+                  class="min-w-80"
+                />
+              </div>
+              <div class="min-w-80 flex-1">
+                <a-skeleton
+                  v-for="idx in 2"
+                  :key="idx"
+                  :loading="isLoading"
+                  active
+                  :paragraph="{
+                    rows: 1,
+                    width: '90%',
+                  }"
+                  :title="false"
+                  class="min-w-80"
+                />
+              </div>
+            </div>
+            <div class="flex-1 flex items-stretch gap-4">
+              <WebhookCallLogReqResDetailCardSkeleton title="Request" />
+              <WebhookCallLogReqResDetailCardSkeleton title="Response" />
+            </div>
+          </div>
+          <WebhookCallLogDetails v-else :item="activeItem" />
         </div>
       </div>
     </template>

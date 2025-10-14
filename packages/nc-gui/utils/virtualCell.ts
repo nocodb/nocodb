@@ -12,5 +12,5 @@ export {
   isCount,
   isLink,
   isReadOnlyVirtualCell,
-  isReadonly,
+  isReadonlyVirtualColumn,
 } from 'nocodb-sdk'

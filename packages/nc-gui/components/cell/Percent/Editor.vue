@@ -5,6 +5,7 @@ interface Props {
   modelValue?: number | string | null
   placeholder?: string
   localEditEnabled?: boolean
+  location?: 'cell' | 'filter'
 }
 
 const props = defineProps<Props>()
@@ -61,7 +62,7 @@ const vModelNumber = computed<number>(() => {
   return 0
 })
 
-const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
+const inputType = computed(() => (isForm.value && !isEditColumn.value && props.location !== 'filter' ? 'text' : 'number'))
 
 const onBlur = () => {
   if (isExpandedFormOpen.value) {
@@ -86,9 +87,9 @@ onMounted(() => {
 
 <template>
   <CellPercentProgressBar
-    v-if="parseProp(col!.meta).is_progress && (isForm)"
+    v-if="parseProp(col!.meta).is_progress && (isForm || isExpandedFormOpen)"
     :style="{
-      ...(isForm && { 'min-height': '22px', 'height': '22px' }),
+      ...((isForm || isExpandedFormOpen) && { 'min-height': '22px', 'height': '22px' }),
     }"
     :is-show-number="true"
     :percentage="vModelNumber"

@@ -30,7 +30,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
 
 <template>
   <div
-    class="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover-scrollbar-thumb-gray-300 h-[100vh] overflow-y-auto overflow-x-hidden flex flex-col color-transition p-4 lg:p-6 nc-form-view min-h-[600px]"
+    class="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover-scrollbar-thumb-gray-300 nc-h-screen overflow-y-auto overflow-x-hidden flex flex-col color-transition p-4 lg:p-6 nc-form-view min-h-[600px]"
     :class="{
       'children:(!h-auto my-auto)': sharedViewMeta?.surveyMode,
     }"
@@ -107,7 +107,7 @@ p {
           }
         }
         &.layout-list {
-          @apply h-auto !pl-0 !py-1 !bg-transparent !dark:bg-none;
+          @apply h-auto !p-0 !bg-transparent !dark:bg-none;
         }
 
         .duration-cell-wrapper {
@@ -181,6 +181,10 @@ p {
             .nc-cell-field.nc-cell-link-preview {
               @apply px-3;
             }
+          }
+
+          &.nc-cell-attachment {
+            @apply pl-1;
           }
         }
         &.nc-virtual-cell {

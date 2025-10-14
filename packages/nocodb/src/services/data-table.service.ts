@@ -6,16 +6,17 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
-import { NcApiVersion } from 'nocodb-sdk';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
-import { nocoExecute } from '~/utils';
 import { Column, Model, Source, View } from '~/models';
+import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { dataWrapper } from '~/helpers/dbHelpers';
 
 @Injectable()
 export class DataTableService {
@@ -102,7 +103,7 @@ export class DataTableService {
       source,
     });
 
-    if (view.type !== ViewTypes.GRID) {
+    if (view && view.type !== ViewTypes.GRID) {
       NcError.badRequest('Aggregation is only supported on grid views');
     }
 
@@ -301,7 +302,7 @@ export class DataTableService {
     return { count };
   }
 
-  protected async getModelAndView(
+  async getModelAndView(
     context: NcContext,
     param: {
       baseId?: string;
@@ -311,11 +312,7 @@ export class DataTableService {
   ) {
     const model = await Model.get(context, param.modelId);
     if (!model) {
-      if (context.api_version === NcApiVersion.V3) {
-        NcError.tableNotFoundV3(param.modelId);
-      } else {
-        NcError.tableNotFound(param.modelId);
-      }
+      NcError.get(context).tableNotFound(param.modelId);
     }
 
     if (param.baseId && model.base_id !== param.baseId) {
@@ -327,11 +324,7 @@ export class DataTableService {
     if (param.viewId) {
       view = await View.get(context, param.viewId);
       if (!view || (view.fk_model_id && view.fk_model_id !== param.modelId)) {
-        if (context.api_version === NcApiVersion.V3) {
-          NcError.viewNotFoundV3(param.viewId);
-        } else {
-          NcError.viewNotFound(param.viewId);
-        }
+        NcError.get(context).viewNotFound(param.viewId);
       }
     }
 
@@ -496,6 +489,18 @@ export class DataTableService {
         },
         param.query,
       )) as number;
+    } else if (
+      colOptions.type !== RelationTypes.BELONGS_TO &&
+      !column.meta?.bt
+    ) {
+      data = await baseModel.ooRead(
+        {
+          colId: column.id,
+          id: param.rowId,
+          apiVersion: param.apiVersion,
+        },
+        param.query as any,
+      );
     } else {
       data = await baseModel.btRead(
         {
@@ -736,7 +741,9 @@ export class DataTableService {
       if (deleteCellNestedList && Array.isArray(deleteCellNestedList)) {
         await baseModel.removeLinks({
           colId: column.id,
-          childIds: deleteCellNestedList,
+          childIds: deleteCellNestedList.map((nestedList) =>
+            dataWrapper(nestedList).extractPksValue(relatedModel),
+          ),
           rowId: operationMap.deleteAll.rowId,
           cookie: param.cookie,
         });
@@ -777,13 +784,13 @@ export class DataTableService {
       const filteredRowsToLink = this.filterAndMapRows(
         copiedCellNestedList,
         pasteCellNestedList,
-        relatedModel.primaryKeys,
+        relatedModel,
       );
 
       const filteredRowsToUnlink = this.filterAndMapRows(
         pasteCellNestedList,
         copiedCellNestedList,
-        relatedModel.primaryKeys,
+        relatedModel,
       );
 
       await Promise.all([
@@ -830,13 +837,13 @@ export class DataTableService {
   private filterAndMapRows(
     sourceList: Record<string, any>[],
     targetList: Record<string, any>[],
-    primaryKeys: Column<any>[],
-  ): Record<string, any>[] {
+    relatedModel: Model,
+  ): (string | number)[] {
     return sourceList
       .filter(
         (sourceRow: Record<string, any>) =>
           !targetList.some((targetRow: Record<string, any>) =>
-            primaryKeys.every(
+            relatedModel.primaryKeys.every(
               (key) =>
                 sourceRow[key.title || key.column_name] ===
                 targetRow[key.title || key.column_name],
@@ -844,11 +851,7 @@ export class DataTableService {
           ),
       )
       .map((item: Record<string, any>) =>
-        primaryKeys.reduce((acc, key) => {
-          acc[key.title || key.column_name] =
-            item[key.title || key.column_name];
-          return acc;
-        }, {} as Record<string, any>),
+        dataWrapper(item).extractPksValue(relatedModel, true),
       );
   }
 
@@ -874,23 +877,23 @@ export class DataTableService {
       NcError.badRequest('Invalid bulkFilterList');
     }
 
-    const dataListResults = await bulkFilterList.reduce(
-      async (accPromise, dF: any) => {
-        const acc = await accPromise;
-        const result = await this.datasService.dataList(context, {
-          query: {
-            ...dF,
-          },
+    const results = await processConcurrently(
+      bulkFilterList,
+      async (dF: any) => {
+        const data = await this.datasService.dataList(context, {
+          query: { ...dF },
           model,
           view,
         });
-        acc[dF.alias] = result;
-        return acc;
+        return { alias: dF.alias, data };
       },
-      Promise.resolve({}),
+      5,
     );
 
-    return dataListResults;
+    return results.reduce((acc, { alias, data }) => {
+      acc[alias] = data;
+      return acc;
+    }, {});
   }
 
   async bulkGroupBy(

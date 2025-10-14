@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GridType } from 'nocodb-sdk'
+import { type GridType, ViewTypes } from 'nocodb-sdk'
 
 const rowHeightOptions: { icon: keyof typeof iconMap; heightClass: string }[] = [
   {
@@ -22,6 +22,10 @@ const rowHeightOptions: { icon: keyof typeof iconMap; heightClass: string }[] = 
 
 const { isSharedBase } = storeToRefs(useBase())
 
+const viewStore = useViewsStore()
+
+const { updateViewMeta } = viewStore
+
 const view = inject(ActiveViewInj, ref())
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -29,8 +33,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 const isLocked = inject(IsLockedInj, ref(false))
 
 const { isUIAllowed } = useRoles()
-
-const { $api } = useNuxtApp()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -57,12 +59,10 @@ const updateRowHeight = async (rh: number, undo = false) => {
 
     try {
       if (!isPublic.value && !isSharedBase.value && isUIAllowed('viewCreateOrEdit')) {
-        await $api.dbView.gridUpdate(view.value.id, {
+        await updateViewMeta(view.value.id, ViewTypes.GRID, {
           row_height: rh,
         })
       }
-
-      ;(view.value.view as GridType).row_height = rh
 
       open.value = false
     } catch (e: any) {
@@ -75,7 +75,13 @@ useMenuCloseOnEsc(open)
 </script>
 
 <template>
-  <a-dropdown v-model:visible="open" offset-y class="" :trigger="['click']" overlay-class-name="nc-dropdown-height-menu">
+  <NcDropdown
+    v-model:visible="open"
+    offset-y
+    class=""
+    :trigger="['click']"
+    overlay-class-name="nc-dropdown-height-menu overflow-hidden"
+  >
     <div>
       <NcButton
         v-e="['c:row-height']"
@@ -91,18 +97,15 @@ useMenuCloseOnEsc(open)
       </NcButton>
     </div>
     <template #overlay>
-      <div
-        class="w-full bg-white shadow-lg p-1.5 menu-filter-dropdown border-1 border-gray-200 rounded-lg overflow-hidden min-w-[160px]"
-        data-testid="nc-height-menu"
-      >
+      <div class="p-1.5 menu-filter-dropdown min-w-[160px]" data-testid="nc-height-menu">
         <div class="flex flex-col w-full text-sm" @click.stop>
-          <div class="text-xs text-gray-500 px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
+          <div class="text-xs text-nc-content-gray-muted px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
           <div
             v-for="(item, i) of rowHeightOptions"
             :key="i"
             class="nc-row-height-option"
             :class="{
-              'hover:bg-gray-100 cursor-pointer': !isLocked,
+              'hover:bg-nc-bg-gray-light cursor-pointer': !isLocked,
               'cursor-not-allowed': isLocked,
             }"
             @click="updateRowHeight(i)"
@@ -121,12 +124,12 @@ useMenuCloseOnEsc(open)
         <GeneralLockedViewFooter v-if="isLocked" class="-mx-1.5 -mb-1.5" @on-open="open = false" />
       </div>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>
 
 <style scoped>
 .nc-row-height-option {
-  @apply flex items-center gap-2 p-2 justify-between rounded-md text-gray-600;
+  @apply flex items-center gap-2 p-2 justify-between rounded-md text-nc-content-gray-subtle2;
 }
 
 .nc-row-height-icon {

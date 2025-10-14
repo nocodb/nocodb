@@ -9,7 +9,7 @@ import {
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
-import type { ColumnReqType, ColumnType } from 'nocodb-sdk';
+import type { ColumnReqType, ColumnType, LookupType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
@@ -39,6 +39,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
+  FilterCacheScope,
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
@@ -48,6 +49,7 @@ import {
   prepareForResponse,
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 
 const selectColors = enumColors.light;
 
@@ -272,7 +274,24 @@ export default class Column<T = any> implements ColumnType {
       ncMeta,
     );
 
+    if (insertObj.pv === true) {
+      await Model.updatePrimaryColumn(
+        context,
+        column.fk_model_id,
+        row.id,
+        ncMeta,
+      ).catch((e) => {
+        logger.error(
+          `Failed to update primary column for model ${column.fk_model_id}: ${e?.message}`,
+        );
+      });
+    }
+
     await View.clearSingleQueryCache(context, column.fk_model_id, null, ncMeta);
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
 
     return col;
   }
@@ -782,11 +801,69 @@ export default class Column<T = any> implements ColumnType {
   id: string;
 
   static async delete(context: NcContext, id, ncMeta = Noco.ncMeta) {
+    return Column.delete2(context, { id }, ncMeta);
+  }
+  static async delete2(
+    context: NcContext,
+    {
+      id,
+      beforeRelatedColumnDelete,
+      afterRelatedColumnDelete,
+      beforeRelatedColumnUpdate,
+      afterRelatedColumnUpdate,
+    }: {
+      id: string;
+      beforeRelatedColumnDelete?: (
+        context: { base_id: string; workspace_id: string },
+        columnId: string,
+      ) => Promise<void>;
+      afterRelatedColumnDelete?: (
+        context: { base_id: string; workspace_id: string },
+        columnId: string,
+      ) => Promise<void>;
+      beforeRelatedColumnUpdate?: (
+        context: { base_id: string; workspace_id: string },
+        columnId: string,
+      ) => Promise<void>;
+      afterRelatedColumnUpdate?: (
+        context: { base_id: string; workspace_id: string },
+        columnId: string,
+      ) => Promise<void>;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
     const col = await this.get(context, { colId: id }, ncMeta);
 
     // if column is not found, return
     if (!col) {
       return;
+    }
+    // If the column is one of CreatedBy, LastModifiedBy, CreatedAt, or LastModifiedAt
+    // and it is a system column, then delete its alias columns as well.
+    // This deletion is only performed through meta-sync because system columns
+    // cannot be deleted via API calls.
+    if (
+      (
+        [
+          UITypes.CreatedTime,
+          UITypes.LastModifiedTime,
+          UITypes.LastModifiedBy,
+          UITypes.CreatedBy,
+        ] as UITypes[]
+      ).includes(col.uidt) &&
+      col.system
+    ) {
+      const aliasCols = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COLUMNS,
+        {
+          condition: { uidt: col.uidt, system: false },
+        },
+      );
+      for (const aliasCol of aliasCols) {
+        await Column.delete(context, aliasCol.id, ncMeta);
+      }
     }
 
     // todo: or instead of delete reset related foreign key value to null and handle in BaseModel
@@ -802,7 +879,9 @@ export default class Column<T = any> implements ColumnType {
         },
       );
       for (const qrCodeCol of qrCodeCols) {
+        await beforeRelatedColumnDelete?.(context, qrCodeCol.fk_column_id);
         await Column.delete(context, qrCodeCol.fk_column_id, ncMeta);
+        await afterRelatedColumnDelete?.(context, qrCodeCol.fk_column_id);
       }
     }
 
@@ -816,7 +895,9 @@ export default class Column<T = any> implements ColumnType {
         },
       );
       for (const barcodeCol of barcodeCols) {
+        await beforeRelatedColumnDelete?.(context, barcodeCol.fk_column_id);
         await Column.delete(context, barcodeCol.fk_column_id, ncMeta);
+        await afterRelatedColumnDelete?.(context, barcodeCol.fk_column_id);
       }
     }
 
@@ -836,7 +917,9 @@ export default class Column<T = any> implements ColumnType {
         );
       }
       for (const lookup of lookups) {
+        await beforeRelatedColumnDelete?.(context, lookup.fk_column_id);
         await Column.delete(context, lookup.fk_column_id, ncMeta);
+        await afterRelatedColumnDelete?.(context, lookup.fk_column_id);
       }
     }
 
@@ -856,7 +939,9 @@ export default class Column<T = any> implements ColumnType {
         );
       }
       for (const rollup of rollups) {
+        await beforeRelatedColumnDelete?.(context, rollup.fk_column_id);
         await Column.delete(context, rollup.fk_column_id, ncMeta);
+        await afterRelatedColumnDelete?.(context, rollup.fk_column_id);
       }
     }
 
@@ -891,10 +976,18 @@ export default class Column<T = any> implements ColumnType {
           },
         );
         for (const lookupAndRollupColumn of lookupAndRollupColumns) {
+          await beforeRelatedColumnDelete?.(
+            { ...context, base_id: colOptions.fk_related_base_id },
+            lookupAndRollupColumn.fk_column_id,
+          );
           await Column.delete(
             { ...context, base_id: colOptions.fk_related_base_id },
             lookupAndRollupColumn.fk_column_id,
             ncMeta,
+          );
+          await afterRelatedColumnDelete?.(
+            { ...context, base_id: colOptions.fk_related_base_id },
+            lookupAndRollupColumn.fk_column_id,
           );
         }
 
@@ -909,10 +1002,18 @@ export default class Column<T = any> implements ColumnType {
         );
 
         for (const rollupColumn of rollupColumns) {
+          await beforeRelatedColumnDelete?.(
+            { ...context, base_id: colOptions.fk_related_base_id },
+            rollupColumn.fk_column_id,
+          );
           await Column.delete(
             { ...context, base_id: colOptions.fk_related_base_id },
             rollupColumn.fk_column_id,
             ncMeta,
+          );
+          await afterRelatedColumnDelete?.(
+            { ...context, base_id: colOptions.fk_related_base_id },
+            rollupColumn.fk_column_id,
           );
         }
       }
@@ -953,13 +1054,16 @@ export default class Column<T = any> implements ColumnType {
               columnId: id,
               title: col?.title,
             })
-          )
+          ) {
+            await beforeRelatedColumnUpdate?.(context, buttonCol.id);
             await ButtonColumn.update(
               context,
               buttonCol.id,
               button as ButtonColumn & { parsed_tree?: any },
               ncMeta,
             );
+            await afterRelatedColumnUpdate?.(context, buttonCol.id);
+          }
         }
       }
     }
@@ -1001,7 +1105,9 @@ export default class Column<T = any> implements ColumnType {
         */
         if (ai.prompt && ai.prompt.match(/{column_id}/)) {
           ai.error = `Field '${col.title}' not found`;
+          await beforeRelatedColumnUpdate?.(context, aiCol.id);
           await AIColumn.update(context, aiCol.id, ai, ncMeta);
+          await afterRelatedColumnUpdate?.(context, aiCol.id);
         }
       }
     }
@@ -1038,13 +1144,16 @@ export default class Column<T = any> implements ColumnType {
             columnId: id,
             title: col?.title,
           })
-        )
+        ) {
+          await beforeRelatedColumnUpdate?.(context, formulaCol.id);
           await FormulaColumn.update(
             context,
             formulaCol.id,
             formula as FormulaColumn & { parsed_tree?: any },
             ncMeta,
           );
+          await afterRelatedColumnUpdate?.(context, formulaCol.id);
+        }
       }
     }
 
@@ -1066,7 +1175,9 @@ export default class Column<T = any> implements ColumnType {
           );
         }
         for (const lookup of lookups) {
+          await afterRelatedColumnDelete?.(context, lookup.fk_column_id);
           await Column.delete(context, lookup.fk_column_id, ncMeta);
+          await afterRelatedColumnDelete?.(context, lookup.fk_column_id);
         }
       }
 
@@ -1086,7 +1197,9 @@ export default class Column<T = any> implements ColumnType {
           );
         }
         for (const rollup of rollups) {
+          await afterRelatedColumnDelete?.(context, rollup.fk_column_id);
           await Column.delete(context, rollup.fk_column_id, ncMeta);
+          await afterRelatedColumnDelete?.(context, rollup.fk_column_id);
         }
       }
     }
@@ -1114,7 +1227,10 @@ export default class Column<T = any> implements ColumnType {
     }
     // delete filters
     {
-      const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [id]);
+      const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
+        FilterCacheScope.COLUMN,
+        id,
+      ]);
       let { list: filters } = cachedList;
       const { isNoneList } = cachedList;
       if (!isNoneList && !filters.length) {
@@ -1188,6 +1304,7 @@ export default class Column<T = any> implements ColumnType {
     }
 
     if (colOptionTableName && cacheScopeName) {
+      await beforeRelatedColumnDelete?.(context, col.id);
       await ncMeta.metaDelete(
         context.workspace_id,
         context.base_id,
@@ -1196,6 +1313,7 @@ export default class Column<T = any> implements ColumnType {
           fk_column_id: col.id,
         },
       );
+      await afterRelatedColumnDelete?.(context, col.id);
       await NocoCache.deepDel(
         `${cacheScopeName}:${col.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
@@ -1259,7 +1377,9 @@ export default class Column<T = any> implements ColumnType {
 
     // Delete LTAR columns in which current column is referenced as foreign key
     for (const ltarColumn of ltarColumns) {
+      await beforeRelatedColumnDelete?.(context, ltarColumn.fk_column_id);
       await Column.delete(context, ltarColumn.fk_column_id, ncMeta);
+      await afterRelatedColumnDelete?.(context, ltarColumn.fk_column_id);
     }
 
     // Delete FileReference
@@ -1281,6 +1401,10 @@ export default class Column<T = any> implements ColumnType {
     {
       await View.clearSingleQueryCache(context, col.fk_model_id, null, ncMeta);
     }
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
   }
 
   static async update(
@@ -1605,6 +1729,8 @@ export default class Column<T = any> implements ColumnType {
         });
     }
 
+    const refTableIds = new Set<string>();
+
     // clear any related table cache if updating a FK column
     {
       // Get LTAR columns in which current column is referenced as foreign key
@@ -1632,14 +1758,112 @@ export default class Column<T = any> implements ColumnType {
       );
 
       for (const linkCol of ltarColumns) {
-        await View.clearSingleQueryCache(
-          context,
-          (linkCol as LinksColumn).fk_related_model_id,
-          null,
-          ncMeta,
-        );
+        refTableIds.add((linkCol as LinksColumn).fk_related_model_id);
       }
     }
+
+    const relationColIds = new Set<string>();
+
+    // get LTAR relation columns
+    {
+      if (oldCol.pv) {
+        // Get LTAR columns in which current column is referenced as foreign key
+        const ltarColumns = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_RELATIONS,
+          {
+            xcCondition: {
+              _and: [
+                {
+                  fk_related_model_id: { eq: oldCol.fk_model_id },
+                },
+              ],
+            },
+          },
+        );
+
+        for (const ltarCol of ltarColumns) {
+          relationColIds.add(ltarCol.fk_column_id);
+        }
+      }
+    }
+
+    // get LTAR/Links relation column id of Lookup
+    {
+      const lkColumns = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_LOOKUP,
+        {
+          xcCondition: {
+            _and: [
+              {
+                fk_lookup_column_id: { eq: oldCol.id },
+              },
+            ],
+          },
+        },
+      );
+
+      for (const lkCol of lkColumns) {
+        relationColIds.add((lkCol as LookupType).fk_relation_column_id);
+      }
+    }
+
+    // get LTAR/Links relation column id of Rollup
+    {
+      const rlColumns = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_ROLLUP,
+        {
+          xcCondition: {
+            _and: [
+              {
+                fk_rollup_column_id: { eq: oldCol.id },
+              },
+            ],
+          },
+        },
+      );
+
+      for (const rlCol of rlColumns) {
+        relationColIds.add((rlCol as LookupType).fk_relation_column_id);
+      }
+    }
+
+    if (relationColIds.size > 0) {
+      const ltarColumns = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COLUMNS,
+        {
+          xcCondition: {
+            _and: [
+              {
+                id: { in: [...relationColIds] },
+              },
+            ],
+          },
+        },
+      );
+
+      for (const linkCol of ltarColumns) {
+        refTableIds.add(linkCol.fk_model_id);
+      }
+    }
+
+    // remove self link
+    refTableIds.delete(oldCol.fk_model_id);
+
+    for (const modelId of [...refTableIds]) {
+      await View.clearSingleQueryCache(context, modelId, null, ncMeta);
+    }
+
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
   }
 
   static async updateCustomIndexName(
@@ -1835,8 +2059,6 @@ export default class Column<T = any> implements ColumnType {
       fieldLengthLimit = 64;
     } else if (sqlClientType === 'pg') {
       fieldLengthLimit = 59;
-    } else if (sqlClientType === 'mssql') {
-      fieldLengthLimit = 128;
     }
     return fieldLengthLimit;
   }

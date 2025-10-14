@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes } from 'nocodb-sdk'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
@@ -42,16 +42,13 @@ const filteredColumns = ref<
 
 const selectedFields = ref<Record<string, boolean>>({})
 
-const getIcon = (c: ColumnType) =>
-  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: c,
-  })
-
 const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
 
 const relatedModel = ref<TableType | null>()
 
-const hasSelectedFields = computed(() => Object.values(selectedFields.value).filter(Boolean).length > 0)
+const selectedFieldsCount = computed(() => Object.values(selectedFields.value).filter(Boolean).length)
+
+const hasSelectedFields = computed(() => selectedFieldsCount.value > 0)
 
 const createLookups = async () => {
   if (!hasSelectedFields.value) {
@@ -110,12 +107,21 @@ const createLookups = async () => {
 
     await getMeta(meta?.value?.id as string, true)
 
+    message.success(
+      selectedFieldsCount.value > 1
+        ? t('msg.success.nlookupFieldsCreatedSuccessfullyPlural', {
+            n: selectedFieldsCount.value,
+          })
+        : t('msg.success.nlookupFieldsCreatedSuccessfully', {
+            n: selectedFieldsCount.value,
+          }),
+    )
+
     isOpened.value = false
     selectedFields.value = {}
     emit('created')
   } catch (e) {
-    console.error(e)
-    message.error('Failed to create lookup columns')
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoading.value = false
   }
@@ -125,7 +131,10 @@ watch([relatedModel, searchField], async () => {
   if (relatedModel.value) {
     const columns = metas.value[relatedModel.value?.id]?.columns || []
     filteredColumns.value = columns.filter(
-      (c) => !isSystemColumn(c) && !isLinksOrLTAR(c) && searchCompare([c?.title], searchField.value),
+      (c: any) =>
+        getValidLookupColumn({
+          column: c,
+        }) && searchCompare([c?.title], searchField.value),
     )
   }
 })
@@ -145,13 +154,23 @@ watch(isOpened, async (val) => {
     relatedModel.value = await getMeta(fkRelatedModelId.value)
     isInSearchMode.value = false
     searchField.value = ''
+  } else {
+    selectedFields.value = {}
   }
 })
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpened" :disabled="props.disabled" placement="right" overlay-class-name="!min-w-[256px]">
-    <slot />
+  <NcDropdown
+    v-model:visible="isOpened"
+    :disabled="props.disabled"
+    placement="right"
+    overlay-class-name="!min-w-[256px]"
+    :align="{
+      offset: [9, 15],
+    }"
+  >
+    <slot :is-opened="isOpened" />
     <template #overlay>
       <div class="flex flex-col !rounded-t-lg overflow-hidden w-[256px]">
         <div @click.stop>
@@ -192,7 +211,7 @@ watch(isOpened, async (val) => {
                 @click.stop="selectedFields[field.id] = !selectedFields[field.id]"
               >
                 <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[2px] pr-2">
-                  <component :is="getIcon(field)" class="!w-3.5 !h-3.5 !text-gray-500" />
+                  <SmartsheetHeaderIcon :column="field" class="!w-3.5 !h-3.5" color="text-nc-content-gray-muted" />
                   <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
                     <template #title>
                       {{ field.title }}
@@ -208,11 +227,22 @@ watch(isOpened, async (val) => {
             </div>
           </div>
           <div class="flex w-full p-1">
-            <NcButton :loading="isLoading" size="small" class="w-full" :disabled="!hasSelectedFields" @click="createLookups">
+            <NcButton
+              :loading="isLoading"
+              size="small"
+              type="text"
+              class="nc-add-lookup-button"
+              :disabled="!hasSelectedFields"
+              @click="createLookups"
+            >
               {{
-                $t('general.addLookupField', {
-                  count: Object.values(selectedFields).filter(Boolean).length || '',
-                })
+                selectedFieldsCount > 1
+                  ? $t('general.addLookupFieldPlural', {
+                      count: selectedFieldsCount,
+                    })
+                  : $t('general.addLookupField', {
+                      count: selectedFieldsCount || '',
+                    })
               }}
             </NcButton>
           </div>
@@ -222,7 +252,7 @@ watch(isOpened, async (val) => {
   </NcDropdown>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .a-input-without-effect {
   border: none !important;
 }
@@ -240,5 +270,13 @@ watch(isOpened, async (val) => {
 .slide-out-leave-to {
   opacity: 0;
   transform: translateX(-90px);
+}
+
+.nc-add-lookup-button {
+  @apply w-full;
+
+  &:not(:disabled) {
+    @apply text-primary hover:text-primary;
+  }
 }
 </style>

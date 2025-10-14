@@ -42,11 +42,13 @@ const cellEventHook = inject(CellEventHookInj, null)
 
 const active = inject(ActiveCellInj, null)
 
+const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
+
 const readOnly = computed(() => readOnlyInj.value || column.value.readonly)
 
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
@@ -103,9 +105,17 @@ const height = computed(() => {
 })
 
 const localRowHeight = computed(() => {
-  if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
+  if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 4
 
   return rowHeight.value
+})
+
+const isPageDesignerPreviewPanel = computed(() => {
+  return extensionConfig.value.isPageDesignerPreviewPanel
+})
+
+const isFullHeight = computed(() => {
+  return isForm.value || isPageDesignerPreviewPanel.value
 })
 
 const isVisible = ref(false)
@@ -184,7 +194,9 @@ const richTextContent = computedAsync(async () => {
           enableMention: true,
           users: unref(baseUsers.value),
           currentUser: unref(user.value),
-          ...(isExpandedFormOpen.value ? { maxBlockTokens: undefined } : { maxBlockTokens: rowHeight.value }),
+          ...(isExpandedFormOpen.value || isPageDesignerPreviewPanel.value
+            ? { maxBlockTokens: undefined }
+            : { maxBlockTokens: rowHeight.value }),
         },
         true,
       ),
@@ -301,13 +313,14 @@ watch(textAreaRef, (el) => {
   }
 })
 
-const onCellEvent = (event?: Event) => {
+const onCellEvent = (event?: Event, isCanvasEvent?: boolean) => {
   if (!(event instanceof KeyboardEvent) || !event.target) return
 
   if (isExpandCellKey(event)) {
     if (isVisible.value && !isActiveInputElementExist(event)) {
       handleClose()
-    } else {
+    } else if (!isActiveInputElementExist(event) || isCanvasEvent) {
+      // Expand only if user is not editing inline
       onExpand()
     }
 
@@ -318,10 +331,10 @@ const onCellEvent = (event?: Event) => {
 onMounted(() => {
   cellEventHook?.on(onCellEvent)
 
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value) return
+  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value || isEditColumn.value) return
   const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
   forcedNextTick(() => {
-    if (onCellEvent(canvasCellEventData.event)) return
+    if (onCellEvent(canvasCellEventData.event, true)) return
 
     if (getElementAtMouse('.nc-canvas-table-editable-cell-wrapper .nc-textarea-expand', position)) {
       onExpand()
@@ -450,7 +463,7 @@ useResizeObserver(inputWrapperRef, () => {
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
         'min-h-5.5': rowHeight === 1 && !isExpandedFormOpen,
-        'h-full w-full': isForm,
+        'h-full w-full': isFullHeight,
       }"
     >
       <div v-if="isForm && isRichMode" class="w-full">
@@ -460,7 +473,7 @@ useResizeObserver(inputWrapperRef, () => {
             'pt-11': !readOnly,
           }"
         >
-          <LazyCellRichText
+          <CellRichText
             v-model:value="vModel"
             :class="{
               'border-t-1 border-gray-100 allow-vertical-resize': !readOnly,
@@ -479,16 +492,17 @@ useResizeObserver(inputWrapperRef, () => {
           isExpandedFormOpen ? 'nc-scrollbar-thin' : 'overflow-hidden',
           {
             'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
-            'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
+            'nc-readonly-rich-text-sort-height':
+              localRowHeight === 1 && !isExpandedFormOpen && !isForm && !isPageDesignerPreviewPanel,
           },
         ]"
         :style="{
-          maxHeight: isForm
+          maxHeight: isFullHeight
             ? undefined
             : isExpandedFormOpen
             ? `${height}px`
             : `${16.6 * rowHeightTruncateLines(localRowHeight)}px`,
-          minHeight: isForm
+          minHeight: isFullHeight
             ? undefined
             : isExpandedFormOpen
             ? `${height}px`
@@ -500,7 +514,11 @@ useResizeObserver(inputWrapperRef, () => {
       >
         <div
           class="nc-cell-field nc-rich-text-content nc-rich-text-content-grid"
-          :class="!isExpandedFormOpen ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}` : 'py-2'"
+          :class="
+            !isExpandedFormOpen && !isPageDesignerPreviewPanel
+              ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}`
+              : 'py-2'
+          "
           v-html="richTextContent"
         ></div>
       </div>
@@ -528,7 +546,7 @@ useResizeObserver(inputWrapperRef, () => {
             'py-1 h-full': isForm,
             'px-2': isExpandedFormOpen,
             'border-none': !(props.isAi && isExpandedFormOpen),
-            'border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected border-primary ring-0) transition-shadow duration-300':
+            'border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected-ai border-nc-border-purple ring-0) transition-shadow duration-300':
               props.isAi && isExpandedFormOpen,
             'bg-transparent': isUnderFormula,
           }"
@@ -536,7 +554,7 @@ useResizeObserver(inputWrapperRef, () => {
             minHeight: isForm ? '117px' : `${height}px`,
             maxHeight: 'min(800px, calc(100vh - 200px))',
           }"
-          :disabled="readOnly || (props.isAi && isEditColumn)"
+          :disabled="!!readOnly || (props.isAi && !!isEditColumn) || isAiGenerating"
           @blur="editEnabled = false"
           @keydown.alt.stop
           @keydown.alt.enter.stop
@@ -562,7 +580,7 @@ useResizeObserver(inputWrapperRef, () => {
             </div>
           </div>
 
-          <div v-if="!isEditColumn" class="flex items-center gap-2 px-3 py-0.5 !text-small leading-[18px]">
+          <div v-if="!isEditColumn" class="flex items-center gap-2 px-3 pt-0.5 pb-[3.5px] !text-small leading-[18px]">
             <span class="text-nc-content-purple-light truncate">Generated by AI</span>
             <NcTooltip v-if="isAiEdited" class="text-nc-content-green-dark flex-1 truncate" show-on-truncate-only>
               <template #title> Edited by you </template>
@@ -617,7 +635,7 @@ useResizeObserver(inputWrapperRef, () => {
 
       <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
-      <LazyCellClampedText
+      <CellClampedText
         v-else-if="rowHeight"
         :value="vModel"
         :lines="rowHeightTruncateLines(localRowHeight)"
@@ -633,6 +651,7 @@ useResizeObserver(inputWrapperRef, () => {
       <span v-else>{{ vModel }}</span>
 
       <div
+        v-if="!isPageDesignerPreviewPanel"
         class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3 items-center gap-1"
         :class="{
           'active': active && isCanvasInjected,
@@ -668,7 +687,7 @@ useResizeObserver(inputWrapperRef, () => {
             <template #icon>
               <GeneralIcon
                 icon="refresh"
-                class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3"
+                class="transform group-hover:(!text-gray-800) text-gray-700 w-3 h-3"
                 :class="{ 'animate-infinite animate-spin': isAiGenerating }"
               />
             </template>
@@ -682,7 +701,7 @@ useResizeObserver(inputWrapperRef, () => {
             class="nc-textarea-expand !p-0 !w-5 !h-5 !min-w-[fit-content]"
             @click.stop="onExpand"
           >
-            <component :is="iconMap.maximize" class="transform group-hover:(!text-grey-800) text-gray-700 w-3 h-3" />
+            <component :is="iconMap.maximize" class="transform group-hover:(!text-gray-800) text-gray-700 w-3 h-3" />
           </NcButton>
         </NcTooltip>
       </div>
@@ -723,9 +742,11 @@ useResizeObserver(inputWrapperRef, () => {
             }"
           />
           <div
-            class="flex max-w-38"
+            class="flex"
             :class="{
               'text-xl': props.isAi,
+              'max-w-full': props.isAi && isEditColumn,
+              'max-w-38': !(props.isAi && isEditColumn),
             }"
           >
             <span class="truncate">
@@ -755,7 +776,7 @@ useResizeObserver(inputWrapperRef, () => {
               </template>
             </div>
             <div class="flex-1"></div>
-            <div v-if="!readOnly" class="flex items-center gap-1 mr-4">
+            <div v-if="!readOnly" class="flex items-center gap-1">
               <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
                 <template #title>
                   {{
@@ -767,16 +788,32 @@ useResizeObserver(inputWrapperRef, () => {
                   :bordered="false"
                   theme="ai"
                   size="small"
+                  inner-class="!gap-2"
                   :disabled="!isFieldAiIntegrationAvailable"
+                  :class="{
+                    '!text-nc-content-purple-medium !bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark':
+                      isFieldAiIntegrationAvailable,
+                  }"
+                  :loading="isAiGenerating"
                   @click.stop="generate"
                 >
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="refresh" :class="{ 'animate-infinite animate-spin': isAiGenerating }" />
-                    <span class="text-sm font-bold"> {{ isAiGenerating ? 'Re-generating...' : 'Re-generate' }} </span>
-                  </div>
+                  <template #icon>
+                    <GeneralIcon icon="refresh" />
+                  </template>
+                  <template #loadingIcon>
+                    <GeneralIcon icon="refresh" class="animate-infinite animate-spin" />
+                  </template>
+
+                  {{ isAiGenerating ? 'Re-generating...' : 'Re-generate' }}
                 </NcButton>
               </NcTooltip>
             </div>
+          </template>
+          <template v-if="props.isAi">
+            <div v-if="isEditColumn" class="flex-1"></div>
+            <NcButton class="mr-3" type="text" size="small" @click="isVisible = false">
+              <GeneralIcon icon="close" />
+            </NcButton>
           </template>
         </div>
         <div v-if="props.isAi && props.aiMeta?.isStale && !readOnly" ref="aiWarningRef" class="border-b-1 border-gray-100">
@@ -795,7 +832,11 @@ useResizeObserver(inputWrapperRef, () => {
           <a-textarea
             ref="inputRef"
             v-model:value="vModel"
-            class="nc-text-area-expanded !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
+            class="nc-text-area-expanded !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg disabled:!bg-nc-bg-gray-extralight nc-longtext-scrollbar"
+            :class="{
+              '!focus:border-nc-border-brand': !props.isAi,
+              '!hover:border-nc-border-purple !focus:border-nc-border-purple': props.isAi,
+            }"
             :placeholder="$t('activity.enterText')"
             :style="{
               resize: 'both',
@@ -809,7 +850,7 @@ useResizeObserver(inputWrapperRef, () => {
           />
         </div>
 
-        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
+        <CellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
       </div>
     </a-modal>
   </div>
@@ -896,6 +937,15 @@ textarea:focus {
       max-width: min(1280px, 100vw - 100px);
       max-height: min(864px, 100vh - 100px);
 
+      @supports (height: 100dvh) {
+        max-height: min(864px, 100dvh - 100px);
+      }
+
+      @media (max-width: 767px) {
+        max-width: min(1280px, 100vw - 32px);
+        min-width: min(1280px, 100vw - 32px);
+      }
+
       .nc-longtext-scrollbar {
         @apply scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent;
       }
@@ -903,11 +953,13 @@ textarea:focus {
       .expanded-cell-input-ai {
         .nc-text-area-expanded {
           max-height: min(783px - 76px, 100vh - 180px);
+
+          @supports (height: 100dvh) {
+            max-height: min(783px - 76px, 100dvh - 180px);
+          }
         }
       }
     }
   }
 }
 </style>
-
-<style lang="scss"></style>

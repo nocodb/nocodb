@@ -61,6 +61,10 @@ test.describe.serial('Test table', () => {
     await dashboard.rootPage.waitForTimeout(650);
 
     await dashboard.rootPage.reload();
+
+    // wait for auto navigate to project completion
+    await dashboard.rootPage.waitForTimeout(2000);
+
     await dashboard.treeView.openProject({ title: 'xcdb', context });
 
     api = new Api({
@@ -219,6 +223,9 @@ test.describe.serial('Test table', () => {
     // refresh page
     await page.reload();
 
+    // wait for auto navigate to project completion
+    await dashboard.rootPage.waitForTimeout(2000);
+
     const hiddenLinksTableColumns = [
       {
         tableName: 'Table1',
@@ -237,6 +244,8 @@ test.describe.serial('Test table', () => {
         columns: ['Table3s'],
       },
     ];
+
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: 'xcdb', open: true });
 
     // Unhide links columns
     for (const table of hiddenLinksTableColumns) {
@@ -289,6 +298,8 @@ test.describe.serial('Test table', () => {
   });
 
   test('Delete record - bulk, over UI', async () => {
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: 'xcdb', open: true });
+
     await dashboard.treeView.openTable({ title: 'Table0' });
     await grid.selectRow(0);
     await grid.selectRow(1);
@@ -306,6 +317,8 @@ test.describe.serial('Test table', () => {
   });
 
   test('Delete column', async () => {
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: 'xcdb', open: true });
+
     // has-many
     await dashboard.treeView.openTable({ title: 'Table0' });
     await dashboard.grid.column.delete({ title: 'TableA:hm:TableB' });
@@ -348,6 +361,8 @@ test.describe.serial('Test table', () => {
   });
 
   test('Delete table', async () => {
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: 'xcdb', open: true });
+
     await dashboard.treeView.deleteTable({ title: 'Table0' });
     await dashboard.treeView.verifyTable({ title: 'Table0', exists: false });
 

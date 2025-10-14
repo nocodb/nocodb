@@ -30,11 +30,8 @@ import { MetaTable } from '~/utils/globals';
 // while other non-local attachments will remain unchanged
 
 function getTnPath(knex: XKnex, tb: Model) {
-  const schema = (knex as any).searchPath?.();
   const clientType = knex.clientType();
-  if (clientType === 'mssql' && schema) {
-    return knex.raw('??.??', [schema, tb.table_name]).toQuery();
-  } else if (clientType === 'snowflake') {
+  if (clientType === 'snowflake') {
     return [
       knex.client.config.connection.database,
       knex.client.config.connection.schema,

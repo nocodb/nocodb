@@ -13,6 +13,8 @@ const props = withDefaults(
     previewClassOverride?: string
     renameInline?: boolean
     confirmToDelete?: boolean
+    iconWidth?: number
+    iconHeight?: number
   }>(),
   {
     selected: false,
@@ -35,8 +37,7 @@ const emits = defineEmits<{
 const isSelected = useVModel(props, 'selected', emits)
 const isDragging = useVModel(props, 'dragging', emits)
 
-const { getPossibleAttachmentSrc } = useAttachment()
-const { FileIcon, downloadAttachment, renameFileInline, renameFile, removeFile, isEditAllowed } = useAttachmentCell()!
+const { downloadAttachment, renameFileInline, renameFile, removeFile, isEditAllowed } = useAttachmentCell()!
 
 const isRenamingFile = ref(false)
 const renameTitle = ref('')
@@ -88,7 +89,7 @@ const handleFileDeleteStart = () => {
 </script>
 
 <template>
-  <div class="nc-attachment-item group gap-1 flex border-1 rounded-md border-gray-200 flex-col relative">
+  <div class="nc-attachment-item group gap-1 flex border-1 rounded-md border-nc-border-gray-medium flex-col relative">
     <NcCheckbox
       v-if="allowSelection"
       v-model:checked="isSelected"
@@ -103,35 +104,20 @@ const handleFileDeleteStart = () => {
       class="nc-attachment h-full flex justify-center items-center overflow-hidden"
       @click.stop="emits('clicked')"
     >
-      <LazyCellAttachmentPreviewImage
-        v-if="isImage(attachment.title, attachment.mimetype)"
-        :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
+      <LazyCellAttachmentPreviewThumbnail
+        :attachment="attachment"
+        thumbnail="card_cover"
+        :class="previewClassOverride ? `${previewClassOverride}` : ''"
         object-fit="contain"
         class="!w-full !m-0 rounded-t-[5px] justify-center"
-        :class="previewClassOverride ? `${previewClassOverride}` : ''"
+        :icon-height="iconHeight"
+        :icon-width="iconWidth"
       />
-      <GeneralIcon
-        v-else-if="isAudio(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypeAudio"
-        :height="45"
-        :width="45"
-      />
-      <GeneralIcon
-        v-else-if="isVideo(attachment.title, attachment.mimetype)"
-        class="text-white"
-        icon="ncFileTypeVideo"
-        :height="45"
-        :width="45"
-      />
-      <component :is="FileIcon(attachment.icon)" v-else-if="attachment.icon" :height="45" :width="45" class="text-white" />
-
-      <GeneralIcon v-else icon="ncFileTypeUnknown" :height="45" :width="45" class="text-white" />
     </div>
 
     <div class="relative px-1 pb-1 items-center flex" :title="attachment.title">
       <div
-        class="flex w-full text-[12px] items-center text-gray-700 cursor-default h-5"
+        class="flex w-full text-[12px] items-center text-nc-content-gray-subtle cursor-default h-5"
         :class="{ truncate: !isRenamingFile }"
         @dblclick.stop="allowRename && isEditAllowed && handleFileRenameStart()"
       >
@@ -154,13 +140,13 @@ const handleFileDeleteStart = () => {
         />
       </div>
       <div
-        class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-white"
+        class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-nc-bg-default"
         :class="{ '!h-auto !w-auto !overflow-visible !whitespace-normal': isRenamingFile }"
       >
         <NcTooltip placement="bottom">
           <template #title> {{ $t('title.downloadFile') }} </template>
           <NcButton
-            class="!p-0 !w-5 !h-5 !text-gray-500 !min-w-[fit-content]"
+            class="!p-0 !w-5 !h-5 !text-nc-content-gray-muted !min-w-[fit-content]"
             size="xsmall"
             type="text"
             @click="downloadAttachment(attachment)"
@@ -173,7 +159,7 @@ const handleFileDeleteStart = () => {
           <template #title> {{ $t('title.renameFile') }} </template>
           <NcButton
             size="xsmall"
-            class="!p-0 nc-attachment-rename !h-5 !w-5 !text-gray-500 !min-w-[fit-content] gap-2"
+            class="!p-0 nc-attachment-rename !h-5 !w-5 !text-nc-content-gray-muted !min-w-[fit-content] gap-2"
             type="text"
             @click="handleFileRenameStart"
           >
@@ -184,7 +170,7 @@ const handleFileDeleteStart = () => {
         <NcTooltip v-if="allowDelete && isEditAllowed" placement="bottom">
           <template #title> {{ $t('title.removeFile') }} </template>
           <NcButton
-            class="!p-0 !h-5 !w-5 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
+            class="!p-0 !h-5 !w-5 !text-nc-fill-red-medium nc-attachment-remove !min-w-[fit-content]"
             size="xsmall"
             type="text"
             @click="handleFileDeleteStart"

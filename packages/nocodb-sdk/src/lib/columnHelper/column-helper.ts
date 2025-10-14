@@ -1,3 +1,4 @@
+import { ColumnType } from '../Api';
 import { ncIsString } from '../is';
 import UITypes from '../UITypes';
 import AbstractColumnHelper, {
@@ -38,6 +39,7 @@ import {
   YearHelper,
 } from './columns';
 import { SingleSelectHelper } from './columns/SingleSelect';
+import { getClipboardConfigForColumn } from './utils/clipboard-config';
 
 export class ColumnHelperClass {
   defautlHelper = 'defautlHelper';
@@ -144,6 +146,46 @@ export class ColumnHelperClass {
     if (columnInstance) {
       return columnInstance.serializeValue(value, params);
     }
+  }
+
+  /**
+   * Parses a plain cell value back into its original form.
+   * Converts a plain cell value into a display-friendly format.
+   *
+   * @param value - The value to be parsed from storage format.
+   * @param params - Additional parameters related to column parsing.
+   * @returns The parsed value in a display-friendly format.
+   */
+  parsePlainCellValue(value: any, params: SerializerOrParserFnProps['params']) {
+    const columnInstance = this.getColumn(params);
+    if (columnInstance) {
+      return columnInstance.parsePlainCellValue(value, params);
+    }
+
+    return value;
+  }
+
+  populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }) {
+    const columnInstance = this.getColumn({
+      col: params.column,
+    });
+    if (columnInstance) {
+      return columnInstance.populateFillHandle(params);
+    }
+    return undefined;
+  }
+
+  getClipboardConfig(params: SerializerOrParserFnProps['params']) {
+    const columnInstance = this.getColumn(params);
+    if (columnInstance) {
+      return columnInstance.getClipboardConfig(params);
+    }
+
+    return getClipboardConfigForColumn({ col: params.col });
   }
 }
 

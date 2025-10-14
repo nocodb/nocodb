@@ -17,6 +17,7 @@ interface Emits {
   (e: 'openErdView', value: SourceType): void
   (e: 'duplicateProject', base: NcProject): void
   (e: 'openBaseSettings', id: string): void
+  (e: 'openMcpServer', id: string): void
   (e: 'copyProjectInfo'): void
   (e: 'delete'): void
 }
@@ -33,7 +34,9 @@ const isOptionVisible = computed(() => {
   return {
     rename: isUIAllowed('baseRename'),
     baseDuplicate: isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),
-    baseOptions: base.value?.sources?.[0]?.enabled && props.showBaseOption(base.value.sources[0]),
+    baseOptions:
+      (base.value?.sources?.[0]?.enabled || (base.value?.sources || []).length > 1) &&
+      props.showBaseOption(base.value.sources[0]),
     baseDelete: isUIAllowed('baseDelete', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),
   }
 })
@@ -50,6 +53,17 @@ const isOptionVisible = computed(() => {
     variant="small"
     @click="emits('clickMenu')"
   >
+    <!-- Copy Base ID -->
+    <NcMenuItemCopyId
+      :id="base.id"
+      :tooltip="$t('labels.clickToCopyBaseID')"
+      :label="
+        $t('labels.baseIdColon', {
+          baseId: base.id,
+        })
+      "
+    />
+
     <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-project-rename" @click="emits('rename')">
       <div v-e="['c:base:rename']" class="flex gap-2 items-center">
         <GeneralIcon icon="rename" />
@@ -91,17 +105,44 @@ const isOptionVisible = computed(() => {
       </div>
     </NcMenuItem>
 
+    <NcMenuItem key="mcp" data-testid="nc-sidebar-mcp-server" @click="emits('openMcpServer', base.id!)">
+      <div v-e="['c:base:mcp-server']" class="flex gap-2 items-center">
+        <GeneralIcon icon="mcp" />
+        {{ $t('title.mcpServer') }}
+      </div>
+    </NcMenuItem>
+
     <!-- Swagger: Rest APIs -->
-    <NcMenuItem
+    <NcSubMenu
       v-if="isUIAllowed('apiDocs')"
       key="api"
       v-e="['e:api-docs']"
       data-testid="nc-sidebar-base-rest-apis"
-      @click.stop="openLink(`/api/v2/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
+      class="py-0"
+      variant="small"
+      @click.stop
     >
-      <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
-      {{ $t('activity.account.swagger') }}
-    </NcMenuItem>
+      <template #title>
+        <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
+        {{ $t('activity.account.swagger') }}
+      </template>
+
+      <NcMenuItem
+        data-testid="nc-sidebar-base-rest-apis-v2"
+        @click.stop="openLink(`/api/v2/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
+      >
+        <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
+        API v2
+      </NcMenuItem>
+
+      <NcMenuItem
+        data-testid="nc-sidebar-base-rest-apis-v3"
+        @click.stop="openLink(`/api/v3/meta/bases/${base.id}/swagger`, appInfo.ncSiteUrl)"
+      >
+        <GeneralIcon icon="ncCode" class="opacity-80 !max-w-3.9" />
+        API v3
+      </NcMenuItem>
+    </NcSubMenu>
 
     <template v-if="isOptionVisible.baseOptions">
       <NcDivider />
@@ -122,12 +163,7 @@ const isOptionVisible = computed(() => {
         {{ $t('activity.settings') }}
       </div>
     </NcMenuItem>
-    <NcMenuItem
-      v-if="isOptionVisible.baseDelete"
-      data-testid="nc-sidebar-base-delete"
-      class="!text-red-500 !hover:bg-red-50"
-      @click="emits('delete')"
-    >
+    <NcMenuItem v-if="isOptionVisible.baseDelete" data-testid="nc-sidebar-base-delete" danger @click="emits('delete')">
       <div class="flex gap-2 items-center">
         <GeneralIcon icon="delete" class="w-4" />
         {{ $t('general.delete') }}

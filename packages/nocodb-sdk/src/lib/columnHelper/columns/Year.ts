@@ -3,6 +3,8 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { parseYearValue, serializeYearValue } from '../utils';
+import { ColumnType } from '~/lib/Api';
+import { populateFillHandleStringNumber } from '../utils/fill-handler';
 
 export class YearHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -10,7 +12,11 @@ export class YearHelper extends AbstractColumnHelper {
   serializeValue(
     value: any,
     params: SerializerOrParserFnProps['params']
-  ): number | null {
+  ): string | number | null {
+    if (params.serializeSearchQuery) {
+      return this.parseValue(value);
+    }
+
     value = serializeYearValue(value);
 
     if (value === null) {
@@ -30,5 +36,14 @@ export class YearHelper extends AbstractColumnHelper {
 
   parsePlainCellValue(value: any): string {
     return `${parseYearValue(value) ?? ''}`;
+  }
+
+  // using string number fill handler
+  override populateFillHandle(params: {
+    column: ColumnType;
+    highlightedData: any[];
+    numberOfRows: number;
+  }): any[] {
+    return populateFillHandleStringNumber(params);
   }
 }

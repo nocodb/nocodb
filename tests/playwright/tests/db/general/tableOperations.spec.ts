@@ -4,7 +4,6 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { deepCompare } from '../../../tests/utils/objectCompareUtil';
 import setup, { unsetup } from '../../../setup';
 import { BaseInfoApiUtil, TableInfo } from '../../../tests/utils/baseInfoApiUtil';
-import { isEE } from '../../../setup/db';
 import { AuditPage } from '../../../pages/Dashboard/ProjectView/Audit';
 
 test.describe('Table Operations', () => {
@@ -67,7 +66,7 @@ test.describe('Table Operations', () => {
     await dashboard.treeView.verifyTable({ title: 'Address', index: 0 });
 
     // verify table icon customization
-    await dashboard.treeView.openTable({ title: 'Address' });
+    await dashboard.treeView.openTable({ title: 'Address', baseTitle: context.base.title });
     await dashboard.treeView.changeTableIcon({ title: 'Address', icon: 'american-football', iconDisplay: '🏈' });
     await dashboard.treeView.verifyTabIcon({ title: 'Address', icon: 'american-football', iconDisplay: '🏈' });
   });

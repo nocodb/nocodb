@@ -6,6 +6,7 @@ import {
   UITypes,
   isHiddenCol,
   substituteColumnIdWithAliasInFormula,
+  substituteColumnIdWithAliasInPrompt,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
 import { searchIcons } from '~/utils/iconUtils'
@@ -21,17 +22,20 @@ const buttonActionsType = {
   ...ButtonActionsType,
 }
 
-const { t } = useI18n()
-
-const { getMeta } = useMetas()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode } = useColumnCreateStoreOrThrow()
+const { t } = useI18n()
+
+const { getMeta } = useMetas()
+
+const { isAiBetaFeaturesEnabled } = useNocoAi()
+
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
+  useColumnCreateStoreOrThrow()
+
+const { isRowActionsEnabled } = useActionPane()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -57,43 +61,49 @@ const selectedWebhook = ref<HookType>()
 
 const selectedScript = ref<ScriptType>()
 
+const defaultEditorError = {
+  isError: false,
+  message: '',
+  position: {
+    column: -1,
+    row: -1,
+  },
+}
+const editorError = ref(defaultEditorError)
+
 const isAiButtonEnabled = computed(() => {
   if (isEdit.value) {
     return true
   }
 
-  return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
-})
-
-const isScriptButtonEnabled = computed(() => {
-  if (isEdit.value) {
-    return true
-  }
-
-  return isFeatureEnabled(FEATURE_FLAG.NOCODB_SCRIPTS)
+  return isAiBetaFeaturesEnabled.value
 })
 
 const buttonTypes = computed(() => [
   {
+    icon: 'ncLink',
     label: t('labels.openUrl'),
     value: ButtonActionsType.Url,
   },
   {
     label: t('labels.runWebHook'),
     value: ButtonActionsType.Webhook,
+    icon: 'ncWebhook',
   },
   ...(isAiButtonEnabled.value
     ? [
         {
+          icon: 'ncAutoAwesome',
           label: t('labels.generateFieldDataUsingAi'),
           value: ButtonActionsType.Ai,
           tooltip: t('tooltip.generateFieldDataUsingAiButtonOption'),
         },
       ]
     : []),
-  ...(isEeUI && isScriptButtonEnabled.value
+  ...(isEeUI && isRowActionsEnabled.value
     ? [
         {
+          icon: 'ncScript',
           label: t('labels.runScript'),
           value: ButtonActionsType.Script,
         },
@@ -132,12 +142,20 @@ const validators = {
                 columns: supportedColumns.value,
                 clientOrSqlUi: sqlUi.value,
                 getMeta,
+                trackPosition: true,
               })
+              editorError.value = { ...defaultEditorError }
             } catch (e: any) {
-              if (e instanceof FormulaError && e.extra?.key) {
-                throw new Error(t(e.extra.key, e.extra))
+              const errorMessage = e instanceof FormulaError && e.extra?.key ? t(e.extra.key, e.extra) : e.message
+              if (e instanceof FormulaError && e.extra?.position) {
+                editorError.value = {
+                  isError: true,
+                  message: errorMessage,
+                  position: e.extra.position,
+                }
+              } else {
+                editorError.value = { ...defaultEditorError }
               }
-
               throw new Error(e.message)
             }
           } else if (vModel.value.type === ButtonActionsType.Ai) {
@@ -298,6 +316,13 @@ if (vModel.value?.type === ButtonActionsType.Url || (column.value?.colOptions as
   } else {
     vModel.value.formula_raw = ''
   }
+} else if (vModel.value?.type === ButtonActionsType.Ai || (column.value?.colOptions as any)?.type === ButtonActionsType.Ai) {
+  vModel.value.formula_raw =
+    substituteColumnIdWithAliasInPrompt(
+      (column.value?.colOptions as ButtonType)?.formula ?? '',
+      meta?.value?.columns as ColumnType[],
+      (column.value?.colOptions as any)?.formula_raw,
+    ).substituted || ''
 }
 
 const colorClass = {
@@ -366,6 +391,7 @@ const selectIcon = (icon: string) => {
 }
 
 const handleUpdateActionType = () => {
+  updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }
 </script>
@@ -498,6 +524,7 @@ const handleUpdateActionType = () => {
             <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
               <NcTooltip :disabled="!type.tooltip" placement="right" class="w-full" :title="type.tooltip">
                 <div class="flex gap-2 w-full capitalize text-gray-800 truncate items-center">
+                  <GeneralIcon :icon="type.icon" />
                   <div class="flex-1">
                     {{ type.label }}
                   </div>
@@ -521,6 +548,7 @@ const handleUpdateActionType = () => {
         editor-height="50px"
         :disabled-formulas="['URL()', 'URLENCODE()']"
         disable-suggestion-headers
+        :editor-error="editorError"
         :label="$t('labels.urlFormula')"
         :error="validateInfos.formula_raw?.validateStatus === 'error'"
       />
@@ -531,7 +559,7 @@ const handleUpdateActionType = () => {
       v-model:selected-webhook="selectedWebhook"
     />
     <SmartsheetColumnButtonOptionsScript
-      v-if="vModel?.type === buttonActionsType.Script"
+      v-if="vModel?.type === buttonActionsType.Script && isRowActionsEnabled"
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />

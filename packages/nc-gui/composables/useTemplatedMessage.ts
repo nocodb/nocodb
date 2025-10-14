@@ -15,7 +15,7 @@ export function useTemplatedMessage(
     let res = temp
 
     for (const entry of Object.entries(opts)) {
-      res = res.replace(new RegExp(`{\\s*${entry[0]}\\s*}`, 'g'), entry[1])
+      res = res.replace(new RegExp(`{\\s*${entry[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*}`, 'g'), entry[1])
     }
 
     return res

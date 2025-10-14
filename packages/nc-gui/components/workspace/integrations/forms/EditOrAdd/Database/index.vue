@@ -3,6 +3,7 @@ import { Form } from 'ant-design-vue'
 import type { SelectHandler } from 'ant-design-vue/es/vc-select/Select'
 import { diff } from 'deep-object-diff'
 import { IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { defineAsyncComponent } from 'vue'
 import {
   type CertTypes,
   ClientType,
@@ -23,6 +24,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['update:open'])
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 const vOpen = useVModel(props, 'open', emit)
 
@@ -155,7 +159,6 @@ const validators = computed(() => {
       }
       break
     case ClientType.PG:
-    case ClientType.MSSQL:
       clientValidations['dataSource.searchPath.0'] = [fieldRequiredValidator()]
       break
   }
@@ -332,11 +335,11 @@ function applyConfigFix(fix: any) {
 
 const testConnectionError = ref()
 
-const testConnection = async (retry = 0, initialConfig = null) => {
+const testConnection = async (retry = 0, initialConfig = null, initialError = null) => {
   try {
     await validate()
-  } catch (e) {
-    if (e.errorFields?.length) {
+  } catch (e: any) {
+    if (e?.errorFields?.length) {
       focusInvalidInput()
       return
     }
@@ -374,7 +377,7 @@ const testConnection = async (retry = 0, initialConfig = null) => {
   } catch (e: any) {
     // take a copy of the current config
     const config = initialConfig || JSON.parse(JSON.stringify(formState.value.dataSource))
-    await handleConnectionError(e, retry, config)
+    await handleConnectionError(e, retry, config, initialError || e)
   } finally {
     testingConnection.value = false
   }
@@ -382,26 +385,22 @@ const testConnection = async (retry = 0, initialConfig = null) => {
 
 const MAX_CONNECTION_RETRIES = 3
 
-async function handleConnectionError(e: any, retry: number, initialConfig: any): Promise<void> {
-  if (retry >= MAX_CONNECTION_RETRIES) {
-    testSuccess.value = false
-    testConnectionError.value = await extractSdkResponseErrorMsg(e)
-    // reset the connection config to initial state
-    formState.value.dataSource = initialConfig
-    return
-  }
-
-  const fix = generateConfigFix(e)
-
-  if (fix) {
-    applyConfigFix(fix)
-    // Retry the connection after applying the fix
-    return testConnection(retry + 1, initialConfig)
+async function handleConnectionError(e: any, retry: number, initialConfig: any, initialError: any): Promise<void> {
+  if (retry < MAX_CONNECTION_RETRIES) {
+    const fix = generateConfigFix(e)
+    if (fix) {
+      applyConfigFix(fix)
+      // Retry the connection after applying the fix
+      return testConnection(retry + 1, initialConfig, initialError)
+    }
   }
 
   // If no fix is available, or fix did not resolve the issue
+  // then reset to initial state
+  formState.value.dataSource = initialConfig || formState.value.dataSource
   testSuccess.value = false
-  testConnectionError.value = await extractSdkResponseErrorMsg(e)
+  // extract error message from initial call
+  testConnectionError.value = await extractSdkResponseErrorMsg(initialError || e)
 }
 
 const handleImportURL = async () => {
@@ -941,10 +940,7 @@ watch(
                       <a-col :span="12">
                         <!-- Schema name -->
                         <a-form-item
-                          v-if="
-                            [ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client) &&
-                            formState.dataSource.searchPath
-                          "
+                          v-if="[ClientType.PG].includes(formState.dataSource.client) && formState.dataSource.searchPath"
                           :label="$t('labels.schemaName')"
                           v-bind="validateInfos['dataSource.searchPath.0']"
                         >
@@ -1197,7 +1193,19 @@ watch(
                     <div class="flex flex-col gap-2">
                       <div>Edit Connection JSON</div>
                       <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
-                        <MonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
+                        <Suspense>
+                          <template #default>
+                            <MonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
+                          </template>
+                          <template #fallback>
+                            <div class="h-[400px] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                              <div class="text-center">
+                                <a-spin size="large" />
+                                <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                              </div>
+                            </div>
+                          </template>
+                        </Suspense>
                       </div>
                     </div>
                   </a-collapse-panel>

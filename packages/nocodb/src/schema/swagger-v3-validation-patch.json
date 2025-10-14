@@ -1,0 +1,111 @@
+{
+  "components": {
+    "schemas": {
+      "CreateField": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBaseCreate"
+          }
+        ]
+      },
+      "FieldUpdate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBase"
+          }
+        ]
+      },
+      "ViewCreate": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBase"
+          },
+          {
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "grid",
+                  "gallery",
+                  "kanban",
+                  "calendar",
+                  "form"
+                ],
+                "description": "Type of the view."
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string"
+                    },
+                    "show": {
+                      "type": "boolean"
+                    },
+                    "width": {
+                      "type": "integer"
+                    },
+                    "aggregation": {
+                      "$ref": "#/components/schemas/ViewAggregationEnum"
+                    }
+                  },
+                  "required": [
+                    "field_id",
+                    "show"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "type",
+              "title"
+            ]
+          }
+        ]
+      },
+      "ViewUpdate": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ViewBaseInUpdate"
+          },
+          {
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique identifier for the view."
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field_id": {
+                      "type": "string"
+                    },
+                    "show": {
+                      "type": "boolean"
+                    },
+                    "width": {
+                      "type": "integer"
+                    },
+                    "aggregation": {
+                      "$ref": "#/components/schemas/ViewAggregationEnum"
+                    }
+                  },
+                  "required": [
+                    "field_id",
+                    "show"
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -3,6 +3,7 @@ import setup, { NcContext, unsetup } from '../../../setup';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { Api } from 'nocodb-sdk';
 import { createDemoTable } from '../../../setup/demoTable';
+import { isMysql } from '../../../setup/db';
 
 interface paramsType {
   dashboard: DashboardPage;
@@ -46,7 +47,7 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
   const table = await createDemoTable({ context, type: tableType, recordCnt: 10 });
   await page.reload();
 
-  await dashboard.treeView.openTable({ title: tableType });
+  await dashboard.treeView.openTable({ title: tableType, baseTitle: context.base.title });
 
   return { dashboard, context, api, table } as paramsType;
 }
@@ -102,6 +103,10 @@ test.describe('Fill Handle', () => {
   });
 
   test('Number based', async () => {
+    if (isMysql(p.context)) {
+      test.skip();
+    }
+
     const fields = [
       { title: 'Number', value: 33, type: 'text' },
       { title: 'Decimal', value: 33.3, type: 'text' },
@@ -114,7 +119,7 @@ test.describe('Fill Handle', () => {
     ];
 
     // kludge: insert time from browser until mysql issue with timezone is fixed
-    await p.dashboard.grid.cell.time.set({ index: 0, columnHeader: 'Time', value: '02:02' });
+    // await p.dashboard.grid.cell.time.set({ index: 0, columnHeader: 'Time', value: '02:02' });
 
     // set rating for first record
     await p.dashboard.grid.cell.rating.select({ index: 0, columnHeader: 'Rating', rating: 3 });

@@ -44,6 +44,7 @@ test.describe('Erd', () => {
   };
 
   const openProjectErd = async () => {
+    await dashboard.baseView.openOverview();
     await dashboard.baseView.tab_dataSources.click();
     await dashboard.baseView.dataSources.openERD({ rowIndex: 0 });
 
@@ -53,12 +54,13 @@ test.describe('Erd', () => {
   };
 
   const openErdOfATable = async (tableName: string) => {
-    await dashboard.treeView.openTable({ title: tableName });
+    await dashboard.treeView.openTable({ title: tableName, baseTitle: context.base.title });
     await dashboard.grid.topbar.openDetailedTab();
     await dashboard.details.clickRelationsTab();
   };
 
-  test('Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names', async () => {
+  // skipping this test as it is disabled in the GUI of base ERD
+  test.skip('Verify default config, all columns disabled, only PK and FK disabled, Sql views and MM table option, junction table names', async () => {
     await toggleMM();
     await openProjectErd();
 
@@ -186,6 +188,9 @@ test.describe('Erd', () => {
     await openErdOfATable('Country');
     const erd = dashboard.details.relations;
 
+    // By default all columns are hidden, enable back for the test
+    await erd.clickShowColumnNames();
+
     // Verify tables with default config
     await erd.verifyColumns({
       tableName: `country`,
@@ -228,6 +233,9 @@ test.describe('Erd', () => {
     // Verify
     await openErdOfATable('Country');
 
+    // By default all columns are hidden, enable back for the test
+    await erd.clickShowColumnNames();
+
     await erd.verifyNode({
       tableName: `country`,
       columnName: 'test_column',
@@ -246,6 +254,9 @@ test.describe('Erd', () => {
 
     // Verify
     await openErdOfATable('Country');
+
+    // By default all columns are hidden, enable back for the test
+    await erd.clickShowColumnNames();
 
     await erd.verifyNode({
       tableName: `country`,
@@ -277,8 +288,10 @@ test.describe('Erd', () => {
 
     // Create table and verify ERD
     await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
+
     // Verify in Settings ERD and table ERD
-    await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: context.base.title, open: true });
+
     await openProjectErd();
     await dashboard.details.relations.verifyNode({
       tableName: `Test`,

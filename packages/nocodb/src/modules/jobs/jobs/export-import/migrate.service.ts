@@ -34,10 +34,11 @@ export class MigrateService {
       (m) => m.source_id === source.id && !m.mm && m.type === 'table',
     );
 
-    const exportedModels = await this.exportService.serializeModels(context, {
-      modelIds: models.map((m) => m.id),
-      compatibilityMode: source.type !== 'pg',
-    });
+    const { serializedModels: exportedModels } =
+      await this.exportService.serializeModels(context, {
+        modelIds: models.map((m) => m.id),
+        compatibilityMode: source.type !== 'pg',
+      });
 
     if (!exportedModels) {
       throw new Error(`Export failed for source '${source.id}'`);

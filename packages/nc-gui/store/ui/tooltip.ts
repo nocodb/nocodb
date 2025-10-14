@@ -14,8 +14,10 @@ export interface TooltipInfo {
 
 export type TooltipTextType = string | VNode
 
+export type TooltipPlacement = 'top' | 'bottom' | 'left' | 'right'
+
 export const useTooltipStore = defineStore('tooltip', () => {
-  const placement = ref<'top' | 'bottom' | 'left' | 'right'>('top')
+  const placement = ref<TooltipPlacement>('top')
   const tooltipText = ref<TooltipTextType>('')
 
   const targetRect = ref<Omit<DOMRect, 'toJSON'>>({ x: 0, y: 0, top: 0, left: 0, bottom: 0, right: 0, width: 0, height: 0 })
@@ -33,7 +35,22 @@ export const useTooltipStore = defineStore('tooltip', () => {
     }
   })
 
-  function showTooltip({ text, rect }: { text: TooltipTextType; rect: RenderRectangleProps }) {
+  function showTooltip({
+    text,
+    rect,
+    placement: _placement = 'top',
+  }: {
+    text: TooltipTextType
+    /**
+     * Todo: Show tooltip at mouse position if showAtMousePosition is true & targetWidth is provided
+     */
+    rect: RenderRectangleProps & { showAtMousePosition?: boolean }
+    mousePosition: {
+      x: number
+      y: number
+    }
+    placement?: TooltipPlacement
+  }) {
     if (!text) return
 
     let canvasX = 0
@@ -47,33 +64,46 @@ export const useTooltipStore = defineStore('tooltip', () => {
     rect.x += canvasX
     rect.y += canvasY
     tooltipText.value = text
+    placement.value = _placement
     targetRect.value = {
       x: rect.x,
       y: rect.y,
       left: rect.x,
       top: rect.y,
-      right: rect.x + rect.width,
+      right: rect.x + (rect.targetWidth || rect.width),
       bottom: rect.y + rect.height,
-      width: rect.width,
+      width: rect.targetWidth || rect.width,
       height: rect.height,
     }
   }
 
   function tryShowTooltip({
     text,
+    description,
     rect,
     mousePosition,
+    placement,
   }: {
     text: TooltipTextType
-    rect?: RenderRectangleProps
+    description?: string
+    rect?: RenderRectangleProps & { showAtMousePosition?: boolean }
     mousePosition: {
       x: number
       y: number
     }
+    placement?: TooltipPlacement
   }) {
     if (!rect || !isBoxHovered(rect, mousePosition) || !text) return false
 
-    showTooltip({ text, rect })
+    const tooltipWithDescription =
+      ncIsString(text) && description
+        ? h('div', { class: 'flex flex-col gap-1' }, [
+            h('div', { class: 'text-captionBold' }, text),
+            h('div', { class: 'text-captionSm' }, description),
+          ])
+        : text
+
+    showTooltip({ text: tooltipWithDescription, rect, mousePosition, placement })
     return true
   }
 

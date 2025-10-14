@@ -11,7 +11,11 @@ import {
   UnprocessableEntity,
 } from '../error/nc-base.error';
 import { NcErrorType, PlanLimitExceededDetailsType } from '../globals';
-import { HigherPlan } from '../payment';
+import {
+  HigherPlan,
+  PlanFeatureTypes,
+  PlanFeatureUpgradeMessages,
+} from '../payment';
 import UITypes from '../UITypes';
 import { NcErrorCodexManager } from './nc-error-codex-manager';
 
@@ -65,13 +69,20 @@ export class NcErrorBase {
       ...args,
     });
   }
-  baseNotFoundV3(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.BASE_NOT_FOUNDV3, {
+
+  dashboardNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.DASHBOARD_NOT_FOUND, {
       params: id,
       ...args,
     });
   }
 
+  widgetNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.WIDGET_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
   sourceNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.SOURCE_NOT_FOUND, {
       params: id,
@@ -86,13 +97,6 @@ export class NcErrorBase {
     });
   }
 
-  tableNotFoundV3(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.TABLE_NOT_FOUNDV3, {
-      params: id,
-      ...args,
-    });
-  }
-
   userNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.USER_NOT_FOUND, {
       params: id,
@@ -102,13 +106,6 @@ export class NcErrorBase {
 
   viewNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.VIEW_NOT_FOUND, {
-      params: id,
-      ...args,
-    });
-  }
-
-  viewNotFoundV3(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.VIEW_NOT_FOUNDV3, {
       params: id,
       ...args,
     });
@@ -149,13 +146,6 @@ export class NcErrorBase {
     });
   }
 
-  fieldNotFoundV3(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.FIELD_NOT_FOUNDV3, {
-      params: id,
-      ...args,
-    });
-  }
-
   invalidOffsetValue(offset: string | number, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.INVALID_OFFSET_VALUE, {
       params: `${offset}`,
@@ -185,13 +175,6 @@ export class NcErrorBase {
   invalidFilter(filter: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.INVALID_FILTER, {
       params: filter,
-      ...args,
-    });
-  }
-
-  invalidFilterV3(message: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.INVALID_FILTERV3, {
-      params: message,
       ...args,
     });
   }
@@ -239,6 +222,15 @@ export class NcErrorBase {
     );
   }
 
+  invalidSharedDashboardPassword(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.INVALID_SHARED_DASHBOARD_PASSWORD,
+      {
+        ...args,
+      }
+    );
+  }
+
   invalidAttachmentJson(payload: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.INVALID_ATTACHMENT_JSON, {
       params: payload,
@@ -267,11 +259,11 @@ export class NcErrorBase {
     });
   }
 
-  formulaCircularRefError(message: string, args?: NcErrorArgs): never {
+  formulaCircularRefError(message?: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.FORMULA_CIRCULAR_REF_ERROR,
       {
-        params: message,
+        params: message ?? 'Circular reference detected in formula',
         ...args,
       }
     );
@@ -368,10 +360,42 @@ export class NcErrorBase {
     });
   }
 
+  duplicateAlias(
+    param: {
+      type: 'table' | 'column' | 'view';
+      alias: string;
+      base: string;
+      label?: string;
+      additionalTrace?: Record<string, string>;
+    },
+    args?: NcErrorArgs
+  ): never {
+    const stackTrace = [
+      ...Object.keys(param.additionalTrace ?? {}).map(
+        (key) => `${key} '${param.additionalTrace[key]}'`
+      ),
+      `base '${param.base}'`,
+    ].join(', ');
+    throw this.errorCodex.generateError(NcErrorType.DUPLICATE_ALIAS, {
+      params: `Duplicate ${param.type} ${param.label ?? 'alias'} '${
+        param.alias
+      }' at ${stackTrace}`,
+      ...args,
+    });
+  }
+
   allowedOnlySSOAccess(ncWorkspaceId: string): never {
     throw this.errorCodex.generateError(NcErrorType.SSO_LOGIN_REQUIRED, {
       params: ncWorkspaceId,
     });
+  }
+  allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.SSO_GENERATED_TOKEN_REQUIRED,
+      {
+        params: ncWorkspaceId,
+      }
+    );
   }
   maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.MAX_INSERT_LIMIT_EXCEEDED, {
@@ -393,6 +417,63 @@ export class NcErrorBase {
         ...args,
       }
     );
+  }
+
+  prohibitedSyncTableOperation(
+    param: {
+      modelName: string;
+      operation: 'insert' | 'update' | 'delete' | 'create_form_view';
+    },
+    args?: NcErrorArgs
+  ): never {
+    let message = '';
+    switch (param.operation) {
+      case 'insert':
+      case 'update':
+      case 'delete':
+        message = `Prohibited data insert / update / delete operation on synced table ${param.modelName}`;
+        break;
+      case 'create_form_view':
+        message = `Form view creation is not supported for synced table ${param.modelName}`;
+        break;
+    }
+    throw this.errorCodex.generateError(
+      NcErrorType.PROHIBITED_SYNC_TABLE_OPERATION,
+      {
+        params: message,
+        ...args,
+      }
+    );
+  }
+
+  featureNotSupported(
+    props: {
+      feature: PlanFeatureTypes;
+      isOnPrem?: boolean;
+    },
+    args?: NcErrorArgs
+  ) {
+    if (props.isOnPrem) {
+      throw this.errorCodex.generateError(NcErrorType.FEATURE_NOT_SUPPORTED, {
+        params: `Please upgrade your license ${
+          PlanFeatureUpgradeMessages[props.feature] ?? 'to use this feature.'
+        }`,
+        ...args,
+      });
+    }
+
+    throw this.errorCodex.generateError(NcErrorType.FEATURE_NOT_SUPPORTED, {
+      params: `Upgrade to a higher plan ${
+        PlanFeatureUpgradeMessages[props.feature] ?? 'to use this feature.'
+      }`,
+      ...args,
+    });
+  }
+
+  invalidRequestBody(message: string): never {
+    throw this.errorCodex.generateError(NcErrorType.INVALID_REQUEST_BODY, {
+      params: message,
+    });
   }
 
   unprocessableEntity(message = 'Unprocessable entity'): never {
@@ -431,5 +512,20 @@ export class NcErrorBase {
     validOptions: string[];
   }): never {
     throw new OptionsNotExistsError(props);
+  }
+
+  outOfSync(message: string): never {
+    throw this.errorCodex.generateError(NcErrorType.OUT_OF_SYNC, {
+      params: message,
+    });
+  }
+
+  filterVerificationFailed(errors: string[]): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.FILTER_VERIFICATION_FAILED,
+      {
+        params: errors.join(', '),
+      }
+    );
   }
 }

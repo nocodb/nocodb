@@ -86,12 +86,15 @@ export class JobsRedis {
     });
   }
 
-  static async emitWorkerCommand(command: InstanceCommands, ...args: any[]) {
+  static async emitWorkerCommand(command: InstanceCommands, ...args: string[]) {
     const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
     await PubSubRedis.publish(InstanceTypes.WORKER, data);
   }
 
-  static async emitPrimaryCommand(command: InstanceCommands, ...args: any[]) {
+  static async emitPrimaryCommand(
+    command: InstanceCommands,
+    ...args: string[]
+  ) {
     const data = `${command}${args.length ? `:${args.join(':')}` : ''}`;
     await PubSubRedis.publish(InstanceTypes.PRIMARY, data);
   }

@@ -2,6 +2,7 @@ import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
 
 import { Model } from '../../../src/models';
+import type { NcContext } from 'nocodb-sdk';
 import type {
   Base,
   Column,
@@ -906,23 +907,60 @@ const createColumn = async (
   context: Context,
   table: Model,
   columnAttr: Record<string, any>,
+  option?: {
+    throwError?: boolean;
+  },
 ) => {
   const ctx = {
     workspace_id: table.fk_workspace_id,
     base_id: table.base_id,
   };
 
-  await request(context.app)
+  const response = await request(context.app)
     .post(`/api/v1/db/meta/tables/${table.id}/columns`)
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
     });
+  if (response.status >= 400 && option?.throwError) {
+    throw response.error;
+  }
 
   const column: Column = (await table.getColumns(ctx)).find(
     (column) => column.title === columnAttr.title,
   );
   return column;
+};
+
+const createColumn2 = async ({
+  ctx,
+  context,
+  table,
+  columnAttr,
+  option,
+}: {
+  context: Context;
+  ctx: NcContext;
+  table: Model;
+  columnAttr: Record<string, any>;
+  option?: {
+    throwError?: boolean;
+  };
+}) => {
+  const response = await request(context.app)
+    .post(`/api/v3/meta/bases/${ctx.base_id}/tables/${table.id}/fields`)
+    .set('xc-auth', context.token)
+    .send({
+      ...columnAttr,
+    });
+  if (response.status >= 400 && option?.throwError) {
+    throw response.error;
+  }
+
+  const column: Column = (await table.getColumns(ctx)).find(
+    (column) => column.title === columnAttr.title,
+  );
+  return { response, column };
 };
 
 const createRollupColumn = async (
@@ -934,6 +972,7 @@ const createRollupColumn = async (
     table,
     relatedTableName,
     relatedTableColumnTitle,
+    ltarColumnId,
   }: {
     base: Base;
     title: string;
@@ -941,6 +980,10 @@ const createRollupColumn = async (
     table: Model;
     relatedTableName: string;
     relatedTableColumnTitle: string;
+    ltarColumnId?: string;
+  },
+  option?: {
+    throwError?: boolean;
   },
 ) => {
   const ctx = {
@@ -959,22 +1002,28 @@ const createRollupColumn = async (
     (column) => column.title === relatedTableColumnTitle,
   );
 
-  const ltarColumn = (await table.getColumns(ctx)).find(
-    (column) =>
-      (column.uidt === UITypes.Links ||
-        column.uidt === UITypes.LinkToAnotherRecord) &&
-      column.colOptions?.fk_related_model_id === childTable.id,
+  const ltarColumn = (await table.getColumns(ctx)).find((column) =>
+    ltarColumnId
+      ? column.id === ltarColumnId
+      : (column.uidt === UITypes.Links ||
+          column.uidt === UITypes.LinkToAnotherRecord) &&
+        column.colOptions?.fk_related_model_id === childTable.id,
   );
 
-  const rollupColumn = await createColumn(context, table, {
-    title: title,
-    uidt: UITypes.Rollup,
-    fk_relation_column_id: ltarColumn?.id,
-    fk_rollup_column_id: childTableColumn?.id,
-    rollup_function: rollupFunction,
-    table_name: table.table_name,
-    column_name: title,
-  });
+  const rollupColumn = await createColumn(
+    context,
+    table,
+    {
+      title: title,
+      uidt: UITypes.Rollup,
+      fk_relation_column_id: ltarColumn?.id,
+      fk_rollup_column_id: childTableColumn?.id,
+      rollup_function: rollupFunction,
+      table_name: table.table_name,
+      column_name: title,
+    },
+    option,
+  );
 
   return rollupColumn;
 };
@@ -1134,6 +1183,31 @@ const createLtarColumn = async (
 
   return ltarColumn;
 };
+const createLtarColumn2 = async (
+  context,
+  {
+    title,
+    parentTable,
+    childTable,
+    type,
+  }: {
+    title: string;
+    parentTable: Model;
+    childTable: Model;
+    type: string;
+  },
+) => {
+  const ltarColumn = await createColumn(context, parentTable, {
+    title: title,
+    column_name: title,
+    uidt: UITypes.LinkToAnotherRecord,
+    parentId: parentTable.id,
+    childId: childTable.id,
+    type: type,
+  });
+
+  return ltarColumn;
+};
 
 const updateGridViewColumn = async (
   context,
@@ -1210,6 +1284,20 @@ const updateColumn = async (
   return updatedColumn;
 };
 
+const updateColumn2 = async (
+  context,
+  { columnId, attr, baseId }: { columnId: string; baseId: string; attr: any },
+) => {
+  const res = await request(context.app)
+    .patch(`/api/v3/meta/bases/${baseId}/fields/${columnId}`)
+    .set('xc-auth', context.token)
+    .send({
+      ...attr,
+    });
+
+  return res;
+};
+
 const deleteColumn = async (
   context,
   { table, column }: { column: Column; table: Model },
@@ -1230,8 +1318,11 @@ export {
   createRollupColumn,
   createLookupColumn,
   createLtarColumn,
+  createLtarColumn2,
   updateGridViewColumn,
   updateViewColumn,
   updateColumn,
   deleteColumn,
+  createColumn2,
+  updateColumn2,
 };

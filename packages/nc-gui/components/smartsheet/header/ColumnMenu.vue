@@ -1,13 +1,19 @@
 <script lang="ts" setup>
+import type { ColumnReqType, ColumnType } from 'nocodb-sdk'
 import {
-  type ColumnReqType,
-  type ColumnType,
+  PlanFeatureTypes,
+  PlanLimitTypes,
+  PlanTitles,
+  RelationTypes,
+  UITypes,
   columnTypeName,
   isCrossBaseLink,
+  isLinksOrLTAR,
+  isSupportedDisplayValueColumn,
+  isSystemColumn,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSupportedDisplayValueColumn, isSystemColumn } from 'nocodb-sdk'
 import { SmartsheetStoreEvents } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean; column: ColumnType }>()
@@ -45,15 +51,17 @@ const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
-const { addUndo, defineModelScope, defineViewScope } = useUndoRedo()
+const { addUndo, defineModelScope, defineViewScope, clone } = useUndoRedo()
 
 const showDeleteColumnModal = ref(false)
 
-const { gridViewCols } = useViewColumnsOrThrow()
+const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow()
 
-const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow(view)
+const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
+
+const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
@@ -278,18 +286,32 @@ const hideOrShowField = async () => {
 
   const viewId = getViewId() as string
 
-  try {
-    const gridViewColumnList = (await $api.dbViewColumn.list(viewId)).list
+  const currentViewColumn = gridViewCols.value[column.value.id!] ? clone(gridViewCols.value[column.value.id!]) : null
 
-    const currentColumn = gridViewColumnList.find((f) => f.fk_column_id === column!.value.id)
+  if (currentViewColumn && currentViewColumn.show && fieldsMap.value[column.value.id!]) {
+    hidingViewColumnsMap.value[column.value.id!] = true
+
+    fieldsMap.value[column.value.id!].show = false
+    updateDefaultViewColVisibility(column?.value.id, false)
+    isOpen.value = false
+  }
+
+  try {
+    const currentColumn =
+      currentViewColumn || (await $api.dbViewColumn.list(viewId)).list.find((f) => f.fk_column_id === column!.value.id)
 
     await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: !currentColumn.show })
 
-    if (isExpandedForm.value) {
-      await getMeta(meta?.value?.id as string, true)
-    } else {
-      updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
+    if (!hidingViewColumnsMap.value[column.value.id!]) {
+      if (isExpandedForm.value) {
+        await getMeta(meta?.value?.id as string, true)
+      } else {
+        updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
+      }
     }
+
+    // delete current columnId from hidingViewColumnsMap so that while loading view columns, we can use db stored value
+    delete hidingViewColumnsMap.value[column.value.id!]
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     if (!currentColumn.show) {
@@ -324,8 +346,6 @@ const hideOrShowField = async () => {
             updateDefaultViewColVisibility(fk_column_id, show)
           }
 
-          await Promise.all(promises)
-
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
           reloadDataHook?.trigger()
           if (show) {
@@ -338,11 +358,25 @@ const hideOrShowField = async () => {
     })
   } catch (e: any) {
     console.log('error', e)
-    message.error(t('msg.error.columnVisibilityUpdateFailed'))
-  }
+    if (hidingViewColumnsMap.value[column.value.id!]) {
+      fieldsMap.value[column.value.id!].show = true
+      updateDefaultViewColVisibility(column?.value.id, true)
 
-  isLoading.value = ''
-  isOpen.value = false
+      delete hidingViewColumnsMap.value[column.value.id!]
+
+      eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      reloadDataHook?.trigger()
+    }
+
+    message.error(t('msg.error.columnVisibilityUpdateFailed'))
+  } finally {
+    isLoading.value = ''
+    delete hidingViewColumnsMap.value[column.value.id!]
+
+    if (isOpen.value) {
+      isOpen.value = false
+    }
+  }
 }
 
 const handleDelete = () => {
@@ -410,7 +444,9 @@ const isGroupByLimitExceeded = computed(() => {
 
 const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
   if (column?.value) {
-    eventBus.emit(event, column.value)
+    eventBus.emit(event, {
+      column: column.value,
+    })
   }
   isOpen.value = false
 }
@@ -441,11 +477,14 @@ const linksAssociated = computed(() => {
   )
 })
 
-const addLookupMenu = ref(false)
+const addLookupOrRollupMenu = ref(false)
 
-const openLookupMenuDialog = () => {
+const addLookupOrRollupType = ref<UITypes.Lookup | UITypes.Rollup>(UITypes.Lookup)
+
+const openLookupOrRollupMenuDialog = (type: UITypes.Lookup | UITypes.Rollup) => {
   isOpen.value = false
-  addLookupMenu.value = true
+  addLookupOrRollupMenu.value = true
+  addLookupOrRollupType.value = type
 }
 
 const changeTitleFieldMenu = ref(false)
@@ -453,6 +492,14 @@ const changeTitleFieldMenu = ref(false)
 const changeTitleField = () => {
   isOpen.value = false
   changeTitleFieldMenu.value = true
+}
+
+const showFieldPermissionsModal = ref(false)
+
+const onFieldPermissions = () => {
+  isOpen.value = false
+
+  showFieldPermissionsModal.value = true
 }
 
 const onDeleteColumn = () => {
@@ -556,23 +603,104 @@ const onDeleteColumn = () => {
     >
       <div class="nc-column-edit-description nc-header-menu-item">
         <GeneralIcon icon="ncAlignLeft" class="opacity-80 !w-4.25 !h-4.25" />
-        {{ $t('labels.editDescription') }}
+        {{ $t('labels.editFieldDescription') }}
       </div>
     </NcMenuItem>
 
+    <NcTooltip
+      v-if="
+        isTableAndFieldPermissionsEnabled &&
+        isEeUI &&
+        isUIAllowed('fieldAlter') &&
+        !isSqlView &&
+        column.uidt !== UITypes.ForeignKey
+      "
+      :disabled="showEditRestrictedColumnTooltip(column)"
+      placement="right"
+      :arrow="false"
+    >
+      <template #title>
+        {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+      </template>
+
+      <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
+        <template #default="{ click }">
+          <NcMenuItem
+            :disabled="!showEditRestrictedColumnTooltip(column)"
+            @click="
+              click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
+                onFieldPermissions()
+              })
+            "
+          >
+            <div class="nc-column-field-permissions nc-header-menu-item w-full">
+              <GeneralIcon icon="ncLock" class="opacity-80 !w-4.25 !h-4.25" />
+              <div class="flex-1">
+                {{ $t('title.editFieldPermissions') }}
+              </div>
+
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                :title="$t('upgrade.upgradeToUseTableAndFieldPermissions')"
+                :content="
+                  $t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
+                    plan: PlanTitles.PLUS,
+                  })
+                "
+                :on-click-callback="
+                  () => {
+                    isOpen = false
+                  }
+                "
+                size="xs"
+              />
+            </div>
+          </NcMenuItem>
+        </template>
+      </PaymentUpgradeBadgeProvider>
+    </NcTooltip>
+
     <NcMenuItem
-      v-if="[UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)"
+      v-if="canUseForLookupLinkField(column, meta?.source_id)"
       :disabled="isSqlView"
-      @click="openLookupMenuDialog"
+      @click="openLookupOrRollupMenuDialog(UITypes.Lookup)"
     >
       <div v-e="['a:field:lookup:create']" class="nc-column-lookup-create nc-header-menu-item">
-        <component :is="iconMap.cellLookup" class="opacity-80 !w-4.5 !h-4.5" />
+        <SmartsheetHeaderVirtualCellIcon
+          :column-meta="{
+            uidt: UITypes.Lookup,
+            fk_model_id: column.fk_model_id,
+            colOptions: {
+              fk_relation_column_id: column.id,
+            },
+          }"
+          class="opacity-80 !w-4.5 !h-4.5 !mx-0"
+        />
         {{ t('general.addLookupField') }}
+      </div>
+    </NcMenuItem>
+    <NcMenuItem
+      v-if="canUseForRollupLinkField(column)"
+      :disabled="isSqlView"
+      @click="openLookupOrRollupMenuDialog(UITypes.Rollup)"
+    >
+      <div v-e="['a:field:rollup:create']" class="nc-column-rollup-create nc-header-menu-item">
+        <SmartsheetHeaderVirtualCellIcon
+          :column-meta="{
+            uidt: UITypes.Rollup,
+            fk_model_id: column.fk_model_id,
+            colOptions: {
+              fk_relation_column_id: column.id,
+            },
+          }"
+          class="opacity-80 !w-4.5 !h-4.5 !mx-0"
+        />
+        {{ t('general.addRollupField') }}
       </div>
     </NcMenuItem>
     <NcDivider v-if="isUIAllowed('fieldAlter') && !column?.pv" />
     <NcMenuItem v-if="!column?.pv" :disabled="isLocked" @click="hideOrShowField">
-      <div v-e="['a:field:hide']" class="nc-column-insert-before nc-header-menu-item">
+      <div v-e="['a:field:hide']" class="nc-column-hide-or-show nc-header-menu-item">
         <GeneralLoader v-if="isLoading === 'hideOrShow'" size="regular" />
         <component :is="isHiddenCol ? iconMap.eye : iconMap.eyeSlash" v-else class="!w-4 !h-4 opacity-80" />
         <!-- Hide Field -->
@@ -585,7 +713,7 @@ const onDeleteColumn = () => {
       placement="right"
     >
       <template #title>
-        {{ `${columnTypeName(column)} field cannot be used as display value field` }}
+        {{ $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: columnTypeName(column) }) }}
       </template>
 
       <NcMenuItem :disabled="isLocked || !isSupportedDisplayValueColumn(column)" @click="setAsDisplayValue">
@@ -606,10 +734,10 @@ const onDeleteColumn = () => {
       <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
         <NcTooltip :disabled="isSortSupported">
           <template #title>
-            {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+            {{ !isSortSupported ? $t('tooltip.thisFieldTypeDoesNotSupportSorting') : '' }}
           </template>
           <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('asc')">
-            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
+            <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-header-menu-item">
               <component :is="iconMap.sortDesc" class="opacity-80 transform !rotate-180 !w-4.25 !h-4.25" />
 
               <!-- Sort Ascending -->
@@ -620,10 +748,10 @@ const onDeleteColumn = () => {
 
         <NcTooltip :disabled="isSortSupported">
           <template #title>
-            {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+            {{ !isSortSupported ? $t('tooltip.thisFieldTypeDoesNotSupportSorting') : '' }}
           </template>
           <NcMenuItem :disabled="isLocked || !isSortSupported" @click="sortByColumn('desc')">
-            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
+            <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-header-menu-item">
               <!-- Sort Descending -->
               <component :is="iconMap.sortDesc" class="opacity-80 !w-4.25 !h-4.25" />
               {{ $t('general.sortDesc').trim() }}
@@ -638,9 +766,9 @@ const onDeleteColumn = () => {
         <template #title>
           {{
             !isFilterSupported
-              ? "This field type doesn't support filtering"
+              ? $t('tooltip.thisFieldTypeDoesNotSupportFiltering')
               : isFilterLimitExceeded
-              ? 'Filter by limit exceeded'
+              ? $t('tooltip.filterByLimitExceeded')
               : ''
           }}
         </template>
@@ -660,9 +788,9 @@ const onDeleteColumn = () => {
         <template #title
           >{{
             !isGroupBySupported
-              ? "This field type doesn't support grouping"
+              ? $t('tooltip.thisFieldTypeDoesNotSupportGrouping')
               : isGroupByLimitExceeded
-              ? 'Group by limit exceeded'
+              ? $t('tooltip.groupByLimitExceeded')
               : ''
           }}
         </template>
@@ -679,7 +807,7 @@ const onDeleteColumn = () => {
           <div v-e="['a:field:add:groupby']" class="nc-column-groupby nc-header-menu-item">
             <component :is="iconMap.group" class="opacity-80" />
             <!-- Group by this field -->
-            {{ isGroupedByThisField ? "Don't group by this field" : $t('activity.groupByThisField') }}
+            {{ isGroupedByThisField ? $t('activity.dontGroupByThisField') : $t('activity.groupByThisField') }}
           </div>
         </NcMenuItem>
       </NcTooltip>
@@ -710,11 +838,11 @@ const onDeleteColumn = () => {
     >
       <NcMenuItem
         :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"
-        class="!hover:bg-red-50"
         :title="linksAssociated ? 'Field is associated with a link column' : undefined"
+        danger
         @click="handleDelete"
       >
-        <div class="nc-column-delete nc-header-menu-item" :class="{ 'text-red-600': isDeleteAllowed && isColumnUpdateAllowed }">
+        <div class="nc-column-delete nc-header-menu-item">
           <component :is="iconMap.delete" class="opacity-80" />
           <!-- Delete -->
           {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
@@ -731,11 +859,20 @@ const onDeleteColumn = () => {
         :column="column"
         :extra="selectedColumnExtra"
       />
-      <LazySmartsheetHeaderAddLookups key="dcx" v-model:value="addLookupMenu" />
+      <LazySmartsheetHeaderAddLookupsOrRollups key="dcx" v-model:value="addLookupOrRollupMenu" :type="addLookupOrRollupType" />
       <LazySmartsheetHeaderUpdateDisplayValue
         key="dcxx"
         v-model:value="changeTitleFieldMenu"
         :use-meta-fields="meta?.id !== view?.fk_model_id"
+      />
+      <DlgFieldPermissions
+        v-if="column && meta && isEeUI"
+        key="dfp"
+        v-model:visible="showFieldPermissionsModal"
+        :field="column"
+        :field-id="column.id!"
+        :field-title="column.title!"
+        :field-uidt="column.uidt!"
       />
     </div>
   </NcMenu>

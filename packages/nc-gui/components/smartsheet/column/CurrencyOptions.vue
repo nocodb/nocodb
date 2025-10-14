@@ -11,6 +11,8 @@ const { t } = useI18n()
 
 const vModel = useVModel(props, 'value', emit)
 
+const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
+
 const validators = {
   'meta.currency_locale': [
     {
@@ -38,10 +40,15 @@ const validators = {
   ],
 }
 
-const { setAdditionalValidations, validateInfos, isPg } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, isPg } = useColumnCreateStoreOrThrow()
 
 setAdditionalValidations({
   ...validators,
+})
+
+setAvoidShowingToastMsgForValidations({
+  'meta.currency_locale': true,
+  'meta.currency_code': true,
 })
 
 const currencyList = currencyCodes || []
@@ -68,6 +75,13 @@ vModel.value.meta = {
 currencyLocales().then((locales) => {
   currencyLocaleList.value.push(...locales)
 })
+
+// update datatype precision when precision is less than the new value
+// avoid downgrading precision if the new value is less than the current precision
+// to avoid fractional part data loss(eg. 1.2345 -> 1.23)
+const onPrecisionChange = (value: number) => {
+  vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
+}
 </script>
 
 <template>
@@ -121,6 +135,33 @@ currencyLocales().then((locales) => {
               <component
                 :is="iconMap.check"
                 v-if="vModel.meta.currency_code === currencyCode"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </a-col>
+
+    <a-col :span="24" class="mt-4">
+      <a-form-item :label="$t('placeholder.precision')">
+        <a-select
+          v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
+          v-model:value="vModel.meta.precision"
+          :disabled="isMoney && isPg"
+          dropdown-class-name="nc-dropdown-decimal-format"
+          @change="onPrecisionChange"
+        >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+          <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
+            <div class="flex gap-2 w-full justify-between items-center">
+              {{ (precisionFormatsDisplay as any)[format] }}
+              <component
+                :is="iconMap.check"
+                v-if="vModel.meta.precision === format"
                 id="nc-selected-item-icon"
                 class="text-primary w-4 h-4"
               />

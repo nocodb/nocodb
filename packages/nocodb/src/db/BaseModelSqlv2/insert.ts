@@ -1,5 +1,11 @@
-import { populatePk } from 'src/helpers/dbHelpers';
-import { isLinksOrLTAR, NcApiVersion, type NcRequest } from 'nocodb-sdk';
+import { dataWrapper, populatePk } from 'src/helpers/dbHelpers';
+import {
+  isAttachment,
+  isLinksOrLTAR,
+  NcApiVersion,
+  type NcRequest,
+} from 'nocodb-sdk';
+import { AttachmentUrlUploadPreparator } from './attachment-url-upload-preparator';
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 
@@ -12,12 +18,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   ) => {
     try {
       const columns = await baseModel.model.getColumns(baseModel.context);
-
+      const dbDataWrapper = dataWrapper(data);
       // exclude auto increment columns in body
       for (const col of columns) {
         if (col.ai) {
-          const keyName =
-            data?.[col.column_name] !== undefined ? col.column_name : col.title;
+          const keyName = dbDataWrapper.getColumnKeyName(col);
 
           if (data[keyName]) {
             delete data[keyName];
@@ -48,7 +53,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // const driver = trx ? trx : baseModel.dbDriver;
 
       const query = baseModel.dbDriver(baseModel.tnPath).insert(insertObj);
-      if ((baseModel.isPg || baseModel.isMssql) && baseModel.model.primaryKey) {
+      if (baseModel.isPg && baseModel.model.primaryKey) {
         query.returning(
           `${baseModel.model.primaryKey.column_name} as ${baseModel.model.primaryKey.id}`,
         );
@@ -194,6 +199,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
         const order = await baseModel.getHighestOrderInTable();
         const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
+        const attachmentCols = columns.filter((c) => isAttachment(c));
 
         for (const [index, d] of datas.entries()) {
           const insertObj = await baseModel.handleValidateBulkInsert(
@@ -222,6 +228,25 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
             postInsertOpsMap[index] = operations.postInsertOps;
             preInsertOps = operations.preInsertOps;
+          }
+          if (attachmentCols.length > 0) {
+            const attachmentOperations =
+              await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
+                baseModel,
+                {
+                  attachmentCols,
+                  data: insertObj,
+                  req: cookie,
+                },
+              );
+            postInsertOpsMap[index] = [
+              ...(postInsertOpsMap[index] ?? []),
+              ...(attachmentOperations.postInsertOps ?? []),
+            ];
+            preInsertOps = [].concat(
+              ...(preInsertOps ?? []),
+              ...(attachmentOperations.preInsertOps ?? []),
+            );
           }
 
           insertDatas.push(insertObj);
@@ -310,7 +335,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         }
 
         responses =
-          !raw && (baseModel.isPg || baseModel.isMssql)
+          !raw && baseModel.isPg
             ? await trx
                 .batchInsert(baseModel.tnPath, insertDatas, chunkSize)
                 .returning(
@@ -362,7 +387,12 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           });
         } else {
           await baseModel.afterBulkInsert(
-            insertDatas,
+            insertDatas.map((data, index) => {
+              return {
+                ...responses[index],
+                ...data,
+              };
+            }),
             baseModel.dbDriver,
             cookie,
           );

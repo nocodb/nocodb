@@ -153,38 +153,79 @@ const updateScroll = (vertical?: number, horizontal?: number) => {
   }
 }
 
-const isWindows = ref(false)
+const isWindowsOrLinux = ref(false)
 
 const handleWheel = (e: WheelEvent) => {
+  if (!contentWrapper.value || !wrapperRef.value) return
+
+  // Normalize deltas to pixels
+  let deltaX = e.deltaX
+  let deltaY = e.deltaY
+
+  switch (e.deltaMode) {
+    case WheelEvent.DOM_DELTA_LINE:
+      deltaX *= 16 // PIXELS_PER_LINE
+      deltaY *= 16 // PIXELS_PER_LINE
+      break
+    case WheelEvent.DOM_DELTA_PAGE:
+      deltaX *= wrapperRef.value.clientWidth
+      deltaY *= wrapperRef.value.clientHeight
+      break
+  }
+
+  // Handle Shift key for horizontal scrolling
+  if (e.shiftKey) {
+    // If browser didn't already provide horizontal delta
+    if (Math.abs(deltaX) < Math.abs(deltaY)) {
+      const tmp = deltaX
+      deltaX = deltaY
+      deltaY = tmp
+    }
+  }
+
+  const maxScrollY = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
+  const maxScrollX = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
+
+  const canScrollVertically = (deltaY > 0 && scrollTop.value < maxScrollY) || (deltaY < 0 && scrollTop.value > 0)
+  const canScrollHorizontally = (deltaX > 0 && scrollLeft.value < maxScrollX) || (deltaX < 0 && scrollLeft.value > 0)
+
+  // Only prevent default if we actually can scroll
+  if (!canScrollVertically && !canScrollHorizontally) return
   e.preventDefault()
 
-  if (isWindows.value && e.shiftKey) {
-    // When Shift is pressed on Windows, treat vertical wheel movement as horizontal scroll
-    updateScroll(scrollTop.value, scrollLeft.value + e.deltaY)
-  } else {
-    // Normal behavior for all other platforms or when shift is not pressed
-    updateScroll(scrollTop.value + e.deltaY, scrollLeft.value + e.deltaX)
-  }
+  // Update scroll
+  updateScroll(scrollTop.value + (canScrollVertically ? deltaY : 0), scrollLeft.value + (canScrollHorizontally ? deltaX : 0))
 }
 
-const startDragging = (axis: 'vertical' | 'horizontal', event: DragEvent) => {
+const startDragging = (axis: 'vertical' | 'horizontal', event: DragEvent | TouchEvent) => {
   event.preventDefault()
   event.stopPropagation()
 
   isDragging.value = true
   currentDragAxis.value = axis
-  dragStartPosition.value = axis === 'vertical' ? event.clientY : event.clientX
+
+  // normalize touch vs mouse
+  const clientY = (event as TouchEvent).touches ? (event as TouchEvent).touches[0].clientY : (event as MouseEvent).clientY
+  const clientX = (event as TouchEvent).touches ? (event as TouchEvent).touches[0].clientX : (event as MouseEvent).clientX
+
+  dragStartPosition.value = axis === 'vertical' ? clientY : clientX
   dragStartScroll.value = axis === 'vertical' ? scrollTop.value : scrollLeft.value
 
+  // add both mouse + touch listeners
   document.addEventListener('mousemove', handleDrag)
   document.addEventListener('mouseup', stopDragging)
+  document.addEventListener('touchmove', handleDrag, { passive: false })
+  document.addEventListener('touchend', stopDragging)
 }
 
-function handleDrag(event: MouseEvent) {
+function handleDrag(event: MouseEvent | TouchEvent) {
   if (!isDragging.value) return
 
-  const delta =
-    currentDragAxis.value === 'vertical' ? event.clientY - dragStartPosition.value : event.clientX - dragStartPosition.value
+  // normalize again
+  const clientY = (event as TouchEvent).touches ? (event as TouchEvent).touches[0].clientY : (event as MouseEvent).clientY
+  const clientX = (event as TouchEvent).touches ? (event as TouchEvent).touches[0].clientX : (event as MouseEvent).clientX
+
+  const delta = currentDragAxis.value === 'vertical' ? clientY - dragStartPosition.value : clientX - dragStartPosition.value
 
   const scrollRatio =
     currentDragAxis.value === 'vertical'
@@ -206,6 +247,8 @@ function stopDragging() {
   currentDragAxis.value = null
   document.removeEventListener('mousemove', handleDrag)
   document.removeEventListener('mouseup', stopDragging)
+  document.removeEventListener('touchmove', handleDrag)
+  document.removeEventListener('touchend', stopDragging)
 }
 
 const handleTrackClick = (axis: 'vertical' | 'horizontal', event: any) => {
@@ -311,10 +354,10 @@ const decayAnimation = (value: number, velocity: number): number => {
 
 const animateScroll = () => {
   const state = scrollState.value
-  if (!state.animation) return
+  if (!state.animation || !contentWrapper.value || !wrapperRef.value) return
 
-  const maxScrollY = contentWrapper.value!.scrollHeight - wrapperRef.value.clientHeight
-  const maxScrollX = contentWrapper.value!.scrollWidth - wrapperRef.value.clientWidth
+  const maxScrollY = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
+  const maxScrollX = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
 
   let newX = scrollLeft.value
   let newY = scrollTop.value
@@ -359,6 +402,15 @@ const animateScroll = () => {
   }
 }
 
+const scrollBounds = computed(() => {
+  return {
+    left: 0,
+    top: 0,
+    right: (contentWrapper.value?.scrollWidth ?? 0) - (wrapperRef.value?.clientWidth ?? 0),
+    bottom: (contentWrapper.value?.scrollHeight ?? 0) - (wrapperRef.value?.clientHeight ?? 0),
+  }
+})
+
 const handleTouchEnd = () => {
   scrollState.value.velocity = calculateVelocity()
   scrollState.value.animation = requestAnimationFrame(animateScroll)
@@ -366,12 +418,12 @@ const handleTouchEnd = () => {
 
 const scrollTo = ({ left, top }: { left?: number; top?: number }) => {
   if (left !== undefined) {
-    const maxScrollLeft = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
+    const maxScrollLeft = scrollBounds.value.right
     scrollLeft.value = Math.max(0, Math.min(left, maxScrollLeft))
   }
 
   if (top !== undefined) {
-    const maxScrollTop = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
+    const maxScrollTop = scrollBounds.value.bottom
     scrollTop.value = Math.max(0, Math.min(top, maxScrollTop))
   }
 
@@ -385,7 +437,8 @@ const scrollTo = ({ left, top }: { left?: number; top?: number }) => {
 
 onMounted(() => {
   showScrollbars()
-  isWindows.value = navigator.userAgent.toLowerCase().includes('windows')
+  isWindowsOrLinux.value =
+    navigator.userAgent.toLowerCase().includes('windows') || navigator.userAgent.toLowerCase().includes('linux')
   scrollbarsAlwaysVisible.value = isScrollbarAlwaysVisible()
 })
 
@@ -406,6 +459,7 @@ defineExpose({
     top: scrollTop.value,
   }),
   wrapperRef,
+  scrollBounds,
 })
 </script>
 
@@ -435,6 +489,7 @@ defineExpose({
         class="custom-scrollbar-thumb vertical"
         :style="{ height: `${verticalThumbHeight}%`, transform: `translateY(${verticalThumbPosition}px)` }"
         @mousedown="startDragging('vertical', $event)"
+        @touchstart.prevent="startDragging('vertical', $event)"
       ></div>
     </div>
 
@@ -449,6 +504,7 @@ defineExpose({
         class="custom-scrollbar-thumb horizontal"
         :style="{ width: `${horizontalThumbWidth}%`, transform: `translateX(${horizontalThumbPosition}px)` }"
         @mousedown="startDragging('horizontal', $event)"
+        @touchstart.prevent="startDragging('horizontal', $event)"
       ></div>
     </div>
   </div>

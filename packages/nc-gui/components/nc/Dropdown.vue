@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { NcDropdownPlacement } from '#imports'
+
 const props = withDefaults(
   defineProps<{
     trigger?: Array<'click' | 'hover' | 'contextmenu'>
@@ -6,8 +8,11 @@ const props = withDefaults(
     overlayClassName?: string | undefined
     overlayStyle?: Record<string, any>
     disabled?: boolean
-    placement?: 'bottom' | 'top' | 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight' | 'topCenter' | 'bottomCenter' | 'right'
+    placement?: NcDropdownPlacement
     autoClose?: boolean
+    // if true, the dropdown will not have the nc-dropdown class (used for blocking keyboard events)
+    nonNcDropdown?: boolean
+    onVisibleChange?: (val: boolean) => void
   }>(),
   {
     trigger: () => ['click'],
@@ -17,6 +22,7 @@ const props = withDefaults(
     overlayClassName: undefined,
     autoClose: true,
     overlayStyle: () => ({}),
+    nonNcDropdown: false,
   },
 )
 
@@ -37,7 +43,7 @@ const visible = useVModel(props, 'visible', emits)
 const localIsVisible = ref<boolean | undefined>(props.visible)
 
 const overlayClassNameComputed = computed(() => {
-  let className = 'nc-dropdown bg-white rounded-lg border-1 border-gray-200 shadow-lg'
+  let className = `${props.nonNcDropdown ? '' : 'nc-dropdown '} rounded-lg border-1 border-nc-border-gray-medium shadow-lg`
   if (overlayClassName.value) {
     className += ` ${overlayClassName.value}`
   }
@@ -62,11 +68,24 @@ onClickOutside(overlayWrapperDomRef, () => {
 const onVisibleUpdate = (event: boolean) => {
   localIsVisible.value = event
 
-  if (visible !== undefined) {
+  if (visible.value !== undefined) {
     visible.value = event
   } else {
     emits('update:visible', event)
   }
+}
+
+/**
+ * If we have not passed a visible prop, then `@update:visible` will not be called.
+ * So we need to use this method to update the local state of the dropdown.
+ * @param isVisible - the new visibility state of the dropdown
+ */
+const onVisibilityChange = (isVisible: boolean) => {
+  props.onVisibleChange?.(isVisible)
+
+  if (!ncIsUndefined(props.visible)) return
+
+  localIsVisible.value = isVisible
 }
 
 watch(
@@ -89,6 +108,7 @@ watch(
     :overlay-class-name="overlayClassNameComputed"
     :overlay-style="overlayStyle"
     @update:visible="onVisibleUpdate"
+    @visible-change="onVisibilityChange"
   >
     <slot :visible="localIsVisible" :on-change="onVisibleUpdate" />
 

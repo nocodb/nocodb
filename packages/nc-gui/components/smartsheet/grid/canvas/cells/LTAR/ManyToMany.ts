@@ -2,7 +2,6 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isBoxHovered, renderIconButton, renderSingleLineText } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
-import { getI18n } from '../../../../../../plugins/a.i18n'
 
 const ellipsisWidth = 15
 const buttonSize = 20
@@ -309,7 +308,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
     return false
   },
   handleHover: async (props) => {
-    const { row, column, mousePosition, getCellPosition, selected } = props
+    const { row, column, mousePosition, getCellPosition, selected, t } = props
 
     if (!selected) return
 
@@ -321,6 +320,6 @@ export const ManyToManyCellRenderer: CellRenderer = {
 
     const box = { x: x + width - 30, y: y + 4, width: buttonSize, height: buttonSize }
 
-    tryShowTooltip({ rect: box, mousePosition, text: getI18n().global.t('tooltip.expandShiftSpace') })
+    tryShowTooltip({ rect: box, mousePosition, text: t('tooltip.expandShiftSpace') })
   },
 }

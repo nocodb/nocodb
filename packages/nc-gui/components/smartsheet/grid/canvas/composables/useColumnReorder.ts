@@ -8,6 +8,7 @@ export function useColumnReorder(
   drawCanvas: () => void,
   dragOver: Ref<{ id: string; index: number } | null>,
   emit: (event: string, ...args: any[]) => void,
+  isViewOperationsAllowed: ComputedRef<boolean>,
 ) {
   const isLocked = inject(IsLockedInj, ref(false))
   const isDragging = ref(false)
@@ -82,7 +83,7 @@ export function useColumnReorder(
   }
 
   const startDrag = (x: number) => {
-    if (isLocked.value) return
+    if (isLocked.value || !isViewOperationsAllowed.value) return
     const col = findColumnAtPosition(x)
     if (col) {
       isDragging.value = true
@@ -102,5 +103,6 @@ export function useColumnReorder(
     isDragging,
     dragStart,
     startDrag,
+    findColumnAtPosition,
   }
 }

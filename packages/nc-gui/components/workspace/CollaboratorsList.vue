@@ -15,13 +15,16 @@ const props = defineProps<{
 
 const { workspaceRoles } = useRoles()
 
-const { user } = useGlobal()
+const { user, isMobileMode } = useGlobal()
+
+const { showInfoModal } = useNcConfirmModal()
 
 const workspaceStore = useWorkspace()
 
-const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
+const { removeCollaborator: _removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
+const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading, removingCollaboratorMap } =
+  storeToRefs(workspaceStore)
 
 const {
   isPaymentEnabled,
@@ -70,7 +73,10 @@ const filterCollaborators = computed(() => {
 
   if (!collaborators.value) return []
 
-  return collaborators.value.filter((collab) => searchCompare([collab.display_name, collab.email], userSearchText.value))
+  return collaborators.value.filter(
+    (collab) =>
+      searchCompare([collab.display_name, collab.email], userSearchText.value) && !removingCollaboratorMap.value[collab.id],
+  )
 })
 
 const selected = reactive<{
@@ -142,7 +148,7 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
 }
 
 const isOwnerOrCreator = computed(() => {
-  return workspaceRoles.value[WorkspaceUserRoles.OWNER] || workspaceRoles.value[WorkspaceUserRoles.CREATOR]
+  return workspaceRoles.value?.[WorkspaceUserRoles.OWNER] || workspaceRoles.value?.[WorkspaceUserRoles.CREATOR]
 })
 
 const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
@@ -178,15 +184,16 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const columns = [
-  {
-    key: 'select',
-    title: '',
-    width: 70,
-    minWidth: 70,
-  },
+  // // Enable this select row column once we introduce bulk action
+  // {
+  //   key: 'select',
+  //   title: '',
+  //   width: 70,
+  //   minWidth: 70,
+  // },
   {
     key: 'email',
-    title: t('objects.users'),
+    title: t('labels.members'),
     minWidth: 220,
     dataIndex: 'email',
     showOrderBy: true,
@@ -235,14 +242,31 @@ const handleScroll = (e) => {
 
   topScroll.value = e.target?.scrollTop
 }
+
+const removeCollaborator = (userId: string, workspaceId: string) => {
+  showInfoModal({
+    title: userId === user.value?.id ? t('title.confirmLeaveWorkspaceTitle') : t('title.confirmRemoveMemberFromWorkspaceTitle'),
+    content:
+      userId === user.value?.id ? t('title.confirmLeaveWorkspaceSubtile') : t('title.confirmRemoveMemberFromWorkspaceSubtitle'),
+    showCancelBtn: true,
+    showIcon: false,
+    okProps: {
+      type: 'danger',
+    },
+    okText: userId === user.value?.id ? t('activity.leaveWorkspace') : t('general.remove'),
+    okCallback: async () => {
+      _removeCollaborator(userId, workspaceId)
+    },
+  })
+}
 </script>
 
 <template>
   <div
     class="nc-collaborator-table-container overflow-auto nc-scrollbar-thin relative"
     :class="{
-      'h-[calc(100vh-144px)]': !height && isAdminPanel,
-      'h-[calc(100vh-92px)]': !height && !isAdminPanel,
+      'nc-is-admin-panel': !height && isAdminPanel,
+      'nc-is-ws-members-list': !height && !isAdminPanel,
     }"
     :style="`${height ? `height: ${height}` : ''}`"
     @scroll.passive="handleScroll"
@@ -251,7 +275,7 @@ const handleScroll = (e) => {
       <PaymentBanner />
     </div>
 
-    <div class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-6 px-6 flex flex-col gap-6 sticky top-0">
+    <div class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-6 px-4 md:px-6 flex flex-col gap-6 sticky top-0">
       <div class="w-full flex items-center justify-between gap-3">
         <a-input
           v-model:value="userSearchText"
@@ -265,7 +289,7 @@ const handleScroll = (e) => {
           </template>
         </a-input>
         <div class="flex items-center gap-4">
-          <template v-if="isPaymentEnabled && paidUsersCount">
+          <template v-if="!isMobileMode && isPaymentEnabled && paidUsersCount">
             <NcTooltip
               v-if="activePlanTitle === PlanTitles.FREE"
               :tooltip-style="{ width: '230px' }"
@@ -277,13 +301,13 @@ const handleScroll = (e) => {
               "
             >
               <div class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
-                <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
+                <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
 
                 {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
               </div>
             </NcTooltip>
             <div v-else class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
-              <GeneralIcon icon="star" class="flex-none h-4 w-4 mr-1" />
+              <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
 
               {{ paidUsersCount }} {{ $t('general.paid') }}
               {{ paidUsersCount === 1 ? $t('general.seat').toLowerCase() : $t('general.seats').toLowerCase() }}
@@ -343,6 +367,8 @@ const handleScroll = (e) => {
           :custom-row="customRow"
           :bordered="false"
           class="flex-1 nc-collaborators-list"
+          :pagination="true"
+          :pagination-offset="25"
         >
           <template #emptyText>
             <a-empty :description="$t('title.noMembersFound')" />
@@ -380,7 +406,7 @@ const handleScroll = (e) => {
                     :overlay-inner-style="{ width: '180px' }"
                   >
                     <div v-if="activePlanTitle === PlanTitles.FREE" class="text-nc-content-gray-default">
-                      <GeneralIcon icon="star" class="flex-none mb-0.5" />
+                      <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
                     </div>
                     <NcBadge
                       v-else
@@ -388,7 +414,7 @@ const handleScroll = (e) => {
                       color="green"
                       class="text-nc-content-green-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
                     >
-                      {{ $t('general.paid') }}
+                      <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
                     </NcBadge>
                   </NcTooltip>
                 </div>
@@ -436,7 +462,7 @@ const handleScroll = (e) => {
                   <NcMenu variant="small">
                     <template v-if="isAdminPanel">
                       <NcMenuItem data-testid="nc-admin-org-user-delete">
-                        <GeneralIcon class="text-gray-800" icon="signout" />
+                        <GeneralIcon icon="signout" />
                         <span>{{ $t('labels.signOutUser') }}</span>
                       </NcMenuItem>
 
@@ -448,11 +474,14 @@ const handleScroll = (e) => {
                       </template>
                       <NcMenuItem
                         :disabled="!isDeleteOrUpdateAllowed(record)"
-                        :class="{ '!text-red-500 !hover:bg-red-50': isDeleteOrUpdateAllowed(record) }"
+                        danger
                         @click="removeCollaborator(record.id, currentWorkspace?.id)"
                       >
-                        <MaterialSymbolsDeleteOutlineRounded />
-                        {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeUser') }}
+                        <div v-if="removingCollaboratorMap[record.id]" class="h-4 w-4 flex items-center justify-center">
+                          <GeneralLoader class="!flex-none !text-current" />
+                        </div>
+                        <GeneralIcon v-else icon="delete" />
+                        {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeMember') }}
                       </NcMenuItem>
                     </NcTooltip>
                   </NcMenu>
@@ -488,5 +517,23 @@ const handleScroll = (e) => {
 <style scoped lang="scss">
 .badge-text {
   @apply text-[14px] pt-1 text-center;
+}
+
+.nc-collaborator-table-container {
+  &.nc-is-admin-panel {
+    @apply h-[calc(100vh-144px)];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-144px)];
+    }
+  }
+
+  &.nc-is-ws-members-list {
+    @apply h-[calc(100vh-var(--topbar-height)-44px)];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+    }
+  }
 }
 </style>

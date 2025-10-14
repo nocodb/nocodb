@@ -10,6 +10,7 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { getPathFromUrl, isPreviewAllowed } from '~/helpers/attachmentHelpers';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { processConcurrently } from '~/utils/dataUtils';
 
 function roundExpiry(date) {
   const msInTenMinutes = 10 * 60 * 1000;
@@ -234,6 +235,7 @@ export default class PresignedUrl {
         mimetype: string;
         signedPath?: string;
         signedUrl?: string;
+        status?: string;
       };
       preview?: boolean;
       mimetype?: string;
@@ -271,7 +273,7 @@ export default class PresignedUrl {
         },
         ncMeta,
       );
-    } else if (attachment?.url) {
+    } else if (attachment?.url && attachment.status !== 'uploading') {
       nestedObj.signedUrl = await PresignedUrl.getSignedUrl(
         {
           pathOrUrl: attachment.url,
@@ -297,11 +299,11 @@ export default class PresignedUrl {
   ) {
     if (!data) return;
 
-    const promises = [];
+    const allItems = [];
 
     try {
       for (const d of Array.isArray(data) ? data : [data]) {
-        if (!ncIsObject(d)) {
+        if (!ncIsObject(d) || !d.meta) {
           continue;
         }
 
@@ -312,15 +314,21 @@ export default class PresignedUrl {
           (d.meta as Record<string, any>).icon &&
           (d.meta as Record<string, any>).iconType === IconType.IMAGE
         ) {
-          promises.push(
-            PresignedUrl.signAttachment({
-              attachment: (d.meta as Record<string, any>).icon,
-            }),
-          );
+          allItems.push({
+            attachment: (d.meta as Record<string, any>).icon,
+          });
         }
       }
 
-      await Promise.all(promises);
+      await processConcurrently(
+        allItems,
+        async (item) => {
+          try {
+            await PresignedUrl.signAttachment(item);
+          } catch (e) {}
+        },
+        15,
+      );
     } catch (e) {
       logger.error('Error signing meta icon image', e);
     }

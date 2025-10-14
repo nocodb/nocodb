@@ -34,9 +34,7 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 
 // const { base } = storeToRefs(useBase())
 
-const { aiIntegrationAvailable, predictSelectOptions } = useNocoAi()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiFeaturesEnabled, aiIntegrationAvailable, predictSelectOptions } = useNocoAi()
 
 const { isAiModeFieldModal } = usePredictFields()
 
@@ -124,6 +122,12 @@ const getNextColor = () => {
   return tempColor
 }
 
+const updateOptionsWrapperScrollHeight = (increment = 0) => {
+  if (!optionsWrapperDomRef.value) return
+
+  optionsWrapperDomRef.value.scrollTop = optionsWrapperDomRef.value.scrollHeight + increment
+}
+
 const addNewOption = () => {
   isAddingOption.value = true
 
@@ -146,7 +150,7 @@ const addNewOption = () => {
     renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
   }
 
-  optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+  updateOptionsWrapperScrollHeight()
 
   nextTick(() => {
     // Last child doesnt work for query selector
@@ -159,7 +163,8 @@ const addNewOption = () => {
       }
     }, 150)
 
-    optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+    updateOptionsWrapperScrollHeight()
+
     isAddingOption.value = false
   })
 }
@@ -309,7 +314,7 @@ const loadListDataReverse = async ($state: any) => {
 
   renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
 
-  optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollTop + 100
+  updateOptionsWrapperScrollHeight(100)
 
   if (loadedOptionAnchor.value === 0) {
     $state.complete()
@@ -392,7 +397,7 @@ const predictOptions = async () => {
       syncOptions()
     }
 
-    optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+    updateOptionsWrapperScrollHeight()
   }
 }
 
@@ -484,7 +489,7 @@ if (!isKanbanStack.value) {
   watch(isLoadingPredictOptions, (newValue) => {
     if (!newValue) return
     nextTick(() => {
-      optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+      updateOptionsWrapperScrollHeight()
     })
   })
 }
@@ -579,7 +584,13 @@ if (!isKanbanStack.value) {
             <span></span>
           </template>
         </InfiniteLoading>
-        <Draggable :list="renderedOptions" item-key="id" handle=".nc-child-draggable-icon" @change="syncOptions">
+        <Draggable
+          v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 45 })"
+          :list="renderedOptions"
+          item-key="id"
+          handle=".nc-child-draggable-icon"
+          @change="syncOptions"
+        >
           <template #item="{ element, index }">
             <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
               <div
@@ -723,7 +734,7 @@ if (!isKanbanStack.value) {
 
         {{ $t('labels.addOption') }}
       </NcButton>
-      <NcTooltip v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)" class="w-1/2">
+      <NcTooltip v-if="isAiFeaturesEnabled" class="w-1/2">
         <template #title>
           {{
             aiIntegrationAvailable
@@ -753,7 +764,7 @@ if (!isKanbanStack.value) {
       </NcTooltip>
     </div>
     <div v-else-if="!kanbanStackOption?.id" class="mt-2 pl-1">
-      <NcTooltip v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)" class="w-full" placement="bottom">
+      <NcTooltip v-if="isAiFeaturesEnabled" class="w-full" placement="bottom">
         <template #title>
           {{ aiIntegrationAvailable ? $t('tooltip.autoSuggestSelectOptions') : $t('title.noAiIntegrationAvailable') }}
         </template>

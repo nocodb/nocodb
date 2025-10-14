@@ -5,7 +5,7 @@ const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
 
 const { leftSidebarState } = storeToRefs(useSidebarStore())
 
@@ -18,6 +18,8 @@ const isMenuOpen = ref(false)
 const isAuthTokenCopied = ref(false)
 
 const isLoggingOut = ref(false)
+
+const copyBtnRef = ref()
 
 const { isMobileMode } = useGlobal()
 
@@ -58,8 +60,6 @@ onMounted(() => {
   isMounted.value = true
 })
 
-const isExperimentalFeatureModalOpen = ref(false)
-
 const openExperimentationMenu = () => {
   isMenuOpen.value = false
   isExperimentalFeatureModalOpen.value = true
@@ -68,6 +68,12 @@ const openExperimentationMenu = () => {
 const accountUrl = computed(() => {
   return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
 })
+
+const copyEmail = () => {
+  if (!user?.value?.email) return
+
+  copyBtnRef.value?.copyContent?.(user.value?.email)
+}
 </script>
 
 <template>
@@ -90,7 +96,7 @@ const accountUrl = computed(() => {
         placement="topLeft"
         :overlay-class-name="`!min-w-44 md:!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
       >
-        <NcTooltip :disabled="!isMiniSidebar" placement="right" hide-on-click :arrow="false">
+        <NcTooltip :disabled="!isMiniSidebar || isMobileMode" placement="right" hide-on-click :arrow="false">
           <template #title>
             <div>
               <div v-if="name">{{ name }}</div>
@@ -106,6 +112,7 @@ const accountUrl = computed(() => {
               'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
             }"
             data-testid="nc-sidebar-userinfo"
+            :data-email="user?.email"
           >
             <div
               v-if="isMiniSidebar"
@@ -134,9 +141,9 @@ const accountUrl = computed(() => {
           </div>
         </NcTooltip>
         <template #overlay>
-          <NcMenu data-testid="nc-sidebar-userinfo" variant="small">
+          <NcMenu variant="medium">
             <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
-              <div v-e="['c:user:logout']" class="flex gap-2 items-center">
+              <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40 md:min-w-70">
                 <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
                 <GeneralIcon v-else icon="signout" class="menu-icon" />
                 <span class="menu-btn"> {{ $t('general.logout') }}</span>
@@ -182,34 +189,30 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
               </NcMenuItem>
             </a>
-            <template v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem">
-              <NcDivider />
-              <a-popover
-                key="language"
-                class="lang-menu !py-1.5"
-                placement="rightBottom"
-                overlay-class-name="nc-lang-menu-overlay !z-1050"
-              >
-                <NcMenuItem>
-                  <div v-e="['c:translate:open']" class="flex gap-2 items-center">
-                    <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
-                    {{ $t('labels.language') }}
-                    <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
-                    <div class="flex-1" />
+            <NcDivider />
+            <a-popover
+              key="language"
+              class="lang-menu !py-1.5"
+              placement="rightBottom"
+              overlay-class-name="nc-lang-menu-overlay !z-1050"
+            >
+              <NcMenuItem inner-class="w-full">
+                <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
+                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
+                  {{ $t('labels.language') }}
+                  <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
+                  <div class="flex-1" />
 
-                    <MaterialSymbolsChevronRightRounded
-                      class="transform group-hover:(scale-115 text-accent) text-xl text-gray-400"
-                    />
-                  </div>
-                </NcMenuItem>
+                  <GeneralIcon icon="ncChevronRight" class="flex-none !text-gray-500" />
+                </div>
+              </NcMenuItem>
 
-                <template #content>
-                  <div class="bg-white max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
-                    <LazyGeneralLanguageMenu />
-                  </div>
-                </template>
-              </a-popover>
-            </template>
+              <template #content>
+                <div class="bg-white max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
+                  <LazyGeneralLanguageMenu />
+                </div>
+              </template>
+            </a-popover>
 
             <template v-if="!isMobileMode">
               <NcDivider />
@@ -230,7 +233,7 @@ const accountUrl = computed(() => {
 
                 <a
                   v-e="['c:nocodb:docs-open']"
-                  href="https://docs.nocodb.com"
+                  href="https://nocodb.com/docs/product-docs"
                   target="_blank"
                   class="!underline-transparent"
                   rel="noopener"
@@ -250,13 +253,53 @@ const accountUrl = computed(() => {
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.handleReset">
-                <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
+                <NcMenuItem>
+                  <GeneralIcon icon="ncSettings" class="menu-icon" />
+                  <div class="flex-1 flex flex-col">
+                    <div>
+                      {{ $t('title.accountSettings') }}
+                    </div>
+                    <NcTooltip
+                      v-if="isMiniSidebar"
+                      show-on-truncate-only
+                      class="truncate text-bodySm text-nc-content-gray-muted max-w-68"
+                    >
+                      <template #title>
+                        {{ user?.email }}
+                      </template>
+                      {{ user?.email }}
+                    </NcTooltip>
+                  </div>
+                </NcMenuItem>
               </nuxt-link>
+            </template>
+            <template v-else-if="isMiniSidebar">
+              <NcDivider />
+
+              <NcMenuItemLabel>
+                <span class="normal-case"> {{ $t('labels.accountEmailID') }} </span>
+              </NcMenuItemLabel>
+              <NcMenuItem inner-class="w-full" @click="copyEmail">
+                <GeneralIcon icon="ncMail" class="h-4 w-4" />
+                <NcTooltip show-on-truncate-only class="flex-1 truncate max-w-68">
+                  <template #title>
+                    {{ user?.email }}
+                  </template>
+                  {{ user?.email }}
+                </NcTooltip>
+
+                <GeneralCopyButton
+                  v-if="user?.email"
+                  ref="copyBtnRef"
+                  type="secondary"
+                  :content="user?.email"
+                  :show-toast="false"
+                />
+              </NcMenuItem>
             </template>
           </NcMenu>
         </template>
       </NcDropdown>
-      <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
       <LazyNotificationMenu v-if="!isMiniSidebar" />
     </div>
 

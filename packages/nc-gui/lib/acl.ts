@@ -34,9 +34,6 @@ const rolePermissions = {
       baseDelete: true,
       baseDuplicate: true,
       newUser: true,
-      tableRename: true,
-      tableDelete: true,
-      viewCreateOrEdit: true,
       orgAdminPanel: true,
       workspaceAuditList: true,
       workspaceIntegrations: true,
@@ -73,6 +70,7 @@ const rolePermissions = {
       airtableImport: true,
       jsonImport: true,
       excelImport: true,
+      nocodbImport: true,
       settingsPage: true,
       webhook: true,
       fieldEdit: true,
@@ -91,6 +89,11 @@ const rolePermissions = {
       baseAuditList: true,
 
       extensionList: true,
+
+      // Row colouring
+      rowColourUpdate: true,
+
+      projectOverviewTab: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -104,6 +107,9 @@ const rolePermissions = {
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
+
+      // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
+      viewOperations: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -123,6 +129,7 @@ const rolePermissions = {
       commentCount: true,
       recordAuditList: true,
       newUser: true,
+      manageMCP: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {
@@ -141,6 +148,7 @@ export const sourceRestrictions = {
     csvImport: true,
     jsonImport: true,
     excelImport: true,
+    nocodbImport: true,
     duplicateColumn: true,
     duplicateModel: true,
     tableDuplicate: true,
@@ -154,6 +162,7 @@ export const sourceRestrictions = {
     csvImport: true,
     jsonImport: true,
     excelImport: true,
+    nocodbImport: true,
     duplicateColumn: true,
     duplicateModel: true,
   },

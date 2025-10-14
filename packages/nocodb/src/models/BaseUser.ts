@@ -134,7 +134,7 @@ export default class BaseUser {
     baseId: string,
     userId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<BaseUser & { is_mapped?: boolean }> {
+  ): Promise<BaseUser & { is_mapped?: boolean; deleted?: boolean }> {
     let baseUser =
       baseId &&
       userId &&
@@ -197,24 +197,29 @@ export default class BaseUser {
     {
       base_id,
       mode = 'full',
+      strict_in_record = false,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       include_ws_deleted = true,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      include_internal_user = false,
       user_ids,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
+      strict_in_record?: boolean;
       include_ws_deleted?: boolean;
+      include_internal_user?: boolean;
       user_ids?: string[];
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<(Partial<User> & BaseUser)[]> {
+  ): Promise<(Partial<User> & BaseUser & { deleted?: boolean })[]> {
     const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
 
     const fullVersionCols = ['invite_token'];
 
-    if (!isNoneList && !baseUsers.length) {
+    if (strict_in_record || (!isNoneList && !baseUsers.length)) {
       const queryBuilder = ncMeta
         .knex(MetaTable.USERS)
         .select(
@@ -229,7 +234,8 @@ export default class BaseUser {
           `${MetaTable.PROJECT_USERS}.roles as roles`,
         );
 
-      queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
+      const joinClause = strict_in_record ? 'innerJoin' : 'leftJoin';
+      queryBuilder[joinClause](MetaTable.PROJECT_USERS, function () {
         this.on(
           `${MetaTable.PROJECT_USERS}.fk_user_id`,
           '=',
@@ -252,10 +258,12 @@ export default class BaseUser {
         return this.castType(baseUser);
       });
 
-      await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
-        'base_id',
-        'id',
-      ]);
+      if (!strict_in_record) {
+        await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
+          'base_id',
+          'id',
+        ]);
+      }
     }
 
     if (user_ids) {

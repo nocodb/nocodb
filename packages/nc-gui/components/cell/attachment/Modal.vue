@@ -16,6 +16,7 @@ const {
   updateModelValue,
   selectedFile,
   selectedVisibleItems,
+  isSharedForm,
   bulkDownloadAttachments,
 } = useAttachmentCell()!
 
@@ -37,8 +38,6 @@ const onDropAction = function (...args: any[]) {
 }
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDropAction)
-
-const { isSharedForm } = useSmartsheetStoreOrThrow()
 
 const preventExit = ref(false)
 
@@ -159,6 +158,8 @@ const isNewAttachmentModalOpen = ref(false)
             :allow-selection="true"
             :allow-rename="!isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)"
             :allow-delete="!readOnly"
+            :icon-height="72"
+            :icon-width="72"
             @clicked="onClick(item)"
           />
           <div v-if="isLoading" class="flex flex-col gap-1">
@@ -189,14 +190,15 @@ const isNewAttachmentModalOpen = ref(false)
           </template>
         </div>
       </template>
-      <LazyCellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
+      <CellAttachmentAttachFile v-if="isNewAttachmentModalOpen" v-model:value="isNewAttachmentModalOpen" />
     </div>
   </NcModal>
 </template>
 
 <style lang="scss">
 .hide-ui {
-  @apply h-0 w-0 overflow-x-hidden whitespace-nowrap;
+  @apply md:(h-0 w-0 overflow-x-hidden whitespace-nowrap);
+
   .group:hover & {
     @apply h-auto w-auto overflow-visible whitespace-normal;
   }

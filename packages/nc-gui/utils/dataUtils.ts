@@ -7,6 +7,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
+  isValidValue,
   isVirtualCol,
   getLookupColumnType as sdkGetLookupColumnType,
   validateRowFilters as sdkValidateRowFilters,
@@ -26,25 +27,7 @@ import dayjs from 'dayjs'
 import { isColumnRequiredAndNull } from './columnUtils'
 import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
-export const isValidValue = (val: unknown) => {
-  if (ncIsNull(val) || ncIsUndefined(val)) {
-    return false
-  }
-
-  if (ncIsString(val) && val === '') {
-    return false
-  }
-
-  if (ncIsEmptyArray(val)) {
-    return false
-  }
-
-  if (ncIsEmptyObject(val)) {
-    return false
-  }
-
-  return true
-}
+export { isValidValue }
 
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   if (!row || !columns) return null
@@ -68,6 +51,10 @@ export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {
     }
   }
   return pkData
+}
+
+export const getRowHash = (row: Record<string, any>) => {
+  return MD5(JSON.stringify(row))
 }
 
 export const extractPk = (columns: ColumnType[]) => {
@@ -95,6 +82,7 @@ export async function populateInsertObject({
   ltarState,
   throwError,
   undo = false,
+  allowNullFieldIds = [],
 }: {
   meta: TableType
   ltarState: Record<string, any>
@@ -102,6 +90,7 @@ export async function populateInsertObject({
   row: Record<string, any>
   throwError?: boolean
   undo?: boolean
+  allowNullFieldIds?: string[]
 }) {
   const missingRequiredColumns = new Set()
   const insertObj = await meta.columns?.reduce(async (_o: Promise<any>, col) => {
@@ -129,7 +118,7 @@ export async function populateInsertObject({
       missingRequiredColumns.add(col.title)
     }
 
-    if ((!col.ai || undo) && row?.[col.title as string] !== null) {
+    if ((!col.ai || undo) && (row?.[col.title as string] !== null || allowNullFieldIds.includes(col.id as string))) {
       o[col.title as string] = row?.[col.title as string]
     }
 
@@ -242,6 +231,8 @@ export const getDateValue = (modelValue: string | null | number, col: ColumnType
   } else {
     return dayjs(/^\d+$/.test(String(modelValue)) ? +modelValue : modelValue).format(dateFormat)
   }
+
+  return ''
 }
 
 export const getYearValue = (modelValue: string | null) => {
@@ -255,7 +246,7 @@ export const getYearValue = (modelValue: string | null) => {
 }
 
 export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCellValueProps['params']) => {
-  const { col, isMssql, isXcdbBase } = params
+  const { col, isXcdbBase } = params
 
   if (!modelValue || !dayjs(modelValue).isValid()) {
     return ''
@@ -275,12 +266,7 @@ export const getDateTimeValue = (modelValue: string | null, params: ParsePlainCe
     return timezonize(dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue))?.format(dateTimeFormat) + displayTimezone
   }
 
-  if (isMssql(col.source_id)) {
-    // e.g. 2023-04-29T11:41:53.000Z
-    return timezonize(dayjs(modelValue, dateTimeFormat))?.format(dateTimeFormat) + displayTimezone
-  } else {
-    return timezonize(dayjs(modelValue))?.format(dateTimeFormat) + displayTimezone
-  }
+  return timezonize(dayjs(modelValue))?.format(dateTimeFormat) + displayTimezone
 }
 
 export const getTimeValue = (modelValue: string | null, col: ColumnType) => {
@@ -402,11 +388,13 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
   const relatedTableMeta =
     relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
 
-  const childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
+  let childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
     | ColumnType
     | undefined
 
   if (!childColumn) return modelValue?.toString() ?? ''
+  // may use deepClone
+  childColumn = { ...childColumn }
 
   const renderAsTextFun = getRenderAsTextFunForUiType((childColumn.uidt ?? UITypes.SingleLineText) as UITypes)
 
@@ -433,9 +421,11 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
 
   const relatedTableMeta =
     relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
+
   const childColumn = relatedTableMeta?.columns.find(
     (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),
   ) as ColumnType | undefined
+
   if (Array.isArray(modelValue)) {
     return modelValue
       .map((v) => {
@@ -596,4 +586,11 @@ export const parsePlainCellValue = (
   }
 
   return value as unknown as string
+}
+
+// Utility to stringify filter or sort array, if the array is empty return undefined
+export const stringifyFilterOrSortArr = (arr: any[]) => {
+  if (!arr || (Array.isArray(arr) && !arr.length)) return undefined
+
+  return JSON.stringify(arr)
 }

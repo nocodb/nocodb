@@ -24,9 +24,12 @@ provide(IsLockedInj, isLocked)
 provide(ReloadAggregateHookInj, createEventHook())
 
 useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
+
 useProvideViewGroupBy(sharedView, meta, xWhere, true)
 
 useProvideSmartsheetLtarHelpers(meta)
+
+useViewRowColorProvider({ shared: true })
 
 if (signedIn.value) {
   try {
@@ -48,7 +51,7 @@ watch(
 
 <template>
   <div class="nc-container flex flex-col h-full">
-    <LazySmartsheetToolbar />
+    <LazySmartsheetToolbar show-full-screen-toggle />
     <LazySmartsheetGrid />
   </div>
 </template>
@@ -56,7 +59,6 @@ watch(
 <style scoped>
 .nc-container {
   height: 100%;
-  padding-bottom: 0.5rem;
   flex: 1 1 100%;
 }
 </style>

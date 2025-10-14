@@ -39,7 +39,8 @@ const getSyncFrequency = (trigger: string, cron?: string) => {
     // Parse cron expression to human-readable format (simplified)
     if (cron.includes('hourly')) return 'Hourly'
     if (cron.includes('daily')) return 'Daily'
-    if (cron.includes('weekly')) return 'Weekly'
+    if (cron.includes('* * * *')) return 'Hourly'
+    if (cron.includes('* * *')) return 'Daily'
     return cron
   }
   return 'Unknown'
@@ -81,7 +82,7 @@ const handleEditSync = (syncId: string) => {
   isEditSyncModalOpen.value = true
 }
 
-const handleSyncNow = async (syncId: string) => {
+const _handleSyncNow = async (syncId: string) => {
   try {
     const response = await $api.internal.postOperation(
       activeWorkspace.value!.id!,
@@ -110,7 +111,7 @@ const handleSyncNow = async (syncId: string) => {
   }
 }
 
-const handleMigrateSync = async (syncId: string) => {
+const _handleMigrateSync = async (syncId: string) => {
   try {
     await $api.internal.postOperation(
       activeWorkspace.value!.id!,
@@ -268,7 +269,7 @@ watch(
                         <span>Edit</span>
                       </NcMenuItem>
                       <NcDivider />
-                      <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="handleDeleteSync(sync.id)">
+                      <NcMenuItem danger @click="handleDeleteSync(sync.id)">
                         <GeneralIcon icon="delete" />
                         <span>Delete</span>
                       </NcMenuItem>

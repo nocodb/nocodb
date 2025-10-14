@@ -1,11 +1,9 @@
 <script lang="ts" setup>
-const { signOut, signedIn, isLoading, user, currentVersion, appInfo } = useGlobal()
+const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const email = computed(() => user.value?.email ?? '---')
 
@@ -37,7 +35,7 @@ hooks.hook('page:finish', () => {
       <div v-show="hasSider" id="nc-sidebar-left" ref="sidebar" />
     </Transition>
 
-    <a-layout class="!flex-col h-screen">
+    <a-layout class="!flex-col nc-h-screen">
       <a-layout-header v-if="!route.meta.public && signedIn && !route.meta.hideHeader" class="nc-navbar">
         <div
           v-if="!route.params.baseType"
@@ -67,13 +65,13 @@ hooks.hook('page:finish', () => {
 
         <div class="flex-1" />
 
-        <LazyGeneralReleaseInfo />
+        <GeneralReleaseInfo />
 
         <a-tooltip placement="bottom" :mouse-enter-delay="1" class="mr-4">
-          <template #title>{{ $t('title.switchLanguage') }}</template>
+          <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
           <div class="flex items-center">
-            <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
+            <GeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
           </div>
         </a-tooltip>
 
@@ -127,11 +125,15 @@ hooks.hook('page:finish', () => {
         </template>
       </a-layout-header>
 
-      <a-tooltip v-if="!appInfo.ee || isFeatureEnabled(FEATURE_FLAG.LANGUAGE) || appInfo.isOnPrem" placement="bottom">
-        <template #title>{{ $t('title.switchLanguage') }}</template>
+      <NcTooltip
+        v-if="!signedIn && !route.params.baseId && !route.params.erdUuid && !ncIsIframe()"
+        placement="left"
+        class="nc-lang-btn-wrapper"
+      >
+        <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
-        <LazyGeneralLanguage v-if="!signedIn && !route.params.baseId && !route.params.erdUuid" class="nc-lang-btn" />
-      </a-tooltip>
+        <GeneralLanguage class="nc-lang-btn" />
+      </NcTooltip>
 
       <div class="w-full h-full overflow-hidden nc-layout-base-inner">
         <slot />
@@ -141,8 +143,12 @@ hooks.hook('page:finish', () => {
 </template>
 
 <style lang="scss">
+.nc-lang-btn-wrapper {
+  @apply fixed bottom-10 right-10 z-99 w-12 h-12;
+}
+
 .nc-lang-btn {
-  @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white ring-opacity-100 active:(ring ring-accent) hover:(ring ring-accent);
+  @apply color-transition flex items-center justify-center w-full h-full rounded-full shadow-md shadow-nc-content-gray-muted p-2 !bg-primary text-white ring-opacity-100 active:(ring ring-accent) hover:(ring ring-accent);
 
   &::after {
     @apply rounded-full absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;

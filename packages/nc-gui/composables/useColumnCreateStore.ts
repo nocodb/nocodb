@@ -24,7 +24,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
   ) => {
     const baseStore = useBase()
 
-    const { isMysql: isMysqlFunc, isPg: isPgFunc, isMssql: isMssqlFunc, isXcdbBase: isXcdbBaseFunc } = baseStore
+    const { isMysql: isMysqlFunc, isPg: isPgFunc, isXcdbBase: isXcdbBaseFunc } = baseStore
 
     const { sqlUis } = storeToRefs(baseStore)
 
@@ -38,7 +38,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { $e } = useNuxtApp()
 
-    const sqlUi = ref(meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0])
+    const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.source_id] : Object.values(sqlUis.value)[0]))
 
     const viewsStore = useViewsStore()
 
@@ -52,6 +52,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const disableSubmitBtn = ref(false)
 
+    const isSaving = ref(false)
+
     const isWebhookCreateModalOpen = ref(false)
 
     const isScriptCreateModalOpen = ref(false)
@@ -63,8 +65,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const isMysql = computed(() => isMysqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
     const isPg = computed(() => isPgFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
-
-    const isMssql = computed(() => isMssqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
 
     const isSystem = computed(() => isSystemColumn(column.value))
 
@@ -80,6 +80,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const additionalValidations = ref<ValidationsObj>({})
 
+    const avoidShowingToastMsgForValidations = ref<{ [key: string]: boolean }>({})
+
     const setAdditionalValidations = (validations: ValidationsObj) => {
       additionalValidations.value = { ...additionalValidations.value, ...validations }
     }
@@ -88,10 +90,13 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       delete additionalValidations.value[key]
     }
 
+    const setAvoidShowingToastMsgForValidations = (validations: { [key: string]: boolean }) => {
+      avoidShowingToastMsgForValidations.value = { ...avoidShowingToastMsgForValidations.value, ...validations }
+    }
+
     const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
       postSaveOrUpdateCbk = cbk
     }
-
     const defaultType = isMetaReadOnly.value ? UITypes.Formula : UITypes.SingleLineText
 
     const defaultFormState = {
@@ -122,9 +127,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const onUidtOrIdTypeChange = (preload?: Record<string, any>) => {
       disableSubmitBtn.value = false
 
-      const newTitle = updateFieldName(false)
+      const newTitle = updateFieldName(false, preload)
 
-      const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
+      const colProp = sqlUi.value?.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined) ?? {}
+
       formState.value = {
         ...(fromTableExplorer?.value || formState.value?.is_ai_field || formState.value?.ai_temp_id
           ? {
@@ -164,8 +170,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         formState.value = { ...formState.value, ...preload }
       }
 
-      formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)
-      formState.value.dtxs = sqlUi.value.getDefaultScaleForDatatype(formState.value.dt)
+      formState.value.dtxp = sqlUi.value?.getDefaultLengthForDatatype(formState.value.dt) ?? null
+      formState.value.dtxs = sqlUi.value?.getDefaultScaleForDatatype(formState.value.dt) ?? null
 
       const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
       if (column && selectTypes.includes(formState.value.uidt) && selectTypes.includes(column.value?.uidt as UITypes)) {
@@ -196,9 +202,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     // actions
     const generateNewColumnMeta = (ignoreUidt = false) => {
       setAdditionalValidations({})
+      setAvoidShowingToastMsgForValidations({})
       formState.value = {
         meta: {},
-        ...sqlUi.value.getNewColumn(1),
+        ...(sqlUi.value?.getNewColumn(1) ?? {}),
       }
       formState.value.title = ''
       formState.value.column_name = ''
@@ -245,9 +252,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                   ? activeTabSelectedFields.value.some((c) => {
                       return (
                         c.ai_temp_id !== formState.value?.ai_temp_id &&
-                        ((value || '').toLowerCase().trim() === (c.formState?.column_name || '').toLowerCase().trim() ||
-                          (value || '').toLowerCase().trim() === (c.formState?.title || '').toLowerCase().trim() ||
-                          (value || '').toLowerCase().trim() === (c?.title || '').toLowerCase().trim())
+                        ((value || '').trim().toLowerCase() === (c.formState?.column_name || '').trim().toLowerCase() ||
+                          (value || '').trim().toLowerCase() === (c.formState?.title || '').trim().toLowerCase() ||
+                          (value || '').trim().toLowerCase() === (c?.title || '').trim().toLowerCase())
                       )
                     })
                   : false
@@ -258,8 +265,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                     (c) =>
                       c.id !== formState.value.id && // ignore current column
                       // compare against column_name and title
-                      ((value || '').toLowerCase() === (c.column_name || '').toLowerCase() ||
-                        (value || '').toLowerCase() === (c.title || '').toLowerCase()),
+                      ((value || '').trim().toLowerCase() === (c.column_name || '').trim().toLowerCase() ||
+                        (value || '').trim().toLowerCase() === (c.title || '').trim().toLowerCase()),
                   ) ||
                     isAiFieldExist)
                 ) {
@@ -305,8 +312,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       formState.value.ai = false
       formState.value.cdf = null
       formState.value.un = false
-      formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)
-      formState.value.dtxs = sqlUi.value.getDefaultScaleForDatatype(formState.value.dt)
+      formState.value.dtxp = sqlUi.value?.getDefaultLengthForDatatype(formState.value.dt) ?? null
+      formState.value.dtxs = sqlUi.value?.getDefaultScaleForDatatype(formState.value.dt) ?? null
 
       formState.value.dtx = 'specificType'
 
@@ -346,8 +353,15 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       try {
         if (!(await validate())) return
       } catch (e: any) {
-        const errorMsgs = (e.errorFields || [])
-          .filter((f) => f?.name !== 'cdf')
+        let skipToast = false
+        const errorMsgs = (e?.errorFields || [])
+          .filter((f) => {
+            if (avoidShowingToastMsgForValidations.value[f?.name ?? '']) {
+              skipToast = true
+            }
+
+            return f?.name !== 'cdf' && !avoidShowingToastMsgForValidations.value[f?.name ?? '']
+          })
           .map((e: any) => e.errors?.join(', '))
           .filter(Boolean)
           .join(', ')
@@ -356,6 +370,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           message.error(errorMsgs)
           return
         }
+
+        if (skipToast) return
 
         if (!fromKanbanStack?.value || (fromKanbanStack.value && !e.outOfDate)) {
           message.error(t('msg.error.formValidationFailed'))
@@ -367,6 +383,13 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       let oldCol: ColumnType | undefined
 
       try {
+        isSaving.value = true // set saving state
+
+        // trim title before saving
+        if (formState.value.title) {
+          formState.value.title = formState.value.title.trim()
+        }
+
         formState.value.table_name = meta.value?.table_name
 
         const refModelId = formState.value.custom?.ref_model_id
@@ -389,6 +412,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               viewsStore.loadViews({ tableId: oldCol?.fk_model_id, ignoreLoading: true, force: true })
             }
             eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
+            eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
           } catch (e: any) {
             if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
             validateInfos.formula_raw!.validateStatus = 'error'
@@ -460,22 +484,24 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         return true
       } catch (e: any) {
         message.error(await extractSdkResponseErrorMsg(e))
+      } finally {
+        isSaving.value = false // reset saving state
       }
     }
 
-    function updateFieldName(updateFormState = true) {
+    function updateFieldName(updateFormState = true, preload?: Record<string, any>, force = false) {
       if (
         formState.value?.is_ai_field ||
         isEdit.value ||
         !fromTableExplorer?.value ||
         formState.value?.userHasChangedTitle ||
-        !isColumnValid?.value?.(formState.value)
+        (!isColumnValid?.value?.(formState.value) && !force)
       ) {
         return
       }
 
       const defaultColumnName = generateUniqueColumnName({
-        formState: formState.value,
+        formState: { ...formState.value, ...(preload ?? {}) },
         tableExplorerColumns: tableExplorerColumns?.value || [],
         metaColumns: meta.value?.columns || [],
       })
@@ -503,13 +529,13 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       onUidtOrIdTypeChange,
       setAdditionalValidations,
       removeAdditionalValidation,
+      setAvoidShowingToastMsgForValidations,
       resetFields,
       validate,
       validateInfos,
       isEdit,
       column,
       sqlUi,
-      isMssql,
       isPg,
       isWebhookCreateModalOpen,
       isAiButtonConfigModalOpen,
@@ -526,6 +552,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       tableExplorerColumns,
       defaultFormState,
       isScriptCreateModalOpen,
+      isSaving,
     }
   },
 )

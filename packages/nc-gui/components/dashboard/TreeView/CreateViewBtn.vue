@@ -15,7 +15,7 @@ const alignLeftLevel = toRef(props, 'alignLeftLevel')
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiFeaturesEnabled } = useNocoAi()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -26,6 +26,8 @@ const toBeCreateType = ref<ViewTypes | 'AI'>()
 const isOpen = ref(false)
 
 const isSqlView = computed(() => (table.value as TableType)?.type === 'view')
+
+const isSyncedTable = computed(() => (table.value as TableType)?.synced)
 
 const overlayClassName = computed(() => {
   if (alignLeftLevel.value === 1) return 'nc-view-create-dropdown nc-view-create-dropdown-left-1'
@@ -97,6 +99,7 @@ async function onOpenModal({
     coverImageColumnId,
     baseId: base.value.id!,
     tableId: table.value.id!,
+    sourceId: table.value?.source_id,
   })
 }
 </script>
@@ -118,14 +121,20 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <NcTooltip :title="$t('tooltip.sourceDataIsReadonly')" :disabled="!source.is_data_readonly && !isSqlView">
-          <NcMenuItem :disabled="!!source.is_data_readonly || isSqlView" @click="onOpenModal({ type: ViewTypes.FORM })">
+        <NcTooltip
+          :title="isSyncedTable ? $t('tooltip.formViewCreationNotSupportedForSyncedTable') : $t('tooltip.sourceDataIsReadonly')"
+          :disabled="!source.is_data_readonly && !isSqlView && !isSyncedTable"
+        >
+          <NcMenuItem
+            :disabled="!!source.is_data_readonly || isSqlView || isSyncedTable"
+            @click="onOpenModal({ type: ViewTypes.FORM })"
+          >
             <div class="item" data-testid="sidebar-view-create-form">
               <div class="item-inner">
                 <GeneralViewIcon
                   :meta="{ type: ViewTypes.FORM }"
                   :class="{
-                    'opacity-50': !!source.is_data_readonly || isSqlView,
+                    '!opacity-50': !!source.is_data_readonly || isSqlView || isSyncedTable,
                   }"
                 />
                 <div>{{ $t('objects.viewType.form') }}</div>
@@ -137,7 +146,7 @@ async function onOpenModal({
                 class="plus"
                 icon="plus"
                 :class="{
-                  '!text-current': !!source.is_data_readonly,
+                  '!text-current': !!source.is_data_readonly || isSqlView || isSyncedTable,
                 }"
               />
             </div>
@@ -176,16 +185,18 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+        <template v-if="isAiFeaturesEnabled">
           <NcDivider />
-          <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
-            <div class="item">
-              <div class="item-inner">
-                <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
-                <div>{{ $t('labels.aiSuggested') }}</div>
+          <NcTooltip :title="`Auto suggest views for ${table?.title || 'the current table'}`" placement="right">
+            <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
+              <div class="item">
+                <div class="item-inner">
+                  <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+                  <div>{{ $t('labels.useNocoAI') }}</div>
+                </div>
               </div>
-            </div>
-          </NcMenuItem>
+            </NcMenuItem>
+          </NcTooltip>
         </template>
       </NcMenu>
     </template>
@@ -202,7 +213,7 @@ async function onOpenModal({
 }
 
 .plus {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 </style>
 

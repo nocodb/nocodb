@@ -21,20 +21,20 @@ export const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
       }
       break
     case UITypes.SpecificDBType:
-      return { icon: iconMap.cellDb, color: 'text-grey' }
+      return { icon: iconMap.cellDb }
     case UITypes.Formula:
-      return { icon: iconMap.cellFormula, color: 'text-grey' }
+      return { icon: iconMap.cellFormula }
     case UITypes.Button:
       switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
         case ButtonActionsType.Ai:
-          return { icon: iconMap.cellAiButton, color: 'text-grey' }
+          return { icon: iconMap.cellAiButton }
         default:
-          return { icon: iconMap.cellButton, color: 'text-grey' }
+          return { icon: iconMap.cellButton }
       }
     case UITypes.QrCode:
-      return { icon: iconMap.cellQrCode, color: 'text-grey' }
+      return { icon: iconMap.cellQrCode }
     case UITypes.Barcode:
-      return { icon: iconMap.cellBarcode, color: 'text-grey' }
+      return { icon: iconMap.cellBarcode }
     case UITypes.Lookup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
@@ -46,7 +46,7 @@ export const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
         case RelationTypes.ONE_TO_ONE:
           return { icon: iconMap.cellLookup, color: 'text-purple-500', hex: '#7D26CD' }
       }
-      return { icon: iconMap.cellLookup, color: 'text-grey' }
+      return { icon: iconMap.cellLookup }
     case UITypes.Rollup:
       switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
@@ -58,18 +58,18 @@ export const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
         case RelationTypes.ONE_TO_ONE:
           return { icon: iconMap.cellRollup, color: 'text-purple-500', hex: '#7D26CD' }
       }
-      return { icon: iconMap.cellRollup, color: 'text-grey' }
+      return { icon: iconMap.cellRollup }
     case UITypes.Count:
-      return { icon: CountIcon, color: 'text-grey' }
+      return { icon: CountIcon }
     case UITypes.CreatedTime:
     case UITypes.LastModifiedTime:
-      return { icon: iconMap.cellSystemDate, color: 'text-grey' }
+      return { icon: iconMap.cellSystemDate }
     case UITypes.CreatedBy:
     case UITypes.LastModifiedBy:
-      return { icon: iconMap.cellSystemUser, color: 'text-grey' }
+      return { icon: iconMap.cellSystemUser }
   }
 
-  return { icon: iconMap.cellSystemText, color: 'text-grey' }
+  return { icon: iconMap.cellSystemText }
 }
 
 export default defineComponent({
@@ -79,9 +79,16 @@ export default defineComponent({
       type: Object as PropType<ColumnType>,
       required: false,
     },
+    /**
+     * Windicss color class
+     */
+    color: {
+      type: String,
+      required: false,
+    },
   },
   setup(props) {
-    const columnMeta = toRef(props, 'columnMeta')
+    const { columnMeta, color: defaultColor } = toRefs(props)
 
     const injectedColumn = inject(ColumnInj, columnMeta) as Ref<ColumnType & { colOptions: LookupType | RollupType }>
 
@@ -104,7 +111,7 @@ export default defineComponent({
 
       const { icon: Icon, color } = renderIcon(column.value, relationColumn)
 
-      return h(Icon, { class: `${color || 'text-grey'} mx-1 nc-virtual-cell-icon` })
+      return h(Icon, { class: `${color || defaultColor.value || 'text-inherit'} mx-1 flex-none nc-virtual-cell-icon` })
     }
   },
 })

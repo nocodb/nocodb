@@ -17,13 +17,14 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const baseURL = $api.instance.defaults.baseURL
 
-    const { isSharedForm } = useSmartsheetStoreOrThrow()
-
     const { row } = useSmartsheetRowStoreOrThrow()
 
     const { fetchSharedViewAttachment } = useSharedView()
 
-    const { showStoragePlanLimitExceededModal } = useEeConfig()
+    const { showStoragePlanLimitExceededModal, maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } =
+      useEeConfig()
+
+    const { batchUploadFiles } = useAttachment()
 
     const isReadonly = inject(ReadonlyInj, ref(false))
 
@@ -34,6 +35,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const isForm = inject(IsFormInj, ref(false))
 
     const meta = inject(MetaInj, ref())
+
+    const isSharedForm = computed(() => {
+      return isForm.value && isPublic.value
+    })
 
     const column = inject(ColumnInj, ref())
 
@@ -57,6 +62,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const permissionGranted = ref(false)
 
+    // User can drag and drop files multiple times so we have to keep track of that and reduce count after upload are done
+    const uploadingCount = ref(0)
+
+    const isUploading = computed(() => {
+      return uploadingCount.value > 0
+    })
+
     const { base } = storeToRefs(useBase())
 
     const { api, isLoading } = useApi()
@@ -72,7 +84,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     const defaultAttachmentMeta = {
       ...(appInfo.value.ee && {
         // Maximum Number of Attachments per cell
-        maxNumberOfAttachments: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50,
+        maxNumberOfAttachments: maxAttachmentsAllowedInCell.value,
         // Maximum File Size per file
         maxAttachmentSize: Math.max(1, +appInfo.value.ncAttachmentFieldSize || 20) || 20,
         supportedAttachmentMimeTypes: ['*'],
@@ -134,14 +146,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (appInfo.value.ee) {
           // verify number of files
           if (
-            visibleItems.value.length + (selectedFiles.length || selectedFileUrls?.length || 0) >
-            attachmentMeta.maxNumberOfAttachments
+            showUpgradeToAddMoreAttachmentsInCell({
+              totalAttachments: visibleItems.value.length + (selectedFiles.length || selectedFileUrls?.length || 0),
+            })
           ) {
-            message.error(
-              `You can only upload at most ${attachmentMeta.maxNumberOfAttachments} file${
-                attachmentMeta.maxNumberOfAttachments > 1 ? 's' : ''
-              } to this cell.`,
-            )
             return
           }
 
@@ -226,15 +234,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
 
       if (files.length) {
+        uploadingCount.value++
         try {
-          const data = await api.storage.upload(
-            {
-              path: [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'),
-            },
-            {
-              files,
-            },
-          )
+          const data = await batchUploadFiles(files, [NOCO, base.value.id, meta.value?.id, column.value?.id].join('/'))
+
           // add suffix in duplicate file title
           for (const uploadedFile of data) {
             newAttachments.push({
@@ -247,10 +250,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
             })
           }
         } catch (e: any) {
-          message.error(e.message || t('msg.error.internalError'))
+          message.error((await extractSdkResponseErrorMsg(e)) || t('msg.error.internalError'))
+        } finally {
+          uploadingCount.value--
         }
       } else if (imageUrls.length) {
-        const data = uploadViaUrl(imageUrls)
+        const data = await uploadViaUrl(imageUrls)
         if (!data) return
         newAttachments.push(...data)
       }
@@ -258,6 +263,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     async function uploadViaUrl(url: AttachmentReqType | AttachmentReqType[], returnError = false) {
+      uploadingCount.value++
       const imageUrl = Array.isArray(url) ? url : [url]
       try {
         const data = await api.storage.uploadByUrl(
@@ -274,6 +280,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         }
         message.error("File couldn't be uploaded. Verify URL & try again.")
         return null
+      } finally {
+        uploadingCount.value--
       }
     }
 
@@ -319,7 +327,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     /** save files on drop */
     async function onDrop(droppedFiles: FileList | File[] | null, event: DragEvent) {
-      if (isReadonly.value) return
+      if (isReadonly.value || !isEditAllowed.value) return
 
       if (droppedFiles) {
         // set files
@@ -394,7 +402,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
                 urlOrPath: src,
               })
 
-        const res = await apiPromise()
+        let res
+
+        try {
+          res = await apiPromise()
+        } catch {}
+
         if (!res) {
           console.error('Invalid response')
           message.error('Failed to download file')
@@ -567,6 +580,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       isRenameModalOpen,
       updateAttachmentTitle,
       isEditAllowed,
+      isSharedForm,
+      isUploading,
     }
   },
   'useAttachmentCell',

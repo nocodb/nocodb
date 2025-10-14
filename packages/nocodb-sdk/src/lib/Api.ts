@@ -22,6 +22,125 @@ export enum WorkspaceRolesV3Type {
 }
 
 /**
+ * Array of workspace users to be deleted.
+ */
+export type WorkspaceUserDeleteV3Type = {
+  /** Unique identifier for the user */
+  user_id: string;
+}[];
+
+/**
+ * Array of workspace user updates.
+ */
+export type WorkspaceUserUpdateV3Type = {
+  /** Unique identifier for the user */
+  user_id: string;
+  /** New workspace role to assign to the user */
+  workspace_role: WorkspaceRolesV3Type;
+}[];
+
+/**
+ * Array of workspace users to be created.
+ */
+export type WorkspaceUserCreateV3Type = (
+  | {
+      /** Unique identifier for the user (skip if email is provided) */
+      user_id: string;
+      /** Workspace role to assign to the user */
+      workspace_role: WorkspaceRolesV3Type;
+    }
+  | {
+      /**
+       * Email address of the user (skip if user_id is provided)
+       * @format email
+       */
+      email: string;
+      /** Workspace role to assign to the user */
+      workspace_role: WorkspaceRolesV3Type;
+    }
+)[];
+
+/**
+ * Workspace user information
+ */
+export interface WorkspaceUserV3Type {
+  /**
+   * Email address of the user
+   * @format email
+   */
+  email: string;
+  /** Unique identifier for the user */
+  user_id: string;
+  /**
+   * Timestamp when the user was added to the workspace
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the user was last updated in the workspace
+   * @format date-time
+   */
+  updated_at: string;
+  /** Role assigned to the user in the workspace */
+  workspace_role: WorkspaceRolesV3Type;
+}
+
+/**
+ * Individual workspace member information
+ */
+export interface WorkspaceMemberV3Type {
+  /**
+   * Email address of the member
+   * @format email
+   */
+  email: string;
+  /** Unique identifier for the user */
+  user_id: string;
+  /**
+   * Timestamp when the user was added to the workspace
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the user was last updated in the workspace
+   * @format date-time
+   */
+  updated_at: string;
+  /** Role assigned to the user in the workspace */
+  workspace_role: WorkspaceRolesV3Type;
+}
+
+/**
+ * Workspace information including member details
+ */
+export type WorkspaceWithMembersV3Type = WorkspaceV3Type & {
+  individual_members: {
+    /** List of workspace members */
+    workspace_members: WorkspaceMemberV3Type[];
+  };
+};
+
+/**
+ * Basic workspace information
+ */
+export interface WorkspaceV3Type {
+  /** Unique identifier for the workspace */
+  id: string;
+  /** Title of the workspace */
+  title: string;
+  /**
+   * Timestamp when the workspace was created
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the workspace was last updated
+   * @format date-time
+   */
+  updated_at: string;
+}
+
+/**
  * Base roles for the user.
  */
 export enum BaseRolesV3Type {
@@ -45,6 +164,111 @@ export interface PaginatedV3Type {
   nestedNext?: string;
   /** URL to access current page data with previous set of nested fields data */
   nestedPrev?: string;
+}
+
+/**
+ * V3 Nested Data List Response format - supports both single record and array responses
+ */
+export interface DataNestedListResponseV3V3Type {
+  /** Array of records for has-many and many-to-many relationships */
+  records?: DataRecordV3V3Type[];
+  /** Single record for belongs-to and one-to-one relationships */
+  record?: DataRecordV3V3Type | null;
+  /** Pagination token for next page */
+  next?: string | null;
+  /** Pagination token for previous page */
+  prev?: string | null;
+}
+
+/**
+ * V3 Data Read Response format
+ */
+export type DataReadResponseV3V3Type = DataRecordV3V3Type;
+
+/**
+ * V3 Data Delete Response format
+ */
+export interface DataDeleteResponseV3V3Type {
+  /** Array of deleted records */
+  records: DataRecordWithDeletedV3V3Type[];
+}
+
+/**
+ * V3 Data Update Response format
+ */
+export interface DataUpdateResponseV3V3Type {
+  /** Array of updated record identifiers */
+  records: {
+    /** Updated record identifier */
+    id: string | number;
+    /** Record fields data (excluding primary key). Undefined when empty. */
+    fields?: Record<string, any>;
+  }[];
+}
+
+/**
+ * V3 Data Insert Response format
+ */
+export interface DataInsertResponseV3V3Type {
+  /** Array of created records */
+  records: DataRecordV3V3Type[];
+}
+
+/**
+ * Single record delete request
+ */
+export interface DataDeleteRequestV3V3Type {
+  /** Record identifier */
+  id: string | number;
+}
+
+/**
+ * V3 Data Update Request format
+ */
+export interface DataUpdateRequestV3V3Type {
+  /** Record identifier */
+  id: string | number;
+  /** Record fields data to update */
+  fields: Record<string, any>;
+}
+
+/**
+ * V3 Data Insert Request format
+ */
+export interface DataInsertRequestV3V3Type {
+  /** Record fields data */
+  fields: Record<string, any>;
+}
+
+/**
+ * V3 Data List Response format
+ */
+export interface DataListResponseV3V3Type {
+  /** Array of records for has-many and many-to-many relationships */
+  records?: DataRecordV3V3Type[];
+  /** Pagination token for next page */
+  next?: string | null;
+  /** Pagination token for previous page */
+  prev?: string | null;
+  /** Nested pagination token for next page */
+  nestedNext?: string | null;
+  /** Nested pagination token for previous page */
+  nestedPrev?: string | null;
+}
+
+export type DataRecordWithDeletedV3V3Type = DataRecordV3V3Type & {
+  /** Indicates if the record was deleted */
+  deleted: boolean;
+};
+
+/**
+ * V3 Data Record format with id and fields separation
+ */
+export interface DataRecordV3V3Type {
+  /** Record identifier (primary key value) */
+  id: string | number;
+  /** Record fields data (excluding primary key). Undefined when empty. */
+  fields?: Record<string, any>;
 }
 
 export interface SortListResponseV3Type {
@@ -101,10 +325,10 @@ export interface FilterListResponseV3Type {
 
 export interface FilterV3Type {
   /** Unique identifier for the filter. */
-  id: string;
-  /** Parent ID of the filter, specifying this filters group association. */
+  id?: string;
+  /** Parent ID of the filter, specifying this filters group association. Defaults to **root**. */
   parent_id?: string;
-  /** Field ID to which this filter applies. Defaults to **root**. */
+  /** Field ID to which this filter applies. */
   field_id: string;
   /** Primary comparison operator (e.g., eq, gt, lt). */
   operator: string;
@@ -153,7 +377,11 @@ export type FieldUpdateV3Type = FieldBaseV3Type &
         options?: FieldOptionsSelectV3Type;
       }
     | {
-        type?: 'Rating' | 'Checkbox';
+        type?: 'Checkbox';
+        options?: FieldOptionsCheckboxV3Type;
+      }
+    | {
+        type?: 'Rating';
         options?: FieldOptionsRatingV3Type;
       }
     | {
@@ -349,7 +577,7 @@ export interface FieldOptionsFormulaV3Type {
   formula?: string;
 }
 
-export interface FieldOptionsQRCodeV3Type {
+export interface FieldOptionsQrCodeV3Type {
   /** Field ID that contains the value. */
   qrcode_value_field_id?: string;
 }
@@ -724,213 +952,504 @@ export interface FieldOptionsLongTextV3Type {
   generate_text_using_ai?: boolean;
 }
 
+export type FieldBaseCreateV3Type = FieldBaseV3Type;
+
 export interface FieldBaseV3Type {
   /** Unique identifier for the field. */
   id?: string;
   /** Title of the field. */
   title: string;
   /** Field data type. */
-  type: string;
+  type?:
+    | 'SingleLineText'
+    | 'LongText'
+    | 'PhoneNumber'
+    | 'URL'
+    | 'Email'
+    | 'Number'
+    | 'Decimal'
+    | 'Currency'
+    | 'Percent'
+    | 'Duration'
+    | 'Date'
+    | 'DateTime'
+    | 'Time'
+    | 'SingleSelect'
+    | 'MultiSelect'
+    | 'Rating'
+    | 'Checkbox'
+    | 'Attachment'
+    | 'Geometry'
+    | 'Links'
+    | 'Lookup'
+    | 'Rollup'
+    | 'Button'
+    | 'Formula'
+    | 'Barcode'
+    | 'Year'
+    | 'QrCode'
+    | 'CreatedTime'
+    | 'LastModifiedTime'
+    | 'CreatedBy'
+    | 'LastModifiedBy'
+    | 'LinkToAnotherRecord'
+    | 'User'
+    | 'JSON';
   /** Description of the field. */
   description?: string | null;
   /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
-  default_value?: string;
+  default_value?: string | boolean | number;
 }
 
-export interface ViewCreateV3Type {
-  /** Name of the view. */
-  view_name?: string;
-  /** Type of the view. */
-  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
-  /** Lock type of the view. */
-  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
-  /** Description of the view. */
-  description?: string;
+export type ViewV3Type = {
+  /** Unique identifier for the view. */
+  id: string;
+  /** Id of table associated with the view. */
+  table_id?: string;
+  /** Indicates if this is the default view. Omitted if not the default view. */
+  is_default?: boolean;
+} & ViewBaseV3Type & {
+    /** User ID of the creator. */
+    created_by?: string;
+    /** User ID of the owner. */
+    owned_by?: string;
+    /**
+     * Timestamp of creation.
+     * @format date-time
+     */
+    created_at?: string;
+    /**
+     * Timestamp of last update.
+     * @format date-time
+     */
+    updated_at?: string;
+  } & (
+    | {
+        type?: 'grid';
+        options?: ViewOptionsGridV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        type?: 'gallery';
+        options?: ViewOptionsGalleryV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        type?: 'kanban';
+        options: ViewOptionsKanbanV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        type?: 'calendar';
+        options: ViewOptionsCalendarV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+  );
+
+export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
+  (
+    | {
+        options?: ViewOptionsGridV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        options?: ViewOptionsGalleryV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        options?: ViewOptionsKanbanV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        options?: ViewOptionsCalendarV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+  );
+
+export type ViewCreateV3Type = ViewBaseV3Type &
+  (
+    | {
+        type?: 'grid';
+        options?: ViewOptionsGridV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        type?: 'gallery';
+        options?: ViewOptionsGalleryV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        type?: 'kanban';
+        options: ViewOptionsKanbanV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        type?: 'calendar';
+        options: ViewOptionsCalendarV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+  );
+
+export interface ViewOptionsFormV3Type {
+  /** Heading for the form. */
+  form_title?: string;
+  /** Subheading for the form. */
+  form_description?: string;
+  /** Success message shown after form submission. */
+  thank_you_message?: string;
+  /** Seconds to wait before redirecting. */
+  form_redirect_after_secs?: number;
+  /** Whether to show another form after submission. */
+  show_submit_another_button?: boolean;
+  /** Whether to show a blank form after submission. */
+  reset_form_after_submit?: boolean;
+  /** Whether to hide the banner on the form. */
+  form_hide_banner?: boolean;
+  /** Whether to hide branding on the form. */
+  form_hide_branding?: boolean;
+  /**
+   * URL of the banner image for the form.
+   * @format uri
+   */
+  banner?: string;
+  /**
+   * URL of the logo for the form.
+   * @format uri
+   */
+  logo?: string;
+  /**
+   * Background color for the form.
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   */
+  form_background_color?: string;
+  /**
+   * URL to redirect to after form submission.
+   * @format uri
+   */
+  redirect_url?: string;
 }
+
+export interface ViewOptionsGalleryV3Type {
+  /** Attachment field ID to be used as cover image in gallery view. Is optional, if not provided, the first attachment field will be used. */
+  cover_field_id?: string;
+}
+
+export interface ViewOptionsCalendarV3Type {
+  date_ranges: {
+    /** Date field ID to be used as start date in calendar view. */
+    start_date_field_id: string;
+    /** Date field ID to be used as end date in calendar view. */
+    end_date_field_id?: string;
+  }[];
+}
+
+export interface ViewOptionsKanbanV3Type {
+  stack_by: {
+    /** Single select field ID to be used for stacking cards in kanban view. */
+    field_id: string;
+    /**
+     * Order of the stacks in kanban view. If not provided, the order will be determined by options listed in associated field.
+     *
+     * Example: ```stack_order: ['option1', 'option2', 'option3']```
+     */
+    stack_order?: string[];
+  };
+  /** Attachment field ID to be used as cover image in kanban view. If not provided, cover field configuration is skipped. */
+  cover_field_id?: string;
+}
+
+export interface ViewOptionsGridV3Type {
+  /** List of groups to be applied on the grid view. */
+  groups?: {
+    /** Identifier for the field being sorted. */
+    field_id: string;
+    /** Direction of the group, either 'asc' (ascending) or 'desc' (descending). */
+    direction?: 'asc' | 'desc';
+  }[];
+  /** Height of the rows in the grid view. */
+  row_height?: 'short' | 'medium' | 'tall' | 'extra';
+}
+
+export type ViewRowColourV3Type =
+  | {
+      /** Mode of row coloring. In this mode, the color is selected based on conditions applied to the fields. */
+      mode: 'filter';
+      conditions: {
+        apply_as_row_background?: boolean;
+        color?: string;
+        filters?: FilterCreateUpdateV3Type;
+      }[];
+    }
+  | {
+      /** Mode of row coloring. In this mode, the color is selected based on a single select field. */
+      mode: 'select';
+      /** Single select field ID to be used for colouring rows in the view. */
+      field_id: string;
+      /** Whether to additionally apply the color as row background. */
+      apply_as_row_background?: boolean;
+    };
 
 /**
- * GRID View
- */
-export type ViewV3Type = (
-  | {
-      fields: {
-        /**
-         * Field ID for GRID view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is hidden in GRID view. */
-        is_hidden?: boolean;
-      }[];
-      group?: {
-        /**
-         * Field ID for grouping in GRID view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Sorting order for the group. */
-        sort?: 'asc' | 'desc';
-      }[];
-    }
-  | {
-      fields: {
-        /**
-         * Field ID displayed in GALLERY view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is the cover image. */
-        cover_image?: boolean;
-      }[];
-      /**
-       * Field ID for the cover image.
-       * @format uuid
-       */
-      cover_image_field_id?: string;
-    }
-  | {
-      fields: {
-        /**
-         * Field ID used in KANBAN view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is used for stacking in KANBAN. */
-        is_stack_by?: boolean;
-      }[];
-      /**
-       * Field ID for the cover image.
-       * @format uuid
-       */
-      cover_image_field_id?: string;
-      /**
-       * Field ID used for stacking in KANBAN view.
-       * @format uuid
-       */
-      kanban_stack_by_field_id?: string;
-    }
-  | {
-      fields: {
-        /**
-         * Field ID displayed in CALENDAR view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is used for date ranges. */
-        is_date_field?: boolean;
-      }[];
-      calendar_range?: {
-        /**
-         * Field ID for the start date.
-         * @format uuid
-         */
-        start_field_id?: string;
-        /**
-         * Field ID for the end date.
-         * @format uuid
-         */
-        end_field_id?: string;
-      }[];
-    }
-  | {
-      fields: {
-        /**
-         * Field ID used in FORM view.
-         * @format uuid
-         */
-        field_id?: string;
-        /** Indicates if the field is required in the form. */
-        is_required?: boolean;
-      }[];
-      /** Heading for the form. */
-      form_heading?: string;
-      /** Subheading for the form. */
-      form_sub_heading?: string;
-      /** Success message shown after form submission. */
-      form_success_message?: string;
-      /**
-       * URL to redirect to after form submission.
-       * @format uri
-       */
-      form_redirect_url?: string;
-      /** Seconds to wait before redirecting. */
-      form_redirect_after_secs?: number;
-      /** Whether to send a response email. */
-      form_send_response_email?: boolean;
-      /** Whether to show another form after submission. */
-      form_show_another?: boolean;
-      /** Whether to show a blank form after submission. */
-      form_show_blank?: boolean;
-      /** Whether to hide the banner on the form. */
-      form_hide_banner?: boolean;
-      /** Whether to hide branding on the form. */
-      form_hide_branding?: boolean;
-      /**
-       * URL of the banner image for the form.
-       * @format uri
-       */
-      form_banner_image_url?: string;
-      /**
-       * URL of the logo for the form.
-       * @format uri
-       */
-      form_logo_url?: string;
-      /**
-       * Background color for the form.
-       * @pattern ^#[0-9A-Fa-f]{6}$
-       */
-      form_background_color?: string;
-    }
-) & {
+* List of fields to be displayed in the view. 
+
+- If not specified, all fields are displayed by default.
+- If an empty array is provided, only the display value field will be shown.
+- In case of partial list, fields not included in the list will be excluded from the view.
+*/
+export type ViewFieldsV3Type = {
+  /** Unique identifier for the field. */
+  field_id: string;
+  /** Indicates whether the field should be displayed in the view. */
+  show: boolean;
   /**
-   * Unique identifier for the view.
-   * @format uuid
+   * Width of the field in pixels.
+   *
+   *  **Applicable only for grid view.**
    */
-  id?: string;
-  /** Name of the view. */
-  view_name?: string;
-  /** Type of the view. */
-  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
-  /** Lock type of the view. */
-  lock_type?: 'COLLABARATIVE' | 'LOCKED' | 'PERSONAL';
+  width?: number;
+  /**
+   * Aggregation function to be applied to the field.
+   *
+   *  **Applicable only for grid view.**
+   */
+  aggregation?: ViewAggregationEnumV3Type;
+}[];
+
+export interface ViewBaseInUpdateV3Type {
+  /** Title of the view. */
+  title?: string;
+  /**
+   * Lock type of the view.
+   *
+   *  Note: Assigning view as personal using API is not supported currently
+   */
+  lock_type?: 'collaborative' | 'locked' | 'personal';
   /** Description of the view. */
   description?: string;
-  /** Indicates if this is the default view. */
-  is_default?: boolean;
-  meta?: {
-    /** Description for locked views. */
-    locked_view_description?: string;
+}
+
+export interface ViewBaseV3Type {
+  /** Title of the view. */
+  title: string;
+  /**
+   * Type of the view.
+   *
+   * Note: Form view via API is not supported currently
+   */
+  type: 'grid' | 'gallery' | 'kanban' | 'calendar';
+  /**
+   * Lock type of the view.
+   *
+   *  Note: Assigning view as personal using API is not supported currently
+   */
+  lock_type?: 'collaborative' | 'locked' | 'personal';
+  /** Description of the view. */
+  description?: string;
+}
+
+export interface ViewListV3Type {
+  list: {
+    /** Unique identifier for the view. */
+    id: string;
+    /** Id of table associated with the view. */
+    table_id?: string;
+    /** Title of the view. */
+    title: string;
+    /** Description of the view. */
+    description?: string | null;
+    /** Type of the view. */
+    type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
+    /** View configuration edit state. */
+    lock_type: 'collaborative' | 'locked' | 'personal';
+    /** Indicates if this is the default view. */
+    is_default?: boolean;
+    /** User ID of the creator. */
+    created_by: string;
+    /** User ID of the owner. Applicable only for personal views. */
+    owned_by?: string;
     /**
-     * User ID of the person who locked the view.
-     * @format uuid
+     * Timestamp of creation.
+     * @format date-time
      */
-    locked_by_user_id?: string;
-  };
-  /**
-   * User ID of the creator.
-   * @format uuid
-   */
-  created_by?: string;
-  /**
-   * User ID of the owner.
-   * @format uuid
-   */
-  owned_by?: string;
-  /**
-   * Timestamp of creation.
-   * @format date-time
-   */
-  created_at?: string;
-  /**
-   * Timestamp of last update.
-   * @format date-time
-   */
-  updated_at?: string;
-  /** Filters applied to the view. */
-  filters?: FilterV3Type[];
-  /** Sort options for the view. */
-  sorts?: SortV3Type[];
-};
+    created_at: string;
+    /**
+     * Timestamp of last update.
+     * @format date-time
+     */
+    updated_at: string;
+  }[];
+}
+
+export enum ViewAggregationEnumV3Type {
+  Sum = 'sum',
+  Min = 'min',
+  Max = 'max',
+  Avg = 'avg',
+  Median = 'median',
+  StdDev = 'std_dev',
+  Range = 'range',
+  Count = 'count',
+  CountEmpty = 'count_empty',
+  CountFilled = 'count_filled',
+  CountUnique = 'count_unique',
+  PercentEmpty = 'percent_empty',
+  PercentFilled = 'percent_filled',
+  PercentUnique = 'percent_unique',
+  None = 'none',
+  AttachmentSize = 'attachment_size',
+  Checked = 'checked',
+  Unchecked = 'unchecked',
+  PercentChecked = 'percent_checked',
+  PercentUnchecked = 'percent_unchecked',
+  EarliestDate = 'earliest_date',
+  LatestDate = 'latest_date',
+  DateRange = 'date_range',
+  MonthRange = 'month_range',
+}
 
 export interface ViewSummaryV3Type {
   /**
@@ -941,7 +1460,7 @@ export interface ViewSummaryV3Type {
   /** Name of the view. */
   title?: string;
   /** Type of the view. */
-  view_type?: 'GRID' | 'GALLERY' | 'KANBAN' | 'CALENDAR' | 'FORM';
+  view_type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
 }
 
 export interface SortUpdateV3Type {
@@ -957,20 +1476,14 @@ export interface SortUpdateV3Type {
 }
 
 export interface SortCreateV3Type {
-  /**
-   * Identifier for the field being sorted.
-   * @format uuid
-   */
+  /** Identifier for the field being sorted. */
   field_id: string;
   /** Sorting direction, either 'asc' (ascending) or 'desc' (descending). */
-  direction: 'asc' | 'desc';
+  direction?: 'asc' | 'desc';
 }
 
 export interface SortV3Type {
-  /**
-   * Unique identifier for the sort.
-   * @format uuid
-   */
+  /** Unique identifier for the sort. */
   id: string;
   /**
    * Identifier for the field being sorted.
@@ -997,57 +1510,54 @@ export interface TableMetaReqV3Type {
   icon?: string;
 }
 
-export type BaseUserDeleteV3Type = {
-  /** Unique identifier for the user. */
-  id?: string;
-  /**
-   * Email address of the user.
-   * @format email
-   */
-  email?: string;
+export type BaseMemberDeleteV3Type = {
+  /** User unique identifier for the member. */
+  user_id: string;
 }[];
 
 /**
- * Array of user updates.
+ * Array of member updates.
  */
-export type BaseUserUpdateV3Type = {
-  /** Unique identifier for the user. Used as a primary identifier if provided. */
-  id?: string;
-  /**
-   * Email address of the user. Used as a primary identifier if 'id' is not provided.
-   * @format email
-   */
-  email?: string;
+export type BaseMemberUpdateV3Type = {
+  /** Unique user identifier for the member. */
+  user_id: string;
   /** Base roles for the user. */
   base_role: BaseRolesV3Type;
 }[];
 
 /**
- * Array of users to be created.
+ * Array of members to be created.
  */
-export type BaseUserCreateV3Type = {
-  /** Unique identifier for the user. Can be provided optionally during creation. */
-  id?: string;
-  /**
-   * Email address of the user. Used as a primary identifier if 'id' is not provided.
-   * @format email
-   */
-  email?: string;
-  /** Full name of the user. */
-  user_name?: string;
+export type BaseMemberCreateV3Type = ((
+  | {
+      /** Unique identifier for the user (skip if email is provided) */
+      user_id: string;
+      /** Full name of the user. */
+      user_name?: string;
+    }
+  | {
+      /**
+       * Email address of the user (skip if user_id is provided)
+       * @format email
+       */
+      email: string;
+      /** Full name of the user. */
+      user_name?: string;
+    }
+) & {
   /** Base roles for the user. */
   base_role: BaseRolesV3Type;
-}[];
+})[];
 
-export interface BaseUserListV3Type {
-  list?: BaseUserV3Type[];
+export interface BaseMemberListV3Type {
+  list?: BaseMemberV3Type[];
 }
 
 export type BaseUserDeleteRequestV3Type = any;
 
-export interface BaseUserV3Type {
+export interface BaseMemberWithWorkspaceRoleV3Type {
   /** Unique identifier for the user. */
-  id: string;
+  user_id: string;
   /**
    * Email address of the user.
    * @format email
@@ -1055,22 +1565,24 @@ export interface BaseUserV3Type {
   email: string;
   /** Display name of the user. */
   user_name?: string;
-  /**
-   * Timestamp of when the user was created.
-   * @format date-time
-   */
-  created_at: string;
-  /**
-   * Timestamp of when the user access was last updated.
-   * @format date-time
-   */
-  updated_at: string;
   /** Base roles for the user. */
   base_role: BaseRolesV3Type;
-  /** Workspace roles for the user. */
-  workspace_role: WorkspaceRolesV3Type;
-  /** Unique identifier for the workspace. */
-  workspace_id: string;
+  /** Role assigned to the user in the workspace */
+  workspace_role?: WorkspaceRolesV3Type;
+}
+
+export interface BaseMemberV3Type {
+  /** Unique identifier for the user. */
+  user_id: string;
+  /**
+   * Email address of the user.
+   * @format email
+   */
+  email: string;
+  /** Display name of the user. */
+  user_name?: string;
+  /** Base roles for the user. */
+  base_role: BaseRolesV3Type;
 }
 
 export interface TableV3Type {
@@ -1094,7 +1606,7 @@ export interface TableV3Type {
   views: ViewSummaryV3Type[];
 }
 
-export type CreateFieldV3Type = FieldBaseV3Type;
+export type CreateFieldV3Type = FieldBaseCreateV3Type;
 
 export type FieldOptionsV3Type = any;
 
@@ -1162,6 +1674,45 @@ export interface BaseMetaResV3Type {
    * @pattern ^#[0-9A-Fa-f]{6}$
    */
   icon_color?: string;
+}
+
+export interface BaseWithMembersV3Type {
+  /** Unique identifier for the base. */
+  id: string;
+  /** Title of the base. */
+  title: string;
+  meta: BaseMetaResV3Type;
+  /**
+   * Timestamp of when the base was created.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp of when the base was last updated.
+   * @format date-time
+   */
+  updated_at: string;
+  /** Unique identifier for the workspace to which this base belongs to. */
+  workspace_id: string;
+  /** List of data sources associated with this base. This information will be included only if one or more external data sources are associated with the base. */
+  sources?: {
+    /** Unique identifier for the data source. */
+    id: string;
+    /** Title of the data source. */
+    title: string;
+    /** Type of the data source (e.g., pg, mysql). */
+    type: string;
+    /** Indicates if the schema in this data source is read-only. */
+    is_schema_readonly: boolean;
+    /** Indicates if the data (records) in this data source is read-only. */
+    is_data_readonly: boolean;
+    /** Integration ID for the data source. */
+    integration_id: string;
+  }[];
+  individual_members?: {
+    base_members?: BaseMemberWithWorkspaceRoleV3Type[];
+    workspace_members?: WorkspaceMemberV3Type[];
+  };
 }
 
 export interface BaseV3Type {
@@ -1490,7 +2041,6 @@ export interface SourceType {
    * @example mysql2
    */
   type?:
-    | 'mssql'
     | 'mysql'
     | 'mysql2'
     | 'oracledb'
@@ -1580,7 +2130,6 @@ export interface BaseReqType {
   is_data_readonly?: BoolType;
   /** DB Type */
   type?:
-    | 'mssql'
     | 'mysql'
     | 'mysql2'
     | 'oracledb'
@@ -2140,6 +2689,8 @@ export interface FilterReqType {
       );
   /** Foreign Key to Column */
   fk_column_id?: StringOrNullType;
+  /** Foreign Key to Widget */
+  fk_widget_id?: StringOrNullType;
   /** Belong to which filter ID */
   fk_parent_id?: StringOrNullType;
   /** Is this filter grouped? */
@@ -2664,7 +3215,7 @@ export interface HookType {
    * Event Type for the operation
    * @example after
    */
-  event?: 'after' | 'before' | 'manual';
+  event?: 'view' | 'field' | 'after' | 'before' | 'manual';
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -2678,14 +3229,7 @@ export interface HookType {
    * Hook Operation
    * @example insert
    */
-  operation?:
-    | 'insert'
-    | 'update'
-    | 'delete'
-    | 'bulkInsert'
-    | 'bulkUpdate'
-    | 'bulkDelete'
-    | 'trigger';
+  operation?: ('insert' | 'update' | 'delete' | 'trigger')[];
   /**
    * Retry Count
    * @example 10
@@ -2710,9 +3254,12 @@ export interface HookType {
   type?: string;
   /**
    * Hook Version
-   * @example v2
+   * @example v3
    */
-  version?: 'v1' | 'v2';
+  version?: 'v1' | 'v2' | 'v3';
+  /** Is this hook only trigger when some fields are affected */
+  trigger_field?: boolean;
+  trigger_fields?: string[];
 }
 
 /**
@@ -2734,7 +3281,7 @@ export interface HookReqType {
    * Event Type for the operation
    * @example after
    */
-  event: 'after' | 'before' | 'manual';
+  event: 'view' | 'field' | 'after' | 'before' | 'manual';
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -2748,14 +3295,7 @@ export interface HookReqType {
    * Hook Operation
    * @example insert
    */
-  operation:
-    | 'insert'
-    | 'update'
-    | 'delete'
-    | 'bulkInsert'
-    | 'bulkUpdate'
-    | 'bulkDelete'
-    | 'trigger';
+  operation: ('insert' | 'update' | 'delete' | 'trigger')[];
   /**
    * Retry Count
    * @example 10
@@ -2780,6 +3320,9 @@ export interface HookReqType {
   type?: string | null;
   /** Is this hook assoicated with some filters */
   condition?: BoolType;
+  /** Is this hook only trigger when some fields are affected */
+  trigger_field?: boolean;
+  trigger_fields?: string[];
 }
 
 /**
@@ -2813,7 +3356,7 @@ export interface HookLogType {
    * Hook Event
    * @example after
    */
-  event?: 'after' | 'before' | 'manual';
+  event?: 'field' | 'view' | 'after' | 'before' | 'manual';
   /**
    * Execution Time in milliseconds
    * @example 98
@@ -2829,14 +3372,7 @@ export interface HookLogType {
    * Hook Operation
    * @example insert
    */
-  operation?:
-    | 'insert'
-    | 'update'
-    | 'delete'
-    | 'bulkInsert'
-    | 'bulkUpdate'
-    | 'bulkDelete'
-    | 'trigger';
+  operation?: 'insert' | 'update' | 'delete' | 'trigger';
   /**
    * Hook Payload
    * @example {"method":"POST","body":"{{ json data }}","headers":[{}],"parameters":[{}],"auth":"","path":"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b"}
@@ -3568,6 +4104,28 @@ export interface BaseType {
   title?: string;
   /** ID of custom url */
   fk_custom_url_id?: StringOrNullType;
+  /** List of permissions for the base */
+  permissions?: {
+    /** Permission id */
+    id?: string;
+    /** Permission entity */
+    entity: string;
+    /** ID of the entity */
+    entity_id: string;
+    /** Permission key */
+    permission: string;
+    /** Type of permission granted */
+    granted_type: string;
+    /** Role to which permission is granted */
+    granted_role?: string | null;
+    /** List of subjects (users or groups) for the permission */
+    subjects?: {
+      /** Type of the subject */
+      type: 'user' | 'group';
+      /** ID of the subject */
+      id: string;
+    }[];
+  }[];
 }
 
 /**
@@ -4045,6 +4603,7 @@ export interface UserType {
   location?: string;
   website?: string;
   avatar?: string;
+  is_new_user?: boolean;
   /** Access token version */
   token_version?: string;
   /** Meta data for user */
@@ -4131,6 +4690,8 @@ export interface ViewType {
     | (FormType & GalleryType & GridType & KanbanType & MapType & CalendarType);
   /** ID of view owner user */
   owned_by?: IdType;
+  /** The row coloring mode whether it is select, condition or not set */
+  row_coloring_mode?: 'filter' | 'select';
   /** ID of custom url */
   fk_custom_url_id?: StringOrNullType;
 }
@@ -4605,6 +5166,8 @@ export interface AIRecordType {
   lastModifiedTime?: string;
   /** Is any referenced value updated? */
   isStale?: boolean;
+  /** Is edited by AI? */
+  isAiEdited?: boolean;
 }
 
 export enum ButtonActionsType {
@@ -4622,6 +5185,8 @@ export interface CustomUrlType {
   id?: string;
   /** Workspace ID */
   fk_workspace_id?: string;
+  /** Dashboard ID */
+  fk_dashboard_id?: string;
   /** Base ID */
   base_id?: string;
   /** Model ID */
@@ -4698,7 +5263,7 @@ export class HttpClient<SecurityDataType = unknown> {
   }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
-      baseURL: axiosConfig.baseURL || 'http://localhost:8080',
+      baseURL: axiosConfig.baseURL || 'https://app.nocodb.com',
     });
     this.secure = secure;
     this.format = format;
@@ -4817,7 +5382,7 @@ export class HttpClient<SecurityDataType = unknown> {
 /**
  * @title nocodb
  * @version 1.0
- * @baseUrl http://localhost:8080
+ * @baseUrl https://app.nocodb.com
  *
  * NocoDB API Documentation
  */
@@ -7020,66 +7585,6 @@ export class Api<
         format: 'json',
         ...params,
       }),
-
-    /**
- * @description List all audit data in the given base
- * 
- * @tags Base
- * @name AuditList
- * @summary List Audits in Base
- * @request GET:/api/v1/db/meta/projects/{baseId}/audits
- * @response `200` `{
-  list: (AuditType)[],
-  \** Model for Paginated *\
-  pageInfo: PaginatedType,
-
-}` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    auditList: (
-      baseId: IdType,
-      query?: {
-        /** @min 0 */
-        offset?: number;
-        /** @min 1 */
-        limit?: number;
-        sourceId?: string;
-        orderBy?: {
-          /**
-           * Sort direction
-           * @example desc
-           */
-          created_at?: 'asc' | 'desc';
-          /**
-           * Sort direction
-           * @example desc
-           */
-          user?: 'asc' | 'desc';
-        };
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        {
-          list: AuditType[];
-          /** Model for Paginated */
-          pageInfo: PaginatedType;
-        },
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/projects/${baseId}/audits`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
   };
   source = {
     /**
@@ -8120,6 +8625,189 @@ export class Api<
       }),
 
     /**
+ * @description Get the row color info from view.
+ * 
+ * @tags DB View
+ * @name GetViewRowColor
+ * @summary Get row color info
+ * @request GET:/api/v1/db/meta/views/{viewId}/row-color
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    getViewRowColor: (viewId: IdType, params: RequestParams = {}) =>
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/views/${viewId}/row-color`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Delete the row color info from view.
+ * 
+ * @tags DB View
+ * @name DeleteViewRowColor
+ * @summary Delete row color info
+ * @request DELETE:/api/v1/db/meta/views/{viewId}/row-color
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    deleteViewRowColor: (viewId: IdType, params: RequestParams = {}) =>
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/views/${viewId}/row-color`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB View
+     * @name ViewRowColorSelectAdd
+     * @summary Set view row color select
+     * @request POST:/api/v1/db/meta/views/{viewId}/row-color-select
+     * @response `200` `void` OK
+     */
+    viewRowColorSelectAdd: (
+      viewId: IdType,
+      data: {
+        /** Column ID to use for row coloring */
+        fk_column_id: string;
+        /** Whether to use the color as background */
+        is_set_as_background: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/views/${viewId}/row-color-select`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB View
+     * @name ViewRowColorConditionAdd
+     * @summary Add view row color condition
+     * @request POST:/api/v1/db/meta/views/{viewId}/row-color-conditions
+     * @response `200` `void` OK
+     */
+    viewRowColorConditionAdd: (
+      viewId: IdType,
+      data: {
+        /** Color to apply to matching rows */
+        color: string;
+        /** Whether to use the color as background */
+        is_set_as_background: boolean;
+        /** Order of the condition */
+        nc_order: number;
+        filter: {
+          /** Comparison operator */
+          comparison_op:
+            | 'eq'
+            | 'neq'
+            | 'gt'
+            | 'gte'
+            | 'lt'
+            | 'lte'
+            | 'like'
+            | 'nlike'
+            | 'in'
+            | 'nin'
+            | 'is'
+            | 'isnot'
+            | 'null'
+            | 'notnull';
+          /** Value to compare against */
+          value: string;
+          /** Column ID to filter on */
+          fk_column_id: string;
+        };
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/views/${viewId}/row-color-conditions`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB View
+     * @name ViewRowColorConditionUpdate
+     * @summary Update view row color condition
+     * @request PATCH:/api/v1/db/meta/views/{viewId}/row-color-conditions/{id}
+     * @response `200` `void` OK
+     */
+    viewRowColorConditionUpdate: (
+      viewId: IdType,
+      id: IdType,
+      data: {
+        /** Color to apply to matching rows */
+        color: string;
+        /** Whether to use the color as background */
+        is_set_as_background: boolean;
+        /** Order of the condition */
+        nc_order: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/views/${viewId}/row-color-conditions/${id}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB View
+     * @name ViewRowColorConditionDelete
+     * @summary Delete view row color condition
+     * @request DELETE:/api/v1/db/meta/views/{viewId}/row-color-conditions/{id}
+     * @response `200` `void` OK
+     */
+    viewRowColorConditionDelete: (
+      viewId: IdType,
+      id: IdType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/views/${viewId}/row-color-conditions/${id}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
  * @description Show All Columns in a given View
  * 
  * @tags DB View
@@ -8264,7 +8952,7 @@ export class Api<
  * @name FormUpdate
  * @summary Update Form View
  * @request PATCH:/api/v1/db/meta/forms/{formViewId}
- * @response `200` `number` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8277,7 +8965,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        number,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8360,7 +9048,7 @@ export class Api<
  * @name GridUpdate
  * @summary Update Grid View
  * @request PATCH:/api/v1/db/meta/grids/{viewId}
- * @response `200` `number` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8373,7 +9061,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        number,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8490,7 +9178,7 @@ export class Api<
  * @name GalleryUpdate
  * @summary Update Gallery View
  * @request PATCH:/api/v1/db/meta/galleries/{galleryViewId}
- * @response `200` `number` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8503,7 +9191,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        number,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -8586,7 +9274,7 @@ export class Api<
  * @name KanbanUpdate
  * @summary Update Kanban View
  * @request PATCH:/api/v1/db/meta/kanbans/{kanbanViewId}
- * @response `200` `number` OK
+ * @response `200` `ViewType` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
   msg: string,
@@ -8599,7 +9287,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<
-        number,
+        ViewType,
         {
           /** @example BadRequest [Error]: <ERROR MESSAGE> */
           msg: string;
@@ -10077,6 +10765,8 @@ export class Api<
       query?: {
         where?: string;
         viewId?: string;
+        /** Comma separated list of pks */
+        skipPks?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -10117,6 +10807,8 @@ export class Api<
       query?: {
         where?: string;
         viewId?: string;
+        /** Comma separated list of pks */
+        skipPks?: string;
       },
       params: RequestParams = {}
     ) =>
@@ -11780,62 +12472,6 @@ export class Api<
   };
   utils = {
     /**
- * @description List all audits
- * 
- * @tags Utils
- * @name AuditList
- * @summary List Audits
- * @request GET:/api/v1/db/meta/audits
- * @response `200` `{
-  list: (AuditType)[],
-  \** Pagination Info *\
-  pageInfo?: PaginatedType,
-
-}` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    auditList: (
-      query: {
-        /** @min 0 */
-        offset?: number;
-        /** @min 1 */
-        limit?: number;
-        /**
-         * Row ID
-         * @example 10
-         */
-        row_id: string;
-        /**
-         * Foreign Key to Model
-         * @example md_c6csq89tl37jm5
-         */
-        fk_model_id: IdType;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        {
-          list: AuditType[];
-          /** Pagination Info */
-          pageInfo?: PaginatedType;
-        },
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/audits`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
  * @description List all comments
  * 
  * @tags Utils
@@ -12015,98 +12651,6 @@ export class Api<
       }),
 
     /**
- * @description List all audit data in the given project
- * 
- * @tags Utils
- * @name ProjectAuditList
- * @summary List Audits in Project
- * @request GET:/api/v1/db/meta/projects/audits
- * @response `200` `{
-  list: (AuditType)[],
-  \** Model for Paginated *\
-  pageInfo: PaginatedType,
-
-}` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    projectAuditList: (
-      query?: {
-        /** @min 0 */
-        offset?: number;
-        /** @min 1 */
-        limit?: number;
-        orderBy?: {
-          /**
-           * Sort direction
-           * @example desc
-           */
-          created_at?: 'asc' | 'desc';
-          /**
-           * Sort direction
-           * @example desc
-           */
-          user?: 'asc' | 'desc';
-        };
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        {
-          list: AuditType[];
-          /** Model for Paginated */
-          pageInfo: PaginatedType;
-        },
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/projects/audits`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
- * @description Update Audit Row
- * 
- * @tags Utils
- * @name AuditRowUpdate
- * @summary Update Audit Row
- * @request POST:/api/v1/db/meta/audits/rows/{rowId}/update
- * @response `200` `AuditType` OK
- * @response `400` `{
-  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
-  msg: string,
-
-}`
- */
-    auditRowUpdate: (
-      rowId: any,
-      data: AuditRowUpdateReqType,
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        AuditType,
-        {
-          /** @example BadRequest [Error]: <ERROR MESSAGE> */
-          msg: string;
-        }
-      >({
-        path: `/api/v1/db/meta/audits/rows/${rowId}/update`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
  * @description Test the DB Connection
  * 
  * @tags Utils
@@ -12132,7 +12676,6 @@ export class Api<
          * @example mysql2
          */
         client?:
-          | 'mssql'
           | 'mysql'
           | 'mysql2'
           | 'oracledb'
@@ -12182,7 +12725,7 @@ export class Api<
    * DB Type
    * @example mysql2
    *\
-  client?: "mssql" | "mysql" | "mysql2" | "oracledb" | "pg" | "snowflake" | "sqlite3" | "databricks",
+  client?: "mysql" | "mysql2" | "oracledb" | "pg" | "snowflake" | "sqlite3" | "databricks",
   \** Connection Config *\
   connection?: {
   \** DB User *\
@@ -12222,7 +12765,6 @@ export class Api<
            * @example mysql2
            */
           client?:
-            | 'mssql'
             | 'mysql'
             | 'mysql2'
             | 'oracledb'
@@ -12874,7 +13416,7 @@ export class Api<
  * @tags DB Table Webhook
  * @name SamplePayloadGet
  * @summary Get Sample Hook Payload
- * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation}/{version}
+ * @request GET:/api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{event}/{operation}/{version}
  * @response `200` `{
   \** Sample Payload Data *\
   data?: object,
@@ -12888,6 +13430,7 @@ export class Api<
  */
     samplePayloadGet: (
       tableId: IdType,
+      event: 'field' | 'view' | 'after' | 'before' | 'manual',
       operation:
         | 'insert'
         | 'update'
@@ -12895,7 +13438,7 @@ export class Api<
         | 'bulkInsert'
         | 'bulkUpdate'
         | 'bulkDelete',
-      version: 'v1' | 'v2',
+      version: 'v1' | 'v2' | 'v3',
       params: RequestParams = {}
     ) =>
       this.request<
@@ -12908,7 +13451,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${operation}/${version}`,
+        path: `/api/v1/db/meta/tables/${tableId}/hooks/samplePayload/${event}/${operation}/${version}`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -14234,6 +14777,31 @@ export class Api<
       }),
 
     /**
+     * @description AI Completion
+     *
+     * @tags Ai
+     * @name Completion
+     * @summary AI Completion
+     * @request POST:/api/v2/ai/bases/{baseId}/completion
+     * @response `200` `object` OK
+     */
+    completion: (
+      baseId: IdType,
+      data: {
+        schema?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v2/ai/bases/${baseId}/completion`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description AI Schema
      *
      * @tags Ai
@@ -14646,6 +15214,10 @@ export class Api<
         operation: string;
         /** Model ID */
         fk_model_id?: string;
+        /** Row ID */
+        row_id?: string;
+        /** Cursor */
+        cursor?: string;
       },
       data: Record<string, any>,
       params: RequestParams = {}
@@ -14677,6 +15249,10 @@ export class Api<
         operation: string;
         /** Model ID */
         fk_model_id?: string;
+        /** Row ID */
+        row_id?: string;
+        /** Cursor */
+        cursor?: string;
       },
       params: RequestParams = {}
     ) =>

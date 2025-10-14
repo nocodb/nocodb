@@ -21,8 +21,12 @@ export function convertDateFormat(date_format: string, type: string) {
     if (type === 'mysql2' || type === 'sqlite3') return '%d %b %Y';
   } else if (date_format === 'DD MMM YY') {
     if (type === 'mysql2' || type === 'sqlite3') return '%d %b %y';
+  } else if (date_format === 'DD.MM.YYYY') {
+    if (type === 'mysql2' || type === 'sqlite3') return '%d.%b.%Y';
+  } else if (date_format === 'DD.MM.YY') {
+    if (type === 'mysql2' || type === 'sqlite3') return '%d.%b.%y';
   }
 
-  // pg / mssql
+  // pg
   return date_format;
 }

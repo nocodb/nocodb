@@ -1,21 +1,23 @@
-import fs from 'fs';
-import path from 'path';
-import { NcApiVersion, UITypes } from 'nocodb-sdk';
 import { expect } from 'chai';
-import { createProject, createSakilaProject } from '../../../factory/base';
-import { createLtarColumn, customColumns } from '../../../factory/column';
+import { NcApiVersion, UITypes } from 'nocodb-sdk';
+import { createProject } from '../../../factory/base';
+import {
+  createLtarColumn,
+  createLtarColumn2,
+  customColumns,
+} from '../../../factory/column';
 import { createBulkRows, listRow, rowMixedValue } from '../../../factory/row';
-import { createTable, getTable } from '../../../factory/table';
+import { createTable } from '../../../factory/table';
 import init from '../../../init';
 import { addUsers, getUsers, prepareRecords } from './helpers';
+import type { ITestContext } from '../../../init';
 import type { Model } from '../../../../../src/models';
 import type { ColumnType } from 'nocodb-sdk';
-import type { ITestContext } from './helpers';
 
 export const beforeEach = async () => {
   const context = await init();
 
-  const sakilaProject = await createSakilaProject(context);
+  // const sakilaProject = await createSakilaProject(context);
   const base = await createProject(context);
 
   const ctx = {
@@ -23,23 +25,10 @@ export const beforeEach = async () => {
     base_id: base.id,
   };
 
-  const countryTable = await getTable({
-    base: sakilaProject,
-    name: 'country',
-  });
-
-  const cityTable = await getTable({
-    base: sakilaProject,
-    name: 'city',
-  });
-
   return {
     context,
     ctx,
-    sakilaProject,
     base,
-    countryTable,
-    cityTable,
   } as ITestContext;
 };
 
@@ -242,7 +231,10 @@ export const beforeEachDateBased = async (testContext: ITestContext) => {
   };
 };
 
-export const beforeEachLinkBased = async (testContext: ITestContext) => {
+export const beforeEachLinkBased = async (
+  testContext: ITestContext,
+  useLtarColumn = false,
+) => {
   let tblCity: Model;
   let tblCountry: Model;
   let tblActor: Model;
@@ -332,15 +324,18 @@ export const beforeEachLinkBased = async (testContext: ITestContext) => {
       values: filmRecords,
     });
 
+    const createLtarColumnHandler = useLtarColumn
+      ? createLtarColumn2
+      : createLtarColumn;
     // Create links
     // Country <hm> City
-    await createLtarColumn(testContext.context, {
+    await createLtarColumnHandler(testContext.context, {
       title: 'Cities',
       parentTable: tblCountry,
       childTable: tblCity,
       type: 'hm',
     });
-    await createLtarColumn(testContext.context, {
+    await createLtarColumnHandler(testContext.context, {
       title: 'Films',
       parentTable: tblActor,
       childTable: tblFilm,
@@ -472,9 +467,27 @@ export const beforeEachUserBased = async (testContext: ITestContext) => {
   };
 };
 
-const FILE_PATH = path.join(__dirname, 'test.txt');
-export const beforeEachAttachment = async (_testContext: ITestContext) => {
-  console.time('#### attachmentTests');
-  fs.writeFileSync(FILE_PATH, 'test', `utf-8`);
-  console.timeEnd('#### attachmentTests');
+export const beforeEachAttachment = async (testContext: ITestContext) => {
+  const table = await createTable(testContext.context, testContext.base, {
+    table_name: 'attachmentBased',
+    title: 'attachmentBased',
+    columns: [
+      {
+        column_name: 'id',
+        title: 'Id',
+        uidt: UITypes.ID,
+        description: `id ${UITypes.ID}`,
+      },
+      {
+        uidt: UITypes.Attachment,
+        column_name: 'attachment',
+        title: 'Attachment',
+      },
+    ],
+  });
+  const columns = await table.getColumns(testContext.ctx);
+  return {
+    table,
+    columns,
+  };
 };

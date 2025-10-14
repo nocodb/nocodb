@@ -125,6 +125,14 @@ export default class HookLog implements HookLogType {
   ) {
     const qb = ncMeta.knex(MetaTable.HOOK_LOGS);
 
+    if (context.workspace_id) {
+      qb.where(`${MetaTable.HOOK_LOGS}.fk_workspace_id`, context.workspace_id);
+    }
+
+    if (context.base_id) {
+      qb.where(`${MetaTable.HOOK_LOGS}.base_id`, context.base_id);
+    }
+
     if (hookId) {
       qb.where(`${MetaTable.HOOK_LOGS}.fk_hook_id`, hookId);
     }

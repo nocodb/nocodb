@@ -115,8 +115,11 @@ export class ColumnPageObject extends BasePage {
       await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"] .nc-ui-dt-dropdown`).click();
       await this.rootPage.locator('li[role="menuitem"]:has-text("Insert right"):visible').click();
     } else {
+      await this.grid.get().locator('.nc-column-add').waitFor({ state: 'visible' });
       await this.grid.get().locator('.nc-column-add').click();
     }
+
+    await this.get().waitFor({ state: 'visible' });
 
     await this.rootPage.waitForTimeout(500);
     await this.fillTitle({ title });
@@ -392,8 +395,8 @@ export class ColumnPageObject extends BasePage {
     // when clicked on the dropdown cell header
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').scrollIntoViewIfNeeded();
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
-    await expect(await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').last()).toBeVisible();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').last().click();
+    await expect(await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').first()).toBeVisible();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').first().click();
 
     await this.get().waitFor({ state: 'visible' });
 
@@ -426,6 +429,7 @@ export class ColumnPageObject extends BasePage {
       case 'DateTime':
         // Date Format
         await this.get().locator('.nc-date-select').click();
+        await this.get().locator('.nc-date-select').pressSequentially(dateFormat);
         await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
 
         // allow UI to update

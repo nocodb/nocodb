@@ -1,6 +1,3 @@
-import { onMounted, ref } from 'vue'
-import { createSharedComposable } from '@vueuse/core'
-
 import rfdc from 'rfdc'
 
 const deepClone = rfdc()
@@ -20,18 +17,20 @@ const FEATURES = [
     version: 1,
   },
   {
+    id: 'dark_mode',
+    title: 'Dark Mode',
+    isEngineering: true,
+    description: 'Keep your eyes healthy with dark mode.',
+    enabled: false,
+    version: 1,
+    isEE: true,
+  },
+  {
     id: 'canvas_group_grid_view',
     title: 'Improved Group By',
     description: 'New and Improved groupby in grid view with enhanced scrolling and rendering capabilities.',
     enabled: !ncIsPlaywright(),
     version: 1,
-  },
-  {
-    id: 'improved_sidebar_ui',
-    title: 'Improved Sidebar',
-    description: 'New and Improved sidebar for better UI experience',
-    enabled: !ncIsPlaywright(),
-    version: 2,
   },
   {
     id: 'link_to_another_record',
@@ -41,39 +40,23 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'model_context_protocol',
-    title: 'Model Context Protocol',
-    description: 'Connect NocoDB base to Claude AI, Windsurf AI, and more.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-  },
-  {
-    id: 'payment',
-    title: 'Payment Flows',
-    description: 'Enable NocoDB Payment Flows.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
     id: 'ai_features',
     title: 'AI features',
     description: 'Unlock AI features to enhance your NocoDB experience.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
+    enabled: true,
+    version: 3,
     isEE: true,
+    isOnPrem: false,
   },
   {
-    id: 'nocodb_scripts',
-    title: 'NocoDB Scripts (Beta)',
-    description: 'Enable NocoDB Scripts to automate repetitive workflow',
+    id: 'ai_beta_features',
+    title: 'AI beta features',
+    description: 'Unlock AI beta features to enhance your NocoDB experience.',
     enabled: false,
-    version: 1,
+    version: 2,
     isEngineering: true,
     isEE: true,
+    isOnPrem: false,
   },
   {
     id: 'integrations',
@@ -97,7 +80,7 @@ const FEATURES = [
     title: 'OSS to Enterprise migration',
     description: 'Enable import from NocoDB OSS instance to Enterprise Edition.',
     enabled: true,
-    version: 1,
+    version: 2,
     isEE: true,
   },
   {
@@ -130,7 +113,7 @@ const FEATURES = [
     title: 'Extensions',
     description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
     enabled: ncIsPlaywright(),
-    version: 2,
+    version: 3,
     isEngineering: true,
   },
   {
@@ -140,31 +123,6 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEngineering: true,
-  },
-  {
-    id: 'expanded_form_file_preview_mode',
-    title: 'Expanded form file preview mode',
-    description: 'Preview mode allows you to see attachments inline',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
-    id: 'expanded_form_discussion_mode',
-    title: 'Expanded form discussion mode',
-    description: 'Discussion mode allows you to see the comments and records audits combined in one place',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
-    id: 'language',
-    title: 'Language',
-    description: 'Community/AI Translated',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
   },
   {
     id: 'cross_base_link',
@@ -182,6 +140,31 @@ const FEATURES = [
     version: 1,
     isEE: true,
   },
+  {
+    id: 'table_and_field_permissions',
+    title: 'Table and Field Permissions',
+    description: 'Allows user to manage table and field permissions.',
+    enabled: true,
+    version: 2,
+    isEE: true,
+  },
+  {
+    id: 'view_actions',
+    title: 'View Actions',
+    description: 'Execute scripts and webhooks to all records in a view.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'copy_view_config_from_another_view',
+    title: 'Copy View Config From Another View',
+    description: 'Copy view config from another view.',
+    enabled: false,
+    version: 2,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<
@@ -197,9 +180,15 @@ const STORAGE_KEY = 'featureToggleStates'
 export const useBetaFeatureToggle = createSharedComposable(() => {
   const features = ref<BetaFeatureType[]>(deepClone(FEATURES))
 
+  const { appInfo } = useGlobal()
+
   const featureStates = computed(() => {
     return features.value.reduce((acc, feature) => {
-      acc[feature.id] = feature.isEE && !isEeUI ? false : feature.enabled
+      const isEeFeatureEnabled = feature.isEE && !isEeUI ? false : feature.enabled
+      const isOnPremFeatureEnabled = !appInfo.value.isOnPrem || feature.isOnPrem !== false
+      const isCloudFeatureEnabled = !appInfo.value.isCloud || feature.isCloud !== false
+
+      acc[feature.id] = isEeFeatureEnabled && isOnPremFeatureEnabled && isCloudFeatureEnabled
       return acc
     }, {} as Record<BetaFeatureId, boolean>)
   })
@@ -207,6 +196,8 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
   const { $e } = useNuxtApp()
 
   const isEngineeringModeOn = ref(false)
+
+  const isExperimentalFeatureModalOpen = ref(false)
 
   const saveFeatures = () => {
     try {
@@ -217,7 +208,6 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
       }))
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(featuresToSave))
-      window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }))
     } catch (error) {
       console.error('Failed to save features:', error)
     }
@@ -284,27 +274,12 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     saveFeatures()
   }
 
-  const handleStorageEvent = (event: StorageEvent) => {
-    if (event.key === STORAGE_KEY && event.newValue !== null) {
-      if (JSON.parse(event.newValue) !== features.value) {
-        initializeFeatures()
-      }
-    }
-  }
-
-  onMounted(() => {
-    initializeFeatures()
-    window.addEventListener('storage', handleStorageEvent)
-  })
-
-  onUnmounted(() => {
-    window.removeEventListener('storage', handleStorageEvent)
-  })
-
   return {
     features,
     toggleFeature,
     isFeatureEnabled,
     isEngineeringModeOn,
+    isExperimentalFeatureModalOpen,
+    initializeFeatures,
   }
 })

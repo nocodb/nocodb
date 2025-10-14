@@ -169,14 +169,14 @@ export class WorkspacePage extends BasePage {
       expect(await settings.isVisible()).toBeTruthy();
     } else {
       expect(await billing.isVisible()).toBeFalsy();
-      expect(await settings.isVisible()).toBeFalsy();
+
+      // Settings tab is visible for all users in the workspace
+      expect(await settings.isVisible()).toBeTruthy();
     }
 
     await this.rootPage.waitForTimeout(1000);
 
     if (role === 'creator' || role === 'owner') {
-      console.log(await this.container.get().count());
-      console.log(await this.container.collaborators.count());
       expect(await collaborators.isVisible()).toBeTruthy();
     } else {
       expect(await collaborators.isVisible()).toBeFalsy();

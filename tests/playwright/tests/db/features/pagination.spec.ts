@@ -18,7 +18,7 @@ test.describe('Grid pagination', () => {
   test('Access next page, prev page & offset page', async () => {
     test.slow();
 
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     // click ">" to go to next page
     await dashboard.grid.clickPagination({ type: 'next-page' });
     await dashboard.grid.verifyActivePage({ pageNumber: '2' });

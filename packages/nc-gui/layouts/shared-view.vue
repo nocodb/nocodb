@@ -1,15 +1,17 @@
 <script lang="ts" setup>
-const { isLoading } = useGlobal()
+const { isLoading, appInfo } = useGlobal()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { sharedView, allowCSVDownload } = useSharedView()
 
+const { isFullScreen } = storeToRefs(useSidebarStore())
+
 const router = useRouter()
 
 const route = router.currentRoute
 
-const disableTopbar = computed(() => route.value.query?.disableTopbar === 'true')
+const disableTopbar = computed(() => route.value.query?.disableTopbar === 'true' || isFullScreen.value)
 
 const ncNotFound = computed(() => route.value.query?.ncNotFound === 'true')
 
@@ -99,21 +101,30 @@ export default {
           </div>
 
           <div class="flex items-center gap-3">
-            <LazySmartsheetToolbarExport v-if="allowCSVDownload" />
+            <LazySmartsheetToolbarExportWithProvider v-if="allowCSVDownload" />
 
-            <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline xs:hidden" rel="noopener">
+            <a
+              v-if="!appInfo.isOnPrem"
+              href="https://app.nocodb.com/#/signin"
+              target="_blank"
+              class="!no-underline xs:hidden"
+              rel="noopener"
+            >
               <NcButton size="xs"> {{ $t('labels.signUpForFree') }} </NcButton>
             </a>
           </div>
         </a-layout-header>
-        <div
-          class="nc-shared-view-container w-full overflow-hidden"
-          :class="{
-            'nc-shared-mobile-view': isMobileMode,
-          }"
-        >
-          <slot />
-        </div>
+        <NcFullScreen v-model="isFullScreen" class="h-full" :page-only="true">
+          <div
+            class="nc-shared-view-container w-full overflow-hidden"
+            :class="{
+              'nc-shared-mobile-view': isMobileMode,
+              'disable-topbar': disableTopbar,
+            }"
+          >
+            <slot />
+          </div>
+        </NcFullScreen>
       </template>
     </a-layout>
   </a-layout>
@@ -132,10 +143,22 @@ export default {
   }
 
   .nc-shared-view-container {
-    height: calc(100vh - (var(--topbar-height) - 3.6px));
+    &:not(.disable-topbar) {
+      --topbar-height: 2.875rem; // 46px
 
-    @supports (height: 100dvh) {
-      height: calc(100dvh - (var(--topbar-height) - 3.6px));
+      height: calc(100vh - (var(--topbar-height) - 3.6px));
+
+      @supports (height: 100dvh) {
+        height: calc(100dvh - (var(--topbar-height) - 3.6px));
+      }
+    }
+
+    &.disable-topbar {
+      height: 100vh;
+
+      @supports (height: 100dvh) {
+        height: 100dvh;
+      }
     }
   }
 }

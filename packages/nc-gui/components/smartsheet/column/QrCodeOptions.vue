@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, UITypes } from 'nocodb-sdk'
-import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrAndBarcodes } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -14,7 +14,8 @@ const { fields, metaColumnById } = useViewColumnsOrThrow()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations, validateInfos, column, isEdit } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, column, isEdit } =
+  useColumnCreateStoreOrThrow()
 
 const columnsAllowedAsQrValue = computed<ColumnType[]>(() => {
   return (
@@ -40,10 +41,9 @@ setAdditionalValidations({
   fk_qr_value_column_id: [{ required: true, message: t('general.required') }],
 })
 
-const cellIcon = (column: ColumnType) =>
-  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: column,
-  })
+setAvoidShowingToastMsgForValidations({
+  fk_qr_value_column_id: true,
+})
 </script>
 
 <template>
@@ -65,7 +65,8 @@ const cellIcon = (column: ColumnType) =>
         <a-select-option v-for="(option, index) of columnsAllowedAsQrValue" :key="index" :value="option.id">
           <div class="flex gap-2 w-full truncate items-center" :data-testid="`nc-qr-${option.title}`">
             <div class="inline-flex items-center gap-2 flex-1 truncate">
-              <component :is="cellIcon(option)" :column-meta="option" class="!mx-0 flex-none w-4 h-4" />
+              <SmartsheetHeaderIcon :column="option" class="!mx-0 w-4 h-4" color="text-nc-content-gray-subtle2" />
+
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
                 <template #title>{{ option.title }}</template>
                 {{ option.title }}

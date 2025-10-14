@@ -4,13 +4,12 @@ import {
   type ColumnReqType,
   type ColumnType,
   PlanLimitTypes,
+  PlanTitles,
   type TableType,
   UITypes,
   type ViewType,
   ViewTypes,
   isAIPromptCol,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
@@ -71,10 +70,11 @@ const props = defineProps<{
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
   selectedAllRecords?: boolean
+  selectedAllRecordsSkipPks?: Record<string, string>
   getRows: (start: number, end: number) => Promise<Row[]>
 }>()
 
-const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords'])
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
 
 const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 const { withLoading } = useLoadingTrigger()
@@ -121,7 +121,8 @@ const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource } = useSmartsheetStoreOrThrow()
+const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource, isViewOperationsAllowed } =
+  useSmartsheetStoreOrThrow()
 
 const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
@@ -149,9 +150,7 @@ const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLta
 
 const { loadViewAggregate } = useViewAggregateOrThrow()
 
-const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiFeaturesEnabled, generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
 const {
   showRecordPlanLimitExceededModal,
@@ -239,7 +238,7 @@ const chunkStates = toRef(props, 'chunkStates')
 
 const isBulkOperationInProgress = toRef(props, 'isBulkOperationInProgress')
 
-const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
+const rowHeight = computed(() => (isMobileMode.value ? 40 : rowHeightInPx[`${props.rowHeightEnum}`] ?? 32))
 
 const rowSlice = reactive({
   start: 0,
@@ -468,17 +467,7 @@ provide(JsonExpandInj, isJsonExpand)
 const isKeyDown = ref(false)
 
 const isReadonly = (col: ColumnType) => {
-  return (
-    isSystemColumn(col) ||
-    isLookup(col) ||
-    isRollup(col) ||
-    isFormula(col) ||
-    isButton(col) ||
-    isVirtualCol(col) ||
-    isCreatedOrLastModifiedTimeCol(col) ||
-    isCreatedOrLastModifiedByCol(col) ||
-    col.readonly
-  )
+  return isReadonlyVirtualColumn(col) || col.readonly
 }
 
 const colMeta = computed(() => {
@@ -859,6 +848,8 @@ async function expandRows({
     'newColumns': newColumns,
     'cellsOverwritten': cellsOverwritten,
     'rowsUpdated': rowsUpdated,
+    'isAddingEmptyRowPermitted': true,
+    'meta': meta.value,
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })
@@ -1236,7 +1227,7 @@ const bulkExecuteScript = async () => {
   }
 }
 
-const isAIFillMode = computed(() => metaKey.value && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
+const isAIFillMode = computed(() => metaKey.value && isAiFeaturesEnabled.value)
 
 const generateAIBulk = async () => {
   if (!isSelectedOnlyAI.value.enabled || !meta?.value?.id || !meta.value.columns) return
@@ -2211,7 +2202,7 @@ const cellFilteredOrSortedClass = (colId: string) => {
 }
 
 const headerFilteredOrSortedClass = (colId: string) => {
-  const columnState = isColumnSortedOrFiltered(colId)
+  const columnState = isColumnSortedOrFiltered(colId, true)
   if (columnState) {
     const headerBgClass = filteredOrSortedAppearanceConfig[columnState]?.headerBgClass
     if (headerBgClass) {
@@ -2252,7 +2243,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
         {{ tableState.viewProgress?.progress }}
         {{ tableState.viewProgress?.message }}
       </div>
-      <GeneralLoader size="regular" />
+      <a-spin size="large" />
     </div>
 
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative !overflow-auto">
@@ -2331,7 +2322,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
-                    'no-resize': isLocked,
+                    'no-resize': isLocked || !isViewOperationsAllowed,
                     ...headerFilteredOrSortedClass(fields?.[0]?.id),
                   }"
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
@@ -2383,7 +2374,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
-                    'no-resize': isLocked,
+                    'no-resize': isLocked || !isViewOperationsAllowed,
                     ...headerFilteredOrSortedClass(col.id),
                   }"
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
@@ -2428,7 +2419,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
-                      overlay-class-name="nc-dropdown-add-column"
+                      overlay-class-name="nc-dropdown-add-column rounded-2xl"
                       @visible-change="onVisibilityChange"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
@@ -2554,7 +2545,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       </div>
                     </div>
                     <tr
-                      class="nc-grid-row transition transition-all duration-500 opacity-100 !xs:h-14"
+                      class="nc-grid-row transition-all duration-500 opacity-100 !xs:h-10"
                       :style="{
                         height: `${rowHeight}px`,
                         filter:
@@ -2581,7 +2572,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       >
                         <div class="w-full flex items-center h-full px-1 gap-0.5">
                           <div
-                            class="nc-row-no min-w-4 h-4 flex items-center justify-center text-gray-500 pl-1.5"
+                            class="nc-row-no min-w-4 h-4 flex items-center justify-between text-gray-500 pl-1.5 w-full"
                             :class="{
                               'toggle': !readOnly,
                               'hidden': row.rowMeta?.selected || vSelectedAllRecords,
@@ -2590,7 +2581,10 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               'text-small': row.rowMeta.rowIndex + 1 < 1000,
                             }"
                           >
-                            {{ row.rowMeta.rowIndex + 1 }}
+                            <span>
+                              {{ row.rowMeta.rowIndex + 1 }}
+                            </span>
+                            <div class="inline-block min-w-[4px] h-full rounded-full"></div>
                           </div>
 
                           <div
@@ -2943,28 +2937,30 @@ const headerFilteredOrSortedClass = (colId: string) => {
 
               <NcMenuItem
                 v-if="!contextMenuClosing && !contextMenuTarget && !isDataReadOnly && selectedRows.length"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item"
                 data-testid="nc-delete-row"
+                danger
                 @click="deleteSelectedRows([])"
               >
                 <div v-if="selectedRows.length === 1" v-e="['a:row:delete']" class="flex gap-2 items-center">
-                  <component :is="iconMap.delete" />
+                  <GeneralIcon icon="delete" />
                   {{ $t('activity.deleteSelectedRow') }}
                 </div>
                 <div v-else v-e="['a:row:delete-bulk']" class="flex gap-2 items-center">
-                  <component :is="iconMap.delete" />
+                  <GeneralIcon icon="delete" />
                   {{ $t('activity.deleteSelectedRow') }}
                 </div>
               </NcMenuItem>
             </template>
             <NcMenuItem
               v-if="vSelectedAllRecords"
-              class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+              class="nc-base-menu-item"
+              danger
               data-testid="nc-delete-all-row"
               @click="deleteAllRecords([])"
             >
               <div v-e="['a:row:delete-all']" class="flex gap-2 items-center">
-                <component :is="iconMap.delete" />
+                <GeneralIcon icon="delete" />
                 {{ $t('activity.deleteAllRecords') }}
               </div>
             </NcMenuItem>
@@ -3107,7 +3103,8 @@ const headerFilteredOrSortedClass = (colId: string) => {
               <NcDivider v-if="!(!contextMenuClosing && !contextMenuTarget && (selectedRows.length || vSelectedAllRecords))" />
               <NcMenuItem
                 v-if="contextMenuTarget && (selectedRange.isSingleCell() || selectedRange.isSingleRow())"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item"
+                damger
                 @click="confirmDeleteRow(contextMenuTarget.row)"
               >
                 <div v-e="['a:row:delete']" class="flex gap-2 items-center">
@@ -3118,11 +3115,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
               </NcMenuItem>
               <NcMenuItem
                 v-else-if="contextMenuTarget && deleteRangeOfRows"
-                class="nc-base-menu-item !text-red-600 !hover:bg-red-50"
+                class="nc-base-menu-item"
+                danger
                 @click="deleteSelectedRangeOfRows"
               >
                 <div v-e="['a:row:delete']" class="flex gap-2 items-center">
-                  <GeneralIcon icon="delete" class="text-gray-500 text-red-600" />
+                  <GeneralIcon icon="delete" />
                   <!-- Delete Rows -->
                   {{ $t('activity.deleteRows') }}
                 </div>
@@ -3138,6 +3136,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
             <div>
               {{
                 $t('upgrade.upgradeToSeeMoreRecordInlineSubtitle', {
+                  plan: PlanTitles.BUSINESS,
                   limit: 100,
                   total: Math.max(props.totalRows, props.actualTotalRows),
                   remaining: Math.max(props.totalRows, props.actualTotalRows) - 100,
@@ -3153,7 +3152,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
             </a>
             <NcButton
               size="small"
-              @click="navigateToPricing({ limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE })"
+              @click="
+                navigateToPricing({
+                  limitOrFeature: PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE,
+                  ctaPlan: PlanTitles.BUSINESS,
+                })
+              "
             >
               {{ isWsOwner ? $t('general.upgrade') : t('general.requestUpgrade') }}
             </NcButton>
@@ -3465,7 +3469,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
   }
 
   td.active.readonly::after {
-    @apply text-primary bg-grey-50 bg-opacity-5 !border-gray-200;
+    @apply text-primary bg-gray-50 bg-opacity-5 !border-gray-200;
   }
 
   td.active-cell::after {

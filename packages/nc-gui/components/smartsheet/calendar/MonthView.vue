@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type dayjs from 'dayjs'
-import { UITypes } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
 
@@ -18,7 +18,10 @@ const {
   updateRowProperty,
   updateFormat,
   timezoneDayjs,
+  isSyncedFromColumn,
 } = useCalendarViewStoreOrThrow()
+
+const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
@@ -638,7 +641,7 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (resizeInProgress.value || !record.rowMeta.id) return
+  if (resizeInProgress.value || !record.rowMeta.id || isSyncedFromColumn.value) return
   let target = event.target as HTMLElement
   isDragging.value = false
 
@@ -692,7 +695,10 @@ const dropEvent = (event: DragEvent) => {
     }: {
       record: Row
       isWithoutDates: boolean
-    } = JSON.parse(data)
+    } = parseProp(data)
+
+    // Not a valid record
+    if (!record?.rowMeta) return
 
     if (record.rowMeta.range?.is_readonly) return
 
@@ -732,7 +738,7 @@ const isDateSelected = (date: dayjs.Dayjs) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const addRecord = (date: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value) return
+  if (!isUIAllowed('dataEdit') || !calendarRange.value || isSyncedTable.value) return
   const fromCol = calendarRange.value[0].fk_from_col
   if (!fromCol) return
   const newRecord = {
@@ -756,7 +762,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-gray-50 py-1 border-r-1 last:border-r-0 border-gray-100 font-semibold leading-4 uppercase text-[10px] text-gray-500"
+        class="text-center bg-nc-bg-gray-extra-light py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
       >
         {{ day }}
       </div>
@@ -784,12 +790,12 @@ const addRecord = (date: dayjs.Dayjs) => {
             :key="day.key"
             :class="{
               'selected-date': isDateSelected(day.date) || (focusedDate && day.date.isSame(focusedDate, 'day')),
-              '!text-gray-400': !day.isInPagedMonth,
-              '!bg-gray-50 !hover:bg-gray-100 !border-gray-200': day.isWeekend,
-              '!border-r-gray-200': week.days[i + 1]?.isWeekend,
+              '!text-nc-content-gray-disabled': !day.isInPagedMonth,
+              '!bg-nc-bg-gray-extra-light !hover:bg-nc-bg-gray-light !border-nc-border-gray-medium': day.isWeekend,
+              '!border-r-nc-border-gray-medium': week.days[i + 1]?.isWeekend,
               'border-t-1': week.weekIndex === 0,
             }"
-            class="text-right relative group last:border-r-0 transition text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+            class="text-right relative group last:border-r-0 bg-nc-bg-default transition text-sm h-full border-r-1 border-b-1 border-nc-border-gray-light font-medium hover:bg-nc-bg-gray-extra-light text-nc-content-gray-default bg-white"
             data-testid="nc-calendar-month-day"
             @click="selectDate(day.date)"
             @dblclick="addRecord(day.date)"
@@ -802,7 +808,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                 }"
               ></span>
 
-              <NcDropdown v-if="calendarRange.length > 1" auto-close>
+              <NcDropdown v-if="calendarRange.length > 1 && !isSyncedFromColumn" auto-close>
                 <NcButton
                   :class="{
                     '!block': isDateSelected(day.date),
@@ -820,7 +826,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                     <NcMenuItem
                       v-for="(range, index) in calendarRange"
                       :key="index"
-                      class="text-gray-800 font-semibold text-sm"
+                      class="text-nc-content-gray-default font-semibold text-sm"
                       @click="
                       () => {
                         const record = {
@@ -838,23 +844,32 @@ const addRecord = (date: dayjs.Dayjs) => {
                     "
                     >
                       <div class="flex items-center gap-1">
-                        <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                        <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
+
                         <span class="ml-1">{{ range.fk_from_col!.title }}</span>
                       </div>
                     </NcMenuItem>
                   </NcMenu>
                 </template>
               </NcDropdown>
-              <NcButton
-                v-else-if="[UITypes.DateTime, UITypes.Date].includes(calDataType)"
-                :class="{
-                  '!block': isDateSelected(day.date),
-                  '!hidden': !isDateSelected(day.date),
-                }"
-                class="!group-hover:block !w-6 !h-6 !rounded"
-                size="xsmall"
-                type="secondary"
-                @click="
+
+              <PermissionsTooltip
+                v-else-if="[UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedFromColumn"
+                :entity="PermissionEntity.TABLE"
+                :entity-id="meta?.id"
+                :permission="PermissionKey.TABLE_RECORD_ADD"
+              >
+                <template #default="{ isAllowed }">
+                  <NcButton
+                    :class="{
+                      '!block': isDateSelected(day.date),
+                      '!hidden': !isDateSelected(day.date),
+                    }"
+                    class="!group-hover:block !w-6 !h-6 !rounded"
+                    size="xsmall"
+                    type="secondary"
+                    :disabled="!isAllowed"
+                    @click="
                 () => {
                   const record = {
                     row: {
@@ -869,12 +884,14 @@ const addRecord = (date: dayjs.Dayjs) => {
                   emit('newRecord', record)
                 }
               "
-              >
-                <component :is="iconMap.plus" />
-              </NcButton>
+                  >
+                    <component :is="iconMap.plus" />
+                  </NcButton>
+                </template>
+              </PermissionsTooltip>
               <span
                 :class="{
-                  'bg-brand-50 text-brand-500 !font-bold': day.isToday,
+                  'bg-nc-bg-brand text-nc-content-brand !font-bold': day.isToday,
                 }"
                 class="px-1.3 py-1 text-[13px] text-sm leading-3 font-medium rounded-lg"
               >
@@ -892,7 +909,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             >
               <NcButton
                 v-e="`['c:calendar:month-view-more']`"
-                class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
+                class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-nc-content-gray-muted"
                 size="xxsmall"
                 type="secondary"
                 @click="viewMore(day.date)"
@@ -901,7 +918,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               </NcButton>
 
               <template #overlay>
-                <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
+                <div class="bg-nc-bg-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
                   <LazySmartsheetCalendarSideRecordCard
                     v-for="(record, idx) in recordsToDisplay.count[day.date.format('YYYY-MM-DD')]?.overflowRecords"
                     :key="idx"
@@ -918,7 +935,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                       <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                     </template>
                     <template v-else>
-                      <span class="text-gray-500"> - </span>
+                      <span class="text-nc-content-gray-muted"> - </span>
                     </template>
                   </LazySmartsheetCalendarSideRecordCard>
                 </div>
@@ -964,7 +981,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               @resize-start="onResizeStart"
             >
               <template v-if="[UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(calDataType)" #time>
-                <span class="text-xs font-medium text-gray-400">
+                <span class="text-xs font-medium text-nc-content-gray-disabled">
                   {{
                     timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1)
                   }}

@@ -6,7 +6,7 @@ import { ref } from 'vue'
 import { forcedNextTick } from '../../utils/browserUtils'
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 
 const value = inject(CellValueInj, ref(0))
 
@@ -58,13 +58,15 @@ const relatedTableDisplayColumn = computed(
 loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
 })
 
 const textVal = computed(() => {
-  if (isForm?.value || isNew.value) {
+  if (isForm.value || isNew.value) {
     return state.value?.[colTitle.value]?.length
       ? `${+state.value?.[colTitle.value]?.length} ${t('msg.recordsLinked')}`
+      : isForm.value && !isExpandedFormOpen.value
+      ? t('title.linkRecords')
       : t('msg.noRecordsLinked')
   }
 
@@ -201,8 +203,8 @@ onUnmounted(() => {
             class="text-center nc-datatype-link underline-transparent nc-canvas-links-text font-weight-500"
             :class="{ '!text-gray-300': !textVal }"
             :tabindex="readOnly ? -1 : 0"
-            @click.stop.prevent="openChildList"
-            @keydown.enter.stop.prevent="openChildList"
+            @click.stop.prevent="isForm && !isExpandedFormOpen && hasEditPermission ? openListDlg() : openChildList()"
+            @keydown.enter.stop.prevent="isForm && !isExpandedFormOpen && hasEditPermission ? openListDlg() : openChildList"
           >
             {{ textVal }}
           </component>
@@ -213,11 +215,11 @@ onUnmounted(() => {
           v-if="hasEditPermission"
           :class="{ hidden: isUnderLookup }"
           :tabindex="readOnly ? -1 : 0"
-          class="!xs:hidden flex group justify-end group-hover:flex items-center nc-canvas-links-icon-plus"
+          class="flex group justify-end group-hover:flex items-center nc-canvas-links-icon-plus"
           @keydown.enter.stop="openListDlg"
         >
           <MdiPlus
-            class="select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+            class="select-none !text-md text-gray-700 nc-action-icon nc-plus !xs:visible invisible group-hover:visible group-focus:visible"
             @click.stop="openListDlg"
           />
         </div>

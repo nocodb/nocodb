@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { UITypes, UITypesName, isAIPromptCol } from 'nocodb-sdk'
+import { type ColumnType, UITypes, UITypesName, isAIPromptCol, substituteColumnIdWithAliasInPrompt } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
 }>()
 
 const emit = defineEmits(['update:modelValue', 'navigateToIntegrations'])
+
+const { appInfo } = useGlobal()
 
 const { t } = useI18n()
 
@@ -14,18 +16,23 @@ const meta = inject(MetaInj)!
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const availableFields = computed(() => {
-  if (!meta.value?.columns) return []
-  return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID)
-})
-
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn } = useColumnCreateStoreOrThrow()
+const availableFields = computed(() => {
+  if (!meta.value?.columns) return []
+  return meta.value.columns.filter(
+    (c) =>
+      c.title &&
+      !c.system &&
+      (!vModel.value?.id || c.id !== vModel.value.id) &&
+      ![UITypes.Button, UITypes.ID].includes(c.uidt as UITypes),
+  )
+})
 
-const { aiIntegrationAvailable, generateRows } = useNocoAi()
+const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName } =
+  useColumnCreateStoreOrThrow()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiBetaFeaturesEnabled, aiIntegrationAvailable, generateRows } = useNocoAi()
 
 const previewRow = ref<Row>({
   row: {},
@@ -113,15 +120,20 @@ const generate = async () => {
 
 const isPromptEnabled = computed(() => {
   if (isEdit.value) {
-    return isAIPromptCol(column.value) || isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+    return isAIPromptCol(column.value) || isAiBetaFeaturesEnabled.value
   }
 
-  return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+  return isAiBetaFeaturesEnabled.value
 })
 
 onMounted(() => {
   // set default value
-  vModel.value.prompt_raw = (column?.value?.colOptions as Record<string, any>)?.prompt_raw || ''
+  vModel.value.prompt_raw =
+    substituteColumnIdWithAliasInPrompt(
+      (column.value?.colOptions as Record<string, any>)?.prompt ?? '',
+      meta?.value?.columns as ColumnType[],
+      (column.value?.colOptions as Record<string, any>)?.prompt_raw,
+    ).substituted || ''
 })
 
 const validators = {
@@ -159,6 +171,8 @@ const richMode = computed({
 })
 
 const handleDisableSubmitBtn = () => {
+  updateFieldName()
+
   if (!isEnabledGenerateText.value) {
     if (disableSubmitBtn.value) {
       disableSubmitBtn.value = false
@@ -238,7 +252,13 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
         </NcTooltip>
         <div class="flex-1"></div>
 
-        <div class="absolute right-0">
+        <!-- Todo @rameshmane7218 remove hidden after enabling other integrations, hidden for now as we allow only nocoai -->
+        <div
+          class="absolute right-0"
+          :class="{
+            hidden: appInfo.env !== 'development' && appInfo.ee,
+          }"
+        >
           <AiSettings
             v-model:fk-integration-id="vModel.fk_integration_id"
             v-model:model="vModel.model"
@@ -340,7 +360,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
                 <LazySmartsheetCell
                   :edit-enabled="true"
                   :model-value="previewRow.row[previewFieldTitle]"
-                  :column="vModel"
+                  :column="{ ...vModel, title: vModel.title || 'Untitled AI Text' }"
                   class="!border-none h-auto my-auto pl-1"
                 />
               </LazySmartsheetRow>

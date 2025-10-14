@@ -121,7 +121,9 @@ const calendarData = computed(() => {
       const id = record.rowMeta.id ?? generateRandomNumber()
 
       const startDate = timezoneDayjs.timezonize(record.row[fk_from_col.title!])
-      const endDate = timezoneDayjs.timezonize(record.row[fk_to_col.title!])
+      const endDate = record.row[fk_to_col.title!]
+        ? timezoneDayjs.timezonize(record.row[fk_to_col.title!])
+        : startDate.endOf('day')
 
       const startDayIndex = Math.max(startDate.diff(viewStartDate.value, 'day'), 0)
       const endDayIndex = Math.min(endDate.diff(viewStartDate.value, 'day'), maxVisibleDays.value - 1)
@@ -461,7 +463,10 @@ defineExpose({
 </script>
 
 <template>
-  <div style="z-index: 100" class="sticky flex top-0 bg-white border-b-1 border-gray-200 shadow-sm prevent-select">
+  <div
+    style="z-index: 100"
+    class="sticky flex top-0 bg-nc-bg-default border-b-1 border-nc-border-gray-medium shadow-sm prevent-select"
+  >
     <div
       :style="{
         maxWidth: `${activeCalendarView === 'week' ? '64px' : '66px'}`,
@@ -471,13 +476,13 @@ defineExpose({
         'p-2': activeCalendarView === 'day',
         'py-2 pr-1': activeCalendarView === 'week',
       }"
-      class="text-xs top-0 text-right z-50 !sticky h-full left-0 text-[#6A7184]"
+      class="text-xs top-0 text-right z-50 !sticky h-full left-0 text-nc-content-gray"
     >
       All day
 
       <NcButton size="xsmall" class="mt-2" type="text" @click="isExpanded = !isExpanded">
-        <GeneralIcon v-if="!isExpanded" class="w-4 h-4 text-gray-800" icon="maximize" />
-        <GeneralIcon v-else-if="isExpanded" class="w-4 h-4 text-gray-800" icon="minimize" />
+        <GeneralIcon v-if="!isExpanded" class="w-4 h-4 text-nc-content-gray" icon="maximize" />
+        <GeneralIcon v-else-if="isExpanded" class="w-4 h-4 text-nc-content-gray" icon="minimize" />
       </NcButton>
     </div>
     <div
@@ -486,8 +491,8 @@ defineExpose({
         width: `calc(100% - ${activeCalendarView === 'week' ? '64' : '66'}px)`,
       }"
       :class="{
-        'border-gray-100': activeCalendarView === 'day',
-        'border-gray-200': activeCalendarView === 'week',
+        'border-nc-border-gray-light': activeCalendarView === 'day',
+        'border-nc-border-gray-medium': activeCalendarView === 'week',
         'min-h-32 max-h-32 ': isExpanded,
         'h-20': !isExpanded,
       }"
@@ -496,7 +501,7 @@ defineExpose({
       <div class="pointer-events-none h-full inset-y-0 relative">
         <div
           v-if="maxVisibleDays === 7"
-          class="absolute !right-0 h-full bg-gray-100 inset-y-0"
+          class="absolute !right-0 h-full bg-nc-bg-gray-light inset-y-0"
           :style="{
             width: `${(containerWidth / 7) * 2}px`,
           }"

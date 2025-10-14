@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
@@ -19,7 +19,10 @@ const {
   updateFormat,
   timezoneDayjs,
   timezone,
+  isSyncedFromColumn,
 } = useCalendarViewStoreOrThrow()
+
+const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const { $e } = useNuxtApp()
 
@@ -770,6 +773,8 @@ const stopDrag = (event: MouseEvent) => {
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
+  if (isSyncedFromColumn.value) return
+
   let target = event.target as HTMLElement
 
   isDragging.value = false
@@ -816,7 +821,10 @@ const dropEvent = (event: DragEvent) => {
       initialClickOffsetY: number
       initialClickOffsetX: number
       isWithoutDates: boolean
-    } = JSON.parse(data)
+    } = parseProp(data)
+
+    // Not a valid record
+    if (!record?.rowMeta) return
 
     if (record.rowMeta.range?.is_readonly) return
 
@@ -944,7 +952,7 @@ const selectHour = (hour: dayjs.Dayjs) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const newRecord = (hour: dayjs.Dayjs) => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length) return
+  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length || isSyncedTable.value) return
   const record = {
     row: {
       [calendarRange.value[0].fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
@@ -1000,7 +1008,7 @@ const expandRecord = (record: Row) => {
           >
             {{ currTime.format('hh:mm A') }}
           </span>
-          <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-brand-500"></div>
+          <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-nc-border-brand"></div>
         </div>
       </div>
 
@@ -1008,12 +1016,12 @@ const expandRecord = (record: Row) => {
         <div
           v-for="(hour, index) in hours"
           :key="index"
-          class="flex h-13 relative border-1 group hover:bg-gray-50 border-white"
+          class="flex h-13 relative border-1 group hover:bg-nc-bg-gray-extralight border-nc-base-white"
           data-testid="nc-calendar-day-hour"
           @click="selectHour(hour)"
           @dblclick="newRecord(hour)"
         >
-          <div class="w-16 border-b-0 pr-2 pl-2 text-right text-xs text-gray-400 font-semibold h-13">
+          <div class="w-16 border-b-0 pr-2 pl-2 text-right text-xs text-nc-content-gray-disabled font-semibold h-13">
             {{ timezoneDayjs.dayjsTz(hour).format('hh a') }}
           </div>
         </div>
@@ -1025,7 +1033,7 @@ const expandRecord = (record: Row) => {
           :class="{
             'selected-hour': hour.isSame(selectedTime),
           }"
-          class="flex w-full border-l-gray-100 h-13 transition nc-calendar-day-hour relative border-1 group hover:bg-gray-50 border-white border-b-gray-100"
+          class="flex w-full border-l-nc-border-gray-light h-13 transition nc-calendar-day-hour relative border-1 group hover:bg-nc-bg-gray-extralight border-nc-base-white border-b-nc-border-gray-light"
           data-testid="nc-calendar-day-hour"
           @click="selectHour(hour)"
           @dblclick="newRecord(hour)"
@@ -1051,7 +1059,7 @@ const expandRecord = (record: Row) => {
                 <template v-for="(range, calIndex) in calendarRange" :key="calIndex">
                   <NcMenuItem
                     v-if="!range.is_readonly"
-                    class="text-gray-800 font-semibold text-sm"
+                    class="text-nc-content-gray font-semibold text-sm"
                     @click="
                 () => {
                   let record = {
@@ -1072,7 +1080,8 @@ const expandRecord = (record: Row) => {
               "
                   >
                     <div class="flex items-center gap-1">
-                      <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                      <LazySmartsheetHeaderIcon :column="range.fk_from_col" />
+
                       <span class="ml-1">{{ range.fk_from_col!.title! }}</span>
                     </div>
                   </NcMenuItem>
@@ -1080,42 +1089,57 @@ const expandRecord = (record: Row) => {
               </NcMenu>
             </template>
           </NcDropdown>
-          <NcButton
-            v-else-if="!isPublic && isUIAllowed('dataEdit') && [UITypes.DateTime, UITypes.Date].includes(calDataType)"
+
+          <div
+            v-else-if="
+              !isPublic && isUIAllowed('dataEdit') && [UITypes.DateTime, UITypes.Date].includes(calDataType) && !isSyncedTable
+            "
             :class="{
               '!block': hour.isSame(selectedTime),
               '!hidden': !hour.isSame(selectedTime),
             }"
-            class="!group-hover:block mr-10 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block absolute"
-            size="xsmall"
-            type="secondary"
-            @click="
-          () => {
-            let record = {
-              row: {
-                [calendarRange[0].fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
-              },
-            }
-
-            if (calendarRange[0].fk_to_col) {
-              record = {
-                row: {
-                  ...record.row,
-                  [calendarRange[0].fk_to_col!.title!]: hour.add(1, 'hour').format('YYYY-MM-DD HH:mm:ssZ'),
-                },
-              }
-            }
-            emit('newRecord', record)
-          }
-        "
+            class="!group-hover:block mr-10 my-auto ml-auto z-10 top-0 bottom-0 !group-hover:block relative"
           >
-            <component :is="iconMap.plus" class="h-4 w-4" />
-          </NcButton>
+            <PermissionsTooltip
+              :entity="PermissionEntity.TABLE"
+              :entity-id="meta?.id"
+              :permission="PermissionKey.TABLE_RECORD_ADD"
+              placement="left"
+            >
+              <template #default="{ isAllowed }">
+                <NcButton
+                  size="xsmall"
+                  type="secondary"
+                  :disabled="!isAllowed"
+                  @click="
+                  () => {
+                    let record = {
+                      row: {
+                        [calendarRange[0].fk_from_col!.title!]: hour.format('YYYY-MM-DD HH:mm:ssZ'),
+                      },
+                    }
+
+                    if (calendarRange[0].fk_to_col) {
+                      record = {
+                        row: {
+                          ...record.row,
+                          [calendarRange[0].fk_to_col!.title!]: hour.add(1, 'hour').format('YYYY-MM-DD HH:mm:ssZ'),
+                        },
+                      }
+                    }
+                    emit('newRecord', record)
+                }"
+                >
+                  <component :is="iconMap.plus" class="h-4 w-4" />
+                </NcButton>
+              </template>
+            </PermissionsTooltip>
+          </div>
 
           <NcDropdown v-if="isOverflowAcrossHourRange(hour).isOverflow">
             <NcButton
               v-e="`['c:calendar:week-view-more']`"
-              class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
+              class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-nc-content-gray-muted"
               size="xxsmall"
               type="secondary"
               @click="viewMore(hour)"
@@ -1128,7 +1152,7 @@ const expandRecord = (record: Row) => {
             </NcButton>
 
             <template #overlay>
-              <div class="bg-nc-background-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
+              <div class="bg-nc-bg-default px-4 gap-3 flex flex-col py-4 max-h-70 overflow-y-auto">
                 <LazySmartsheetCalendarSideRecordCard
                   v-for="(record, idx) in getOverflowRecords(hour)"
                   :key="idx"
@@ -1145,7 +1169,7 @@ const expandRecord = (record: Row) => {
                     <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
                   </template>
                   <template v-else>
-                    <span class="text-gray-500"> - </span>
+                    <span class="text-nc-content-gray-muted"> - </span>
                   </template>
                 </LazySmartsheetCalendarSideRecordCard>
               </div>
@@ -1198,7 +1222,7 @@ const expandRecord = (record: Row) => {
                     />
                   </template>
                   <template #time>
-                    <div class="text-xs font-medium text-gray-400">
+                    <div class="text-xs font-medium text-nc-content-gray-disabled">
                       {{ timezoneDayjs.timezonize(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mm a') }}
                     </div>
                   </template>

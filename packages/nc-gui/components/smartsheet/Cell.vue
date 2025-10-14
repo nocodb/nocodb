@@ -12,6 +12,7 @@ interface Props {
   active?: boolean
   virtual?: boolean
   path?: Array<number>
+  isAllowed?: boolean
 }
 
 const props = defineProps<Props>()
@@ -28,6 +29,8 @@ const path = toRef(props, 'path', [])
 
 const readOnly = toRef(props, 'readOnly', false)
 
+const isAllowed = toRef(props, 'isAllowed', true)
+
 provide(ColumnInj, column)
 
 const editEnabled = useVModel(props, 'editEnabled', emit)
@@ -40,9 +43,13 @@ provide(ActiveCellInj, active)
 
 provide(ReadonlyInj, readOnly)
 
+provide(IsAllowedInj, isAllowed)
+
 const isForm = inject(IsFormInj, ref(false))
 
 const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
+
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
@@ -58,7 +65,7 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const { currentRow, state } = useSmartsheetRowStoreOrThrow()
 
-const { sqlUis } = storeToRefs(useBase())
+const baseStore = useBase()
 
 const { generatingRows, generatingColumns } = useNocoAi()
 
@@ -74,9 +81,7 @@ const isGenerating = computed(
     pk.value && column.value.id && generatingRows.value.includes(pk.value) && generatingColumns.value.includes(column.value.id),
 )
 
-const sourceId = meta.value?.source_id || column.value?.source_id
-
-const sqlUi = ref(sourceId && sqlUis.value[sourceId] ? sqlUis.value[sourceId] : Object.values(sqlUis.value)[0])
+const sqlUi = computed(() => baseStore.getSqlUiBySourceId(meta.value?.source_id || column.value?.source_id))
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
@@ -215,9 +220,8 @@ const showReadonlyField = computed(() => {
 
     case 'percent': {
       return !(
-        !readOnly.value &&
-        editEnabled.value &&
-        (isExpandedFormOpen.value ? localEditEnabled.value || !parseProp(column.value?.meta).is_progress : true)
+        (!readOnly.value && editEnabled.value) ||
+        (isExpandedFormOpen.value && (localEditEnabled.value || parseProp(column.value?.meta).is_progress))
       )
     }
 
@@ -246,7 +250,13 @@ const showReadonlyField = computed(() => {
 })
 
 const showLockedOverlay = computed(() => {
+  /**
+   * We have to show lock overlay only on root level of the cell
+   * else overlay will cover area of rendered cell and actual value will not be visible
+   */
   return (
+    !isUnderLookup.value &&
+    !isUnderLTAR.value &&
     ((isPublic.value && readOnly.value && !isForm.value) || isSystemColumn(column.value)) &&
     cellType.value !== 'attachment' &&
     cellType.value !== 'textarea' &&
@@ -310,22 +320,22 @@ const cellClassName = computed(() => {
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
   >
     <template v-if="column">
-      <div v-if="isGenerating" class="flex items-center gap-2 w-full">
+      <div v-if="isGenerating" class="nc-cell-field flex items-center gap-2 w-full">
         <GeneralLoader />
         <NcTooltip class="truncate max-w-[calc(100%_-_24px)]" show-on-truncate-only>
           <template #title> {{ $t('general.generating') }} </template>
           {{ $t('general.generating') }}
         </NcTooltip>
       </div>
-      <LazyCellNull v-else-if="showNullComponent" />
-      <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emitSave" />
-      <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
+      <CellNull v-else-if="showNullComponent" />
+      <CellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emitSave" />
+      <CellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
 
       <CellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
 
       <template v-else-if="cellType === 'checkbox'">
-        <LazyCellCheckboxReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellCheckboxEditor v-else v-model="vModel" />
+        <CellCheckboxReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellCheckboxEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'yearPicker'">
@@ -345,7 +355,7 @@ const cellClassName = computed(() => {
       </template>
 
       <template v-else-if="cellType === 'dateTimePicker'">
-        <LazyCellDateTimeReadonly
+        <CellDateTimeReadonly
           v-if="showReadonlyField"
           :model-value="vModel"
           :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
@@ -367,7 +377,7 @@ const cellClassName = computed(() => {
         :row-index="props.rowIndex"
       />
 
-      <LazyCellSingleSelect
+      <CellSingleSelect
         v-else-if="cellType === 'singleSelect'"
         v-model="vModel"
         :disable-option-creation="isEditColumnMenu"
@@ -375,7 +385,7 @@ const cellClassName = computed(() => {
         :show-readonly-field="showReadonlyField"
       />
 
-      <LazyCellMultiSelect
+      <CellMultiSelect
         v-else-if="cellType === 'multiSelect'"
         v-model="vModel"
         :disable-option-creation="isEditColumnMenu"
@@ -384,42 +394,42 @@ const cellClassName = computed(() => {
       />
 
       <template v-else-if="cellType === 'timePicker'">
-        <LazyCellTimeReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellTimeReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellTimeEditor v-else v-model="vModel" :is-pk="isPrimaryKeyCol" />
       </template>
 
       <template v-else-if="cellType === 'rating'">
-        <LazyCellRatingReadonly v-if="showReadonlyField" :model-value="vModel" />
-        <LazyCellRatingEditor v-else v-model="vModel" />
+        <CellRatingReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellRatingEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'duration'">
-        <LazyCellDurationReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellDurationReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellDurationEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'email'">
-        <LazyCellEmailReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellEmailReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellEmailEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'url'">
-        <LazyCellUrlReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellUrlReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellUrlEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'phoneNumber'">
-        <LazyCellPhoneNumberReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellPhoneNumberReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellPhoneNumberEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'percent'">
-        <LazyCellPercentReadonly v-if="showReadonlyField" v-model:local-edit-enabled="localEditEnabled" :model-value="vModel" />
+        <CellPercentReadonly v-if="showReadonlyField" v-model:local-edit-enabled="localEditEnabled" :model-value="vModel" />
         <CellPercentEditor v-else v-model="vModel" v-model:local-edit-enabled="localEditEnabled" />
       </template>
 
       <template v-else-if="cellType === 'currency'">
-        <LazyCellCurrencyReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellCurrencyReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellCurrencyEditor v-else v-model="vModel" @save="emitSave" />
       </template>
 
@@ -431,24 +441,24 @@ const cellClassName = computed(() => {
       />
 
       <template v-else-if="cellType === 'decimal'">
-        <LazyCellDecimalReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellDecimalReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellDecimalEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'float'">
-        <LazyCellFloatReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellFloatReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellFloatEditor v-else v-model="vModel" />
       </template>
 
       <template v-else-if="cellType === 'integer'">
-        <LazyCellIntegerReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellIntegerReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellIntegerEditor v-else v-model="vModel" />
       </template>
 
-      <LazyCellJson v-else-if="cellType === 'json'" v-model="vModel" />
+      <CellJson v-else-if="cellType === 'json'" v-model="vModel" />
 
       <template v-else>
-        <LazyCellTextReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellTextReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellTextEditor v-else v-model="vModel" />
       </template>
 
@@ -518,6 +528,10 @@ const cellClassName = computed(() => {
 
   :deep(.nc-cell-field) {
     @apply px-0;
+  }
+
+  &:has(.nc-currency-code) {
+    @apply !py-0 !pl-0 flex items-stretch;
   }
 }
 </style>

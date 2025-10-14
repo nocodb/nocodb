@@ -3,6 +3,8 @@ import dayjs from 'dayjs'
 
 const { t } = useI18n()
 
+const newTokenInputRef = ref()
+
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook') // Using 'Webhook' as the sort type since 'MCPToken' isn't defined
 
 const orderBy = computed<Record<string, SordDirectionType>>({
@@ -33,11 +35,19 @@ const {
   listMcpTokens,
   cancelNewMcpToken,
   isUnsavedMCPTokenPending,
-  addNewMcpToken,
+  addNewMcpToken: _addNewMcpToken,
   isCreatingMcpToken,
   newMcpTokenTitle,
   updateMcpToken,
 } = useMcpSettings()
+
+const addNewMcpToken = () => {
+  _addNewMcpToken()
+
+  nextTick(() => {
+    newTokenInputRef.value.focus()
+  })
+}
 
 const sortedMcpTokens = computed(() => handleGetSortedData(mcpTokens.value, sorts.value))
 
@@ -148,7 +158,7 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
 
   <div class="flex flex-col w-full">
     <div class="text-nc-content-gray-emphasis font-semibold text-lg">
-      {{ $t('labels.modelContextProtocol') }}
+      {{ $t('title.mcpServer') }}
     </div>
 
     <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
@@ -197,7 +207,15 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
               </div>
             </template>
           </NcTooltip>
-          <a-input v-else v-model:value="newMcpTokenTitle" class="new-token-title" placeholder="Token name" />
+          <a-input
+            v-else
+            ref="newTokenInputRef"
+            v-model:value="newMcpTokenTitle"
+            class="new-token-title"
+            placeholder="Token name"
+            @keydown.enter="createTokenWithExpiry(token)"
+            @keydown.esc="cancelNewMcpToken"
+          />
         </template>
 
         <template v-if="column.key === 'created_at'">
@@ -219,8 +237,8 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
                   {{ $t('labels.regenerateToken') }}
                 </NcMenuItem>
                 <NcDivider />
-                <NcMenuItem class="!text-nc-content-red-dark !hover:bg-nc-bg-red-light" @click="confirmDeleteToken(token)">
-                  <GeneralIcon icon="ncTrash2" />
+                <NcMenuItem danger @click="confirmDeleteToken(token)">
+                  <GeneralIcon icon="delete" />
                   {{ $t('labels.deleteToken') }}
                 </NcMenuItem>
               </NcMenu>

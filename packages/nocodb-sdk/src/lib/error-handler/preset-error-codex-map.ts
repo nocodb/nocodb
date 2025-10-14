@@ -48,10 +48,6 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Base '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.BASE_NOT_FOUNDV3]: {
-    message: (id: string) => `Base '${id}' not found`,
-    code: 422,
-  },
   [NcErrorType.SOURCE_NOT_FOUND]: {
     message: (id: string) => `Source '${id}' not found`,
     code: 404,
@@ -68,25 +64,13 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Table '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.TABLE_NOT_FOUNDV3]: {
-    message: (id: string) => `Table '${id}' not found`,
-    code: 422,
-  },
   [NcErrorType.VIEW_NOT_FOUND]: {
     message: (id: string) => `View '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.VIEW_NOT_FOUNDV3]: {
-    message: (id: string) => `View '${id}' not found`,
-    code: 422,
-  },
   [NcErrorType.FIELD_NOT_FOUND]: {
     message: (id: string) => `Field '${id}' not found`,
     code: 404,
-  },
-  [NcErrorType.FIELD_NOT_FOUNDV3]: {
-    message: (id: string) => `Field '${id}' not found`,
-    code: 422,
   },
   [NcErrorType.HOOK_NOT_FOUND]: {
     message: (id: string) => `Hook '${id}' not found`,
@@ -101,6 +85,14 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.GENERIC_NOT_FOUND]: {
     message: (resource: string, id: string) => `${resource} '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.WIDGET_NOT_FOUND]: {
+    message: (id: string) => `Widget '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.DASHBOARD_NOT_FOUND]: {
+    message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,
   },
   [NcErrorType.REQUIRED_FIELD_MISSING]: {
@@ -150,12 +142,12 @@ export const presetErrorCodexMap: Partial<
     message: (filter: string) => `Filter '${filter}' is invalid`,
     code: 422,
   },
-  [NcErrorType.INVALID_FILTERV3]: {
-    message: (message: string) => `Invalid filter expression: ${message}`,
-    code: 422,
-  },
   [NcErrorType.INVALID_SHARED_VIEW_PASSWORD]: {
     message: 'Invalid shared view password',
+    code: 403,
+  },
+  [NcErrorType.INVALID_SHARED_DASHBOARD_PASSWORD]: {
+    message: 'Invalid shared dashboard password',
     code: 403,
   },
   [NcErrorType.INVALID_ATTACHMENT_JSON]: {
@@ -181,17 +173,14 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.FORMULA_ERROR]: {
     message: (message: string) => {
-      // try to extract db error - Experimental
-      if (message.includes(' - ')) {
-        const [_, dbError] = message.split(' - ');
-        return `Formula error: ${dbError}`;
-      }
-      return `Formula error: ${message}`;
+      return message;
     },
     code: 400,
   },
   [NcErrorType.FORMULA_CIRCULAR_REF_ERROR]: {
-    message: 'Circular reference detected in formula',
+    message: (message: string) => {
+      return message;
+    },
     code: 400,
   },
   [NcErrorType.PERMISSION_DENIED]: {
@@ -218,6 +207,11 @@ export const presetErrorCodexMap: Partial<
     message: (_workspaceId: string) => 'SSO login required for workspace',
     code: 403,
   },
+  [NcErrorType.SSO_GENERATED_TOKEN_REQUIRED]: {
+    message: (_workspaceId: string) =>
+      'This workspace requires SSO-authenticated tokens. Please generate a new token after signing in with SSO',
+    code: 403,
+  },
   [NcErrorType.MAX_INSERT_LIMIT_EXCEEDED]: {
     message: (limit: string) => `Maximum ${limit} records during insert`,
     code: 422,
@@ -231,8 +225,36 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) => message,
     code: 422,
   },
+  [NcErrorType.INVALID_REQUEST_BODY]: {
+    message: (message: string) => message,
+    code: 400,
+  },
   [NcErrorType.BASE_USER_ERROR]: {
     message: (message: string) => message || 'Something went wrong',
+    code: 422,
+  },
+  [NcErrorType.PROHIBITED_SYNC_TABLE_OPERATION]: {
+    message: (message: string) =>
+      message ||
+      `Prohibited data insert / update / delete operation on synced table`,
+    code: 422,
+  },
+  [NcErrorType.FEATURE_NOT_SUPPORTED]: {
+    message: (message: string) =>
+      message || `Upgrade to a higher plan to use this feature.`,
+    code: 403,
+  },
+  [NcErrorType.DUPLICATE_ALIAS]: {
+    message: (message: string) => message,
+    code: 422,
+  },
+  [NcErrorType.OUT_OF_SYNC]: {
+    message: (message: string) =>
+      message || `Please refresh the page and try again.`,
+    code: 409,
+  },
+  [NcErrorType.FILTER_VERIFICATION_FAILED]: {
+    message: (message: string) => `Filter verification failed: ${message}`,
     code: 422,
   },
 };

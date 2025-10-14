@@ -31,4 +31,6 @@ export class UserPgHandler extends GenericPgFieldHandler {
   override filterLike = this.userHandler.filterLikeNlike;
   override filterNlike = this.userHandler.filterLikeNlike;
   override parseUserInput = this.userHandler.parseUserInput;
+  singleLineTextHandler = this.userHandler.singleLineTextHandler;
+  replaceDelimitedWithKeyValue = this.userHandler.replaceDelimitedWithKeyValue;
 }

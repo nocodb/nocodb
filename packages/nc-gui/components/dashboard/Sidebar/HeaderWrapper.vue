@@ -9,7 +9,7 @@ const { isLoading } = toRefs(props)
 
 const workspaceStore = useWorkspace()
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen, allowHideLeftSidebarForCurrentRoute } = storeToRefs(useSidebarStore())
 
 const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 
@@ -21,7 +21,13 @@ const { activeTableId } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()
 
-const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOrId.value && !activeTableId.value))
+const showSidebarBtn = computed(() => {
+  if (isMobileMode.value) {
+    return allowHideLeftSidebarForCurrentRoute.value || !!(activeViewTitleOrId.value && activeTableId.value)
+  }
+
+  return true
+})
 </script>
 
 <template>
@@ -42,6 +48,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
         }"
         placement="bottom"
         hide-on-click
+        :disabled="!!isMobileMode"
       >
         <template #title>
           {{ isLeftSidebarOpen ? `${$t('title.hideSidebar')}` : `${$t('title.showSidebar')}` }}
@@ -51,7 +58,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
           v-e="['c:leftSidebar:hideToggle']"
           :type="isMobileMode ? 'secondary' : 'text'"
           :size="isMobileMode ? 'medium' : 'small'"
-          class="nc-sidebar-left-toggle-icon !text-gray-700 !hover:text-gray-800 !xs:(h-10.5 max-h-10.5 max-w-10.5) !md:(hover:bg-gray-200) !rounded-md"
+          class="nc-sidebar-left-toggle-icon !text-nc-content-gray-subtle !hover:text-nc-content-gray !xs:(h-10.5 max-h-10.5 max-w-10.5) !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
           @click="isLeftSidebarOpen = !isLeftSidebarOpen"
         >
           <div class="flex items-center text-inherit">
@@ -59,7 +66,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
             <GeneralIcon
               v-else
               icon="doubleLeftArrow"
-              class="duration-150 transition-all !text-lg -mt-0.5 !text-gray-500/75"
+              class="duration-150 transition-all !text-lg -mt-0.5 !text-nc-content-gray-muted bg-opacity-50"
               :class="{
                 'transform rotate-180': !isLeftSidebarOpen,
               }"

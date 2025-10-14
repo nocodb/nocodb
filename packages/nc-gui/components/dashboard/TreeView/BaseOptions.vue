@@ -1,10 +1,27 @@
 <script lang="ts" setup>
 import type { BaseType, SourceType } from 'nocodb-sdk'
 
-const props = defineProps<{
-  source: SourceType
-  base: BaseType
-}>()
+const props = withDefaults(
+  defineProps<{
+    source: SourceType
+    base: BaseType
+    variant?: 'small' | 'medium' | 'large'
+    titleClass?: string
+    submenuClass?: string
+    showLabel?: boolean
+    showNocoDbImport?: boolean
+    popupOffset?: [number, number]
+    showSourceSelector?: boolean
+  }>(),
+  {
+    variant: 'small',
+    titleClass: '',
+    submenuClass: '',
+    showLabel: false,
+    showNocoDbImport: false,
+    showSourceSelector: true,
+  },
+)
 
 const source = toRef(props, 'source')
 
@@ -27,6 +44,7 @@ function openAirtableImportDialog(baseId?: string, sourceId?: string) {
     'modelValue': isOpen,
     'baseId': baseId,
     'sourceId': sourceId,
+    'showSourceSelector': props.showSourceSelector,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -49,6 +67,7 @@ function openQuickImportDialog(type: string) {
     'importType': type,
     'baseId': source.value.base_id,
     'sourceId': source.value.id,
+    'showSourceSelector': props.showSourceSelector,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -62,11 +81,26 @@ function openQuickImportDialog(type: string) {
 
 <template>
   <!-- Quick Import From -->
-  <NcSubMenu class="py-0" data-testid="nc-sidebar-base-import" variant="small">
+  <NcSubMenu
+    class="py-0"
+    :class="submenuClass"
+    data-testid="nc-sidebar-base-import"
+    :variant="variant"
+    :title-class="titleClass"
+    :popup-offset="popupOffset"
+  >
     <template #title>
-      <GeneralIcon icon="download" class="opacity-80" />
-      {{ $t('labels.importData') }}
+      <slot name="title">
+        <GeneralIcon icon="download" class="opacity-80" />
+        {{ $t('labels.importData') }}
+      </slot>
     </template>
+
+    <template v-if="$slots.expandIcon" #expandIcon>
+      <slot name="expandIcon"> </slot>
+    </template>
+
+    <slot name="label"> </slot>
 
     <NcMenuItem
       v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"

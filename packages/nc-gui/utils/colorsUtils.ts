@@ -1,5 +1,6 @@
 import colors from 'windicss/colors'
 import { enumColors as enumColor } from 'nocodb-sdk'
+import tinycolor from 'tinycolor2'
 export { enumColors as enumColor } from 'nocodb-sdk'
 
 export const theme = {
@@ -59,7 +60,7 @@ export const themeV2Colors = {
 // @deprecated
 // Use CSS variables from variables.css directly in future like:
 // color: var(--nc-content-brand-default)
-// background: var(--nc-background-brand)
+// background: var(--nc-bg-brand)
 // The above values map 1:1 directly with Figma CSS variables.
 export const themeV3Colors = {
   base: {
@@ -187,6 +188,25 @@ export const themeV3Colors = {
     800: '#105628',
     900: '#082B14',
   },
+}
+
+type ThemeV3ColorKeys = Exclude<keyof typeof themeV3Colors, 'base'>
+type Shade = keyof (typeof themeV3Colors)[ThemeV3ColorKeys]
+
+/**
+ * Get a random color from the themeV3Colors
+ * @param randomNumber - The random number to use to get the color
+ * @param shade - The shade of the color to get
+ * @returns The color
+ */
+export function getThemeV3RandomColor(randomNumber = 1, shade: Shade = 600): string {
+  const colorGroups = Object.keys(themeV3Colors).filter((key) => key !== 'base') as ThemeV3ColorKeys[]
+
+  const groupIndex = Math.floor(Math.random() * 1000 * randomNumber) % colorGroups.length
+  const colorGroup = colorGroups[groupIndex]!
+
+  const selectedGroup = themeV3Colors[colorGroup]
+  return selectedGroup[shade]
 }
 
 const isValidHex = (hex: string) => /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(hex)
@@ -380,16 +400,16 @@ export const themeV4Colors = {
   },
   gray: {
     10: '#FCFCFC',
-    50: 'var(--color-grey-50)',
-    100: 'var(--color-grey-100)',
-    200: 'var(--color-grey-200)',
-    300: 'var(--color-grey-300)',
-    400: 'var(--color-grey-400)',
-    500: 'var(--color-grey-500)',
-    600: 'var(--color-grey-600)',
-    700: 'var(--color-grey-700)',
-    800: 'var(--color-grey-800)',
-    900: 'var(--color-grey-900)',
+    50: 'var(--color-gray-50)',
+    100: 'var(--color-gray-100)',
+    200: 'var(--color-gray-200)',
+    300: 'var(--color-gray-300)',
+    400: 'var(--color-gray-400)',
+    500: 'var(--color-gray-500)',
+    600: 'var(--color-gray-600)',
+    700: 'var(--color-gray-700)',
+    800: 'var(--color-gray-800)',
+    900: 'var(--color-gray-900)',
   },
   red: {
     50: 'var(--color-red-50)',
@@ -490,6 +510,20 @@ export const themeV4Colors = {
 }
 
 /**
+ * In our WindiCSS config, we already added `themeV3Colors`.
+ * To add `themeV4Colors` without conflicts, we create a new object
+ * with all top-level keys prefixed by `nc-` (e.g., `gray` → `nc-gray`).
+ *
+ * This keeps both V3 and V4 colors available in the theme without overwriting each other.
+ */
+export const themeV4ColorsWithNcPrefix: {
+  [K in keyof typeof themeV4Colors as `nc-${K}`]: (typeof themeV4Colors)[K]
+} = Object.entries(themeV4Colors).reduce((acc, [key, value]) => {
+  acc[`nc-${key}` as `nc-${string}`] = value
+  return acc
+}, {} as any)
+
+/**
  * ### Light Theme Configuration
  * In this project, we've integrated a custom WindiCSS configuration that aligns with our Figma design system.
  * This setup introduces shorthand class names for various UI elements like text color, border color,
@@ -510,13 +544,13 @@ export const themeV4Colors = {
  * ###### Text Color
  * To apply a text color, you can use:
  * ```html
- * <p class="text-nc-content-grey-subtle">This is subtle grey text.</p>
+ * <p class="text-nc-content-gray-subtle">This is subtle gray text.</p>
  * ```
  *
  * ###### Border Color
  * To apply a border color, you can use:
  * ```html
- * <div class="border-nc-border-gray-light">This div has a light grey border.</div>
+ * <div class="border-nc-border-gray-light">This div has a light gray border.</div>
  * ```
  *
  * ###### Background Color
@@ -555,6 +589,7 @@ export const themeVariables = {
       subtle: themeV4Colors.gray[700],
       subtle2: themeV4Colors.gray[600],
       muted: themeV4Colors.gray[500],
+      disabled: themeV4Colors.gray[400],
     },
     'nc-content-brand': {
       DEFAULT: themeV4Colors.brand[500],
@@ -564,12 +599,12 @@ export const themeVariables = {
     'nc-content-inverted-primary': {
       DEFAULT: themeV4Colors.base.white,
       hover: themeV4Colors.base.white,
-      disabled: themeV4Colors.gray[400],
+      disabled: themeV4Colors.gray[500],
     },
     'nc-content-inverted-secondary': {
       DEFAULT: themeV4Colors.gray[700],
       hover: themeV4Colors.gray[700],
-      disabled: themeV4Colors.gray[400],
+      disabled: themeV4Colors.gray[500],
     },
     'nc-content-red': {
       dark: themeV4Colors.red[700],
@@ -617,6 +652,7 @@ export const themeVariables = {
     'nc-bg-brand': themeV4Colors.brand[50],
     'nc-bg-gray': {
       extralight: themeV4Colors.gray[50],
+      sidebar: themeV4Colors.gray[50],
       light: themeV4Colors.gray[100],
       medium: themeV4Colors.gray[200],
       dark: themeV4Colors.gray[300],
@@ -656,13 +692,17 @@ export const themeVariables = {
     },
   },
   border: {
-    'nc-border-brand': themeV4Colors.brand[500],
+    'nc-border-brand': {
+      DEFAULT: themeV4Colors.brand[500],
+      medium: themeV4Colors.brand[200],
+    },
     'nc-border-gray': {
       extralight: themeV4Colors.gray[50],
       light: themeV4Colors.gray[100],
       medium: themeV4Colors.gray[200],
       dark: themeV4Colors.gray[300],
       extradark: themeV4Colors.gray[400],
+      underline: themeV4Colors.gray[600],
     },
     'nc-border-red': {
       DEFAULT: themeV4Colors.red[500],
@@ -678,6 +718,8 @@ export const themeVariables = {
     },
     'nc-border-purple': {
       DEFAULT: themeV4Colors.purple[500],
+      medium: themeV4Colors.purple[200],
+      light: themeV4Colors.purple[100],
     },
     'nc-border-pink': {
       DEFAULT: themeV4Colors.pink[500],
@@ -752,4 +794,31 @@ export const themeVariables = {
       light: themeV4Colors.maroon[300],
     },
   },
+}
+
+export const getLighterTint = (
+  color: string,
+  option?: {
+    saturationMod?: number
+    brightnessMod?: number
+  },
+) => {
+  const evalColor = tinycolor(color)
+
+  const hsv = evalColor.toHsv()
+
+  const safeS = hsv.s < 0.01 ? 0 : 5 + (option?.saturationMod ?? 0) // prevent gray → red
+  const safeV = Math.min(100, (hsv.s < 0.01 ? 97 : 100) + (option?.brightnessMod ?? 0))
+
+  return tinycolor({
+    h: hsv.h,
+    s: safeS,
+    v: safeV,
+  }).toHexString()
+}
+
+export const getOppositeColorOfBackground = (color: string) => {
+  return tinycolor.isReadable(color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+    ? '#fff'
+    : tinycolor.mostReadable(color || '#ccc', ['#0b1d05', '#fff']).toHex8String()
 }

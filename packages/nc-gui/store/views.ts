@@ -1,50 +1,86 @@
-import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
-import { ViewTypes as _ViewTypes } from 'nocodb-sdk'
+import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, RowColoringInfo, SortType, ViewType } from 'nocodb-sdk'
+import { ProjectRoles, ViewSettingOverrideOptions, ViewTypes, WorkspaceUserRoles, ViewTypes as _ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib/types'
 import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
-import { DlgViewCreate } from '#components'
+import { DlgViewCopyViewConfigFromAnotherView, DlgViewCreate } from '#components'
+
+// Types and Interfaces
+interface RecentView {
+  viewName: string
+  viewId: string | undefined
+  viewType: ViewTypes
+  tableID: string
+  isDefault: boolean
+  baseName: string
+  tableName: string
+  workspaceId: string
+  baseId: string
+}
 
 export const useViewsStore = defineStore('viewsStore', () => {
-  const { $api } = useNuxtApp()
-  interface RecentView {
-    viewName: string
-    viewId: string | undefined
-    viewType: ViewTypes
-    tableID: string
-    isDefault: boolean
-    baseName: string
-    tableName: string
-    workspaceId: string
-    baseId: string
-  }
+  const { $api, $e, $eventBus } = useNuxtApp()
 
-  const { isUIAllowed } = useRoles()
+  const { t } = useI18n()
+
+  const { ncNavigateTo, user } = useGlobal()
 
   const router = useRouter()
-  // Store recent views from all Workspaces
-  const allRecentViews = ref<RecentView[]>([])
-  const route = router.currentRoute
 
-  const { refreshCommandPalette } = useCommandPalette()
-
-  const { $e } = useNuxtApp()
+  const { meta: metaKey, control } = useMagicKeys()
 
   const bases = useBases()
-  const { openedProject } = storeToRefs(bases)
+
+  const { getMeta } = useMetas()
 
   const tablesStore = useTablesStore()
 
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  const workspaceStore = useWorkspace()
 
-  const { meta: metaKey, control } = useMagicKeys()
+  const { refreshCommandPalette } = useCommandPalette()
+
+  const { isUIAllowed } = useRoles()
+
+  const { sharedView } = useSharedView()
+
+  const { openedProject } = storeToRefs(bases)
+
+  const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
+  const { activeTable } = storeToRefs(tablesStore)
+
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const route = router.currentRoute
+
+  const allRecentViews = ref<RecentView[]>([])
+
+  const viewsByTable = ref<Map<string, ViewType[]>>(new Map())
+
+  const activeSorts = ref<SortType[]>([])
+
+  const activeNestedFilters = ref<FilterType[]>([])
+
+  const isViewsLoading = ref(true)
+
+  const isViewDataLoading = ref(true)
+
+  const isPaginationLoading = ref(false)
+
+  const lastOpenedViewId = ref<string | undefined>(undefined)
+
+  const preFillFormSearchParams = ref('')
+
+  const activeViewRowColorInfo = ref<RowColoringInfo>(defaultRowColorInfo)
+
+  // Computed properties
+  const isPublic = computed(() => route.value.meta?.public)
 
   const recentViews = computed<RecentView[]>(() =>
     allRecentViews.value.filter((f) => f.workspaceId === activeWorkspaceId.value).splice(0, 10),
   )
 
-  const viewsByTable = ref<Map<string, ViewType[]>>(new Map())
   const views = computed({
     get: () => (tablesStore.activeTableId ? viewsByTable.value.get(tablesStore.activeTableId) : []) ?? [],
     set: (value) => {
@@ -54,18 +90,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
       viewsByTable.value.set(tablesStore.activeTableId, value)
     },
   })
-
-  // Both are synced with `useSmartsheetStore` state
-  // Sort of active view
-  const activeSorts = ref<SortType[]>([])
-  // Filters of active view (used for local filters)
-  const activeNestedFilters = ref<FilterType[]>([])
-
-  const isViewsLoading = ref(true)
-  const isViewDataLoading = ref(true)
-  const isPublic = computed(() => route.value.meta?.public)
-
-  const { activeTable } = storeToRefs(useTablesStore())
 
   const activeViewTitleOrId = computed(() => {
     if (!route.value.params.viewTitle?.length) {
@@ -78,20 +102,16 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return route.value.params.viewTitle
   })
 
-  // Get view page type acc to route which will be used to open the view page
   const openedViewsTab = computed<ViewPageType>(() => {
     // For types in ViewPageType type
-    if (!route.value.params?.slugs || route.value.params.slugs?.length === 0) return 'view'
+    if (!route.value.params?.slugs || route.value.params.slugs?.length <= 1) return 'view'
 
-    if (route.value.params.slugs[0] === 'webhook') return 'webhook'
-    if (route.value.params.slugs[0] === 'field') return 'field'
-    if (route.value.params.slugs[0] === 'api') return 'api'
-    if (route.value.params.slugs[0] === 'relation') return 'relation'
+    if (['field', 'permissions', 'relation', 'api', 'webhook'].includes(route.value.params.slugs[1] as ViewPageType)) {
+      return route.value.params.slugs[1] as ViewPageType
+    }
 
     return 'view'
   })
-
-  const { sharedView } = useSharedView()
 
   const activeView = computed<ViewType | undefined>({
     get() {
@@ -124,13 +144,22 @@ export const useViewsStore = defineStore('viewsStore', () => {
     },
   })
 
+  const activeViewUrlSlug = computed(() => {
+    return route.value.params.slugs?.[0] || ''
+  })
+
+  const activeViewReadableUrlSlug = computed(() => {
+    if (sharedView.value || !activeView.value) return ''
+
+    return getViewReadableUrlSlug({ tableTitle: activeTable.value?.title, viewOrViewTitle: activeView.value })
+  })
+
   const isActiveViewLocked = computed(() => activeView.value?.lock_type === 'locked')
+  const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
 
-  // Used for Grid View Pagination
-  // TODO: Disable by default when group by is enabled
-  const isPaginationLoading = ref(false)
-
-  const preFillFormSearchParams = ref('')
+  const isCopyViewConfigFromAnotherViewFeatureEnabled = computed(() =>
+    isFeatureEnabled(FEATURE_FLAG.COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW),
+  )
 
   const refreshViewTabTitle = createEventHook<void>()
 
@@ -141,6 +170,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }: { tableId?: string; ignoreLoading?: boolean; force?: boolean } = {}) => {
     tableId = tableId ?? tablesStore.activeTableId
 
+    let response
     if (tableId) {
       if (!force && viewsByTable.value.get(tableId)) {
         viewsByTable.value.set(
@@ -148,11 +178,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
           (viewsByTable.value.get(tableId) ?? []).sort((a, b) => a.order! - b.order!),
         )
         isViewsLoading.value = false
-        return
+        return viewsByTable.value.get(tableId)
       }
       if (!ignoreLoading) isViewsLoading.value = true
 
-      const response = (await $api.dbView.list(tableId)).list as ViewType[]
+      response = (await $api.dbView.list(tableId)).list as ViewType[]
       if (response) {
         viewsByTable.value.set(
           tableId,
@@ -162,79 +192,22 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       if (!ignoreLoading) isViewsLoading.value = false
     }
+
+    return response
   }
-
-  const onViewsTabChange = (page: ViewPageType) => {
-    router.push({
-      name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
-      params: {
-        typeOrId: route.value.params.typeOrId,
-        baseId: route.value.params.baseId,
-        viewId: route.value.params.viewId,
-        viewTitle: activeViewTitleOrId.value,
-        slugs: [page],
-      },
-    })
-  }
-
-  const changeView = async ({ viewId, tableId, baseId }: { viewId: string | null; tableId: string; baseId: string }) => {
-    const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
-    await router.push({ name: routeName, params: { viewTitle: viewId || '', viewId: tableId, baseId } })
-  }
-
-  const removeFromRecentViews = ({
-    viewId,
-    tableId,
-    baseId,
-  }: {
-    viewId?: string | undefined
-    tableId: string
-    baseId?: string
-  }) => {
-    if (baseId && !viewId && !tableId) {
-      allRecentViews.value = allRecentViews.value.filter((f) => f.baseId !== baseId)
-    } else if (baseId && tableId && !viewId) {
-      allRecentViews.value = allRecentViews.value.filter((f) => f.baseId !== baseId || f.tableID !== tableId)
-    } else if (tableId && viewId) {
-      allRecentViews.value = allRecentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
-    }
-  }
-  watch(
-    () => tablesStore.activeTableId,
-    async (newId, oldId) => {
-      if (newId === oldId) return
-      if (isPublic.value) {
-        isViewsLoading.value = false
-        return
-      }
-
-      isViewDataLoading.value = true
-
-      try {
-        if (tablesStore.activeTable) tablesStore.activeTable.isViewsLoading = true
-
-        await loadViews()
-      } catch (e) {
-        console.error(e)
-      } finally {
-        if (tablesStore.activeTable) tablesStore.activeTable.isViewsLoading = false
-      }
-    },
-    { immediate: true },
-  )
-
-  const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
 
   const navigateToView = async ({
     view,
     baseId,
     tableId,
+    tableTitle,
     hardReload,
     doNotSwitchTab,
   }: {
     view: ViewType
     baseId: string
     tableId: string
+    tableTitle?: string
     hardReload?: boolean
     doNotSwitchTab?: boolean
   }) => {
@@ -248,7 +221,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
       baseIdOrBaseId = route.value.params.baseId as string
     }
 
-    const slugs = doNotSwitchTab ? router.currentRoute.value.params.slugs : undefined
+    const slugs = doNotSwitchTab ? router.currentRoute.value.params.slugs || [] : []
+
+    if (ncIsArray(slugs)) {
+      ;(slugs as string[])[0] = getViewReadableUrlSlug({ tableTitle, viewOrViewTitle: view })
+    }
 
     if (
       router.currentRoute.value.query &&
@@ -339,28 +316,320 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
-  watch(activeView, (view) => {
-    if (!view) return
-    if (!view.base_id) return
+  const createView = async (tableId: string, form: CreateViewForm): Promise<ViewType | null> => {
+    if (!tableId) return null
 
-    const tableName = tablesStore.baseTables.get(view.base_id)?.find((t) => t.id === view.fk_model_id)?.title
+    try {
+      let data: ViewType | null = null
 
-    const baseName = bases.basesList.find((p) => p.id === view.base_id)?.title
-    allRecentViews.value = [
-      {
+      switch (form.type) {
+        case ViewTypes.GRID:
+          data = await $api.dbView.gridCreate(tableId, form)
+          break
+        case ViewTypes.GALLERY:
+          data = await $api.dbView.galleryCreate(tableId, form)
+          break
+        case ViewTypes.FORM:
+          data = await $api.dbView.formCreate(tableId, {
+            ...form,
+            ...getDefaultViewMetas(ViewTypes.FORM),
+          })
+          break
+        case ViewTypes.KANBAN:
+          data = await $api.dbView.kanbanCreate(tableId, form)
+          break
+        case ViewTypes.MAP:
+          data = await $api.dbView.mapCreate(tableId, form)
+          break
+        case ViewTypes.CALENDAR:
+          data = await $api.dbView.calendarCreate(tableId, {
+            ...form,
+            calendar_range: form.calendar_range.map((range) => ({
+              fk_from_column_id: range.fk_from_column_id,
+              fk_to_column_id: range.fk_to_column_id,
+            })),
+          })
+          break
+      }
+
+      if (data) {
+        // Add the new view to the store
+        const tableViews = viewsByTable.value.get(tableId) || []
+        viewsByTable.value.set(tableId, [...tableViews, data])
+
+        // Refresh command palette
+        refreshCommandPalette()
+
+        // Telemetry event
+        $e(form.copy_from_id ? 'a:view:duplicate' : 'a:view:create', { view: data.type })
+
+        return data
+      }
+
+      return null
+    } catch (e: any) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+      throw e
+    }
+  }
+
+  const duplicateView = async (view: ViewType): Promise<ViewType | null> => {
+    if (!view?.id) return null
+
+    const views = viewsByTable.value.get(view.fk_model_id) || []
+    const uniqueTitle = generateUniqueTitle(`${view.title} copy`, views, 'title', '_', true)
+
+    const getViewSpecificProps = (sourceView: ViewType) => {
+      const baseProps = {
+        fk_grp_col_id: null,
+        fk_geo_data_col_id: null,
+        fk_cover_image_col_id: null,
+        calendar_range: [] as Array<{
+          fk_from_column_id: string
+          fk_to_column_id: string | null
+        }>,
+      }
+
+      switch (sourceView.type) {
+        case ViewTypes.GALLERY:
+          return {
+            ...baseProps,
+            fk_cover_image_col_id: (sourceView.view as GalleryType)?.fk_cover_image_col_id || null,
+          }
+        case ViewTypes.KANBAN:
+          return {
+            ...baseProps,
+            fk_cover_image_col_id: (sourceView.view as KanbanType)?.fk_cover_image_col_id || null,
+            fk_grp_col_id: (sourceView.view as KanbanType)?.fk_grp_col_id || null,
+          }
+        case ViewTypes.MAP:
+          return {
+            ...baseProps,
+            fk_geo_data_col_id: (sourceView.view as MapType)?.fk_geo_data_col_id || null,
+          }
+        case ViewTypes.CALENDAR:
+          return {
+            ...baseProps,
+            calendar_range:
+              (sourceView.view as CalendarType)?.calendar_range?.map((range) => ({
+                fk_from_column_id: range.fk_from_column_id as string,
+                fk_to_column_id: range.fk_to_column_id as string,
+              })) || [],
+          }
+        default:
+          return baseProps
+      }
+    }
+
+    const viewSpecificProps = getViewSpecificProps(view)
+
+    const duplicateForm: CreateViewForm = {
+      title: uniqueTitle,
+      type: view.type,
+      description: view.description || '',
+      copy_from_id: view.id!,
+      row_coloring_mode: view.row_coloring_mode!,
+      meta: parseProp(view.meta)?.rowColoringInfo ? { rowColoringInfo: parseProp(view.meta).rowColoringInfo } : undefined,
+      ...viewSpecificProps,
+    }
+
+    return await createView(view.fk_model_id, duplicateForm)
+  }
+
+  const deleteView = async (view: ViewType) => {
+    if (!view?.id) return
+
+    const activeViewId = activeView.value?.id
+
+    try {
+      await $api.dbView.delete(view.id)
+
+      // Remove view from the viewsByTable map
+      const tableViews = viewsByTable.value.get(view.fk_model_id) || []
+      const updatedViews = tableViews.filter((v) => v.id !== view.id)
+      viewsByTable.value.set(view.fk_model_id, updatedViews)
+
+      // Remove from recent views
+      removeFromRecentViews({
         viewId: view.id,
-        baseId: view.base_id as string,
-        tableID: view.fk_model_id,
-        isDefault: !!view.is_default,
-        viewName: view.is_default ? (tableName as string) : view.title,
-        viewType: view.type,
-        workspaceId: activeWorkspaceId.value,
-        tableName: tableName as string,
-        baseName: baseName as string,
+        tableId: view.fk_model_id,
+        baseId: view.base_id,
+      })
+
+      // Refresh command palette
+      refreshCommandPalette()
+
+      // Telemetry event
+      $e('a:view:delete', { view: view.type })
+
+      // If we deleted the active view, navigate to default or first view
+      if (activeViewId === view.id) {
+        const remainingViews = viewsByTable.value.get(view.fk_model_id) || []
+        const defaultView = remainingViews.find((v) => v.is_default) || remainingViews[0]
+
+        if (defaultView && activeTable.value) {
+          await navigateToView({
+            view: defaultView,
+            baseId: activeTable.value.base_id!,
+            tableId: view.fk_model_id,
+          })
+        } else {
+          ncNavigateTo({
+            workspaceId: activeWorkspaceId.value,
+            baseId: view.base_id,
+          })
+        }
+      }
+
+      return true
+    } catch (e: any) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
+      throw e
+    }
+  }
+
+  const updateView = async (viewId: string, updates: Partial<ViewType>): Promise<ViewType | null> => {
+    try {
+      const updatedView = await $api.dbView.update(viewId, updates)
+
+      // Find the table and update the view in the store
+      const tableId = activeView.value?.fk_model_id
+      if (tableId) {
+        const tableViews = viewsByTable.value.get(tableId) || []
+        const viewIndex = tableViews.findIndex((v) => v.id === viewId)
+
+        if (viewIndex !== -1) {
+          // Replace with the response from API
+          tableViews[viewIndex] = updatedView
+          viewsByTable.value.set(tableId, [...tableViews])
+
+          // Update recent views if title changed
+          if (updatedView.title) {
+            allRecentViews.value = allRecentViews.value.map((rv) => {
+              if (rv.viewId === viewId && rv.tableID === tableId) {
+                rv.viewName = updatedView.title
+              }
+              return rv
+            })
+          }
+
+          refreshCommandPalette()
+
+          return updatedView
+        }
+      }
+
+      return updatedView
+    } catch (e: any) {
+      console.error(e)
+      throw e
+    }
+  }
+
+  const updateViewMeta = async (
+    viewId: string,
+    viewType: ViewTypes,
+    updates: Record<string, any>,
+    args?: {
+      skipNetworkCall?: boolean
+    },
+  ): Promise<ViewType | null> => {
+    try {
+      let updatedView
+
+      if (!args?.skipNetworkCall) {
+        switch (viewType) {
+          case ViewTypes.GRID:
+            updatedView = await $api.dbView.gridUpdate(viewId, updates)
+            break
+          case ViewTypes.GALLERY:
+            updatedView = await $api.dbView.galleryUpdate(viewId, updates)
+            break
+          case ViewTypes.KANBAN:
+            updatedView = await $api.dbView.kanbanUpdate(viewId, updates)
+            break
+          case ViewTypes.MAP:
+            updatedView = await $api.dbView.mapUpdate(viewId, updates)
+            break
+          case ViewTypes.CALENDAR:
+            updatedView = await $api.dbView.calendarUpdate(viewId, updates)
+            break
+          case ViewTypes.FORM:
+            updatedView = await $api.dbView.formUpdate(viewId, updates)
+            break
+          default:
+            throw new Error(`Unsupported view type for meta update: ${viewType}`)
+        }
+      } else {
+        updatedView = {
+          ...activeView.value,
+          view: {
+            ...(activeView.value || {}).view,
+            ...updates,
+          },
+        }
+      }
+
+      // Find the table and update the view in the store
+      const tableId = activeView.value?.fk_model_id
+      if (tableId) {
+        const tableViews = viewsByTable.value.get(tableId) || []
+        const viewIndex = tableViews.findIndex((v) => v.id === viewId)
+
+        if (viewIndex !== -1) {
+          tableViews[viewIndex] = updatedView
+          viewsByTable.value.set(tableId, [...tableViews])
+        }
+      }
+
+      if (isPublic.value) {
+        sharedView.value = {
+          ...sharedView.value,
+          view: {
+            ...(sharedView.value?.view || {}),
+            ...updates,
+          },
+        }
+      }
+
+      refreshCommandPalette()
+
+      return updatedView
+    } catch (e: any) {
+      console.error(e)
+      throw e
+    }
+  }
+
+  const onViewsTabChange = (page: ViewPageType) => {
+    router.push({
+      name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
+      params: {
+        typeOrId: route.value.params.typeOrId,
+        baseId: route.value.params.baseId,
+        viewId: route.value.params.viewId,
+        viewTitle: activeViewTitleOrId.value,
+        slugs: [activeViewReadableUrlSlug.value, ...(page !== 'view' ? [page] : [])],
       },
-      ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
-    ]
-  })
+    })
+  }
+
+  const changeView = async ({ viewId, tableId, baseId }: { viewId: string | null; tableId: string; baseId: string }) => {
+    const routeName = 'index-typeOrId-baseId-index-index-viewId-viewTitle'
+    await router.push({ name: routeName, params: { viewTitle: viewId || '', viewId: tableId, baseId } })
+  }
+
+  function removeFromRecentViews({ viewId, tableId, baseId }: { viewId?: string | undefined; tableId: string; baseId?: string }) {
+    if (baseId && !viewId && !tableId) {
+      allRecentViews.value = allRecentViews.value.filter((f) => f.baseId !== baseId)
+    } else if (baseId && tableId && !viewId) {
+      allRecentViews.value = allRecentViews.value.filter((f) => f.baseId !== baseId || f.tableID !== tableId)
+    } else if (tableId && viewId) {
+      allRecentViews.value = allRecentViews.value.filter((f) => f.viewId !== viewId || f.tableID !== tableId)
+    }
+  }
 
   const updateTabTitle = () => {
     if (!activeView.value || !activeView.value.base_id) {
@@ -422,77 +691,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
     )
   }
 
-  const duplicateView = async (view: ViewType) => {
-    if (!view?.id) return
-
-    const views = viewsByTable.value.get(view.fk_model_id) || []
-
-    const uniqueTitle = generateUniqueTitle(`${view.title} copy`, views, 'title', '_', true)
-
-    const payload: {
-      title: string
-      type: ViewTypes
-      description?: string
-      copy_from_id: string | null
-      // for kanban view only
-      fk_grp_col_id: string | null
-      fk_geo_data_col_id: string | null
-
-      // for calendar view only
-      calendar_range: Array<{
-        fk_from_column_id: string
-        fk_to_column_id: string | null // for ee only
-      }>
-      fk_cover_image_col_id: string | null
-    } = {
-      title: uniqueTitle,
-      type: view.type,
-      description: view.description || '',
-      copy_from_id: view.id!,
-      fk_grp_col_id: null,
-      fk_geo_data_col_id: null,
-      fk_cover_image_col_id: null,
-      calendar_range: [],
-    }
-
-    try {
-      switch (payload.type) {
-        case _ViewTypes.GRID:
-          return await $api.dbView.gridCreate(view.fk_model_id, payload)
-
-        case _ViewTypes.GALLERY:
-          payload.fk_cover_image_col_id = (view.view as GalleryType)?.fk_cover_image_col_id || null
-
-          return await $api.dbView.galleryCreate(view.fk_model_id, payload)
-
-        case _ViewTypes.FORM:
-          return await $api.dbView.formCreate(view.fk_model_id, payload)
-
-        case _ViewTypes.KANBAN:
-          payload.fk_cover_image_col_id = (view.view as KanbanType)?.fk_cover_image_col_id || null
-          payload.fk_grp_col_id = (view.view as KanbanType)?.fk_grp_col_id || null
-
-          return await $api.dbView.kanbanCreate(view.fk_model_id, payload)
-
-        case _ViewTypes.MAP:
-          payload.fk_geo_data_col_id = (view.view as MapType)?.fk_geo_data_col_id || null
-
-          return await $api.dbView.mapCreate(view.fk_model_id, payload)
-
-        case _ViewTypes.CALENDAR:
-          payload.calendar_range =
-            (view.view as CalendarType)?.calendar_range?.map((range) => ({
-              fk_from_column_id: range.fk_from_column_id as string,
-              fk_to_column_id: range.fk_to_column_id as string,
-            })) || []
-
-          return await $api.dbView.calendarCreate(view.fk_model_id, payload)
-      }
-    } catch (e: any) {
-      message.error(e.message)
-    }
-  }
-
   const setCurrentViewExpandedFormMode = async (viewId: string, mode: 'field' | 'attachment', columnId?: string) => {
     /**
      * Update value only if it is EeUI and active view
@@ -501,13 +699,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     try {
       if (isUIAllowed('viewCreateOrEdit')) {
-        await $api.dbView.update(viewId, {
+        await updateView(viewId, {
           expanded_record_mode: mode,
           attachment_mode_column_id: columnId,
         })
       }
-
-      Object.assign(activeView.value, { expanded_record_mode: mode, attachment_mode_column_id: columnId })
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -522,7 +718,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     try {
       if (isUIAllowed('viewCreateOrEdit')) {
-        await $api.dbView.update(viewId, {
+        await updateView(viewId, {
           attachment_mode_column_id: columnId,
         })
       }
@@ -543,6 +739,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     coverImageColumnId,
     baseId,
     tableId,
+    sourceId,
   }: {
     title?: string
     type: ViewTypes | 'AI'
@@ -555,6 +752,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     coverImageColumnId?: string
     baseId: string
     tableId: string
+    sourceId?: string
   }) => {
     if (!baseId || !tableId) return
 
@@ -571,15 +769,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
       coverImageColumnId,
       'onUpdate:modelValue': closeDialog,
       'baseId': baseId,
+      'sourceId': sourceId,
       'onCreated': async (view?: ViewType) => {
         closeDialog()
 
         refreshCommandPalette()
-
-        await loadViews({
-          tableId,
-          force: true,
-        })
 
         if (view) {
           navigateToView({
@@ -601,8 +795,213 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
-  refreshViewTabTitle.on(() => {
-    updateTabTitle()
+  const isUserViewOwner = (view?: ViewType, _user: User | null = user.value) => {
+    if (!view || !_user) return false
+
+    return (
+      view?.owned_by === _user?.id ||
+      !!(!view?.owned_by && (_user?.base_roles?.[ProjectRoles.OWNER] || _user?.workspace_roles?.[WorkspaceUserRoles.OWNER]))
+    )
+  }
+
+  const getCopyViewConfigBtnAccessStatus = (view: ViewType, from: 'view-action-menu' | 'toolbar' = 'view-action-menu') => {
+    const result = {
+      isDisabled: false,
+      tooltip: '',
+      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit'),
+    }
+
+    if (view?.lock_type === LockType.Personal && !isUserViewOwner(view)) {
+      result.isDisabled = true
+      result.tooltip = t('tooltip.onlyViewOwnerCanCopyViewConfig')
+
+      if (from === 'toolbar') {
+        result.isVisible = false
+      }
+    } else if (view?.lock_type === LockType.Locked) {
+      result.isDisabled = true
+      result.tooltip = t('title.thisViewIsLockType', {
+        type: t(viewLockIcons[view?.lock_type]?.title).toLowerCase(),
+      })
+
+      if (from === 'toolbar') {
+        result.isVisible = false
+      }
+    } else if ((viewsByTable.value.get(view.fk_model_id) || []).length < 2) {
+      result.isDisabled = true
+      result.tooltip = t('tooltip.youNeedAtLeastOneExistingViewToCopyConfigurations')
+
+      if (from === 'toolbar') {
+        result.isVisible = false
+      }
+    }
+
+    return result
+  }
+
+  const onOpenCopyViewConfigFromAnotherViewModal = ({
+    defaultOptions,
+    destView = activeView.value,
+    onCopy = (_: ViewSettingOverrideOptions[]) => undefined,
+  }: {
+    defaultOptions?: ViewSettingOverrideOptions[]
+    destView?: ViewType
+    onCopy?: (selectedCopyViewConfigTypes: ViewSettingOverrideOptions[]) => void
+  } = {}) => {
+    if (!destView || !isEeUI || !isUIAllowed('viewCreateOrEdit')) return
+
+    // If destination view is locked or if personal and user is not the owner or if table has only one view then return
+    if (getCopyViewConfigBtnAccessStatus(destView).isDisabled) {
+      return
+    }
+
+    const isOpen = ref(true)
+
+    const { close } = useDialog(DlgViewCopyViewConfigFromAnotherView, {
+      'modelValue': isOpen,
+      'onUpdate:modelValue': closeDialog,
+      'destView': destView,
+      'defaultSelectedCopyViewConfigTypes': defaultOptions,
+      'onCopy': onCopy,
+    })
+
+    function closeDialog() {
+      isOpen.value = false
+      close(1000)
+    }
+  }
+
+  const copyViewConfigurationFromAnotherView = async (
+    destView: ViewType,
+    sourceViewId: string,
+    settingToOverride: ViewSettingOverrideOptions[],
+  ) => {
+    if (!sourceViewId || settingToOverride.length === 0 || !destView) {
+      return
+    }
+
+    try {
+      const res = await $api.internal.postOperation(
+        activeWorkspaceId.value!,
+        destView.base_id!,
+        {
+          operation: 'viewSettingOverride',
+        },
+        {
+          destinationViewId: destView.id!,
+          sourceViewId,
+          settingToOverride,
+        },
+      )
+
+      if (
+        destView.is_default &&
+        [ViewSettingOverrideOptions.FIELD_ORDER, ViewSettingOverrideOptions.FIELD_VISIBILITY].some((type) =>
+          settingToOverride.includes(type),
+        )
+      ) {
+        // default view col order and visibility is stored in column meta so we have to load it again
+        await getMeta(destView.fk_model_id!, true)
+      }
+
+      if (res?.view && destView.fk_model_id) {
+        const tableViews = viewsByTable.value.get(destView.fk_model_id) || []
+        const viewIndex = tableViews.findIndex((v) => v.id === destView.id)
+
+        if (viewIndex !== -1) {
+          // Replace with the response from API
+          tableViews[viewIndex] = res.view
+          viewsByTable.value.set(destView.fk_model_id, [...tableViews])
+
+          refreshCommandPalette()
+        }
+      }
+
+      // Reload view meta as well as data if the destination view is the active view
+      if (destView.id === activeView.value?.id) {
+        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.COPIED_VIEW_CONFIG, {
+          viewId: destView.id,
+          copiedOptions: settingToOverride,
+        })
+
+        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD, {
+          callback: () => {
+            // Load data after fields reload
+            forcedNextTick(() => {
+              $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+            })
+          },
+        })
+      }
+
+      message.toast(t('objects.copyViewConfig.viewConfigurationCopied'))
+
+      return true
+    } catch (e: any) {
+      console.error(e)
+      const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+      if (errorInfo.error === NcErrorType.ERR_FEATURE_NOT_SUPPORTED) {
+        message.error(errorInfo.message)
+      } else {
+        message.error(t('objects.copyViewConfig.errorOccuredWhileCopyingViewConfiguration'), undefined, {
+          copyText: errorInfo.message,
+        })
+      }
+    }
+  }
+
+  function getViewReadableUrlSlug({ tableTitle, viewOrViewTitle }: { tableTitle?: string; viewOrViewTitle: ViewType | string }) {
+    const viewTitle = ncIsObject(viewOrViewTitle) ? (viewOrViewTitle.is_default ? '' : viewOrViewTitle.title) : viewOrViewTitle
+
+    return toReadableUrlSlug([tableTitle, viewTitle])
+  }
+
+  watch(
+    () => tablesStore.activeTableId,
+    async (newId, oldId) => {
+      if (newId === oldId) return
+      if (isPublic.value) {
+        isViewsLoading.value = false
+        return
+      }
+
+      isViewDataLoading.value = true
+
+      try {
+        if (tablesStore.activeTable) tablesStore.activeTable.isViewsLoading = true
+
+        await loadViews()
+      } catch (e) {
+        console.error(e)
+      } finally {
+        if (tablesStore.activeTable) tablesStore.activeTable.isViewsLoading = false
+      }
+    },
+    { immediate: true },
+  )
+
+  watch(activeView, (view) => {
+    if (!view) return
+    if (!view.base_id) return
+
+    const tableName = tablesStore.baseTables.get(view.base_id)?.find((t) => t.id === view.fk_model_id)?.title
+
+    const baseName = bases.basesList.find((p) => p.id === view.base_id)?.title
+    allRecentViews.value = [
+      {
+        viewId: view.id,
+        baseId: view.base_id as string,
+        tableID: view.fk_model_id,
+        isDefault: !!view.is_default,
+        viewName: view.is_default ? (tableName as string) : view.title,
+        viewType: view.type,
+        workspaceId: activeWorkspaceId.value,
+        tableName: tableName as string,
+        baseName: baseName as string,
+      },
+      ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
+    ]
   })
 
   watch(
@@ -615,34 +1014,89 @@ export const useViewsStore = defineStore('viewsStore', () => {
     },
   )
 
+  /**
+   * Keeps the browser URL slug in sync with the view's readable slug.
+   * Triggers only when:
+   * - The current browser URL slug is missing, OR
+   * - The browser URL slug does not match the view's readable slug.
+   */
+  watch(
+    [activeViewReadableUrlSlug, activeViewUrlSlug],
+    ([newactiveViewReadableUrlSlug, newActiveViewUrlSlug]) => {
+      if (!newactiveViewReadableUrlSlug || newActiveViewUrlSlug === newactiveViewReadableUrlSlug) return
+
+      const slugs = (route.value.params.slugs as string[]) || []
+
+      const newSlug = [newactiveViewReadableUrlSlug]
+
+      if (slugs.length > 1) {
+        newSlug.push(...slugs.slice(1))
+      }
+
+      router.replace({
+        name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
+        params: {
+          ...route.value.params,
+          viewTitle: route.value.params.viewTitle || activeView.value?.id,
+          slugs: newSlug,
+        },
+        query: route.value.query,
+        force: true,
+      })
+    },
+    {
+      immediate: true,
+      flush: 'post',
+    },
+  )
+
+  refreshViewTabTitle.on(() => {
+    updateTabTitle()
+  })
+
   return {
+    // State
     isLockedView,
     isViewsLoading,
     isViewDataLoading,
     isPaginationLoading,
-    loadViews,
     recentViews,
     allRecentViews,
     views,
     activeView,
     openedViewsTab,
-    onViewsTabChange,
-    sharedView,
     viewsByTable,
     activeViewTitleOrId,
-    navigateToView,
-    changeView,
-    removeFromRecentViews,
     activeSorts,
     activeNestedFilters,
     isActiveViewLocked,
     preFillFormSearchParams,
+    lastOpenedViewId,
+    activeViewRowColorInfo,
+    sharedView,
+    isCopyViewConfigFromAnotherViewFeatureEnabled,
+
+    // Methods
+    createView,
+    updateView,
+    updateViewMeta,
+    deleteView,
+    loadViews,
+    onViewsTabChange,
+    navigateToView,
+    changeView,
+    removeFromRecentViews,
     refreshViewTabTitle: refreshViewTabTitle.trigger,
     updateViewCoverImageColumnId,
     duplicateView,
     setCurrentViewExpandedFormMode,
     setCurrentViewExpandedFormAttachmentColumn,
     onOpenViewCreateModal,
+    getViewReadableUrlSlug,
+    onOpenCopyViewConfigFromAnotherViewModal,
+    copyViewConfigurationFromAnotherView,
+    isUserViewOwner,
+    getCopyViewConfigBtnAccessStatus,
   }
 })
 

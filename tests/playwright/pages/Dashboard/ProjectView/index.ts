@@ -16,7 +16,9 @@ export class ProjectViewPage extends BasePage {
   readonly settings: BaseSettingsPage;
 
   // assets
-  readonly tab_allTables: Locator;
+
+  readonly sidebar_overview_btn: Locator;
+  readonly tab_overview: Locator;
   readonly tab_dataSources: Locator;
   readonly tab_accessSettings: Locator;
 
@@ -34,7 +36,11 @@ export class ProjectViewPage extends BasePage {
     this.accessSettings = new AccessSettingsPage(this);
     this.settings = new BaseSettingsPage(this);
 
-    this.tab_allTables = this.get().locator('[data-testid="proj-view-tab__all-tables"]');
+    this.sidebar_overview_btn = this.dashboard.leftSidebar
+      .get()
+      .locator('[data-testid="nc-sidebar-base-overview-btn"]');
+
+    this.tab_overview = this.get().locator('[data-testid="proj-view-tab__overview"]');
     this.tab_dataSources = this.get().locator('[data-testid="proj-view-tab__data-sources"]');
     this.tab_accessSettings = this.get().locator('[data-testid="proj-view-tab__access-settings"]');
 
@@ -48,18 +54,32 @@ export class ProjectViewPage extends BasePage {
     return this.dashboard.get().locator('.nc-base-view-tab');
   }
 
+  async openOverview() {
+    await this.dashboard.leftSidebar.verifyBaseListOpen(false);
+
+    if (await this.get().isVisible()) return;
+
+    await this.sidebar_overview_btn.click();
+
+    await this.get().waitFor({ state: 'visible' });
+  }
+
   async verifyAccess(role: string) {
+    await this.openOverview();
+
     await this.get().waitFor({ state: 'visible' });
 
     // provide time for tabs to appear
     await this.rootPage.waitForTimeout(1000);
 
-    expect(await this.tab_allTables.isVisible()).toBeTruthy();
-
     if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {
+      expect(await this.tab_overview.isVisible()).toBeTruthy();
+
       await this.tab_accessSettings.waitFor({ state: 'visible' });
       expect(await this.tab_dataSources.isVisible()).toBeTruthy();
     } else {
+      expect(await this.tab_overview.isVisible()).toBeFalsy();
+
       expect(await this.tab_dataSources.isVisible()).toBeFalsy();
     }
 

@@ -1,7 +1,8 @@
 import { isBoxHovered, renderIconButton, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
 import type { RenderRectangleProps } from '../utils/types'
-import { getI18n } from '../../../../../plugins/a.i18n'
+import { isAudio, isExcel, isPdf, isPresentation, isVideo, isWord, isZip } from '../../../../../utils/fileUtils'
+import useAttachment from '../../../../../composables/useAttachment'
 
 interface Attachment {
   mimetype?: string
@@ -111,6 +112,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       setCursor,
       isUnderLookup,
       textAlign,
+      column,
     },
   ) => {
     let attachments: Attachment[] = []
@@ -124,7 +126,10 @@ export const AttachmentCellRenderer: CellRenderer = {
       attachments = []
     }
 
-    if (readonly && !attachments.length) {
+    if (readonly && (!ncIsArray(attachments) || !attachments.length)) {
+      if (!ncIsArray(attachments)) {
+        console.warn('Attachment cell value is not an array', column.title, attachments)
+      }
       return
     }
 
@@ -192,16 +197,14 @@ export const AttachmentCellRenderer: CellRenderer = {
       const itemX = rowStartX + col * (itemSize + gap)
       const itemY = y + verticalPadding + row * (itemSize + gap)
 
-      if (isImage(item.title, item.mimetype || item.type)) {
-        const size = getAttachmentSize(rowHeight!)
-        const url = getPossibleAttachmentSrc(item, size)
+      const size = getAttachmentSize(rowHeight!)
+      const thumbnailUrls = getPossibleAttachmentSrc(item, size)
 
-        if (!url?.length) {
-          renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
-          return
-        }
+      let thumbnailLoaded = false
 
-        const img = imageLoader.loadOrGetImage(url)
+      // Try to load thumbnail if URLs are available
+      if (thumbnailUrls?.length && thumbnailUrls[0]) {
+        const img = imageLoader.loadOrGetImage(thumbnailUrls[0])
         if (img) {
           ctx.strokeStyle = '#D5D5D9'
           ctx.lineWidth = 1
@@ -220,10 +223,12 @@ export const AttachmentCellRenderer: CellRenderer = {
             },
             'contain',
           )
-        } else {
-          renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
+          thumbnailLoaded = true
         }
-      } else {
+      }
+
+      // If no thumbnail loaded, show appropriate file type icon
+      if (!thumbnailLoaded) {
         renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
       }
 
@@ -279,7 +284,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       })
     }
   },
-  async handleHover({ row, column, mousePosition, getCellPosition, value, selected, imageLoader }) {
+  async handleHover({ row, column, mousePosition, getCellPosition, value, selected, imageLoader, t }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
     if (!row || !column?.id || !mousePosition || !selected) return
@@ -292,7 +297,7 @@ export const AttachmentCellRenderer: CellRenderer = {
     } catch {
       attachments = []
     }
-    if (selected && attachments.length === 0) {
+    if (selected && (!ncIsArray(attachments) || !attachments.length)) {
       /* const buttonWidth = 84
       const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2
@@ -322,7 +327,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       if (
         tryShowTooltip({
           rect: maximizeBox,
-          text: `${getI18n().global.t('activity.viewAttachment')} '${getI18n().global.t('tooltip.shiftSpace')}'`,
+          text: `${t('activity.viewAttachment')} '${t('tooltip.shiftSpace')}'`,
           mousePosition,
         })
       ) {
@@ -332,7 +337,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       if (
         tryShowTooltip({
           rect: attachBox,
-          text: getI18n().global.t('activity.addFiles'),
+          text: t('activity.addFiles'),
           mousePosition,
         })
       ) {
@@ -443,7 +448,11 @@ export const AttachmentCellRenderer: CellRenderer = {
     } catch {
       attachments = []
     }
-    if (selected && attachments.length === 0) {
+    if (selected && (!ncIsArray(attachments) || !attachments.length)) {
+      if (!ncIsArray(attachments)) {
+        return true
+      }
+
       const buttonWidth = 84
       const buttonHeight = 24
       const buttonX = x + (width - buttonWidth) / 2

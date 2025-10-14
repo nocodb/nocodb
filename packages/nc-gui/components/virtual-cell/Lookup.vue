@@ -4,6 +4,8 @@ import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 
 const { metas, getMeta } = useMetas()
 
+const { isMobileMode } = useGlobal()
+
 const column = inject(ColumnInj, ref())
 
 const row = inject(RowInj)!
@@ -24,7 +26,7 @@ const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
@@ -39,6 +41,8 @@ const providedHeightRef = ref(1) as any
 const rowHeight = inject(RowHeightInj, ref(1) as any)
 
 provide(RowHeightInj, providedHeightRef)
+
+const dropdownInitialHeight = ref(0)
 
 const relationColumn = computed(() => {
   if (column.value?.fk_model_id) {
@@ -99,7 +103,7 @@ const arrValue = computed(() => {
     lookupColumn.value?.uidt === UITypes.Checkbox &&
     [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)
   ) {
-    const hasLink = !!(row && row.value?.row[relationColumn.value?.title])
+    const hasLink = !!row?.value?.row?.[relationColumn.value?.title]
 
     if (!cellValue.value && !hasLink) return []
 
@@ -238,8 +242,15 @@ onUnmounted(() => {
 
 watch(dropdownVisible, (val) => {
   setTimeout(() => {
-    if (val && dropdownOverlayRef.value)
-      dropdownOverlayRef.value?.querySelector<HTMLInputElement>('.lookup-search-input input')?.focus()
+    if (val && dropdownOverlayRef.value) {
+      if (!isMobileMode.value) {
+        dropdownOverlayRef.value?.querySelector<HTMLInputElement>('.lookup-search-input input')?.focus()
+      }
+
+      if (dropdownOverlayRef.value.clientHeight) {
+        dropdownInitialHeight.value = dropdownOverlayRef.value.clientHeight
+      }
+    }
   }, 200)
 })
 
@@ -287,13 +298,17 @@ const handleCloseDropdown = (e: MouseEvent) => {
 const badgedVirtualColumns = [UITypes.Rollup, UITypes.Formula]
 const isBadgedVirtualColumn = computed(() => badgedVirtualColumns.includes(lookupColumn.value?.uidt as UITypes))
 
-const isPageDesignerLookup = inject(IsPageDesignerExtensionActiveInj, false)
+const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
 const { getPossibleAttachmentSrc } = useAttachment()
 const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])?.[0] ?? '')
 </script>
 
 <template>
-  <img v-if="isPageDesignerLookup && attachmentUrl" :src="attachmentUrl" class="object-contain h-full w-full" />
+  <img
+    v-if="extensionConfig.isPageDesignerPreviewPanel && attachmentUrl"
+    :src="attachmentUrl"
+    class="object-contain h-full w-full"
+  />
   <NcDropdown
     v-else
     :disabled="disableDropdown"
@@ -426,6 +441,9 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
         ref="dropdownOverlayRef"
         class="w-[300px] max-h-[320px] flex flex-col rounded-sm lookup-dropdown outline-none"
         :class="[randomClass]"
+        :style="{
+          minHeight: dropdownInitialHeight ? `${dropdownInitialHeight}px` : undefined,
+        }"
         tabindex="0"
         @keydown.esc="dropdownVisible = false"
       >
@@ -435,10 +453,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
           </template>
         </a-input>
         <div class="flex flex-wrap gap-2 items-start overflow-y-auto px-3 py-2">
-          <div
-            v-if="search && !filteredArrValues.length"
-            class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
-          >
+          <div v-if="search && !filteredArrValues.length" class="px-2 text-gray-500 flex flex-col items-center gap-6 text-center">
             <img
               src="~assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"

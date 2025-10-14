@@ -7,16 +7,34 @@ export const HardBreak = TiptapHardBreak.extend<HardBreakOptions, { markdown: Ma
     return {
       markdown: {
         serialize(state, node, parent, index) {
-          for (let i = index + 1; i < parent.childCount; i++)
+          for (let i = index + 1; i < parent.childCount; i++) {
             if (parent.child(i).type !== node.type) {
               state.write(state?.inTable ? HTMLNode.storage.markdown.serialize.call(this, state, node, parent) : '<br>')
               return
             }
+          }
         },
         parse: {
           // handled by markdown-it
         },
       },
+    }
+  },
+  addKeyboardShortcuts() {
+    return {
+      'Shift-Enter': () => {
+        const did = this.editor.commands.setHardBreak()
+
+        // Only scroll if hard break was inserted
+        if (did) {
+          requestAnimationFrame(() => {
+            this.editor.view.dispatch(this.editor.state.tr.scrollIntoView())
+          })
+        }
+
+        return true
+      },
+      // 'Mod-Enter' is intentionally omitted
     }
   },
 })

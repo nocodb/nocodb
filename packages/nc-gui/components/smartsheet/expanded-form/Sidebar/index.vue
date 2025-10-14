@@ -6,9 +6,12 @@ const props = defineProps<{
 const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const expandedFormStore = useExpandedFormStoreOrThrow()
-const isAuditsEnabled = true
 
-const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
+
+const tab = ref<'fields' | 'comments' | 'audits'>(
+  props.showFieldsTab && (!isExpandedFormCommentMode.value || isSqlView.value) ? 'fields' : 'comments',
+)
 
 watch(tab, (newValue) => {
   if (newValue === 'audits') {
@@ -18,8 +21,8 @@ watch(tab, (newValue) => {
 </script>
 
 <template>
-  <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl overflow-hidden">
-    <NcTabs v-model:activeKey="tab" class="h-full">
+  <div class="flex flex-col bg-nc-bg-default !h-full w-full rounded-br-2xl overflow-hidden">
+    <NcTabs v-model:active-key="tab" class="h-full">
       <a-tab-pane v-if="props.showFieldsTab" key="fields" class="w-full h-full">
         <template #tab>
           <div v-e="['c:row-expand:fields']" class="flex items-center gap-2">
@@ -40,20 +43,11 @@ watch(tab, (newValue) => {
         <SmartsheetExpandedFormSidebarComments />
       </a-tab-pane>
 
-      <a-tab-pane v-if="!isSqlView" key="audits" :disabled="!isAuditsEnabled" class="w-full">
+      <a-tab-pane v-if="!isSqlView" key="audits" class="w-full">
         <template #tab>
-          <NcTooltip v-if="!isAuditsEnabled" class="tab flex-1">
-            <template #title>{{ $t('title.comingSoon') }}</template>
-
-            <div v-e="['c:row-expand:audit']" class="flex items-center gap-2 text-gray-400">
-              <GeneralIcon icon="audit" class="w-4 h-4" />
-              <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
-            </div>
-          </NcTooltip>
-
-          <div v-else v-e="['c:row-expand:audit']" class="flex items-center gap-2">
+          <div v-e="['c:row-expand:audit']" class="flex items-center gap-2">
             <GeneralIcon icon="audit" class="w-4 h-4" />
-            <span class="<lg:hidden"> {{ $t('title.audits') }} </span>
+            <span class="<lg:hidden"> {{ $t('labels.revisionHistory') }} </span>
           </div>
         </template>
         <SmartsheetExpandedFormSidebarAudits />
@@ -81,7 +75,7 @@ watch(tab, (newValue) => {
 :deep(.ant-tabs) {
   @apply !overflow-visible;
   .ant-tabs-nav {
-    @apply px-3 bg-white;
+    @apply px-3 bg-nc-bg-default;
     .ant-tabs-nav-list {
       @apply w-[99%] mx-auto gap-6;
 
@@ -98,6 +92,15 @@ watch(tab, (newValue) => {
     .ant-tabs-content {
       @apply h-full;
     }
+  }
+}
+</style>
+
+<style lang="scss">
+.ant-tabs-dropdown {
+  @apply overflow-hidden;
+  .ant-tabs-dropdown-content {
+    @apply !rounded-lg overflow-hidden border-1 border-nc-border-gray-medium;
   }
 }
 </style>

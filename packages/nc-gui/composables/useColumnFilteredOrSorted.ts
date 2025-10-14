@@ -3,6 +3,11 @@ import { type FilterType, type TableType, UITypes } from 'nocodb-sdk'
 export function useColumnFilteredOrSorted() {
   const { nestedFilters, allFilters, sorts, validFiltersFromUrlParams, meta } = useSmartsheetStoreOrThrow()
 
+  /**
+   * If true, the cell will be coloured based on the filtered or sorted state.
+   */
+  const isCellColouringEnabled = false
+
   const userColumnIds = computed(() =>
     ((meta.value as TableType)?.columns || []).filter((c) => c.uidt === UITypes.User).map((c) => c.id),
   )
@@ -12,6 +17,8 @@ export function useColumnFilteredOrSorted() {
     const extractFilterArray = (filters: FilterType[]) => {
       if (filters && filters.length > 0) {
         for (const eachFilter of filters) {
+          if (!eachFilter) continue
+
           if (eachFilter.is_group) {
             if ((eachFilter.children?.length ?? 0) > 0) {
               extractFilterArray(eachFilter.children!)
@@ -41,7 +48,11 @@ export function useColumnFilteredOrSorted() {
     return columnIds
   })
 
-  const isColumnSortedOrFiltered = (colId: string) => {
+  const isColumnSortedOrFiltered = (colId: string, isColumnHeader: boolean = false) => {
+    if (!isColumnHeader && !isCellColouringEnabled) {
+      return undefined
+    }
+
     if (filteredColumnIds.value.has(colId)) {
       return 'FILTERED'
     } else if (sortedColumnIds.value.has(colId)) {
@@ -64,7 +75,7 @@ export function useColumnFilteredOrSorted() {
       'toolbarChipBgClass': 'bg-nc-bg-green-dark group-hover:bg-green-200',
       'toolbarTextClass': 'text-green-700',
       'headerBgColor': '#27D6650A',
-      'headerBgClass': "relative !bg-[#ffffff88] after:(content-[''] absolute block inset-0 !bg-[#27D6650A])",
+      'headerBgClass': "relative !bg-[#ffffff88] after:(content-[''] absolute block inset-0 !bg-[#27D6650A] pointer-events-none)",
     },
     SORTED: {
       'cellBgColor': themeV3Colors.orange['50'],
@@ -78,7 +89,7 @@ export function useColumnFilteredOrSorted() {
       'toolbarChipBgClass': 'bg-nc-bg-orange-dark group-hover:bg-orange-200',
       'toolbarTextClass': 'text-orange-700',
       'headerBgColor': '#FA82310A',
-      'headerBgClass': "relative !bg-[#ffffff88] after:(content-[''] absolute block inset-0 !bg-[#FA82310A])",
+      'headerBgClass': "relative !bg-[#ffffff88] after:(content-[''] absolute block inset-0 !bg-[#FA82310A] pointer-events-none)",
     },
   }
 
@@ -88,5 +99,6 @@ export function useColumnFilteredOrSorted() {
     sortedColumnIds,
     isColumnSortedOrFiltered,
     userColumnIds,
+    isCellColouringEnabled,
   }
 }

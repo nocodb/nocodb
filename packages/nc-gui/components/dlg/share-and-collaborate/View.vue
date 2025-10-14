@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ViewLockType, type ViewType } from 'nocodb-sdk'
+import { ViewLockType, type ViewType, ViewTypes } from 'nocodb-sdk'
 import { useViewsStore } from '~/store/views'
 
 const { isViewToolbar } = defineProps<{
@@ -9,17 +9,19 @@ const { isViewToolbar } = defineProps<{
 const isLocked = inject(IsLockedInj, ref(false))
 
 const baseStore = useBase()
-const { base } = storeToRefs(baseStore)
+const { base, isPrivateBase } = storeToRefs(baseStore)
 const { navigateToProjectPage } = baseStore
 const { activeView } = storeToRefs(useViewsStore())
+const dashboardStore = useDashboardStore()
+const { activeDashboard } = storeToRefs(dashboardStore)
 
 let view: Ref<ViewType | undefined>
 if (isViewToolbar) {
   try {
     const store = useSmartsheetStoreOrThrow()
     view = store.view
-  } catch (e) {
-    console.error(e)
+  } catch (_e) {
+    // console.error(e)
   }
 }
 
@@ -27,6 +29,10 @@ const { formStatus, showShareModal } = storeToRefs(useShare())
 const { resetData } = useShare()
 
 const isOpeningManageAccess = ref(false)
+
+const isViewSharingRestricted = computed(() => {
+  return isPrivateBase.value && view.value?.type !== ViewTypes.FORM
+})
 
 const openManageAccess = async () => {
   isOpeningManageAccess.value = true
@@ -64,7 +70,7 @@ watch(showShareModal, (val) => {
     :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
     <div class="flex flex-col px-1">
-      <div class="flex flex-row justify-between items-center pb-1 mx-4 mt-3">
+      <div class="flex flex-col gap-2 pb-1 mx-4 mt-3">
         <div class="flex text-base font-medium">{{ $t('activity.share') }}</div>
       </div>
       <div v-if="isViewToolbar && activeView" class="share-view">
@@ -85,10 +91,13 @@ watch(showShareModal, (val) => {
             </span>
           </div>
         </div>
-        <div v-if="isLocked" class="flex items-center gap-x-2 px-4 text-nc-content-gray-muted">
+        <div v-if="isLocked || isViewSharingRestricted" class="flex items-center gap-x-2 px-4 text-nc-content-gray-muted">
+          <div v-if="isViewSharingRestricted" class="flex items-center justify-center h-4 w-4">
+            <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
+          </div>
           <component
             :is="viewLockIcons[view.lock_type].icon"
-            v-if="view?.lock_type"
+            v-if="!isViewSharingRestricted"
             class="flex-none"
             :class="{
               'w-4 h-4': view?.lock_type === ViewLockType.Locked,
@@ -98,15 +107,38 @@ watch(showShareModal, (val) => {
 
           <div class="flex-1">
             {{
-              $t('title.viewSettingsCantBeChangedWhenViewIs', {
-                type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
-              })
+              isViewSharingRestricted
+                ? $t('msg.privateBaseViewShareRestrictedMsg')
+                : $t('title.viewSettingsCantBeChangedWhenViewIs', {
+                    type: $t(viewLockIcons[activeView?.lock_type]?.title).toLowerCase(),
+                  })
             }}
           </div>
         </div>
 
         <DlgShareAndCollaborateSharePage />
       </div>
+
+      <div v-if="activeDashboard" class="share-dashboard">
+        <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
+          <LazyGeneralEmojiPicker class="nc-dashboard-icon" size="small" :emoji="activeDashboard?.meta?.icon" readonly>
+            <template #default>
+              <GeneralIcon icon="dashboards" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
+            </template>
+          </LazyGeneralEmojiPicker>
+          <div>{{ $t('activity.shareDashboard') }}</div>
+          <div
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            <span>
+              {{ activeDashboard.title }}
+            </span>
+          </div>
+        </div>
+        <DlgShareAndCollaborateShareDashboard />
+      </div>
+
       <div class="share-base">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
           <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-view-icon group-hover" />
@@ -118,6 +150,12 @@ watch(showShareModal, (val) => {
           >
             {{ base.title }}
           </div>
+        </div>
+        <div v-if="isPrivateBase" class="flex items-center gap-x-2 px-4 text-nc-content-gray-muted">
+          <div class="flex items-center justify-center h-4 w-5">
+            <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
+          </div>
+          <div class="flex-1">{{ $t('msg.privateBaseShareRestrictedMsg') }}</div>
         </div>
         <LazyDlgShareAndCollaborateShareBase />
       </div>
@@ -154,6 +192,7 @@ watch(showShareModal, (val) => {
   }
 
   .share-view,
+  .share-dashboard,
   .share-base {
     @apply !border-1 border-gray-200 mx-3 rounded-lg mt-3 px-1 py-1;
   }

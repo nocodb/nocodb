@@ -84,7 +84,7 @@ onMounted(async () => {
       wrap-class-name="nc-modal-plugin-install"
       v-bind="$attrs"
     >
-      <LazyDashboardSettingsAppStoreAppInstall
+      <DashboardSettingsAppStoreAppInstall
         v-if="pluginApp && showPluginInstallModal"
         :id="pluginApp.id"
         @close="showPluginInstallModal = false"

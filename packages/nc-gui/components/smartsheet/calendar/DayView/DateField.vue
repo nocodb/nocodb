@@ -11,7 +11,8 @@ const container = ref()
 
 const { isUIAllowed } = useRoles()
 
-const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty } = useCalendarViewStoreOrThrow()
+const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, isSyncedFromColumn } =
+  useCalendarViewStoreOrThrow()
 
 const fields = inject(FieldsInj, ref())
 
@@ -121,7 +122,10 @@ const dropEvent = (event: DragEvent) => {
       record: Row
       initialClickOffsetY: number
       initialClickOffsetX: number
-    } = JSON.parse(data)
+    } = parseProp(data)
+
+    // Not a valid record
+    if (!record?.rowMeta) return
 
     const fromCol = record.rowMeta.range?.fk_from_col
     const toCol = record.rowMeta.range?.fk_to_col
@@ -186,7 +190,7 @@ const dropEvent = (event: DragEvent) => {
 
 // TODO: Add Support for multiple ranges when multiple ranges are supported
 const newRecord = () => {
-  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length) return
+  if (!isUIAllowed('dataEdit') || !calendarRange.value?.length || isSyncedFromColumn.value) return
   const record = {
     row: {
       [calendarRange.value[0].fk_from_col!.title!]: selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ'),
@@ -246,7 +250,7 @@ const newRecord = () => {
   <div
     v-else
     ref="container"
-    class="w-full h-full cursor-pointer flex text-md font-bold text-gray-500 items-center justify-center"
+    class="w-full h-full cursor-pointer flex text-md font-bold text-nc-content-gray-muted items-center justify-center"
     @drop="dropEvent"
     @dblclick="newRecord"
   >

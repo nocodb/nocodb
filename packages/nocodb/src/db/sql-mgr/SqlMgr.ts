@@ -7,7 +7,6 @@ import importFresh from 'import-fresh';
 import inflection from 'inflection';
 import slash from 'slash';
 import { customAlphabet } from 'nanoid';
-import type MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
 import type MysqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
 import type OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
@@ -344,9 +343,7 @@ export default class SqlMgr {
    */
   public async baseGetSqlClient(
     args,
-  ): Promise<
-    MysqlClient | SqliteClient | MssqlClient | OracleClient | PGClient
-  > {
+  ): Promise<MysqlClient | SqliteClient | OracleClient | PGClient> {
     const func = this.baseGetSqlClient.name;
     log.api(`${func}:args:`, args);
 
@@ -511,9 +508,6 @@ export default class SqlMgr {
       case 'oracledb:':
         return 'oracledb';
         break;
-      case 'mssql:':
-        return 'mssql';
-        break;
       case 'sqlite3:':
         return 'sqlite3';
         break;
@@ -582,9 +576,6 @@ export default class SqlMgr {
         break;
       case 'oracledb':
         return '5432';
-        break;
-      case 'mssql':
-        return 1433;
         break;
       case 'sqlite3':
         return 0;

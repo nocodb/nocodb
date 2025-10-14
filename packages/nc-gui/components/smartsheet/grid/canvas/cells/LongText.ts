@@ -1,6 +1,5 @@
 import { isAIPromptCol } from 'nocodb-sdk'
 import { isBoxHovered, renderIconButton, renderMarkdown, renderMultiLineText, renderTagLabel } from '../utils/canvas'
-import { getI18n } from '../../../../../plugins/a.i18n'
 import { AILongTextCellRenderer } from './AILongText'
 
 export const LongTextCellRenderer: CellRenderer = {
@@ -11,7 +10,6 @@ export const LongTextCellRenderer: CellRenderer = {
     }
 
     const isRichMode = props.column?.meta?.richMode
-
     const {
       value,
       x,
@@ -122,6 +120,10 @@ export const LongTextCellRenderer: CellRenderer = {
   handleClick: async (props) => {
     const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore, isDoubleClick, selected } = props
 
+    if (isAIPromptCol(column?.columnObj)) {
+      return AILongTextCellRenderer.handleClick!(props)
+    }
+
     if (!selected && !isDoubleClick) return false
 
     const isRichMode = column.columnObj?.meta?.richMode
@@ -137,21 +139,17 @@ export const LongTextCellRenderer: CellRenderer = {
       }
     }
 
-    if (isAIPromptCol(column?.columnObj)) {
-      return AILongTextCellRenderer.handleClick!(props)
-    } else {
-      const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+    const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
 
-      if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
-        makeCellEditable(row, column)
-        return true
-      }
-
-      if (isDoubleClick && isBoxHovered({ x, y, width, height }, mousePosition)) {
-        makeCellEditable(row, column)
-      }
-      return false
+    if (isBoxHovered({ x: x + width - 28, y: y + 7, width: 18, height: 18 }, mousePosition)) {
+      makeCellEditable(row, column)
+      return true
     }
+
+    if (isDoubleClick && isBoxHovered({ x, y, width, height }, mousePosition)) {
+      makeCellEditable(row, column)
+    }
+    return false
   },
   async handleKeyDown(ctx) {
     const { e, row, column, makeCellEditable } = ctx
@@ -163,6 +161,9 @@ export const LongTextCellRenderer: CellRenderer = {
     }
 
     if (isExpandCellKey(e)) {
+      // prevent default to avoid adding space to the end of the cell
+      e.preventDefault()
+
       makeCellEditable(row, column)
       return true
     }
@@ -183,7 +184,7 @@ export const LongTextCellRenderer: CellRenderer = {
     return false
   },
   handleHover: async (props) => {
-    const { row, column, value, mousePosition, getCellPosition, cellRenderStore, setCursor, selected } = props
+    const { row, column, value, mousePosition, getCellPosition, cellRenderStore, setCursor, selected, t } = props
 
     if (!selected && !isAIPromptCol(column?.columnObj)) {
       return
@@ -221,7 +222,7 @@ export const LongTextCellRenderer: CellRenderer = {
 
       const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
       const box = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
-      tryShowTooltip({ rect: box, mousePosition, text: getI18n().global.t('tooltip.expandShiftSpace') })
+      tryShowTooltip({ rect: box, mousePosition, text: t('tooltip.expandShiftSpace') })
     }
   },
 }

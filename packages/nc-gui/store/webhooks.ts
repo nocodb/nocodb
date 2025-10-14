@@ -8,23 +8,11 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
   const { $api, $e } = useNuxtApp()
 
-  const router = useRouter()
-
-  const route = router.currentRoute
-
   const { getMeta } = useMetas()
   const { activeTable } = toRefs(useTablesStore())
 
-  const createWebhookUrl = computed(() => {
-    return navigateToWebhookRoute({
-      openCreatePage: true,
-    })
-  })
-
-  const webhookMainUrl = computed(() => {
-    return navigateToWebhookRoute({
-      openMainPage: true,
-    })
+  const hasV2Webhooks = computed(() => {
+    return hooks.value.some((hook) => hook.version === 'v2')
   })
 
   async function loadHooksList() {
@@ -68,6 +56,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     try {
       const newHook = await $api.dbTableWebhook.create(hook.fk_model_id!, {
         ...hook,
+        trigger_field: !!hook.trigger_field,
         title: generateUniqueTitle(`${hook.title} copy`, hooks.value, 'title', '_', true),
         active: hook.event === 'manual',
       } as HookReqType)
@@ -99,6 +88,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
   async function saveHooks({ hook: _hook, ogHook }: { hook: HookType; ogHook: HookType }) {
     if (!activeTable.value) throw new Error('activeTable is not defined')
+
+    _hook.trigger_field = !!_hook.trigger_field
 
     if (typeof _hook.notification === 'string') {
       _hook.notification = JSON.parse(_hook.notification)
@@ -171,64 +162,14 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     return hook
   }
 
-  function navigateToWebhookRoute({
-    hookId,
-    openCreatePage,
-    openMainPage,
-  }: {
-    hookId?: string
-    openCreatePage?: Boolean
-    openMainPage?: Boolean
-  }) {
-    const { activeView } = useViewsStore()
-    if (!activeView) throw new Error('activeView is not defined')
-
-    if (!openMainPage && !openCreatePage && !hookId) throw new Error('hook id is not defined')
-
-    return {
-      name: 'index-typeOrId-baseId-index-index-viewId-viewTitle-slugs',
-      params: {
-        typeOrId: route.value.params.typeOrId,
-        baseId: route.value.params.baseId,
-        viewId: route.value.params.viewId,
-        viewTitle: activeView.id,
-        slugs: openMainPage ? ['webhook'] : ['webhook', openCreatePage ? 'create' : hookId!],
-      },
-    }
-  }
-
-  const navigateToWebhook = async ({
-    hookId,
-    openCreatePage,
-    openMainPage,
-  }: {
-    hookId?: string
-    openCreatePage?: Boolean
-    openMainPage?: Boolean
-  }) => {
-    const { activeView } = useViewsStore()
-    if (!activeView) return
-
-    await router.push(
-      navigateToWebhookRoute({
-        hookId,
-        openCreatePage,
-        openMainPage,
-      }),
-    )
-  }
-
   return {
     hooks,
     loadHooksList,
     deleteHook,
     copyHook,
     saveHooks,
-    navigateToWebhook,
-    createWebhookUrl,
-    webhookMainUrl,
     isHooksLoading,
-    navigateToWebhookRoute,
+    hasV2Webhooks,
   }
 })
 

@@ -443,7 +443,11 @@ watch(isProjectsLoaded, () => {
 
     <template v-else>
       <Transition :name="transitionName" appear>
-        <div v-if="showProjectList" key="project-list" class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10">
+        <div
+          v-if="showProjectList"
+          key="project-list"
+          class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10 bg-nc-bg-gray-extralight"
+        >
           <div class="w-full">
             <DashboardSidebarHeaderWrapper></DashboardSidebarHeaderWrapper>
             <div class="px-2 h-11 flex items-center">
@@ -454,7 +458,7 @@ watch(isProjectsLoaded, () => {
                 v-model:is-open="isCreateProjectOpen"
                 modal
                 type="text"
-                class="nc-sidebar-create-base-btn nc-project-home-section-item !text-brand-500 !hover:(text-brand-600 bg-none) !xs:hidden w-full"
+                class="nc-sidebar-create-base-btn nc-project-home-section-item !text-nc-content-brand !hover:(text-nc-content-brand-disabled bg-none) !xs:hidden w-full"
                 data-testid="nc-sidebar-create-base-btn"
               >
               </WorkspaceCreateProjectBtn>
@@ -465,6 +469,7 @@ watch(isProjectsLoaded, () => {
             <div mode="inline" class="nc-treeview pb-0.5 flex-grow min-h-50 overflow-x-hidden">
               <div v-if="basesList?.length">
                 <Draggable
+                  v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
                   :model-value="basesList"
                   :disabled="isMobileMode || !isUIAllowed('baseReorder') || basesList?.length < 2"
                   item-key="id"
@@ -490,27 +495,27 @@ watch(isProjectsLoaded, () => {
               <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
             </div>
           </div>
+          <slot name="footer"> </slot>
         </div>
       </Transition>
-      <!-- Slide in Project Home -->
-      <Transition name="layout" mode="out-in" :duration="400" appear>
-        <template v-if="!showProjectList">
-          <div
-            v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
-            key="project-home"
-            class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
-          >
-            <ProjectWrapper :base-role="openedBase?.project_role" :base="openedBase">
-              <DashboardTreeViewProjectHome>
-                <template #footer>
-                  <slot name="footer"></slot>
-                </template>
-              </DashboardTreeViewProjectHome>
-            </ProjectWrapper>
-          </div>
-          <DashboardTreeViewProjectListSkeleton v-else />
-        </template>
-      </Transition>
+
+      <!-- Project Home -->
+      <template v-if="!showProjectList">
+        <div
+          v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
+          class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
+        >
+          <ProjectWrapper :base-role="openedBase?.project_role" :base="openedBase">
+            <DashboardTreeViewProjectHome>
+              <template #footer>
+                <slot name="footer"></slot>
+              </template>
+            </DashboardTreeViewProjectHome>
+          </ProjectWrapper>
+        </div>
+        <DashboardTreeViewProjectListSkeleton v-else />
+      </template>
+
       <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>
   </div>
@@ -568,6 +573,6 @@ watch(isProjectsLoaded, () => {
 }
 
 :deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default) {
-  @apply hover:bg-brand-50 pl-[15px];
+  @apply hover:bg-nc-bg-brand pl-[15px];
 }
 </style>

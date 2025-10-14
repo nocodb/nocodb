@@ -1,0 +1,89 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NocoDB v3",
+    "version": "3.0",
+    "description": "NocoDB API Documentation"
+  },
+  "servers": [
+    {
+      "url": "https://app.nocodb.com"
+    }
+  ],
+  "paths": {},
+  "components": {
+    "schemas": {
+      "Attachment": {
+        "title": "Attachment",
+        "type": "object",
+        "properties": {
+          "mimetype": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "xcToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "xc-token",
+        "description": "API token"
+      },
+      "bearerAuth": {
+        "name": "Authorization",
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Bearer token authentication. Use 'Authorization: Bearer <token>' header format. This is an alternative to the xc-token header."
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "BadRequest",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string",
+                  "example": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              },
+              "required": [
+                "msg"
+              ]
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "msg": "BadRequest [Error]: <ERROR MESSAGE>"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "xcToken": []
+    },
+    {
+      "bearerAuth": []
+    }
+  ]
+}

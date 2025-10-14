@@ -1,11 +1,26 @@
-import { Node } from '@tiptap/core'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
+import TiptapParagraph, { type ParagraphOptions } from '@tiptap/extension-paragraph'
 import type { MarkdownNodeSpec } from '../../types'
 
-// TODO: Extend from tiptap extension
-export const Paragraph = Node.create<any, { markdown: MarkdownNodeSpec }>({
-  name: 'paragraph',
+export const Paragraph = TiptapParagraph.extend<ParagraphOptions, { markdown: MarkdownNodeSpec }>({
+  addKeyboardShortcuts() {
+    return {
+      ...(this.parent?.() ?? {}),
+      Enter: () => {
+        const { state, view } = this.editor
 
+        // Remove all stored marks for the next typed text
+        const tr = state.tr
+        Object.values(state.schema.marks).forEach((markType) => {
+          tr.removeStoredMark(markType)
+        })
+
+        view.dispatch(tr)
+
+        return false // return false to avoid preventing the default Enter behavior
+      },
+    }
+  },
   addStorage() {
     return {
       markdown: {
@@ -16,16 +31,8 @@ export const Paragraph = Node.create<any, { markdown: MarkdownNodeSpec }>({
           // Check if it's the last block in the document
           const isLastNode = parent && parent.child(parent.childCount - 1) === node
 
-          // Handle empty paragraphs
           if (isEmpty && !isLastNode) {
-            // Add `<br>` with a newline if the next node is a block
-            const nextNode = parent.child(parent.children.indexOf(node) + 1)
-
-            if (nextNode?.isBlock && !['hardBreak', 'paragraph'].includes(nextNode.type.name)) {
-              state.write(' <br>\n\n ') // Ensure block starts correctly
-            } else {
-              state.write(' <br> ') // Inline <br>` for non-block contexts
-            }
+            state.write(' <br>\n\n ')
             return
           }
 

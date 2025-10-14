@@ -23,6 +23,7 @@ const getBannerImageSrc = computed(() => {
       v-if="bannerImageUrl"
       :srcs="getBannerImageSrc"
       class="nc-form-banner-image object-cover w-full"
+      :is-cell-preview="false"
     />
     <div v-else class="h-full flex items-stretch justify-between bg-white">
       <div class="flex -mt-1">

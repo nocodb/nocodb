@@ -1,40 +1,57 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
-import type { FormColumnType, FormType, HookType } from 'nocodb-sdk';
-import type { ColumnType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { transformDataForMailRendering } from '~/helpers/webhookHelpers';
-import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
-import { Base, FormView, Hook, Model, Source, View } from '~/models';
+import type {
+  ColumnType,
+  FormColumnType,
+  FormType,
+  HookType,
+} from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
+import {
+  getAffectedColumns,
+  transformDataForMailRendering,
+} from '~/helpers/webhookHelpers';
 import { JobTypes } from '~/interface/Jobs';
+import { MailEvent } from '~/interface/Mail';
+import { Base, FormView, Hook, Model, Source, View } from '~/models';
+import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
-import { MailEvent } from '~/interface/Mail';
 
 export const HANDLE_WEBHOOK = '__nc_handleHooks';
 
 @Injectable()
 export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
-  private logger = new Logger(HookHandlerService.name);
-  private unsubscribe: () => void;
+  protected logger = new Logger(HookHandlerService.name);
+  protected unsubscribe: () => void;
 
   constructor(
-    @Inject('IEventEmitter') private readonly eventEmitter: IEventEmitter,
-    @Inject('JobsService') private readonly jobsService: IJobsService,
-    private readonly mailService: MailService,
+    @Inject('IEventEmitter') protected readonly eventEmitter: IEventEmitter,
+    @Inject('JobsService') protected readonly jobsService: IJobsService,
+    protected readonly mailService: MailService,
+  ) {}
+
+  public async handleViewHooks(
+    _context: NcContext,
+    _param: { hookName; prevData; newData; user; viewId; modelId },
   ) {}
 
   public async handleHooks(
     context: NcContext,
-    { hookName, prevData, newData, user, viewId, modelId },
+    param: { hookName; prevData; newData; user; viewId; modelId },
   ): Promise<void> {
+    const { hookName, prevData, newData, user, viewId, modelId } = param;
+    const [event, operation] = hookName.split('.');
+
     const view = await View.get(context, viewId);
     const model = await Model.get(context, modelId);
 
     // handle form view data submission
     if (
+      // [DEPRECATED]: v2 support for bulkInsert
       (hookName === 'after.insert' || hookName === 'after.bulkInsert') &&
+      view &&
       view.type === ViewTypes.FORM
     ) {
       try {
@@ -125,11 +142,16 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
       }
     }
 
-    const [event, operation] = hookName.split('.');
     const hooks = await Hook.list(context, {
       fk_model_id: modelId,
       event: event as HookType['event'],
-      operation: operation as HookType['operation'],
+      operation: operation as HookType['operation'][0],
+      affectedColumns: await getAffectedColumns(context, {
+        hookName,
+        newData,
+        prevData,
+        model,
+      }),
     });
     for (const hook of hooks) {
       if (hook.active) {
@@ -142,6 +164,8 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
             prevData,
             newData,
             user,
+            hookName,
+            ncSiteUrl: context.nc_site_url,
           });
         } catch (e) {
           this.logger.error({
@@ -156,8 +180,15 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
 
   onModuleInit(): any {
     this.unsubscribe = this.eventEmitter.on(HANDLE_WEBHOOK, async (arg) => {
-      const { context, ...rest } = arg;
-      return this.handleHooks(context, rest);
+      try {
+        const { context, ...rest } = arg;
+        return this.handleHooks(context, rest);
+      } catch (e) {
+        this.logger.error({
+          error: e,
+          details: 'Error while handle webook on HookHandlerService',
+        });
+      }
     });
   }
 

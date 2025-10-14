@@ -2,18 +2,21 @@ import {
   isLinksOrLTAR,
   isLookup,
   isRollup,
-  NcApiVersion,
   ncIsUndefined,
   UITypes,
 } from 'nocodb-sdk';
 import { ClientType } from 'nocodb-sdk';
-import { FilterVerificationError } from './error/filter-verification.error';
+import { CurrencyGeneralHandler } from './handlers/currency/currency.general.handler';
+import { CurrencyPgHandler } from './handlers/currency/currency.pg.handler';
+import { CurrencyMysqlHandler } from './handlers/currency/currency.mysql.handler';
+import { CurrencySqliteHandler } from './handlers/currency/currency.sqlite.handler';
 import type { Logger } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type CustomKnex from '../CustomKnex';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type {
+  FilterOperationResult,
   FilterOptions,
   FilterVerificationResult,
   IFieldHandler,
@@ -46,7 +49,6 @@ import { CheckboxSqliteHandler } from '~/db/field-handler/handlers/checkbox/chec
 import { LongTextGeneralHandler } from '~/db/field-handler/handlers/long-text/long-text.general.handler';
 import { SingleLineTextGeneralHandler } from '~/db/field-handler/handlers/single-line-text/single-line-text.general.handler';
 import { ComputedFieldHandler } from '~/db/field-handler/handlers/computed';
-import { DateTimeMsSQLHandler } from '~/db/field-handler/handlers/date-time/date-time.mssql.handler';
 import { DateTimeSQLiteHandler } from '~/db/field-handler/handlers/date-time/date-time.sqlite.handler';
 import { DateTimeMySQLHandler } from '~/db/field-handler/handlers/date-time/date-time.mysql.handler';
 import { DateTimePGHandler } from '~/db/field-handler/handlers/date-time/date-time.pg.handler';
@@ -68,6 +70,7 @@ import { Column } from '~/models';
 import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler';
 import { DecimalPgHandler } from '~/db/field-handler/handlers/decimal/decimal.pg.handler';
 import { EmailGeneralHandler } from '~/db/field-handler/handlers/email/email.general.handler';
+import { AttachmentGeneralHandler } from '~/db/field-handler/handlers/attachment/attachment.general.handler';
 
 const CLIENT_DEFAULT = '_default';
 
@@ -98,7 +101,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.LongText]: {
     [CLIENT_DEFAULT]: LongTextGeneralHandler,
   },
-  [UITypes.Attachment]: {},
+  [UITypes.Attachment]: {
+    [CLIENT_DEFAULT]: AttachmentGeneralHandler,
+  },
   [UITypes.Checkbox]: {
     [CLIENT_DEFAULT]: CheckboxGeneralHandler,
     [ClientType.SQLITE]: CheckboxSqliteHandler,
@@ -139,7 +144,10 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.SQLITE]: DecimalSqliteHandler,
   },
   [UITypes.Currency]: {
-    [CLIENT_DEFAULT]: DecimalGeneralHandler,
+    [CLIENT_DEFAULT]: CurrencyGeneralHandler,
+    [ClientType.PG]: CurrencyPgHandler,
+    [ClientType.MYSQL]: CurrencyMysqlHandler,
+    [ClientType.SQLITE]: CurrencySqliteHandler,
   },
   [UITypes.Percent]: {
     [CLIENT_DEFAULT]: PercentGeneralHandler,
@@ -167,7 +175,6 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.PG]: DateTimePGHandler,
     [ClientType.MYSQL]: DateTimeMySQLHandler,
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
-    [ClientType.MSSQL]: DateTimeMsSQLHandler,
   },
   [UITypes.CreatedTime]: {
     [CLIENT_DEFAULT]: ComputedFieldHandler,
@@ -268,7 +275,7 @@ export class FieldHandler implements IFieldHandler {
     filter: Filter,
     column?: Column,
     options: FilterOptions = {},
-  ): Promise<(qb: Knex.QueryBuilder) => void> {
+  ) {
     const knex = options.knex ?? this.info.knex;
     const dbClient = (knex.clientType?.() ??
       knex.client.config.client) as ClientType;
@@ -288,16 +295,13 @@ export class FieldHandler implements IFieldHandler {
     return this.applyFilters(filter.children, options);
   }
 
-  async applyFilters(
-    filters: Filter[],
-    options: FilterOptions = {},
-  ): Promise<(qb: Knex.QueryBuilder) => void> {
+  async applyFilters(filters: Filter[], options: FilterOptions = {}) {
     const model = options.baseModel?.model ?? this.info.baseModel.model;
     if (!model.columns) {
       await model.getColumns(options.context ?? this.info.context);
     }
     const qbHandlers: {
-      handler: (qb: Knex.QueryBuilder) => void;
+      handler: FilterOperationResult;
       index: number;
       logicalOps?: string;
     }[] = [];
@@ -326,10 +330,17 @@ export class FieldHandler implements IFieldHandler {
         });
       }
     }
-    return (qb: Knex.QueryBuilder) => {
-      for (const handler of qbHandlers.sort((a, b) => a.index - b.index)) {
-        qb[getLogicalOpMethod(handler.logicalOps)](qb);
-      }
+    return {
+      clause: (qb: Knex.QueryBuilder) => {
+        for (const handler of qbHandlers.sort((a, b) => a.index - b.index)) {
+          qb[getLogicalOpMethod(handler.logicalOps)](handler.handler.clause);
+        }
+      },
+      rootApply: (qb: Knex.QueryBuilder) => {
+        for (const handler of qbHandlers.sort((a, b) => a.index - b.index)) {
+          handler.handler.rootApply?.(qb);
+        }
+      },
     };
   }
 
@@ -411,11 +422,9 @@ export class FieldHandler implements IFieldHandler {
   async verifyFilters(filters: Filter[], options: FilterOptions = {}) {
     const verificationResult = await this.verifyFiltersSafe(filters, options);
     if (!verificationResult.isValid) {
-      if (this.info.context.api_version === NcApiVersion.V3) {
-        NcError.invalidFilterV3(verificationResult.errors.join(', '));
-      } else {
-        throw new FilterVerificationError(verificationResult.errors!);
-      }
+      NcError.get(this.info.context).filterVerificationFailed(
+        verificationResult.errors,
+      );
     }
     return true;
   }
@@ -447,6 +456,7 @@ export class FieldHandler implements IFieldHandler {
   async parseUserInput(params: {
     value: any;
     row: any;
+    oldData?: any;
     column: Column;
     options?: {
       context?: NcContext;

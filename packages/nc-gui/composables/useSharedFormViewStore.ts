@@ -10,7 +10,7 @@ import type {
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { useTitle } from '@vueuse/core'
 import type { RuleObject } from 'ant-design-vue/es/form'
@@ -64,6 +64,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { basesUser } = storeToRefs(basesStore)
 
+  const { isAllowed } = usePermissions()
+
   const { t } = useI18n()
 
   const route = useRoute()
@@ -77,6 +79,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
   const allViewFilters = ref<Record<string, FilterType[]>>({})
+
+  const isAddingEmptyRowPermitted = computed(() =>
+    meta.value?.id
+      ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD, { isFormView: true })
+      : true,
+  )
 
   const isValidRedirectUrl = computed(
     () => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim(),
@@ -122,7 +130,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       columns.value?.filter((col) => {
         const isVisible = col.show
 
-        return isVisible && supportedFields(col)
+        const isAllowedToEdit = col?.permissions?.isAllowedToEdit ?? true
+
+        return isVisible && supportedFields(col) && isAllowedToEdit
       }) || [],
   )
 
@@ -154,6 +164,30 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       meta.value = viewMeta.model
 
       loadAllviewFilters(Array.isArray(viewMeta?.filter?.children) ? viewMeta?.filter?.children : [])
+
+      const _sharedViewMeta = (viewMeta as any).meta
+      sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
+
+      await setMeta(viewMeta.model)
+
+      // if base is not defined then set it with an object containing source
+      if (!base.value?.sources)
+        baseStore.setProject({
+          sources: [
+            {
+              id: viewMeta.source_id,
+              type: viewMeta.client,
+            },
+          ],
+        })
+
+      const relatedMetas = { ...viewMeta.relatedMetas }
+
+      Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
+
+      if (viewMeta.users) {
+        basesUser.value.set(viewMeta.base_id, viewMeta.users)
+      }
 
       const fieldById = (viewMeta.columns || []).reduce(
         (o: Record<string, any>, f: Record<string, any>) => ({
@@ -195,37 +229,20 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
           return {
             ...c,
+            readonly: !isAddingEmptyRowPermitted.value ? true : c?.readonly ?? false,
+            read_only: !isAddingEmptyRowPermitted.value ? true : c?.read_only ?? false,
             order: fieldById[c.id].order || c.order,
             visible: true,
             meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
             description: fieldById[c.id].description,
+            permissions: {
+              isAllowedToEdit: isAllowed(PermissionEntity.FIELD, c.id!, PermissionKey.RECORD_FIELD_EDIT, {
+                isFormView: true,
+              }),
+            },
           }
         })
         .sort((a: ColumnType, b: ColumnType) => (a.order ?? Infinity) - (b.order ?? Infinity))
-
-      const _sharedViewMeta = (viewMeta as any).meta
-      sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
-
-      await setMeta(viewMeta.model)
-
-      // if base is not defined then set it with an object containing source
-      if (!base.value?.sources)
-        baseStore.setProject({
-          sources: [
-            {
-              id: viewMeta.source_id,
-              type: viewMeta.client,
-            },
-          ],
-        })
-
-      const relatedMetas = { ...viewMeta.relatedMetas }
-
-      Object.keys(relatedMetas).forEach((key) => setMeta(relatedMetas[key]))
-
-      if (viewMeta.users) {
-        basesUser.value.set(viewMeta.base_id, viewMeta.users)
-      }
 
       await handlePreFillForm()
 
@@ -337,6 +354,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         col.title &&
         col.show &&
         col.visible &&
+        col.permissions?.isAllowedToEdit &&
         isRequired(col) &&
         formState.value[col.title] === undefined &&
         additionalState.value[col.title] === undefined
@@ -352,7 +370,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
 
       // handle filter out conditionally hidden field data
-      if (!col.visible && col.title) {
+      if ((!col.visible || !col.permissions?.isAllowedToEdit) && col.title) {
         delete formState.value[col.title]
         delete additionalState.value[col.title]
       }
@@ -870,6 +888,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isValidRedirectUrl,
     loadAllviewFilters,
     checkFieldVisibility,
+    isAddingEmptyRowPermitted,
   }
 }, 'shared-form-view-store')
 

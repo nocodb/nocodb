@@ -37,6 +37,7 @@ export class OrgTokensController {
       this.orgTokensEeService.apiTokenListEE,
     )({
       query: req.query,
+      req: req,
       user: req['user'],
     });
   }

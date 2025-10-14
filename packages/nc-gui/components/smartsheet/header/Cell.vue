@@ -1,13 +1,22 @@
 <script setup lang="ts">
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, UITypesName, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  UITypes,
+  UITypesName,
+  partialUpdateAllowedTypes,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
 
 interface Props {
   column: ColumnType
   required?: boolean | number
   hideMenu?: boolean
   hideIcon?: boolean
+  hideIconTooltip?: boolean
   isHiddenCol?: boolean
+  showLockIcon?: boolean
 }
 
 const props = defineProps<Props>()
@@ -36,11 +45,19 @@ const column = toRef(props, 'column')
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
 
+const { isAllowed } = usePermissions()
+
 provide(ColumnInj, column)
 
 const editColumnDropdown = ref(false)
 
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+
+const isAllowedToEditField = computed(() => {
+  if (!props.showLockIcon || !column.value?.id) return true
+
+  return isAllowed(PermissionEntity.FIELD, column.value.id, PermissionKey.RECORD_FIELD_EDIT)
+})
 
 const isSqlView = computed(() => (meta.value as TableType)?.type === 'view')
 
@@ -162,7 +179,9 @@ const onClick = (e: Event) => {
           v-if="isGrid"
           class="flex items-center"
           placement="bottom"
-          :disabled="isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false"
+          :disabled="
+            hideIconTooltip || (isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false)
+          "
         >
           <template #title> {{ columnTypeName }} </template>
           <SmartsheetHeaderCellIcon
@@ -204,6 +223,18 @@ const onClick = (e: Event) => {
 
       <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
+      <PermissionsTooltip
+        v-if="!isAllowedToEditField"
+        :entity="PermissionEntity.FIELD"
+        :entity-id="column.id"
+        :permission="PermissionKey.RECORD_FIELD_EDIT"
+        :show-pointer-event-none="false"
+        hide-on-click
+        class="!ml-1 flex children:flex"
+      >
+        <GeneralIcon icon="ncLock" class="nc-column-lock-icon flex-none w-3.5 h-3.5 opacity-90" />
+      </PermissionsTooltip>
+
       <GeneralIcon
         v-if="isExpandedForm && !isExpandedBulkUpdateForm && !isMobileMode && isUIAllowed('fieldEdit') && !hideMenu"
         icon="arrowDown"
@@ -216,13 +247,16 @@ const onClick = (e: Event) => {
     </div>
     <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
       <template #title>
-        {{ column.description }}
+        <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
       </template>
-      <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+      <div>
+        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+      </div>
     </NcTooltip>
 
     <template v-if="!hideMenu || meta?.synced">
       <div v-if="!isExpandedForm" class="flex-1" />
+
       <div v-if="!isExpandedForm && meta?.synced && column.readonly">
         <NcTooltip class="flex items-center" placement="bottom">
           <template #title> This field is synced </template>

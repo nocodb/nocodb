@@ -1,10 +1,23 @@
 <script lang="ts" setup>
-const { isGrid, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
+defineProps<{
+  showFullScreenToggle?: boolean
+}>()
+
+const isPublic = inject(IsPublicInj, ref(false))
+
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+
+const { isUIAllowed } = useRoles()
+
+const { isSharedBase } = storeToRefs(useBase())
 
 const { isMobileMode } = useGlobal()
+
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
+
+const { isViewActionsEnabled } = useActionPane()
 
 const { isLocalMode } = useViewColumnsOrThrow()
 
@@ -40,7 +53,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
     :class="{
       'px-4': isMobileMode,
     }"
-    class="nc-table-toolbar relative px-3 flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] z-7"
+    class="nc-table-toolbar bg-nc-bg-default relative px-3 flex gap-2 items-center border-b border-nc-border-gray-medium overflow-hidden xs:(min-h-14) min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] z-7"
   >
     <template v-if="isViewsLoading">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
@@ -51,56 +64,82 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         :class="{
           'min-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
           'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
-          'gap-1': isCalendar,
+          '!gap-1': isCalendar && isViewOperationsAllowed,
+          '!gap-2': isCalendar && !isViewOperationsAllowed,
         }"
-        class="flex items-center gap-3"
+        class="flex items-center gap-3 empty:hidden"
       >
-        <LazySmartsheetToolbarMappedBy v-if="isMap" />
-        <LazySmartsheetToolbarCalendarHeader v-if="isCalendar" />
-        <LazySmartsheetToolbarCalendarToday v-if="isCalendar" />
-        <LazySmartsheetToolbarCalendarNextPrev v-if="isCalendar" />
+        <template v-if="isCalendar">
+          <LazySmartsheetToolbarCalendarHeader />
+          <LazySmartsheetToolbarCalendarToday />
+          <LazySmartsheetToolbarCalendarNextPrev />
+        </template>
 
-        <LazySmartsheetToolbarStackedBy v-if="isKanban" />
+        <template v-if="isViewOperationsAllowed">
+          <SmartsheetToolbarMappedBy v-if="isMap" />
 
-        <LazySmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
+          <SmartsheetToolbarStackedBy v-if="isKanban" />
 
-        <LazySmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
+          <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap" :show-system-fields="false" />
 
-        <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
+          <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-        <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
-        <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
+          <SmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
+
+          <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+
+          <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && (isGrid || isGallery || isKanban)" />
+
+          <SmartsheetToolbarBulkAction
+            v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute') && isViewActionsEnabled"
+          />
+        </template>
+
+        <template v-if="isCalendar">
+          <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
+          <SmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
+        </template>
       </div>
 
-      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
+      <SmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
 
       <template v-if="!isMobileMode">
-        <LazySmartsheetToolbarRowHeight v-if="isGrid" />
+        <SmartsheetToolbarRowHeight v-if="isGrid && isViewOperationsAllowed" />
 
-        <LazySmartsheetToolbarOpenedViewAction v-if="!isCalendar" />
+        <template v-if="!isCalendar">
+          <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
+          <SmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
+        </template>
+
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
         <div class="flex-1" />
       </template>
 
-      <LazySmartsheetToolbarCalendarActiveView v-if="isCalendar" />
+      <SmartsheetToolbarCalendarActiveView v-if="isCalendar" />
 
-      <LazySmartsheetToolbarSearchData
+      <SmartsheetToolbarSearchData
         v-if="isGrid || isGallery || isKanban"
         :class="{
           'shrink': !isMobileMode,
           'w-full': isMobileMode,
         }"
       />
+
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
 
-      <LazySmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
+      <SmartsheetToolbarCalendarMode v-if="isCalendar && !isTab" :tab="isTab" />
 
-      <LazySmartsheetToolbarCalendarRange v-if="isCalendar" />
+      <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed" />
 
-      <LazySmartsheetToolbarFieldsMenu v-if="isCalendar && !isMobileMode" :show-system-fields="false" />
-      <LazySmartsheetToolbarColumnFilterMenu v-if="isCalendar && !isMobileMode" />
-      <LazySmartsheetToolbarCalendarToggleSideBar v-if="isCalendar && !isMobileMode" />
+      <template v-if="isCalendar && !isMobileMode">
+        <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && isViewOperationsAllowed" />
+        <SmartsheetToolbarFieldsMenu :show-system-fields="false" />
+        <SmartsheetToolbarColumnFilterMenu v-if="isViewOperationsAllowed" />
+
+        <SmartsheetToolbarCalendarToggleSideBar />
+      </template>
+      <NcFullScreenToggleButton v-if="showFullScreenToggle" />
     </template>
   </div>
 </template>

@@ -17,7 +17,7 @@ test.describe('Grid view locked', () => {
   });
 
   test('ReadOnly lock & collaboration mode', async () => {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.grid.verifyCollaborativeMode();
 
@@ -40,7 +40,7 @@ test.describe('Grid view locked', () => {
   });
 
   test('Download CSV', async () => {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.grid.toolbar.clickFields();
     // Hide 'LastUpdate' column

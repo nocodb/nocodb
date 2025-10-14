@@ -30,9 +30,13 @@ export const dateFormats = [
   'DD MM YYYY',
   'MM DD YYYY',
   'YYYY MM DD',
-///added 2 new format#9652   
+  ///added 2 new format#9652
   'DD MMM YYYY',
-  "DD MMM YY" 
+  'DD MMM YY',
+
+  // German date notations
+  'DD.MM.YYYY',
+  'DD.MM.YY',
 ];
 
 export const isDateMonthFormat = (format: string) =>
@@ -169,9 +173,10 @@ export function constructDateFormat(column: ColumnType) {
 
 export function constructTimeFormat(column: ColumnType) {
   const columnMeta = parseProp(column?.meta);
+  const metaTimeFormat = columnMeta.time_format ?? timeFormats[0];
   return columnMeta?.is12hrFormat
-    ? 'hh:mm A'
-    : columnMeta.time_format ?? timeFormats[0];
+    ? metaTimeFormat.replace('HH', 'hh') + ' A' // if 12h, replace HH and add AM/PM at the end
+    : metaTimeFormat;
 }
 
 export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
@@ -254,3 +259,42 @@ export function workerWithTimezone(isEeUI: boolean, timezone?: string) {
     },
   };
 }
+
+export const getDateTimeValue = (
+  modelValue: string | null,
+  col: ColumnType,
+  isXcdbBase?: boolean
+) => {
+  if (!modelValue || !dayjs(modelValue).isValid()) {
+    return '';
+  }
+
+  const dateFormat = parseProp(col?.meta)?.date_format ?? dateFormats[0];
+  const timeFormat = parseProp(col?.meta)?.time_format ?? timeFormats[0];
+  const dateTimeFormat = `${dateFormat} ${timeFormat}`;
+
+  if (!isXcdbBase) {
+    return dayjs(
+      /^\d+$/.test(modelValue) ? +modelValue : modelValue,
+      dateTimeFormat
+    ).format(dateTimeFormat);
+  }
+
+  return dayjs(modelValue).utc().local().format(dateTimeFormat);
+};
+
+export const getDateValue = (
+  modelValue: string | null | number,
+  col: ColumnType,
+  isSystemCol?: boolean
+) => {
+  const dateFormat = !isSystemCol
+    ? parseProp(col.meta)?.date_format ?? 'YYYY-MM-DD'
+    : 'YYYY-MM-DD HH:mm:ss';
+  if (!modelValue || !dayjs(modelValue).isValid()) {
+    return '';
+  }
+  return dayjs(
+    /^\d+$/.test(String(modelValue)) ? +modelValue : modelValue
+  ).format(dateFormat);
+};

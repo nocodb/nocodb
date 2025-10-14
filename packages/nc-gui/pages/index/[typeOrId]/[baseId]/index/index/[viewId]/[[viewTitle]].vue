@@ -18,7 +18,7 @@ watch(
     until(tables)
       .toMatch((tables) => tables.length > 0)
       .then(() => {
-        getMeta(viewId as string)
+        getMeta(viewId as string, undefined, undefined, undefined, undefined, true)
       })
   },
   { immediate: true },
@@ -27,6 +27,6 @@ watch(
 
 <template>
   <div class="w-full h-full relative">
-    <LazyTabsSmartsheet :active-tab="activeTab" />
+    <TabsSmartsheet :active-tab="activeTab" />
   </div>
 </template>

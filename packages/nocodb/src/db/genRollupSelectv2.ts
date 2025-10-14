@@ -1,4 +1,5 @@
 import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import { CircularRefContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { Knex } from 'knex';
 import type {
@@ -10,35 +11,63 @@ import type {
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
 import { RelationManager } from '~/db/relation-manager';
-import { Model } from '~/models';
+import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
+import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 
-export default async function ({
+export default async function genRollupSelectv2({
   baseModelSqlv2,
   knex,
   alias,
   columnOptions,
+  parentColumns,
+  nestedLevel = 0,
 }: {
   baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
   alias?: string;
   columnOptions: RollupColumn | LinksColumn;
+  parentColumns?: CircularRefContext;
+  nestedLevel?: number;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
   const context = baseModelSqlv2.context;
-
-  const relationColumn = await columnOptions.getRelationColumn(context);
+  parentColumns = parentColumns ?? CircularRefContext.make();
+  const column = await Column.get(context, {
+    colId: columnOptions.fk_column_id,
+  });
+  if (column) {
+    const model = await Model.getByAliasOrId(context, {
+      base_id: context.base_id,
+      aliasOrId: column.fk_model_id,
+    });
+    parentColumns = parentColumns.cloneAndAdd({
+      id: column.id,
+      title: column.title,
+      table: model?.title,
+    });
+  }
+  let relationColumn: Column;
+  if (!columnOptions.getRelationColumn) {
+    relationColumn = await Column.get(context, {
+      colId: columnOptions.fk_relation_column_id,
+    });
+  } else {
+    relationColumn = await columnOptions.getRelationColumn(context);
+  }
   const relationColumnOption: LinkToAnotherRecordColumn =
     (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
-
   const { parentContext, childContext, mmContext, refContext } =
     await relationColumnOption.getParentChildContext(context);
 
-  const rollupColumn = await columnOptions.getRollupColumn(refContext);
+  const rollupColumn = columnOptions.getRollupColumn
+    ? await columnOptions.getRollupColumn(refContext)
+    : await Column.get(context, { colId: columnOptions.fk_rollup_column_id });
   const childCol = await relationColumnOption.getChildColumn(childContext);
   const childModel = await childCol?.getModel(childContext);
   const parentCol = await relationColumnOption.getParentColumn(parentContext);
   const parentModel = await parentCol?.getModel(parentContext);
-  const refTableAlias = `__nc_rollup`;
+  const refTableAlias =
+    `__nc_rollup` + (nestedLevel > 0 ? `_${nestedLevel}` : ``);
 
   const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
     model: parentModel,
@@ -48,6 +77,11 @@ export default async function ({
     model: childModel,
     dbDriver: knex,
   });
+
+  const refBaseModel =
+    rollupColumn.fk_model_id === childModel.id
+      ? childBaseModel
+      : parentBaseModel;
 
   const applyFunction = async (qb: any) => {
     let selectColumnName = knex.raw('??.??', [
@@ -79,9 +113,27 @@ export default async function ({
         validateFormula: false,
         parsedTree: formulOption.getParsedTree(),
         baseUsers: undefined,
+        parentColumns,
       });
 
       selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
+    } else if ([UITypes.Rollup].includes(rollupColumn.uidt)) {
+      const knex = refBaseModel.dbDriver;
+
+      // Rollup-of-rollup: compute inner rollup correlated to the current level
+      const inner = await genRollupSelectv2({
+        baseModelSqlv2: refBaseModel,
+        knex,
+        alias: refTableAlias,
+        columnOptions: await rollupColumn.getColOptions<RollupColumn>(
+          refContext,
+        ),
+        nestedLevel: nestedLevel + 1,
+        parentColumns,
+      });
+
+      // Use the inner builder directly as a subquery
+      selectColumnName = knex.raw('(?)', [inner.builder]);
     } else if (
       [
         UITypes.CreatedTime,
@@ -171,6 +223,17 @@ export default async function ({
       );
       await applyFunction(queryBuilder);
 
+      if (column) {
+        await extractLinkRelFiltersAndApply({
+          qb: queryBuilder,
+          column,
+          alias: refTableAlias,
+          table: childBaseModel.model,
+          baseModel: childBaseModel,
+          context: childBaseModel.context,
+        });
+      }
+
       return {
         builder: queryBuilder,
       };
@@ -191,6 +254,15 @@ export default async function ({
         '=',
         knex.ref(`${refTableAlias}.${childCol.column_name}`),
       );
+
+      await extractLinkRelFiltersAndApply({
+        qb,
+        column,
+        alias: refTableAlias,
+        table: childBaseModel.model,
+        baseModel: childBaseModel,
+        context: childBaseModel.context,
+      });
 
       await applyFunction(qb);
       return {
@@ -243,6 +315,15 @@ export default async function ({
             }`,
           ),
         );
+
+      await extractLinkRelFiltersAndApply({
+        qb: qb,
+        column,
+        alias: refTableAlias,
+        table: parentBaseModel.model,
+        baseModel: parentBaseModel,
+        context: parentBaseModel.context,
+      });
 
       await applyFunction(qb);
 

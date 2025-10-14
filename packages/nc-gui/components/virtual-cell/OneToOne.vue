@@ -21,7 +21,7 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
-const clientMousePosition = inject(ClientMousePositionInj)
+const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
@@ -47,7 +47,7 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, re
 await loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
 })
 
 const addIcon = computed(() => (cellValue?.value ? 'maximize' : 'plus'))

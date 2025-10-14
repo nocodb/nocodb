@@ -31,9 +31,9 @@ export default {
           <div
             v-for="item of props.items"
             :key="item.value"
-            class="flex items-center justify-between px-2 py-1 rounded-md transition-colors hover:bg-gray-100 cursor-pointer"
+            class="flex items-center justify-between px-2 py-1 rounded-md transition-colors hover:bg-nc-bg-gray-light cursor-pointer"
             :class="{
-              'bg-gray-100': modelValue === item.value,
+              'bg-nc-bg-gray-light': modelValue === item.value,
             }"
             @click="modelValue = item.value"
           >

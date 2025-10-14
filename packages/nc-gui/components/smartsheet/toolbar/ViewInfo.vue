@@ -183,6 +183,7 @@ const viewModeInfo = computed(() => {
             placement="bottom"
             class="flex"
             :disabled="isOpen"
+            :mouse-enter-delay="0.5"
             :class="{
               'max-w-full': isMobileMode,
               'max-w-2/5': !isSharedBase && !isMobileMode && activeView?.is_default,

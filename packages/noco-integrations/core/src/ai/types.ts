@@ -13,6 +13,8 @@ export abstract class AiIntegration<T extends { models: string[] } = any> extend
       label: this.getModelAlias(model),
     }));
   }
+
+  abstract generateText(args: AiGenerateTextArgs): Promise<AiGenerateTextResponse>;
 }
 
 export interface AiUsage {
@@ -31,4 +33,16 @@ export interface AiGenerateObjectArgs {
 interface AiGenerateObjectResponse<T> {
   usage: AiUsage;
   data: T;
+}
+
+export interface AiGenerateTextArgs {
+  system?: string
+  prompt?: string;
+  messages?: CoreMessage[];
+  customModel?: string;
+}
+
+interface AiGenerateTextResponse {
+  usage: AiUsage;
+  data: string;
 }

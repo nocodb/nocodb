@@ -2,6 +2,10 @@ import type { ComputedRef, Ref } from 'vue'
 import {
   type Api,
   type ColumnType,
+  type CommentPayload,
+  type DataPayload,
+  EventType,
+  type FilterType,
   type LinkToAnotherRecordType,
   NcApiVersion,
   type PaginatedType,
@@ -28,6 +32,7 @@ const formatData = (
     offset?: number
   },
   path: Array<number> = [],
+  evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo,
 ) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
@@ -40,6 +45,7 @@ const formatData = (
           rowIndex,
           isLastRow: rowIndex === pageInfo.totalRows! - 1,
           path,
+          ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
         },
       }
     })
@@ -53,6 +59,7 @@ const formatData = (
     rowMeta: {
       rowIndex: offset + index,
       path,
+      ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
     },
   }))
 }
@@ -64,6 +71,7 @@ export function useInfiniteData(args: {
     syncVisibleData?: () => void
     getCount?: (path: Array<number>) => void
     getWhereFilter?: (path: Array<number>, ignoreWhereFilter?: boolean) => Promise<string>
+    getWhereFilterArr?: (path: Array<number>) => Promise<FilterType[]>
     reloadAggregate?: (params: {
       fields?: Array<{ title: string; aggregation?: string | undefined }>
       path: Array<number>
@@ -78,7 +86,7 @@ export function useInfiniteData(args: {
   const NOCO = 'noco'
   const { meta, viewMeta, callbacks, where, disableSmartsheet, isPublic, groupByColumns = ref(null) } = args
 
-  const { $api } = useNuxtApp()
+  const { $api, $ncSocket } = useNuxtApp()
 
   const { t } = useI18n()
 
@@ -100,22 +108,52 @@ export function useInfiniteData(args: {
 
   const { user } = useGlobal()
 
-  const { fetchSharedViewData, fetchCount } = useSharedView()
+  const { fetchSharedViewData, fetchCount, fetchBulkListData } = useSharedView()
 
-  const { nestedFilters, allFilters, sorts, isExternalSource, isAlreadyShownUpgradeModal, validFiltersFromUrlParams } =
-    disableSmartsheet
-      ? {
-          nestedFilters: ref([]),
-          allFilters: ref([]),
-          sorts: ref([]),
-          isExternalSource: computed(() => false),
-          isAlreadyShownUpgradeModal: ref(false),
-        }
-      : useSmartsheetStoreOrThrow()
+  const {
+    nestedFilters,
+    allFilters,
+    sorts,
+    isExternalSource,
+    isAlreadyShownUpgradeModal,
+    validFiltersFromUrlParams,
+    totalRowsWithSearchQuery,
+    totalRowsWithoutSearchQuery,
+    fetchTotalRowsWithSearchQuery,
+    whereQueryFromUrl,
+    eventBus,
+  } = disableSmartsheet
+    ? {
+        nestedFilters: ref([]),
+        allFilters: ref([]),
+        sorts: ref([]),
+        isExternalSource: computed(() => false),
+        isAlreadyShownUpgradeModal: ref(false),
+        totalRowsWithSearchQuery: ref(0),
+        totalRowsWithoutSearchQuery: ref(0),
+        fetchTotalRowsWithSearchQuery: computed(() => false),
+        whereQueryFromUrl: computed(() => ''),
+        eventBus: useEventBus<SmartsheetStoreEvents>(EventBusEnum.SmartsheetStore),
+      }
+    : useSmartsheetStoreOrThrow()
+
+  const { isGroupBy } = disableSmartsheet ? { isGroupBy: computed(() => false) } : useViewGroupByOrThrow()
 
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
+  const { getEvaluatedRowMetaRowColorInfo } = disableSmartsheet
+    ? {
+        getEvaluatedRowMetaRowColorInfo: (_row: any) => ({}),
+      }
+    : useViewRowColorRender()
+
   const selectedAllRecords = ref(false)
+
+  /**
+   * will be used to skip the pk records while bulk deleting all records
+   * key: rowIndex, value: pk
+   */
+  const selectedAllRecordsSkipPks = ref<Record<string, string>>({})
 
   const totalRows = ref(0)
 
@@ -237,7 +275,7 @@ export function useInfiniteData(args: {
 
   const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
 
-  const fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
+  const _fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
     const dataCache = getDataCache(path)
 
     if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
@@ -251,6 +289,7 @@ export function useInfiniteData(args: {
         dataCache.chunkStates.value[chunkId] = undefined
         return
       }
+
       newItems.forEach((item) => {
         dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
       })
@@ -259,6 +298,217 @@ export function useInfiniteData(args: {
       console.error('Error fetching chunk:', error)
       dataCache.chunkStates.value[chunkId] = undefined
     }
+  }
+
+  let pendingChunkRequests: Array<{
+    chunkId: number
+    path: Array<number>
+    forceFetch: boolean
+    resolve: (value: any) => void
+    reject: (error: any) => void
+  }> = []
+  let batchTimer: NodeJS.Timeout | null = null
+  const BATCH_SIZE = 50
+  const BATCH_TIMEOUT = 200
+
+  async function loadBulkAggCommentsCount(allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }>) {
+    if (!isUIAllowed('commentCount') || isPublic?.value) return
+    if (allFormattedRows.length === 0) return
+
+    const allIds: string[] = []
+    const rowIdToRowMap = new Map<string, Row>()
+
+    for (const { rows } of allFormattedRows) {
+      for (const row of rows) {
+        const id = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+        if (id) {
+          allIds.push(id)
+          rowIdToRowMap.set(id, row)
+        }
+      }
+    }
+
+    if (allIds.length === 0) return
+
+    try {
+      const aggCommentCount = await $api.utils.commentCount({
+        ids: allIds,
+        fk_model_id: meta.value!.id as string,
+      })
+
+      aggCommentCount?.forEach((commentData: Record<string, any>) => {
+        const row = rowIdToRowMap.get(commentData.row_id)
+        if (row) {
+          row.rowMeta.commentCount = +commentData.count || 0
+        }
+      })
+    } catch (e) {
+      console.error('Failed to load bulk aggregate comment count:', e)
+    }
+  }
+
+  async function fetchChunkIndividually(chunkId: number, path: Array<number>) {
+    const dataCache = getDataCache(path)
+    dataCache.chunkStates.value[chunkId] = 'loading'
+    const offset = chunkId * CHUNK_SIZE
+
+    try {
+      const newItems = await loadData({ offset, limit: CHUNK_SIZE }, false, path)
+      if (!newItems) {
+        dataCache.chunkStates.value[chunkId] = undefined
+        return
+      }
+
+      newItems.forEach((item) => {
+        dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+      })
+      dataCache.chunkStates.value[chunkId] = 'loaded'
+    } catch (error) {
+      console.error('Error fetching chunk:', error)
+      dataCache.chunkStates.value[chunkId] = undefined
+      throw error
+    }
+  }
+
+  async function processBatch() {
+    if (pendingChunkRequests.length === 0) return
+
+    if (batchTimer) {
+      clearTimeout(batchTimer)
+      batchTimer = null
+    }
+
+    const batch = [...pendingChunkRequests]
+    pendingChunkRequests = []
+
+    try {
+      const bulkRequests = []
+
+      for (let i = 0; i < batch.length; i++) {
+        const req = batch[i]
+        const where = await callbacks?.getWhereFilter?.(req.path)
+        const filterArrJson = (await callbacks?.getWhereFilterArr?.(req.path)) ?? []
+        bulkRequests.push({
+          where,
+          offset: req.chunkId * CHUNK_SIZE,
+          limit: CHUNK_SIZE,
+          alias: `chunk_${req.chunkId}_${req.path.join('_')}`,
+          ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
+          ...(isUIAllowed('filterSync')
+            ? { filterArrJson: stringifyFilterOrSortArr(filterArrJson) }
+            : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value ?? []), ...filterArrJson]) }),
+        })
+      }
+
+      const bulkResponse = !isPublic?.value
+        ? await $api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id!, { viewId: viewMeta.value?.id }, bulkRequests, {})
+        : await fetchBulkListData({}, bulkRequests)
+
+      const allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }> = []
+      const processedChunks: Array<{ request: any; rows: Array<Row>; dataCache: any }> = []
+
+      for (const request of batch) {
+        try {
+          const alias = `chunk_${request.chunkId}_${request.path.join('_')}`
+          const chunkData = bulkResponse[alias]
+          const dataCache = getDataCache(request.path)
+
+          if (chunkData && chunkData.list) {
+            const rows = formatData(chunkData.list, chunkData.pageInfo, undefined, request.path, getEvaluatedRowMetaRowColorInfo)
+            rows.forEach((item: any) => {
+              dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+            })
+            dataCache.chunkStates.value[request.chunkId] = 'loaded'
+
+            allFormattedRows.push({ rows, path: request.path })
+            processedChunks.push({ request, rows, dataCache })
+          } else {
+            dataCache.chunkStates.value[request.chunkId] = undefined
+          }
+
+          request.resolve(undefined)
+        } catch (error) {
+          console.error(`Error processing chunk ${request.chunkId}:`, error)
+          const dataCache = getDataCache(request.path)
+          dataCache.chunkStates.value[request.chunkId] = undefined
+          request.reject(error)
+        }
+      }
+
+      await loadBulkAggCommentsCount(allFormattedRows)
+
+      for (const { request, rows, dataCache } of processedChunks) {
+        try {
+          rows.forEach((item: any) => {
+            dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+          })
+
+          dataCache.chunkStates.value[request.chunkId] = 'loaded'
+          request.resolve(undefined)
+        } catch (error) {
+          console.error(`Error caching chunk ${request.chunkId}:`, error)
+          dataCache.chunkStates.value[request.chunkId] = undefined
+          request.reject(error)
+        }
+      }
+    } catch (error) {
+      console.error('Bulk chunk request failed, falling back to individual requests:', error)
+
+      const promises = batch.map((request) =>
+        fetchChunkIndividually(request.chunkId, request.path)
+          .then(() => request.resolve(undefined))
+          .catch((err) => request.reject(err)),
+      )
+
+      await Promise.allSettled(promises)
+    }
+  }
+
+  const fetchChunk = async (chunkId: number, path: Array<number> = [], forceFetch = false) => {
+    const dataCache = getDataCache(path)
+
+    if (dataCache.chunkStates.value[chunkId] && !forceFetch) return
+
+    const existingRequest = pendingChunkRequests.find((req) => req.chunkId === chunkId && req.path.join(',') === path.join(','))
+
+    if (existingRequest && !forceFetch) {
+      return new Promise<void>((resolve, reject) => {
+        const originalResolve = existingRequest.resolve
+        const originalReject = existingRequest.reject
+
+        existingRequest.resolve = (value) => {
+          originalResolve(value)
+          resolve(value)
+        }
+
+        existingRequest.reject = (error) => {
+          originalReject(error)
+          reject(error)
+        }
+      })
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      pendingChunkRequests.push({
+        chunkId,
+        path,
+        forceFetch,
+        resolve,
+        reject,
+      })
+
+      dataCache.chunkStates.value[chunkId] = 'loading'
+
+      if (pendingChunkRequests.length >= BATCH_SIZE) {
+        processBatch()
+      } else {
+        if (!batchTimer) {
+          batchTimer = setTimeout(() => {
+            processBatch()
+          }, BATCH_TIMEOUT)
+        }
+      }
+    })
   }
 
   const clearCache = (visibleStartIndex: number, visibleEndIndex: number, path: Array<number> = []) => {
@@ -352,13 +602,14 @@ export function useInfiniteData(args: {
       where?: string
     } = {},
     _shouldShowLoading?: boolean,
-    path?: Array<number> = [],
+    path: Array<number> = [],
   ): Promise<Row[]> {
     if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic?.value) return []
 
     const whereFilter = await callbacks?.getWhereFilter?.(path)
+    const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
 
-    if (!path.length && params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+    if (!disableSmartsheet && !path.length && params.offset && blockExternalSourceRecordVisibility(isExternalSource.value)) {
       if (!isAlreadyShownUpgradeModal.value && params.offset >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
         isAlreadyShownUpgradeModal.value = true
 
@@ -383,15 +634,18 @@ export function useInfiniteData(args: {
       const response = !isPublic?.value
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
+            ...(isUIAllowed('filterSync')
+              ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
+              : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
             includeSortAndFilterColumns: true,
             where: whereFilter,
+            include_row_color: true,
           } as any)
         : await fetchSharedViewData(
             {
               sortsArr: sorts.value,
-              filtersArr: nestedFilters.value,
+              filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
               where: whereFilter,
               offset: params.offset,
               limit: params.limit,
@@ -401,7 +655,7 @@ export function useInfiniteData(args: {
             },
           )
 
-      const data = formatData(response.list, response.pageInfo, params, path)
+      const data = formatData(response.list, response.pageInfo, params, path, getEvaluatedRowMetaRowColorInfo)
 
       loadAggCommentsCount(data, path)
 
@@ -655,7 +909,9 @@ export function useInfiniteData(args: {
     dataCache.cachedRows.value = newCachedRows
 
     dataCache.totalRows.value = Math.max(0, (dataCache.totalRows.value || 0) - invalidIndexes.length)
+    dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - invalidIndexes.length)
     callbacks?.syncVisibleData?.()
+    callbacks?.reloadAggregate?.({ path })
   }
 
   const willSortOrderChange = ({
@@ -1076,6 +1332,7 @@ export function useInfiniteData(args: {
       }
 
       dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
+      dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
       await syncCount(path)
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
@@ -1164,9 +1421,11 @@ export function useInfiniteData(args: {
               tempTotalRows: number,
               tempChunkStates: Array<'loading' | 'loaded' | undefined>,
               path: Array<number>,
+              tempActualTotalRows: number,
             ) => {
               dataCache.cachedRows.value = new Map(tempLocalCache)
               dataCache.totalRows.value = tempTotalRows
+              dataCache.actualTotalRows.value = tempActualTotalRows
               dataCache.chunkStates.value = tempChunkStates
 
               await deleteRowById(id, undefined, path)
@@ -1179,6 +1438,7 @@ export function useInfiniteData(args: {
                 }
               }
               dataCache.totalRows.value = dataCache.totalRows.value! - 1
+              dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
               callbacks?.syncVisibleData?.()
             },
             args: [
@@ -1187,6 +1447,7 @@ export function useInfiniteData(args: {
               clone(dataCache.totalRows.value),
               clone(dataCache.chunkStates.value),
               clone(path),
+              clone(dataCache.actualTotalRows.value),
             ],
           },
           redo: {
@@ -1198,9 +1459,11 @@ export function useInfiniteData(args: {
               tempChunkStates: Array<'loading' | 'loaded' | undefined>,
               rowID: string,
               path: Array<number>,
+              tempActualTotalRows: number,
             ) => {
               dataCache.cachedRows.value = new Map(tempLocalCache)
               dataCache.totalRows.value = tempTotalRows
+              dataCache.actualTotalRows.value = tempActualTotalRows
               dataCache.chunkStates.value = tempChunkStates
 
               row.row = { ...pkData, ...row.row }
@@ -1226,6 +1489,7 @@ export function useInfiniteData(args: {
               clone(dataCache.chunkStates.value),
               clone(beforeRowID),
               clone(path),
+              clone(dataCache.actualTotalRows.value),
             ],
           },
           scope: defineViewScope({ view: viewMeta.value }),
@@ -1251,6 +1515,7 @@ export function useInfiniteData(args: {
           rowIndex: insertIndex,
           new: false,
           saving: false,
+          ...getEvaluatedRowMetaRowColorInfo({ ...insertedData, ...currentRow.row }),
         },
       })
 
@@ -1314,9 +1579,11 @@ export function useInfiniteData(args: {
               previousCache: Map<number, Row>,
               tempTotalRows: number,
               path: Array<number>,
+              tempActualTotalRows: number,
             ) => {
               dataCache.cachedRows.value = new Map(previousCache)
               dataCache.totalRows.value = tempTotalRows
+              dataCache.actualTotalRows.value = tempActualTotalRows
 
               await updateRowProperty(
                 { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
@@ -1332,6 +1599,7 @@ export function useInfiniteData(args: {
               clone(new Map(dataCache.cachedRows.value)),
               clone(dataCache.totalRows.value),
               clone(path),
+              clone(dataCache.actualTotalRows.value),
             ],
           },
           redo: {
@@ -1379,6 +1647,7 @@ export function useInfiniteData(args: {
       )
 
       Object.assign(toUpdate.oldRow, updatedRowData)
+      Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(toUpdate.row))
 
       // Update the row in cachedRows
       if (toUpdate.rowMeta.rowIndex !== undefined) {
@@ -1479,23 +1748,16 @@ export function useInfiniteData(args: {
         currentUser: user.value,
       },
     )
-
     const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
     if (newRow) newRow.rowMeta.isValidationFailed = isValidationFailed
 
     // check if the column is part of group by and value changed
     if (row.rowMeta?.path?.length && groupByColumns?.value) {
-      const whereFilter = await callbacks?.getWhereFilter?.(row.rowMeta?.path, true)
+      const groupByFilter = await callbacks?.getWhereFilterArr?.(row.rowMeta?.path)
       const index = groupByColumns.value.findIndex((c) => c.column.title === property) ?? 0
 
-      const { filters: allGroupFilter } = extractFilterFromXwhere(
-        { api_version: NcApiVersion.V1 },
-        whereFilter ?? '',
-        columnsByAlias.value,
-      )
-
-      const isGroupValidationFailed = !validateRowFilters(
-        [...(allGroupFilter ?? [])],
+      row.rowMeta.isGroupChanged = !validateRowFilters(
+        [...(groupByFilter ?? [])],
         data,
         meta.value?.columns as ColumnType[],
         getBaseType(viewMeta.value?.view?.source_id),
@@ -1504,7 +1766,6 @@ export function useInfiniteData(args: {
           currentUser: user.value,
         },
       )
-      row.rowMeta.isGroupChanged = isGroupValidationFailed
       row.rowMeta.changedGroupIndex = index
     }
     const changedFields = property ? [property] : Object.keys(row.row)
@@ -1623,25 +1884,52 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     const whereFilter = await callbacks?.getWhereFilter?.(path)
+    const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
 
     try {
       const { count } = isPublic?.value
         ? await fetchCount({
-            filtersArr: nestedFilters.value,
+            filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
             where: whereFilter,
           })
         : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
             where: whereFilter,
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            ...(isUIAllowed('filterSync')
+              ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
+              : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
           })
 
-      if (!path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+      if (fetchTotalRowsWithSearchQuery.value) {
+        const { count: _count } = isPublic?.value
+          ? await fetchCount({
+              filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
+              where: whereQueryFromUrl.value as string,
+            })
+          : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
+              where: whereQueryFromUrl.value as string,
+              ...(isUIAllowed('filterSync')
+                ? {
+                    filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr),
+                  }
+                : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
+            })
+        if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
+          totalRowsWithoutSearchQuery.value = Math.max(Math.min(200, _count as number), _count as number)
+        } else {
+          totalRowsWithoutSearchQuery.value = _count as number
+        }
+      }
+
+      if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
         dataCache.totalRows.value = Math.min(200, count as number)
       } else {
         dataCache.totalRows.value = count as number
       }
 
       dataCache.actualTotalRows.value = count as number
+
+      totalRowsWithSearchQuery.value = Math.max(dataCache.totalRows.value, dataCache.actualTotalRows.value)
+
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
@@ -1720,6 +2008,384 @@ export function useInfiniteData(args: {
     return rows
   }
 
+  /**
+   * This is used to update the rowMeta color info when the row colour info is updated
+   */
+  eventBus.on((event) => {
+    if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
+      return
+    }
+
+    // If it is group by, we need to update the rowMeta color info for each row in the group
+    if (isGroupBy.value) {
+      groupDataCache.value.forEach((group) => {
+        group.cachedRows.value.forEach((row) => {
+          Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+        })
+      })
+    } else {
+      // If it is not group by, we need to update the rowMeta color info for each row in cachedRows
+      const { cachedRows } = getDataCache()
+
+      cachedRows.value.forEach((row) => {
+        Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+      })
+    }
+  })
+
+  const activeDataListener = ref<string | null>(null)
+  const activeCommentListener = ref<string | null>(null)
+
+  watch(
+    meta,
+    (newMeta, oldMeta) => {
+      if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
+        if (oldMeta?.id && oldMeta.id === newMeta.id) return
+
+        if (activeDataListener.value) {
+          $ncSocket.offMessage(activeDataListener.value)
+        }
+
+        if (activeCommentListener.value) {
+          $ncSocket.offMessage(activeCommentListener.value)
+        }
+
+        activeDataListener.value = $ncSocket.onMessage(
+          `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+          (data: DataPayload) => {
+            const { id, action, payload, before } = data
+
+            if (action === 'add') {
+              // Add the new row to the local cache (cachedRows)
+              try {
+                const dataCache = getDataCache()
+
+                // find index to insert the new row
+                if (before) {
+                  for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
+                    const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                    if (pk && `${pk}` === `${before}`) {
+                      // Insert before the found row
+                      const newRowIndex = rowIndex
+                      // Use descending order so that we first open the position then place the new record
+                      const rowsToShift = Array.from(dataCache.cachedRows.value.entries())
+                        .filter(([index]) => index >= newRowIndex)
+                        .sort((a, b) => b[0] - a[0])
+
+                      for (const [index, rowData] of rowsToShift) {
+                        rowData.rowMeta.rowIndex = index + 1
+                        dataCache.cachedRows.value.delete(index)
+                        dataCache.cachedRows.value.set(index + 1, rowData)
+                      }
+
+                      dataCache.cachedRows.value.set(newRowIndex, {
+                        row: payload,
+                        oldRow: {},
+                        rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+                      })
+
+                      dataCache.totalRows.value++
+                      dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+                      callbacks?.syncVisibleData?.()
+                      return
+                    }
+                  }
+                }
+
+                // If no order is found, append to the end
+                const newRowIndex = dataCache.totalRows.value
+                dataCache.cachedRows.value.set(newRowIndex, {
+                  row: payload,
+                  oldRow: {},
+                  rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+                })
+                dataCache.totalRows.value++
+                dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+                callbacks?.syncVisibleData?.()
+              } catch (e) {
+                console.error('Failed to add cached row on socket event', e)
+              }
+            } else if (action === 'update') {
+              // Update the row in the local cache (cachedRows)
+              try {
+                const dataCache = getDataCache()
+                let updated = false
+                for (const cachedRow of dataCache.cachedRows.value.values()) {
+                  const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                  if (pk && `${pk}` === `${id}`) {
+                    Object.assign(cachedRow.row, payload)
+                    Object.assign(cachedRow.oldRow, payload)
+                    cachedRow.rowMeta.changed = false
+                    updated = true
+                    break
+                  }
+                }
+                if (updated) {
+                  callbacks?.syncVisibleData?.()
+                }
+              } catch (e) {
+                console.error('Failed to update cached row on socket event', e)
+              }
+            } else if (action === 'delete') {
+              // Delete the row from the local cache (cachedRows)
+              try {
+                const dataCache = getDataCache()
+                for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
+                  const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                  if (pk && `${pk}` === `${id}`) {
+                    dataCache.cachedRows.value.delete(rowIndex)
+
+                    const rows = Array.from(dataCache.cachedRows.value.entries())
+                    const rowsToShift = rows.filter(([index]) => index > rowIndex)
+                    rowsToShift.sort((a, b) => a[0] - b[0])
+
+                    for (const [index, row] of rowsToShift) {
+                      const newIndex = index - 1
+                      row.rowMeta.rowIndex = newIndex
+                      dataCache.cachedRows.value.delete(index)
+                      dataCache.cachedRows.value.set(newIndex, row)
+                    }
+
+                    if (rowsToShift.length) {
+                      dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
+                    }
+
+                    dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
+                    dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+                  }
+                }
+                callbacks?.syncVisibleData?.()
+              } catch (e) {
+                console.error('Failed to delete cached row on socket event', e)
+              }
+            } else if (action === 'reorder') {
+              // Reorder/move the row in the local cache (cachedRows)
+              try {
+                const dataCache = getDataCache()
+
+                // Find the row to be moved by its primary key
+                let rowToMove: Row | null = null
+                let currentIndex: number | null = null
+
+                for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+                  const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                  if (pk && `${pk}` === `${id}`) {
+                    rowToMove = cachedRow
+                    currentIndex = index
+                    break
+                  }
+                }
+
+                if (!rowToMove || currentIndex === null) {
+                  console.warn('Row to move not found in cache:', id)
+
+                  if (before) {
+                    // Find the 'before' row in cache
+                    let beforeIndex: number | null = null
+                    for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+                      const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                      if (pk && `${pk}` === `${before}`) {
+                        beforeIndex = index
+                        break
+                      }
+                    }
+
+                    if (beforeIndex !== null) {
+                      // The new row position is before an existing cached row
+                      // We need to shift all rows from beforeIndex onwards down by 1
+                      const newCachedRows = new Map(dataCache.cachedRows.value.entries())
+
+                      // Get all rows that need to be shifted (from beforeIndex onwards)
+                      const rowsToShift = Array.from((dataCache.cachedRows.value as Map<number, Row>).entries())
+                        .filter(([index]) => index >= beforeIndex!)
+                        .sort((a, b) => b[0] - a[0])
+
+                      // Shift each row down by 1
+                      for (const [index, row] of rowsToShift) {
+                        const newIndex = index + 1
+                        row.rowMeta.rowIndex = newIndex
+                        newCachedRows.delete(index)
+                        newCachedRows.set(newIndex, row)
+                      }
+
+                      // Invalidate affected chunks
+                      if (rowsToShift.length > 0) {
+                        const minAffectedChunk = getChunkIndex(beforeIndex!)
+                        const maxAffectedChunk = getChunkIndex(rowsToShift[rowsToShift.length - 1][0] + 1)
+                        for (let i = minAffectedChunk; i <= maxAffectedChunk; i++) {
+                          dataCache.chunkStates.value[i] = undefined
+                        }
+                      }
+
+                      // Apply the changes
+                      dataCache.cachedRows.value = newCachedRows
+
+                      callbacks?.syncVisibleData?.()
+                    } else {
+                      // The 'before' row is not in cache, skip
+                      console.log('Before row not in cache, skipping reorder operation')
+                    }
+                  } else {
+                    // No 'before' specified means move to end
+                    // No changes needed to cache since it's moving to the end
+                    console.log('Row moved to end, no cache changes needed')
+                    callbacks?.syncVisibleData?.()
+                  }
+
+                  return
+                }
+
+                // Row found in cache - proceed with reordering
+
+                // Find the target position based on the 'before' parameter
+                let targetIndex: number
+
+                if (before) {
+                  // Find the row that should come after the moved row
+                  let beforeIndex: number | null = null
+                  for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+                    const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                    if (pk && `${pk}` === `${before}`) {
+                      beforeIndex = index
+                      break
+                    }
+                  }
+
+                  if (beforeIndex !== null) {
+                    targetIndex = beforeIndex
+                  } else {
+                    // If 'before' row not found in cache, move to end
+                    targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
+                  }
+                } else {
+                  // If no 'before' specified, move to the end
+                  targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
+                }
+
+                // If the row is already at the target position, no need to move
+                if (currentIndex === targetIndex) {
+                  return
+                }
+
+                // Create a new cached rows map with the updated positions
+                const newCachedRows = new Map(dataCache.cachedRows.value.entries())
+
+                // Remove the row from its current position
+                newCachedRows.delete(currentIndex)
+
+                // Determine the final target index (similar to updateRecordOrder logic)
+                const finalTargetIndex = targetIndex > currentIndex ? targetIndex - 1 : targetIndex
+
+                // Shift rows to make space for the moved row
+                if (finalTargetIndex < currentIndex) {
+                  // Moving up: shift rows down
+                  for (let i = currentIndex - 1; i >= finalTargetIndex; i--) {
+                    const row = newCachedRows.get(i)
+                    if (row) {
+                      const newIndex = i + 1
+                      row.rowMeta.rowIndex = newIndex
+                      newCachedRows.delete(i)
+                      newCachedRows.set(newIndex, row)
+                    }
+                  }
+                } else {
+                  // Moving down: shift rows up
+                  for (let i = currentIndex + 1; i <= finalTargetIndex; i++) {
+                    const row = newCachedRows.get(i)
+                    if (row) {
+                      const newIndex = i - 1
+                      row.rowMeta.rowIndex = newIndex
+                      newCachedRows.delete(i)
+                      newCachedRows.set(newIndex, row)
+                    }
+                  }
+                }
+
+                // Place the moved row at its new position
+                rowToMove.rowMeta.rowIndex = finalTargetIndex
+                newCachedRows.set(finalTargetIndex, rowToMove)
+
+                // Update any changed data in the moved row (if payload contains updates)
+                if (payload && typeof payload === 'object') {
+                  Object.assign(rowToMove.row, payload)
+                  Object.assign(rowToMove.oldRow, payload)
+                }
+                rowToMove.rowMeta.changed = false
+
+                // Invalidate affected chunks
+                const targetChunkIndex = getChunkIndex(finalTargetIndex)
+                const sourceChunkIndex = getChunkIndex(currentIndex)
+                for (
+                  let i = Math.min(sourceChunkIndex, targetChunkIndex);
+                  i <= Math.max(sourceChunkIndex, targetChunkIndex);
+                  i++
+                ) {
+                  dataCache.chunkStates.value[i] = undefined
+                }
+
+                // Apply the changes
+                dataCache.cachedRows.value = newCachedRows
+
+                callbacks?.syncVisibleData?.()
+              } catch (e) {
+                console.error('Failed to reorder cached row on socket event', e)
+              }
+            }
+          },
+        )
+
+        activeCommentListener.value = $ncSocket.onMessage(
+          `${EventType.COMMENT_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+          (data: CommentPayload) => {
+            const { action, id } = data
+
+            const dataCache = getDataCache()
+
+            let row = null
+
+            for (const [_, cachedRow] of dataCache.cachedRows.value.entries()) {
+              const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+              if (pk && `${pk}` === `${id}`) {
+                row = cachedRow
+                break
+              }
+            }
+
+            if (row) {
+              if (action === 'add') {
+                if (row) {
+                  row.rowMeta.commentCount = (row.rowMeta.commentCount || 0) + 1
+                }
+              } else if (action === 'update') {
+                // Handle updated comment
+              } else if (action === 'delete') {
+                if (row) {
+                  row.rowMeta.commentCount = Math.max((row.rowMeta.commentCount || 0) - 1, 0)
+                }
+              }
+
+              callbacks?.syncVisibleData?.()
+            }
+          },
+        )
+      }
+    },
+    { immediate: true },
+  )
+
+  // Reset the selectedAllRecordsSkipPks when the selectedAllRecords is false
+  watch(
+    selectedAllRecords,
+    (newValue) => {
+      if (newValue || ncIsEmptyObject(selectedAllRecordsSkipPks.value)) return
+
+      selectedAllRecordsSkipPks.value = {}
+    },
+    { immediate: true },
+  )
+
   return {
     getDataCache,
     insertRow,
@@ -1753,6 +2419,7 @@ export function useInfiniteData(args: {
     navigateToSiblingRow,
     updateRecordOrder,
     selectedAllRecords,
+    selectedAllRecordsSkipPks,
     getRows,
     groupDataCache,
   }

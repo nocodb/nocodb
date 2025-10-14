@@ -16,7 +16,7 @@ export class ToolbarCalendarViewModePage extends BasePage {
     return this.get().getByTestId(`nc-calendar-view-mode-${title}`);
   }
 
-  async changeCalendarView({ title }: { title: string }) {
+  async changeCalendarView({ title }: { title: 'day' | 'week' | 'month' | 'year' }) {
     if (await this.getViewTab({ title }).isVisible()) {
       await this.getViewTab({ title }).click({ force: true });
     } else {
@@ -25,5 +25,8 @@ export class ToolbarCalendarViewModePage extends BasePage {
 
       await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${title}"`).click();
     }
+
+    // Wait for view mode to change
+    await this.rootPage.waitForTimeout(1000);
   }
 }

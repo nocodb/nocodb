@@ -25,17 +25,14 @@ const descriptions: CloudFeaturesType[] = [
     Title: 'Personal views',
   },
   {
-    'Title': 'Extensions',
-    'Coming Soon': true,
+    Title: 'Extensions',
   },
   {
-    'Title': 'Scripts',
-    'Coming Soon': true,
+    Title: 'Scripts',
   },
   {
-    'Title': 'AI Integrations',
-    'Coming Soon': true,
-    'Highlight': true,
+    Title: 'AI Integrations',
+    Highlight: true,
   },
 ]
 

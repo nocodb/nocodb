@@ -52,7 +52,10 @@ export class WebhookPage extends BasePage {
   }
 
   async itemContextMenu({ index, operation }: { index: number; operation: 'edit' | 'duplicate' | 'delete' }) {
-    await (await this.getItem({ index })).getByTestId('nc-webhook-item-action').click();
+    const hookItem = await this.getItem({ index });
+    await hookItem.hover();
+
+    await hookItem.getByTestId('nc-webhook-item-action').click();
 
     const contextMenu = this.rootPage.locator('.nc-webhook-item-action-dropdown:visible');
     await contextMenu.waitFor({ state: 'visible' });

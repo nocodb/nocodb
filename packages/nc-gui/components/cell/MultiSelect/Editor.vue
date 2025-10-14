@@ -328,15 +328,14 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 onMounted(() => {
-  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value) {
+  if (!isUnderLookup.value && isCanvasInjected && !isExpandedForm.value && isGrid.value && !isEditColumn.value) {
     forcedNextTick(() => {
       const key = canvasCellEventData.keyboardKey
       if (key && isSinglePrintableKey(key)) {
-        onFocus()
         searchVal.value = key
-      } else if (key === 'Enter') {
-        onFocus()
       }
+
+      onFocus()
     })
   }
 })
@@ -349,49 +348,14 @@ onMounted(() => {
     @click="toggleMenu"
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <a-checkbox-group
-        :value="vModelListLayout"
+      <CellMultiSelectLayoutList
+        :options="options"
+        :selected-options="vModelListLayout"
         :disabled="readOnly || !editAllowed"
-        class="nc-field-layout-list"
-        @click.stop
-        @update:value="vModel = $event"
-      >
-        <a-checkbox
-          v-for="op of options"
-          :key="op.title"
-          :value="op.title"
-          class="gap-2"
-          :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
-          :class="`nc-select-option-${column.title}-${op.title}`"
-        >
-          <a-tag class="rounded-tag max-w-full" :color="op.color">
-            <span
-              :style="{
-                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                  ? '#fff'
-                  : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-              }"
-              class="text-small"
-            >
-              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-                <template #title>
-                  {{ op.title }}
-                </template>
-                <span
-                  class="text-ellipsis overflow-hidden"
-                  :style="{
-                    wordBreak: 'keep-all',
-                    whiteSpace: 'nowrap',
-                    display: 'inline',
-                  }"
-                >
-                  {{ op.title }}
-                </span>
-              </NcTooltip>
-            </span>
-          </a-tag>
-        </a-checkbox>
-      </a-checkbox-group>
+        :location="location"
+        :row-index="rowIndex"
+        @update:selected-options="vModel = $event"
+      />
     </div>
 
     <a-select

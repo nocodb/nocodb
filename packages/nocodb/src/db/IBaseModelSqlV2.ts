@@ -6,14 +6,18 @@ import type {
 import type { XKnex } from '~/db/CustomKnex';
 import type {
   AuditV1OperationTypes,
+  BulkAuditV1OperationTypes,
+  FilterType,
   NcApiVersion,
   NcContext,
   NcRequest,
+  PermissionEntity,
+  PermissionKey,
   RelationTypes,
 } from 'nocodb-sdk';
-import type { Column, Model, View } from '~/models';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
+import type { Column, Filter, Model, Sort, Source, View } from '~/models';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
@@ -192,6 +196,13 @@ export interface IBaseModelSqlV2 {
 
   afterBulkInsert(data: any[], _trx: any, req): Promise<void>;
 
+  afterBulkDelete(
+    data: any,
+    _trx: any,
+    req: any,
+    isBulkAllOperation?: boolean,
+  ): Promise<void>;
+
   applySortAndFilter(param: {
     table: Model;
     view?: View;
@@ -200,6 +211,20 @@ export interface IBaseModelSqlV2 {
     sort: string;
     onlySort?: boolean;
     skipViewFilter?: boolean;
+  }): Promise<void>;
+
+  bulkAudit({
+    qb,
+    data,
+    conditions,
+    req,
+    event,
+  }: {
+    qb: any;
+    data?: Record<string, any>;
+    conditions: FilterType[];
+    req: NcRequest;
+    event: BulkAuditV1OperationTypes;
   }): Promise<void>;
 
   _getListArgs(
@@ -284,12 +309,62 @@ export interface IBaseModelSqlV2 {
     }>,
   ): Promise<void>;
 
+  sanitizeQuery(query: string | string[]): any;
   getNestedColumn(column: Column): Promise<Column | any>;
 
+  checkPermission(params: {
+    entity: PermissionEntity;
+    entityId: string | string[];
+    permission: PermissionKey;
+    user: any;
+    req: any;
+  }): Promise<void>;
+
+  chunkList(args: {
+    pks: string[];
+    chunkSize?: number;
+    apiVersion?: NcApiVersion;
+    args?: any;
+  }): Promise<any[]>;
+
+  list(
+    args?: {
+      where?: string;
+      limit?: any;
+      offset?: any;
+      filterArr?: Filter[];
+      sortArr?: Sort[];
+      sort?: string | string[];
+      fieldsSet?: Set<string>;
+      limitOverride?: number;
+      pks?: string;
+      customConditions?: Filter[];
+      apiVersion?: NcApiVersion;
+    },
+    options?: {
+      ignoreViewFilterAndSort?: boolean;
+      ignorePagination?: boolean;
+      validateFormula?: boolean;
+      throwErrorIfInvalidParams?: boolean;
+      limitOverride?: number;
+      skipSubstitutingColumnIds?: boolean;
+    },
+  ): Promise<any>;
+
+  broadcastLinkUpdates(ids: Array<string>): Promise<void>;
+  getSource(): Promise<Source>;
+  /**
+   * Creates a non-transactional clone of this instance for operations
+   * that need to run outside the current transaction context.
+   */
+  getNonTransactionalClone(): IBaseModelSqlV2;
+
   get viewId(): string;
+  /** Returns the active database driver (transaction if active, otherwise base driver) */
   get dbDriver(): CustomKnex;
+  /** Returns the base (non-transactional) database driver */
+  get knex(): CustomKnex;
   get isSqlite(): boolean;
-  get isMssql(): boolean;
   get isPg(): boolean;
   get isMySQL(): boolean;
   get isSnowflake(): boolean;
@@ -297,7 +372,6 @@ export interface IBaseModelSqlV2 {
   get clientType(): string;
   get clientMeta(): {
     isSqlite: boolean;
-    isMssql: boolean;
     isPg: boolean;
     isMySQL: boolean;
   };

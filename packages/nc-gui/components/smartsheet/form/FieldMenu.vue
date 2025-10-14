@@ -190,8 +190,8 @@ const isDuplicateAllowed = computed(() => {
         </NcMenuItem>
 
         <NcMenuItem :disabled="isRequired" @click="hideField">
-          <div class="nc-column-insert-before nc-form-header-menu-item">
-            <component :is="iconMap.eye" class="!w-3.75 !h-3.75" />
+          <div class="nc-column-hide-or-show nc-form-header-menu-item">
+            <component :is="iconMap.eyeSlash" class="!w-3.75 !h-3.75" />
             <!-- Hide Field -->
             {{ $t('general.hideField') }}
           </div>
@@ -200,20 +200,9 @@ const isDuplicateAllowed = computed(() => {
         <template v-if="!column?.pv">
           <NcDivider />
 
-          <NcMenuItem
-            :disabled="!isDeleteAllowed"
-            :class="{
-              '!hover:bg-red-50': isDeleteAllowed,
-            }"
-            @click="handleDelete"
-          >
-            <div
-              class="nc-column-delete nc-form-header-menu-item"
-              :class="{
-                'text-red-600': isDeleteAllowed,
-              }"
-            >
-              <component :is="iconMap.delete" />
+          <NcMenuItem :disabled="!isDeleteAllowed" danger @click="handleDelete">
+            <div class="nc-column-delete nc-form-header-menu-item">
+              <GeneralIcon icon="delete" />
               <!-- Delete -->
               {{ $t('general.delete') }}
             </div>

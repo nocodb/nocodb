@@ -3,7 +3,6 @@ import {
   isVirtualCol,
   ModelTypes,
   NcApiVersion,
-  ncIsUndefined,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -11,6 +10,7 @@ import dayjs from 'dayjs';
 import { Logger } from '@nestjs/common';
 import hash from 'object-hash';
 import type { NcRequest } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
@@ -39,8 +39,26 @@ import {
   prepareForResponse,
 } from '~/utils/modelUtils';
 import { Source } from '~/models';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import { dataWrapper } from '~/helpers/dbHelpers';
+import { isEE } from '~/utils';
 
 const logger = new Logger('Model');
+
+const modelOrViewXcCondition = {
+  _or: [
+    {
+      type: {
+        eq: ModelTypes.TABLE,
+      },
+    },
+    {
+      type: {
+        eq: ModelTypes.VIEW,
+      },
+    },
+  ],
+};
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -198,12 +216,31 @@ export default class Model implements TableType {
 
     insertObj.mm = !!insertObj.mm;
 
+    const condition: Record<string, any> = {
+      base_id: baseId,
+    };
+
+    if (isEE) {
+      condition.fk_workspace_id = context.workspace_id;
+    }
+
     if (!insertObj.order) {
       insertObj.order = await ncMeta.metaGetNextOrder(
-        MetaTable.FORM_VIEW_COLUMNS,
+        MetaTable.MODELS,
+        condition,
         {
-          base_id: baseId,
-          source_id: sourceId,
+          _or: [
+            {
+              source_id: {
+                eq: sourceId, // Match the given source_id
+              },
+            },
+            {
+              source_id: {
+                eq: null, // Also include records with null source_id
+              },
+            },
+          ],
         },
       );
     }
@@ -275,6 +312,10 @@ export default class Model implements TableType {
       logger.error('Failed to clean command palette cache');
     });
 
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
+
     return modelRes;
   }
 
@@ -285,7 +326,7 @@ export default class Model implements TableType {
       source_id,
     }: {
       base_id: string;
-      source_id: string;
+      source_id?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model[]> {
@@ -306,6 +347,7 @@ export default class Model implements TableType {
             order: 'asc',
           },
           ...(source_id ? { condition: { source_id } } : {}),
+          xcCondition: modelOrViewXcCondition,
         },
       );
 
@@ -356,6 +398,9 @@ export default class Model implements TableType {
         context.workspace_id,
         context.base_id,
         MetaTable.MODELS,
+        {
+          xcCondition: modelOrViewXcCondition,
+        },
       );
 
       // parse meta of each model
@@ -386,6 +431,8 @@ export default class Model implements TableType {
         context.base_id,
         MetaTable.MODELS,
         id,
+        undefined,
+        modelOrViewXcCondition,
       );
 
       if (modelData) {
@@ -422,6 +469,8 @@ export default class Model implements TableType {
         context.base_id,
         MetaTable.MODELS,
         k,
+        undefined,
+        modelOrViewXcCondition,
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -460,6 +509,21 @@ export default class Model implements TableType {
         id || {
           table_name,
         },
+        undefined,
+        {
+          _or: [
+            {
+              type: {
+                eq: ModelTypes.TABLE,
+              },
+            },
+            {
+              type: {
+                eq: ModelTypes.VIEW,
+              },
+            },
+          ],
+        },
       );
       if (modelData) {
         modelData.meta = parseMetaProp(modelData);
@@ -486,12 +550,27 @@ export default class Model implements TableType {
     return null;
   }
 
+  /**
+   * Creates a BaseModelSqlv2 instance with optional transaction support.
+   *
+   * @param context - The NocoDB context
+   * @param args - Configuration arguments
+   * @param args.dbDriver - The base database driver
+   * @param args.transaction - Optional transaction instance to use for operations
+   * @param args.model - The model instance (optional, will be fetched if not provided)
+   * @param args.viewId - The view ID (optional)
+   * @param args.extractDefaultView - Whether to extract the default view if viewId not provided
+   * @param args.source - The data source (optional, will be fetched if not provided)
+   * @param ncMeta - The NocoDB metadata instance
+   * @returns A configured BaseModelSqlv2 instance
+   */
   public static async getBaseModelSQL(
     context: NcContext,
     args: {
       id?: string;
       viewId?: string;
       dbDriver: XKnex;
+      transaction?: XKnex | Knex.Transaction;
       model?: Model;
       extractDefaultView?: boolean;
       source?: Source;
@@ -518,6 +597,7 @@ export default class Model implements TableType {
     return new BaseModelSqlv2({
       context,
       dbDriver: args.dbDriver,
+      transaction: args.transaction,
       viewId: args.viewId,
       model,
       schema,
@@ -663,6 +743,10 @@ export default class Model implements TableType {
       logger.error('Failed to clean command palette cache');
     });
 
+    cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
+      logger.error('Failed to clean base schema cache');
+    });
+
     return true;
   }
 
@@ -672,20 +756,16 @@ export default class Model implements TableType {
     clientMeta = {
       isMySQL: false,
       isSqlite: false,
-      isMssql: false,
       isPg: false,
     },
     knex,
     columns?: Column[],
   ) {
+    const dbDataWrapper = dataWrapper(data);
     const insertObj = {};
     for (const col of columns || (await this.getColumns(context))) {
       if (isVirtualCol(col)) continue;
-      let val = !ncIsUndefined(data?.[col.column_name])
-        ? data?.[col.column_name]
-        : !ncIsUndefined(data?.[col.title])
-        ? data?.[col.title]
-        : data?.[col.id];
+      let val = dbDataWrapper.getByColumnNameTitleOrId(col);
       if (val !== undefined) {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);
@@ -695,7 +775,7 @@ export default class Model implements TableType {
           col.uidt === UITypes.DateTime &&
           dayjs(val).isValid()
         ) {
-          const { isMySQL, isSqlite, isMssql, isPg } = clientMeta;
+          const { isMySQL, isSqlite, isPg } = clientMeta;
           if (
             val.indexOf('-') < 0 &&
             val.indexOf('+') < 0 &&
@@ -732,14 +812,6 @@ export default class Model implements TableType {
             val = knex.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
               dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
             ]);
-          } else if (isMssql) {
-            // convert ot UTC
-            // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
-            // then convert to db timezone
-            val = knex.raw(
-              `SWITCHOFFSET(CONVERT(datetimeoffset, ?), DATENAME(TzOffset, SYSDATETIMEOFFSET()))`,
-              [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
-            );
           } else {
             // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
             val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
@@ -764,12 +836,10 @@ export default class Model implements TableType {
 
   async mapColumnToAlias(context: NcContext, data, columns?: Column[]) {
     const res = {};
+    const dbDataWrapper = dataWrapper(data);
     for (const col of columns || (await this.getColumns(context))) {
       if (isVirtualCol(col)) continue;
-      let val =
-        data?.[col.title] !== undefined
-          ? data?.[col.title]
-          : data?.[col.column_name];
+      let val = dbDataWrapper.getByColumnNameTitleOrId(col);
       if (val !== undefined) {
         if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
           val = JSON.stringify(val);
@@ -1056,16 +1126,21 @@ export default class Model implements TableType {
             { base_id, source_id },
             null,
             {
-              _or: [
+              _and: [
+                modelOrViewXcCondition,
                 {
-                  id: {
-                    eq: aliasOrId,
-                  },
-                },
-                {
-                  title: {
-                    eq: aliasOrId,
-                  },
+                  _or: [
+                    {
+                      id: {
+                        eq: aliasOrId,
+                      },
+                    },
+                    {
+                      title: {
+                        eq: aliasOrId,
+                      },
+                    },
+                  ],
                 },
               ],
             },
@@ -1077,16 +1152,21 @@ export default class Model implements TableType {
             { base_id },
             null,
             {
-              _or: [
+              _and: [
+                modelOrViewXcCondition,
                 {
-                  id: {
-                    eq: aliasOrId,
-                  },
-                },
-                {
-                  title: {
-                    eq: aliasOrId,
-                  },
+                  _or: [
+                    {
+                      id: {
+                        eq: aliasOrId,
+                      },
+                    },
+                    {
+                      title: {
+                        eq: aliasOrId,
+                      },
+                    },
+                  ],
                 },
               ],
             },
@@ -1118,7 +1198,20 @@ export default class Model implements TableType {
         ...(source_id ? { source_id } : {}),
       },
       null,
-      exclude_id && { id: { neq: exclude_id } },
+      {
+        _and: [
+          {
+            ...modelOrViewXcCondition,
+            ...(exclude_id
+              ? {
+                  id: {
+                    neq: exclude_id,
+                  },
+                }
+              : {}),
+          },
+        ],
+      },
     ));
   }
 
@@ -1140,14 +1233,35 @@ export default class Model implements TableType {
         ...(source_id ? { source_id } : {}),
       },
       null,
-      exclude_id && { id: { neq: exclude_id } },
+      {
+        _and: [
+          {
+            ...modelOrViewXcCondition,
+            ...(exclude_id
+              ? {
+                  id: {
+                    neq: exclude_id,
+                  },
+                }
+              : {}),
+          },
+        ],
+      },
     ));
   }
 
   async getAliasColObjMap(context: NcContext, columns?: Column[]) {
-    return (columns || (await this.getColumns(context))).reduce(
-      (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
+    const mapColumns = columns || (await this.getColumns(context));
+    const idReduce = mapColumns.reduce(
+      (sortAgg, c) => ({ ...sortAgg, [c.id]: c }),
       {},
+    );
+
+    // 2nd reduce start by using idReduce props
+    // if title is same as column id, even if it's a different column, it'll take priority over id
+    return mapColumns.reduce(
+      (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
+      idReduce,
     );
   }
 
@@ -1167,6 +1281,7 @@ export default class Model implements TableType {
       MetaTable.MODELS,
       prepareForDb(updateObj),
       tableId,
+      modelOrViewXcCondition,
     );
 
     await NocoCache.update(

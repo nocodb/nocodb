@@ -7,6 +7,7 @@ export default class CustomUrl implements CustomUrlType {
   public base_id?: string;
   public fk_model_id?: string;
   public view_id?: string;
+  public fk_dashboard_id?: string;
   public original_path?: string;
   public custom_path?: string;
 
@@ -37,7 +38,10 @@ export default class CustomUrl implements CustomUrlType {
 
   public static async list(
     _params: Partial<
-      Pick<CustomUrl, 'fk_workspace_id' | 'base_id' | 'fk_model_id'>
+      Pick<
+        CustomUrl,
+        'fk_workspace_id' | 'base_id' | 'fk_model_id' | 'fk_dashboard_id'
+      >
     >,
     _ncMeta = Noco.ncMeta,
   ) {
@@ -60,7 +64,7 @@ export default class CustomUrl implements CustomUrlType {
   }
 
   static async delete(
-    _customUrl: Partial<Pick<CustomUrl, 'id' | 'view_id'>>,
+    _customUrl: Partial<Pick<CustomUrl, 'id' | 'view_id' | 'fk_dashboard_id'>>,
     _ncMeta = Noco.ncMeta,
   ): Promise<any> {}
 

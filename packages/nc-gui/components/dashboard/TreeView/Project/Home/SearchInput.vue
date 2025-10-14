@@ -35,7 +35,7 @@ const handleClick = () => {
         @keydown.stop
       >
         <template #prefix>
-          <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-gray-500 group-hover:text-black" />
+          <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
         </template>
         <template #suffix>
           <div class="px-1 text-bodySmBold text-nc-content-gray-subtle bg-nc-bg-gray-medium rounded">

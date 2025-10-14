@@ -226,7 +226,7 @@ abstract class BaseModel {
 
       const query = this.$db.insert(data);
 
-      if (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') {
+      if (this.dbDriver.client === 'pg') {
         query.returning('*');
         response = await this._run(query);
       } else {
@@ -268,7 +268,7 @@ abstract class BaseModel {
 
       const query = this.$db.insert(data);
 
-      if (this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql') {
+      if (this.dbDriver.client === 'pg') {
         query.returning('*');
         response = await this._run(query);
       } else {
@@ -304,7 +304,7 @@ abstract class BaseModel {
       }
 
       const response =
-        this.dbDriver.client === 'pg' || this.dbDriver.client === 'mssql'
+        this.dbDriver.client === 'pg'
           ? this.dbDriver
               .batchInsert(this.tn, data, 50)
               .returning(this.pks?.[0]?.cn || '*')
@@ -643,7 +643,7 @@ abstract class BaseModel {
    * @returns {Promise<Number[]>} - 1 for success, 0 for failure
    */
   async updateb(data) {
-    let trx;
+    let trx: Knex.Transaction;
     try {
       await this.beforeUpdateb(data);
 
@@ -658,12 +658,12 @@ abstract class BaseModel {
         res.push(response);
       }
 
-      trx.commit();
+      await trx.commit();
       await this.afterUpdateb(res);
 
       return res;
     } catch (e) {
-      if (trx) trx.rollback();
+      if (trx) await trx.rollback();
       console.log(e);
       await this.errorUpdateb(e, data);
       throw e;
@@ -677,7 +677,7 @@ abstract class BaseModel {
    * @returns {Promise<Number[]>} - 1 for success, 0 for failure
    */
   async delb(ids) {
-    let trx;
+    let trx: Knex.Transaction;
     try {
       await this.beforeDeleteb(ids);
       trx = await this.dbDriver.transaction();
@@ -689,13 +689,13 @@ abstract class BaseModel {
         );
         res.push(response);
       }
-      trx.commit();
+      await trx.commit();
 
       await this.afterDeleteb(res);
 
       return res;
     } catch (e) {
-      if (trx) trx.rollback();
+      if (trx) await trx.rollback();
       console.log(e);
       await this.errorDeleteb(e, ids);
       throw e;

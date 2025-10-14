@@ -120,9 +120,9 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
         </div>
 
         <span
-          class="nc-year-picker-btn text-gray-700 font-semibold"
+          class="nc-year-picker-btn text-nc-content-gray-subtle font-semibold"
           :class="{
-            'cursor-pointer hover:text-brand-500': isCellInputField && !isYearPicker,
+            'cursor-pointer hover:text-nc-content-brand': isCellInputField && !isYearPicker,
           }"
           @click="!isYearPicker ? (pickerType = 'year') : () => undefined"
           >{{
@@ -145,7 +145,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
         </div>
       </template>
       <template v-else>
-        <div class="text-gray-700 text-sm font-semibold">
+        <div class="text-nc-content-gray-subtle text-sm font-semibold">
           <span class="px-1 font-bold leading-6 text-sm text-nc-content-gray-subtle py-2">
             {{ isYearPicker ? timezoneDayjs.dayjsTz(selectedDate).year() : timezoneDayjs.dayjsTz(pageDate).format('YYYY') }}
           </span>
@@ -185,14 +185,14 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             v-for="(month, id) in months"
             :key="id"
             :class="{
-              'bg-gray-200 !text-brand-900 !font-bold': isMonthSelected(month) && !isCellInputField,
-              'bg-gray-300 !font-weight-600 ': isMonthSelected(month) && isCellInputField,
-              'hover:(border-1 border-gray-200 bg-gray-100)': !isMonthSelected(month),
-              '!text-brand-500': timezoneDayjs.dayjsTz().isSame(month, 'month'),
+              'bg-nc-bg-gray-medium !text-nc-brand-900 !font-bold': isMonthSelected(month) && !isCellInputField,
+              'bg-nc-bg-gray-dark !font-weight-600 ': isMonthSelected(month) && isCellInputField,
+              'hover:(border-1 border-nc-border-gray-medium bg-nc-bg-gray-light)': !isMonthSelected(month),
+              '!text-nc-content-brand': timezoneDayjs.dayjsTz().isSame(month, 'month'),
               'font-weight-400': isCellInputField,
               'font-medium': !isCellInputField,
             }"
-            class="nc-month-item h-8 flex items-center rounded transition-all justify-center text-gray-700 cursor-pointer"
+            class="nc-month-item h-8 flex items-center rounded transition-all justify-center text-nc-content-gray-subtle cursor-pointer"
             :title="isCellInputField ? month.format('YYYY-MM') : undefined"
             @click="selectedDate = month"
           >
@@ -204,12 +204,12 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
             v-for="(year, id) in years"
             :key="id"
             :class="{
-              'bg-gray-200 !font-bold ': compareYear(year, selectedDate) && !isCellInputField,
-              'bg-gray-300 !text-brand-500 !font-weight-600 ': compareYear(year, selectedDate) && isCellInputField,
-              'hover:(border-1 border-gray-200 bg-gray-100)': !compareYear(year, selectedDate),
-              '!text-brand-500': timezoneDayjs.dayjsTz().format('YYYY') === year.format('YYYY'),
-              'font-weight-400 text-gray-700': isCellInputField,
-              'font-medium text-gray-900': !isCellInputField,
+              'bg-nc-bg-gray-medium !font-bold ': compareYear(year, selectedDate) && !isCellInputField,
+              'bg-nc-bg-gray-dark !text-nc-content-brand !font-weight-600 ': compareYear(year, selectedDate) && isCellInputField,
+              'hover:(border-1 border-nc-border-gray-medium bg-nc-bg-gray-light)': !compareYear(year, selectedDate),
+              '!text-nc-content-brand': timezoneDayjs.dayjsTz().format('YYYY') === year.format('YYYY'),
+              'font-weight-400 text-nc-content-gray-subtle': isCellInputField,
+              'font-medium text-nc-content-gray-emphasis': !isCellInputField,
             }"
             class="nc-year-item h-8 flex items-center rounded transition-all justify-center cursor-pointer"
             :title="isCellInputField ? year.format('YYYY') : undefined"

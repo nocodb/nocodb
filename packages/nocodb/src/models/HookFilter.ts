@@ -9,6 +9,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
+  FilterCacheScope,
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
@@ -128,7 +129,7 @@ export default class Filter {
         p.push(
           NocoCache.appendToList(
             CacheScope.FILTER_EXP,
-            [filter.fk_view_id],
+            [FilterCacheScope.VIEW, filter.fk_view_id],
             key,
           ),
         );
@@ -136,14 +137,14 @@ export default class Filter {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_view_id, filter.fk_parent_id],
+              [FilterCacheScope.VIEW, filter.fk_view_id, filter.fk_parent_id],
               key,
             ),
           );
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_parent_id],
+              [FilterCacheScope.PARENT, filter.fk_parent_id],
               key,
             ),
           );
@@ -152,7 +153,7 @@ export default class Filter {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
-              [filter.fk_column_id],
+              [FilterCacheScope.COLUMN, filter.fk_column_id],
               key,
             ),
           );
@@ -249,7 +250,7 @@ export default class Filter {
     if (!this.is_group) return null;
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
-      [this.id],
+      [FilterCacheScope.PARENT, this.id],
       { key: 'order' },
     );
     let { list: childFilters } = cachedList;
@@ -265,7 +266,11 @@ export default class Filter {
           },
         },
       );
-      await NocoCache.setList(CacheScope.FILTER_EXP, [this.id], childFilters);
+      await NocoCache.setList(
+        CacheScope.FILTER_EXP,
+        [FilterCacheScope.PARENT, this.id],
+        childFilters,
+      );
     }
     return childFilters && childFilters.map((f) => new Filter(f));
   }
@@ -297,7 +302,7 @@ export default class Filter {
   ): Promise<FilterType> {
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
-      [viewId],
+      [FilterCacheScope.VIEW, viewId],
       { key: 'order' },
     );
     let { list: filters } = cachedList;
@@ -312,7 +317,11 @@ export default class Filter {
         },
       );
 
-      await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filters);
+      await NocoCache.setList(
+        CacheScope.FILTER_EXP,
+        [FilterCacheScope.VIEW, viewId],
+        filters,
+      );
     }
 
     const result: FilterType = {
@@ -401,7 +410,7 @@ export default class Filter {
   ) {
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
-      [viewId],
+      [FilterCacheScope.VIEW, viewId],
       { key: 'order' },
     );
     let { list: filterObjs } = cachedList;
@@ -415,7 +424,11 @@ export default class Filter {
           condition: { fk_view_id: viewId },
         },
       );
-      await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filterObjs);
+      await NocoCache.setList(
+        CacheScope.FILTER_EXP,
+        [FilterCacheScope.VIEW, viewId],
+        filterObjs,
+      );
     }
     return filterObjs?.map((f) => new Filter(f));
   }
@@ -431,6 +444,7 @@ export default class Filter {
   //   ncMeta = Noco.ncMeta
   // ) {
   //   let filterObjs = await NocoCache.getList(CacheScope.FILTER_EXP, [
+  //     FilterCacheScope.VIEW,
   //     viewId,
   //     parentId
   //   ]);
@@ -443,7 +457,7 @@ export default class Filter {
   //     });
   //     await NocoCache.setList(
   //       CacheScope.FILTER_EXP,
-  //       [viewId, parentId],
+  //       [FilterCacheScope.VIEW, viewId, parentId],
   //       filterObjs
   //     );
   //   }

@@ -42,13 +42,15 @@ const dropTablesAllNonExternalProjects = async () => {
   await TestDbMngr.disableForeignKeyChecks(TestDbMngr.metaKnex);
 
   for (const tableName of userCreatedTableNames) {
-    if (TestDbMngr.isPg()) {
-      await TestDbMngr.metaKnex.raw(
-        `DROP TABLE IF EXISTS "${tableName}" CASCADE`,
-      );
-    } else {
-      await TestDbMngr.metaKnex.raw(`DROP TABLE ${tableName}`);
-    }
+    try {
+      if (TestDbMngr.isPg()) {
+        await TestDbMngr.metaKnex.raw(
+          `DROP TABLE IF EXISTS "${tableName}" CASCADE`,
+        );
+      } else {
+        await TestDbMngr.metaKnex.raw(`DROP TABLE ${tableName}`);
+      }
+    } catch(ex) {}
   }
 
   await TestDbMngr.enableForeignKeyChecks(TestDbMngr.metaKnex);

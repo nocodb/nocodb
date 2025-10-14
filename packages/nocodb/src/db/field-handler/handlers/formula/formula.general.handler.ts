@@ -1,6 +1,5 @@
 import { FormulaDataTypes, parseProp, UITypes } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
-import type { Knex } from 'knex';
 import type { ColumnType } from 'nocodb-sdk';
 import type CustomKnex from 'src/db/CustomKnex';
 import type {
@@ -17,7 +16,7 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     filter: Filter,
     column: Column,
     options: FilterOptions,
-  ): Promise<(qb: Knex.QueryBuilder) => void> {
+  ) {
     const {
       context,
       conditionParser: parseConditionV2,
@@ -71,7 +70,7 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
         options.context,
       );
       const parsedTree = await formulaCol.getParsedTree();
-      const dataType = parsedTree.dataType;
+
       const setColumnTypeAndVerify = (type: UITypes) => {
         const updatedColumn = new Column({
           ...column,
@@ -83,6 +82,12 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
           options,
         );
       };
+
+      if (!parsedTree?.dataType) {
+        return setColumnTypeAndVerify(UITypes.SingleLineText);
+      }
+
+      const dataType = parsedTree.dataType;
 
       switch (dataType) {
         case FormulaDataTypes.BOOLEAN:

@@ -20,6 +20,8 @@ const { submitBtnLabel, saving } = toRefs(props)
 
 const meta = inject(MetaInj, ref())
 
+const { appInfo } = useGlobal()
+
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
@@ -35,9 +37,7 @@ const {
   fromTableExplorer,
 } = useColumnCreateStoreOrThrow()
 
-const { aiIntegrationAvailable, aiLoading, aiError, generateRows } = useNocoAi()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { isAiBetaFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError, generateRows } = useNocoAi()
 
 const isOpenConfigModal = ref<boolean>(false)
 
@@ -119,7 +119,8 @@ const availableFields = computed(() => {
     (c) =>
       c.title &&
       !c.system &&
-      ![UITypes.ID, UITypes.Button, UITypes.Links].includes(c.uidt) &&
+      (!vModel.value?.id || c.id !== vModel.value.id) &&
+      ![UITypes.ID, UITypes.Button, UITypes.Links, UITypes.LinkToAnotherRecord].includes(c.uidt) &&
       (isEdit.value ? column.value?.id !== c.id : true),
   )
 })
@@ -136,8 +137,9 @@ const outputFieldOptions = computed(() => {
     (c) =>
       !c.system &&
       !c.pk &&
+      !c.readonly &&
       c.id !== column.value?.id &&
-      ![UITypes.Attachment, UITypes.Button, UITypes.Links].includes(c.uidt) &&
+      ![UITypes.Attachment, UITypes.Button, UITypes.Links, UITypes.LinkToAnotherRecord].includes(c.uidt) &&
       !isReadOnlyVirtualCell(c),
   )
 })
@@ -173,11 +175,6 @@ const removeFromOutputFieldOptions = (id: string) => {
   outputColumnIds.value = outputColumnIds.value.filter((op) => op !== id)
 }
 
-const cellIcon = (column: ColumnType) =>
-  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: column,
-  })
-
 const generate = async () => {
   if (!selectedRecordPk.value || !outputColumnIds.value.length) return
 
@@ -197,7 +194,10 @@ const generate = async () => {
   )
 
   if (res?.length) {
-    previewOutputRow.value.row = res[0]
+    previewOutputRow.value = {
+      ...previewOutputRow.value,
+      row: res[0],
+    }
 
     isAlreadyGenerated.value = true
   }
@@ -225,6 +225,7 @@ const expansionOutputPanel = ref<ExpansionPanelKeys[]>([ExpansionPanelKeys.outpu
 // provide the following to override the default behavior and enable input fields like in form
 provide(ActiveCellInj, ref(true))
 provide(IsFormInj, ref(true))
+provide(IsCanvasInjectionInj, false)
 
 watch(isOpenConfigModal, (newValue) => {
   if (newValue) {
@@ -251,7 +252,7 @@ const isAiButtonEnabled = computed(() => {
     return true
   }
 
-  return isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)
+  return isAiBetaFeaturesEnabled.value
 })
 
 const previewPanelDom = ref<HTMLElement>()
@@ -350,6 +351,7 @@ onBeforeUnmount(() => {
             :label="submitBtnLabel.label"
             :loading-label="submitBtnLabel.loadingLabel"
             :loading="saving"
+            theme="ai"
             @click.stop="emit('onSubmit')"
           >
             {{ submitBtnLabel.label }}
@@ -371,7 +373,12 @@ onBeforeUnmount(() => {
                   <div class="text-base text-nc-content-gray font-bold flex-1">
                     {{ $t('general.configure') }}
                   </div>
-                  <div class="-my-1.5">
+                  <div
+                    class="-my-1.5"
+                    :class="{
+                      hidden: appInfo.env !== 'development' && appInfo.ee,
+                    }"
+                  >
                     <AiSettings
                       v-model:fk-integration-id="vModel.fk_integration_id"
                       v-model:model="vModel.model"
@@ -408,7 +415,8 @@ onBeforeUnmount(() => {
                       v-model="vModel.formula_raw"
                       :options="availableFields"
                       :placeholder="inputFieldPlaceholder"
-                      prompt-field-tag-class-name="!bg-nc-bg-gray-medium !text-nc-content-gray"
+                      prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
+                      suggestion-icon-class-name="!text-nc-content-purple-medium"
                     />
                     <div class="rounded-b-lg flex items-center gap-2 p-1">
                       <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />
@@ -451,12 +459,18 @@ onBeforeUnmount(() => {
                           is-multi-select
                           show-search-always
                           container-class-name="!max-h-[171px]"
+                          theme="ai"
                         >
                           <template #listItem="{ option, isSelected }">
-                            <NcCheckbox :checked="isSelected" />
+                            <NcCheckbox :checked="isSelected" theme="ai" />
 
                             <div class="inline-flex items-center gap-2 flex-1 truncate">
-                              <component :is="cellIcon(option)" class="!mx-0" />
+                              <SmartsheetHeaderIcon
+                                :column="option as ColumnType"
+                                class="!mx-0"
+                                color="text-nc-content-gray-subtle"
+                              />
+
                               <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                 <template #title>
                                   {{ option?.title }}
@@ -466,8 +480,8 @@ onBeforeUnmount(() => {
                             </div>
                           </template>
                           <template #headerExtraRight>
-                            <NcBadge :border="false" color="brand"
-                              >{{ outputColumnIds.length }}
+                            <NcBadge :border="false" color="ai">
+                              {{ outputColumnIds.length }}
                               {{ $t(`objects.${outputColumnIds?.length === 1 ? 'field' : 'fields'}`) }}
                             </NcBadge>
                           </template>
@@ -479,7 +493,8 @@ onBeforeUnmount(() => {
                     <template v-for="op in outputFieldOptions">
                       <a-tag v-if="outputColumnIds.includes(op.id)" :key="op.id" class="nc-ai-button-output-field">
                         <div class="flex flex-row items-center gap-1 py-[2px] text-sm">
-                          <component :is="cellIcon(op)" class="!mx-0 !mr-1 opacity-80" />
+                          <SmartsheetHeaderIcon :column="op" class="!mx-0 !mr-1 opacity-80" />
+
                           <NcTooltip show-on-truncate-only class="truncate max-w-[150px]">
                             <template #title>{{ op.title }}</template>
                             {{ op.title }}
@@ -618,7 +633,7 @@ onBeforeUnmount(() => {
                                     :item-height="60"
                                     class="!w-auto min-w-[550px] max-w-[550px]"
                                     container-class-name="!px-0 !pb-0"
-                                    item-class-name="!rounded-none !p-0 !bg-none !hover:bg-none"
+                                    item-class-name="!rounded-none !p-0 group !my-0"
                                     @update:value="handleResetOutput"
                                   >
                                     <template #listItem="{ option, isSelected }">
@@ -650,7 +665,8 @@ onBeforeUnmount(() => {
                                 class="!my-0 nc-input-required-error"
                               >
                                 <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                                  <component :is="cellIcon(field)" class="!mx-0" />
+                                  <SmartsheetHeaderIcon :column="field" class="!mx-0" />
+
                                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                     <template #title>
                                       {{ field?.title }}
@@ -708,20 +724,20 @@ onBeforeUnmount(() => {
 
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 flex-none rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               inputColumns.length
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
                                 : 'bg-nc-bg-red-dark text-nc-content-red-dark'
                             "
                           >
-                            <GeneralIcon :icon="inputColumns.length ? 'check' : 'ncX'" />
+                            <GeneralIcon :icon="inputColumns.length ? 'check' : 'ncX'" class="flex-none" />
                           </div>
                           <div>Use at least 1 Field in your Input prompt</div>
                         </div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 flex-none rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               outputColumnIds.length
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -734,7 +750,7 @@ onBeforeUnmount(() => {
                         </div>
                         <div class="flex gap-2">
                           <div
-                            class="h-4 w-4 rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
+                            class="h-4 w-4 flex-none rounded-full grid place-items-center children:(h-3.5 w-3.5 flex-none)"
                             :class="
                               selectedRecordPk
                                 ? 'bg-nc-bg-green-dark text-nc-content-green-dark'
@@ -750,7 +766,7 @@ onBeforeUnmount(() => {
                     <NcButton
                       size="small"
                       theme="ai"
-                      type="primary"
+                      type="secondary"
                       class="nc-ai-button-test-generate"
                       :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length || !inputColumns.length"
                       :loading="aiLoading && generatingPreview"
@@ -815,12 +831,13 @@ onBeforeUnmount(() => {
                             <template v-for="field in outputFieldOptions">
                               <a-form-item
                                 v-if="field.title && outputColumnIds.includes(field.id)"
-                                :key="field.id"
+                                :key="`${field.id}-${generatingPreview}`"
                                 :name="field.title"
                                 class="!my-0 nc-input-required-error"
                               >
                                 <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                                  <component :is="cellIcon(field)" class="!mx-0" />
+                                  <SmartsheetHeaderIcon :column="field" class="!mx-0" />
+
                                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                                     <template #title>
                                       {{ field?.title }}
@@ -963,6 +980,10 @@ onBeforeUnmount(() => {
   @apply !rounded-lg;
   transition: all 0.3s;
 
+  &:has(.nc-cell-currency) {
+    @apply h-8;
+  }
+
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
     @apply !border-gray-200;
@@ -1010,6 +1031,15 @@ onBeforeUnmount(() => {
     }
   }
 }
+
+:deep(.nc-data-cell > .nc-cell-longtext) {
+  .long-text-wrapper {
+    & > div {
+      @apply max-h-50 nc-scrollbar-thin;
+    }
+  }
+}
+
 .nc-data-cell:focus-within {
   @apply !border-1 !border-purple-500;
 }

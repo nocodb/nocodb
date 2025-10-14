@@ -1,4 +1,5 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
+import type { UseEventBusReturn } from '@vueuse/core'
 import type { UseGlobalReturn } from './composables/useGlobal/types'
 import type { NocoI18n } from './lib'
 import type { TabType } from './composables'
@@ -11,7 +12,7 @@ declare module '#app' {
       emit: (event: string, data: any) => void
     }
     /** {@link import('./plugins/tele') Telemetry} Emit telemetry event */
-    $e: (event: string, data?: any) => void
+    $e: (event: string, data?: any, rootProps?: Record<string, any>) => void
     /** {@link import('./plugins/report') Error reporting} Error reporting */
     $report: (event: Error) => void
     $state: UseGlobalReturn
@@ -32,6 +33,16 @@ declare module '#app' {
         _mid = 0,
       ): Promise<void>
       unsubscribe(topic: { id: string }): Promise<void>
+    }
+    $ncSocket: {
+      id: () => string | null
+      onMessage: (evt: string, handler: (...args: any[]) => void) => string
+      offMessage: (listenerId: string) => void
+    }
+    $eventBus: {
+      smartsheetStoreEventBus: UseEventBusReturn<string, any>
+      realtimeBaseUserEventBus: UseEventBusReturn<string, any>
+      realtimeViewMetaEventBus: UseEventBusReturn<string, any>
     }
   }
 }

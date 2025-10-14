@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { UITypes } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 const { $e } = useNuxtApp()
@@ -8,9 +8,9 @@ const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, user } = useGlobal()
 
-const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
+const { isAllowed } = usePermissions()
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
@@ -26,15 +26,14 @@ provide(IsKanbanInj, ref(false))
 
 provide(IsCalendarInj, ref(true))
 
+const { allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 const {
   activeCalendarView, // The active Calendar View - "week" | "day" | "month" | "year"
   calendarRange, // calendar Ranges
   calDataType, // Calendar Data Type
-  loadCalendarMeta, // Function to load Calendar Meta
   loadCalendarData, // Function to load Calendar Data
   loadSidebarData, // Function to load Sidebar Data
   isCalendarDataLoading, // Boolean ref to check if Calendar Data is Loading
-  isCalendarMetaLoading, // Boolean ref to check if Calendar Meta is Loading
   fetchActiveDates, // Function to fetch Active Dates
   showSideMenu, // Boolean Ref to show Side Menu
 } = useCalendarViewStoreOrThrow()
@@ -86,12 +85,24 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
 }
 
 const newRecord = (row: RowType) => {
-  if (isPublic.value) return
+  if (isPublic.value || (meta.value?.id && !isAllowed(PermissionEntity.TABLE, meta.value?.id, PermissionKey.TABLE_RECORD_ADD))) {
+    return
+  }
 
   $e('c:calendar:new-record', activeCalendarView.value)
+
+  const rowFilters = getPlaceholderNewRow(
+    [...allFilters.value, ...validFiltersFromUrlParams.value],
+    meta.value?.columns as ColumnType[],
+    {
+      currentUser: user.value ?? undefined,
+    },
+  )
+
   expandRecord({
     row: {
       ...rowDefaultData(meta.value?.columns),
+      ...rowFilters,
       ...row.row,
     },
     oldRow: {},
@@ -102,15 +113,10 @@ const newRecord = (row: RowType) => {
 }
 
 onMounted(async () => {
-  await loadCalendarMeta()
   await loadCalendarData()
   if (!activeCalendarView.value) {
     activeCalendarView.value = 'month'
   }
-})
-
-reloadViewMetaHook?.on(async () => {
-  await loadCalendarMeta()
 })
 
 reloadViewDataHook?.on(
@@ -121,6 +127,15 @@ reloadViewDataHook?.on(
       fetchActiveDates(),
     ])
   }),
+)
+
+// on filter param changes reload the data
+// In calendar view we don't have toolbar search component, so we have to listen to route query changes to reload the data
+watch(
+  () => route?.query?.where,
+  () => {
+    reloadViewDataHook?.trigger()
+  },
 )
 </script>
 
@@ -138,7 +153,7 @@ reloadViewDataHook?.on(
   <template v-else>
     <div class="flex h-full relative flex-row" data-testid="nc-calendar-wrapper">
       <div class="flex flex-col w-full">
-        <template v-if="calendarRange?.length && !isCalendarMetaLoading">
+        <template v-if="calendarRange?.length">
           <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
           <template v-if="!isCalendarDataLoading">
             <LazySmartsheetCalendarMonthView
@@ -179,11 +194,6 @@ reloadViewDataHook?.on(
             v-if="isCalendarDataLoading && activeCalendarView !== 'year'"
             class="flex w-full items-center h-full justify-center"
           >
-            <GeneralLoader size="xlarge" />
-          </div>
-        </template>
-        <template v-else-if="isCalendarMetaLoading">
-          <div class="flex w-full items-center h-full justify-center">
             <GeneralLoader size="xlarge" />
           </div>
         </template>

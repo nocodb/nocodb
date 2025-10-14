@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ColumnHelper, type ColumnType, UITypes } from 'nocodb-sdk'
-import { AllowedColumnTypesForQrAndBarcodes, isVirtualCol } from 'nocodb-sdk'
+import { AllowedColumnTypesForQrAndBarcodes } from 'nocodb-sdk'
 import { supportedBarcodeFormats } from '~/helpers/columnDefaultMeta'
 
 const props = defineProps<{
@@ -13,7 +13,8 @@ const { fields, metaColumnById } = useViewColumnsOrThrow()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations, validateInfos, column, isEdit } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, setAvoidShowingToastMsgForValidations, validateInfos, column, isEdit } =
+  useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -52,12 +53,12 @@ setAdditionalValidations({
   barcode_format: [{ required: true, message: t('general.required') }],
 })
 
-const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeValue.value?.length)
+setAvoidShowingToastMsgForValidations({
+  fk_barcode_value_column_id: true,
+  barcode_format: true,
+})
 
-const cellIcon = (column: ColumnType) =>
-  h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
-    columnMeta: column,
-  })
+const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeValue.value?.length)
 </script>
 
 <template>
@@ -79,7 +80,8 @@ const cellIcon = (column: ColumnType) =>
           <a-select-option v-for="(option, index) of columnsAllowedAsBarcodeValue" :key="index" :value="option.id">
             <div class="w-full flex gap-2 truncate items-center justify-between" :data-testid="`nc-barcode-${option.title}`">
               <div class="inline-flex items-center gap-2 flex-1 truncate">
-                <component :is="cellIcon(option)" :column-meta="option" class="!mx-0" />
+                <SmartsheetHeaderIcon :column="option" class="!mx-0" color="text-nc-content-gray-subtle2" />
+
                 <div class="truncate flex-1">{{ option.title }}</div>
               </div>
 

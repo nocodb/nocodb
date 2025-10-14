@@ -7,12 +7,15 @@ const props = withDefaults(
     tableId: string
     viewId?: string
     modelValue: Row
+    disabled?: boolean
     fields?: string[]
+    version?: 'v3' | 'v2'
     allowRecordCreation?: boolean
     records?: Row[]
   }>(),
   {
     label: '- select a record -',
+    version: 'v2',
   },
 )
 
@@ -20,7 +23,11 @@ const emits = defineEmits<{
   'update:modelValue': (value: Row) => void
 }>()
 
+const { internalApi } = useApi()
+
 const searchQuery = ref('')
+
+const debouncedSearch = refDebounced(searchQuery, 200)
 
 const ncRecordPickerDropdownRef = ref<HTMLDivElement>()
 
@@ -107,11 +114,40 @@ onMounted(async () => {
   await loadMetas()
 })
 
-const resolveInput = (row: Row) => {
-  vModel.value = row
+provide(MetaInj, tableMeta)
+
+const displayField = computed(() => (tableMeta?.value?.columns ?? []).find((c) => c.pv))
+
+const localState = ref()
+const resolveInput = async (row: Row) => {
+  localState.value = row
+  if (props.version === 'v2') {
+    vModel.value = row
+  } else {
+    const rowId = extractPkFromRow(row?.row, tableMeta?.value?.columns ?? [])
+    try {
+      const data = await internalApi.dbDataTableRowRead(tableMeta?.value?.base_id, tableMeta?.value?.id, rowId, {
+        fields: props.fields,
+      })
+      vModel.value = data
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   isOpen.value = false
 }
+
 const filterQueryRef = ref<{ input: HTMLInputElement }>()
+
+const recordsRef = ref()
+
+const isValidSearchQuery = computed(() => {
+  if (!recordsRef.value) return true
+
+  return recordsRef.value?.isValidSearchQuery
+})
+
 whenever(isOpen, () => {
   if (!isOpen.value) return
   setTimeout(() => {
@@ -123,21 +159,35 @@ whenever(isOpen, () => {
 <template>
   <NcDropdown
     v-model:visible="isOpen"
+    :disabled="props.disabled"
     :trigger="['click']"
     :class="`.nc-${randomClass}`"
-    :overlay-class-name="`nc-record-picker-dropdown !min-w-[540px] xs:(!min-w-[90vw]) ${isOpen ? 'active' : ''}`"
+    :overlay-class-name="`nc-record-picker-dropdown overflow-hidden !min-w-[540px] xs:(!min-w-[90vw]) ${isOpen ? 'active' : ''}`"
   >
     <NcButton
       type="secondary"
       size="small"
+      :disabled="disabled"
       icon-position="right"
       full-width
-      :class="{ 'record-picker-active': isOpen }"
-      class="hover:!bg-nc-bg-gray-extralight"
+      :class="{ 'record-picker-active': isOpen, '!bg-[#F5F5F5]': disabled }"
+      class="!border-[#d9d9d9]"
     >
-      <span class="truncate text-left !leading-[1.5]">{{ props.label }}</span>
+      <span v-if="displayField && localState?.row" class="truncate text-left !leading-[1.5]">
+        <SmartsheetPlainCell :model-value="localState?.row[displayField.title]" :column="displayField" />
+      </span>
+      <span
+        v-else
+        :class="{
+          'text-[rgba(0,0,0,.25)]': disabled,
+        }"
+        class="truncate text-left !leading-[1.5]"
+      >
+        {{ props.label }}
+      </span>
+
       <template #icon>
-        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="self-center" />
+        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="self-center text-gray-700" />
       </template>
     </NcButton>
 
@@ -157,16 +207,22 @@ whenever(isOpen, () => {
                 <template #prefix>
                   <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
                 </template>
+                <template v-if="!isValidSearchQuery" #suffix>
+                  <NcTooltip :title="$t('msg.error.invalidSearchQueryForVisibleFields')" class="flex">
+                    <GeneralIcon icon="ncInfo" class="flex-noneh-4 w-4 text-nc-content-red-medium" />
+                  </NcTooltip>
+                </template>
               </a-input>
             </div>
           </div>
           <NRecordPickerRecords
             v-if="!isLoading"
+            ref="recordsRef"
             :view-meta="viewMeta"
             :data="records"
             :fields="fields"
             :meta="tableMeta"
-            :where="searchQuery"
+            :where="debouncedSearch"
             @resolve="resolveInput"
           />
         </div>

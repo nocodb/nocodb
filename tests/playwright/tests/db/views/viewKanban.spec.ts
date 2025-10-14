@@ -20,20 +20,20 @@ test.describe('View', () => {
     toolbar = toolbar = dashboard.kanban.toolbar;
     topbar = dashboard.kanban.topbar;
 
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     if (isSqlite(context)) {
-      await dashboard.treeView.deleteTable({ title: 'FilmList' });
+      await dashboard.treeView.deleteTable({ title: 'FilmList', baseTitle: context.base.title });
     }
 
     if (isPg(context)) {
       // Since these view depend on the Ratings column of the Film table
-      await dashboard.treeView.deleteTable({ title: 'NicerButSlowerFilmList' });
-      await dashboard.treeView.deleteTable({ title: 'FilmList' });
+      await dashboard.treeView.deleteTable({ title: 'NicerButSlowerFilmList', baseTitle: context.base.title });
+      await dashboard.treeView.deleteTable({ title: 'FilmList', baseTitle: context.base.title });
     }
 
     // in hub, after table delete- first table in the list gets rendered
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     if (isSqlite(context) || isPg(context)) {
       await dashboard.grid.column.openEdit({ title: 'Rating', type: 'SingleSelect' });

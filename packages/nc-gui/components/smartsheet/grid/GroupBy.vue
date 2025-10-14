@@ -361,7 +361,7 @@ async function openNewRecordHandler() {
       </div>
       <div :class="{ 'pl-2': vGroup.root === true }">
         <a-collapse
-          v-model:activeKey="_activeGroupKeys"
+          v-model:active-key="_activeGroupKeys"
           class="nc-group-wrapper !rounded-lg"
           :bordered="false"
           @change="findAndLoadSubGroup"

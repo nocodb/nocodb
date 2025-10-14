@@ -4,6 +4,7 @@ import {
   getAvailableRollupForUiType,
   RelationTypes,
   UITypes,
+  WebhookActions,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { REGEXSTR_INTL_LETTER, REGEXSTR_NUMERIC_ARABIC } from 'nocodb-sdk';
@@ -21,6 +22,7 @@ import type LookupColumn from '~/models/LookupColumn';
 import type Model from '~/models/Model';
 import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
+import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -50,6 +52,7 @@ export async function createHmAndBtColumn(
   colExtra?: any,
   parentColumn?: Column,
   isCustom = false,
+  columnWebhookManager?: ColumnWebhookManager,
 ) {
   let savedColumn: Column;
   let crossBaseProps: {
@@ -101,6 +104,10 @@ export async function createHmAndBtColumn(
         },
       },
     );
+    await columnWebhookManager?.addNewColumnById({
+      columnId: childRelCol.id,
+      action: WebhookActions.INSERT,
+    });
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: child,
@@ -152,6 +159,10 @@ export async function createHmAndBtColumn(
         ...crossBaseProps,
       },
     );
+    await columnWebhookManager?.addNewColumnById({
+      columnId: savedColumn.id,
+      action: WebhookActions.INSERT,
+    });
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: parent,
@@ -195,6 +206,7 @@ export async function createOOColumn(
   colExtra?: any,
   parentColumn?: Column,
   isCustom = false,
+  columnWebhookManager?: ColumnWebhookManager,
 ) {
   let savedColumn: Column;
 
@@ -251,6 +263,10 @@ export async function createOOColumn(
       },
     );
 
+    await columnWebhookManager?.addNewColumnById({
+      columnId: childRelCol.id,
+      action: WebhookActions.INSERT,
+    });
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table: child,
       column: childRelCol,
@@ -305,6 +321,10 @@ export async function createOOColumn(
       ...crossBaseProps,
     });
 
+    await columnWebhookManager?.addNewColumnById({
+      columnId: savedColumn.id,
+      action: WebhookActions.INSERT,
+    });
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table: parent,
       column: savedColumn,
@@ -329,6 +349,7 @@ export async function validateRollupPayload(
       'rollup_function',
     ],
     payload,
+    context,
   );
 
   const relation = await (
@@ -357,15 +378,16 @@ export async function validateRollupPayload(
   }
 
   const relatedTable = await relatedColumn.getModel(context);
-  if (
-    !(await relatedTable.getColumns(context)).find(
-      (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
-    )
-  )
+
+  const rollupColumn = (await relatedTable.getColumns(context)).find(
+    (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
+  );
+
+  if (!rollupColumn)
     throw new Error('Rollup column not found in related table');
 
   if (
-    !getAvailableRollupForUiType(relatedColumn.uidt).includes(
+    !getAvailableRollupForUiType(rollupColumn.uidt).includes(
       (payload as RollupColumnReqType).rollup_function,
     )
   ) {
@@ -385,6 +407,7 @@ export async function validateLookupPayload(
   validateParams(
     ['title', 'fk_relation_column_id', 'fk_lookup_column_id'],
     payload,
+    context,
   );
 
   // check for circular reference
@@ -621,4 +644,71 @@ export const getMMColumnNames = (parent: Model, child: Model) => {
     parentCn,
     childCn,
   };
+};
+
+export const TableSystemColumns = () => [
+  {
+    column_name: 'id',
+    title: 'Id',
+    uidt: UITypes.ID,
+    allowNonSystem: false,
+    system: false,
+  },
+  {
+    column_name: 'created_at',
+    title: 'CreatedAt',
+    uidt: UITypes.CreatedTime,
+    allowNonSystem: true,
+    system: true,
+  },
+  {
+    column_name: 'updated_at',
+    title: 'UpdatedAt',
+    uidt: UITypes.LastModifiedTime,
+    allowNonSystem: true,
+    system: true,
+  },
+  {
+    column_name: 'created_by',
+    title: 'nc_created_by',
+    uidt: UITypes.CreatedBy,
+    allowNonSystem: true,
+    system: true,
+  },
+  {
+    column_name: 'updated_by',
+    title: 'nc_updated_by',
+    uidt: UITypes.LastModifiedBy,
+    allowNonSystem: true,
+    system: true,
+  },
+  {
+    column_name: 'nc_order',
+    title: 'nc_order',
+    uidt: UITypes.Order,
+    allowNonSystem: false,
+    system: true,
+  },
+];
+
+export const deleteColumnSystemPropsFromRequest = (col: any) => {
+  // remove all properties not in documentations
+  delete col.dt;
+  delete col.np;
+  delete col.ns;
+  delete col.clen;
+  delete col.cop;
+  delete col.pk;
+  delete col.rqd;
+  delete col.un;
+  delete col.ai;
+  delete col.unique;
+  delete col.cc;
+  delete col.csn;
+  delete col.dtx;
+  // dtxs is scale, used in decimal uidt
+  // delete col.dtxs;
+  delete col.au;
+  delete col.validate;
+  delete col.system;
 };

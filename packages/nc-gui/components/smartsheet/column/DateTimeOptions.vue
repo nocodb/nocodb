@@ -66,6 +66,7 @@ const useSameTimezoneForAll = computed({
           class="nc-date-select"
           dropdown-class-name="nc-dropdown-date-format"
           :disabled="isSystem"
+          show-search
         >
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-gray-700" />

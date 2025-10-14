@@ -1,25 +1,49 @@
-import type { AuditType, ColumnType, MetaType, PlanLimitExceededDetailsType, TableType } from 'nocodb-sdk'
-import { PlanLimitTypes, ViewTypes, isReadOnlyColumn, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import type {
+  AuditType,
+  ColumnType,
+  CommentPayload,
+  DataPayload,
+  MetaType,
+  PlanLimitExceededDetailsType,
+  TableType,
+} from 'nocodb-sdk'
+import {
+  EventType,
+  PermissionEntity,
+  PermissionKey,
+  PlanLimitTypes,
+  ViewTypes,
+  isAIPromptCol,
+  isHiddenCol,
+  isReadOnlyColumn,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
 
+interface AuditTypeExtended extends AuditType {
+  created_display_name?: string
+  created_display_name_short?: string
+  created_by_email?: string
+  created_by_meta?: MetaType
+}
+
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
-  (meta: Ref<TableType>, _row: Ref<Row>, maintainDefaultViewOrder: Ref<boolean>, useMetaFields: boolean) => {
-    const { $e, $state, $api } = useNuxtApp()
+  (
+    meta: Ref<TableType>,
+    _row: Ref<Row>,
+    maintainDefaultViewOrder: Ref<boolean>,
+    useMetaFields: boolean,
+    allowNullFieldIds?: string[],
+  ) => {
+    const { $e, $state, $api, $ncSocket } = useNuxtApp()
 
     const { t } = useI18n()
 
     const isPublic = inject(IsPublicInj, ref(false))
 
-    const audits = ref<
-      Array<
-        AuditType & {
-          created_display_name?: string
-          created_by_email?: string
-          created_by_meta?: MetaType
-        }
-      >
-    >([])
+    const audits = ref<Array<AuditTypeExtended>>([])
 
     const isAuditLoading = ref(false)
 
@@ -27,7 +51,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const saveRowAndStay = ref(0)
 
-    const changedColumns = ref(new Set<string>())
+    const changedColumns = ref<Set<string>>(new Set<string>())
+
+    const localOnlyChanges = ref<Record<string, any>>({})
 
     const basesStore = useBases()
 
@@ -51,7 +77,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     if (row.value?.rowMeta?.fromExpandedForm) {
       row.value.rowMeta.fromExpandedForm = true
     }
-    const rowStore = useProvideSmartsheetRowStore(row)
+    const rowStore = useProvideSmartsheetRowStore(row, changedColumns)
 
     const activeView = inject(ActiveViewInj, ref())
 
@@ -66,6 +92,20 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
 
+    const { isAllowed } = usePermissions()
+
+    const isAllowedAddNewRecord = computed(() => {
+      if (!isEeUI) return true
+
+      return meta.value?.id && isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD)
+    })
+
+    const getIsAllowedEditField = (fieldId: string) => {
+      if (!isEeUI) return true
+
+      return fieldId && isAllowed(PermissionEntity.FIELD, fieldId, PermissionKey.RECORD_FIELD_EDIT)
+    }
+
     // getters
     const displayValue = computed(() => {
       if (row?.value?.row) {
@@ -79,7 +119,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
-    const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
+    const { fieldsMap, isLocalMode, showSystemFields } = useViewColumnsOrThrow()
+
+    const isHiddenColumnInNewRecord = (col: ColumnType) => {
+      return isReadOnlyColumn(col) || isAIPromptCol(col)
+    }
 
     /**
      * Injects the fields from the parent component if available.
@@ -103,10 +147,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           return (meta.value.columns ?? [])
             .filter(
               (col) =>
+                !isHiddenCol(col, meta.value ?? {}) &&
                 !isSystemColumn(col) &&
-                !!col.meta?.defaultViewColVisibility &&
+                !!(col.meta?.defaultViewColVisibility ?? true) &&
                 // if new record, then hide readonly fields
-                (!rowStore.isNew.value || !isReadOnlyColumn(col)),
+                (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
             )
             .sort((a, b) => {
               return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
@@ -115,19 +160,20 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
         return (meta.value.columns ?? []).filter(
           (col) =>
+            !isHiddenCol(col, meta.value ?? {}) &&
             // if new record, then hide readonly fields
-            (!rowStore.isNew.value || !isReadOnlyColumn(col)) &&
+            (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)) &&
             // exclude system columns
             !isSystemColumn(col) &&
             // exclude hidden columns
-            !!col.meta?.defaultViewColVisibility,
+            !!(col.meta?.defaultViewColVisibility ?? true),
         )
       }
 
       // If `props.useMetaFields` is not enabled, use fields from the parent component
       if (fieldsFromParent.value) {
         if (rowStore.isNew.value) {
-          return fieldsFromParent.value.filter((col) => !isReadOnlyColumn(col))
+          return fieldsFromParent.value.filter((col) => !isHiddenColumnInNewRecord(col))
         }
 
         return fieldsFromParent.value
@@ -138,26 +184,35 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const hiddenFields = computed(() => {
       // todo: figure out when meta.value is undefined
-      const hiddenFields = (meta.value?.columns ?? []).filter(
+      const _hiddenFields = (meta.value?.columns ?? []).filter(
         (col) =>
-          !isSystemColumn(col) &&
+          !isHiddenCol(col, meta.value ?? {}) &&
+          (!useMetaFields || !isSystemColumn(col)) &&
           !fields.value?.includes(col) &&
           (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
           // exclude readonly fields from hidden fields if new record creation
-          (!rowStore.isNew.value || !isReadOnlyColumn(col)),
+          (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
       )
       if (useMetaFields) {
         return maintainDefaultViewOrder.value
-          ? hiddenFields.sort((a, b) => {
+          ? _hiddenFields.sort((a, b) => {
               return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
             })
-          : hiddenFields
+          : _hiddenFields
       }
       // record from same view and same table (not linked)
       else {
-        return hiddenFields.sort((a, b) => {
-          return (fieldsMap.value[a.id]?.order ?? Infinity) - (fieldsMap.value[b.id]?.order ?? Infinity)
-        })
+        return _hiddenFields
+          .filter((col) => {
+            if (rowStore.isNew.value || !showSystemFields.value) {
+              return !isSystemColumn(col)
+            }
+
+            return true
+          })
+          .sort((a, b) => {
+            return (fieldsMap.value[a.id]?.order ?? Infinity) - (fieldsMap.value[b.id]?.order ?? Infinity)
+          })
       }
     })
 
@@ -170,14 +225,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     })
 
     const currentAuditCursor = ref('')
-    const mightHaveMoreAudits = ref(false)
+    const hasMoreAudits = ref(false)
 
     const loadAudits = async (_rowId?: string, showLoading = true) => {
       if (!isUIAllowed('recordAuditList') || (!row.value && !_rowId)) return
 
       const rowId = _rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
-      if (!rowId || !base.value.fk_workspace_id || !meta.value.base_id) return
+      if (!rowId || !meta.value.base_id) return
 
       try {
         if (showLoading) {
@@ -185,7 +240,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         }
 
         const response = await $api.internal.getOperation(
-          base.value.fk_workspace_id,
+          base.value.fk_workspace_id ?? NO_SCOPE,
           (meta.value.base_id as string) ?? (base.value.id as string),
           {
             operation: 'recordAuditList',
@@ -195,14 +250,16 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           },
         )
 
+        // Skip insert as it will be first for all
+        response.list = response.list.filter((audit) => !audit?.op_type.includes('INSERT'))
+
         const lastRecord = response.list?.[response.list.length - 1]
 
         if (lastRecord) {
           currentAuditCursor.value = auditToCursor(lastRecord)
-          mightHaveMoreAudits.value = true
-        } else {
-          mightHaveMoreAudits.value = false
         }
+
+        hasMoreAudits.value = !response.pageInfo?.isLastPage
 
         const res = response.list?.reverse?.() || []
 
@@ -211,7 +268,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             const user = baseUsers.value.find((u) => u.id === audit.fk_user_id || u.email === audit.user)
             return {
               ...audit,
-              created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+              created_display_name: user?.display_name,
+              created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
               created_by_email: user?.email,
               created_by_meta: user?.meta,
             }
@@ -261,7 +319,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     }
 
     const loadMoreAudits = async () => {
-      if (!mightHaveMoreAudits.value) {
+      if (!hasMoreAudits.value) {
         return
       }
       await loadAudits()
@@ -270,7 +328,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const resetAuditPages = async () => {
       currentAuditCursor.value = ''
       audits.value = []
-      mightHaveMoreAudits.value = false
+      hasMoreAudits.value = false
       await loadAudits()
     }
 
@@ -310,6 +368,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           getMeta,
           row: row.value.row,
           throwError: true,
+          allowNullFieldIds,
         })
 
         if (missingRequiredColumns.size) return
@@ -712,6 +771,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       const adts = [...consolidatedAudits.value].map((it) => ({
         user: it.user,
         displayName: it.created_display_name,
+        displayNameShort: it.created_display_name_short,
         created_at: it.created_at,
         type: 'audit',
         audit: it,
@@ -721,6 +781,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         ...it,
         user: it.created_by_email,
         displayName: it.created_display_name,
+        displayNameShort: it.created_display_name_short,
         type: 'comment',
       }))
 
@@ -740,6 +801,110 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
+    const activeDataListener = ref<string | null>(null)
+    const activeCommentListener = ref<string | null>(null)
+
+    watch(
+      meta,
+      (newMeta, oldMeta) => {
+        if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
+          if (oldMeta?.id && oldMeta.id === newMeta.id) return
+
+          if (activeDataListener.value) {
+            $ncSocket.offMessage(activeDataListener.value)
+          }
+
+          if (activeCommentListener.value) {
+            $ncSocket.offMessage(activeCommentListener.value)
+          }
+
+          activeDataListener.value = $ncSocket.onMessage(
+            `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            (data: DataPayload) => {
+              const { id, action, payload } = data
+
+              const activePk = extractPkFromRow(row.value.row, meta.value?.columns as ColumnType[])
+
+              if (`${id}` === activePk) {
+                if (action === 'update') {
+                  try {
+                    if (payload) {
+                      // Merge payload with local row, but preserve locally changed columns
+                      const mergedRow = { ...row.value.row, ...payload }
+                      for (const col of changedColumns.value) {
+                        if (Object.prototype.hasOwnProperty.call(row.value.row, col)) {
+                          mergedRow[col] = row.value.row[col]
+                          if (row.value.row[col] !== payload[col]) {
+                            localOnlyChanges.value[col] = payload[col]
+                          }
+                        }
+                      }
+                      Object.assign(row.value, {
+                        row: mergedRow,
+                        oldRow: { ...mergedRow },
+                      })
+                      // Do NOT clear changedColumns here, as we want to preserve local changes
+                    } else {
+                      console.warn('No payload provided for update action')
+                    }
+                  } catch (e) {
+                    console.error('Failed to update cached row on socket event', e)
+                  }
+                } else if (action === 'delete') {
+                  try {
+                    //
+                  } catch (e) {
+                    console.error('Failed to delete cached row on socket event', e)
+                  }
+                }
+              }
+            },
+          )
+
+          activeCommentListener.value = $ncSocket.onMessage(
+            `${EventType.COMMENT_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            (data: CommentPayload) => {
+              const { action, id, payload } = data
+
+              if (primaryKey.value && `${id}` === `${primaryKey.value}`) {
+                const commentId = payload.id
+                const user = baseUsers.value.find((u) => u.id === payload.created_by)
+                const finalPayload = {
+                  ...payload,
+                  created_display_name: user?.display_name,
+                  created_display_name_short: user?.display_name ?? extractNameFromEmail(user?.email),
+                  created_by_email: user?.email,
+                  created_by_meta: user?.meta,
+                }
+
+                if (action === 'add') {
+                  comments.value.push(finalPayload)
+                } else if (action === 'update') {
+                  const index = comments.value.findIndex((comment) => comment.id === commentId)
+                  if (index !== -1) {
+                    comments.value[index] = finalPayload
+                  }
+                } else if (action === 'delete') {
+                  comments.value = comments.value.filter((comment) => comment.id !== commentId)
+                }
+              }
+            },
+          )
+        }
+      },
+      { immediate: true },
+    )
+
+    const unsubscribeActiveChannels = (): void => {
+      ;[activeDataListener.value, activeCommentListener.value].filter(Boolean).forEach((channel) => {
+        $ncSocket.offMessage(channel!)
+      })
+    }
+
+    onBeforeUnmount(() => {
+      unsubscribeActiveChannels()
+    })
+
     return {
       ...rowStore,
       loadComments,
@@ -751,7 +916,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       clearColumns,
       auditCommentGroups,
       consolidatedAudits,
-      mightHaveMoreAudits,
+      hasMoreAudits,
       loadMoreAudits,
       resetAuditPages,
       resolveComment,
@@ -764,6 +929,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       displayValue,
       save,
       changedColumns,
+      localOnlyChanges,
       loadRow,
       primaryKey,
       saveRowAndStay,
@@ -772,6 +938,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       fieldsFromParent,
       fields,
       hiddenFields,
+      isAllowedAddNewRecord,
+      getIsAllowedEditField,
+      meta,
     }
   },
   'expanded-form-store',

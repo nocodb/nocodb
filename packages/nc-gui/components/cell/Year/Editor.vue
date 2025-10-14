@@ -13,7 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
-const { showNull } = useGlobal()
+const { showNull, isMobileMode } = useGlobal()
 
 const column = inject(ColumnInj, null)!
 
@@ -318,7 +318,7 @@ onMounted(() => {
         :value="localState?.format('YYYY') ?? ''"
         :placeholder="placeholder"
         class="nc-year-input border-none outline-none !text-current bg-transparent !focus:(border-none outline-none ring-transparent)"
-        :readonly="readOnly"
+        :readonly="readOnly || !!isMobileMode"
         @blur="onBlur"
         @keydown="handleKeydown($event, open)"
         @mouseup.stop

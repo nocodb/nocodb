@@ -70,7 +70,7 @@ test.describe('Links', () => {
   });
 
   test('drag drop for Link, lookup creation', async () => {
-    await dashboard.treeView.openTable({ title: 'Table0' });
+    await dashboard.treeView.openTable({ title: 'Table0', baseTitle: context.base.title });
     const src = dashboard.rootPage.locator(`[data-testid="tree-view-table-draggable-handle-Table1"]`);
     const dst = dashboard.rootPage.locator(`[data-testid="grid-row-0"]`);
 

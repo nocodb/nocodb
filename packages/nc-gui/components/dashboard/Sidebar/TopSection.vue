@@ -81,7 +81,7 @@ const navigateToIntegrations = () => {
         </div>
       </NcButton>
       <NcButton
-        v-if="isUIAllowed('workspaceSettings')"
+        v-if="isUIAllowed('workspaceIntegrations')"
         v-e="['c:integrations']"
         type="text"
         size="xsmall"

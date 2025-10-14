@@ -203,6 +203,32 @@ export enum AppEvents {
   DATA_EXPORT = 'data.export',
   DATA_IMPORT = 'data.import',
   USER_PROFILE_UPDATE = 'user.profile.update',
+
+  SCRIPT_CREATE = 'script.create',
+  SCRIPT_DELETE = 'script.delete',
+  SCRIPT_UPDATE = 'script.update',
+  SCRIPT_DUPLICATE = 'script.duplicate',
+
+  DASHBOARD_CREATE = 'dashboard.create',
+  DASHBOARD_UPDATE = 'dashboard.update',
+  DASHBOARD_DELETE = 'dashboard.delete',
+
+  SHARED_DASHBOARD_GENERATE_LINK = 'shared.dashboard.generate.link',
+  SHARED_DASHBOARD_UPDATE_LINK = 'shared.dashboard.update.link',
+  SHARED_DASHBOARD_DELETE_LINK = 'shared.dashboard.delete.link',
+
+  DASHBOARD_DUPLICATE_START = 'dashboard.duplicate.start',
+  DASHBOARD_DUPLICATE_COMPLETE = 'dashboard.duplicate.complete',
+  DASHBOARD_DUPLICATE_FAIL = 'dashboard.duplicate.fail',
+
+  WIDGET_CREATE = 'widget.create',
+  WIDGET_UPDATE = 'widget.update',
+  WIDGET_DELETE = 'widget.delete',
+  WIDGET_DUPLICATE = 'widget.duplicate',
+
+  PERMISSION_CREATE = 'permission.create',
+  PERMISSION_UPDATE = 'permission.update',
+  PERMISSION_DELETE = 'permission.delete',
 }
 
 export enum ClickhouseTables {
@@ -360,7 +386,6 @@ export enum SourceRestriction {
 
 export enum ClientType {
   MYSQL = 'mysql2',
-  MSSQL = 'mssql',
   PG = 'pg',
   SQLITE = 'sqlite3',
   VITESS = 'vitess',
@@ -480,4 +505,36 @@ export enum NcApiVersion {
   V1,
   V2,
   V3,
+}
+
+export enum HookOperationCode {
+  insert = 1 << 0, // 1
+  update = 1 << 1, // 2
+  delete = 1 << 2, // 4
+  trigger = 1 << 3, // 8
+}
+
+export enum WebhookActions {
+  INSERT = 'insert',
+  UPDATE = 'update',
+  DELETE = 'delete',
+}
+
+export enum WebhookEvents {
+  AFTER = 'after',
+  BEFORE = 'before',
+  MANUAL = 'manual',
+  VIEW = 'view',
+  FIELD = 'field',
+}
+
+export enum ViewSettingOverrideOptions {
+  FIELD_VISIBILITY = 'fieldVisibility',
+  FIELD_ORDER = 'fieldOrder',
+  COLUMN_WIDTH = 'columnWidth',
+  ROW_HEIGHT = 'rowHeight',
+  FILTER_CONDITION = 'filterCondition',
+  SORT = 'sort',
+  GROUP = 'group',
+  ROW_COLORING = 'rowColoring',
 }

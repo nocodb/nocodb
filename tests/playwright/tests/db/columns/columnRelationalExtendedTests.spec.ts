@@ -20,7 +20,7 @@ test.describe('Relational Columns', () => {
     //
 
     const cityList = [['Kabul'], ['Batna', 'Bchar', 'Skikda']];
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
     for (let i = 0; i < cityList.length; i++) {
       await dashboard.grid.cell.verifyVirtualCell({
         index: i,
@@ -60,7 +60,7 @@ test.describe('Relational Columns', () => {
 
     ///////////// Belongs to
     //
-    await dashboard.treeView.openTable({ title: 'City' });
+    await dashboard.treeView.openTable({ title: 'City', baseTitle: context.base.title });
     await dashboard.grid.toolbar.fields.toggle({ title: 'Country', isLocallySaved: false, checked: true });
     const countryList = [['Spain'], ['Saudi Arabia']];
     for (let i = 0; i < countryList.length; i++) {
@@ -75,7 +75,7 @@ test.describe('Relational Columns', () => {
 
     ///////////// Many to many
     //
-    await dashboard.treeView.openTable({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
     await dashboard.grid.toolbar.fields.toggle({ title: 'Films', isLocallySaved: false, checked: true });
     const filmList = [
       [

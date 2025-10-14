@@ -1,14 +1,23 @@
 <script setup lang="ts">
-import { UITypes, isHiddenCol, jsepCurlyHook } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isHiddenCol, jsepCurlyHook } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
-import { KeyCode, type editor as MonacoEditor, Position, Range, languages, editor as monacoEditor } from 'monaco-editor'
+import {
+  KeyCode,
+  MarkerSeverity,
+  type editor as MonacoEditor,
+  Position,
+  Range,
+  languages,
+  editor as monacoEditor,
+} from 'monaco-editor'
 import jsep from 'jsep'
 import formulaLanguage from '../../monaco/formula'
 import { isCursorInsideString } from '../../../utils/formulaUtils'
 
 interface Props {
   error?: boolean
+  editorError?: { isError: boolean; message: string; position: { column: number; row: number; length: number } }
   value: string
   label?: string
   editorHeight?: string
@@ -25,7 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits(['update:value'])
 
-const { error, suggestionHeight, editorHeight } = toRefs(props)
+const { suggestionHeight, editorHeight } = toRefs(props)
 
 const value = useVModel(props, 'value', emits)
 
@@ -36,8 +45,6 @@ const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.
 const { sqlUi, column, fromTableExplorer, validateInfos } = useColumnCreateStoreOrThrow()
 
 const { isAiModeFieldModal } = usePredictFields()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const meta = inject(MetaInj, ref())
 
@@ -67,8 +74,6 @@ const availableFunctions = formulaList
 
 const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=', '&']
 
-const autocomplete = ref(false)
-
 const variableListRef = ref<(typeof AntListItem)[]>([])
 
 const sugOptionsRef = ref<(typeof AntListItem)[]>([])
@@ -83,8 +88,13 @@ const sortOrder: Record<string, number> = {
   op: 2,
 }
 
+const getIcon = (c: ColumnType) =>
+  h(resolveComponent('SmartsheetHeaderIcon'), {
+    column: c,
+  })
+
 const suggestionsList = computed(() => {
-  const unsupportedFnList = sqlUi.value.getUnsupportedFnList()
+  const unsupportedFnList = sqlUi.value?.getUnsupportedFnList() || []
   return (
     [
       ...availableFunctions.map((fn: string) => ({
@@ -107,7 +117,7 @@ const suggestionsList = computed(() => {
         .map((c: any) => ({
           text: c.title,
           type: 'column',
-          icon: getUIDTIcon(c.uidt) ? markRaw(getUIDTIcon(c.uidt)!) : undefined,
+          icon: markRaw(getIcon(c)),
           uidt: c.uidt,
         })),
       ...availableBinOps.map((op: string) => ({
@@ -150,6 +160,7 @@ const variableList = computed(() => {
 
 const monacoRoot = ref<HTMLDivElement>()
 let editor: MonacoEditor.IStandaloneCodeEditor
+let model: MonacoEditor.ITextModel
 
 function getCurrentKeyword() {
   const model = editor.getModel()
@@ -169,7 +180,7 @@ const handleInputDeb = useDebounceFn(function () {
 
 onMounted(async () => {
   if (monacoRoot.value) {
-    const model = monacoEditor.createModel(value.value, 'formula')
+    model = monacoEditor.createModel(value.value, 'formula')
 
     languages.register({
       id: formulaLanguage.name,
@@ -232,6 +243,8 @@ onMounted(async () => {
       'minimap': {
         enabled: false,
       },
+      // Don't suggest words from the document, shown when typing COUNT(C
+      'wordBasedSuggestions': 'off',
     })
 
     editor.layout({
@@ -255,7 +268,6 @@ onMounted(async () => {
 
       // IF cursor is inside string, don't show any suggestions
       if (isCursorInsideString(text, offset)) {
-        autocomplete.value = false
         suggestion.value = []
       } else {
         handleInput()
@@ -423,7 +435,6 @@ function appendText(item: Record<string, any>) {
   } else {
     insertStringAtPosition(editor, text, true)
   }
-  autocomplete.value = false
   wordToComplete.value = ''
 
   if (item.type === 'function' || item.type === 'op') {
@@ -480,7 +491,6 @@ function handleInput() {
 
   // IF cursor is inside string, don't show any suggestions
   if (isCursorInsideString(text, offset)) {
-    autocomplete.value = false
     suggestion.value = []
     return
   }
@@ -508,8 +518,6 @@ function handleInput() {
   } else if (!showFunctionList.value) {
     showFunctionList.value = true
   }
-
-  autocomplete.value = !!suggestion.value.length
 }
 
 function selectText() {
@@ -618,7 +626,7 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-const { aiIntegrationAvailable, aiLoading, predictFormula, repairFormula } = useNocoAi()
+const { isAiFeaturesEnabled, aiIntegrationAvailable, aiLoading, predictFormula, repairFormula } = useNocoAi()
 
 enum AI_MODE {
   NONE = 'none',
@@ -671,6 +679,30 @@ const enableAI = async () => {
     aiMode.value = AI_MODE.PROMPT
   }
 }
+
+// set monaco module markers every editor error change
+watch(
+  () => props.editorError,
+  (value) => {
+    if (value?.isError) {
+      monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [
+        {
+          startLineNumber: value.position.row + 1,
+          startColumn: value.position.column + 1,
+          endLineNumber: value.position.row + 1,
+          endColumn: value.position.column + 1 + value.position.length,
+          message: value.message,
+          severity: MarkerSeverity.Error,
+        },
+      ])
+    } else {
+      monacoEditor.setModelMarkers(editor.getModel()!, 'owner', [])
+    }
+  },
+)
+const validationErrorDisplay = computed(() => {
+  return props.editorError?.isError ? { validateStatus: 'success' } : validateInfos.formula_raw
+})
 </script>
 
 <template>
@@ -722,23 +754,24 @@ const enableAI = async () => {
       </a>
     </div>
   </div>
-
-  <a-form-item :label="label" required v-bind="validateInfos.formula_raw">
+  <a-form-item :label="label" required v-bind="validationErrorDisplay">
     <div
       ref="monacoRoot"
       :style="{
         height: editorHeight ?? '100px',
       }"
       :class="{
-        '!border-red-500 formula-error': error,
-        '!focus-within:border-brand-500 shadow-default hover:shadow-hover formula-success': !error,
+        '!border-red-500 formula-error':
+          !validationErrorDisplay?.validateStatus || validationErrorDisplay?.validateStatus !== 'success',
+        '!focus-within:border-brand-500 shadow-default hover:shadow-hover formula-success':
+          !validationErrorDisplay?.validateStatus || validationErrorDisplay?.validateStatus === 'success',
         'bg-white': isAiModeFieldModal,
       }"
       class="formula-monaco transition-colors duration-300"
       @keydown.stop="handleKeydown"
     ></div>
   </a-form-item>
-  <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+  <template v-if="isAiFeaturesEnabled">
     <div v-if="aiMode === AI_MODE.NONE" class="w-full flex justify-end mt-2">
       <NcButton size="small" type="text" :loading="aiLoading" @click="enableAI">
         <template #icon>
@@ -762,7 +795,7 @@ const enableAI = async () => {
         <div class="prompt-input-wrapper w-full flex">
           <div class="nc-triangle-bottom-bar"></div>
 
-          <div class="flex items-center gap-2 pl-3 pr-1 py-1">
+          <div class="flex items-center gap-2 pl-3 pr-1 py-1 border-b-1 border-transparent">
             <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">Prompt</div>
             <div class="flex items-center gap-2">
               <NcButton
@@ -856,11 +889,16 @@ const enableAI = async () => {
             <a-list-item-meta>
               <template #title>
                 <div class="flex items-center gap-x-1" :class="{ 'text-gray-400': item.unsupported }">
-                  <component :is="iconMap.function" v-if="item.type === 'function'" class="w-4 h-4 !text-gray-600" />
+                  <component
+                    :is="iconMap.function"
+                    v-if="item.type === 'function'"
+                    class="w-4 h-4 !text-nc-content-gray-subtle2"
+                  />
 
-                  <component :is="iconMap.calculator" v-if="item.type === 'op'" class="w-4 h-4 !text-gray-600" />
+                  <component :is="iconMap.calculator" v-if="item.type === 'op'" class="w-4 h-4 !text-nc-content-gray-subtle2" />
 
-                  <component :is="item.icon" v-if="item.type === 'column'" class="w-4 h-4 !text-gray-600" />
+                  <component :is="item.icon" v-if="item.type === 'column'" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
+
                   <span class="text-small leading-[18px]" :class="{ 'text-gray-800': !item.unsupported }">{{ item.text }}</span>
                 </div>
                 <div v-if="item.unsupported" class="ml-5 text-gray-400 text-xs">{{ $t('msg.formulaNotSupported') }}</div>
@@ -902,7 +940,7 @@ const enableAI = async () => {
               <template #title>
                 <div class="flex items-center gap-x-1 justify-between">
                   <div class="flex items-center gap-x-1 rounded-md px-1 h-5">
-                    <component :is="item.icon" class="w-4 h-4 !text-gray-600" />
+                    <component :is="item.icon" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
 
                     <span class="text-small leading-[18px] text-gray-800 font-weight-500">{{ item.text }}</span>
                   </div>
@@ -991,5 +1029,8 @@ const enableAI = async () => {
 .formula-placeholder {
   @apply !text-gray-500 !text-xs !font-medium;
   font-family: 'Inter';
+}
+.monaco-hover {
+  position: fixed;
 }
 </style>

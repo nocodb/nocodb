@@ -42,11 +42,14 @@ export class RatingGeneralHandler extends DecimalGeneralHandler {
     _options: FilterOptions,
   ) {
     const { val, sourceField } = args;
-    return (qb: Knex.QueryBuilder) => {
-      qb.where(sourceField as any, '<', val);
-      if (val > 0) {
-        qb.orWhereNull(sourceField as any);
-      }
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where(sourceField as any, '<', val);
+        if (val > 0) {
+          qb.orWhereNull(sourceField as any);
+        }
+      },
     };
   }
 
@@ -59,11 +62,14 @@ export class RatingGeneralHandler extends DecimalGeneralHandler {
     _options: FilterOptions,
   ) {
     const { val, sourceField } = args;
-    return (qb: Knex.QueryBuilder) => {
-      qb.where(sourceField as any, '<=', val);
-      if (val >= 0) {
-        qb.orWhereNull(sourceField as any);
-      }
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where(sourceField as any, '<=', val);
+        if (val >= 0) {
+          qb.orWhereNull(sourceField as any);
+        }
+      },
     };
   }
 
@@ -76,11 +82,14 @@ export class RatingGeneralHandler extends DecimalGeneralHandler {
     _options: FilterOptions,
   ) {
     const { val, sourceField } = args;
-    return (qb: Knex.QueryBuilder) => {
-      qb.where(sourceField as any, '>=', val);
-      if (val <= 0) {
-        qb.orWhereNull(sourceField as any);
-      }
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where(sourceField as any, '>=', val);
+        if (val <= 0) {
+          qb.orWhereNull(sourceField as any);
+        }
+      },
     };
   }
 }

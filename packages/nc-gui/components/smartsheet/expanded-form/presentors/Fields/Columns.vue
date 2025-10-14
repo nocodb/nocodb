@@ -28,10 +28,10 @@ const showHiddenFields = ref(false)
       :is-loading="isLoading"
     />
     <div v-if="hiddenFields.length > 0" class="flex w-full <lg:(px-1) items-center py-6">
-      <div class="flex-grow h-px mr-1 bg-gray-100" />
+      <div class="flex-grow h-px mr-1 bg-nc-bg-gray-light" />
       <NcButton
         :size="isMobileMode ? 'medium' : 'small'"
-        class="flex-shrink !text-sm overflow-hidden !text-gray-500 !font-weight-500"
+        class="flex-shrink !text-sm overflow-hidden !text-nc-content-gray-muted !font-weight-500"
         type="secondary"
         @click="showHiddenFields = !showHiddenFields"
       >
@@ -39,7 +39,7 @@ const showHiddenFields = ref(false)
         {{ hiddenFields.length > 1 ? `fields` : `field` }}
         <GeneralIcon icon="chevronDown" :class="showHiddenFields ? 'transform rotate-180' : ''" class="ml-1" />
       </NcButton>
-      <div class="flex-grow h-px ml-1 bg-gray-100" />
+      <div class="flex-grow h-px ml-1 bg-nc-bg-gray-light" />
     </div>
     <SmartsheetExpandedFormPresentorsFieldsColumnList
       v-if="hiddenFields.length > 0 && showHiddenFields"

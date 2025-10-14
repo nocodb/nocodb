@@ -10,6 +10,7 @@ export const baseBuilder = builderGenerator<BaseType, BaseV3Type>({
     'updated_at',
     'meta',
     'sources',
+    'default_role',
     'fk_workspace_id',
   ],
   mappings: {
@@ -21,6 +22,13 @@ export const baseBuilder = builderGenerator<BaseType, BaseV3Type>({
   meta: {
     snakeCase: true,
     metaProps: ['meta'],
+  },
+  transformFn: (base: any) => {
+    if (base.default_role === 'no-access') {
+      base.type = 'private';
+    }
+    delete base.default_role;
+    return base;
   },
 });
 export const sourceBuilder = builderGenerator<

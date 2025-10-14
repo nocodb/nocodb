@@ -7,6 +7,7 @@ import { getRenderAsTextFunForUiType, parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { ComputedTypePasteError } from '~/lib/error';
 import { precisionFormats } from '../utils';
+import { isValidValue } from '~/lib/is';
 
 export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -18,7 +19,7 @@ export class RollupHelper extends AbstractColumnHelper {
     _value: any,
     params: SerializerOrParserFnProps['params']
   ): null {
-    if (params.isMultipleCellPaste) {
+    if (params.isMultipleCellPaste || params.serializeSearchQuery) {
       return undefined;
     } else {
       throw new ComputedTypePasteError();
@@ -29,7 +30,7 @@ export class RollupHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
-    if (!value) return null;
+    if (!isValidValue(value)) return null;
 
     const { col, meta, metas } = params;
 
@@ -71,3 +72,14 @@ export class RollupHelper extends AbstractColumnHelper {
     return this.parseValue(value, params) ?? '';
   }
 }
+
+export const rollupAllFunctions = [
+  { text: 'datatype.Count', value: 'count' },
+  { text: 'general.min', value: 'min' },
+  { text: 'general.max', value: 'max' },
+  { text: 'general.avg', value: 'avg' },
+  { text: 'general.sum', value: 'sum' },
+  { text: 'general.countDistinct', value: 'countDistinct' },
+  { text: 'general.sumDistinct', value: 'sumDistinct' },
+  { text: 'general.avgDistinct', value: 'avgDistinct' },
+];

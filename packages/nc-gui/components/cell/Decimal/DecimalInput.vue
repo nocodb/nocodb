@@ -20,6 +20,8 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 const vModel = useVModel(props, 'modelValue', emits)
 
+const { isMobileMode } = useGlobal()
+
 const inputRef = templateRef('input-ref')
 
 const pasteText = (target: HTMLInputElement, value: string) => {
@@ -43,7 +45,7 @@ const pasteText = (target: HTMLInputElement, value: string) => {
   }
 }
 const refreshVModel = () => {
-  if (inputRef.value && vModel.value) {
+  if (inputRef.value && (vModel.value || vModel.value === 0)) {
     if (typeof vModel.value === 'number') {
       if (props.precision) {
         inputRef.value.value = vModel.value.toFixed(props.precision) ?? ''
@@ -75,7 +77,7 @@ const saveValue = (targetValue: string) => {
   vModel.value = value
 }
 let savingHandle: any
-const onInputKeyUp = (e: KeyboardEvent) => {
+const onInputKeyUp = (e: KeyboardEvent, debounce = true) => {
   const target: HTMLInputElement = e.target as HTMLInputElement
   if (target) {
     // mac's double space insert period
@@ -87,9 +89,13 @@ const onInputKeyUp = (e: KeyboardEvent) => {
     if (savingHandle) {
       clearTimeout(savingHandle)
     }
-    savingHandle = setTimeout(() => {
+    if (!debounce) {
       saveValue(target.value)
-    }, 100)
+    } else {
+      savingHandle = setTimeout(() => {
+        saveValue(target.value)
+      }, 100)
+    }
   }
 }
 // Handle the arrow keys as its default behavior is to increment/decrement the value
@@ -132,6 +138,7 @@ const onInputKeyDown = (e: KeyboardEvent) => {
     e.stopPropagation()
     return
   }
+
   pasteText(target, e.key)
   e.preventDefault()
   e.stopPropagation()
@@ -153,6 +160,7 @@ const onInputPaste = (e: ClipboardEvent) => {
   e.stopPropagation()
   pasteText(target, value)
 }
+
 const onInputBlur = (e: FocusEvent) => {
   emits('blur', e)
   if (e.target) {
@@ -172,13 +180,24 @@ const registerEvents = (input: HTMLInputElement) => {
   input.addEventListener('blur', onInputBlur)
 }
 
+const onBeforeInput = (e: InputEvent) => {
+  if (!e.data || !isMobileMode.value) return // may be null for deletions etc.
+
+  // allow only digits, minus, dot
+  if (!/^[0-9.\-]$/.test(e.data)) {
+    e.preventDefault()
+  }
+}
+
 onMounted(() => {
   if (inputRef.value) {
     registerEvents(inputRef.value as HTMLInputElement)
-    refreshVModel()
-    if (props.isFocusOnMounted) {
-      inputRef.value.focus()
-    }
+    nextTick(() => {
+      refreshVModel()
+      if (props.isFocusOnMounted) {
+        inputRef.value.focus()
+      }
+    })
   }
 })
 </script>
@@ -191,13 +210,16 @@ onMounted(() => {
     :placeholder="placeholder"
     style="letter-spacing: 0.06rem; height: 24px !important"
     :style="inputStyle"
+    inputmode="decimal"
     :disabled="disabled"
+    @keydown.enter.exact="onInputKeyUp($event, false)"
     @keydown.left.stop
     @keydown.right.stop
     @keydown.delete.stop
     @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
+    @beforeinput="onBeforeInput"
   />
 </template>
 

@@ -64,7 +64,7 @@
       "image-size@<1.2.1": ">=1.2.1",
       "tar-fs@<2.1.2": ">=3.0.7",
       "highlight.js@<9.18.5": ">=11.11.1",
-      "multer@1.4.4-lts.1": ">=2.0.0",
+      "multer@1.4.4-lts.1": ">=2.0.1",
       "knex@<3.1.0": ">=3.1.0",
       "cookie": ">=0.7.2",
       "vue@<3": ">=3",
@@ -84,7 +84,8 @@
       "vite@>=6.1.0 <6.1.5": ">=6.1.5",
       "@babel/helpers@<7.26.10": ">=7.26.10",
       "vite@>=6.0.0 <=6.1.5": ">=6.1.6",
-      "vite@>=6.1.0 <6.1.4": ">=6.1.4"
+      "vite@>=6.1.0 <6.1.4": ">=6.1.4",
+      "@types/mime": "npm:@types/mime@npm:nonexistent"
     },
     "onlyBuiltDependencies": [
       "@nestjs/core",

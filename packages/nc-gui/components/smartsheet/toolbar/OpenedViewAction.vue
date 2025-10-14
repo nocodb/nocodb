@@ -1,22 +1,24 @@
 <script lang="ts" setup>
+defineProps<{
+  showOnlyCopyId?: boolean
+}>()
+
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()
 
-const { isSharedBase, base } = storeToRefs(useBase())
+const { isSharedBase } = storeToRefs(useBase())
 
 const { sharedView } = useSharedView()
 
 const { t } = useI18n()
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
-const { refreshCommandPalette } = useCommandPalette()
+const viewStore = useViewsStore()
 
-const { activeView, views } = storeToRefs(useViewsStore())
-const { loadViews, removeFromRecentViews } = useViewsStore()
-
-const { navigateToTable } = useTablesStore()
+const { activeView, views } = storeToRefs(viewStore)
+const { updateView } = viewStore
 
 const isDropdownOpen = ref(false)
 
@@ -68,12 +70,13 @@ watch(renameInputDom, () => {
 
 const onRenameBlur = async () => {
   if (validate()) {
-    activeView.value!.title = viewRenameTitle.value
+    const trimmedTitle = viewRenameTitle.value.trim()
+    activeView.value!.title = trimmedTitle
     isRenaming.value = false
     error.value = undefined
 
-    await $api.dbView.update(activeView.value!.id!, {
-      title: viewRenameTitle.value,
+    await updateView(activeView.value!.id, {
+      title: trimmedTitle,
     })
   } else {
     renameInputDom.value?.focus()
@@ -82,19 +85,20 @@ const onRenameBlur = async () => {
 
 /** validate view title */
 function validate() {
-  if (!viewRenameTitle.value || viewRenameTitle.value.trim().length < 0) {
+  const trimmedTitle = viewRenameTitle.value.trim()
+  if (!trimmedTitle) {
     error.value = t('msg.error.viewNameRequired')
 
     return false
   }
 
-  if (viewRenameTitle.value.trim().length > 255) {
+  if (trimmedTitle.length > 255) {
     error.value = t('msg.error.nameMaxLength256')
 
     return false
   }
 
-  if (views.value.some((v) => v.title === viewRenameTitle.value && v.id !== activeView.value!.id)) {
+  if (views.value.some((v) => v.title?.trim() === trimmedTitle && v.id !== activeView.value!.id)) {
     error.value = t('msg.error.viewNameDuplicate')
     return false
   }
@@ -127,23 +131,6 @@ function openDeleteDialog() {
     'modelValue': isOpen,
     'view': activeView.value,
     'onUpdate:modelValue': closeDialog,
-    'onDeleted': async () => {
-      closeDialog()
-
-      removeFromRecentViews({ viewId: activeView.value!.id, tableId: activeView.value!.fk_model_id, baseId: base.value.id })
-      refreshCommandPalette()
-      if (activeView.value?.id === activeView.value!.id) {
-        navigateToTable({
-          tableId: activeTable.value!.id!,
-          baseId: base.value.id!,
-        })
-      }
-
-      await loadViews({
-        tableId: activeTable.value!.id!,
-        force: true,
-      })
-    },
   })
 
   function closeDialog() {
@@ -204,6 +191,7 @@ function openDeleteDialog() {
       <SmartsheetToolbarViewActionMenu
         :table="activeTable"
         :view="activeView"
+        :show-only-copy-id="showOnlyCopyId"
         @close-modal="isDropdownOpen = false"
         @rename="onRenameMenuClick"
         @delete="openDeleteDialog"

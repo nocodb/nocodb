@@ -30,11 +30,13 @@ export class NestedLinkPreparator {
           baseModel.context,
         );
 
+        const { refContext } = colOptions.getRelContext(baseModel.context);
+
         const refModel = await Model.get(
-          baseModel.context,
+          refContext,
           (colOptions as LinkToAnotherRecordColumn).fk_related_model_id,
         );
-        await refModel.getCachedColumns(baseModel.context);
+        await refModel.getCachedColumns(refContext);
         const refModelPkCol = await refModel.primaryKey;
         const refChildCol = getRelatedLinksColumn(col, refModel);
 
@@ -51,6 +53,11 @@ export class NestedLinkPreparator {
         } catch {
           continue;
         }
+
+        const refBaseModel = await Model.getBaseModelSQL(refContext, {
+          model: refModel,
+          dbDriver: baseModel.dbDriver,
+        });
 
         switch (colOptions.type) {
           case RelationTypes.BELONGS_TO:
@@ -351,6 +358,21 @@ export class NestedLinkPreparator {
             });
           }
         }
+
+        // update lastModified details in tables
+        postInsertAuditOps.push(async (rowId) => {
+          await baseModel.updateLastModified({
+            model: baseModel.model,
+            rowIds: [rowId],
+            cookie: req,
+          });
+
+          await refBaseModel.updateLastModified({
+            model: refModel,
+            rowIds: nestedData,
+            cookie: req,
+          });
+        });
       }
     }
     return { postInsertOps, preInsertOps, postInsertAuditOps };

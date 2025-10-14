@@ -788,6 +788,7 @@ export class OracleUi implements SqlUi {
       case 'varying array':
         return 'string';
     }
+    return 'string';
   }
 
   static getUIType(col): any {
@@ -975,6 +976,10 @@ export class OracleUi implements SqlUi {
       'ROUNDDOWN',
       'ROUNDUP',
       'DATESTR',
+      'ARRAYSORT',
+      'ARRAYUNIQUE',
+      'ARRAYSLICE',
+      'ARRAYCOMPACT',
     ];
   }
 

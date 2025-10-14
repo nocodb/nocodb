@@ -11,7 +11,18 @@ import animations from '@windicss/plugin-animations'
 // @ts-expect-error no types for plugin-question-mark
 import questionMark from '@windicss/plugin-question-mark'
 
-import { theme as colors, themeColors, themeV2Colors, themeV3Colors, themeVariables } from './utils/colorsUtils'
+import ncTypographyPlugin from './assets/nc-typography-plugin'
+
+import ncWindicssShortcutsPlugin from './assets/nc-windicss-shortcuts-plugin'
+
+import {
+  theme as colors,
+  themeColors,
+  themeV2Colors,
+  themeV3Colors,
+  themeV4ColorsWithNcPrefix,
+  themeVariables,
+} from './utils/colorsUtils'
 
 const isEE = process.env.EE
 
@@ -23,15 +34,19 @@ export default defineConfig({
             '../**/*.{vue,html,jsx,tsx,css,scss}',
             '../extensions/**/*.md',
             '../composables/useColumnFilteredOrSorted.ts',
+            '../components/smartsheet/header/*.ts',
             '../components/smartsheet/grid/canvas/cells/*.ts',
             '../components/smartsheet/grid/canvas/cells/**/*.ts',
+            '../utils/cssUtils.ts',
           ]
         : [
             '**/*.{vue,html,jsx,tsx,css,scss}',
             'extensions/**/*.md',
             'composables/useColumnFilteredOrSorted.ts',
+            'components/smartsheet/header/*.ts',
             'components/smartsheet/grid/canvas/cells/*.ts',
             'components/smartsheet/grid/canvas/cells/**/*.ts',
+            'utils/cssUtils.ts',
           ]),
     ],
     exclude: ['node_modules', '.git'],
@@ -50,6 +65,7 @@ export default defineConfig({
     'text-grey',
   ],
   plugins: [
+    ncTypographyPlugin,
     scrollbar,
     animations,
     questionMark,
@@ -59,6 +75,7 @@ export default defineConfig({
     }),
     aspectRatioPlugin,
     lineClampPlugin,
+    ncWindicssShortcutsPlugin,
   ],
 
   preflight: {
@@ -104,28 +121,6 @@ export default defineConfig({
         tiny: ['11px', '14px'],
         small: ['13px', '16px'],
         small1: ['13px', '18px'],
-        heading1: ['64px', { lineHeight: '92px', letterSpacing: '-2%' }],
-        heading2: ['40px', { lineHeight: '64px', letterSpacing: '-2%' }],
-        heading3: ['24px', { lineHeight: '36px', letterSpacing: '-2%' }],
-        subHeading1: ['20px', { lineHeight: '32px', letterSpacing: '-2%' }],
-        subHeading2: ['16px', { lineHeight: '24px', letterSpacing: '-2%' }],
-        bodyLg: ['16px', { lineHeight: '28px', letterSpacing: '-2%' }],
-        bodyLgBold: ['16px', { lineHeight: '28px', letterSpacing: '-2%' }],
-        body: ['14px', { lineHeight: '24px', letterSpacing: '0%' }],
-        bodyBold: ['14px', { lineHeight: '24px', letterSpacing: '0%' }],
-        bodyDefaultSm: ['13px', { lineHeight: '18px', letterSpacing: '0%' }],
-        bodyDefaultSmBold: ['13px', { lineHeight: '18px', letterSpacing: '0%' }],
-        bodySm: ['12px', { lineHeight: '18px', letterSpacing: '0%' }],
-        bodySmBold: ['12px', { lineHeight: '18px', letterSpacing: '0%' }],
-        caption: ['14px', { lineHeight: '20px', letterSpacing: '0%' }],
-        captionBold: ['14px', { lineHeight: '20px', letterSpacing: '0%' }],
-        captionSm: ['12px', { lineHeight: '14px', letterSpacing: '0%' }],
-        captionSmBold: ['12px', { lineHeight: '14px', letterSpacing: '0%' }],
-        captionXs: ['10px', { lineHeight: '14px', letterSpacing: '0%' }],
-        captionXsBold: ['10px', { lineHeight: '14px', letterSpacing: '0%' }],
-        captionDropdownDefault: ['13px', { lineHeight: '20px', letterSpacing: '0%' }],
-        sidebarDefault: ['14px', { lineHeight: '20px', letterSpacing: '0%' }],
-        sidebarSelected: ['14px', { lineHeight: '20px', letterSpacing: '0%' }],
       },
       fontWeight: {
         /**
@@ -174,19 +169,20 @@ export default defineConfig({
         accent: 'rgba(var(--color-accent), var(--tw-ring-opacity))',
       },
       boxShadow: {
-        'default': '0px 0px 4px 0px rgba(0, 0, 0, 0.08)',
-        'hover': '0px 0px 4px 0px rgba(0, 0, 0, 0.24)',
+        'default': '0px 0px 4px 0px rgba(var(--rgb-base), 0.08)',
+        'hover': '0px 0px 4px 0px rgba(var(--rgb-base), 0.24)',
         'selected': '0px 0px 0px 2px var(--ant-primary-color-outline)',
         'selected-ai': '0px 0px 0px 2px rgba(125, 38, 205, 0.24)',
         'error': '0px 0px 0px 2px var(--ant-error-color-outline)',
         'focus': '0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe',
-        'nc-sm': '0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02)',
+        'nc-sm': '0px 3px 1px -2px rgba(var(--rgb-base), 0.06), 0px 5px 3px -2px rgba(var(--rgb-base), 0.02)',
       },
       colors: {
         ...windiColors,
         ...themeColors,
         ...themeV2Colors,
         ...themeV3Colors,
+        ...themeV4ColorsWithNcPrefix,
         ...themeVariables.content,
         ...themeVariables.border,
         ...themeVariables.background,

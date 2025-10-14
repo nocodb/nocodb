@@ -9,24 +9,29 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import type { MetaService } from '~/meta/meta.service';
+import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Filter, Hook, View } from '~/models';
+import RowColorCondition from '~/models/RowColorCondition';
+import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { FiltersService } from '~/services/filters.service';
 import {
   filterBuilder,
   filterRevBuilder,
 } from '~/utils/api-v3-data-transformation.builder';
-import { FiltersService } from '~/services/filters.service';
-import { validatePayload } from '~/helpers';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
 function extractLogicalOp(group_operator: 'AND' | 'OR') {
   return group_operator?.toLowerCase() as 'and' | 'or';
 }
 
-export function addDummyRootAndNest(filters: any[]): any[] {
-  // If empty, return as it is
+export function addDummyRootAndNest(filters: any[]): any {
+  // If empty, return undefined
   if (filters.length === 0) {
-    return filters;
+    return undefined;
   }
 
   // Create a map of filters by parent_id for easy lookup
@@ -80,14 +85,12 @@ export function addDummyRootAndNest(filters: any[]): any[] {
   const nestedFilters = buildNestedStructure(null);
 
   // Add the dummy root group
-  return [
-    {
-      id: 'root',
-      group_operator:
-        nestedFilters.length > 0 ? getGroupOperatorFromFirstChild(null) : null,
-      filters: nestedFilters,
-    },
-  ];
+  return {
+    id: 'root',
+    group_operator:
+      nestedFilters.length > 0 ? getGroupOperatorFromFirstChild(null) : null,
+    filters: nestedFilters,
+  };
 }
 
 @Injectable()
@@ -127,48 +130,97 @@ export class FiltersV3Service {
     logicalOp = null,
     isRoot = true, // Flag to check if it's the root group
     viewId,
+    viewWebhookManager,
+    ncMeta = Noco.ncMeta,
   }: {
     context: any;
-    param: { viewId: string } | { hookId: string } | { linkColumnId: string };
+    param:
+      | { viewId: string }
+      | { hookId: string }
+      | { linkColumnId: string }
+      | { rowColorConditionId: string };
     groupOrFilter: FilterCreateV3Type;
     parentId?: string | null;
     logicalOp?: 'AND' | 'OR' | null;
     isRoot?: boolean;
     viewId: string;
+    viewWebhookManager?: ViewWebhookManager;
+    ncMeta?: MetaService;
   }): Promise<void> {
     validatePayload(
       'swagger-v3.json#/components/schemas/FilterCreate',
       groupOrFilter,
       true,
+      context,
     );
 
     let currentParentId = parentId;
     const { additionalProps } = await this.extractAdditionalProps(
       param,
       context,
+      ncMeta,
     );
+    let innerViewWebhookManager: ViewWebhookManager;
+    if ((param as any).viewId && !viewWebhookManager) {
+      const view = await View.get(context, (param as any).viewId, ncMeta);
+      innerViewWebhookManager = (param as any).viewId
+        ? (
+            await (
+              await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+                view.fk_model_id,
+              )
+            ).withViewId(view.id)
+          ).forUpdate()
+        : null;
+    } else if ((param as any).rowColorConditionId && !viewWebhookManager) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        (param as any).rowColorConditionId,
+        ncMeta,
+      );
+      const view = await View.get(
+        context,
+        rowColorCondition.fk_view_id,
+        ncMeta,
+      );
+      innerViewWebhookManager = (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(rowColorCondition.fk_view_id)
+      ).forUpdate();
+    }
 
     // if logicalOp is not provided, extract based on the parent group
     if (!logicalOp) {
       logicalOp =
         (
-          await this.extractGroup(context, {
-            viewId: viewId,
-            parentFilterId:
-              parentId || (groupOrFilter as any)?.parent_id || 'root',
-          })
+          await this.extractGroup(
+            context,
+            {
+              viewId: viewId,
+              parentFilterId:
+                parentId || (groupOrFilter as any)?.parent_id || 'root',
+            },
+            ncMeta,
+          )
         )?.group_operator || 'AND';
     }
 
     // if not filter group simply insert filter
     if ('field_id' in groupOrFilter && (groupOrFilter as any).field_id) {
-      await Filter.insert(context, {
-        ...filterRevBuilder().build(groupOrFilter),
-        fk_parent_id: parentId === 'root' ? null : parentId,
-        ...additionalProps,
-        logical_op: extractLogicalOp(logicalOp),
-        id: undefined,
-      });
+      await Filter.insert(
+        context,
+        {
+          ...filterRevBuilder().build(groupOrFilter),
+          fk_parent_id: parentId === 'root' ? null : parentId,
+          ...additionalProps,
+          logical_op: extractLogicalOp(logicalOp),
+          id: undefined,
+        },
+        ncMeta,
+      );
       return;
     }
 
@@ -178,9 +230,13 @@ export class FiltersV3Service {
         'parent_id' in groupOrFilter && groupOrFilter.parent_id;
       if (!hasParentInGroup) {
         // Root group handling when parent_id is not provided in groupOrFilter
-        const existingRootFilters = await Filter.rootFilterList(context, {
-          viewId,
-        });
+        const existingRootFilters = await Filter.rootFilterList(
+          context,
+          {
+            viewId,
+          },
+          ncMeta,
+        );
         const existingRootFilter =
           existingRootFilters[1] || existingRootFilters[0];
         if (existingRootFilter) {
@@ -203,24 +259,34 @@ export class FiltersV3Service {
         currentParentId = null;
       } else {
         // Insert root group
-        const rootGroupResponse = await Filter.insert(context, {
-          is_group: true,
-          fk_parent_id: null, // Root groups have no parent
-          logical_op: extractLogicalOp(logicalOp),
-          ...additionalProps,
-        });
+        const rootGroupResponse = await Filter.insert(
+          context,
+          {
+            is_group: true,
+            fk_parent_id: null, // Root groups have no parent
+            logical_op: extractLogicalOp(logicalOp),
+            ...additionalProps,
+            id: undefined,
+          },
+          ncMeta,
+        );
         currentParentId = rootGroupResponse.id;
       }
     } else if (parentId === 'root') {
       currentParentId = null;
     } else {
       // Insert root group
-      const rootGroupResponse = await Filter.insert(context, {
-        is_group: true,
-        fk_parent_id: parentId, // Root groups have no parent
-        logical_op: extractLogicalOp(logicalOp),
-        ...additionalProps,
-      });
+      const rootGroupResponse = await Filter.insert(
+        context,
+        {
+          is_group: true,
+          fk_parent_id: parentId, // Root groups have no parent
+          logical_op: extractLogicalOp(logicalOp),
+          ...additionalProps,
+          id: undefined,
+        },
+        ncMeta,
+      );
       currentParentId = rootGroupResponse.id;
     }
 
@@ -229,13 +295,18 @@ export class FiltersV3Service {
       for (const child of groupOrFilter.filters || []) {
         if ('field_id' in child) {
           // Insert individual filter
-          await Filter.insert(context, {
-            ...filterRevBuilder().build(child),
-            fk_parent_id: currentParentId, // Link to the parent group
-            logical_op: extractLogicalOp(groupOrFilter.group_operator) || 'and', // Pass the logical operator
-            ...additionalProps,
-            id: undefined,
-          });
+          await Filter.insert(
+            context,
+            {
+              ...filterRevBuilder().build(child),
+              fk_parent_id: currentParentId, // Link to the parent group
+              logical_op:
+                extractLogicalOp(groupOrFilter.group_operator) || 'and', // Pass the logical operator
+              ...additionalProps,
+              id: undefined,
+            },
+            ncMeta,
+          );
         } else if ('group_operator' in child) {
           // Recursively handle nested groups
           await this.insertFilterGroup({
@@ -246,19 +317,34 @@ export class FiltersV3Service {
             logicalOp: groupOrFilter.group_operator, // Pass the current group's logical operator
             isRoot: false, // Indicate it's not the root
             viewId,
+            viewWebhookManager,
+            ncMeta,
           });
         }
       }
     } else if ('field_id' in groupOrFilter) {
       // Handle a single filter directly
-      await Filter.insert(context, {
-        ...groupOrFilter,
-        fk_parent_id: currentParentId, // Link to the parent group or root
-        logical_op: extractLogicalOp(logicalOp), // Pass the logical operator
-        ...additionalProps,
-      });
+      await Filter.insert(
+        context,
+        {
+          ...groupOrFilter,
+          fk_parent_id: currentParentId, // Link to the parent group or root
+          logical_op: extractLogicalOp(logicalOp), // Pass the logical operator
+          ...additionalProps,
+          id: undefined,
+        },
+        ncMeta,
+      );
     } else {
       throw new Error('Invalid structure: Expected a group or filter.');
+    }
+
+    if (innerViewWebhookManager) {
+      (
+        await innerViewWebhookManager.withNewViewId(
+          innerViewWebhookManager.getViewId(),
+        )
+      ).emit();
     }
   }
 
@@ -270,8 +356,10 @@ export class FiltersV3Service {
       | { hookId: string }
       | {
           linkColumnId: string;
-        },
+        }
+      | { rowColorConditionId: string },
     context: NcContext,
+    ncMeta?: MetaService,
   ) {
     let additionalProps = {};
     let additionalAuditProps = {};
@@ -288,6 +376,23 @@ export class FiltersV3Service {
       };
       additionalAuditProps = {
         hook,
+      };
+    } else if ('rowColorConditionId' in param && param.rowColorConditionId) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        param.rowColorConditionId,
+        ncMeta,
+      );
+      if (!rowColorCondition) {
+        NcError.get(context).invalidRequestBody(
+          `Row color condition with id ${param.rowColorConditionId} not found`,
+        );
+      }
+      additionalProps = {
+        fk_row_color_condition_id: param.rowColorConditionId,
+      };
+      additionalAuditProps = {
+        rowColorCondition,
       };
     } else if ('viewId' in param && param.viewId) {
       const view = await View.get(context, param.viewId);
@@ -392,14 +497,19 @@ export class FiltersV3Service {
       viewId: string;
       parentFilterId: string;
     },
+    ncMeta = Noco.ncMeta,
   ) {
     // get nested list
-    const list = await this.filterList(context, {
-      viewId: param.viewId,
-    });
+    const list = await this.filterList(
+      context,
+      {
+        viewId: param.viewId,
+      },
+      ncMeta,
+    );
 
     if (param.parentFilterId === 'root') {
-      return list[0];
+      return list;
     }
 
     // iterate recursively and extract filter and return
@@ -416,27 +526,40 @@ export class FiltersV3Service {
         }
       }
     };
-    return extractFilter(list?.[0]?.filters);
+    return extractFilter(list?.filters);
   }
 
   async filterList(
     context: NcContext,
     param: { viewId: string } | { hookId: string } | { linkColumnId: string },
+    ncMeta = Noco.ncMeta,
   ) {
     let filters = [];
 
     if ('hookId' in param && param.hookId) {
-      filters = await Filter.allHookFilterList(context, {
-        hookId: param.hookId,
-      });
+      filters = await Filter.allHookFilterList(
+        context,
+        {
+          hookId: param.hookId,
+        },
+        ncMeta,
+      );
     } else if ('linkColumnId' in param && param.linkColumnId) {
-      filters = await Filter.allLinkFilterList(context, {
-        linkColumnId: param.linkColumnId,
-      });
+      filters = await Filter.allLinkFilterList(
+        context,
+        {
+          linkColumnId: param.linkColumnId,
+        },
+        ncMeta,
+      );
     } else if ('viewId' in param && param.viewId) {
-      filters = await Filter.allViewFilterList(context, {
-        viewId: param.viewId,
-      });
+      filters = await Filter.allViewFilterList(
+        context,
+        {
+          viewId: param.viewId,
+        },
+        ncMeta,
+      );
     }
 
     return addDummyRootAndNest(filterBuilder().build(filters) as Filter[]);
@@ -464,5 +587,16 @@ export class FiltersV3Service {
       req: param.req,
       ...param,
     });
+  }
+
+  // skip viewWebhookManager for this, deleteAll is not a standalone operation, it's invoked by view service
+  async filterDeleteAll(
+    context: NcContext,
+    param: {
+      viewId: string;
+    },
+    ncMeta?: MetaService,
+  ) {
+    return Filter.deleteAll(context, param.viewId, ncMeta);
   }
 }

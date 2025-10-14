@@ -50,7 +50,7 @@ test.describe('Expanded form URL', () => {
   }
 
   async function viewTestSakila(viewType: string) {
-    await dashboard.treeView.openTable({ title: 'Country' });
+    await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     let viewObj: GridPage | GalleryPage = dashboard.grid;
     if (viewType === 'grid') {
@@ -133,7 +133,7 @@ test.describe('Expanded record duplicate & delete options', () => {
   });
 
   test('Grid', async () => {
-    await dashboard.treeView.openTable({ title: 'Actor' });
+    await dashboard.treeView.openTable({ title: 'Actor', baseTitle: context.base.title });
 
     // create filter to narrow down the number of records
     await toolbar.clickFilter();

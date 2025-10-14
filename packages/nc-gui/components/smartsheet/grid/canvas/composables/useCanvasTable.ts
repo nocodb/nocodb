@@ -1,11 +1,28 @@
-import { UITypes, isAIPromptCol, isLinksOrLTAR, isOrderCol, isReadonly, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, TableType, UserType, ViewType } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  UITypes,
+  isAIPromptCol,
+  isLinksOrLTAR,
+  isOrderCol,
+  isReadonlyVirtualColumn,
+  isSystemColumn,
+  isVirtualCol,
+  ncHasProperties,
+} from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
-import { clearTextCache } from '../utils/canvas'
-import { CELL_BOTTOM_BORDER_IN_PX, COLUMN_HEADER_HEIGHT_IN_PX, EDIT_INTERACTABLE } from '../utils/constants'
+import { clearRowColouringCache, clearTextCache } from '../utils/canvas'
+import {
+  CELL_BOTTOM_BORDER_IN_PX,
+  COLUMN_HEADER_HEIGHT_IN_PX,
+  EDIT_INTERACTABLE,
+  ROW_COLOR_BORDER_WIDTH,
+  ROW_META_COLUMN_WIDTH,
+} from '../utils/constants'
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
@@ -38,6 +55,7 @@ export function useCanvasTable({
   scrollToCell,
   aggregations,
   vSelectedAllRecords,
+  vSelectedAllRecordsSkipPks,
   selectedRows,
   updateRecordOrder,
   expandRows,
@@ -70,9 +88,10 @@ export function useCanvasTable({
   scrollTop: Ref<number>
   width: Ref<number>
   height: Ref<number>
-  scrollToCell: (row?: number, column?: number, path?: Array<number>) => void
+  scrollToCell: CanvasScrollToCellFn
   aggregations: Ref<Record<string, any>>
   vSelectedAllRecords: WritableComputedRef<boolean>
+  vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
   mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
@@ -154,6 +173,7 @@ export function useCanvasTable({
 }) {
   const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
+  const { isAllowed } = usePermissions()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{
@@ -172,6 +192,7 @@ export function useCanvasTable({
   const editEnabled = ref<CanvasEditEnabledType>(null)
   const isFillMode = ref(false)
   const dragOver = ref<{ id: string; index: number } | null>(null)
+  const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
@@ -193,6 +214,7 @@ export function useCanvasTable({
   const { isMobileMode } = useGlobal()
   const { $api } = useNuxtApp()
   const { t } = useI18n()
+  const { currentUser } = useUserSync()
   const { gridViewCols, metaColumnById, updateGridViewColumn } = useViewColumnsOrThrow()
   const {
     eventBus,
@@ -205,22 +227,36 @@ export function useCanvasTable({
     isSqlView,
     isExternalSource,
     isAlreadyShownUpgradeModal,
+    gridEditEnabled,
+    isViewOperationsAllowed,
   } = useSmartsheetStoreOrThrow()
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
-  const { aiIntegrations, generateRows: _generateRows } = useNocoAi()
-  const { isFeatureEnabled } = useBetaFeatureToggle()
+  const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
   const automationStore = useAutomationStore()
   const tooltipStore = useTooltipStore()
-  const { blockExternalSourceRecordVisibility } = useEeConfig()
+  const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
+  const { isRowColouringEnabled } = useViewRowColorRender()
 
   const fields = inject(FieldsInj, ref([]))
 
-  const { sqlUis } = storeToRefs(useBase())
+  const baseStore = useBase()
+
+  const { isMysql, isPg } = baseStore
+
+  const { sqlUis } = storeToRefs(baseStore)
 
   const { basesUser } = storeToRefs(useBases())
+
+  const rowMetaColumnWidth = computed<number>(() => {
+    return !blockRowColoring.value ? ROW_META_COLUMN_WIDTH + ROW_COLOR_BORDER_WIDTH + 4 : ROW_META_COLUMN_WIDTH
+  })
+
+  const rowColouringBorderWidth = computed<number>(() => {
+    return isRowColouringEnabled.value ? ROW_COLOR_BORDER_WIDTH : 0
+  })
 
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     meta.value?.base_id ? basesUser.value.get(meta.value?.base_id) || [] : [],
@@ -231,8 +267,19 @@ export function useCanvasTable({
   const isPublicView = inject(IsPublicInj, ref(false))
   const readOnly = inject(ReadonlyInj, ref(false))
 
+  const { eventBus: scriptEventBus } = useScriptExecutor()
+
   const { loadAutomation } = automationStore
-  const actionManager = new ActionManager($api, loadAutomation, generateRows, meta, triggerRefreshCanvas, getDataCache)
+  const actionManager = new ActionManager(
+    $api,
+    loadAutomation,
+    generateRows,
+    meta,
+    triggerRefreshCanvas,
+    getDataCache,
+    scriptEventBus,
+    currentUser,
+  )
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
@@ -250,25 +297,27 @@ export function useCanvasTable({
 
   const isRowReorderDisabled = computed(() => sorts.value?.length || isPublicView.value || !isPrimaryKeyAvailable.value)
 
-  const isDataEditAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value)
+  const isDataEditAllowed = computed(() => isUIAllowed('dataEdit') && !isSqlView.value && !isPublicView.value)
 
   const isFieldEditAllowed = computed(() => isUIAllowed('fieldAdd'))
 
-  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value)
+  const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value && !isMobileMode.value)
 
-  const isAddingEmptyRowAllowed = computed(
-    () => isDataEditAllowed.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
+  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced)
+
+  const isAddingEmptyRowPermitted = computed(() =>
+    meta.value?.id ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD) : true,
   )
 
   const isAddingColumnAllowed = computed(() => !readOnly.value && isFieldEditAllowed.value && !isSqlView.value)
 
-  const rowHeight = computed(() => (isMobileMode.value ? 56 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
+  const rowHeight = computed(() => (isMobileMode.value ? 40 : rowHeightInPx[`${rowHeightEnum?.value ?? 1}`] ?? 32))
 
   const partialRowHeight = computed(() => scrollTop.value % rowHeight.value)
 
-  const isAiFillMode = computed(
-    () => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES),
-  )
+  const headerRowHeight = computed(() => (isMobileMode.value ? 40 : COLUMN_HEADER_HEIGHT_IN_PX))
+
+  const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled.value)
 
   const fetchMetaIds = ref<string[][]>([])
 
@@ -320,8 +369,15 @@ export function useCanvasTable({
           f.extra.isDisplayTimezone = isEeUI ? meta?.isDisplayTimezone : undefined
         }
         if ([UITypes.Formula].includes(f.uidt)) {
-          if ([UITypes.DateTime].includes((f.meta as any)?.display_type)) {
-            const displayColumnConfig = (f.meta as any)?.display_column_meta as any
+          const referencedColumn = (f.colOptions as FormulaType)?.parsed_tree?.referencedColumn
+          const displayType = (f.meta as any)?.display_type ?? referencedColumn?.uidt
+          const displayColumnConfig = (f.meta as any)?.display_type
+            ? ((f.meta as any)?.display_column_meta as any)
+            : referencedColumn
+            ? meta.value?.columns?.find((c) => c.id === referencedColumn.id)
+            : undefined
+
+          if ([UITypes.DateTime].includes(displayType)) {
             if (displayColumnConfig.meta) {
               const displayColumnConfigMeta = displayColumnConfig.meta
 
@@ -330,18 +386,36 @@ export function useCanvasTable({
                   isEeUI && displayColumnConfigMeta.isDisplayTimezone
                     ? getTimeZoneFromName(displayColumnConfigMeta.timezone)
                     : undefined,
+                isDisplayTimezone: isEeUI ? displayColumnConfigMeta.isDisplayTimezone : undefined,
               }
               displayColumnConfig.extra = extra
             }
           }
+          f.extra.display_type = displayType
+          f.extra.display_column_meta = displayColumnConfig
         }
 
-        const isInvalid = isColumnInvalid(
-          f,
-          aiIntegrations.value,
-          isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
-        )
+        const isInvalid = isColumnInvalid({
+          col: f,
+          aiIntegrations: aiIntegrations.value,
+          isReadOnly: isPublicView.value || !isDataEditAllowed.value || isSqlView.value,
+          isNocoAiAvailable: isNocoAiAvailable.value,
+          columns: meta.value?.columns as ColumnType[],
+        })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
+
+        const isCellEditable =
+          showReadonlyColumnTooltip(f) ||
+          !showEditRestrictedColumnTooltip(f) ||
+          isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
+
+        const aggregation = getFormattedAggrationValue(gridViewCol.aggregation, aggregations.value[f.title!], f, [], {
+          col: f,
+          meta: meta.value as TableType,
+          metas: metas.value,
+          isMysql,
+          isPg,
+        })
 
         return {
           id: f.id,
@@ -357,11 +431,11 @@ export function useCanvasTable({
               : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
               ? false
               : !!f.pv,
-          readonly: f.readonly || isDataReadOnly.value || isSqlView.value || isPublicView.value,
-          isCellEditable: !isReadonly(f),
+          readonly: f.readonly || isDataReadOnly.value || !isDataEditAllowed.value || isPublicView.value || !isCellEditable,
+          isCellEditable,
           pv: !!f.pv,
           virtual: isVirtualCol(f),
-          aggregation: formatAggregation(gridViewCol.aggregation, aggregations.value[f.title], f),
+          aggregation,
           agg_prefix: gridViewCol.aggregation ? t(`aggregation.${gridViewCol.aggregation}`).replace('Percent ', '') : '',
           agg_fn: gridViewCol.aggregation,
           columnObj: f,
@@ -384,7 +458,7 @@ export function useCanvasTable({
       grid_column_id: 'row_number',
       uidt: null,
       title: '#',
-      width: `${80 + groupByColumns.value?.length * 13}px`,
+      width: `${rowMetaColumnWidth.value + groupByColumns.value?.length * 13}px`,
       fixed: true,
       pv: false,
       columnObj: {
@@ -596,9 +670,16 @@ export function useCanvasTable({
 
   function getCellPosition(targetColumn: CanvasGridColumn, rowIndex: number, path: Array<number> = []) {
     const yOffset =
-      calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) -
+      calculateGroupRowTop(
+        cachedGroups.value,
+        path,
+        rowIndex,
+        rowHeight.value,
+        headerRowHeight.value,
+        isAddingEmptyRowAllowed.value,
+      ) -
       scrollTop.value +
-      COLUMN_HEADER_HEIGHT_IN_PX
+      headerRowHeight.value
     if (targetColumn.fixed) {
       let xOffset = 0
       for (let i = 0; i < columns.value.length; i++) {
@@ -708,10 +789,11 @@ export function useCanvasTable({
         groupPath,
         selection.value.end.row,
         rowHeight.value,
+        headerRowHeight.value,
         isAddingEmptyRowAllowed.value,
       ) -
       scrollTop.value +
-      COLUMN_HEADER_HEIGHT_IN_PX +
+      headerRowHeight.value +
       rowHeight.value
 
     // const startY = -partialRowHeight.value + 33 + (selection.value.end.row - rowSlice.value.start + 1) * rowHeight.value
@@ -730,8 +812,9 @@ export function useCanvasTable({
     updateOrSaveRow,
     makeCellEditable,
     meta,
-    hasEditPermission: isAddingEmptyRowAllowed,
+    hasEditPermission: isDataEditAllowed,
     setCursor,
+    attachmentCellDropOver,
   })
 
   const { canvasRef, renderCanvas, colResizeHoveredColIds } = useCanvasRender({
@@ -749,6 +832,7 @@ export function useCanvasTable({
     totalGroups,
     rowSlice,
     rowHeight,
+    headerRowHeight,
     activeCell,
     dragOver,
     hoverRow,
@@ -762,6 +846,7 @@ export function useCanvasTable({
     baseRoleLoader,
     partialRowHeight,
     vSelectedAllRecords,
+    vSelectedAllRecordsSkipPks,
     isRowDraggingEnabled,
     selectedRows,
     isDragging,
@@ -789,8 +874,13 @@ export function useCanvasTable({
     getRows,
     draggedRowGroupPath,
     isAddingEmptyRowAllowed,
+    isAddingEmptyRowPermitted,
     removeInlineAddRecord,
     upgradeModalInlineState,
+    rowMetaColumnWidth,
+    rowColouringBorderWidth,
+    isRecordSelected,
+    isViewOperationsAllowed,
   })
 
   const { handleDragStart } = useRowReorder({
@@ -822,7 +912,7 @@ export function useCanvasTable({
     isExternalSource,
   })
 
-  const { clearCell, copyValue, isPasteable } = useCopyPaste({
+  const { clearCell, copyValue, isPasteable, handleAttachmentCellDrop } = useCopyPaste({
     activeCell,
     selection,
     columns,
@@ -877,6 +967,7 @@ export function useCanvasTable({
     updateOrSaveRow,
     getRows,
     getDataCache,
+    actionManager,
   })
 
   const { handleFillEnd, handleFillMove, handleFillStart } = useFillHandler({
@@ -933,12 +1024,18 @@ export function useCanvasTable({
     columns,
     colSlice,
     scrollLeft,
+    isViewOperationsAllowed,
     (columnId, width) =>
       handleColumnWidth(columnId, width, (normalizedWidth) => (gridViewCols.value[columnId]!.width = normalizedWidth)),
     (columnId, width) =>
       handleColumnWidth(columnId, width, (normalizedWidth) => updateGridViewColumn(columnId, { width: normalizedWidth })),
   )
-  const { isDragging: isColumnReordering, startDrag } = useColumnReorder(
+  const {
+    isDragging: isColumnReordering,
+    dragStart: columnDragStart,
+    startDrag,
+    findColumnAtPosition,
+  } = useColumnReorder(
     canvasRef,
     columns,
     colSlice,
@@ -1011,6 +1108,7 @@ export function useCanvasTable({
       updateGridViewColumn(toBeReorderedCol.id, { order: newOrder }, true)
       eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     },
+    isViewOperationsAllowed,
   )
 
   useKeyboardNavigation({
@@ -1029,6 +1127,7 @@ export function useCanvasTable({
     makeCellEditable,
     expandForm,
     isAddingEmptyRowAllowed,
+    isAddingEmptyRowPermitted,
     addEmptyRow,
     onActiveCellChanged,
     addNewColumn,
@@ -1069,7 +1168,7 @@ export function useCanvasTable({
     for (const row of rows) {
       for (const col of cols) {
         const colObj = col.columnObj
-        if (!row || !colObj || !colObj.title) continue
+        if (!row || !colObj || !colObj.title || !col.isCellEditable) continue
 
         if (isVirtualCol(colObj)) {
           if ((isBt(colObj) || isOo(colObj) || isMm(colObj)) && !isInfoShown) {
@@ -1080,7 +1179,7 @@ export function useCanvasTable({
         }
 
         // skip readonly columns
-        if (isReadonly(colObj)) continue
+        if (isReadonlyVirtualColumn(colObj)) continue
 
         if (colObj.readonly) continue
 
@@ -1117,6 +1216,10 @@ export function useCanvasTable({
     { deep: true },
   )
 
+  watch(editEnabled, (value) => {
+    gridEditEnabled.value = value
+  })
+
   function generateRows(columnId: string, rowIds: string[]) {
     return _generateRows(meta.value?.id, columnId, rowIds)
   }
@@ -1130,8 +1233,14 @@ export function useCanvasTable({
     if (isGroupBy.value && !path && !path?.legth) return
 
     const yOffset =
-      calculateGroupRowTop(cachedGroups.value, path, rowIndex, rowHeight.value, isAddingEmptyRowAllowed.value) +
-      COLUMN_HEADER_HEIGHT_IN_PX
+      calculateGroupRowTop(
+        cachedGroups.value,
+        path,
+        rowIndex,
+        rowHeight.value,
+        headerRowHeight.value,
+        isAddingEmptyRowAllowed.value,
+      ) + headerRowHeight.value
 
     let xOffset = (groupByColumns.value?.length ?? 0) * 13
     const columnIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
@@ -1168,12 +1277,13 @@ export function useCanvasTable({
       width: parseCellWidth(clickedColumn.width) + ([UITypes.LongText, UITypes.Formula].includes(column.uidt) ? 2 : 0) + 2,
       fixed: clickedColumn.fixed,
       path,
+      isCellEditable: clickedColumn.isCellEditable,
     }
     hideTooltip()
     return true
   }
 
-  function makeCellEditable(row: number | Row, clickedColumn: CanvasGridColumn) {
+  function makeCellEditable(row: number | Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip = true) {
     const column = metaColumnById.value[clickedColumn.id]
 
     row = typeof row === 'number' ? cachedRows.value.get(row)! : row
@@ -1182,7 +1292,9 @@ export function useCanvasTable({
 
     if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
-    if (!isDataEditAllowed.value || readOnly.value || isPublicView.value || !isAddingEmptyRowAllowed.value) {
+    const isEditRestricted = column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
+
+    if (!isDataEditAllowed.value || readOnly.value || isPublicView.value || !isAddingEmptyRowAllowed.value || isEditRestricted) {
       if (
         [
           UITypes.LongText,
@@ -1222,12 +1334,33 @@ export function useCanvasTable({
       return null
     }
 
+    if (isEditRestricted && disableMakeCellEditable(column) && isEditRestricted) {
+      if (showEditCellRestrictionTooltip) {
+        message.toast(t('objects.permissions.editFieldTooltip'))
+      }
+      return null
+    }
+
     if (column.readonly) {
       message.info(t('msg.info.fieldReadonly'))
       return null
     }
 
     makeEditable(row, clickedColumn)
+  }
+
+  function isRecordSelectedInSelectedAllRecords(rowIdx?: number) {
+    return vSelectedAllRecords.value && (!ncIsNumber(rowIdx) || !ncHasProperties(vSelectedAllRecordsSkipPks.value, rowIdx))
+  }
+
+  function isRecordSelected(row: Row) {
+    if (!row?.rowMeta) return false
+
+    if (vSelectedAllRecords.value) {
+      return isRecordSelectedInSelectedAllRecords(row.rowMeta.rowIndex)
+    }
+
+    return !!row.rowMeta.selected
   }
 
   function triggerRefreshCanvas() {
@@ -1241,6 +1374,15 @@ export function useCanvasTable({
 
   watch(isAiFillMode, () => {
     triggerRefreshCanvas()
+  })
+
+  eventBus.on((event) => {
+    if ([SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
+      forcedNextTick(() => {
+        clearRowColouringCache()
+        triggerRefreshCanvas()
+      })
+    }
   })
 
   // load metas and refresh canvas
@@ -1270,16 +1412,20 @@ export function useCanvasTable({
     activeCell,
     editEnabled,
     rowHeight,
+    headerRowHeight,
     totalWidth,
     columnWidths,
     columns,
     canvasRef,
     isDragging: isColumnReordering,
+    dragStart: columnDragStart,
     selection,
     hoverRow,
     resizeableColumn,
     partialRowHeight,
     readOnly,
+    dragOver,
+    attachmentCellDropOver,
 
     // columnresize related refs
     colResizeHoveredColIds,
@@ -1291,8 +1437,11 @@ export function useCanvasTable({
     findColumnIndex,
     triggerRefreshCanvas,
     startDrag,
+    findColumnAtPosition,
     findClickedColumn,
     findColumnPosition,
+    isRecordSelectedInSelectedAllRecords,
+    isRecordSelected,
 
     // GroupBy Related
     syncGroupCount,
@@ -1339,6 +1488,7 @@ export function useCanvasTable({
     meta,
     view,
     isAddingEmptyRowAllowed,
+    isAddingEmptyRowPermitted,
     isAddingColumnAllowed,
     getCellPosition,
 
@@ -1346,6 +1496,9 @@ export function useCanvasTable({
     clearCell,
     copyValue,
     clearSelectedRangeOfCells,
+
+    // attachment cell drop handler
+    handleAttachmentCellDrop,
 
     // Action Manager
     actionManager,
@@ -1364,5 +1517,9 @@ export function useCanvasTable({
     removeInlineAddRecord,
     upgradeModalInlineState,
     isRowDraggingEnabled,
+    rowMetaColumnWidth,
+    isRowColouringEnabled,
+    rowColouringBorderWidth,
+    isViewOperationsAllowed,
   }
 }

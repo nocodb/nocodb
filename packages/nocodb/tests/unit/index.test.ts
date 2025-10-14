@@ -2,8 +2,12 @@ import 'mocha';
 import dotenv from 'dotenv';
 import restTests from './rest/index.test';
 import modelTests from './model/index.test';
+import { formulaTests } from './formula/index.test';
 import TestDbMngr from './TestDbMngr';
 import { dataApiV3Test } from './rest/tests/dataApiV3/index.test';
+import { processorTests } from './processor/index.test';
+import { errorTests } from './error/index.test';
+import { rollupTests } from './rollup/index.test';
 
 process.env.NODE_ENV = 'test';
 process.env.TEST = 'true';
@@ -19,7 +23,11 @@ dotenv.config({
   await TestDbMngr.init();
 
   modelTests();
+  formulaTests();
+  rollupTests();
+  errorTests();
   restTests();
+  processorTests();
   await dataApiV3Test();
 
   run();

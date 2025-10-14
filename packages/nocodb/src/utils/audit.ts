@@ -328,7 +328,7 @@ export const extractRefColumnIfFound = async ({
   if (column.uidt === UITypes.Button) {
     const hookId = column.fk_webhook_id;
 
-    const hook = await Hook.get(context, hookId);
+    const hook = hookId && (await Hook.get(context, hookId));
 
     return {
       webhook_id: hookId,
@@ -689,6 +689,9 @@ export const populateUpdatePayloadDiff = ({
       }),
     );
     mappedProps = new Set();
+    if (!prev) {
+      prev = {};
+    }
     prev = fromEntries(
       Object.entries(prev).map(([key, val]) => {
         if (key in aliasMap) {
@@ -955,7 +958,7 @@ export const excludeAttachmentProps = (obj: Record<string, unknown>) => {
 
   return fromEntries(
     Object.entries(obj).filter(([key]) => {
-      return !['data', 'signedPath', 'thumbnails'].includes(key);
+      return !['data', 'signedPath', 'thumbnails', 'signedUrl'].includes(key);
     }),
   );
 };

@@ -16,6 +16,9 @@ defineProps<{
   mKey?: string
   style?: StyleValue
   disabled?: boolean | number
+  innerClass?: string
+  danger?: boolean
+  theme?: 'ai'
 }>()
 
 defineOptions({
@@ -25,8 +28,17 @@ defineOptions({
 
 <template>
   <div class="w-full" :style="style">
-    <a-menu-item :key="mKey" v-bind="$attrs" :disabled="Boolean(disabled)" class="nc-menu-item">
-      <div class="nc-menu-item-inner">
+    <a-menu-item
+      :key="mKey"
+      v-bind="$attrs"
+      :disabled="Boolean(disabled)"
+      class="nc-menu-item"
+      :class="{
+        'nc-menu-item-danger': danger,
+        'nc-menu-item-ai': theme === 'ai',
+      }"
+    >
+      <div class="nc-menu-item-inner" :class="innerClass">
         <slot />
       </div>
     </a-menu-item>
@@ -35,11 +47,23 @@ defineOptions({
 
 <style lang="scss">
 .ant-dropdown-menu-item.nc-menu-item {
-  @apply p-2 mx-1.5 font-normal text-sm xs:(text-base py-3 px-3.5 mx-0) rounded-md overflow-hidden hover:bg-gray-100;
+  @apply p-2 mx-1.5 font-normal text-sm xs:(text-base py-3 px-3.5 mx-0) rounded-md overflow-hidden;
 }
 
 .nc-menu-item-inner {
   @apply flex flex-row items-center gap-x-2 text-sm;
+}
+
+.nc-menu-item.nc-menu-item-danger {
+  &:not(.ant-dropdown-menu-item-disabled) {
+    @apply !text-nc-content-red-medium !hover:bg-nc-bg-red-light;
+  }
+}
+
+.nc-menu-item.nc-menu-item-ai {
+  &:not(.ant-dropdown-menu-item-disabled) {
+    @apply !text-nc-content-purple-medium !hover:bg-nc-bg-purple-light;
+  }
 }
 
 .nc-menu-item > .ant-dropdown-menu-title-content {

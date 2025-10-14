@@ -1,4 +1,9 @@
-import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
+import { ColumnType, FilterType } from './Api';
+import {
+  OrgUserRoles,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from './enums';
 import { PlanTitles } from './payment';
 
 export const enumColors = {
@@ -62,6 +67,8 @@ export const stringToViewTypeMap: Record<string, ViewTypes> = Object.entries(
   return acc;
 }, {});
 
+export const VIEW_GRID_DEFAULT_WIDTH = 200;
+
 export enum ProjectTypes {
   DATABASE = 'database',
   DOCUMENTATION = 'documentation',
@@ -98,6 +105,7 @@ export enum PluginCategory {
 export enum ModelTypes {
   TABLE = 'table',
   VIEW = 'view',
+  DASHBOARD = 'dashboard',
 }
 
 export enum ProjectStatus {
@@ -151,14 +159,10 @@ export enum NcErrorType {
   API_TOKEN_NOT_ALLOWED = 'API_TOKEN_NOT_ALLOWED',
   WORKSPACE_NOT_FOUND = 'WORKSPACE_NOT_FOUND',
   BASE_NOT_FOUND = 'BASE_NOT_FOUND',
-  BASE_NOT_FOUNDV3 = 'BASE_NOT_FOUNDV3',
   SOURCE_NOT_FOUND = 'SOURCE_NOT_FOUND',
   TABLE_NOT_FOUND = 'TABLE_NOT_FOUND',
-  TABLE_NOT_FOUNDV3 = 'TABLE_NOT_FOUNDV3',
   VIEW_NOT_FOUND = 'VIEW_NOT_FOUND',
-  VIEW_NOT_FOUNDV3 = 'VIEW_NOT_FOUNDV3',
   FIELD_NOT_FOUND = 'FIELD_NOT_FOUND',
-  FIELD_NOT_FOUNDV3 = 'FIELD_NOT_FOUNDV3',
   RECORD_NOT_FOUND = 'RECORD_NOT_FOUND',
   GENERIC_NOT_FOUND = 'GENERIC_NOT_FOUND',
   HOOK_NOT_FOUND = 'HOOK_NOT_FOUND',
@@ -169,7 +173,6 @@ export enum NcErrorType {
   INVALID_PAGE_VALUE = 'INVALID_PAGE_VALUE',
   INVALID_LIMIT_VALUE = 'INVALID_LIMIT_VALUE',
   INVALID_FILTER = 'INVALID_FILTER',
-  INVALID_FILTERV3 = 'INVALID_FILTERV3',
   INVALID_SHARED_VIEW_PASSWORD = 'INVALID_SHARED_VIEW_PASSWORD',
   INVALID_ATTACHMENT_JSON = 'INVALID_ATTACHMENT_JSON',
   NOT_IMPLEMENTED = 'NOT_IMPLEMENTED',
@@ -189,20 +192,28 @@ export enum NcErrorType {
   CANNOT_CALCULATE_INTERMEDIATE_ORDER = 'CANNOT_CALCULATE_INTERMEDIATE_ORDER',
   REORDER_FAILED = 'REORDER_FAILED',
   PLAN_LIMIT_EXCEEDED = 'PLAN_LIMIT_EXCEEDED',
+  FEATURE_NOT_SUPPORTED = 'FEATURE_NOT_SUPPORTED',
   SSO_LOGIN_REQUIRED = 'SSO_LOGIN_REQUIRED',
+  SSO_GENERATED_TOKEN_REQUIRED = 'SSO_GENERATED_TOKEN_REQUIRED',
   MAX_INSERT_LIMIT_EXCEEDED = 'MAX_INSERT_LIMIT_EXCEEDED',
   INVALID_VALUE_FOR_FIELD = 'INVALID_VALUE_FOR_FIELD',
   MAX_WORKSPACE_LIMIT_REACHED = 'MAX_WORKSPACE_LIMIT_REACHED',
   BASE_USER_ERROR = 'BASE_USER_ERROR',
+  PROHIBITED_SYNC_TABLE_OPERATION = 'PROHIBITED_SYNC_TABLE_OPERATION',
+  INVALID_REQUEST_BODY = 'INVALID_REQUEST_BODY',
+  DASHBOARD_NOT_FOUND = 'DASHBOARD_NOT_FOUND',
+  WIDGET_NOT_FOUND = 'WIDGET_NOT_FOUND',
+  INVALID_SHARED_DASHBOARD_PASSWORD = 'INVALID_SHARED_DASHBOARD_PASSWORD',
+  DUPLICATE_ALIAS = 'DUPLICATE_ALIAS',
+  OUT_OF_SYNC = 'OUT_OF_SYNC',
+  FILTER_VERIFICATION_FAILED = 'FILTER_VERIFICATION_FAILED',
 }
 
-export const NcErrorTypeMap = {
-  [NcErrorType.TABLE_NOT_FOUNDV3]: 'TABLE_NOT_FOUND',
-  [NcErrorType.BASE_NOT_FOUNDV3]: 'BASE_NOT_FOUND',
-  [NcErrorType.VIEW_NOT_FOUNDV3]: 'VIEW_NOT_FOUND',
-  [NcErrorType.FIELD_NOT_FOUNDV3]: 'FIELD_NOT_FOUND',
-  [NcErrorType.INVALID_FILTERV3]: 'INVALID_FILTER',
-};
+export enum ROW_COLORING_MODE {
+  FILTER = 'filter',
+  SELECT = 'select',
+}
+
 export const LongTextAiMetaProp = 'ai';
 
 export const NO_SCOPE = 'nc';
@@ -227,9 +238,41 @@ export const DURATION_TYPE_MAP = {
   'h:mm:ss.s': 2,
   'h:mm:ss.ss': 3,
   'h:mm:ss.sss': 4,
-}
+};
 
-export const CURRENT_USER_TOKEN = '@me'
+export const CURRENT_USER_TOKEN = '@me';
+
+// this type makes every parameter inside an object be optional
+// useful for where / insert / update query
+export type DeepPartial<T> = T extends object
+  ? { [P in keyof T]?: DeepPartial<T[P]> }
+  : T;
+
+export type RowColoringInfoFilterRow = {
+  id: string;
+  is_set_as_background: boolean;
+  nc_order: number;
+  color: string;
+  conditions: FilterType[];
+  nestedConditions: FilterType[];
+};
+
+export type RowColoringInfoSelect = {
+  mode: ROW_COLORING_MODE.SELECT;
+  fk_column_id: string;
+  options: { title: string; color: string }[];
+  selectColumn: ColumnType;
+  is_set_as_background: boolean;
+};
+export type RowColoringInfoFilter = {
+  mode: ROW_COLORING_MODE.FILTER;
+  conditions: RowColoringInfoFilterRow[];
+};
+
+export type RowColoringInfo = {
+  fk_model_id: string;
+  fk_view_id: string;
+} & (RowColoringInfoSelect | RowColoringInfoFilter);
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;
 
@@ -245,3 +288,22 @@ interface PlanLimitExceededDetailsType {
 }
 
 export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };
+
+export type RowColoringMode = null | 'SELECT' | 'FILTER';
+
+export enum RowHeight {
+  SHORT = 0,
+  MEDIUM = 1,
+  TALL = 2,
+  EXTRA = 3,
+}
+export const RowHeightMap = {
+  short: RowHeight.SHORT,
+  medium: RowHeight.MEDIUM,
+  tall: RowHeight.TALL,
+  extra: RowHeight.EXTRA,
+  [RowHeight.SHORT]: 'short',
+  [RowHeight.MEDIUM]: 'medium',
+  [RowHeight.TALL]: 'tall',
+  [RowHeight.EXTRA]: 'extra',
+};

@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import { UITypes, isVirtualCol, parseStringDateTime } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
     row: any
     fields: any[]
     attachment: any
+    displayValueColumn: any
     relatedTableDisplayValueProp: string
     displayValueTypeAndFormatProp: { type: string; format: string }
     isLoading: boolean
@@ -20,6 +21,8 @@ const props = withDefaults(
 
 defineEmits(['expand', 'linkOrUnlink'])
 
+const { showExtraFields, relatedTableMeta } = useLTARStoreOrThrow()!
+
 provide(IsExpandedFormOpenInj, ref(true))
 
 provide(RowHeightInj, ref(1 as const))
@@ -32,6 +35,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 provide(IsFormInj, ref(false))
 
+provide(MetaInj, relatedTableMeta)
+
 const row = useVModel(props, 'row')
 
 const { isLinked, isLoading, isSelected } = toRefs(props)
@@ -41,8 +46,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 const readOnly = inject(ReadonlyInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
-
-const { showExtraFields } = useLTARStoreOrThrow()!
 
 interface Attachment {
   url: string
@@ -62,21 +65,6 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
   } catch (e) {
     return []
   }
-})
-
-const displayValue = computed(() => {
-  if (
-    row.value[props.relatedTableDisplayValueProp] &&
-    props.displayValueTypeAndFormatProp.type &&
-    props.displayValueTypeAndFormatProp.format
-  ) {
-    return parseStringDateTime(
-      row.value[props.relatedTableDisplayValueProp],
-      props.displayValueTypeAndFormatProp.format,
-      !(props.displayValueTypeAndFormatProp.format === UITypes.Time),
-    )
-  }
-  return row.value[props.relatedTableDisplayValueProp]
 })
 </script>
 
@@ -115,12 +103,14 @@ const displayValue = computed(() => {
             <GeneralIcon class="w-full h-full !text-6xl !leading-10 !text-transparent rounded-lg" icon="fileImage" />
           </div>
         </template>
-
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
           <div class="flex justify-start">
-            <span class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]">
-              {{ displayValue }}
-            </span>
+            <SmartsheetPlainCell
+              v-if="displayValueColumn"
+              class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]"
+              :column="displayValueColumn"
+              :model-value="row[displayValueColumn.title]"
+            />
           </div>
 
           <div
@@ -136,12 +126,14 @@ const displayValue = computed(() => {
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
+                      hide-icon-tooltip
                     />
                     <LazySmartsheetHeaderCell
                       v-else
                       class="text-gray-100 !text-sm nc-link-record-cell-tooltip"
                       :column="field"
                       :hide-menu="true"
+                      hide-icon-tooltip
                     />
                   </template>
                   <div class="nc-link-record-cell flex w-full max-w-full">
@@ -167,39 +159,46 @@ const displayValue = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7">
-          <NcTooltip class="flex">
+        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7" @click.stop>
+          <NcTooltip class="flex" hide-on-click>
             <template #title>{{ $t('title.expand') }}</template>
 
             <button
               v-e="['c:row-expand:open']"
               :tabindex="-1"
               class="z-10 flex items-center justify-center nc-expand-item !group-hover:visible !invisible !h-7 !w-7 transition-all !hover:children:(w-4.5 h-4.5)"
-              @click.stop="$emit('expand', row)"
+              @click="$emit('expand', row)"
             >
               <GeneralIcon icon="maximize" class="flex-none w-4 h-4 scale-125" />
             </button>
           </NcTooltip>
         </div>
-        <template v-if="(!isPublic && !readOnly) || isForm">
-          <NcTooltip class="z-10 flex">
-            <template #title> {{ isLinked ? 'Unlink' : 'Link' }}</template>
-
-            <button
-              tabindex="-1"
-              class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
-              :class="{
-                'bg-gray-200 text-gray-800 hover:(bg-red-100 text-red-500)': isLinked,
-                'bg-green-[#D4F7E0] text-[#17803D] hover:bg-green-200': !isLinked,
-              }"
-              @click="$emit('linkOrUnlink')"
-            >
-              <div v-if="isLoading" class="flex">
-                <MdiLoading class="flex-none w-4 h-4 !text-brand-500 animate-spin" />
-              </div>
-              <GeneralIcon v-else :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4 !font-extrabold" />
-            </button>
-          </NcTooltip>
+        <template v-if="(!isPublic && !readOnly) || (isForm && !readOnly)">
+          <PermissionsTooltip
+            class="z-10 flex"
+            :entity="PermissionEntity.FIELD"
+            :entity-id="relatedTableMeta?.id"
+            :permission="PermissionKey.RECORD_FIELD_EDIT"
+            :default-tooltip="isLinked ? 'Unlink' : 'Link'"
+          >
+            <template #default="{ isAllowed }">
+              <button
+                tabindex="-1"
+                class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
+                :class="{
+                  'bg-gray-200 text-gray-800 hover:(bg-red-100 text-red-500)': isLinked,
+                  'bg-green-[#D4F7E0] text-[#17803D] hover:bg-green-200': !isLinked,
+                }"
+                :disabled="!isAllowed"
+                @click="$emit('linkOrUnlink')"
+              >
+                <div v-if="isLoading" class="flex">
+                  <MdiLoading class="flex-none w-4 h-4 !text-brand-500 animate-spin" />
+                </div>
+                <GeneralIcon v-else :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4 !font-extrabold" />
+              </button>
+            </template>
+          </PermissionsTooltip>
         </template>
       </div>
     </a-card>

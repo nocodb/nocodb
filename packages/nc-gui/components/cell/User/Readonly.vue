@@ -23,13 +23,17 @@ const isInFilter = inject(IsInFilterInj, ref(false))
 
 const basesStore = useBases()
 
-const baseStore = useBase()
-
 const { basesUser } = storeToRefs(basesStore)
 
-const { idUserMap } = storeToRefs(baseStore)
-
 const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
+
+const idUserMap = computed(() => {
+  return baseUsers.value.reduce((acc, user) => {
+    acc[user.id] = user
+    acc[user.email] = user
+    return acc
+  }, {} as Record<string, any>)
+})
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -38,6 +42,12 @@ const isMultiple = computed(() => forceMulti || (column.value.meta as { is_multi
 const rowHeight = inject(RowHeightInj, ref(isInFilter.value ? 1 : undefined))
 
 const isKanban = inject(IsKanbanInj, ref(false))
+
+const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
+
+const isPageDesignerPreviewPanel = computed(() => {
+  return extensionConfig.value.isPageDesignerPreviewPanel
+})
 
 const options = computed(() => {
   const currentUserField: any[] = []
@@ -135,13 +145,21 @@ const isCollaborator = (userIdOrEmail) => {
 
     <div
       v-else
-      class="flex overflow-hidden gap-y-1"
-      :style="{
-        'flex-wrap': !isInFilter,
-        'max-width': '100%',
-        '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
-        'maxHeight': `${rowHeightInPx[rowHeight] - 12}px`,
+      class="flex overflow-hidden"
+      :class="{
+        'gap-y-1': !isPageDesignerPreviewPanel,
+        'flex-wrap flex-col items-start gap-2': extensionConfig?.widget?.displayAs === 'List',
       }"
+      :style="
+        extensionConfig?.widget?.displayAs !== 'List'
+          ? {
+              'flex-wrap': !isInFilter,
+              'max-width': '100%',
+              '-webkit-line-clamp': rowHeightTruncateLines(rowHeight, true),
+              'maxHeight': `${rowHeightInPx[rowHeight] - 12}px`,
+            }
+          : {}
+      "
     >
       <template v-for="selectedOpt of selectedUsers" :key="selectedOpt.value">
         <a-tag
@@ -166,6 +184,7 @@ const isCollaborator = (userIdOrEmail) => {
           >
             <div class="flex-none">
               <GeneralUserIcon
+                :is-deleted="!isCollaborator(selectedOpt.value)"
                 :disabled="!isCollaborator(selectedOpt.value)"
                 size="auto"
                 :user="{
@@ -186,7 +205,7 @@ const isCollaborator = (userIdOrEmail) => {
               </template>
               <span
                 :class="{
-                  'text-gray-600': !isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN,
+                  'text-gray-500': !isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN,
                   'text-nc-content-brand': selectedOpt.value === CURRENT_USER_TOKEN,
                   'font-600': isInFilter,
                 }"

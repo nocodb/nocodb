@@ -11,12 +11,13 @@ import {
   type KanbanType,
   type LookupType,
   type MapType,
+  PlanFeatureTypes,
   type SerializedAiViewType,
   type TableType,
   stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
-import { UITypes, ViewTypes } from 'nocodb-sdk'
+import { PlanTitles, UITypes, ViewTypes } from 'nocodb-sdk'
 import { AiWizardTabsType } from '#imports'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,6 +47,7 @@ interface Props {
     fk_to_column_id: string | null // for ee only
   }>
   coverImageColumnId?: string
+  sourceId?: string
 }
 
 interface Emits {
@@ -78,15 +80,22 @@ type AiSuggestedViewType = SerializedAiViewType & {
 
 const { $e } = useNuxtApp()
 
+const { isMobileMode } = useGlobal()
+
 const { metas, getMeta } = useMetas()
 
 const workspaceStore = useWorkspace()
 
-const { viewsByTable } = storeToRefs(useViewsStore())
+const baseStore = useBase()
+const { baseId: activeBaseId } = storeToRefs(baseStore)
+
+const { blockCalendarRange, getPlanTitle } = useEeConfig()
+
+const viewStore = useViewsStore()
+
+const { viewsByTable } = storeToRefs(viewStore)
 
 const { refreshCommandPalette } = useCommandPalette()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId, coverImageColumnId, baseId } = toRefs(props)
 
@@ -103,8 +112,6 @@ const formValidator = ref<typeof AntForm>()
 const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
-
-const { api } = useApi()
 
 const isViewCreating = ref(false)
 
@@ -138,7 +145,9 @@ const viewNameRules = [
   {
     validator: (_: unknown, v: string) =>
       new Promise((resolve, reject) => {
-        views.value.every((v1) => v1.title !== v) ? resolve(true) : reject(new Error(`View name should be unique`))
+        views.value.every((v1) => v1.title?.trim() !== v?.trim())
+          ? resolve(true)
+          : reject(new Error(`View name should be unique`))
       }),
     message: 'View name should be unique',
   },
@@ -162,7 +171,7 @@ const typeAlias = computed(
     }[props.type]),
 )
 
-const { aiIntegrationAvailable, aiLoading, aiError, predictViews: _predictViews, createViews } = useNocoAi()
+const { isAiFeaturesEnabled, aiIntegrationAvailable, aiLoading, aiError, predictViews: _predictViews, createViews } = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -236,7 +245,7 @@ const onAiEnter = async () => {
 
   if (activeTabSelectedViews.value.length) {
     try {
-      const data = await createViews(activeTabSelectedViews.value, baseId.value)
+      const data = await createViews(activeTabSelectedViews.value, baseId.value, props.sourceId)
 
       emits('created', ncIsArray(data) && data.length ? data[0] : undefined)
     } catch (e: any) {
@@ -247,22 +256,6 @@ const onAiEnter = async () => {
 
     vModel.value = false
   }
-}
-
-const getDefaultViewMetas = (viewType: ViewTypes) => {
-  switch (viewType) {
-    case ViewTypes.FORM:
-      return {
-        submit_another_form: false,
-        show_blank_form: false,
-        meta: {
-          hide_branding: false,
-          background_color: '#F9F9FA',
-          hide_banner: false,
-        },
-      }
-  }
-  return {}
 }
 
 async function onSubmit() {
@@ -286,57 +279,22 @@ async function onSubmit() {
     if (!tableId.value) return
 
     try {
-      let data: GridType | KanbanType | GalleryType | FormType | MapType | null = null
-
       isViewCreating.value = true
 
-      switch (form.type) {
-        case ViewTypes.GRID:
-          data = await api.dbView.gridCreate(tableId.value, form)
-          break
-        case ViewTypes.GALLERY:
-          data = await api.dbView.galleryCreate(tableId.value, form)
-          break
-        case ViewTypes.FORM:
-          data = await api.dbView.formCreate(tableId.value, {
-            ...form,
-            ...getDefaultViewMetas(ViewTypes.FORM),
-          })
-          break
-        case ViewTypes.KANBAN:
-          data = await api.dbView.kanbanCreate(tableId.value, form)
-          break
-        case ViewTypes.MAP:
-          data = await api.dbView.mapCreate(tableId.value, form)
-          break
-        case ViewTypes.CALENDAR:
-          data = await api.dbView.calendarCreate(tableId.value, {
-            ...form,
-            calendar_range: form.calendar_range.map((range) => ({
-              fk_from_column_id: range.fk_from_column_id,
-              fk_to_column_id: range.fk_to_column_id,
-            })),
-          })
-          break
-      }
+      const data = await viewStore.createView(tableId.value, form)
 
       if (data) {
-        // View created successfully
-        // message.success(t('msg.toast.createView'))
-
         emits('created', data)
       }
     } catch (e: any) {
-      message.error(e.message)
+      console.error(e)
     } finally {
-      await refreshCommandPalette()
+      setTimeout(() => {
+        isViewCreating.value = false
+      }, 500)
     }
 
     vModel.value = false
-
-    setTimeout(() => {
-      isViewCreating.value = false
-    }, 500)
   }
 }
 
@@ -389,6 +347,8 @@ onMounted(async () => {
             return {
               value: field.id,
               label: field.title,
+              uidt: field.uidt,
+              col: field,
             }
           })
 
@@ -415,6 +375,7 @@ onMounted(async () => {
                 value: field.id,
                 label: field.title,
                 uidt: field.uidt,
+                col: field,
               }
             }),
         ]
@@ -454,6 +415,7 @@ onMounted(async () => {
               value: c.id,
               label: c.title,
               uidt: c.uidt,
+              col: c,
             }
           })
 
@@ -477,6 +439,7 @@ onMounted(async () => {
               value: field.id,
               label: field.title,
               uidt: field.uidt,
+              col: field,
             }
           })
 
@@ -512,6 +475,7 @@ onMounted(async () => {
               value: field.id,
               label: field.title,
               uidt: field.uidt,
+              col: field,
             }
           })
           .sort((a, b) => {
@@ -580,6 +544,7 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
       baseId.value,
       activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
       viewType,
+      props.sourceId,
     )
   )
     .filter((v: AiSuggestedViewType) => !ncIsArrayIncludes(activeTabPredictedViews.value, v.title, 'title'))
@@ -713,6 +678,9 @@ const disableAiMode = () => {
 }
 
 const fullAuto = async (e) => {
+  // Disable full auto mode in mobile mode to avoid unexpected behavior
+  if (isMobileMode.value) return
+
   const target = e.target as HTMLElement
   if (
     !aiIntegrationAvailable.value ||
@@ -803,6 +771,12 @@ const getPluralName = (name: string) => {
   }
   return name
 }
+
+watch(activeBaseId, () => {
+  if (activeBaseId.value !== props.baseId) {
+    vModel.value = false
+  }
+})
 </script>
 
 <template>
@@ -873,41 +847,13 @@ const getPluralName = (name: string) => {
             </template>
           </template>
         </div>
-        <!-- <a
-          v-if="!form.copy_from_id"
-          class="text-sm !text-gray-600 !font-default !hover:text-gray-600"
-          :href="`https://docs.nocodb.com/views/view-types/${typeAlias}`"
-          target="_blank"
-        >
-          Docs
-        </a> -->
-        <div
-          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
-          :class="{
-            'cursor-wait': aiLoading,
-          }"
-        >
-          <NcButton
-            type="text"
-            size="small"
-            class="-my-1 !text-nc-content-purple-dark hover:text-nc-content-purple-dark"
-            :class="{
-              '!pointer-events-none !cursor-not-allowed': aiLoading,
-              '!bg-nc-bg-purple-dark hover:!bg-gray-100': aiMode,
-            }"
-            @click.stop="aiMode ? disableAiMode() : toggleAiMode(true)"
-          >
-            <div class="flex items-center justify-center">
-              <GeneralIcon icon="ncAutoAwesome" />
-              <span
-                class="overflow-hidden trasition-all ease duration-200"
-                :class="{ 'w-[0px] invisible': aiMode, 'ml-1 w-[78px]': !aiMode }"
-              >
-                Use NocoAI
-              </span>
-            </div>
-          </NcButton>
-        </div>
+        <AiToggleButton
+          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent && isAiFeaturesEnabled"
+          :ai-mode="aiMode"
+          :ai-loading="aiLoading"
+          :off-tooltip="`Auto suggest views for ${meta?.title || 'the current table'}`"
+          @click="aiMode ? disableAiMode() : toggleAiMode(true)"
+        />
       </div>
       <a-form
         v-if="isNecessaryColumnsPresent"
@@ -941,6 +887,7 @@ const getPluralName = (name: string) => {
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
               dropdown-match-select-width
+              show-search
               :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
               :placeholder="$t('placeholder.selectCoverImageField')"
               class="nc-select-shadow w-full nc-gallery-cover-image-field-select"
@@ -948,7 +895,7 @@ const getPluralName = (name: string) => {
               <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
                 <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                   <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
-                    <SmartsheetHeaderIcon v-if="option.value" :column="option" class="!ml-0" />
+                    <SmartsheetHeaderIcon v-if="option.col" :column="option.col" class="!ml-0" />
 
                     <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
                       <template #title>
@@ -977,6 +924,7 @@ const getPluralName = (name: string) => {
               v-model:value="form.fk_grp_col_id"
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
+              show-search
               dropdown-match-select-width
               :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
               :placeholder="$t('placeholder.selectGroupField')"
@@ -985,7 +933,7 @@ const getPluralName = (name: string) => {
               <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
                 <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                   <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
-                    <SmartsheetHeaderIcon :column="option" class="!ml-0" />
+                    <SmartsheetHeaderIcon v-if="option.col" :column="option.col" class="!ml-0" />
 
                     <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
                       <template #title>
@@ -1030,7 +978,7 @@ const getPluralName = (name: string) => {
               class="flex flex-col w-full gap-6"
             >
               <div class="w-full space-y-2">
-                <div class="text-gray-800">
+                <div class="text-nc-content-gray">
                   {{ $t('labels.organiseBy') }}
                 </div>
 
@@ -1038,12 +986,13 @@ const getPluralName = (name: string) => {
                   v-model:value="range.fk_from_column_id"
                   class="nc-select-shadow w-full nc-from-select !rounded-lg"
                   dropdown-class-name="!rounded-lg"
+                  show-search
                   :placeholder="$t('placeholder.notSelected')"
                   data-testid="nc-calendar-range-from-field-select"
                   @click.stop
                   @change="onValueChange"
                 >
-                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
                   <a-select-option
                     v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
                   // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
@@ -1057,7 +1006,7 @@ const getPluralName = (name: string) => {
                   >
                     <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                       <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                        <SmartsheetHeaderIcon :column="option" />
+                        <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
 
                         <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
                           <template #title>
@@ -1076,94 +1025,120 @@ const getPluralName = (name: string) => {
                   </a-select-option>
                 </a-select>
               </div>
-              <div v-if="isEeUI" class="w-full space-y-2">
-                <NcButton
-                  v-if="range.fk_to_column_id === null"
-                  size="small"
-                  type="text"
-                  @click="range.fk_to_column_id = undefined"
-                >
-                  <div class="flex items-center gap-1">
-                    <component :is="iconMap.plus" class="h-4 w-4" />
-                    {{ $t('activity.endDate') }}
-                  </div>
-                </NcButton>
-
-                <template v-else-if="isEeUI">
-                  <span class="text-gray-700">
-                    {{ $t('activity.withEndDate') }}
-                  </span>
-
-                  <div class="flex">
-                    <a-select
-                      v-model:value="range.fk_to_column_id"
-                      class="nc-select-shadow w-full flex-1"
-                      allow-clear
-                      :disabled="isMetaLoading"
-                      :loading="isMetaLoading"
-                      :placeholder="$t('placeholder.notSelected')"
-                      data-testid="nc-calendar-range-to-field-select"
-                      dropdown-class-name="!rounded-lg"
-                      @click.stop
+              <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+                <template #default="{ click }">
+                  <div class="w-full space-y-2">
+                    <NcButton
+                      v-if="range.fk_to_column_id === null"
+                      size="small"
+                      type="text"
+                      @click="click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, () => (range.fk_to_column_id = undefined))"
                     >
-                      <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+                      <div class="flex items-center gap-1">
+                        <component :is="iconMap.plus" class="h-4 w-4" />
+                        {{ $t('activity.endDate') }}
+                      </div>
+                      <PaymentUpgradeBadge
+                        class="ml-2"
+                        :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                        :content="
+                          $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
+                            plan: getPlanTitle(PlanTitles.PLUS),
+                          })
+                        "
+                        :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                      />
+                    </NcButton>
 
-                      <a-select-option
-                        v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
-                          // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
-                          // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
-                          const firstRange = viewSelectFieldOptions.find(
-                            (f) => f.value === form.calendar_range[0].fk_from_column_id,
-                          )
-                          // First ensure the data type matches
-                          const dataTypeMatches = firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
+                    <template v-else>
+                      <div class="flex gap-2 items-center text-nc-content-gray-subtle">
+                        {{ $t('activity.withEndDate') }}
+                        <PaymentUpgradeBadge
+                          :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                          :content="
+                            $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
+                              plan: getPlanTitle(PlanTitles.PLUS),
+                            })
+                          "
+                          :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                        />
+                      </div>
 
-                          // If no match in data type, return false
-                          if (!dataTypeMatches) return false
+                      <div class="flex">
+                        <a-select
+                          v-model:value="range.fk_to_column_id"
+                          class="nc-select-shadow w-full flex-1"
+                          allow-clear
+                          show-search
+                          :disabled="isMetaLoading || blockCalendarRange"
+                          :loading="isMetaLoading"
+                          :placeholder="$t('placeholder.notSelected')"
+                          data-testid="nc-calendar-range-to-field-select"
+                          dropdown-class-name="!rounded-lg"
+                          @click.stop
+                        >
+                          <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
 
-                          // If first range has a timezone configured, ensure this option has the same timezone
-                          const firstRangeColumn = meta?.columns?.find((c) => c.id === form.calendar_range[0].fk_from_column_id)
-                          const optionColumn = meta?.columns?.find((c) => c.id === f.value)
-                          return optionColumn?.meta?.timezone === firstRangeColumn.meta.timezone
-                        })"
-                        :key="id"
-                        :value="option.value"
+                          <a-select-option
+                            v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
+                              // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                              // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+                              const firstRange = viewSelectFieldOptions.find(
+                                (f) => f.value === form.calendar_range[0].fk_from_column_id,
+                              )
+                              // First ensure the data type matches
+                              const dataTypeMatches = firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
+
+                              // If no match in data type, return false
+                              if (!dataTypeMatches) return false
+
+                              // If first range has a timezone configured, ensure this option has the same timezone
+                              const firstRangeColumn = meta?.columns?.find(
+                                (c) => c.id === form.calendar_range[0].fk_from_column_id,
+                              )
+                              const optionColumn = meta?.columns?.find((c) => c.id === f.value)
+                              return optionColumn?.meta?.timezone === firstRangeColumn.meta.timezone
+                            })"
+                            :key="id"
+                            :value="option.value"
+                          >
+                            <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                              <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                                <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
+
+                                <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                                  <template #title>
+                                    {{ option.label }}
+                                  </template>
+                                  <template #default>{{ option.label }}</template>
+                                </NcTooltip>
+                              </div>
+                              <GeneralIcon
+                                v-if="option.value === range.fk_from_column_id"
+                                id="nc-selected-item-icon"
+                                icon="check"
+                                class="flex-none text-primary w-4 h-4"
+                              />
+                            </div>
+                          </a-select-option>
+                        </a-select>
+                      </div>
+                      <NcButton
+                        v-if="index !== 0"
+                        size="small"
+                        type="secondary"
+                        @click="
+                          () => {
+                            form.calendar_range = form.calendar_range.filter((_, i) => i !== index)
+                          }
+                        "
                       >
-                        <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                          <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                            <SmartsheetHeaderIcon :column="option" />
-
-                            <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
-                              <template #title>
-                                {{ option.label }}
-                              </template>
-                              <template #default>{{ option.label }}</template>
-                            </NcTooltip>
-                          </div>
-                          <GeneralIcon
-                            v-if="option.value === range.fk_from_column_id"
-                            id="nc-selected-item-icon"
-                            icon="check"
-                            class="flex-none text-primary w-4 h-4"
-                          />
-                        </div>
-                      </a-select-option>
-                    </a-select>
+                        <component :is="iconMap.close" />
+                      </NcButton>
+                    </template>
                   </div>
-                  <NcButton
-                    v-if="index !== 0"
-                    size="small"
-                    type="secondary"
-                    @click="
-                      () => {
-                        form.calendar_range = form.calendar_range.filter((_, i) => i !== index)
-                      }
-                    "
-                  >
-                    <component :is="iconMap.close" />
-                  </NcButton>
                 </template>
-              </div>
+              </PaymentUpgradeBadgeProvider>
             </div>
 
             <!--          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
@@ -1173,13 +1148,13 @@ const getPluralName = (name: string) => {
 
             <div
               v-if="isCalendarReadonly(form.calendar_range)"
-              class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full"
+              class="flex flex-row p-4 border-nc-border-gray-medium border-1 gap-x-4 rounded-lg w-full"
             >
-              <div class="text-gray-500 flex gap-4">
-                <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="info" />
+              <div class="text-nc-content-gray-muted flex gap-4">
+                <GeneralIcon class="min-w-6 h-6 !text-nc-content-orange-medium" icon="info" />
                 <div class="flex flex-col gap-1">
-                  <h2 class="font-semibold text-sm mb-0 text-gray-800">Calendar is readonly</h2>
-                  <span class="text-gray-500 font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
+                  <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Calendar is readonly</h2>
+                  <span class="text-nc-content-gray-muted font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
                 </div>
               </div>
             </div>
@@ -1193,7 +1168,7 @@ const getPluralName = (name: string) => {
           </div>
           <AiWizardTabs v-else v-model:active-tab="activeAiTab">
             <template #AutoSuggestedContent>
-              <div class="px-5 pt-5 pb-2">
+              <div class="px-5 pt-5 pb-2 w-full">
                 <div v-if="aiError" class="w-full flex items-center gap-3">
                   <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
 
@@ -1216,11 +1191,14 @@ const getPluralName = (name: string) => {
                     <div class="nc-animate-dots">Auto suggesting views for {{ meta?.title }}</div>
                   </div>
                 </div>
-                <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">
-                  <div class="flex-1 flex gap-2 flex-wrap">
+                <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start w-full">
+                  <div class="flex-1 flex gap-2 flex-wrap w-[calc(100%_-_68px)]">
                     <template v-if="activeTabPredictedViews.length">
                       <template v-for="v of activeTabPredictedViews" :key="v.title">
-                        <NcTooltip :disabled="!(activeTabSelectedViews.length >= maxSelectionCount || !!v?.description)">
+                        <NcTooltip
+                          :disabled="!(activeTabSelectedViews.length >= maxSelectionCount || !!v?.description)"
+                          class="truncate max-w-full"
+                        >
                           <template #title>
                             <div v-if="activeTabSelectedViews.length >= maxSelectionCount" class="w-[150px]">
                               You can only select {{ maxSelectionCount }} views to create at a time.
@@ -1229,7 +1207,7 @@ const getPluralName = (name: string) => {
                           </template>
 
                           <a-tag
-                            class="nc-ai-suggested-tag"
+                            class="nc-ai-suggested-tag truncate max-w-full"
                             :class="{
                               'nc-disabled': isAiSaving || (!v.selected && activeTabSelectedViews.length >= maxSelectionCount),
                               'nc-selected': v.selected,
@@ -1252,7 +1230,7 @@ const getPluralName = (name: string) => {
                                 }"
                               />
 
-                              <div>{{ v.title }}</div>
+                              <div class="truncate">{{ v.title }}</div>
                             </div>
                           </a-tag>
                         </NcTooltip>
@@ -1275,6 +1253,7 @@ const getPluralName = (name: string) => {
                         size="xs"
                         class="!px-1"
                         type="text"
+                        mobile-size="small"
                         theme="ai"
                         :disabled="isAiSaving"
                         :loading="aiLoading && calledFunction === 'predictMore'"
@@ -1290,6 +1269,7 @@ const getPluralName = (name: string) => {
                       <NcButton
                         v-e="['a:view:ai:predict-refresh']"
                         size="xs"
+                        mobile-size="small"
                         class="!px-1"
                         type="text"
                         theme="ai"
@@ -1423,32 +1403,32 @@ const getPluralName = (name: string) => {
         </template>
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="px-5">
-        <div class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
-          <div class="text-gray-500 flex gap-4">
-            <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="alertTriangle" />
+        <div class="flex flex-row p-4 border-nc-border-gray-medium border-1 gap-x-4 rounded-lg w-full">
+          <div class="text-nc-content-gray-subtle flex gap-4">
+            <GeneralIcon class="min-w-6 h-6 text-nc-content-orange-medium" icon="alertTriangle" />
             <div class="flex flex-col gap-1">
-              <h2 class="font-semibold text-sm mb-0 text-gray-800">Suitable fields not present</h2>
-              <span class="text-gray-500 font-default text-sm"> {{ errorMessages[form.type] }}</span>
+              <h2 class="font-semibold text-sm mb-0 text-nc-content-gray">Suitable fields not present</h2>
+              <span class="text-nc-content-gray-muted font-default text-sm"> {{ errorMessages[form.type] }}</span>
             </div>
           </div>
         </div>
       </div>
 
       <a-form-item v-if="enableDescription && !aiMode" class="!px-5">
-        <div class="flex gap-3 text-gray-800 h-7 mt-4 mb-1 items-center justify-between">
+        <div class="flex gap-3 text-nc-content-gray h-7 mt-4 mb-1 items-center justify-between">
           <span class="text-[13px]">
             {{ $t('labels.description') }}
           </span>
 
           <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
-            <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
+            <GeneralIcon icon="delete" class="text-nc-content-gray-subtle w-3.5 h-3.5" />
           </NcButton>
         </div>
 
         <a-textarea
           ref="descriptionInputEl"
           v-model:value="form.description"
-          class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800 max-h-[150px] min-h-[100px]"
+          class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-nc-content-gray max-h-[150px] min-h-[100px]"
           hide-details
           data-testid="create-table-title-input"
           :placeholder="$t('msg.info.enterViewDescription')"
@@ -1467,7 +1447,7 @@ const getPluralName = (name: string) => {
           type="text"
           @click.stop="toggleDescription"
         >
-          <div class="flex !text-gray-700 items-center gap-2">
+          <div class="flex !text-nc-content-gray-subtle items-center gap-2">
             <GeneralIcon icon="plus" class="h-4 w-4" />
 
             <span class="first-letter:capitalize">
@@ -1517,7 +1497,12 @@ const getPluralName = (name: string) => {
             </div>
             <template #loading> {{ $t('labels.creatingView') }} </template>
           </NcButton>
-          <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations"> Add AI integration </NcButton>
+          <NcTooltip v-else :disabled="!isMobileMode">
+            <template #title> AI integration is not available in mobile mode. </template>
+            <NcButton type="primary" size="small" :disabled="!!isMobileMode" @click="handleNavigateToIntegrations">
+              Add AI integration
+            </NcButton>
+          </NcTooltip>
         </div>
       </div>
     </div>
@@ -1529,7 +1514,7 @@ const getPluralName = (name: string) => {
   padding-block: 8px !important;
 }
 .ant-form-item-required {
-  @apply !text-gray-800 font-medium;
+  @apply !text-nc-content-gray font-medium;
   &:before {
     @apply !content-[''];
   }
@@ -1549,7 +1534,7 @@ const getPluralName = (name: string) => {
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-sm text-gray-800 flex;
+  @apply !text-sm text-nc-content-gray flex;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;

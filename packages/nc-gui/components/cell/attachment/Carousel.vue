@@ -142,12 +142,12 @@ const initEmblaApi = (val: any) => {
 </script>
 
 <template>
-  <GeneralOverlay v-model="selectedFile" transition :z-index="isExpandedFormOpen ? 1000 : 50" class="bg-black bg-opacity-90">
+  <GeneralOverlay v-model="selectedFile" transition :z-index="isExpandedFormOpen ? 1000 : 504" class="bg-black bg-opacity-90">
     <div class="flex w-full h-full">
       <div
         v-if="selectedFile"
         ref="container"
-        class="flex w-full overflow-hidden justify-center text-center relative h-screen items-center"
+        class="flex w-full overflow-hidden justify-center text-center relative nc-h-screen items-center"
       >
         <NcButton
           class="top-5 !absolute cursor-pointer !z-30 !hover:bg-transparent left-5"
@@ -174,7 +174,7 @@ const initEmblaApi = (val: any) => {
           <NcCarouselContent>
             <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
               <div v-if="selectedIndex === index" :key="isUpdated" class="justify-center w-full h-full flex items-center">
-                <LazyCellAttachmentPreviewImage
+                <CellAttachmentPreviewImage
                   v-if="isImage(item.title, item.mimetype)"
                   class="nc-attachment-img-wrapper"
                   object-fit="contain"
@@ -184,7 +184,7 @@ const initEmblaApi = (val: any) => {
                   @error="triggerReload"
                 />
 
-                <LazyCellAttachmentPreviewVideo
+                <CellAttachmentPreviewVideo
                   v-else-if="isVideo(item.title, item.mimetype)"
                   class="flex items-center w-full"
                   :mime-type="item.mimetype"
@@ -193,7 +193,7 @@ const initEmblaApi = (val: any) => {
                   @error="triggerReload"
                 />
 
-                <LazyCellAttachmentPreviewVideo
+                <CellAttachmentPreviewVideo
                   v-else-if="isAudio(item.title, item.mimetype)"
                   class="flex items-center w-full"
                   :mime-type="item.mimetype"
@@ -202,13 +202,13 @@ const initEmblaApi = (val: any) => {
                   @error="triggerReload"
                 />
 
-                <LazyCellAttachmentPreviewPdf
+                <CellAttachmentPreviewPdf
                   v-else-if="isPdf(item.title, item.mimetype)"
                   class="keep-open"
                   :src="getPossibleAttachmentSrc(item)"
                   @error="triggerReload"
                 />
-                <LazyCellAttachmentPreviewMiscOffice
+                <CellAttachmentPreviewMiscOffice
                   v-else-if="isOffice(item.title, item.mimetype)"
                   class="keep-open"
                   :src="getPossibleAttachmentSrc(item)"
@@ -270,38 +270,14 @@ const initEmblaApi = (val: any) => {
                 @click="onThumbClick(index)"
               >
                 <div class="flex items-center justify-center">
-                  <LazyCellAttachmentPreviewImage
-                    v-if="isImage(item.title, item.mimetype)"
+                  <CellAttachmentPreviewThumbnail
                     class="nc-attachment-img-wrapper h-12"
+                    :attachment="item"
+                    thumbnail="tiny"
                     object-fit="contain"
                     :alt="item.title"
-                    :srcs="getPossibleAttachmentSrc(item, 'tiny')"
                     @error="triggerReload"
                   />
-                  <div
-                    v-else-if="isVideo(item.title, item.mimetype)"
-                    class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
-                  >
-                    <GeneralIcon class="text-white" icon="play" />
-                  </div>
-
-                  <div
-                    v-else-if="isAudio(item.title, item.mimetype)"
-                    class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
-                  >
-                    <GeneralIcon class="text-white" icon="ncVolume2" />
-                  </div>
-
-                  <div
-                    v-else-if="isPdf(item.title, item.mimetype)"
-                    class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200"
-                  >
-                    <GeneralIcon class="text-white" icon="pdfFile" />
-                  </div>
-
-                  <div v-else class="h-full flex items-center h-6 justify-center rounded-md px-2 py-1 border-1 border-gray-200">
-                    <GeneralIcon class="text-white" icon="file" />
-                  </div>
                 </div>
               </NcCarouselItem>
             </NcCarouselContent>
@@ -364,7 +340,7 @@ const initEmblaApi = (val: any) => {
         }"
         class="bg-white max-w-88 transition-all"
       >
-        <LazySmartsheetExpandedFormSidebarComments />
+        <SmartsheetExpandedFormSidebarComments />
       </div>
     </div>
   </GeneralOverlay>

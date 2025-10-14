@@ -1,5 +1,6 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
+import { v7 as uuidv7 } from 'uuid';
 import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -13,6 +14,7 @@ import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
+import { isWorker } from '~/utils';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -22,16 +24,21 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 @Injectable()
 export class MetaService {
-  private _knex: knex.Knex;
-  private _config: any;
+  protected _knex: knex.Knex;
+  protected _config: any;
 
-  constructor(config: NcConfig, @Optional() trx = null) {
+  constructor(
+    config: NcConfig,
+    @Optional() trx = null,
+    @Optional() nested = 0,
+  ) {
     this._config = config;
     this._knex = XKnex({
       ...this._config.meta.db,
       useNullAsDefault: true,
     });
     this.trx = trx;
+    this.nested = nested;
   }
 
   get knexInstance(): knex.Knex {
@@ -197,10 +204,11 @@ export class MetaService {
     }
 
     for (const d of Array.isArray(data) ? data : [data]) {
-      const id = d?.id || (await this.genNanoid(target));
       const tempObj = {
         ...d,
-        ...(ignoreIdGeneration ? {} : { id }),
+        ...(ignoreIdGeneration
+          ? {}
+          : { id: d?.id || (await this.genNanoid(target)) }),
         ...commonProps,
       };
       insertObj.push(tempObj);
@@ -292,6 +300,10 @@ export class MetaService {
    * @returns {string} - Generated nanoid
    * */
   public async genNanoid(target: string) {
+    if (target === MetaTable.AUDIT) {
+      return uuidv7();
+    }
+
     const prefixMap: { [key: string]: string } = {
       [MetaTable.PROJECT]: 'p',
       [MetaTable.SOURCES]: 'b',
@@ -321,7 +333,6 @@ export class MetaService {
       [MetaTable.VIEWS]: 'vw',
       [MetaTable.HOOKS]: 'hk',
       [MetaTable.HOOK_LOGS]: 'hkl',
-      [MetaTable.AUDIT]: 'adt',
       [MetaTable.API_TOKENS]: 'tkn',
       [MetaTable.EXTENSIONS]: 'ext',
       [MetaTable.COMMENTS]: 'com',
@@ -334,6 +345,10 @@ export class MetaService {
       [MetaTable.SNAPSHOT]: 'snap',
       [MetaTable.SCRIPTS]: 'scr',
       [MetaTable.SYNC_CONFIGS]: 'sync',
+      [MetaTable.PERMISSIONS]: 'perm',
+      [MetaTable.PERMISSION_SUBJECTS]: 'pers',
+      [MetaTable.DASHBOARDS]: 'dash',
+      [MetaTable.WIDGETS]: 'wgt',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -344,7 +359,8 @@ export class MetaService {
 
   // private connection: XKnex;
   // todo: need to fix
-  private trx: Knex.Transaction;
+  protected trx: Knex.Transaction;
+  protected nested: number;
 
   /***
    * Delete meta data
@@ -464,7 +480,7 @@ export class MetaService {
     }
 
     if (!idOrCondition) {
-      return query.first();
+      return null;
     }
 
     if (typeof idOrCondition !== 'object') {
@@ -479,15 +495,24 @@ export class MetaService {
    * Get order value for the next record
    * @param target - Table name
    * @param condition - Condition to be applied
+   * @param xcCondition - Additional nested or complex condition to be added to the query.
    * @returns {Promise<number>} - Order value
    * */
   public async metaGetNextOrder(
     target: string,
     condition: { [key: string]: any },
+    xcCondition?: Condition,
   ): Promise<number> {
     const query = this.knexConnection(target);
 
-    query.where(condition);
+    if (condition) {
+      query.where(condition);
+    }
+
+    if (xcCondition) {
+      (query as any).condition(xcCondition);
+    }
+
     query.max('order', { as: 'order' });
 
     return (+(await query.first())?.order || 0) + 1;
@@ -709,10 +734,10 @@ export class MetaService {
   }
 
   async commit() {
-    if (this.trx) {
+    if (this.trx && this.nested === 0) {
       await this.trx.commit();
+      this.trx = null;
     }
-    this.trx = null;
   }
 
   async rollback(e?) {
@@ -723,16 +748,17 @@ export class MetaService {
   }
 
   async startTransaction(): Promise<MetaService> {
-    const trx = await this.connection.transaction();
-
-    // todo: Extend transaction class to add our custom properties
-    Object.assign(trx, {
-      clientType: this.connection.clientType,
-      searchPath: (this.connection as any).searchPath,
-    });
+    const trx = this.connection.isTransaction
+      ? this.connection
+      : await this.connection.transaction();
 
     // todo: tobe done
-    return new MetaService(this.config, trx);
+    return new MetaService(
+      this.config,
+      trx,
+      // we need to keep track of the nested transaction level
+      this.connection.isTransaction ? this.nested + 1 : 0,
+    );
   }
 
   /***
@@ -798,31 +824,24 @@ export class MetaService {
     );
   }
 
-  private isMssql(): boolean {
-    return this.connection.clientType() === 'mssql';
-  }
-
   public now(): any {
     return dayjs()
       .utc()
-      .format(
-        this.isMySQL() || this.isMssql()
-          ? 'YYYY-MM-DD HH:mm:ss'
-          : 'YYYY-MM-DD HH:mm:ssZ',
-      );
+      .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
   }
 
   public formatDateTime(date: string): string {
     return dayjs(date)
       .utc()
-      .format(
-        this.isMySQL() || this.isMssql()
-          ? 'YYYY-MM-DD HH:mm:ss'
-          : 'YYYY-MM-DD HH:mm:ssZ',
-      );
+      .format(this.isMySQL() ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ');
   }
 
   public async init(): Promise<boolean> {
+    // skip migration in worker container
+    if (isWorker) {
+      return true;
+    }
+
     await this.connection.migrate.latest({
       migrationSource: new XcMigrationSource(),
       tableName: 'xc_knex_migrations',

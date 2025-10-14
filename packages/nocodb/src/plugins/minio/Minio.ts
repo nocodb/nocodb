@@ -66,8 +66,13 @@ export default class Minio implements IStorageAdapterV2 {
 
   public async test(): Promise<boolean> {
     try {
-      const createStream = Readable.from(['Hello from Minio, NocoDB']);
-      await this.fileCreateByStream('nc-test-file.txt', createStream);
+      const stream = new Readable({
+        read() {
+          this.push('Hello from Minio, NocoDB');
+          this.push(null);
+        },
+      });
+      await this.fileCreateByStream('nc-test-file.txt', stream);
       return true;
     } catch (e) {
       throw e;
@@ -116,9 +121,31 @@ export default class Minio implements IStorageAdapterV2 {
         });
       });
 
+      // Create a transform stream to ensure data is in Buffer format
+      const bufferStream = new Readable({
+        read() {},
+      });
+
+      stream.on('data', (chunk) => {
+        // Convert string chunks to Buffer if necessary
+        if (typeof chunk === 'string') {
+          bufferStream.push(Buffer.from(chunk, 'utf8'));
+        } else {
+          bufferStream.push(chunk);
+        }
+      });
+
+      stream.on('end', () => {
+        bufferStream.push(null);
+      });
+
+      stream.on('error', (err) => {
+        bufferStream.emit('error', err);
+      });
+
       const uploadParams = {
         Key: key,
-        Body: stream,
+        Body: bufferStream,
         metaData: {
           ContentType: options?.mimetype,
           size: options?.size,
@@ -269,5 +296,21 @@ export default class Minio implements IStorageAdapterV2 {
     });
 
     return stream;
+  }
+
+  getUploadedPath(path: string): { path?: string; url?: string } {
+    const protocol = this.input.useSSL ? 'https' : 'http';
+    const defaultPort = this.input.useSSL ? 443 : 80;
+
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+
+    let url: string;
+    if (this.input.port === defaultPort) {
+      url = `${protocol}://${this.input.endPoint}/${cleanPath}`;
+    } else {
+      url = `${protocol}://${this.input.endPoint}:${this.input.port}/${cleanPath}`;
+    }
+
+    return { path, url };
   }
 }

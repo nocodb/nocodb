@@ -170,10 +170,36 @@ export const openLinkUsingATag = (url: string, target?: '_blank') => {
   document.body.removeChild(link)
 }
 
-export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allowLocalUrl?: boolean) => {
+export const patchUrl = (url: string, user?: Record<string, any>): string => {
+  // Only patch this exact URL
+  if (!url.startsWith('https://app.nocodb.com/p/nocodb-upvote-feature') || !user) {
+    // if (!url.startsWith('http://localhost:8080/p/c') || !user) {
+    return url
+  }
+
+  try {
+    const urlObj = new URL(url)
+
+    if (user?.display_name) {
+      urlObj.searchParams.set('Name', user.display_name)
+    }
+
+    if (user?.email) {
+      urlObj.searchParams.set('Email', user.email)
+    }
+
+    return urlObj.toString()
+  } catch (error) {
+    return url
+  }
+}
+
+export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allowLocalUrl?: boolean, userObj?: any) => {
   url = addMissingUrlSchma(url)
 
   if (!url) return
+
+  url = patchUrl(url, userObj)
 
   if (!url.startsWith('http')) {
     /**
@@ -269,4 +295,44 @@ export const extractYoutubeVideoId = (url: string) => {
   }
 
   return ''
+}
+
+/**
+ * Converts an array of strings into a URL-safe slug.
+ *
+ * - Each part is trimmed and internal spaces are replaced with a single dash (`-`).
+ * - Existing dashes are preserved as-is.
+ * - Special characters are URL-encoded using `encodeURIComponent`.
+ * - Parts that are empty or only whitespace are ignored.
+ * - All output is lowercased.
+ * - The final slug is created by joining all parts with a dash (`-`).
+ *
+ * @example
+ * ```ts
+ * toReadableUrlSlug(['Feature   Table', 'Default View']);
+ * // "feature-table-default-view"
+ *
+ * toReadableUrlSlug(['Orders-Invoices', 'Grid   View']);
+ * // "orders-invoices-grid-view"
+ *
+ * toReadableUrlSlug(['User   Activity', 'Calendar  - View']);
+ * // "user-activity-calendar--view"
+ * ```
+ *
+ * @param parts - Array of strings (e.g., tableName, viewName) to be combined into a slug.
+ * @returns A URL-safe slug string, or an empty string if no valid parts are provided.
+ */
+export function toReadableUrlSlug(parts: (string | undefined)[] = []): string {
+  return (
+    parts
+      .map((part) => {
+        if (!part?.trim()) return ''
+
+        return encodeURIComponent(
+          part.trim().toLowerCase().replace(/\s+/g, '-'), // replace one or more spaces with a single dash
+        )
+      })
+      .filter(Boolean) // remove empty parts
+      .join('-') ?? ''
+  )
 }

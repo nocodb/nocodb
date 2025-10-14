@@ -1,11 +1,11 @@
+import { SilentTypeConversionError } from '~/lib/error';
+import { parseProp } from '~/lib/helperFunctions';
 import { ncIsArray, ncIsObject, ncIsString } from '~/lib/is';
+import { NcRecord } from '~/lib/ncTypes';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
-import { parseUserValue, serializeEmail } from '../utils';
-import { SilentTypeConversionError } from '~/lib/error';
-import { NcRecord } from '~/lib/ncTypes';
-import { parseProp } from '~/lib/helperFunctions';
+import { parseUserValue, serializeEmail, serializeStringValue } from '../utils';
 
 export class UserHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -17,6 +17,10 @@ export class UserHelper extends AbstractColumnHelper {
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null | NcRecord {
+    if (params.serializeSearchQuery) {
+      return serializeStringValue(value);
+    }
+
     try {
       value = typeof value === 'string' ? JSON.parse(value) : value;
     } catch {}

@@ -20,6 +20,7 @@ export interface NcButtonProps {
   showAsDisabled?: boolean
   type?: ButtonType | 'danger' | 'secondary' | undefined
   size?: NcButtonSize
+  mobileSize?: NcButtonSize
   loaderSize?: GeneralLoaderProps['size']
   centered?: boolean
   fullWidth?: boolean
@@ -52,14 +53,22 @@ const emits = defineEmits(['update:loading'])
 
 const slots = useSlots()
 
+const { isMobileMode } = useGlobal()
+
 const NcButton = ref<HTMLElement | null>(null)
 
-const { size, loaderSize, type, theme, bordered } = toRefs(props)
+const { size, mobileSize, loaderSize, type, theme, bordered } = toRefs(props)
 
 const loading = useVModel(props, 'loading', emits)
 
 const isFocused = ref(false)
 const isClicked = ref(false)
+
+const buttonSize = computed(() => {
+  if (isMobileMode.value && mobileSize.value) return mobileSize.value
+
+  return size.value
+})
 
 const onFocus = (e: FocusEvent) => {
   // Only focus when coming from another element which is not a mouse click
@@ -90,11 +99,11 @@ useEventListener(NcButton, 'mousedown', () => {
   <a-button
     ref="NcButton"
     :class="{
-      'small': size === 'small',
-      'medium': size === 'medium',
-      'xsmall': size === 'xsmall',
-      'xxsmall': size === 'xxsmall',
-      'size-xs': size === 'xs',
+      'small': buttonSize === 'small',
+      'medium': buttonSize === 'medium',
+      'xsmall': buttonSize === 'xsmall',
+      'xxsmall': buttonSize === 'xxsmall',
+      'size-xs': buttonSize === 'xs',
       'focused': isFocused && !props.hideFocus,
       'theme-default': theme === 'default',
       'theme-ai': theme === 'ai',
@@ -128,7 +137,7 @@ useEventListener(NcButton, 'mousedown', () => {
         <slot v-else name="icon" />
       </template>
       <div
-        v-if="!(size === 'xxsmall' && loading) && !props.iconOnly"
+        v-if="!(buttonSize === 'xxsmall' && loading) && !props.iconOnly"
         :class="{
           'font-medium': type === 'primary' || type === 'danger',
           'w-full': props.fullWidth,
@@ -177,17 +186,17 @@ useEventListener(NcButton, 'mousedown', () => {
 .desktop {
   .nc-button.ant-btn.focused {
     &.theme-default {
-      box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+      box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px #3069fe;
     }
 
     &.theme-ai {
-      box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #7d26cd;
+      box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px #7d26cd;
     }
   }
 
   .nc-button.ant-btn-text.focused {
     &.theme-default {
-      @apply text-brand-500;
+      @apply text-nc-content-brand;
     }
 
     &.theme-ai {
@@ -230,11 +239,11 @@ useEventListener(NcButton, 'mousedown', () => {
   @apply border-0 !cursor-not-allowed;
 
   &.theme-default {
-    @apply bg-gray-50 text-gray-300 md:(hover:bg-gray-50);
+    @apply bg-nc-bg-gray-extralight text-nc-content-brand-hover md:(hover:bg-nc-bg-gray-extralight);
   }
 
   &.theme-ai {
-    @apply bg-purple-50 text-purple-300 md:(hover:bg-purple-50);
+    @apply bg-nc-bg-purple-light text-nc-content-purple-light md:(hover:bg-nc-bg-purple-light);
   }
 }
 
@@ -245,11 +254,11 @@ useEventListener(NcButton, 'mousedown', () => {
   @apply border-0;
 
   &.theme-default {
-    @apply bg-gray-50 text-gray-300 md:(hover:bg-gray-50);
+    @apply bg-nc-bg-gray-extralight text-nc-content-brand-hover md:(hover:bg-nc-bg-gray-extralight);
   }
 
   &.theme-ai {
-    @apply bg-purple-50 text-purple-300 md:(hover:bg-purple-50);
+    @apply bg-nc-bg-purple-light text-nc-content-purple-light md:(hover:bg-nc-bg-purple-light);
   }
 }
 
@@ -270,15 +279,15 @@ useEventListener(NcButton, 'mousedown', () => {
   }
 
   &.theme-default {
-    @apply bg-white hover:bg-white border-gray-100 text-gray-300;
+    @apply bg-nc-bg-default hover:bg-nc-bg-default border-nc-border-gray-light text-nc-content-brand-hover;
 
     &.bordered {
-      @apply border-gray-100;
+      @apply border-nc-border-gray-light;
     }
   }
 
   &.theme-ai {
-    @apply bg-purple-50 hover:bg-purple-50  text-purple-300;
+    @apply bg-nc-bg-purple-light hover:bg-nc-bg-purple-light text-nc-content-purple-light;
 
     &.bordered {
       @apply border-purple-100;
@@ -294,7 +303,7 @@ useEventListener(NcButton, 'mousedown', () => {
   }
 
   &.theme-ai {
-    @apply bg-purple-700 md:(hover:bg-purple-800);
+    @apply bg-nc-fill-purple-dark md:(hover:bg-nc-purple-800);
   }
 }
 
@@ -306,15 +315,15 @@ useEventListener(NcButton, 'mousedown', () => {
   }
 
   &.theme-default {
-    @apply bg-white text-gray-700 md:(hover:bg-gray-100);
+    @apply bg-nc-bg-default text-nc-content-inverted-secondary md:(hover:bg-nc-bg-gray-light);
 
     &.bordered {
-      @apply border-gray-200;
+      @apply border-nc-border-gray-medium;
     }
   }
 
   &.theme-ai {
-    @apply bg-purple-50  text-purple-700 md:(hover:bg-purple-100);
+    @apply bg-nc-bg-purple-light text-nc-content-purple-dark md:(hover:bg-nc-bg-purple-dark);
 
     &.bordered {
       @apply border-purple-200;
@@ -332,7 +341,7 @@ useEventListener(NcButton, 'mousedown', () => {
   @apply bg-transparent border-0;
 
   &.theme-default {
-    @apply text-gray-700 hover:text-gray-900 hover:bg-gray-100;
+    @apply text-nc-content-inverted-secondary hover:text-nc-content-gray-emphasis hover:bg-nc-bg-gray-light;
   }
 
   &.theme-ai {
@@ -346,5 +355,9 @@ useEventListener(NcButton, 'mousedown', () => {
 
 .nc-button.ant-btn-link {
   box-shadow: none;
+}
+
+.ant-btn-ghost {
+  @apply border-nc-border-gray-medium text-nc-content-inverted-secondary;
 }
 </style>

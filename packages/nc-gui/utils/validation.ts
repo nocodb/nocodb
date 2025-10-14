@@ -60,6 +60,30 @@ export const validateScriptName = {
   },
 }
 
+export const validateDashboardName = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
+      if (!value) {
+        return reject(new Error(t('msg.error.dashboardNameRequired')))
+      }
+
+      if (value.length > 256) {
+        return reject(new Error(t('msg.error.dashboardNameExceedsCharacters', { value: 256 })))
+      }
+
+      const m = value.match(/[./\\]/g)
+      if (m) {
+        return reject(
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+        )
+      }
+      return resolve(true)
+    })
+  },
+}
+
 export const validateColumnName = {
   validator: (_: unknown, value: string) => {
     return new Promise((resolve, reject) => {
@@ -151,7 +175,6 @@ export const fieldLengthValidator = () => {
 
       /// mysql allows 64 characters for column_name
       // postgres allows 59 characters for column_name
-      // mssql allows 128 characters for column_name
       // sqlite allows any number of characters for column_name
       // We allow 255 for all databases, truncate will be handled by backend for column_name
       const fieldLengthLimit = 255

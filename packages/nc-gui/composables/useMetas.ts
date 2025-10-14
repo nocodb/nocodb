@@ -4,7 +4,14 @@ import type { TableType } from 'nocodb-sdk'
 export const useMetas = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
+  const { ncNavigateTo } = useGlobal()
+
   const { tables: _tables } = storeToRefs(useBase())
+
+  const { activeProjectId } = storeToRefs(useBases())
+
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
   const { baseTables } = storeToRefs(useTablesStore())
 
   const metas = useState<{ [idOrTitle: string]: TableType | any }>('metas', () => ({}))
@@ -31,6 +38,7 @@ export const useMetas = createSharedComposable(() => {
     skipIfCacheMiss = false,
     baseId?: string,
     disableError = false,
+    navigateOnNotFound = false,
   ): Promise<TableType | null> => {
     if (!tableIdOrTitle) return null
 
@@ -93,6 +101,13 @@ export const useMetas = createSharedComposable(() => {
     } catch (e: any) {
       if (!disableError) {
         message.error(await extractSdkResponseErrorMsg(e))
+      }
+
+      if (navigateOnNotFound) {
+        ncNavigateTo({
+          workspaceId: activeWorkspaceId.value,
+          baseId: activeProjectId.value,
+        })
       }
     } finally {
       delete loadingState.value[tableIdOrTitle]

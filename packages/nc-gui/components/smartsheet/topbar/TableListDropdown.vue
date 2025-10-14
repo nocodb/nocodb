@@ -61,6 +61,7 @@ function openTableCreateDialog() {
         option-label-key="title"
         search-input-placeholder="Search tables"
         class="min-w-64 !w-auto"
+        variant="medium"
         @change="handleNavigateToTable"
       >
         <template #listItem="{ option }">

@@ -37,6 +37,8 @@ const imageCropperData = useVModel(props, 'imageCropperData', emits)
 
 const { t } = useI18n()
 
+const { isMobileMode } = useGlobal()
+
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const isOpen = ref<boolean>(false)
@@ -47,7 +49,9 @@ const inputRef = ref<HTMLInputElement>()
 
 const searchQuery = ref<string>('')
 
-const activeTabLocal = ref<IconType>(props.defaultActiveTab)
+const activeTabLocal = ref<IconType>(
+  isMobileMode.value && props.defaultActiveTab === IconType.IMAGE ? IconType.ICON : props.defaultActiveTab,
+)
 
 const activeTab = computed({
   get: () => activeTabLocal.value,
@@ -230,11 +234,15 @@ const tabs = computed(() => {
       value: IconType.ICON,
       icon: 'ncPlaceholderIcon',
     },
-    {
-      title: 'Upload',
-      value: IconType.IMAGE,
-      icon: 'ncUpload',
-    },
+    ...(!isMobileMode.value
+      ? [
+          {
+            title: 'Upload',
+            value: IconType.IMAGE,
+            icon: 'ncUpload',
+          },
+        ]
+      : []),
     {
       title: 'Emoji',
       value: IconType.EMOJI,
@@ -267,14 +275,14 @@ watch(isOpen, (newValue) => {
     <NcDropdown
       v-bind="$attrs"
       v-model:visible="isOpen"
-      overlay-class-name="w-[432px]"
+      overlay-class-name="w-[calc(100%_-_16px)] md:w-[432px]"
       class="nc-icon-selector"
       @visible-change="onVisibilityChange"
     >
       <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType"> </slot>
       <template #overlay>
         <div class="pt-2 h-[320px]">
-          <NcTabs v-model:activeKey="activeTab" class="nc-icon-selector-dropdown-tabs h-full">
+          <NcTabs v-model:active-key="activeTab" class="nc-icon-selector-dropdown-tabs h-full">
             <template #leftExtra>
               <div class="w-0"></div>
             </template>
@@ -292,7 +300,7 @@ watch(isOpen, (newValue) => {
               </template>
 
               <div v-if="tabItem.value === IconType.ICON" class="h-full overflow-auto nc-scrollbar-thin flex flex-col">
-                <div class="!sticky top-0 flex gap-2 bg-white px-2 py-2">
+                <div class="!sticky top-0 flex gap-2 bg-nc-bg-default px-2 py-2">
                   <a-input
                     ref="inputRef"
                     v-model:value="searchQuery"
@@ -309,7 +317,7 @@ watch(isOpen, (newValue) => {
                     :key="idx"
                     :icon="i"
                     :title="name"
-                    class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
+                    class="w-6 hover:bg-nc-bg-gray-light cursor-pointer rounded p-1 text-nc-content-gray-subtle h-6"
                     @click="selectIcon(name)"
                   />
                 </div>
@@ -324,10 +332,11 @@ watch(isOpen, (newValue) => {
                     <CellAttachmentPreviewImage
                       :srcs="getWorkspaceLogoSrc"
                       class="flex-none !object-contain max-h-full max-w-full !m-0 rounded-lg"
+                      :is-cell-preview="false"
                     />
                   </div>
                   <div class="flex-1 w-[calc(100%_-_108px)]">
-                    <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                    <NcTooltip class="truncate flex-1 text-current" show-on-truncate-only>
                       <template #title> {{ vIcon?.title || 'Workspace logo' }}</template>
                       {{ vIcon?.title || 'Workspace logo' }}
                     </NcTooltip>
@@ -346,7 +355,7 @@ watch(isOpen, (newValue) => {
                 </div>
                 <div class="flex-1">
                   <a-upload-dragger
-                    v-model:fileList="fileList"
+                    v-model:file-list="fileList"
                     name="file"
                     accept="image/*"
                     :disabled="isUploadingImage"
@@ -426,7 +435,7 @@ watch(isOpen, (newValue) => {
       }
 
       .tab-title {
-        @apply text-xs leading-[24px] px-2 rounded hover:bg-gray-100 transition-colors flex items-center gap-2;
+        @apply text-xs leading-[24px] px-2 rounded hover:bg-nc-bg-gray-light transition-colors flex items-center gap-2;
       }
     }
   }
@@ -449,7 +458,7 @@ watch(isOpen, (newValue) => {
 }
 
 :deep(.ant-input::placeholder) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 :deep(.nc-icon-selector img) {
@@ -460,7 +469,7 @@ watch(isOpen, (newValue) => {
 <style>
 .nc-icon-selector-image-uploader {
   &.ant-upload.ant-upload-drag {
-    @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
+    @apply !rounded-lg !bg-nc-bg-default !hover:bg-nc-bg-gray-light !transition-colors duration-300;
   }
   .ant-upload-btn {
     @apply !flex flex-col items-center justify-center !min-h-[176px];
@@ -468,7 +477,7 @@ watch(isOpen, (newValue) => {
 }
 
 .nc-icon-selector-emoji-picker.emoji-mart {
-  @apply !w-107.5 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
+  @apply !w-full md:!w-107.5 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
 
   span.emoji-type-native {
     @apply cursor-pointer;
@@ -496,7 +505,7 @@ watch(isOpen, (newValue) => {
     @apply mt-1 px-1 overflow-x-hidden;
 
     h3.emoji-mart-category-label {
-      @apply text-xs text-gray-500 mb-0;
+      @apply text-xs text-nc-content-gray-muted mb-0 bg-nc-bg-default;
     }
   }
 

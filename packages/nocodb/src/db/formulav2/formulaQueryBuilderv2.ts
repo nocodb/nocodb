@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import jsep from 'jsep';
 import {
+  CircularRefContext,
   FormulaDataTypes,
   jsepCurlyHook,
   JSEPNode,
@@ -10,6 +11,7 @@ import {
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { getColumnName } from 'src/helpers/dbHelpers';
+import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import { replaceDelimitedWithKeyValuePg } from '../aggregations/pg';
 import { replaceDelimitedWithKeyValueSqlite3 } from '../aggregations/sqlite3';
@@ -18,9 +20,9 @@ import {
   binaryExpressionBuilder,
   callExpressionBuilder,
 } from './parsed-tree-builder';
-import type { LiteralNode } from 'nocodb-sdk';
+import type { ClientType, LiteralNode } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { User } from '~/models';
+import type { BarcodeColumn, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
 import type RollupColumn from '~/models/RollupColumn';
 import type {
@@ -58,7 +60,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
   const context = baseModelSqlv2.context;
 
   const columns = await model.getColumns(context);
-
   let tree = parsedTree;
   if (!tree) {
     // formula may include double curly brackets in previous version
@@ -72,7 +73,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         | 'mysql'
         | 'pg'
         | 'sqlite3'
-        | 'mssql'
         | 'mysql2'
         | 'oracledb'
         | 'mariadb'
@@ -123,15 +123,13 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
             tableAlias,
             parentColumns,
           }: TAliasToColumnParam) => {
-            if (parentColumns?.has(col.id)) {
-              NcError.formulaError('Circular reference detected', {
-                details: {
-                  columnId: col.id,
-                  modelId: model.id,
-                  parentColumnIds: Array.from(parentColumns),
-                },
-              });
-            }
+            parentColumns = (
+              parentColumns ?? CircularRefContext.make()
+            ).cloneAndAdd({
+              id: col.id,
+              title: col.title,
+              table: model.title,
+            });
 
             const formulOption = await col.getColOptions<
               FormulaColumn | ButtonColumn
@@ -144,7 +142,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               tableAlias,
               parsedTree: formulOption.getParsedTree(),
               baseUsers,
-              parentColumns: new Set([col.id, ...(parentColumns ?? [])]),
+              parentColumns,
               getAliasCount,
               column: col,
             });
@@ -168,13 +166,14 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.Links:
         aliasToColumn[col.id] = async ({
           tableAlias,
-          parentColumns: _parentColumns,
+          parentColumns: parentColumns,
         }: TAliasToColumnParam): Promise<any> => {
           const qb = await genRollupSelectv2({
             baseModelSqlv2,
             knex,
             columnOptions: (await col.getColOptions(context)) as RollupColumn,
             alias: tableAlias,
+            parentColumns,
           });
           return { builder: knex.raw(qb.builder).wrap('(', ')') };
         };
@@ -215,19 +214,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   .wrap('(', ')'),
               };
             };
-          } else if (
-            knex.clientType() === 'mssql' &&
-            refCol.dt !== 'datetimeoffset'
-          ) {
-            // convert from DB timezone to UTC
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(
-                  `CONVERT(DATETIMEOFFSET, ?? AT TIME ZONE 'UTC')`,
-                  [refCol.column_name],
-                ),
-              };
-            };
           } else {
             aliasToColumn[col.id] = () =>
               Promise.resolve({ builder: refCol.column_name });
@@ -244,6 +230,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               baseUsers ??
               (await BaseUser.getUsersList(context, {
                 base_id: model.base_id,
+                include_internal_user: true,
               }));
 
             let finalStatement = '';
@@ -313,14 +300,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 ]),
               };
             };
-          } else if (knex.clientType() === 'mssql') {
-            aliasToColumn[col.id] = async (): Promise<any> => {
-              return {
-                builder: knex.raw(`JSON_VALUE(??, '$.value')`, [
-                  col.column_name,
-                ]),
-              };
-            };
           }
         } else {
           aliasToColumn[col.id] = () =>
@@ -328,13 +307,26 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         }
         break;
       }
+      case UITypes.QrCode:
+      case UITypes.Barcode: {
+        const referencedColumn = await (
+          await col.getColOptions<BarcodeColumn | QrCodeColumn>(context)
+        ).getValueColumn(context);
+        aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
+          Promise.resolve({
+            builder: knex.raw(`??.??`, [
+              tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+              referencedColumn.column_name,
+            ]),
+          });
+        break;
+      }
       default:
         aliasToColumn[col.id] = ({ tableAlias }: TAliasToColumnParam) =>
           Promise.resolve({
-            builder: knex.raw(`??`, [
-              `${tableAlias ?? baseModelSqlv2.getTnPath(model.table_name)}.${
-                col.column_name
-              }`,
+            builder: knex.raw(`??.??`, [
+              tableAlias ?? baseModelSqlv2.getTnPath(model.table_name),
+              col.column_name,
             ]),
           });
         break;
@@ -448,6 +440,7 @@ export default async function formulaQueryBuilderv2({
   validateFormula = false,
   parsedTree,
   baseUsers,
+  parentColumns,
 }: {
   baseModel: IBaseModelSqlV2;
   tree;
@@ -458,6 +451,7 @@ export default async function formulaQueryBuilderv2({
   validateFormula?: boolean;
   parsedTree?: any;
   baseUsers?: (Partial<User> & BaseUser)[];
+  parentColumns?: CircularRefContext;
 }) {
   const knex = baseModelSqlv2.dbDriver;
 
@@ -475,6 +469,14 @@ export default async function formulaQueryBuilderv2({
 
   let qb;
   try {
+    parentColumns = parentColumns ?? CircularRefContext.make();
+    if (column) {
+      parentColumns = parentColumns.cloneAndAdd({
+        id: column.id,
+        title: column.title,
+        table: model?.title,
+      });
+    }
     // generate qb
     qb = await _formulaQueryBuilder({
       baseModelSqlv2,
@@ -489,7 +491,7 @@ export default async function formulaQueryBuilderv2({
           ?.getColOptions<FormulaColumn | ButtonColumn>(context)
           .then((formula) => formula?.getParsedTree())),
       baseUsers,
-      parentColumns: new Set(column?.id ? [column?.id] : []),
+      parentColumns,
       getAliasCount,
     });
 
@@ -564,7 +566,11 @@ export default async function formulaQueryBuilderv2({
       throw e;
     }
 
-    NcError.formulaError(e.message);
+    const dbError = DBErrorExtractor.get().extractDbError(e, {
+      clientType: baseModelSqlv2.clientType as ClientType,
+      ignoreDefault: true,
+    });
+    NcError.get(context).formulaError(dbError?.message ?? e.message);
   }
   return qb;
 }

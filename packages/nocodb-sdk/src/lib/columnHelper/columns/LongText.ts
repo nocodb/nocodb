@@ -1,6 +1,6 @@
 import { AIRecordType } from '~/lib/Api';
-import { parseProp } from '~/lib/helperFunctions';
 import { LongTextAiMetaProp } from '~/lib/globals';
+import { parseProp } from '~/lib/helperFunctions';
 import { ncIsObject } from '~/lib/is';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
@@ -32,8 +32,10 @@ export class LongTextHelper extends AbstractColumnHelper {
     return `"${value.replace(/"/g, '\\"')}"`;
   }
 
-  parsePlainCellValue(value: any): string {
-    // Remove trim() to preserve leading and trailing spaces
-    return value?.toString() ?? '';
+  parsePlainCellValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string {
+    return this.parseValue(value, params)?.toString() ?? '';
   }
 }

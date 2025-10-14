@@ -55,7 +55,7 @@ test.describe('Column menu operations', () => {
   });
 
   test('Duplicate fields', async () => {
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     for (const { title, type } of columns) {
       // Use sakila db fields instead of creating new
@@ -76,7 +76,7 @@ test.describe('Column menu operations', () => {
   });
 
   test('Insert after', async () => {
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     await dashboard.grid.column.create({
       title: 'InsertAfterColumn',
@@ -92,7 +92,7 @@ test.describe('Column menu operations', () => {
   });
 
   test('Insert before', async () => {
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     await dashboard.grid.column.create({
       title: 'InsertBeforeColumn',
@@ -110,7 +110,7 @@ test.describe('Column menu operations', () => {
   });
 
   test('Hide column', async () => {
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     await dashboard.grid.column.hideColumn({
       title: 'Title',
@@ -124,7 +124,7 @@ test.describe('Column menu operations', () => {
   });
 
   test('Sort column', async () => {
-    await dashboard.treeView.openTable({ title: 'Film' });
+    await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
     await dashboard.grid.column.sortColumn({
       title: 'Title',

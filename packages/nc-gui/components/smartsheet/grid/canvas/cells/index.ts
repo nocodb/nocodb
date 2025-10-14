@@ -3,6 +3,7 @@ import { renderSingleLineText, renderSpinner, roundedRect } from '../utils/canva
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import { useDetachedLongText } from '../composables/useDetachedLongText'
+import { comparePath } from '../utils/groupby'
 import { EmailCellRenderer } from './Email'
 import { SingleLineTextCellRenderer } from './SingleLineText'
 import { LongTextCellRenderer } from './LongText'
@@ -46,7 +47,7 @@ export function useGridCellHandler(params: {
     path: Array<number>,
   ) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
-  makeCellEditable: (row: Row, clickedColumn: CanvasGridColumn) => void
+  makeCellEditable: MakeCellEditableFn
   updateOrSaveRow: (
     row: Row,
     property?: string,
@@ -58,6 +59,7 @@ export function useGridCellHandler(params: {
   meta?: Ref<TableType>
   hasEditPermission: ComputedRef<boolean>
   setCursor: SetCursorType
+  attachmentCellDropOver: Ref<AttachmentCellDropOverType | null>
 }) {
   const isPublic = inject(IsPublicInj, ref(false))
 
@@ -68,9 +70,12 @@ export function useGridCellHandler(params: {
   provide(CanvasCellEventDataInj, canvasCellEvents)
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
+
+  const { isRowColouringEnabled } = useViewRowColorRender()
+
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()
-  const { isMssql, isMysql, isXcdbBase, isPg } = baseStore
+  const { isMysql, isXcdbBase, isPg } = baseStore
   const { sqlUis } = storeToRefs(baseStore)
 
   const { basesUser, baseRoles } = storeToRefs(useBases())
@@ -178,12 +183,13 @@ export function useGridCellHandler(params: {
       isCellInSelectionRange = false,
       isGroupHeader = false,
       rowMeta = {},
-    }: Omit<CellRendererOptions, 'metas' | 'isMssql' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
+      isRootCell = false,
+    }: Omit<CellRendererOptions, 'metas' | 'isMysql' | 'isXcdbBase' | 'sqlUis' | 'baseUsers' | 'isPg'>,
   ) => {
     if (skipRender) return
     if (!isGroupHeader) {
       const columnState = isColumnSortedOrFiltered(column.id!)
-      if (columnState !== undefined && !rowMeta?.isValidationFailed) {
+      if (!isRowColouringEnabled.value && columnState !== undefined && !rowMeta?.isValidationFailed) {
         let bgColorProps: 'cellBgColor' | 'cellBgColor.hovered' | 'cellBgColor.selected' = 'cellBgColor'
         let borderColorProps: 'cellBorderColor' | 'cellBorderColor.hovered' | 'cellBorderColor.selected' = 'cellBorderColor'
         if (selected || isRowChecked || isCellInSelectionRange) {
@@ -205,18 +211,51 @@ export function useGridCellHandler(params: {
             left: true,
           },
         })
+      } else if (!rowMeta?.isValidationFailed && isRootCell) {
+        const rowColor =
+          rowMeta?.is_set_as_background && (selected || isRowHovered || isRowChecked || isCellInSelectionRange)
+            ? rowMeta?.rowHoverColor
+            : rowMeta?.rowBgColor
+
+        if (rowColor) {
+          roundedRect(ctx, x, y, width, height, 0, {
+            backgroundColor: rowColor,
+            borderColor: themeV3Colors.gray['200'],
+            borderWidth: 0.4,
+            borders: {
+              top: rowMeta.rowIndex !== 0,
+              right: true,
+              bottom: true,
+              left: true,
+            },
+          })
+        }
       }
     }
-    const cellType = cellTypesRegistry.get(column.uidt)
-    if (actionManager?.isLoading(pk, column.id) && !isAIPromptCol(column) && !isButton(column)) {
-      const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id)
+    const cellType = cellTypesRegistry.get(column.uidt!)
+
+    const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
+
+    if (actionManager?.isCellUpdating(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
+      return renderSingleLineText(ctx, {
+        x: x + padding,
+        y,
+        text: 'Updating ...',
+        fontFamily: `500 13px Inter`,
+        fillStyle: '#374151',
+        height,
+        py: padding,
+        cellRenderStore,
+      })
+    }
+
+    if (actionManager?.isLoading(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
+      const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id!)
       if (loadingStartTime) {
         renderSpinner(ctx, x + width / 2, y + 8, 16, '#3366FF', loadingStartTime, 1.5)
         return
       }
     }
-
-    const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
 
     // TODO: Reset all the styles here
     ctx.textAlign = 'left'
@@ -241,7 +280,7 @@ export function useGridCellHandler(params: {
     }
 
     if (cellRenderer!) {
-      return cellRenderer(ctx, {
+      const cellRendered = cellRenderer(ctx, {
         value,
         row,
         column,
@@ -256,7 +295,6 @@ export function useGridCellHandler(params: {
         imageLoader,
         actionManager,
         tableMetaLoader,
-        isMssql,
         isMysql,
         isPg,
         isXcdbBase,
@@ -288,6 +326,37 @@ export function useGridCellHandler(params: {
         rowMeta,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
       })
+
+      if (
+        !isGroupHeader &&
+        isRootCell &&
+        column.uidt === UITypes.Attachment &&
+        !readonly &&
+        params.attachmentCellDropOver.value &&
+        comparePath(path, params.attachmentCellDropOver.value.path ?? []) &&
+        params.attachmentCellDropOver.value.columnId === column.id &&
+        params.attachmentCellDropOver.value.rowIndex === rowMeta.rowIndex
+      ) {
+        roundedRect(ctx, x, y, width, height, 0, {
+          backgroundColor: '#4A5268BF', // gray-600/75
+          borderColor: themeV3Colors.gray['200'],
+          borderWidth: 0.4,
+        })
+
+        renderSingleLineText(ctx, {
+          x: x + width / 2,
+          y,
+          textAlign: 'center',
+          text: t('labels.dropHere'),
+          maxWidth: width - 10 * 2,
+          fontFamily: `${pv ? 600 : 500} 18px Inter`,
+          fillStyle: '#FFFFFF',
+          height,
+          isTagLabel: true, // to render label center of cell
+        })
+      }
+
+      return cellRendered
     } else {
       return renderSingleLineText(ctx, {
         x: x + padding,
@@ -329,13 +398,15 @@ export function useGridCellHandler(params: {
         readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
-        makeCellEditable,
+        makeCellEditable: (row, clickedColumn, showEditCellRestrictionTooltip = ctx.event.detail === 2) =>
+          makeCellEditable(row, clickedColumn, showEditCellRestrictionTooltip),
         isPublic: isPublic.value,
         openDetachedExpandedForm,
         openDetachedLongText,
         path: ctx.path ?? [],
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         baseRoles: baseRoles.value,
+        t,
       })
     }
     return false
@@ -365,6 +436,7 @@ export function useGridCellHandler(params: {
         openDetachedLongText,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         path: ctx.path ?? [],
+        t,
       })
     } else {
       console.log('No handler found for cell type', ctx.column.columnObj.uidt)
@@ -401,6 +473,7 @@ export function useGridCellHandler(params: {
         setCursor,
         path: ctx.path ?? [],
         baseUsers: baseUsers.value,
+        t,
       })
     }
   }

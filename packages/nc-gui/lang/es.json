@@ -1169,6 +1169,7 @@
     "scriptIdColon": "ID DE SCRIPT: {scriptId}",
     "dashboardIdColon": "ID DEL DASHBOARD: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "A Dirección",
     "subject": "Asunto",
     "body": "Cuerpo",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "Clic para copiar ID del script",
     "clickToCopyDashboardID": "Haz clic para copiar el ID del Dashboard",
     "clickToCopyViewID": "Clic para copiar View ID",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "Modo solo lectura",
     "assignAsPersonalView": "Asignar como vista personal",
     "reAssignView": "Reasignar vista",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "Buscar iconos",
@@ -2005,6 +2011,7 @@
     "manageConnections": "Gestiona las conexiones de tus integraciones.",
     "invalidConfiguration": "Configuración de botón inválida",
     "invalidColumnConfiguration": "Configuración de campo inválida",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "Seleccione un tema válido",
     "invalidColor": "Seleccione un color válido",
     "invalidType": "El tipo de botón puede ser 'webhook' o 'url'",

@@ -1169,6 +1169,7 @@
     "scriptIdColon": "شناسه اسکریپت: {scriptId}",
     "dashboardIdColon": "شناسه داشبورد: {dashboardId}",
     "viewIdColon": "نمایش ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "آدرس گیرنده",
     "subject": "موضوع",
     "body": "متن",
@@ -1212,6 +1213,7 @@
     "clickToCopyScriptID": "کلیک برای کپی شناسه اسکریپت",
     "clickToCopyDashboardID": "کلیک برای کپی کردن شناسه داشبورد",
     "clickToCopyViewID": "برای کپی کردن ID نمایش کلیک کنید",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "حالت نمایش",
     "assignAsPersonalView": "اختصاص به عنوان نمای شخصی",
     "reAssignView": "بازتخصیص نما",
@@ -1915,7 +1917,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "جستجو آیکون",
@@ -2005,6 +2011,7 @@
     "manageConnections": "اتصالات یکپارچه‌سازی‌های خود را مدیریت کنید.",
     "invalidConfiguration": "پیکربندی دکمه نامعتبر است",
     "invalidColumnConfiguration": "پیکربندی فیلد نامعتبر است",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "یک تم معتبر انتخاب کنید",
     "invalidColor": "یک رنگ معتبر انتخاب کنید",
     "invalidType": "نوع دکمه می‌تواند 'webhook' یا 'url' باشد",

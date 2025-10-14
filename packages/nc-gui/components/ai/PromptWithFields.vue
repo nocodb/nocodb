@@ -142,6 +142,7 @@ const editor = useEditor({
       let lastIndex = 0
       let match
 
+      // eslint-disable-next-line no-cond-assign
       while ((match = regex.exec(text)) !== null) {
         const [fullMatch, id] = match
         if (match.index > lastIndex) {

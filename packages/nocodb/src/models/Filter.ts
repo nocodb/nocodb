@@ -339,7 +339,6 @@ export default class Filter implements FilterType {
       updateObj.meta = {};
     }
     updateObj.meta = stringifyMetaProp(updateObj);
-    console.log('updateObj', updateObj);
     // set meta
     const res = await ncMeta.metaUpdate(
       context.workspace_id,

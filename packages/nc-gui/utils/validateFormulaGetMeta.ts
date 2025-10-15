@@ -1,4 +1,4 @@
-import type { MetaType, TableType } from 'nocodb-sdk'
+import type { TableType, UnifiedMetaType } from 'nocodb-sdk'
 
 export const validateFormulaGetMeta = (
   getMeta: (
@@ -12,5 +12,5 @@ export const validateFormulaGetMeta = (
 ) => {
   return (async (context, { id }) => {
     return getMeta(id, false, false, context.base_id)
-  }) as MetaType.IGetMeta
+  }) as UnifiedMetaType.IGetModel
 }

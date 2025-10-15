@@ -128,7 +128,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const formColumns = computed(
     () =>
       columns.value?.filter((col) => {
-        const isVisible = col.show
+        const isVisible = col.show && col.visible
 
         const isAllowedToEdit = col?.permissions?.isAllowedToEdit ?? true
 

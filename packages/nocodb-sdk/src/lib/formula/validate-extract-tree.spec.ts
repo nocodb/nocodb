@@ -167,7 +167,7 @@ const mockColumns: UnifiedMetaType.IColumn[] = [
     } as UnifiedMetaType.IFormulaColumn,
   },
   {
-    id: 'col11',
+    id: 'cdYAQE3SFa1F4ys',
     title: 'Column11',
     uidt: UITypes.Formula,
     dt: 'varchar',
@@ -177,27 +177,27 @@ const mockColumns: UnifiedMetaType.IColumn[] = [
     fk_model_id: 'model1',
     deleted: false,
     colOptions: {
-      formula: '{Column12}',
+      formula: '{c3hOMA9YnfkD4WW}',
       formula_raw: '{Column12}',
-      fk_column_id: 'col11',
+      fk_column_id: 'cdYAQE3SFa1F4ys',
       error: null,
       parsed_tree: {
         type: JSEPNode.IDENTIFIER,
-        name: 'col12',
+        name: 'c3hOMA9YnfkD4WW',
         dataType: FormulaDataTypes.STRING,
-        referencedColumn: { id: 'col12', uidt: UITypes.Formula },
+        referencedColumn: { id: 'c3hOMA9YnfkD4WW', uidt: UITypes.Formula },
       },
       getParsedTree: () =>
         ({
           type: JSEPNode.IDENTIFIER,
-          name: 'col12',
+          name: 'c3hOMA9YnfkD4WW',
           dataType: FormulaDataTypes.STRING,
-          referencedColumn: { id: 'col12', uidt: UITypes.Formula },
+          referencedColumn: { id: 'c3hOMA9YnfkD4WW', uidt: UITypes.Formula },
         } as any),
     } as UnifiedMetaType.IFormulaColumn,
   },
   {
-    id: 'col12',
+    id: 'c3hOMA9YnfkD4WW',
     title: 'Column12',
     uidt: UITypes.Formula,
     dt: 'varchar',
@@ -207,22 +207,22 @@ const mockColumns: UnifiedMetaType.IColumn[] = [
     fk_model_id: 'model1',
     deleted: false,
     colOptions: {
-      formula: '{Column11}',
+      formula: '{cdYAQE3SFa1F4ys}',
       formula_raw: '{Column11}',
       fk_column_id: 'col12',
       error: null,
       parsed_tree: {
         type: JSEPNode.IDENTIFIER,
-        name: 'col11',
+        name: 'cdYAQE3SFa1F4ys',
         dataType: FormulaDataTypes.STRING,
-        referencedColumn: { id: 'col11', uidt: UITypes.Formula },
+        referencedColumn: { id: 'cdYAQE3SFa1F4ys', uidt: UITypes.Formula },
       },
       getParsedTree: () =>
         ({
           type: JSEPNode.IDENTIFIER,
-          name: 'col11',
+          name: 'cdYAQE3SFa1F4ys',
           dataType: FormulaDataTypes.STRING,
-          referencedColumn: { id: 'col11', uidt: UITypes.Formula },
+          referencedColumn: { id: 'cdYAQE3SFa1F4ys', uidt: UITypes.Formula },
         } as any),
     } as UnifiedMetaType.IFormulaColumn,
   },
@@ -466,12 +466,11 @@ describe('validateFormulaAndExtractTreeWithType', () => {
     expect((result as any).dataType).toBe(FormulaDataTypes.STRING);
   });
 
-  // TODO: fix the test
-  it.skip('should detect circular reference in formula columns', async () => {
+  it('should detect circular reference in formula columns', async () => {
     await expect(
       validateFormulaAndExtractTreeWithType({
         formula: '{Column11}',
-        column: mockColumns.find((c) => c.id === 'col12'), // col12 references col11, col11 references col12
+        column: mockColumns.find((c) => c.id === 'c3hOMA9YnfkD4WW'), // col12 references col11, col11 references col12
         columns: mockColumns,
         clientOrSqlUi: mockClientOrSqlUi,
         getMeta: mockGetMeta,
@@ -480,7 +479,7 @@ describe('validateFormulaAndExtractTreeWithType', () => {
     await expect(
       validateFormulaAndExtractTreeWithType({
         formula: '{Column11}',
-        column: mockColumns.find((c) => c.id === 'col12'),
+        column: mockColumns.find((c) => c.id === 'c3hOMA9YnfkD4WW'),
         columns: mockColumns,
         clientOrSqlUi: mockClientOrSqlUi,
         getMeta: mockGetMeta,

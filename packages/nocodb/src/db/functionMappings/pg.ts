@@ -19,7 +19,7 @@ const getArraySourceAttachmentUnnested = async (
   if (!(<CallExpressionNode>argument).inArrayFormat) {
     const sourceQuery = '??::jsonb';
     const unnestedAsTable = [
-      `select __elem->>'id', __elem->>'title', __elem::text as __val`,
+      `select __elem->>'id' as id, __elem->>'title' as title, __elem::text as __val`,
       `from jsonb_array_elements(${sourceQuery}) as __elem`,
     ].join(' ');
 
@@ -27,7 +27,7 @@ const getArraySourceAttachmentUnnested = async (
   } else {
     const sourceQuery = '??';
     const unnestedAsTable = [
-      `select __elem->>'id', __elem->>'title', __elem::text as __val`,
+      `select __elem->>'id' as id, __elem->>'title' as title, __elem::text as __val`,
       `from unnest(${sourceQuery}) as __elem`,
     ].join(' ');
 
@@ -556,7 +556,7 @@ END`,
       ).builder;
       return {
         builder: knex.raw(
-          `ARRAY(SELECT DISTINCT __val::jsonb FROM ( ?? ) as _tbl1)`,
+          `ARRAY(SELECT DISTINCT ON(_tbl1.title) __val::jsonb FROM ( ?? ) as _tbl1)`,
           [source],
         ),
       };

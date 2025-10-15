@@ -195,10 +195,9 @@ const onCancelRoleChangeConfirmationModal = () => {
 }
 
 const onConfirmRoleChangeConfirmationModal = () => {
-  console.log('onConfirmRoleChangeConfirmationModal', userRoleUpdateInfo.value)
   userRoleUpdateInfo.value.showConfirmationModal = false
 
-  updateCollaborator(userRoleUpdateInfo.value.collab, userRoleUpdateInfo.value.roles, userRoleUpdateInfo.value.overrideBaseRole)
+  updateCollaborator(userRoleUpdateInfo.value.collab, userRoleUpdateInfo.value.roles!, userRoleUpdateInfo.value.overrideBaseRole)
 }
 
 const isOwnerOrCreator = computed(() => {
@@ -574,7 +573,15 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
         @cancel="onCancelRoleChangeConfirmationModal"
         @ok="onConfirmRoleChangeConfirmationModal"
       >
-        <template #title> {{ $t('title.changeWorkspaceRole') }} to {{ userRoleUpdateInfo.roles }}</template>
+        <template #title>
+          <div>
+            <div class="inline-flex !align-top mr-2">
+              {{ $t('title.changeWorkspaceRoleTo') }}
+            </div>
+
+            <RolesBadge :border="false" :role="userRoleUpdateInfo.roles" class="inline-flex text-body"> </RolesBadge>
+          </div>
+        </template>
         <template #extraContent>
           <div class="flex flex-col gap-5 text-caption text-nc-content-gray">
             <NcAlert

@@ -741,7 +741,6 @@ describe('validateFormulaAndExtractTreeWithType', () => {
       clientOrSqlUi: mockClientOrSqlUi,
       getMeta: mockGetMeta,
     });
-    console.log(result);
     expect(result.type).toBe(JSEPNode.CALL_EXP);
     expect((result as any).callee.name).toBe('CONCAT');
     expect((result as any).arguments[1].dataType).toBe(

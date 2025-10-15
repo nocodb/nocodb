@@ -284,8 +284,15 @@ async function extractColumnIdentifierType({
             column: col,
           }
         );
-      res.isDataArray = colOptions.parsed_tree.isDataArray;
-      res.referencedColumn = colOptions.parsed_tree.referencedColumn;
+      const parsedTree = await unifiedMeta.getParsedTree(
+        unifiedMeta.getContextFromObject(col),
+        { colOptions, getMeta }
+      );
+      // parsedTree may not exists when formula column create / update
+      if (parsedTree) {
+        res.isDataArray = parsedTree.isDataArray;
+        res.referencedColumn = parsedTree.referencedColumn;
+      }
       break;
     }
     case UITypes.Barcode:

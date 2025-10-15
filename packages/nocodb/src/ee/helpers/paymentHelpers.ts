@@ -362,7 +362,7 @@ async function getActivePlanAndSubscription(
 }
 
 // if Cloud, then check if sso is available for the workspace/org
-export async function checkIfWorkspaceSSOAvail(
+async function checkIfWorkspaceSSOAvail(
   workspaceId: string,
   throwError = true,
 ) {
@@ -387,7 +387,7 @@ export async function checkIfWorkspaceSSOAvail(
 }
 
 // if Cloud, then check if sso is available for the org
-export async function checkIfOrgSSOAvail(orgId: string, throwError = true) {
+async function checkIfOrgSSOAvail(orgId: string, throwError = true) {
   if (!isCloud) {
     if (throwError)
       NcError.forbidden('This feature is not available in self-hosted version');
@@ -450,7 +450,7 @@ export function calculateUnitPrice(
 }
 
 // check if email only allowed through sso LOGIN
-export const checkIfEmailAllowedNonSSO = async (
+const checkIfEmailAllowedNonSSO = async (
   workspaceId: string,
   email: string,
 ) => {
@@ -464,7 +464,7 @@ export const checkIfEmailAllowedNonSSO = async (
 };
 
 // check if email only allowed through sso LOGIN for org
-export const checkIfEmailAllowedNonSSOForOrg = async (
+const checkIfEmailAllowedNonSSOForOrg = async (
   orgId: string,
   email: string,
 ) => {

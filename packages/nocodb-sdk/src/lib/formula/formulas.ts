@@ -13,9 +13,11 @@ const customValidationArray: FormulaMetaCustomValidation = (
   parsedTree: CallExpressionNode
 ) => {
   if (
-    !parsedTree.arguments[0].isDataArray &&
-    // data type array is backward compatibility
-    parsedTree.arguments[0].dataType !== FormulaDataTypes.ARRAY
+    // check if first parameter exists
+    !parsedTree.arguments?.[0] ||
+    (!parsedTree.arguments?.[0]?.isDataArray &&
+      // data type array is backward compatibility
+      parsedTree.arguments?.[0]?.dataType !== FormulaDataTypes.ARRAY)
   ) {
     throw new FormulaError(
       FormulaErrorType.TYPE_MISMATCH,

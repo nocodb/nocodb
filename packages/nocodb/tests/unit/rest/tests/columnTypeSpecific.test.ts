@@ -190,7 +190,10 @@ function columnTypeSpecificTests() {
       const rowAttributes: any = [];
       for (let i = 0; i < 100; i++) {
         const row = {
-          DateField: rowMixedValue(columns[6], i),
+          DateField: rowMixedValue(
+            columns.find((c) => c.title === 'DateField'),
+            i,
+          ),
         };
         rowAttributes.push(row);
       }

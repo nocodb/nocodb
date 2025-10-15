@@ -495,11 +495,26 @@ function textBased() {
     const rowAttributes = [];
     for (let i = 0; i < 400; i++) {
       const row = {
-        SingleLineText: rowMixedValue(columns[1], i),
-        MultiLineText: rowMixedValue(columns[2], i),
-        Email: rowMixedValue(columns[3], i),
-        Phone: rowMixedValue(columns[4], i),
-        Url: rowMixedValue(columns[5], i),
+        SingleLineText: rowMixedValue(
+          columns.find((c) => c.title === 'SingleLineText'),
+          i,
+        ),
+        MultiLineText: rowMixedValue(
+          columns.find((c) => c.title === 'MultiLineText'),
+          i,
+        ),
+        Email: rowMixedValue(
+          columns.find((c) => c.title === 'Email'),
+          i,
+        ),
+        Phone: rowMixedValue(
+          columns.find((c) => c.title === 'Phone'),
+          i,
+        ),
+        Url: rowMixedValue(
+          columns.find((c) => c.title === 'Url'),
+          i,
+        ),
       };
       rowAttributes.push(row);
     }
@@ -1197,12 +1212,30 @@ function numberBased() {
     const rowAttributes = [];
     for (let i = 0; i < 400; i++) {
       const row = {
-        Number: rowMixedValue(columns[1], i),
-        Decimal: rowMixedValue(columns[2], i),
-        Currency: rowMixedValue(columns[3], i),
-        Percent: rowMixedValue(columns[4], i),
-        Duration: rowMixedValue(columns[5], i),
-        Rating: rowMixedValue(columns[6], i),
+        Number: rowMixedValue(
+          columns.find((c) => c.title === 'Number'),
+          i,
+        ),
+        Decimal: rowMixedValue(
+          columns.find((c) => c.title === 'Decimal'),
+          i,
+        ),
+        Currency: rowMixedValue(
+          columns.find((c) => c.title === 'Currency'),
+          i,
+        ),
+        Percent: rowMixedValue(
+          columns.find((c) => c.title === 'Percent'),
+          i,
+        ),
+        Duration: rowMixedValue(
+          columns.find((c) => c.title === 'Duration'),
+          i,
+        ),
+        Rating: rowMixedValue(
+          columns.find((c) => c.title === 'Rating'),
+          i,
+        ),
       };
       rowAttributes.push(row);
     }
@@ -1636,8 +1669,14 @@ function dateBased() {
     const rowAttributes = [];
     for (let i = 0; i < 800; i++) {
       const row = {
-        Date: rowMixedValue(columns[1], i),
-        DateTime: rowMixedValue(columns[2], i),
+        Date: rowMixedValue(
+          columns.find((c) => c.title === 'Date'),
+          i,
+        ),
+        DateTime: rowMixedValue(
+          columns.find((c) => c.title === 'DateTime'),
+          i,
+        ),
       };
       rowAttributes.push(row);
     }

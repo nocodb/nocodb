@@ -631,12 +631,13 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       await dashboard.grid.cell.verify({
         index: 2,
         columnHeader: 'formula-1',
-        value: expectedDisplayValue[0],
+        // new formula is displayed as datetime field with divs, so the space is somehow gone on textContent
+        value: expectedDisplayValue[0].replace(' ', ''),
       });
       await dashboard.grid.cell.verify({
         index: 2,
         columnHeader: 'formula-2',
-        value: expectedDisplayValue[1],
+        value: expectedDisplayValue[1].replace(' ', ''),
       });
 
       // verify API response
@@ -965,12 +966,12 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
       await dashboard.grid.cell.verify({
         index,
         columnHeader: 'formula-1',
-        value: expectedValues[context.dbType][index]['formula-1'],
+        value: expectedValues[context.dbType][index]['formula-1'].replace(' ', ''),
       });
       await dashboard.grid.cell.verify({
         index,
         columnHeader: 'formula-2',
-        value: expectedValues[context.dbType][index]['formula-2'],
+        value: expectedValues[context.dbType][index]['formula-2'].replace(' ', ''),
       });
 
       // set seconds to 00 for comparison (API response has non zero seconds)

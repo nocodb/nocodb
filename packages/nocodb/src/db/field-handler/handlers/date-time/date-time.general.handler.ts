@@ -310,6 +310,13 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         anchorDate = now.add(Number(filter.value), 'day');
         break;
     }
+    // for straight date value without sub op
+    if (!filter.comparison_sub_op && filter.value) {
+      anchorDate = dayjs.tz(
+        filter.value,
+        this.getTimezone(knex, filter, column, options),
+      );
+    }
     if (filter.comparison_op === 'isWithin') {
       return await this.filterIsWithin(
         { val: anchorDate.valueOf(), sourceField: field },

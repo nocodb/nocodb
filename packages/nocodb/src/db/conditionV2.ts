@@ -451,27 +451,12 @@ const parseConditionV2 = async (
               UITypes.LastModifiedTime,
             ].includes(column.uidt)
           ) {
-            // if the filter has meta.timezone, we use that
-            let useTimezone = 'Etc/UTC';
-            if (parseProp(filter.meta).timezone) {
-              useTimezone = parseProp(filter.meta).timezone;
-            }
-            // if not and column has timezone, use that
-            else if (parseProp(column.meta)?.timezone) {
-              useTimezone = parseProp(column.meta)?.timezone;
-            }
-            // if not but context has timezone, use that
-            else if (context.timezone) {
-              useTimezone = context.timezone;
-            }
-            // TODO: check for useTimezone value validity
-
-            let now = dayjs.tz(new Date(), useTimezone);
+            let now = dayjs(new Date()).utc();
             const dateFormatFromMeta = column?.meta?.date_format;
             if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
               // reset to 1st
               now = dayjs(now).date(1);
-              if (val) genVal = dayjs.tz(val, useTimezone).date(1);
+              if (val) genVal = dayjs(val).date(1);
             }
             // handle sub operation
             switch (filter.comparison_sub_op) {

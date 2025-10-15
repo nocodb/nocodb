@@ -5812,6 +5812,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else if (col.uidt === UITypes.Lookup) {
         lookupColumns.push(col);
       } else if (
+        // focus on PG first
         this.clientType === ClientType.PG &&
         col.uidt === UITypes.Formula
       ) {

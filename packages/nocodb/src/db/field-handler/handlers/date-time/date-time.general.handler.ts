@@ -168,6 +168,23 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     );
   }
 
+  protected parseFilterValue(
+    value: string,
+    _knex: CustomKnex,
+    filter: Filter,
+    column: Column,
+    options: FilterOptions,
+  ) {
+    // if the time provided has timezone, return as is
+    if (value.indexOf('+')) {
+      return dayjs(value).tz(this.getTimezone(_knex, filter, column, options));
+    }
+    // assume local
+    else {
+      return dayjs.tz(value, this.getTimezone(_knex, filter, column, options));
+    }
+  }
+
   protected getNow(
     _knex: CustomKnex,
     filter: Filter,
@@ -278,10 +295,13 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         break;
       case 'exactDate':
         if (!filter.value) return emptyResult;
-        anchorDate = dayjs.tz(
+        anchorDate = this.parseFilterValue(
           filter.value,
-          this.getTimezone(knex, filter, column, options),
-        );
+          knex,
+          filter,
+          column,
+          options,
+        ).startOf('day');
         break;
       // sub-ops for `isWithin` comparison
       case 'pastWeek':
@@ -313,10 +333,13 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     }
     // for straight date value without sub op
     if (!filter.comparison_sub_op && filter.value) {
-      anchorDate = dayjs.tz(
+      anchorDate = this.parseFilterValue(
         filter.value,
-        this.getTimezone(knex, filter, column, options),
-      );
+        knex,
+        filter,
+        column,
+        options,
+      ).startOf('day');
       if (!anchorDate.isValid()) {
         return emptyResult;
       }
@@ -410,7 +433,21 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     _options: FilterOptions,
   ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
     const anchorDate = dayjs(args.val);
-    const rangeDate = anchorDate.add(24, 'hours').add(-1, 'milliseconds');
+    let rangeDate = anchorDate.add(24, 'hours').add(-1, 'milliseconds');
+
+    // when the given filter value has time component,
+    // we use it raw as comparison
+    if (rootArgs.filter.value) {
+      if (rootArgs.filter.value.replace('T', ' ').split(' ')[1]) {
+        rangeDate = this.parseFilterValue(
+          rootArgs.filter.value,
+          rootArgs.knex,
+          rootArgs.filter,
+          rootArgs.column,
+          _options,
+        );
+      }
+    }
 
     return {
       rootApply: undefined,
@@ -435,13 +472,28 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     _options: FilterOptions,
   ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
     const anchorDate = dayjs(args.val);
+    let rangeDate = anchorDate;
+
+    // when the given filter value has time component,
+    // we use it raw as comparison
+    if (rootArgs.filter.value) {
+      if (rootArgs.filter.value.replace('T', ' ').split(' ')[1]) {
+        rangeDate = this.parseFilterValue(
+          rootArgs.filter.value,
+          rootArgs.knex,
+          rootArgs.filter,
+          rootArgs.column,
+          _options,
+        );
+      }
+    }
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((nestedQb) => {
           this.comparisonOp(
-            { ...args, val: anchorDate, qb: nestedQb, comparisonOp: '>=' },
+            { ...args, val: rangeDate, qb: nestedQb, comparisonOp: '>=' },
             rootArgs,
             _options,
           );
@@ -459,7 +511,21 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     _options: FilterOptions,
   ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
     const anchorDate = dayjs(args.val);
-    const rangeDate = anchorDate.add(24, 'hours').add(-1, 'milliseconds');
+    let rangeDate = anchorDate.add(24, 'hours').add(-1, 'milliseconds');
+
+    // when the given filter value has time component,
+    // we use it raw as comparison
+    if (rootArgs.filter.value) {
+      if (rootArgs.filter.value.replace('T', ' ').split(' ')[1]) {
+        rangeDate = this.parseFilterValue(
+          rootArgs.filter.value,
+          rootArgs.knex,
+          rootArgs.filter,
+          rootArgs.column,
+          _options,
+        );
+      }
+    }
 
     return {
       rootApply: undefined,
@@ -484,13 +550,28 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     _options: FilterOptions,
   ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
     const anchorDate = dayjs(args.val);
+    let rangeDate = anchorDate;
+
+    // when the given filter value has time component,
+    // we use it raw as comparison
+    if (rootArgs.filter.value) {
+      if (rootArgs.filter.value.replace('T', ' ').split(' ')[1]) {
+        rangeDate = this.parseFilterValue(
+          rootArgs.filter.value,
+          rootArgs.knex,
+          rootArgs.filter,
+          rootArgs.column,
+          _options,
+        );
+      }
+    }
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((nestedQb) => {
           this.comparisonOp(
-            { ...args, val: anchorDate, qb: nestedQb, comparisonOp: '<' },
+            { ...args, val: rangeDate, qb: nestedQb, comparisonOp: '<' },
             rootArgs,
             _options,
           );

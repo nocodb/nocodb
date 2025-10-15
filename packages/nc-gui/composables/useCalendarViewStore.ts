@@ -448,6 +448,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               ...params,
               offset: params.offset,
               where: queryParams.value.where,
+              whereTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
               ...(isUIAllowed('filterSync')
                 ? { filterArrJson: stringifyFilterOrSortArr([...sideBarFilter.value]) }
                 : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value, ...sideBarFilter.value]) }),
@@ -457,6 +458,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               where: queryParams.value.where,
               sortsArr: sorts.value,
               filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
+              whereTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
               offset: params.offset,
             })
         formattedSideBarData.value = [
@@ -635,6 +637,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               include_row_color: true,
               ...queryParams.value,
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value]) }),
+              whereTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
             })
           : await fetchSharedCalendarViewData({
               sortsArr: sorts.value,
@@ -644,6 +647,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
               from_date: fromDate,
               filtersArr: nestedFilters.value,
               where: queryParams.value.where,
+              whereTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
             })
         formattedData.value = formatData(res!.list, getEvaluatedRowMetaRowColorInfo)
       } catch (e) {
@@ -721,11 +725,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           ? await api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value.id, {
               ...queryParams.value,
               ...{ filterArrJson: stringifyFilterOrSortArr([...sideBarFilter.value]) },
+              whereTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
               include_row_color: true,
             })
           : await fetchSharedViewData({
               sortsArr: sorts.value,
               filtersArr: [...nestedFilters.value, ...sideBarFilter.value],
+              whereTz: Intl.DateTimeFormat().resolvedOptions().timeZone,
               where: queryParams.value.where,
             })
 

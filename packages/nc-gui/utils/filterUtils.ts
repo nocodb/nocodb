@@ -239,6 +239,18 @@ export const adjustFilterWhenColumnChange = ({
     } else {
       filter.comparison_sub_op = 'exactDate'
     }
+
+    // Set timezone for DateTime columns
+    const columnMeta = parseProp(column.meta)
+    const columnTimezone = columnMeta?.timezone
+    const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const timezone = columnTimezone || browserTimezone
+
+    // Initialize filter.meta if it doesn't exist
+    if (!filter.meta) {
+      filter.meta = {}
+    }
+    filter.meta.timezone = timezone
   } else {
     // reset
     filter.comparison_sub_op = null

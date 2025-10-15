@@ -338,7 +338,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       args.val,
       this.getTimezone(knex, filter, column, _options),
     );
-    const rangeDate = anchorDate.add(24, 'hours');
+    const rangeDate = anchorDate.add(24, 'hours').add(-1, 'milliseconds');
 
     return {
       rootApply: undefined,
@@ -363,7 +363,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     _options: FilterOptions,
   ) {
     const anchorDate = dayjs(args.val);
-    const rangeDate = anchorDate.add(24, 'hours');
+    const rangeDate = anchorDate.add(24, 'hours').add(-1, 'milliseconds');
 
     return {
       rootApply: undefined,
@@ -399,7 +399,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     _options: FilterOptions,
   ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
     const anchorDate = dayjs(args.val);
-    const rangeDate = anchorDate.add(24, 'hours');
+    const rangeDate = anchorDate.add(24, 'hours').add(-1, 'milliseconds');
 
     return {
       rootApply: undefined,
@@ -448,7 +448,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     _options: FilterOptions,
   ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
     const anchorDate = dayjs(args.val);
-    const rangeDate = anchorDate.add(24, 'hours');
+    const rangeDate = anchorDate.add(24, 'hours').add(-1, 'milliseconds');
 
     return {
       rootApply: undefined,

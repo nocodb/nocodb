@@ -84,7 +84,7 @@ export const getSelectedUsers = (
     return selected
   }
   let localModelValue = modelValue
-  if (Array.isArray(localModelValue) && localModelValue.filter((k) => typeof k === 'string').length === localModelValue.length) {
+  if (Array.isArray(localModelValue) && !localModelValue.filter((k) => typeof k !== 'string').length) {
     localModelValue = arrFlatMap(localModelValue.filter((k) => k).map((u: string) => u?.split?.(','))).join(',')
   }
 

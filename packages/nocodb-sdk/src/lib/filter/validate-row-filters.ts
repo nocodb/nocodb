@@ -13,7 +13,8 @@ import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
 import { getNodejsTimezone } from '~/lib/timezoneUtils';
-import { ColumnHelper, CURRENT_USER_TOKEN } from '~/lib';
+import { ColumnHelper } from '~/lib/columnHelper/column-helper';
+import { CURRENT_USER_TOKEN } from '~/lib/globals';
 
 extend(utc);
 extend(timezone);

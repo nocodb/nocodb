@@ -1,5 +1,5 @@
 import { ScriptType } from '~/lib/Api';
-import { DashboardType, WidgetType } from '~/lib';
+import { DashboardType, WidgetType } from '~/lib/dashboard';
 import {
   EventType,
   BaseSocketPayload,

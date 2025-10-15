@@ -163,7 +163,7 @@ watch(
         <template #listItemSelectedIcon> <NcSpanHidden /> </template>
       </NcList>
 
-      <div class="flex items-center justify-end pt-4 border-t border-nc-border-gray-light">
+      <div class="flex items-center justify-end pt-4">
         <div class="flex gap-2">
           <NcButton type="secondary" size="small" :disabled="isLoading" @click="visible = false"> Cancel </NcButton>
           <NcButton

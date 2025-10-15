@@ -528,7 +528,7 @@ const handleEscape = (event: KeyboardEvent) => {
                 :class="[
                   `nc-list-option-${idx}`,
                   {
-                    'nc-list-group-header text-nc-content-gray-muted text-bodySmBold border-t first:!border-t-transparent !border-t-nc-border-gray-medium flex items-center':
+                    'nc-list-group-header text-nc-content-gray-muted text-bodySmBold border-t !border-t-nc-border-gray-medium !first-of-type:border-t-transparent flex items-center':
                       option.ncGroupHeader,
                     'rounded-md': !itemFullWidth && !option.ncGroupHeader,
                     'nc-list-option-selected': compareVModel(option[optionValueKey], option.ncGroupHeader),

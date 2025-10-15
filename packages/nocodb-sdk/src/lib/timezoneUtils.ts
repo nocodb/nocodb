@@ -419,7 +419,7 @@ export const nodejsTimezones = new Set([
   'Pacific/Wallis',
 ]);
 
-export const timezoneAliases = {
+const _timezoneAliases = {
   'Africa/Timbuktu': 'Africa/Bamako',
   'America/Argentina/ComodRivadavia': 'America/Argentina/Catamarca',
   'America/Atka': 'America/Adak',
@@ -533,9 +533,11 @@ export const timezoneAliases = {
 } as Record<string, string>;
 
 // reverse mapping
-for (const [key, value] of Object.entries(timezoneAliases)) {
-  timezoneAliases[value] = key;
+for (const [key, value] of Object.entries(_timezoneAliases)) {
+  _timezoneAliases[value] = key;
 }
+
+export const timezoneAliases = _timezoneAliases;
 
 export const getNodejsTimezone = (...timezones: string[]) => {
   for (const timezone of timezones ?? []) {

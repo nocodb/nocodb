@@ -4,29 +4,6 @@ import { getColOptions } from '~/lib/unifiedMeta/getColOptions';
 import { getColumns } from '~/lib/unifiedMeta/getColumns';
 import { getLTARRelatedTable } from './getLTARRelatedTable';
 
-export type ILinkInfo = {
-  source: {
-    context: NcContext;
-    model: UnifiedMetaType.IModel;
-    linkColumn: UnifiedMetaType.IColumn;
-    joinColumn: UnifiedMetaType.IColumn;
-  };
-  mm?: {
-    context: NcContext;
-    sourceJoinColumn: UnifiedMetaType.IColumn;
-    targetJoinColumn: UnifiedMetaType.IColumn;
-    model: UnifiedMetaType.IModel;
-  };
-  target: {
-    context: NcContext;
-    model: UnifiedMetaType.IModel;
-    linkColumn?: UnifiedMetaType.IColumn; // cannot be fetched from relation options
-    joinColumn: UnifiedMetaType.IColumn;
-  };
-  relationType: RelationTypes;
-  relationFromSource: RelationTypes;
-  isBelongsTo: boolean;
-};
 /*
 case 1:
 table mw7s5x1ser8b8js
@@ -138,7 +115,7 @@ export const getLinkInfo = async (
         relationFromSource: linkColumn.meta?.bt
           ? RelationTypes.BELONGS_TO
           : relationColOptions.type,
-      } as ILinkInfo;
+      } as UnifiedMetaType.ILinkInfo;
     }
     case RelationTypes.MANY_TO_MANY: {
       const joinIds = [
@@ -209,10 +186,10 @@ export const getLinkInfo = async (
         relationFromSource: linkColumn.meta?.bt
           ? RelationTypes.BELONGS_TO
           : relationColOptions.type,
-      } as ILinkInfo;
+      } as UnifiedMetaType.ILinkInfo;
     }
     // should not be possible to land into this
     default:
-      return <ILinkInfo>undefined;
+      return <UnifiedMetaType.ILinkInfo>undefined;
   }
 };

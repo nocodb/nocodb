@@ -1,7 +1,8 @@
 import { Knex, knex } from 'knex';
 import { defaults, types } from 'pg';
 import dayjs from 'dayjs';
-import type { FilterType } from 'nocodb-sdk';
+import { CTEGenerator } from './cte-generator';
+import type { FilterType, NcContext } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
 import { NcError } from '~/helpers/catchError';
@@ -1048,6 +1049,9 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
 type CustomKnex = Knex & {
   attachToTransaction?: (fn: () => void) => void;
   ops?: (() => void)[];
+  _cteGenerator?: CTEGenerator;
+  cteGenerator?: (context?: NcContext) => CTEGenerator;
+  applyCte?: (qb: Knex.QueryInterface) => void;
 };
 
 type CustomTransaction = Knex.Transaction & {
@@ -1276,6 +1280,38 @@ function CustomKnex(
             );
           }
         });
+      },
+    },
+
+    _cteGenerator: {
+      enumerable: true,
+      writable: true,
+      value: undefined,
+    },
+    cteGenerator: {
+      enumerable: true,
+      value: (context?: NcContext) => {
+        if (!kn._cteGenerator && context) {
+          kn._cteGenerator = new CTEGenerator({ context, knex: kn });
+        }
+        return kn._cteGenerator;
+      },
+    },
+    applyCte: {
+      enumerable: true,
+      value: (qb: Knex.QueryInterface) => {
+        if (kn._cteGenerator) {
+          kn._cteGenerator.applyCte(qb);
+          kn._cteGenerator.clear();
+        }
+      },
+    },
+    clearCte: {
+      enumerable: true,
+      value: () => {
+        if (kn._cteGenerator) {
+          kn._cteGenerator.clear();
+        }
       },
     },
   };

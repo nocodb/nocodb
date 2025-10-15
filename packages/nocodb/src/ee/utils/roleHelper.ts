@@ -1,7 +1,7 @@
 import {
   extractProjectRolePower,
-  hasMinimumRoleAccess,
   extractWorkspaceRolePower,
+  hasMinimumRoleAccess,
 } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
 import type { ProjectRoles } from 'nocodb-sdk';

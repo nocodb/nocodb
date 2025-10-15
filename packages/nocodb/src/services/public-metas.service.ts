@@ -233,9 +233,10 @@ export class PublicMetasService {
       colId: lookupColOption.fk_relation_column_id,
     });
 
-    const { refContext = context } = (
-      relationCol.colOptions as LinkToAnotherRecordColumn
-    )?.getRelContext(context);
+    const { refContext = context } =
+      (relationCol.colOptions as LinkToAnotherRecordColumn)?.getRelContext?.(
+        context,
+      ) || {};
 
     const lookedUpCol = await Column.get(refContext, {
       colId: lookupColOption.fk_lookup_column_id,

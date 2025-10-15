@@ -11,7 +11,7 @@ import { hasMinimumRole } from '~/utils/roleHelper';
 @Controller()
 @UseGuards(MetaApiLimiterGuard)
 export class McpController extends McpControllerCE {
-  constructor(private readonly mcpService: McpService) {
+  constructor(protected readonly mcpService: McpService) {
     super(mcpService);
   }
   @UseGuards(GlobalGuard)

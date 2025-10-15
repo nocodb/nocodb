@@ -86,7 +86,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
     const isInternalOrgScope = isInternalApi && params.baseId === 'nc';
 
-
     // extract base id based on request path params
 
     if (params.mcpTokenId) {

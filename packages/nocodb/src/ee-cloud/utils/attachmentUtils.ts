@@ -1,4 +1,3 @@
-import { extname } from 'node:path';
 /**
  * Checks if a file is an Office document based on MIME type and file extension
  * @param mimeType - The MIME type of the file

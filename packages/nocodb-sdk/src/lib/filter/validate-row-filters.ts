@@ -222,21 +222,25 @@ export function validateRowFilters(params: {
                 case 'pastWeek':
                 case 'pastMonth':
                 case 'pastYear':
-                case 'pastNumberOfDays':
-                  res = dayjs
-                    .utc(dataVal)
-                    .tz(getTimezone())
-                    .isBetween(filterVal, now, 'day');
+                case 'pastNumberOfDays': {
+                  // the 'today' need to be included, hence we don't use isBetween
+                  const dataValDayjs = dayjs.utc(dataVal).tz(getTimezone());
+                  res =
+                    dataValDayjs.isSameOrAfter(filterVal, 'day') &&
+                    dataValDayjs.isSameOrBefore(now, 'day');
                   break;
+                }
                 case 'nextWeek':
                 case 'nextMonth':
                 case 'nextYear':
-                case 'nextNumberOfDays':
-                  res = dayjs
-                    .utc(dataVal)
-                    .tz(getTimezone())
-                    .isBetween(now, filterVal, 'day');
+                case 'nextNumberOfDays': {
+                  // the 'today' need to be included, hence we don't use isBetween
+                  const dataValDayjs = dayjs.utc(dataVal).tz(getTimezone());
+                  res =
+                    dataValDayjs.isSameOrAfter(now, 'day') &&
+                    dataValDayjs.isSameOrBefore(filterVal, 'day');
                   break;
+                }
               }
             }
           }

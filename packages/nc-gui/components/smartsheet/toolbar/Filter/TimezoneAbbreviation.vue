@@ -15,7 +15,7 @@ const timezoneAbbreviation = computed(() => {
 <template>
   <div
     v-if="timezoneAbbreviation"
-    class="px-2 py-1 bg-gray-50 text-gray-500 text-xs border border-gray-200 min-w-12 max-w-16 h-8 flex items-center justify-center"
+    class="px-2 py-1 bg-nc-bg-gray-extralight text-nc-content-gray-muted text-xs border border-nc-border-gray-medium min-w-12 max-w-16 h-8 flex items-center justify-center"
   >
     {{ timezoneAbbreviation }}
   </div>

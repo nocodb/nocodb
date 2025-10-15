@@ -442,16 +442,14 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
     // when the given filter value has time component,
     // we use it raw as comparison
-    if (rootArgs.filter.value) {
-      if (rootArgs.filter.value.replace('T', ' ').split(' ')[1]) {
-        rangeDate = this.parseFilterValue(
-          rootArgs.filter.value,
-          rootArgs.knex,
-          rootArgs.filter,
-          rootArgs.column,
-          _options,
-        );
-      }
+    if (rootArgs.filter.value?.replace('T', ' ').split(' ')[1]) {
+      rangeDate = this.parseFilterValue(
+        rootArgs.filter.value,
+        rootArgs.knex,
+        rootArgs.filter,
+        rootArgs.column,
+        _options,
+      );
     }
 
     return {
@@ -481,16 +479,14 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
     // when the given filter value has time component,
     // we use it raw as comparison
-    if (rootArgs.filter.value) {
-      if (rootArgs.filter.value.replace('T', ' ').split(' ')[1]) {
-        rangeDate = this.parseFilterValue(
-          rootArgs.filter.value,
-          rootArgs.knex,
-          rootArgs.filter,
-          rootArgs.column,
-          _options,
-        );
-      }
+    if (rootArgs.filter.value?.replace('T', ' ').split(' ')[1]) {
+      rangeDate = this.parseFilterValue(
+        rootArgs.filter.value,
+        rootArgs.knex,
+        rootArgs.filter,
+        rootArgs.column,
+        _options,
+      );
     }
 
     return {
@@ -520,16 +516,14 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
     // when the given filter value has time component,
     // we use it raw as comparison
-    if (rootArgs.filter.value) {
-      if (rootArgs.filter.value.replace('T', ' ').split(' ')[1]) {
-        rangeDate = this.parseFilterValue(
-          rootArgs.filter.value,
-          rootArgs.knex,
-          rootArgs.filter,
-          rootArgs.column,
-          _options,
-        );
-      }
+    if (rootArgs.filter.value?.replace('T', ' ').split(' ')[1]) {
+      rangeDate = this.parseFilterValue(
+        rootArgs.filter.value,
+        rootArgs.knex,
+        rootArgs.filter,
+        rootArgs.column,
+        _options,
+      );
     }
 
     return {
@@ -559,16 +553,14 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
     // when the given filter value has time component,
     // we use it raw as comparison
-    if (rootArgs.filter.value) {
-      if (rootArgs.filter.value.replace('T', ' ').split(' ')[1]) {
-        rangeDate = this.parseFilterValue(
-          rootArgs.filter.value,
-          rootArgs.knex,
-          rootArgs.filter,
-          rootArgs.column,
-          _options,
-        );
-      }
+    if (rootArgs.filter.value?.replace('T', ' ').split(' ')[1]) {
+      rangeDate = this.parseFilterValue(
+        rootArgs.filter.value,
+        rootArgs.knex,
+        rootArgs.filter,
+        rootArgs.column,
+        _options,
+      );
     }
 
     return {

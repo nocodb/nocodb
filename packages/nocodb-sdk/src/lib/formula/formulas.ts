@@ -20,7 +20,7 @@ const customValidationArray: FormulaMetaCustomValidation = (
     throw new FormulaError(
       FormulaErrorType.TYPE_MISMATCH,
       { key: 'msg.formula.firstParamArray' },
-      'First parameter need to be array'
+      'First parameter need to be array. Either it is a link with Has Many / Many to Many relation, or either a Formula or Lookup that reference the link'
     );
   }
 };

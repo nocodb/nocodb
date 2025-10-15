@@ -505,7 +505,7 @@ describe('Formula parsing and type validation', () => {
         getMeta,
       });
       expect(result.referencedColumn.id).toEqual('col_lok1');
-      expect(result.referencedColumn.uidt).toEqual(UITypes.LinkToAnotherRecord);
+      expect(result.referencedColumn.uidt).toEqual(UITypes.SingleLineText);
 
       const result1 = await validateFormulaAndExtractTreeWithType({
         formula: '{column1}',
@@ -564,7 +564,7 @@ describe('Formula parsing and type validation', () => {
         getMeta,
       });
       expect(result1.referencedColumn.id).toEqual('col_lok1');
-      expect(result1.referencedColumn.uidt).toEqual(UITypes.Lookup);
+      expect(result1.referencedColumn.uidt).toEqual(UITypes.SingleLineText);
     });
 
     it(`will not return referenced column with impure call expression`, async () => {

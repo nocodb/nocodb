@@ -50,13 +50,14 @@ const filterReferencedInfoByUidt = ({
   defaultUidt: UITypes;
   isPureOperation?: boolean;
 }): ReferencedInfo => {
-  const referencedColumn =
-    referencedInfo.referencedColumn &&
-    allowedUidts.includes(referencedInfo.referencedColumn.uidt as UITypes) &&
-    (isPureOperation ||
-      !IMPURE_OPR_UIDT_MAP.has(referencedInfo.referencedColumn.uidt as UITypes))
-      ? referencedInfo.referencedColumn
-      : undefined;
+  let referencedColumn = referencedInfo.referencedColumn;
+  if (referencedColumn && !isPureOperation) {
+    referencedColumn =
+      allowedUidts.includes(referencedInfo.referencedColumn.uidt as UITypes) &&
+      !IMPURE_OPR_UIDT_MAP.has(referencedInfo.referencedColumn.uidt as UITypes)
+        ? referencedInfo.referencedColumn
+        : undefined;
+  }
   let uidtCandidates =
     referencedInfo.uidtCandidates?.filter((uidt) =>
       allowedUidts.includes(uidt)

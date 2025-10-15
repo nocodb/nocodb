@@ -812,12 +812,16 @@ export async function validateFormulaAndExtractTreeWithType({
             return validateAndExtract(arg);
           })
         ));
-
       const argTypes = validateResult.map((v: any) => v.dataType);
 
       // if validation function is present, call it
       if (formulas[calleeName].validation?.custom) {
-        formulas[calleeName].validation?.custom(argTypes, parsedTree);
+        formulas[calleeName].validation?.custom(
+          argTypes,
+          // need to use res rather than parsedTree
+          // because post-processing like referencedColumn is needed
+          <CallExpressionNode>res
+        );
       }
       // validate against expected arg types if present
       else if (formulas[calleeName].validation?.args?.type) {
@@ -993,18 +997,17 @@ export async function validateFormulaAndExtractTreeWithType({
             );
           }
         }
-
-        // extract type and add to res
-        Object.assign(
-          res,
-          await extractColumnIdentifierType({
-            col,
-            columns,
-            getMeta,
-            clientOrSqlUi,
-          })
-        );
       }
+      // extract type and add to res
+      Object.assign(
+        res,
+        await extractColumnIdentifierType({
+          col,
+          columns,
+          getMeta,
+          clientOrSqlUi,
+        })
+      );
     } else if (parsedTree.type === JSEPNode.LITERAL) {
       if (typeof parsedTree.value === 'number') {
         res.dataType = FormulaDataTypes.NUMERIC;

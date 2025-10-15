@@ -2073,7 +2073,8 @@
       "cantSaveCircularReference": "Can’t save field because it causes a circular reference",
       "columnWithTypeFoundButExpected": "Field {columnName} with {columnType} type is found but {expectedType} type is expected",
       "columnNotMatchedWithType": "{columnName} is not matched with {columnType}",
-      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\""
+      "formulaMissingParentheses": "Missing parentheses after function name \"{calleeName}\"",
+      "firstParamArray": "First parameter need to be array. Either it is a link with Has Many / Many to Many relation, or either a Formula or Lookup that reference the link"
     },
     "selectOption": {
       "cantBeNull": "Select options can't be null",

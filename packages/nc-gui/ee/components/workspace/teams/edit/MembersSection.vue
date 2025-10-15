@@ -369,13 +369,7 @@ onMounted(() => {
                         placement="right"
                         :disabled="!hasSelectedAllOwners"
                       >
-                        <NcMenuItem
-                          :disabled="hasSelectedAllOwners"
-                          :class="{
-                            '!text-red-500 !hover:bg-red-50': !hasSelectedAllOwners,
-                          }"
-                          @click="handleRemoveSelectedMembersFromTeam"
-                        >
+                        <NcMenuItem :disabled="hasSelectedAllOwners" danger @click="handleRemoveSelectedMembersFromTeam">
                           <GeneralIcon icon="ncXSquare" />
                           {{ $t('activity.removeFromTeam') }}
                         </NcMenuItem>
@@ -448,7 +442,7 @@ onMounted(() => {
                   >
                     <NcMenuItem
                       :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
-                      :class="{ '!text-red-500 !hover:bg-red-50': !(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) }"
+                      danger
                       @click="handleLeaveTeam(record as TeamType)"
                     >
                       <GeneralIcon icon="ncLogOut" class="h-4 w-4" />
@@ -464,7 +458,7 @@ onMounted(() => {
                   >
                     <NcMenuItem
                       :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
-                      :class="{ '!text-red-500 !hover:bg-red-50': !(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) }"
+                      danger
                       @click="handleRemoveMemberFromTeam([record as TeamMember])"
                     >
                       <GeneralIcon icon="ncXSquare" />

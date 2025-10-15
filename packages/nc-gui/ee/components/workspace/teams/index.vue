@@ -306,7 +306,7 @@ onMounted(async () => {
         </template>
 
         <template #bodyCell="{ column, record }">
-          <div v-if="column.key === 'teamName'">
+          <div v-if="column.key === 'teamName'" class="text-bodyBold text-nc-content-gray">
             {{ record.title }}
           </div>
 
@@ -320,14 +320,14 @@ onMounted(async () => {
             <GeneralUserIcon size="base" :user="collaboratorsMap[record.created_by]" class="flex-none" />
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
               <div class="flex items-center gap-1">
-                <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize text-captionBold" show-on-truncate-only>
                   <template #title>
                     {{ collaboratorsMap[record.created_by]?.display_name || extractNameFromEmail(record.created_by) }}
                   </template>
                   {{ collaboratorsMap[record.created_by]?.display_name || extractNameFromEmail(record.created_by) }}
                 </NcTooltip>
               </div>
-              <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+              <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-muted" show-on-truncate-only>
                 <template #title>
                   {{ collaboratorsMap[record.created_by]?.email }}
                 </template>
@@ -357,7 +357,7 @@ onMounted(async () => {
                       {{ $t('activity.leaveTeam') }}
                     </NcMenuItem>
                   </NcTooltip>
-                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="handleDeleteTeam(record as TeamType)">
+                  <NcMenuItem danger @click="handleDeleteTeam(record as TeamType)">
                     <GeneralIcon icon="delete" />
                     {{ $t('activity.deleteTeam') }}
                   </NcMenuItem>

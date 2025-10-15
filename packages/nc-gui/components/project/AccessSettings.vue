@@ -468,7 +468,7 @@ onBeforeUnmount(() => {
                   :role="record.roles"
                   :roles="accessibleRoles"
                   :inherit="
-                    isEeUI && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
+                    isEeUI && !record.base_roles && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
                       ? WorkspaceRolesToProjectRoles[record.workspace_roles]
                       : null
                   "

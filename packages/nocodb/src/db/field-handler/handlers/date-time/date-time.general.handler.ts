@@ -423,7 +423,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
               _options,
             );
           });
-          nestedQb.orWhereNotNull(args.sourceField as any);
+          nestedQb.orWhereNull(args.sourceField as any);
         });
       },
     };
@@ -640,10 +640,10 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     let secondArg: dayjs.Dayjs;
     if (now.isBefore(anchorDate)) {
       firstArg = now.startOf('day');
-      secondArg = anchorDate.add(24, 'hours');
+      secondArg = anchorDate.add(24, 'hours').add(-1, 'millisecond');
     } else {
       firstArg = anchorDate;
-      secondArg = now.startOf('day').add(24, 'hours');
+      secondArg = now.startOf('day').add(24, 'hours').add(-1, 'millisecond');
     }
 
     return {

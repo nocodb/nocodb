@@ -6,7 +6,7 @@ import { IGetMeta } from './types/meta.type';
 import UITypes from './UITypes';
 const base_id = 'pIJkwfxdDwd';
 
-const getMeta: IGetMeta = async (_context, _tableId) => ({
+const getMeta: IGetMeta = async (_context, _param) => ({
   base_id,
   columns: [],
   id: 'mWhcgaGWdKE',

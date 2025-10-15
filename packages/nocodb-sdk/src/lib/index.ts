@@ -12,6 +12,8 @@ export * from '~/lib/payment';
 export * from '~/lib/permission';
 export * from '~/lib/realtime';
 export * from '~/lib/scripts';
+export * from '~/lib/oauth';
+export * from '~/lib/meta';
 export {
   default as UITypes,
   UITypesName,

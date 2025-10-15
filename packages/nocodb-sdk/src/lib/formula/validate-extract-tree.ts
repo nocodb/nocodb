@@ -20,18 +20,21 @@ import { handleFormulaError } from './handle-formula-error';
 import { formulas } from './formulas';
 import { jsepCurlyHook, jsepIndexHook } from './hooks';
 import { ClientTypeOrSqlUI } from './types';
-import { SqlUiFactory } from '../sqlUi';
+import { SqlUiFactory } from '~/lib/sqlUi';
 import {
   extractBinaryExpReferencedInfo,
   extractCallExpressionReferencedInfo,
-} from './referenced-info-extractor';
+} from '~/lib/formula/referenced-info-extractor';
 import {
   IColumnMeta,
   IFormulaColumn,
   IGetMeta,
   ILinkToAnotherRecordColumn,
   IRollupColumn,
-} from '../types/meta.type';
+} from '~/lib/types/meta.type';
+import { getColOptions } from '~/lib/meta/getColOptions';
+import { getContextFromObject } from '~/lib/meta/getContextFromObject';
+import { getColumns } from '~/lib/meta/getColumns';
 
 async function extractColumnIdentifierType({
   col,
@@ -92,7 +95,11 @@ async function extractColumnIdentifierType({
 
     case UITypes.Rollup:
       {
-        const rollupFunction = (<IRollupColumn>col.colOptions).rollup_function;
+        const rollupFunction = (
+          await getColOptions<IRollupColumn>(getContextFromObject(col), {
+            column: col,
+          })
+        ).rollup_function;
         if (
           [
             'count',
@@ -113,14 +120,10 @@ async function extractColumnIdentifierType({
           );
 
           // the value is based on the foreign rollup column type
-          const refTableMeta = await getMeta(
-            {
-              base_id: relationColumnOpt.base_id,
-              workspace_id: relationColumnOpt.fk_workspace_id,
-            },
-            (<ILinkToAnotherRecordColumn>relationColumnOpt.colOptions)
-              .fk_related_model_id
-          );
+          const refTableMeta = await getMeta(getContextFromObject(col), {
+            id: (<ILinkToAnotherRecordColumn>relationColumnOpt.colOptions)
+              .fk_related_model_id,
+          });
 
           const refTableColumns = refTableMeta.columns;
           const childFieldColumn = await (<IRollupColumn>(
@@ -462,14 +465,15 @@ async function checkForCircularFormulaRef(
     }
 
     if (ltarColumn) {
-      const relatedTableMeta = await getMeta(
-        {
-          base_id: ltarColumn.base_id,
-          workspace_id: ltarColumn.fk_workspace_id,
-        },
-        (ltarColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id
-      );
-      const lookupTarget = relatedTableMeta.columns.find(lookupFilterFn);
+      const relatedTableMeta = await getMeta(getContextFromObject(ltarColumn), {
+        id: (ltarColumn.colOptions as LinkToAnotherRecordType)
+          .fk_related_model_id,
+      });
+      const lookupTarget = (
+        await getColumns(getContextFromObject(relatedTableMeta), {
+          model: relatedTableMeta,
+        })
+      ).find(lookupFilterFn);
 
       if (lookupTarget) {
         if (lookupTarget.uidt === UITypes.Formula) {

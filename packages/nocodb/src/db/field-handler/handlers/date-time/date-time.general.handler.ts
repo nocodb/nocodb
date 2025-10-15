@@ -20,6 +20,8 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export class DateTimeGeneralHandler extends GenericFieldHandler {
+  dateValueFormat = 'YYYY-MM-DD HH:mm:ss';
+
   override async verifyFilter(filter: Filter, column: Column) {
     const supportedOperations = [
       'gb_eq',
@@ -158,7 +160,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
   ) {
     const { context } = options;
 
-    let useTimezone = 'Utc/ETC';
+    let useTimezone = 'Etc/UTC';
     if (parseProp(filter.meta)?.timezone) {
       useTimezone = parseProp(filter.meta)?.timezone;
     }
@@ -207,8 +209,8 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     qb.where(
       knex.raw('?? between ? and ?', [
         sourceField,
-        anchorDate.toISOString(),
-        rangeDate.toISOString(),
+        anchorDate.utc().format(this.dateValueFormat),
+        rangeDate.utc().format(this.dateValueFormat),
       ]),
     );
   }
@@ -229,7 +231,10 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     _options: FilterOptions,
   ) {
     qb.where(
-      knex.raw(`?? ${comparisonOp} ?`, [sourceField, val.toISOString()]),
+      knex.raw(`?? ${comparisonOp} ?`, [
+        sourceField,
+        val.utc().format(this.dateValueFormat),
+      ]),
     );
   }
 
@@ -312,7 +317,6 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         anchorDate = now.add(Number(filter.value), 'day');
         break;
     }
-
     if (filter.comparison_op === 'isWithin') {
       return await this.filterIsWithin(
         { val: anchorDate.valueOf(), sourceField: field },
@@ -336,7 +340,11 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
   ) {
-    const anchorDate = dayjs(args.val);
+    const { knex, filter, column } = rootArgs;
+    const anchorDate = dayjs.tz(
+      args.val,
+      this.getTimezone(knex, filter, column, _options),
+    );
     const rangeDate = anchorDate.add(24, 'hours');
 
     return {
@@ -482,6 +490,54 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
             rootArgs,
             _options,
           );
+        });
+      },
+    };
+  }
+
+  override async filterBlank(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    _rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          nestedQb.whereNull(sourceField as any);
+        });
+      },
+    };
+  }
+
+  override async filterNotblank(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    _rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { sourceField } = args;
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          nestedQb.whereNotNull(sourceField as any);
         });
       },
     };

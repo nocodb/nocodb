@@ -84,7 +84,7 @@ export const getSelectedUsers = (
     return selected
   }
   let localModelValue = modelValue
-  if (Array.isArray(localModelValue)) {
+  if (Array.isArray(localModelValue) && localModelValue.filter((k) => typeof k === 'string').length === localModelValue.length) {
     localModelValue = arrFlatMap(localModelValue.filter((k) => k).map((u: string) => u?.split?.(','))).join(',')
   }
 
@@ -117,6 +117,7 @@ export const getSelectedUsers = (
     selected = localModelValue
       ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
           const label = item?.display_name || item?.email
+          console.log(optionsMap[item.id])
           if (label) {
             const user = optionsMap[item.id]
             acc.push({

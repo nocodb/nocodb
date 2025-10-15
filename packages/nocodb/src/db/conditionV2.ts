@@ -62,6 +62,7 @@ export default async function conditionV2(
 
   filterOperationResult.clause(qb);
   filterOperationResult.rootApply?.(qb);
+  console.log(qb.toQuery());
 }
 
 function getLogicalOpMethod(filter: Filter) {
@@ -216,6 +217,15 @@ const parseConditionV2 = async (
       if (throwErrorIfInvalid) {
         NcError.fieldNotFound(filter.fk_column_id);
       }
+    }
+    if (
+      [UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
+      customWhereClause
+    ) {
+      console.log(
+        column.uidt,
+        customWhereClause?.toQuery?.() ?? customWhereClause,
+      );
     }
     if (
       [

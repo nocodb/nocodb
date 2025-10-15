@@ -1,12 +1,23 @@
 import dayjs from 'dayjs';
-import { parseDateTimeValue } from 'nocodb-sdk';
-import { NcError } from 'src/helpers/catchError';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc.js';
+import { parseDateTimeValue, parseProp } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
-import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
-import type { MetaService } from 'src/meta/meta.service';
-import type { FilterVerificationResult } from '~/db/field-handler/field-handler.interface';
-import type { Column, Filter } from '~/models';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { MetaService } from '~/meta/meta.service';
+import type {
+  FilterOptions,
+  FilterVerificationResult,
+} from '~/db/field-handler/field-handler.interface';
+import type { Filter } from '~/models';
+import type CustomKnex from '~/db/CustomKnex';
+import type { Knex } from '~/db/CustomKnex';
+import type { Column } from '~/models';
+import { NcError } from '~/helpers/catchError';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export class DateTimeGeneralHandler extends GenericFieldHandler {
   override async verifyFilter(filter: Filter, column: Column) {
@@ -136,6 +147,383 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
   }): Promise<{ value: any }> {
     return {
       value: this.parseDateTime(params).value.format('YYYY-MM-DD HH:mm:ssZ'),
+    };
+  }
+
+  protected getTimezone(
+    _knex: CustomKnex,
+    filter: Filter,
+    column: Column,
+    options: FilterOptions,
+  ) {
+    const { context } = options;
+
+    let useTimezone = 'Utc/ETC';
+    if (parseProp(filter.meta)?.timezone) {
+      useTimezone = parseProp(filter.meta)?.timezone;
+    }
+    // if not and column has timezone, use that
+    else if (parseProp(column.meta)?.timezone) {
+      useTimezone = parseProp(column.meta)?.timezone;
+    }
+    // if not but context has timezone, use that
+    else if (context.timezone) {
+      useTimezone = context.timezone;
+    }
+
+    return useTimezone;
+  }
+
+  protected getNow(
+    _knex: CustomKnex,
+    filter: Filter,
+    column: Column,
+    options: FilterOptions,
+  ) {
+    const now = dayjs.tz(
+      new Date(),
+      this.getTimezone(_knex, filter, column, options),
+    );
+    // the val will be start of day in timezone
+    return now.startOf('day');
+  }
+
+  protected comparisonBetween(
+    {
+      sourceField,
+      anchorDate,
+      rangeDate,
+      qb,
+    }: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      anchorDate: dayjs.Dayjs;
+      rangeDate: dayjs.Dayjs;
+      qb: Knex.QueryBuilder;
+    },
+    { knex }: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    qb.where(
+      knex.raw('?? between ? and ?', [
+        sourceField,
+        anchorDate.toISOString(),
+        rangeDate.toISOString(),
+      ]),
+    );
+  }
+
+  protected comparisonOp(
+    {
+      sourceField,
+      val,
+      qb,
+      comparisonOp,
+    }: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: dayjs.Dayjs;
+      qb: Knex.QueryBuilder;
+      comparisonOp: '<' | '<=' | '>' | '>=';
+    },
+    { knex }: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    qb.where(
+      knex.raw(`?? ${comparisonOp} ?`, [sourceField, val.toISOString()]),
+    );
+  }
+
+  override async filter(
+    knex: CustomKnex,
+    filter: Filter,
+    column: Column,
+    options: FilterOptions,
+  ) {
+    const { alias } = options;
+    const field =
+      options.customWhereClause ??
+      (alias ? `${alias}.${column.column_name}` : column.column_name);
+
+    const now = this.getNow(knex, filter, column, options);
+    let anchorDate: dayjs.Dayjs;
+    // handle sub operation
+    switch (filter.comparison_sub_op) {
+      case 'today':
+        anchorDate = now;
+        break;
+      case 'tomorrow':
+        anchorDate = now.add(1, 'day');
+        break;
+      case 'yesterday':
+        anchorDate = now.add(-1, 'day');
+        break;
+      case 'oneWeekAgo':
+        anchorDate = now.add(-1, 'week');
+        break;
+      case 'oneWeekFromNow':
+        anchorDate = now.add(1, 'week');
+        break;
+      case 'oneMonthAgo':
+        anchorDate = now.add(-1, 'month');
+        break;
+      case 'oneMonthFromNow':
+        anchorDate = now.add(1, 'month');
+        break;
+      case 'daysAgo':
+        if (!filter.value) return;
+        anchorDate = now.add(-filter.value, 'day');
+        break;
+      case 'daysFromNow':
+        if (!filter.value) return;
+        anchorDate = now.add(Number(filter.value), 'day');
+        break;
+      case 'exactDate':
+        if (!filter.value) return;
+        anchorDate = dayjs.tz(
+          filter.value,
+          this.getTimezone(knex, filter, column, options),
+        );
+        break;
+      // sub-ops for `isWithin` comparison
+      case 'pastWeek':
+        anchorDate = now.add(-1, 'week');
+        break;
+      case 'pastMonth':
+        anchorDate = now.add(-1, 'month');
+        break;
+      case 'pastYear':
+        anchorDate = now.add(-1, 'year');
+        break;
+      case 'nextWeek':
+        anchorDate = now.add(1, 'week');
+        break;
+      case 'nextMonth':
+        anchorDate = now.add(1, 'month');
+        break;
+      case 'nextYear':
+        anchorDate = now.add(1, 'year');
+        break;
+      case 'pastNumberOfDays':
+        if (!filter.value) return;
+        anchorDate = now.add(-filter.value, 'day');
+        break;
+      case 'nextNumberOfDays':
+        if (!filter.value) return;
+        anchorDate = now.add(Number(filter.value), 'day');
+        break;
+    }
+
+    if (filter.comparison_op === 'isWithin') {
+      return await this.filterIsWithin(
+        { val: anchorDate.valueOf(), sourceField: field },
+        { knex, filter, column },
+        options,
+      );
+    }
+
+    return await this.handleFilter(
+      { val: anchorDate.valueOf(), sourceField: field },
+      { knex, filter, column },
+      options,
+    );
+  }
+
+  override async filterEq(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    const anchorDate = dayjs(args.val);
+    const rangeDate = anchorDate.add(24, 'hours');
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          this.comparisonBetween(
+            { ...args, anchorDate, rangeDate, qb: nestedQb },
+            rootArgs,
+            _options,
+          );
+        });
+      },
+    };
+  }
+
+  override async filterNeq(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    const anchorDate = dayjs(args.val);
+    const rangeDate = anchorDate.add(24, 'hours');
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        // is earlier than anchor date
+        // or later than range date
+        // or null
+        qb.where((nestedQb) => {
+          this.comparisonOp(
+            { ...args, val: anchorDate, qb: nestedQb, comparisonOp: '<' },
+            rootArgs,
+            _options,
+          );
+          nestedQb.orWhere((nestedQb2) => {
+            this.comparisonOp(
+              { ...args, val: rangeDate, qb: nestedQb2, comparisonOp: '>' },
+              rootArgs,
+              _options,
+            );
+          });
+          nestedQb.orWhereNotNull(args.sourceField as any);
+        });
+      },
+    };
+  }
+
+  override async filterGt(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    const anchorDate = dayjs(args.val);
+    const rangeDate = anchorDate.add(24, 'hours');
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          this.comparisonOp(
+            { ...args, val: rangeDate, qb: nestedQb, comparisonOp: '>' },
+            rootArgs,
+            _options,
+          );
+        });
+      },
+    };
+  }
+
+  override async filterGte(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    const anchorDate = dayjs(args.val);
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          this.comparisonOp(
+            { ...args, val: anchorDate, qb: nestedQb, comparisonOp: '>=' },
+            rootArgs,
+            _options,
+          );
+        });
+      },
+    };
+  }
+
+  override async filterLte(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    const anchorDate = dayjs(args.val);
+    const rangeDate = anchorDate.add(24, 'hours');
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          this.comparisonOp(
+            { ...args, val: rangeDate, qb: nestedQb, comparisonOp: '<=' },
+            rootArgs,
+            _options,
+          );
+        });
+      },
+    };
+  }
+
+  override async filterLt(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    const anchorDate = dayjs(args.val);
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          this.comparisonOp(
+            { ...args, val: anchorDate, qb: nestedQb, comparisonOp: '<' },
+            rootArgs,
+            _options,
+          );
+        });
+      },
+    };
+  }
+
+  async filterIsWithin(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    const { knex, filter, column } = rootArgs;
+    const anchorDate = dayjs(args.val);
+    const now = this.getNow(knex, filter, column, _options);
+    let firstArg: dayjs.Dayjs;
+    let secondArg: dayjs.Dayjs;
+    if (now.isBefore(anchorDate)) {
+      firstArg = now.startOf('day');
+      secondArg = anchorDate.add(24, 'hours');
+    } else {
+      firstArg = anchorDate;
+      secondArg = now.startOf('day').add(24, 'hours');
+    }
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        qb.where((nestedQb) => {
+          this.comparisonBetween(
+            {
+              ...args,
+              anchorDate: firstArg,
+              rangeDate: secondArg,
+              qb: nestedQb,
+            },
+            rootArgs,
+            _options,
+          );
+        });
+      },
     };
   }
 }

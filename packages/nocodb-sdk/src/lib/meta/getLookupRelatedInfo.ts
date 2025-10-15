@@ -18,38 +18,40 @@ export const getLookupRelatedInfo = async (
     getMeta,
   }: { colOptions: ILookupColumn; columns: IColumnMeta[]; getMeta: IGetMeta }
 ) => {
-  let relationCol;
-  relationCol = columns.find(
+  let relationColumn: IColumnMeta;
+  relationColumn = columns.find(
     (col) => col.id === colOptions.fk_relation_column_id
   );
-  if (!relationCol && 'getRelationColumn' in colOptions) {
-    relationCol = await colOptions.getRelationColumn(context);
+  if (!relationColumn && 'getRelationColumn' in colOptions) {
+    relationColumn = await colOptions.getRelationColumn(context);
   }
 
   const relatedTable = await getLTARRelatedTable(
-    getContextFromObject(relationCol),
+    getContextFromObject(relationColumn),
     {
       colOptions: await getColOptions<ILinkToAnotherRecordColumn>(
-        getContextFromObject(relationCol),
+        getContextFromObject(relationColumn),
         {
-          column: relationCol,
+          column: relationColumn,
         }
       ),
       getMeta,
     }
   );
-  let lookupColumn;
+  let lookupColumn: IColumnMeta;
   if ('getLookupColumn' in colOptions) {
     lookupColumn = await colOptions.getLookupColumn(context);
   } else {
-    lookupColumn = await getColumns(getContextFromObject(relatedTable), {
-      model: relatedTable,
-    });
+    lookupColumn = (
+      await getColumns(getContextFromObject(relatedTable), {
+        model: relatedTable,
+      })
+    ).find((col) => col.id === colOptions.fk_lookup_column_id);
   }
 
   return {
     relatedTable,
-    relationCol,
+    relationColumn,
     lookupColumn,
   };
 };

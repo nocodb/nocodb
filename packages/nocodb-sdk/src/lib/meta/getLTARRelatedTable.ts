@@ -8,6 +8,9 @@ export const getLTARRelatedTable = async (
     getMeta,
   }: { colOptions: ILinkToAnotherRecordColumn; getMeta: IGetMeta }
 ) => {
+  if (!colOptions) {
+    return undefined;
+  }
   if ('getRelatedTable' in colOptions) {
     return await colOptions.getRelatedTable(context);
   } else {

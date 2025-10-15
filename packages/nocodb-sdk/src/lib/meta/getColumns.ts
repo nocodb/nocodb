@@ -5,6 +5,9 @@ export const getColumns = async (
   context: NcContext,
   { model }: { model: IGetMetaResult }
 ) => {
+  if (!model) {
+    return undefined;
+  }
   if ('getColumns' in model) {
     return await model.getColumns(context);
   } else if ('columns' in model) {

@@ -1,5 +1,5 @@
-import { RelationTypes } from 'nocodb-sdk';
-import type { NcContext } from 'nocodb-sdk';
+import { RelationTypes } from '~/lib';
+import type { NcContext } from '~/lib';
 import {
   IColumnMeta,
   IGetMeta,

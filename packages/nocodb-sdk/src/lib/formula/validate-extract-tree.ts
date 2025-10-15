@@ -192,6 +192,7 @@ async function extractColumnIdentifierType({
       const lookupColOption = await getColOptions<ILookupColumn>(colContext, {
         column: col,
       });
+
       const lookupInfo = await getLookupRelatedInfo(colContext, {
         colOptions: lookupColOption,
         columns,
@@ -221,7 +222,10 @@ async function extractColumnIdentifierType({
       }
       res.referencedColumn = {
         id: lookupColumnIdentifierType?.referencedColumn?.id,
-        uidt: lookupColumnIdentifierType?.referencedColumn?.uidt,
+        // if array, we present it as lookup column
+        uidt: res.isDataArray
+          ? UITypes.Lookup
+          : lookupColumnIdentifierType?.referencedColumn?.uidt,
       };
 
       break;
@@ -261,7 +265,9 @@ async function extractColumnIdentifierType({
         ['hm', 'mm'].includes(colOptions.type);
       res.referencedColumn = {
         id: relatedColumnIdentifierType?.referencedColumn?.id,
-        uidt: relatedColumnIdentifierType?.referencedColumn?.uidt,
+        uidt: res.isDataArray
+          ? UITypes.LinkToAnotherRecord
+          : relatedColumnIdentifierType?.referencedColumn?.uidt,
       };
       break;
     }
@@ -1104,6 +1110,7 @@ export async function validateFormulaAndExtractTreeWithType({
     const result = await validateAndExtract(
       parsedFormula as unknown as ParsedFormulaNode
     );
+    result.rootNode = true;
     return result;
   } catch (ex) {
     if (trackPosition) {

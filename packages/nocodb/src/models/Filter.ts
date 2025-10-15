@@ -21,7 +21,7 @@ import {
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
-import { stringifyMetaProp } from '~/utils/modelUtils';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class Filter implements FilterType {
   id: string;
@@ -53,11 +53,7 @@ export default class Filter implements FilterType {
 
   constructor(data: Filter | FilterType) {
     Object.assign(this, data);
-    if (this.meta && typeof this.meta === 'string') {
-      try {
-        this.meta = JSON.parse(this.meta);
-      } catch {}
-    }
+    this.meta = parseMetaProp(this);
   }
 
   public static castType(filter: Filter): Filter {

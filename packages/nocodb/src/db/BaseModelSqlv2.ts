@@ -5794,7 +5794,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ) {
         const colOptions = await col.getColOptions<FormulaColumn>(this.context);
         const parsedTree: ParsedFormulaNode = colOptions.getParsedTree();
-        if (parsedTree.referencedColumn?.uidt === UITypes.Attachment) {
+        if (parsedTree?.referencedColumn?.uidt === UITypes.Attachment) {
           formulaColumns.push(col);
         }
       }

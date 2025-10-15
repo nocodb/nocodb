@@ -7,7 +7,7 @@ import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 import { ImageThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/image-thumbnail-generator';
-import { PdfThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/pdf-thumbnail-generator';
+// import { PdfThumbnailGenerator } from '~/modules/jobs/jobs/thumbnail-generator/generators/pdf-thumbnail-generator';
 import Noco from '~/Noco';
 
 export class ThumbnailGeneratorProcessor {

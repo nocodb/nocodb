@@ -1042,8 +1042,8 @@ defineExpose({
                     </template>
                   </NcDropdown>
                 </template>
-                <SmartsheetToolbarFilterTimezoneAbbreviation :column="getColumn(filter)" :filter="filter" />
               </div>
+              <SmartsheetToolbarFilterTimezoneAbbreviation :column="getColumn(filter)" :filter="filter" />
             </template>
             <NcButton
               v-if="!filter.readOnly && !readOnly"

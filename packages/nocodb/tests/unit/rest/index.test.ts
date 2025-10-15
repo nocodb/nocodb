@@ -27,8 +27,10 @@ let cloudOrgTest = () => {};
 let bulkAggregationTest = () => {};
 let columnTest = () => {};
 let integrationTest = require('./tests/integration.test').default;
+let oauthDCRTest = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
+  oauthDCRTest = require('./tests/ee/oAuthDCR.test').default;
   ssoTest = require('./tests/ee/sso.test').default;
   cloudOrgTest = require('./tests/ee/cloud-org.test').default;
   bulkAggregationTest = require('./tests/ee/bulkAggregation.test').default;
@@ -62,6 +64,7 @@ function restTests() {
     paymentTest();
     oauthTests();
     bulkV1Test();
+    oauthDCRTest();
   }
 
   if (testVersion.includes('v1')) tableTests('v1');

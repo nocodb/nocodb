@@ -127,7 +127,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   <div class="select-none">{{ $t('title.tokens') }}</div>
                 </div>
               </NcMenuItem>
-              <NcMenuItem
+              <!--              <NcMenuItem
                 key="tokens"
                 :class="{
                   active: $route.params.page === 'mcp',
@@ -140,7 +140,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
                   <div class="select-none">{{ $t('labels.modelContextProtocol') }}</div>
                 </div>
-              </NcMenuItem>
+              </NcMenuItem> -->
               <NcMenuItem
                 key="external-integrations"
                 :class="{

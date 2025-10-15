@@ -12,8 +12,8 @@ import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
-import { CURRENT_USER_TOKEN } from '~/lib';
-import { ColumnHelper } from '~/lib';
+import { getNodejsTimezone } from '~/lib/timezoneUtils';
+import { ColumnHelper, CURRENT_USER_TOKEN } from '~/lib';
 
 extend(utc);
 extend(timezone);
@@ -74,13 +74,11 @@ export function validateRowFilters(params: {
         )
       ) {
         const getTimezone = () => {
-          if (parseProp(filter.meta)?.timezone) {
-            return parseProp(filter.meta)?.timezone;
-          } else if (parseProp(column.meta)?.timezone) {
-            return parseProp(column.meta)?.timezone;
-          } else {
-            return params.options.timezone ?? 'Etc/UTC';
-          }
+          return getNodejsTimezone(
+            parseProp(filter.meta)?.timezone,
+            parseProp(column.meta)?.timezone,
+            params.options.timezone
+          );
         };
         const dateFormat =
           client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';

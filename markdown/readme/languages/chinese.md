@@ -1,93 +1,47 @@
 <h1 align="center" style="border-bottom: none">
-    <b>
-        <a href="https://www.nocodb.com">NocoDB </a><br>
-    </b>
-    ✨ Airtable 的开源替代品 ✨ <br>
+    <div>
+        <a style="color:#36f" href="https://www.nocodb.com">
+            <img src="/packages/nc-gui/assets/img/brand/nocodb-full.png" height="80" />
+            <br>
+    Airtable 的开源替代软件 
+        </a>
+        <br>
+    </div>
 </h1>
+
 <p align="center">
-将 MySQL、PostgreSQL、SQL Server、SQLite 或 MariaDB 转换为智能电子表格。
+NocoDB 是构建在线数据库最快且最简单的方式。
 </p>
-<div align="center">
 
-[![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB)
-[![Node version](https://img.shields.io/badge/node-%3E%3D%2014.18.0-brightgreen)](http://nodejs.org/download/)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
-
-</div>
 
 <p align="center">
-    <a href="http://www.nocodb.com"><b>官网</b></a> •
+    <a href="http://www.nocodb.com"><b>网站</b></a> •
     <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://community.nocodb.com/"><b>社区</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
     <a href="https://docs.nocodb.com/"><b>文档</b></a>
 </p>
 
-![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
+![video avi](https://github.com/nocodb/nocodb/assets/86527202/e2fad786-f211-4dcb-9bd3-aaece83a6783)
+
+<div align="center">
+
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263434-75fe793d-42af-49e4-b964-d70920e41655.png">](markdown/readme/languages/chinese.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263474-787d71e7-3a87-42a8-92a8-be1d1f55413d.png">](markdown/readme/languages/french.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263531-fae58600-6616-4b43-95a0-5891019dd35d.png">](markdown/readme/languages/german.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263589-3dbeda9a-0d2e-4bbd-b1fc-691404bb74fb.png">](markdown/readme/languages/spanish.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263669-f567196a-d4e8-4143-a80a-93d3be32ba90.png">](markdown/readme/languages/portuguese.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263707-ba4e04a4-268a-4626-91b8-048e572fd9f6.png">](markdown/readme/languages/italian.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263770-38e3e79d-11d4-472e-ac27-ae0f17cf65c4.png">](markdown/readme/languages/japanese.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263822-28fce9de-915a-44dc-962d-7a61d340e91d.png">](markdown/readme/languages/korean.md)
+[<img height="38" src="https://user-images.githubusercontent.com/61551451/135263888-151d4ad1-7084-4943-97c9-56f28cd40b80.png">](markdown/readme/languages/russian.md)
+
+</div>
+
+<p align="center"><a href="markdown/readme/languages/README.md"><b> 查看其他语言 »</b></a></p>
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
-
-<p align="center">
-    <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - 开源的 Airtable 替代品 | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-</p>
-
-# 快速尝试
-
-
-<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
-
-## Node 应用程序
-
-我们提供了一个简单的 NodeJS 应用程序以供入门。
-
-```bash
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-npm install
-npm start
-```
-
-## Docker 部署
-
-```bash
-# 如果使用 SQLite 的话
-docker run -d \
-  --name noco \
-  -v "$(pwd)"/nocodb:/usr/app/data/ \
-  -p 8080:8080 \
-  nocodb/nocodb:latest
-
-# 如果使用 PostgreSQL 的话
-docker run -d \
-  --name noco \
-  -v "$(pwd)"/nocodb:/usr/app/data/ \
-  -p 8080:8080 \
-  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
-  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-  nocodb/nocodb:latest
-  ```
-
-> 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。
-
-> 如果你打算输入一些特殊字符，你可能需要在创建数据库时改变字符集和排序。请查看[MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043)的例子。
-
-## Docker Compose
-
-我们在[这个目录](https://github.com/nocodb/nocodb/tree/master/docker-compose)下提供了不同的 docker-compose.yml 文件。下面是一些例子：
-
-```bash
-git clone https://github.com/nocodb/nocodb
-# 如果使用 PostgreSQL 的话
-cd nocodb/docker-compose/2_pg
-```
-
-> 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。
-
-> 如果你打算输入一些特殊字符，你可能需要在创建数据库时改变字符集和排序。请查看[MySQL Docker Compose](https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974)的例子。
-
-# GUI
-
-点击 [http://localhost:8080/dashboard](http://localhost:8080/dashboard) 打开仪表盘。
 
 # 加入我们的社区
 
@@ -95,130 +49,132 @@ cd nocodb/docker-compose/2_pg
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
 
+[![@nocodb/nocodb 项目关注者列表](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
+
+# 安装
+
+## 使用 SQLite 的 Docker 部署
+
+```bash 
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+  ```
+
+## 使用 PostgreSQL 的 Docker 部署
+
+```bash
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
+```
+
+## 自动安装升级
+自动安装升级指令是一个在服务器上部署生产可用的 NocoDB 的单一命令。
+在幕后，它会为你自动生成 docker-compose 文件。
+
+```bash
+bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
+```
+
+自动安装升级执行以下操作：🕊
+- 🐳 自动安装所有的依赖软件，如 docker、docker-compose
+- 🚀 使用 Docker Compose 自动安装带有 PostgreSQL、Redis、Minio、Traefik 网关的 NocoDB。 🐘 🗄️ 🌐
+- 🔄 当您再次运行该命令时，会自动将 NocoDB 升级到最新版本。
+- 🔒 自动配置并续订 SSL 证书。在安装时需要输入域名或子域名。
+
+> install.nocodb.com/noco.sh 脚本可以在 [我们的 github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/1_Auto_Upstall/noco.sh) 中找到
+
+## 其他方式
+
+> 二进制文件仅用于本地快速测试。
+
+| 安装方式                          | 安装命令                                                                                          |
+|-------------------------------|-----------------------------------------------------------------------------------------------|
+| 🍏 MacOS arm64 <br>(二进制文件)    | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`          |
+| 🍏 MacOS x64 <br>(二进制文件)     | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`            |
+| 🐧 Linux arm64 <br>(二进制文件)   | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`          |
+| 🐧 Linux x64 <br>(二进制文件)     | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`            |
+| 🪟 Windows arm64 <br>(二进制文件) | `iwr http://get.nocodb.com/win-arm64.exe -OutFile Noco-win-arm64.exe && .\Noco-win-arm64.exe` |
+| 🪟 Windows x64 <br>(二进制文件)   | `iwr http://get.nocodb.com/win-x64.exe -OutFile Noco-win-x64.exe && .\Noco-win-x64.exe`       |
+
+> 本地运行时通过此地址访问 nocodb: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+
+更多安装方法，请参考 [我们的文档](https://docs.nocodb.com/category/installation)
+
 # 截图
 
-![1](https://user-images.githubusercontent.com/86527202/136066713-5408634f-5469-40eb-94c9-7eafae5e179c.png)
-<br>
+![2](https://github.com/nocodb/nocodb/assets/86527202/a127c05e-2121-4af2-a342-128e0e2d0291)
+![3](https://github.com/nocodb/nocodb/assets/86527202/674da952-8a06-4848-a0e8-a7b02d5f5c88)
+![4](https://github.com/nocodb/nocodb/assets/86527202/cbc5152a-9caf-4f77-a8f7-92a9d06d025b)
+![5](https://github.com/nocodb/nocodb/assets/86527202/dc75dfdc-c486-4f5a-a853-2a8f9e6b569a)
 
-![2](https://user-images.githubusercontent.com/86527202/168545293-b48a4237-8646-4f9a-a56b-56d5c55adc79.jpg)
-<br>
+![5](https://user-images.githubusercontent.com/35857179/194844886-a17006e0-979d-493f-83c4-0e72f5a9b716.png)
+![7](https://github.com/nocodb/nocodb/assets/86527202/be64e619-7295-43e2-aa95-cace4462b17f)
+![8](https://github.com/nocodb/nocodb/assets/86527202/4538bf5a-371f-4ec1-a867-8197e5824286)
 
-![5](https://user-images.githubusercontent.com/86527202/136066734-3f25aecc-bb7e-4db7-81c4-00b368d799d3.png)
-<br>
-
-![6](https://user-images.githubusercontent.com/86527202/168545527-3948125d-1640-4c07-ac80-15db9a85f66f.jpg)
-<br>
-
-![7](https://user-images.githubusercontent.com/86527202/168545772-dfbffe13-bcf6-4a49-8a10-1bc8a933d77e.jpg)
-<br>
-
-![8](https://user-images.githubusercontent.com/86527202/168545839-0ba950a4-400f-45b2-b2db-b22b1853af4a.jpg)
-<br>
-
-![9](https://user-images.githubusercontent.com/86527202/168545872-c2a4b63a-9dc9-4c12-add7-69d5f4d0a6e1.jpg)
-<br>
-
-![9a](https://user-images.githubusercontent.com/86527202/136066745-9797775d-7db0-4681-ab10-d7ecbbd972ef.png)
-<br>
-
-![9b](https://user-images.githubusercontent.com/86527202/136066750-7b566ec3-0983-47ed-9a4e-f895239f1ea4.png)
-<br>
-
-![10](https://user-images.githubusercontent.com/86527202/136066753-6dcda2cf-e7a3-4024-a897-f2b7044a64f4.png)
-<br>
-
-![11](https://user-images.githubusercontent.com/86527202/136066756-fc203c2c-570e-4514-b9f4-2a41ac24e5dd.png)
-<br>
+![8](https://user-images.githubusercontent.com/35857179/194844893-82d5e21b-ae61-41bd-9990-31ad659bf490.png)
+![9](https://user-images.githubusercontent.com/35857179/194844897-cfd79946-e413-4c97-b16d-eb4d7678bb79.png)
+![10](https://user-images.githubusercontent.com/35857179/194844902-c0122570-0dd5-41cf-a26f-6f8d71fefc99.png)
+![11](https://user-images.githubusercontent.com/35857179/194844903-c1e47f40-e782-4f5d-8dce-6449cc70b181.png)
+![12](https://user-images.githubusercontent.com/35857179/194844907-09277d3e-cbbf-465c-9165-6afc4161e279.png)
 
 # 功能
 
 ### 丰富的电子表格功能
 
-- ⚡ 基本操作：对表、列和行进行增删改查
-- ⚡ 字段操作：排序、过滤、隐藏/取消隐藏列
-- ⚡ 多种视图：网格（默认）、画廊和表单视图
-- ⚡ 视图权限：协作视图和锁定的视图
-- ⚡ 分享基础/视图：公开或私人（有密码保护）
-- ⚡ 多种单元格类型：ID、链接到另一记录、查找、滚动、单行文本、附件、货币、公式等
-- ⚡ 基于角色的访问控制：不同层次的精细化地控制访问
-- ⚡ 以及更多......
+- ⚡ &nbsp;基本操作：对表、列和行进行增删改查
+- ⚡ &nbsp;字段操作：排序，过滤，分组，隐藏/取消隐藏列
+- ⚡ &nbsp;多种视图类型：网格（默认）、画廊、表单、看板和日历视图
+- ⚡ &nbsp;视图权限：协作视图和锁定视图
+- ⚡ &nbsp;分享基础库/视图：公开或私人（有密码保护）
+- ⚡ &nbsp;多种单元格类型：ID，链接，查找，汇总，单行文本，附件，货币，公式，用户等
+- ⚡ &nbsp;基于角色的访问控制：不同级别的细粒度访问控制
+- ⚡ &nbsp;等其他功能......
 
-### 工作流程自动化的应用商店
+### 支持工作流程自动化的应用商店
 
-我们在三个主要类别中提供不同的集成。详见<a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">App Store</a>。
+我们在三个主要类别中提供不同的集成。详见 <a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">App Store</a>。
 
-- ⚡ 聊天：Slack、Discord、Mattermost 等
-- ⚡ 电子邮件: AWS SES，SMTP，MailerSend 等
-- ⚡ 存储：AWS S3，Google Cloud Storage，Minio 等
+- ⚡ &nbsp;聊天：Slack、Discord、Mattermost 等
+- ⚡ &nbsp;电子邮件: AWS SES，SMTP，MailerSend 等
+- ⚡ &nbsp;存储：AWS S3，Google Cloud Storage，Minio 等
 
-### 使用 API 编程访问
+### 通过编程访问
 
-我们提供以下方式让用户以编程方式调用操作。 您可以使用 Token（JWT 或 Social Auth）来签署您对 NocoDB 授权的请求。
+我们为用户提供下列所述的编程调用方法。你可以使用 token（JWT 或 Social Auth）来对你的请求进行签名，从而获得对 NocoDB 的认证。
 
 - ⚡ &nbsp;REST APIs
 - ⚡ &nbsp;NocoDB SDK
 
-### 架构同步
-
-如果您在 NocoDB GUI 之外进行了更改，我们允许您同步架构更改。 但是，必须注意的是，您必须附有自己的迁移架构才能从一个环境迁移到其他环境。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/data-sources/sync-with-data-source" target="_blank">同步架构</a>。
-
-### 审计
-
-我们将所有用户操作日志保存在一起。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/data-sources/actions-on-data-sources/#audit-logs" target="_blank">审计</a>。
-
-# 生产部署
-
-默认情况下使用 SQLite 存储元数据。你也可以指定你自己的数据库。这个数据库的连接参数可以在 `NC_DB` 环境变量中指定。此外，我们还提供以下环境变量进行配置：
-
-## 环境变量
-
-参见[环境变量](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
-
-# 开发
-
-## 拉取项目
-
-```shell
-git clone https://github.com/nocodb/nocodb
-cd nocodb
-```
-## 构建SDK
-
-```shell
-cd packages/nocodb-sdk
-pnpm install
-pnpm run build
-```
-## 本地运行后端
-
-```shell
-cd packages/nocodb
-pnpm install
-pnpm run watch:run
-# 在浏览器中打开 localhost:8080/dashboard
-```
-
-## 本地运行前端
-
-```shell
-cd packages/nc-gui
-pnpm install
-pnpm run dev
-# 在浏览器中打开 localhost:3000/dashboard
-```
-
-修改代码后会自动重新启动。
-
-> nocodb/packages/nocodb 包括 nc-lib-gui，它是 pnpm 源中托管的 nc-gui 的预构建版本。如果您只想修改后端，则可以在本地启动后端后在浏览器中访问 localhost:8000/dashboard
-
 # 贡献
 
-参见[贡献指南](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+请参考 [贡献指南](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
-# 我们为什么要做这个？
+# 我们为什么要构建此软件？
 
-大多数互联网企业都为自己配备了电子表格或数据库来解决他们的业务需求。每天有十亿多人协作使用电子表格。然而，我们在数据库上以类似的效率工作还有很长的路要走，这些数据库在计算方面是更强大的工具。使用 SaaS 产品解决这个问题意味着可怕的访问控制、供应商锁定、数据锁定、突然的价格变化以及最重要的是未来可能出现的玻璃天花板。
+大多数互联网企业都会使用电子表格或数据库来满足业务需求。如今，全球有超过十亿人每天都在协作使用电子表格。然而，当我们面对计算能力更强大的数据库时，工作的效率却远远无法与之相比。 过去，人们试图通过 SaaS 方案来弥补这一差距，但结果往往是：糟糕的访问控制、供应商的锁定、数据的绑定、价格的骤然变化，最重要的是限制未来可能性的玻璃天花板。
 
-# 我们的任务
+# 我们的使命
 
-我们的使命是为数据库提供最强大的无代码接口，并向世界上每一个互联网企业开放源代码。这不仅能让这个强大的计算工具开放给每个人，而且10亿或更多的人将会在互联网上拥有激进的修补和建设能力。
+我们的使命是为世界上每一个互联网企业提供最强大的开源数据库无代码界面。这不仅可以使人们能够使用强大的计算工具，而且也会带来数十亿的具有激进修补和构建能力的人。
+
+# 许可证
+
+<p>
+本项目采用 <a href="./LICENSE">AGPLv3</a> 许可证。
+</p>
+
+# 贡献者
+
+感谢您的贡献！我们感谢社区的所有贡献。
+
+<a href="https://github.com/nocodb/nocodb/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=nocodb/nocodb" />
+</a>

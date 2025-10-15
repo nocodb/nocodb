@@ -1,7 +1,12 @@
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc.js';
-import { getNodejsTimezone, parseDateTimeValue, parseProp } from 'nocodb-sdk';
+import {
+  getNodejsTimezone,
+  isDateTimeStringHasTimezone,
+  parseDateTimeValue,
+  parseProp,
+} from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { MetaService } from '~/meta/meta.service';
@@ -176,7 +181,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     options: FilterOptions,
   ) {
     // if the time provided has timezone, return as is
-    if (value.indexOf('+')) {
+    if (isDateTimeStringHasTimezone(value)) {
       return dayjs(value).tz(this.getTimezone(_knex, filter, column, options));
     }
     // assume local

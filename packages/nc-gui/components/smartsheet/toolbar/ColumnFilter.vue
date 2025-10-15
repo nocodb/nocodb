@@ -1042,6 +1042,7 @@ defineExpose({
                     </template>
                   </NcDropdown>
                 </template>
+                <SmartsheetToolbarFilterTimezoneAbbreviation :column="getColumn(filter)" :filter="filter" />
               </div>
             </template>
             <NcButton

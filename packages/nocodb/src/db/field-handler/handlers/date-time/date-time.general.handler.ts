@@ -6,6 +6,7 @@ import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { MetaService } from '~/meta/meta.service';
 import type {
+  FilterOperationResult,
   FilterOptions,
   FilterVerificationResult,
 } from '~/db/field-handler/field-handler.interface';
@@ -242,6 +243,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
     const now = this.getNow(knex, filter, column, options);
     let anchorDate: dayjs.Dayjs;
+    const emptyResult = { clause: () => {} } as FilterOperationResult;
     // handle sub operation
     switch (filter.comparison_sub_op) {
       case 'today':
@@ -266,15 +268,15 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         anchorDate = now.add(1, 'month');
         break;
       case 'daysAgo':
-        if (!filter.value) return;
+        if (!filter.value) return emptyResult;
         anchorDate = now.add(-filter.value, 'day');
         break;
       case 'daysFromNow':
-        if (!filter.value) return;
+        if (!filter.value) return emptyResult;
         anchorDate = now.add(Number(filter.value), 'day');
         break;
       case 'exactDate':
-        if (!filter.value) return;
+        if (!filter.value) return emptyResult;
         anchorDate = dayjs.tz(
           filter.value,
           this.getTimezone(knex, filter, column, options),
@@ -300,11 +302,11 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         anchorDate = now.add(1, 'year');
         break;
       case 'pastNumberOfDays':
-        if (!filter.value) return;
+        if (!filter.value) return emptyResult;
         anchorDate = now.add(-filter.value, 'day');
         break;
       case 'nextNumberOfDays':
-        if (!filter.value) return;
+        if (!filter.value) return emptyResult;
         anchorDate = now.add(Number(filter.value), 'day');
         break;
     }

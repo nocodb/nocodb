@@ -555,15 +555,7 @@ defineExpose({
               </div>
               <div
                 class="text-xs font-medium flex items-center gap-2 gap-1"
-                :class="{
-                  'text-nc-purple-200': RoleColors[currentUserRole] === 'purple',
-                  'text-nc-blue-200': RoleColors[currentUserRole] === 'blue',
-                  'text-nc-green-200': RoleColors[currentUserRole] === 'green',
-                  'text-nc-orange-200': RoleColors[currentUserRole] === 'orange',
-                  'text-nc-yellow-200': RoleColors[currentUserRole] === 'yellow',
-                  'text-nc-red-200': RoleColors[currentUserRole] === 'red',
-                  'text-nc-maroon-200': RoleColors[currentUserRole] === 'maroon',
-                }"
+                :class="[roleColorsMapping[RoleColors[currentUserRole]]?.contentTooltip]"
               >
                 <GeneralIcon :icon="RoleIcons[currentUserRole]" class="w-4 h-4" />
                 {{ $t(`objects.roleType.${RoleLabels[currentUserRole]}`) }}

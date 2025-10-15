@@ -4,15 +4,20 @@ import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import relativeTime from 'dayjs/plugin/relativeTime.js';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
 import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
 import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
-import { CURRENT_USER_TOKEN } from '~/lib';
-import { ColumnHelper } from '~/lib';
+import { getNodejsTimezone } from '~/lib/timezoneUtils';
+import { ColumnHelper } from '~/lib/columnHelper/column-helper';
+import { CURRENT_USER_TOKEN } from '~/lib/globals';
 
+extend(utc);
+extend(timezone);
 extend(relativeTime);
 extend(customParseFormat);
 extend(isSameOrBefore);
@@ -20,7 +25,7 @@ extend(isSameOrAfter);
 extend(isBetween);
 
 export function validateRowFilters(params: {
-  filters: FilterType[];
+  filters: (FilterType & { meta?: any })[];
   data: any;
   columns: ColumnType[];
   client: any;
@@ -30,6 +35,7 @@ export function validateRowFilters(params: {
       id: string;
       email: string;
     };
+    timezone?: string;
   };
 }) {
   const { filters: _filters, data, columns, client, metas } = params;
@@ -37,7 +43,7 @@ export function validateRowFilters(params: {
     return true;
   }
 
-  const filters = buildFilterTree(_filters);
+  const filters: (FilterType & { meta?: any })[] = buildFilterTree(_filters);
 
   let isValid: boolean | null = null;
   for (const filter of filters) {
@@ -68,19 +74,27 @@ export function validateRowFilters(params: {
           filter.comparison_op!
         )
       ) {
+        const getTimezone = () => {
+          return getNodejsTimezone(
+            parseProp(filter.meta).timezone,
+            parseProp(column.meta).timezone,
+            params.options.timezone
+          );
+        };
         const dateFormat =
           client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';
 
-        let now = dayjs(new Date());
+        let now = dayjs.tz(new Date(), getTimezone());
         const dateFormatFromMeta = parseProp(column.meta)?.date_format;
         const dataVal: any = val;
         let filterVal: any = filter.value;
         if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
           // reset to 1st
-          now = dayjs(now).date(1);
-          if (val) val = dayjs(val).date(1);
+          now = now.date(1);
+          if (val) val = dayjs.tz(val, getTimezone()).date(1);
         }
-        if (filterVal) res = dayjs(filterVal).isSame(dataVal, 'day');
+        if (filterVal)
+          res = dayjs.tz(filterVal, getTimezone()).isSame(dataVal, 'day');
 
         // handle sub operation
         switch (filter.comparison_sub_op) {
@@ -149,24 +163,42 @@ export function validateRowFilters(params: {
           switch (filter.comparison_op as any) {
             case 'eq':
             case 'gb_eq':
-              res = dayjs(dataVal).isSame(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isSame(filterVal, 'day');
               break;
             case 'neq':
-              res = !dayjs(dataVal).isSame(filterVal, 'day');
+              res = !dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isSame(filterVal, 'day');
               break;
             case 'gt':
-              res = dayjs(dataVal).isAfter(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isAfter(filterVal, 'day');
               break;
             case 'lt':
-              res = dayjs(dataVal).isBefore(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isBefore(filterVal, 'day');
               break;
             case 'lte':
             case 'le':
-              res = dayjs(dataVal).isSameOrBefore(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isSameOrBefore(filterVal, 'day');
               break;
             case 'gte':
             case 'ge':
-              res = dayjs(dataVal).isSameOrAfter(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isSameOrAfter(filterVal, 'day');
               break;
             case 'empty':
             case 'blank':
@@ -181,21 +213,34 @@ export function validateRowFilters(params: {
               );
               break;
             case 'isWithin': {
-              let now = dayjs(new Date()).format(dateFormat).toString();
+              let now = dayjs
+                .tz(new Date(), getTimezone())
+                .format(dateFormat)
+                .toString();
               now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
               switch (filter.comparison_sub_op) {
                 case 'pastWeek':
                 case 'pastMonth':
                 case 'pastYear':
-                case 'pastNumberOfDays':
-                  res = dayjs(dataVal).isBetween(filterVal, now, 'day');
+                case 'pastNumberOfDays': {
+                  // the 'today' need to be included, hence we don't use isBetween
+                  const dataValDayjs = dayjs.utc(dataVal).tz(getTimezone());
+                  res =
+                    dataValDayjs.isSameOrAfter(filterVal, 'day') &&
+                    dataValDayjs.isSameOrBefore(now, 'day');
                   break;
+                }
                 case 'nextWeek':
                 case 'nextMonth':
                 case 'nextYear':
-                case 'nextNumberOfDays':
-                  res = dayjs(dataVal).isBetween(now, filterVal, 'day');
+                case 'nextNumberOfDays': {
+                  // the 'today' need to be included, hence we don't use isBetween
+                  const dataValDayjs = dayjs.utc(dataVal).tz(getTimezone());
+                  res =
+                    dataValDayjs.isSameOrAfter(now, 'day') &&
+                    dataValDayjs.isSameOrBefore(filterVal, 'day');
                   break;
+                }
               }
             }
           }

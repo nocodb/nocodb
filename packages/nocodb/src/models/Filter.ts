@@ -21,6 +21,7 @@ import {
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class Filter implements FilterType {
   id: string;
@@ -48,9 +49,11 @@ export default class Filter implements FilterType {
   source_id?: string;
   column?: Column;
   order?: number;
+  meta?: any;
 
   constructor(data: Filter | FilterType) {
     Object.assign(this, data);
+    this.meta = parseMetaProp(this);
   }
 
   public static castType(filter: Filter): Filter {
@@ -81,7 +84,7 @@ export default class Filter implements FilterType {
 
   public static async insert(
     context: NcContext,
-    filter: Partial<FilterType>,
+    filter: Partial<FilterType & { meta?: any | string }>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(filter, [
@@ -102,6 +105,7 @@ export default class Filter implements FilterType {
       'base_id',
       'source_id',
       'order',
+      'meta',
     ]);
 
     const referencedModelColName = [
@@ -147,6 +151,10 @@ export default class Filter implements FilterType {
         insertObj.source_id = model.source_id;
       }
     }
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
+    insertObj.meta = stringifyMetaProp(insertObj);
 
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -324,11 +332,17 @@ export default class Filter implements FilterType {
       'is_group',
       'logical_op',
       'fk_value_col_id',
+      'meta',
     ]);
 
-    if (typeof updateObj.value === 'string')
+    if (typeof updateObj.value === 'string') {
       updateObj.value = updateObj.value.slice(0, 255);
+    }
 
+    if (!updateObj.meta) {
+      updateObj.meta = {};
+    }
+    updateObj.meta = stringifyMetaProp(updateObj);
     // set meta
     const res = await ncMeta.metaUpdate(
       context.workspace_id,

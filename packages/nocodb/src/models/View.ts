@@ -2499,6 +2499,7 @@ export default class View implements ViewType {
                 'base_id',
                 'source_id',
                 'order',
+                'meta',
               ]),
               fk_view_id: view_id,
               id: generatedId,

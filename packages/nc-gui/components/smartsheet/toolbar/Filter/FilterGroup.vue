@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type FilterType, UITypes } from 'nocodb-sdk'
+import { type FilterType, UITypes, parseProp } from 'nocodb-sdk'
 import { type GroupEmits, type GroupProps } from './types'
 import { SmartsheetToolbarFilterGroupRow } from '#components'
 const props = defineProps<GroupProps>()
@@ -84,6 +84,14 @@ const handleFilterChange = async (filter) => {
       } else {
         filter.comparison_sub_op = 'exactDate'
       }
+    }
+
+    // Initialize filter.meta if it doesn't exist
+    if (!filter.meta) {
+      filter.meta = {}
+    }
+    if (!filter.meta.timezone) {
+      filter.meta.timezone = getTimezoneFromColumn(col)
     }
   }
 

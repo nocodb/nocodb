@@ -6,6 +6,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
   isVirtualCol,
+  parseProp,
 } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 
@@ -256,6 +257,14 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
       } else {
         filter.comparison_sub_op = 'exactDate'
       }
+    }
+
+    // Initialize filter.meta if it doesn't exist
+    if (!filter.meta) {
+      filter.meta = {}
+    }
+    if (!filter.meta.timezone) {
+      filter.meta.timezone = getTimezoneFromColumn(col)
     }
   }
 
@@ -1028,6 +1037,7 @@ defineExpose({
                   </NcDropdown>
                 </template>
               </div>
+              <SmartsheetToolbarFilterTimezoneAbbreviation :column="getColumn(filter)" :filter="filter" />
             </template>
             <NcButton
               v-if="!filter.readOnly && !readOnly"

@@ -6,6 +6,8 @@ export function useViewRowColorRender() {
 
   const { blockRowColoring } = useEeConfig()
 
+  const { user } = useGlobal()
+
   const { meta } = useSmartsheetStoreOrThrow()
 
   const { activeViewRowColorInfo } = storeToRefs(useViewsStore())
@@ -62,6 +64,10 @@ export function useViewRowColorRender() {
           metaColumns.value as ColumnType[],
           getBaseType(meta.value!.source_id),
           meta.value!,
+          {
+            currentUser: user.value ?? undefined,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
         )
 
         if (isFilterValid) {

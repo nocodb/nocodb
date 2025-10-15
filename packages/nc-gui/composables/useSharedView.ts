@@ -140,6 +140,7 @@ export function useSharedView() {
       nested?: any
       offset?: number
       limit?: number
+      whereTz?: string
     },
     opts?: {
       isGroupBy?: boolean
@@ -189,6 +190,7 @@ export function useSharedView() {
     fields?: any[]
     sort?: any[]
     where?: string
+    whereTz?: string
     /** Query params for nested data */
     nested?: any
     offset?: number

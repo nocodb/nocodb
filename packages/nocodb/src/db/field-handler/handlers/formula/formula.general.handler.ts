@@ -1,6 +1,6 @@
 import { FormulaDataTypes, parseProp, UITypes } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
-import type { ColumnType } from 'nocodb-sdk';
+import type { ColumnType, ParsedFormulaNode } from 'nocodb-sdk';
 import type CustomKnex from 'src/db/CustomKnex';
 import type {
   FilterOptions,
@@ -35,17 +35,22 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
         tableAlias: alias,
       })
     ).builder;
+    const parsedTree: ParsedFormulaNode = formula.getParsedTree();
+    const value =
+      parsedTree.dataType === FormulaDataTypes.DATE
+        ? filter.value
+        : knex.raw('?', [
+            // convert value to number if formulaDataType if numeric
+            parsedTree?.dataType === FormulaDataTypes.NUMERIC &&
+            !isNaN(+filter.value)
+              ? +filter.value
+              : filter.value ?? null, // in gp_null value is undefined
+          ]);
     return parseConditionV2(
       baseModelSqlv2,
       new Filter({
         ...filter,
-        value: knex.raw('?', [
-          // convert value to number if formulaDataType if numeric
-          formula.getParsedTree()?.dataType === FormulaDataTypes.NUMERIC &&
-          !isNaN(+filter.value)
-            ? +filter.value
-            : filter.value ?? null, // in gp_null value is undefined
-        ]),
+        value,
       } as any),
       aliasCount,
       alias,

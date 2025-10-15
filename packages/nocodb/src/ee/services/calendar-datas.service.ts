@@ -175,7 +175,7 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
               },
               {
                 fk_column_id: toColumn,
-                comparison_op: 'gt',
+                comparison_op: 'gte',
                 comparison_sub_op: 'exactDate',
                 value: prev_date as string,
               },
@@ -193,7 +193,7 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
               },
               {
                 fk_column_id: fromColumn,
-                comparison_op: 'lte',
+                comparison_op: 'lt',
                 comparison_sub_op: 'exactDate',
                 value: to_date as string,
               },
@@ -215,7 +215,7 @@ export class CalendarDatasService extends CalendarDatasServiceCE {
           },
           {
             fk_column_id: fromColumn,
-            comparison_op: 'gt',
+            comparison_op: 'gte',
             comparison_sub_op: 'exactDate',
             value: prev_date as string,
           },

@@ -86,7 +86,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const filtersFromUrlParams = computed(() => {
       if (route.value.query.where && !ncIsEmptyObject(aliasColObjMap.value)) {
         return extractFilterFromXwhere(
-          { api_version: NcApiVersion.V1 },
+          { api_version: NcApiVersion.V1, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
           route.value.query.where as string,
           aliasColObjMap.value,
           false,

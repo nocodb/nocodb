@@ -1,8 +1,8 @@
 import FilterCE from 'src/models/Filter';
-import RowColorCondition from 'src/models/RowColorCondition';
 import { Logger } from '@nestjs/common';
 import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import RowColorCondition from '~/models/RowColorCondition';
 import Column from '~/models/Column';
 import Hook from '~/models/Hook';
 import View from '~/models/View';
@@ -18,6 +18,7 @@ import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import Widget from '~/models/Widget';
 import { Model } from '~/models';
+import { stringifyMetaProp } from '~/utils/modelUtils';
 
 const logger = new Logger('Filter');
 
@@ -36,7 +37,7 @@ export default class Filter extends FilterCE implements FilterType {
 
   public static async insert(
     context: NcContext,
-    filter: Partial<FilterType>,
+    filter: Partial<FilterType & { meta?: any | string }>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(filter, [
@@ -58,6 +59,7 @@ export default class Filter extends FilterCE implements FilterType {
       'base_id',
       'source_id',
       'order',
+      'meta',
     ]);
 
     let referencedModelColName = 'fk_view_id';
@@ -72,6 +74,10 @@ export default class Filter extends FilterCE implements FilterType {
     } else if (filter.fk_row_color_condition_id) {
       referencedModelColName = 'fk_row_color_condition_id';
     }
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
+    insertObj.meta = stringifyMetaProp(insertObj);
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
       [referencedModelColName]: filter[referencedModelColName],

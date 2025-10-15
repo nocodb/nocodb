@@ -289,7 +289,7 @@ export class CalendarDatasService {
           },
           {
             fk_column_id: fromColumn,
-            comparison_op: 'gt',
+            comparison_op: 'gte',
             comparison_sub_op: 'exactDate',
             value: prev_date as string,
           },

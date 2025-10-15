@@ -123,6 +123,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       base_id: RootScopes.BYPASS,
       api_version: getApiVersionFromUrl(req.route.path),
       socket_id: req.headers['xc-socket-id'],
+      timezone: req.query?.whereTz,
     };
     req.ncApiVersion = context.api_version;
     req.ncSocketId = context.socket_id;
@@ -631,6 +632,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       api_version: context.api_version,
       socket_id: req.headers['xc-socket-id'],
       nc_site_url: req.ncSiteUrl,
+      timezone: context.timezone,
     };
 
     if (req.ncBaseId && !isInternalWorkspaceScope) {

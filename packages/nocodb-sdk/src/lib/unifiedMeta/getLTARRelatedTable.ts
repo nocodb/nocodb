@@ -1,4 +1,4 @@
-import { IGetMeta, ILinkToAnotherRecordColumn } from '~/lib/types/meta.type';
+import { UnifiedMetaType } from '~/lib/types';
 import { NcContext } from '../ncTypes';
 
 export const getLTARRelatedTable = async (
@@ -6,7 +6,10 @@ export const getLTARRelatedTable = async (
   {
     colOptions,
     getMeta,
-  }: { colOptions: ILinkToAnotherRecordColumn; getMeta: IGetMeta }
+  }: {
+    colOptions: UnifiedMetaType.ILinkToAnotherRecordColumn;
+    getMeta: UnifiedMetaType.IGetModel;
+  }
 ) => {
   if (!colOptions) {
     return undefined;

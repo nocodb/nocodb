@@ -9,7 +9,7 @@ import {
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
-import type { ColumnType, FormulaType } from 'nocodb-sdk'
+import type { ColumnType, FormulaType, MetaType } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -70,11 +70,11 @@ const validators = {
           if (!formula?.trim()) throw new Error('Required')
           try {
             await validateFormulaAndExtractTreeWithType({
-              column: column.value,
+              column: column.value as MetaType.IColumnMeta,
               formula,
-              columns: supportedColumns.value,
+              columns: supportedColumns.value as MetaType.IColumnMeta[],
               clientOrSqlUi: sqlUi.value,
-              getMeta,
+              getMeta: validateFormulaGetMeta(getMeta),
               trackPosition: true,
             })
             editorError.value = { ...defaultEditorError }
@@ -131,10 +131,10 @@ const debouncedValidate = useDebounceFn(async () => {
   try {
     const parsed = await validateFormulaAndExtractTreeWithType({
       formula: vModel.value.formula || vModel.value.formula_raw,
-      columns: meta.value?.columns || [],
-      column: column.value ?? undefined,
+      columns: (meta.value?.columns || []) as MetaType.IColumnMeta[],
+      column: (column.value ?? undefined) as MetaType.IColumnMeta,
       clientOrSqlUi: source.value?.type as any,
-      getMeta: async (modelId) => await getMeta(modelId),
+      getMeta: validateFormulaGetMeta(getMeta),
       trackPosition: true,
     })
 

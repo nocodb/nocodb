@@ -1,33 +1,27 @@
 import { RelationTypes } from '~/lib';
-import type { NcContext } from '~/lib';
-import {
-  IColumnMeta,
-  IGetMeta,
-  IGetMetaResult,
-  ILinkToAnotherRecordColumn,
-} from '../types/meta.type';
-import { getColOptions } from '~/lib/meta/getColOptions';
-import { getColumns } from '~/lib/meta/getColumns';
+import type { NcContext, UnifiedMetaType } from '~/lib';
+import { getColOptions } from '~/lib/unifiedMeta/getColOptions';
+import { getColumns } from '~/lib/unifiedMeta/getColumns';
 import { getLTARRelatedTable } from './getLTARRelatedTable';
 
 export type ILinkInfo = {
   source: {
     context: NcContext;
-    model: IGetMetaResult;
-    linkColumn: IColumnMeta;
-    joinColumn: IColumnMeta;
+    model: UnifiedMetaType.IModel;
+    linkColumn: UnifiedMetaType.IColumn;
+    joinColumn: UnifiedMetaType.IColumn;
   };
   mm?: {
     context: NcContext;
-    sourceJoinColumn: IColumnMeta;
-    targetJoinColumn: IColumnMeta;
-    model: IGetMetaResult;
+    sourceJoinColumn: UnifiedMetaType.IColumn;
+    targetJoinColumn: UnifiedMetaType.IColumn;
+    model: UnifiedMetaType.IModel;
   };
   target: {
     context: NcContext;
-    model: IGetMetaResult;
-    linkColumn?: IColumnMeta; // cannot be fetched from relation options
-    joinColumn: IColumnMeta;
+    model: UnifiedMetaType.IModel;
+    linkColumn?: UnifiedMetaType.IColumn; // cannot be fetched from relation options
+    joinColumn: UnifiedMetaType.IColumn;
   };
   relationType: RelationTypes;
   relationFromSource: RelationTypes;
@@ -93,15 +87,15 @@ export const getLinkInfo = async (
     sourceModel,
     getMeta,
   }: {
-    linkColumn: IColumnMeta;
-    sourceModel: IGetMetaResult;
-    getMeta: IGetMeta;
+    linkColumn: UnifiedMetaType.IColumn;
+    sourceModel: UnifiedMetaType.IModel;
+    getMeta: UnifiedMetaType.IGetModel;
   }
 ) => {
-  const relationColOptions = await getColOptions<ILinkToAnotherRecordColumn>(
-    context,
-    { column: linkColumn }
-  );
+  const relationColOptions =
+    await getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(context, {
+      column: linkColumn,
+    });
 
   switch (relationColOptions.type) {
     case RelationTypes.ONE_TO_ONE:
@@ -163,8 +157,8 @@ export const getLinkInfo = async (
         id: relationColOptions.fk_mm_model_id,
       });
       const mmColumns = await mmModel.getColumns(mmContext);
-      let mmSourceJoinColumn: IColumnMeta;
-      let mmTargetJoinColumn: IColumnMeta;
+      let mmSourceJoinColumn: UnifiedMetaType.IColumn;
+      let mmTargetJoinColumn: UnifiedMetaType.IColumn;
       if (sourceJoinColumn.id === relationColOptions.fk_parent_column_id) {
         mmSourceJoinColumn = mmColumns.find(
           (col) => col.id === relationColOptions.fk_mm_parent_column_id

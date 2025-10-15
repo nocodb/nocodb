@@ -78,8 +78,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         | 'mariadb'
         | 'sqlite'
         | 'snowflake',
-      getMeta: async (modelId) => {
-        const model = await Model.get(context, modelId);
+      getMeta: async (context, { id }) => {
+        const model = await Model.get(context, id);
         await model.getColumns(context);
         return model;
       },

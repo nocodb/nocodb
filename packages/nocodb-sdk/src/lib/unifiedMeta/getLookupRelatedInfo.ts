@@ -1,9 +1,4 @@
-import {
-  IColumnMeta,
-  IGetMeta,
-  ILinkToAnotherRecordColumn,
-  ILookupColumn,
-} from '~/lib/types/meta.type';
+import { UnifiedMetaType } from '~/lib/types';
 import { NcContext } from '../ncTypes';
 import { getLTARRelatedTable } from './getLTARRelatedTable';
 import { getContextFromObject } from './getContextFromObject';
@@ -16,9 +11,13 @@ export const getLookupRelatedInfo = async (
     colOptions,
     columns,
     getMeta,
-  }: { colOptions: ILookupColumn; columns: IColumnMeta[]; getMeta: IGetMeta }
+  }: {
+    colOptions: UnifiedMetaType.ILookupColumn;
+    columns: UnifiedMetaType.IColumn[];
+    getMeta: UnifiedMetaType.IGetModel;
+  }
 ) => {
-  let relationColumn: IColumnMeta;
+  let relationColumn: UnifiedMetaType.IColumn;
   relationColumn = columns.find(
     (col) => col.id === colOptions.fk_relation_column_id
   );
@@ -29,16 +28,17 @@ export const getLookupRelatedInfo = async (
   const relatedTable = await getLTARRelatedTable(
     getContextFromObject(relationColumn),
     {
-      colOptions: await getColOptions<ILinkToAnotherRecordColumn>(
-        getContextFromObject(relationColumn),
-        {
-          column: relationColumn,
-        }
-      ),
+      colOptions:
+        await getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(
+          getContextFromObject(relationColumn),
+          {
+            column: relationColumn,
+          }
+        ),
       getMeta,
     }
   );
-  let lookupColumn: IColumnMeta;
+  let lookupColumn: UnifiedMetaType.IColumn;
   if ('getLookupColumn' in colOptions) {
     lookupColumn = await colOptions.getLookupColumn(context);
   } else {

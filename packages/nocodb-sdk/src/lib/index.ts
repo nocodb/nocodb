@@ -13,7 +13,8 @@ export * from '~/lib/permission';
 export * from '~/lib/realtime';
 export * from '~/lib/scripts';
 export * from '~/lib/oauth';
-export * from '~/lib/meta';
+export * from '~/lib/unifiedMeta';
+export * from '~/lib/types';
 export {
   default as UITypes,
   UITypesName,

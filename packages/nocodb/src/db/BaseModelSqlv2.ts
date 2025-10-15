@@ -10,6 +10,7 @@ import groupBy from 'lodash/groupBy';
 import {
   AuditOperationSubTypes,
   AuditV1OperationTypes,
+  ClientType,
   convertDurationToSeconds,
   enumColors,
   EventType,
@@ -48,6 +49,7 @@ import type {
   DataUpdatePayload,
   FilterType,
   NcRequest,
+  ParsedFormulaNode,
   UpdatePayload,
 } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
@@ -58,14 +60,14 @@ import type {
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { NcContext } from '~/interface/config';
+import type LookupColumn from '~/models/LookupColumn';
+import type { ResolverObj } from '~/utils';
 import type {
   FormulaColumn,
   LinkToAnotherRecordColumn,
   SelectOption,
   User,
 } from '~/models';
-import type LookupColumn from '~/models/LookupColumn';
-import type { ResolverObj } from '~/utils';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
@@ -5779,12 +5781,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // Separate attachment and lookup columns for efficient processing
     const directAttachmentColumns = [];
     const lookupColumns = [];
+    const formulaColumns = [];
 
     for (const col of columns) {
       if (col.uidt === UITypes.Attachment) {
         directAttachmentColumns.push(col);
       } else if (col.uidt === UITypes.Lookup) {
         lookupColumns.push(col);
+      } else if (
+        this.clientType === ClientType.PG &&
+        col.uidt === UITypes.Formula
+      ) {
+        const colOptions = await col.getColOptions<FormulaColumn>(this.context);
+        const parsedTree: ParsedFormulaNode = colOptions.getParsedTree();
+        if (parsedTree.referencedColumn?.uidt === UITypes.Attachment) {
+          formulaColumns.push(col);
+        }
       }
     }
 
@@ -5811,6 +5823,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const allAttachmentColumns = [
       ...directAttachmentColumns,
       ...lookupAttachmentColumns,
+      ...formulaColumns,
     ];
 
     if (!allAttachmentColumns.length) {

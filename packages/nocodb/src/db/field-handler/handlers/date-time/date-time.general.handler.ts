@@ -244,6 +244,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     const now = this.getNow(knex, filter, column, options);
     let anchorDate: dayjs.Dayjs;
     const emptyResult = { clause: () => {} } as FilterOperationResult;
+
     // handle sub operation
     switch (filter.comparison_sub_op) {
       case 'today':
@@ -316,6 +317,9 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         filter.value,
         this.getTimezone(knex, filter, column, options),
       );
+      if (!anchorDate.isValid()) {
+        return emptyResult;
+      }
     }
     if (filter.comparison_op === 'isWithin') {
       return await this.filterIsWithin(

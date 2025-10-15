@@ -30,7 +30,6 @@ const ncListData = computed<NcListItemType[]>(() => {
       ...coll,
       ncItemDisabled: isDisabled,
       ncItemTooltip: isDisabled ? t('objects.teams.alreadyPartOfTeam') : '',
-      ncGroupHeaderLabel: i < 5 ? 'Members' : 'Teams',
     }
   })
 })

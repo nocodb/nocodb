@@ -38,12 +38,14 @@ const selectedUsers = computed(() => {
   return ncListData.value.filter((user) => selectedUserIds.value.includes(user.fk_user_id!) && !user.ncItemDisabled)
 })
 
-// Search functionality
 const isLoading = ref(false)
+
+const isError = ref(false)
 
 // Handle add members
 const handleAddMembers = async () => {
   isLoading.value = true
+  isError.value = false
 
   const selectedUserEmails = selectedUsers.value.map((user) => user.email)
   try {
@@ -62,7 +64,8 @@ const handleAddMembers = async () => {
     })
     visible.value = false
   } catch (e: any) {
-    message.error('Failed to add members')
+    isError.value = true
+    console.error('Failed to add members', e)
   } finally {
     isLoading.value = false
   }
@@ -87,7 +90,10 @@ const handleUpdateValue = (option: NcListItemType) => {
 watch(
   visible,
   (newValue) => {
-    if (!newValue) return
+    if (!newValue) {
+      isError.value = false
+      return
+    }
 
     selectedUserIds.value = []
 
@@ -161,6 +167,15 @@ watch(
         </template>
         <template #listItemSelectedIcon> <NcSpanHidden /> </template>
       </NcList>
+
+      <NcAlert
+        v-if="isError"
+        type="error"
+        :message="$t('objects.teams.unableToAddMembers')"
+        :description="$t('msg.error.somethingWentWrongTryAgainLater')"
+        class="mt-4 !p-3"
+      >
+      </NcAlert>
 
       <div class="flex items-center justify-end pt-4">
         <div class="flex gap-2">

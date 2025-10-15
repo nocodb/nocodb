@@ -711,7 +711,8 @@
       "selectMembersToAddIntoTeam": "Select members to add into the {team} Team",
       "alreadyPartOfTeam": "Already part of the team",
       "membersAddedToTeam": "Members added to team",
-      "nMembersHaveBeenAddedIntoTeam": "{n} members have been added into the {team} team"
+      "nMembersHaveBeenAddedIntoTeam": "{n} members have been added into the {team} team",
+      "unableToAddMembers": "Unable to add members"
     }
   },
   "datatype": {
@@ -2554,7 +2555,8 @@
       "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
       "unableToLoadFeed": "Unable to load feed",
       "teamNameRequired": "Team name is required",
-      "teamNameExceedsCharacters": "Team name exceeds {value} characters"
+      "teamNameExceedsCharacters": "Team name exceeds {value} characters",
+      "somethingWentWrongTryAgainLater": "Something went wrong, try again later"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

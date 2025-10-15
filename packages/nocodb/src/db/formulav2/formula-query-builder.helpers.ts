@@ -24,6 +24,10 @@ export const getAggregateFn: IGetAggregateFn = (parentFn) => {
       return ({ qb, knex, cn }) =>
         qb.clear('select').select(knex.raw(`ARRAY_AGG(??)`, [cn]));
 
+    case 'NO_AGG':
+      return ({ qb, knex, cn }) =>
+        qb.clear('select').select(knex.raw(`??`, [cn]));
+
     // todo:
     //   return ({ qb, cn, knex, argsCount }) =>
     //     qb

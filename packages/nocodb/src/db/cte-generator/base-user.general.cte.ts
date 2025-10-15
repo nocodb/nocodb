@@ -27,7 +27,7 @@ export class BaseUserGeneralCte {
     });
     return {
       alias: alias,
-      apply: (qb: Knex.QueryInterface, { knex }) => {
+      applyCte: (qb: Knex.QueryInterface, { knex }) => {
         const selectUnionQuery = baseUsers
           .map((u) => {
             return `SELECT '${u.fk_user_id}' as id, '${u.email}' as email`;

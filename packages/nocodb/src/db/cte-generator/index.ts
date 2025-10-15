@@ -70,7 +70,7 @@ export class CTEGenerator implements ICTEGenerator {
 
   applyCte(qb: Knex.QueryInterface) {
     for (const [_alias, block] of this.blocks.entries()) {
-      block.apply(qb, this.info);
+      block.applyCte(qb, this.info);
     }
   }
 

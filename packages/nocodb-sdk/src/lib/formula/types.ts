@@ -8,7 +8,12 @@ import {
 } from './operators';
 
 export interface ReferencedInfo {
-  referencedColumn?: { id: string; uidt: string };
+  referencedColumn?: {
+    id: string;
+    uidt: string;
+    intermediaryUidt?: string;
+    intermediaryId?: string;
+  };
   invalidForReferenceColumn?: boolean;
   uidtCandidates?: UITypes[];
 }
@@ -17,9 +22,9 @@ export type BaseFormulaNode = {
   type: JSEPNode;
   dataType?: FormulaDataTypes;
   isDataArray?: boolean;
+  inArrayFormat?: boolean;
   cast?: FormulaDataTypes;
   errors?: Set<string>;
-  rootNode?: boolean;
 } & ReferencedInfo;
 
 export interface BinaryExpressionNode extends BaseFormulaNode {

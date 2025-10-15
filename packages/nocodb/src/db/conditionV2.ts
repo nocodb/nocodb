@@ -453,8 +453,8 @@ const parseConditionV2 = async (
           ) {
             // if the filter has meta.timezone, we use that
             let useTimezone = 'Etc/UTC';
-            if (parseProp(filter.meta)?.timezone) {
-              useTimezone = parseProp(filter.meta)?.timezone;
+            if (parseProp(filter.meta).timezone) {
+              useTimezone = parseProp(filter.meta).timezone;
             }
             // if not and column has timezone, use that
             else if (parseProp(column.meta)?.timezone) {

@@ -75,8 +75,8 @@ export function validateRowFilters(params: {
       ) {
         const getTimezone = () => {
           return getNodejsTimezone(
-            parseProp(filter.meta)?.timezone,
-            parseProp(column.meta)?.timezone,
+            parseProp(filter.meta).timezone,
+            parseProp(column.meta).timezone,
             params.options.timezone
           );
         };

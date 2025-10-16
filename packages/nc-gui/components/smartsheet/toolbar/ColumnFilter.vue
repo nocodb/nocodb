@@ -8,6 +8,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
 
 interface Props {
   nestedLevel?: number
@@ -392,8 +393,9 @@ const updateFilterValue = (value: string, filter: Filter, index: number) => {
 }
 
 const scrollToBottom = () => {
-  wrapperDomRef.value?.scrollTo({
-    top: wrapperDomRef.value.scrollHeight,
+  const wrapperDomRefEl = wrapperDomRef.value?.$el as HTMLDivElement
+  wrapperDomRefEl?.scrollTo({
+    top: wrapperDomRefEl?.scrollHeight,
     behavior: 'smooth',
   })
 }
@@ -538,6 +540,19 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
     )
   }
   await saveOrUpdate(filter, index)
+}
+
+function onMoveCallback(event: any) {
+  // disable nested drag drop for now
+  if (event.from !== event.to) {
+    return false
+  }
+}
+
+const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) => {
+  // const { newIndex, oldIndex } = event.moved
+
+  console.log('on move', event)
 }
 
 // watch for changes in filters and update the modelValue
@@ -702,9 +717,16 @@ defineExpose({
         <slot name="end"></slot>
       </div>
     </div>
-    <div
+
+    <Draggable
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
+      v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
+      :list="filters"
+      group="nc-column-filters"
+      ghost-class="bg-gray-50"
+      draggable=".nc-column-filter-item"
+      handle=".nc-column-filter-drag-handler"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
       :class="{
         'nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
@@ -712,10 +734,12 @@ defineExpose({
         'max-h-320px': !nested && !queryFilter && link,
         '!pr-0': webHook && !nested,
       }"
+      :move="onMoveCallback"
+      @change="onMove($event)"
       @click.stop
     >
-      <template v-for="(filter, i) in filters" :key="i">
-        <template v-if="filter.status !== 'delete'">
+      <template #item="{ element: filter, index: i }">
+        <div v-if="filter.status !== 'delete'" :key="i" class="nc-column-filter-item min-w-full w-min max-w-full">
           <template v-if="filter.is_group">
             <div class="flex flex-col min-w-full w-min max-w-full gap-y-2">
               <div
@@ -793,6 +817,20 @@ defineExpose({
                       @click.stop="deleteFilter(filter, i)"
                     >
                       <component :is="iconMap.deleteListItem" />
+                    </NcButton>
+                    <NcButton
+                      v-if="!filter.readOnly && !readOnly"
+                      type="text"
+                      size="small"
+                      class="nc-filter-item-remove-btn nc-column-filter-drag-handler self-center"
+                      :shadow="false"
+                      @click="
+                        () => {
+                          console.log('on click')
+                        }
+                      "
+                    >
+                      <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
                     </NcButton>
                   </template>
                 </LazySmartsheetToolbarColumnFilter>
@@ -1040,10 +1078,25 @@ defineExpose({
             >
               <component :is="iconMap.deleteListItem" />
             </NcButton>
+
+            <NcButton
+              v-if="!filter.readOnly && !readOnly"
+              type="text"
+              size="small"
+              class="nc-filter-item-remove-btn nc-column-filter-drag-handler self-center"
+              :shadow="false"
+              @click="
+                () => {
+                  console.log('on click')
+                }
+              "
+            >
+              <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
+            </NcButton>
           </div>
-        </template>
+        </div>
       </template>
-    </div>
+    </Draggable>
 
     <template v-if="!nested">
       <div class="flex">

@@ -724,6 +724,7 @@
     "isNotNull": "內容不為 Null"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "存取受限",
     "editTablePermissions": "編輯資料表權限",

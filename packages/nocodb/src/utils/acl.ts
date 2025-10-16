@@ -78,6 +78,8 @@ const permissionScopes = {
     'oAuthClientUpdate',
     'oAuthClientDelete',
     'oAuthClientGet',
+
+    'mcpRootList',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -365,6 +367,9 @@ const rolePermissions:
       oAuthAuthorizationList: true,
       oAuthAuthorizationRevoke: true,
       oAuthClientRegenerateSecret: true,
+
+      //mcp List Root
+      mcpRootList: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

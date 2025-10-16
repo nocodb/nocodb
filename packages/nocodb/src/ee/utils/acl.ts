@@ -109,6 +109,9 @@ const permissionScopes = {
     'oAuthAuthorizationRevoke',
     'oAuthClientGet',
     'oAuthClientRegenerateSecret',
+
+    // mcp
+    'mcpRootList',
   ],
   workspace: [
     'workspaceBaseList',
@@ -346,6 +349,9 @@ const rolePermissions:
       oAuthAuthorizationList: true,
       oAuthAuthorizationRevoke: true,
       oAuthClientRegenerateSecret: true,
+
+      // mcp
+      mcpRootList: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {

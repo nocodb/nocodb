@@ -954,6 +954,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "avtiveMcpServersLabel": "View and manage your active Model Context Protocol servers across all bases",
+    "activeMcpServers": "Active MCP Servers",
     "hideEditor": "Hide Editor",
     "showEditor": "Show Editor",
     "addNewClient": "Create new OAuth Client",

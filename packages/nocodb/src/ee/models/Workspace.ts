@@ -7,8 +7,8 @@ import {
   type WorkspaceStatus,
   type WorkspaceType,
 } from 'nocodb-sdk';
+import { default as WorkspaceCE } from 'src/models/Workspace';
 import type { Plan, Subscription } from '~/models';
-import { MCPToken } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import {
@@ -31,6 +31,7 @@ import {
   CustomUrl,
   DataReflection,
   Integration,
+  MCPToken,
   ModelStat,
   UsageStat,
 } from '~/models';
@@ -40,7 +41,7 @@ import { resetWorkspaceDbServer } from '~/utils/cloudDb';
 
 const logger = new Logger('Workspace');
 
-export default class Workspace implements WorkspaceType {
+export default class Workspace extends WorkspaceCE implements WorkspaceType {
   id?: string;
   title?: string;
   description?: string;
@@ -88,6 +89,7 @@ export default class Workspace implements WorkspaceType {
   updated_at?: string;
 
   constructor(workspace: Workspace | WorkspaceType) {
+    super(workspace);
     Object.assign(this, workspace);
   }
 

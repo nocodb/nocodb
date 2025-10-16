@@ -106,6 +106,31 @@ export default class MCPToken implements MCPTokenType {
     });
   }
 
+  public static async listByUser(
+    context: NcContext,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const mcpTokenList = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.MCP_TOKENS,
+      {
+        condition: {
+          fk_user_id: userId,
+        },
+        orderBy: {
+          created_at: 'asc',
+        },
+      },
+    );
+
+    return mcpTokenList.map((mcpToken) => {
+      delete mcpToken.token;
+      return new MCPToken(mcpToken);
+    });
+  }
+
   public static async insert(
     context: NcContext,
     mcpToken: Partial<MCPTokenType>,

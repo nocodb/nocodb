@@ -57,6 +57,13 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       })
       break
     }
+    case 'mcp': {
+      payload.push({
+        title: t('title.mcpServer'),
+        active: true,
+      })
+      break
+    }
     case 'external-integrations': {
       payload.push({
         title: t('title.externalIntegrations'),

@@ -2,9 +2,16 @@
 interface Props {
   value: boolean
   token: MCPTokenExtendedType
+  showRegenerateButton?: boolean
+  showWorkspaceBaseInfo?: boolean
+  isAccountLevel?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  showRegenerateButton: true,
+  showWorkspaceBaseInfo: false,
+  isAccountLevel: false,
+})
 
 const emits = defineEmits(['close', 'update:value', 'update:token'])
 
@@ -38,7 +45,7 @@ const supportedDocs = [
 const { updateMcpToken } = useMcpSettings()
 
 const regenerateToken = async () => {
-  const newToken = await updateMcpToken(token.value)
+  const newToken = await updateMcpToken(token.value, props.isAccountLevel)
   if (newToken) {
     token.value = newToken
   }
@@ -51,11 +58,18 @@ const closeModal = () => {
 
 const activeTab = ref<'claude' | 'cursor' | 'windsurf'>('claude')
 
+const serverName = computed(() => {
+  if (props.showWorkspaceBaseInfo) {
+    return `NocoDB - ${token.value.workspace?.title || 'Workspace'} - ${token.value.base?.title || 'Base'}`
+  }
+  return `NocoDB Base - ${openedProject.value?.title}`
+})
+
 const code = computed(
   () => `
 {
   "mcpServers": {
-    "NocoDB Base - ${openedProject.value?.title}": {
+    "${serverName.value}": {
       "command": "npx",
       "args": [
         "mcp-remote",
@@ -97,6 +111,19 @@ const code = computed(
           <div class="text-nc-content-gray font-bold leading-6">
             {{ $t('labels.mcpSetup') }}
           </div>
+
+          <!-- Workspace/Base Info (for account-level view) -->
+          <div v-if="showWorkspaceBaseInfo" class="flex flex-col gap-2 p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-gray-700">{{ $t('objects.workspace') }}:</span>
+              <span class="text-sm text-gray-600">{{ token.workspace?.title || '-' }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-gray-700">{{ $t('objects.project') }}:</span>
+              <span class="text-sm text-gray-600">{{ token.base?.title || '-' }}</span>
+            </div>
+          </div>
+
           <NcAlert type="info" class="mt-3 max-w-[640px] w-full mx-auto">
             <template #message>
               {{ $t('labels.mcpTokenVisibilityInfo') }}
@@ -128,7 +155,14 @@ const code = computed(
                   <li>Add the JSON configuration that’s provided after creating a token in claude_desktop_config.json</li>
                 </ol>
 
-                <NcButton type="secondary" class="w-39" size="small" :loading="token.loading" @click="regenerateToken(token)">
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-39"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
                   {{ $t('labels.regenerateToken') }}
                 </NcButton>
 
@@ -156,7 +190,14 @@ const code = computed(
                   <li>Add the JSON configuration that’s provided after creating a token.</li>
                 </ol>
 
-                <NcButton type="secondary" class="w-44" size="small" :loading="token.loading" @click="regenerateToken(token)">
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-44"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
                   {{ $t('labels.regenerateToken') }}
                 </NcButton>
                 <DashboardSettingsBaseMCPCode :key="code" :code="code" />
@@ -184,7 +225,14 @@ const code = computed(
                   <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
                 </ol>
 
-                <NcButton type="secondary" class="w-44" size="small" :loading="token.loading" @click="regenerateToken(token)">
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-44"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
                   {{ $t('labels.regenerateToken') }}
                 </NcButton>
 

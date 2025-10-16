@@ -41,6 +41,7 @@ export class InternalController {
       mcpUpdate: 'base',
       mcpDelete: 'base',
       mcpGet: 'base',
+      mcpRootList: 'org',
       recordAuditList: 'base',
       oAuthClientList: 'org',
       oAuthClientCreate: 'org',
@@ -83,6 +84,8 @@ export class InternalController {
         return await this.mcpService.list(context, req);
       case 'mcpGet':
         return await this.mcpService.get(context, req.query.tokenId as string);
+      case 'mcpRootList':
+        return await this.mcpService.listByUserId(context, req);
       case 'recordAuditList':
         return await this.auditsService.recordAuditList(context, {
           row_id: req.query.row_id as string,

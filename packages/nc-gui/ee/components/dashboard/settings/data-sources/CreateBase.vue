@@ -556,7 +556,7 @@ const handleAddNewConnection = () => {
   pageMode.value = IntegrationsPageMode.LIST
 }
 
-eventBus.on((event, payload) => {
+const integerationEventHandler = (event: IntegrationStoreEvents, payload: any) => {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && payload?.id) {
     formState.value.fk_integration_id = payload.id
     until(() => selectedIntegration.value?.id === payload.id)
@@ -565,6 +565,12 @@ eventBus.on((event, payload) => {
         changeIntegration(true)
       })
   }
+}
+
+eventBus.on(integerationEventHandler)
+
+onBeforeUnmount(() => {
+  eventBus.off(integerationEventHandler)
 })
 
 const handleUpdateAdvancedOptionsExpansionPanel = (open: boolean) => {

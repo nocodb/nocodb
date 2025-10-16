@@ -385,10 +385,16 @@ watch([displayValueCol, pkValueCol], () => {
   }
 })
 
-eventBus.on(async (event, payload) => {
+const clearDataListener = async (event: string, payload) => {
   if (event === ExtensionsEvents.CLEARDATA && payload && extension.value.id && payload === extension.value.id) {
     clearData(false)
   }
+}
+
+eventBus.on(clearDataListener)
+
+onBeforeUnmount(() => {
+  eventBus.off(clearDataListener)
 })
 </script>
 

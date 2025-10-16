@@ -73,66 +73,72 @@ export class ActionManager {
     this.setupEventListeners()
   }
 
-  private setupEventListeners() {
-    if (!this.eventBus) return
-
-    const eventHandlers = {
-      [SmartsheetScriptActions.BULK_ACTION_START]: (payload: any) => {
-        this.activeBulkExecs.set(payload.columnId, true)
-        this.startAnimationLoop()
-      },
-      [SmartsheetScriptActions.BULK_ACTION_END]: (payload: any) => {
-        if (payload.columnId) {
-          this.activeBulkExecs.delete(payload.columnId)
-          this.clearBulkRowStatesForColumn(payload.columnId)
-        }
-      },
-      [SmartsheetScriptActions.BUTTON_ACTION_START]: (payload: any) => {
+  private eventMap = {
+    [SmartsheetScriptActions.BULK_ACTION_START]: (payload: any) => {
+      this.activeBulkExecs.set(payload.columnId, true)
+      this.startAnimationLoop()
+    },
+    [SmartsheetScriptActions.BULK_ACTION_END]: (payload: any) => {
+      if (payload.columnId) {
+        this.activeBulkExecs.delete(payload.columnId)
+        this.clearBulkRowStatesForColumn(payload.columnId)
+      }
+    },
+    [SmartsheetScriptActions.BUTTON_ACTION_START]: (payload: any) => {
+      this.setBulkRowState(payload.rowId, payload.columnId, {
+        status: 'loading',
+        startTime: Date.now(),
+        stepTitle: payload.stepTitle,
+      })
+    },
+    [SmartsheetScriptActions.BUTTON_ACTION_PROGRESS]: (payload: any) => {
+      console.log('BUTTON_ACTION_PROGRESS', payload)
+      const rowState = this.getBulkRowState(payload.rowId, payload.columnId)
+      if (rowState) {
         this.setBulkRowState(payload.rowId, payload.columnId, {
-          status: 'loading',
-          startTime: Date.now(),
+          ...rowState,
           stepTitle: payload.stepTitle,
         })
-      },
-      [SmartsheetScriptActions.BUTTON_ACTION_PROGRESS]: (payload: any) => {
-        console.log('BUTTON_ACTION_PROGRESS', payload)
-        const rowState = this.getBulkRowState(payload.rowId, payload.columnId)
-        if (rowState) {
-          this.setBulkRowState(payload.rowId, payload.columnId, {
-            ...rowState,
-            stepTitle: payload.stepTitle,
-          })
-        }
-      },
-      [SmartsheetScriptActions.BUTTON_ACTION_COMPLETE]: (payload: any) => {
-        this.setBulkRowState(payload.rowId, payload.columnId, {
-          status: payload.success ? 'success' : 'error',
-          error: payload.error,
-        })
-      },
-      [SmartsheetScriptActions.BUTTON_ACTION_ERROR]: (payload: any) => {
-        this.setBulkRowState(payload.rowId, payload.columnId, {
-          status: 'error',
-          error: payload.error,
-        })
-      },
-      [SmartsheetScriptActions.UPDATE_STEP_TITLE]: (payload: any) => {
-        this.setCurrentStepTitle(payload.pk, payload.fieldId, payload.title)
-      },
-      [SmartsheetScriptActions.START_CELL_UPDATE]: (payload: any) => {
-        this.startCellUpdate(payload.recordId, payload.fieldId, payload.fieldName, payload.scriptId)
-      },
-      [SmartsheetScriptActions.COMPLETE_CELL_UPDATE]: (payload: any) => {
-        this.completeCellUpdate(payload.recordId, payload.fieldId)
-      },
-      [SmartsheetScriptActions.CLEAR_SCRIPT_CELL_UPDATES]: (payload: any) => {
-        this.clearScriptCellUpdates(payload.scriptId)
-      },
-    }
+      }
+    },
+    [SmartsheetScriptActions.BUTTON_ACTION_COMPLETE]: (payload: any) => {
+      this.setBulkRowState(payload.rowId, payload.columnId, {
+        status: payload.success ? 'success' : 'error',
+        error: payload.error,
+      })
+    },
+    [SmartsheetScriptActions.BUTTON_ACTION_ERROR]: (payload: any) => {
+      this.setBulkRowState(payload.rowId, payload.columnId, {
+        status: 'error',
+        error: payload.error,
+      })
+    },
+    [SmartsheetScriptActions.UPDATE_STEP_TITLE]: (payload: any) => {
+      this.setCurrentStepTitle(payload.pk, payload.fieldId, payload.title)
+    },
+    [SmartsheetScriptActions.START_CELL_UPDATE]: (payload: any) => {
+      this.startCellUpdate(payload.recordId, payload.fieldId, payload.fieldName, payload.scriptId)
+    },
+    [SmartsheetScriptActions.COMPLETE_CELL_UPDATE]: (payload: any) => {
+      this.completeCellUpdate(payload.recordId, payload.fieldId)
+    },
+    [SmartsheetScriptActions.CLEAR_SCRIPT_CELL_UPDATES]: (payload: any) => {
+      this.clearScriptCellUpdates(payload.scriptId)
+    },
+  }
 
-    this.eventBus.on((event: string, payload: any) => {
-      eventHandlers[event]?.(payload)
-    })
+  private eventHandler = (event: string, payload: any) => {
+    this.eventMap[event]?.(payload)
+  }
+
+  private setupEventListeners() {
+    if (!this.eventBus) return
+    this.eventBus.on(this.eventHandler)
+  }
+
+  public releaseEventListeners() {
+    if (!this.eventBus) return
+    this.eventBus.off(this.eventHandler)
   }
 
   private getKey(rowId: string, columnId: string): string {

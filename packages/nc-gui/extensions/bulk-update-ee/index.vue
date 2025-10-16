@@ -810,10 +810,16 @@ watch(
   },
 )
 
-eventBus.on((event) => {
+const smartsheetEvents = async (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD && bulkUpdatePayload.value?.tableId === activeTableId.value) {
     updateColumns()
   }
+}
+
+eventBus.on(smartsheetEvents)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEvents)
 })
 
 const { row } = useProvideSmartsheetRowStore(

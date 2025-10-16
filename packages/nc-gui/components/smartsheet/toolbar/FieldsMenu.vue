@@ -63,7 +63,7 @@ const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
 
-eventBus.on(async (event, payload) => {
+const eventBusHandler = async (event: SmartsheetStoreEvents, payload?: any) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     try {
       await loadViewColumns()
@@ -73,6 +73,12 @@ eventBus.on(async (event, payload) => {
   } else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
     loadViewColumns()
   }
+}
+
+eventBus.on(eventBusHandler)
+
+onBeforeUnmount(() => {
+  eventBus.off(eventBusHandler)
 })
 
 const gridDisplayValueField = computed(() => {

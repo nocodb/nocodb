@@ -298,28 +298,27 @@ export const RoleColors = {
 
 export const RoleDescriptions = {
   [WorkspaceUserRoles.OWNER]:
-    'Can fully configure and edit workspace bases and manage workspace settings and billing',
-  [WorkspaceUserRoles.CREATOR]: 'Can fully configure and edit workspace bases',
+    'Has full control over all workspace bases, settings, and billing',
+  [WorkspaceUserRoles.CREATOR]:
+    'Can create, configure, and edit all bases within the workspace',
   [WorkspaceUserRoles.EDITOR]:
-    'Can add, edit, and delete records, but cannot configure the workspace bases',
+    'Can add, edit, and delete records, but cannot modify base configurations',
   [WorkspaceUserRoles.COMMENTER]:
-    'Can view and comment on records in workspace bases',
-  [WorkspaceUserRoles.VIEWER]: 'Can only view records workspace bases',
-  [WorkspaceUserRoles.NO_ACCESS]: 'Cannot access this workspace',
+    'Can view and comment on records within workspace bases',
+  [WorkspaceUserRoles.VIEWER]: 'Can only view records within workspace bases',
+  [WorkspaceUserRoles.NO_ACCESS]: 'No access to this workspace',
 
   [ProjectRoles.OWNER]:
-    'Has complete control, including full configuration and deletion of the base',
-  [ProjectRoles.CREATOR]:
-    'Has full configuration access for the base, except deletion rights',
+    'Has full control over the base, including configuration and deletion rights',
+  [ProjectRoles.CREATOR]: 'Can fully configure the base but cannot delete it',
   [ProjectRoles.EDITOR]:
-    'Can add, edit, and delete records, but cannot configure the base',
-  [ProjectRoles.COMMENTER]: 'Can view and comment on records',
-  [ProjectRoles.VIEWER]: 'Can view records only',
-  [ProjectRoles.NO_ACCESS]: 'Cannot access this base',
+    'Can add, edit, and delete records, but cannot modify base configurations',
+  [ProjectRoles.COMMENTER]: 'Can view and comment on records within the base',
+  [ProjectRoles.VIEWER]: 'Can only view records within the base',
+  [ProjectRoles.NO_ACCESS]: 'No access to this base',
 
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
-  [OrgUserRoles.CREATOR]:
-    'Can fully configure and edit bases',
+  [OrgUserRoles.CREATOR]: 'Can fully configure and edit bases',
   [OrgUserRoles.VIEWER]: 'Can only view records in bases',
 
   [CloudOrgUserRoles.OWNER]: 'Full access to organization and workspaces',

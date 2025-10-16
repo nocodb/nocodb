@@ -122,7 +122,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 @click="navigateTo('/account/tokens')"
               >
                 <div class="flex items-center space-x-2">
-                  <MdiShieldKeyOutline />
+                  <GeneralIcon icon="ncKey2" />
 
                   <div class="select-none">{{ $t('title.tokens') }}</div>
                 </div>

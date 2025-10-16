@@ -724,6 +724,7 @@
     "isNotNull": "nije ništavan"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Pristup ograničen",
     "editTablePermissions": "Uredi dozvole tablice",

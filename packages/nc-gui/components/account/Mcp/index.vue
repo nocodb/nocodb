@@ -146,7 +146,7 @@ onMounted(async () => {
       </template>
     </NcPageHeader>
 
-    <div class="flex flex-col w-full px-6 py-6">
+    <div class="flex flex-col w-full px-6 py-6 mx-auto max-w-screen-xl">
       <div class="text-nc-content-gray-emphasis font-semibold text-lg">
         {{ $t('labels.activeMcpServers') }}
       </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type ColumnType, PermissionEntity, PermissionKey, UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Attachment } from '../../lib/types'
+import { CoverImageObjectFit, CoverImageSize } from '~/lib/enums'
 import type { Row as RowType } from '#imports'
 
 const meta = inject(MetaInj, ref())
@@ -68,7 +69,28 @@ const coverImageObjectFitStyle = computed(() => {
   const fk_cover_image_object_fit = parseProp(galleryData.value?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
   if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return 'contain'
   if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return 'cover'
+  return 'contain'
 })
+
+const coverImageSize = computed(() => {
+  return parseProp(galleryData.value?.meta)?.fk_cover_image_size || CoverImageSize.MEDIUM
+})
+
+const coverImageHeight = computed(() => {
+  switch (coverImageSize.value) {
+    case CoverImageSize.SMALL:
+      return 128
+    case CoverImageSize.LARGE:
+      return 288
+    default:
+      return 208
+  }
+})
+
+const coverImageContainerStyle = computed(() => ({
+  height: `${coverImageHeight.value}px`,
+  minHeight: `${coverImageHeight.value}px`,
+}))
 
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 // TODO: extract this code (which is duplicated in grid and gallery) into a separate component
@@ -228,7 +250,7 @@ const cardHeight = computed(() => {
     return acc + fieldHeight + 12
   }, 0)
 
-  return displayFieldHeight + fieldsHeight + (galleryData.value?.fk_cover_image_col_id ? 208 : 0) + 2
+  return displayFieldHeight + fieldsHeight + (galleryData.value?.fk_cover_image_col_id ? coverImageHeight.value : 0) + 2
 })
 
 const visibleRows = computed(() => {
@@ -463,11 +485,12 @@ const handleOpenNewRecordForm = () => {
                   <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                     <a-carousel
                       v-if="!reloadAttachments && attachments(record).length"
-                      class="gallery-carousel !border-b-1 !border-nc-border-gray-medium min-h-52 !bg-nc-bg-default"
-                      :style="{
-                        ...extractRowBackgroundColorStyle(record).rowBgColor,
-                        ...extractRowBackgroundColorStyle(record).rowBorderColor,
-                      }"
+                      class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default overflow-hidden"
+                      :style="[
+                        coverImageContainerStyle,
+                        extractRowBackgroundColorStyle(record).rowBgColor,
+                        extractRowBackgroundColorStyle(record).rowBorderColor,
+                      ]"
                       arrows
                     >
                       <template #customPaging>
@@ -482,7 +505,7 @@ const handleOpenNewRecordForm = () => {
                           <NcButton
                             type="secondary"
                             size="xsmall"
-                            class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                            class="!absolute !left-1.5 !top-1/2 !-translate-y-1/2 !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
                           >
                             <GeneralIcon icon="arrowLeft" class="text-nc-content-inverted-secondary w-4 h-4" />
                           </NcButton>
@@ -493,7 +516,7 @@ const handleOpenNewRecordForm = () => {
                           <NcButton
                             type="secondary"
                             size="xsmall"
-                            class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                            class="!absolute !right-1.5 !top-1/2 !-translate-y-1/2 !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
                           >
                             <GeneralIcon icon="arrowRight" class="text-nc-content-inverted-secondary w-4 h-4" />
                           </NcButton>
@@ -515,7 +538,12 @@ const handleOpenNewRecordForm = () => {
                     </a-carousel>
                     <div
                       v-else
-                      class="h-52 w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center !bg-nc-bg-default"
+                      class="w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center !bg-nc-bg-default"
+                      :style="[
+                        coverImageContainerStyle,
+                        extractRowBackgroundColorStyle(record).rowBgColor,
+                        extractRowBackgroundColorStyle(record).rowBorderColor,
+                      ]"
                     >
                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                     </div>

@@ -565,7 +565,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     if ((!element?.id && !element.temp_id) || visibleFilters.value.length === 1) return
 
     let nextOrder: number
-    let changedLogicalOperatorEl: ColumnFilterType | undefined = undefined
+    let changedLogicalOperatorEl: ColumnFilterType | undefined
     let changedLogicalOperatorElIndex: number = -1
 
     /**

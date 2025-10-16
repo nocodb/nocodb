@@ -31,7 +31,7 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
+const smartsheetEventHandler = (event: SmartsheetStoreEvents, payload) => {
   if (
     event === SmartsheetStoreEvents.SORT_RELOAD ||
     validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.SORT, payload)

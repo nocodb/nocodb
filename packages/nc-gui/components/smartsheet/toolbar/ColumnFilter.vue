@@ -551,6 +551,9 @@ function onMoveCallback(event: any) {
 }
 
 const onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: ColumnFilterType } }) => {
+  // For now add reorder support only in view filter
+  if (!isViewFilter.value) return
+
   /**
    * If event has moved property that means reorder is on same level
    */
@@ -799,6 +802,7 @@ defineExpose({
       ref="wrapperDomRef"
       v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
       :list="filters"
+      :disabled="!isViewFilter"
       group="nc-column-filters"
       ghost-class="bg-gray-50"
       draggable=".nc-column-filter-item"
@@ -895,7 +899,7 @@ defineExpose({
                       <component :is="iconMap.deleteListItem" />
                     </NcButton>
                     <NcButton
-                      v-if="!filter.readOnly && !readOnly"
+                      v-if="!filter.readOnly && !readOnly && isViewFilter"
                       type="text"
                       size="small"
                       class="nc-filter-item-remove-btn nc-column-filter-drag-handler self-center"
@@ -1152,7 +1156,7 @@ defineExpose({
             </NcButton>
 
             <NcButton
-              v-if="!filter.readOnly && !readOnly"
+              v-if="!filter.readOnly && !readOnly && isViewFilter"
               type="text"
               size="small"
               class="nc-filter-item-remove-btn nc-column-filter-drag-handler self-center"

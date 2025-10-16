@@ -1794,7 +1794,7 @@ const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: { rowId?
   }
 }
 
-eventBus.on(async (event, payload) => {
+const smartsheetEvents = async (event: SmartsheetStoreEvents, payload: any) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
     columnOrder.value = payload
     addColumnDropdown.value = true
@@ -1806,8 +1806,9 @@ eventBus.on(async (event, payload) => {
 
     removeRowIfNew?.(payload)
   }
-})
+}
 
+eventBus.on(smartsheetEvents)
 watch(activeCell, (activeCell) => {
   const row = activeCell.row !== null ? cachedRows.value.get(activeCell.row)?.row : undefined
   const col = row && activeCell.col !== null ? fields.value[activeCell.col] : undefined
@@ -1845,7 +1846,7 @@ const reloadViewDataHookHandler = withLoading(async (param) => {
 let requestAnimationFrameId: null | number = null
 const { eventBus: scriptEventBus } = useScriptExecutor()
 
-scriptEventBus.on(async (event, payload) => {
+const scriptEventHandler = async (event, payload) => {
   if (event === SmartsheetScriptActions.UPDATE_PROGRESS) {
     handleProgress(payload)
   }
@@ -1855,7 +1856,9 @@ scriptEventBus.on(async (event, payload) => {
   if (event === SmartsheetScriptActions.RELOAD_VIEW) {
     await reloadViewDataHookHandler()
   }
-})
+}
+
+scriptEventBus.on(scriptEventHandler)
 
 useScroll(gridWrapper, {
   onScroll: (e) => {
@@ -1974,6 +1977,8 @@ onBeforeUnmount(async () => {
   reloadViewDataHook?.off(reloadViewDataHookHandler)
   openNewRecordFormHook?.off(openNewRecordHandler)
   reloadVisibleDataHook?.off(triggerReload)
+  eventBus.off(smartsheetEvents)
+  scriptEventBus.off(scriptEventHandler)
 })
 
 openNewRecordFormHook?.on(openNewRecordHandler)

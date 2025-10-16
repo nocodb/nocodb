@@ -68,7 +68,7 @@ useMenuCloseOnEsc(open)
 const draftFilter = ref({})
 const queryFilterOpen = ref(false)
 
-eventBus.on(async (event, payload) => {
+const smartsheetEventListener = async (event: string, payload?: any) => {
   if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
     await loadFilters({
       hookId: undefined,
@@ -89,6 +89,12 @@ eventBus.on(async (event, payload) => {
     draftFilter.value = { fk_column_id: column.id }
     open.value = true
   }
+}
+
+eventBus.on(smartsheetEventListener)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEventListener)
 })
 
 const combinedFilterLength = computed(() => {
@@ -124,9 +130,15 @@ const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
 }
 
 if (isEeUI) {
-  reloadViewDataEventHook.on(async (params) => {
+  const reloadViewDataListener = async (params: any) => {
     if (params?.isFormFieldFilters) return
     isCurrentUserFilterPresent.value = checkForCurrentUserFilter(Object.values(allFilters.value).flat(Infinity) as FilterType[])
+  }
+
+  reloadViewDataEventHook.on(reloadViewDataListener)
+
+  onBeforeUnmount(() => {
+    reloadViewDataEventHook.off(reloadViewDataListener)
   })
 
   watch(

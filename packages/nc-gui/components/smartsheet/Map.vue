@@ -68,10 +68,12 @@ const expandForm = (row: Row, state?: Record<string, any>) => {
   }
 }
 
-openNewRecordFormHook?.on(async () => {
+const openNewRecordFormListener = async () => {
   const newRow = await addEmptyRow()
   expandForm(newRow)
-})
+}
+
+openNewRecordFormHook?.on(openNewRecordFormListener)
 
 const expandedFormOnRowIdDlg = computed({
   get() {
@@ -168,15 +170,23 @@ onMounted(async () => {
   })
 })
 
-reloadViewMetaHook?.on(async () => {
+const reloadViewMetaListener = async () => {
   await loadMapMeta()
+}
+
+reloadViewMetaHook?.on(reloadViewMetaListener)
+
+const reloadViewDataListener = withLoading(async () => {
+  await loadMapData()
 })
 
-reloadViewDataHook?.on(
-  withLoading(async () => {
-    await loadMapData()
-  }),
-)
+reloadViewDataHook?.on(reloadViewDataListener)
+
+onBeforeUnmount(() => {
+  openNewRecordFormHook?.off(openNewRecordFormListener)
+  reloadViewMetaHook?.off(reloadViewMetaListener)
+  reloadViewDataHook?.off(reloadViewDataListener)
+})
 
 provide(ReloadRowDataHookInj, reloadViewDataHook!)
 

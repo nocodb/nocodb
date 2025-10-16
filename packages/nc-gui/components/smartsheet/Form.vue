@@ -98,23 +98,30 @@ const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
 const { withLoading } = useLoadingTrigger()
 
-reloadEventHook.on(
-  withLoading(async (params) => {
-    if (params?.isFormFieldFilters) {
-      setTimeout(() => {
-        checkFieldVisibility()
-      }, 100)
-    } else {
-      await Promise.all([loadFormView(), loadReleatedMetas()])
-      setFormData()
-    }
-  }),
-)
+const reloadEventHookHandler = withLoading(async (params) => {
+  if (params?.isFormFieldFilters) {
+    setTimeout(() => {
+      checkFieldVisibility()
+    }, 100)
+  } else {
+    await Promise.all([loadFormView(), loadReleatedMetas()])
+    setFormData()
+  }
+})
 
-eventBus.on((event) => {
+reloadEventHook.on(reloadEventHookHandler)
+
+const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.COPIED_VIEW_CONFIG) {
     reloadEventHook.trigger()
   }
+}
+
+eventBus.on(smartsheetEventHandler)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEventHandler)
+  reloadEventHook.off(reloadEventHookHandler)
 })
 
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()

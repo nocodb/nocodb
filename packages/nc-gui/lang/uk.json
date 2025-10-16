@@ -724,6 +724,7 @@
     "isNotNull": "не рівне null"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Доступ обмежено",
     "editTablePermissions": "Редагувати дозволи таблиці",

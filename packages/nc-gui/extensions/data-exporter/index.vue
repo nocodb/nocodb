@@ -250,7 +250,7 @@ const filterOption = (input: string, option: { key: string }) => {
   return option.key?.toLowerCase()?.includes(input?.toLowerCase())
 }
 
-const extensionEvents = async (event: string, payload) => {
+const extensionEvents = async (event: ExtensionsEvents, payload: any) => {
   if (event === ExtensionsEvents.CLEARDATA && payload && extension.value.id && payload === extension.value.id) {
     const deleteExportsPayload = exportedFiles.value.map((exp) => exp.id)
 

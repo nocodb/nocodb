@@ -724,6 +724,7 @@
     "isNotNull": "null ಅಲ್ಲ"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "ಪ್ರವೇಶ ನಿರ್ಭಂಧಿಸಲಾಗಿದೆ",
     "editTablePermissions": "ಟೇಬಲ್ ಅನುಮತಿಗಳನ್ನು ಸಂಪಾದಿಸಿ",

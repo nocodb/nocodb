@@ -724,6 +724,7 @@
     "isNotNull": "er ikke null"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Tilgang begrenset",
     "editTablePermissions": "Rediger tabellrettigheter",

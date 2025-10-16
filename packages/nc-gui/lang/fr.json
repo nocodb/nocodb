@@ -724,6 +724,7 @@
     "isNotNull": "est non null"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Acc\u0000e8s restreint",
     "editTablePermissions": "Modifier les permissions de la table",

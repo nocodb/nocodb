@@ -724,6 +724,7 @@
     "isNotNull": "ei ole nolla"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Käyttöoikeus rajoitettu",
     "editTablePermissions": "Muokkaa taulun oikeuksia",

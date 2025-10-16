@@ -98,6 +98,7 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
   const { close } = useDialog(resolveComponent('DlgMCPDelete'), {
     'modelValue': isOpen,
     'mcpToken': token,
+    'isAccountScope': true,
     'onUpdate:modelValue': closeDialog,
     'onDeleted': async () => {
       closeDialog()
@@ -147,11 +148,11 @@ onMounted(async () => {
 
     <div class="flex flex-col w-full px-6 py-6">
       <div class="text-nc-content-gray-emphasis font-semibold text-lg">
-        {{ $t('title.myMCPTokens') }}
+        {{ $t('labels.activeMcpServers') }}
       </div>
 
       <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
-        {{ $t('labels.myMCPTokensSubText') }}
+        {{ $t('labels.avtiveMcpServersLabel') }}
       </div>
 
       <div v-if="isLoading" class="flex items-center justify-center h-96">
@@ -227,10 +228,13 @@ onMounted(async () => {
         </template>
       </NcTable>
 
-      <AccountMcpModal
+      <DashboardSettingsBaseMCPModal
         v-if="isTokenModalVisible"
         v-model:visible="isTokenModalVisible"
         v-model:token="activeToken"
+        :show-regenerate-button="false"
+        :show-workspace-base-info="true"
+        :is-account-level="true"
         @close="closeModal"
       />
     </div>

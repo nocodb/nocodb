@@ -724,6 +724,7 @@
     "isNotNull": "nem null"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Hozzáférés korlátozva",
     "editTablePermissions": "",

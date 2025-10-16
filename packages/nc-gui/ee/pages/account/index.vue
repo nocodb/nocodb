@@ -124,7 +124,7 @@ onMounted(() => {
                   <div class="select-none">{{ $t('title.apiTokens') }}</div>
                 </div>
               </NcMenuItem>
-              <!--              <NcMenuItem
+              <NcMenuItem
                 key="tokens"
                 :class="{
                   active: $route.params.page === 'mcp',
@@ -135,9 +135,9 @@ onMounted(() => {
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="mcp" class="h-4 w-4 flex-none" />
 
-                  <div class="select-none">{{ $t('labels.modelContextProtocol') }}</div>
+                  <div class="select-none">{{ $t('title.mcpServer') }}</div>
                 </div>
-              </NcMenuItem> -->
+              </NcMenuItem>
               <!--              <NcMenuItem
                 key="oauth"
                 :class="{

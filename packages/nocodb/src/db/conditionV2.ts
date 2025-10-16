@@ -7,7 +7,6 @@ import {
   isAIPromptCol,
   isDateMonthFormat,
   isNumericCol,
-  parseProp,
   UITypes,
 } from 'nocodb-sdk';
 import { FieldHandler } from './field-handler';

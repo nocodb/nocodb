@@ -297,29 +297,35 @@ export const RoleColors = {
 };
 
 export const RoleDescriptions = {
-  [WorkspaceUserRoles.OWNER]: 'Full access to workspace',
-  [WorkspaceUserRoles.CREATOR]:
-    'Can create bases, sync tables, views, setup web-hooks and more',
-  [WorkspaceUserRoles.EDITOR]: 'Can edit data in workspace bases',
+  [WorkspaceUserRoles.OWNER]:
+    'Can fully configure and edit workspace bases and manage workspace settings and billing',
+  [WorkspaceUserRoles.CREATOR]: 'Can fully configure and edit workspace bases',
+  [WorkspaceUserRoles.EDITOR]:
+    'Can add, edit, and delete records, but cannot configure the workspace bases',
   [WorkspaceUserRoles.COMMENTER]:
-    'Can view and comment data in workspace bases',
-  [WorkspaceUserRoles.VIEWER]: 'Can view data in workspace bases',
+    'Can view and comment on records in workspace bases',
+  [WorkspaceUserRoles.VIEWER]: 'Can only view records workspace bases',
   [WorkspaceUserRoles.NO_ACCESS]: 'Cannot access this workspace',
-  [ProjectRoles.OWNER]: 'Full access to base',
+
+  [ProjectRoles.OWNER]:
+    'Has complete control, including full configuration and deletion of the base',
   [ProjectRoles.CREATOR]:
-    'Can create tables, views, setup webhook, invite collaborators and more',
-  [ProjectRoles.EDITOR]: 'Can view, add & modify records, add comments on them',
-  [ProjectRoles.COMMENTER]: 'Can view records and add comment on them',
-  [ProjectRoles.VIEWER]: 'Can only view records',
+    'Has full configuration access for the base, except deletion rights',
+  [ProjectRoles.EDITOR]:
+    'Can add, edit, and delete records, but cannot configure the base',
+  [ProjectRoles.COMMENTER]: 'Can view and comment on records',
+  [ProjectRoles.VIEWER]: 'Can view records only',
   [ProjectRoles.NO_ACCESS]: 'Cannot access this base',
+
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
   [OrgUserRoles.CREATOR]:
-    'Can create bases, sync tables, views, setup web-hooks and more',
-  [OrgUserRoles.VIEWER]: 'Can only view bases',
+    'Can fully configure and edit bases',
+  [OrgUserRoles.VIEWER]: 'Can only view records in bases',
 
-  [CloudOrgUserRoles.OWNER]: 'Full access to organization and admin panel',
-  [CloudOrgUserRoles.CREATOR]: 'Can create and manage domains, users and workspaces',
-  [CloudOrgUserRoles.VIEWER]: 'Can view organization and workspaces',
+  [CloudOrgUserRoles.OWNER]: 'Full access to organization and workspaces',
+  [CloudOrgUserRoles.CREATOR]:
+    'Can create and manage domains, users and workspaces',
+  [CloudOrgUserRoles.VIEWER]: 'Can only view organization and workspaces',
 };
 
 export const RoleIcons = {

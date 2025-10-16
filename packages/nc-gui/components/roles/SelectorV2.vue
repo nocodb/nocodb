@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { RoleColors, RoleDescriptions, RoleIcons, RoleLabels } from 'nocodb-sdk'
+import { RoleColors, RoleIcons, RoleLabels } from 'nocodb-sdk'
 import type { SelectValue } from 'ant-design-vue/es/select'
 import type { IconMapKey } from '#imports'
 
@@ -34,6 +34,8 @@ const isDropdownOpen = ref(false)
 const newRole = ref<null | keyof typeof RoleLabels>(null)
 
 async function onChangeRole(val: SelectValue) {
+  if (val === role.value) return
+
   newRole.value = val as keyof typeof RoleLabels
 
   await props.onRoleChange(val as keyof typeof RoleLabels)
@@ -46,7 +48,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
     (role: keyof typeof RoleLabels): NcListItemType => ({
       value: role,
       label: t(`objects.roleType.${RoleLabels[role]}`),
-      description: RoleDescriptions[role],
+      description: t(`objects.roleDescription.${role}`),
       icon: RoleIcons[role],
       color: RoleColors[role],
       ncItemDisabled: props.disabledRoles?.includes(role),

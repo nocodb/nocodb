@@ -85,6 +85,14 @@ const loadUserMcpTokens = async () => {
   }
 }
 
+const isTokenModalVisible = ref(false)
+const activeToken = ref<MCPTokenExtendedType | null>(null)
+
+const handleOpenTokenModal = (token: MCPTokenExtendedType) => {
+  activeToken.value = token
+  isTokenModalVisible.value = true
+}
+
 const regenerateToken = async (token: MCPTokenExtendedType) => {
   const newToken = await updateMcpToken(token, true)
   if (newToken) {
@@ -109,14 +117,6 @@ const confirmDeleteToken = (token: MCPTokenExtendedType) => {
     isOpen.value = false
     close(1000)
   }
-}
-
-const isTokenModalVisible = ref(false)
-const activeToken = ref<MCPTokenExtendedType | null>(null)
-
-const handleOpenTokenModal = (token: MCPTokenExtendedType) => {
-  activeToken.value = token
-  isTokenModalVisible.value = true
 }
 
 const closeModal = async () => {

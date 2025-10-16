@@ -724,6 +724,7 @@
     "isNotNull": "nu este nul"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Acces restricționat",
     "editTablePermissions": "Editează permisiunile tabelului",

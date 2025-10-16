@@ -130,9 +130,15 @@ const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
 }
 
 if (isEeUI) {
-  reloadViewDataEventHook.on(async (params) => {
+  const reloadViewDataListener = async (params: any) => {
     if (params?.isFormFieldFilters) return
     isCurrentUserFilterPresent.value = checkForCurrentUserFilter(Object.values(allFilters.value).flat(Infinity) as FilterType[])
+  }
+
+  reloadViewDataEventHook.on(reloadViewDataListener)
+
+  onBeforeUnmount(() => {
+    reloadViewDataEventHook.off(reloadViewDataListener)
   })
 
   watch(

@@ -1794,7 +1794,7 @@ const resetProgress = (payload: { type: 'table' | 'row' | 'cell'; data: { rowId?
   }
 }
 
-const smartsheetEvents = async (event: SmartsheetStoreEvents, payload) => {
+const smartsheetEvents = async (event: SmartsheetStoreEvents, payload: any) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
     columnOrder.value = payload
     addColumnDropdown.value = true

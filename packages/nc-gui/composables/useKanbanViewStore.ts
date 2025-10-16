@@ -931,6 +931,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     onBeforeUnmount(() => {
       eventBus.off(smartsheetStoreEventHandler)
+
       if (activeDataListener.value) {
         $ncSocket.offMessage(activeDataListener.value)
       }

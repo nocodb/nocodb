@@ -179,13 +179,15 @@ openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
 const reloadAttachments = ref(false)
 
-reloadViewMetaHook?.on(async () => {
+const reloadViewMetaListener = async () => {
   reloadAttachments.value = true
 
   await nextTick(() => {
     reloadAttachments.value = false
   })
-})
+}
+
+reloadViewMetaHook?.on(reloadViewMetaListener)
 
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 100
@@ -364,13 +366,13 @@ watch(
   },
 )
 
-reloadViewDataHook?.on(
-  withLoading(async () => {
-    clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-    await syncCount()
-    calculateSlices()
-  }),
-)
+const reloadViewDataListener = withLoading(async () => {
+  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+  await syncCount()
+  calculateSlices()
+})
+
+reloadViewDataHook?.on(reloadViewDataListener)
 
 const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
@@ -383,6 +385,8 @@ eventBus.on(smartsheetEventHandler)
 onBeforeUnmount(() => {
   openNewRecordFormHook.off(openNewRecordFormHookHandler)
   eventBus.off(smartsheetEventHandler)
+  reloadViewMetaHook?.off(reloadViewMetaListener)
+  reloadViewDataHook?.off(reloadViewDataListener)
 })
 
 const handleOpenNewRecordForm = () => {

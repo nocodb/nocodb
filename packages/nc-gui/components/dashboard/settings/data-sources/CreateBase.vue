@@ -380,7 +380,7 @@ const handleAddNewConnection = () => {
   pageMode.value = IntegrationsPageMode.LIST
 }
 
-const eventBusHandler = (event, payload) => {
+const eventBusHandler = (event: IntegrationStoreEvents, payload: any) => {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && payload?.id) {
     formState.value.fk_integration_id = payload.id
     until(() => selectedIntegration.value?.id === payload.id)

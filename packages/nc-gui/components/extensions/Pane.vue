@@ -137,7 +137,7 @@ const handleAutoScroll = async (id: string) => {
   }
 }
 
-const extensionEventBusEvent = (event: ExtensionsEvents, payload) => {
+const extensionEventBusEvent = (event: ExtensionsEvents, payload: any) => {
   if ([ExtensionsEvents.DUPLICATE, ExtensionsEvents.ADD].includes(event) && payload) {
     handleAutoScroll(payload)
   }

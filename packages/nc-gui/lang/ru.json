@@ -182,7 +182,7 @@
     "upgradeToUseAiTextFieldSubtitle": "Обновите тариф до {plan}, чтобы использовать AI-текстовые поля для генерации текста по вашему запросу.",
     "upgradeToUseAiButtonField": "Обновите тариф, чтобы использовать кнопочные поля ИИ",
     "upgradeToUseAiButtonFieldSubtitle": "Обновите тариф до {plan}, чтобы ИИ мог использовать данные записей с NocoAI для автоматического заполненных полей.",
-    "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature."
+    "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Обновите тариф на {plan}, чтобы получить доступ к функции копирования конфигурации представления из другого представления."
   },
   "general": {
     "script": "Скрипт",
@@ -292,7 +292,7 @@
     "showMenu": "Открыть меню",
     "hideMenu": "Скрыть меню",
     "addAll": "Добавить все",
-    "selectAll": "Select all",
+    "selectAll": "Выбрать все",
     "removeAll": "Удалить все",
     "signUp": "РЕГИСТРАЦИЯ",
     "signIn": "ВОЙТИ",
@@ -648,27 +648,27 @@
       "formViewFieldEditPermissionRestrictionTooltip": "Это поле скрыто в форме, потому что у всех отсутствует право на его редактирование."
     },
     "deleteAllRecordDlg": {
-      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
-      "warning": "This action cannot be undone."
+      "subtitle": "Вы уверены, что хотите удалить все выбранные {rowCount} записи, отображаемые в этом представлении?",
+      "warning": "Это действие нельзя отменить."
     },
     "copyViewConfig": {
-      "fieldVisibility": "Field visibility",
-      "fieldOrder": "Field order",
-      "columnWidth": "Column width",
-      "rowHeight": "Row height",
-      "filterCondition": "Filter condition",
-      "group": "Group",
-      "sort": "Sort",
-      "rowColoring": "Row coloring",
-      "copyAnotherViewConfig": "Copy another view's configuration",
-      "selectConfigurationToCopy": "Select configuration(s) to copy",
-      "selectViewToCopyFrom": "Select view to copy from",
-      "copyConfigurationFromAnotherView": "Copy configuration from another view",
-      "notSupportedByViewType": "Not supported by {view} view type",
-      "viewConfigurationCopied": "View configuration copied successfully",
-      "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
-      "copyFromAnotherView": "Copy from another view",
-      "copyFromAView": "Copy from a view"
+      "fieldVisibility": "Видимость поля",
+      "fieldOrder": "Порядок полей",
+      "columnWidth": "Ширина столбца",
+      "rowHeight": "Высота строки",
+      "filterCondition": "Условие фильтрации",
+      "group": "Группа",
+      "sort": "Сортировка",
+      "rowColoring": "Окрашивание строки",
+      "copyAnotherViewConfig": "Скопировать конфигурацию другого вида",
+      "selectConfigurationToCopy": "Выбрать конфигурацию(и) для копирования",
+      "selectViewToCopyFrom": "Выбрать вид для копирования",
+      "copyConfigurationFromAnotherView": "Скопировать конфигурацию из другого вида",
+      "notSupportedByViewType": "Не поддерживается типом вида {view}",
+      "viewConfigurationCopied": "Конфигурация представления успешно скопирована",
+      "errorOccuredWhileCopyingViewConfiguration": "Произошла ошибка при копировании конфигурации представления",
+      "copyFromAnotherView": "Скопировать из другого представления",
+      "copyFromAView": "Скопировать из представления"
     }
   },
   "datatype": {
@@ -724,7 +724,7 @@
     "isNotNull": "не является Null"
   },
   "title": {
-    "mcpServer": "MCP Server",
+    "mcpServer": "MCP-сервер",
     "accessRestricted": "Доступ ограничен",
     "editTablePermissions": "Редактировать разрешения для таблицы",
     "editFieldPermissions": "Редактировать разрешения для поля",
@@ -950,8 +950,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
-    "hideEditor": "Hide Editor",
-    "showEditor": "Show Editor",
+    "hideEditor": "Скрыть редактор",
+    "showEditor": "Показать редактор",
     "configurationError": "Configuration Error",
     "keepEditing": "Продолжить редактирование",
     "leave": "Покинуть",
@@ -1209,11 +1209,11 @@
     "forRole": "для роли",
     "clickToCopy": "Нажмите, чтобы скопировать",
     "clickToCopyTableID": "Нажмите, чтобы скопировать ID таблицы",
-    "clickToCopyBaseID": "Click to copy Base ID",
+    "clickToCopyBaseID": "Нажмите, чтобы скопировать Base ID",
     "clickToCopyScriptID": "Нажмите, чтобы скопировать ID скрипта",
     "clickToCopyDashboardID": "Нажмите, чтобы скопировать ID панели управления",
     "clickToCopyViewID": "Нажмите, чтобы скопировать ID представления",
-    "clickToCopyExtensionID": "Click to copy Extension ID",
+    "clickToCopyExtensionID": "Нажмите, чтобы скопировать Extension ID",
     "viewMode": "Режим представления",
     "assignAsPersonalView": "Назначить как персональное представление",
     "reAssignView": "Переназначить представление",
@@ -1522,7 +1522,7 @@
     "enterFullscreen": "Перейти в полноэкранный режим",
     "exitFullscreen": "Выйти из полноэкранного режима",
     "selectRole": "Выберите роль",
-    "copyConfiguration": "Copy configuration"
+    "copyConfiguration": "Скопировать конфигурацию"
   },
   "activity": {
     "clickToResolve": "Нажмите, чтобы разрешить",
@@ -1538,7 +1538,7 @@
     "runActions": "Запустить действия",
     "createScript": "Создать скрипт",
     "deleteAllRecords": "Удалить все записи",
-    "deleteAllSelectedRecords": "Delete all selected records",
+    "deleteAllSelectedRecords": "Удалить все выбранные записи",
     "assignView": "Назначить представление",
     "webhookDetails": "Детали вебхука",
     "webhookLogs": "Вебхук: Логи",
@@ -1881,7 +1881,7 @@
     "shiftSpace": "Shift + Пробел",
     "expandShiftSpace": "Развернуть 'Shift + Пробел'",
     "selectAllMappedFields": "Выбрать все сопоставленные поля",
-    "copyErrorMessage": "Copy error message",
+    "copyErrorMessage": "Скопировать сообщение об ошибке",
     "copyErrorCode": "Скопировать код ошибки",
     "paidUserBadgeTooltip": "У пользователя есть роль редактора или выше хотя бы в одной базе.",
     "approachingLimit": "Предел почти достигнут",
@@ -1912,16 +1912,16 @@
     "thisFieldTypeDoesNotSupportGrouping": "This field type doesn't support grouping",
     "filterByLimitExceeded": "Filter by limit exceeded",
     "groupByLimitExceeded": "Group by limit exceeded",
-    "youDoNotHavePermissionToPasteIntoThisField": "You do not have permission to paste into this field",
-    "pasteOperationLimitedToMaxRows": "Paste operation limited to {max} rows. Additional rows were truncated.",
-    "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
-    "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
-    "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
-    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
-    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
-    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
-    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
+    "youDoNotHavePermissionToPasteIntoThisField": "Недостаточно прав для вставки в это поле",
+    "pasteOperationLimitedToMaxRows": "Операция вставки ограничена {max} строками. Дополнительные строки были урезаны.",
+    "onlyOwnerOrCreatorCanReAssign": "Только владелец или создатель может переназначать",
+    "onlyViewOwnerCanAssignAsPersonalView": "Только владелец представления может назначить как личное представление",
+    "onlyViewOwnerCanCopyViewConfig": "Только владелец представления может копировать конфигурацию представления",
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "Вам нужно иметь хотя бы один существующий вид, чтобы скопировать настройки. Сначала создайте вид, чтобы включить эту опцию.",
+    "extensionAccessRestrictionTooltip": "Это расширение доступно только пользователям с уровнем доступа «{minAccessRole}» или выше. Ваш текущий базовый уровень — «{currentRole}».",
+    "youDoNotHaveSufficientPermissionToAddExtension": "У вас недостаточно прав для добавления расширения",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "У вас недостаточно прав для настройки этого расширения",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "У вас недостаточно прав для выполнения этого действия"
   },
   "placeholder": {
     "searchIcons": "Поиск значков",
@@ -2011,7 +2011,7 @@
     "manageConnections": "Управляйте подключениями для ваших интеграций.",
     "invalidConfiguration": "Некорректная конфигурация кнопки",
     "invalidColumnConfiguration": "Некорректная конфигурация поля",
-    "buttonTypeIsMissing": "Button type is missing",
+    "buttonTypeIsMissing": "Тип кнопки не указан",
     "invalidTheme": "Выберите допустимую тему",
     "invalidColor": "Выберите допустимый цвет",
     "invalidType": "Тип кнопки может быть 'webhook' или 'url'",
@@ -2388,7 +2388,7 @@
       "domainNameRequired": "Требуется имя домена",
       "nameMaxLength256": "Имя должно содержать не более 256 символов",
       "viewNameUnique": "Имя представления должно быть уникальным",
-      "viewNameDuplicate": "View name already exists",
+      "viewNameDuplicate": "Имя представления уже существует",
       "searchProject": "По вашему запросу \"{search}\" ничего не найдено",
       "invalidChar": "Недопустимый символ в пути к папке.",
       "invalidDbCredentials": "Неверные учетные данные базы данных.",
@@ -2485,8 +2485,8 @@
       "invalidSearchQueryForVisibleFields": "Некорректный поисковый запрос для видимых полей",
       "invalidSearchQueryForDisplayField": "Некорректный поисковый запрос для отображаемого поля",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
-      "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
-      "unableToLoadFeed": "Unable to load feed"
+      "errorOccuredWhileDroppingAttachments": "Произошла ошибка при удалении вложений",
+      "unableToLoadFeed": "Не удалось загрузить ленту"
     },
     "toast": {
       "exportMetadata": "Метаданные проекта успешно экспортированы",

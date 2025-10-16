@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import {
   CacheDelDirection,
@@ -11,8 +10,6 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
-
-const logger = new Logger('TeamUser');
 
 export default class TeamUser {
   fk_team_id: string;

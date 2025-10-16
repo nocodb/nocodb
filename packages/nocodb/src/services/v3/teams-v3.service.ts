@@ -2,16 +2,20 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   TeamCreateV3ReqType,
+  TeamDetailV3Type,
   TeamMembersAddV3ReqType,
   TeamMembersRemoveV3ReqType,
   TeamMembersUpdateV3ReqType,
+  TeamMemberV3ResponseType,
   TeamUpdateV3ReqType,
+  TeamV3ResponseType,
 } from './teams-v3.types';
 import { NcError } from '~/helpers/catchError';
 import { Team, TeamUser, User } from '~/models';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 @Injectable()
 export class TeamsV3Service {
@@ -37,7 +41,7 @@ export class TeamsV3Service {
     param: {
       workspaceOrOrgId: string;
     },
-  ) {
+  ): Promise<{ list: TeamV3ResponseType[] }> {
     // For now, assume it's a workspace ID (can be enhanced later to detect org vs workspace)
     const filterParam = { fk_workspace_id: param.workspaceOrOrgId };
 
@@ -54,7 +58,21 @@ export class TeamsV3Service {
       }),
     );
 
-    return teamsWithCounts;
+    // Transform to v3 response format
+    const teamsV3: TeamV3ResponseType[] = teamsWithCounts.map((team) => {
+      const meta = parseMetaProp(team);
+      return {
+        id: team.id,
+        title: team.title,
+        icon: meta.icon || undefined,
+        badge_color: meta.badge_color || undefined,
+        members_count: team.members_count,
+        created_at: team.created_at,
+        updated_at: team.updated_at,
+      };
+    });
+
+    return { list: teamsV3 };
   }
 
   async teamGet(
@@ -63,7 +81,7 @@ export class TeamsV3Service {
       workspaceOrOrgId: string;
       teamId: string;
     },
-  ) {
+  ): Promise<TeamDetailV3Type> {
     const team = await Team.get(context, param.teamId);
 
     if (!team) {
@@ -89,10 +107,23 @@ export class TeamsV3Service {
       }),
     );
 
-    return {
-      team,
-      membersWithUsers,
+    // Transform members to v3 response format with email
+    const members = membersWithUsers.map(({ teamUser, user }) => ({
+      user_email: user.email,
+      user_id: user.id,
+      team_role: teamUser.roles as 'member' | 'manager',
+    }));
+
+    const meta =
+      typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
+    const teamDetail: TeamDetailV3Type = {
+      title: team.title,
+      icon: meta.icon || undefined,
+      badge_color: meta.badge_color || undefined,
+      members,
     };
+
+    return teamDetail;
   }
 
   async teamCreate(
@@ -102,7 +133,7 @@ export class TeamsV3Service {
       team: TeamCreateV3ReqType;
       req: NcRequest;
     },
-  ) {
+  ): Promise<TeamV3ResponseType> {
     validatePayload(
       'swagger-v3.json#/components/schemas/TeamCreateV3Req',
       param.team,
@@ -169,7 +200,21 @@ export class TeamsV3Service {
       }
     }
 
-    return team;
+    // Get member count for the created team
+    const teamUsers = await this.getTeamMembersCount(context, team.id);
+
+    // Transform to v3 response format
+    const meta = parseMetaProp(team);
+
+    return {
+      id: team.id,
+      title: team.title,
+      icon: meta.icon || undefined,
+      badge_color: meta.badge_color || undefined,
+      members_count: teamUsers,
+      created_at: team.created_at,
+      updated_at: team.updated_at,
+    };
   }
 
   async teamUpdate(
@@ -180,7 +225,7 @@ export class TeamsV3Service {
       team: TeamUpdateV3ReqType;
       req: NcRequest;
     },
-  ) {
+  ): Promise<TeamV3ResponseType> {
     validatePayload(
       'swagger-v3.json#/components/schemas/TeamUpdateV3Req',
       param.team,
@@ -225,7 +270,21 @@ export class TeamsV3Service {
 
     const updatedTeam = await Team.update(context, param.teamId, updateData);
 
-    return updatedTeam;
+    // Get member count for the updated team
+    const teamUsers = await this.getTeamMembersCount(context, updatedTeam.id);
+
+    // Transform to v3 response format
+    const meta = parseMetaProp(updatedTeam);
+
+    return {
+      id: updatedTeam.id,
+      title: updatedTeam.title,
+      icon: meta.icon || undefined,
+      badge_color: meta.badge_color || undefined,
+      members_count: teamUsers,
+      created_at: updatedTeam.created_at,
+      updated_at: updatedTeam.updated_at,
+    };
   }
 
   async teamDelete(
@@ -280,7 +339,7 @@ export class TeamsV3Service {
       members: TeamMembersAddV3ReqType[];
       req: NcRequest;
     },
-  ) {
+  ): Promise<TeamMemberV3ResponseType[]> {
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
@@ -332,7 +391,19 @@ export class TeamsV3Service {
       addedMembers.push(teamUser);
     }
 
-    return addedMembers;
+    // Transform to v3 response format with email
+    const members = await Promise.all(
+      addedMembers.map(async (teamUser) => {
+        const user = await this.getUserById(context, teamUser.fk_user_id);
+        return {
+          user_id: user.id,
+          user_email: user.email,
+          team_role: teamUser.roles as 'member' | 'manager',
+        };
+      }),
+    );
+
+    return members;
   }
 
   async teamMembersRemove(
@@ -414,7 +485,7 @@ export class TeamsV3Service {
       members: TeamMembersUpdateV3ReqType[];
       req: NcRequest;
     },
-  ) {
+  ): Promise<TeamMemberV3ResponseType[]> {
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
@@ -463,6 +534,18 @@ export class TeamsV3Service {
       updatedMembers.push(updatedTeamUser);
     }
 
-    return updatedMembers;
+    // Transform to v3 response format with email
+    const members = await Promise.all(
+      updatedMembers.map(async (teamUser) => {
+        const user = await this.getUserById(context, teamUser.fk_user_id);
+        return {
+          user_id: user.id,
+          user_email: user.email,
+          team_role: teamUser.roles as 'member' | 'manager',
+        };
+      }),
+    );
+
+    return members;
   }
 }

@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import {
   CacheDelDirection,

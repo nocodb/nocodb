@@ -30,7 +30,6 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { getFeature } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/catchError';
-import { parseMetaProp } from '~/utils/modelUtils';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
@@ -62,25 +61,9 @@ export class TeamsV3Controller {
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
   ): Promise<{ list: TeamV3ResponseType[] }> {
     await this.canExecute(context);
-    const teamsWithCounts = await this.teamsV3Service.teamList(context, {
+    return await this.teamsV3Service.teamList(context, {
       workspaceOrOrgId,
     });
-
-    // Transform to v3 response format
-    const teamsV3: TeamV3ResponseType[] = teamsWithCounts.map((team) => {
-      const meta = parseMetaProp(team);
-      return {
-        id: team.id,
-        title: team.title,
-        icon: meta.icon || undefined,
-        badge_color: meta.badge_color || undefined,
-        members_count: team.members_count,
-        created_at: team.created_at,
-        updated_at: team.updated_at,
-      };
-    });
-
-    return { list: teamsV3 };
   }
 
   @Get('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
@@ -91,31 +74,10 @@ export class TeamsV3Controller {
     @Param('teamId') teamId: string,
   ): Promise<TeamDetailV3Type> {
     await this.canExecute(context);
-    const { team, membersWithUsers } = await this.teamsV3Service.teamGet(
-      context,
-      {
-        workspaceOrOrgId,
-        teamId,
-      },
-    );
-
-    // Transform members to v3 response format with email
-    const members = membersWithUsers.map(({ teamUser, user }) => ({
-      user_email: user.email,
-      user_id: user.id,
-      team_role: teamUser.roles as 'member' | 'manager',
-    }));
-
-    const meta =
-      typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
-    const teamDetail: TeamDetailV3Type = {
-      title: team.title,
-      icon: meta.icon || undefined,
-      badge_color: meta.badge_color || undefined,
-      members,
-    };
-
-    return teamDetail;
+    return await this.teamsV3Service.teamGet(context, {
+      workspaceOrOrgId,
+      teamId,
+    });
   }
 
   @Post('/api/v3/meta/workspaces/:workspaceOrOrgId/teams')
@@ -128,30 +90,11 @@ export class TeamsV3Controller {
     @Body() body: TeamCreateV3ReqType,
   ): Promise<TeamV3ResponseType> {
     await this.canExecute(context);
-    const team = await this.teamsV3Service.teamCreate(context, {
+    return await this.teamsV3Service.teamCreate(context, {
       workspaceOrOrgId,
       team: body,
       req,
     });
-
-    // Get member count for the created team
-    const teamUsers = await this.teamsV3Service.getTeamMembersCount(
-      context,
-      team.id,
-    );
-
-    // Transform to v3 response format
-    const meta = parseMetaProp(team);
-
-    return {
-      id: team.id,
-      title: team.title,
-      icon: meta.icon || undefined,
-      badge_color: meta.badge_color || undefined,
-      members_count: teamUsers,
-      created_at: team.created_at,
-      updated_at: team.updated_at,
-    };
   }
 
   @Patch('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
@@ -164,31 +107,12 @@ export class TeamsV3Controller {
     @Body() body: TeamUpdateV3ReqType,
   ): Promise<TeamV3ResponseType> {
     await this.canExecute(context);
-    const team = await this.teamsV3Service.teamUpdate(context, {
+    return await this.teamsV3Service.teamUpdate(context, {
       workspaceOrOrgId,
       teamId,
       team: body,
       req,
     });
-
-    // Get member count for the updated team
-    const teamUsers = await this.teamsV3Service.getTeamMembersCount(
-      context,
-      team.id,
-    );
-
-    // Transform to v3 response format
-    const meta = parseMetaProp(team);
-
-    return {
-      id: team.id,
-      title: team.title,
-      icon: meta.icon || undefined,
-      badge_color: meta.badge_color || undefined,
-      members_count: teamUsers,
-      created_at: team.created_at,
-      updated_at: team.updated_at,
-    };
   }
 
   @Delete('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
@@ -218,29 +142,12 @@ export class TeamsV3Controller {
     @Body() body: TeamMembersAddV3ReqType[],
   ) {
     await this.canExecute(context);
-    const addedMembers = await this.teamsV3Service.teamMembersAdd(context, {
+    return await this.teamsV3Service.teamMembersAdd(context, {
       workspaceOrOrgId,
       teamId,
       members: body,
       req,
     });
-
-    // Transform to v3 response format with email
-    const members = await Promise.all(
-      addedMembers.map(async (teamUser) => {
-        const user = await this.teamsV3Service.getUserById(
-          context,
-          teamUser.fk_user_id,
-        );
-        return {
-          user_id: user.id,
-          user_email: user.email,
-          team_role: teamUser.roles as 'member' | 'manager' | 'owner',
-        };
-      }),
-    );
-
-    return members;
   }
 
   @Delete('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/members')
@@ -275,31 +182,11 @@ export class TeamsV3Controller {
     @Body() body: TeamMembersUpdateV3ReqType[],
   ) {
     await this.canExecute(context);
-    const updatedMembers = await this.teamsV3Service.teamMembersUpdate(
-      context,
-      {
-        workspaceOrOrgId,
-        teamId,
-        members: body,
-        req,
-      },
-    );
-
-    // Transform to v3 response format with email
-    const members = await Promise.all(
-      updatedMembers.map(async (teamUser) => {
-        const user = await this.teamsV3Service.getUserById(
-          context,
-          teamUser.fk_user_id,
-        );
-        return {
-          user_id: user.id,
-          user_email: user.email,
-          team_role: teamUser.roles as 'member' | 'manager' | 'owner',
-        };
-      }),
-    );
-
-    return members;
+    return await this.teamsV3Service.teamMembersUpdate(context, {
+      workspaceOrOrgId,
+      teamId,
+      members: body,
+      req,
+    });
   }
 }

@@ -29,6 +29,7 @@ import { MailService } from '~/services/mail/mail.service';
 import { ViewSettingsOverrideService } from '~/services/view-settings-override.service';
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
+import { TeamsV3Service } from '~/services/v3/teams-v3.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -49,6 +50,7 @@ export class InternalController extends InternalControllerCE {
     protected readonly viewSettingsOverrideService: ViewSettingsOverrideService,
     protected readonly oAuthClientService: OauthClientService,
     protected readonly oAuthTokenService: OauthTokenService,
+    private readonly teamsV3Service: TeamsV3Service,
   ) {
     super(
       mcpService,
@@ -112,6 +114,16 @@ export class InternalController extends InternalControllerCE {
       triggerAction: 'base',
       sendEmail: 'base',
       integrationRemoteFetch: 'base',
+
+      // Teams operations
+      teamList: 'workspace',
+      teamCreate: 'workspace',
+      teamGet: 'workspace',
+      teamUpdate: 'workspace',
+      teamDelete: 'workspace',
+      teamMembersAdd: 'workspace',
+      teamMembersRemove: 'workspace',
+      teamMembersUpdate: 'workspace',
     } as const;
   }
 
@@ -195,6 +207,15 @@ export class InternalController extends InternalControllerCE {
           req.query.widgetId as string,
           req,
         );
+      case 'teamList':
+        return await this.teamsV3Service.teamList(context, {
+          workspaceOrOrgId: workspaceId,
+        });
+      case 'teamGet':
+        return await this.teamsV3Service.teamGet(context, {
+          workspaceOrOrgId: workspaceId,
+          teamId: req.query.teamId as string,
+        });
       default:
         return await super.internalAPI(
           context,
@@ -417,6 +438,46 @@ export class InternalController extends InternalControllerCE {
             req,
           },
         );
+      case 'teamCreate':
+        return await this.teamsV3Service.teamCreate(context, {
+          workspaceOrOrgId: workspaceId,
+          team: payload,
+          req,
+        });
+      case 'teamUpdate':
+        return await this.teamsV3Service.teamUpdate(context, {
+          workspaceOrOrgId: workspaceId,
+          teamId: payload.teamId,
+          team: payload,
+          req,
+        });
+      case 'teamDelete':
+        return await this.teamsV3Service.teamDelete(context, {
+          workspaceOrOrgId: workspaceId,
+          teamId: payload.teamId,
+          req,
+        });
+      case 'teamMembersAdd':
+        return await this.teamsV3Service.teamMembersAdd(context, {
+          workspaceOrOrgId: workspaceId,
+          teamId: payload.teamId,
+          members: payload.members,
+          req,
+        });
+      case 'teamMembersRemove':
+        return await this.teamsV3Service.teamMembersRemove(context, {
+          workspaceOrOrgId: workspaceId,
+          teamId: payload.teamId,
+          members: payload.members,
+          req,
+        });
+      case 'teamMembersUpdate':
+        return await this.teamsV3Service.teamMembersUpdate(context, {
+          workspaceOrOrgId: workspaceId,
+          teamId: payload.teamId,
+          members: payload.members,
+          req,
+        });
       default:
         return await super.internalAPIPost(
           context,

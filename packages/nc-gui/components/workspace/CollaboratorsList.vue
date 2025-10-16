@@ -162,7 +162,6 @@ const userRoleUpdateInfo = ref<{
 })
 
 /**
- * If user don't have explicit base role assigned to any base then no need to show confirmation modal
  * If user is only owner in any base then we should restrict overriding base role
  */
 const showRoleChangeConfirmationModal = async (collab: any, roles: WorkspaceUserRoles) => {
@@ -182,9 +181,6 @@ const showRoleChangeConfirmationModal = async (collab: any, roles: WorkspaceUser
   } catch (e: any) {
     console.error(e)
   }
-
-  try {
-  } catch (e: any) {}
 }
 
 const onCancelRoleChangeConfirmationModal = () => {

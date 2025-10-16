@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import type { MCPTokenType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -9,6 +9,8 @@ import { RootScopes } from '~/utils/globals';
 
 @Injectable()
 export class McpTokenService {
+  protected logger = new Logger(McpTokenService.name);
+
   async list(context: NcContext, req: NcRequest) {
     const userId = req.user.id;
     return await MCPToken.list(context, userId);
@@ -92,7 +94,7 @@ export class McpTokenService {
     const workspaceIds = new Set<string>();
     const baseIds = new Set<string>();
 
-    tokens.forEach((token: any) => {
+    tokens.forEach((token: MCPToken) => {
       if (token.fk_workspace_id) workspaceIds.add(token.fk_workspace_id);
       if (token.base_id) baseIds.add(token.base_id);
     });
@@ -122,9 +124,10 @@ export class McpTokenService {
             }
           }
         } catch (e) {
-          console.log(e);
+          this.logger.error('Failed to fetch base/workspace', e);
         }
       },
+      5,
     );
 
     return tokens.map((token: any) => ({

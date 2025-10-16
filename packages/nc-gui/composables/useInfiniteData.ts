@@ -591,11 +591,6 @@ export function useInfiniteData(args: {
 
   let upgradeModalTimer: any
 
-  onBeforeUnmount(() => {
-    eventBus.off(smartsheetEventHandler)
-    clearTimeout(upgradeModalTimer)
-  })
-
   async function loadData(
     params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
       limit?: number
@@ -2035,6 +2030,11 @@ export function useInfiniteData(args: {
   }
 
   eventBus.on(smartsheetEventHandler)
+
+  onBeforeUnmount(() => {
+    eventBus.off(smartsheetEventHandler)
+    clearTimeout(upgradeModalTimer)
+  })
 
   const activeDataListener = ref<string | null>(null)
   const activeCommentListener = ref<string | null>(null)

@@ -154,7 +154,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         })
     })
 
-    reloadAggregate?.on(async (_fields) => {
+    const reloadAggregateListener = async (_fields: any) => {
       if (!_fields || !_fields?.fields?.length) {
         await loadViewAggregate()
       }
@@ -178,10 +178,16 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         await loadViewAggregate(
           Object.entries(fieldAggregateMapping).map(([field, type]) => ({
             field,
-            type,
+            type: type as string,
           })),
         )
       }
+    }
+
+    reloadAggregate?.on(reloadAggregateListener)
+
+    onBeforeUnmount(() => {
+      reloadAggregate?.off(reloadAggregateListener)
     })
 
     return {

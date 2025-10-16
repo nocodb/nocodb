@@ -71,8 +71,14 @@ const showUpgradeModal = (e?: MouseEvent) => {
   })
 }
 
-planUpgraderClick.on(() => {
+const planUpgraderClickHandler = () => {
   showUpgradeModal()
+}
+
+planUpgraderClick.on(planUpgraderClickHandler)
+
+onBeforeUnmount(() => {
+  planUpgraderClick.off(planUpgraderClickHandler)
 })
 </script>
 

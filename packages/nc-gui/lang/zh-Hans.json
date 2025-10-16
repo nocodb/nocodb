@@ -724,6 +724,7 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "访问受限",
     "editTablePermissions": "编辑表格权限",

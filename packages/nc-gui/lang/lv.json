@@ -724,6 +724,7 @@
     "isNotNull": "nav null"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Piekļuve ierobežota",
     "editTablePermissions": "Rediģēt tabulas atļaujas",

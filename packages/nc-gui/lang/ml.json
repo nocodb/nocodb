@@ -724,6 +724,7 @@
     "isNotNull": "നാള്‍"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "പ്രവേശനം നിയന്ത്രിച്ചിരിക്കുന്നു",
     "editTablePermissions": "ടേബിള്‍ അനുമതികൾ എഡിറ്റ് ചെയ്യുക",

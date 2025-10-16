@@ -724,6 +724,7 @@
     "isNotNull": "není null"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Přístup omezen",
     "editTablePermissions": "Upravit oprávnění tabulky",

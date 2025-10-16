@@ -724,6 +724,7 @@
     "isNotNull": "bukan null."
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Akses Dibatasi",
     "editTablePermissions": "Edit izin tabel",

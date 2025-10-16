@@ -137,7 +137,7 @@ export const useMcpSettings = createSharedComposable(() => {
       if (isAccountLevel) {
         const index = tokenList.value.findIndex((t) => t.id === token.id)
         if (index !== -1 && res) {
-          tokenList.value[index] = { ...accountMcpTokens.value[index], ...res }
+          tokenList.value[index] = { ...tokenList.value[index], ...res }
         }
       }
 

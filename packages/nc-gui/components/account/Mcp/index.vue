@@ -152,7 +152,7 @@ onMounted(async () => {
       </div>
 
       <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
-        {{ $t('labels.avtiveMcpServersLabel') }}
+        {{ $t('labels.activeMcpServersLabel') }}
       </div>
 
       <div v-if="isLoading" class="flex items-center justify-center h-96">

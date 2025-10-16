@@ -724,6 +724,7 @@
     "isNotNull": "ليس فارغاً"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "الوصول مقيد",
     "editTablePermissions": "تعديل أذونات الجدول",

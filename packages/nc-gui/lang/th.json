@@ -724,6 +724,7 @@
     "isNotNull": "ไม่เป็นโมฆะ"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "จำกัดสิทธิ์เข้าถึง",
     "editTablePermissions": "แก้ไขสิทธิ์ตาราง",

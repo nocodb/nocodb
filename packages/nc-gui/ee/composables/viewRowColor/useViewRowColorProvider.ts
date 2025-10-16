@@ -92,10 +92,6 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
     $eventBus.realtimeViewMetaEventBus.on(evtListener)
   })
 
-  onBeforeUnmount(() => {
-    $eventBus.realtimeViewMetaEventBus.off(evtListener)
-  })
-
   /**
    * Watch viewId and reload row color info
    */
@@ -110,7 +106,7 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
   /**
    * Watch row color update and field update events and reload row color info
    */
-  eventBus.on((event, payload?: { viewChange?: boolean; rowColorInfo?: any }) => {
+  const smartsheetStoreEvents = async (event: SmartsheetStoreEvents, payload?: { viewChange?: boolean; rowColorInfo?: any }) => {
     if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE].includes(event)) {
       reloadRowColorInfo(payload?.viewChange ?? false, payload?.rowColorInfo)
     } else if ([SmartsheetStoreEvents.FIELD_UPDATE, SmartsheetStoreEvents.FIELD_RELOAD].includes(event)) {
@@ -119,6 +115,13 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
        */
       reloadRowColorInfo(true)
     }
+  }
+
+  eventBus.on(smartsheetStoreEvents)
+
+  onBeforeUnmount(() => {
+    eventBus.off(smartsheetStoreEvents)
+    $eventBus.realtimeViewMetaEventBus.off(evtListener)
   })
 
   watch(

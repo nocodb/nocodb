@@ -16,7 +16,7 @@ const clearSelection = () => {
   selectedURL.value = null
 }
 
-eventBus.on((event, payload) => {
+const gridCellClickListener = (event: SmartsheetStoreEvents, payload: any) => {
   if (event === SmartsheetStoreEvents.CELL_SELECTED) {
     const selectedValue = payload.val as string
     // We only modify state when something is selected. We don't update on un-selections
@@ -39,6 +39,12 @@ eventBus.on((event, payload) => {
       }
     }
   }
+}
+
+eventBus.on(gridCellClickListener)
+
+onBeforeUnmount(() => {
+  eventBus.off(gridCellClickListener)
 })
 
 const openSelectedLink = async () => {

@@ -111,10 +111,16 @@ reloadEventHook.on(
   }),
 )
 
-eventBus.on((event) => {
+const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.COPIED_VIEW_CONFIG) {
     reloadEventHook.trigger()
   }
+}
+
+eventBus.on(smartsheetEventHandler)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEventHandler)
 })
 
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()

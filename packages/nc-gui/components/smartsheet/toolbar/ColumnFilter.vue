@@ -6,7 +6,6 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isSystemColumn,
   isVirtualCol,
-  parseProp,
 } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 

@@ -724,6 +724,7 @@
     "isNotNull": "មិនទទេ"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "ចូលដំណើរការត្រូវបានកំណត់",
     "editTablePermissions": "កែសម្រួលសិទ្ធិតារាង",

@@ -58,12 +58,7 @@ const roleProperties = computed(() => {
     <NcBadge class="!px-2 w-full" :class="ncBadgeClass" :color="roleProperties.color" :border="borderRef" :size="sizeSelect">
       <div
         class="badge-text w-full flex items-center justify-between gap-2"
-        :class="[
-          roleColorsMapping[roleProperties.color]?.content ?? 'text-gray-300',
-          {
-            sizeSelect,
-          },
-        ]"
+        :class="roleColorsMapping[roleProperties.color]?.content ?? 'text-gray-300'"
       >
         <div class="flex items-center gap-2">
           <GeneralIcon v-if="showIcon" :icon="roleProperties.icon" />

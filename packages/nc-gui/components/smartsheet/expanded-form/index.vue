@@ -157,33 +157,34 @@ watch(activeViewMode, async (v) => {
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
 
-reloadViewDataTrigger.on(
-  withLoading(async (params) => {
-    // Skip loading deleted record again
-    if (params?.skipLoadingRowId && params?.skipLoadingRowId === primaryKey.value) {
-      return
-    }
+const reloadViewDataListener = withLoading(async (params) => {
+  // Skip loading deleted record again
+  if (params?.skipLoadingRowId && params?.skipLoadingRowId === primaryKey.value) {
+    return
+  }
 
-    const isSameRecordUpdated =
-      params?.relatedTableMetaId &&
-      params?.rowId &&
-      params?.relatedTableMetaId === meta.value?.id &&
-      params?.rowId === rowId.value
+  const isSameRecordUpdated =
+    params?.relatedTableMetaId && params?.rowId && params?.relatedTableMetaId === meta.value?.id && params?.rowId === rowId.value
 
-    // If relatedTableMetaId & rowId is present that means some nested record is updated
+  // If relatedTableMetaId & rowId is present that means some nested record is updated
 
-    // If same nested record udpated then udpate whole row
-    if (isSameRecordUpdated) {
-      await _loadRow(rowId.value)
-    } else if (params?.relatedTableMetaId && params?.rowId) {
-      // If it is not same record updated but it has relatedTableMetaId & rowId then update only virtual columns
-      await _loadRow(rowId.value, true)
-    } else {
-      // Else update only new/duplicated/renamed columns
-      await _loadRow(rowId.value, false, true)
-    }
-  }),
-)
+  // If same nested record udpated then udpate whole row
+  if (isSameRecordUpdated) {
+    await _loadRow(rowId.value)
+  } else if (params?.relatedTableMetaId && params?.rowId) {
+    // If it is not same record updated but it has relatedTableMetaId & rowId then update only virtual columns
+    await _loadRow(rowId.value, true)
+  } else {
+    // Else update only new/duplicated/renamed columns
+    await _loadRow(rowId.value, false, true)
+  }
+})
+
+reloadViewDataTrigger.on(reloadViewDataListener)
+
+onBeforeUnmount(() => {
+  reloadViewDataTrigger.off(reloadViewDataListener)
+})
 
 const duplicatingRowInProgress = ref(false)
 

@@ -385,7 +385,7 @@ watch([displayValueCol, pkValueCol], () => {
   }
 })
 
-const clearDataListener = async (event: string, payload) => {
+const clearDataListener = async (event: ExtensionsEvents, payload: any) => {
   if (event === ExtensionsEvents.CLEARDATA && payload && extension.value.id && payload === extension.value.id) {
     clearData(false)
   }

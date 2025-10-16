@@ -238,6 +238,7 @@ onMounted(() => {
 onUnmounted(() => {
   onDivDataCellEventHook?.off(toggleDropdown)
   cellClickHook?.off(toggleDropdown)
+  cellEventHook?.off(onCellEvent)
 })
 
 watch(dropdownVisible, (val) => {

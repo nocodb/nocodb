@@ -1214,6 +1214,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (activeDataListener.value) {
         $ncSocket.offMessage(activeDataListener.value)
       }
+
       eventBus.off(smartsheetEventHandler)
     })
 

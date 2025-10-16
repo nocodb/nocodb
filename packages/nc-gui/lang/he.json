@@ -724,6 +724,7 @@
     "isNotNull": "לא NULL"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "גישה מוגבלת",
     "editTablePermissions": "עריכת הרשאות טבלה",

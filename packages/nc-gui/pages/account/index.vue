@@ -138,7 +138,21 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="mcp" class="h-4 w-4 flex-none" />
 
-                  <div class="select-none">{{ $t('labels.modelContextProtocol') }}</div>
+                  <div class="select-none">{{ $t('title.mcpServer') }}</div>
+                </div>
+              </NcMenuItem>
+              <NcMenuItem
+                key="external-integrations"
+                :class="{
+                  active: $route.params.page === 'external-integrations',
+                }"
+                class="item"
+                @click="navigateTo('/account/external-integrations')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
+
+                  <div class="select-none">{{ $t('title.externalIntegrations') }}</div>
                 </div>
               </NcMenuItem>
               <NcMenuItem

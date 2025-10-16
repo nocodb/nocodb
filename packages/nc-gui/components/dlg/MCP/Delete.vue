@@ -2,6 +2,7 @@
 interface Props {
   modelValue: boolean
   mcpToken: MCPTokenExtendedType
+  isAccountScope?: boolean
 }
 
 interface Emits {
@@ -23,7 +24,7 @@ async function onDelete() {
   if (!mcpToken.id) return
 
   try {
-    await deleteMcpToken(mcpToken)
+    await deleteMcpToken(mcpToken, props.isAccountScope)
 
     vModel.value = false
     emits('deleted')

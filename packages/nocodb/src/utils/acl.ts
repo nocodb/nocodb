@@ -67,6 +67,15 @@ const permissionScopes = {
 
     // AI
     'aiSchema',
+
+    // OauthClients
+    'oAuthClientList',
+    'oAuthClientCreate',
+    'oAuthClientUpdate',
+    'oAuthClientDelete',
+    'oAuthClientGet',
+
+    'mcpRootList',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -344,6 +353,19 @@ const rolePermissions:
       isPluginActive: true,
       commandPalette: true,
       notification: true,
+
+      // oAuth
+      oAuthClientList: true,
+      oAuthClientCreate: true,
+      oAuthClientUpdate: true,
+      oAuthClientDelete: true,
+      oAuthClientGet: true,
+      oAuthAuthorizationList: true,
+      oAuthAuthorizationRevoke: true,
+      oAuthClientRegenerateSecret: true,
+
+      //mcp List Root
+      mcpRootList: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

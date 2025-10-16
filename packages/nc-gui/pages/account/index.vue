@@ -122,9 +122,9 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 @click="navigateTo('/account/tokens')"
               >
                 <div class="flex items-center space-x-2">
-                  <GeneralIcon icon="ncKey2" />
+                  <GeneralIcon icon="ncKey2" class="h-4 w-4 flex-none" />
 
-                  <div class="select-none">{{ $t('title.tokens') }}</div>
+                  <div class="select-none">{{ $t('title.apiTokens') }}</div>
                 </div>
               </NcMenuItem>
               <NcMenuItem

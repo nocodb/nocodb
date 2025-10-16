@@ -724,6 +724,7 @@
     "isNotNull": "निरर्थक नहीं है"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "एक्सेस सीमित",
     "editTablePermissions": "टेबल अनुमतियाँ संपादित करें",

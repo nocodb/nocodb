@@ -724,6 +724,7 @@
     "isNotNull": "تهی نیست"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "دسترسی محدود است",
     "editTablePermissions": "ویرایش دسترسی‌های جدول",

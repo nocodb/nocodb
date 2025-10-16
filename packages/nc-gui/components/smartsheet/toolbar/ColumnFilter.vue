@@ -900,11 +900,7 @@ defineExpose({
                       size="small"
                       class="nc-filter-item-remove-btn nc-column-filter-drag-handler self-center"
                       :shadow="false"
-                      @click="
-                        () => {
-                          console.log('on click')
-                        }
-                      "
+                      :disabled="visibleFilters.length === 1"
                     >
                       <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
                     </NcButton>
@@ -1161,11 +1157,7 @@ defineExpose({
               size="small"
               class="nc-filter-item-remove-btn nc-column-filter-drag-handler self-center"
               :shadow="false"
-              @click="
-                () => {
-                  console.log('on click')
-                }
-              "
+              :disabled="visibleFilters.length === 1"
             >
               <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
             </NcButton>

@@ -764,8 +764,7 @@ export class AclMiddleware implements NestInterceptor {
       req.ncOrgId &&
       !req.user?.org_roles?.[CloudOrgUserRoles.OWNER] &&
       !req.user?.extra?.org_id &&
-      (req.ncWorkspaceId && await checkIfWorkspaceSSOAvail(req.ncWorkspaceId, false))
-      // (await checkIfOrgSSOAvail(req.ncOrgId, false))
+      (await checkIfOrgSSOAvail(req.ncOrgId, false))
     ) {
       const ssoClient = (
         await SSOClient.list({

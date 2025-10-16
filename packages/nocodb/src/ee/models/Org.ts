@@ -1,4 +1,5 @@
 import type { AttachmentResType, OrgType } from 'nocodb-sdk';
+import type { Plan, Subscription } from '~/models';
 import {
   prepareForDb,
   prepareForResponse,
@@ -34,6 +35,11 @@ export default class Org implements OrganizationType {
 
   created_at?: string;
   updated_at?: string;
+
+  payment?: {
+    subscription?: Subscription;
+    plan: Partial<Plan>;
+  };
 
   constructor(org: Partial<OrgType>) {
     Object.assign(this, org);

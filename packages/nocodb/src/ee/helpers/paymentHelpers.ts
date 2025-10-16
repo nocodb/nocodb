@@ -271,19 +271,20 @@ async function checkSeatLimit(
 
 async function getFeature(
   type: PlanFeatureTypes,
-  workspaceOrId: string | Workspace,
+  workspaceOrOrgId: string | Workspace | Org,
   ncMeta = Noco.ncMeta,
 ) {
-  const workspace =
-    typeof workspaceOrId === 'string'
-      ? await Workspace.get(workspaceOrId, undefined, ncMeta)
-      : workspaceOrId;
+  const workspaceOrOrg =
+    typeof workspaceOrOrgId === 'string'
+      ? (await Workspace.get(workspaceOrOrgId, undefined, ncMeta)) ??
+        (await Org.get(workspaceOrOrgId, ncMeta))
+      : workspaceOrOrgId;
 
-  if (!workspace) {
+  if (!workspaceOrOrg) {
     NcError.forbidden('You are not allowed to perform this action');
   }
 
-  return workspace?.payment?.plan?.meta?.[type] || false;
+  return workspaceOrOrg?.payment?.plan?.meta?.[type] || false;
 }
 
 async function checkForFeature(

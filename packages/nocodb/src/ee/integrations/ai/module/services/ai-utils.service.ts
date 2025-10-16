@@ -122,6 +122,10 @@ export class AiUtilsService {
   ) {
     const { title, tableId } = params.input;
 
+    if (!tableId) {
+      NcError.get(context).badRequest('Invalid request');
+    }
+
     const model = await Model.get(context, tableId);
 
     if (!model) {
@@ -180,6 +184,10 @@ export class AiUtilsService {
     },
   ) {
     const { tableId } = params.input;
+
+    if (!tableId) {
+      NcError.get(context).badRequest('Invalid request');
+    }
 
     const model = await Model.get(context, tableId);
 
@@ -331,6 +339,10 @@ export class AiUtilsService {
   ) {
     const { tableId } = params.input;
 
+    if (!tableId) {
+      NcError.get(context).badRequest('Invalid request');
+    }
+
     const model = await Model.get(context, tableId);
 
     if (!model) {
@@ -415,6 +427,10 @@ export class AiUtilsService {
     },
   ) {
     const { tableId } = params.input;
+
+    if (!tableId) {
+      NcError.get(context).badRequest('Invalid request');
+    }
 
     const model = await Model.get(context, tableId);
 
@@ -601,6 +617,10 @@ export class AiUtilsService {
   ) {
     const { tableId, input, formula } = params.input;
 
+    if (!tableId) {
+      NcError.get(context).badRequest('Invalid request');
+    }
+
     const model = await Model.get(context, tableId);
 
     if (!model) {
@@ -656,6 +676,10 @@ export class AiUtilsService {
     },
   ) {
     const { tableId, formula, error } = params.input;
+
+    if (!tableId) {
+      NcError.get(context).badRequest('Invalid request');
+    }
 
     const model = await Model.get(context, tableId);
 

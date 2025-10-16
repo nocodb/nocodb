@@ -232,7 +232,7 @@ const handleCancel = () => {
   <div class="flex flex-col">
     <NcPageHeader>
       <template #icon>
-        <MdiShieldKeyOutline class="flex-none h-5 w-5" />
+        <GeneralIcon icon="ncKey2" class="flex-none h-5 w-5" />
       </template>
       <template #title>
         <span data-rec="true">

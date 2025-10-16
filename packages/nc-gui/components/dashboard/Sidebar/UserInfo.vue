@@ -252,6 +252,12 @@ const copyEmail = () => {
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
+              <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens">
+                <NcMenuItem>
+                  <GeneralIcon icon="ncKey2" class="menu-icon mt-0.5" />
+                  <span class="menu-btn"> {{ $t('title.apiTokens') }} </span>
+                </NcMenuItem>
+              </nuxt-link>
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.handleReset">
                 <NcMenuItem>
                   <GeneralIcon icon="ncSettings" class="menu-icon" />

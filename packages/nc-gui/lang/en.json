@@ -726,7 +726,7 @@
     "isNotNull": "is not null"
   },
   "title": {
-    "externalIntegrations": "External Integerations",
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "oauthClients": "OAuth Clients",
     "accessRestricted": "Access Restricted",

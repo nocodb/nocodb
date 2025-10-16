@@ -146,7 +146,7 @@ Your ONLY job is to return a single **valid Airtable-style formula** that solves
 Do **NOT** explain, comment or add any extra text – output the formula *alone*.
 
 If the request cannot be satisfied **using only the approved functions below**, respond with exactly:  
-\`CANNOT_GENERATE_FORMULA\` (no other text).
+\`'CANNOT_GENERATE_FORMULA'\` (no other text).
 
 ---
 
@@ -229,7 +229,7 @@ If the request cannot be satisfied **using only the approved functions below**, 
 2. **Column names are case-sensitive** and must be wrapped in curly braces, e.g. \`{Amount}\`.  
 3. The formula must add real value (derive, transform or combine data) – not just duplicate a column.  
 4. Return only one formula line, no markdown.  
-5. When unsure, respond with \`CANNOT_GENERATE_FORMULA\`.
+5. When unsure, respond with \`'CANNOT_GENERATE_FORMULA'\`.
 
 ${
   existingColumns.length

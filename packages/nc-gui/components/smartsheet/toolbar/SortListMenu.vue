@@ -31,13 +31,19 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-eventBus.on((event, payload) => {
+const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
   if (
     event === SmartsheetStoreEvents.SORT_RELOAD ||
     validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.SORT, payload)
   ) {
     loadSorts()
   }
+}
+
+eventBus.on(smartsheetEventHandler)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEventHandler)
 })
 
 const columns = computed(() =>

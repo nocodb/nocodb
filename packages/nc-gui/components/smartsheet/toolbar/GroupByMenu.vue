@@ -154,8 +154,8 @@ watch(open, () => {
   }
 })
 
-eventBus.on(async (event, payload = {}) => {
-  const column = payload.column
+const smartSheetListener = async (event: SmartsheetStoreEvents, payload = {}) => {
+  const column = payload?.column
 
   if (!column?.id) return
 
@@ -168,6 +168,12 @@ eventBus.on(async (event, payload = {}) => {
 
     await saveGroupBy()
   }
+}
+
+eventBus.on(smartSheetListener)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartSheetListener)
 })
 
 const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) => {

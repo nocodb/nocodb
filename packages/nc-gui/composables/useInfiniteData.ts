@@ -592,6 +592,7 @@ export function useInfiniteData(args: {
   let upgradeModalTimer: any
 
   onBeforeUnmount(() => {
+    eventBus.off(smartsheetEventHandler)
     clearTimeout(upgradeModalTimer)
   })
 
@@ -2011,7 +2012,7 @@ export function useInfiniteData(args: {
   /**
    * This is used to update the rowMeta color info when the row colour info is updated
    */
-  eventBus.on((event) => {
+  const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
     if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
       return
     }
@@ -2031,7 +2032,9 @@ export function useInfiniteData(args: {
         Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
       })
     }
-  })
+  }
+
+  eventBus.on(smartsheetEventHandler)
 
   const activeDataListener = ref<string | null>(null)
   const activeCommentListener = ref<string | null>(null)

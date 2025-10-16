@@ -2524,14 +2524,7 @@ watch(
   },
 )
 
-onBeforeUnmount(() => {
-  reloadViewDataHook.off(reloadViewDataHookHandler)
-  reloadVisibleDataHook?.off(triggerReload)
-  openNewRecordFormHook?.off(openNewRecordHandler)
-  selectCellHook.off(selectCell)
-})
-
-eventBus.on(async (event, payload) => {
+const smartsheetEvents = async (event: SmartsheetStoreEvents, payload) => {
   if (event === SmartsheetStoreEvents.CLEAR_NEW_ROW) {
     selection.value.clear()
     activeCell.value.row = -1
@@ -2543,6 +2536,16 @@ eventBus.on(async (event, payload) => {
     calculateSlices()
     requestAnimationFrame(triggerRefreshCanvas)
   }
+}
+
+eventBus.on(smartsheetEvents)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEvents)
+  reloadViewDataHook.off(reloadViewDataHookHandler)
+  reloadVisibleDataHook?.off(triggerReload)
+  openNewRecordFormHook?.off(openNewRecordHandler)
+  selectCellHook.off(selectCell)
 })
 
 function resetActiveCell(path?: Array<number>, force = false) {

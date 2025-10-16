@@ -949,7 +949,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
     /**
      * This is used to update the rowMeta color info when the row colour info is updated
      */
-    eventBus.on((event) => {
+    const smartsheetEventHandler = (event) => {
       if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
         return
       }
@@ -963,7 +963,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
         return row
       })
-    })
+    }
+
+    eventBus.on(smartsheetEventHandler)
 
     const updateActiveDatesForNewRecord = (rowData: Record<string, any>): void => {
       if (!calendarRange.value?.length) return
@@ -1206,6 +1208,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       if (activeDataListener.value) {
         $ncSocket.offMessage(activeDataListener.value)
       }
+      eventBus.off(smartsheetEventHandler)
     })
 
     return {

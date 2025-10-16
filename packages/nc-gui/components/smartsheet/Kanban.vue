@@ -132,11 +132,13 @@ reloadViewDataHook?.on(
   }),
 )
 
-eventBus.on((event) => {
+const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
-})
+}
+
+eventBus.on(smartsheetEventHandler)
 
 const attachments = (record: any): Attachment[] => {
   if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
@@ -406,7 +408,10 @@ openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
 // remove openNewRecordFormHookHandler before unmounting
 // so that it won't be triggered multiple times
-onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
+onBeforeUnmount(() => {
+  openNewRecordFormHook.off(openNewRecordFormHookHandler)
+  eventBus.off(smartsheetEventHandler)
+})
 
 // reset context menu target on hide
 watch(contextMenu, () => {

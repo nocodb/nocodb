@@ -1376,13 +1376,20 @@ export function useCanvasTable({
     triggerRefreshCanvas()
   })
 
-  eventBus.on((event) => {
+  const smartsheetEventHandler = (event) => {
     if ([SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
       forcedNextTick(() => {
         clearRowColouringCache()
         triggerRefreshCanvas()
       })
     }
+  }
+
+  eventBus.on(smartsheetEventHandler)
+
+  onBeforeUnmount(() => {
+    actionManager.releaseEventListeners()
+    eventBus.off(smartsheetEventHandler)
   })
 
   // load metas and refresh canvas

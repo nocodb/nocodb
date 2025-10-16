@@ -724,6 +724,7 @@
     "isNotNull": "がNULLでない"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "アクセス制限あり",
     "editTablePermissions": "テーブル権限の編集",

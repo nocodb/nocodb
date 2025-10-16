@@ -68,7 +68,7 @@ useMenuCloseOnEsc(open)
 const draftFilter = ref({})
 const queryFilterOpen = ref(false)
 
-eventBus.on(async (event, payload) => {
+const smartsheetEventListener = async (event: string, payload?: any) => {
   if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
     await loadFilters({
       hookId: undefined,
@@ -89,6 +89,12 @@ eventBus.on(async (event, payload) => {
     draftFilter.value = { fk_column_id: column.id }
     open.value = true
   }
+}
+
+eventBus.on(smartsheetEventListener)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEventListener)
 })
 
 const combinedFilterLength = computed(() => {

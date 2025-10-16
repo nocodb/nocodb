@@ -177,8 +177,6 @@ const handleClick = (col, event) => {
 
 openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
-onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
-
 const reloadAttachments = ref(false)
 
 reloadViewMetaHook?.on(async () => {
@@ -374,10 +372,17 @@ reloadViewDataHook?.on(
   }),
 )
 
-eventBus.on((event) => {
+const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
+}
+
+eventBus.on(smartsheetEventHandler)
+
+onBeforeUnmount(() => {
+  openNewRecordFormHook.off(openNewRecordFormHookHandler)
+  eventBus.off(smartsheetEventHandler)
 })
 
 const handleOpenNewRecordForm = () => {

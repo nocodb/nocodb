@@ -188,10 +188,8 @@ const showRoleChangeConfirmationModal = async (collab: any, roles: WorkspaceUser
 }
 
 const onCancelRoleChangeConfirmationModal = () => {
-  userRoleUpdateInfo.value = {
-    showConfirmationModal: false,
-    overrideBaseRole: false,
-  }
+  userRoleUpdateInfo.value.showConfirmationModal = false
+  userRoleUpdateInfo.value.overrideBaseRole = false
 }
 
 const onConfirmRoleChangeConfirmationModal = () => {

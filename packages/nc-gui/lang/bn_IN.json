@@ -724,6 +724,7 @@
     "isNotNull": "নাল নয়"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "অ্যাক্সেস সীমাবদ্ধ",
     "editTablePermissions": "টেবিল পারমিশন সম্পাদনা করুন",

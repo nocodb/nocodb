@@ -400,21 +400,32 @@ export function useViewFilters(
 
   const saveOrUpdateDebounced = useCachedDebouncedFunction(saveOrUpdate, 500, (_filter: ColumnFilterType, i: number) => i)
 
-  async function saveOrUpdate(filter: ColumnFilterType, i: number, force = false, undo = false, skipDataReload = false) {
+  async function saveOrUpdate(
+    filter: ColumnFilterType,
+    i: number,
+    force = false,
+    undo = false,
+    skipDataReload = false,
+    lastFilterIndex: number | undefined = undefined,
+  ) {
     // if already in progress the debounced function which will call this function again with 500ms delay until it's not saving
     if (savingStatus[i]) {
-      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
+      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload, lastFilterIndex)
     }
     // wait if any previous filter save is in progress, it's to avoid messing up the order of filters
     else if (Array.from({ length: i }).some((_, index) => savingStatus[index])) {
-      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
+      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload, lastFilterIndex)
     }
     savingStatus[i] = true
+    if (ncIsUndefined(lastFilterIndex)) {
+      lastFilterIndex = i
+    }
 
     if (!view.value && !linkColId?.value && !widgetId?.value) return
 
     if (!undo && !(isForm.value && !isWebhook)) {
-      const lastFilter = lastFilters.value[i]
+      const lastFilter = lastFilters.value[lastFilterIndex]
+
       if (lastFilter) {
         const delta = clone(getFieldDelta(filter, lastFilter))
         if (Object.keys(delta).length > 0) {
@@ -737,6 +748,7 @@ export function useViewFilters(
 
   return {
     filters,
+    lastFilters,
     nonDeletedFilters,
     loadFilters,
     sync,

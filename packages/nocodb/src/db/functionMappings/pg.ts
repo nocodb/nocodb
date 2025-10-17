@@ -1,11 +1,60 @@
 import dayjs from 'dayjs';
 import { customAlphabet } from 'nanoid';
-import { FormulaDataTypes, JSEPNode } from 'nocodb-sdk';
+import { FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
 import { sanitize } from 'src/helpers/sqlSanitize';
 import commonFns from './commonFns';
+import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+
+const getArraySourceAttachmentUnnested = async (
+  argument: any,
+  args: MapFnArgs,
+) => {
+  const { builder } = await args.fn({
+    ...argument,
+    fnName: argument.type === JSEPNode.IDENTIFIER ? 'CONCAT' : argument.fnName,
+  });
+  if (!(<CallExpressionNode>argument).inArrayFormat) {
+    const sourceQuery = '??::jsonb';
+    const unnestedAsTable = [
+      `select __elem->>'id' as id, __elem->>'title' as title, __elem::text as __val`,
+      `from jsonb_array_elements(${sourceQuery}) as __elem`,
+    ].join(' ');
+
+    return { builder: args.knex.raw(`${unnestedAsTable}`, [builder]) };
+  } else {
+    const sourceQuery = '??';
+    const unnestedAsTable = [
+      `select __elem->>'id' as id, __elem->>'title' as title, __elem::text as __val`,
+      `from unnest(${sourceQuery}) as __elem`,
+    ].join(' ');
+
+    return { builder: args.knex.raw(`${unnestedAsTable}`, [builder]) };
+  }
+};
+
+const getArraySourceUserUnnested = async (argument: any, args: MapFnArgs) => {
+  const { builder } = await args.fn({
+    ...argument,
+    fnName: argument.type === JSEPNode.IDENTIFIER ? 'NO_AGG' : argument.fnName,
+  });
+  let sourceQuery = '??';
+  if (!(<CallExpressionNode>argument).inArrayFormat) {
+    sourceQuery = `ARRAY(??)`;
+  }
+  const baseUserCte = await args.knex.cteGenerator().baseUser({});
+  const conversionQuery = `UNNEST( STRING_TO_ARRAY( UNNEST( ${sourceQuery} ), ',') )`;
+  const unnestedAsTable = [
+    `SELECT _tbl.userid, ${baseUserCte.alias}.email`,
+    `FROM (SELECT ${conversionQuery} as userid) _tbl`,
+    ` LEFT OUTER JOIN ${baseUserCte.alias} on _tbl.userid = ${baseUserCte.alias}.id`,
+    `WHERE _tbl.userid IS NOT NULL AND _tbl.userid != ''`,
+  ].join(' ');
+
+  return { builder: args.knex.raw(`${unnestedAsTable}`, [builder]) };
+};
 
 const getArraySource = async (argument: any, args: MapFnArgs) => {
   return await args.fn({
@@ -436,6 +485,43 @@ END`,
   },
   ARRAYSORT: async (args: MapFnArgs) => {
     const { fn, knex, pt } = args;
+    if ((<CallExpressionNode>pt).referencedColumn?.uidt === UITypes.User) {
+      const source = (await getArraySourceUserUnnested(pt.arguments[0], args))
+        .builder;
+      const direction = pt.arguments[1]
+        ? sanitize(
+            knex.raw(
+              pt.arguments[1]?.value ?? (await fn(pt.arguments[1])).builder,
+            ),
+          )
+        : knex.raw('asc');
+      return {
+        builder: knex.raw(
+          `ARRAY(SELECT userid FROM ( ?? ORDER BY email ?? ) as _tbl1)`,
+          [source, direction],
+        ),
+      };
+    } else if (
+      (<CallExpressionNode>pt).referencedColumn?.uidt === UITypes.Attachment
+    ) {
+      const source = (
+        await getArraySourceAttachmentUnnested(pt.arguments[0], args)
+      ).builder;
+
+      const direction = pt.arguments[1]
+        ? sanitize(
+            knex.raw(
+              pt.arguments[1]?.value ?? (await fn(pt.arguments[1])).builder,
+            ),
+          )
+        : knex.raw('asc');
+      return {
+        builder: knex.raw(
+          `ARRAY(SELECT __val::jsonb FROM ( ?? ORDER BY title ?? ) as _tbl1)`,
+          [source, direction],
+        ),
+      };
+    }
     const source = (await getArraySource(pt.arguments[0], args)).builder;
     const direction = pt.arguments[1]
       ? sanitize(
@@ -453,6 +539,29 @@ END`,
   },
   ARRAYUNIQUE: async (args: MapFnArgs) => {
     const { knex, pt } = args;
+    if ((<CallExpressionNode>pt).referencedColumn?.uidt === UITypes.User) {
+      const source = (await getArraySourceUserUnnested(pt.arguments[0], args))
+        .builder;
+      return {
+        builder: knex.raw(
+          `ARRAY(SELECT DISTINCT userid FROM ( ?? ) as _tbl1)`,
+          [source],
+        ),
+      };
+    } else if (
+      (<CallExpressionNode>pt).referencedColumn?.uidt === UITypes.Attachment
+    ) {
+      const source = (
+        await getArraySourceAttachmentUnnested(pt.arguments[0], args)
+      ).builder;
+      return {
+        builder: knex.raw(
+          `ARRAY(SELECT DISTINCT ON(_tbl1.title) __val::jsonb FROM ( ?? ) as _tbl1)`,
+          [source],
+        ),
+      };
+    }
+
     const source = (await getArraySource(pt.arguments[0], args)).builder;
     return {
       builder: knex.raw(`ARRAY(SELECT DISTINCT UNNEST(??))`, [source]),

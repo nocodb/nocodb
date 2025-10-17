@@ -71,11 +71,17 @@ const updatedColumn = computed(() => {
       uidt: column.value.meta?.display_type,
       ...column.value.meta?.display_column_meta,
     }
+  } else if (column.value.colOptions?.parsed_tree?.referencedColumn) {
+    return {
+      ...column.value,
+      uidt: column.value.colOptions?.parsed_tree?.referencedColumn.uidt,
+      ...column.value.meta?.display_column_meta,
+    }
   }
 })
 
 const renderAsCell = computed(() => {
-  return !!column.value.meta?.display_type
+  return !!column.value.meta?.display_type || !!column.value.colOptions?.parsed_tree?.referencedColumn
 })
 </script>
 

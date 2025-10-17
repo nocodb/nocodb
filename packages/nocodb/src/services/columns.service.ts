@@ -632,8 +632,8 @@ export class ColumnsService implements IColumnsService {
             columns: table.columns,
             column,
             clientOrSqlUi: source.type as any,
-            getMeta: async (modelId) => {
-              const model = await Model.get(context, modelId);
+            getMeta: async (context, { id }) => {
+              const model = await Model.get(context, id);
               await model.getColumns(context);
               return model;
             },
@@ -678,8 +678,8 @@ export class ColumnsService implements IColumnsService {
               columns: table.columns,
               column,
               clientOrSqlUi: source.type as any,
-              getMeta: async (modelId) => {
-                const model = await Model.get(context, modelId);
+              getMeta: async (context, { id }) => {
+                const model = await Model.get(context, id);
                 await model.getColumns(context);
                 return model;
               },
@@ -2411,8 +2411,8 @@ export class ColumnsService implements IColumnsService {
             },
             columns: table.columns,
             clientOrSqlUi: source.type as any,
-            getMeta: async (modelId) => {
-              const model = await Model.get(context, modelId);
+            getMeta: async (context, { id }) => {
+              const model = await Model.get(context, id);
               await model.getColumns(context);
               return model;
             },
@@ -2465,8 +2465,8 @@ export class ColumnsService implements IColumnsService {
                 colOptions: colBody,
               },
               clientOrSqlUi: source.type as any,
-              getMeta: async (modelId) => {
-                const model = await Model.get(context, modelId);
+              getMeta: async (context, { id }) => {
+                const model = await Model.get(context, id);
                 await model.getColumns(context);
                 return model;
               },

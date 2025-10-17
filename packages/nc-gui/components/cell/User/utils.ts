@@ -1,4 +1,4 @@
-import type { ColumnType, UserFieldRecordType, UserType } from 'nocodb-sdk'
+import { type ColumnType, type UserFieldRecordType, type UserType, arrFlatMap } from 'nocodb-sdk'
 
 export const getOptions = (
   column: ColumnType,
@@ -80,7 +80,13 @@ export const getSelectedUsers = (
 ) => {
   let selected: SelectedUserType[] = []
 
+  if (!modelValue) {
+    return selected
+  }
   let localModelValue = modelValue
+  if (Array.isArray(localModelValue) && !localModelValue.filter((k) => typeof k !== 'string').length) {
+    localModelValue = arrFlatMap(localModelValue.filter((k) => k).map((u: string) => u?.split?.(','))).join(',')
+  }
 
   // if stringified json
   if (typeof localModelValue === 'string' && /^\s*[{[]/.test(localModelValue)) {
@@ -111,8 +117,8 @@ export const getSelectedUsers = (
     selected = localModelValue
       ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
           const label = item?.display_name || item?.email
-          const user = optionsMap[item.id]
           if (label) {
+            const user = optionsMap[item.id]
             acc.push({
               label,
               value: item.id,

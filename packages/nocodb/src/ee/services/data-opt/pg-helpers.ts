@@ -1436,6 +1436,7 @@ export async function singleQueryRead(
   // const dataAlias = getAlias();
 
   const finalQb = qb.first();
+  knex.applyCte(finalQb);
 
   const { sql, bindings } = finalQb.toSQL();
 
@@ -1803,6 +1804,7 @@ export async function singleQueryList(
 
   // const finalQb = qb.select(countQb.as('__nc_count'));
   const finalQb = qb;
+  knex.applyCte(finalQb);
   let dataQuery = finalQb.toQuery();
   if (!skipCache) {
     const { sql, bindings } = finalQb.toSQL();

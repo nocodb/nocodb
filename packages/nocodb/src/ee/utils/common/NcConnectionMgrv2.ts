@@ -67,6 +67,10 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       if (!this.dataKnex) {
         await this.getDataConfig();
         this.dataKnex = XKnex(this.dataConfig);
+        this.dataKnex.cteGenerator({
+          base_id: source.base_id,
+          workspace_id: source.fk_workspace_id,
+        });
       }
       return this.dataKnex;
     }

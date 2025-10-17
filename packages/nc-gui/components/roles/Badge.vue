@@ -38,7 +38,7 @@ const roleProperties = computed(() => {
   const icon = RoleIcons[role]
   const label = RoleLabels[role]
   return {
-    color: props.disabled ? 'grey' : color,
+    color: props.disabled ? 'gray' : color,
     icon,
     label,
   }
@@ -58,18 +58,7 @@ const roleProperties = computed(() => {
     <NcBadge class="!px-2 w-full" :class="ncBadgeClass" :color="roleProperties.color" :border="borderRef" :size="sizeSelect">
       <div
         class="badge-text w-full flex items-center justify-between gap-2"
-        :class="{
-          'text-purple-700': roleProperties.color === 'purple',
-          'text-blue-700': roleProperties.color === 'blue',
-          'text-green-700': roleProperties.color === 'green',
-          'text-orange-700': roleProperties.color === 'orange',
-          'text-yellow-700': roleProperties.color === 'yellow',
-          'text-red-700': roleProperties.color === 'red',
-          'text-maroon-700': roleProperties.color === 'maroon',
-          'text-gray-400': !roleProperties.color === 'grey',
-          'text-gray-300': !roleProperties.color,
-          sizeSelect,
-        }"
+        :class="roleColorsMapping[roleProperties.color]?.content ?? 'text-gray-300'"
       >
         <div class="flex items-center gap-2">
           <GeneralIcon v-if="showIcon" :icon="roleProperties.icon" />

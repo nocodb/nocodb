@@ -325,7 +325,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   // update existing collaborator role
-  const updateCollaborator = async (userId: string, roles: WorkspaceUserRoles, workspaceId?: string) => {
+  const updateCollaborator = async (
+    userId: string,
+    roles: WorkspaceUserRoles,
+    workspaceId?: string,
+    _overrideBaseRole: boolean = false,
+  ) => {
     try {
       if (!workspaceId && !activeWorkspace.value?.id) {
         throw new Error('Workspace not selected')
@@ -336,6 +341,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         userId,
         {
           roles,
+          /**
+           * Todo: @rameshmane7218 enable this `overrideBaseRole` after adding support in backend
+           */
+          // overrideBaseRole,
         },
         {
           baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.value.baseHostName}` : undefined,

@@ -724,6 +724,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "accessRestricted": "Access Restricted",
     "editTablePermissions": "Edit table permissions",
@@ -1169,6 +1170,7 @@
     "scriptIdColon": "SCRIPT ID: {scriptId}",
     "dashboardIdColon": "DASHBOARD ID: {dashboardId}",
     "viewIdColon": "VIEW ID: {viewId}",
+    "extensionIdColon": "ID: {extensionId}",
     "toAddress": "To Address",
     "subject": "Subject",
     "body": "Body",
@@ -1212,6 +1214,7 @@
     "clickToCopyScriptID": "Click to copy Script ID",
     "clickToCopyDashboardID": "Click to copy Dashboard ID",
     "clickToCopyViewID": "Click to copy View ID",
+    "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "View mode",
     "assignAsPersonalView": "Assign as personal view",
     "reAssignView": "Re-assign personal view",
@@ -1915,7 +1918,11 @@
     "onlyOwnerOrCreatorCanReAssign": "Only owner or creator can re-assign",
     "onlyViewOwnerCanAssignAsPersonalView": "Only view owner can assign as personal view",
     "onlyViewOwnerCanCopyViewConfig": "Only view owner can copy view configuration",
-    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option."
+    "youNeedAtLeastOneExistingViewToCopyConfigurations": "You need at least one existing view to copy configurations. Create a view first to enable this option.",
+    "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
+    "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
+    "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
   },
   "placeholder": {
     "searchIcons": "Search icons",
@@ -2005,6 +2012,7 @@
     "manageConnections": "Manage connections for your integrations.",
     "invalidConfiguration": "Invalid button configuration",
     "invalidColumnConfiguration": "Invalid field configuration",
+    "buttonTypeIsMissing": "Button type is missing",
     "invalidTheme": "Select a valid theme",
     "invalidColor": "Select a valid color",
     "invalidType": "Button type can be either 'webhook' or 'url'",

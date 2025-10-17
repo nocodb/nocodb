@@ -448,7 +448,6 @@ export class FormFilters {
 
       if (this.isSharedForm) {
         if (!column.meta?.preFilledHiddenField) {
-          column.show = !!isValid
           column.visible = !!isValid
         }
       } else {

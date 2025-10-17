@@ -248,7 +248,7 @@ export const ButtonCellRenderer: CellRenderer = {
 
     const colOptions = column.columnObj?.colOptions as ButtonType
 
-    if (!colOptions) return
+    if (!colOptions || !colOptions.type) return
 
     const buttonMeta = {
       label: colOptions?.label || '',
@@ -299,6 +299,7 @@ export const ButtonCellRenderer: CellRenderer = {
       const isLoading = actionManager.isLoading(pk, column.id!)
 
       if (column.readonly || column.columnObj?.readonly || isLoading) return false
+
       await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
       return true
     }

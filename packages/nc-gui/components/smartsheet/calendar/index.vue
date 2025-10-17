@@ -119,15 +119,19 @@ onMounted(async () => {
   }
 })
 
-reloadViewDataHook?.on(
-  withLoading(async (params: void | { shouldShowLoading?: boolean }) => {
-    await Promise.all([
-      loadCalendarData(params?.shouldShowLoading ?? false),
-      loadSidebarData(params?.shouldShowLoading ?? false),
-      fetchActiveDates(),
-    ])
-  }),
-)
+const reloadViewDataListener = withLoading(async (params: void | { shouldShowLoading?: boolean }) => {
+  await Promise.all([
+    loadCalendarData(params?.shouldShowLoading ?? false),
+    loadSidebarData(params?.shouldShowLoading ?? false),
+    fetchActiveDates(),
+  ])
+})
+
+reloadViewDataHook?.on(reloadViewDataListener)
+
+onBeforeUnmount(() => {
+  reloadViewDataHook?.off(reloadViewDataListener)
+})
 
 // on filter param changes reload the data
 // In calendar view we don't have toolbar search component, so we have to listen to route query changes to reload the data

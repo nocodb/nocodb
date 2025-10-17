@@ -20,7 +20,7 @@ const activeViewTitleOrId = computed(() => {
   return route.value.params.viewTitle
 })
 
-const { eventBus } = useExtensions()
+const { eventBus, extensionAccess } = useExtensions()
 
 const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOrThrow()
 const EXTENSION_ID = extension.value.extensionId
@@ -250,7 +250,7 @@ const filterOption = (input: string, option: { key: string }) => {
   return option.key?.toLowerCase()?.includes(input?.toLowerCase())
 }
 
-eventBus.on(async (event, payload) => {
+const extensionEvents = async (event: ExtensionsEvents, payload: any) => {
   if (event === ExtensionsEvents.CLEARDATA && payload && extension.value.id && payload === extension.value.id) {
     const deleteExportsPayload = exportedFiles.value.map((exp) => exp.id)
 
@@ -259,6 +259,12 @@ eventBus.on(async (event, payload) => {
       await extension.value.kvStore.set('deletedExports', deletedExports.value)
     }
   }
+}
+
+eventBus.on(extensionEvents)
+
+onBeforeUnmount(() => {
+  eventBus.off(extensionEvents)
 })
 
 onMounted(async () => {
@@ -614,12 +620,22 @@ onMounted(async () => {
                 </div>
 
                 <div class="flex">
-                  <NcTooltip class="flex">
+                  <NcTooltip class="flex" :placement="extensionAccess.update ? 'top' : 'left'">
                     <template #title>
-                      {{ $t('general.remove') }}
+                      {{
+                        extensionAccess.update
+                          ? $t('general.remove')
+                          : $t('tooltip.youDoNotHaveSufficientPermissionToPerformThisAction')
+                      }}
                     </template>
 
-                    <NcButton type="text" size="xs" class="!px-[5px]" @click="onRemoveExportedFile(exp.id)">
+                    <NcButton
+                      :disabled="!extensionAccess.update"
+                      type="text"
+                      size="xs"
+                      class="!px-[5px]"
+                      @click="onRemoveExportedFile(exp.id)"
+                    >
                       <GeneralIcon icon="close" />
                     </NcButton>
                   </NcTooltip>

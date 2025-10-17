@@ -650,7 +650,7 @@ const promptAI = async () => {
     prompt: aiPrompt.value,
   })
 
-  const formula = await predictFormula(aiPrompt.value, value.value)
+  const formula = await predictFormula(aiPrompt.value, meta.value?.id, value.value)
 
   if (formula) {
     editor.setValue(formula)
@@ -663,7 +663,7 @@ const repairFormulaAI = async () => {
 
   $e(`a:column:ai:formula:repair`)
 
-  const formula = await repairFormula(value.value, validateInfos?.formula_raw?.help.join(' | '))
+  const formula = await repairFormula(value.value, meta.value?.id, validateInfos?.formula_raw?.help.join(' | '))
 
   if (formula) {
     editor.setValue(formula)

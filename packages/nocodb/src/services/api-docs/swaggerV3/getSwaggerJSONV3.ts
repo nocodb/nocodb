@@ -34,7 +34,6 @@ export default async function getSwaggerJSONV3(
   const sources = await base.getSources(false, ncMeta);
   const sourcesMap = new Map(sources.map((source) => [source.id, source]));
 
-
   // Pre-construct table names for all models to avoid repeated construction and handle duplicates
   const tableNamesMap = new Map<string, string>();
   const usedTableNames = new Set<string>();

@@ -108,7 +108,19 @@ export const usePlugin = createSharedComposable(() => {
   const availablePlugins = computed<PluginManifest[]>(() => [...availableExtensions.value, ...availableScripts.value])
 
   const availableExtensionIds = computed(() => availableExtensions.value.map((e) => e.id))
+  const availableExtensionMapById = computed(() => {
+    return availableExtensions.value.reduce((acc, ext) => {
+      acc[ext.id] = ext
+      return acc
+    }, {} as Record<string, ExtensionManifest>)
+  })
   const availableScriptIds = computed(() => availableScripts.value.map((s) => s.id))
+  const availableScriptMapById = computed(() => {
+    return availableScripts.value.reduce((acc, script) => {
+      acc[script.id] = script
+      return acc
+    }, {} as Record<string, ScriptManifest>)
+  })
 
   const pluginDescriptionContent = ref<Record<string, string>>({})
   const scriptContent = ref<Record<string, string>>({})
@@ -305,7 +317,9 @@ export const usePlugin = createSharedComposable(() => {
     availableScripts,
     availablePlugins,
     availableExtensionIds,
+    availableExtensionMapById,
     availableScriptIds,
+    availableScriptMapById,
     isPluginsEnabled,
 
     // Content getters

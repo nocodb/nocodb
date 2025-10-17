@@ -72,7 +72,7 @@ export * from '~/lib/filter';
 export * from '~/lib/dashboard';
 export * from '~/lib/arrayHelpers';
 export * from '~/lib/objectHelpers';
-export * from '~/lib/roleHelpers';
+export * from '~/lib/roleHelper';
 export * from '~/lib/system';
 export * from '~/lib/timer.utils';
 export * from '~/lib/commonUtils';

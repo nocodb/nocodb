@@ -154,7 +154,7 @@ export function useGridViewData(
     }
   }
 
-  reloadAggregate?.on((v: Record<string, any> = {}) => {
+  const reloadAggregateListener = (v: Record<string, any> = {}) => {
     const { path, fields } = v
     if (!path?.length && isGroupBy.value) {
       const allGroups: CanvasGroup[] = []
@@ -176,6 +176,12 @@ export function useGridViewData(
         updateGroupAggregations(allGroups, fields)
       }
     }
+  }
+
+  reloadAggregate?.on(reloadAggregateListener)
+
+  onBeforeUnmount(() => {
+    reloadAggregate?.off(reloadAggregateListener)
   })
 
   function getCount(path?: Array<number>) {

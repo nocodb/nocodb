@@ -192,10 +192,16 @@ const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
 
 const viewWidth = ref(0)
 
-eventBus.on((event) => {
+const smartsheetEvents = (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
+}
+
+eventBus.on(smartsheetEvents)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEvents)
 })
 
 const goToNextRow = () => {

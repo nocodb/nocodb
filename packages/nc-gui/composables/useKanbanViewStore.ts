@@ -753,7 +753,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     /**
      * This is used to update the rowMeta color info when the row colour info is updated
      */
-    eventBus.on((event) => {
+    const smartsheetStoreEventHandler = (event: SmartsheetStoreEvents) => {
       if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
         return
       }
@@ -771,7 +771,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         formattedData.value.set(key, formattedDataCopy)
       })
-    })
+    }
+
+    eventBus.on(smartsheetStoreEventHandler)
 
     watch([groupingFieldColumn], () => {
       loadKanbanData()
@@ -928,6 +930,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     )
 
     onBeforeUnmount(() => {
+      eventBus.off(smartsheetStoreEventHandler)
+
       if (activeDataListener.value) {
         $ncSocket.offMessage(activeDataListener.value)
       }

@@ -68,7 +68,7 @@ const sidebarItems = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-6 w-[242px]">
+  <aside class="nc-marketplace-sidebar flex flex-col gap-6 w-[242px]">
     <h1 class="text-nc-content-gray-subtle2 font-bold leading-6">{{ $t('title.categories') }}</h1>
     <Transition name="search-slide" appear>
       <div class="relative">
@@ -118,7 +118,7 @@ const sidebarItems = computed(() => {
         </MarketplaceSidebarFolder>
       </template>
     </TransitionGroup>
-  </div>
+  </aside>
 </template>
 
 <style scoped lang="scss">

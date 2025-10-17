@@ -11,13 +11,22 @@ const router = useRouter()
 const templateId = computed(() => route.params.templateId)
 const typeOrId = computed(() => route.params.typeOrId)
 
-const { activeCategory, getTemplateById, currentCategoryInfo } = useMarketplaceTemplates('marketplace')
+const { categoryInfo, activeCategory, getTemplateById, currentCategoryInfo } = useMarketplaceTemplates('marketplace')
 
 const template = ref<Record<string, any> | null>(null)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 const carouselApi = ref<CarouselApi>()
 const currentSlideIndex = ref(0)
+
+const browseByCategories = computed(() => {
+  return Object.entries(categoryInfo)
+    .filter(([_key, category]) => !!category.group)
+    .map(([key, category]) => ({
+      key,
+      ...category,
+    }))
+})
 
 const fetchTemplateDetails = async () => {
   isLoading.value = true
@@ -191,7 +200,7 @@ const scrollToSlide = (index: number) => {
             {{ template.Title }}
           </div>
 
-          <NcButton size="small"> Use this Template </NcButton>
+          <NcButton size="small"> {{ $t('labels.useThisTemplate') }} </NcButton>
         </div>
 
         <div class="mb-16">
@@ -225,14 +234,14 @@ const scrollToSlide = (index: number) => {
         <NcTabs>
           <a-tab-pane key="overview" class="w-full">
             <template #tab>
-              <div class="font-bold text-captionBold">Overview</div>
+              <div class="font-bold text-captionBold">{{ $t('general.overview') }}</div>
             </template>
             <div class="my-4" v-html="descriptionRendered"></div>
           </a-tab-pane>
 
           <a-tab-pane key="structure" class="w-full">
             <template #tab>
-              <div class="font-bold text-captionBold">Structure</div>
+              <div class="font-bold text-captionBold">{{ $t('general.structure') }}</div>
             </template>
             <div class="my-4" v-html="structureRendered"></div>
           </a-tab-pane>
@@ -252,80 +261,29 @@ const scrollToSlide = (index: number) => {
               :title="relatedTemplate.Title"
               :description="relatedTemplate.Description"
               :image="relatedTemplate.Thumbnail"
-              @click="openRelatedTemplate(relatedTemplate)"
+              @click="openRelatedTemplate(relatedTemplate.Id)"
             />
           </div>
         </div>
         <div>
-          <h2 class="text-heading3 font-semibold mt-16">Browse by category</h2>
-          <div class="text-body text-nc-content-grey">Explore further to discover the base that fits you best.</div>
+          <h2 class="text-heading3 font-semibold mt-16">{{ $t('objects.templates.browseByCategory') }}</h2>
+          <div class="text-body text-nc-content-grey">{{ $t('objects.templates.browseByCategorySubtitle') }}.</div>
           <div class="grid grid-cols-[repeat(auto-fit,minmax(162px,1fr))] gap-6 my-8">
-            <div class="template-category-item" @click="navigateToCategory('sales')">
-              <img src="~/assets/img/marketplace/sales.png" height="48" width="48" alt="Sales" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Sales</div>
-            </div>
-
-            <div class="template-category-item" @click="navigateToCategory('marketing')">
-              <img src="~assets/img/marketplace/marketing.png" height="48" width="48" alt="Marketing" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Marketing</div>
-            </div>
-
-            <div class="template-category-item" @click="navigateToCategory('hr')">
-              <img src="~assets/img/marketplace/human-resources.png" height="48" width="48" alt="Human Resources" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Human Resources</div>
-            </div>
-
-            <div class="template-category-item" @click="navigateToCategory('product-management')">
-              <img src="~assets/img/marketplace/product-management.png" height="48" width="48" alt="Product Management" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Product Management</div>
-            </div>
-
-            <div class="template-category-item" @click="navigateToCategory('operations')">
-              <img src="~assets/img/marketplace/operations.png" height="48" width="48" alt="Operations" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Operations</div>
-            </div>
-
-            <div class="template-category-item" @click="navigateToCategory('project-management')">
-              <img src="~assets/img/marketplace/product-management.png" height="48" width="48" alt="Project Management" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Project Management</div>
-            </div>
-
-            <!-- Industry Categories -->
-            <div class="template-category-item" @click="navigateToCategory('healthcare')">
-              <img src="~assets/img/marketplace/healthcare.png" height="48" width="48" alt="Healthcare" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Healthcare</div>
-            </div>
-
-            <div class="template-category-item" @click="navigateToCategory('finance')">
-              <img src="~assets/img/marketplace/finance.png" height="48" width="48" alt="Finance" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Finance</div>
-            </div>
-
-            <div class="template-category-item" @click="navigateToCategory('education')">
-              <img src="~assets/img/marketplace/education.png" height="48" width="48" alt="Education" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Education</div>
-            </div>
-
-            <div class="template-category-item" @click="navigateToCategory('manufacturing')">
-              <img src="~assets/img/marketplace/manufacturing.png" height="48" width="48" alt="Manufacturing" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Manufacturing</div>
-            </div>
-
-            <div class="template-category-item" @click="navigateToCategory('real-estate')">
-              <img src="~assets/img/marketplace/realestate.png" height="48" width="48" alt="Real Estate" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Real Estate</div>
-            </div>
-
-            <div class="template-category-item" @click="navigateToCategory('retail')">
-              <img src="~assets/img/marketplace/retail.png" height="48" width="48" alt="Retail" />
-              <div class="text-nc-content-gray-subtle text-bodySmBold">Retail</div>
+            <div
+              v-for="item of browseByCategories"
+              :key="item.key"
+              class="template-category-item"
+              @click="navigateToCategory(item.key)"
+            >
+              <img :src="item.sidebarImg" height="48" width="48" :alt="item.sidebarTitle" />
+              <div class="text-nc-content-gray-subtle text-bodySmBold">{{ item.sidebarTitle }}</div>
             </div>
           </div>
 
           <NcButton type="secondary" size="small" @click="navigateToHome()">
             <div class="flex items-center gap-2">
               <GeneralIcon icon="ncArrowLeft" />
-              <span class="text-bodySmBold">Back to Home</span>
+              <span class="text-bodySmBold">{{ $t('labels.backToHome') }}</span>
             </div>
           </NcButton>
         </div>

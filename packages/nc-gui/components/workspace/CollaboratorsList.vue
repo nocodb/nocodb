@@ -148,6 +148,9 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overri
   }
 }
 
+// Todo: Enable this after we add support for overriding base role in backend
+const showOverrideBaseRoleCheckbox = ref(false)
+
 const userRoleUpdateInfo = ref<{
   collab?: WorkspaceUserType
   roles?: WorkspaceUserRoles
@@ -565,16 +568,29 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
       <NcModalConfirm
         v-if="currentWorkspace"
         v-model:visible="userRoleUpdateInfo.showConfirmationModal"
-        title="Change Workspace Role"
         ok-class="capitalize"
         :ok-text="$t('general.confirm')"
         :show-icon="false"
         @cancel="onCancelRoleChangeConfirmationModal"
         @ok="onConfirmRoleChangeConfirmationModal"
       >
+        <template #title> {{ $t('title.changeWorkspaceRole') }} to {{ userRoleUpdateInfo.roles }}</template>
         <template #extraContent>
           <div class="flex flex-col gap-5 text-caption text-nc-content-gray">
-            <div class="flex items-start gap-3">
+            <NcAlert
+              type="info"
+              :show-icon="false"
+              class="!p-3 bg-nc-bg-yellow-light !border-nc-fill-yellow-light"
+              description-class="!line-clamp-none"
+            >
+              <template #description>
+                <div class="text-nc-content-yellow-dark">
+                  <b>{{ $t('general.notice') }}:</b>
+                  {{ $t('msg.info.workspaceRoleUpdateNotice') }}
+                </div>
+              </template>
+            </NcAlert>
+            <div v-if="showOverrideBaseRoleCheckbox" class="flex items-start gap-3">
               <div class="flex items-center h-5">
                 <NcCheckbox v-model:checked="userRoleUpdateInfo.overrideBaseRole" />
               </div>

@@ -445,7 +445,8 @@
     "overview": "Overview",
     "baseType": "Base Type",
     "beta": "Beta",
-    "selected": "selected"
+    "selected": "selected",
+    "notice": "Notice"
   },
   "objects": {
     "script": "Script",
@@ -948,7 +949,8 @@
     "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "changeWorkspaceRole": "Change Workspace Role"
   },
   "labels": {
     "hideEditor": "Hide Editor",
@@ -2363,7 +2365,8 @@
       "leaveWithoutFinishing": "Leave without finishing?",
       "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
       "matchedByButtonLabel": "Matched by button label",
-      "matchedByFieldDescription": "Matched by field description"
+      "matchedByFieldDescription": "Matched by field description",
+      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will automatically update their access to bases where they do not have explicitly assigned roles. Bases with explicit roles will continue to retain their individual permissions."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

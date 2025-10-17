@@ -2065,6 +2065,18 @@ export function useInfiniteData(args: {
               try {
                 const dataCache = getDataCache()
 
+                const isValidationFailed = !validateRowFilters(
+                  [...allFilters.value, ...computedWhereFilter.value],
+                  payload,
+                  meta.value?.columns as ColumnType[],
+                  getBaseType(viewMeta.value?.view?.source_id),
+                  metas.value,
+                  {
+                    currentUser: user.value,
+                    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                  },
+                )
+
                 // find index to insert the new row
                 if (before) {
                   for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
@@ -2083,32 +2095,39 @@ export function useInfiniteData(args: {
                         dataCache.cachedRows.value.set(index + 1, rowData)
                       }
 
-                      dataCache.cachedRows.value.set(newRowIndex, {
-                        row: payload,
-                        oldRow: {},
-                        rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
-                      })
+                      if (!isValidationFailed) {
+                        dataCache.cachedRows.value.set(newRowIndex, {
+                          row: payload,
+                          oldRow: {},
+                          rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+                        })
 
-                      dataCache.totalRows.value++
-                      dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+                        dataCache.totalRows.value++
+                        dataCache.actualTotalRows.value = Math.max(
+                          dataCache.actualTotalRows.value || 0,
+                          dataCache.totalRows.value,
+                        )
 
-                      callbacks?.syncVisibleData?.()
+                        callbacks?.syncVisibleData?.()
+                      }
                       return
                     }
                   }
                 }
 
-                // If no order is found, append to the end
-                const newRowIndex = dataCache.totalRows.value
-                dataCache.cachedRows.value.set(newRowIndex, {
-                  row: payload,
-                  oldRow: {},
-                  rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
-                })
-                dataCache.totalRows.value++
-                dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+                if (!isValidationFailed) {
+                  // If no order is found, append to the end
+                  const newRowIndex = dataCache.totalRows.value
+                  dataCache.cachedRows.value.set(newRowIndex, {
+                    row: payload,
+                    oldRow: {},
+                    rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+                  })
+                  dataCache.totalRows.value++
+                  dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
 
-                callbacks?.syncVisibleData?.()
+                  callbacks?.syncVisibleData?.()
+                }
               } catch (e) {
                 console.error('Failed to add cached row on socket event', e)
               }
@@ -2122,6 +2141,20 @@ export function useInfiniteData(args: {
                   if (pk && `${pk}` === `${id}`) {
                     Object.assign(cachedRow.row, payload)
                     Object.assign(cachedRow.oldRow, payload)
+
+                    const isValidationFailed = !validateRowFilters(
+                      [...allFilters.value, ...computedWhereFilter.value],
+                      payload,
+                      meta.value?.columns as ColumnType[],
+                      getBaseType(viewMeta.value?.view?.source_id),
+                      metas.value,
+                      {
+                        currentUser: user.value,
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                      },
+                    )
+
+                    cachedRow.rowMeta.isValidationFailed = isValidationFailed
                     cachedRow.rowMeta.changed = false
                     updated = true
                     break

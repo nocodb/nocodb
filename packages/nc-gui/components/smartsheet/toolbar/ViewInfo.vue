@@ -254,7 +254,7 @@ const viewModeInfo = computed(() => {
                 >
                   <GeneralUserIcon
                     :user="idUserMap[activeView.owned_by]"
-                    :initial-legth="1"
+                    :initials-length="1"
                     size="auto"
                     class="flex-none !h-[14px] !min-h-[14px]"
                     :class="{

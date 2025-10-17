@@ -6,6 +6,7 @@ import {
   PlanLimitTypes,
   PlanTitles,
   WorkspaceUserRoles,
+  type WorkspaceUserType,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -118,11 +119,11 @@ const selectAll = computed({
   },
 })
 
-const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
+const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overrideBaseRole: boolean = false) => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
   try {
-    const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, isAdminPanel.value)
+    const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, overrideBaseRole)
     if (!res) return
     message.success(t('msg.info.userRoleUpdated'))
 
@@ -145,6 +146,56 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
       })
     }
   }
+}
+
+const userRoleUpdateInfo = ref<{
+  collab?: WorkspaceUserType
+  roles?: WorkspaceUserRoles
+  showConfirmationModal: boolean
+  overrideBaseRole: boolean
+}>({
+  showConfirmationModal: false,
+  overrideBaseRole: false,
+})
+
+/**
+ * If user don't have explicit base role assigned to any base then no need to show confirmation modal
+ * If user is only owner in any base then we should restrict overriding base role
+ */
+const showRoleChangeConfirmationModal = async (collab: any, roles: WorkspaceUserRoles) => {
+  if (!currentWorkspace.value || !currentWorkspace.value.id) return
+
+  userRoleUpdateInfo.value.collab = collab
+  userRoleUpdateInfo.value.roles = roles
+  userRoleUpdateInfo.value.overrideBaseRole = false
+
+  try {
+    /**
+     * Todo: API call to check if user has explicit base role assigned to any base or not
+     * And whether user is only owner in any base or not
+     */
+
+    userRoleUpdateInfo.value.showConfirmationModal = true
+  } catch (e: any) {
+    console.error(e)
+  }
+
+  try {
+  } catch (e: any) {}
+}
+
+const onCancelRoleChangeConfirmationModal = () => {
+  userRoleUpdateInfo.value = {
+    showConfirmationModal: false,
+    overrideBaseRole: false,
+  }
+}
+
+const onConfirmRoleChangeConfirmationModal = () => {
+  console.log('onConfirmRoleChangeConfirmationModal', userRoleUpdateInfo.value)
+  userRoleUpdateInfo.value.showConfirmationModal = false
+
+  updateCollaborator(userRoleUpdateInfo.value.collab, userRoleUpdateInfo.value.roles, userRoleUpdateInfo.value.overrideBaseRole)
 }
 
 const isOwnerOrCreator = computed(() => {
@@ -432,7 +483,7 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
               >
                 <RolesSelector
                   :description="false"
-                  :on-role-change="(role) => updateCollaborator(record, role as WorkspaceUserRoles)"
+                  :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
                   :role="record.roles"
                   :roles="accessibleRoles"
                   class="cursor-pointer"
@@ -510,6 +561,34 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
         type="workspace"
         :users="sortedCollaborators"
       />
+
+      <NcModalConfirm
+        v-if="currentWorkspace"
+        v-model:visible="userRoleUpdateInfo.showConfirmationModal"
+        title="Change Workspace Role"
+        ok-class="capitalize"
+        :ok-text="$t('general.confirm')"
+        :show-icon="false"
+        @cancel="onCancelRoleChangeConfirmationModal"
+        @ok="onConfirmRoleChangeConfirmationModal"
+      >
+        <template #extraContent>
+          <div class="flex flex-col gap-5 text-caption text-nc-content-gray">
+            <div class="flex items-start gap-3">
+              <div class="flex items-center h-5">
+                <NcCheckbox v-model:checked="userRoleUpdateInfo.overrideBaseRole" />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="font-semibold">Apply to all bases</div>
+                <div class="text-nc-content-gray-subtle">
+                  This will override explicit base roles and apply the workspace role to all bases.
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </NcModalConfirm>
     </div>
   </div>
 </template>

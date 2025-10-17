@@ -68,7 +68,7 @@ export default class Plan {
 
     if (!forcePrivate && response?.prices) {
       response.prices = response.prices.filter(
-        (price) => !price.lookup_key.includes('private_'),
+        (price) => !price.lookup_key?.includes('private_'),
       );
     }
 

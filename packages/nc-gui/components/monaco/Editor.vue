@@ -143,9 +143,6 @@ defineExpose({
 // Make this component async by awaiting Monaco initialization
 await initializeMonaco()
 
-// Add a small delay to ensure Suspense triggers even if Monaco is already initialized
-await new Promise((resolve) => setTimeout(resolve, 100))
-
 onMounted(async () => {
   try {
     await initializeMonaco()

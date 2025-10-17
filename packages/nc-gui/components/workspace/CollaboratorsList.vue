@@ -481,8 +481,7 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
               <template
                 v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles as WorkspaceUserRoles)"
               >
-                <RolesSelector
-                  :description="false"
+                <RolesSelectorV2
                   :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
                   :role="record.roles"
                   :roles="accessibleRoles"

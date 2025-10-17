@@ -316,6 +316,10 @@ export const RoleDescriptions = {
   [OrgUserRoles.CREATOR]:
     'Can create bases, sync tables, views, setup web-hooks and more',
   [OrgUserRoles.VIEWER]: 'Can only view bases',
+
+  [CloudOrgUserRoles.OWNER]: 'Full access to organization and admin panel',
+  [CloudOrgUserRoles.CREATOR]: 'Can create and manage domains, users and workspaces',
+  [CloudOrgUserRoles.VIEWER]: 'Can view organization and workspaces',
 };
 
 export const RoleIcons = {

@@ -250,7 +250,7 @@ const viewModeInfo = computed(() => {
               <template v-if="[ViewLockType.Locked, ViewLockType.Personal].includes(activeView?.lock_type)">
                 <div
                   v-if="activeView?.lock_type === ViewLockType.Personal && activeView.owned_by && idUserMap[activeView.owned_by]"
-                  class="flex items-center justify-center"
+                  class="flex items-center justify-center mx-0.5"
                 >
                   <GeneralUserIcon
                     :user="idUserMap[activeView.owned_by]"

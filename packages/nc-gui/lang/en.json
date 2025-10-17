@@ -445,7 +445,10 @@
     "overview": "Overview",
     "baseType": "Base Type",
     "beta": "Beta",
-    "selected": "selected"
+    "selected": "selected",
+    "selectAll": "Select All",
+    "clearAll": "Clear All",
+    "records": "Records"
   },
   "objects": {
     "script": "Script",

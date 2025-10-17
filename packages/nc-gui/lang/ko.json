@@ -445,7 +445,8 @@
     "overview": "개요",
     "baseType": "베이스 유형",
     "beta": "베타",
-    "selected": "선택됨"
+    "selected": "선택됨",
+    "notice": "Notice"
   },
   "objects": {
     "script": "스크립트",
@@ -510,6 +511,26 @@
       "orgLevelOwner": "조직 수준 소유자",
       "orgLevelCreator": "조직 수준 생성자",
       "orgLevelViewer": "조직 수준 뷰어"
+    },
+    "roleDescription": {
+      "workspace-level-owner": "Has full control over all workspace bases, settings, and billing",
+      "workspace-level-creator": "Can create, configure, and edit all bases within the workspace",
+      "workspace-level-editor": "Can add, edit, and delete records, but cannot modify base configurations",
+      "workspace-level-commenter": "Can view and comment on records within workspace bases",
+      "workspace-level-viewer": "Can only view records within workspace bases",
+      "workspace-level-no-access": "No access to this workspace",
+      "owner": "Has full control over the base, including configuration and deletion rights",
+      "creator": "Can fully configure the base but cannot delete it",
+      "editor": "Can add, edit, and delete records, but cannot modify base configurations",
+      "commenter": "Can view and comment on records within the base",
+      "viewer": "Can only view records within the base",
+      "no-access": "No access to this base",
+      "super": "Full access to all",
+      "org-level-creator": "Can fully configure and edit bases",
+      "org-level-viewer": "Can only view records in bases",
+      "cloud-org-level-owner": "Full access to organization and workspaces",
+      "cloud-org-level-creator": "Can create and manage domains, users and workspaces",
+      "cloud-org-level-viewer": "Can only view organization and workspaces"
     },
     "sqlView": "SQL 보기",
     "rowHeight": "행 높이",
@@ -948,7 +969,8 @@
     "confirmLeaveWorkspaceTitle": "이 작업공간에서 나가시겠습니까?",
     "confirmLeaveWorkspaceSubtile": "이 작업 공간을 나가면 작업 공간 내의 모든 베이스와 데이터에 접근할 수 없게 됩니다. 다시 참여하려면 초대장이 필요합니다.",
     "confirmRemoveMemberFromWorkspaceTitle": "작업 공간에서 사용자를 제거하시겠습니까?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "제거하면 해당 사용자는 이 작업 공간 내의 모든 베이스와 데이터에 접근할 수 없게 됩니다. 다시 참여하려면 초대장이 필요합니다."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "제거하면 해당 사용자는 이 작업 공간 내의 모든 베이스와 데이터에 접근할 수 없게 됩니다. 다시 참여하려면 초대장이 필요합니다.",
+    "changeWorkspaceRoleTo": "Change Workspace Role to"
   },
   "labels": {
     "hideEditor": "편집기 숨기기",
@@ -2363,7 +2385,8 @@
       "leaveWithoutFinishing": "마무리하지 않고 떠나시겠습니까?",
       "leaveWithoutFinishingConfirmation": "변경 사항은 자동으로 저장되지만 여전히 편집 모드에 있습니다.",
       "matchedByButtonLabel": "단추 레이블로 일치",
-      "matchedByFieldDescription": "필드 설명으로 일치"
+      "matchedByFieldDescription": "필드 설명으로 일치",
+      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles."
     },
     "error": {
       "failedToDeleteMcpToken": "MCP 토큰을 삭제하지 못했습니다",

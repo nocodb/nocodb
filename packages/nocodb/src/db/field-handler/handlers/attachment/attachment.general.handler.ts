@@ -44,6 +44,10 @@ export class AttachmentGeneralHandler extends ComputedFieldHandler {
         // do not throw error, but set it as empty array
         value = [];
       }
+
+      if (typeof value === 'string' || !Array.isArray(value)) {
+        throwError('Invalid format for attachment field');
+      }
     } catch (e) {
       // do not throw error, but set it as empty array
       value = [];

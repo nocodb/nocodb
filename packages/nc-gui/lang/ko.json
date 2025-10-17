@@ -724,7 +724,7 @@
     "isNotNull": "null 값이 아님"
   },
   "title": {
-    "externalIntegrations": "External Integrations",
+    "externalIntegrations": "외부 연동",
     "mcpServer": "MCP 서버",
     "accessRestricted": "접근 제한됨",
     "editTablePermissions": "테이블 권한 편집",

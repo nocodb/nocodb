@@ -145,7 +145,9 @@ let cityColumns;
 const verifyColumnsInRsp = (row, columns: ColumnType[]) => {
   const responseColumnsListStr = Object.keys(row).sort().join(',');
   const expectedColumnsListStr = columns
-    .filter((c) => !(c.system && isCreatedOrLastModifiedByCol(c) || isOrderCol(c)))
+    .filter(
+      (c) => !((c.system && isCreatedOrLastModifiedByCol(c)) || isOrderCol(c)),
+    )
     .map((c) => c.title)
     .sort()
     .join(',');
@@ -1003,6 +1005,7 @@ function textBased() {
     // Invalid data - create should not specify ID
     await ncAxiosPost({
       body: { ...newRecord, Id: 300 },
+      query: { undo: 'true' },
       status: 400,
     });
     // Invalid data - number instead of string
@@ -2964,13 +2967,13 @@ function userFieldBased() {
       'email',
       'id',
       'display_name',
-      'meta'
+      'meta',
     ]);
     expect(insertedRecords[0].userFieldMulti[0]).to.have.keys([
       'email',
       'id',
       'display_name',
-      'meta'
+      'meta',
     ]);
   });
 

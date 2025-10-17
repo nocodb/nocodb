@@ -1207,7 +1207,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
       it('Create: invalid ID', async function () {
         // Invalid table ID
         await ncAxiosPost({
-          url: `/api/v2/tables/123456789/records`,
+          url: `/api/v2/tables/123456789/records?undo=true`,
           status: 404,
         });
 

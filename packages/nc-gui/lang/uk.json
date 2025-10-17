@@ -445,7 +445,8 @@
     "overview": "Огляд",
     "baseType": "Тип бази",
     "beta": "Beta",
-    "selected": "selected"
+    "selected": "selected",
+    "notice": "Notice"
   },
   "objects": {
     "script": "Скрипт",
@@ -510,6 +511,26 @@
       "orgLevelOwner": "Власник на рівні організації",
       "orgLevelCreator": "Творець рівня організації",
       "orgLevelViewer": "Глядач рівня організації"
+    },
+    "roleDescription": {
+      "workspace-level-owner": "Has full control over all workspace bases, settings, and billing",
+      "workspace-level-creator": "Can create, configure, and edit all bases within the workspace",
+      "workspace-level-editor": "Can add, edit, and delete records, but cannot modify base configurations",
+      "workspace-level-commenter": "Can view and comment on records within workspace bases",
+      "workspace-level-viewer": "Can only view records within workspace bases",
+      "workspace-level-no-access": "No access to this workspace",
+      "owner": "Has full control over the base, including configuration and deletion rights",
+      "creator": "Can fully configure the base but cannot delete it",
+      "editor": "Can add, edit, and delete records, but cannot modify base configurations",
+      "commenter": "Can view and comment on records within the base",
+      "viewer": "Can only view records within the base",
+      "no-access": "No access to this base",
+      "super": "Full access to all",
+      "org-level-creator": "Can fully configure and edit bases",
+      "org-level-viewer": "Can only view records in bases",
+      "cloud-org-level-owner": "Full access to organization and workspaces",
+      "cloud-org-level-creator": "Can create and manage domains, users and workspaces",
+      "cloud-org-level-viewer": "Can only view organization and workspaces"
     },
     "sqlView": "SQL вигляд",
     "rowHeight": "Висота запису",
@@ -948,7 +969,8 @@
     "confirmLeaveWorkspaceTitle": "Ви впевнені, що хочете покинути цей робочий простір?",
     "confirmLeaveWorkspaceSubtile": "Якщо ви покинете цей робочий простір, ви втратите доступ до всіх баз і даних у цьому просторі. Щоб повернутися, вам знадобиться запрошення.",
     "confirmRemoveMemberFromWorkspaceTitle": "Ви впевнені, що хочете видалити користувача з робочого простору?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "Якщо ви видалите, вони втратять доступ до всіх баз та даних у цьому робочому просторі. Для повторного приєднання їм знадобиться запрошення."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "Якщо ви видалите, вони втратять доступ до всіх баз та даних у цьому робочому просторі. Для повторного приєднання їм знадобиться запрошення.",
+    "changeWorkspaceRoleTo": "Change Workspace Role to"
   },
   "labels": {
     "hideEditor": "Hide Editor",
@@ -2363,7 +2385,8 @@
       "leaveWithoutFinishing": "Залишити, не завершивши?",
       "leaveWithoutFinishingConfirmation": "Ваші зміни зберігаються автоматично, але ви все ще перебуваєте у режимі редагування.",
       "matchedByButtonLabel": "Збіг по ярлику кнопки",
-      "matchedByFieldDescription": "Збіг по опису поля"
+      "matchedByFieldDescription": "Збіг по опису поля",
+      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles."
     },
     "error": {
       "failedToDeleteMcpToken": "Не вдалося видалити токен MCP",

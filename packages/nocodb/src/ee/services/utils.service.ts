@@ -194,7 +194,11 @@ export class UtilsService extends UtilsServiceCE {
 
     const key = `${CacheScope.TEMPLATES}:${industry}:${usecase}:${search}:${page}:${per_page}`;
 
-    const cachedData = await NocoCache.get(key, CacheGetType.TYPE_ARRAY);
+    const cachedData = await NocoCache.get(
+      'root',
+      key,
+      CacheGetType.TYPE_ARRAY,
+    );
 
     if (cachedData?.length) {
       return cachedData;
@@ -217,6 +221,7 @@ export class UtilsService extends UtilsServiceCE {
     }
 
     await NocoCache.setExpiring(
+      'root',
       key,
       JSON.stringify(response.data, getCircularReplacer),
       2 * 60 * 60,

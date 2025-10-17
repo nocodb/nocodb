@@ -99,12 +99,13 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
           }"
           :isLocked="!!newRole"
           variant="default"
+          item-class-name="nc-role-select-dropdown"
           :wrapper-class-name="`!h-auto nc-role-selector-dropdown ${!!newRole ? '!cursor-wait' : ''}`"
           @update:value="onChangeRole"
           @escape="onEsc"
         >
           <template #listItem="{ option }">
-            <div class="w-full flex flex-col">
+            <div class="w-full flex flex-col" :class="`nc-role-select-${option.value}`">
               <div class="w-full flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <GeneralIcon

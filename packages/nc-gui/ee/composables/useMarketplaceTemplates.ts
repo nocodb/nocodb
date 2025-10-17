@@ -1,3 +1,16 @@
+import salesImg from '~/assets/img/marketplace/sales.png'
+import marketingImg from '~/assets/img/marketplace/marketing.png'
+import hrImg from '~/assets/img/marketplace/human-resources.png'
+import productManagementImg from '~/assets/img/marketplace/product-management.png'
+import operationsImg from '~/assets/img/marketplace/operations.png'
+import projectManagementImg from '~/assets/img/marketplace/product-management.png'
+import healthcareImg from '~/assets/img/marketplace/healthcare.png'
+import financeImg from '~/assets/img/marketplace/finance.png'
+import educationImg from '~/assets/img/marketplace/education.png'
+import manufacturingImg from '~/assets/img/marketplace/manufacturing.png'
+import realEstateImg from '~/assets/img/marketplace/realestate.png'
+import retailImg from '~/assets/img/marketplace/retail.png'
+
 export interface Template {
   'Id': number
   'Title': string
@@ -13,11 +26,31 @@ export interface Template {
   'Related Templates'?: Template[]
 }
 
+export interface TemplateCategoryInfoItemType {
+  order: number
+  sidebarTitle: string
+  title: string
+  subtitle: string
+  group?: string
+  sidebarImg?: string
+}
+
+export enum TemplateCategoryGroup {
+  Departments = 'departments',
+  Industries = 'industries',
+}
+
 export const useMarketplaceTemplates = createSharedComposable((initialCategory = 'marketplace') => {
   const { $api } = useNuxtApp()
+
   const route = useRoute()
   const router = useRouter()
+
+  const { t } = useI18n()
+
   const typeOrId = computed(() => route.params.typeOrId as string)
+
+  const category = computed(() => route.params.category as string)
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -37,60 +70,110 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
 
   const activeCategory = ref(initialCategory)
 
-  const categoryInfo = {
+  const categoryInfo: Record<string, TemplateCategoryInfoItemType> = {
     'marketplace': {
-      title: 'Popular templates',
-      subtitle: 'Browse the most popular bases among our users.',
+      order: 1,
+      sidebarTitle: t('objects.templates.marketplace.sidebarTitle'),
+      title: t('objects.templates.marketplace.title'),
+      subtitle: t('objects.templates.marketplace.subtitle'),
     },
     // Departments
     'sales': {
-      title: 'Sales Templates',
-      subtitle: 'Streamline your sales process with these ready-to-use templates.',
+      order: 2,
+      sidebarTitle: t('objects.templates.sales.sidebarTitle'),
+      title: t('objects.templates.sales.title'),
+      subtitle: t('objects.templates.sales.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: salesImg,
     },
     'marketing': {
-      title: 'Marketing Templates',
-      subtitle: 'Boost your marketing efforts with these specialized templates.',
+      order: 3,
+      sidebarTitle: t('objects.templates.marketing.sidebarTitle'),
+      title: t('objects.templates.marketing.title'),
+      subtitle: t('objects.templates.marketing.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: marketingImg,
     },
     'hr': {
-      title: 'Human Resources Templates',
-      subtitle: 'Simplify HR management with these comprehensive templates.',
+      order: 4,
+      sidebarTitle: t('objects.templates.hr.sidebarTitle'),
+      title: t('objects.templates.hr.title'),
+      subtitle: t('objects.templates.hr.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: hrImg,
     },
     'product-management': {
-      title: 'Product Management Templates',
-      subtitle: 'Organize your product development workflow with these templates.',
+      order: 5,
+      sidebarTitle: t('objects.templates.product-management.sidebarTitle'),
+      title: t('objects.templates.product-management.title'),
+      subtitle: t('objects.templates.product-management.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: productManagementImg,
     },
     'operations': {
-      title: 'Operations Templates',
-      subtitle: 'Optimize your business operations with these efficient templates.',
+      order: 6,
+      sidebarTitle: t('objects.templates.operations.sidebarTitle'),
+      title: t('objects.templates.operations.title'),
+      subtitle: t('objects.templates.operations.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: operationsImg,
     },
     'project-management': {
-      title: 'Project Management Templates',
-      subtitle: 'Track and manage your projects effectively with these templates.',
+      order: 7,
+      sidebarTitle: t('objects.templates.project-management.sidebarTitle'),
+      title: t('objects.templates.project-management.title'),
+      subtitle: t('objects.templates.project-management.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: projectManagementImg,
     },
     // Industries
     'healthcare': {
-      title: 'Healthcare Templates',
-      subtitle: 'Specialized templates for healthcare organizations and professionals.',
+      order: 8,
+      sidebarTitle: t('objects.templates.healthcare.sidebarTitle'),
+      title: t('objects.templates.healthcare.title'),
+      subtitle: t('objects.templates.healthcare.subtitle'),
+      group: TemplateCategoryGroup.Industries,
+      sidebarImg: healthcareImg,
     },
     'finance': {
-      title: 'Finance Templates',
-      subtitle: 'Manage financial data and processes with these tailored templates.',
+      order: 9,
+      sidebarTitle: t('objects.templates.finance.sidebarTitle'),
+      title: t('objects.templates.finance.title'),
+      subtitle: t('objects.templates.finance.subtitle'),
+      group: TemplateCategoryGroup.Industries,
+      sidebarImg: financeImg,
     },
     'education': {
-      title: 'Education Templates',
-      subtitle: 'Templates designed for educational institutions and learning management.',
+      order: 10,
+      sidebarTitle: t('objects.templates.education.sidebarTitle'),
+      title: t('objects.templates.education.title'),
+      subtitle: t('objects.templates.education.subtitle'),
+      group: TemplateCategoryGroup.Industries,
+      sidebarImg: educationImg,
     },
     'manufacturing': {
-      title: 'Manufacturing Templates',
-      subtitle: 'Streamline manufacturing processes with these industry-specific templates.',
+      order: 11,
+      sidebarTitle: t('objects.templates.manufacturing.sidebarTitle'),
+      title: t('objects.templates.manufacturing.title'),
+      subtitle: t('objects.templates.manufacturing.subtitle'),
+      group: TemplateCategoryGroup.Industries,
+      sidebarImg: manufacturingImg,
     },
     'real-estate': {
-      title: 'Real Estate Templates',
-      subtitle: 'Templates for property management and real estate businesses.',
+      order: 12,
+      sidebarTitle: t('objects.templates.real-estate.sidebarTitle'),
+      title: t('objects.templates.real-estate.title'),
+      subtitle: t('objects.templates.real-estate.subtitle'),
+      group: TemplateCategoryGroup.Industries,
+      sidebarImg: realEstateImg,
     },
     'retail': {
-      title: 'Retail Templates',
-      subtitle: 'Optimize inventory and sales tracking with these retail-focused templates.',
+      order: 13,
+      sidebarTitle: t('objects.templates.retail.sidebarTitle'),
+      title: t('objects.templates.retail.title'),
+      subtitle: t('objects.templates.retail.subtitle'),
+      group: TemplateCategoryGroup.Industries,
+      sidebarImg: retailImg,
     },
   }
 
@@ -247,6 +330,30 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       observer = null
     }
   })
+
+  /**
+   * Watch category query params so that we can update the active category ref based on url params
+   */
+  watch(
+    category,
+    (newValue) => {
+      if (!newValue) {
+        if (activeCategory.value !== 'marketplace') {
+          activeCategory.value = 'marketplace'
+        }
+
+        return
+      }
+
+      if (!categoryInfo[newValue] || activeCategory.value === newValue) return
+
+      activeCategory.value = newValue
+    },
+    {
+      immediate: true,
+      flush: 'post',
+    },
+  )
 
   return {
     templates,

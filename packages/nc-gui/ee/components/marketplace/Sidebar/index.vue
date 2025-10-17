@@ -5,9 +5,12 @@ const props = defineProps<{
 
 const activeCategory = useVModel(props, 'activeCategory')
 
-const { query } = useMarketplaceTemplates()
+const { query, categoryInfo } = useMarketplaceTemplates()
+
 const route = useRoute()
 const router = useRouter()
+
+const { t } = useI18n()
 
 const isSearchFocused = ref(false)
 
@@ -22,11 +25,51 @@ const setActiveItem = (category: string) => {
     router.push(`/${typeOrId}/marketplace/${category}`)
   }
 }
+
+interface SidebarItem extends TemplateCategoryInfoItemType {
+  key: string
+  isFolder?: boolean
+  childrens?: SidebarItem[]
+}
+
+const sidebarItems = computed(() => {
+  return [
+    { key: 'marketplace', ...categoryInfo.marketplace, onClick: () => setActiveItem('marketplace') },
+    {
+      key: 'departments',
+      title: t('objects.templates.departments'),
+      isFolder: true,
+      childrens: [
+        ...Object.entries(categoryInfo)
+          .filter(([_key, category]) => category.group === TemplateCategoryGroup.Departments)
+          .map(([key, category]) => ({
+            key,
+            ...category,
+          }))
+          .sort((a, b) => a.order - b.order),
+      ],
+    },
+    {
+      key: 'industries',
+      title: t('objects.templates.industries'),
+      isFolder: true,
+      childrens: [
+        ...Object.entries(categoryInfo)
+          .filter(([_key, category]) => category.group === TemplateCategoryGroup.Industries)
+          .map(([key, category]) => ({
+            key,
+            ...category,
+          }))
+          .sort((a, b) => a.order - b.order),
+      ],
+    },
+  ] as SidebarItem[]
+})
 </script>
 
 <template>
   <div class="flex flex-col gap-6 w-[242px]">
-    <h1 class="text-nc-content-gray-subtle2 font-bold leading-6">Categories</h1>
+    <h1 class="text-nc-content-gray-subtle2 font-bold leading-6">{{ $t('title.categories') }}</h1>
     <Transition name="search-slide" appear>
       <div class="relative">
         <a-input
@@ -54,93 +97,26 @@ const setActiveItem = (category: string) => {
     </Transition>
 
     <TransitionGroup name="stagger-items" tag="div" class="flex flex-col gap-6">
-      <MarketplaceSidebarItem key="marketplace" :active="activeCategory === 'marketplace'" @click="setActiveItem('marketplace')">
-        Marketplace
-      </MarketplaceSidebarItem>
-      <MarketplaceSidebarFolder key="departments">
-        <template #title> Departments </template>
+      <template v-for="item of sidebarItems" :key="item.key">
+        <MarketplaceSidebarItem v-if="!item.isFolder" :active="activeCategory === item.key" @click="setActiveItem(item.key)">
+          <template v-if="item.sidebarImg" #icon>
+            <img :src="item.sidebarImg" alt="" class="w-5 h-5" />
+          </template>
+          {{ item.sidebarTitle }}
+        </MarketplaceSidebarItem>
+        <MarketplaceSidebarFolder v-else :key="item.key">
+          <template #title> {{ item.title }} </template>
 
-        <MarketplaceSidebarItem :active="activeCategory === 'sales'" @click="setActiveItem('sales')">
-          <template #icon>
-            <img src="~assets/img/marketplace/sales.png" alt="" class="w-5 h-5" />
+          <template v-for="child of item.childrens" :key="child.key">
+            <MarketplaceSidebarItem :active="activeCategory === child.key" @click="setActiveItem(child.key)">
+              <template v-if="child.sidebarImg" #icon>
+                <img :src="child.sidebarImg" alt="" class="w-5 h-5" />
+              </template>
+              {{ child.sidebarTitle }}
+            </MarketplaceSidebarItem>
           </template>
-          Sales
-        </MarketplaceSidebarItem>
-
-        <MarketplaceSidebarItem :active="activeCategory === 'marketing'" @click="setActiveItem('marketing')">
-          <template #icon>
-            <img src="~assets/img/marketplace/marketing.png" alt="" class="w-5 h-5" />
-          </template>
-          Marketing
-        </MarketplaceSidebarItem>
-        <MarketplaceSidebarItem :active="activeCategory === 'hr'" @click="setActiveItem('hr')">
-          <template #icon>
-            <img src="~assets/img/marketplace/human-resources.png" alt="" class="w-5 h-5" />
-          </template>
-          Human Resources
-        </MarketplaceSidebarItem>
-        <MarketplaceSidebarItem :active="activeCategory === 'product-management'" @click="setActiveItem('product-management')">
-          <template #icon>
-            <img src="~assets/img/marketplace/product-management.png" alt="" class="w-5 h-5" />
-          </template>
-          Product Management
-        </MarketplaceSidebarItem>
-
-        <MarketplaceSidebarItem :active="activeCategory === 'operations'" @click="setActiveItem('operations')">
-          <template #icon>
-            <img src="~assets/img/marketplace/operations.png" alt="" class="w-5 h-5" />
-          </template>
-          Operations
-        </MarketplaceSidebarItem>
-        <MarketplaceSidebarItem :active="activeCategory === 'project-management'" @click="setActiveItem('project-management')">
-          <template #icon>
-            <img src="~assets/img/marketplace/product-management.png" alt="" class="w-5 h-5" />
-          </template>
-          Project Management
-        </MarketplaceSidebarItem>
-      </MarketplaceSidebarFolder>
-
-      <MarketplaceSidebarFolder key="industries">
-        <template #title> Industries </template>
-
-        <MarketplaceSidebarItem :active="activeCategory === 'healthcare'" @click="setActiveItem('healthcare')">
-          <template #icon>
-            <img src="~assets/img/marketplace/healthcare.png" alt="" class="w-5 h-5" />
-          </template>
-          Healthcare
-        </MarketplaceSidebarItem>
-        <MarketplaceSidebarItem :active="activeCategory === 'finance'" @click="setActiveItem('finance')">
-          <template #icon>
-            <img src="~assets/img/marketplace/finance.png" alt="" class="w-5 h-5" />
-          </template>
-          Finance
-        </MarketplaceSidebarItem>
-        <MarketplaceSidebarItem :active="activeCategory === 'education'" @click="setActiveItem('education')">
-          <template #icon>
-            <img src="~assets/img/marketplace/education.png" alt="" class="w-5 h-5" />
-          </template>
-          Education
-        </MarketplaceSidebarItem>
-
-        <MarketplaceSidebarItem :active="activeCategory === 'manufacturing'" @click="setActiveItem('manufacturing')">
-          <template #icon>
-            <img src="~assets/img/marketplace/manufacturing.png" alt="" class="w-5 h-5" />
-          </template>
-          Manufacturing
-        </MarketplaceSidebarItem>
-        <MarketplaceSidebarItem :active="activeCategory === 'real-estate'" @click="setActiveItem('real-estate')">
-          <template #icon>
-            <img src="~assets/img/marketplace/realestate.png" alt="" class="w-5 h-5" />
-          </template>
-          Real Estate
-        </MarketplaceSidebarItem>
-        <MarketplaceSidebarItem :active="activeCategory === 'retail'" @click="setActiveItem('retail')">
-          <template #icon>
-            <img src="~assets/img/marketplace/retail.png" alt="" class="w-5 h-5" />
-          </template>
-          Retail
-        </MarketplaceSidebarItem>
-      </MarketplaceSidebarFolder>
+        </MarketplaceSidebarFolder>
+      </template>
     </TransitionGroup>
   </div>
 </template>

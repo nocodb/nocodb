@@ -725,6 +725,73 @@
       "noMoreTeamsToAdd": "No more teams to add"
     },
     "templates": {
+      "marketplace": {
+        "sidebarTitle": "Marketplace",
+        "title": "Popular templates",
+        "subtitle": "Browse the most popular bases among our users."
+      },
+      "sales": {
+        "sidebarTitle": "sales",
+        "title": "Sales Templates",
+        "subtitle": "Streamline your sales process with these ready-to-use templates."
+      },
+      "marketing": {
+        "sidebarTitle": "Marketing",
+        "title": "Marketing Templates",
+        "subtitle": "Boost your marketing efforts with these specialized templates."
+      },
+      "hr": {
+        "sidebarTitle": "Human Resources",
+        "title": "Human Resources Templates",
+        "subtitle": "Simplify HR management with these comprehensive templates."
+      },
+      "product-management": {
+        "sidebarTitle": "Product Management",
+        "title": "Product Management Templates",
+        "subtitle": "Organize your product development workflow with these templates."
+      },
+      "operations": {
+        "sidebarTitle": "Operations",
+        "title": "Operations Templates",
+        "subtitle": "Optimize your business operations with these efficient templates."
+      },
+      "project-management": {
+        "sidebarTitle": "Project Management",
+        "title": "Project Management Templates",
+        "subtitle": "Track and manage your projects effectively with these templates."
+      },
+      "healthcare": {
+        "sidebarTitle": "Healthcare",
+        "title": "Healthcare Templates",
+        "subtitle": "Specialized templates for healthcare organizations and professionals."
+      },
+      "finance": {
+        "sidebarTitle": "Finance",
+        "title": "Finance Templates",
+        "subtitle": "Manage financial data and processes with these tailored templates."
+      },
+      "education": {
+        "sidebarTitle": "Education",
+        "title": "Education Templates",
+        "subtitle": "Templates designed for educational institutions and learning management."
+      },
+      "manufacturing": {
+        "sidebarTitle": "Manufacturing",
+        "title": "Manufacturing Templates",
+        "subtitle": "Streamline manufacturing processes with these industry-specific templates."
+      },
+      "real-estate": {
+        "sidebarTitle": "Real Estate",
+        "title": "Real Estate Templates",
+        "subtitle": "Templates for property management and real estate businesses."
+      },
+      "retail": {
+        "sidebarTitle": "Retail",
+        "title": "Retail Templates",
+        "subtitle": "Optimize inventory and sales tracking with these retail-focused templates."
+      },
+      "departments": "Departments",
+      "industries": "Industries",
       "noTemplatesFound": "No templates found",
       "tryCheckingBackLaterForNewTemplates": "Try checking back later for new templates",
       "tryAdjustingYourSearchOrFilters": "Try adjusting your search or filters",

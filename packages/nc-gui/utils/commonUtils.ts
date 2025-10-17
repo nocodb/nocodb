@@ -229,3 +229,52 @@ export const getDraggableAutoScrollOptions = (
     ...params,
   }
 }
+
+/**
+ * Sorts two objects based on the provided sorting options.
+ * @param a - The first object to sort.
+ * @param b - The second object to sort.
+ * @param sortOption - The sorting options to apply.
+ * @returns The sorted objects.
+ */
+export const ncArrSortCallback = <T>(
+  a: T,
+  b: T,
+  sortOption: {
+    /** The key of the object being used for sorting. */
+    key: keyof T & string
+    /**
+     * The type of sorting to apply (e.g., string, number).
+     * @default 'number'
+     */
+    sortType?: 'string' | 'number' | 'boolean' | 'count'
+    /** Optional formatter to preprocess the value before sorting. */
+    format?: (value: any) => any
+  },
+) => {
+  const { key, sortType = 'number', format } = sortOption || {}
+
+  const valueA = format ? format(a[key]) : a[key]
+  const valueB = format ? format(b[key]) : b[key]
+
+  switch (sortType) {
+    case 'number':
+      return (valueA ?? Infinity) - (valueB ?? Infinity)
+    case 'string': {
+      return String(valueA).localeCompare(String(valueB))
+    }
+    case 'boolean': {
+      return valueA === valueB ? 0 : valueA ? 1 : -1
+    }
+    case 'count': {
+      const lengthA = ncIsString(valueA) || ncIsArray(valueA) ? valueA.length : Infinity
+      const lengthB = ncIsString(valueB) || ncIsArray(valueB) ? valueB.length : Infinity
+
+      return lengthA === lengthB ? 0 : lengthA > lengthB ? 1 : -1
+    }
+
+    default: {
+      return 0
+    }
+  }
+}

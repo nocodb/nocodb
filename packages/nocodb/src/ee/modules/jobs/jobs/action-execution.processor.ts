@@ -1,15 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Sandbox } from '@e2b/code-interpreter';
-import type { NcContext } from 'nocodb-sdk';
+import type { HookLogType, NcContext } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { ExecuteActionJobData } from '~/interface/Jobs';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
-import { Model, Script, View } from '~/models';
+import { HookLog, Model, Script, View } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 import { createSandboxCode } from '~/helpers/generateCode';
 import { parseSandboxOutputToWorkerMessage } from '~/helpers/sandboxParser';
 import { DataV3Service } from '~/services/v3/data-v3.service';
+import { parseHrtimeToMilliSeconds } from '~/helpers';
 
 const BATCH_SIZE = 100;
 const CONCURRENCY_LIMIT = 5;
@@ -24,7 +25,10 @@ export class ActionExecutionProcessor {
   ) {}
 
   async job(job: Job<ExecuteActionJobData>) {
-    const { context, req, scriptId, records, modelId, viewId } = job.data;
+    const { context, req, scriptId, hookPayload, records, modelId, viewId } =
+      job.data;
+
+    const hookLog: HookLogType = hookPayload || null;
 
     const sendLog = (log: string) =>
       this.jobsLogService.sendLog(job, { message: log });
@@ -46,6 +50,8 @@ export class ActionExecutionProcessor {
       });
     }
 
+    const startTime = process.hrtime();
+
     try {
       await this.triggerScript(
         context,
@@ -53,10 +59,21 @@ export class ActionExecutionProcessor {
         { scriptId, records: recordsV3, model, viewId },
         { sendLog, sendMessage },
       );
+      hookLog.response = 'Script executed successfully';
     } catch (error) {
       sendLog(`Script execution failed: ${error.message}`);
       this.logger.error('Script execution failed:', error);
+      hookLog.response = `Script execution failed: ${error.message}`;
       throw error;
+    } finally {
+      if (hookLog && hookPayload) {
+        hookLog.execution_time = parseHrtimeToMilliSeconds(
+          process.hrtime(startTime),
+        );
+        HookLog.insert(context, { ...hookLog, test_call: false }).catch((e) => {
+          this.logger.error(e.message, e.stack);
+        });
+      }
     }
   }
 

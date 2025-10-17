@@ -724,7 +724,7 @@
     "isNotNull": "не является Null"
   },
   "title": {
-    "externalIntegrations": "External Integrations",
+    "externalIntegrations": "Внешние интеграции",
     "mcpServer": "MCP-сервер",
     "accessRestricted": "Доступ ограничен",
     "editTablePermissions": "Редактировать разрешения для таблицы",

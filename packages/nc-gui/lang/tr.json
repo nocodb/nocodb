@@ -292,7 +292,7 @@
     "showMenu": "Menüyü göster",
     "hideMenu": "Menüyü gizle",
     "addAll": "Hepsini ekle",
-    "selectAll": "Select all",
+    "selectAll": "Tümünü seç",
     "removeAll": "Hepsini kaldır",
     "signUp": "ÜYE OL",
     "signIn": "KAYIT OL",
@@ -648,7 +648,7 @@
       "formViewFieldEditPermissionRestrictionTooltip": "Bu alan formda gizli, çünkü hiçbir kullanıcının düzenleme izni yok."
     },
     "deleteAllRecordDlg": {
-      "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
+      "subtitle": "Bu görünümde seçili olan {rowCount} kaydın tümünü silmek istediğinizden emin misiniz?",
       "warning": "This action cannot be undone."
     },
     "copyViewConfig": {
@@ -657,7 +657,7 @@
       "columnWidth": "Column width",
       "rowHeight": "Row height",
       "filterCondition": "Filter condition",
-      "group": "Group",
+      "group": "Grup",
       "sort": "Sort",
       "rowColoring": "Row coloring",
       "copyAnotherViewConfig": "Copy another view's configuration",
@@ -1539,7 +1539,7 @@
     "runActions": "Eylemleri Çalıştır",
     "createScript": "Script Oluştur",
     "deleteAllRecords": "Tüm kayıtları sil",
-    "deleteAllSelectedRecords": "Delete all selected records",
+    "deleteAllSelectedRecords": "Tüm seçilen kayıtları sil",
     "assignView": "Görünüm ata",
     "webhookDetails": "Webhook Detayları",
     "webhookLogs": "Webhook Logs",

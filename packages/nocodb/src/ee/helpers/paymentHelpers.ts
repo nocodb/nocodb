@@ -271,19 +271,20 @@ async function checkSeatLimit(
 
 async function getFeature(
   type: PlanFeatureTypes,
-  workspaceOrId: string | Workspace,
+  workspaceOrOrgId: string | Workspace | Org,
   ncMeta = Noco.ncMeta,
 ) {
-  const workspace =
-    typeof workspaceOrId === 'string'
-      ? await Workspace.get(workspaceOrId, undefined, ncMeta)
-      : workspaceOrId;
+  const workspaceOrOrg =
+    typeof workspaceOrOrgId === 'string'
+      ? (await Workspace.get(workspaceOrOrgId, undefined, ncMeta)) ??
+        (await Org.get(workspaceOrOrgId, ncMeta))
+      : workspaceOrOrgId;
 
-  if (!workspace) {
+  if (!workspaceOrOrg) {
     NcError.forbidden('You are not allowed to perform this action');
   }
 
-  return workspace?.payment?.plan?.meta?.[type] || false;
+  return workspaceOrOrg?.payment?.plan?.meta?.[type] || false;
 }
 
 async function checkForFeature(
@@ -362,7 +363,7 @@ async function getActivePlanAndSubscription(
 }
 
 // if Cloud, then check if sso is available for the workspace/org
-export async function checkIfWorkspaceSSOAvail(
+async function checkIfWorkspaceSSOAvail(
   workspaceId: string,
   throwError = true,
 ) {
@@ -380,6 +381,25 @@ export async function checkIfWorkspaceSSOAvail(
   if (!isSSOEnabled) {
     if (throwError)
       NcError.forbidden('SSO is not available for this workspace');
+    else return false;
+  }
+
+  return true;
+}
+
+// if Cloud, then check if sso is available for the org
+async function checkIfOrgSSOAvail(orgId: string, throwError = true) {
+  if (!isCloud) {
+    if (throwError)
+      NcError.forbidden('This feature is not available in self-hosted version');
+    else return false;
+  }
+
+  const isSSOEnabled = await getFeature(PlanFeatureTypes.FEATURE_SSO, orgId);
+
+  if (!isSSOEnabled) {
+    if (throwError)
+      NcError.forbidden('SSO is not available for this organization');
     else return false;
   }
 
@@ -431,12 +451,26 @@ export function calculateUnitPrice(
 }
 
 // check if email only allowed through sso LOGIN
-export const checkIfEmailAllowedNonSSO = async (
+const checkIfEmailAllowedNonSSO = async (
   workspaceId: string,
   email: string,
 ) => {
   const domains = await Domain.list({
     workspaceId,
+  });
+
+  return (
+    !!email && domains?.some((d: Domain) => d.domain === email?.split('@')[1])
+  );
+};
+
+// check if email only allowed through sso LOGIN for org
+const checkIfEmailAllowedNonSSOForOrg = async (
+  orgId: string,
+  email: string,
+) => {
+  const domains = await Domain.list({
+    orgId,
   });
 
   return (
@@ -453,4 +487,8 @@ export {
   getActivePlanAndSubscription,
   checkSeatLimit,
   checkForFeature,
+  checkIfWorkspaceSSOAvail,
+  checkIfOrgSSOAvail,
+  checkIfEmailAllowedNonSSO,
+  checkIfEmailAllowedNonSSOForOrg,
 };

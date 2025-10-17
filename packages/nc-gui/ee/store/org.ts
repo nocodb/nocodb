@@ -4,6 +4,8 @@ import type { Api, OrgType } from 'nocodb-sdk'
 export const useOrg = defineStore('orgStore', () => {
   const org = ref()
 
+  const ssoLoginRequiredDlg = ref(false)
+
   const { $api } = <{ $api: Api<any> }>useNuxtApp()
 
   const router = useRouter()
@@ -46,11 +48,17 @@ export const useOrg = defineStore('orgStore', () => {
     }
   }
 
+  const toggleSsoLoginRequiredDlg = (show: boolean) => {
+    ssoLoginRequiredDlg.value = show
+  }
+
   return {
     org,
     orgId,
     updateOrg,
     loadOrg,
+    ssoLoginRequiredDlg,
+    toggleSsoLoginRequiredDlg,
   }
 })
 

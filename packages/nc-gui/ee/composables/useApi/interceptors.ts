@@ -58,11 +58,18 @@ export function addAxiosInterceptors(api: Api<any> | InternalApi<any>, skipSocke
       // if 403 and NcErrorType.ERR_SSO_LOGIN_REQUIRED error, redirect to sso login page and prefill the email
       if (error.response?.status === 403 && error.response?.data?.error === NcErrorType.ERR_SSO_LOGIN_REQUIRED) {
         const workspaceStore = useWorkspace()
+        const orgStore = useOrg()
 
-        workspaceStore.toggleSsoLoginRequiredDlg(true)
-
-        // return Promise.reject(new Error('SSO login required'))
-        await until(() => !workspaceStore.ssoLoginRequiredDlg).toBeTruthy() // Promise.resolve({} as any) // resolve the promise to prevent the error from bubbling up
+        // Check if we're in an org context
+        const isOrgContext = router.currentRoute.value.params.orgId
+        
+        if (isOrgContext) {
+          orgStore.toggleSsoLoginRequiredDlg(true)
+          await until(() => !orgStore.ssoLoginRequiredDlg).toBeTruthy()
+        } else {
+          workspaceStore.toggleSsoLoginRequiredDlg(true)
+          await until(() => !workspaceStore.ssoLoginRequiredDlg).toBeTruthy()
+        }
       }
 
       return Promise.reject(error)

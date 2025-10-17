@@ -175,6 +175,7 @@ watch(
     </NuxtLayout>
     <DlgSharedBaseDuplicate v-model="isDuplicateDlgOpen" />
     <DlgWorkspaceSsoRedirectConfirm />
+    <DlgOrgSsoRedirectConfirm />
   </div>
 </template>
 

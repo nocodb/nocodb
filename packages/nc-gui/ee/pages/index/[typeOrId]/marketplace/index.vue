@@ -1,10 +1,8 @@
 <script setup lang="ts">
-const { hideSidebar, isNewSidebarEnabled } = storeToRefs(useSidebarStore())
+const { hideSidebar } = storeToRefs(useSidebarStore())
 
 onMounted(() => {
-  if (isNewSidebarEnabled.value) {
-    hideSidebar.value = true
-  }
+  hideSidebar.value = true
 })
 </script>
 

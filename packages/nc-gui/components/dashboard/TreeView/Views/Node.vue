@@ -394,7 +394,11 @@ watch(isDropdownOpen, async () => {
             <GeneralUserIcon
               :user="idUserMap[vModel.owned_by]"
               size="auto"
-              class="flex-none !text-[7px] !h-[14px] !min-h-[14px]"
+              class="flex-none !h-[14px] !min-h-[14px]"
+              :class="{
+                '!text-[7px]': !parseProp(idUserMap[vModel.owned_by]?.meta).iconType,
+                '!text-tiny': parseProp(idUserMap[vModel.owned_by]?.meta).iconType,
+              }"
             />
           </div>
 

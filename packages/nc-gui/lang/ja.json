@@ -445,7 +445,8 @@
     "overview": "概要",
     "baseType": "ベース種別",
     "beta": "ベータ版",
-    "selected": "selected"
+    "selected": "selected",
+    "notice": "Notice"
   },
   "objects": {
     "script": "スクリプト",
@@ -510,6 +511,26 @@
       "orgLevelOwner": "組織レベルの所有者",
       "orgLevelCreator": "組織レベルのクリエイター",
       "orgLevelViewer": "組織レベルビューワ"
+    },
+    "roleDescription": {
+      "workspace-level-owner": "Has full control over all workspace bases, settings, and billing",
+      "workspace-level-creator": "Can create, configure, and edit all bases within the workspace",
+      "workspace-level-editor": "Can add, edit, and delete records, but cannot modify base configurations",
+      "workspace-level-commenter": "Can view and comment on records within workspace bases",
+      "workspace-level-viewer": "Can only view records within workspace bases",
+      "workspace-level-no-access": "No access to this workspace",
+      "owner": "Has full control over the base, including configuration and deletion rights",
+      "creator": "Can fully configure the base but cannot delete it",
+      "editor": "Can add, edit, and delete records, but cannot modify base configurations",
+      "commenter": "Can view and comment on records within the base",
+      "viewer": "Can only view records within the base",
+      "no-access": "No access to this base",
+      "super": "Full access to all",
+      "org-level-creator": "Can fully configure and edit bases",
+      "org-level-viewer": "Can only view records in bases",
+      "cloud-org-level-owner": "Full access to organization and workspaces",
+      "cloud-org-level-creator": "Can create and manage domains, users and workspaces",
+      "cloud-org-level-viewer": "Can only view organization and workspaces"
     },
     "sqlView": "SQL ビュー",
     "rowHeight": "レコード高さ",
@@ -948,7 +969,8 @@
     "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "changeWorkspaceRoleTo": "Change Workspace Role to"
   },
   "labels": {
     "hideEditor": "Hide Editor",
@@ -2363,7 +2385,8 @@
       "leaveWithoutFinishing": "未完了のまま退出しますか？",
       "leaveWithoutFinishingConfirmation": "変更は自動で保存されますが、まだ編集中です。",
       "matchedByButtonLabel": "ボタンラベルで一致",
-      "matchedByFieldDescription": "フィールド説明で一致"
+      "matchedByFieldDescription": "フィールド説明で一致",
+      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles."
     },
     "error": {
       "failedToDeleteMcpToken": "MCPトークンの削除に失敗",

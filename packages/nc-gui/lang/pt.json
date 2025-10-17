@@ -445,7 +445,8 @@
     "overview": "Visão geral",
     "baseType": "Tipo de Base",
     "beta": "Beta",
-    "selected": "selected"
+    "selected": "selected",
+    "notice": "Notice"
   },
   "objects": {
     "script": "Script",
@@ -510,6 +511,26 @@
       "orgLevelOwner": "Proprietário no Nível da Organização",
       "orgLevelCreator": "Nível de Organização Criador",
       "orgLevelViewer": "Visor de Nível de Organização"
+    },
+    "roleDescription": {
+      "workspace-level-owner": "Has full control over all workspace bases, settings, and billing",
+      "workspace-level-creator": "Can create, configure, and edit all bases within the workspace",
+      "workspace-level-editor": "Can add, edit, and delete records, but cannot modify base configurations",
+      "workspace-level-commenter": "Can view and comment on records within workspace bases",
+      "workspace-level-viewer": "Can only view records within workspace bases",
+      "workspace-level-no-access": "No access to this workspace",
+      "owner": "Has full control over the base, including configuration and deletion rights",
+      "creator": "Can fully configure the base but cannot delete it",
+      "editor": "Can add, edit, and delete records, but cannot modify base configurations",
+      "commenter": "Can view and comment on records within the base",
+      "viewer": "Can only view records within the base",
+      "no-access": "No access to this base",
+      "super": "Full access to all",
+      "org-level-creator": "Can fully configure and edit bases",
+      "org-level-viewer": "Can only view records in bases",
+      "cloud-org-level-owner": "Full access to organization and workspaces",
+      "cloud-org-level-creator": "Can create and manage domains, users and workspaces",
+      "cloud-org-level-viewer": "Can only view organization and workspaces"
     },
     "sqlView": "Vista SQL",
     "rowHeight": "Altura do Registro",
@@ -948,7 +969,8 @@
     "confirmLeaveWorkspaceTitle": "Are you sure you want to leave this workspace?",
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
-    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
+    "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
+    "changeWorkspaceRoleTo": "Change Workspace Role to"
   },
   "labels": {
     "hideEditor": "Hide Editor",
@@ -2363,7 +2385,8 @@
       "leaveWithoutFinishing": "Sair sem terminar?",
       "leaveWithoutFinishingConfirmation": "Suas alterações são salvas automaticamente, mas você ainda está no modo de edição.",
       "matchedByButtonLabel": "Correspondência pelo rótulo do botão",
-      "matchedByFieldDescription": "Correspondência pela descrição do campo"
+      "matchedByFieldDescription": "Correspondência pela descrição do campo",
+      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles."
     },
     "error": {
       "failedToDeleteMcpToken": "Falha ao apagar token MCP",

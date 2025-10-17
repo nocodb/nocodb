@@ -11,6 +11,11 @@ import type {
 import type Dashboard from '~/models/Dashboard';
 import type Widget from '~/models/Widget';
 import type { JobId } from 'bull';
+import type {
+  TeamDetailV3Type,
+  TeamMemberV3ResponseType,
+  TeamV3ResponseType,
+} from '~/services/v3/teams-v3.types';
 
 export type InternalGETResponseType = Promise<
   | void
@@ -27,6 +32,8 @@ export type InternalGETResponseType = Promise<
   | OAuthClient
   | OAuthClient[]
   | Widget[]
+  | { list: TeamV3ResponseType[] }
+  | TeamDetailV3Type
   | {
       data: any;
     }
@@ -59,4 +66,7 @@ export type InternalPOSTResponseType = Promise<
       data: any;
     }
   | { id: JobId; name?: string }
+  | { msg: string }
+  | TeamV3ResponseType
+  | TeamMemberV3ResponseType[]
 >;

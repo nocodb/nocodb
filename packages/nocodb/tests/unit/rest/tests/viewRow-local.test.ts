@@ -292,7 +292,7 @@ function viewRowLocalStaticTests() {
       )
         .sort()
         .join(','),
-    ).to.equal('Description,FilmId,Title');
+    ).to.equal('Description,Id,Title');
   };
   it('Get grouped view data list with required columns kanban', async () => {
     await testGetGroupedViewDataListWithRequiredColumns(filmKanbanView);
@@ -770,6 +770,46 @@ function viewRowLocalTests() {
 
   it('Create table row Calendar', async function () {
     await testCreateRowView(ViewTypes.CALENDAR);
+  });
+
+  const testCreateRowViewWithWrongView = async (viewType: ViewTypes) => {
+    const table = await createTable(context, base);
+
+    const nonRelatedView = await createView(context, {
+      title: 'View',
+      table: customerTable,
+      type: viewType,
+    });
+
+    await request(context.app)
+      .post(
+        `/api/v1/db/data/noco/${base.id}/${table.id}/views/${nonRelatedView.id}`,
+      )
+      .set('xc-auth', context.token)
+      .send({
+        title: 'Test',
+      })
+      .expect(404);
+  };
+
+  it('Create table row grid wrong grid id', async function () {
+    await testCreateRowViewWithWrongView(ViewTypes.GRID);
+  });
+
+  it('Create table row wrong gallery id', async function () {
+    await testCreateRowViewWithWrongView(ViewTypes.GALLERY);
+  });
+
+  it('Create table row wrong form id', async function () {
+    await testCreateRowViewWithWrongView(ViewTypes.FORM);
+  });
+
+  it('Create table row wrong kanban id', async function () {
+    await testCreateRowViewWithWrongView(ViewTypes.KANBAN);
+  });
+
+  it('Create table row wrong calendar id', async function () {
+    await testCreateRowViewWithWrongView(ViewTypes.CALENDAR);
   });
   //#endregion Create row view
 

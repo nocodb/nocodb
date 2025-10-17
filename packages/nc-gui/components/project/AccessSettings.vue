@@ -464,16 +464,15 @@ onBeforeUnmount(() => {
             </div>
             <div v-if="column.key === 'role'">
               <template v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles)">
-                <RolesSelector
+                <RolesSelectorV2
                   :role="record.roles"
                   :roles="accessibleRoles"
                   :inherit="
-                    isEeUI && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
+                    isEeUI && !record.base_roles && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
                       ? WorkspaceRolesToProjectRoles[record.workspace_roles]
                       : null
                   "
                   show-inherit
-                  :description="false"
                   :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
                 />
               </template>

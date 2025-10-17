@@ -81,7 +81,6 @@ import * as nc_091_unify_model from '~/meta/migrations/v2/nc_091_unify_model';
 import * as nc_092_composite_pk from '~/meta/migrations/v2/nc_092_composite_pk';
 import * as nc_093_oauth_server from '~/meta/migrations/v2/nc_093_oauth_server';
 import * as nc_094_add_meta_to_filter_exp_v2 from '~/meta/migrations/v2/nc_094_add_meta_to_filter_exp_v2';
-import * as nc_095_teams from '~/meta/migrations/v2/nc_095_teams';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -174,7 +173,8 @@ export default class XcMigrationSourcev2 {
       'nc_092_composite_pk',
       'nc_093_oauth_server',
       'nc_094_add_meta_to_filter_exp_v2',
-      'nc_095_teams',
+      // TODO: removing this migration in this iteration, enable later once the migration finalised
+      // 'nc_095_teams',
     ]);
   }
 
@@ -350,8 +350,6 @@ export default class XcMigrationSourcev2 {
         return nc_093_oauth_server;
       case 'nc_094_add_meta_to_filter_exp_v2':
         return nc_094_add_meta_to_filter_exp_v2;
-      case 'nc_095_teams':
-        return nc_095_teams;
     }
   }
 }

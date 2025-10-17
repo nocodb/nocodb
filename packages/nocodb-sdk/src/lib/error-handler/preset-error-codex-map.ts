@@ -121,6 +121,10 @@ export const presetErrorCodexMap: Partial<
     },
     code: 404,
   },
+  [NcErrorType.ERR_TEAM_NOT_FOUND]: {
+    message: (id: string) => `Team '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_INVALID_OFFSET_VALUE]: {
     message: (offset: string) =>
       ncIsNumber(Number(offset)) && Number(offset) > 0

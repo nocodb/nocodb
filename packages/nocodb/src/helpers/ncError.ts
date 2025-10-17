@@ -69,6 +69,10 @@ export class NcError {
     return NcError._.userNotFound(id, args);
   }
 
+  static teamNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.teamNotFound(id, args);
+  }
+
   static viewNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.viewNotFound(id, args);
   }

@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { isEE } from 'playwright/setup/db';
+import { isEE } from '../../../utils/helpers';
 import { type INcAxios, ncAxios } from '../dataApiV3/ncAxios';
 import { beforeEach as initBeforeEach } from './beforeEach';
 import type { ITestContext } from './helpers';

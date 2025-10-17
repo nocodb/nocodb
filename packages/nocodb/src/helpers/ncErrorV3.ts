@@ -43,6 +43,14 @@ export class NcErrorV3 extends NcErrorV1 {
         message: (id: string) => `Field '${id}' not found`,
         code: 422,
       },
+      [NcErrorType.ERR_TEAM_NOT_FOUND]: {
+        message: (id: string) => `Team '${id}' not found`,
+        code: 422,
+      },
+      [NcErrorType.ERR_USER_NOT_FOUND]: {
+        message: (id: string) => `User '${id}' not found`,
+        code: 422,
+      },
     });
   }
 
@@ -57,6 +65,13 @@ export class NcErrorV3 extends NcErrorV1 {
   override invalidRequestBody(message: string): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_INVALID_REQUEST_BODY, {
       params: message,
+    });
+  }
+
+  override teamNotFound(id: string, args?: any): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TEAM_NOT_FOUND, {
+      params: id,
+      ...args,
     });
   }
 }

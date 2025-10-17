@@ -3,17 +3,8 @@ const route = useRoute()
 const router = useRouter()
 const typeOrId = computed(() => route.params.typeOrId as string)
 
-const {
-  templates,
-  isLoading,
-  hasMore,
-  activeCategory,
-  templateContainer,
-  loadingTrigger,
-  openTemplate,
-  categoryInfo,
-  setupObserver,
-} = useMarketplaceTemplates('marketplace')
+const { templates, isLoading, activeCategory, templateContainer, openTemplate, categoryInfo, setupObserver } =
+  useMarketplaceTemplates('marketplace')
 
 watch(activeCategory, (newCategory) => {
   if (newCategory !== 'marketplace') {
@@ -59,20 +50,10 @@ onMounted(() => {
           </div>
         </template>
 
-        <template v-else-if="!templates.length">
-          <div class="col-span-3 flex flex-col items-center justify-center py-12">
-            <div class="text-nc-content-gray-subtle2 text-lg">No templates found</div>
-            <div class="text-nc-content-gray-subtle2">Try checking back later for new templates</div>
-          </div>
-        </template>
+        <MarketplaceEmpty v-else-if="!templates.length" />
       </div>
 
-      <div v-if="hasMore" ref="loadingTrigger" class="py-4 flex justify-center">
-        <div v-if="isLoading" class="flex items-center gap-2">
-          <GeneralLoader size="medium" />
-          <span class="text-nc-content-gray-subtle2">Loading more templates...</span>
-        </div>
-      </div>
+      <MarketplaceLoadMoreIndicator />
     </div>
   </div>
 </template>

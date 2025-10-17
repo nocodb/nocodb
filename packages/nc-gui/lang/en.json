@@ -723,6 +723,12 @@
       "nMemberSelected": "{n} member selected",
       "nMembersSelected": "{n} members selected",
       "noMoreTeamsToAdd": "No more teams to add"
+    },
+    "templates": {
+      "noTemplatesFound": "No templates found",
+      "tryCheckingBackLaterForNewTemplates": "Try checking back later for new templates",
+      "tryAdjustingYourSearchOrFilters": "Try adjusting your search or filters",
+      "loadingMoreTemplates": "Loading more templates"
     }
   },
   "datatype": {

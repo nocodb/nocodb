@@ -163,20 +163,12 @@ onMounted(() => {
             </div>
           </template>
 
-          <template v-else-if="!templates.length">
-            <div class="col-span-3 flex flex-col items-center justify-center py-12">
-              <div class="text-nc-content-gray-subtle2 text-lg">No templates found</div>
-              <div class="text-nc-content-gray-subtle2">Try adjusting your search or filters</div>
-            </div>
-          </template>
+          <MarketplaceEmpty v-else-if="!templates.length">
+            <template #subtitle> {{ $t('objects.templates.tryAdjustingYourSearchOrFilters') }} </template>
+          </MarketplaceEmpty>
         </div>
 
-        <div v-if="hasMore" ref="loadingTrigger" class="py-4 flex justify-center">
-          <div v-if="isLoading" class="flex items-center gap-2">
-            <GeneralLoader size="medium" />
-            <span class="text-nc-content-gray-subtle2">Loading more templates...</span>
-          </div>
-        </div>
+        <MarketplaceLoadMoreIndicator />
       </div>
     </div>
   </div>

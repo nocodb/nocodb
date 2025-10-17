@@ -1,0 +1,11 @@
+<script lang="ts" setup>
+const { isLoading, loadingTrigger, hasMore } = useMarketplaceTemplates('marketplace')
+</script>
+<template>
+  <div v-if="hasMore" ref="loadingTrigger" class="py-4 flex justify-center">
+    <div v-if="isLoading" class="flex items-center gap-2">
+      <GeneralLoader size="medium" />
+      <span class="text-nc-content-gray-subtle2">{{ $t('objects.templates.loadingMoreTemplates') }}...</span>
+    </div>
+  </div>
+</template>

@@ -13,9 +13,9 @@ const typeOrId = computed(() => route.params.typeOrId)
 
 const { activeCategory, getTemplateById, currentCategoryInfo } = useMarketplaceTemplates('marketplace')
 
-const template = ref(null)
+const template = ref<Record<string, any> | null>(null)
 const isLoading = ref(true)
-const error = ref(null)
+const error = ref<string | null>(null)
 const carouselApi = ref<CarouselApi>()
 const currentSlideIndex = ref(0)
 

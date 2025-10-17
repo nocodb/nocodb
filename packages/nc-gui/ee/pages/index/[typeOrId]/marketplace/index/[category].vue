@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const router = useRouter()
+const category = computed(() => route.params.category as string)
 const typeOrId = computed(() => route.params.typeOrId as string)
 
 const {
@@ -8,16 +9,26 @@ const {
   isLoading,
   hasMore,
   activeCategory,
+  categoryInfo,
+  currentCategoryInfo,
   templateContainer,
   loadingTrigger,
   openTemplate,
-  categoryInfo,
   setupObserver,
-} = useMarketplaceTemplates('marketplace')
+} = useMarketplaceTemplates(category.value)
+
+const validCategories = Object.keys(categoryInfo)
+if (!validCategories.includes(category.value)) {
+  router.replace(`/${typeOrId.value}/marketplace`)
+}
 
 watch(activeCategory, (newCategory) => {
-  if (newCategory !== 'marketplace') {
-    router.push(`/${typeOrId.value}/marketplace/${newCategory}`)
+  if (newCategory !== category.value) {
+    if (newCategory === 'marketplace') {
+      router.push(`/${typeOrId.value}/marketplace`)
+    } else {
+      router.push(`/${typeOrId.value}/marketplace/${newCategory}`)
+    }
   }
 })
 
@@ -32,9 +43,9 @@ onMounted(() => {
   <div class="flex-1 flex flex-col">
     <div class="mb-6">
       <h2 class="text-xl text-nc-content-gray font-bold">
-        {{ categoryInfo.marketplace.title }}
+        {{ currentCategoryInfo.title }}
       </h2>
-      <div class="text-nc-content-gray-subtle2">{{ categoryInfo.marketplace.subtitle }}</div>
+      <div class="text-nc-content-gray-subtle2">{{ currentCategoryInfo.subtitle }}</div>
     </div>
 
     <div class="overflow-auto">
@@ -61,7 +72,7 @@ onMounted(() => {
 
         <template v-else-if="!templates.length">
           <div class="col-span-3 flex flex-col items-center justify-center py-12">
-            <div class="text-nc-content-gray-subtle2 text-lg">No templates found</div>
+            <div class="text-nc-content-gray-subtle2 text-lg">No {{ category }} templates found</div>
             <div class="text-nc-content-gray-subtle2">Try checking back later for new templates</div>
           </div>
         </template>

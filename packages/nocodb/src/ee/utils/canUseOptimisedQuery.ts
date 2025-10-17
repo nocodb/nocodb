@@ -13,9 +13,9 @@ export default async function canUseOptimisedQuery(
   },
 ) {
   return (
-    ((['mysql', 'mysql2'].includes(source.type) &&
-      (await isMysqlVersionSupported(context, source))) ||
-      ['pg'].includes(source.type)) &&
-    !disableOptimization
+    // disable mysql single query for now until we fix performance issues related to the mysql
+    // (['mysql', 'mysql2'].includes(source.type) &&
+    // (await isMysqlVersionSupported(context, source))) ||
+    ['pg'].includes(source.type) && !disableOptimization
   );
 }

@@ -219,6 +219,7 @@ export const useRealtime = createSharedComposable(() => {
     } else if (event.action === 'row_color_update') {
       $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE, { rowColorInfo: event.payload || {} })
     } else if (event.action === 'extension_create') {
+      updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
       const { payload } = event
       if (activeBaseId.value === payload.base_id && baseExtensions.value[activeBaseId.value]) {
         const newExtension = new Extension(payload)
@@ -236,6 +237,7 @@ export const useRealtime = createSharedComposable(() => {
         }
       }
     } else if (event.action === 'extension_delete') {
+      updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, -1)
       const { payload } = event
       if (activeBaseId.value === payload.base_id && baseExtensions.value[activeBaseId.value]) {
         const index = baseExtensions.value[activeBaseId.value].extensions.findIndex((ext) => ext.id === payload.id)

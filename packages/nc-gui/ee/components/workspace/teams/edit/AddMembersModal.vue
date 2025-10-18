@@ -1,21 +1,30 @@
 <script lang="ts" setup>
-import type { UserType } from 'nocodb-sdk'
+import type { TeamV3V3Type, UserType } from 'nocodb-sdk'
+import type { TeamMember } from './MembersSection.vue'
 
-const props = defineProps<{
-  visible: boolean
-  team: TeamType
-}>()
+const props = withDefaults(
+  defineProps<{
+    visible: boolean
+    team: TeamV3V3Type
+    teamMembers: TeamMember[]
+  }>(),
+  {
+    teamMembers: () => [],
+  },
+)
 
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void
-  (e: 'update:team', value: TeamType): void
+  (e: 'update:team', value: TeamV3V3Type): void
 }>()
 
 const visible = useVModel(props, 'visible', emits)
 
-const selectedUserIds = ref<string[]>([])
-
 const team = useVModel(props, 'team', emits)
+
+const { teamMembers } = toRefs(props)
+
+const selectedUserIds = ref<string[]>([])
 
 const { t } = useI18n()
 
@@ -23,13 +32,21 @@ const workspaceStore = useWorkspace()
 
 const { collaborators, collaboratorsMap } = storeToRefs(workspaceStore)
 
+const teamMembersMap = computed(() => {
+  return teamMembers.value.reduce((acc, member) => {
+    acc[member.user_id] = member
+    acc[member.user_email] = member
+    return acc
+  }, {} as Record<string, TeamMember>)
+})
+
 const ncListData = computed<NcListItemType[]>(() => {
   return (collaborators.value || []).map((coll, i) => {
-    const isDisabled = team.value.members.includes(coll.fk_user_id!) || team.value.members.includes(coll.email!)
+    const isDisabled = teamMembersMap.value[coll.fk_user_id!] || teamMembersMap.value[coll.email!]
     return {
       ...coll,
-      ncItemDisabled: isDisabled,
-      ncItemTooltip: isDisabled ? t('objects.teams.alreadyPartOfTeam') : '',
+      ncItemDisabled: !!isDisabled,
+      ncItemTooltip: !!isDisabled ? t('objects.teams.alreadyPartOfTeam') : '',
     }
   })
 })
@@ -51,7 +68,6 @@ const handleAddMembers = async () => {
   try {
     await ncDelay(2000)
 
-    team.value.members.push(...selectedUserEmails)
     // Todo: API call
 
     emits('update:team', team.value)
@@ -97,13 +113,7 @@ watch(
 
     selectedUserIds.value = []
 
-    team.value.members.forEach((member) => {
-      const user = collaboratorsMap.value[member]
-
-      if (user) {
-        selectedUserIds.value.push(user.fk_user_id!)
-      }
-    })
+    selectedUserIds.value = teamMembers.value.map((member) => member.user_id || member.fk_user_id).filter(Boolean) as string[]
   },
   {
     immediate: true,

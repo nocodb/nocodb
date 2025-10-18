@@ -1,11 +1,17 @@
 <script lang="ts" setup>
-import { TeamUserRoles, type TeamDetailV3V3Type, type TeamMemberV3ResponseV3Type, type WorkspaceUserType } from 'nocodb-sdk'
+import {
+  TeamUserRoles,
+  type TeamDetailV3V3Type,
+  type TeamMemberV3ResponseV3Type,
+  type TeamV3V3Type,
+  type WorkspaceUserType,
+} from 'nocodb-sdk'
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
 export type TeamMember = TeamMemberV3ResponseV3Type & WorkspaceUserType
 
 interface Props {
-  team: TeamType
+  team: TeamV3V3Type
   tableToolbarClassName?: string
   readOnly: boolean
 }
@@ -13,7 +19,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {})
 
 const emits = defineEmits<{
-  (e: 'update:team', value: TeamType): void
+  (e: 'update:team', value: TeamV3V3Type): void
   (e: 'close'): void
 }>()
 
@@ -445,7 +451,7 @@ onMounted(() => {
                     <NcMenuItem
                       :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
                       danger
-                      @click="handleLeaveTeam(record as TeamType)"
+                      @click="handleLeaveTeam(record as TeamMember)"
                     >
                       <GeneralIcon icon="ncLogOut" class="h-4 w-4" />
                       {{ $t('activity.leaveTeam') }}
@@ -475,6 +481,10 @@ onMounted(() => {
       </template>
     </NcTable>
 
-    <WorkspaceTeamsEditAddMembersModal v-model:visible="isAddMembersModalVisible" v-model:team="team" />
+    <WorkspaceTeamsEditAddMembersModal
+      v-model:visible="isAddMembersModalVisible"
+      v-model:team="team"
+      :team-members="teamMembers"
+    />
   </div>
 </template>

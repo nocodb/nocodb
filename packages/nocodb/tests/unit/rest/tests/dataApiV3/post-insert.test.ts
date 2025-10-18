@@ -121,6 +121,9 @@ describe('dataApiV3', () => {
         await ncAxiosPost({
           url: `${urlPrefix}/${table.id}/records?undo=true`,
           body: { fields: { ...newRecord.fields, Id: 300 } },
+          query: {
+            undo: 'true',
+          },
           status: 422,
         });
         // Invalid data - number instead of string

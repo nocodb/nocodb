@@ -1728,7 +1728,7 @@ export interface TeamV3 {
    * @maxLength 50
    * @example "Design Team"
    */
-  name: string;
+  title: string;
   /**
    * Team icon (emoji or icon identifier)
    * @example "🎨"
@@ -1769,7 +1769,7 @@ export interface TeamCreateV3Req {
    * @maxLength 50
    * @example "Design Team"
    */
-  name: string;
+  title: string;
   /**
    * Team icon (emoji or icon identifier)
    * @example "🎨"
@@ -1793,7 +1793,7 @@ export interface TeamUpdateV3Req {
    * @maxLength 50
    * @example "Updated Team Name"
    */
-  name?: string;
+  title?: string;
   /**
    * Updated team icon (emoji or icon identifier)
    * @example "🛠️"
@@ -1813,7 +1813,7 @@ export interface TeamDetailV3 {
    * Team name
    * @example "Design Team"
    */
-  name: string;
+  title: string;
   /**
    * Team icon (emoji or icon identifier)
    * @example "🎨"
@@ -3328,20 +3328,17 @@ export class InternalApi<
      * @tags Teams
      * @name TeamsListV3
      * @summary List Teams
-     * @request GET:/api/v3/meta/{workspaceId}/teams
+     * @request GET:/api/v3/meta/workspaces/{workspaceId}/teams
      */
-    teamsListV3: (
-      workspaceId: string,
-      query?: {
-        /** Include workspace teams */
-        include_workspace?: string;
-      },
-      params: RequestParams = {},
-    ) =>
-      this.request<TeamV3[], any>({
-        path: `/api/v3/meta/${workspaceId}/teams`,
+    teamsListV3: (workspaceId: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          list: TeamV3[];
+        },
+        any
+      >({
+        path: `/api/v3/meta/workspaces/${workspaceId}/teams`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params,
       }),
@@ -3352,21 +3349,16 @@ export class InternalApi<
      * @tags Teams
      * @name TeamsCreateV3
      * @summary Create Team
-     * @request POST:/api/v3/meta/{workspaceId}/teams
+     * @request POST:/api/v3/meta/workspaces/{workspaceId}/teams
      */
     teamsCreateV3: (
       workspaceId: string,
       data: TeamCreateV3Req,
-      query?: {
-        /** Include workspace teams */
-        include_workspace?: string;
-      },
       params: RequestParams = {},
     ) =>
       this.request<TeamV3, any>({
-        path: `/api/v3/meta/${workspaceId}/teams`,
+        path: `/api/v3/meta/workspaces/${workspaceId}/teams`,
         method: 'POST',
-        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',
@@ -3379,7 +3371,7 @@ export class InternalApi<
      * @tags Teams
      * @name TeamsGetV3
      * @summary Get Team
-     * @request GET:/api/v3/meta/{workspaceId}/teams/{teamId}
+     * @request GET:/api/v3/meta/workspaces/{workspaceId}/teams/{teamId}
      */
     teamsGetV3: (
       workspaceId: string,
@@ -3391,7 +3383,7 @@ export class InternalApi<
       params: RequestParams = {},
     ) =>
       this.request<TeamDetailV3, any>({
-        path: `/api/v3/meta/${workspaceId}/teams/${teamId}`,
+        path: `/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -3404,7 +3396,7 @@ export class InternalApi<
      * @tags Teams
      * @name TeamsUpdateV3
      * @summary Update Team
-     * @request PATCH:/api/v3/meta/{workspaceId}/teams/{teamId}
+     * @request PATCH:/api/v3/meta/workspaces/{workspaceId}/teams/{teamId}
      */
     teamsUpdateV3: (
       workspaceId: string,
@@ -3417,7 +3409,7 @@ export class InternalApi<
       params: RequestParams = {},
     ) =>
       this.request<TeamV3, any>({
-        path: `/api/v3/meta/${workspaceId}/teams/${teamId}`,
+        path: `/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}`,
         method: 'PATCH',
         query: query,
         body: data,
@@ -3432,7 +3424,7 @@ export class InternalApi<
      * @tags Teams
      * @name TeamsDeleteV3
      * @summary Delete Team
-     * @request DELETE:/api/v3/meta/{workspaceId}/teams/{teamId}
+     * @request DELETE:/api/v3/meta/workspaces/{workspaceId}/teams/{teamId}
      */
     teamsDeleteV3: (
       workspaceId: string,
@@ -3450,7 +3442,7 @@ export class InternalApi<
         },
         any
       >({
-        path: `/api/v3/meta/${workspaceId}/teams/${teamId}`,
+        path: `/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}`,
         method: 'DELETE',
         query: query,
         format: 'json',
@@ -3463,7 +3455,7 @@ export class InternalApi<
      * @tags Teams
      * @name TeamsMembersAddV3
      * @summary Add Members to Team
-     * @request POST:/api/v3/meta/{workspaceId}/teams/{teamId}/members
+     * @request POST:/api/v3/meta/workspaces/{workspaceId}/teams/{teamId}/members
      */
     teamsMembersAddV3: (
       workspaceId: string,
@@ -3476,7 +3468,7 @@ export class InternalApi<
       params: RequestParams = {},
     ) =>
       this.request<TeamUser[], any>({
-        path: `/api/v3/meta/${workspaceId}/teams/${teamId}/members`,
+        path: `/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`,
         method: 'POST',
         query: query,
         body: data,
@@ -3491,7 +3483,7 @@ export class InternalApi<
      * @tags Teams
      * @name TeamsMembersRemoveV3
      * @summary Remove Member from Team
-     * @request DELETE:/api/v3/meta/{workspaceId}/teams/{teamId}/members
+     * @request DELETE:/api/v3/meta/workspaces/{workspaceId}/teams/{teamId}/members
      */
     teamsMembersRemoveV3: (
       workspaceId: string,
@@ -3505,11 +3497,12 @@ export class InternalApi<
     ) =>
       this.request<
         {
-          user_id?: string;
-        }[],
+          /** @example "Members have been removed successfully" */
+          msg?: string;
+        },
         any
       >({
-        path: `/api/v3/meta/${workspaceId}/teams/${teamId}/members`,
+        path: `/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`,
         method: 'DELETE',
         query: query,
         body: data,
@@ -3524,7 +3517,7 @@ export class InternalApi<
      * @tags Teams
      * @name TeamsMembersUpdateV3
      * @summary Update Member Role
-     * @request PATCH:/api/v3/meta/{workspaceId}/teams/{teamId}/members
+     * @request PATCH:/api/v3/meta/workspaces/{workspaceId}/teams/{teamId}/members
      */
     teamsMembersUpdateV3: (
       workspaceId: string,
@@ -3537,7 +3530,7 @@ export class InternalApi<
       params: RequestParams = {},
     ) =>
       this.request<TeamUser[], any>({
-        path: `/api/v3/meta/${workspaceId}/teams/${teamId}/members`,
+        path: `/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/members`,
         method: 'PATCH',
         query: query,
         body: data,

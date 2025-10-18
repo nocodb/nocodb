@@ -4,6 +4,7 @@ import type {
   IntegrationType,
   PlanFeatureTypes,
   PlanLimitTypes,
+  TeamMembersAddV3ReqV3Type,
   WorkspaceType,
   WorkspaceUserType,
 } from 'nocodb-sdk'
@@ -632,6 +633,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     ssoLoginRequiredDlg.value = show
   }
 
+  /**
+   * Teams section start here
+   */
   const isTeamsLoading = ref(false)
 
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
@@ -686,6 +690,37 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       message.error('Error occured while creating new team')
     }
   }
+
+  async function addTeamMembers(
+    workspaceId: string = activeWorkspaceId.value!,
+    teamId: string,
+    members: TeamMembersAddV3ReqV3Type[],
+  ) {
+    try {
+      // Todo: API call
+
+      const addedMembers = await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'teamMembersAdd',
+        },
+        {
+          teamId,
+          members,
+        },
+      )
+
+      return addedMembers
+    } catch (e: any) {
+      console.error('Failed to add members', e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  /**
+   * Teams section end here
+   */
 
   /**
    * Watchers
@@ -757,10 +792,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teams,
     teamsMap,
     collaboratorsMap,
+    isTeamsLoading,
     createTeam,
     loadTeams,
     getTeamById,
-    isTeamsLoading,
+    addTeamMembers,
   }
 })
 

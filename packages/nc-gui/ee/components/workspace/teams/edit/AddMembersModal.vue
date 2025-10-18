@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { TeamV3V3Type, UserType } from 'nocodb-sdk'
+import { TeamUserRoles, type TeamV3V3Type, type UserType } from 'nocodb-sdk'
 import type { TeamMember } from './MembersSection.vue'
 
 const props = withDefaults(
@@ -24,13 +24,15 @@ const team = useVModel(props, 'team', emits)
 
 const { teamMembers } = toRefs(props)
 
-const selectedUserIds = ref<string[]>([])
+const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { collaborators, collaboratorsMap } = storeToRefs(workspaceStore)
+const { collaborators, collaboratorsMap, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const selectedUserIds = ref<string[]>([])
 
 const teamMembersMap = computed(() => {
   return teamMembers.value.reduce((acc, member) => {
@@ -64,27 +66,34 @@ const handleAddMembers = async () => {
   isLoading.value = true
   isError.value = false
 
-  const selectedUserEmails = selectedUsers.value.map((user) => user.email)
-  try {
-    await ncDelay(2000)
+  const membersToAdd = selectedUsers.value.map((user) => {
+    return {
+      user_id: user.fk_user_id!,
+      team_role: TeamUserRoles.MEMBER,
+    }
+  })
 
-    // Todo: API call
+  const addedMembers = await workspaceStore.addTeamMembers(activeWorkspaceId.value!, team.value.id, membersToAdd)
+
+  if (addedMembers && ncIsArray(addedMembers)) {
+    team.value.members_count = (team.value.members_count || 0) + addedMembers.length
 
     emits('update:team', team.value)
+
     message.success({
       title: t('objects.teams.membersAddedToTeam'),
       content: t('objects.teams.nMembersHaveBeenAddedIntoTeam', {
-        n: selectedUserEmails.length,
+        n: membersToAdd.length,
         team: team.value.title,
       }),
     })
+
     visible.value = false
-  } catch (e: any) {
+  } else {
     isError.value = true
-    console.error('Failed to add members', e)
-  } finally {
-    isLoading.value = false
   }
+
+  isLoading.value = false
 }
 
 const filterOption = (input: string, option: NcListItemType) => {

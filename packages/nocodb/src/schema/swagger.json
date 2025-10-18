@@ -20698,6 +20698,15 @@
           "in": "query",
           "description": "Widget ID",
           "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "teamId",
+          "in": "query",
+          "description": "Team ID",
+          "required": false
         }
       ]
     }

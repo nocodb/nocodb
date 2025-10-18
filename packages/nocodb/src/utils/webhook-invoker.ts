@@ -540,6 +540,15 @@ export class WebhookInvoker {
               scriptId: notification?.payload?.scriptId,
               modelId: model.id,
               records: datas,
+              hookPayload: {
+                ...hook,
+                operation: hookPayload.operation as any,
+                fk_hook_id: hook.id,
+                type: notification.type,
+                payload: JSON.stringify(notification?.payload),
+                triggered_by: user?.email,
+                conditions: JSON.stringify(filters),
+              },
               req: {
                 user: NOCO_SERVICE_USERS.AUTOMATION_USER,
                 headers: {

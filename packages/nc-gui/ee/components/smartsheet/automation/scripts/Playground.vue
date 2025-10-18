@@ -115,7 +115,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
 <template>
   <div
     ref="playgroundContainer"
-    class="overflow-y-auto nc-scrollbar-md"
+    class="overflow-y-auto nc-playground-container nc-scrollbar-md"
     :class="[
       {
         'border-l-1 border-nc-border-gray-medium': !compact && !scriptStore?.isCreateEditScriptAllowed && isEditorOpen,
@@ -129,7 +129,12 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
       class="flex mx-auto flex-col max-w-130 gap-6"
       :class="[{ 'pb-40': !compact, 'pb-4': compact }]"
     >
-      <div v-for="(item, index) in playgroundData" :key="index" class="playground-item" :data-type="item.type">
+      <div
+        v-for="(item, index) in playgroundData"
+        :key="index"
+        class="playground-item"
+        :data-testid="`nc-playground-item-${item.type}`"
+      >
         <template v-if="item.type === 'workflow-step'">
           <div
             :class="{
@@ -254,15 +259,16 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
           <div
             class="leading-5 whitespace-pre-wrap"
             :class="{ 'text-nc-content-red-medium': item.style === 'error', 'text-orange-500': item.style === 'warning' }"
+            data-testid="nc-playground-text-output"
           >
             {{ item.content }}
           </div>
         </template>
         <template v-else-if="item.type === 'markdown'">
-          <div class="prose" v-html="marked(item.content)"></div>
+          <div class="prose" data-testid="nc-playground-markdown-output" v-html="marked(item.content)"></div>
         </template>
         <template v-else-if="item.type === 'table'">
-          <table class="nc-scripts-table">
+          <table class="nc-scripts-table" data-testid="nc-playground-table-output">
             <thead>
               <tr>
                 <th
@@ -290,10 +296,15 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
             :show-line="false"
             :deep="2"
             :data="item.content"
+            data-testid="nc-playground-inspect-output"
           />
         </template>
         <template v-else-if="item.type === 'input-request'">
-          <DynamicInput :content="item.content" :on-resolve="(data: any) => resolve(item, data)" />
+          <DynamicInput
+            :content="item.content"
+            :on-resolve="(data: any) => resolve(item, data)"
+            data-testid="nc-playground-input"
+          />
         </template>
       </div>
     </div>
@@ -320,6 +331,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
     <div
       v-else-if="playgroundData.length === 0 && !showRunButton"
       class="flex items-center justify-center h-20 text-nc-content-gray-subtle text-sm"
+      data-testid="nc-playground-empty"
     >
       No execution steps yet...
     </div>

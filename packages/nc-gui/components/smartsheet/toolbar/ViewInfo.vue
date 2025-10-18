@@ -247,15 +247,33 @@ const viewModeInfo = computed(() => {
                 </span>
               </NcTooltip>
 
-              <component
-                :is="viewLockIcons[activeView.lock_type].icon"
-                v-if="[ViewLockType.Locked, ViewLockType.Personal].includes(activeView?.lock_type)"
-                class="flex-none w-3.5 h-3.5 mx-0.5"
-                :class="{
-                  'text-brand-400': activeView?.lock_type === ViewLockType.Personal && isViewOwner,
-                  'text-gray-400': !(activeView?.lock_type === ViewLockType.Personal && isViewOwner),
-                }"
-              />
+              <template v-if="[ViewLockType.Locked, ViewLockType.Personal].includes(activeView?.lock_type)">
+                <div
+                  v-if="activeView?.lock_type === ViewLockType.Personal && activeView.owned_by && idUserMap[activeView.owned_by]"
+                  class="flex items-center justify-center mx-0.5"
+                >
+                  <GeneralUserIcon
+                    :user="idUserMap[activeView.owned_by]"
+                    :initials-length="1"
+                    size="auto"
+                    class="flex-none !h-[14px] !min-h-[14px]"
+                    :class="{
+                      '!text-[8px]': !parseProp(idUserMap[activeView.owned_by]?.meta).iconType,
+                      '!text-tiny': parseProp(idUserMap[activeView.owned_by]?.meta).iconType,
+                    }"
+                  />
+                </div>
+
+                <component
+                  v-else
+                  :is="viewLockIcons[activeView.lock_type].icon"
+                  class="flex-none w-3.5 h-3.5 mx-0.5"
+                  :class="{
+                    'text-brand-400': activeView?.lock_type === ViewLockType.Personal && isViewOwner,
+                    'text-gray-400': !(activeView?.lock_type === ViewLockType.Personal && isViewOwner),
+                  }"
+                />
+              </template>
 
               <GeneralIcon
                 icon="chevronDown"

@@ -434,6 +434,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (force || !wsState || !(wsState as any)?.payment) {
       await loadWorkspace(workspaceId)
       await loadRoles(route.value.params.baseId)
+      await loadTeams({ workspaceId })
     }
 
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {
@@ -631,10 +632,50 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     ssoLoginRequiredDlg.value = show
   }
 
-  const createTeam = async (team: Pick<TeamType, 'title' | 'description' | 'meta'>) => {
+  const isTeamsLoading = ref(false)
+
+  async function loadTeams({ workspaceId }: { workspaceId: string }) {
+    isTeamsLoading.value = true
+
+    try {
+      const { list } = await $api.internal.getOperation(workspaceId, NO_SCOPE, {
+        operation: 'teamList',
+      })
+
+      teams.value = list
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isTeamsLoading.value = false
+    }
+  }
+
+  async function getTeamById(workspaceId: string, teamId: string) {
+    try {
+      return await $api.internal.getOperation(workspaceId, NO_SCOPE, {
+        operation: 'teamGet',
+        teamId,
+      })
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function createTeam(workspaceId: string, team: Pick<TeamType, 'title' | 'description' | 'meta'>) {
     try {
       // Todo: api call
+      const res = await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'teamCreate',
+        },
+        team,
+      )
 
+      if (!res) return
+
+      teams.value.push(res)
       return team
     } catch (error: any) {
       console.error(error)
@@ -647,6 +688,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    */
   watch(activeWorkspaceId, async () => {
     await loadRoles(undefined, {}, activeWorkspaceId.value)
+    await loadTeams({ workspaceId: activeWorkspaceId.value! })
   })
 
   watch(
@@ -712,6 +754,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teamsMap,
     collaboratorsMap,
     createTeam,
+    loadTeams,
+    getTeamById,
+    isTeamsLoading,
   }
 })
 

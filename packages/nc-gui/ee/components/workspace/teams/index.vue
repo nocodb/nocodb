@@ -21,13 +21,11 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const workspaceStore = useWorkspace()
 
-const { teams, collaboratorsMap } = storeToRefs(workspaceStore)
+const { teams, isTeamsLoading, collaboratorsMap } = storeToRefs(workspaceStore)
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Teams')
 
 const searchQuery = ref('')
-
-const isTeamsLoading = ref(true)
 
 const isCreateTeamModalVisible = ref(false)
 
@@ -230,12 +228,6 @@ const mockTeamsList = [
 
 onMounted(async () => {
   loadSorts()
-
-  teams.value = mockTeamsList
-
-  forcedNextTick(() => {
-    isTeamsLoading.value = false
-  })
 })
 </script>
 

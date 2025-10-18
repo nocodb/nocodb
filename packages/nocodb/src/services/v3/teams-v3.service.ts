@@ -144,9 +144,11 @@ export class TeamsV3Service {
     const existingTeams = await Team.list(context, {
       fk_workspace_id: param.workspaceOrOrgId,
     });
+
     const duplicateTeam = existingTeams.find(
-      (team) => team.title === param.team.title,
+      (team) => team.title?.trim() === param.team.title?.trim(),
     );
+
     if (duplicateTeam) {
       NcError.get(context).invalidRequestBody(
         `Team with title '${param.team.title}' already exists`,

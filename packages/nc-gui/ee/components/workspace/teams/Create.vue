@@ -13,7 +13,7 @@ const workspaceStore = useWorkspace()
 
 const { createTeam: _createTeam } = workspaceStore
 
-const { teams } = storeToRefs(workspaceStore)
+const { teams, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const inputEl = ref<HTMLInputElement>()
 
@@ -59,7 +59,7 @@ const createTeam = async () => {
   try {
     creating.value = true
     await validate()
-    const team = await _createTeam(formState)
+    const team = await _createTeam(activeWorkspaceId.value, formState)
     emits('created', team as TeamType)
     vVisible.value = false
   } catch (e: any) {

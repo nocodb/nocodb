@@ -19,15 +19,20 @@ const route = router.currentRoute
 
 const workspaceStore = useWorkspace()
 
-const { teamsMap } = storeToRefs(workspaceStore)
+const { teamsMap, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const teamId = computed(() => {
+  return route.value.name === 'index-typeOrId-settings' && route.value.query?.tab === 'teams'
+    ? (route.value.query?.teamId as string)
+    : ''
+})
 
 const editTeam = computed(() => {
-  const teamId =
-    route.value.name === 'index-typeOrId-settings' && route.value.query?.tab === 'teams'
-      ? (route.value.query?.teamId as string)
-      : ''
+  return teamId.value ? teamsMap.value[teamId.value] : null
+})
 
-  return teamId ? teamsMap.value[teamId] : null
+const editTeamDetails = computedAsync(async () => {
+  return teamId.value ? await workspaceStore.getTeamById(activeWorkspaceId.value!, teamId.value) : null
 })
 
 const vVisible = computed({

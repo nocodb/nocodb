@@ -433,7 +433,15 @@ export class UsersService {
 
       const oldRefreshToken = param.req.cookies.refresh_token;
 
-      const user = await User.getByRefreshToken(oldRefreshToken);
+      const userRefreshToken = await UserRefreshToken.getByToken(
+        oldRefreshToken,
+      );
+
+      if (!userRefreshToken) {
+        NcError.badRequest(`Invalid refresh token`);
+      }
+
+      const user = await User.get(userRefreshToken.fk_user_id);
 
       if (!user) {
         NcError.badRequest(`Invalid refresh token`);
@@ -454,7 +462,7 @@ export class UsersService {
         token: genJwt(
           {
             ...user,
-            extra: oldRefreshToken.meta,
+            extra: userRefreshToken.meta,
           },
           Noco.getConfig(),
         ),

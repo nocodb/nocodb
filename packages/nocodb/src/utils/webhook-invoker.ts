@@ -535,11 +535,47 @@ export class WebhookInvoker {
               );
             }
 
+            reqPayload = this.populateAxiosReq({
+              apiMeta: {
+                ...notification?.payload,
+                headers: [
+                  {
+                    name: 'nc-script-id',
+                    value: script.id,
+                    enabled: true,
+                  },
+                  {
+                    name: 'nc-script-title',
+                    value: script.title,
+                    enabled: true,
+                  },
+                ],
+                body: '{{ json event }}',
+              },
+              user,
+              hook: hookPayload,
+              model,
+              view,
+              prevData,
+              newData,
+            });
+
             await addJob?.(JobTypes.ExecuteAction, {
               context,
               scriptId: notification?.payload?.scriptId,
               modelId: model.id,
               records: datas,
+              hookPayload: {
+                ...hook,
+                operation: hookPayload.operation as any,
+                fk_hook_id: hook.id,
+                type: notification.type,
+                payload: JSON.stringify(
+                  this.extractReqPayloadForLog(reqPayload),
+                ),
+                triggered_by: user?.email,
+                conditions: JSON.stringify(filters),
+              },
               req: {
                 user: NOCO_SERVICE_USERS.AUTOMATION_USER,
                 headers: {

@@ -40,7 +40,7 @@ const emit = defineEmits<Emit>()
           </h4>
           <span class="text-nc-content-gray-subtle2 text-small1">
             <template v-if="log.error"> Error occurred {{ log.error_code ?? '' }}</template>
-            <template v-else> Executed in {{ log.execution_time }} ms </template>
+            <template v-else-if="log.execution_time"> Executed in {{ log.execution_time }} ms </template>
           </span>
         </div>
       </div>

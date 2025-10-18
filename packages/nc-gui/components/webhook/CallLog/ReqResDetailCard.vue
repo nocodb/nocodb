@@ -33,8 +33,30 @@ const formattedPayload = computed(() => {
     <div class="detail-title font-weight-bold">{{ title }}</div>
     <div class="content">
       <div v-if="headers" class="detail-headers">
-        <span class="text-gray-500 font-weight-bold text-small1">Header</span>
-        <div class="log-details">
+        <span v-if="!headers['nc-script-id']" class="text-gray-500 font-weight-bold text-small1">Header</span>
+        <div v-if="headers['nc-script-id']" class="log-details">
+          <div class="log-detail-item">
+            <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
+              <template #title>Script ID</template>
+              <span class="label script"> Script ID </span>
+            </NcTooltip>
+            <NcTooltip class="text-small1 max-w-[calc(100%_-_160px)] truncate" show-on-truncate-only>
+              <template #title>{{ headers['nc-script-id'] }}</template>
+              <span class="value"> {{ headers['nc-script-id'] }}</span>
+            </NcTooltip>
+          </div>
+          <div class="log-detail-item">
+            <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
+              <template #title>Script Title</template>
+              <span class="label script"> Script Title </span>
+            </NcTooltip>
+            <NcTooltip class="text-small1 max-w-[calc(100%_-_160px)] truncate" show-on-truncate-only>
+              <template #title>{{ headers['nc-script-title'] }}</template>
+              <span class="value"> {{ headers['nc-script-title'] }}</span>
+            </NcTooltip>
+          </div>
+        </div>
+        <div v-else class="log-details">
           <div v-for="(value, key) in headers" :key="key" class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
               <template #title>{{ key }}</template>
@@ -131,7 +153,7 @@ const formattedPayload = computed(() => {
       @apply flex flex-col gap-1 mt-2;
       .log-detail-item {
         @apply flex flex-row w-full;
-        .label {
+        .label:not(.script) {
           @apply min-w-40 font-weight-600 text-gray-700 text-small1 lowercase;
         }
 

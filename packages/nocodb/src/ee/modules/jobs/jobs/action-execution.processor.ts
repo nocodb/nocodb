@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Sandbox } from '@e2b/code-interpreter';
-import type { NcContext } from 'nocodb-sdk';
+import type { HookLogType, NcContext } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { ExecuteActionJobData } from '~/interface/Jobs';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
-import { Model, Script, View } from '~/models';
+import { HookLog, Model, Script, View } from '~/models';
 import { NcError } from '~/helpers/ncError';
 import { getBaseSchema } from '~/helpers/scriptHelper';
 import { createSandboxCode } from '~/helpers/generateCode';
@@ -13,6 +13,17 @@ import { DataV3Service } from '~/services/v3/data-v3.service';
 
 const BATCH_SIZE = 100;
 const CONCURRENCY_LIMIT = 5;
+
+interface ActionExecutionMessage {
+  type:
+    | 'ACTION_EXECUTION_MESSAGE'
+    | 'ACTION_EXECUTION_ERROR'
+    | 'ACTION_EXECUTION_COMPLETE'
+    | 'ACTION_EXECUTION_START';
+  executionId: string;
+  status?: 'success' | 'error';
+  payload: any;
+}
 
 @Injectable()
 export class ActionExecutionProcessor {
@@ -24,12 +35,47 @@ export class ActionExecutionProcessor {
   ) {}
 
   async job(job: Job<ExecuteActionJobData>) {
-    const { context, req, scriptId, records, modelId, viewId } = job.data;
+    const { context, req, scriptId, hookPayload, records, modelId, viewId } =
+      job.data;
+
+    const script = await Script.get(context, scriptId);
+
+    if (!script) {
+      throw NcError.notFound('Script not found');
+    }
+
+    const hookLog: HookLogType = hookPayload || {};
+
+    let lastMessage: ActionExecutionMessage;
+    let executionResult: ActionExecutionMessage;
 
     const sendLog = (log: string) =>
       this.jobsLogService.sendLog(job, { message: log });
-    const sendMessage = (message: any) =>
-      this.jobsLogService.sendLog(job, { message: message });
+    const sendMessage = (message: ActionExecutionMessage) => {
+      // On error we use last message as execution result
+      if (
+        message.type === 'ACTION_EXECUTION_MESSAGE' &&
+        message.payload?.message?.type === 'done' &&
+        message.payload?.message?.payload?.error
+      ) {
+        executionResult = lastMessage;
+        hookLog.error_message = 'Script execution error';
+        hookLog.error =
+          lastMessage.payload?.message || 'Script execution error';
+      }
+
+      // On success we use complete message as execution result
+      if (!executionResult && message.type === 'ACTION_EXECUTION_COMPLETE') {
+        executionResult = message;
+      }
+
+      // store last message as execution result
+      lastMessage = message;
+
+      if (message.payload?.message) {
+        this.jobsLogService.sendLog(job, { message: message.payload?.message });
+      }
+    };
 
     const model = await Model.get(context, modelId);
 
@@ -53,10 +99,29 @@ export class ActionExecutionProcessor {
         { scriptId, records: recordsV3, model, viewId },
         { sendLog, sendMessage },
       );
+      hookLog.response = 'Script executed successfully';
     } catch (error) {
       sendLog(`Script execution failed: ${error.message}`);
       this.logger.error('Script execution failed:', error);
+
+      hookLog.error_code = error.error_code ?? error.code;
+      hookLog.error_message = error.message;
+      hookLog.error = JSON.stringify(error);
+
       throw error;
+    } finally {
+      if (hookLog && hookPayload) {
+        hookLog.response = JSON.stringify({
+          headers: {
+            'nc-script-id': script.id,
+            'nc-script-title': script.title,
+          },
+          data: executionResult,
+        });
+        HookLog.insert(context, { ...hookLog, test_call: false }).catch((e) => {
+          this.logger.error(e.message, e.stack);
+        });
+      }
     }
   }
 
@@ -71,7 +136,7 @@ export class ActionExecutionProcessor {
     },
     callbacks: {
       sendLog: (log: string) => void;
-      sendMessage: (message: any) => void;
+      sendMessage: (message: ActionExecutionMessage) => void;
     },
   ) {
     // Get script
@@ -143,7 +208,7 @@ export class ActionExecutionProcessor {
     req: any;
     script: Script;
     sandbox: Sandbox;
-    sendMessage: (message: any) => void;
+    sendMessage: (message: ActionExecutionMessage) => void;
   }) {
     const { context, req, script, sandbox, sendMessage } = params;
     const executionId = `standalone-${script.id}-${Date.now()}`;
@@ -180,7 +245,7 @@ export class ActionExecutionProcessor {
     view: View | null;
     records: Record<string, any>[];
     sandbox: Sandbox;
-    sendMessage: (message: any) => void;
+    sendMessage: (message: ActionExecutionMessage) => void;
   }) {
     const { context, req, script, model, view, records, sandbox, sendMessage } =
       params;
@@ -237,7 +302,7 @@ export class ActionExecutionProcessor {
     model: Model;
     view: View | null;
     sandbox: Sandbox;
-    sendMessage: (message: any) => void;
+    sendMessage: (message: ActionExecutionMessage) => void;
   }) {
     const { context, req, script, model, view, sandbox, sendMessage } = params;
     let offset = 0;
@@ -283,7 +348,7 @@ export class ActionExecutionProcessor {
     records: any[];
     baseIndex: number;
     sandbox: Sandbox;
-    sendMessage: (message: any) => void;
+    sendMessage: (message: ActionExecutionMessage) => void;
   }) {
     const {
       context,
@@ -358,7 +423,14 @@ export class ActionExecutionProcessor {
     recordId: string | null;
     executionId: string;
     sandbox: Sandbox;
-    sendMessage: (message: any) => void;
+    /*
+    {
+            type: 'ACTION_EXECUTION_MESSAGE',
+            executionId,
+            payload: { recordId, message },
+          }
+    */
+    sendMessage: (message: ActionExecutionMessage) => void;
   }) {
     const {
       context,

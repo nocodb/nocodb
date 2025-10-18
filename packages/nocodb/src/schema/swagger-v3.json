@@ -9017,6 +9017,11 @@
             "description": "Number of team members",
             "example": 10
           },
+          "managers_count": {
+            "type": "integer",
+            "description": "Number of team managers",
+            "example": 2
+          },
           "fk_org_id": {
             "type": "string",
             "description": "Organization ID (for Cloud Enterprise)"

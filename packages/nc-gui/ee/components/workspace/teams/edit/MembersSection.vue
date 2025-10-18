@@ -7,6 +7,7 @@ export type TeamMember = TeamMemberV3ResponseV3Type & WorkspaceUserType
 interface Props {
   team: TeamType
   tableToolbarClassName?: string
+  readOnly: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {})
@@ -17,6 +18,8 @@ const emits = defineEmits<{
 }>()
 
 const team = useVModel(props, 'team', emits)
+
+const { readOnly } = toRefs(props)
 
 const { t } = useI18n()
 
@@ -334,7 +337,7 @@ onMounted(() => {
               </template>
             </a-input>
 
-            <div class="relative children:flex-none min-w-[150px] min-h-8 flex items-center justify-end">
+            <div v-if="!readOnly" class="relative children:flex-none min-w-[150px] min-h-8 flex items-center justify-end">
               <div v-if="!selectedRowConfig.selectedRowCount">
                 <NcButton
                   size="small"
@@ -383,7 +386,7 @@ onMounted(() => {
           <NcCheckbox
             :checked="selectedRowConfig.isAllSelected"
             :indeterminate="selectedRowConfig.isSomeSelected"
-            :disabled="!teamMembers.length"
+            :disabled="!teamMembers.length || readOnly"
             @update:checked="toggleSelectAll"
           />
         </template>
@@ -394,7 +397,7 @@ onMounted(() => {
 
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'select'">
-          <NcCheckbox v-model:checked="selectedRows[record.fk_user_id!]" />
+          <NcCheckbox v-model:checked="selectedRows[record.fk_user_id!]" :disabled="readOnly" />
         </template>
         <template v-else-if="column.key === 'member_name'">
           <div class="w-full flex items-center gap-4 overflow-hidden">
@@ -423,7 +426,11 @@ onMounted(() => {
               </template>
               <template #overlay>
                 <NcMenu variant="medium" @click="isOpenContextMenu[record.fk_user_id!] = false">
-                  <NcMenuItem v-if="!isTeamOwner(record as TeamMember)" @click="handleAssignAsTeamOwner(record as TeamMember)">
+                  <NcMenuItem
+                    v-if="!isTeamOwner(record as TeamMember)"
+                    :disabled="readOnly"
+                    @click="handleAssignAsTeamOwner(record as TeamMember)"
+                  >
                     <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
                     {{ $t('activity.assignAsTeamOwner') }}
                   </NcMenuItem>
@@ -431,12 +438,12 @@ onMounted(() => {
                   <!-- Show leave team option only if logged in user is same as record user -->
                   <NcTooltip
                     v-if="record.fk_user_id === user?.id"
-                    :disabled="!(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
+                    :disabled="!(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
                     :title="t('objects.teams.soleTeamOwnerTooltip')"
                     placement="left"
                   >
                     <NcMenuItem
-                      :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
+                      :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
                       danger
                       @click="handleLeaveTeam(record as TeamType)"
                     >
@@ -447,12 +454,12 @@ onMounted(() => {
 
                   <NcTooltip
                     v-else
-                    :disabled="!(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
+                    :disabled="!(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
                     :title="t('objects.teams.thisIsTheOnlyTeamOwnerTooltip')"
                     placement="left"
                   >
                     <NcMenuItem
-                      :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
+                      :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
                       danger
                       @click="handleRemoveMemberFromTeam([record as TeamMember])"
                     >

@@ -1745,6 +1745,11 @@ export interface TeamV3 {
    * @example 10
    */
   members_count: number;
+  /**
+   * Number of team managers
+   * @example 2
+   */
+  managers_count?: number;
   /** Organization ID (for Cloud Enterprise) */
   fk_org_id?: string;
   /** Workspace ID (for other plans) */

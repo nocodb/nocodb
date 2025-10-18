@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 interface Props {
   team: TeamType
+  readOnly: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {})
 
 const useForm = Form.useForm
 
-const { team } = toRefs(props)
+const { team, readOnly } = toRefs(props)
 
 const inputEl = ref<HTMLInputElement>()
 
@@ -27,6 +28,8 @@ const { validate, validateInfos } = useForm(formState, validators)
 const updating = ref(false)
 
 const updateTeam = async () => {
+  if (readOnly.value) return
+
   try {
     updating.value = true
     await validate()
@@ -50,6 +53,8 @@ onMounted(() => {
   formState.title = team.value.title
   formState.description = team.value.description ?? ''
   formState.meta = parseProp(team.value.meta)
+
+  if (readOnly.value) return
 
   nextTick(() => {
     inputEl.value?.focus()
@@ -78,6 +83,7 @@ onMounted(() => {
           hide-details
           data-testid="create-team-title-input"
           :placeholder="$t('placeholder.enterTeamName')"
+          :disabled="readOnly"
           @input="updateTeamWithDebounce"
         />
       </a-form-item>
@@ -92,6 +98,7 @@ onMounted(() => {
           hide-details
           data-testid="create-team-description-input"
           :placeholder="$t('placeholder.enterTeamDescription')"
+          :disabled="readOnly"
           @input="updateTeamWithDebounce"
         />
       </a-form-item>

@@ -17,9 +17,15 @@ const { isOpenUsingRouterPush } = toRefs(props)
 const router = useRouter()
 const route = router.currentRoute
 
+const { isUIAllowed } = useRoles()
+
 const workspaceStore = useWorkspace()
 
 const { teamsMap, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const hasEditPermission = computed(() => {
+  return isUIAllowed('teamUpdate')
+})
 
 const teamId = computed(() => {
   return route.value.name === 'index-typeOrId-settings' && route.value.query?.tab === 'teams'
@@ -90,8 +96,8 @@ const supportedDocs: SupportedDocsType[] = [
         <!-- Content -->
         <div class="flex-1 nc-modal-teams-edit-content">
           <template v-if="editTeam">
-            <WorkspaceTeamsEditGeneralSection v-model:team="editTeam" />
-            <WorkspaceTeamsEditMembersSection v-model:team="editTeam" @close="vVisible = false" />
+            <WorkspaceTeamsEditGeneralSection v-model:team="editTeam" :read-only="!hasEditPermission" />
+            <WorkspaceTeamsEditMembersSection v-model:team="editTeam" :read-only="!hasEditPermission" @close="vVisible = false" />
           </template>
         </div>
 

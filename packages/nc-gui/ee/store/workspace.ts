@@ -41,7 +41,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const ssoLoginRequiredDlg = ref(false)
 
-  const { loadRoles } = useRoles()
+  const { loadRoles, isUIAllowed } = useRoles()
 
   const { user: currentUser } = useGlobal()
 
@@ -635,6 +635,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isTeamsLoading = ref(false)
 
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
+    if (!isUIAllowed('teamList')) return
+
     isTeamsLoading.value = true
 
     try {
@@ -651,6 +653,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function getTeamById(workspaceId: string, teamId: string) {
+    if (!isUIAllowed('teamGet')) return
+
     try {
       return await $api.internal.getOperation(workspaceId, NO_SCOPE, {
         operation: 'teamGet',

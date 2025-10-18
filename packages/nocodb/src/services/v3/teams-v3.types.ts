@@ -4,6 +4,7 @@ export interface TeamV3Type {
   icon?: string;
   badge_color?: string;
   members_count: number;
+  managers_count: number;
   fk_org_id?: string;
   fk_workspace_id?: string;
   created_at?: string;
@@ -16,6 +17,7 @@ export interface TeamV3ResponseType {
   icon?: string;
   badge_color?: string;
   members_count: number;
+  managers_count: number;
   created_at?: string;
   updated_at?: string;
 }

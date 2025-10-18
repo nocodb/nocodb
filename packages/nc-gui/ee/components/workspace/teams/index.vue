@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { TeamV3V3Type } from 'nocodb-sdk'
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
 interface Props {
@@ -15,19 +16,31 @@ const route = router.currentRoute
 
 const { isActive } = toRefs(props)
 
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+
 const { t } = useI18n()
 
-const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+const { $api } = useNuxtApp()
+
+const { isUIAllowed } = useRoles()
+
+const hasEditPermission = computed(() => {
+  return isUIAllowed('teamUpdate')
+})
 
 const workspaceStore = useWorkspace()
 
-const { teams, isTeamsLoading, collaboratorsMap } = storeToRefs(workspaceStore)
+const { teams, isTeamsLoading, collaboratorsMap, activeWorkspace } = storeToRefs(workspaceStore)
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Teams')
 
 const searchQuery = ref('')
 
 const isCreateTeamModalVisible = ref(false)
+
+const activeWorkspaceId = computed(() => {
+  return props.workspaceId || activeWorkspace.value?.id
+})
 
 /**
  * Modal visibility is based on query params, and will use following method
@@ -103,7 +116,7 @@ const columns = [
     minWidth: 110,
     justify: 'justify-end',
   },
-] as NcTableColumnProps<TeamType>[]
+] as NcTableColumnProps<TeamV3V3Type>[]
 
 const customRow = (record: Record<string, any>) => ({
   onClick: () => {
@@ -115,8 +128,8 @@ const handleCreateTeam = () => {
   isCreateTeamModalVisible.value = true
 }
 
-const hasSoleTeamOwner = (team: TeamType) => {
-  return team?.owners?.length < 2
+const hasSoleTeamOwner = (team: TeamV3V3Type) => {
+  return (team?.managers_count || 0) < 2
 }
 
 const handleConfirm = ({
@@ -159,7 +172,7 @@ const handleConfirm = ({
   }
 }
 
-const handleLeaveTeam = (team: TeamType) => {
+const handleLeaveTeam = (team: TeamV3V3Type) => {
   handleConfirm({
     title: t('objects.teams.confirmLeaveTeamTitle'),
     content: t('objects.teams.confirmLeaveTeamSubtitle'),
@@ -174,7 +187,7 @@ const handleLeaveTeam = (team: TeamType) => {
   })
 }
 
-const handleDeleteTeam = (team: TeamType) => {
+const handleDeleteTeam = (team: TeamV3V3Type) => {
   handleConfirm({
     title: t('objects.teams.confirmDeleteTeamTitle'),
     content: t('objects.teams.confirmDeleteTeamSubtitle'),
@@ -184,6 +197,24 @@ const handleDeleteTeam = (team: TeamType) => {
       // Todo: api call
       console.log('delete team', team)
       await ncDelay(2000)
+
+      try {
+        await $api.internal.postOperation(
+          activeWorkspaceId.value!,
+          NO_SCOPE,
+          {
+            operation: 'teamDelete',
+          },
+          {
+            teamId: team.id,
+          },
+        )
+
+        teams.value = teams.value.filter((t) => t.id !== team.id)
+      } catch (error: any) {
+        console.error(error)
+        message.error(await extractSdkResponseErrorMsg(error))
+      }
     },
   })
 }
@@ -254,6 +285,7 @@ onMounted(async () => {
         </a-input>
 
         <NcButton
+          v-if="hasEditPermission"
           size="small"
           inner-class="!gap-2"
           :disabled="isTeamsLoading"
@@ -280,13 +312,24 @@ onMounted(async () => {
       >
         <template #emptyText>
           <NcEmptyPlaceholder
-            :title="$t('placeholder.youHaveNotCreatedAnyTeams')"
-            :subtitle="$t('placeholder.youHaveNotCreatedAnyTeamsSubtitle')"
+            :title="teams.length ? '' : $t('placeholder.youHaveNotCreatedAnyTeams')"
+            :subtitle="teams.length ? $t('title.noResultsMatchedYourSearch') : $t('title.noResultsMatchedYourSearchSubtitle')"
           >
             <template #icon>
-              <img src="~assets/img/placeholder/moscot-collaborators.png" alt="New Team" class="!w-[320px] flex-none" />
+              <img
+                v-if="!teams.length"
+                src="~assets/img/placeholder/moscot-collaborators.png"
+                alt="New Team"
+                class="!w-[320px] flex-none"
+              />
+              <img
+                v-else
+                src="~assets/img/placeholder/no-search-result-found.png"
+                alt="No search results found"
+                class="!w-[320px] flex-none"
+              />
             </template>
-            <template #action>
+            <template v-if="hasEditPermission" #action>
               <NcButton size="small" inner-class="!gap-2" @click="handleCreateTeam">
                 <template #icon>
                   <GeneralIcon icon="plus" class="h-4 w-4" />
@@ -329,27 +372,28 @@ onMounted(async () => {
           </div>
 
           <div v-if="column.key === 'action'" @click.stop>
-            <NcDropdown>
+            <NcDropdown placement="bottomRight">
               <NcButton size="small" type="secondary">
                 <component :is="iconMap.ncMoreVertical" />
               </NcButton>
               <template #overlay>
                 <NcMenu variant="medium">
-                  <NcMenuItem @click="handleEditTeam(record as TeamType)">
+                  <NcMenuItem @click="handleEditTeam(record as TeamV3V3Type)">
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}
                   </NcMenuItem>
                   <NcTooltip
-                    :disabled="!hasSoleTeamOwner(record as TeamType)"
+                    v-if="hasEditPermission"
+                    :disabled="!hasSoleTeamOwner(record as TeamV3V3Type) "
                     :title="t('objects.teams.thisTeamHasOnlyOneOwnerTooltip')"
                     placement="left"
                   >
-                    <NcMenuItem :disabled="hasSoleTeamOwner(record as TeamType)" @click="handleLeaveTeam(record as TeamType)">
+                    <NcMenuItem :disabled="hasSoleTeamOwner(record as TeamV3V3Type) " @click="handleLeaveTeam(record as TeamV3V3Type)">
                       <GeneralIcon icon="ncLogOut" class="h-4 w-4" />
                       {{ $t('activity.leaveTeam') }}
                     </NcMenuItem>
                   </NcTooltip>
-                  <NcMenuItem danger @click="handleDeleteTeam(record as TeamType)">
+                  <NcMenuItem v-if="hasEditPermission" danger @click="handleDeleteTeam(record as TeamV3V3Type)">
                     <GeneralIcon icon="delete" />
                     {{ $t('activity.deleteTeam') }}
                   </NcMenuItem>

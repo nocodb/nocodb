@@ -751,6 +751,11 @@ export class AclMiddleware implements NestInterceptor {
         (await checkIfEmailAllowedNonSSO(req.ncWorkspaceId, req.user?.email))
       ) {
         if (req.user?.is_api_token) {
+          // log user info
+          console.log(
+            `[SSO TOKEN ACCESS BLOCKED] User ID: ${req.user?.id}, Workspace ID: ${req.ncWorkspaceId}, Org ID: ${req.ncOrgId}`,
+          );
+
           NcError.allowedOnlySSOGeneratedToken(req.ncWorkspaceId);
         }
 

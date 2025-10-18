@@ -405,6 +405,7 @@ export default class DataReflection extends DataReflectionCE {
     try {
       await dropDatabaseUser(knex, reflection.username, database);
     } catch (e) {
+      logger.error(e);
       logger.error(
         `Failed to drop database user ${reflection.username} in ${fk_workspace_id}`,
       );

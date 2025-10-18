@@ -13,7 +13,7 @@ import {
   whereParam,
 } from './params';
 import type { SwaggerColumn } from '../getSwaggerColumnMetasV3';
-import type { SwaggerView } from '~/services/api-docs/swaggerV3/getSwaggerJSONV3';
+import type { SwaggerView } from '~/services/api-docs/shared/swaggerUtils';
 import { isRelationExist } from '~/services/api-docs/swagger/templates/paths';
 
 export const getModelPaths = async (

@@ -324,10 +324,12 @@ export const useExtensions = createSharedComposable(() => {
   class KvStore<T extends Record<string, any> = any> implements IKvStore<T> {
     private _id: string
     private data: T
+    private _extension: Extension | null = null
 
-    constructor(id: string, data: T) {
+    constructor(id: string, data: T, extension?: Extension) {
       this._id = id
       this.data = data || {}
+      this._extension = extension || null
     }
 
     get<K extends keyof T = any>(key: K) {
@@ -336,6 +338,11 @@ export const useExtensions = createSharedComposable(() => {
 
     set<K extends keyof T = any>(key: K, value: any) {
       this.data[key] = value
+      // Skip update if last change was from realtime
+      if (this._extension?.is_last_update_from_realtime) {
+        this._extension.is_last_update_from_realtime = false
+        return Promise.resolve()
+      }
       return updateExtension(this._id, { kv_store: this.data })
     }
 
@@ -359,6 +366,7 @@ export const useExtensions = createSharedComposable(() => {
     private _meta: any
     private _order: number
     public uiKey = 0
+    public is_last_update_from_realtime = false
 
     constructor(data: any) {
       this._id = data.id
@@ -366,7 +374,7 @@ export const useExtensions = createSharedComposable(() => {
       this._fkUserId = data.fk_user_id
       this._extensionId = data.extension_id
       this._title = data.title
-      this._kvStore = new KvStore(this._id, data.kv_store)
+      this._kvStore = new KvStore(this._id, data.kv_store, this)
       this._meta = data.meta
       this._order = data.order
     }
@@ -422,7 +430,7 @@ export const useExtensions = createSharedComposable(() => {
       this._fkUserId = data.fk_user_id
       this._extensionId = data.extension_id
       this._title = data.title
-      this._kvStore = new KvStore(this._id, data.kv_store)
+      this._kvStore = new KvStore(this._id, data.kv_store, this)
       this._meta = data.meta
       this._order = data.order
     }
@@ -501,6 +509,7 @@ export const useExtensions = createSharedComposable(() => {
     updateExtensionMeta,
     clearKvStore,
     deleteExtension,
+    loadExtensionsForBase,
     getExtensionAssetsUrl: (pathOrUrl: string) => getPluginAssetUrl(pathOrUrl, pluginTypes.extension),
     isDetailsVisible,
     detailsExtensionId,
@@ -513,5 +522,7 @@ export const useExtensions = createSharedComposable(() => {
     userHasAccessToExtension,
     userCurrentBaseRole,
     extensionAccess,
+    baseExtensions,
+    Extension,
   }
 })

@@ -313,6 +313,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Relation Field '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_EXTENSION_NOT_FOUND]: {
+    message: (id: string) => `Extension '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_STORAGE_FILE_CREATE]: {
     message: (details: string) => `Failed to create file: ${details}`,
     code: 500,

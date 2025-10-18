@@ -31,10 +31,6 @@ const editTeam = computed(() => {
   return teamId.value ? teamsMap.value[teamId.value] : null
 })
 
-const editTeamDetails = computedAsync(async () => {
-  return teamId.value ? await workspaceStore.getTeamById(activeWorkspaceId.value!, teamId.value) : null
-})
-
 const vVisible = computed({
   get: () => {
     return !!editTeam.value

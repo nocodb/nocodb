@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { UserType, WorkspaceUserType } from 'nocodb-sdk'
+import { TeamUserRoles, type TeamDetailV3V3Type, type TeamMemberV3ResponseV3Type, type WorkspaceUserType } from 'nocodb-sdk'
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
-export interface TeamMember extends WorkspaceUserType, Omit<UserType, 'roles' | 'email' | 'id'> {}
+export type TeamMember = TeamMemberV3ResponseV3Type & WorkspaceUserType
 
 interface Props {
   team: TeamType
@@ -20,11 +20,13 @@ const team = useVModel(props, 'team', emits)
 
 const { t } = useI18n()
 
+const { api } = useApi()
+
 const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { collaborators, teams } = storeToRefs(workspaceStore)
+const { collaborators, collaboratorsMap, teams, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const teamMembers = ref<TeamMember[]>([])
 
@@ -43,17 +45,15 @@ const filterMembers = computed(() => {
 })
 
 const teamOwners = computed(() => {
-  return team.value?.owners?.map((ownerIdOrEmail) =>
-    teamMembers.value.find((member) => member.fk_user_id === ownerIdOrEmail || member.email === ownerIdOrEmail),
-  )
+  return teamMembers.value.filter((member) => member.team_role === TeamUserRoles.MANAGER)
 })
 
 const hasSoleTeamOwner = computed(() => {
-  return team.value?.owners?.length < 2
+  return teamOwners.value.length < 2
 })
 
 const isTeamOwner = (member: TeamMember) => {
-  return team.value?.owners?.includes(member.fk_user_id!) || team.value?.owners?.includes(member.email!)
+  return member.team_role === TeamUserRoles.MANAGER
 }
 
 // NcTable columns configuration
@@ -126,15 +126,12 @@ const loadTeamMembers = async () => {
   }
 
   try {
-    // Todo: load team members
-    await ncDelay(2000)
-    teamMembers.value = ((collaborators.value || []) as TeamMember[]).filter(
-      (coll) =>
-        team.value.members.includes(coll.fk_user_id!) ||
-        team.value.members.includes(coll.email!) ||
-        team.value.owners.includes(coll.fk_user_id!) ||
-        team.value.owners.includes(coll.email!),
-    )
+    const result = (await workspaceStore.getTeamById(activeWorkspaceId.value!, team.value.id)) as TeamDetailV3V3Type
+
+    teamMembers.value = (result?.members || []).map((member) => ({
+      ...member,
+      ...(collaboratorsMap.value[member.user_id] || collaboratorsMap.value[member.user_email] || {}),
+    }))
   } catch (error: any) {
     message.error(await extractSdkResponseErrorMsg(error))
   } finally {
@@ -142,14 +139,19 @@ const loadTeamMembers = async () => {
   }
 }
 
-const handleAssignAsTeamOwner = (member: TeamMember) => {
+const handleAssignAsTeamOwner = async (member: TeamMember) => {
   team.value.owners.push(member.email!)
-  // Todo: api call
 
-  message.success({
-    title: t('objects.teams.memberAssignedAsTeamOwner'),
-    content: `${extractUserDisplayNameOrEmail(member)} is now a ${team.value?.title || 'team'} owner`,
-  })
+  member.team_role = TeamUserRoles.MANAGER
+
+  try {
+    message.success({
+      title: t('objects.teams.memberAssignedAsTeamOwner'),
+      content: `${extractUserDisplayNameOrEmail(member)} is now a ${team.value?.title || 'team'} owner`,
+    })
+  } catch (error: any) {
+    message.error(await extractSdkResponseErrorMsg(error))
+  }
 }
 
 const handleConfirm = ({
@@ -211,14 +213,11 @@ const handleLeaveTeam = (member: TeamMember) => {
       console.log('leave team', team.value)
       await ncDelay(1000)
 
-      team.value.owners = team.value.owners.filter((owner) => owner !== member.email && owner !== member.fk_user_id!)
-      team.value.members = team.value.members.filter(
-        (teamMember) => teamMember !== member.email && teamMember !== member.fk_user_id!,
-      )
-
       teamMembers.value = teamMembers.value.filter(
         (teamMember) => teamMember.email !== member.email && teamMember.fk_user_id !== member.fk_user_id,
       )
+
+      team.value.members_count = teamMembers.value.length
 
       delete selectedRows.value[member.fk_user_id!]
 
@@ -252,18 +251,14 @@ const handleRemoveMemberFromTeam = (members: TeamMember[]) => {
       console.log('remove members from team', members)
 
       await ncDelay(1000)
-      team.value.members = team.value.members.filter(
-        (member) => !(removeMemberIds.includes(member) || removeMemberEmails.includes(member)),
-      )
-      team.value.owners = team.value.owners.filter(
-        (owner) => !(removeMemberIds.includes(owner) || removeMemberEmails.includes(owner)),
-      )
 
       emits('update:team', team.value)
 
       teamMembers.value = teamMembers.value.filter(
         (member) => !(removeMemberIds.includes(member.fk_user_id!) || removeMemberEmails.includes(member.email!)),
       )
+
+      team.value.members_count = teamMembers.value.length
 
       members.forEach((member) => {
         delete selectedRows.value[member.fk_user_id!]

@@ -4,7 +4,7 @@ import { EnterprisePlan, EnterpriseStarterPlan, FreePlan } from '~/models/Plan';
 
 export * from 'src/ee/helpers/paymentHelpers';
 
-const getOnPremPlan = () => {
+export const getOnPremPlan = () => {
   const licenseSevice = Noco.nestApp.get(LicenseService);
 
   if (!licenseSevice) {
@@ -18,7 +18,7 @@ const getOnPremPlan = () => {
   return EnterprisePlan;
 };
 
-async function getActivePlanAndSubscription(
+export async function getActivePlanAndSubscription(
   _workspaceOrOrgId: string,
   _loyal = false,
   _ncMeta = Noco.ncMeta,

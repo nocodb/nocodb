@@ -2,7 +2,7 @@ import { getModelSchemas } from './templates/schemas';
 import type { Base, Model, Source } from '~/models';
 
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
-import type { SwaggerView } from './getSwaggerJSONV2';
+import type { SwaggerView } from '~/services/api-docs/shared/swaggerUtils';
 import Noco from '~/Noco';
 
 export default async function getSchemas(

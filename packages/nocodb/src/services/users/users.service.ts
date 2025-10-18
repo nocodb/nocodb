@@ -29,6 +29,7 @@ import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
+
 @Injectable()
 export class UsersService {
   logger = new Logger(UsersService.name);
@@ -450,7 +451,13 @@ export class UsersService {
       setTokenCookie(param.res, refreshToken);
 
       return {
-        token: genJwt(user, Noco.getConfig()),
+        token: genJwt(
+          {
+            ...user,
+            extra: oldRefreshToken.meta,
+          },
+          Noco.getConfig(),
+        ),
       } as any;
     } catch (e) {
       NcError.badRequest(e.message);

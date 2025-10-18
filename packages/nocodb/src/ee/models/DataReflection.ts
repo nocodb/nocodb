@@ -367,6 +367,70 @@ export default class DataReflection extends DataReflectionCE {
       logger.error(e);
     }
   }
+
+  public static async refreshAccess(
+    fk_workspace_id: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const basesList = await Base.listByWorkspace(
+      fk_workspace_id,
+      {
+        includeDeleted: true,
+        includeSnapshot: true,
+      },
+      ncMeta,
+    );
+
+    const reflection = await DataReflection.get({ fk_workspace_id }, ncMeta);
+    if (!reflection) return;
+
+    const knex = await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id);
+
+    const dataConfig = await NcConnectionMgrv2.getWorkspaceDataConfig(
+      fk_workspace_id,
+    );
+
+    const database = dataConfig.connection.database;
+
+    for (const base of basesList) {
+      try {
+        await revokeAccessToSchema(knex, base.id, reflection.username);
+      } catch (e) {
+        logger.error(
+          `Failed to revoke access to schema ${base.id} in ${fk_workspace_id}`,
+        );
+      }
+    }
+
+    try {
+      await dropDatabaseUser(knex, reflection.username, database);
+    } catch (e) {
+      logger.error(
+        `Failed to drop database user ${reflection.username} in ${fk_workspace_id}`,
+      );
+    }
+
+    const trx = await knex.transaction();
+
+    try {
+      await createDatabaseUser(
+        trx,
+        reflection.username,
+        reflection.password,
+        database,
+      );
+
+      for (const base of basesList) {
+        if (base.deleted) continue;
+        await grantAccessToSchema(trx, base.id, reflection.username);
+      }
+
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback();
+      logger.error(`Failed to refresh access for ${fk_workspace_id}`, e);
+    }
+  }
 }
 
 /**

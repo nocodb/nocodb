@@ -438,7 +438,7 @@ export class UsersService {
       );
 
       if (!userRefreshToken) {
-        NcError.badRequest(`Invalid refresh token`);
+        NcError.unauthorized(`Invalid refresh token`);
       }
 
       // check if refresh token expired and delete it if expired
@@ -447,13 +447,13 @@ export class UsersService {
         new Date(userRefreshToken.expires_at) < new Date()
       ) {
         await UserRefreshToken.deleteToken(oldRefreshToken);
-        NcError.badRequest(`Refresh token expired`);
+        NcError.unauthorized(`Refresh token expired`);
       }
 
       const user = await User.get(userRefreshToken.fk_user_id);
 
       if (!user) {
-        NcError.badRequest(`Invalid refresh token`);
+        NcError.unauthorized(`Invalid refresh token`);
       }
 
       const refreshToken = randomTokenString();

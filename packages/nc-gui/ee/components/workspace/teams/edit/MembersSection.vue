@@ -35,9 +35,14 @@ const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { collaborators, collaboratorsMap, teams, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { collaboratorsMap, teams, activeWorkspaceId, editTeamDetails } = storeToRefs(workspaceStore)
 
-const teamMembers = ref<TeamMember[]>([])
+const teamMembers = computed<TeamMember[]>(() => {
+  return (editTeamDetails.value?.members || []).map((member) => ({
+    ...member,
+    ...(collaboratorsMap.value[member.user_id] || collaboratorsMap.value[member.user_email] || {}),
+  }))
+})
 
 const isLoading = ref(true)
 
@@ -134,18 +139,9 @@ const loadTeamMembers = async () => {
     return
   }
 
-  try {
-    const result = (await workspaceStore.getTeamById(activeWorkspaceId.value!, team.value.id)) as TeamDetailV3V3Type
+  await workspaceStore.getTeamById(activeWorkspaceId.value!, team.value.id)
 
-    teamMembers.value = (result?.members || []).map((member) => ({
-      ...member,
-      ...(collaboratorsMap.value[member.user_id] || collaboratorsMap.value[member.user_email] || {}),
-    }))
-  } catch (error: any) {
-    message.error(await extractSdkResponseErrorMsg(error))
-  } finally {
-    isLoading.value = false
-  }
+  isLoading.value = false
 }
 
 const handleAssignAsTeamOwner = async (member: TeamMember) => {

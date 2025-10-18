@@ -4,7 +4,9 @@ import type {
   IntegrationType,
   PlanFeatureTypes,
   PlanLimitTypes,
-  TeamMembersAddV3ReqV3Type,
+  TeamDetailV3V3Type,
+  TeamMemberV3ResponseV3Type,
+  TeamV3V3Type,
   WorkspaceType,
   WorkspaceUserType,
 } from 'nocodb-sdk'
@@ -63,17 +65,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   })
 
   const allCollaborators = ref<WorkspaceUserType[] | null>()
-
-  const teams = ref<TeamType[]>([])
-
-  const teamsMap = computed(() => {
-    return (teams.value || [])?.reduce((acc, curr) => {
-      if (curr.id) {
-        acc[curr.id] = curr
-      }
-      return acc
-    }, {} as Record<string, TeamType>)
-  })
 
   const lastPopulatedWorkspaceId = ref<string | null>(null)
 
@@ -638,6 +629,19 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    */
   const isTeamsLoading = ref(false)
 
+  const teams = ref<TeamV3V3Type[]>([])
+
+  const teamsMap = computed(() => {
+    return (teams.value || [])?.reduce((acc, curr) => {
+      if (curr.id) {
+        acc[curr.id] = curr
+      }
+      return acc
+    }, {} as Record<string, TeamV3V3Type>)
+  })
+
+  const editTeamDetails = ref<TeamDetailV3V3Type | null>(null)
+
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
     if (!isUIAllowed('teamList')) return
 
@@ -660,10 +664,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (!isUIAllowed('teamGet')) return
 
     try {
-      return await $api.internal.getOperation(workspaceId, NO_SCOPE, {
+      const teamDetails = (await $api.internal.getOperation(workspaceId, NO_SCOPE, {
         operation: 'teamGet',
         teamId,
-      })
+      })) as TeamDetailV3V3Type
+
+      editTeamDetails.value = teamDetails
+
+      return teamDetails
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -672,14 +680,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   async function createTeam(workspaceId: string, team: Pick<TeamType, 'title' | 'description' | 'meta'>) {
     try {
       // Todo: api call
-      const res = await $api.internal.postOperation(
+      const res = (await $api.internal.postOperation(
         workspaceId,
         NO_SCOPE,
         {
           operation: 'teamCreate',
         },
         team,
-      )
+      )) as TeamV3V3Type
 
       if (!res) return
 
@@ -694,12 +702,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   async function addTeamMembers(
     workspaceId: string = activeWorkspaceId.value!,
     teamId: string,
-    members: TeamMembersAddV3ReqV3Type[],
+    members: TeamMemberV3ResponseV3Type[],
   ) {
     try {
-      // Todo: API call
-
-      const addedMembers = await $api.internal.postOperation(
+      const addedMembers = (await $api.internal.postOperation(
         workspaceId,
         NO_SCOPE,
         {
@@ -709,7 +715,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           teamId,
           members,
         },
-      )
+      )) as TeamMemberV3ResponseV3Type[]
+
+      if (editTeamDetails.value && ncIsArray(addedMembers)) {
+        editTeamDetails.value.members = [...(editTeamDetails.value.members || []), ...addedMembers]
+      }
+
+      if (teamsMap.value[teamId]) {
+        teamsMap.value[teamId].members_count = (teamsMap.value[teamId].members_count || 0) + addedMembers.length
+      }
 
       return addedMembers
     } catch (e: any) {
@@ -751,6 +765,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removeCollaborator,
     updateCollaborator,
     collaborators,
+    collaboratorsMap,
     allCollaborators,
     isInvitingCollaborators,
     isCollaboratorsLoading,
@@ -789,10 +804,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeWsDlg,
     upgradeWsJobId,
     removingCollaboratorMap,
+
+    // Teams
     teams,
     teamsMap,
-    collaboratorsMap,
     isTeamsLoading,
+    editTeamDetails,
     createTeam,
     loadTeams,
     getTeamById,

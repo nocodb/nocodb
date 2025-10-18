@@ -441,6 +441,15 @@ export class UsersService {
         NcError.badRequest(`Invalid refresh token`);
       }
 
+      // check if refresh token expired and delete it if expired
+      if (
+        userRefreshToken.expires_at &&
+        new Date(userRefreshToken.expires_at) < new Date()
+      ) {
+        await UserRefreshToken.deleteToken(oldRefreshToken);
+        NcError.badRequest(`Refresh token expired`);
+      }
+
       const user = await User.get(userRefreshToken.fk_user_id);
 
       if (!user) {

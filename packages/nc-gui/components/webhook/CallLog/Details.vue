@@ -51,7 +51,7 @@ const hookType = (item: HookLogType) => {
       </div>
 
       <div class="log-details">
-        <div class="log-detail-item">
+        <div v-if="item.execution_time" class="log-detail-item">
           <span class="label">Execution Time</span>
           <span class="value">{{ item.execution_time }} ms</span>
         </div>

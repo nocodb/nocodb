@@ -20,20 +20,8 @@ const up = async (knex: Knex) => {
     table.index('fk_workspace_id', 'nc_teams_workspace_idx');
   });
 
-  // Create nc_team_users table
-  await knex.schema.createTable(MetaTable.TEAM_USERS, (table) => {
-    table.string('fk_team_id', 20).notNullable();
-    table.string('fk_user_id', 20).notNullable();
-    table.string('roles', 255).notNullable().defaultTo('member'); // manager, member
-    table.timestamps(true, true);
-
-    // Primary key on composite columns
-    table.primary(['fk_team_id', 'fk_user_id'], 'nc_team_users_pk');
-
-    // Indexes for fast lookups
-    table.index('fk_team_id', 'nc_team_users_team_idx');
-    table.index('fk_user_id', 'nc_team_users_user_idx');
-  });
+  // Note: Team membership is handled through nc_principals and nc_principal_assignments tables
+  // No separate nc_team_users table needed
 
   // Create nc_principals table (polymorphic access control)
   await knex.schema.createTable(MetaTable.PRINCIPALS, (table) => {
@@ -73,7 +61,6 @@ const down = async (knex: Knex) => {
   // Drop tables in reverse order
   await knex.schema.dropTable(MetaTable.PRINCIPAL_ASSIGNMENTS);
   await knex.schema.dropTable(MetaTable.PRINCIPALS);
-  await knex.schema.dropTable(MetaTable.TEAM_USERS);
   await knex.schema.dropTable(MetaTable.TEAMS);
 
   await cleanDown(knex);

@@ -359,6 +359,7 @@ export const RootScopeTables = {
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
+    MetaTable.TEAMS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,
@@ -397,3 +398,18 @@ export enum BaseVersion {
 }
 
 export const NC_STORE_DEFAULT_WORKSPACE_ID_KEY = 'NC_DEFAULT_WORKSPACE_ID';
+
+export enum ResourceType {
+  ORG = 'org',
+  WORKSPACE = 'workspace',
+  BASE = 'base',
+  TEAM = 'team',
+}
+
+export enum PrincipalType {
+  USER = 'user',
+  TEAM = 'team',
+  BOT = 'bot',
+  GROUP = 'group',
+  SERVICE = 'service',
+}

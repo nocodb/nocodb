@@ -37,6 +37,8 @@ export { default as SyncLogs } from './SyncLogs';
 export { default as SyncSource } from './SyncSource';
 export { default as Team } from './Team';
 export { default as TeamUser } from './TeamUser';
+export { default as Principal } from './Principal';
+export { default as PrincipalAssignment } from './PrincipalAssignment';
 export { default as User } from './User';
 export { default as View } from './View';
 export { default as LinksColumn } from './LinksColumn';

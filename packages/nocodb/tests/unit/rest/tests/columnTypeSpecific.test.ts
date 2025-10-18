@@ -65,11 +65,6 @@ function columnTypeSpecificTests() {
       uidt: UITypes.Order,
       system: true,
     },
-    {
-      title: 'DateField',
-      uidt: UITypes.Date,
-      system: false,
-    },
     ...(isEE
       ? [
           {
@@ -79,6 +74,11 @@ function columnTypeSpecificTests() {
           },
         ]
       : []),
+    {
+      title: 'DateField',
+      uidt: UITypes.Date,
+      system: false,
+    },
   ];
 
   describe('Qr Code Column', () => {

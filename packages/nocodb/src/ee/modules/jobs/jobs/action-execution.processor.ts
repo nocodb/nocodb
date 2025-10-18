@@ -44,15 +44,33 @@ export class ActionExecutionProcessor {
       throw NcError.notFound('Script not found');
     }
 
-    const hookLog: HookLogType = hookPayload || null;
+    const hookLog: HookLogType = hookPayload || {};
+
+    let lastMessage: ActionExecutionMessage;
     let executionResult: ActionExecutionMessage;
 
     const sendLog = (log: string) =>
       this.jobsLogService.sendLog(job, { message: log });
     const sendMessage = (message: ActionExecutionMessage) => {
-      if (message.type === 'ACTION_EXECUTION_COMPLETE') {
+      // On error we use last message as execution result
+      if (
+        message.type === 'ACTION_EXECUTION_MESSAGE' &&
+        message.payload?.message?.type === 'done' &&
+        message.payload?.message?.payload?.error
+      ) {
+        executionResult = lastMessage;
+        hookLog.error_message = 'Script execution error';
+        hookLog.error =
+          lastMessage.payload?.message || 'Script execution error';
+      }
+
+      // On success we use complete message as execution result
+      if (!executionResult && message.type === 'ACTION_EXECUTION_COMPLETE') {
         executionResult = message;
       }
+
+      // store last message as execution result
+      lastMessage = message;
 
       if (message.payload?.message) {
         this.jobsLogService.sendLog(job, { message: message.payload?.message });
@@ -85,7 +103,11 @@ export class ActionExecutionProcessor {
     } catch (error) {
       sendLog(`Script execution failed: ${error.message}`);
       this.logger.error('Script execution failed:', error);
-      hookLog.response = `Script execution failed: ${error.message}`;
+
+      hookLog.error_code = error.error_code ?? error.code;
+      hookLog.error_message = error.message;
+      hookLog.error = JSON.stringify(error);
+
       throw error;
     } finally {
       if (hookLog && hookPayload) {

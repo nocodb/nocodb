@@ -1,6 +1,6 @@
 import { isLinksOrLTAR, isSelfLinkCol, UITypes } from 'nocodb-sdk';
 import type { SwaggerColumn } from '../getSwaggerColumnMetasV3';
-import type { SwaggerView } from '~/services/api-docs/swaggerV3/getSwaggerJSONV3';
+import type { SwaggerView } from '~/services/api-docs/shared/swaggerUtils';
 
 export const recordIdParam = {
   schema: {

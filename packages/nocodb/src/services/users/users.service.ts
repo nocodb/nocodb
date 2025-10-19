@@ -29,6 +29,7 @@ import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
+
 @Injectable()
 export class UsersService {
   logger = new Logger(UsersService.name);
@@ -432,10 +433,27 @@ export class UsersService {
 
       const oldRefreshToken = param.req.cookies.refresh_token;
 
-      const user = await User.getByRefreshToken(oldRefreshToken);
+      const userRefreshToken = await UserRefreshToken.getByToken(
+        oldRefreshToken,
+      );
+
+      if (!userRefreshToken) {
+        NcError.unauthorized(`Invalid refresh token`);
+      }
+
+      // check if refresh token expired and delete it if expired
+      if (
+        userRefreshToken.expires_at &&
+        new Date(userRefreshToken.expires_at) < new Date()
+      ) {
+        await UserRefreshToken.deleteToken(oldRefreshToken);
+        NcError.unauthorized(`Refresh token expired`);
+      }
+
+      const user = await User.get(userRefreshToken.fk_user_id);
 
       if (!user) {
-        NcError.badRequest(`Invalid refresh token`);
+        NcError.unauthorized(`Invalid refresh token`);
       }
 
       const refreshToken = randomTokenString();
@@ -450,7 +468,13 @@ export class UsersService {
       setTokenCookie(param.res, refreshToken);
 
       return {
-        token: genJwt(user, Noco.getConfig()),
+        token: genJwt(
+          {
+            ...user,
+            extra: userRefreshToken.meta,
+          },
+          Noco.getConfig(),
+        ),
       } as any;
     } catch (e) {
       NcError.badRequest(e.message);

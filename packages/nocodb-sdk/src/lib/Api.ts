@@ -5343,7 +5343,6 @@ export interface SnapshotType {
 }
 
 /**
- * Script Model
  * Model for Script
  */
 export interface ScriptType {

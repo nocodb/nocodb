@@ -47,8 +47,10 @@ import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 @Controller()
 export class InternalController extends InternalControllerCE {
   constructor(
-    protected readonly mcpService: McpTokenService,
     protected readonly aclMiddleware: AclMiddleware,
+    @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
+    protected readonly internalApiModules: InternalApiModule<any>[],
+    protected readonly mcpService: McpTokenService,
     protected readonly auditsService: AuditsService,
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,

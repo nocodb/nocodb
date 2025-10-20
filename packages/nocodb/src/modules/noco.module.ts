@@ -161,6 +161,7 @@ import {
   InternalApiModuleProvider,
   InternalApiModules,
 } from '~/controllers/internal/provider';
+import { MetaDependencyServices } from '~/services/meta-dependency/meta-dependency.services';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -358,6 +359,7 @@ export const nocoModuleMetadata = {
 
     ...InternalApiModules,
     InternalApiModuleProvider,
+    ...MetaDependencyServices,
   ],
   exports: [
     /* Generic */
@@ -407,6 +409,7 @@ export const nocoModuleMetadata = {
     AttachmentUrlUploadHandler,
 
     ...InternalApiModules,
+    ...MetaDependencyServices,
   ],
 };
 

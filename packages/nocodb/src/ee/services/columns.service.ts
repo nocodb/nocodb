@@ -47,6 +47,7 @@ import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 
 @Injectable()
 export class ColumnsService extends ColumnsServiceCE {
@@ -57,6 +58,7 @@ export class ColumnsService extends ColumnsServiceCE {
     protected readonly formulaColumnTypeChanger,
     protected readonly viewRowColorService: ViewRowColorService,
     protected readonly filtersService: FiltersService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {
     super(
       metaService,
@@ -64,6 +66,7 @@ export class ColumnsService extends ColumnsServiceCE {
       formulaColumnTypeChanger,
       formulaColumnTypeChanger,
       filtersService,
+      metaDependencyEventHandler,
     );
   }
 

@@ -1,9 +1,5 @@
 import { ColumnType, FilterType } from './Api';
-import {
-  OrgUserRoles,
-  ProjectRoles,
-  WorkspaceUserRoles,
-} from './enums';
+import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
 import { PlanTitles } from './payment';
 
 export const enumColors = {
@@ -239,7 +235,6 @@ export enum NcErrorType {
   ERR_SUBSCRIPTION_CREATE_FAILED = 'ERR_SUBSCRIPTION_CREATE_FAILED',
   ERR_STRIPE_WEBHOOK_VERIFICATION_FAILED = 'ERR_STRIPE_WEBHOOK_VERIFICATION_FAILED',
   ERR_API_CLIENT_NOT_FOUND = 'ERR_API_CLIENT_NOT_FOUND',
-
 }
 
 export enum ROW_COLORING_MODE {

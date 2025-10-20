@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
 import { isServiceUser, ServiceUserType } from 'nocodb-sdk';
-import type { InternalApiModule } from '~/controllers/internal/types';
+import type { InternalApiModule } from '~/utils/internal-type';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { DashboardsService } from '~/services/dashboards.service';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
@@ -41,7 +41,7 @@ import { OauthClientService } from '~/modules/oauth/services/oauth-client.servic
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 import { TeamsV3Service } from '~/services/v3/teams-v3.service';
 import { UsersService } from '~/services/users/users.service';
-import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/controllers/internal/types';
+import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 
 @Controller()
@@ -66,7 +66,7 @@ export class InternalController extends InternalControllerCE {
     private readonly teamsV3Service: TeamsV3Service,
     private readonly usersService: UsersService,
     @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
-    protected readonly internalApiModules: InternalApiModule[],
+    protected readonly internalApiModules: InternalApiModule<any>[],
   ) {
     super(aclMiddleware, internalApiModules);
   }

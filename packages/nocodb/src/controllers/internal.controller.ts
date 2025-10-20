@@ -10,9 +10,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { NcContext, NcRequest } from 'nocodb-sdk';
-import type { InternalApiModule } from '~/controllers/internal/types';
+import type { InternalApiModule } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
-import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/controllers/internal/types';
+import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -29,7 +29,7 @@ export class InternalController {
   constructor(
     protected readonly aclMiddleware: AclMiddleware,
     @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
-    protected readonly internalApiModules: InternalApiModule[],
+    protected readonly internalApiModules: InternalApiModule<any>[],
   ) {
     if (!this.internalApiModuleMap) {
       this.internalApiModuleMap = {};
@@ -45,7 +45,7 @@ export class InternalController {
 
   protected internalApiModuleMap: Record<
     string,
-    Record<string, InternalApiModule>
+    Record<string, InternalApiModule<any>>
   > = {};
 
   protected async checkAcl(

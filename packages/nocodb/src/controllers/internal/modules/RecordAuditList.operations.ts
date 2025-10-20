@@ -3,15 +3,17 @@ import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
   InternalApiModule,
-  InternalApiResponse,
-} from '~/controllers/internal/types';
+  InternalGETResponseType,
+} from '~/utils/internal-type';
 import { AuditsService } from '~/services/audits.service';
 
 @Injectable()
-export class RecordAuditListOperations implements InternalApiModule {
+export class RecordAuditListOperations
+  implements InternalApiModule<InternalGETResponseType>
+{
   constructor(protected readonly auditsService: AuditsService) {}
-  operations: ['recordAuditList'];
-  httpMethod: 'GET';
+  operations = ['recordAuditList' as const];
+  httpMethod = 'GET' as const;
 
   async handle(
     context: NcContext,
@@ -24,7 +26,7 @@ export class RecordAuditListOperations implements InternalApiModule {
       payload: any;
       req: NcRequest;
     },
-  ): Promise<InternalApiResponse> {
+  ): InternalGETResponseType {
     return await this.auditsService.recordAuditList(context, {
       row_id: req.query.row_id as string,
       fk_model_id: req.query.fk_model_id as string,

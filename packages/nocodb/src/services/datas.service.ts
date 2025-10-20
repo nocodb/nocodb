@@ -35,6 +35,7 @@ export class DatasService {
       apiVersion?: NcApiVersion;
       ignoreViewFilterAndSort?: boolean;
       baseModel?: BaseModelSqlv2;
+      skipSortBasedOnOrderCol?: boolean;
     },
   ) {
     let { model, view } = param as { view?: View; model?: Model };

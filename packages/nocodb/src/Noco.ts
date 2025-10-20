@@ -58,6 +58,8 @@ export default class Noco {
   protected config: any;
   protected requestContext: any;
 
+  public static ncDefaultWorkspaceId: string;
+
   public static sharp: typeof Sharp;
   public static canvas: any;
   public static isPdfjsInitialized: boolean;

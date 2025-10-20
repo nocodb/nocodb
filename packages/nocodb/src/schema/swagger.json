@@ -26515,13 +26515,6 @@
               "dashboard"
             ]
           },
-          "linked_db_project_ids": {
-            "description": "List of Linked Database Base IDs (only used for Dashboard Projects so far)",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "Base Meta"
@@ -26576,13 +26569,6 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Base Status",
             "example": "locked"
-          },
-          "linked_db_project_ids": {
-            "description": "List of Linked Database Base IDs (only used for Dashboard Projects so far)",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
           "order": {
             "type": "number",

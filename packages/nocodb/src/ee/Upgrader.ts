@@ -378,7 +378,7 @@ export default class Upgrader extends CEUpgrader {
     return await query;
   }
 
-  logHelper? = async (workspace_id, base_id, target, q) => {
+  protected async logHelper(workspace_id, base_id, target, q) {
     const qStr = q.toQuery();
 
     if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
@@ -403,7 +403,7 @@ export default class Upgrader extends CEUpgrader {
         }
       }
     }
-  };
+  }
 
   async runUpgraderQueries() {
     if (!this._upgrader_mode) throw new Error('Upgrader mode is not enabled');

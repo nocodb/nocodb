@@ -10,6 +10,7 @@ import type {
   TableType,
   ViewType,
 } from 'nocodb-sdk'
+import { validateRowFilters } from '~/utils/dataUtils'
 
 type GroupingFieldColOptionsType = SelectOptionType & { collapsed: boolean }
 
@@ -31,11 +32,15 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { api } = useApi()
 
-    const { base } = storeToRefs(useBase())
+    const baseStore = useBase()
+
+    const { base } = storeToRefs(baseStore)
+
+    const { getBaseType } = baseStore
 
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { sorts, nestedFilters, eventBus, xWhere } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters, eventBus, xWhere, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 
     const { sharedView, fetchSharedViewData, fetchSharedViewGroupedData } = useSharedView()
 
@@ -58,7 +63,9 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { updateViewMeta } = viewStore
 
-    const { setMeta } = useMetas()
+    const { setMeta, metas } = useMetas()
+
+    const { user } = useGlobal()
 
     // save history of stack changes for undo/redo
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
@@ -781,6 +788,171 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const activeDataListener = ref<string | null>(null)
 
+    const handleDataEvent = (data: DataPayload) => {
+      const { id, action, payload, before } = data
+
+      // TODO: @mertmit handle filters and sort for newly added and updated records
+      if (action === 'add') {
+        try {
+          const isValidationFailed = !validateRowFilters(
+            [...allFilters.value, ...validFiltersFromUrlParams.value],
+            payload,
+            meta.value?.columns as ColumnType[],
+            getBaseType(viewMeta.value?.view?.source_id),
+            metas.value,
+            {
+              currentUser: user.value,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            },
+          )
+
+          if (isValidationFailed) {
+            return
+          }
+
+          const stackKey =
+            typeof payload[groupingField.value] === 'string'
+              ? payload[groupingField.value]?.length
+                ? payload[groupingField.value]
+                : null
+              : null
+
+          const newRow: Row = {
+            row: payload,
+            oldRow: { ...payload },
+            rowMeta: { new: false, ...getEvaluatedRowMetaRowColorInfo(payload) },
+          }
+
+          if (!formattedData.value.has(stackKey)) {
+            formattedData.value.set(stackKey, [])
+            countByStack.value.set(stackKey, 0)
+          }
+
+          const stackRows = formattedData.value.get(stackKey)!
+
+          if (before) {
+            const beforeIndex = stackRows.findIndex((row) => {
+              const pk = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+              return pk && `${pk}` === `${before}`
+            })
+            if (beforeIndex !== -1) {
+              stackRows.splice(beforeIndex, 0, newRow)
+            } else {
+              stackRows.push(newRow)
+            }
+          } else {
+            stackRows.push(newRow)
+          }
+
+          countByStack.value.set(stackKey, (countByStack.value.get(stackKey) || 0) + 1)
+          formattedData.value.set(stackKey, [...stackRows])
+        } catch (e) {
+          console.error('Failed to add row to kanban on socket event', e)
+        }
+      } else if (action === 'update') {
+        try {
+          const isValidationFailed = !validateRowFilters(
+            [...allFilters.value, ...validFiltersFromUrlParams.value],
+            payload,
+            meta.value?.columns as ColumnType[],
+            getBaseType(viewMeta.value?.view?.source_id),
+            metas.value,
+            {
+              currentUser: user.value,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            },
+          )
+
+          if (isValidationFailed) {
+            handleDataEvent({ ...data, action: 'delete' })
+            return
+          }
+
+          let found = null
+          let foundStackKey = null
+          let foundIndex = -1
+
+          // Find the row across all stacks
+          for (const [stackKey, rows] of formattedData.value.entries()) {
+            const index = rows.findIndex((row) => {
+              const pk = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+              return pk && `${pk}` === `${id}`
+            })
+            if (index !== -1) {
+              found = rows[index]
+              foundStackKey = stackKey
+              foundIndex = index
+              break
+            }
+          }
+
+          if (!found) {
+            handleDataEvent({ ...data, action: 'add' })
+            return
+          }
+
+          const oldStackKey = foundStackKey
+          const newStackKey =
+            typeof payload[groupingField.value] === 'string'
+              ? payload[groupingField.value]?.length
+                ? payload[groupingField.value]
+                : null
+              : null
+
+          // Update row data
+          Object.assign(found.row, payload)
+          Object.assign(found.oldRow, payload)
+          Object.assign(found.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
+          found.rowMeta.changed = false
+
+          // Handle stack change
+          if (oldStackKey !== newStackKey) {
+            // Remove from old stack
+            const oldStackRows = formattedData.value.get(oldStackKey)!
+            oldStackRows.splice(foundIndex, 1)
+            formattedData.value.set(oldStackKey, [...oldStackRows])
+            countByStack.value.set(oldStackKey, (countByStack.value.get(oldStackKey) || 0) - 1)
+
+            // Add to new stack
+            if (!formattedData.value.has(newStackKey)) {
+              formattedData.value.set(newStackKey, [])
+              countByStack.value.set(newStackKey, 0)
+            }
+
+            const newStackRows = formattedData.value.get(newStackKey)!
+            newStackRows.push(found)
+            formattedData.value.set(newStackKey, [...newStackRows])
+            countByStack.value.set(newStackKey, (countByStack.value.get(newStackKey) || 0) + 1)
+          } else {
+            // Row stays in same stack
+            const stackRows = formattedData.value.get(foundStackKey)!
+            stackRows[foundIndex] = found
+            formattedData.value.set(foundStackKey, [...stackRows])
+          }
+        } catch (e) {
+          console.error('Failed to update row in kanban on socket event', e)
+        }
+      } else if (action === 'delete') {
+        try {
+          for (const [stackKey, rows] of formattedData.value.entries()) {
+            const index = rows.findIndex((row) => {
+              const pk = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+              return pk && `${pk}` === `${id}`
+            })
+            if (index !== -1) {
+              const stackRows = formattedData.value.get(stackKey)!
+              stackRows.splice(index, 1)
+              formattedData.value.set(stackKey, [...stackRows])
+              countByStack.value.set(stackKey, Math.max((countByStack.value.get(stackKey) || 0) - 1, 0))
+              break
+            }
+          }
+        } catch (e) {
+          console.error('Failed to delete row from kanban on socket event', e)
+        }
+      }
+    }
+
     watch(
       meta,
       (newMeta, oldMeta) => {
@@ -795,134 +967,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           // Set up data event listener
           activeDataListener.value = $ncSocket.onMessage(
             `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
-            (data: DataPayload) => {
-              const { id, action, payload, before } = data
-
-              // TODO: @mertmit handle filters and sort for newly added and updated records
-              if (action === 'add') {
-                try {
-                  const stackKey =
-                    typeof payload[groupingField.value] === 'string'
-                      ? payload[groupingField.value]?.length
-                        ? payload[groupingField.value]
-                        : null
-                      : null
-
-                  const newRow: Row = {
-                    row: payload,
-                    oldRow: { ...payload },
-                    rowMeta: { new: false, ...getEvaluatedRowMetaRowColorInfo(payload) },
-                  }
-
-                  if (!formattedData.value.has(stackKey)) {
-                    formattedData.value.set(stackKey, [])
-                    countByStack.value.set(stackKey, 0)
-                  }
-
-                  const stackRows = formattedData.value.get(stackKey)!
-
-                  if (before) {
-                    const beforeIndex = stackRows.findIndex((row) => {
-                      const pk = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
-                      return pk && `${pk}` === `${before}`
-                    })
-                    if (beforeIndex !== -1) {
-                      stackRows.splice(beforeIndex, 0, newRow)
-                    } else {
-                      stackRows.push(newRow)
-                    }
-                  } else {
-                    stackRows.push(newRow)
-                  }
-
-                  countByStack.value.set(stackKey, (countByStack.value.get(stackKey) || 0) + 1)
-                  formattedData.value.set(stackKey, [...stackRows])
-                } catch (e) {
-                  console.error('Failed to add row to kanban on socket event', e)
-                }
-              } else if (action === 'update') {
-                try {
-                  let found = null
-                  let foundStackKey = null
-                  let foundIndex = -1
-
-                  // Find the row across all stacks
-                  for (const [stackKey, rows] of formattedData.value.entries()) {
-                    const index = rows.findIndex((row) => {
-                      const pk = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
-                      return pk && `${pk}` === `${id}`
-                    })
-                    if (index !== -1) {
-                      found = rows[index]
-                      foundStackKey = stackKey
-                      foundIndex = index
-                      break
-                    }
-                  }
-
-                  if (!found) return
-
-                  const oldStackKey = foundStackKey
-                  const newStackKey =
-                    typeof payload[groupingField.value] === 'string'
-                      ? payload[groupingField.value]?.length
-                        ? payload[groupingField.value]
-                        : null
-                      : null
-
-                  // Update row data
-                  Object.assign(found.row, payload)
-                  Object.assign(found.oldRow, payload)
-                  Object.assign(found.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
-                  found.rowMeta.changed = false
-
-                  // Handle stack change
-                  if (oldStackKey !== newStackKey) {
-                    // Remove from old stack
-                    const oldStackRows = formattedData.value.get(oldStackKey)!
-                    oldStackRows.splice(foundIndex, 1)
-                    formattedData.value.set(oldStackKey, [...oldStackRows])
-                    countByStack.value.set(oldStackKey, (countByStack.value.get(oldStackKey) || 0) - 1)
-
-                    // Add to new stack
-                    if (!formattedData.value.has(newStackKey)) {
-                      formattedData.value.set(newStackKey, [])
-                      countByStack.value.set(newStackKey, 0)
-                    }
-
-                    const newStackRows = formattedData.value.get(newStackKey)!
-                    newStackRows.push(found)
-                    formattedData.value.set(newStackKey, [...newStackRows])
-                    countByStack.value.set(newStackKey, (countByStack.value.get(newStackKey) || 0) + 1)
-                  } else {
-                    // Row stays in same stack
-                    const stackRows = formattedData.value.get(foundStackKey)!
-                    stackRows[foundIndex] = found
-                    formattedData.value.set(foundStackKey, [...stackRows])
-                  }
-                } catch (e) {
-                  console.error('Failed to update row in kanban on socket event', e)
-                }
-              } else if (action === 'delete') {
-                try {
-                  for (const [stackKey, rows] of formattedData.value.entries()) {
-                    const index = rows.findIndex((row) => {
-                      const pk = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
-                      return pk && `${pk}` === `${id}`
-                    })
-                    if (index !== -1) {
-                      const stackRows = formattedData.value.get(stackKey)!
-                      stackRows.splice(index, 1)
-                      formattedData.value.set(stackKey, [...stackRows])
-                      countByStack.value.set(stackKey, Math.max((countByStack.value.get(stackKey) || 0) - 1, 0))
-                      break
-                    }
-                  }
-                } catch (e) {
-                  console.error('Failed to delete row from kanban on socket event', e)
-                }
-              }
-            },
+            handleDataEvent,
           )
         }
       },

@@ -7,7 +7,7 @@ export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';
 export type InternalApiResponse = any;
 
 export interface InternalApiModule {
-  operation: keyof typeof OPERATION_SCOPES;
+  operations: (keyof typeof OPERATION_SCOPES)[];
   httpMethod: 'GET' | 'POST';
   handle(
     context: NcContext,

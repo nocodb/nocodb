@@ -8,15 +8,17 @@ import type {
 import { McpTokenService } from '~/services/mcp.service';
 
 @Injectable()
-export class McpListOperation implements InternalApiModule {
+export class McpPostOperations implements InternalApiModule {
   constructor(protected readonly mcpService: McpTokenService) {}
-  operation: 'mcpList';
-  httpMethod: 'GET';
+  operations: ['mcpCreate', 'mcpUpdate', 'mcpDelete'];
+  httpMethod: 'POST';
 
   async handle(
     context: NcContext,
     {
+      payload,
       req,
+      operation,
     }: {
       workspaceId: string;
       baseId: string;
@@ -25,6 +27,17 @@ export class McpListOperation implements InternalApiModule {
       req: NcRequest;
     },
   ): Promise<InternalApiResponse> {
-    return await this.mcpService.list(context, req);
+    switch (operation) {
+      case 'mcpCreate':
+        return await this.mcpService.create(context, payload, req);
+      case 'mcpUpdate':
+        return await this.mcpService.regenerateToken(
+          context,
+          payload.tokenId,
+          payload,
+        );
+      case 'mcpDelete':
+        return await this.mcpService.delete(context, payload.tokenId);
+    }
   }
 }

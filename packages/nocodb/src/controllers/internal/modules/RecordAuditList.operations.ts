@@ -5,18 +5,17 @@ import type {
   InternalApiModule,
   InternalApiResponse,
 } from '~/controllers/internal/types';
-import { McpTokenService } from '~/services/mcp.service';
+import { AuditsService } from '~/services/audits.service';
 
 @Injectable()
-export class McpCreateOperation implements InternalApiModule {
-  constructor(protected readonly mcpService: McpTokenService) {}
-  operation: 'mcpCreate';
-  httpMethod: 'POST';
+export class RecordAuditListOperations implements InternalApiModule {
+  constructor(protected readonly auditsService: AuditsService) {}
+  operations: ['recordAuditList'];
+  httpMethod: 'GET';
 
   async handle(
     context: NcContext,
     {
-      payload,
       req,
     }: {
       workspaceId: string;
@@ -26,6 +25,10 @@ export class McpCreateOperation implements InternalApiModule {
       req: NcRequest;
     },
   ): Promise<InternalApiResponse> {
-    return await this.mcpService.create(context, payload, req);
+    return await this.auditsService.recordAuditList(context, {
+      row_id: req.query.row_id as string,
+      fk_model_id: req.query.fk_model_id as string,
+      cursor: req.query.cursor as string,
+    });
   }
 }

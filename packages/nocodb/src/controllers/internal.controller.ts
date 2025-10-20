@@ -30,7 +30,23 @@ export class InternalController {
     protected readonly aclMiddleware: AclMiddleware,
     @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
     protected readonly internalApiModules: InternalApiModule[],
-  ) {}
+  ) {
+    if (!this.internalApiModuleMap) {
+      this.internalApiModuleMap = {};
+    }
+    for (const each of internalApiModules) {
+      this.internalApiModuleMap[each.httpMethod] =
+        this.internalApiModuleMap[each.httpMethod] ?? {};
+      for (const operation of each.operations) {
+        this.internalApiModuleMap[each.httpMethod][operation] = each;
+      }
+    }
+  }
+
+  protected internalApiModuleMap: Record<
+    string,
+    Record<string, InternalApiModule>
+  > = {};
 
   protected async checkAcl(
     operation: keyof typeof OPERATION_SCOPES,
@@ -56,9 +72,8 @@ export class InternalController {
     @Req() req: NcRequest,
   ): InternalGETResponseType {
     await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
-    const module = this.internalApiModules.find(
-      (mod) => mod.httpMethod === 'GET' && mod.operation === operation,
-    );
+    const module = this.internalApiModuleMap['GET'][operation];
+
     if (module) {
       return await module.handle(context, {
         workspaceId,
@@ -80,10 +95,8 @@ export class InternalController {
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {
     await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
+    const module = this.internalApiModuleMap['POST'][operation];
 
-    const module = this.internalApiModules.find(
-      (mod) => mod.httpMethod === 'POST' && mod.operation === operation,
-    );
     if (module) {
       return await module.handle(context, {
         workspaceId,

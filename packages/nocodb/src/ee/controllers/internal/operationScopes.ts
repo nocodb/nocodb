@@ -1,0 +1,58 @@
+import { OPERATION_SCOPES as OPERATION_SCOPES_CE } from 'src/controllers/internal/operationScopes';
+export const OPERATION_SCOPES = {
+  ...OPERATION_SCOPES_CE,
+
+  createDataReflection: 'workspace',
+  getDataReflection: 'workspace',
+  deleteDataReflection: 'workspace',
+  refreshDataReflection: 'workspace',
+  listenRemoteImport: 'workspace',
+  createSync: 'base',
+  triggerSync: 'base',
+  migrateSync: 'base',
+  addChildSync: 'base',
+  authIntegrationTestConnection: 'workspace',
+  syncIntegrationFetchOptions: 'workspace',
+  listScripts: 'base',
+  getScript: 'base',
+  createScript: 'base',
+  updateScript: 'base',
+  deleteScript: 'base',
+  baseSchema: 'base',
+  workspaceAuditList: 'workspace',
+  duplicateScript: 'base',
+  setPermission: 'base',
+  dropPermission: 'base',
+  bulkDropPermissions: 'base',
+
+  dashboardList: 'base',
+  dashboardGet: 'base',
+  dashboardCreate: 'base',
+  dashboardUpdate: 'base',
+  dashboardDelete: 'base',
+  widgetList: 'base',
+  widgetGet: 'base',
+  widgetCreate: 'base',
+  widgetUpdate: 'base',
+  widgetDelete: 'base',
+  widgetDuplicate: 'base',
+  widgetDataGet: 'base',
+  dashboardShare: 'base',
+  triggerAction: 'base',
+  sendEmail: 'base',
+  integrationRemoteFetch: 'base',
+
+  // Teams operations
+  teamList: 'workspace',
+  teamCreate: 'workspace',
+  teamGet: 'workspace',
+  teamUpdate: 'workspace',
+  teamDelete: 'workspace',
+  teamMembersAdd: 'workspace',
+  teamMembersRemove: 'workspace',
+  teamMembersUpdate: 'workspace',
+
+  // User Profile
+
+  getUserProfile: 'org',
+} as const;

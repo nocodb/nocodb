@@ -6,11 +6,9 @@ import type {
   MetaDependencyEventRequest,
   MetaEventHandler,
 } from '../../types';
-import type { Filter } from '~/models';
+import { Filter } from '~/models';
 import { MetaTable } from '~/cli';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
-import NocoCache from '~/cache/NocoCache';
-import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import Noco from '~/Noco';
 
 @Injectable()
@@ -25,18 +23,21 @@ export class ColumnTimezoneUpdateDependencyHandler implements MetaEventHandler {
     const affectedColumnIds: string[] = [];
     if (
       [UITypes.DateTime, UITypes.Date].includes(param.newEntity.uidt) &&
-      parseProp(param.newEntity.meta).timezone
+      parseProp(param.newEntity.meta).timezone &&
+      parseProp(param.newEntity.meta).timezone !==
+        parseProp(param.oldEntity?.meta).timezone
     ) {
       validForProcess = true;
       affectedColumnIds.push(param.newEntity.id);
     } else if (
       [UITypes.Formula].includes(param.newEntity.uidt) &&
-      parseProp(param.newEntity.meta).display_column_meta?.timezone
+      parseProp(param.newEntity.meta).display_column_meta?.timezone &&
+      parseProp(param.newEntity.meta).display_column_meta?.timezone !==
+        parseProp(param.oldEntity?.meta).display_column_meta?.timezone
     ) {
       validForProcess = true;
       affectedColumnIds.push(param.newEntity.id);
     }
-    // TODO: get all lookup associated with column
 
     if (validForProcess) {
       return {
@@ -78,20 +79,16 @@ export class ColumnTimezoneUpdateDependencyHandler implements MetaEventHandler {
     for (const each of param.affectedDependencyResult.filters as Filter[]) {
       each.meta = parseMetaProp(each);
       each.meta.timezone = timezone;
-      await ncMeta.metaUpdate(
-        each.fk_workspace_id,
-        each.base_id,
-        MetaTable.FILTER_EXP,
-        { meta: stringifyMetaProp(each) },
+      await Filter.update(
+        {
+          ...context,
+          base_id: each.base_id,
+          workspace_id: each.fk_workspace_id,
+        },
         each.id,
+        { ...each, meta: stringifyMetaProp(each) },
+        ncMeta,
       );
-      ncMeta.knex.attachToTransaction(async () => {
-        await NocoCache.deepDel(
-          context,
-          `${CacheScope.FILTER_EXP}:${each.id}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        );
-      });
     }
   }
 }

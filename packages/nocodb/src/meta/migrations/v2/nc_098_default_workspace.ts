@@ -1,7 +1,6 @@
-import { WorkspaceUserRoles } from 'nocodb-sdk';
+import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import type { Knex } from 'knex';
-import { isEE } from '~/utils';
 import { MetaTable, NC_STORE_DEFAULT_WORKSPACE_ID_KEY } from '~/utils/globals';
 
 const nanoidWorkspace = customAlphabet(
@@ -76,6 +75,7 @@ const up = async (knex: Knex) => {
     MetaTable.GALLERY_VIEW,
     MetaTable.GRID_VIEW_COLUMNS,
     MetaTable.GRID_VIEW,
+    MetaTable.HOOK_TRIGGER_FIELDS,
     MetaTable.HOOK_LOGS,
     MetaTable.HOOKS,
     MetaTable.KANBAN_VIEW_COLUMNS,
@@ -106,11 +106,17 @@ const up = async (knex: Knex) => {
     MetaTable.SCRIPTS,
     MetaTable.JOBS,
     MetaTable.FILE_REFERENCES,
+    MetaTable.INTEGRATIONS,
     MetaTable.INTEGRATIONS_STORE,
     MetaTable.COL_LONG_TEXT,
     MetaTable.DATA_REFLECTION,
     MetaTable.COL_BUTTON,
     MetaTable.SYNC_CONFIGS,
+    MetaTable.DASHBOARDS,
+    MetaTable.MCP_TOKENS,
+    MetaTable.WIDGETS,
+    MetaTable.SNAPSHOT,
+    MetaTable.ROW_COLOR_CONDITIONS,
   ];
 
   for (const table of tables) {
@@ -126,7 +132,10 @@ const up = async (knex: Knex) => {
     await knex(MetaTable.WORKSPACE_USER).insert({
       fk_workspace_id: workspace.id,
       fk_user_id: user.id,
-      roles: WorkspaceUserRoles.NO_ACCESS,
+      roles:
+        user?.roles === OrgUserRoles.CREATOR
+          ? WorkspaceUserRoles.CREATOR
+          : WorkspaceUserRoles.NO_ACCESS,
     });
   }
 

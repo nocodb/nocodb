@@ -433,9 +433,14 @@ const up = async (knex: Knex) => {
     table.timestamp('automation_grace_period_start_at');
     table.boolean('loyal').defaultTo(false);
     table.boolean('loyalty_discount_used').defaultTo(false);
+    table.string('db_job_id', 20);
+    table.string('fk_db_instance_id', 20);
+    table.integer('segment_code');
     table.timestamps(true, true);
+  });
 
-    table.index('fk_org_id', 'workspace_fk_org_id_index');
+  await knex.schema.alterTable(MetaTable.WORKSPACE, (table) => {
+    table.index(['fk_org_id'], 'workspace_fk_org_id_index');
   });
 
   await knex.schema.createTable(MetaTable.WORKSPACE_USER, (table) => {
@@ -451,8 +456,10 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
     // Composite PK
     table.primary(['fk_workspace_id', 'fk_user_id']);
+  });
 
-    table.index('invited_by', 'workspace_user_invited_by_index');
+  await knex.schema.alterTable(MetaTable.WORKSPACE_USER, (table) => {
+    table.index(['invited_by'], 'workspace_user_invited_by_index');
   });
 
   await knex.schema.createTable(MetaTable.SSO_CLIENT_DOMAIN, (table) => {
@@ -477,9 +484,12 @@ const up = async (knex: Knex) => {
     table.boolean('domain_name_verified');
     table.string('fk_workspace_id', 20);
     table.timestamps(true, true);
+  });
 
+  await knex.schema.alterTable(MetaTable.SSO_CLIENT, (table) => {
     table.index('domain_name', 'nc_sso_client_domain_name_index');
     table.index('fk_user_id', 'nc_sso_client_fk_user_id_index');
+    table.index(['fk_workspace_id'], 'sso_client_fk_workspace_id_idx');
     table.index('fk_org_id', 'nc_sso_client_fk_workspace_id_index');
   });
 
@@ -493,19 +503,23 @@ const up = async (knex: Knex) => {
   });
 
   await knex.schema.createTable(MetaTable.SCRIPTS, (table) => {
-    table.string('id', 20).notNullable().primary();
+    table.string('id', 20).notNullable();
     table.text('title');
     table.text('description');
     table.text('meta');
     table.float('order');
     table.string('base_id', 20);
     table.string('fk_workspace_id', 20);
-    table.text('code');
+    table.text('script');
     table.text('config');
     table.string('created_by', 20);
     table.timestamps(true, true);
+    table.primary(['base_id', 'id']);
+  });
 
+  await knex.schema.alterTable(MetaTable.SCRIPTS, (table) => {
     table.index(['base_id', 'fk_workspace_id'], 'nc_scripts_context');
+    table.index(['id'], 'nc_scripts_oldpk_idx');
   });
 
   await knex.schema.createTable(MetaTable.SNAPSHOT, (table) => {
@@ -517,7 +531,9 @@ const up = async (knex: Knex) => {
     table.string('created_by', 20);
     table.string('status', 20);
     table.timestamps(true, true);
+  });
 
+  await knex.schema.alterTable(MetaTable.SNAPSHOT, (table) => {
     table.index(['base_id', 'fk_workspace_id'], 'nc_snapshot_context');
   });
 
@@ -531,11 +547,14 @@ const up = async (knex: Knex) => {
     table.boolean('is_share_enabled').defaultTo(false);
     table.boolean('deleted').defaultTo(false);
     table.float('order');
+    table.string('fk_db_instance_id', 20);
     table.string('stripe_customer_id', 255);
     table.timestamps(true, true);
+  });
 
-    table.index('slug', 'nc_org_slug_index');
-    table.index('fk_user_id', 'nc_org_fk_user_id_index');
+  await knex.schema.alterTable(MetaTable.ORG, (table) => {
+    table.index(['fk_user_id'], 'nc_org_fk_user_id_index');
+    table.index(['slug'], 'nc_org_slug_index');
   });
 
   await knex.schema.createTable(MetaTable.ORG_DOMAIN, (table) => {
@@ -545,14 +564,17 @@ const up = async (knex: Knex) => {
     table.string('domain', 255);
     table.boolean('verified');
     table.string('txt_value', 255);
-    table.timestamp('last_verified', { useTz: true });
+    table.timestamp('last_verified');
     table.boolean('deleted').defaultTo(false);
     table.string('fk_workspace_id', 20);
     table.timestamps(true, true);
+  });
 
-    table.index('domain', 'nc_org_domain_domain_index');
-    table.index('fk_org_id', 'nc_org_domain_fk_org_id_index');
-    table.index('fk_user_id', 'nc_org_domain_fk_user_id_index');
+  await knex.schema.alterTable(MetaTable.ORG_DOMAIN, (table) => {
+    table.index(['domain'], 'nc_org_domain_domain_index');
+    table.index(['fk_org_id'], 'nc_org_domain_fk_org_id_index');
+    table.index(['fk_user_id'], 'nc_org_domain_fk_user_id_index');
+    table.index(['fk_workspace_id'], 'org_domain_fk_workspace_id_idx');
   });
 
   await knex.schema.createTable(MetaTable.ORG_USERS, (table) => {
@@ -560,6 +582,7 @@ const up = async (knex: Knex) => {
     table.string('fk_user_id', 20);
     table.string('roles', 255);
     table.timestamps(true, true);
+    table.primary(['fk_org_id']); // original had pkey on fk_org_id. Adjust if you need a composite PK.
   });
 
   await knex.schema.createTable(MetaTable.MODEL_STAT, (table) => {
@@ -569,13 +592,19 @@ const up = async (knex: Knex) => {
     table.boolean('is_external').defaultTo(false);
     table.string('base_id', 20);
     table.timestamps(true, true);
-    table.primary(['fk_workspace_id', 'fk_model_id']);
+    table.primary(['fk_workspace_id', 'base_id', 'fk_model_id']);
+  });
 
+  await knex.schema.alterTable(MetaTable.MODEL_STAT, (table) => {
     table.index(
       ['base_id', 'fk_workspace_id'],
       'nc_model_stats_v2_base_id_fk_workspace_id_index',
     );
-    table.index('fk_workspace_id', 'nc_model_stats_v2_fk_workspace_id_index');
+    table.index(['fk_workspace_id'], 'nc_model_stats_v2_fk_workspace_id_index');
+    table.index(
+      ['fk_workspace_id', 'fk_model_id'],
+      'nc_model_stats_v2_oldpk_idx',
+    );
   });
 
   await knex.schema.createTable(MetaTable.FOLLOWER, (table) => {
@@ -583,23 +612,31 @@ const up = async (knex: Knex) => {
     table.string('fk_follower_id', 20).notNullable();
     table.timestamps(true, true);
     table.primary(['fk_user_id', 'fk_follower_id']);
+  });
 
+  await knex.schema.alterTable(MetaTable.FOLLOWER, (table) => {
     table.index('fk_follower_id', 'nc_follower_fk_follower_id_index');
     table.index('fk_user_id', 'nc_follower_fk_user_id_index');
   });
 
   await knex.schema.createTable(MetaTable.CUSTOM_URLS, (table) => {
-    table.string('id', 20).notNullable().primary();
+    table.string('id', 20).notNullable();
     table.string('fk_workspace_id', 20);
     table.string('base_id', 20);
     table.string('fk_model_id', 20);
     table.string('view_id', 20);
     table.string('original_path', 255);
     table.string('custom_path', 255);
+    table.string('fk_dashboard_id', 20);
     table.timestamps(true, true);
+    table.primary(['base_id', 'id']);
+  });
 
-    table.index('custom_path', 'nc_custom_urls_v2_custom_path_index');
+  await knex.schema.alterTable(MetaTable.CUSTOM_URLS, (table) => {
     table.index(['base_id', 'fk_workspace_id'], 'nc_custom_urls_context');
+    table.index(['custom_path'], 'nc_custom_urls_v2_custom_path_index');
+    table.index(['fk_dashboard_id'], 'nc_custom_urls_v2_fk_dashboard_id_index');
+    table.index(['id'], 'nc_custom_urls_v2_oldpk_idx');
   });
 
   await knex.schema.createTable(MetaTable.PLANS, (table) => {
@@ -614,6 +651,10 @@ const up = async (knex: Knex) => {
     table.text('meta'); // JSON
 
     table.timestamps(true, true);
+  });
+
+  await knex.schema.alterTable(MetaTable.PLANS, (table) => {
+    table.index('stripe_product_id', 'nc_plans_stripe_product_idx');
   });
 
   await knex.schema.createTable(MetaTable.SUBSCRIPTIONS, (table) => {
@@ -656,6 +697,15 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
+  await knex.schema.alterTable(MetaTable.SUBSCRIPTIONS, (table) => {
+    table.index('fk_workspace_id', 'nc_subscriptions_ws_idx');
+    table.index('fk_org_id', 'nc_subscriptions_org_idx');
+    table.index(
+      'stripe_subscription_id',
+      'nc_subscriptions_stripe_subscription_idx',
+    );
+  });
+
   await knex.schema.createTable(MetaTable.USAGE_STATS, (table) => {
     table.string('fk_workspace_id', 20);
     table.string('usage_type', 255); // 'api', 'automation', 'storage', 'webhook'
@@ -669,19 +719,6 @@ const up = async (knex: Knex) => {
     table.primary(['fk_workspace_id', 'usage_type', 'period_start']);
   });
 
-  await knex.schema.alterTable(MetaTable.PLANS, (table) => {
-    table.index('stripe_product_id', 'nc_plans_stripe_product_idx');
-  });
-
-  await knex.schema.alterTable(MetaTable.SUBSCRIPTIONS, (table) => {
-    table.index('fk_workspace_id', 'nc_subscriptions_ws_idx');
-    table.index('fk_org_id', 'nc_subscriptions_org_idx');
-    table.index(
-      'stripe_subscription_id',
-      'nc_subscriptions_stripe_subscription_idx',
-    );
-  });
-
   await knex.schema.alterTable(MetaTable.USAGE_STATS, (table) => {
     table.index(
       ['fk_workspace_id', 'period_start'],
@@ -689,12 +726,16 @@ const up = async (knex: Knex) => {
     );
   });
 
-  await knex.schema.alterTable(MetaTable.SSO_CLIENT, (table) => {
-    table.index(['fk_workspace_id'], 'sso_client_fk_workspace_id_idx');
-  });
+  await knex.schema.createTable(MetaTable.DB_SERVERS, (table) => {
+    table.string('id', 20).primary();
+    table.string('title', 255);
+    table.boolean('is_shared').defaultTo(true);
+    table.integer('max_tenant_count');
+    table.integer('current_tenant_count').defaultTo(0);
+    table.text('config');
+    table.text('conditions');
 
-  await knex.schema.alterTable(MetaTable.ORG_DOMAIN, (table) => {
-    table.index(['fk_workspace_id'], 'org_domain_fk_workspace_id_idx');
+    table.timestamps(true, true);
   });
 };
 

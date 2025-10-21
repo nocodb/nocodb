@@ -217,24 +217,18 @@ const handleLeaveTeam = (member: TeamMember) => {
     okText: t('activity.leaveTeam'),
     cancelText: t('labels.cancel'),
     okCallback: async () => {
-      // Todo: api call
-      console.log('leave team', team.value)
-      await ncDelay(1000)
+      const removedMembers = await workspaceStore.removeTeamMembers(activeWorkspaceId.value!, team.value.id, [
+        { user_id: member.user_id || member.fk_user_id! },
+      ])
 
-      teamMembers.value = teamMembers.value.filter(
-        (teamMember) => teamMember.email !== member.email && teamMember.fk_user_id !== member.fk_user_id,
-      )
-
-      team.value.members_count = teamMembers.value.length
-
-      delete selectedRows.value[member.fk_user_id!]
+      if (removedMembers) {
+        removedMembers.forEach((member) => {
+          delete selectedRows.value[member.user_id!]
+        })
+      }
 
       // If current user leaves the team then we have to close modal and remove team from list
       emits('close')
-
-      teams.value = teams.value.filter((t) => t.id !== team.value.id)
-
-      console.log('team', team.value, teamMembers.value)
     },
   })
 }
@@ -243,7 +237,6 @@ const handleRemoveMemberFromTeam = (members: TeamMember[]) => {
   if (!members.length) return
 
   const removeMemberIds = members.map((member) => member.fk_user_id!)
-  const removeMemberEmails = members.map((member) => member.email!)
 
   const selectedMemberNameOrCount =
     removeMemberIds.length > 1 ? `${removeMemberIds.length} ${t('labels.members')}` : extractUserDisplayNameOrEmail(members[0])
@@ -255,9 +248,6 @@ const handleRemoveMemberFromTeam = (members: TeamMember[]) => {
     okText: t('general.remove'),
     cancelText: t('labels.cancel'),
     okCallback: async () => {
-      // Todo: api call
-      console.log('remove members from team', members)
-
       const removedMembers = await workspaceStore.removeTeamMembers(
         activeWorkspaceId.value!,
         team.value.id,

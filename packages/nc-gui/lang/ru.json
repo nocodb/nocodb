@@ -446,7 +446,7 @@
     "baseType": "Тип базы",
     "beta": "Бета",
     "selected": "выбрано",
-    "notice": "Notice"
+    "notice": "Примечание"
   },
   "objects": {
     "script": "Скрипт",
@@ -521,7 +521,7 @@
       "workspace-level-no-access": "No access to this workspace",
       "owner": "Has full control over the base, including configuration and deletion rights",
       "creator": "Can fully configure the base but cannot delete it",
-      "editor": "Can add, edit, and delete records, but cannot modify base configurations",
+      "editor": "",
       "commenter": "Can view and comment on records within the base",
       "viewer": "Can only view records within the base",
       "no-access": "No access to this base",

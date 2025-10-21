@@ -10,6 +10,13 @@ const useForm = Form.useForm
 
 const { team, readOnly } = toRefs(props)
 
+const workspaceStore = useWorkspace()
+
+const { collaborators, activeWorkspaceId } = storeToRefs(workspaceStore)
+
+// Todo: Enable this once we support team description
+const showDescription = false
+
 const inputEl = ref<HTMLInputElement>()
 
 const formState = reactive({
@@ -23,6 +30,7 @@ const validators = computed(() => {
     title: [validateTeamName],
   }
 })
+
 const { validate, validateInfos } = useForm(formState, validators)
 
 const updating = ref(false)
@@ -64,7 +72,7 @@ onMounted(() => {
 
 <template>
   <div class="nc-modal-teams-edit-content-section mt-6">
-    <div class="nc-modal-teams-edit-content-section-title text-bodyBold">{{ $t('general.general') }}</div>
+    <div v-if="showDescription" class="nc-modal-teams-edit-content-section-title text-bodyBold">{{ $t('general.general') }}</div>
     <a-form
       layout="vertical"
       :model="formState"
@@ -87,7 +95,7 @@ onMounted(() => {
           @input="updateTeamWithDebounce"
         />
       </a-form-item>
-      <a-form-item class="!mb-0">
+      <a-form-item v-if="showDescription" class="!mb-0">
         <template #label>
           {{ $t('labels.description') }}
         </template>

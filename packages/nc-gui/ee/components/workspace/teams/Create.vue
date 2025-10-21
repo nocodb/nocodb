@@ -31,6 +31,9 @@ const formState = reactive({
 
 const enableDescription = ref(false)
 
+// Todo: Enable this once we support team description
+const showDescription = false
+
 const removeDescription = () => {
   formState.description = ''
   enableDescription.value = false
@@ -165,7 +168,7 @@ watch(vVisible, (newValue) => {
         </div>
 
         <div class="flex flex-row items-center justify-between gap-x-2">
-          <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="toggleDescription">
+          <NcButton v-if="showDescription && !enableDescription" size="small" type="text" @click.stop="toggleDescription">
             <div class="flex !text-gray-700 items-center gap-2">
               <GeneralIcon icon="plus" class="h-4 w-4" />
 

@@ -30,7 +30,7 @@ const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { collaborators, collaboratorsMap, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { collaborators, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const selectedUserIds = ref<string[]>([])
 

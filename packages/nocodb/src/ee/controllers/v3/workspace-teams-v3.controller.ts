@@ -1,20 +1,33 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Req,
+} from '@nestjs/common';
+import type {
+  WorkspaceTeamDetailV3Type,
+  WorkspaceTeamListV3Type,
+  WorkspaceTeamV3ResponseType,
+} from '~/ee/services/v3/workspace-teams-v3.types';
+import {
+  WorkspaceTeamCreateV3ReqType,
+  WorkspaceTeamDeleteV3ReqType,
+  WorkspaceTeamUpdateV3ReqType,
+} from '~/ee/services/v3/workspace-teams-v3.types';
+import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { PlanFeatureTypes } from '~/utils/globals';
 import { WorkspaceTeamsV3Service } from '~/ee/services/v3/workspace-teams-v3.service';
-import type { NcRequest } from '~/interface/config';
-import type {
-  WorkspaceTeamListV3Type,
-  WorkspaceTeamV3ResponseType,
-  WorkspaceTeamCreateV3ReqType,
-  WorkspaceTeamUpdateV3ReqType,
-  WorkspaceTeamDeleteV3ReqType,
-  WorkspaceTeamDetailV3Type,
-} from '~/ee/services/v3/workspace-teams-v3.types';
 
 @Controller()
 export class WorkspaceTeamsV3Controller {
-  constructor(private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service) {}
+  constructor(
+    private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
+  ) {}
 
   @Get([
     '/api/v3/workspaces/:workspaceId/teams',

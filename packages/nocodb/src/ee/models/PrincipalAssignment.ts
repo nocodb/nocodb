@@ -1,4 +1,5 @@
 import type { NcContext } from '~/interface/config';
+import type { ResourceType } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
@@ -7,7 +8,6 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
-  ResourceType,
 } from '~/utils/globals';
 
 export default class PrincipalAssignment {
@@ -22,7 +22,9 @@ export default class PrincipalAssignment {
     Object.assign(this, data);
   }
 
-  protected static castType(assignment: PrincipalAssignment): PrincipalAssignment {
+  protected static castType(
+    assignment: PrincipalAssignment,
+  ): PrincipalAssignment {
     return assignment && new PrincipalAssignment(assignment);
   }
 
@@ -57,6 +59,10 @@ export default class PrincipalAssignment {
       `${CacheScope.PRINCIPAL_ASSIGNMENT}:${insertObj.resource_type}:${insertObj.resource_id}:${insertObj.fk_principal_id}`,
       assignmentData,
     );
+
+    // Invalidate count cache for this resource
+    const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${insertObj.resource_type}:${insertObj.resource_id}`;
+    await NocoCache.del(context, countCacheKey);
 
     return this.castType(assignmentData);
   }
@@ -112,10 +118,14 @@ export default class PrincipalAssignment {
     resourceId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<PrincipalAssignment[]> {
-    return this.list(context, {
-      resource_type: resourceType,
-      resource_id: resourceId,
-    }, ncMeta);
+    return this.list(
+      context,
+      {
+        resource_type: resourceType,
+        resource_id: resourceId,
+      },
+      ncMeta,
+    );
   }
 
   public static async listByPrincipal(
@@ -123,9 +133,13 @@ export default class PrincipalAssignment {
     principalId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<PrincipalAssignment[]> {
-    return this.list(context, {
-      fk_principal_id: principalId,
-    }, ncMeta);
+    return this.list(
+      context,
+      {
+        fk_principal_id: principalId,
+      },
+      ncMeta,
+    );
   }
 
   public static async countByResource(
@@ -134,13 +148,32 @@ export default class PrincipalAssignment {
     resourceId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
+    // Try to get from cache first
+    const cacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
+    const cachedCount = await NocoCache.get(
+      context,
+      cacheKey,
+      CacheGetType.TYPE_NUMBER,
+    );
+
+    if (cachedCount !== null) {
+      return cachedCount;
+    }
+
+    // If not in cache, get from database
     const assignments = await this.listByResource(
       context,
       resourceType,
       resourceId,
       ncMeta,
     );
-    return assignments.length;
+
+    const count = assignments.length;
+
+    // Cache the count for 5 minutes
+    await NocoCache.set(context, cacheKey, count, 300);
+
+    return count;
   }
 
   public static async countByResourceAndRole(
@@ -150,11 +183,15 @@ export default class PrincipalAssignment {
     role: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    const assignments = await this.list(context, {
-      resource_type: resourceType,
-      resource_id: resourceId,
-      roles: role,
-    }, ncMeta);
+    const assignments = await this.list(
+      context,
+      {
+        resource_type: resourceType,
+        resource_id: resourceId,
+        roles: role,
+      },
+      ncMeta,
+    );
     return assignments.length;
   }
 
@@ -196,6 +233,10 @@ export default class PrincipalAssignment {
       );
     }
 
+    // Invalidate count cache for this resource
+    const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
+    await NocoCache.del(context, countCacheKey);
+
     return updatedAssignment!;
   }
 
@@ -223,6 +264,10 @@ export default class PrincipalAssignment {
       CacheScope.PRINCIPAL_ASSIGNMENT,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    // Invalidate count cache for this resource
+    const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
+    await NocoCache.del(context, countCacheKey);
   }
 
   public static async deleteByPrincipal(
@@ -230,7 +275,11 @@ export default class PrincipalAssignment {
     principalId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const assignments = await this.listByPrincipal(context, principalId, ncMeta);
+    const assignments = await this.listByPrincipal(
+      context,
+      principalId,
+      ncMeta,
+    );
 
     for (const assignment of assignments) {
       await this.delete(

@@ -15,6 +15,8 @@ import { Base, BaseUser, OrgUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
+import { extractUserTeamRoles } from '~/ee/utils/team-role-extractor';
+import { extractUserBaseTeamRoles } from '~/ee/utils/base-team-role-extractor';
 
 export default class User extends UserCE implements UserType {
   user_name?: string;
@@ -458,69 +460,98 @@ export default class User extends UserCE implements UserType {
 
     if (!user) NcError.userNotFound(userId);
 
-    const [workspaceRoles, _baseRoles, orgRoles] = await Promise.all([
-      // extract workspace evel roles
-      new Promise((resolve) => {
-        if (args.workspaceId ?? context.workspace_id) {
-          // todo: cache
-          // extract workspace role
-          WorkspaceUser.get(
-            args.workspaceId ?? context.workspace_id,
-            user.id,
-            ncMeta,
-          )
-            .then((workspaceUser) => {
-              if (workspaceUser?.roles) {
-                resolve(extractRolesObj(workspaceUser.roles));
-              } else {
+    const [workspaceRoles, _baseRoles, orgRoles, teamRoles, baseTeamRoles] =
+      await Promise.all([
+        // extract workspace evel roles
+        new Promise((resolve) => {
+          if (args.workspaceId ?? context.workspace_id) {
+            // todo: cache
+            // extract workspace role
+            WorkspaceUser.get(
+              args.workspaceId ?? context.workspace_id,
+              user.id,
+              ncMeta,
+            )
+              .then((workspaceUser) => {
+                if (workspaceUser?.roles) {
+                  resolve(extractRolesObj(workspaceUser.roles));
+                } else {
+                  resolve(null);
+                }
+              })
+              .catch(() => resolve(null));
+          } else {
+            resolve(null);
+          }
+        }) as Promise<ReturnType<typeof extractRolesObj> | null>,
+        // extract base level roles
+        new Promise((resolve) => {
+          if (args.baseId) {
+            BaseUser.get(context, args.baseId, user.id, ncMeta)
+              .then(async (baseUser) => {
+                const roles = baseUser?.roles;
+                // + (user.roles ? `,${user.roles}` : '');
+                if (roles) {
+                  resolve(extractRolesObj(roles));
+                } else {
+                  resolve(null);
+                }
+                // todo: cache
+              })
+              .catch(() => resolve(null));
+          } else {
+            resolve(null);
+          }
+        }) as Promise<ReturnType<typeof extractRolesObj> | null>,
+        // extract org level roles
+        new Promise((resolve) => {
+          if (args.orgId) {
+            OrgUser.get(args.orgId, user.id, ncMeta)
+              .then(async (orgUser) => {
+                const roles = orgUser?.roles;
+                if (roles) {
+                  resolve(extractRolesObj(roles));
+                } else {
+                  resolve(null);
+                }
+                // todo: cache
+              })
+              .catch((_e) => {
                 resolve(null);
-              }
-            })
-            .catch(() => resolve(null));
-        } else {
-          resolve(null);
-        }
-      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
-      // extract base level roles
-      new Promise((resolve) => {
-        if (args.baseId) {
-          BaseUser.get(context, args.baseId, user.id, ncMeta)
-            .then(async (baseUser) => {
-              const roles = baseUser?.roles;
-              // + (user.roles ? `,${user.roles}` : '');
-              if (roles) {
-                resolve(extractRolesObj(roles));
-              } else {
-                resolve(null);
-              }
-              // todo: cache
-            })
-            .catch(() => resolve(null));
-        } else {
-          resolve(null);
-        }
-      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
-      // extract org level roles
-      new Promise((resolve) => {
-        if (args.orgId) {
-          OrgUser.get(args.orgId, user.id, ncMeta)
-            .then(async (orgUser) => {
-              const roles = orgUser?.roles;
-              if (roles) {
-                resolve(extractRolesObj(roles));
-              } else {
-                resolve(null);
-              }
-              // todo: cache
-            })
-            .catch((_e) => {
-              resolve(null);
-            });
-        } else {
-          resolve(null);
-        }
-      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
-    ]);
+              });
+          } else {
+            resolve(null);
+          }
+        }) as Promise<ReturnType<typeof extractRolesObj> | null>,
+        // extract team roles for workspace
+        new Promise((resolve) => {
+          if (args.workspaceId ?? context.workspace_id) {
+            extractUserTeamRoles(
+              context,
+              user.id,
+              args.workspaceId ?? context.workspace_id,
+            )
+              .then((roles) => {
+                resolve(roles);
+              })
+              .catch(() => resolve(null));
+          } else {
+            resolve(null);
+          }
+        }) as Promise<Record<string, boolean> | null>,
+        // extract base-team roles for base
+        new Promise((resolve) => {
+          if (args.baseId) {
+            extractUserBaseTeamRoles(context, user.id, args.baseId)
+              .then((roles) => {
+                resolve(roles);
+              })
+              .catch(() => resolve(null));
+          } else {
+            resolve(null);
+          }
+        }) as Promise<Record<string, boolean> | null>,
+      ]);
     let baseRoles = _baseRoles;
 
     if (!baseRoles && args.baseId) {
@@ -535,16 +566,57 @@ export default class User extends UserCE implements UserType {
       }
     }
 
-    // If baseRoles is undefined, inherit the workspace roles when a baseId is provided; otherwise, return null
-    if (args.baseId && !baseRoles) {
-      baseRoles = mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles);
+    // Merge workspace roles with team roles
+    // Team roles take precedence over direct workspace roles
+    let finalWorkspaceRoles = workspaceRoles;
+    if (teamRoles) {
+      finalWorkspaceRoles = {
+        ...workspaceRoles,
+        ...teamRoles,
+      };
+    }
+
+    // Apply role priority hierarchy:
+    // 1. Base role (highest priority)
+    // 2. Role inherited from base-team
+    // 3. Role inherited from workspace role
+    // 4. Role inherited from workspace team role (lowest priority)
+
+    let finalBaseRoles = baseRoles;
+
+    if (args.baseId) {
+      // If no direct base roles, start with inherited roles
+      if (!finalBaseRoles) {
+        // Start with workspace team roles (lowest priority)
+        finalBaseRoles =
+          mapWorkspaceRolesObjToProjectRolesObj(finalWorkspaceRoles);
+
+        // Override with direct workspace roles (higher priority)
+        if (workspaceRoles) {
+          const workspaceBaseRoles =
+            mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles);
+          finalBaseRoles = {
+            ...finalBaseRoles,
+            ...workspaceBaseRoles,
+          };
+        }
+
+        // Override with base-team roles (higher priority)
+        if (baseTeamRoles) {
+          finalBaseRoles = {
+            ...finalBaseRoles,
+            ...baseTeamRoles,
+          };
+        }
+      }
+      // If direct base roles exist, they take highest priority (no override needed)
     }
 
     return {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
-      workspace_roles: workspaceRoles ? workspaceRoles : null,
-      base_roles: baseRoles ?? null,
+      workspace_roles: finalWorkspaceRoles ? finalWorkspaceRoles : null,
+      base_roles: finalBaseRoles ?? null,
       org_roles: orgRoles ? orgRoles : null,
     } as any;
   }

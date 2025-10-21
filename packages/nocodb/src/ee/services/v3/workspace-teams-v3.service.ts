@@ -1,21 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type {
+  WorkspaceTeamCreateV3ReqType,
+  WorkspaceTeamDeleteV3ReqType,
+  WorkspaceTeamDetailV3Type,
+  WorkspaceTeamListV3Type,
+  WorkspaceTeamUpdateV3ReqType,
+  WorkspaceTeamV3ResponseType,
+} from './workspace-teams-v3.types';
 import { NcError } from '~/helpers/catchError';
-import { User } from '~/models';
 import { Principal } from '~/ee/models/Principal';
 import { PrincipalAssignment } from '~/ee/models/PrincipalAssignment';
 import { Team } from '~/ee/models/Team';
-import { ResourceType, PrincipalType, MetaTable } from '~/utils/globals';
+import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
-import type {
-  WorkspaceTeamV3ResponseType,
-  WorkspaceTeamCreateV3ReqType,
-  WorkspaceTeamUpdateV3ReqType,
-  WorkspaceTeamDeleteV3ReqType,
-  WorkspaceTeamListV3Type,
-  WorkspaceTeamDetailV3Type,
-} from './workspace-teams-v3.types';
 
 @Injectable()
 export class WorkspaceTeamsV3Service {
@@ -40,7 +40,10 @@ export class WorkspaceTeamsV3Service {
     // Get team principals and their details
     const teams = await Promise.all(
       teamAssignments.map(async (assignment) => {
-        const principal = await Principal.get(context, assignment.fk_principal_id);
+        const principal = await Principal.get(
+          context,
+          assignment.fk_principal_id,
+        );
         if (!principal || principal.principal_type !== PrincipalType.TEAM) {
           return null;
         }
@@ -55,7 +58,12 @@ export class WorkspaceTeamsV3Service {
           team_title: team.title,
           team_icon: team.meta?.icon,
           team_badge_color: team.meta?.badge_color,
-          workspace_role: assignment.roles as 'member' | 'manager',
+          workspace_role: assignment.roles as
+            | WorkspaceUserRoles.CREATOR
+            | WorkspaceUserRoles.EDITOR
+            | WorkspaceUserRoles.VIEWER
+            | WorkspaceUserRoles.COMMENTER
+            | WorkspaceUserRoles.NO_ACCESS,
           created_at: assignment.created_at!,
           updated_at: assignment.updated_at!,
         };
@@ -63,7 +71,9 @@ export class WorkspaceTeamsV3Service {
     );
 
     // Filter out null results
-    const validTeams = teams.filter((team): team is WorkspaceTeamV3ResponseType => team !== null);
+    const validTeams = teams.filter(
+      (team): team is WorkspaceTeamV3ResponseType => team !== null,
+    );
 
     return { list: validTeams };
   }
@@ -81,6 +91,21 @@ export class WorkspaceTeamsV3Service {
       param.team,
       true,
     );
+
+    // Validate that only creator or lower roles are allowed (not owner)
+    const allowedRoles = [
+      WorkspaceUserRoles.CREATOR,
+      WorkspaceUserRoles.EDITOR,
+      WorkspaceUserRoles.VIEWER,
+      WorkspaceUserRoles.COMMENTER,
+      WorkspaceUserRoles.NO_ACCESS,
+    ];
+
+    if (!allowedRoles.includes(param.team.workspace_role)) {
+      NcError.get(context).invalidRequestBody(
+        `Invalid workspace role. Only creator or lower roles are allowed for teams. Owner role is not permitted.`,
+      );
+    }
 
     // Check if team exists
     const team = await Team.get(context, param.team.team_id);
@@ -128,7 +153,12 @@ export class WorkspaceTeamsV3Service {
       team_title: team.title,
       team_icon: team.meta?.icon,
       team_badge_color: team.meta?.badge_color,
-      workspace_role: assignment.roles as 'member' | 'manager',
+      workspace_role: assignment.roles as
+        | WorkspaceUserRoles.CREATOR
+        | WorkspaceUserRoles.EDITOR
+        | WorkspaceUserRoles.VIEWER
+        | WorkspaceUserRoles.COMMENTER
+        | WorkspaceUserRoles.NO_ACCESS,
       created_at: assignment.created_at!,
       updated_at: assignment.updated_at!,
     };
@@ -147,6 +177,21 @@ export class WorkspaceTeamsV3Service {
       param.team,
       true,
     );
+
+    // Validate that only creator or lower roles are allowed (not owner)
+    const allowedRoles = [
+      WorkspaceUserRoles.CREATOR,
+      WorkspaceUserRoles.EDITOR,
+      WorkspaceUserRoles.VIEWER,
+      WorkspaceUserRoles.COMMENTER,
+      WorkspaceUserRoles.NO_ACCESS,
+    ];
+
+    if (!allowedRoles.includes(param.team.workspace_role)) {
+      NcError.get(context).invalidRequestBody(
+        `Invalid workspace role. Only creator or lower roles are allowed for teams. Owner role is not permitted.`,
+      );
+    }
 
     // Check if team exists
     const team = await Team.get(context, param.team.team_id);
@@ -283,7 +328,12 @@ export class WorkspaceTeamsV3Service {
       team_title: team.title,
       team_icon: team.meta?.icon,
       team_badge_color: team.meta?.badge_color,
-      workspace_role: assignment.roles as 'member' | 'manager',
+      workspace_role: assignment.roles as
+        | WorkspaceUserRoles.CREATOR
+        | WorkspaceUserRoles.EDITOR
+        | WorkspaceUserRoles.VIEWER
+        | WorkspaceUserRoles.COMMENTER
+        | WorkspaceUserRoles.NO_ACCESS,
       created_at: assignment.created_at!,
       updated_at: assignment.updated_at!,
     };

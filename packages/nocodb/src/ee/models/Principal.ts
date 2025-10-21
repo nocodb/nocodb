@@ -1,13 +1,12 @@
 import type { NcContext } from '~/interface/config';
+import type { PrincipalType } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import {
-  CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
-  PrincipalType,
 } from '~/utils/globals';
 
 export default class Principal {
@@ -64,12 +63,11 @@ export default class Principal {
     id: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Principal | null> {
-    let principalData =
-      await NocoCache.get(
-        context,
-        `${CacheScope.PRINCIPAL}:${id}`,
-        CacheGetType.TYPE_OBJECT,
-      );
+    let principalData = await NocoCache.get(
+      context,
+      `${CacheScope.PRINCIPAL}:${id}`,
+      CacheGetType.TYPE_OBJECT,
+    );
 
     if (!principalData) {
       principalData = await ncMeta.metaGet(

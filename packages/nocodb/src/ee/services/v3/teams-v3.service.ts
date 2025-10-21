@@ -11,11 +11,11 @@ import type {
   TeamV3ResponseType,
 } from './teams-v3.types';
 import { NcError } from '~/helpers/catchError';
-import { Team, Principal, PrincipalAssignment } from '~/ee/models';
+import { Principal, PrincipalAssignment, Team } from '~/ee/models';
 import { User } from '~/models';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
-import { MetaTable, ResourceType, PrincipalType } from '~/utils/globals';
+import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 
 @Injectable()
@@ -26,7 +26,11 @@ export class TeamsV3Service {
     context: NcContext,
     teamId: string,
   ): Promise<number> {
-    return await PrincipalAssignment.countByResource(context, ResourceType.TEAM, teamId);
+    return await PrincipalAssignment.countByResource(
+      context,
+      ResourceType.TEAM,
+      teamId,
+    );
   }
 
   async getTeamManagersCount(
@@ -126,7 +130,10 @@ export class TeamsV3Service {
     );
     const membersWithUsers = await Promise.all(
       teamAssignments.map(async (assignment) => {
-        const principal = await Principal.get(context, assignment.fk_principal_id);
+        const principal = await Principal.get(
+          context,
+          assignment.fk_principal_id,
+        );
         if (!principal || principal.principal_type !== PrincipalType.USER) {
           return null;
         }
@@ -563,7 +570,10 @@ export class TeamsV3Service {
     // Transform to v3 response format with email
     const members = await Promise.all(
       addedMembers.map(async (assignment) => {
-        const principal = await Principal.get(context, assignment.fk_principal_id);
+        const principal = await Principal.get(
+          context,
+          assignment.fk_principal_id,
+        );
         const user = await this.getUserById(context, principal!.ref_id);
         return {
           user_id: user.id,
@@ -627,13 +637,13 @@ export class TeamsV3Service {
         ? await Principal.getByTypeAndRef(context, PrincipalType.USER, userId)
         : null;
       const isTeamManager =
-        currentUserPrincipal &&
-        (await PrincipalAssignment.get(
-          context,
-          ResourceType.TEAM,
-          param.teamId,
-          currentUserPrincipal.id,
-        ).then((a) => a?.roles === 'manager')) ||
+        (currentUserPrincipal &&
+          (await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            currentUserPrincipal.id,
+          ).then((a) => a?.roles === 'manager'))) ||
         false;
       const isSelfRemoval = userId === member.user_id;
 
@@ -760,7 +770,10 @@ export class TeamsV3Service {
     // Transform to v3 response format with email
     const members = await Promise.all(
       updatedMembers.map(async (assignment) => {
-        const principal = await Principal.get(context, assignment.fk_principal_id);
+        const principal = await Principal.get(
+          context,
+          assignment.fk_principal_id,
+        );
         const user = await this.getUserById(context, principal!.ref_id);
         return {
           user_id: user.id,

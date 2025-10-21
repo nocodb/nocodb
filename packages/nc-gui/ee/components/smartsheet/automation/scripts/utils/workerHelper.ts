@@ -2249,6 +2249,36 @@ function generateInputMethods(): string {
           self.addEventListener('message', handler);
         });
       },
+      uploadFileAsync: async (label = ' --Select a file-- ', options = {}) => {
+        return new Promise((resolve) => {
+          const id = Math.random().toString(36).substr(2, 9);
+          self.postMessage({ 
+            type: '${ScriptActionType.INPUT}', 
+            payload: { 
+              label,
+              id,
+              type: '${ScriptInputType.UPLOAD_FILE}', 
+              accept: options.allowedFileTypes?.join(',') || '', 
+            },
+            stepId: __nc_currentStepId
+          });
+          function handler(event) {
+            if (event.data.type === '${ScriptActionType.INPUT_RESOLVED}' && event.data.payload.id === id) {
+              self.removeEventListener('message', handler);
+              let data = event.data.payload.value
+              
+              try {
+                data = JSON.parse(data);
+              } catch (e) {
+                data = data
+                // Do nothing
+              }
+              resolve(data);
+            }
+          }
+          self.addEventListener('message', handler);
+        });
+      },
       tableAsync: async (label) => {
         return new Promise((resolve) => {
           const id = Math.random().toString(36).substr(2, 9);

@@ -83,6 +83,11 @@ export interface ScriptFileInputContent extends ScriptBaseInputContent {
   useRawValues?: boolean
 }
 
+export interface ScriptFileUploadInputContent extends ScriptBaseInputContent {
+  type: ScriptInputType.UPLOAD_FILE
+  accept?: string
+}
+
 // Table input content
 export interface ScriptTableInputContent extends ScriptBaseInputContent {
   type: ScriptInputType.TABLE
@@ -116,6 +121,7 @@ export type InputContent =
   | ScriptSelectInputContent<any>
   | ScriptButtonsInputContent
   | ScriptFileInputContent
+  | ScriptFileUploadInputContent
   | ScriptTableInputContent
   | ScriptViewInputContent
   | ScriptFieldInputContent

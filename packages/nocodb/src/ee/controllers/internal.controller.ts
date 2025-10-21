@@ -43,6 +43,7 @@ import { TeamsV3Service } from '~/services/v3/teams-v3.service';
 import { UsersService } from '~/services/users/users.service';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
+import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -51,6 +52,7 @@ export class InternalController extends InternalControllerCE {
     @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
     protected readonly internalApiModules: InternalApiModule<any>[],
     protected readonly mcpService: McpTokenService,
+    protected readonly aclMiddleware: AclMiddleware,
     protected readonly auditsService: AuditsService,
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,
@@ -67,6 +69,7 @@ export class InternalController extends InternalControllerCE {
     protected readonly oAuthTokenService: OauthTokenService,
     private readonly teamsV3Service: TeamsV3Service,
     private readonly usersService: UsersService,
+    private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
   ) {
     super(aclMiddleware, internalApiModules);
   }
@@ -169,6 +172,15 @@ export class InternalController extends InternalControllerCE {
       case 'teamGet':
         return await this.teamsV3Service.teamGet(context, {
           workspaceOrOrgId: workspaceId,
+          teamId: req.query.teamId as string,
+        });
+      case 'workspaceTeamList':
+        return await this.workspaceTeamsV3Service.teamList(context, {
+          workspaceId,
+        });
+      case 'workspaceTeamGet':
+        return await this.workspaceTeamsV3Service.teamDetail(context, {
+          workspaceId,
           teamId: req.query.teamId as string,
         });
       case 'getUserProfile':
@@ -435,6 +447,24 @@ export class InternalController extends InternalControllerCE {
           workspaceOrOrgId: workspaceId,
           teamId: payload.teamId,
           members: payload.members,
+          req,
+        });
+      case 'workspaceTeamAdd':
+        return await this.workspaceTeamsV3Service.teamAdd(context, {
+          workspaceId,
+          team: payload,
+          req,
+        });
+      case 'workspaceTeamUpdate':
+        return await this.workspaceTeamsV3Service.teamUpdate(context, {
+          workspaceId,
+          team: payload,
+          req,
+        });
+      case 'workspaceTeamRemove':
+        return await this.workspaceTeamsV3Service.teamRemove(context, {
+          workspaceId,
+          team: payload,
           req,
         });
       default:

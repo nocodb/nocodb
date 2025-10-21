@@ -85,8 +85,8 @@ const membersColumns = [
   {
     key: 'workspace_role',
     title: t('labels.workspaceRole'),
-    basis: '20%',
-    minWidth: 200,
+    basis: '15%',
+    minWidth: 180,
     dataIndex: 'workspace_role',
   },
   {
@@ -144,18 +144,21 @@ const loadTeamMembers = async () => {
   isLoading.value = false
 }
 
-const handleAssignAsTeamOwner = async (member: TeamMember) => {
-  team.value.owners.push(member.email!)
+const handleAssignAsRole = async (member: TeamMember, role: TeamUserRoles) => {
+  const res = await workspaceStore.updateTeamMembers(activeWorkspaceId.value!, team.value.id, [
+    { user_id: member.user_id!, team_role: role },
+  ])
 
-  member.team_role = TeamUserRoles.MANAGER
-
-  try {
+  if (res) {
     message.success({
-      title: t('objects.teams.memberAssignedAsTeamOwner'),
-      content: `${extractUserDisplayNameOrEmail(member)} is now a ${team.value?.title || 'team'} owner`,
+      title:
+        role === TeamUserRoles.MANAGER
+          ? t('objects.teams.memberAssignedAsTeamOwner')
+          : t('objects.teams.memberAssignedAsTeamMember'),
+      content: `${extractUserDisplayNameOrEmail(member)} is now a ${team.value?.title || 'team'} ${
+        role === TeamUserRoles.MANAGER ? 'owner' : 'member'
+      }`,
     })
-  } catch (error: any) {
-    message.error(await extractSdkResponseErrorMsg(error))
   }
 }
 
@@ -255,21 +258,17 @@ const handleRemoveMemberFromTeam = (members: TeamMember[]) => {
       // Todo: api call
       console.log('remove members from team', members)
 
-      await ncDelay(1000)
-
-      emits('update:team', team.value)
-
-      teamMembers.value = teamMembers.value.filter(
-        (member) => !(removeMemberIds.includes(member.fk_user_id!) || removeMemberEmails.includes(member.email!)),
+      const removedMembers = await workspaceStore.removeTeamMembers(
+        activeWorkspaceId.value!,
+        team.value.id,
+        members.map((member) => ({ user_id: member.user_id || member.fk_user_id! })),
       )
 
-      team.value.members_count = teamMembers.value.length
-
-      members.forEach((member) => {
-        delete selectedRows.value[member.fk_user_id!]
-      })
-
-      console.log('team', team.value)
+      if (removedMembers) {
+        removedMembers.forEach((member) => {
+          delete selectedRows.value[member.user_id!]
+        })
+      }
     },
     initialSlots: {
       content: () => [
@@ -403,12 +402,12 @@ onMounted(() => {
         </template>
         <template v-else-if="column.key === 'member_name'">
           <div class="w-full flex items-center gap-4 overflow-hidden">
-            <NcUserInfo :user="record" :class="{ 'w-[calc(100%_-_100px)]': isTeamOwner(record) }" />
+            <NcUserInfo :user="record" class="min-w-20" :class="{ 'w-[calc(100%_-_100px)]': isTeamOwner(record) }" />
 
             <NcTooltip
               v-if="isTeamOwner(record)"
               :title="$t('objects.teams.teamOwner')"
-              class="text-nc-content-gray-muted text-captionSm truncate"
+              class="text-nc-content-gray-muted text-captionSm line-clamp-1"
               show-on-truncate-only
             >
               {{ $t('objects.teams.teamOwner') }}
@@ -431,10 +430,18 @@ onMounted(() => {
                   <NcMenuItem
                     v-if="!isTeamOwner(record as TeamMember)"
                     :disabled="readOnly"
-                    @click="handleAssignAsTeamOwner(record as TeamMember)"
+                    @click="handleAssignAsRole(record as TeamMember, TeamUserRoles.MANAGER)"
                   >
                     <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
                     {{ $t('activity.assignAsTeamOwner') }}
+                  </NcMenuItem>
+                  <NcMenuItem
+                    v-if="!hasSoleTeamOwner && isTeamOwner(record as TeamMember)"
+                    :disabled="readOnly"
+                    @click="handleAssignAsRole(record as TeamMember, TeamUserRoles.MEMBER)"
+                  >
+                    <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4 transform rotate-180" />
+                    {{ $t('activity.assignAsTeamMember') }}
                   </NcMenuItem>
 
                   <!-- Show leave team option only if logged in user is same as record user -->

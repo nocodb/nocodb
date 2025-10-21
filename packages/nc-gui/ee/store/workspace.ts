@@ -5,6 +5,7 @@ import type {
   PlanFeatureTypes,
   PlanLimitTypes,
   TeamDetailV3V3Type,
+  TeamMembersAddV3ReqV3Type,
   TeamMembersRemoveV3ReqV3Type,
   TeamMembersUpdateV3ReqV3Type,
   TeamMemberV3ResponseV3Type,
@@ -704,7 +705,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   async function addTeamMembers(
     workspaceId: string = activeWorkspaceId.value!,
     teamId: string,
-    members: TeamMemberV3ResponseV3Type[],
+    members: TeamMembersAddV3ReqV3Type[],
   ) {
     try {
       const addedMembers = (await $api.internal.postOperation(
@@ -727,7 +728,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         teamsMap.value[teamId].members_count = (teamsMap.value[teamId].members_count || 0) + addedMembers.length
       }
 
-      return addedMembers
+      return addedMembers || []
     } catch (e: any) {
       console.error('Failed to add members', e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -762,7 +763,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         teamsMap.value[teamId].members_count = Math.max(0, (teamsMap.value[teamId].members_count || 0) - removedMembers.length)
       }
 
-      return removedMembers
+      return removedMembers || []
     } catch (e: any) {
       console.error('Failed to remove members', e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -799,7 +800,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         })
       }
 
-      return updatedMembers
+      return updatedMembers || []
     } catch (e: any) {
       console.error('Failed to update members', e)
       message.error(await extractSdkResponseErrorMsg(e))

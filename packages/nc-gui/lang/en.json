@@ -704,6 +704,7 @@
       "thisTeamHasOnlyOneOwnerTooltip": "This team has only one owner. Transfer ownership to another member before removing it.",
       "removeFromTeamRestrictionTooltip": "You can’t remove all owners. Deselect at least one owner to proceed.",
       "memberAssignedAsTeamOwner": "Member assigned as team owner",
+      "memberAssignedAsTeamMember": "Member assigned as team member",
       "teamOwner": "Team owner",
       "removeMemberFromTeam": "Remove member from team",
       "removeMemberFromTeamPlural": "Remove members from team",
@@ -1877,6 +1878,7 @@
     "deleteTeam": "Delete team",
     "removeFromTeam": "Remove from team",
     "assignAsTeamOwner": "Assign as team owner",
+    "assignAsTeamMember": "Assign as team member",
     "revertToDefault": "Revert to Default",
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
@@ -2556,7 +2558,8 @@
       "unableToLoadFeed": "Unable to load feed",
       "teamNameRequired": "Team name is required",
       "teamNameExceedsCharacters": "Team name exceeds {value} characters",
-      "somethingWentWrongTryAgainLater": "Something went wrong, try again later"
+      "somethingWentWrongTryAgainLater": "Something went wrong, try again later",
+      "duplicateTeamName": "Duplicate team name"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

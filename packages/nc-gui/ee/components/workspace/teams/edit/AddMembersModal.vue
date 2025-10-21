@@ -64,7 +64,6 @@ const isError = ref(false)
 // Handle add members
 const handleAddMembers = async () => {
   isLoading.value = true
-  isError.value = false
 
   const membersToAdd = selectedUsers.value.map((user) => {
     return {
@@ -89,8 +88,6 @@ const handleAddMembers = async () => {
     })
 
     visible.value = false
-  } else {
-    isError.value = true
   }
 
   isLoading.value = false

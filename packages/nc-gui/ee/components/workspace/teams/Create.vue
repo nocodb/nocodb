@@ -9,6 +9,8 @@ const useForm = Form.useForm
 
 const vVisible = useVModel(props, 'visible', emits)
 
+const { t } = useI18n()
+
 const workspaceStore = useWorkspace()
 
 const { createTeam: _createTeam } = workspaceStore
@@ -39,9 +41,12 @@ const validators = computed(() => {
     title: [
       validateTeamName,
       {
-        validator: (_: any, _value: any) => {
-          return new Promise((resolve, _reject) => {
-            // Todo: Duplicate team name check
+        validator: (_: any, value: any) => {
+          return new Promise((resolve, reject) => {
+            if (teams.value?.some((team) => team.title?.toLowerCase() === value?.toLowerCase())) {
+              return reject(new Error(t('msg.error.duplicateTeamName')))
+            }
+
             return resolve(true)
           })
         },
@@ -84,8 +89,10 @@ const toggleDescription = () => {
   }
 }
 
-onMounted(() => {
-  if (!teams.value) return
+watch(vVisible, (newValue) => {
+  if (!newValue) {
+    return
+  }
 
   formState.title = generateUniqueTitle(`Team`, teams.value ?? [], 'title', '-', true)
 

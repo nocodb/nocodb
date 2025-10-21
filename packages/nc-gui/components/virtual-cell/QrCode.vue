@@ -107,7 +107,7 @@ onMounted(() => {
     v-model:visible="modalVisible"
     :class="{ active: modalVisible }"
     wrap-class-name="nc-qr-code-large qrcode-modal"
-    :body-style="{ padding: '0px', display: 'flex', justifyContent: 'center' }"
+    :body-style="{ padding: '0px', display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }"
     :closable="false"
     :centered="isMobileMode"
     @ok="handleModalOkClick"
@@ -169,6 +169,16 @@ onMounted(() => {
       </div>
     </template>
     <img v-if="showQrCode" :src="qrCodeLarge" :alt="$t('title.qrCode')" class="h-[156px] mt-8 mb-4" />
+
+    <div v-if="showQrCode" class="bg-nc-bg-gray-light mx-4 px-3 py-2 w-120 rounded-lg">
+      <NcTooltip show-on-truncate-only class="truncate">
+        <template #title>
+          {{ qrValue }}
+        </template>
+
+        {{ qrValue }}
+      </NcTooltip>
+    </div>
   </a-modal>
   <div
     v-if="showQrCode"

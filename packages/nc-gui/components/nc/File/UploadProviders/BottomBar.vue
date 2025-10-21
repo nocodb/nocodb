@@ -22,7 +22,7 @@ const defaultUploadText = computed(() => {
 </script>
 
 <template>
-  <div class="flex gap-2 pt-2 bg-white w-full items-center justify-end">
+  <div class="flex gap-2 pt-2 bg-nc-bg-default w-full items-center justify-end">
     <NcButton :disabled="isLoading" type="secondary" size="small" @click="closeModal">
       {{ $t('labels.cancel') }}
     </NcButton>

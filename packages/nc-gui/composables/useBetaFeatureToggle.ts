@@ -165,6 +165,14 @@ const FEATURES = [
     version: 2,
     isEE: true,
   },
+  {
+    id: 'teams',
+    title: 'Teams',
+    description: 'Teams are group of users',
+    enabled: false,
+    version: 1,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

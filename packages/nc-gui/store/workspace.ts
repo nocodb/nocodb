@@ -15,7 +15,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const allCollaborators = ref<any[] | null>()
 
-  const teams = ref<TeamType[]>([])
+  const isTeamsEnabled = computed(() => false)
+
+  const teams = ref([])
 
   const teamsMap = computed(() => {})
 
@@ -338,6 +340,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     // Teams
     teams,
     teamsMap,
+    isTeamsEnabled,
     isTeamsLoading,
     editTeamDetails,
     createTeam,

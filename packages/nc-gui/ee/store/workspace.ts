@@ -52,6 +52,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { user: currentUser } = useGlobal()
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
   const collaborators = ref<WorkspaceUserType[] | null>()
 
   const collaboratorsMap = computed(() => {
@@ -631,6 +633,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   /**
    * Teams section start here
    */
+
+  const isTeamsEnabled = computed(() => isFeatureEnabled('teams'))
+
   const isTeamsLoading = ref(true)
 
   const teams = ref<TeamV3V3Type[]>([])
@@ -910,6 +915,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     // Teams
     teams,
     teamsMap,
+    isTeamsEnabled,
     isTeamsLoading,
     editTeamDetails,
     createTeam,

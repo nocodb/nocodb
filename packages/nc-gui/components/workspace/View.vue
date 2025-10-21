@@ -19,7 +19,7 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
+const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
 
 const orgStore = useOrg()
@@ -197,7 +197,7 @@ onBeforeUnmount(() => {
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="tab === 'collaborators'" />
         </a-tab-pane>
 
-        <a-tab-pane v-if="isEeUI" key="teams" class="w-full h-full">
+        <a-tab-pane v-if="isEeUI && isTeamsEnabled" key="teams" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
               <GeneralIcon icon="ncBuilding" class="h-4 w-4" />

@@ -89,6 +89,19 @@ export const InitMetaServiceProvider: FactoryProvider = {
       }
     }
 
+    const v0TableExists = await metaService.knexConnection.schema.hasTable(
+      'xc_knex_migrationsv0',
+    );
+    const v2TableExists = await metaService.knexConnection.schema.hasTable(
+      'xc_knex_migrationsv2',
+    );
+    const v3TableExists = await metaService.knexConnection.schema.hasTable(
+      'xc_knex_migrationsv3',
+    );
+
+    Noco.firstEeLoad =
+      isEE && !v0TableExists && v2TableExists && !v3TableExists;
+
     await metaService.init();
 
     NcDebug.log('Meta service initialized');

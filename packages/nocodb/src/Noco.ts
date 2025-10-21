@@ -64,6 +64,8 @@ export default class Noco {
   public static canvas: any;
   public static isPdfjsInitialized: boolean;
 
+  public static firstEeLoad: boolean;
+
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
     // todo: move

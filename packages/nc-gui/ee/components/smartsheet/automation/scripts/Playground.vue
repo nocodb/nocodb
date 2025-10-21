@@ -133,6 +133,9 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
         v-for="(item, index) in playgroundData"
         :key="index"
         class="playground-item"
+        :class="{
+          'overflow-y-auto': item.type === 'table',
+        }"
         :data-testid="`nc-playground-item-${item.type}`"
       >
         <template v-if="item.type === 'workflow-step'">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { isRunning, runScript, stopExecution } = useScriptStoreOrThrow()
+const { isRunning, runScript, stopExecution, playground } = useScriptStoreOrThrow()
 
 const automationStore = useAutomationStore()
 
@@ -7,9 +7,23 @@ const { activeAutomation, isLoadingAutomation, isSettingsOpen } = storeToRefs(au
 
 const { isValidConfig, shouldShowSettings, restartScript } = useScriptStoreOrThrow()
 
+const { selectedPageSize, selectedOrientation, pageSizes, orientations, printPlayground, isGenerating } =
+  useScriptPlaygroundPrint()
+
+const showPrintDropdown = ref(false)
+
 const toggleScriptSettings = () => {
   isSettingsOpen.value = !isSettingsOpen.value
 }
+
+const handlePrint = async () => {
+  await printPlayground()
+  showPrintDropdown.value = false
+}
+
+const hasPrintableContent = computed(() => {
+  return playground.value && playground.value.length > 0
+})
 </script>
 
 <template>
@@ -24,6 +38,66 @@ const toggleScriptSettings = () => {
     >
       <GeneralIcon icon="ncSettings2" />
     </NcButton>
+
+    <NcDropdown v-model:visible="showPrintDropdown" :disabled="!hasPrintableContent || isGenerating">
+      <NcTooltip :disabled="hasPrintableContent && !isGenerating">
+        <NcButton
+          type="secondary"
+          size="small"
+          :disabled="!hasPrintableContent || isGenerating"
+          :loading="isGenerating"
+          data-testid="nc-script-print-btn"
+        >
+          <div class="flex gap-2 items-center">
+            <GeneralIcon v-if="!isGenerating" icon="ncPrinter" />
+            {{ isGenerating ? 'Generating PDF...' : 'Print' }}
+          </div>
+        </NcButton>
+        <template #title>
+          {{ isGenerating ? 'Generating PDF...' : 'Run the script first to print output' }}
+        </template>
+      </NcTooltip>
+
+      <template #overlay>
+        <NcMenu class="nc-print-page-size-menu">
+          <div class="px-3 py-2 text-xs font-semibold text-nc-content-gray-subtle mb-1 border-b border-nc-border-gray-medium">
+            Page Size
+          </div>
+          <NcMenuItem v-for="pageSize in pageSizes" :key="pageSize.type" class="!py-2" @click="selectedPageSize = pageSize.type">
+            <div class="flex items-center justify-between w-full gap-2">
+              <span class="text-sm">{{ pageSize.type }}</span>
+              <GeneralIcon v-if="selectedPageSize === pageSize.type" icon="check" class="text-nc-content-brand" />
+            </div>
+          </NcMenuItem>
+
+          <div
+            class="px-3 py-2 text-xs font-semibold text-nc-content-gray-subtle mb-1 mt-1 border-t border-b border-nc-border-gray-medium"
+          >
+            Orientation
+          </div>
+          <NcMenuItem
+            v-for="orientation in orientations"
+            :key="orientation.type"
+            class="!py-2"
+            @click="selectedOrientation = orientation.type"
+          >
+            <div class="flex items-center justify-between w-full gap-2">
+              <span class="text-sm">{{ orientation.type }}</span>
+              <GeneralIcon v-if="selectedOrientation === orientation.type" icon="check" class="text-nc-content-brand" />
+            </div>
+          </NcMenuItem>
+
+          <div class="border-t !pt-1 mt-1 border-nc-border-gray-medium">
+            <NcMenuItem class="!py-2" @click="handlePrint">
+              <div class="flex items-center gap-2 text-nc-content-brand">
+                <GeneralIcon icon="ncPrinter" />
+                <span class="text-sm font-semibold">Generate PDF</span>
+              </div>
+            </NcMenuItem>
+          </div>
+        </NcMenu>
+      </template>
+    </NcDropdown>
 
     <template v-if="isRunning">
       <NcButton
@@ -71,3 +145,9 @@ const toggleScriptSettings = () => {
     </NcTooltip>
   </div>
 </template>
+
+<style scoped lang="scss">
+.nc-print-page-size-menu {
+  min-width: 240px;
+}
+</style>

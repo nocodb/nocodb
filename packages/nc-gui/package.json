@@ -114,6 +114,7 @@
     "glob": "^10.4.5",
     "grid-layout-plus": "^1.1.0",
     "html-entities": "^2.5.2",
+    "html2pdf.js": "^0.12.1",
     "inflection": "^1.13.4",
     "isomorphic-dompurify": "^2.25.0",
     "jsbarcode": "^3.11.6",

@@ -1,7 +1,7 @@
 import { NcDebug } from 'nc-gui/utils/debug';
 import type { FactoryProvider } from '@nestjs/common';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
-import { T } from '~/utils';
+import { isEE, T } from '~/utils';
 import { populatePluginsForCloud } from '~/utils/cloud/populateCloudPlugins';
 import { MetaService } from '~/meta/meta.service';
 import Noco from '~/Noco';
@@ -177,7 +177,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
         .orderBy('created_at', 'asc')
         .first();
 
-      if (workspace) {
+      if (workspace && !isEE) {
         await metaService.metaInsert2(
           RootScopes.ROOT,
           RootScopes.ROOT,

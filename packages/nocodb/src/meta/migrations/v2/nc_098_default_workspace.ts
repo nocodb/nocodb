@@ -1,6 +1,7 @@
 import { WorkspaceUserRoles } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import type { Knex } from 'knex';
+import { isEE } from '~/utils';
 import { MetaTable, NC_STORE_DEFAULT_WORKSPACE_ID_KEY } from '~/utils/globals';
 
 const nanoidWorkspace = customAlphabet(
@@ -21,7 +22,7 @@ const up = async (knex: Knex) => {
     .count('id', { as: 'count' })
     .first();
 
-  if (!workspaceCount || +workspaceCount.count > 0) {
+  if (!workspaceCount || +workspaceCount.count > 0 || isEE) {
     return;
   }
 

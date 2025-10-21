@@ -18,7 +18,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { T } from '~/utils';
+import { isEE, T } from '~/utils';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { NC_APP_SETTINGS } from '~/constants';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -197,7 +197,7 @@ export class UsersService {
     );
 
     // if first user and super admin, create a base
-    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
+    if (isFirstUser && !isEE) {
       if (!Noco.ncDefaultWorkspaceId) {
         // create workspace
         const workspace = await ncMeta.metaInsert2(

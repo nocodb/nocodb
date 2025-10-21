@@ -73,7 +73,7 @@ export class TeamsV3Service {
           ...team,
           members_count: membersCount,
           // todo: only one manager possible at the  moment
-          managers_count: 1,
+          managers_count: menagersCount
         };
       }),
     );
@@ -89,6 +89,7 @@ export class TeamsV3Service {
         badge_color: meta.badge_color || undefined,
         members_count: team.members_count,
         managers_count: team.managers_count,
+        created_by: team.fk_created_by,
         created_at: team.created_at,
         updated_at: team.updated_at,
       };
@@ -201,6 +202,7 @@ export class TeamsV3Service {
         badge_color: param.team.badge_color,
       },
       fk_workspace_id: param.workspaceOrOrgId,
+      fk_created_by: param.req.user.id,
     };
 
     const team = await Team.insert(context, teamData);
@@ -293,6 +295,7 @@ export class TeamsV3Service {
       badge_color: meta.badge_color || null,
       members_count: teamUsers,
       managers_count: teamManagersCount,
+      created_by: team.fk_created_by,
       created_at: team.created_at,
       updated_at: team.updated_at,
     };
@@ -390,6 +393,7 @@ export class TeamsV3Service {
       badge_color: meta.badge_color || null,
       members_count: teamUsers,
       managers_count: teamManagersCount,
+      created_by: updatedTeam.fk_created_by,
       created_at: updatedTeam.created_at,
       updated_at: updatedTeam.updated_at,
     };

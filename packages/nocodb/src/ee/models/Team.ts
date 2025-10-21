@@ -65,11 +65,21 @@ export default class Team {
 
     await NocoCache.set(context, `${CacheScope.TEAM}:${id}`, fullTeam);
 
+    // Use the same cache key logic as list method for consistency
+    const cacheKey = context.workspace_id ?? context.org_id;
+
     await NocoCache.appendToList(
       context,
       CacheScope.TEAM,
-      [context.workspace_id ?? context.org_id],
+      [cacheKey],
       `${CacheScope.TEAM}:${id}`,
+    );
+
+    // Invalidate list cache to ensure new team appears in subsequent list calls
+    await NocoCache.deepDel(
+      context,
+      CacheScope.TEAM,
+      CacheDelDirection.CHILD_TO_PARENT,
     );
 
     return this.castType(fullTeam);
@@ -115,8 +125,11 @@ export default class Team {
     } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<Team[]> {
+    // Use the same cache key logic as insert method for consistency
+    const cacheKey = context.workspace_id ?? context.org_id;
+
     const cachedList = await NocoCache.getList(context, CacheScope.TEAM, [
-      context.workspace_id ?? context.org_id,
+      cacheKey,
     ]);
 
     let { list: teamList } = cachedList;
@@ -135,12 +148,7 @@ export default class Team {
         },
       );
 
-      await NocoCache.setList(
-        context,
-        CacheScope.TEAM,
-        [context.workspace_id ?? context.org_id],
-        teamList,
-      );
+      await NocoCache.setList(context, CacheScope.TEAM, [cacheKey], teamList);
     }
 
     return teamList.map((team) => this.castType(team));

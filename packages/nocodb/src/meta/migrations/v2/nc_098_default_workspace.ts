@@ -22,7 +22,7 @@ const up = async (knex: Knex) => {
     .count('id', { as: 'count' })
     .first();
 
-  if (!workspaceCount || +workspaceCount.count > 0 || isEE) {
+  if (!workspaceCount || +workspaceCount.count > 0) {
     return;
   }
 

@@ -28,6 +28,10 @@ dayjs.extend(timezone);
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
+const nanoidWorkspace = customAlphabet(
+  '1234567890abcdefghijklmnopqrstuvwxyz',
+  7,
+);
 
 @Injectable()
 export class MetaService {
@@ -123,12 +127,15 @@ export class MetaService {
       [MetaTable.PERMISSION_SUBJECTS]: 'pers',
       [MetaTable.DASHBOARDS]: 'dash',
       [MetaTable.WIDGETS]: 'wgt',
+      [MetaTable.WORKSPACE]: 'w',
     };
 
     const prefix = prefixMap[target] || 'nc';
 
     // using nanoid to avoid collision with existing ids when duplicating
-    return `${prefix}${nanoidv2()}`;
+    return `${prefix}${
+      target === MetaTable.WORKSPACE ? nanoidWorkspace() : nanoidv2()
+    }`;
   }
 
   // private connection: XKnex;

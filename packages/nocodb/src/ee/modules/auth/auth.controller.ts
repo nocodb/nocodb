@@ -1,5 +1,6 @@
 import { createHmac } from 'crypto';
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
@@ -307,5 +308,20 @@ export class AuthController extends AuthControllerCE {
     }
 
     return super.signup(req, res);
+  }
+
+  @Post(['/api/v2/auth/password/set'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @HttpCode(200)
+  async setPassword(
+    @Req() req: NcRequest,
+    @Body() body: { password: string },
+  ): Promise<{ msg: string }> {
+    await this.usersService.setPassword({
+      userId: req.user.id,
+      password: body.password,
+    });
+
+    return { msg: 'Password set successfully' };
   }
 }

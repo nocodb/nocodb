@@ -30,6 +30,7 @@ import { ViewSettingsOverrideService } from '~/services/view-settings-override.s
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 import { TeamsV3Service } from '~/services/v3/teams-v3.service';
+import { UsersService } from '~/services/users/users.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -51,6 +52,7 @@ export class InternalController extends InternalControllerCE {
     protected readonly oAuthClientService: OauthClientService,
     protected readonly oAuthTokenService: OauthTokenService,
     private readonly teamsV3Service: TeamsV3Service,
+    private readonly usersService: UsersService,
   ) {
     super(
       mcpService,
@@ -124,6 +126,10 @@ export class InternalController extends InternalControllerCE {
       teamMembersAdd: 'workspace',
       teamMembersRemove: 'workspace',
       teamMembersUpdate: 'workspace',
+
+      // User Profile
+
+      getUserProfile: 'org',
     } as const;
   }
 
@@ -215,6 +221,10 @@ export class InternalController extends InternalControllerCE {
         return await this.teamsV3Service.teamGet(context, {
           workspaceOrOrgId: workspaceId,
           teamId: req.query.teamId as string,
+        });
+      case 'getUserProfile':
+        return await this.usersService.getUserProfile(context, {
+          req,
         });
       default:
         return await super.internalAPI(

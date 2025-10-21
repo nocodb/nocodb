@@ -2,14 +2,20 @@ import { promisify } from 'util';
 import { UsersService as UsersServiceCE } from 'src/services/users/users.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  AdminCreateUserCommand,
   AdminDeleteUserCommand,
+  AdminInitiateAuthCommand,
+  AdminSetUserPasswordCommand,
   CognitoIdentityProviderClient,
   ListUsersCommand,
+  MessageActionType,
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
   AppEvents,
   NcBaseError,
+  type NcContext,
   OrgUserRoles,
+  type PasswordChangeReqType,
   ProjectRoles,
   validatePassword,
   WorkspaceRolesToProjectRoles,
@@ -131,6 +137,7 @@ async function listBaseUsers(
 @Injectable()
 export class UsersService extends UsersServiceCE {
   logger = new Logger(UsersService.name);
+  private cognitoClient: CognitoIdentityProviderClient;
 
   constructor(
     protected metaService: MetaService,
@@ -143,7 +150,16 @@ export class UsersService extends UsersServiceCE {
     protected telemetryService: TelemetryService,
   ) {
     super(metaService, appHooksService, baseService, mailService);
+
+    const region = this.configService.get('cognito.aws_cognito_region', {
+      infer: true,
+    });
+
+    if (region) {
+      this.cognitoClient = new CognitoIdentityProviderClient({ region });
+    }
   }
+
   async registerNewUserIfAllowed(
     {
       avatar,
@@ -785,6 +801,285 @@ export class UsersService extends UsersServiceCE {
       NcError.get(param?.req.context).internalServerError(
         'Failed to delete user',
       );
+    }
+  }
+
+  async passwordChange(param: {
+    body: PasswordChangeReqType;
+    user: UserType;
+    req: NcRequest;
+  }): Promise<any> {
+    if (!this.cognitoClient) {
+      return super.passwordChange(param);
+    }
+
+    if ((param.user as any)?.extra?.sso_client_id) {
+      NcError.badRequest('User is authenticated via SSO');
+    }
+
+    const { valid, error } = validatePassword(param.body.newPassword);
+    if (!valid) {
+      NcError.badRequest(`Password: ${error}`);
+    }
+
+    // Get user from database
+    const user = await User.get(param.user.id);
+    if (!user) {
+      NcError.userNotFound(param.user.id);
+    }
+
+    const userPoolId = this.configService.get('cognito.aws_user_pools_id', {
+      infer: true,
+    });
+    const clientId = this.configService.get(
+      'cognito.aws_user_pools_web_client_id',
+      { infer: true },
+    );
+
+    try {
+      // Find user in Cognito
+      const { Users: existingUsers } = await this.cognitoClient.send(
+        new ListUsersCommand({
+          UserPoolId: userPoolId,
+          Filter: `email = "${user.email}"`,
+        }),
+      );
+
+      const emailAccount = existingUsers.find(
+        (user) => user.UserStatus !== 'EXTERNAL_PROVIDER',
+      );
+
+      if (!emailAccount) {
+        NcError.badRequest(
+          `User hasn't configured password yet. Please configure a password first. `,
+        );
+      }
+
+      const username = emailAccount.Username;
+
+      const validEmailStatuses = [
+        'CONFIRMED',
+        'RESET_REQUIRED',
+        'FORCE_CHANGE_PASSWORD',
+      ];
+      if (!validEmailStatuses.includes(emailAccount.UserStatus)) {
+        NcError.badRequest(
+          'Please verify your email first to change your password',
+        );
+      }
+
+      try {
+        await this.cognitoClient.send(
+          new AdminInitiateAuthCommand({
+            UserPoolId: userPoolId,
+            ClientId: clientId,
+            AuthFlow: 'ADMIN_USER_PASSWORD_AUTH',
+            AuthParameters: {
+              USERNAME: username,
+              PASSWORD: param.body.currentPassword,
+            },
+          }),
+        );
+      } catch (authError) {
+        if (
+          authError.name === 'NotAuthorizedException' ||
+          authError.name === 'UserNotFoundException'
+        ) {
+          NcError.badRequest('Current password is incorrect');
+        }
+        throw authError;
+      }
+
+      // Set new password
+      await this.cognitoClient.send(
+        new AdminSetUserPasswordCommand({
+          UserPoolId: userPoolId,
+          Username: username,
+          Password: param.body.newPassword,
+          Permanent: true,
+        }),
+      );
+
+    } catch (error) {
+      if (error instanceof NcError) {
+        throw error;
+      }
+      this.logger.error('Failed to reset password for email user', error);
+
+      if (error.name === 'InvalidPasswordException') {
+        NcError.badRequest(error.message || 'Invalid password format');
+      } else if (error.name === 'LimitExceededException') {
+        NcError.badRequest('Too many attempts. Please try again later');
+      } else if (error.name === 'NotAuthorizedException') {
+        NcError.badRequest('Current password is incorrect');
+      } else {
+        NcError.internalServerError('Failed to reset password');
+      }
+    }
+  }
+
+  /**
+   * Set password for Google-authenticated user
+   * Creates email account in Cognito and sets password
+   * Only allowed if user doesn't already have an email account in Cognito
+   */
+  async setPassword(param: {
+    userId: string;
+    password: string;
+  }): Promise<void> {
+    if (!this.cognitoClient) {
+      NcError.badRequest('Cognito is not configured');
+    }
+
+    const { valid, error } = validatePassword(param.password);
+    if (!valid) {
+      NcError.badRequest(`Password: ${error}`);
+    }
+
+    const user = await User.get(param.userId);
+    if (!user) {
+      NcError.userNotFound(param.userId);
+    }
+
+    const userPoolId = this.configService.get('cognito.aws_user_pools_id', {
+      infer: true,
+    });
+
+    try {
+      // Check if user already exists in Cognito
+      const { Users: existingUsers } = await this.cognitoClient.send(
+        new ListUsersCommand({
+          UserPoolId: userPoolId,
+          Filter: `email = "${user.email}"`,
+        }),
+      );
+
+      if (existingUsers && existingUsers.length > 0) {
+        const emailAccount = existingUsers.find(
+          (user) => user.UserStatus !== 'EXTERNAL_PROVIDER',
+        );
+
+        if (emailAccount) {
+          NcError.badRequest(
+            'User already has an email account. Use password reset instead.',
+          );
+        }
+      } else {
+        this.logger.error('User with this email not found', user.email);
+        NcError._.internalServerError('User with this email not found');
+      }
+
+      // User doesn't exist - create email account in Cognito
+      const createUserResponse = await this.cognitoClient.send(
+        new AdminCreateUserCommand({
+          UserPoolId: userPoolId,
+          Username: user.email,
+          UserAttributes: [
+            { Name: 'email', Value: user.email },
+            { Name: 'name', Value: user.display_name || user.email },
+          ],
+          TemporaryPassword: param.password,
+          MessageAction: MessageActionType.SUPPRESS, // Don't send welcome email
+        }),
+      );
+
+      const username = createUserResponse.User.Username;
+
+      // Set permanent password
+      await this.cognitoClient.send(
+        new AdminSetUserPasswordCommand({
+          UserPoolId: userPoolId,
+          Username: username,
+          Password: param.password,
+          Permanent: true,
+        }),
+      );
+    } catch (error) {
+      if (error instanceof NcError) {
+        throw error;
+      }
+
+      this.logger.error('Failed to set password for Google user', error);
+
+      if (error.name === 'InvalidPasswordException') {
+        NcError.badRequest(error.message || 'Invalid password format');
+      } else if (error.name === 'LimitExceededException') {
+        NcError.badRequest('Too many attempts. Please try again later');
+      } else if (error.name === 'UsernameExistsException') {
+        NcError.badRequest('User already has an account with this email');
+      } else {
+        NcError.internalServerError('Failed to set password');
+      }
+    }
+  }
+
+  async getUserProfile(
+    _context: NcContext,
+    params: {
+      req: NcRequest;
+    },
+  ) {
+    if (!this.cognitoClient) {
+      NcError.badRequest('Cognito is not configured');
+    }
+
+    const user = params.req?.user;
+    if (!user) {
+      NcError.unauthorized('User not authenticated');
+    }
+
+    if ((user as any)?.extra?.sso_client_id) {
+      NcError.badRequest('User is authenticated via SSO');
+    }
+
+    const dbUser = await User.get(user.id);
+    if (!dbUser) {
+      NcError.userNotFound(user.id);
+    }
+
+    const userPoolId = this.configService.get('cognito.aws_user_pools_id', {
+      infer: true,
+    });
+
+    try {
+      // Get all Cognito accounts for this user's email
+      const { Users: cognitoUsers } = await this.cognitoClient.send(
+        new ListUsersCommand({
+          UserPoolId: userPoolId,
+          Filter: `email = "${dbUser.email}"`,
+        }),
+      );
+
+      const accounts = {
+        email: false,
+        google: false,
+      };
+
+      if (cognitoUsers && cognitoUsers.length > 0) {
+        for (const cognitoUser of cognitoUsers) {
+          // Email account (not external provider)
+          if (cognitoUser.UserStatus !== 'EXTERNAL_PROVIDER') {
+            accounts.email = true;
+          }
+          // External provider accounts (Google, etc.)
+          else if (cognitoUser.UserStatus === 'EXTERNAL_PROVIDER') {
+            accounts.google = true;
+          }
+        }
+      }
+
+      return {
+        user: {
+          id: dbUser.id,
+          email: dbUser.email,
+          display_name: dbUser.display_name,
+          avatar: dbUser.avatar,
+        },
+        accounts,
+      };
+    } catch (error) {
+      this.logger.error('Failed to get user profile', error);
+      NcError.internalServerError('Failed to get user profile');
     }
   }
 

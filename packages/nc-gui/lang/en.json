@@ -769,6 +769,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "setPassword": "Set Password",
     "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
     "oauthClients": "OAuth Clients",

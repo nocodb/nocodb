@@ -19,6 +19,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const teamsMap = computed(() => {})
 
+  const isTeamsLoading = ref(false)
+
+  const editTeamDetails = ref(null)
+
   const router = useRouter()
 
   const route = router.currentRoute
@@ -269,6 +273,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const createTeam = async (..._args: any[]) => {}
 
+  const loadTeams = async (..._args: any[]) => {}
+
+  const getTeamById = async (..._args: any[]) => {}
+
+  const addTeamMembers = async (..._args: any[]) => {}
+
+  const removeTeamMembers = async (..._args: any[]) => {}
+
+  const updateTeamMembers = async (..._args: any[]) => {}
+
   return {
     loadWorkspaces,
     workspaces,
@@ -282,6 +296,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removeCollaborator,
     updateCollaborator,
     collaborators,
+    collaboratorsMap,
     allCollaborators,
     isInvitingCollaborators,
     isCollaboratorsLoading,
@@ -317,10 +332,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeWsDlg,
     upgradeWsJobId,
     removingCollaboratorMap,
+
+    // Teams
     teams,
     teamsMap,
-    collaboratorsMap,
+    isTeamsLoading,
+    editTeamDetails,
     createTeam,
+    loadTeams,
+    getTeamById,
+    addTeamMembers,
+    removeTeamMembers,
+    updateTeamMembers,
   }
 })
 

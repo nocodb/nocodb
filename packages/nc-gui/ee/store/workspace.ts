@@ -5,6 +5,8 @@ import type {
   PlanFeatureTypes,
   PlanLimitTypes,
   TeamDetailV3V3Type,
+  TeamMembersRemoveV3ReqV3Type,
+  TeamMembersUpdateV3ReqV3Type,
   TeamMemberV3ResponseV3Type,
   TeamV3V3Type,
   WorkspaceType,
@@ -732,6 +734,78 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  async function removeTeamMembers(
+    workspaceId: string = activeWorkspaceId.value!,
+    teamId: string,
+    members: TeamMembersRemoveV3ReqV3Type[],
+  ) {
+    try {
+      const removedMembers = (await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'teamMembersRemove',
+        },
+        {
+          teamId,
+          members,
+        },
+      )) as TeamMembersRemoveV3ReqV3Type[]
+
+      if (editTeamDetails.value && ncIsArray(removedMembers)) {
+        editTeamDetails.value.members = (editTeamDetails.value.members || []).filter(
+          (member) => !removedMembers.find((rm) => rm.user_id === member.user_id),
+        )
+      }
+
+      if (teamsMap.value[teamId]) {
+        teamsMap.value[teamId].members_count = Math.max(0, (teamsMap.value[teamId].members_count || 0) - removedMembers.length)
+      }
+
+      return removedMembers
+    } catch (e: any) {
+      console.error('Failed to remove members', e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function updateTeamMembers(
+    workspaceId: string = activeWorkspaceId.value!,
+    teamId: string,
+    members: TeamMembersUpdateV3ReqV3Type[],
+  ) {
+    try {
+      const updatedMembers = (await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'teamMembersUpdate',
+        },
+        {
+          teamId,
+          members,
+        },
+      )) as TeamMemberV3ResponseV3Type[]
+
+      if (editTeamDetails.value && ncIsArray(updatedMembers)) {
+        editTeamDetails.value.members = (editTeamDetails.value.members || []).map((member) => {
+          const updatedMember = updatedMembers.find((um) => um.user_id === member.user_id)
+          if (!updatedMember) return member
+
+          return {
+            ...member,
+            ...updatedMember,
+          }
+        })
+      }
+
+      return updatedMembers
+    } catch (e: any) {
+      console.error('Failed to update members', e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   /**
    * Teams section end here
    */
@@ -814,6 +888,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     loadTeams,
     getTeamById,
     addTeamMembers,
+    removeTeamMembers,
+    updateTeamMembers,
   }
 })
 

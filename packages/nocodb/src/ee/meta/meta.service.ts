@@ -36,12 +36,12 @@ export class MetaService extends MetaServiceCE {
         .select('*')
         .limit(1);
 
-      if (records.length === 0) return true;
-
-      await this.connection.migrate.latest({
-        migrationSource: new XcMigrationSourcev3(),
-        tableName: 'xc_knex_migrationsv3',
-      });
+      if (records.length > 0) {
+        await this.connection.migrate.latest({
+          migrationSource: new XcMigrationSourcev3(),
+          tableName: 'xc_knex_migrationsv3',
+        });
+      }
     }
     return true;
   }

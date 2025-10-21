@@ -6,8 +6,12 @@ const up = async (knex: Knex) => {
   // We avoid init for existing instances
   // They will be unified via packages/nocodb/src/meta/migrations/v2/nc_079_unify_schema.ts
   if (await knex.schema.hasTable('xc_knex_migrations')) {
-    console.log('Skipping v0 migration for existing instance.');
-    return;
+    // see if there are records in the v1 migration table
+    const records = await knex('xc_knex_migrations').select('*').limit(1);
+    if (records.length > 0) {
+      console.log('Skipping v0 migration for existing instance.');
+      return;
+    }
   }
 
   await knex.schema.createTable(MetaTable.API_TOKENS, (table) => {

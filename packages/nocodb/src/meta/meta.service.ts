@@ -962,14 +962,21 @@ export class MetaService {
       So users will have to upgrade to specific version first and then to the latest version
     */
     if (await this.connection.schema.hasTable('xc_knex_migrations')) {
-      await this.connection.migrate.latest({
-        migrationSource: new XcMigrationSource(),
-        tableName: 'xc_knex_migrations',
-      });
-      await this.connection.migrate.latest({
-        migrationSource: new XcMigrationSourcev2(),
-        tableName: 'xc_knex_migrationsv2',
-      });
+      // see if there are records in the v1 migration table
+      const records = await this.connection('xc_knex_migrations')
+        .select('*')
+        .limit(1);
+
+      if (records.length > 0) {
+        await this.connection.migrate.latest({
+          migrationSource: new XcMigrationSource(),
+          tableName: 'xc_knex_migrations',
+        });
+        await this.connection.migrate.latest({
+          migrationSource: new XcMigrationSourcev2(),
+          tableName: 'xc_knex_migrationsv2',
+        });
+      }
     }
 
     await this.connection.migrate.latest({

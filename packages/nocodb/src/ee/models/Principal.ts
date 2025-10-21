@@ -163,4 +163,3 @@ export default class Principal {
     }
   }
 }
-

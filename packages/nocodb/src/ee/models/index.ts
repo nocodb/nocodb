@@ -32,3 +32,8 @@ export { default as Permission } from './Permission';
 export { default as Dashboard } from './Dashboard';
 export { default as ApiToken } from './ApiToken';
 export { default as Widget } from './Widget';
+
+// Teams-related models
+export { default as Team } from './Team';
+export { default as Principal } from './Principal';
+export { default as PrincipalAssignment } from './PrincipalAssignment';

@@ -9,6 +9,7 @@ import type {
   TeamMembersRemoveV3ReqV3Type,
   TeamMembersUpdateV3ReqV3Type,
   TeamMemberV3ResponseV3Type,
+  TeamUpdateV3ReqV3Type,
   TeamV3V3Type,
   WorkspaceType,
   WorkspaceUserType,
@@ -682,7 +683,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   async function createTeam(workspaceId: string, team: Pick<TeamType, 'title' | 'description' | 'meta'>) {
     try {
-      // Todo: api call
       const res = (await $api.internal.postOperation(
         workspaceId,
         NO_SCOPE,
@@ -699,6 +699,33 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     } catch (error: any) {
       console.error(error)
       message.error('Error occured while creating new team')
+    }
+  }
+
+  async function updateTeam(workspaceId: string, teamId: string, updates: TeamUpdateV3ReqV3Type) {
+    if (!updates) return
+
+    try {
+      const res = (await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'teamUpdate',
+        },
+        {
+          teamId,
+          ...updates,
+        },
+      )) as TeamV3V3Type
+
+      if (!res) return
+
+      teams.value = teams.value.map((team) => (team.id === teamId ? { ...team, ...res } : team))
+
+      return res
+    } catch (error: any) {
+      console.error(error)
+      message.error('Error occured while updating team')
     }
   }
 
@@ -886,6 +913,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isTeamsLoading,
     editTeamDetails,
     createTeam,
+    updateTeam,
     loadTeams,
     getTeamById,
     addTeamMembers,

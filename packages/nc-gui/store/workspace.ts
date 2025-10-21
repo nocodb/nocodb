@@ -273,6 +273,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const createTeam = async (..._args: any[]) => {}
 
+  const updateTeam = async (..._args: any[]) => {}
+
   const loadTeams = async (..._args: any[]) => {}
 
   const getTeamById = async (..._args: any[]) => {}
@@ -339,6 +341,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isTeamsLoading,
     editTeamDetails,
     createTeam,
+    updateTeam,
     loadTeams,
     getTeamById,
     addTeamMembers,

@@ -10,9 +10,11 @@ const useForm = Form.useForm
 
 const { team, readOnly } = toRefs(props)
 
+const { t } = useI18n()
+
 const workspaceStore = useWorkspace()
 
-const { collaborators, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { teams, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 // Todo: Enable this once we support team description
 const showDescription = false
@@ -27,7 +29,20 @@ const formState = reactive({
 
 const validators = computed(() => {
   return {
-    title: [validateTeamName],
+    title: [
+      validateTeamName,
+      {
+        validator: (_: any, value: any) => {
+          return new Promise((resolve, reject) => {
+            if (teams.value?.some((t) => t.id !== team.value.id && t.title?.toLowerCase() === value?.toLowerCase())) {
+              return reject(new Error(t('msg.error.duplicateTeamName')))
+            }
+
+            return resolve(true)
+          })
+        },
+      },
+    ],
   }
 })
 
@@ -38,10 +53,22 @@ const updating = ref(false)
 const updateTeam = async () => {
   if (readOnly.value) return
 
+  if (
+    team.value.title?.trim() === formState.title?.trim() &&
+    team.value.meta?.icon === formState.meta?.icon &&
+    team.value.meta?.badge_color === formState.meta?.badge_color
+  )
+    return
+
   try {
     updating.value = true
     await validate()
-    // Todo: update team
+
+    await workspaceStore.updateTeam(activeWorkspaceId.value!, team.value.id, {
+      title: formState.title,
+      icon: formState.meta?.icon,
+      badge_color: formState.meta?.badge_color,
+    })
   } catch (e: any) {
     console.error(e)
   } finally {

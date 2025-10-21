@@ -309,8 +309,10 @@ watch(
         :enabled-providers="['local', 'url', 'webcam']"
         @upload="(attachments) => resolveInput(attachments)"
       >
-        <template #trigger>
-          <NcButton v-if="!isResolved" size="small" :disabled="isResolved" type="secondary"> Click to Upload </NcButton>
+        <template #trigger="{ open }">
+          <NcButton v-if="!isResolved" size="small" :disabled="isResolved" type="secondary" @click="open">
+            Click to Upload
+          </NcButton>
         </template>
       </NcFile>
     </div>

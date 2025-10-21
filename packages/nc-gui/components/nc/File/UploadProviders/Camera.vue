@@ -19,8 +19,17 @@ const startCamera = async () => {
     }
     permissionGranted.value = true
 
+    // Wait for next tick to ensure video element is rendered
+    await nextTick()
+
     if (!videoRef.value || !videoStream.value) return
     videoRef.value.srcObject = videoStream.value
+
+    try {
+      await videoRef.value.play()
+    } catch (playError) {
+      console.error('Error playing video:', playError)
+    }
   } catch (error) {
     console.error('Camera access denied:', error)
   }

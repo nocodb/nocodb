@@ -630,7 +630,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   /**
    * Teams section start here
    */
-  const isTeamsLoading = ref(false)
+  const isTeamsLoading = ref(true)
 
   const teams = ref<TeamV3V3Type[]>([])
 

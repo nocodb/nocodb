@@ -18,6 +18,7 @@ export default class Team {
   meta?: Record<string, any> | string;
   fk_org_id?: string;
   fk_workspace_id?: string;
+  fk_created_by?: string;
   created_at?: string;
   updated_at?: string;
 
@@ -40,6 +41,7 @@ export default class Team {
       'meta',
       'fk_org_id',
       'fk_workspace_id',
+      'fk_created_by',
     ]);
 
     // Prepare meta for database storage

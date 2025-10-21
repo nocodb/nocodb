@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { TeamUserRoles } from 'nocodb-sdk'
+
 interface Props {
   /**
    * Modal visibility is based on query params, and will use following method
@@ -17,14 +19,16 @@ const { isOpenUsingRouterPush } = toRefs(props)
 const router = useRouter()
 const route = router.currentRoute
 
-const { isUIAllowed } = useRoles()
+const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { teamsMap, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { teamsMap, editTeamDetails } = storeToRefs(workspaceStore)
 
 const hasEditPermission = computed(() => {
-  return isUIAllowed('teamUpdate')
+  return (editTeamDetails.value?.members || []).some(
+    (member) => member.user_id === user.value?.id && member.team_role === TeamUserRoles.MANAGER,
+  )
 })
 
 const teamId = computed(() => {

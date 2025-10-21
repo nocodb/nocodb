@@ -1215,6 +1215,7 @@ export default function (API_VERSION: 'v2' | 'v3') {
         await ncAxiosPost({
           url: `/api/${API_VERSION}/tables/${table.id}/records`,
           body: { ...newRecord, Id: 300 },
+          query: { undo: 'true' },
           status: 400,
         });
       });

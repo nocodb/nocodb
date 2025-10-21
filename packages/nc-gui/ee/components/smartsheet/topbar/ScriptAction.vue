@@ -90,7 +90,8 @@ const hasPrintableContent = computed(() => {
           <div class="border-t !pt-1 mt-1 border-nc-border-gray-medium">
             <NcMenuItem class="!py-2" @click="handlePrint">
               <div class="flex items-center gap-2 text-nc-content-brand">
-                <GeneralIcon icon="ncPrinter" />
+                <GeneralLoader v-if="isGenerating" />
+                <GeneralIcon v-else icon="ncPrinter" />
                 <span class="text-sm font-semibold">Generate PDF</span>
               </div>
             </NcMenuItem>

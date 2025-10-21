@@ -23,7 +23,7 @@ export class OAuthPostOperations
     'oAuthAuthorizationRevoke' as const,
     'oAuthClientRegenerateSecret' as const,
   ];
-  httpMethod = 'GET' as const;
+  httpMethod = 'POST' as const;
 
   async handle(
     context: NcContext,

@@ -87,7 +87,6 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.HOOK_LOGS]: 'hkl',
       [MetaTable.API_TOKENS]: 'tkn',
       [MetaTable.WORKSPACE]: 'w',
-      [MetaTable.COWRITER]: 'cw',
       [MetaTable.SSO_CLIENT]: 'sso',
       [MetaTable.ORG]: 'o',
       [MetaTable.EXTENSIONS]: 'ext',

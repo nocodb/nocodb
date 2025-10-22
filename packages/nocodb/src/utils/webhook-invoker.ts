@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { hasInputCalls, NOCO_SERVICE_USERS } from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
 import { v4 as uuidv4 } from 'uuid';
+import { ncIsNullOrUndefined } from 'nocodb-sdk';
 import type { AxiosResponse } from 'axios';
 import type {
   HookLogType,
@@ -157,7 +158,8 @@ export class WebhookInvoker {
           }, {})
         : {},
       withCredentials: true,
-      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
+      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true' &&
+      !ncIsNullOrUndefined(url)
         ? {
             httpAgent: useAgent(url, {
               stopPortScanningByUrlRedirection: true,

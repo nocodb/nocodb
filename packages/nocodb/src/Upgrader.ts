@@ -55,7 +55,16 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
+      insertObj.fk_workspace_id = workspace_id;
+
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -118,12 +127,21 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
         });
       }
+
+      commonProps.fk_workspace_id = workspace_id;
       commonProps.base_id = base_id;
     }
 
@@ -182,6 +200,13 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -250,7 +275,14 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -315,6 +347,13 @@ export default class Upgrader extends MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -396,5 +435,5 @@ export default class Upgrader extends MetaService {
     }
   }
 
-  logHelper? = async (_workspace_id, _base_id, _target, _q) => {};
+  protected async logHelper(_workspace_id, _base_id, _target, _q) {}
 }

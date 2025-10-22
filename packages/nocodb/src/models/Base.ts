@@ -91,7 +91,14 @@ export default class Base implements BaseType {
       insertObj.meta = '{"iconColor":"#36BFFF"}';
     }
 
-    const { id: baseId } = await ncMeta.metaInsert2(
+    // set as db if not set
+    if (!insertObj.type) {
+      insertObj.type = 'database';
+    }
+
+    insertObj.fk_workspace_id = Noco.ncDefaultWorkspaceId;
+
+    const createdBase = await ncMeta.metaInsert2(
       RootScopes.BASE,
       RootScopes.BASE,
       MetaTable.PROJECT,
@@ -99,8 +106,8 @@ export default class Base implements BaseType {
     );
 
     const context = {
-      workspace_id: (base as any).fk_workspace_id,
-      base_id: baseId,
+      workspace_id: createdBase.fk_workspace_id,
+      base_id: createdBase.id,
     };
 
     for (const source of base.sources) {
@@ -109,7 +116,7 @@ export default class Base implements BaseType {
         {
           type: source.config?.client as (typeof DB_TYPES)[number],
           ...source,
-          baseId,
+          baseId: createdBase.id,
         },
         ncMeta,
       );
@@ -123,7 +130,7 @@ export default class Base implements BaseType {
       logger.error('Failed to clean command palette cache');
     });
 
-    return this.getWithInfo(context, baseId, true, ncMeta).then(
+    return this.getWithInfo(context, createdBase.id, true, ncMeta).then(
       async (base) => {
         await NocoCache.appendToList(
           {
@@ -132,7 +139,7 @@ export default class Base implements BaseType {
           },
           CacheScope.PROJECT,
           [],
-          `${CacheScope.PROJECT}:${baseId}`,
+          `${CacheScope.PROJECT}:${base.id}`,
         );
         return base;
       },
@@ -161,16 +168,29 @@ export default class Base implements BaseType {
         MetaTable.PROJECT,
         {
           xcCondition: {
-            _or: [
+            _and: [
+              ...(workspaceId
+                ? [
+                    {
+                      fk_workspace_id: {
+                        eq: workspaceId,
+                      },
+                    },
+                  ]
+                : []),
               {
-                deleted: {
-                  eq: false,
-                },
-              },
-              {
-                deleted: {
-                  eq: null,
-                },
+                _or: [
+                  {
+                    deleted: {
+                      eq: false,
+                    },
+                  },
+                  {
+                    deleted: {
+                      eq: null,
+                    },
+                  },
+                ],
               },
             ],
           },

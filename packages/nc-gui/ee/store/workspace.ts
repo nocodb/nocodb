@@ -707,7 +707,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  async function updateTeam(workspaceId: string, teamId: string, updates: TeamUpdateV3ReqV3Type) {
+  async function updateTeam(workspaceId: string, teamId: string, updates: Partial<TeamUpdateV3ReqV3Type>) {
     if (!updates) return
 
     try {

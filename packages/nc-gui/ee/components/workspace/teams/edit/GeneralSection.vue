@@ -80,8 +80,8 @@ const updateTeam = async (isIconUpdate = false) => {
       team.value.id,
       isIconUpdate
         ? {
-            icon: formState?.icon,
-            icon_type: formState?.icon_type,
+            icon: formState?.icon || null,
+            icon_type: formState?.icon_type || null,
             // badge_color: formState?.badge_color,
           }
         : {

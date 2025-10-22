@@ -8,7 +8,9 @@ import {
   Patch,
   Post,
   Req,
+  UseGuards,
 } from '@nestjs/common';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   WorkspaceTeamDetailV3Type,
   WorkspaceTeamListV3Type,
@@ -22,22 +24,48 @@ import {
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { WorkspaceTeamsV3Service } from '~/ee/services/v3/workspace-teams-v3.service';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext } from '~/interface/config';
+import { getFeature } from '~/helpers/paymentHelpers';
+import { NcError } from '~/helpers/catchError';
 
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class WorkspaceTeamsV3Controller {
   constructor(
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
   ) {}
 
+  /**
+   * Validates if the user has access to the Teams API.
+   * This method checks if the feature is enabled for the workspace.
+   * If not, it throws an error indicating that the feature is only available on paid plans.
+   */
+  async canExecute(context: NcContext) {
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+        context.workspace_id,
+      ))
+    ) {
+      NcError.forbidden(
+        'Accessing Teams API is only available on paid plans. Please upgrade your workspace plan to enable this feature. Your current plan is not sufficient.',
+      );
+    }
+  }
+
   @Get('/api/v3/meta/workspaces/:workspaceId/invites')
   @Acl('teamList', {
     scope: 'workspace',
   })
   async teamList(
+    @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
-    @Req() req: NcRequest,
   ): Promise<WorkspaceTeamListV3Type> {
-    return this.workspaceTeamsV3Service.teamList(req.context, {
+    await this.canExecute(context);
+    return this.workspaceTeamsV3Service.teamList(context, {
       workspaceId,
     });
   }
@@ -48,11 +76,13 @@ export class WorkspaceTeamsV3Controller {
     scope: 'workspace',
   })
   async teamAdd(
+    @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Body() team: WorkspaceTeamCreateV3ReqType,
     @Req() req: NcRequest,
   ): Promise<WorkspaceTeamV3ResponseType> {
-    return this.workspaceTeamsV3Service.teamAdd(req.context, {
+    await this.canExecute(context);
+    return this.workspaceTeamsV3Service.teamAdd(context, {
       workspaceId,
       team,
       req,
@@ -64,11 +94,12 @@ export class WorkspaceTeamsV3Controller {
     scope: 'workspace',
   })
   async teamDetail(
+    @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('teamId') teamId: string,
-    @Req() req: NcRequest,
   ): Promise<WorkspaceTeamDetailV3Type> {
-    return this.workspaceTeamsV3Service.teamDetail(req.context, {
+    await this.canExecute(context);
+    return this.workspaceTeamsV3Service.teamDetail(context, {
       workspaceId,
       teamId,
     });
@@ -79,12 +110,14 @@ export class WorkspaceTeamsV3Controller {
     scope: 'workspace',
   })
   async teamUpdate(
+    @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('teamId') teamId: string,
     @Body() team: WorkspaceTeamUpdateV3ReqType,
     @Req() req: NcRequest,
   ): Promise<WorkspaceTeamV3ResponseType> {
-    return this.workspaceTeamsV3Service.teamUpdate(req.context, {
+    await this.canExecute(context);
+    return this.workspaceTeamsV3Service.teamUpdate(context, {
       workspaceId,
       team,
       req,
@@ -96,12 +129,14 @@ export class WorkspaceTeamsV3Controller {
     scope: 'workspace',
   })
   async teamRemove(
+    @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('teamId') teamId: string,
     @Body() team: WorkspaceTeamDeleteV3ReqType,
     @Req() req: NcRequest,
   ): Promise<{ msg: string }> {
-    return this.workspaceTeamsV3Service.teamRemove(req.context, {
+    await this.canExecute(context);
+    return this.workspaceTeamsV3Service.teamRemove(context, {
       workspaceId,
       team,
       req,

@@ -9363,7 +9363,13 @@
           "workspace_role": {
             "type": "string",
             "description": "Workspace role to assign to the team (creator or lower only)",
-            "$ref": "#/components/schemas/WorkspaceRoles",
+            "enum": [
+              "workspace-level-creator",
+              "workspace-level-editor",
+              "workspace-level-viewer",
+              "workspace-level-commenter",
+              "workspace-level-no-access"
+            ],
             "example": "workspace-level-editor"
           }
         },

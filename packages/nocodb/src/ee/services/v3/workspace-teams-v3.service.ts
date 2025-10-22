@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { WorkspaceUserRoles } from 'nocodb-sdk';
+import type { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   WorkspaceTeamCreateV3ReqType,
@@ -90,21 +90,6 @@ export class WorkspaceTeamsV3Service {
       true,
     );
 
-    // Validate that only creator or lower roles are allowed (not owner)
-    const allowedRoles = [
-      WorkspaceUserRoles.CREATOR,
-      WorkspaceUserRoles.EDITOR,
-      WorkspaceUserRoles.VIEWER,
-      WorkspaceUserRoles.COMMENTER,
-      WorkspaceUserRoles.NO_ACCESS,
-    ];
-
-    if (!allowedRoles.includes(param.team.workspace_role)) {
-      NcError.get(context).invalidRequestBody(
-        `Invalid workspace role. Only creator or lower roles are allowed for teams. Owner role is not permitted.`,
-      );
-    }
-
     // Check if team exists
     const team = await Team.get(context, param.team.team_id);
     if (!team) {
@@ -175,21 +160,6 @@ export class WorkspaceTeamsV3Service {
       param.team,
       true,
     );
-
-    // Validate that only creator or lower roles are allowed (not owner)
-    const allowedRoles = [
-      WorkspaceUserRoles.CREATOR,
-      WorkspaceUserRoles.EDITOR,
-      WorkspaceUserRoles.VIEWER,
-      WorkspaceUserRoles.COMMENTER,
-      WorkspaceUserRoles.NO_ACCESS,
-    ];
-
-    if (!allowedRoles.includes(param.team.workspace_role)) {
-      NcError.get(context).invalidRequestBody(
-        `Invalid workspace role. Only creator or lower roles are allowed for teams. Owner role is not permitted.`,
-      );
-    }
 
     // Check if team exists
     const team = await Team.get(context, param.team.team_id);

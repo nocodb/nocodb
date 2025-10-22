@@ -347,28 +347,31 @@ onMounted(async () => {
 
           <div v-if="column.key === 'badge'">
             <NcBadge class="uppercase">
+              <GeneralTeamIcon v-if="record.icon" :icon="record.icon" :icon-type="record.iconType" icon-bg-color="transparent" />
               {{ record.title?.slice(0, 3) }}
             </NcBadge>
           </div>
 
           <div v-if="column.key === 'owner'" class="w-full flex gap-3 items-center">
-            <GeneralUserIcon size="base" :user="collaboratorsMap[record.created_by]" class="flex-none" />
-            <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-              <div class="flex items-center gap-1">
-                <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize text-captionBold" show-on-truncate-only>
-                  <template #title>
+            <template v-if="collaboratorsMap[record.created_by]">
+              <GeneralUserIcon size="base" :user="collaboratorsMap[record.created_by]" class="flex-none" />
+              <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                <div class="flex items-center gap-1">
+                  <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize text-captionBold" show-on-truncate-only>
+                    <template #title>
+                      {{ collaboratorsMap[record.created_by]?.display_name || extractNameFromEmail(record.created_by) }}
+                    </template>
                     {{ collaboratorsMap[record.created_by]?.display_name || extractNameFromEmail(record.created_by) }}
+                  </NcTooltip>
+                </div>
+                <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-muted" show-on-truncate-only>
+                  <template #title>
+                    {{ collaboratorsMap[record.created_by]?.email }}
                   </template>
-                  {{ collaboratorsMap[record.created_by]?.display_name || extractNameFromEmail(record.created_by) }}
+                  {{ collaboratorsMap[record.created_by]?.email }}
                 </NcTooltip>
               </div>
-              <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-muted" show-on-truncate-only>
-                <template #title>
-                  {{ collaboratorsMap[record.created_by]?.email }}
-                </template>
-                {{ collaboratorsMap[record.created_by]?.email }}
-              </NcTooltip>
-            </div>
+            </template>
           </div>
 
           <div v-if="column.key === 'action'" @click.stop>
@@ -388,7 +391,10 @@ onMounted(async () => {
                     :title="t('objects.teams.thisTeamHasOnlyOneOwnerTooltip')"
                     placement="left"
                   >
-                    <NcMenuItem :disabled="hasSoleTeamOwner(record as TeamV3V3Type) " @click="handleLeaveTeam(record as TeamV3V3Type)">
+                    <NcMenuItem
+                      :disabled="hasSoleTeamOwner(record as TeamV3V3Type) "
+                      @click="handleLeaveTeam(record as TeamV3V3Type)"
+                    >
                       <GeneralIcon icon="ncLogOut" class="h-4 w-4" />
                       {{ $t('activity.leaveTeam') }}
                     </NcMenuItem>

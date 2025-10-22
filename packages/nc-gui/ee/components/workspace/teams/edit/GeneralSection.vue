@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { IconType } from 'nocodb-sdk'
+
 interface Props {
   team: TeamType
   readOnly: boolean
@@ -21,10 +23,20 @@ const showDescription = false
 
 const inputEl = ref<HTMLInputElement>()
 
-const formState = reactive({
+const formState = reactive<{
+  title: string
+  description: string
+  icon: string
+  iconType: IconType | string
+
+  // Todo: Phase II
+  badge_color: string
+}>({
   title: '',
   description: '',
-  meta: {},
+  icon: '',
+  iconType: '',
+  badge_color: undefined,
 })
 
 const validators = computed(() => {
@@ -50,25 +62,32 @@ const { validate, validateInfos } = useForm(formState, validators)
 
 const updating = ref(false)
 
-const updateTeam = async () => {
+const updateTeam = async (isIconUpdate = false) => {
   if (readOnly.value) return
 
-  if (
-    team.value.title?.trim() === formState.title?.trim() &&
-    team.value.meta?.icon === formState.meta?.icon &&
-    team.value.meta?.badge_color === formState.meta?.badge_color
-  )
-    return
+  if (isIconUpdate && team.value?.icon === formState?.icon) return
+
+  if (!isIconUpdate && team.value.title?.trim() === formState.title?.trim()) return
 
   try {
     updating.value = true
-    await validate()
+    if (!isIconUpdate) {
+      await validate()
+    }
 
-    await workspaceStore.updateTeam(activeWorkspaceId.value!, team.value.id, {
-      title: formState.title,
-      icon: formState.meta?.icon,
-      badge_color: formState.meta?.badge_color,
-    })
+    await workspaceStore.updateTeam(
+      activeWorkspaceId.value!,
+      team.value.id,
+      isIconUpdate
+        ? {
+            icon: formState?.icon,
+            iconType: formState?.iconType,
+            // badge_color: formState?.badge_color,
+          }
+        : {
+            title: formState.title,
+          },
+    )
   } catch (e: any) {
     console.error(e)
   } finally {
@@ -87,7 +106,9 @@ const updateTeamWithDebounce = useDebounceFn(
 onMounted(() => {
   formState.title = team.value.title
   formState.description = team.value.description ?? ''
-  formState.meta = parseProp(team.value.meta)
+  formState.badge_color = team.value.badge_color ?? undefined
+  formState.icon = team.value.icon ?? ''
+  formState.iconType = team.value.iconType ?? ''
 
   if (readOnly.value) return
 
@@ -111,16 +132,48 @@ onMounted(() => {
         <template #label>
           {{ $t('general.name') }}
         </template>
-        <a-input
-          ref="inputEl"
-          v-model:value="formState.title"
-          class="nc-team-input nc-input-sm nc-input-shadow"
-          hide-details
-          data-testid="create-team-title-input"
-          :placeholder="$t('placeholder.enterTeamName')"
-          :disabled="readOnly"
-          @input="updateTeamWithDebounce"
-        />
+
+        <div class="relative">
+          <a-input
+            ref="inputEl"
+            v-model:value="formState.title"
+            class="nc-team-input nc-input-sm nc-input-shadow !pl-38"
+            hide-details
+            data-testid="create-team-title-input"
+            :placeholder="$t('placeholder.enterTeamName')"
+            :disabled="readOnly"
+            @input="updateTeamWithDebounce"
+          >
+            <template #prefix> <div class="w-6">&nbsp;</div> </template>
+          </a-input>
+          <div class="absolute left-0 top-0 z-10">
+            <GeneralIconSelector
+              v-model:icon="formState.icon"
+              v-model:icon-type="formState.iconType"
+              :default-active-tab="IconType.ICON"
+              :tab-order="[IconType.ICON, IconType.EMOJI]"
+              :hidden-tabs="[IconType.IMAGE]"
+              :image-cropper-data="{}"
+              @submit="() => updateTeam(true)"
+            >
+              <template #default="{ isOpen }">
+                <div
+                  class="border-1 w-8 h-8 flex-none rounded-lg overflow-hidden transition-all duration-300 cursor-pointer"
+                  :class="{
+                    'border-transparent !rounded-r-none border-r-nc-border-gray-medium': !isOpen,
+                    'border-primary shadow-selected': isOpen,
+                  }"
+                >
+                  <GeneralTeamIcon
+                    :icon="formState.icon"
+                    :icon-type="formState.iconType"
+                    class="!w-full !h-full !min-w-full select-none cursor-pointer !rounded-none"
+                  />
+                </div>
+              </template>
+            </GeneralIconSelector>
+          </div>
+        </div>
       </a-form-item>
       <a-form-item v-if="showDescription" class="!mb-0">
         <template #label>

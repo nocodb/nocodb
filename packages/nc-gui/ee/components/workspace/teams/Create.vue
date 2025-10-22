@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { IconType } from 'nocodb-sdk'
+
 const props = defineProps<{
   visible: boolean
 }>()
@@ -19,14 +21,20 @@ const { teams, activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const inputEl = ref<HTMLInputElement>()
 
-const formState = reactive({
+const formState = reactive<{
+  title: string
+  description: string
+  icon: string
+  iconType: IconType | string
+
+  // Todo: Phase II
+  badge_color?: string
+}>({
   title: '',
   description: '',
-  meta: {
-    icon: undefined,
-    iconType: undefined,
-    iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
-  },
+  icon: '',
+  iconType: '',
+  badge_color: undefined,
 })
 
 const enableDescription = ref(false)
@@ -136,14 +144,44 @@ watch(vVisible, (newValue) => {
       >
         <div class="flex flex-col gap-5">
           <a-form-item v-bind="validateInfos.title" class="relative nc-team-input-wrapper relative">
-            <a-input
-              ref="inputEl"
-              v-model:value="formState.title"
-              class="nc-team-input nc-input-sm nc-input-shadow"
-              hide-details
-              data-testid="create-team-title-input"
-              :placeholder="$t('placeholder.enterTeamName')"
-            />
+            <div class="relative">
+              <a-input
+                ref="inputEl"
+                v-model:value="formState.title"
+                class="nc-team-input nc-input-sm nc-input-shadow"
+                hide-details
+                data-testid="create-team-title-input"
+                :placeholder="$t('placeholder.enterTeamName')"
+              >
+                <template #prefix> <div class="w-6">&nbsp;</div> </template>
+              </a-input>
+              <div class="absolute left-0 top-0 z-10">
+                <GeneralIconSelector
+                  v-model:icon="formState.icon"
+                  v-model:icon-type="formState.iconType"
+                  :default-active-tab="IconType.ICON"
+                  :tab-order="[IconType.ICON, IconType.EMOJI]"
+                  :hidden-tabs="[IconType.IMAGE]"
+                  :image-cropper-data="{}"
+                >
+                  <template #default="{ isOpen }">
+                    <div
+                      class="border-1 w-8 h-8 flex-none rounded-lg overflow-hidden transition-all duration-300 cursor-pointer"
+                      :class="{
+                        'border-transparent !rounded-r-none border-r-nc-border-gray-medium': !isOpen,
+                        'border-primary shadow-selected': isOpen,
+                      }"
+                    >
+                      <GeneralTeamIcon
+                        :icon="formState.icon"
+                        :icon-type="formState.iconType"
+                        class="!w-full !h-full !min-w-full select-none cursor-pointer !rounded-none"
+                      />
+                    </div>
+                  </template>
+                </GeneralIconSelector>
+              </div>
+            </div>
           </a-form-item>
 
           <a-form-item v-if="enableDescription" v-bind="validateInfos.description" class="!mb-0">

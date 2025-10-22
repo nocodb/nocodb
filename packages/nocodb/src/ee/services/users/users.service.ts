@@ -396,8 +396,8 @@ export class UsersService extends UsersServiceCE {
   ): Promise<any> {
     const workspaces = await WorkspaceUser.workspaceList({
       fk_user_id: user.id,
-      fk_org_id: user.extra?.org_id,
-      fk_workspace_id: user.extra?.workspace_id,
+      // fk_org_id: user.extra?.org_id,
+      // fk_workspace_id: user.extra?.workspace_id,
     });
 
     if (workspaces.length === 0) {

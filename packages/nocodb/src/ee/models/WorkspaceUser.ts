@@ -215,6 +215,7 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE}.description`,
         `${MetaTable.WORKSPACE}.meta`,
         `${MetaTable.WORKSPACE}.fk_user_id`,
+        `${MetaTable.WORKSPACE}.fk_org_id`,
         `${MetaTable.WORKSPACE}.deleted`,
         `${MetaTable.WORKSPACE}.deleted_at`,
         `${MetaTable.WORKSPACE}.status`,

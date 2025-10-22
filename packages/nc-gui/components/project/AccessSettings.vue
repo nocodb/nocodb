@@ -8,6 +8,8 @@ const props = defineProps<{
 
 const router = useRouter()
 
+const { isTeamsEnabled } = storeToRefs(useWorkspace())
+
 const { isPrivateBase, base } = storeToRefs(useBase())
 
 const basesStore = useBases()
@@ -49,6 +51,8 @@ const currentBase = computedAsync(async () => {
 
 const isInviteModalVisible = ref(false)
 
+const isInviteTeamDlg = ref<boolean>(false)
+
 interface Collaborators {
   id: string
   email: string
@@ -60,6 +64,9 @@ interface Collaborators {
   display_name: string | null
   meta: MetaType
 }
+
+// Todo: @rameshmane7218 - toggle this when user clicks on listed team item
+const isEditModalOpenUsingRouterPush = ref<boolean>(false)
 
 const collaborators = ref<Collaborators[]>([])
 const totalCollaborators = ref(0)
@@ -217,8 +224,11 @@ const selectAll = computed({
     toggleSelectAll(value)
   },
 })
+
 watch(isInviteModalVisible, () => {
   if (!isInviteModalVisible.value) {
+    isInviteTeamDlg.value = false
+
     loadCollaborators()
   }
 })
@@ -405,12 +415,46 @@ onBeforeUnmount(() => {
             </template>
           </a-input>
 
-          <NcButton :disabled="isLoading" size="small" class="flex-none" @click="isInviteModalVisible = true">
+          <NcButton
+            v-if="!isTeamsEnabled || isAdminPanel"
+            :disabled="isLoading"
+            size="small"
+            class="flex-none"
+            @click="isInviteModalVisible = true"
+          >
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" class="w-4 h-4" />
               {{ $t('activity.addMembers') }}
             </div>
           </NcButton>
+
+          <NcDropdown v-else :disabled="isLoading">
+            <NcButton size="small" :disabled="isLoading">
+              <div class="flex items-center gap-2">
+                <component :is="iconMap.plus" class="!h-4 !w-4" />
+                {{ $t('general.add') }}
+              </div>
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem @click="isInviteModalVisible = true">
+                  <GeneralIcon icon="ncUsers" />
+                  {{ $t('activity.addMembers') }}
+                </NcMenuItem>
+                <NcMenuItem
+                  @click="
+                    () => {
+                      isInviteTeamDlg = true
+                      isInviteModalVisible = true
+                    }
+                  "
+                >
+                  <GeneralIcon icon="ncBuilding" />
+                  {{ $t('labels.addTeam') }}
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </div>
 
         <NcTable
@@ -498,9 +542,12 @@ onBeforeUnmount(() => {
         v-model:model-value="isInviteModalVisible"
         :base-id="currentBase?.id"
         :users="collaborators"
+        :is-team="isInviteTeamDlg"
         type="base"
-      /> </template
-    ><x></x>
+      />
+
+      <WorkspaceTeamsEdit v-if="isEeUI && isTeamsEnabled" :is-open-using-router-push="isEditModalOpenUsingRouterPush" />
+    </template>
   </div>
 </template>
 

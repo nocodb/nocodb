@@ -30,7 +30,7 @@ const hasEditPermission = computed(() => {
 
 const workspaceStore = useWorkspace()
 
-const { teams, isTeamsLoading, collaboratorsMap, activeWorkspace } = storeToRefs(workspaceStore)
+const { teams, isTeamsLoading, collaboratorsMap, activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Teams')
 
@@ -414,7 +414,7 @@ onMounted(async () => {
         </template>
       </NcTable>
     </div>
-    <WorkspaceTeamsEdit :is-open-using-router-push="isEditModalOpenUsingRouterPush" />
+    <WorkspaceTeamsEdit v-if="isTeamsEnabled" :is-open-using-router-push="isEditModalOpenUsingRouterPush" />
     <WorkspaceTeamsCreate v-model:visible="isCreateTeamModalVisible" />
   </div>
 </template>

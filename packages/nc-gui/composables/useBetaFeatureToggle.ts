@@ -170,7 +170,8 @@ const FEATURES = [
     title: 'Teams',
     description: 'Teams are group of users',
     enabled: false,
-    version: 1,
+    version: 2,
+    isEngineering: true,
     isEE: true,
   },
 ] as const

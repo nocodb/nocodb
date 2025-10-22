@@ -32,9 +32,13 @@ const hasEditPermission = computed(() => {
 })
 
 const teamId = computed(() => {
-  return route.value.name === 'index-typeOrId-settings' && route.value.query?.tab === 'teams'
-    ? (route.value.query?.teamId as string)
-    : ''
+  const isWsSettingsAllowedPage =
+    route.value.name === 'index-typeOrId-settings' && ['teams', 'collaborators'].includes(route.value.query?.tab as string)
+
+  const isBaseSettingsAllowedPage =
+    route.value.name === 'index-typeOrId-baseId-index-index' && route.value.query?.page === 'collaborator'
+
+  return isWsSettingsAllowedPage || isBaseSettingsAllowedPage ? (route.value.query?.teamId as string) : ''
 })
 
 const editTeam = computed(() => {

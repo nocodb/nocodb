@@ -116,6 +116,7 @@ const selectedTeams = computed(() => {
           :list="teamSelectorOptions"
           :item-height="48"
           :is-multi-select="isMultiSelect"
+          :close-on-select="!isMultiSelect"
           class="!w-auto"
           :isLocked="!!newTeam"
           variant="default"

@@ -132,6 +132,7 @@ watch(dialogShow, async (newVal) => {
     emailBadges.value = []
     inviteData.email = ''
     singleEmailValue.value = ''
+    selectedTeamIds.value = []
   }
 })
 

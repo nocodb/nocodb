@@ -75,7 +75,12 @@ const createTeam = async () => {
   try {
     creating.value = true
     await validate()
-    const team = await _createTeam(activeWorkspaceId.value, formState)
+    const team = await _createTeam(activeWorkspaceId.value, {
+      ...formState,
+      icon: formState.icon || undefined,
+      icon_type: formState.icon_type || undefined,
+      badge_color: formState.badge_color || undefined,
+    })
     emits('created', team as TeamType)
     vVisible.value = false
   } catch (e: any) {
@@ -106,6 +111,9 @@ watch(vVisible, (newValue) => {
   }
 
   formState.title = generateUniqueTitle(`Team`, teams.value ?? [], 'title', '-', true)
+  formState.icon = ''
+  formState.icon_type = ''
+  formState.badge_color = undefined
 
   nextTick(() => {
     inputEl.value?.focus()

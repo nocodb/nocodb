@@ -75,10 +75,6 @@ const handleAddMembers = async () => {
   const addedMembers = await workspaceStore.addTeamMembers(activeWorkspaceId.value!, team.value.id, membersToAdd)
 
   if (addedMembers && ncIsArray(addedMembers)) {
-    team.value.members_count = (team.value.members_count || 0) + addedMembers.length
-
-    emits('update:team', team.value)
-
     message.success({
       title: t('objects.teams.membersAddedToTeam'),
       content: t('objects.teams.nMembersHaveBeenAddedIntoTeam', {

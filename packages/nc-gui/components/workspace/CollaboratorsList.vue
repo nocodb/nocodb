@@ -407,8 +407,8 @@ watch(inviteDlg, (newVal) => {
                 <NcMenuItem
                   @click="
                     () => {
+                      isInviteTeamDlg = true
                       inviteDlg = true
-                      isInviteTeamDlg = false
                     }
                   "
                 >
@@ -603,7 +603,7 @@ watch(inviteDlg, (newVal) => {
         v-model:model-value="inviteDlg"
         :workspace-id="currentWorkspace?.id"
         type="workspace"
-        :is-team="true"
+        :is-team="isInviteTeamDlg"
         :users="sortedCollaborators"
       />
 

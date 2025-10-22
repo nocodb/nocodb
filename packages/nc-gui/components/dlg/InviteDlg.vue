@@ -22,6 +22,7 @@ const props = defineProps<{
   workspaceId?: string
   users?: Array<Pick<UserType, 'email'>>
   teams?: Array<TeamV3V3Type>
+  selectedTeamIds?: string
 }>()
 const emit = defineEmits(['update:modelValue'])
 
@@ -382,6 +383,10 @@ const removeEmail = (index: number) => {
     inviteData.email = ''
   }
 }
+
+const onTeamChange = async (_teamIds: RawValueType) => {
+  // Todo: API call to add team in base/workspace
+}
 </script>
 
 <template>
@@ -450,6 +455,16 @@ const removeEmail = (index: number) => {
               @input="warningMsg = null"
             />
           </div>
+          <NcListTeamSelector
+            v-else
+            :on-change="onTeamChange"
+            :value="selectedTeamIds || []"
+            is-multi-select
+            :teams="teams"
+            class="!min-w-[152px] nc-add-team-selector"
+            size="lg"
+            placement="bottomLeft"
+          />
 
           <div class="flex items-center justify-between gap-4">
             <div class="md:hidden text-nc-content-gray text-bodyLg">{{ $t('labels.selectRole') }}:</div>

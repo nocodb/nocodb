@@ -313,7 +313,9 @@ onMounted(async () => {
         <template #emptyText>
           <NcEmptyPlaceholder
             :title="teams.length ? '' : $t('placeholder.youHaveNotCreatedAnyTeams')"
-            :subtitle="teams.length ? $t('title.noResultsMatchedYourSearch') : $t('title.noResultsMatchedYourSearchSubtitle')"
+            :subtitle="
+              teams.length ? $t('title.noResultsMatchedYourSearch') : $t('placeholder.youHaveNotCreatedAnyTeamsSubtitle')
+            "
           >
             <template #icon>
               <img

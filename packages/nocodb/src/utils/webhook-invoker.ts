@@ -157,7 +157,7 @@ export class WebhookInvoker {
           }, {})
         : {},
       withCredentials: true,
-      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
+      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true' && url
         ? {
             httpAgent: useAgent(url, {
               stopPortScanningByUrlRedirection: true,

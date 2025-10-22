@@ -168,16 +168,17 @@ onMounted(() => {
         </div>
       </div>
     </template>
-    <img v-if="showQrCode" :src="qrCodeLarge" :alt="$t('title.qrCode')" class="h-[156px] mt-8 mb-4" />
+    <div v-if="showQrCode" class="w-full">
+      <img :src="qrCodeLarge" :alt="$t('title.qrCode')" class="h-[156px] mx-auto mt-8 mb-4" />
+      <div class="bg-nc-bg-gray-light px-3 py-2 mx-4 rounded-lg">
+        <NcTooltip show-on-truncate-only class="truncate">
+          <template #title>
+            {{ qrValue }}
+          </template>
 
-    <div v-if="showQrCode" class="bg-nc-bg-gray-light mx-4 px-3 py-2 w-120 rounded-lg">
-      <NcTooltip show-on-truncate-only class="truncate">
-        <template #title>
           {{ qrValue }}
-        </template>
-
-        {{ qrValue }}
-      </NcTooltip>
+        </NcTooltip>
+      </div>
     </div>
   </a-modal>
   <div

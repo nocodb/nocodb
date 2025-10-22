@@ -1,9 +1,13 @@
+import { IconType } from 'nocodb-sdk';
+
 export interface TeamV3Type {
   id: string;
   name: string;
   icon?: string;
+  icon_type?: IconType;
   badge_color?: string;
   members_count: number;
+  managers_count: number;
   fk_org_id?: string;
   fk_workspace_id?: string;
   created_at?: string;
@@ -14,8 +18,10 @@ export interface TeamV3ResponseType {
   id: string;
   title: string;
   icon?: string;
+  icon_type?: IconType;
   badge_color?: string;
   members_count: number;
+  managers_count: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -23,6 +29,7 @@ export interface TeamV3ResponseType {
 export interface TeamCreateV3ReqType {
   title: string;
   icon?: string;
+  icon_type?: IconType;
   badge_color?: string;
   members?: TeamMemberV3Type[];
 }
@@ -30,6 +37,7 @@ export interface TeamCreateV3ReqType {
 export interface TeamUpdateV3ReqType {
   title?: string;
   icon?: string;
+  icon_type?: IconType;
   badge_color?: string;
 }
 
@@ -47,6 +55,7 @@ export interface TeamMemberV3ResponseType {
 export interface TeamDetailV3Type {
   title: string;
   icon?: string;
+  icon_type?: IconType;
   badge_color?: string;
   members: TeamMemberV3ResponseType[];
 }

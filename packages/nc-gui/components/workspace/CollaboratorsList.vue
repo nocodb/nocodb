@@ -11,7 +11,7 @@ import {
 
 const props = defineProps<{
   workspaceId?: string
-  height?: string
+  isActive?: boolean
 }>()
 
 const { workspaceRoles } = useRoles()
@@ -24,7 +24,7 @@ const workspaceStore = useWorkspace()
 
 const { removeCollaborator: _removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading, removingCollaboratorMap } =
+const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading, removingCollaboratorMap, isTeamsEnabled } =
   storeToRefs(workspaceStore)
 
 const {
@@ -61,9 +61,14 @@ const { t } = useI18n()
 
 const inviteDlg = ref(false)
 
+const isInviteTeamDlg = ref(false)
+
 const topSectionRef = ref<HTMLDivElement>()
 
 const tableHeaderSectionRef = ref<HTMLDivElement>()
+
+// Todo: @rameshmane7218 - toggle this when user clicks on listed team item
+const isEditModalOpenUsingRouterPush = ref<boolean>(false)
 
 const { height: toSectionHeight } = useElementSize(topSectionRef)
 
@@ -306,16 +311,31 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
     },
   })
 }
+
+/**
+ * Reset search query on unmount
+ */
+watch(
+  () => props.isActive,
+  () => {
+    userSearchText.value = ''
+  },
+)
+
+watch(inviteDlg, (newVal) => {
+  if (!newVal) {
+    isInviteTeamDlg.value = false
+  }
+})
 </script>
 
 <template>
   <div
     class="nc-collaborator-table-container overflow-auto nc-scrollbar-thin relative"
     :class="{
-      'nc-is-admin-panel': !height && isAdminPanel,
-      'nc-is-ws-members-list': !height && !isAdminPanel,
+      'nc-is-admin-panel': isAdminPanel,
+      'nc-is-ws-members-list': !isAdminPanel,
     }"
-    :style="`${height ? `height: ${height}` : ''}`"
     @scroll.passive="handleScroll"
   >
     <div ref="topSectionRef">
@@ -362,12 +382,46 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
             <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
           </template>
 
-          <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
+          <NcButton
+            v-if="!isTeamsEnabled || isAdminPanel"
+            size="small"
+            :disabled="isCollaboratorsLoading"
+            data-testid="nc-add-member-btn"
+            @click="inviteDlg = true"
+          >
             <div class="flex items-center gap-2">
               <component :is="iconMap.plus" class="!h-4 !w-4" />
               {{ $t('labels.addMember') }}
             </div>
           </NcButton>
+
+          <NcDropdown v-else :disabled="isCollaboratorsLoading">
+            <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn">
+              <div class="flex items-center gap-2">
+                <component :is="iconMap.plus" class="!h-4 !w-4" />
+                {{ $t('general.add') }}
+              </div>
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem @click="inviteDlg = true">
+                  <GeneralIcon icon="ncUsers" />
+                  {{ $t('activity.addMembers') }}
+                </NcMenuItem>
+                <NcMenuItem
+                  @click="
+                    () => {
+                      isInviteTeamDlg = true
+                      inviteDlg = true
+                    }
+                  "
+                >
+                  <GeneralIcon icon="ncBuilding" />
+                  {{ $t('labels.addTeam') }}
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </div>
       </div>
 
@@ -554,8 +608,11 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
         v-model:model-value="inviteDlg"
         :workspace-id="currentWorkspace?.id"
         type="workspace"
+        :is-team="isInviteTeamDlg"
         :users="sortedCollaborators"
       />
+
+      <WorkspaceTeamsEdit v-if="isTeamsEnabled" :is-open-using-router-push="isEditModalOpenUsingRouterPush" />
 
       <NcModalConfirm
         v-if="currentWorkspace"

@@ -448,7 +448,8 @@
     "baseType": "Base Type",
     "beta": "Beta",
     "selected": "selected",
-    "notice": "Notice"
+    "notice": "Notice",
+    "teams": "Teams"
   },
   "objects": {
     "script": "Script",
@@ -692,6 +693,27 @@
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
       "copyFromAView": "Copy from a view"
+    },
+    "teams": {
+      "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
+      "confirmLeaveTeamSubtitle": "You may lose access to bases unless you were explicitly invited or have a role at the workspace level.",
+      "confirmDeleteTeamTitle": "Are you sure you want to delete this team?",
+      "confirmDeleteTeamSubtitle": "Members may still have access to bases if they were explicitly invited or hold a role at the workspace level.",
+      "soleTeamOwnerTooltip": "You’re the sole owner of this team. Transfer ownership to another member before leaving.",
+      "thisIsTheOnlyTeamOwnerTooltip": "This is the only owner of this team. Transfer ownership to another member before removing it.",
+      "thisTeamHasOnlyOneOwnerTooltip": "This team has only one owner. Transfer ownership to another member before removing it.",
+      "removeFromTeamRestrictionTooltip": "You can’t remove all owners. Deselect at least one owner to proceed.",
+      "memberAssignedAsTeamOwner": "Member assigned as team owner",
+      "memberAssignedAsTeamMember": "Member assigned as team member",
+      "teamOwner": "Team owner",
+      "removeMemberFromTeam": "Remove member from team",
+      "removeMemberFromTeamPlural": "Remove members from team",
+      "addMembersToTeam": "Add members to Team",
+      "selectMembersToAddIntoTeam": "Select members to add into the {team} Team",
+      "alreadyPartOfTeam": "Already part of the team",
+      "membersAddedToTeam": "Members added to team",
+      "nMembersHaveBeenAddedIntoTeam": "{n} members have been added into the {team} team",
+      "unableToAddMembers": "Unable to add members"
     }
   },
   "datatype": {
@@ -1124,6 +1146,7 @@
     "recentActivity": "Recent Activity",
     "goToMembers": "Go to Members",
     "addMember": "Add Member",
+    "addTeam": "Add Team",
     "numberOfMembers": "No. Members",
     "numberOfBases": "No. Bases",
     "numberOfRecords": "No. Records",
@@ -1548,10 +1571,18 @@
     "importOptions": "Import Options",
     "newScript": "New Script",
     "emptyScript": "Empty Script",
+    "newTeam": "New team",
+    "teamName": "Team name",
+    "badge": "Badge",
+    "createTeam": "Create team",
+    "creatingTeam": "Creating team",
+    "workspaceRole": "Workspace role",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "selectRole": "Select Role",
-    "copyConfiguration": "Copy configuration"
+    "copyConfiguration": "Copy configuration",
+    "selectTeam": "Select team",
+    "selectTeams": "Select teams"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1583,6 +1614,8 @@
     "inviteToBase": "Invite to Base",
     "inviteToWorkspace": "Invite to Workspace",
     "addMember": "Add Member to Base",
+    "addTeamToBase": "Add Team to Base",
+    "addTeamToWorkspace": "Add Team to Workspace",
     "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
@@ -1846,6 +1879,11 @@
     "goToPermissionsOverview": "Go to Permissions Overview",
     "goToBaseSettings": "Go to Base Settings",
     "convertToSharedBase": "Convert to Shared Base",
+    "leaveTeam": "Leave team",
+    "deleteTeam": "Delete team",
+    "removeFromTeam": "Remove from team",
+    "assignAsTeamOwner": "Assign as team owner",
+    "assignAsTeamMember": "Assign as team member",
     "revertToDefault": "Revert to Default",
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
@@ -2019,7 +2057,12 @@
     "noAutomations": "No automations",
     "emptyTablePlaceholder": "This base is empty—for now.",
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access.",
-    "noDashboards": "No dashboards"
+    "noDashboards": "No dashboards",
+    "searchATeam": "Search a team",
+    "youHaveNotCreatedAnyTeams": "You have not created any teams",
+    "youHaveNotCreatedAnyTeamsSubtitle": "Group members into teams for easier assignments and permission configurations",
+    "enterTeamName": "Enter team name",
+    "enterTeamDescription": "Enter team description"
   },
   "msg": {
     "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
@@ -2517,7 +2560,11 @@
       "invalidSearchQueryForDisplayField": "Invalid search query for display field",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
       "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
-      "unableToLoadFeed": "Unable to load feed"
+      "unableToLoadFeed": "Unable to load feed",
+      "teamNameRequired": "Team name is required",
+      "teamNameExceedsCharacters": "Team name exceeds {value} characters",
+      "somethingWentWrongTryAgainLater": "Something went wrong, try again later",
+      "duplicateTeamName": "Duplicate team name"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

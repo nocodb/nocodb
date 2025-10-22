@@ -420,6 +420,10 @@ const rolePermissions:
       workspaceInvite: true,
       workspaceUserDelete: true,
       requestUpgrade: true,
+
+      // Teams
+      teamList: true,
+      teamGet: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {

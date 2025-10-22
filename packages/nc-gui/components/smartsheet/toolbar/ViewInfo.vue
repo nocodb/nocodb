@@ -265,8 +265,8 @@ const viewModeInfo = computed(() => {
                 </div>
 
                 <component
-                  v-else
                   :is="viewLockIcons[activeView.lock_type].icon"
+                  v-else
                   class="flex-none w-3.5 h-3.5 mx-0.5"
                   :class="{
                     'text-brand-400': activeView?.lock_type === ViewLockType.Personal && isViewOwner,

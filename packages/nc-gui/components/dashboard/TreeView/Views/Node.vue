@@ -404,8 +404,8 @@ watch(isDropdownOpen, async () => {
           </div>
 
           <component
-            v-else
             :is="viewLockIcons[vModel.lock_type].icon"
+            v-else
             class="ml-1 flex-none w-3.5 h-3.5"
             :class="{
               'text-nc-brand-400': vModel?.lock_type === ViewLockType.Personal && isViewOwner,

@@ -799,6 +799,7 @@ import NcMultiCircle from '~icons/nc-icons-v2/multi-circle'
 import NcChatwoot from '~icons/nc-icons-v2/chatwoot'
 import NcGraduationCap from '~icons/nc-icons-v2/graduation-cap'
 import NcSupportAgent from '~icons/nc-icons-v2/support-agent'
+import NcBuilding from '~icons/nc-icons-v2/building'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1379,6 +1380,7 @@ export const iconMap = {
   'ncSmartphone': NcSmartphoneIcon,
   'ncMoreHorizontal': NcMoreHorizontalIcon,
   'ncSliders': NcSlidersIcon,
+  'sliders': NcSlidersIcon,
   'ncArrowUpLeft': NcArrowUpLeftIcon,
   'ncChevronDown': NcChevronDownIcon,
   'ncHexagon': NcHexagonIcon,
@@ -1655,6 +1657,7 @@ export const iconMap = {
   'ncLogoChromeColored': h(NcLogoChromeColored, { stroke: 'transparent' }),
   'ncLogoClaudeAiColored': h(NcLogoClaudeAiColored, { stroke: 'transparent' }),
   'ncLogoClaudeAi': h(NcLogoClaudeAi, { stroke: 'transparent' }),
+  'ncLogoDiscord': h(NcLogoDiscord, { stroke: 'transparent' }),
   'ncLogoDiscordColored': h(NcLogoDiscordColored, { stroke: 'transparent' }),
   'ncLogoDropboxColored': h(NcLogoDropboxColored, { stroke: 'transparent' }),
   'ncLogoDropbox': h(NcLogoDropbox, { stroke: 'transparent' }),
@@ -1805,6 +1808,7 @@ export const iconMap = {
   'ncSun': NcSun,
   'ncGraduationCap': NcGraduationCap,
   'ncSupportAgent': h(NcSupportAgent, { stroke: 'transparent' }),
+  'ncBuilding': NcBuilding,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4583,6 +4587,10 @@ export const searchableMap = {
   ncSupportAgent: {
     icon: h(NcSupportAgent, { stroke: 'transparent' }),
     keywords: ['support', 'agent', 'help', 'customer', 'service'],
+  },
+  ncBuilding: {
+    icon: NcBuilding,
+    keywords: ['building', 'office', 'building-outline'],
   },
 }
 

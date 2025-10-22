@@ -9002,9 +9002,25 @@
             "maxLength": 50
           },
           "icon": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Team icon (emoji or icon identifier)",
             "example": "🎨"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["EMOJI", "ICON"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
           },
           "badge_color": {
             "type": "string",
@@ -9016,6 +9032,11 @@
             "type": "integer",
             "description": "Number of team members",
             "example": 10
+          },
+          "managers_count": {
+            "type": "integer",
+            "description": "Number of team managers",
+            "example": 2
           },
           "fk_org_id": {
             "type": "string",
@@ -9054,9 +9075,25 @@
             "minLength": 1
           },
           "icon": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Team icon (emoji or icon identifier)",
             "example": "🎨"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["EMOJI", "ICON"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
           },
           "badge_color": {
             "type": "string",
@@ -9088,9 +9125,25 @@
             "minLength": 1
           },
           "icon": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Updated team icon (emoji or icon identifier)",
             "example": "🛠️"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["EMOJI", "ICON"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
           },
           "badge_color": {
             "type": "string",
@@ -9110,9 +9163,25 @@
             "example": "Design Team"
           },
           "icon": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Team icon (emoji or icon identifier)",
             "example": "🎨"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["EMOJI", "ICON"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
           },
           "badge_color": {
             "type": "string",

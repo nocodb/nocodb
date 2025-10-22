@@ -16,6 +16,7 @@ import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { TeamUserRoles } from 'nocodb-sdk';
 
 @Injectable()
 export class TeamsV3Service {
@@ -26,6 +27,17 @@ export class TeamsV3Service {
     teamId: string,
   ): Promise<number> {
     return await TeamUser.countByTeam(context, teamId);
+  }
+
+  async getTeamManagersCount(
+    context: NcContext,
+    teamId: string,
+  ): Promise<number> {
+    return await TeamUser.countByTeamAndRole(
+      context,
+      teamId,
+      TeamUserRoles.MANAGER,
+    );
   }
 
   async getUserById(context: NcContext, userId: string) {
@@ -50,10 +62,15 @@ export class TeamsV3Service {
     // Get teams with member counts using optimized query
     const teamsWithCounts = await Promise.all(
       teams.map(async (team) => {
-        const membersCount = await TeamUser.countByTeam(context, team.id);
+        const [membersCount, menagersCount] = await Promise.all([
+          this.getTeamMembersCount(context, team.id),
+          this.getTeamManagersCount(context, team.id),
+        ]);
+
         return {
           ...team,
           members_count: membersCount,
+          managers_count: menagersCount,
         };
       }),
     );
@@ -65,8 +82,10 @@ export class TeamsV3Service {
         id: team.id,
         title: team.title,
         icon: meta.icon || undefined,
+        icon_type: meta.icon_type || undefined,
         badge_color: meta.badge_color || undefined,
         members_count: team.members_count,
+        managers_count: team.managers_count,
         created_at: team.created_at,
         updated_at: team.updated_at,
       };
@@ -118,8 +137,9 @@ export class TeamsV3Service {
       typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
     const teamDetail: TeamDetailV3Type = {
       title: team.title,
-      icon: meta.icon || undefined,
-      badge_color: meta.badge_color || undefined,
+      icon: meta.icon || null,
+      icon_type: meta.icon_type || null,
+      badge_color: meta.badge_color || null,
       members,
     };
 
@@ -144,9 +164,11 @@ export class TeamsV3Service {
     const existingTeams = await Team.list(context, {
       fk_workspace_id: param.workspaceOrOrgId,
     });
+
     const duplicateTeam = existingTeams.find(
-      (team) => team.title === param.team.title,
+      (team) => team.title?.trim() === param.team.title?.trim(),
     );
+
     if (duplicateTeam) {
       NcError.get(context).invalidRequestBody(
         `Team with title '${param.team.title}' already exists`,
@@ -162,6 +184,7 @@ export class TeamsV3Service {
       title: param.team.title,
       meta: {
         icon: param.team.icon,
+        icon_type: param.team.icon_type,
         badge_color: param.team.badge_color,
       },
       fk_workspace_id: param.workspaceOrOrgId,
@@ -201,7 +224,10 @@ export class TeamsV3Service {
     }
 
     // Get member count for the created team
-    const teamUsers = await this.getTeamMembersCount(context, team.id);
+    const [teamUsers, teamManagersCount] = await Promise.all([
+      this.getTeamMembersCount(context, team.id),
+      this.getTeamManagersCount(context, team.id),
+    ]);
 
     // Transform to v3 response format
     const meta = parseMetaProp(team);
@@ -209,9 +235,11 @@ export class TeamsV3Service {
     return {
       id: team.id,
       title: team.title,
-      icon: meta.icon || undefined,
-      badge_color: meta.badge_color || undefined,
+      icon: meta.icon || null,
+      icon_type: meta.icon_type || null,
+      badge_color: meta.badge_color || null,
       members_count: teamUsers,
+      managers_count: teamManagersCount,
       created_at: team.created_at,
       updated_at: team.updated_at,
     };
@@ -262,6 +290,9 @@ export class TeamsV3Service {
       updateData.meta = {
         ...existingMeta,
         ...(param.team.icon !== undefined && { icon: param.team.icon }),
+        ...(param.team.icon_type !== undefined && {
+          icon_type: param.team.icon_type,
+        }),
         ...(param.team.badge_color !== undefined && {
           badge_color: param.team.badge_color,
         }),
@@ -271,7 +302,10 @@ export class TeamsV3Service {
     const updatedTeam = await Team.update(context, param.teamId, updateData);
 
     // Get member count for the updated team
-    const teamUsers = await this.getTeamMembersCount(context, updatedTeam.id);
+    const [teamUsers, teamManagersCount] = await Promise.all([
+      this.getTeamMembersCount(context, updatedTeam.id),
+      this.getTeamManagersCount(context, updatedTeam.id),
+    ]);
 
     // Transform to v3 response format
     const meta = parseMetaProp(updatedTeam);
@@ -279,9 +313,11 @@ export class TeamsV3Service {
     return {
       id: updatedTeam.id,
       title: updatedTeam.title,
-      icon: meta.icon || undefined,
-      badge_color: meta.badge_color || undefined,
+      icon: meta.icon || null,
+      icon_type: meta.icon_type || null,
+      badge_color: meta.badge_color || null,
       members_count: teamUsers,
+      managers_count: teamManagersCount,
       created_at: updatedTeam.created_at,
       updated_at: updatedTeam.updated_at,
     };
@@ -458,12 +494,12 @@ export class TeamsV3Service {
 
       // If removing the last manager, prevent it
       if (teamUser.roles === 'manager') {
-        const managerCount = await TeamUser.countByTeamAndRole(
+        const managersCount = await this.getTeamManagersCount(
           context,
           param.teamId,
-          'manager',
         );
-        if (managerCount === 1) {
+
+        if (managersCount === 1) {
           NcError.get(context).invalidRequestBody(
             'Cannot remove the last manager',
           );

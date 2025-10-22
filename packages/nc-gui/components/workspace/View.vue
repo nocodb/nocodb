@@ -19,7 +19,7 @@ const { appInfo, isMobileMode } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
+const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
 
 const orgStore = useOrg()
@@ -58,7 +58,7 @@ const tab = computed({
       })
     }
 
-    if (tab === 'collaborators' && isUIAllowed('workspaceCollaborators')) {
+    if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({} as any, props.workspaceId)
     }
 
@@ -194,7 +194,18 @@ onBeforeUnmount(() => {
             </div>
           </template>
 
-          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
+          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="tab === 'collaborators'" />
+        </a-tab-pane>
+
+        <a-tab-pane v-if="isEeUI && isTeamsEnabled" key="teams" class="w-full h-full">
+          <template #tab>
+            <div class="tab-title">
+              <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
+              {{ $t('general.teams') }}
+            </div>
+          </template>
+
+          <WorkspaceTeams :workspace-id="currentWorkspace.id" :is-active="tab === 'teams'" />
         </a-tab-pane>
       </template>
       <template v-if="!isMobileMode">

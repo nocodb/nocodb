@@ -1,6 +1,7 @@
 import type { DefaultOptionType } from 'ant-design-vue/lib/select'
 import type { SortableOptions } from 'sortablejs'
 import type { AutoScrollOptions } from 'sortablejs/plugins'
+import type { UserType } from 'nocodb-sdk'
 
 export const modalSizes = {
   xs: {
@@ -168,6 +169,25 @@ export const extractNameFromEmail = (email?: string) => {
   if (!email) return ''
 
   return email?.slice(0, email.indexOf('@')) ?? ''
+}
+
+/**
+ * Extracts the display name or email from a user object.
+ *
+ * @param user - The user object to extract the display name or email from.
+ * @returns The display name or email extracted from the user object.
+ *
+ * @example
+ * ```typescript
+ * const name = extractUserDisplayNameOrEmail({ display_name: 'John Doe', email: 'john.doe@example.com' });
+ * console.log(name); // Output: 'John Doe'
+ */
+export const extractUserDisplayNameOrEmail = (user?: UserType | Record<string, string>) => {
+  if (!user) return ''
+
+  if (user?.display_name) return user.display_name.trim()
+
+  return extractNameFromEmail(user.email)
 }
 
 /**

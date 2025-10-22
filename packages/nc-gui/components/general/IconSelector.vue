@@ -11,6 +11,7 @@ interface Props {
   iconType: IconType | string
   imageCropperData: Omit<ImageCropperProps, 'showCropper'>
   tabOrder?: IconType[]
+  hiddenTabs?: IconType[]
   defaultActiveTab?: IconType
   onBeforeTabChange?: (iconsType: IconType) => boolean
 }
@@ -23,6 +24,7 @@ interface TabItemType {
 
 const props = withDefaults(defineProps<Props>(), {
   tabOrder: () => [IconType.ICON, IconType.IMAGE, IconType.EMOJI],
+  hiddenTabs: () => [],
   defaultActiveTab: IconType.ICON,
   onBeforeTabChange: () => true,
 })
@@ -248,7 +250,9 @@ const tabs = computed(() => {
       value: IconType.EMOJI,
       icon: 'ncSmile',
     },
-  ].sort((a, b) => props.tabOrder.indexOf(a.value) - props.tabOrder.indexOf(b.value)) as TabItemType[]
+  ]
+    .filter((tab) => !props.hiddenTabs.includes(tab.value))
+    .sort((a, b) => props.tabOrder.indexOf(a.value) - props.tabOrder.indexOf(b.value)) as TabItemType[]
 })
 
 watch(showImageCropper, (newValue) => {

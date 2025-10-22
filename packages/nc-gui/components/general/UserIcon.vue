@@ -2,7 +2,7 @@
 import { IconType, type UserType } from 'nocodb-sdk'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
-import { isColorDark, stringToColor } from '#imports'
+import { type IconMapKey, isColorDark, stringToColor } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -13,6 +13,7 @@ const props = withDefaults(
     showPlaceholderIcon?: boolean
     isDeleted?: boolean
     initialsLength?: 1 | 2
+    placeholderIcon?: IconMapKey
   }>(),
   {
     user: () => ({}),
@@ -60,6 +61,13 @@ const userIcon = computed<{
 
   const icon = parseProp(user.value.meta).icon || ''
   const iconType = parseProp(user.value.meta).iconType || ''
+
+  if ((!icon || !iconType) && props.placeholderIcon) {
+    return {
+      icon: props.placeholderIcon,
+      iconType: IconType.ICON,
+    }
+  }
 
   return {
     icon: iconType === IconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : (icon as string),

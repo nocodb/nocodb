@@ -442,7 +442,7 @@ onMounted(() => {
                     placement="left"
                   >
                     <NcMenuItem
-                      :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
+                      :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
                       danger
                       @click="handleLeaveTeam(record as TeamMember)"
                     >

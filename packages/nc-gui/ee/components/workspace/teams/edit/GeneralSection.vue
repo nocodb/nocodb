@@ -168,8 +168,7 @@ onMounted(() => {
                   }"
                 >
                   <GeneralTeamIcon
-                    :icon="formState.icon"
-                    :icon-type="formState.icon_type"
+                    :team="formState"
                     class="!w-full !h-full !min-w-full select-none cursor-pointer !rounded-none"
                     :class="readOnly ? 'cursor-not-allowed' : 'cursor-pointer'"
                   />

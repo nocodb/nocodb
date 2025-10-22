@@ -80,7 +80,7 @@ const selectedTeams = computed(() => {
     >
       <div class="flex items-center gap-2">
         <div v-for="selectedTeam of selectedTeams" :key="selectedTeam.value" class="flex items-center gap-2">
-          <GeneralTeamIcon :icon="selectedTeam?.icon" :icon-type="selectedTeam?.icon_type" />
+          <GeneralTeamIcon :team="selectedTeam" />
 
           {{ selectedTeam?.label }}
         </div>
@@ -109,7 +109,7 @@ const selectedTeams = computed(() => {
             <div class="w-full flex flex-col" :class="`nc-team-select-${option.value}`">
               <div class="w-full flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <GeneralTeamIcon :icon="option.icon" :icon-type="option.icon_type" />
+                  <GeneralTeamIcon :team="option" />
 
                   <span class="text-captionDropdownDefault">
                     {{ option.label }}

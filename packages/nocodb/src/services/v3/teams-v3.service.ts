@@ -137,9 +137,9 @@ export class TeamsV3Service {
       typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
     const teamDetail: TeamDetailV3Type = {
       title: team.title,
-      icon: meta.icon || undefined,
-      icon_type: meta.icon_type || undefined,
-      badge_color: meta.badge_color || undefined,
+      icon: meta.icon || null,
+      icon_type: meta.icon_type || null,
+      badge_color: meta.badge_color || null,
       members,
     };
 
@@ -235,9 +235,9 @@ export class TeamsV3Service {
     return {
       id: team.id,
       title: team.title,
-      icon: meta.icon || undefined,
-      icon_type: meta.icon_type || undefined,
-      badge_color: meta.badge_color || undefined,
+      icon: meta.icon || null,
+      icon_type: meta.icon_type || null,
+      badge_color: meta.badge_color || null,
       members_count: teamUsers,
       managers_count: teamManagersCount,
       created_at: team.created_at,
@@ -313,9 +313,9 @@ export class TeamsV3Service {
     return {
       id: updatedTeam.id,
       title: updatedTeam.title,
-      icon: meta.icon || undefined,
-      icon_type: meta.icon_type || undefined,
-      badge_color: meta.badge_color || undefined,
+      icon: meta.icon || null,
+      icon_type: meta.icon_type || null,
+      badge_color: meta.badge_color || null,
       members_count: teamUsers,
       managers_count: teamManagersCount,
       created_at: updatedTeam.created_at,

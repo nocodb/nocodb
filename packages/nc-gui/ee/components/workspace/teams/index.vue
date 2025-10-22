@@ -343,13 +343,11 @@ onMounted(async () => {
         </template>
 
         <template #bodyCell="{ column, record }">
-          <div v-if="column.key === 'teamName'" class="text-bodyBold text-nc-content-gray">
-            {{ record.title }}
-          </div>
+          <GeneralTeamInfo v-if="column.key === 'teamName'" :team="record" />
 
           <div v-if="column.key === 'badge'">
             <NcBadge class="uppercase">
-              <GeneralTeamIcon v-if="record.icon" :icon="record.icon" :icon-type="record.icon_type" icon-bg-color="transparent" />
+              <GeneralTeamIcon v-if="record.icon" :team="record" icon-bg-color="transparent" />
               {{ record.title?.slice(0, 3) }}
             </NcBadge>
           </div>

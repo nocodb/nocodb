@@ -26,13 +26,13 @@ export class BaseTeamsV3Service {
     // Get all team assignments for this base
     const assignments = await PrincipalAssignment.listByResource(
       context,
-      ResourceType.PROJECT,
+      ResourceType.BASE,
       param.baseId,
     );
 
     // Filter only team assignments
     const teamAssignments = assignments.filter(
-      (assignment) => assignment.resource_type === ResourceType.PROJECT,
+      (assignment) => assignment.resource_type === ResourceType.BASE,
     );
 
     // Get team principals and their details
@@ -113,7 +113,7 @@ export class BaseTeamsV3Service {
     // Check if team is already assigned to base
     const existingAssignment = await PrincipalAssignment.get(
       context,
-      ResourceType.PROJECT,
+      ResourceType.BASE,
       param.baseId,
       teamPrincipal.id,
     );
@@ -125,7 +125,7 @@ export class BaseTeamsV3Service {
 
     // Create the assignment
     const assignment = await PrincipalAssignment.insert(context, {
-      resource_type: ResourceType.PROJECT,
+      resource_type: ResourceType.BASE,
       resource_id: param.baseId,
       fk_principal_id: teamPrincipal.id,
       roles: param.team.base_role,
@@ -180,7 +180,7 @@ export class BaseTeamsV3Service {
     // Check if team is assigned to base
     const existingAssignment = await PrincipalAssignment.get(
       context,
-      ResourceType.PROJECT,
+      ResourceType.BASE,
       param.baseId,
       teamPrincipal.id,
     );
@@ -193,7 +193,7 @@ export class BaseTeamsV3Service {
     // Update the assignment
     const updatedAssignment = await PrincipalAssignment.update(
       context,
-      ResourceType.PROJECT,
+      ResourceType.BASE,
       param.baseId,
       teamPrincipal.id,
       { roles: param.team.base_role },
@@ -242,7 +242,7 @@ export class BaseTeamsV3Service {
     // Check if team is assigned to base
     const existingAssignment = await PrincipalAssignment.get(
       context,
-      ResourceType.PROJECT,
+      ResourceType.BASE,
       param.baseId,
       teamPrincipal.id,
     );
@@ -255,7 +255,7 @@ export class BaseTeamsV3Service {
     // Delete the assignment
     await PrincipalAssignment.delete(
       context,
-      ResourceType.PROJECT,
+      ResourceType.BASE,
       param.baseId,
       teamPrincipal.id,
     );
@@ -280,7 +280,7 @@ export class BaseTeamsV3Service {
     // Check if team is assigned to base
     const assignment = await PrincipalAssignment.get(
       context,
-      ResourceType.PROJECT,
+      ResourceType.BASE,
       param.baseId,
       teamPrincipal.id,
     );

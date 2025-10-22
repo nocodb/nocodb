@@ -52,6 +52,10 @@ import { TeamsV3Service } from '~/ee/services/v3/teams-v3.service';
 import { WorkspaceTeamsV3Controller } from '~/ee/controllers/v3/workspace-teams-v3.controller';
 import { WorkspaceTeamsV3Service } from '~/ee/services/v3/workspace-teams-v3.service';
 
+/* Base Teams V3 */
+import { BaseTeamsV3Controller } from '~/ee/controllers/v3/base-teams-v3.controller';
+import { BaseTeamsV3Service } from '~/ee/services/v3/base-teams-v3.service';
+
 /* Snapshot */
 import { SnapshotController } from '~/controllers/snapshot.controller';
 import { SnapshotService } from '~/services/snapshot.service';
@@ -101,6 +105,9 @@ export const nocoModuleEeMetadata = {
     /* Workspace Teams V3 */
     WorkspaceTeamsV3Service,
 
+    /* Base Teams V3 */
+    BaseTeamsV3Service,
+
     /* Snapshot */
     SnapshotService,
 
@@ -142,6 +149,9 @@ export const nocoModuleEeMetadata = {
     /* Workspace Teams V3 */
     WorkspaceTeamsV3Controller,
 
+    /* Base Teams V3 */
+    BaseTeamsV3Controller,
+
     /* Snapshot */
     SnapshotController,
 
@@ -171,6 +181,9 @@ export const nocoModuleEeMetadata = {
 
     /* Workspace Teams V3 */
     WorkspaceTeamsV3Service,
+
+    /* Base Teams V3 */
+    BaseTeamsV3Service,
 
     /* Orgs */
     OrgsService,

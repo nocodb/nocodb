@@ -616,9 +616,7 @@ const rolePermissions:
       extensionUpdate: true,
 
       // Base Teams
-      baseTeamList: true,
       baseTeamCreate: true,
-      baseTeamGet: true,
       baseTeamUpdate: true,
       baseTeamDelete: true,
       baseTeamUserAdd: true,

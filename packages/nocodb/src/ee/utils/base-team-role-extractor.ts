@@ -30,7 +30,7 @@ export async function extractUserBaseTeamRoles(
     // Get all team assignments for this base
     const baseTeamAssignments = await PrincipalAssignment.listByResource(
       context,
-      ResourceType.PROJECT,
+      ResourceType.BASE,
       baseId,
     );
 

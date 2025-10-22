@@ -22,7 +22,6 @@ const props = defineProps<{
   workspaceId?: string
   users?: Array<Pick<UserType, 'email'>>
   teams?: Array<TeamV3V3Type>
-  selectedTeamIds?: string
 }>()
 const emit = defineEmits(['update:modelValue'])
 
@@ -31,6 +30,8 @@ const basesStore = useBases()
 const { appInfo } = useGlobal()
 
 const workspaceStore = useWorkspace()
+
+const selectedTeamIds = ref([])
 
 const { baseRoles, workspaceRoles } = useRoles()
 
@@ -385,6 +386,7 @@ const removeEmail = (index: number) => {
 }
 
 const onTeamChange = async (_teamIds: RawValueType) => {
+  selectedTeamIds.value = _teamIds ?? []
   // Todo: API call to add team in base/workspace
 }
 </script>

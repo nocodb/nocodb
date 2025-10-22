@@ -13,6 +13,7 @@ export interface TeamIconProps {
   isDeleted?: boolean
   initialsLength?: 1 | 2
   placeholderIcon?: IconMapKey
+  wrapperClass?: string
 }
 
 const props = withDefaults(defineProps<TeamIconProps>(), {
@@ -24,6 +25,7 @@ const props = withDefaults(defineProps<TeamIconProps>(), {
   isDeleted: false,
   initialsLength: 2,
   placeholderIcon: 'ncUsers',
+  wrapperClass: '',
 })
 
 const { size } = toRefs(props)
@@ -121,14 +123,17 @@ const teamInitials = computed(() => {
 <template>
   <div
     class="nc-team-avatar"
-    :class="{
-      'h-full min-h-5 aspect-square': size === 'auto',
-      'w-4 h-4': size === 'small',
-      'w-6 h-6': size === 'medium',
-      'w-8 h-8': size === 'base',
-      'w-20 h-20': size === 'large',
-      'w-26 h-26': size === 'xlarge',
-    }"
+    :class="[
+      {
+        'h-full min-h-5 aspect-square': size === 'auto',
+        'w-4 h-4': size === 'small',
+        'w-6 h-6': size === 'medium',
+        'w-8 h-8': size === 'base',
+        'w-20 h-20': size === 'large',
+        'w-26 h-26': size === 'xlarge',
+      },
+      wrapperClass,
+    ]"
     :style="{
       backgroundColor: backgroundColor,
     }"
@@ -201,6 +206,6 @@ const teamInitials = computed(() => {
 
 <style lang="scss" scoped>
 .nc-team-avatar {
-  @apply flex-none rounded-full text-xs flex items-center justify-center uppercase overflow-hidden;
+  @apply flex-none rounded-lg text-xs flex items-center justify-center uppercase overflow-hidden;
 }
 </style>

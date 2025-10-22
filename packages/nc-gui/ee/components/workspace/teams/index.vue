@@ -343,7 +343,11 @@ onMounted(async () => {
         </template>
 
         <template #bodyCell="{ column, record }">
-          <GeneralTeamInfo v-if="column.key === 'teamName'" :team="record" />
+          <GeneralTeamInfo
+            v-if="column.key === 'teamName'"
+            :team="record"
+            :icon-props="{ size: 'base', wrapperClass: '!rounded-lg' }"
+          />
 
           <div v-if="column.key === 'badge'">
             <NcBadge class="uppercase">

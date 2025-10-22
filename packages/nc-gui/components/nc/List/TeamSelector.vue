@@ -7,16 +7,12 @@ const props = withDefaults(
     value: RawValueType
     teams?: TeamV3V3Type[]
     onChange: (team: RawValueType) => void | Promise<any>
-    border?: boolean
-    description?: boolean
-    inherit?: string
     size?: 'sm' | 'md' | 'lg'
     placement?: 'bottomRight' | 'bottomLeft'
     isMultiSelect?: boolean
     defaultSlotWrapperClass?: string
   }>(),
   {
-    border: true,
     description: true,
     size: 'lg',
     placement: 'bottomLeft',
@@ -26,7 +22,7 @@ const props = withDefaults(
   },
 )
 
-const { value, placement, description } = toRefs(props)
+const { value, placement } = toRefs(props)
 
 const workspaceStore = useWorkspace()
 
@@ -38,12 +34,21 @@ const isDropdownOpen = ref(false)
 
 const newTeam = ref<null | string>(null)
 
+function compareValue(_value: string | number, oldValue = value.value): boolean {
+  if (props.isMultiSelect) {
+    return ((oldValue as MultiSelectRawValueType) || []).includes(_value)
+  }
+
+  return oldValue === _value
+}
+
 async function onChangeTeam(val: SelectValue) {
-  if (val === value.value) return
+  if (props.isMultiSelect && deepCompare(value.value, val)) return
+  if (!props.isMultiSelect && val === value.value) return
 
   newTeam.value = val as string
 
-  await props.onChange?.(val as string)
+  await props.onChange?.(props.isMultiSelect ? (val as MultiSelectRawValueType) : (val as string))
 
   newTeam.value = null
 }
@@ -51,6 +56,7 @@ async function onChangeTeam(val: SelectValue) {
 const teamSelectorOptions = computed<NcListItemType[]>(() => {
   return (props.teams || teams.value || []).map(
     (team): NcListItemType => ({
+      ...team,
       value: team.id,
       label: team.title,
       description: `${team.members_count || 0} ${t('labels.members')}`,
@@ -75,20 +81,33 @@ const selectedTeams = computed(() => {
   <div class="nc-roles-selector relative flex items-center w-full">
     <NcListDropdown
       v-model:visible="isDropdownOpen"
-      :default-slot-wrapper-class="`flex-1 ${size === 'lg' ? '!h-10' : ''} ${defaultSlotWrapperClass}`"
+      :default-slot-wrapper-class="`w-full ${size === 'lg' ? '!h-10' : ''} ${defaultSlotWrapperClass}`"
       :placement="placement"
     >
-      <div class="flex items-center gap-2">
-        <div v-for="selectedTeam of selectedTeams" :key="selectedTeam.value" class="flex items-center gap-2">
-          <GeneralTeamIcon :team="selectedTeam" />
+      <div class="w-[calc(100%_-_24px)] flex items-center gap-2">
+        <NcRenderVisibleItems v-if="selectedTeams.length" :items="selectedTeams" :icon-width="20" :padding-x="16" class="w-full">
+          <template #default="{ visibleItems }">
+            <div
+              v-for="selectedTeam of visibleItems"
+              :key="selectedTeam.value"
+              class="flex items-center gap-2 border-1 border-nc-border-gray-medium rounded-xl pr-2 truncate"
+            >
+              <GeneralTeamIcon :team="selectedTeam" class="!rounded-full" />
 
-          {{ selectedTeam?.label }}
-        </div>
+              {{ selectedTeam?.label }}
+            </div>
+          </template>
+        </NcRenderVisibleItems>
 
         <span v-if="!selectedTeams.length" class="text-nc-content-gray-muted">
           -{{ isMultiSelect ? t('labels.selectTeams') : t('labels.selectTeam') }}-
         </span>
       </div>
+      <GeneralIcon
+        icon="chevronDown"
+        class="flex-none h-4 w-4 text-nc-content-gray-muted transition-transform"
+        :class="{ 'transform rotate-180': isDropdownOpen }"
+      />
 
       <template #overlay="{ onEsc }">
         <NcList
@@ -106,21 +125,10 @@ const selectedTeams = computed(() => {
           @escape="onEsc"
         >
           <template #listItem="{ option }">
-            <div class="w-full flex flex-col" :class="`nc-team-select-${option.value}`">
-              <div class="w-full flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <GeneralTeamIcon :team="option" />
-
-                  <span class="text-captionDropdownDefault">
-                    {{ option.label }}
-                  </span>
-                </div>
-                <GeneralLoader v-if="option.value === newTeam" size="medium" />
-                <GeneralIcon v-else-if="!newTeam && option.value === value" icon="check" class="text-primary h-4 w-4" />
-              </div>
-              <div v-if="description" class="text-bodySm !font-light text-nc-content-gray-muted ml-6">
-                {{ option.description }}
-              </div>
+            <div class="w-full flex gap-2" :class="`nc-team-select-${option.value}`">
+              <GeneralTeamInfo :team="option" class="flex-1 max-w-[100%_-_32px]" />
+              <GeneralLoader v-if="compareValue(option.value, newTeam)" size="medium" />
+              <GeneralIcon v-else-if="!newTeam && compareValue(option.value)" icon="check" class="text-primary h-4 w-4" />
             </div>
           </template>
         </NcList>

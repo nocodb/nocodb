@@ -8,11 +8,7 @@ export default class XcMigrationSourcev0 {
   // arguments to getMigrationName and getMigration
   public getMigrations(): Promise<any> {
     // In this run we are just returning migration names
-    return Promise.resolve([
-      'nc_001_init',
-      // TODO: removing this migration in this iteration, enable later once the migration finalised
-      // 'nc_002_teams',
-    ]);
+    return Promise.resolve(['nc_001_init', 'nc_002_teams']);
   }
 
   public getMigrationName(migration): string {

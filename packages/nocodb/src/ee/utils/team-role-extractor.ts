@@ -1,6 +1,6 @@
 import type { NcContext } from '~/interface/config';
-import { Principal } from '~/ee/models/Principal';
-import { PrincipalAssignment } from '~/ee/models/PrincipalAssignment';
+import { Principal } from '~/models';
+import { PrincipalAssignment } from '~/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 
 /**

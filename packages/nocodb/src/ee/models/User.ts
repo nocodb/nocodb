@@ -15,8 +15,8 @@ import { Base, BaseUser, OrgUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
-import { extractUserTeamRoles } from '~/ee/utils/team-role-extractor';
-import { extractUserBaseTeamRoles } from '~/ee/utils/base-team-role-extractor';
+import { extractUserTeamRoles } from '~/utils/team-role-extractor';
+import { extractUserBaseTeamRoles } from '~/utils/base-team-role-extractor';
 
 export default class User extends UserCE implements UserType {
   user_name?: string;
@@ -566,18 +566,14 @@ export default class User extends UserCE implements UserType {
       }
     }
 
-    // Merge workspace roles with team roles
-    // Team roles take precedence over direct workspace roles
+    // If workspace role is not defined then extract from team role
     let finalWorkspaceRoles = workspaceRoles;
-    if (teamRoles) {
-      finalWorkspaceRoles = {
-        ...workspaceRoles,
-        ...teamRoles,
-      };
+    if (teamRoles && Object.keys(workspaceRoles || {}).length === 0) {
+      finalWorkspaceRoles = teamRoles;
     }
 
-    // Apply role priority hierarchy:
-    // 1. Base role (highest priority)
+    // Apply role priority hierarchy for base roles:
+    // 1. Direct base role (highest priority)
     // 2. Role inherited from base-team
     // 3. Role inherited from workspace role
     // 4. Role inherited from workspace team role (lowest priority)
@@ -585,28 +581,21 @@ export default class User extends UserCE implements UserType {
     let finalBaseRoles = baseRoles;
 
     if (args.baseId) {
-      // If no direct base roles, start with inherited roles
+      // If no direct base roles, use sequential fallback
       if (!finalBaseRoles) {
-        // Start with workspace team roles (lowest priority)
-        finalBaseRoles =
-          mapWorkspaceRolesObjToProjectRolesObj(finalWorkspaceRoles);
-
-        // Override with direct workspace roles (higher priority)
-        if (workspaceRoles) {
-          const workspaceBaseRoles =
-            mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles);
-          finalBaseRoles = {
-            ...finalBaseRoles,
-            ...workspaceBaseRoles,
-          };
-        }
-
-        // Override with base-team roles (higher priority)
+        // 1. Try base-team roles first
         if (baseTeamRoles) {
-          finalBaseRoles = {
-            ...finalBaseRoles,
-            ...baseTeamRoles,
-          };
+          finalBaseRoles = baseTeamRoles;
+        }
+        // 2. Fallback to direct workspace roles
+        else if (workspaceRoles) {
+          finalBaseRoles =
+            mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles);
+        }
+        // 3. Fallback to workspace team roles
+        else if (finalWorkspaceRoles) {
+          finalBaseRoles =
+            mapWorkspaceRolesObjToProjectRolesObj(finalWorkspaceRoles);
         }
       }
       // If direct base roles exist, they take highest priority (no override needed)

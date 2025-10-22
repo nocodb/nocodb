@@ -168,9 +168,9 @@ onMounted(() => {
         </div>
       </div>
     </template>
-    <div v-if="showQrCode" class="w-full">
+    <div v-if="showQrCode" class="w-full px-4">
       <img :src="qrCodeLarge" :alt="$t('title.qrCode')" class="h-[156px] mx-auto mt-8 mb-4" />
-      <div class="bg-nc-bg-gray-light px-3 py-2 mx-4 rounded-lg">
+      <div class="bg-nc-bg-gray-light px-3 py-2 rounded-lg">
         <NcTooltip show-on-truncate-only class="truncate">
           <template #title>
             {{ qrValue }}

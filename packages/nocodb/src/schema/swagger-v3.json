@@ -9418,6 +9418,74 @@
         "required": [
           "team_id"
         ]
+      },
+      "BaseTeamCreate": {
+        "type": "object",
+        "description": "Create base team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to add to base",
+            "example": "team123"
+          },
+          "base_role": {
+            "type": "string",
+            "description": "Base role to assign to the team (creator or lower only)",
+            "enum": [
+              "project-level-creator",
+              "project-level-editor",
+              "project-level-viewer",
+              "project-level-commenter",
+              "project-level-no-access"
+            ],
+            "example": "project-level-editor"
+          }
+        },
+        "required": [
+          "team_id",
+          "base_role"
+        ]
+      },
+      "BaseTeamUpdate": {
+        "type": "object",
+        "description": "Update base team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to update in base",
+            "example": "team123"
+          },
+          "base_role": {
+            "type": "string",
+            "description": "New base role for the team (creator or lower only)",
+            "enum": [
+              "project-level-creator",
+              "project-level-editor",
+              "project-level-viewer",
+              "project-level-commenter",
+              "project-level-no-access"
+            ],
+            "example": "project-level-viewer"
+          }
+        },
+        "required": [
+          "team_id",
+          "base_role"
+        ]
+      },
+      "BaseTeamDelete": {
+        "type": "object",
+        "description": "Delete base team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to remove from base",
+            "example": "team123"
+          }
+        },
+        "required": [
+          "team_id"
+        ]
       }
     },
     "responses": {

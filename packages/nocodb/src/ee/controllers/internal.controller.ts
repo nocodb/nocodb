@@ -44,6 +44,7 @@ import { UsersService } from '~/services/users/users.service';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
+import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -70,6 +71,7 @@ export class InternalController extends InternalControllerCE {
     private readonly teamsV3Service: TeamsV3Service,
     private readonly usersService: UsersService,
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
+    private readonly baseTeamsV3Service: BaseTeamsV3Service,
   ) {
     super(aclMiddleware, internalApiModules);
   }
@@ -181,6 +183,15 @@ export class InternalController extends InternalControllerCE {
       case 'workspaceTeamGet':
         return await this.workspaceTeamsV3Service.teamDetail(context, {
           workspaceId,
+          teamId: req.query.teamId as string,
+        });
+      case 'baseTeamList':
+        return await this.baseTeamsV3Service.teamList(context, {
+          baseId,
+        });
+      case 'baseTeamGet':
+        return await this.baseTeamsV3Service.teamDetail(context, {
+          baseId,
           teamId: req.query.teamId as string,
         });
       case 'getUserProfile':
@@ -464,6 +475,24 @@ export class InternalController extends InternalControllerCE {
       case 'workspaceTeamRemove':
         return await this.workspaceTeamsV3Service.teamRemove(context, {
           workspaceId,
+          team: payload,
+          req,
+        });
+      case 'baseTeamAdd':
+        return await this.baseTeamsV3Service.teamAdd(context, {
+          baseId,
+          team: payload,
+          req,
+        });
+      case 'baseTeamUpdate':
+        return await this.baseTeamsV3Service.teamUpdate(context, {
+          baseId,
+          team: payload,
+          req,
+        });
+      case 'baseTeamRemove':
+        return await this.baseTeamsV3Service.teamRemove(context, {
+          baseId,
           team: payload,
           req,
         });

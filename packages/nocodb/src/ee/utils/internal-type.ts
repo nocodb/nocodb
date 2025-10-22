@@ -20,6 +20,16 @@ import type {
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 
 export { INTERNAL_API_MODULE_PROVIDER_KEY } from 'src/utils/internal-type';
+import type {
+  BaseTeamDetailV3Type,
+  BaseTeamListV3Type,
+  BaseTeamV3ResponseType,
+} from '~/ee/services/v3/base-teams-v3.types';
+import type {
+  WorkspaceTeamDetailV3Type,
+  WorkspaceTeamListV3Type,
+  WorkspaceTeamV3ResponseType,
+} from '~/ee/services/v3/workspace-teams-v3.types';
 
 export type InternalGETResponseType = Promise<
   | void
@@ -38,6 +48,10 @@ export type InternalGETResponseType = Promise<
   | Widget[]
   | { list: TeamV3ResponseType[] }
   | TeamDetailV3Type
+  | BaseTeamListV3Type
+  | BaseTeamDetailV3Type
+  | WorkspaceTeamListV3Type
+  | WorkspaceTeamDetailV3Type
   | {
       data: any;
     }
@@ -85,6 +99,8 @@ export type InternalPOSTResponseType = Promise<
   | { msg: string }
   | TeamV3ResponseType
   | TeamMemberV3ResponseType[]
+  | BaseTeamV3ResponseType
+  | WorkspaceTeamV3ResponseType
   | { msg: string }
 >;
 

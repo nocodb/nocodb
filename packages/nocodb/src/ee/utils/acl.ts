@@ -319,6 +319,16 @@ const permissionScopes = {
     'widgetUpdate',
     'widgetDelete',
     'widgetDataGet',
+
+    // Base Teams
+    'baseTeamList',
+    'baseTeamCreate',
+    'baseTeamGet',
+    'baseTeamUpdate',
+    'baseTeamDelete',
+    'baseTeamUserAdd',
+    'baseTeamUserRemove',
+    'baseTeamUserUpdate',
   ],
 };
 
@@ -533,6 +543,10 @@ const rolePermissions:
       widgetList: true,
       widgetGet: true,
       widgetDataGet: true,
+
+      // Base Teams
+      baseTeamList: true,
+      baseTeamGet: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -600,6 +614,16 @@ const rolePermissions:
 
       // Extensions
       extensionUpdate: true,
+
+      // Base Teams
+      baseTeamList: true,
+      baseTeamCreate: true,
+      baseTeamGet: true,
+      baseTeamUpdate: true,
+      baseTeamDelete: true,
+      baseTeamUserAdd: true,
+      baseTeamUserRemove: true,
+      baseTeamUserUpdate: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -1025,6 +1049,16 @@ const permissionDescriptions: Record<string, string> = {
   widgetUpdate: 'update widget details',
   widgetDelete: 'delete a widget',
   widgetDataGet: 'view widget data',
+
+  // Base Teams permissions
+  baseTeamList: 'view list of teams in the base',
+  baseTeamCreate: 'create a new team in the base',
+  baseTeamGet: 'view team details',
+  baseTeamUpdate: 'update team details',
+  baseTeamDelete: 'delete a team from the base',
+  baseTeamUserAdd: 'add users to a team',
+  baseTeamUserRemove: 'remove users from a team',
+  baseTeamUserUpdate: 'update user roles in a team',
 
   globalAuditList: 'view list of audits',
 

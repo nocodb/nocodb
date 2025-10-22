@@ -1,11 +1,5 @@
 <script lang="ts" setup>
-import {
-  TeamUserRoles,
-  type TeamDetailV3V3Type,
-  type TeamMemberV3ResponseV3Type,
-  type TeamV3V3Type,
-  type WorkspaceUserType,
-} from 'nocodb-sdk'
+import { type TeamMemberV3ResponseV3Type, TeamUserRoles, type TeamV3V3Type, type WorkspaceUserType } from 'nocodb-sdk'
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
 export type TeamMember = TeamMemberV3ResponseV3Type & WorkspaceUserType
@@ -29,13 +23,11 @@ const { readOnly } = toRefs(props)
 
 const { t } = useI18n()
 
-const { api } = useApi()
-
 const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { collaboratorsMap, teams, activeWorkspaceId, editTeamDetails } = storeToRefs(workspaceStore)
+const { collaboratorsMap, activeWorkspaceId, editTeamDetails } = storeToRefs(workspaceStore)
 
 const teamMembers = computed<TeamMember[]>(() => {
   return (editTeamDetails.value?.members || []).map((member) => ({

@@ -72,5 +72,3 @@ watch(items, () => {
     </slot>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

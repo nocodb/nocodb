@@ -24,8 +24,6 @@ const team = useVModel(props, 'team', emits)
 
 const { teamMembers } = toRefs(props)
 
-const { $api } = useNuxtApp()
-
 const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
@@ -43,12 +41,12 @@ const teamMembersMap = computed(() => {
 })
 
 const ncListData = computed<NcListItemType[]>(() => {
-  return (collaborators.value || []).map((coll, i) => {
+  return (collaborators.value || []).map((coll) => {
     const isDisabled = teamMembersMap.value[coll.fk_user_id!] || teamMembersMap.value[coll.email!]
     return {
       ...coll,
       ncItemDisabled: !!isDisabled,
-      ncItemTooltip: !!isDisabled ? t('objects.teams.alreadyPartOfTeam') : '',
+      ncItemTooltip: isDisabled ? t('objects.teams.alreadyPartOfTeam') : '',
     }
   })
 })

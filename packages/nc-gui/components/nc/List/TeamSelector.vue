@@ -26,7 +26,7 @@ const { value, placement } = toRefs(props)
 
 const workspaceStore = useWorkspace()
 
-const { teams } = storeToRefs(workspaceStore)
+const { teams: teamList } = storeToRefs(workspaceStore)
 
 const { t } = useI18n()
 
@@ -54,7 +54,7 @@ async function onChangeTeam(val: SelectValue) {
 }
 
 const teamSelectorOptions = computed<NcListItemType[]>(() => {
-  return (props.teams || teams.value || []).map(
+  return (props.teams || teamList.value || []).map(
     (team): NcListItemType => ({
       ...team,
       value: team.id,
@@ -118,7 +118,7 @@ const selectedTeams = computed(() => {
           :is-multi-select="isMultiSelect"
           :close-on-select="!isMultiSelect"
           class="!w-auto"
-          :isLocked="!!newTeam"
+          :is-locked="!!newTeam"
           variant="default"
           item-class-name="nc-team-select-dropdown"
           :wrapper-class-name="`!h-auto nc-team-selector-dropdown ${!!newTeam ? '!cursor-wait' : ''}`"

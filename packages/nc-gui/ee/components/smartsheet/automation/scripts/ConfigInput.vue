@@ -103,7 +103,11 @@ onMounted(() => {
         <div class="text-subHeading2 text-nc-content-gray-emphasis" data-testid="nc-script-config-title">
           {{ config?.title || 'Script Settings' }}
         </div>
-        <div v-if="config?.description" class="text-nc-content-gray-subtle2 whitespace-pre-wrap text-body mt-2" data-testid="nc-script-config-description">
+        <div
+          v-if="config?.description"
+          class="text-nc-content-gray-subtle2 whitespace-pre-wrap text-body mt-2"
+          data-testid="nc-script-config-description"
+        >
           {{ config?.description }}
         </div>
       </div>

@@ -226,37 +226,6 @@ watch(isActive, () => {
   searchQuery.value = ''
 })
 
-// const mackEmails = 'test@nocodb.com,test-1@nocodb.com,test-2@nocodb.com,test-3@nocodb.com,user@nocodb.com'
-const mockTeamsList = [
-  {
-    id: '1',
-    title: 'Engineering',
-    created_by: 'ramesh@nocodb.com',
-    owners: ['ramesh@nocodb.com', 'test@nocodb.com'],
-    members: ['ramesh@nocodb.com', 'test@nocodb.com', 'test-1@nocodb.com', 'test-2@nocodb.com', 'test-3@nocodb.com'],
-    created_at: '2021-01-01',
-    updated_at: '2021-01-01',
-    meta: {},
-  },
-  {
-    id: '2',
-    title: 'Sales',
-    created_by: 'user@nocodb.com',
-    owners: ['user@nocodb.com'],
-    members: [
-      'ramesh@nocodb.com',
-      'test@nocodb.com',
-      'test-1@nocodb.com',
-      'test-2@nocodb.com',
-      'test-3@nocodb.com',
-      'user@nocodb.com',
-    ],
-    created_at: '2021-01-01',
-    updated_at: '2021-01-01',
-    meta: {},
-  },
-]
-
 onMounted(async () => {
   loadSorts()
 })

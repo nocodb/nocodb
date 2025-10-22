@@ -2,7 +2,7 @@
 import { IconType, type TeamV3V3Type } from 'nocodb-sdk'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
-import { isColorDark, stringToColor, type IconMapKey } from '#imports'
+import { type IconMapKey, isColorDark, stringToColor } from '#imports'
 
 export interface TeamIconProps {
   size?: 'small' | 'medium' | 'base' | 'large' | 'xlarge' | 'auto'
@@ -135,7 +135,7 @@ const teamInitials = computed(() => {
       wrapperClass,
     ]"
     :style="{
-      backgroundColor: backgroundColor,
+      backgroundColor,
     }"
   >
     <div

@@ -2,7 +2,7 @@
 import { IconType, type UserType } from 'nocodb-sdk'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
-import { isColorDark, stringToColor, type IconMapKey } from '#imports'
+import { type IconMapKey, isColorDark, stringToColor } from '#imports'
 
 const props = withDefaults(
   defineProps<{

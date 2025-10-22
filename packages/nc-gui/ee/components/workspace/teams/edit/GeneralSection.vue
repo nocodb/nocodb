@@ -27,7 +27,7 @@ const formState = reactive<{
   title: string
   description: string
   icon: string
-  iconType: IconType | string
+  icon_type: IconType | string
 
   // Todo: Phase II
   badge_color: string
@@ -35,7 +35,7 @@ const formState = reactive<{
   title: '',
   description: '',
   icon: '',
-  iconType: '',
+  icon_type: '',
   badge_color: undefined,
 })
 
@@ -81,7 +81,7 @@ const updateTeam = async (isIconUpdate = false) => {
       isIconUpdate
         ? {
             icon: formState?.icon,
-            iconType: formState?.iconType,
+            icon_type: formState?.icon_type,
             // badge_color: formState?.badge_color,
           }
         : {
@@ -108,7 +108,7 @@ onMounted(() => {
   formState.description = team.value.description ?? ''
   formState.badge_color = team.value.badge_color ?? undefined
   formState.icon = team.value.icon ?? ''
-  formState.iconType = team.value.iconType ?? ''
+  formState.icon_type = team.value.icon_type ?? ''
 
   if (readOnly.value) return
 
@@ -149,25 +149,29 @@ onMounted(() => {
           <div class="absolute left-0 top-0 z-10">
             <GeneralIconSelector
               v-model:icon="formState.icon"
-              v-model:icon-type="formState.iconType"
+              v-model:icon-type="formState.icon_type"
               :default-active-tab="IconType.ICON"
               :tab-order="[IconType.ICON, IconType.EMOJI]"
               :hidden-tabs="[IconType.IMAGE]"
               :image-cropper-data="{}"
+              :disabled="readOnly"
               @submit="() => updateTeam(true)"
             >
               <template #default="{ isOpen }">
                 <div
-                  class="border-1 w-8 h-8 flex-none rounded-lg overflow-hidden transition-all duration-300 cursor-pointer"
+                  class="border-1 w-8 h-8 flex-none rounded-lg overflow-hidden transition-all duration-300"
                   :class="{
                     'border-transparent !rounded-r-none border-r-nc-border-gray-medium': !isOpen,
                     'border-primary shadow-selected': isOpen,
+                    'cursor-not-allowed': readOnly,
+                    'cursor-pointer': !readOnly,
                   }"
                 >
                   <GeneralTeamIcon
                     :icon="formState.icon"
-                    :icon-type="formState.iconType"
+                    :icon-type="formState.icon_type"
                     class="!w-full !h-full !min-w-full select-none cursor-pointer !rounded-none"
+                    :class="readOnly ? 'cursor-not-allowed' : 'cursor-pointer'"
                   />
                 </div>
               </template>

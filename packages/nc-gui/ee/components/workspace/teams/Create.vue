@@ -25,7 +25,7 @@ const formState = reactive<{
   title: string
   description: string
   icon: string
-  iconType: IconType | string
+  icon_type: IconType | string
 
   // Todo: Phase II
   badge_color?: string
@@ -33,7 +33,7 @@ const formState = reactive<{
   title: '',
   description: '',
   icon: '',
-  iconType: '',
+  icon_type: '',
   badge_color: undefined,
 })
 
@@ -158,7 +158,7 @@ watch(vVisible, (newValue) => {
               <div class="absolute left-0 top-0 z-10">
                 <GeneralIconSelector
                   v-model:icon="formState.icon"
-                  v-model:icon-type="formState.iconType"
+                  v-model:icon-type="formState.icon_type"
                   :default-active-tab="IconType.ICON"
                   :tab-order="[IconType.ICON, IconType.EMOJI]"
                   :hidden-tabs="[IconType.IMAGE]"
@@ -174,7 +174,7 @@ watch(vVisible, (newValue) => {
                     >
                       <GeneralTeamIcon
                         :icon="formState.icon"
-                        :icon-type="formState.iconType"
+                        :icon-type="formState.icon_type"
                         class="!w-full !h-full !min-w-full select-none cursor-pointer !rounded-none"
                       />
                     </div>

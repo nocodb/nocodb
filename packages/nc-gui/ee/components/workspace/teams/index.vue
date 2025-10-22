@@ -347,7 +347,7 @@ onMounted(async () => {
 
           <div v-if="column.key === 'badge'">
             <NcBadge class="uppercase">
-              <GeneralTeamIcon v-if="record.icon" :icon="record.icon" :icon-type="record.iconType" icon-bg-color="transparent" />
+              <GeneralTeamIcon v-if="record.icon" :icon="record.icon" :icon-type="record.icon_type" icon-bg-color="transparent" />
               {{ record.title?.slice(0, 3) }}
             </NcBadge>
           </div>

@@ -82,7 +82,7 @@ export class TeamsV3Service {
         id: team.id,
         title: team.title,
         icon: meta.icon || undefined,
-        iconType: meta.iconType || undefined,
+        icon_type: meta.icon_type || undefined,
         badge_color: meta.badge_color || undefined,
         members_count: team.members_count,
         managers_count: team.managers_count,
@@ -138,7 +138,7 @@ export class TeamsV3Service {
     const teamDetail: TeamDetailV3Type = {
       title: team.title,
       icon: meta.icon || undefined,
-      iconType: meta.iconType || undefined,
+      icon_type: meta.icon_type || undefined,
       badge_color: meta.badge_color || undefined,
       members,
     };
@@ -184,7 +184,7 @@ export class TeamsV3Service {
       title: param.team.title,
       meta: {
         icon: param.team.icon,
-        iconType: param.team.iconType,
+        icon_type: param.team.icon_type,
         badge_color: param.team.badge_color,
       },
       fk_workspace_id: param.workspaceOrOrgId,
@@ -236,7 +236,7 @@ export class TeamsV3Service {
       id: team.id,
       title: team.title,
       icon: meta.icon || undefined,
-      iconType: meta.iconType || undefined,
+      icon_type: meta.icon_type || undefined,
       badge_color: meta.badge_color || undefined,
       members_count: teamUsers,
       managers_count: teamManagersCount,
@@ -290,8 +290,8 @@ export class TeamsV3Service {
       updateData.meta = {
         ...existingMeta,
         ...(param.team.icon !== undefined && { icon: param.team.icon }),
-        ...(param.team.iconType !== undefined && {
-          iconType: param.team.iconType,
+        ...(param.team.icon_type !== undefined && {
+          icon_type: param.team.icon_type,
         }),
         ...(param.team.badge_color !== undefined && {
           badge_color: param.team.badge_color,
@@ -314,7 +314,7 @@ export class TeamsV3Service {
       id: updatedTeam.id,
       title: updatedTeam.title,
       icon: meta.icon || undefined,
-      iconType: meta.iconType || undefined,
+      icon_type: meta.icon_type || undefined,
       badge_color: meta.badge_color || undefined,
       members_count: teamUsers,
       managers_count: teamManagersCount,

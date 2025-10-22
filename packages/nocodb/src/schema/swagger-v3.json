@@ -9006,8 +9006,8 @@
             "description": "Team icon (emoji or icon identifier)",
             "example": "🎨"
           },
-          "iconType": {
-            "type": "enum",
+          "icon_type": {
+            "type": "string",
             "description": "Team icon type",
             "enum": ["EMOJI", "ICON"],
             "example": "EMOJI"
@@ -9069,8 +9069,8 @@
             "description": "Team icon (emoji or icon identifier)",
             "example": "🎨"
           },
-          "iconType": {
-            "type": "enum",
+          "icon_type": {
+            "type": "string",
             "description": "Team icon type",
             "enum": ["EMOJI", "ICON"],
             "example": "EMOJI"
@@ -9109,8 +9109,8 @@
             "description": "Updated team icon (emoji or icon identifier)",
             "example": "🛠️"
           },
-          "iconType": {
-            "type": "enum",
+          "icon_type": {
+            "type": "string",
             "description": "Team icon type",
             "enum": ["EMOJI", "ICON"],
             "example": "EMOJI"
@@ -9137,8 +9137,8 @@
             "description": "Team icon (emoji or icon identifier)",
             "example": "🎨"
           },
-          "iconType": {
-            "type": "enum",
+          "icon_type": {
+            "type": "string",
             "description": "Team icon type",
             "enum": ["EMOJI", "ICON"],
             "example": "EMOJI"

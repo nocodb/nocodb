@@ -61,8 +61,8 @@ export function addAxiosInterceptors(api: Api<any> | InternalApi<any>, skipSocke
         const orgStore = useOrg()
 
         // Check if we're in an org context
-        const isOrgContext = router.currentRoute.value.params.orgId
-        
+        const isOrgContext = !!orgStore.orgId || !!workspaceStore.activeWorkspace?.fk_org_id
+
         if (isOrgContext) {
           orgStore.toggleSsoLoginRequiredDlg(true)
           await until(() => !orgStore.ssoLoginRequiredDlg).toBeTruthy()

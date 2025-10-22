@@ -97,7 +97,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
             'min-w-50': !description,
             'min-w-80': description,
           }"
-          :isLocked="!!newRole"
+          :is-locked="!!newRole"
           variant="default"
           item-class-name="nc-role-select-dropdown"
           :wrapper-class-name="`!h-auto nc-role-selector-dropdown ${!!newRole ? '!cursor-wait' : ''}`"

@@ -24,7 +24,7 @@ const workspaceStore = useWorkspace()
 
 const { removeCollaborator: _removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading, removingCollaboratorMap } =
+const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading, removingCollaboratorMap, teams, isTeamsEnabled } =
   storeToRefs(workspaceStore)
 
 const {
@@ -60,6 +60,8 @@ const isOnlyOneOwner = computed(() => {
 const { t } = useI18n()
 
 const inviteDlg = ref(false)
+
+const isInviteTeamDlg = ref(false)
 
 const topSectionRef = ref<HTMLDivElement>()
 
@@ -316,6 +318,12 @@ watch(
     userSearchText.value = ''
   },
 )
+
+watch(inviteDlg, (newVal) => {
+  if (!newVal) {
+    isInviteTeamDlg.value = false
+  }
+})
 </script>
 
 <template>
@@ -371,12 +379,44 @@ watch(
             <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
           </template>
 
-          <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
+          <NcButton
+            v-if="!isTeamsEnabled"
+            size="small"
+            :disabled="isCollaboratorsLoading"
+            data-testid="nc-add-member-btn"
+            @click="inviteDlg = true"
+          >
             <div class="flex items-center gap-2">
               <component :is="iconMap.plus" class="!h-4 !w-4" />
               {{ $t('labels.addMember') }}
             </div>
           </NcButton>
+
+          <NcDropdown v-else :disabled="isCollaboratorsLoading">
+            <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn">
+              <div class="flex items-center gap-2">
+                <component :is="iconMap.plus" class="!h-4 !w-4" />
+                {{ $t('general.add') }}
+              </div>
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem @click="inviteDlg = true">
+                  <span>{{ $t('labels.addMember') }}</span>
+                </NcMenuItem>
+                <NcMenuItem
+                  @click="
+                    () => {
+                      inviteDlg = true
+                      isInviteTeamDlg = false
+                    }
+                  "
+                >
+                  <span>{{ $t('labels.addTeam') }}</span>
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </div>
       </div>
 
@@ -563,6 +603,7 @@ watch(
         v-model:model-value="inviteDlg"
         :workspace-id="currentWorkspace?.id"
         type="workspace"
+        :is-team="true"
         :users="sortedCollaborators"
       />
 

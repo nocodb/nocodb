@@ -5,7 +5,9 @@ import {
   type PlanLimitExceededDetailsType,
   ProjectRoles,
   type RoleLabels,
+  type TeamV3V3Type,
   type UserType,
+  type WorkspaceType,
   WorkspaceUserRoles,
 } from 'nocodb-sdk'
 
@@ -14,10 +16,12 @@ import { extractEmail } from '../../helpers/parsers/parserHelpers'
 const props = defineProps<{
   modelValue: boolean
   type?: 'base' | 'workspace' | 'organization'
+  isTeam?: boolean
   baseId?: string
   emails?: string[]
   workspaceId?: string
   users?: Array<Pick<UserType, 'email'>>
+  teams?: Array<TeamV3V3Type>
 }>()
 const emit = defineEmits(['update:modelValue'])
 
@@ -395,7 +399,11 @@ const removeEmail = (index: number) => {
           type === 'organization'
             ? 'Invite Members to Workspaces'
             : type === 'base'
-            ? $t('activity.addMember')
+            ? isTeam
+              ? $t('activity.addTeamToBase')
+              : $t('activity.addMember')
+            : isTeam
+            ? $t('activity.addTeamToWorkspace')
             : $t('activity.inviteToWorkspace')
         }}
       </div>
@@ -404,6 +412,7 @@ const removeEmail = (index: number) => {
       <div class="flex w-full gap-4 flex-col">
         <div class="flex flex-col gap-6 md:(flex-row gap-3 justify-between) w-full">
           <div
+            v-if="!isTeam"
             ref="divRef"
             :class="{
               'border-primary/100 shadow-selected': isDivFocused,
@@ -441,6 +450,7 @@ const removeEmail = (index: number) => {
               @input="warningMsg = null"
             />
           </div>
+
           <div class="flex items-center justify-between gap-4">
             <div class="md:hidden text-nc-content-gray text-bodyLg">{{ $t('labels.selectRole') }}:</div>
             <div class="flex items-center">
@@ -552,7 +562,15 @@ const removeEmail = (index: number) => {
           class="nc-invite-btn"
           @click="inviteCollaborator"
         >
-          {{ type === 'base' ? $t('activity.inviteToBase') : $t('activity.inviteToWorkspace') }}
+          {{
+            type === 'base'
+              ? isTeam
+                ? $t('activity.addTeamToBase')
+                : $t('activity.inviteToBase')
+              : isTeam
+              ? $t('activity.addTeamToWorkspace')
+              : $t('activity.inviteToWorkspace')
+          }}
         </NcButton>
       </div>
     </div>

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -20,7 +21,6 @@ import {
 } from '~/ee/services/v3/workspace-teams-v3.types';
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { PlanFeatureTypes } from '~/utils/globals';
 import { WorkspaceTeamsV3Service } from '~/ee/services/v3/workspace-teams-v3.service';
 
 @Controller()
@@ -29,15 +29,9 @@ export class WorkspaceTeamsV3Controller {
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
   ) {}
 
-  @Get([
-    '/api/v3/workspaces/:workspaceId/teams',
-    '/api/v3/meta/workspaces/:workspaceId/teams',
-  ])
-  @Acl({
+  @Get('/api/v3/meta/workspaces/:workspaceId/invites')
+  @Acl('teamList', {
     scope: 'workspace',
-    allowedRoles: ['owner', 'creator'],
-    blockApiTokenAccess: true,
-    feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
   })
   async teamList(
     @Param('workspaceId') workspaceId: string,
@@ -48,15 +42,10 @@ export class WorkspaceTeamsV3Controller {
     });
   }
 
-  @Post([
-    '/api/v3/workspaces/:workspaceId/teams',
-    '/api/v3/meta/workspaces/:workspaceId/teams',
-  ])
-  @Acl({
+  @Post('/api/v3/meta/workspaces/:workspaceId/invites')
+  @HttpCode(200)
+  @Acl('teamCreate', {
     scope: 'workspace',
-    allowedRoles: ['owner', 'creator'],
-    blockApiTokenAccess: true,
-    feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
   })
   async teamAdd(
     @Param('workspaceId') workspaceId: string,
@@ -70,15 +59,9 @@ export class WorkspaceTeamsV3Controller {
     });
   }
 
-  @Get([
-    '/api/v3/workspaces/:workspaceId/teams/:teamId',
-    '/api/v3/meta/workspaces/:workspaceId/teams/:teamId',
-  ])
-  @Acl({
+  @Get('/api/v3/meta/workspaces/:workspaceId/invites/:teamId')
+  @Acl('teamGet', {
     scope: 'workspace',
-    allowedRoles: ['owner', 'creator'],
-    blockApiTokenAccess: true,
-    feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
   })
   async teamDetail(
     @Param('workspaceId') workspaceId: string,
@@ -91,15 +74,9 @@ export class WorkspaceTeamsV3Controller {
     });
   }
 
-  @Patch([
-    '/api/v3/workspaces/:workspaceId/teams/:teamId',
-    '/api/v3/meta/workspaces/:workspaceId/teams/:teamId',
-  ])
-  @Acl({
+  @Patch('/api/v3/meta/workspaces/:workspaceId/invites/:teamId')
+  @Acl('teamUpdate', {
     scope: 'workspace',
-    allowedRoles: ['owner', 'creator'],
-    blockApiTokenAccess: true,
-    feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
   })
   async teamUpdate(
     @Param('workspaceId') workspaceId: string,
@@ -114,15 +91,9 @@ export class WorkspaceTeamsV3Controller {
     });
   }
 
-  @Delete([
-    '/api/v3/workspaces/:workspaceId/teams/:teamId',
-    '/api/v3/meta/workspaces/:workspaceId/teams/:teamId',
-  ])
-  @Acl({
+  @Delete('/api/v3/meta/workspaces/:workspaceId/invites/:teamId')
+  @Acl('teamDelete', {
     scope: 'workspace',
-    allowedRoles: ['owner', 'creator'],
-    blockApiTokenAccess: true,
-    feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
   })
   async teamRemove(
     @Param('workspaceId') workspaceId: string,

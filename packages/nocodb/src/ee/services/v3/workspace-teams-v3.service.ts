@@ -10,9 +10,7 @@ import type {
   WorkspaceTeamV3ResponseType,
 } from './workspace-teams-v3.types';
 import { NcError } from '~/helpers/catchError';
-import { Principal } from '~/ee/models/Principal';
-import { PrincipalAssignment } from '~/ee/models/PrincipalAssignment';
-import { Team } from '~/ee/models/Team';
+import { Principal, PrincipalAssignment, Team } from '~/models';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';

@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { TeamUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   TeamCreateV3ReqType,
@@ -40,7 +41,7 @@ export class TeamsV3Service {
     return await PrincipalAssignment.countByResourceAndRole(
       context,
       ResourceType.TEAM,
-      param.teamId,
+      teamId,
       TeamUserRoles.MANAGER,
     );
   }
@@ -281,9 +282,6 @@ export class TeamsV3Service {
     }
 
     // Get member count for the created team
-    const teamUsers = await this.getTeamMembersCount(context, team.id);
-
-    // Get member count for the created team
     const [teamUsers, teamManagersCount] = await Promise.all([
       this.getTeamMembersCount(context, team.id),
       this.getTeamManagersCount(context, team.id),
@@ -383,7 +381,6 @@ export class TeamsV3Service {
     // Get member count for the updated team
     const [teamUsers, teamManagersCount] = await Promise.all([
       this.getTeamMembersCount(context, updatedTeam.id),
-      1,
       this.getTeamManagersCount(context, updatedTeam.id),
     ]);
 

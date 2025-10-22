@@ -318,7 +318,6 @@ export class UsersService extends UsersServiceCE {
     }
 
     const salt = await promisify(bcrypt.genSalt)(10);
-    password = await promisify(bcrypt.hash)(password, salt);
     const email_verification_token = uuidv4();
 
     if (!ignore_subscribe) {

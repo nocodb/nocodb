@@ -330,6 +330,9 @@ export const RootScopeTables = {
     MetaTable.WORKSPACE_USER,
     MetaTable.INTEGRATIONS,
     MetaTable.SOURCES,
+
+    MetaTable.PRINCIPALS,
+    MetaTable.PRINCIPAL_ASSIGNMENTS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };

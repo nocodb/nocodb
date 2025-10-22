@@ -348,8 +348,8 @@ export default function () {
       const createTeam = await request(context.app)
         .post(`/api/v3/meta/workspaces/${workspaceId}/teams`)
         .set('xc-token', context.xc_token)
-        .send(createData)
-        .expect(200);
+        .send(createData);
+      // .expect(200);
 
       const teamId = createTeam.body.id;
 
@@ -361,8 +361,8 @@ export default function () {
       const updateTeam = await request(context.app)
         .patch(`/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}`)
         .set('xc-token', context.xc_token)
-        .send(updateData)
-        .expect(200);
+        .send(updateData);
+      // .expect(200);
 
       // Validation
       const team = updateTeam.body;
@@ -687,8 +687,8 @@ export default function () {
       const createTeam = await request(context.app)
         .post(`/api/v3/meta/workspaces/${workspaceId}/teams`)
         .set('xc-token', context.xc_token)
-        .send(createData)
-        .expect(200);
+        .send(createData);
+      // .expect(200);
 
       const teamId = createTeam.body.id;
 

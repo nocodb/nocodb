@@ -3,7 +3,12 @@ import type { PrincipalType } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 
 export default class Principal {
   id: string;
@@ -32,15 +37,16 @@ export default class Principal {
     ]);
 
     const { id } = await ncMeta.metaInsert2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPALS,
       insertObj,
+      false,
     );
 
     const principalData = await ncMeta.metaGet(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPALS,
       id,
     );
@@ -67,8 +73,8 @@ export default class Principal {
 
     if (!principalData) {
       principalData = await ncMeta.metaGet(
-        context.workspace_id,
-        context.base_id,
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
         MetaTable.PRINCIPALS,
         id,
       );
@@ -92,8 +98,8 @@ export default class Principal {
     ncMeta = Noco.ncMeta,
   ): Promise<Principal | null> {
     const principals = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPALS,
       {
         condition: {
@@ -115,8 +121,8 @@ export default class Principal {
     ncMeta = Noco.ncMeta,
   ): Promise<Principal[]> {
     const principals = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPALS,
       {
         condition: filter,
@@ -132,8 +138,8 @@ export default class Principal {
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     await ncMeta.metaDelete(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPALS,
       id,
     );

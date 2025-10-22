@@ -8,6 +8,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 
 export default class PrincipalAssignment {
@@ -40,18 +41,23 @@ export default class PrincipalAssignment {
       'roles',
     ]);
 
-    const { id } = await ncMeta.metaInsert2(
-      context.workspace_id,
-      context.base_id,
+    await ncMeta.metaInsert2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPAL_ASSIGNMENTS,
       insertObj,
+      true,
     );
 
     const assignmentData = await ncMeta.metaGet(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPAL_ASSIGNMENTS,
-      id,
+      {
+        resource_id: insertObj.resource_id,
+        fk_principal_id: insertObj.fk_principal_id,
+        resource_type: insertObj.resource_type,
+      },
     );
 
     await NocoCache.set(
@@ -75,8 +81,8 @@ export default class PrincipalAssignment {
     ncMeta = Noco.ncMeta,
   ): Promise<PrincipalAssignment | null> {
     const assignments = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPAL_ASSIGNMENTS,
       {
         condition: {
@@ -101,8 +107,8 @@ export default class PrincipalAssignment {
     ncMeta = Noco.ncMeta,
   ): Promise<PrincipalAssignment[]> {
     const assignments = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPAL_ASSIGNMENTS,
       {
         condition: filter,
@@ -206,15 +212,15 @@ export default class PrincipalAssignment {
     const updateObj = extractProps(updateData, ['roles']);
 
     await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPAL_ASSIGNMENTS,
+      updateObj,
       {
         resource_type: resourceType,
         resource_id: resourceId,
         fk_principal_id: principalId,
       },
-      updateObj,
     );
 
     const updatedAssignment = await this.get(
@@ -248,8 +254,8 @@ export default class PrincipalAssignment {
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     await ncMeta.metaDelete(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.PRINCIPAL_ASSIGNMENTS,
       {
         resource_type: resourceType,

@@ -434,7 +434,15 @@ const rolePermissions:
     include: {},
   },
   [WorkspaceUserRoles.EDITOR]: {
-    include: {},
+    include: {
+      // Teams
+      teamCreate: true,
+      teamUpdate: true,
+      teamDelete: true,
+      teamUserAdd: true,
+      teamUserRemove: true,
+      teamUserUpdate: true,
+    },
   },
   [WorkspaceUserRoles.CREATOR]: {
     exclude: {
@@ -899,6 +907,16 @@ const permissionDescriptions: Record<string, string> = {
   integrationList: 'view list of integrations',
   integrationStore: "get data from an integration's store",
   integrationEndpointGet: 'call get request to an exposed integration endpoint',
+
+  // Teams permissions
+  teamList: 'view list of teams in the workspace',
+  teamCreate: 'create a new team in the workspace',
+  teamGet: 'view team details',
+  teamUpdate: 'update team details',
+  teamDelete: 'delete a team from the workspace',
+  teamUserAdd: 'add users to a team',
+  teamUserRemove: 'remove users from a team',
+  teamUserUpdate: 'update user roles in a team',
 
   // base permissions
   formViewGet: 'view forms',

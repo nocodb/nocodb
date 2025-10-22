@@ -360,6 +360,7 @@ export const RootScopeTables = {
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
     MetaTable.TEAMS,
+    MetaTable.TEAM_USERS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,
@@ -373,6 +374,12 @@ export const RootScopeTables = {
     MetaTable.WORKSPACE_USER,
     MetaTable.INTEGRATIONS,
     MetaTable.SOURCES,
+    // We need to clear fk_integration_id from following tables
+    MetaTable.COL_BUTTON,
+    MetaTable.COL_LONG_TEXT,
+
+    MetaTable.PRINCIPALS,
+    MetaTable.PRINCIPAL_ASSIGNMENTS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };

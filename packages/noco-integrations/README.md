@@ -1,28 +1,60 @@
 # NocoDB Integrations
 
-This monorepo contains the integration framework and various integrations for NocoDB.
+This monorepo contains the integration framework and various integrations for NocoDB, enabling seamless connections with external services and platforms.
 
-## Structure
+## Table of Contents
 
-```
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Testing](#testing)
+- [Creating a New Integration](#creating-a-new-integration)
+- [Sync Integration Standardization Guidelines](#sync-integration-standardization-guidelines)
+
+## Overview
+
+NocoDB Integrations provides a powerful framework for:
+
+- **Authentication Integrations**: OAuth and API key-based authentication with external services
+- **Sync Integrations**: Bidirectional data synchronization between NocoDB and external platforms
+- **AI Integrations**: Integration with AI services like OpenAI, Claude, and others
+- **Custom Integrations**: Extensible framework for building custom integrations
+
+## Project Structure
+
+```text
 nocodb-integrations/
 ├── core/                      # Core integration framework
+│   ├── src/
+│   │   ├── auth/              # Authentication base classes
+│   │   ├── sync/              # Sync integration base classes
+│   │   └── types/             # TypeScript definitions
+│   └── package.json
 ├── packages/
-│   ├── auth-github/           # GitHub auth integration
+│   ├── auth-github/           # GitHub OAuth integration
+│   ├── auth-google/           # Google OAuth integration
 │   ├── ai-openai/             # OpenAI integration
+│   ├── sync-github/           # GitHub sync integration
 │   └── ...                    # Other integrations
+├── scripts/                   # Build and deployment scripts
+└── README.md                  # This file
 ```
 
-## Development
+## Getting Started
 
 ### Prerequisites
 
-- Node.js >= 22
-- pnpm >= 9
+- **Node.js**: Version 22 or higher
+- **pnpm**: Version 9 or higher
+- **NocoDB**: Running instance for testing integrations
 
-### Setup
+### Quick Start
 
 ```bash
+# Clone the repository
+git clone <repository-url>
+cd nocodb-integrations
+
 # Install dependencies
 pnpm install
 
@@ -56,8 +88,9 @@ Alternatively, you can create a new package manually:
 
 1. Create a new package in the `packages` directory
 2. Follow the integration package structure:
-   ```
-  provider-type/
+
+   ```text
+   provider-type/
    ├── src/
    │   ├── index.ts             # Main entry point
    │   ├── manifest.ts          # Integration metadata
@@ -80,7 +113,7 @@ This document outlines the standards and best practices for creating and maintai
 
 Every sync integration should follow this structure:
 
-```
+```text
 packages/[provider]-sync/
 ├── package.json          # Dependencies and metadata
 ├── tsconfig.json         # TypeScript configuration
@@ -142,7 +175,7 @@ packages/[provider]-sync/
    - Data filtering options (e.g., include closed items)
    - Sync frequency settings
 
-### Testing
+### Integration Testing
 
 1. **Manual Testing**
    - Test with real provider accounts

@@ -12,8 +12,9 @@ import type {
 import { NcError } from '~/helpers/catchError';
 import { Principal, PrincipalAssignment, Team } from '~/models';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
-import { validatePayload } from '~/helpers';
-import Noco from '~/Noco';
+import { parseMetaProp } from '~/utils/modelUtils';
+import {validatePayload} from "~/helpers";
+import Noco from "~/Noco";
 
 @Injectable()
 export class WorkspaceTeamsV3Service {
@@ -51,11 +52,13 @@ export class WorkspaceTeamsV3Service {
           return null;
         }
 
+        const meta = parseMetaProp(team);
+
         return {
           team_id: team.id,
           team_title: team.title,
-          team_icon: team.meta?.icon,
-          team_badge_color: team.meta?.badge_color,
+          team_icon: meta.icon || null,
+          team_badge_color: meta.badge_color || null,
           workspace_role: assignment.roles as
             | WorkspaceUserRoles.CREATOR
             | WorkspaceUserRoles.EDITOR
@@ -69,9 +72,7 @@ export class WorkspaceTeamsV3Service {
     );
 
     // Filter out null results
-    const validTeams = teams.filter(
-      (team): team is WorkspaceTeamV3ResponseType => team !== null,
-    );
+    const validTeams = teams.filter((team) => team !== null);
 
     return { list: validTeams };
   }
@@ -131,11 +132,13 @@ export class WorkspaceTeamsV3Service {
       roles: param.team.workspace_role,
     });
 
+    const meta = parseMetaProp(team);
+
     return {
       team_id: team.id,
       team_title: team.title,
-      team_icon: team.meta?.icon,
-      team_badge_color: team.meta?.badge_color,
+      team_icon: meta.icon || null,
+      team_badge_color: meta.badge_color || null,
       workspace_role: assignment.roles as
         | WorkspaceUserRoles.CREATOR
         | WorkspaceUserRoles.EDITOR
@@ -199,12 +202,19 @@ export class WorkspaceTeamsV3Service {
       { roles: param.team.workspace_role },
     );
 
+    const meta = parseMetaProp(team);
+
     return {
       team_id: team.id,
       team_title: team.title,
-      team_icon: team.meta?.icon,
-      team_badge_color: team.meta?.badge_color,
-      workspace_role: updatedAssignment.roles as 'member' | 'manager',
+      team_icon: meta.icon || null,
+      team_badge_color: meta.badge_color || null,
+      workspace_role: updatedAssignment.roles as
+        | WorkspaceUserRoles.CREATOR
+        | WorkspaceUserRoles.EDITOR
+        | WorkspaceUserRoles.VIEWER
+        | WorkspaceUserRoles.COMMENTER
+        | WorkspaceUserRoles.NO_ACCESS,
       created_at: updatedAssignment.created_at!,
       updated_at: updatedAssignment.updated_at!,
     };
@@ -291,11 +301,13 @@ export class WorkspaceTeamsV3Service {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
+    const meta = parseMetaProp(team);
+
     return {
       team_id: team.id,
       team_title: team.title,
-      team_icon: team.meta?.icon,
-      team_badge_color: team.meta?.badge_color,
+      team_icon: meta.icon || null,
+      team_badge_color: meta.badge_color || null,
       workspace_role: assignment.roles as
         | WorkspaceUserRoles.CREATOR
         | WorkspaceUserRoles.EDITOR

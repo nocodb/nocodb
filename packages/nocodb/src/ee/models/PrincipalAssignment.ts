@@ -159,7 +159,7 @@ export default class PrincipalAssignment {
     const cachedCount = await NocoCache.get(
       context,
       cacheKey,
-      CacheGetType.TYPE_NUMBER,
+      CacheGetType.TYPE_STRING,
     );
 
     if (cachedCount !== null) {
@@ -177,7 +177,7 @@ export default class PrincipalAssignment {
     const count = assignments.length;
 
     // Cache the count for 5 minutes
-    await NocoCache.set(context, cacheKey, count, 300);
+    await NocoCache.setExpiring(context, cacheKey, count, 300);
 
     return count;
   }

@@ -290,6 +290,8 @@ export enum CacheScope {
   OAUTH_CLIENT = 'oAuthClient',
   OAUTH_AUTH_CODE = 'oAuthAuthCode',
   OAUTH_TOKEN = 'oAuthToken',
+  PRINCIPAL = 'principal',
+  PRINCIPAL_ASSIGNMENT = 'principalAssignment',
 }
 
 export const RootScopeTables = {

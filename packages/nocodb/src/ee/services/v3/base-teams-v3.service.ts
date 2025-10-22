@@ -13,6 +13,7 @@ import { NcError } from '~/helpers/catchError';
 import { Principal, PrincipalAssignment, Team } from '~/models';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
+import { parseMetaProp } from '~/utils/modelUtils';
 import Noco from '~/Noco';
 
 @Injectable()
@@ -51,11 +52,13 @@ export class BaseTeamsV3Service {
           return null;
         }
 
+        const meta = parseMetaProp(team);
+
         return {
           team_id: team.id,
           team_title: team.title,
-          team_icon: team.meta?.icon,
-          team_badge_color: team.meta?.badge_color,
+          team_icon: meta.icon || null,
+          team_badge_color: meta.badge_color || null,
           base_role: assignment.roles as
             | ProjectRoles.CREATOR
             | ProjectRoles.EDITOR
@@ -69,9 +72,7 @@ export class BaseTeamsV3Service {
     );
 
     // Filter out null results
-    const validTeams = teams.filter(
-      (team): team is BaseTeamV3ResponseType => team !== null,
-    );
+    const validTeams = teams.filter((team) => team !== null);
 
     return { list: validTeams };
   }
@@ -131,11 +132,13 @@ export class BaseTeamsV3Service {
       roles: param.team.base_role,
     });
 
+    const meta = parseMetaProp(team);
+
     return {
       team_id: team.id,
       team_title: team.title,
-      team_icon: team.meta?.icon,
-      team_badge_color: team.meta?.badge_color,
+      team_icon: meta.icon || null,
+      team_badge_color: meta.badge_color || null,
       base_role: assignment.roles as
         | ProjectRoles.CREATOR
         | ProjectRoles.EDITOR
@@ -199,11 +202,13 @@ export class BaseTeamsV3Service {
       { roles: param.team.base_role },
     );
 
+    const meta = parseMetaProp(team);
+
     return {
       team_id: team.id,
       team_title: team.title,
-      team_icon: team.meta?.icon,
-      team_badge_color: team.meta?.badge_color,
+      team_icon: meta.icon || null,
+      team_badge_color: meta.badge_color || null,
       base_role: updatedAssignment.roles as
         | ProjectRoles.CREATOR
         | ProjectRoles.EDITOR
@@ -296,11 +301,13 @@ export class BaseTeamsV3Service {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
+    const meta = parseMetaProp(team);
+
     return {
       team_id: team.id,
       team_title: team.title,
-      team_icon: team.meta?.icon,
-      team_badge_color: team.meta?.badge_color,
+      team_icon: meta.icon || null,
+      team_badge_color: meta.badge_color || null,
       base_role: assignment.roles as
         | ProjectRoles.CREATOR
         | ProjectRoles.EDITOR

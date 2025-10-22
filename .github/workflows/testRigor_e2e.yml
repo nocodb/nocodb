@@ -1,0 +1,65 @@
+name: e2e (testRigor on NocoDB)
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install testRigor CLI
+        run: npm install -g testrigor-cli
+
+      - name: Start NocoDB (SQLite) on port 8080
+        run: |
+          docker run -d --name noco \
+            -v "$PWD/nocodb:/usr/app/data/" \
+            -p 8080:8080 \
+            nocodb/nocodb:latest
+
+      - name: Wait for NocoDB to be ready
+        run: |
+          echo "Waiting for http://localhost:8080 ..."
+          for i in {1..60}; do
+            if curl -fsSLI http://localhost:8080 >/dev/null; then
+              echo "NocoDB is up"; exit 0
+            fi
+            sleep 2
+          done
+          echo "NocoDB failed to start"; docker logs noco; exit 1
+
+      - name: Run testRigor suite (tunneled to localhost)
+        env:
+          TESTRIGOR_SUITE_ID: ${{ vars.TESTRIGOR_SUITE_ID }}
+          TESTRIGOR_CICD_TOKEN: ${{ secrets.TESTRIGOR_CICD_TOKEN }}
+        run: |
+          # --url points to the local app; --localhost opens a tunnel so testRigor cloud can reach it.
+          testrigor test-suite run "$TESTRIGOR_SUITE_ID" \
+            --token "$TESTRIGOR_CICD_TOKEN" \
+            --url http://localhost:8080 \
+            --localhost \
+            --junit-report-save-path ./testrigor-report.xml \
+            --verbose
+
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testrigor-junit
+          path: testrigor-report.xml
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f noco || true

@@ -24,28 +24,35 @@ jobs:
 
       - name: Start NocoDB (SQLite) on port 8080
         run: |
+          mkdir -p "$PWD/nocodb"
           docker run -d --name noco \
             -v "$PWD/nocodb:/usr/app/data/" \
             -p 8080:8080 \
+            --health-cmd="wget -qO- http://127.0.0.1:8080/api/v1/health >/dev/null || exit 1" \
+            --health-interval=10s \
+            --health-retries=60 \
             nocodb/nocodb:latest
 
-      - name: Wait for NocoDB to be ready
+      - name: Wait for NocoDB API health
         run: |
-          echo "Waiting for http://localhost:8080 ..."
-          for i in {1..60}; do
-            if curl -fsSLI http://localhost:8080 >/dev/null; then
-              echo "NocoDB is up"; exit 0
+          echo "Waiting for http://localhost:8080/api/v1/health ..."
+          for i in {1..120}; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/api/v1/health || true)
+            if [ "$code" = "200" ]; then
+              echo "NocoDB is healthy (HTTP 200)"; exit 0
             fi
             sleep 2
           done
-          echo "NocoDB failed to start"; docker logs noco; exit 1
+          echo "NocoDB failed to become healthy"
+          docker ps -a
+          docker logs noco || true
+          exit 1
 
       - name: Run testRigor suite (tunneled to localhost)
         env:
-          TESTRIGOR_SUITE_ID: ${{ vars.TESTRIGOR_SUITE_ID }}
-          TESTRIGOR_CICD_TOKEN: ${{ secrets.TESTRIGOR_CICD_TOKEN }}
+          TESTRIGOR_SUITE_ID: ${{ vars.TESTRIGOR_SUITE_ID }}       
+          TESTRIGOR_CICD_TOKEN: ${{ secrets.TESTRIGOR_CICD_TOKEN }} 
         run: |
-          # --url points to the local app; --localhost opens a tunnel so testRigor cloud can reach it.
           testrigor test-suite run "$TESTRIGOR_SUITE_ID" \
             --token "$TESTRIGOR_CICD_TOKEN" \
             --url http://localhost:8080 \
@@ -59,6 +66,10 @@ jobs:
         with:
           name: testrigor-junit
           path: testrigor-report.xml
+
+      - name: Dump NocoDB logs (on failure)
+        if: failure()
+        run: docker logs noco || true
 
       - name: Cleanup
         if: always()

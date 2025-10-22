@@ -18,7 +18,7 @@ export default function () {
     return true;
   }
 
-  describe(`Workspace Teams v3`, () => {
+  describe.only(`Workspace Teams v3`, () => {
     let context: any = {};
     let workspaceId: string;
     let featureMock: any;

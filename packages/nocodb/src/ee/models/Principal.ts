@@ -3,11 +3,7 @@ import type { PrincipalType } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
-import {
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '~/utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class Principal {
   id: string;

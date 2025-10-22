@@ -7,6 +7,7 @@ import baseUsersTestV3 from './baseUsers.test';
 import errorHandlingMetaTestsV3 from './error-handling/index.test';
 import workspaceUsersTest from './workspaceUsers.test';
 // import teamsTestV3 from './teams.test';
+// import workspaceTeamsV from './workspace-teams.test';
 
 export default runOnSet(2, function () {
   baseTestV3();
@@ -17,4 +18,5 @@ export default runOnSet(2, function () {
   errorHandlingMetaTestsV3();
   workspaceUsersTest();
   // teamsTestV3();
+  // workspaceTeamsV();
 });

@@ -67,7 +67,6 @@ export class TeamsV3Service {
     // Get teams with member counts using optimized query
     const teamsWithCounts = await Promise.all(
       teams.map(async (team) => {
-
         const [membersCount, menagersCount] = await Promise.all([
           this.getTeamMembersCount(context, team.id),
           this.getTeamManagersCount(context, team.id),
@@ -77,7 +76,7 @@ export class TeamsV3Service {
           ...team,
           members_count: membersCount,
           // todo: only one manager possible at the  moment
-          managers_count: menagersCount
+          managers_count: menagersCount,
         };
       }),
     );
@@ -280,7 +279,6 @@ export class TeamsV3Service {
         });
       }
     }
-
 
     // Get member count for the created team
     const teamUsers = await this.getTeamMembersCount(context, team.id);
@@ -658,7 +656,7 @@ export class TeamsV3Service {
         const managersCount = await this.getTeamManagersCount(
           context,
           param.teamId,
-        )
+        );
         if (managersCount === 1) {
           NcError.get(context).invalidRequestBody(
             'Cannot remove the last manager',

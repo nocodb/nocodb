@@ -12,16 +12,16 @@ import {
 } from '@nestjs/common';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
+  WorkspaceTeamDeleteV3ReqType,
   WorkspaceTeamDetailV3Type,
   WorkspaceTeamListV3Type,
+  WorkspaceTeamUpdateV3ReqType,
   WorkspaceTeamV3ResponseType,
 } from '~/ee/services/v3/workspace-teams-v3.types';
 import {
-  WorkspaceTeamCreateV3ReqType,
   WorkspaceTeamCreateV3BulkReqType,
-  WorkspaceTeamDeleteV3ReqType,
+  WorkspaceTeamCreateV3ReqType,
   WorkspaceTeamDeleteV3BulkReqType,
-  WorkspaceTeamUpdateV3ReqType,
 } from '~/ee/services/v3/workspace-teams-v3.types';
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';

@@ -572,15 +572,17 @@ export default class BaseUser extends BaseUserCE {
               'team_assignments.principal_ref_id',
               '=',
               `${MetaTable.USERS}.id`,
-            ).andOn(
-              'team_assignments.principal_type',
-              '=',
-              ncMeta.knex.raw('?', [PrincipalType.USER]),
-            ).andOn(
-              'team_assignments.resource_type',
-              '=',
-              ncMeta.knex.raw('?', [ResourceType.TEAM]),
-            );
+            )
+              .andOn(
+                'team_assignments.principal_type',
+                '=',
+                ncMeta.knex.raw('?', [PrincipalType.USER]),
+              )
+              .andOn(
+                'team_assignments.resource_type',
+                '=',
+                ncMeta.knex.raw('?', [ResourceType.TEAM]),
+              );
           },
         )
         // Join with resource assignments (team -> workspace/base)

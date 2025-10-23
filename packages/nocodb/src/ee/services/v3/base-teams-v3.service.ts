@@ -2,10 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
-  BaseTeamCreateV3ReqType,
   BaseTeamCreateV3BulkReqType,
-  BaseTeamDeleteV3ReqType,
+  BaseTeamCreateV3ReqType,
   BaseTeamDeleteV3BulkReqType,
+  BaseTeamDeleteV3ReqType,
   BaseTeamDetailV3Type,
   BaseTeamListV3Type,
   BaseTeamUpdateV3ReqType,
@@ -13,10 +13,9 @@ import type {
 } from './base-teams-v3.types';
 import { NcError } from '~/helpers/catchError';
 import { PrincipalAssignment, Team, User } from '~/models';
-import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
+import { PrincipalType, ResourceType } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
 import { parseMetaProp } from '~/utils/modelUtils';
-import Noco from '~/Noco';
 
 @Injectable()
 export class BaseTeamsV3Service {
@@ -26,9 +25,6 @@ export class BaseTeamsV3Service {
     context: NcContext,
     param: { baseId: string },
   ): Promise<BaseTeamListV3Type> {
-
-
-
     // Get all team assignments for this base
     const assignments = await PrincipalAssignment.listByResource(
       context,
@@ -186,10 +182,10 @@ export class BaseTeamsV3Service {
         team_icon: meta.icon || null,
         team_icon_type: meta.icon_type || null,
         team_badge_color: meta.badge_color || null,
-          base_role: updatedAssignment.roles as Exclude<
-              ProjectRoles,
-              ProjectRoles.OWNER
-          >,
+        base_role: updatedAssignment.roles as Exclude<
+          ProjectRoles,
+          ProjectRoles.OWNER
+        >,
         created_at: updatedAssignment.created_at!,
         updated_at: updatedAssignment.updated_at!,
       });
@@ -230,14 +226,11 @@ export class BaseTeamsV3Service {
       }
 
       // Get all users in the team before deleting the assignment
-      const teamUsers = await PrincipalAssignment.list(
-        context,
-        {
-          resource_type: ResourceType.TEAM,
-          resource_id: team.team_id,
-          principal_type: PrincipalType.USER,
-        },
-      );
+      const teamUsers = await PrincipalAssignment.list(context, {
+        resource_type: ResourceType.TEAM,
+        resource_id: team.team_id,
+        principal_type: PrincipalType.USER,
+      });
 
       // Delete the assignment
       await PrincipalAssignment.delete(

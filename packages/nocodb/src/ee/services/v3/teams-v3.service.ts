@@ -128,12 +128,12 @@ export class TeamsV3Service {
       ResourceType.TEAM,
       param.teamId,
     );
-    
+
     // Filter only user assignments
     const userAssignments = teamAssignments.filter(
       (assignment) => assignment.principal_type === PrincipalType.USER,
     );
-    
+
     const membersWithUsers = await Promise.all(
       userAssignments.map(async (assignment) => {
         const user = await User.get(assignment.principal_ref_id);
@@ -502,7 +502,10 @@ export class TeamsV3Service {
     // Transform to v3 response format with email
     const members = await Promise.all(
       addedMembers.map(async (assignment) => {
-        const user = await this.getUserById(context, assignment.principal_ref_id);
+        const user = await this.getUserById(
+          context,
+          assignment.principal_ref_id,
+        );
         return {
           user_id: user.id,
           user_email: user.email,
@@ -666,7 +669,10 @@ export class TeamsV3Service {
     // Transform to v3 response format with email
     const members = await Promise.all(
       updatedMembers.map(async (assignment) => {
-        const user = await this.getUserById(context, assignment.principal_ref_id);
+        const user = await this.getUserById(
+          context,
+          assignment.principal_ref_id,
+        );
         return {
           user_id: user.id,
           user_email: user.email,

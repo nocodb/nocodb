@@ -1,5 +1,5 @@
 import type { NcContext } from '~/interface/config';
-import type { ResourceType, PrincipalType } from '~/utils/globals';
+import type { PrincipalType, ResourceType } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';

@@ -55,14 +55,21 @@ export async function extractUserBaseTeamRoles(
 
     // Merge base-team roles - take the highest privilege
     // Define role hierarchy (higher index = higher privilege)
-    const roleHierarchy = ['no-access', 'viewer', 'commenter', 'editor', 'creator', 'owner'];
-    
+    const roleHierarchy = [
+      'no-access',
+      'viewer',
+      'commenter',
+      'editor',
+      'creator',
+      'owner',
+    ];
+
     let highestRole = null;
     let highestRoleIndex = -1;
 
     for (const roleInfo of userBaseTeamRoles) {
       const roleIndex = roleHierarchy.indexOf(roleInfo.baseRole);
-      
+
       // Map team roles to base roles based on team role
       if (roleInfo.teamRole === 'manager') {
         // Manager in team gets higher base role
@@ -71,7 +78,10 @@ export async function extractUserBaseTeamRoles(
           highestRoleIndex = roleIndex;
         }
         // Also give them editor role if they don't have owner
-        if (roleInfo.baseRole !== 'owner' && roleHierarchy.indexOf('editor') > highestRoleIndex) {
+        if (
+          roleInfo.baseRole !== 'owner' &&
+          roleHierarchy.indexOf('editor') > highestRoleIndex
+        ) {
           highestRole = 'editor';
           highestRoleIndex = roleHierarchy.indexOf('editor');
         }

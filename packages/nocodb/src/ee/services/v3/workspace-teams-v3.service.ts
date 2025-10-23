@@ -2,10 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
-  WorkspaceTeamCreateV3ReqType,
   WorkspaceTeamCreateV3BulkReqType,
-  WorkspaceTeamDeleteV3ReqType,
+  WorkspaceTeamCreateV3ReqType,
   WorkspaceTeamDeleteV3BulkReqType,
+  WorkspaceTeamDeleteV3ReqType,
   WorkspaceTeamDetailV3Type,
   WorkspaceTeamListV3Type,
   WorkspaceTeamUpdateV3ReqType,
@@ -13,10 +13,9 @@ import type {
 } from './workspace-teams-v3.types';
 import { NcError } from '~/helpers/catchError';
 import { PrincipalAssignment, Team, User } from '~/models';
-import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
+import { PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { validatePayload } from '~/helpers';
-import Noco from '~/Noco';
 
 @Injectable()
 export class WorkspaceTeamsV3Service {
@@ -186,10 +185,10 @@ export class WorkspaceTeamsV3Service {
         team_icon: meta.icon || null,
         team_icon_type: meta.icon_type || null,
         team_badge_color: meta.badge_color || null,
-          base_role: updatedAssignment.roles as Exclude<
-              ProjectRoles,
-              ProjectRoles.OWNER
-          >,
+        base_role: updatedAssignment.roles as Exclude<
+          ProjectRoles,
+          ProjectRoles.OWNER
+        >,
         created_at: updatedAssignment.created_at!,
         updated_at: updatedAssignment.updated_at!,
       });
@@ -230,14 +229,11 @@ export class WorkspaceTeamsV3Service {
       }
 
       // Get all users in the team before deleting the assignment
-      const teamUsers = await PrincipalAssignment.list(
-        context,
-        {
-          resource_type: ResourceType.TEAM,
-          resource_id: team.team_id,
-          principal_type: PrincipalType.USER,
-        },
-      );
+      const teamUsers = await PrincipalAssignment.list(context, {
+        resource_type: ResourceType.TEAM,
+        resource_id: team.team_id,
+        principal_type: PrincipalType.USER,
+      });
 
       // Delete the assignment
       await PrincipalAssignment.delete(

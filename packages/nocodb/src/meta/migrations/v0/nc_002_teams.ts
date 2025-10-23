@@ -36,12 +36,18 @@ const up = async (knex: Knex) => {
     );
 
     // Indexes for fast lookups
-    table.index(['principal_type', 'principal_ref_id'], 'nc_principal_assignments_principal_idx');
+    table.index(
+      ['principal_type', 'principal_ref_id'],
+      'nc_principal_assignments_principal_idx',
+    );
     table.index(
       ['resource_type', 'resource_id'],
       'nc_principal_assignments_resource_idx',
     );
-    table.index(['principal_type', 'principal_ref_id', 'resource_type'], 'nc_principal_assignments_principal_resource_idx');
+    table.index(
+      ['principal_type', 'principal_ref_id', 'resource_type'],
+      'nc_principal_assignments_principal_resource_idx',
+    );
   });
 };
 

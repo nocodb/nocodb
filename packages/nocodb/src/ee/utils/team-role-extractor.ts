@@ -53,7 +53,7 @@ export async function extractUserTeamRoles(
     // Return the workspace roles from teams
     // The role hierarchy logic will be handled in User.ts
     const roles: Record<string, boolean> = {};
-    
+
     // Convert workspace roles to boolean map
     for (const role of workspaceRoles) {
       if (role) {

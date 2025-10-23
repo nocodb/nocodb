@@ -781,7 +781,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       }
 
       if (teamsMap.value[teamId]) {
-        teamsMap.value[teamId].members_count = (teamsMap.value[teamId].members_count || 0) + addedMembers.length
+        teams.value = teams.value.map((team) =>
+          team.id === teamId ? { ...team, members_count: (team.members_count || 0) + addedMembers.length } : team,
+        )
       }
 
       return addedMembers || []
@@ -818,7 +820,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       }
 
       if (teamsMap.value[teamId]) {
-        teamsMap.value[teamId].members_count = Math.max(0, (teamsMap.value[teamId].members_count || 0) - removedMembers.length)
+        teams.value = teams.value.map((team) =>
+          team.id === teamId ? { ...team, members_count: Math.max(0, (team.members_count || 0) - removedMembers.length) } : team,
+        )
       }
 
       return removedMembers || []

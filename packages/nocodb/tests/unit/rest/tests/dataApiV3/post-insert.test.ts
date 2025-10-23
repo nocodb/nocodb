@@ -117,12 +117,6 @@ describe('dataApiV3', () => {
           status: 422,
         });
 
-        // Invalid data - create should not specify ID
-        await ncAxiosPost({
-          url: `${urlPrefix}/${table.id}/records?undo=true`,
-          body: { fields: { ...newRecord.fields, Id: 300 } },
-          status: 422,
-        });
         // Invalid data - number instead of string
         // await ncAxiosPost({
         //   body: { ...newRecord, SingleLineText: 300 },

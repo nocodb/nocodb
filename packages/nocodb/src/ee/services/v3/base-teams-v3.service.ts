@@ -60,12 +60,10 @@ export class BaseTeamsV3Service {
           team_icon: meta.icon || null,
           team_icon_type: meta.icon_type || null,
           team_badge_color: meta.badge_color || null,
-          base_role: assignment.roles as
-            | ProjectRoles.CREATOR
-            | ProjectRoles.EDITOR
-            | ProjectRoles.VIEWER
-            | ProjectRoles.COMMENTER
-            | ProjectRoles.NO_ACCESS,
+          base_role: assignment.roles as Exclude<
+            ProjectRoles,
+            ProjectRoles.OWNER
+          >,
           created_at: assignment.created_at!,
           updated_at: assignment.updated_at!,
         };
@@ -141,12 +139,7 @@ export class BaseTeamsV3Service {
       team_icon: meta.icon || null,
       team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
-      base_role: assignment.roles as
-        | ProjectRoles.CREATOR
-        | ProjectRoles.EDITOR
-        | ProjectRoles.VIEWER
-        | ProjectRoles.COMMENTER
-        | ProjectRoles.NO_ACCESS,
+      base_role: assignment.roles as Exclude<ProjectRoles, ProjectRoles.OWNER>,
       created_at: assignment.created_at!,
       updated_at: assignment.updated_at!,
     };
@@ -212,12 +205,10 @@ export class BaseTeamsV3Service {
       team_icon: meta.icon || null,
       team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
-      base_role: updatedAssignment.roles as
-        | ProjectRoles.CREATOR
-        | ProjectRoles.EDITOR
-        | ProjectRoles.VIEWER
-        | ProjectRoles.COMMENTER
-        | ProjectRoles.NO_ACCESS,
+      base_role: updatedAssignment.roles as Exclude<
+        ProjectRoles,
+        ProjectRoles.OWNER
+      >,
       created_at: updatedAssignment.created_at!,
       updated_at: updatedAssignment.updated_at!,
     };
@@ -312,12 +303,7 @@ export class BaseTeamsV3Service {
       team_icon: meta.icon || null,
       team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
-      base_role: assignment.roles as
-        | ProjectRoles.CREATOR
-        | ProjectRoles.EDITOR
-        | ProjectRoles.VIEWER
-        | ProjectRoles.COMMENTER
-        | ProjectRoles.NO_ACCESS,
+      base_role: assignment.roles as Exclude<ProjectRoles, ProjectRoles.OWNER>,
       created_at: assignment.created_at!,
       updated_at: assignment.updated_at!,
     };

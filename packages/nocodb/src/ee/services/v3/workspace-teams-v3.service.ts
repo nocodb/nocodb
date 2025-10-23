@@ -60,12 +60,10 @@ export class WorkspaceTeamsV3Service {
           team_icon: meta.icon || null,
           team_icon_type: meta.icon_type || null,
           team_badge_color: meta.badge_color || null,
-          workspace_role: assignment.roles as
-            | WorkspaceUserRoles.CREATOR
-            | WorkspaceUserRoles.EDITOR
-            | WorkspaceUserRoles.VIEWER
-            | WorkspaceUserRoles.COMMENTER
-            | WorkspaceUserRoles.NO_ACCESS,
+          workspace_role: assignment.roles as Exclude<
+            WorkspaceUserRoles,
+            WorkspaceUserRoles.OWNER
+          >,
           created_at: assignment.created_at!,
           updated_at: assignment.updated_at!,
         };
@@ -141,12 +139,10 @@ export class WorkspaceTeamsV3Service {
       team_icon: meta.icon || null,
       team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
-      workspace_role: assignment.roles as
-        | WorkspaceUserRoles.CREATOR
-        | WorkspaceUserRoles.EDITOR
-        | WorkspaceUserRoles.VIEWER
-        | WorkspaceUserRoles.COMMENTER
-        | WorkspaceUserRoles.NO_ACCESS,
+      workspace_role: assignment.roles as Exclude<
+        WorkspaceUserRoles,
+        WorkspaceUserRoles.OWNER
+      >,
       created_at: assignment.created_at!,
       updated_at: assignment.updated_at!,
     };
@@ -212,12 +208,10 @@ export class WorkspaceTeamsV3Service {
       team_icon: meta.icon || null,
       team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
-      workspace_role: updatedAssignment.roles as
-        | WorkspaceUserRoles.CREATOR
-        | WorkspaceUserRoles.EDITOR
-        | WorkspaceUserRoles.VIEWER
-        | WorkspaceUserRoles.COMMENTER
-        | WorkspaceUserRoles.NO_ACCESS,
+      workspace_role: updatedAssignment.roles as Exclude<
+        WorkspaceUserRoles,
+        WorkspaceUserRoles.OWNER
+      >,
       created_at: updatedAssignment.created_at!,
       updated_at: updatedAssignment.updated_at!,
     };
@@ -312,12 +306,10 @@ export class WorkspaceTeamsV3Service {
       team_icon: meta.icon || null,
       team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
-      workspace_role: assignment.roles as
-        | WorkspaceUserRoles.CREATOR
-        | WorkspaceUserRoles.EDITOR
-        | WorkspaceUserRoles.VIEWER
-        | WorkspaceUserRoles.COMMENTER
-        | WorkspaceUserRoles.NO_ACCESS,
+      workspace_role: assignment.roles as Exclude<
+        WorkspaceUserRoles,
+        WorkspaceUserRoles.OWNER
+      >,
       created_at: assignment.created_at!,
       updated_at: assignment.updated_at!,
     };

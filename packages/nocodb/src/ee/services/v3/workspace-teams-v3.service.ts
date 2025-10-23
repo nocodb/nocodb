@@ -13,8 +13,8 @@ import { NcError } from '~/helpers/catchError';
 import { Principal, PrincipalAssignment, Team } from '~/models';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
-import {validatePayload} from "~/helpers";
-import Noco from "~/Noco";
+import { validatePayload } from '~/helpers';
+import Noco from '~/Noco';
 
 @Injectable()
 export class WorkspaceTeamsV3Service {
@@ -58,6 +58,7 @@ export class WorkspaceTeamsV3Service {
           team_id: team.id,
           team_title: team.title,
           team_icon: meta.icon || null,
+          team_icon_type: meta.icon_type || null,
           team_badge_color: meta.badge_color || null,
           workspace_role: assignment.roles as
             | WorkspaceUserRoles.CREATOR
@@ -138,6 +139,7 @@ export class WorkspaceTeamsV3Service {
       team_id: team.id,
       team_title: team.title,
       team_icon: meta.icon || null,
+      team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
       workspace_role: assignment.roles as
         | WorkspaceUserRoles.CREATOR
@@ -208,6 +210,7 @@ export class WorkspaceTeamsV3Service {
       team_id: team.id,
       team_title: team.title,
       team_icon: meta.icon || null,
+      team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
       workspace_role: updatedAssignment.roles as
         | WorkspaceUserRoles.CREATOR
@@ -307,6 +310,7 @@ export class WorkspaceTeamsV3Service {
       team_id: team.id,
       team_title: team.title,
       team_icon: meta.icon || null,
+      team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
       workspace_role: assignment.roles as
         | WorkspaceUserRoles.CREATOR

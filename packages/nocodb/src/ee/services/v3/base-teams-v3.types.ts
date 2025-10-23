@@ -1,9 +1,10 @@
-import type { ProjectRoles } from 'nocodb-sdk';
+import type { IconType, ProjectRoles } from 'nocodb-sdk';
 
 export interface BaseTeamV3ResponseType {
   team_id: string;
   team_title: string;
   team_icon?: string;
+  team_icon_type?: IconType;
   team_badge_color?: string;
   base_role:
     | ProjectRoles.CREATOR
@@ -47,6 +48,7 @@ export interface BaseTeamDetailV3Type {
   team_id: string;
   team_title: string;
   team_icon?: string;
+  team_icon_type?: IconType;
   team_badge_color?: string;
   base_role:
     | ProjectRoles.CREATOR

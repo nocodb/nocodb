@@ -1,9 +1,10 @@
-import type { WorkspaceUserRoles } from 'nocodb-sdk';
+import type { IconType, WorkspaceUserRoles } from 'nocodb-sdk';
 
 export interface WorkspaceTeamV3ResponseType {
   team_id: string;
   team_title: string;
   team_icon?: string;
+  team_icon_type?: IconType;
   team_badge_color?: string;
   workspace_role:
     | WorkspaceUserRoles.CREATOR
@@ -47,6 +48,7 @@ export interface WorkspaceTeamDetailV3Type {
   team_id: string;
   team_title: string;
   team_icon?: string;
+  team_icon_type?: IconType;
   team_badge_color?: string;
   workspace_role:
     | WorkspaceUserRoles.CREATOR

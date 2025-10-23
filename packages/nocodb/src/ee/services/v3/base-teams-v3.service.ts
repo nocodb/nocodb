@@ -58,6 +58,7 @@ export class BaseTeamsV3Service {
           team_id: team.id,
           team_title: team.title,
           team_icon: meta.icon || null,
+          team_icon_type: meta.icon_type || null,
           team_badge_color: meta.badge_color || null,
           base_role: assignment.roles as
             | ProjectRoles.CREATOR
@@ -138,6 +139,7 @@ export class BaseTeamsV3Service {
       team_id: team.id,
       team_title: team.title,
       team_icon: meta.icon || null,
+      team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
       base_role: assignment.roles as
         | ProjectRoles.CREATOR
@@ -208,6 +210,7 @@ export class BaseTeamsV3Service {
       team_id: team.id,
       team_title: team.title,
       team_icon: meta.icon || null,
+      team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
       base_role: updatedAssignment.roles as
         | ProjectRoles.CREATOR
@@ -307,6 +310,7 @@ export class BaseTeamsV3Service {
       team_id: team.id,
       team_title: team.title,
       team_icon: meta.icon || null,
+      team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
       base_role: assignment.roles as
         | ProjectRoles.CREATOR

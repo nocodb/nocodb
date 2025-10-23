@@ -284,7 +284,7 @@ export class UsersService extends UsersServiceCE {
 
     let createdWorkspace;
 
-    let { password } = param.req.body;
+    const { password } = param.req.body;
 
     // validate password and throw error if password is satisfying the conditions
     const { valid, error } = validatePassword(password);

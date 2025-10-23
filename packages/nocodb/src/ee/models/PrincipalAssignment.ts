@@ -1,5 +1,5 @@
 import type { NcContext } from '~/interface/config';
-import type { ResourceType } from '~/utils/globals';
+import type { ResourceType, PrincipalType } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
@@ -14,7 +14,8 @@ import {
 export default class PrincipalAssignment {
   resource_type: ResourceType; // Uses ResourceType enum
   resource_id: string; // ID of the resource
-  fk_principal_id: string; // FK to principals table
+  principal_type: PrincipalType; // Uses PrincipalType enum
+  principal_ref_id: string; // FK to user/team/bot table
   roles: string; // Role(s) assigned
   created_at?: string;
   updated_at?: string;
@@ -37,7 +38,8 @@ export default class PrincipalAssignment {
     const insertObj = extractProps(assignment, [
       'resource_type',
       'resource_id',
-      'fk_principal_id',
+      'principal_type',
+      'principal_ref_id',
       'roles',
     ]);
 
@@ -55,14 +57,15 @@ export default class PrincipalAssignment {
       MetaTable.PRINCIPAL_ASSIGNMENTS,
       {
         resource_id: insertObj.resource_id,
-        fk_principal_id: insertObj.fk_principal_id,
         resource_type: insertObj.resource_type,
+        principal_type: insertObj.principal_type,
+        principal_ref_id: insertObj.principal_ref_id,
       },
     );
 
     await NocoCache.set(
       context,
-      `${CacheScope.PRINCIPAL_ASSIGNMENT}:${insertObj.resource_type}:${insertObj.resource_id}:${insertObj.fk_principal_id}`,
+      `${CacheScope.PRINCIPAL_ASSIGNMENT}:${insertObj.resource_type}:${insertObj.resource_id}:${insertObj.principal_type}:${insertObj.principal_ref_id}`,
       assignmentData,
     );
 
@@ -77,7 +80,8 @@ export default class PrincipalAssignment {
     context: NcContext,
     resourceType: ResourceType,
     resourceId: string,
-    principalId: string,
+    principalType: PrincipalType,
+    principalRefId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<PrincipalAssignment | null> {
     const assignments = await ncMeta.metaList2(
@@ -88,7 +92,8 @@ export default class PrincipalAssignment {
         condition: {
           resource_type: resourceType,
           resource_id: resourceId,
-          fk_principal_id: principalId,
+          principal_type: principalType,
+          principal_ref_id: principalRefId,
         },
       },
     );
@@ -101,7 +106,8 @@ export default class PrincipalAssignment {
     filter?: {
       resource_type?: ResourceType;
       resource_id?: string;
-      fk_principal_id?: string;
+      principal_type?: PrincipalType;
+      principal_ref_id?: string;
       roles?: string;
     },
     ncMeta = Noco.ncMeta,
@@ -136,13 +142,15 @@ export default class PrincipalAssignment {
 
   public static async listByPrincipal(
     context: NcContext,
-    principalId: string,
+    principalType: PrincipalType,
+    principalRefId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<PrincipalAssignment[]> {
     return this.list(
       context,
       {
-        fk_principal_id: principalId,
+        principal_type: principalType,
+        principal_ref_id: principalRefId,
       },
       ncMeta,
     );
@@ -163,7 +171,7 @@ export default class PrincipalAssignment {
     );
 
     if (cachedCount !== null) {
-      return cachedCount;
+      return parseInt(cachedCount);
     }
 
     // If not in cache, get from database
@@ -177,7 +185,7 @@ export default class PrincipalAssignment {
     const count = assignments.length;
 
     // Cache the count for 5 minutes
-    await NocoCache.setExpiring(context, cacheKey, count, 300);
+    await NocoCache.setExpiring(context, cacheKey, count.toString(), 300);
 
     return count;
   }
@@ -205,7 +213,8 @@ export default class PrincipalAssignment {
     context: NcContext,
     resourceType: ResourceType,
     resourceId: string,
-    principalId: string,
+    principalType: PrincipalType,
+    principalRefId: string,
     updateData: Partial<PrincipalAssignment>,
     ncMeta = Noco.ncMeta,
   ): Promise<PrincipalAssignment> {
@@ -219,7 +228,8 @@ export default class PrincipalAssignment {
       {
         resource_type: resourceType,
         resource_id: resourceId,
-        fk_principal_id: principalId,
+        principal_type: principalType,
+        principal_ref_id: principalRefId,
       },
     );
 
@@ -227,14 +237,15 @@ export default class PrincipalAssignment {
       context,
       resourceType,
       resourceId,
-      principalId,
+      principalType,
+      principalRefId,
       ncMeta,
     );
 
     if (updatedAssignment) {
       await NocoCache.set(
         context,
-        `${CacheScope.PRINCIPAL_ASSIGNMENT}:${resourceType}:${resourceId}:${principalId}`,
+        `${CacheScope.PRINCIPAL_ASSIGNMENT}:${resourceType}:${resourceId}:${principalType}:${principalRefId}`,
         updatedAssignment,
       );
     }
@@ -250,7 +261,8 @@ export default class PrincipalAssignment {
     context: NcContext,
     resourceType: ResourceType,
     resourceId: string,
-    principalId: string,
+    principalType: PrincipalType,
+    principalRefId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     await ncMeta.metaDelete(
@@ -260,7 +272,8 @@ export default class PrincipalAssignment {
       {
         resource_type: resourceType,
         resource_id: resourceId,
-        fk_principal_id: principalId,
+        principal_type: principalType,
+        principal_ref_id: principalRefId,
       },
     );
 
@@ -278,12 +291,14 @@ export default class PrincipalAssignment {
 
   public static async deleteByPrincipal(
     context: NcContext,
-    principalId: string,
+    principalType: PrincipalType,
+    principalRefId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     const assignments = await this.listByPrincipal(
       context,
-      principalId,
+      principalType,
+      principalRefId,
       ncMeta,
     );
 
@@ -292,7 +307,8 @@ export default class PrincipalAssignment {
         context,
         assignment.resource_type,
         assignment.resource_id,
-        assignment.fk_principal_id,
+        assignment.principal_type,
+        assignment.principal_ref_id,
         ncMeta,
       );
     }

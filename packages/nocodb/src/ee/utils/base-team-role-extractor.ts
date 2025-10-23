@@ -1,5 +1,4 @@
 import type { NcContext } from '~/interface/config';
-import Principal from '~/ee/models/Principal';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 
@@ -16,17 +15,6 @@ export async function extractUserBaseTeamRoles(
   baseId: string,
 ): Promise<Record<string, boolean> | null> {
   try {
-    // Get user principal
-    const userPrincipal = await Principal.getByTypeAndRef(
-      context,
-      PrincipalType.USER,
-      userId,
-    );
-
-    if (!userPrincipal) {
-      return null;
-    }
-
     // Get all team assignments for this base
     const baseTeamAssignments = await PrincipalAssignment.listByResource(
       context,
@@ -38,15 +26,8 @@ export async function extractUserBaseTeamRoles(
     const userBaseTeamRoles = [];
 
     for (const assignment of baseTeamAssignments) {
-      // Get the principal (should be a team)
-      const teamPrincipal = await Principal.get(
-        context,
-        assignment.fk_principal_id,
-      );
-      if (
-        !teamPrincipal ||
-        teamPrincipal.principal_type !== PrincipalType.TEAM
-      ) {
+      // Check if this assignment is for a team
+      if (assignment.principal_type !== PrincipalType.TEAM) {
         continue;
       }
 
@@ -54,8 +35,9 @@ export async function extractUserBaseTeamRoles(
       const userTeamAssignment = await PrincipalAssignment.get(
         context,
         ResourceType.TEAM,
-        teamPrincipal.ref_id,
-        userPrincipal.id,
+        assignment.principal_ref_id,
+        PrincipalType.USER,
+        userId,
       );
 
       if (userTeamAssignment) {
@@ -72,26 +54,41 @@ export async function extractUserBaseTeamRoles(
     }
 
     // Merge base-team roles - take the highest privilege
-    // For base roles, we need to map team roles to base roles
-    // Manager role in team typically maps to higher base roles
-    const roles: Record<string, boolean> = {};
+    // Define role hierarchy (higher index = higher privilege)
+    const roleHierarchy = ['no-access', 'viewer', 'commenter', 'editor', 'creator', 'owner'];
+    
+    let highestRole = null;
+    let highestRoleIndex = -1;
 
     for (const roleInfo of userBaseTeamRoles) {
+      const roleIndex = roleHierarchy.indexOf(roleInfo.baseRole);
+      
       // Map team roles to base roles based on team role
       if (roleInfo.teamRole === 'manager') {
         // Manager in team gets higher base role
-        roles[roleInfo.baseRole] = true;
+        if (roleIndex > highestRoleIndex) {
+          highestRole = roleInfo.baseRole;
+          highestRoleIndex = roleIndex;
+        }
         // Also give them editor role if they don't have owner
-        if (roleInfo.baseRole !== 'owner') {
-          roles['editor'] = true;
+        if (roleInfo.baseRole !== 'owner' && roleHierarchy.indexOf('editor') > highestRoleIndex) {
+          highestRole = 'editor';
+          highestRoleIndex = roleHierarchy.indexOf('editor');
         }
       } else {
         // Member in team gets the base role as-is
-        roles[roleInfo.baseRole] = true;
+        if (roleIndex > highestRoleIndex) {
+          highestRole = roleInfo.baseRole;
+          highestRoleIndex = roleIndex;
+        }
       }
     }
 
-    return Object.keys(roles).length > 0 ? roles : null;
+    if (highestRole) {
+      return { [highestRole]: true };
+    }
+
+    return null;
   } catch (error) {
     // Return null on error to avoid breaking the role extraction
     return null;

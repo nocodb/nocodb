@@ -167,7 +167,6 @@ export const orderedMetaTables = [
   MetaTable.AUDIT,
   MetaTable.TEAM_USERS,
   MetaTable.TEAMS,
-  MetaTable.PRINCIPALS,
   MetaTable.PRINCIPAL_ASSIGNMENTS,
   MetaTable.ORGS_OLD,
   MetaTable.PROJECT_USERS,
@@ -378,7 +377,6 @@ export const RootScopeTables = {
     MetaTable.COL_BUTTON,
     MetaTable.COL_LONG_TEXT,
 
-    MetaTable.PRINCIPALS,
     MetaTable.PRINCIPAL_ASSIGNMENTS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],

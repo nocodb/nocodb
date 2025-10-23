@@ -6713,6 +6713,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             // it's still valid as a historical record
             include_ws_deleted: true,
             include_internal_user: true,
+            include_team_users: true,
           });
 
           if (typeof data[column.column_name] === 'object') {

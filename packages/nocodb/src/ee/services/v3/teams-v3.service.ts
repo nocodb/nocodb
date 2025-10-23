@@ -12,7 +12,7 @@ import type {
   TeamV3ResponseType,
 } from './teams-v3.types';
 import { NcError } from '~/helpers/catchError';
-import { Principal, PrincipalAssignment, Team } from '~/ee/models';
+import { PrincipalAssignment, Team } from '~/ee/models';
 import { User } from '~/models';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
@@ -128,16 +128,18 @@ export class TeamsV3Service {
       ResourceType.TEAM,
       param.teamId,
     );
+    
+    // Filter only user assignments
+    const userAssignments = teamAssignments.filter(
+      (assignment) => assignment.principal_type === PrincipalType.USER,
+    );
+    
     const membersWithUsers = await Promise.all(
-      teamAssignments.map(async (assignment) => {
-        const principal = await Principal.get(
-          context,
-          assignment.fk_principal_id,
-        );
-        if (!principal || principal.principal_type !== PrincipalType.USER) {
+      userAssignments.map(async (assignment) => {
+        const user = await User.get(assignment.principal_ref_id);
+        if (!user) {
           return null;
         }
-        const user = await User.get(principal.ref_id);
         return {
           assignment,
           user,
@@ -216,32 +218,19 @@ export class TeamsV3Service {
 
     // Add members if provided
     if (param.team.members && param.team.members.length > 0) {
-      for (const member of param.team.members) {
+      for (const member of param.team.members ?? []) {
         // Verify user exists and belongs to workspace/org
         const user = await User.get(member.user_id);
         if (!user) {
           NcError.get(context).userNotFound(member.user_id);
         }
 
-        // Create or get user principal
-        let userPrincipal = await Principal.getByTypeAndRef(
-          context,
-          PrincipalType.USER,
-          member.user_id,
-        );
-        if (!userPrincipal) {
-          userPrincipal = await Principal.insert(context, {
-            id: (await Noco.ncMeta.genNanoid(MetaTable.PRINCIPALS)) as string,
-            principal_type: PrincipalType.USER,
-            ref_id: member.user_id,
-          });
-        }
-
         // Add user to team via principal assignment
         await PrincipalAssignment.insert(context, {
           resource_type: ResourceType.TEAM,
           resource_id: teamId,
-          fk_principal_id: userPrincipal.id,
+          principal_type: PrincipalType.USER,
+          principal_ref_id: member.user_id,
           roles: member.team_role,
         });
       }
@@ -250,32 +239,20 @@ export class TeamsV3Service {
     // Add creator as team manager if not already added
     const creatorId = param.req.user?.id;
     if (creatorId) {
-      // Create or get creator principal
-      let creatorPrincipal = await Principal.getByTypeAndRef(
-        context,
-        PrincipalType.USER,
-        creatorId,
-      );
-      if (!creatorPrincipal) {
-        creatorPrincipal = await Principal.insert(context, {
-          id: (await Noco.ncMeta.genNanoid(MetaTable.PRINCIPALS)) as string,
-          principal_type: PrincipalType.USER,
-          ref_id: creatorId,
-        });
-      }
-
       // Check if creator is already assigned to team
       const existingAssignment = await PrincipalAssignment.get(
         context,
         ResourceType.TEAM,
         teamId,
-        creatorPrincipal.id,
+        PrincipalType.USER,
+        creatorId,
       );
       if (!existingAssignment) {
         await PrincipalAssignment.insert(context, {
           resource_type: ResourceType.TEAM,
           resource_id: teamId,
-          fk_principal_id: creatorPrincipal.id,
+          principal_type: PrincipalType.USER,
+          principal_ref_id: creatorId,
           roles: 'manager',
         });
       }
@@ -333,24 +310,13 @@ export class TeamsV3Service {
     // Check if user is team manager
     const userId = param.req.user?.id;
     if (userId) {
-      // Get user principal
-      const userPrincipal = await Principal.getByTypeAndRef(
-        context,
-        PrincipalType.USER,
-        userId,
-      );
-      if (!userPrincipal) {
-        NcError.get(context).forbidden(
-          'Only team managers can update team information',
-        );
-      }
-
       // Check if user is assigned as manager to this team
       const assignment = await PrincipalAssignment.get(
         context,
         ResourceType.TEAM,
         param.teamId,
-        userPrincipal.id,
+        PrincipalType.USER,
+        userId,
       );
       if (!assignment || assignment.roles !== 'manager') {
         NcError.get(context).forbidden(
@@ -424,22 +390,13 @@ export class TeamsV3Service {
     // Check if user is team manager or org owner
     const userId = param.req.user?.id;
     if (userId) {
-      // Get user principal
-      const userPrincipal = await Principal.getByTypeAndRef(
-        context,
-        PrincipalType.USER,
-        userId,
-      );
-      if (!userPrincipal) {
-        NcError.get(context).forbidden('Only team managers can delete teams');
-      }
-
       // Check if user is assigned as manager to this team
       const assignment = await PrincipalAssignment.get(
         context,
         ResourceType.TEAM,
         param.teamId,
-        userPrincipal.id,
+        PrincipalType.USER,
+        userId,
       );
       const isTeamManager = assignment && assignment.roles === 'manager';
 
@@ -460,7 +417,8 @@ export class TeamsV3Service {
         context,
         ResourceType.TEAM,
         param.teamId,
-        assignment.fk_principal_id,
+        assignment.principal_type,
+        assignment.principal_ref_id,
       );
     }
 
@@ -494,22 +452,13 @@ export class TeamsV3Service {
     // Check if user is team manager
     const userId = param.req.user?.id;
     if (userId) {
-      // Get user principal
-      const userPrincipal = await Principal.getByTypeAndRef(
-        context,
-        PrincipalType.USER,
-        userId,
-      );
-      if (!userPrincipal) {
-        NcError.get(context).forbidden('Only team managers can add members');
-      }
-
       // Check if user is assigned as manager to this team
       const assignment = await PrincipalAssignment.get(
         context,
         ResourceType.TEAM,
         param.teamId,
-        userPrincipal.id,
+        PrincipalType.USER,
+        userId,
       );
       if (!assignment || assignment.roles !== 'manager') {
         NcError.get(context).forbidden('Only team managers can add members');
@@ -518,25 +467,11 @@ export class TeamsV3Service {
 
     const addedMembers = [];
 
-    for (const member of param.members) {
+    for (const member of param.members ?? []) {
       // Check if user exists
       const user = await User.get(member.user_id);
       if (!user) {
         NcError.get(context).userNotFound(member.user_id);
-      }
-
-      // Create or get user principal
-      let userPrincipal = await Principal.getByTypeAndRef(
-        context,
-        PrincipalType.USER,
-        member.user_id,
-      );
-      if (!userPrincipal) {
-        userPrincipal = await Principal.insert(context, {
-          id: (await Noco.ncMeta.genNanoid(MetaTable.PRINCIPALS)) as string,
-          principal_type: PrincipalType.USER,
-          ref_id: member.user_id,
-        });
       }
 
       // Check if user is already assigned to team
@@ -544,7 +479,8 @@ export class TeamsV3Service {
         context,
         ResourceType.TEAM,
         param.teamId,
-        userPrincipal.id,
+        PrincipalType.USER,
+        member.user_id,
       );
       if (existingAssignment) {
         NcError.get(context).invalidRequestBody(
@@ -555,7 +491,8 @@ export class TeamsV3Service {
       const assignment = await PrincipalAssignment.insert(context, {
         resource_type: ResourceType.TEAM,
         resource_id: param.teamId,
-        fk_principal_id: userPrincipal.id,
+        principal_type: PrincipalType.USER,
+        principal_ref_id: member.user_id,
         roles: member.team_role === 'manager' ? 'manager' : member.team_role,
       });
 
@@ -565,11 +502,7 @@ export class TeamsV3Service {
     // Transform to v3 response format with email
     const members = await Promise.all(
       addedMembers.map(async (assignment) => {
-        const principal = await Principal.get(
-          context,
-          assignment.fk_principal_id,
-        );
-        const user = await this.getUserById(context, principal!.ref_id);
+        const user = await this.getUserById(context, assignment.principal_ref_id);
         return {
           user_id: user.id,
           user_email: user.email,
@@ -605,41 +538,29 @@ export class TeamsV3Service {
     const userId = param.req.user?.id;
     const removedMembers = [];
 
-    for (const member of param.members) {
-      // Get user principal
-      const userPrincipal = await Principal.getByTypeAndRef(
-        context,
-        PrincipalType.USER,
-        member.user_id,
-      );
-      if (!userPrincipal) {
-        NcError.get(context).userNotFound(member.user_id);
-      }
-
+    for (const member of param.members ?? []) {
       // Check if user is assigned to team
       const assignment = await PrincipalAssignment.get(
         context,
         ResourceType.TEAM,
         param.teamId,
-        userPrincipal.id,
+        PrincipalType.USER,
+        member.user_id,
       );
       if (!assignment) {
         NcError.get(context).userNotFound(member.user_id);
       }
 
       // Check permissions: team manager or user removing themselves
-      const currentUserPrincipal = userId
-        ? await Principal.getByTypeAndRef(context, PrincipalType.USER, userId)
-        : null;
-      const isTeamManager =
-        (currentUserPrincipal &&
-          (await PrincipalAssignment.get(
+      const isTeamManager = userId
+        ? (await PrincipalAssignment.get(
             context,
             ResourceType.TEAM,
             param.teamId,
-            currentUserPrincipal.id,
-          ).then((a) => a?.roles === 'manager'))) ||
-        false;
+            PrincipalType.USER,
+            userId,
+          ).then((a) => a?.roles === 'manager')) || false
+        : false;
       const isSelfRemoval = userId === member.user_id;
 
       if (!isTeamManager && !isSelfRemoval) {
@@ -665,7 +586,8 @@ export class TeamsV3Service {
         context,
         ResourceType.TEAM,
         param.teamId,
-        userPrincipal.id,
+        PrincipalType.USER,
+        member.user_id,
       );
       removedMembers.push({ user_id: member.user_id });
     }
@@ -697,24 +619,13 @@ export class TeamsV3Service {
     // Check if user is team manager
     const userId = param.req.user?.id;
     if (userId) {
-      // Get user principal
-      const userPrincipal = await Principal.getByTypeAndRef(
-        context,
-        PrincipalType.USER,
-        userId,
-      );
-      if (!userPrincipal) {
-        NcError.get(context).forbidden(
-          'Only team managers can update member roles',
-        );
-      }
-
       // Check if user is assigned as manager to this team
       const assignment = await PrincipalAssignment.get(
         context,
         ResourceType.TEAM,
         param.teamId,
-        userPrincipal.id,
+        PrincipalType.USER,
+        userId,
       );
       if (!assignment || assignment.roles !== 'manager') {
         NcError.get(context).forbidden(
@@ -725,25 +636,14 @@ export class TeamsV3Service {
 
     const updatedMembers = [];
 
-    for (const member of param.members) {
-      // Get user principal
-      const userPrincipal = await Principal.getByTypeAndRef(
-        context,
-        PrincipalType.USER,
-        member.user_id,
-      );
-      if (!userPrincipal) {
-        NcError.get(context).invalidRequestBody(
-          `User ${member.user_id} not found in this team`,
-        );
-      }
-
+    for (const member of param.members ?? []) {
       // Check if user is assigned to team
       const assignment = await PrincipalAssignment.get(
         context,
         ResourceType.TEAM,
         param.teamId,
-        userPrincipal.id,
+        PrincipalType.USER,
+        member.user_id,
       );
       if (!assignment) {
         NcError.get(context).invalidRequestBody(
@@ -755,7 +655,8 @@ export class TeamsV3Service {
         context,
         ResourceType.TEAM,
         param.teamId,
-        userPrincipal.id,
+        PrincipalType.USER,
+        member.user_id,
         { roles: member.team_role },
       );
 
@@ -765,11 +666,7 @@ export class TeamsV3Service {
     // Transform to v3 response format with email
     const members = await Promise.all(
       updatedMembers.map(async (assignment) => {
-        const principal = await Principal.get(
-          context,
-          assignment.fk_principal_id,
-        );
-        const user = await this.getUserById(context, principal!.ref_id);
+        const user = await this.getUserById(context, assignment.principal_ref_id);
         return {
           user_id: user.id,
           user_email: user.email,

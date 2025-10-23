@@ -3,14 +3,16 @@ import type { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   WorkspaceTeamCreateV3ReqType,
+  WorkspaceTeamCreateV3BulkReqType,
   WorkspaceTeamDeleteV3ReqType,
+  WorkspaceTeamDeleteV3BulkReqType,
   WorkspaceTeamDetailV3Type,
   WorkspaceTeamListV3Type,
   WorkspaceTeamUpdateV3ReqType,
   WorkspaceTeamV3ResponseType,
 } from './workspace-teams-v3.types';
 import { NcError } from '~/helpers/catchError';
-import { Principal, PrincipalAssignment, Team } from '~/models';
+import { PrincipalAssignment, Team, User } from '~/models';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { validatePayload } from '~/helpers';
@@ -33,21 +35,13 @@ export class WorkspaceTeamsV3Service {
 
     // Filter only team assignments
     const teamAssignments = assignments.filter(
-      (assignment) => assignment.resource_type === ResourceType.WORKSPACE,
+      (assignment) => assignment.principal_type === PrincipalType.TEAM,
     );
 
-    // Get team principals and their details
+    // Get team details
     const teams = await Promise.all(
       teamAssignments.map(async (assignment) => {
-        const principal = await Principal.get(
-          context,
-          assignment.fk_principal_id,
-        );
-        if (!principal || principal.principal_type !== PrincipalType.TEAM) {
-          return null;
-        }
-
-        const team = await Team.get(context, principal.ref_id);
+        const team = await Team.get(context, assignment.principal_ref_id);
         if (!team) {
           return null;
         }
@@ -96,26 +90,13 @@ export class WorkspaceTeamsV3Service {
       NcError.get(context).teamNotFound(param.team.team_id);
     }
 
-    // Create or get team principal
-    let teamPrincipal = await Principal.getByTypeAndRef(
-      context,
-      PrincipalType.TEAM,
-      param.team.team_id,
-    );
-    if (!teamPrincipal) {
-      teamPrincipal = await Principal.insert(context, {
-        id: (await Noco.ncMeta.genNanoid(MetaTable.PRINCIPALS)) as string,
-        principal_type: PrincipalType.TEAM,
-        ref_id: param.team.team_id,
-      });
-    }
-
     // Check if team is already assigned to workspace
     const existingAssignment = await PrincipalAssignment.get(
       context,
       ResourceType.WORKSPACE,
       param.workspaceId,
-      teamPrincipal.id,
+      PrincipalType.TEAM,
+      param.team.team_id,
     );
     if (existingAssignment) {
       NcError.get(context).invalidRequestBody(
@@ -127,7 +108,8 @@ export class WorkspaceTeamsV3Service {
     const assignment = await PrincipalAssignment.insert(context, {
       resource_type: ResourceType.WORKSPACE,
       resource_id: param.workspaceId,
-      fk_principal_id: teamPrincipal.id,
+      principal_type: PrincipalType.TEAM,
+      principal_ref_id: param.team.team_id,
       roles: param.team.workspace_role,
     });
 
@@ -152,139 +134,193 @@ export class WorkspaceTeamsV3Service {
     context: NcContext,
     param: {
       workspaceId: string;
-      team: WorkspaceTeamUpdateV3ReqType;
+      team: WorkspaceTeamUpdateV3ReqType | WorkspaceTeamUpdateV3ReqType[];
       req: NcRequest;
     },
-  ): Promise<WorkspaceTeamV3ResponseType> {
-    validatePayload(
-      'swagger-v3.json#/components/schemas/WorkspaceTeamUpdate',
-      param.team,
-      true,
-    );
+  ): Promise<WorkspaceTeamV3ResponseType | WorkspaceTeamV3ResponseType[]> {
+    const teams = Array.isArray(param.team) ? param.team : [param.team];
+    const results = [];
 
-    // Check if team exists
-    const team = await Team.get(context, param.team.team_id);
-    if (!team) {
-      NcError.get(context).teamNotFound(param.team.team_id);
-    }
-
-    // Get team principal
-    const teamPrincipal = await Principal.getByTypeAndRef(
-      context,
-      PrincipalType.TEAM,
-      param.team.team_id,
-    );
-    if (!teamPrincipal) {
-      NcError.get(context).teamNotFound(param.team.team_id);
-    }
-
-    // Check if team is assigned to workspace
-    const existingAssignment = await PrincipalAssignment.get(
-      context,
-      ResourceType.WORKSPACE,
-      param.workspaceId,
-      teamPrincipal.id,
-    );
-    if (!existingAssignment) {
-      NcError.get(context).invalidRequestBody(
-        `Team ${param.team.team_id} is not assigned to this workspace`,
+    for (const team of teams) {
+      validatePayload(
+        'swagger-v3.json#/components/schemas/WorkspaceTeamUpdate',
+        team,
+        true,
       );
+
+      // Check if team exists
+      const teamData = await Team.get(context, team.team_id);
+      if (!teamData) {
+        NcError.get(context).teamNotFound(team.team_id);
+      }
+
+      // Check if team is assigned to workspace
+      const existingAssignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.WORKSPACE,
+        param.workspaceId,
+        PrincipalType.TEAM,
+        team.team_id,
+      );
+      if (!existingAssignment) {
+        NcError.get(context).invalidRequestBody(
+          `Team ${team.team_id} is not assigned to this workspace`,
+        );
+      }
+
+      // Update the assignment
+      const updatedAssignment = await PrincipalAssignment.update(
+        context,
+        ResourceType.WORKSPACE,
+        param.workspaceId,
+        PrincipalType.TEAM,
+        team.team_id,
+        { roles: team.workspace_role },
+      );
+
+      const meta = parseMetaProp(teamData);
+
+      results.push({
+        team_id: teamData.id,
+        team_title: teamData.title,
+        team_icon: meta.icon || null,
+        team_icon_type: meta.icon_type || null,
+        team_badge_color: meta.badge_color || null,
+          base_role: updatedAssignment.roles as Exclude<
+              ProjectRoles,
+              ProjectRoles.OWNER
+          >,
+        created_at: updatedAssignment.created_at!,
+        updated_at: updatedAssignment.updated_at!,
+      });
     }
 
-    // Update the assignment
-    const updatedAssignment = await PrincipalAssignment.update(
-      context,
-      ResourceType.WORKSPACE,
-      param.workspaceId,
-      teamPrincipal.id,
-      { roles: param.team.workspace_role },
-    );
-
-    const meta = parseMetaProp(team);
-
-    return {
-      team_id: team.id,
-      team_title: team.title,
-      team_icon: meta.icon || null,
-      team_icon_type: meta.icon_type || null,
-      team_badge_color: meta.badge_color || null,
-      workspace_role: updatedAssignment.roles as Exclude<
-        WorkspaceUserRoles,
-        WorkspaceUserRoles.OWNER
-      >,
-      created_at: updatedAssignment.created_at!,
-      updated_at: updatedAssignment.updated_at!,
-    };
+    return Array.isArray(param.team) ? results : results[0];
   }
 
   async teamRemove(
     context: NcContext,
     param: {
       workspaceId: string;
-      team: WorkspaceTeamDeleteV3ReqType;
+      team: WorkspaceTeamDeleteV3ReqType | WorkspaceTeamDeleteV3ReqType[];
+      req: NcRequest;
+    },
+  ): Promise<{ msg: string }> {
+    const teams = Array.isArray(param.team) ? param.team : [param.team];
+
+    for (const team of teams) {
+      validatePayload(
+        'swagger-v3.json#/components/schemas/WorkspaceTeamDelete',
+        team,
+        true,
+      );
+
+      // Check if team is assigned to workspace
+      const existingAssignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.WORKSPACE,
+        param.workspaceId,
+        PrincipalType.TEAM,
+        team.team_id,
+      );
+      if (!existingAssignment) {
+        NcError.get(context).invalidRequestBody(
+          `Team ${team.team_id} is not assigned to this workspace`,
+        );
+      }
+
+      // Get all users in the team before deleting the assignment
+      const teamUsers = await PrincipalAssignment.list(
+        context,
+        {
+          resource_type: ResourceType.TEAM,
+          resource_id: team.team_id,
+          principal_type: PrincipalType.USER,
+        },
+      );
+
+      // Delete the assignment
+      await PrincipalAssignment.delete(
+        context,
+        ResourceType.WORKSPACE,
+        param.workspaceId,
+        PrincipalType.TEAM,
+        team.team_id,
+      );
+
+      // Clear user cache for all users in the team
+      for (const userAssignment of teamUsers) {
+        await User.clearCache(userAssignment.principal_ref_id);
+      }
+    }
+
+    return { msg: 'Team has been removed from workspace successfully' };
+  }
+
+  async teamAddBulk(
+    context: NcContext,
+    param: {
+      workspaceId: string;
+      teams: WorkspaceTeamCreateV3BulkReqType;
+      req: NcRequest;
+    },
+  ): Promise<WorkspaceTeamV3ResponseType[]> {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/WorkspaceTeamCreateBulk',
+      param.teams,
+      true,
+    );
+
+    const results = [];
+
+    for (const team of param.teams.teams) {
+      const result = await this.teamAdd(context, {
+        workspaceId: param.workspaceId,
+        team,
+        req: param.req,
+      });
+      results.push(result);
+    }
+
+    return results;
+  }
+
+  async teamRemoveBulk(
+    context: NcContext,
+    param: {
+      workspaceId: string;
+      teams: WorkspaceTeamDeleteV3BulkReqType;
       req: NcRequest;
     },
   ): Promise<{ msg: string }> {
     validatePayload(
-      'swagger-v3.json#/components/schemas/WorkspaceTeamDelete',
-      param.team,
+      'swagger-v3.json#/components/schemas/WorkspaceTeamDeleteBulk',
+      param.teams,
       true,
     );
 
-    // Get team principal
-    const teamPrincipal = await Principal.getByTypeAndRef(
-      context,
-      PrincipalType.TEAM,
-      param.team.team_id,
-    );
-    if (!teamPrincipal) {
-      NcError.get(context).teamNotFound(param.team.team_id);
+    for (const team of param.teams.teams) {
+      await this.teamRemove(context, {
+        workspaceId: param.workspaceId,
+        team,
+        req: param.req,
+      });
     }
 
-    // Check if team is assigned to workspace
-    const existingAssignment = await PrincipalAssignment.get(
-      context,
-      ResourceType.WORKSPACE,
-      param.workspaceId,
-      teamPrincipal.id,
-    );
-    if (!existingAssignment) {
-      NcError.get(context).invalidRequestBody(
-        `Team ${param.team.team_id} is not assigned to this workspace`,
-      );
-    }
-
-    // Delete the assignment
-    await PrincipalAssignment.delete(
-      context,
-      ResourceType.WORKSPACE,
-      param.workspaceId,
-      teamPrincipal.id,
-    );
-
-    return { msg: 'Team has been removed from workspace successfully' };
+    return { msg: 'Teams have been removed from workspace successfully' };
   }
 
   async teamDetail(
     context: NcContext,
     param: { workspaceId: string; teamId: string },
   ): Promise<WorkspaceTeamDetailV3Type> {
-    // Get team principal
-    const teamPrincipal = await Principal.getByTypeAndRef(
-      context,
-      PrincipalType.TEAM,
-      param.teamId,
-    );
-    if (!teamPrincipal) {
-      NcError.get(context).teamNotFound(param.teamId);
-    }
-
     // Check if team is assigned to workspace
     const assignment = await PrincipalAssignment.get(
       context,
       ResourceType.WORKSPACE,
       param.workspaceId,
-      teamPrincipal.id,
+      PrincipalType.TEAM,
+      param.teamId,
     );
     if (!assignment) {
       NcError.get(context).invalidRequestBody(

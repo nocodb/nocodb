@@ -16,6 +16,10 @@ export interface BaseTeamCreateV3ReqType {
   base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>;
 }
 
+export interface BaseTeamCreateV3BulkReqType {
+  teams: BaseTeamCreateV3ReqType[];
+}
+
 export interface BaseTeamUpdateV3ReqType {
   team_id: string;
   base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>;
@@ -23,6 +27,10 @@ export interface BaseTeamUpdateV3ReqType {
 
 export interface BaseTeamDeleteV3ReqType {
   team_id: string;
+}
+
+export interface BaseTeamDeleteV3BulkReqType {
+  teams: BaseTeamDeleteV3ReqType[];
 }
 
 export interface BaseTeamListV3Type {

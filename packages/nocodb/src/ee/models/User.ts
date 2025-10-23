@@ -581,8 +581,8 @@ export default class User extends UserCE implements UserType {
     let finalBaseRoles = baseRoles;
 
     if (args.baseId) {
-      // If no direct base roles, use sequential fallback
-      if (!finalBaseRoles) {
+      // If no direct base roles or empty roles object, use sequential fallback
+      if (!finalBaseRoles || Object.keys(finalBaseRoles).length === 0) {
         // 1. Try base-team roles first
         if (baseTeamRoles) {
           finalBaseRoles = baseTeamRoles;
@@ -599,15 +599,18 @@ export default class User extends UserCE implements UserType {
         }
       }
       // If direct base roles exist, they take highest priority (no override needed)
+      // Direct base roles should override any inherited roles
     }
 
-    return {
+    const finalUser = {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
       workspace_roles: finalWorkspaceRoles ? finalWorkspaceRoles : null,
       base_roles: finalBaseRoles ?? null,
       org_roles: orgRoles ? orgRoles : null,
     } as any;
+
+    return finalUser;
   }
 
   protected static async clearCache(userId: string, ncMeta = Noco.ncMeta) {

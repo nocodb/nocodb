@@ -3,14 +3,16 @@ import type { ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   BaseTeamCreateV3ReqType,
+  BaseTeamCreateV3BulkReqType,
   BaseTeamDeleteV3ReqType,
+  BaseTeamDeleteV3BulkReqType,
   BaseTeamDetailV3Type,
   BaseTeamListV3Type,
   BaseTeamUpdateV3ReqType,
   BaseTeamV3ResponseType,
 } from './base-teams-v3.types';
 import { NcError } from '~/helpers/catchError';
-import { Principal, PrincipalAssignment, Team } from '~/models';
+import { PrincipalAssignment, Team, User } from '~/models';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
 import { parseMetaProp } from '~/utils/modelUtils';
@@ -24,6 +26,9 @@ export class BaseTeamsV3Service {
     context: NcContext,
     param: { baseId: string },
   ): Promise<BaseTeamListV3Type> {
+
+
+
     // Get all team assignments for this base
     const assignments = await PrincipalAssignment.listByResource(
       context,
@@ -33,21 +38,13 @@ export class BaseTeamsV3Service {
 
     // Filter only team assignments
     const teamAssignments = assignments.filter(
-      (assignment) => assignment.resource_type === ResourceType.BASE,
+      (assignment) => assignment.principal_type === PrincipalType.TEAM,
     );
 
-    // Get team principals and their details
+    // Get team details
     const teams = await Promise.all(
       teamAssignments.map(async (assignment) => {
-        const principal = await Principal.get(
-          context,
-          assignment.fk_principal_id,
-        );
-        if (!principal || principal.principal_type !== PrincipalType.TEAM) {
-          return null;
-        }
-
-        const team = await Team.get(context, principal.ref_id);
+        const team = await Team.get(context, assignment.principal_ref_id);
         if (!team) {
           return null;
         }
@@ -96,26 +93,13 @@ export class BaseTeamsV3Service {
       NcError.get(context).teamNotFound(param.team.team_id);
     }
 
-    // Create or get team principal
-    let teamPrincipal = await Principal.getByTypeAndRef(
-      context,
-      PrincipalType.TEAM,
-      param.team.team_id,
-    );
-    if (!teamPrincipal) {
-      teamPrincipal = await Principal.insert(context, {
-        id: (await Noco.ncMeta.genNanoid(MetaTable.PRINCIPALS)) as string,
-        principal_type: PrincipalType.TEAM,
-        ref_id: param.team.team_id,
-      });
-    }
-
     // Check if team is already assigned to base
     const existingAssignment = await PrincipalAssignment.get(
       context,
       ResourceType.BASE,
       param.baseId,
-      teamPrincipal.id,
+      PrincipalType.TEAM,
+      param.team.team_id,
     );
     if (existingAssignment) {
       NcError.get(context).invalidRequestBody(
@@ -127,7 +111,8 @@ export class BaseTeamsV3Service {
     const assignment = await PrincipalAssignment.insert(context, {
       resource_type: ResourceType.BASE,
       resource_id: param.baseId,
-      fk_principal_id: teamPrincipal.id,
+      principal_type: PrincipalType.TEAM,
+      principal_ref_id: param.team.team_id,
       roles: param.team.base_role,
     });
 
@@ -149,139 +134,193 @@ export class BaseTeamsV3Service {
     context: NcContext,
     param: {
       baseId: string;
-      team: BaseTeamUpdateV3ReqType;
+      team: BaseTeamUpdateV3ReqType | BaseTeamUpdateV3ReqType[];
       req: NcRequest;
     },
-  ): Promise<BaseTeamV3ResponseType> {
-    validatePayload(
-      'swagger-v3.json#/components/schemas/BaseTeamUpdate',
-      param.team,
-      true,
-    );
+  ): Promise<BaseTeamV3ResponseType | BaseTeamV3ResponseType[]> {
+    const teams = Array.isArray(param.team) ? param.team : [param.team];
+    const results = [];
 
-    // Check if team exists
-    const team = await Team.get(context, param.team.team_id);
-    if (!team) {
-      NcError.get(context).teamNotFound(param.team.team_id);
-    }
-
-    // Get team principal
-    const teamPrincipal = await Principal.getByTypeAndRef(
-      context,
-      PrincipalType.TEAM,
-      param.team.team_id,
-    );
-    if (!teamPrincipal) {
-      NcError.get(context).teamNotFound(param.team.team_id);
-    }
-
-    // Check if team is assigned to base
-    const existingAssignment = await PrincipalAssignment.get(
-      context,
-      ResourceType.BASE,
-      param.baseId,
-      teamPrincipal.id,
-    );
-    if (!existingAssignment) {
-      NcError.get(context).invalidRequestBody(
-        `Team ${param.team.team_id} is not assigned to this base`,
+    for (const team of teams) {
+      validatePayload(
+        'swagger-v3.json#/components/schemas/BaseTeamUpdate',
+        team,
+        true,
       );
+
+      // Check if team exists
+      const teamData = await Team.get(context, team.team_id);
+      if (!teamData) {
+        NcError.get(context).teamNotFound(team.team_id);
+      }
+
+      // Check if team is assigned to base
+      const existingAssignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.BASE,
+        param.baseId,
+        PrincipalType.TEAM,
+        team.team_id,
+      );
+      if (!existingAssignment) {
+        NcError.get(context).invalidRequestBody(
+          `Team ${team.team_id} is not assigned to this base`,
+        );
+      }
+
+      // Update the assignment
+      const updatedAssignment = await PrincipalAssignment.update(
+        context,
+        ResourceType.BASE,
+        param.baseId,
+        PrincipalType.TEAM,
+        team.team_id,
+        { roles: team.base_role },
+      );
+
+      const meta = parseMetaProp(teamData);
+
+      results.push({
+        team_id: teamData.id,
+        team_title: teamData.title,
+        team_icon: meta.icon || null,
+        team_icon_type: meta.icon_type || null,
+        team_badge_color: meta.badge_color || null,
+          base_role: updatedAssignment.roles as Exclude<
+              ProjectRoles,
+              ProjectRoles.OWNER
+          >,
+        created_at: updatedAssignment.created_at!,
+        updated_at: updatedAssignment.updated_at!,
+      });
     }
 
-    // Update the assignment
-    const updatedAssignment = await PrincipalAssignment.update(
-      context,
-      ResourceType.BASE,
-      param.baseId,
-      teamPrincipal.id,
-      { roles: param.team.base_role },
-    );
-
-    const meta = parseMetaProp(team);
-
-    return {
-      team_id: team.id,
-      team_title: team.title,
-      team_icon: meta.icon || null,
-      team_icon_type: meta.icon_type || null,
-      team_badge_color: meta.badge_color || null,
-      base_role: updatedAssignment.roles as Exclude<
-        ProjectRoles,
-        ProjectRoles.OWNER
-      >,
-      created_at: updatedAssignment.created_at!,
-      updated_at: updatedAssignment.updated_at!,
-    };
+    return Array.isArray(param.team) ? results : results[0];
   }
 
   async teamRemove(
     context: NcContext,
     param: {
       baseId: string;
-      team: BaseTeamDeleteV3ReqType;
+      team: BaseTeamDeleteV3ReqType | BaseTeamDeleteV3ReqType[];
+      req: NcRequest;
+    },
+  ): Promise<{ msg: string }> {
+    const teams = Array.isArray(param.team) ? param.team : [param.team];
+
+    for (const team of teams) {
+      validatePayload(
+        'swagger-v3.json#/components/schemas/BaseTeamDelete',
+        team,
+        true,
+      );
+
+      // Check if team is assigned to base
+      const existingAssignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.BASE,
+        param.baseId,
+        PrincipalType.TEAM,
+        team.team_id,
+      );
+      if (!existingAssignment) {
+        NcError.get(context).invalidRequestBody(
+          `Team ${team.team_id} is not assigned to this base`,
+        );
+      }
+
+      // Get all users in the team before deleting the assignment
+      const teamUsers = await PrincipalAssignment.list(
+        context,
+        {
+          resource_type: ResourceType.TEAM,
+          resource_id: team.team_id,
+          principal_type: PrincipalType.USER,
+        },
+      );
+
+      // Delete the assignment
+      await PrincipalAssignment.delete(
+        context,
+        ResourceType.BASE,
+        param.baseId,
+        PrincipalType.TEAM,
+        team.team_id,
+      );
+
+      // Clear user cache for all users in the team
+      for (const userAssignment of teamUsers) {
+        await User.clearCache(userAssignment.principal_ref_id);
+      }
+    }
+
+    return { msg: 'Team has been removed from base successfully' };
+  }
+
+  async teamAddBulk(
+    context: NcContext,
+    param: {
+      baseId: string;
+      teams: BaseTeamCreateV3BulkReqType;
+      req: NcRequest;
+    },
+  ): Promise<BaseTeamV3ResponseType[]> {
+    validatePayload(
+      'swagger-v3.json#/components/schemas/BaseTeamCreateBulk',
+      param.teams,
+      true,
+    );
+
+    const results = [];
+
+    for (const team of param.teams.teams) {
+      const result = await this.teamAdd(context, {
+        baseId: param.baseId,
+        team,
+        req: param.req,
+      });
+      results.push(result);
+    }
+
+    return results;
+  }
+
+  async teamRemoveBulk(
+    context: NcContext,
+    param: {
+      baseId: string;
+      teams: BaseTeamDeleteV3BulkReqType;
       req: NcRequest;
     },
   ): Promise<{ msg: string }> {
     validatePayload(
-      'swagger-v3.json#/components/schemas/BaseTeamDelete',
-      param.team,
+      'swagger-v3.json#/components/schemas/BaseTeamDeleteBulk',
+      param.teams,
       true,
     );
 
-    // Get team principal
-    const teamPrincipal = await Principal.getByTypeAndRef(
-      context,
-      PrincipalType.TEAM,
-      param.team.team_id,
-    );
-    if (!teamPrincipal) {
-      NcError.get(context).teamNotFound(param.team.team_id);
+    for (const team of param.teams.teams) {
+      await this.teamRemove(context, {
+        baseId: param.baseId,
+        team,
+        req: param.req,
+      });
     }
 
-    // Check if team is assigned to base
-    const existingAssignment = await PrincipalAssignment.get(
-      context,
-      ResourceType.BASE,
-      param.baseId,
-      teamPrincipal.id,
-    );
-    if (!existingAssignment) {
-      NcError.get(context).invalidRequestBody(
-        `Team ${param.team.team_id} is not assigned to this base`,
-      );
-    }
-
-    // Delete the assignment
-    await PrincipalAssignment.delete(
-      context,
-      ResourceType.BASE,
-      param.baseId,
-      teamPrincipal.id,
-    );
-
-    return { msg: 'Team has been removed from base successfully' };
+    return { msg: 'Teams have been removed from base successfully' };
   }
 
   async teamDetail(
     context: NcContext,
     param: { baseId: string; teamId: string },
   ): Promise<BaseTeamDetailV3Type> {
-    // Get team principal
-    const teamPrincipal = await Principal.getByTypeAndRef(
-      context,
-      PrincipalType.TEAM,
-      param.teamId,
-    );
-    if (!teamPrincipal) {
-      NcError.get(context).teamNotFound(param.teamId);
-    }
-
     // Check if team is assigned to base
     const assignment = await PrincipalAssignment.get(
       context,
       ResourceType.BASE,
       param.baseId,
-      teamPrincipal.id,
+      PrincipalType.TEAM,
+      param.teamId,
     );
     if (!assignment) {
       NcError.get(context).invalidRequestBody(

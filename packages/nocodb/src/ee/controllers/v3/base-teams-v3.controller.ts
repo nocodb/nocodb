@@ -34,9 +34,7 @@ import { NcError } from '~/helpers/catchError';
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BaseTeamsV3Controller {
-  constructor(
-    private readonly baseTeamsV3Service: BaseTeamsV3Service,
-  ) {}
+  constructor(private readonly baseTeamsV3Service: BaseTeamsV3Service) {}
 
   /**
    * Validates if the user has access to the Teams API.
@@ -105,17 +103,16 @@ export class BaseTeamsV3Controller {
     });
   }
 
-  @Patch('/api/v3/meta/bases/:baseId/invites/:teamId')
+  @Patch('/api/v3/meta/bases/:baseId/invites')
   @Acl('baseTeamUpdate', {
     scope: 'base',
   })
   async teamUpdate(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Param('teamId') teamId: string,
-    @Body() team: BaseTeamUpdateV3ReqType,
+    @Body() team: BaseTeamUpdateV3ReqType | BaseTeamUpdateV3ReqType[],
     @Req() req: NcRequest,
-  ): Promise<BaseTeamV3ResponseType> {
+  ): Promise<BaseTeamV3ResponseType | BaseTeamV3ResponseType[]> {
     await this.canExecute(context);
     return this.baseTeamsV3Service.teamUpdate(context, {
       baseId,
@@ -124,15 +121,14 @@ export class BaseTeamsV3Controller {
     });
   }
 
-  @Delete('/api/v3/meta/bases/:baseId/invites/:teamId')
+  @Delete('/api/v3/meta/bases/:baseId/invites')
   @Acl('baseTeamDelete', {
     scope: 'base',
   })
   async teamRemove(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Param('teamId') teamId: string,
-    @Body() team: BaseTeamDeleteV3ReqType,
+    @Body() team: BaseTeamDeleteV3ReqType | BaseTeamDeleteV3ReqType[],
     @Req() req: NcRequest,
   ): Promise<{ msg: string }> {
     await this.canExecute(context);

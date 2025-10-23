@@ -35,5 +35,4 @@ export { default as Widget } from './Widget';
 
 // Teams-related models
 export { default as Team } from './Team';
-export { default as Principal } from './Principal';
 export { default as PrincipalAssignment } from './PrincipalAssignment';

@@ -1,14 +1,13 @@
 import type { NcContext } from '~/interface/config';
-import { Principal } from '~/models';
-import { PrincipalAssignment } from '~/models';
+import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 
 /**
- * Extract team roles for a user in a workspace
+ * Extract workspace roles for a user from teams in a workspace
  * @param context - NocoDB context
  * @param userId - User ID
  * @param workspaceId - Workspace ID
- * @returns Promise<Record<string, boolean> | null> - Team roles or null if no team roles
+ * @returns Promise<Record<string, boolean> | null> - Workspace roles from teams or null if no team roles
  */
 export async function extractUserTeamRoles(
   context: NcContext,
@@ -16,17 +15,6 @@ export async function extractUserTeamRoles(
   workspaceId: string,
 ): Promise<Record<string, boolean> | null> {
   try {
-    // Get user principal
-    const userPrincipal = await Principal.getByTypeAndRef(
-      context,
-      PrincipalType.USER,
-      userId,
-    );
-
-    if (!userPrincipal) {
-      return null;
-    }
-
     // Get all team assignments for this workspace
     const workspaceTeamAssignments = await PrincipalAssignment.listByResource(
       context,
@@ -34,19 +22,12 @@ export async function extractUserTeamRoles(
       workspaceId,
     );
 
-    // Filter assignments where the user is a member of the team
-    const userTeamRoles = [];
+    // Collect workspace roles from teams where user is a member
+    const workspaceRoles = [];
 
     for (const assignment of workspaceTeamAssignments) {
-      // Get the principal (should be a team)
-      const teamPrincipal = await Principal.get(
-        context,
-        assignment.fk_principal_id,
-      );
-      if (
-        !teamPrincipal ||
-        teamPrincipal.principal_type !== PrincipalType.TEAM
-      ) {
+      // Check if this assignment is for a team
+      if (assignment.principal_type !== PrincipalType.TEAM) {
         continue;
       }
 
@@ -54,39 +35,30 @@ export async function extractUserTeamRoles(
       const userTeamAssignment = await PrincipalAssignment.get(
         context,
         ResourceType.TEAM,
-        teamPrincipal.ref_id,
-        userPrincipal.id,
+        assignment.principal_ref_id,
+        PrincipalType.USER,
+        userId,
       );
 
       if (userTeamAssignment) {
         // User is a member of this team, add the team's workspace role
-        userTeamRoles.push({
-          teamRole: userTeamAssignment.roles, // User's role in the team (member/manager)
-          workspaceRole: assignment.roles, // Team's role in the workspace (member/manager)
-        });
+        workspaceRoles.push(assignment.roles);
       }
     }
 
-    if (userTeamRoles.length === 0) {
+    if (workspaceRoles.length === 0) {
       return null;
     }
 
-    // Merge team roles - take the highest privilege
-    // Manager role in workspace takes precedence over member role
-    const hasManagerRole = userTeamRoles.some(
-      (role) => role.workspaceRole === 'manager',
-    );
-
-    const hasMemberRole = userTeamRoles.some(
-      (role) => role.workspaceRole === 'member',
-    );
-
+    // Return the workspace roles from teams
+    // The role hierarchy logic will be handled in User.ts
     const roles: Record<string, boolean> = {};
-
-    if (hasManagerRole) {
-      roles['manager'] = true;
-    } else if (hasMemberRole) {
-      roles['member'] = true;
+    
+    // Convert workspace roles to boolean map
+    for (const role of workspaceRoles) {
+      if (role) {
+        roles[role] = true;
+      }
     }
 
     return Object.keys(roles).length > 0 ? roles : null;

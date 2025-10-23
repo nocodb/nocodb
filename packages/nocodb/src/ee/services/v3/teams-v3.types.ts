@@ -1,4 +1,4 @@
-import { IconType } from 'nocodb-sdk';
+import type { IconType } from 'nocodb-sdk';
 
 export interface TeamV3Type {
   id: string;

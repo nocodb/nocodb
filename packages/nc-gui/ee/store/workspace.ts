@@ -645,8 +645,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const teams = ref<TeamV3V3Type[]>([])
 
-  // Todo: @rameshmane7218 - toggle this when the migration is finalised or enabled for local testing
-  const isTeamsMigrationEnabled = false
+  // Todo: @rameshmane7218 - use this to restrict teams api call when the migration is temp enabled for local testing
+  const isTeamsMigrationEnabled = true
 
   const teamsMap = computed(() => {
     return (teams.value || [])?.reduce((acc, curr) => {

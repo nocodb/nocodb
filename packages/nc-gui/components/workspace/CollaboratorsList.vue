@@ -82,15 +82,27 @@ const { height: toSectionHeight } = useElementSize(topSectionRef)
 
 const { height: tableHeaderSectionHeight } = useElementSize(tableHeaderSectionRef)
 
+const workspaceTeamsToCollaborators = computed(() => {
+  return (workspaceTeams.value || []).map((wt) => ({
+    ...wt,
+    id: wt.team_id,
+    isTeam: true,
+    display_name: wt.team_title,
+    roles: wt.workspace_role,
+  }))
+})
+
 const filterCollaborators = computed(() => {
-  if (!userSearchText.value) return collaborators.value ?? []
+  if (!userSearchText.value) return (collaborators.value ?? []).concat(workspaceTeamsToCollaborators.value)
 
   if (!collaborators.value) return []
 
-  return collaborators.value.filter(
-    (collab) =>
-      searchCompare([collab.display_name, collab.email], userSearchText.value) && !removingCollaboratorMap.value[collab.id],
-  )
+  return collaborators.value
+    .concat(workspaceTeamsToCollaborators.value)
+    .filter(
+      (collab) =>
+        searchCompare([collab.display_name, collab.email], userSearchText.value) && !removingCollaboratorMap.value[collab.id],
+    )
 })
 
 const selected = reactive<{
@@ -303,21 +315,37 @@ const handleScroll = (e) => {
   topScroll.value = e.target?.scrollTop
 }
 
-const removeCollaborator = (userId: string, workspaceId: string) => {
-  showInfoModal({
-    title: userId === user.value?.id ? t('title.confirmLeaveWorkspaceTitle') : t('title.confirmRemoveMemberFromWorkspaceTitle'),
-    content:
-      userId === user.value?.id ? t('title.confirmLeaveWorkspaceSubtile') : t('title.confirmRemoveMemberFromWorkspaceSubtitle'),
-    showCancelBtn: true,
-    showIcon: false,
-    okProps: {
-      type: 'danger',
-    },
-    okText: userId === user.value?.id ? t('activity.leaveWorkspace') : t('general.remove'),
-    okCallback: async () => {
-      _removeCollaborator(userId, workspaceId)
-    },
-  })
+const removeCollaborator = (userId: string, workspaceId: string, record: any) => {
+  if (record?.isTeam) {
+    showInfoModal({
+      title: t('objects.teams.confirmRemoveTeamFromWorkspaceTitle'),
+      content: t('objects.teams.confirmRemoveTeamFromWorkspaceSubtitle'),
+      showCancelBtn: true,
+      showIcon: false,
+      okProps: {
+        type: 'danger',
+      },
+      okText: t('general.remove'),
+      okCallback: async () => {
+        workspaceStore.workspaceTeamRemove(workspaceId, record.id)
+      },
+    })
+  } else {
+    showInfoModal({
+      title: userId === user.value?.id ? t('title.confirmLeaveWorkspaceTitle') : t('title.confirmRemoveMemberFromWorkspaceTitle'),
+      content:
+        userId === user.value?.id ? t('title.confirmLeaveWorkspaceSubtile') : t('title.confirmRemoveMemberFromWorkspaceSubtitle'),
+      showCancelBtn: true,
+      showIcon: false,
+      okProps: {
+        type: 'danger',
+      },
+      okText: userId === user.value?.id ? t('activity.leaveWorkspace') : t('general.remove'),
+      okCallback: async () => {
+        _removeCollaborator(userId, workspaceId)
+      },
+    })
+  }
 }
 
 /**
@@ -497,7 +525,11 @@ watch(inviteDlg, (newVal) => {
               <NcCheckbox v-model:checked="selected[recordIndex]" />
             </template>
 
-            <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
+            <template v-if="column.key === 'email' && record.isTeam">
+              <GeneralTeamInfo :team="transformToTeamObject(record)" :show-members-count="false" />
+            </template>
+
+            <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center">
               <GeneralUserIcon size="base" :user="record" class="flex-none" />
               <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                 <div class="flex items-center gap-1">
@@ -596,13 +628,19 @@ watch(inviteDlg, (newVal) => {
                         <NcMenuItem
                           :disabled="!isDeleteOrUpdateAllowed(record)"
                           danger
-                          @click="removeCollaborator(record.id, currentWorkspace?.id)"
+                          @click="removeCollaborator(record.id, currentWorkspace?.id, record)"
                         >
                           <div v-if="removingCollaboratorMap[record.id]" class="h-4 w-4 flex items-center justify-center">
                             <GeneralLoader class="!flex-none !text-current" />
                           </div>
                           <GeneralIcon v-else icon="delete" />
-                          {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeMember') }}
+                          {{
+                          record.isTeam
+                            ? $t('objects.teams.removeTeam')
+                            : record.id === user.id
+                            ? t('activity.leaveWorkspace')
+                            : t('activity.removeMember')
+                        }}
                         </NcMenuItem>
                       </NcTooltip>
                     </template>

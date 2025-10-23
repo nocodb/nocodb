@@ -640,6 +640,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const teams = ref<TeamV3V3Type[]>([])
 
+  // Todo: @rameshmane7218 - toggle this when the migration is finalised or enabled for local testing
+  const isTeamsMigrationEnabled = false
+
   const teamsMap = computed(() => {
     return (teams.value || [])?.reduce((acc, curr) => {
       if (curr.id) {
@@ -652,6 +655,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const editTeamDetails = ref<TeamDetailV3V3Type | null>(null)
 
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+
     if (!isUIAllowed('teamList')) return
 
     isTeamsLoading.value = true
@@ -670,6 +675,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function getTeamById(workspaceId: string, teamId: string) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+
     if (!isUIAllowed('teamGet')) return
 
     try {
@@ -687,6 +694,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function createTeam(workspaceId: string, team: Pick<TeamType, 'title' | 'description' | 'meta'>) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+
     try {
       const res = (await $api.internal.postOperation(
         workspaceId,
@@ -708,6 +717,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function updateTeam(workspaceId: string, teamId: string, updates: Partial<TeamUpdateV3ReqV3Type>) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+
     if (!updates) return
 
     try {
@@ -739,6 +750,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teamId: string,
     members: TeamMembersAddV3ReqV3Type[],
   ) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+
     try {
       const addedMembers = (await $api.internal.postOperation(
         workspaceId,
@@ -772,6 +785,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teamId: string,
     members: TeamMembersRemoveV3ReqV3Type[],
   ) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+
     try {
       const removedMembers = (await $api.internal.postOperation(
         workspaceId,
@@ -807,6 +822,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teamId: string,
     members: TeamMembersUpdateV3ReqV3Type[],
   ) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+
     try {
       const updatedMembers = (await $api.internal.postOperation(
         workspaceId,

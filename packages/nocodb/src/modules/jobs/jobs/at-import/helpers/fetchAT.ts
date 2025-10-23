@@ -55,7 +55,7 @@ async function initialize(shareId, appId?: string) {
     if (!headers || !link) {
       throw {
         message:
-          'Please ensure www.airtable.com/<SharedBaseID> is available for public access. Refer https://bit.ly/49flKSG for details',
+          'Please ensure www.airtable.com/<SharedBaseID> is available for public access. Refer https://dub.sh/import-airtable-to-nocodb for details',
       };
     }
 
@@ -99,7 +99,7 @@ async function initialize(shareId, appId?: string) {
     } else {
       throw {
         message:
-          'Error processing Shared Base :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/49flKSG for details',
+          'Error processing Shared Base :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://dub.sh/import-airtable-to-nocodb for details',
       };
     }
   }
@@ -166,7 +166,7 @@ async function read() {
       logger.log(e);
       throw {
         message:
-          'Error Reading :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/49flKSG for details',
+          'Error Reading :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://dub.sh/import-airtable-to-nocodb for details',
       };
     }
   } else {
@@ -253,7 +253,7 @@ async function readView(viewId) {
       logger.log(e);
       throw {
         message:
-          'Error Reading View :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/49flKSG for details',
+          'Error Reading View :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://dub.sh/import-airtable-to-nocodb for details',
       };
     }
   } else {

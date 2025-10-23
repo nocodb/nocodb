@@ -1230,7 +1230,7 @@ const parseConditionV2 = async (
                   (column?.colOptions as any).parsed_tree?.dataType ===
                   FormulaDataTypes.STRING
                 ) {
-                  qb = qb.orWhere(field, '');
+                  qb = qb.orWhere(customWhereClause || field, '');
                 }
               } else {
                 qb = qb.whereNull(customWhereClause || field);

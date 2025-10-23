@@ -6,34 +6,19 @@ export interface WorkspaceTeamV3ResponseType {
   team_icon?: string;
   team_icon_type?: IconType;
   team_badge_color?: string;
-  workspace_role:
-    | WorkspaceUserRoles.CREATOR
-    | WorkspaceUserRoles.EDITOR
-    | WorkspaceUserRoles.VIEWER
-    | WorkspaceUserRoles.COMMENTER
-    | WorkspaceUserRoles.NO_ACCESS;
+  workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>;
   created_at: string;
   updated_at: string;
 }
 
 export interface WorkspaceTeamCreateV3ReqType {
   team_id: string;
-  workspace_role:
-    | WorkspaceUserRoles.CREATOR
-    | WorkspaceUserRoles.EDITOR
-    | WorkspaceUserRoles.VIEWER
-    | WorkspaceUserRoles.COMMENTER
-    | WorkspaceUserRoles.NO_ACCESS;
+  workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>;
 }
 
 export interface WorkspaceTeamUpdateV3ReqType {
   team_id: string;
-  workspace_role:
-    | WorkspaceUserRoles.CREATOR
-    | WorkspaceUserRoles.EDITOR
-    | WorkspaceUserRoles.VIEWER
-    | WorkspaceUserRoles.COMMENTER
-    | WorkspaceUserRoles.NO_ACCESS;
+  workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>;
 }
 
 export interface WorkspaceTeamDeleteV3ReqType {
@@ -50,12 +35,7 @@ export interface WorkspaceTeamDetailV3Type {
   team_icon?: string;
   team_icon_type?: IconType;
   team_badge_color?: string;
-  workspace_role:
-    | WorkspaceUserRoles.CREATOR
-    | WorkspaceUserRoles.EDITOR
-    | WorkspaceUserRoles.VIEWER
-    | WorkspaceUserRoles.COMMENTER
-    | WorkspaceUserRoles.NO_ACCESS;
+  workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>;
   created_at: string;
   updated_at: string;
 }

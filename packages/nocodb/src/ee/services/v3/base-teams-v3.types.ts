@@ -6,34 +6,19 @@ export interface BaseTeamV3ResponseType {
   team_icon?: string;
   team_icon_type?: IconType;
   team_badge_color?: string;
-  base_role:
-    | ProjectRoles.CREATOR
-    | ProjectRoles.EDITOR
-    | ProjectRoles.VIEWER
-    | ProjectRoles.COMMENTER
-    | ProjectRoles.NO_ACCESS;
+  base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>;
   created_at: string;
   updated_at: string;
 }
 
 export interface BaseTeamCreateV3ReqType {
   team_id: string;
-  base_role:
-    | ProjectRoles.CREATOR
-    | ProjectRoles.EDITOR
-    | ProjectRoles.VIEWER
-    | ProjectRoles.COMMENTER
-    | ProjectRoles.NO_ACCESS;
+  base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>;
 }
 
 export interface BaseTeamUpdateV3ReqType {
   team_id: string;
-  base_role:
-    | ProjectRoles.CREATOR
-    | ProjectRoles.EDITOR
-    | ProjectRoles.VIEWER
-    | ProjectRoles.COMMENTER
-    | ProjectRoles.NO_ACCESS;
+  base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>;
 }
 
 export interface BaseTeamDeleteV3ReqType {
@@ -50,12 +35,7 @@ export interface BaseTeamDetailV3Type {
   team_icon?: string;
   team_icon_type?: IconType;
   team_badge_color?: string;
-  base_role:
-    | ProjectRoles.CREATOR
-    | ProjectRoles.EDITOR
-    | ProjectRoles.VIEWER
-    | ProjectRoles.COMMENTER
-    | ProjectRoles.NO_ACCESS;
+  base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>;
   created_at: string;
   updated_at: string;
 }

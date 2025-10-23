@@ -15,16 +15,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const allCollaborators = ref<any[] | null>()
 
-  const isTeamsEnabled = computed(() => false)
-
-  const teams = ref([])
-
-  const teamsMap = computed(() => {})
-
-  const isTeamsLoading = ref(false)
-
-  const editTeamDetails = ref(null)
-
   const router = useRouter()
 
   const route = router.currentRoute
@@ -273,6 +263,20 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     return Infinity
   }
 
+  /**
+   * Teams section start here
+   */
+
+  const isTeamsEnabled = computed(() => false)
+
+  const teams = ref([])
+
+  const teamsMap = computed(() => {})
+
+  const isTeamsLoading = ref(false)
+
+  const editTeamDetails = ref(null)
+
   const createTeam = async (..._args: any[]) => {}
 
   const updateTeam = async (..._args: any[]) => {}
@@ -286,6 +290,27 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const removeTeamMembers = async (..._args: any[]) => {}
 
   const updateTeamMembers = async (..._args: any[]) => {}
+
+  /**
+   * Workspace teams
+   */
+  const isLoadingWorkspaceTeams = ref(true)
+
+  const workspaceTeams = ref<any[]>([])
+
+  const workspaceTeamList = async (..._args: any[]) => {}
+
+  const workspaceTeamGet = async (..._args: any[]) => {}
+
+  const workspaceTeamAdd = async (..._args: any[]) => {}
+
+  const workspaceTeamUpdate = async (..._args: any[]) => {}
+
+  const workspaceTeamRemove = async (..._args: any[]) => {}
+
+  /**
+   * Teams section end here
+   */
 
   return {
     loadWorkspaces,
@@ -350,6 +375,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     addTeamMembers,
     removeTeamMembers,
     updateTeamMembers,
+
+    // Workspace Teams
+    isLoadingWorkspaceTeams,
+    workspaceTeams,
+    workspaceTeamList,
+    workspaceTeamGet,
+    workspaceTeamAdd,
+    workspaceTeamUpdate,
+    workspaceTeamRemove,
   }
 })
 

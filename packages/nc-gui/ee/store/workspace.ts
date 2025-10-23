@@ -261,23 +261,30 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
 
     if (!params?.ignoreLoading) isCollaboratorsLoading.value = true
+    let promises: Promise<any>[] = []
 
     try {
       // todo: pagination
-      const { list, pageInfo } = await $api.workspaceUser.list(
-        workspaceId ?? activeWorkspace.value.id!,
-        { ...params },
-        {
-          baseURL: appInfo.value.baseHostName
-            ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
-            : undefined,
-        },
+      promises.push(
+        $api.workspaceUser.list(
+          workspaceId ?? activeWorkspace.value.id!,
+          { ...params },
+          {
+            baseURL: appInfo.value.baseHostName
+              ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
+              : undefined,
+          },
+        ),
       )
 
+      promises.push(workspaceTeamList(workspaceId ?? activeWorkspace.value.id!))
+
+      const [{ list, pageInfo }, _workspaceTeamsList] = await Promise.all(promises)
+
       allCollaborators.value = list
-      collaborators.value = (list || [])?.filter((u) => !u?.deleted)
+      collaborators.value = (list || [])?.filter((u: any) => !u?.deleted)
       workspaceUserCount.value = pageInfo.totalRows
-      workspaceOwnerCount.value = collaborators.value.filter((u) => u.roles === WorkspaceUserRoles.OWNER).length
+      workspaceOwnerCount.value = collaborators.value?.filter((u: any) => u.roles === WorkspaceUserRoles.OWNER).length
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
@@ -871,6 +878,134 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const isLoadingWorkspaceTeams = ref(true)
+
+  const workspaceTeams = ref<Record<string, any>>([])
+
+  async function workspaceTeamList(workspaceId: string = activeWorkspaceId.value!, showLoading = true) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) {
+      isLoadingWorkspaceTeams.value = false
+      return
+    }
+
+    if (!workspaceId) {
+      isLoadingWorkspaceTeams.value = false
+      return
+    }
+
+    if (showLoading) {
+      isLoadingWorkspaceTeams.value = true
+    }
+
+    try {
+      const { list } = await $api.internal.getOperation(workspaceId, NO_SCOPE, {
+        operation: 'workspaceTeamList',
+      })
+
+      workspaceTeams.value = list || []
+
+      return list || []
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoadingWorkspaceTeams.value = false
+    }
+  }
+
+  async function workspaceTeamGet(workspaceId: string, teamId: string) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+
+    try {
+      const teamDetails = (await $api.internal.getOperation(workspaceId, NO_SCOPE, {
+        operation: 'workspaceTeamGet',
+        teamId,
+      })) as TeamDetailV3V3Type
+
+      return teamDetails
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function workspaceTeamAdd(
+    workspaceId: string = activeWorkspaceId.value!,
+    team: {
+      team_id: string
+      workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
+    },
+  ) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'workspaceTeamAdd',
+        },
+        team,
+      )
+
+      if (!res) return
+
+      workspaceTeams.value.push(res)
+      return res
+    } catch (e: any) {
+      console.error('Error occurred while adding team to workspace', e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function workspaceTeamUpdate(
+    workspaceId: string,
+    updates: {
+      team_id: string
+      workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
+    },
+  ) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || !updates.team_id) return
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'workspaceTeamUpdate',
+        },
+        updates,
+      )
+
+      if (!res) return
+
+      workspaceTeams.value = workspaceTeams.value.map((team) => (team.id === updates.team_id ? { ...team, ...res } : team))
+
+      return res
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function workspaceTeamRemove(workspaceId: string = activeWorkspaceId.value!, teamId: string) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || !teamId) return
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'workspaceTeamRemove',
+        },
+        { team_id: teamId },
+      )
+
+      workspaceTeams.value = workspaceTeams.value.filter((team) => team.team_id !== teamId)
+
+      return res
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   /**
    * Teams section end here
    */
@@ -957,6 +1092,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     addTeamMembers,
     removeTeamMembers,
     updateTeamMembers,
+
+    // Workspace Teams
+    isLoadingWorkspaceTeams,
+    workspaceTeams,
+    workspaceTeamList,
+    workspaceTeamGet,
+    workspaceTeamAdd,
+    workspaceTeamUpdate,
+    workspaceTeamRemove,
   }
 })
 

@@ -24,8 +24,16 @@ const workspaceStore = useWorkspace()
 
 const { removeCollaborator: _removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading, removingCollaboratorMap, isTeamsEnabled } =
-  storeToRefs(workspaceStore)
+const {
+  collaborators,
+  activeWorkspace,
+  workspacesList,
+  isCollaboratorsLoading,
+  removingCollaboratorMap,
+  isTeamsEnabled,
+  teams,
+  workspaceTeams,
+} = storeToRefs(workspaceStore)
 
 const {
   isPaymentEnabled,
@@ -624,6 +632,8 @@ watch(inviteDlg, (newVal) => {
         type="workspace"
         :is-team="isInviteTeamDlg"
         :users="sortedCollaborators"
+        :teams="teams"
+        :existing-team-ids="workspaceTeams?.map((team: any) => team.team_id) || []"
       />
 
       <WorkspaceTeamsEdit v-if="isTeamsEnabled" :is-open-using-router-push="isEditModalOpenUsingRouterPush" />

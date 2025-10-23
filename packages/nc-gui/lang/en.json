@@ -711,6 +711,7 @@
       "addMembersToTeam": "Add members to Team",
       "selectMembersToAddIntoTeam": "Select members to add into the {team} Team",
       "alreadyPartOfTeam": "Already part of the team",
+      "alreadyAdded": "Already added",
       "membersAddedToTeam": "Members added to team",
       "nMembersHaveBeenAddedIntoTeam": "{n} members have been added into the {team} team",
       "unableToAddMembers": "Unable to add members"

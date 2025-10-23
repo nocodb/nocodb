@@ -6,6 +6,7 @@ const props = withDefaults(
   defineProps<{
     value: RawValueType
     teams?: TeamV3V3Type[]
+    existingTeamIds?: string[]
     onChange: (team: RawValueType) => void | Promise<any>
     size?: 'sm' | 'md' | 'lg'
     placement?: 'bottomRight' | 'bottomLeft'
@@ -62,6 +63,8 @@ const teamSelectorOptions = computed<NcListItemType[]>(() => {
       description: `${team.members_count || 0} ${t('labels.members')}`,
       icon: team.icon,
       icon_type: team.icon_type,
+      ncItemDisabled: props.existingTeamIds?.includes(team.id),
+      ncItemTooltip: props.existingTeamIds?.includes(team.id) ? t('objects.teams.alreadyAdded') : '',
     }),
   )
 })

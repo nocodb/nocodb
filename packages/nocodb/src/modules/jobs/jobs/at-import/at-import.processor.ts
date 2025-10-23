@@ -296,7 +296,7 @@ export class AtImportProcessor {
       if (!sDB.shareId)
         throw {
           message:
-            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
+            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/49flKSG for details',
         };
 
       if (sDB.shareId.startsWith('exp')) {
@@ -313,7 +313,7 @@ export class AtImportProcessor {
       if (!ft.baseId) {
         throw {
           message:
-            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
+            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/49flKSG for details',
         };
       }
 

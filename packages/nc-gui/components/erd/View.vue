@@ -154,7 +154,7 @@ onMounted(async () => {
 
 <template>
   <div
-    class="w-full bg-white border-1 border-gray-100 rounded-lg"
+    class="w-full bg-nc-bg-default border-1 border-nc-border-gray-light rounded-lg"
     :class="{
       'z-100 nc-h-screen nc-w-screen fixed top-0 left-0 right-0 bottom-0': config.isFullScreen,
       'nc-erd-vue-flow-single-table': config.singleTableMode,

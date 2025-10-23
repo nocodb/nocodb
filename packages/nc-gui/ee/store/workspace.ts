@@ -655,9 +655,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const editTeamDetails = ref<TeamDetailV3V3Type | null>(null)
 
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) {
+      isTeamsLoading.value = false
+      return
+    }
 
-    if (!isUIAllowed('teamList')) return
+    if (!isUIAllowed('teamList')) {
+      isTeamsLoading.value = false
+      return
+    }
 
     isTeamsLoading.value = true
 

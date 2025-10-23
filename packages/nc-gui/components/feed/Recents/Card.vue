@@ -69,7 +69,7 @@ const handleOpenUrl = (url: string) => {
 </script>
 
 <template>
-  <div class="bg-white recent-card border-gray-200 border-1 rounded-2xl max-w-[540px] xl:max-w-[640px]">
+  <div class="bg-nc-bg-default recent-card border-nc-border-gray-medium border-1 rounded-2xl max-w-[540px] xl:max-w-[640px]">
     <div class="flex items-center justify-between px-5 py-4">
       <div class="flex items-center gap-3">
         <component :is="feedIcon[source]" class="w-4 h-4 stroke-transparent" />
@@ -121,7 +121,7 @@ const handleOpenUrl = (url: string) => {
   box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
   :deep(.prose) {
     a {
-      @apply text-gray-900;
+      @apply text-nc-content-gray-emphasis;
     }
     h1 {
       @apply text-3xl text-nc-content-gray-emphasis truncate leading-9 mb-0;

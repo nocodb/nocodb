@@ -105,7 +105,7 @@ const passwordChange = async () => {
         password: form.password,
       })
 
-      message.success(t('msg.success.passwordSet') || 'Password set successfully')
+      message.success(t('msg.success.passwordSet'))
 
       await loadUserProfile()
     } else if (hasEmailAccount.value) {
@@ -125,17 +125,16 @@ const passwordChange = async () => {
     formValidator.value.resetFields()
   } catch (err: any) {
     console.error('Password change error:', err)
-
     const errorMsg = await extractSdkResponseErrorMsg(err)
 
     if (errorMsg.includes('Current password is incorrect')) {
-      error.value = t('msg.error.invalidCurrentPassword') || 'Current password is incorrect'
+      error.value = t('msg.error.invalidCurrentPassword')
     } else if (errorMsg.includes('Too many attempts')) {
-      error.value = t('msg.error.tooManyAttempts') || 'Too many attempts. Please try again later'
+      error.value = t('msg.error.tooManyAttempts')
     } else if (errorMsg.includes('Invalid password')) {
-      error.value = errorMsg || 'Invalid password format'
+      error.value = errorMsg || t('msg.error.invalidPasswordFormat')
     } else {
-      error.value = errorMsg || t('msg.error.passwordChangeFailed') || 'Failed to change password'
+      error.value = errorMsg || t('msg.error.passwordChangeFailed')
     }
   } finally {
     isUpdating.value = false

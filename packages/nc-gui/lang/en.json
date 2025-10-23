@@ -2440,6 +2440,10 @@
       "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles."
     },
     "error": {
+      "passwordChangeFailed": "Failed to change password",
+      "invalidPasswordFormat": "Invalid password format",
+      "tooManyAttempts": "Too many attempts. Please try again later",
+      "invalidCurrentPassword": "Current password is incorrect",
       "failedToDeleteMcpToken": "Failed to delete MCP token",
       "manualTriggerHook": "Manual hooks can't be disabled",
       "errorLoadingRecord": "Error loading record data",

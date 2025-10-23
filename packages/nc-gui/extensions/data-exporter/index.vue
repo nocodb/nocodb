@@ -250,7 +250,7 @@ const filterOption = (input: string, option: { key: string }) => {
   return option.key?.toLowerCase()?.includes(input?.toLowerCase())
 }
 
-eventBus.on(async (event, payload) => {
+const extensionEvents = async (event: ExtensionsEvents, payload: any) => {
   if (event === ExtensionsEvents.CLEARDATA && payload && extension.value.id && payload === extension.value.id) {
     const deleteExportsPayload = exportedFiles.value.map((exp) => exp.id)
 
@@ -259,6 +259,12 @@ eventBus.on(async (event, payload) => {
       await extension.value.kvStore.set('deletedExports', deletedExports.value)
     }
   }
+}
+
+eventBus.on(extensionEvents)
+
+onBeforeUnmount(() => {
+  eventBus.off(extensionEvents)
 })
 
 onMounted(async () => {

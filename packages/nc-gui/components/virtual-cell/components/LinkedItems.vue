@@ -163,14 +163,18 @@ const addNewRecord = () => {
   isNewRecord.value = true
 }
 
-reloadViewDataTrigger.on(
-  withLoading((params) => {
-    if (params?.isFromLinkRecord) {
-      refreshCurrentRow()
-      loadChildrenList()
-    }
-  }),
-)
+const reloadViewDataListener = withLoading((params) => {
+  if (params?.isFromLinkRecord) {
+    refreshCurrentRow()
+    loadChildrenList()
+  }
+})
+
+reloadViewDataTrigger.on(reloadViewDataListener)
+
+onBeforeUnmount(() => {
+  reloadViewDataTrigger.off(reloadViewDataListener)
+})
 
 const onCreatedRecord = async (record: any) => {
   reloadTrigger?.trigger({

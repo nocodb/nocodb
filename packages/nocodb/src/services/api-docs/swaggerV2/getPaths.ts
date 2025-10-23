@@ -1,7 +1,7 @@
 import { getModelPaths } from './templates/paths';
 import type { Model, Source } from '~/models';
 import type { SwaggerColumn } from './getSwaggerColumnMetas';
-import type { SwaggerView } from './getSwaggerJSONV2';
+import type { SwaggerView } from '~/services/api-docs/shared/swaggerUtils';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 

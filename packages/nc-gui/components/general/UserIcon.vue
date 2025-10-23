@@ -12,6 +12,7 @@ const props = withDefaults(
     iconBgColor?: string
     showPlaceholderIcon?: boolean
     isDeleted?: boolean
+    initialsLength?: 1 | 2
   }>(),
   {
     user: () => ({}),
@@ -22,6 +23,7 @@ const props = withDefaults(
     iconBgColor: '#F4F4F5',
     showPlaceholderIcon: false,
     isDeleted: false,
+    initialsLength: 2,
   },
 )
 
@@ -109,10 +111,10 @@ const usernameInitials = computed(() => {
     if (displayNameSplit.length > 1) {
       return displayNameSplit[0][0] + displayNameSplit[1][0]
     } else {
-      return user.value.display_name.slice(0, 2)
+      return user.value.display_name.slice(0, props.initialsLength)
     }
   } else {
-    return user.value.email?.split('@')[0].slice(0, 2)
+    return user.value.email?.split('@')[0].slice(0, props.initialsLength)
   }
 })
 </script>

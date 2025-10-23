@@ -88,11 +88,17 @@ const setFormStateWithEmit = (path: string, value: any) => {
   emit('change', path, value)
 }
 
-eventBus.on((event, payload) => {
+const integegrationEventHandler = (event: IntegrationStoreEvents, payload: any) => {
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && payload?.id && activeModel.value) {
     setFormStateWithEmit(activeModel.value, payload.id)
     activeModel.value = null
   }
+}
+
+eventBus.on(integegrationEventHandler)
+
+onBeforeUnmount(() => {
+  eventBus.off(integegrationEventHandler)
 })
 
 watch(

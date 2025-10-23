@@ -126,17 +126,19 @@ const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
 
-reloadViewDataHook?.on(
-  withLoading(async () => {
-    await loadKanbanData()
-  }),
-)
+const reloadViewDataListener = withLoading(async () => {
+  await loadKanbanData()
+})
 
-eventBus.on((event) => {
+reloadViewDataHook?.on(reloadViewDataListener)
+
+const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
-})
+}
+
+eventBus.on(smartsheetEventHandler)
 
 const attachments = (record: any): Attachment[] => {
   if (!coverImageColumn.value?.title || !record.row[coverImageColumn.value.title]) return []
@@ -162,13 +164,15 @@ const attachments = (record: any): Attachment[] => {
 
 const reloadAttachments = ref(false)
 
-reloadViewMetaHook?.on(async () => {
+const reloadViewMetaListener = async () => {
   reloadAttachments.value = true
 
   nextTick(() => {
     reloadAttachments.value = false
   })
-})
+}
+
+reloadViewMetaHook?.on(reloadViewMetaListener)
 
 const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
@@ -406,7 +410,12 @@ openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
 // remove openNewRecordFormHookHandler before unmounting
 // so that it won't be triggered multiple times
-onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
+onBeforeUnmount(() => {
+  openNewRecordFormHook.off(openNewRecordFormHookHandler)
+  eventBus.off(smartsheetEventHandler)
+  reloadViewMetaHook?.off(reloadViewMetaListener)
+  reloadViewDataHook?.off(reloadViewDataListener)
+})
 
 // reset context menu target on hide
 watch(contextMenu, () => {

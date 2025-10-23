@@ -1567,7 +1567,7 @@ onMounted(() => {
 
 // #Listeners
 
-eventBus.on(async (event, payload) => {
+const smartsheetEvents = async (event: SmartsheetStoreEvents, payload: any) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
     columnOrder.value = payload
     addColumnDropdown.value = true
@@ -1579,7 +1579,9 @@ eventBus.on(async (event, payload) => {
 
     removeRowIfNew?.(payload)
   }
-})
+}
+
+eventBus.on(smartsheetEvents)
 
 watch(activeCell, (activeCell) => {
   const row = activeCell.row !== null ? dataRef.value[activeCell.row]?.row : undefined
@@ -1728,6 +1730,7 @@ onBeforeUnmount(async () => {
   // reset hooks
   reloadViewDataHook?.off(reloadViewDataHandler)
   openNewRecordFormHook?.off(openNewRecordHandler)
+  eventBus.off(smartsheetEvents)
 })
 
 reloadViewDataHook?.on(reloadViewDataHandler)

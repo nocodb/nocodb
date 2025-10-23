@@ -73,7 +73,7 @@ const viewDisplayField = computed(() => {
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-reloadAggregate?.on(async (_fields) => {
+const reloadAggregateListener = async (_fields: any) => {
   if (!fields.value?.length) return
   if (!_fields || !_fields?.fields?.length) {
     await props.loadGroupAggregation(vGroup.value)
@@ -93,11 +93,13 @@ reloadAggregate?.on(async (_fields) => {
       vGroup.value,
       Object.entries(fieldAggregateMapping).map(([field, type]) => ({
         field,
-        type,
+        type: type as string,
       })),
     )
   }
-})
+}
+
+reloadAggregate?.on(reloadAggregateListener)
 
 const _loadGroupData = async (group: Group, force?: boolean, params?: any) => {
   isViewDataLoading.value = true
@@ -181,6 +183,7 @@ onMounted(async () => {
 
 onBeforeUnmount(async () => {
   reloadViewDataHook?.off(reloadViewDataHandler)
+  reloadAggregate?.off(reloadAggregateListener)
 })
 
 watch([() => vGroup.value.key], async (n, o) => {

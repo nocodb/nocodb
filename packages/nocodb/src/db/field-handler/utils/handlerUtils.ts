@@ -27,6 +27,8 @@ export const negatedMapping = {
   neq: { comparison_op: 'eq' },
   blank: { comparison_op: 'notblank' },
   notchecked: { comparison_op: 'checked' },
+  nanyof: { comparison_op: 'anyof' },
+  nallof: { comparison_op: 'allof' },
 };
 
 export function getAlias(aliasCount: { count: number }) {

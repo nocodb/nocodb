@@ -977,7 +977,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       if (!res) return
 
-      workspaceTeams.value = workspaceTeams.value.map((team) => (team.id === updates.team_id ? { ...team, ...res } : team))
+      workspaceTeams.value = workspaceTeams.value.map((team) => (team.team_id === updates.team_id ? { ...team, ...res } : team))
 
       return res
     } catch (e: any) {

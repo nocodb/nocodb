@@ -148,15 +148,26 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overri
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
   try {
-    const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, overrideBaseRole)
-    if (!res) return
-    message.success(t('msg.info.userRoleUpdated'))
+    if (collab?.isTeam) {
+      const res = await workspaceStore.workspaceTeamUpdate(currentWorkspace.value.id, {
+        team_id: collab.id,
+        workspace_role: roles,
+      })
 
-    collaborators.value?.forEach((collaborator) => {
-      if (collaborator.id === collab.id) {
-        collaborator.roles = roles
-      }
-    })
+      if (!res) return
+
+      message.success(t('msg.info.teamRoleUpdated'))
+    } else {
+      const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, overrideBaseRole)
+      if (!res) return
+      message.success(t('msg.info.userRoleUpdated'))
+
+      collaborators.value?.forEach((collaborator) => {
+        if (collaborator.id === collab.id) {
+          collaborator.roles = roles
+        }
+      })
+    }
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 

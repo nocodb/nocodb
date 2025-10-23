@@ -2253,6 +2253,7 @@
     "info": {
       "inviteSent": "Invitation sent successfully",
       "userRoleUpdated": "User role updated successfully",
+      "teamRoleUpdated": "Team role updated successfully",
       "actionIrreversible": "This action is irreversible",
       "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "You will not be able to drag records between dates when computed or system fields are used.",

@@ -17,7 +17,7 @@ const { isTeamsEnabled, activeWorkspaceId } = storeToRefs(useWorkspace())
 const { isPrivateBase, base } = storeToRefs(useBase())
 
 const basesStore = useBases()
-const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
+const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser, baseTeamUpdate } = basesStore
 const { activeProjectId, bases, basesUser, basesTeams } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles, loadRoles, isUIAllowed } = useRoles()
@@ -93,6 +93,7 @@ const baseTeamsToCollaborators = computed(() => {
     isTeam: true,
     display_name: bt.team_title,
     roles: bt.base_role,
+    base_roles: bt.base_role,
   }))
 })
 
@@ -157,39 +158,50 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   const currentCollaborator = collaborators.value.find((coll) => coll.id === collab.id)!
 
   try {
-    if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
-      await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
-      if (
-        currentCollaborator.workspace_roles &&
-        WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
-        isEeUI
-      ) {
-        currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
-      } else {
-        currentCollaborator.roles = ProjectRoles.NO_ACCESS
-      }
-      currentCollaborator.base_roles = null
-    } else if (currentCollaborator.base_roles) {
-      currentCollaborator.roles = roles
-      await updateProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
-    } else {
-      currentCollaborator.roles = roles
-      currentCollaborator.base_roles = roles
-      await createProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
-    }
-
-    let currentBaseUsers = basesUser.value.get(currentBase.value.id)
-
-    if (currentBaseUsers?.length) {
-      currentBaseUsers = currentBaseUsers.map((user) => {
-        if (user.id === currentCollaborator.id) {
-          user.roles = currentCollaborator.roles as any
-          user.base_roles = currentCollaborator.base_roles as any
-        }
-        return user
+    if (collab?.isTeam) {
+      const res = await baseTeamUpdate(currentBase.value.id!, {
+        team_id: collab.id,
+        base_role: roles,
       })
 
-      basesUser.value.set(currentBase.value.id, currentBaseUsers)
+      if (!res) return
+
+      message.success(t('msg.info.teamRoleUpdated'))
+    } else {
+      if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
+        await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        if (
+          currentCollaborator.workspace_roles &&
+          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
+          isEeUI
+        ) {
+          currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
+        } else {
+          currentCollaborator.roles = ProjectRoles.NO_ACCESS
+        }
+        currentCollaborator.base_roles = null
+      } else if (currentCollaborator.base_roles) {
+        currentCollaborator.roles = roles
+        await updateProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+      } else {
+        currentCollaborator.roles = roles
+        currentCollaborator.base_roles = roles
+        await createProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+      }
+
+      let currentBaseUsers = basesUser.value.get(currentBase.value.id)
+
+      if (currentBaseUsers?.length) {
+        currentBaseUsers = currentBaseUsers.map((user) => {
+          if (user.id === currentCollaborator.id) {
+            user.roles = currentCollaborator.roles as any
+            user.base_roles = currentCollaborator.base_roles as any
+          }
+          return user
+        })
+
+        basesUser.value.set(currentBase.value.id, currentBaseUsers)
+      }
     }
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
@@ -545,7 +557,11 @@ onBeforeUnmount(() => {
               <NcCheckbox v-model:checked="selected[record.id]" />
             </template>
 
-            <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
+            <template v-if="column.key === 'email' && record.isTeam">
+              <GeneralTeamInfo :team="transformToTeamObject(record)" :show-members-count="false" />
+            </template>
+
+            <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
               <GeneralUserIcon size="base" :user="record" class="flex-none" />
               <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                 <div class="flex gap-3">
@@ -628,6 +644,7 @@ onBeforeUnmount(() => {
         :users="collaborators"
         :is-team="isInviteTeamDlg"
         type="base"
+        :existing-team-ids="baseTeamsToCollaborators.map((bt) => bt.id)"
       />
 
       <WorkspaceTeamsEdit v-if="isEeUI && isTeamsEnabled" :is-open-using-router-push="isEditModalOpenUsingRouterPush" />

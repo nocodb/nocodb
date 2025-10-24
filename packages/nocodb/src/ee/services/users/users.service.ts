@@ -899,11 +899,11 @@ export class UsersService extends UsersServiceCE {
           Permanent: true,
         }),
       );
-
     } catch (error) {
       if (error instanceof NcError) {
         throw error;
       }
+      console.error(error);
       this.logger.error('Failed to reset password for email user', error);
 
       if (error.name === 'InvalidPasswordException') {
@@ -998,8 +998,11 @@ export class UsersService extends UsersServiceCE {
       if (error instanceof NcError) {
         throw error;
       }
-
-      this.logger.error('Failed to set password for Google user', error);
+      console.error(error);
+      this.logger.error(
+        'Failed to set password for Google user',
+        error?.stack || error,
+      );
 
       if (error.name === 'InvalidPasswordException') {
         NcError.badRequest(error.message || 'Invalid password format');
@@ -1078,6 +1081,7 @@ export class UsersService extends UsersServiceCE {
         accounts,
       };
     } catch (error) {
+      console.error(error);
       this.logger.error('Failed to get user profile', error);
       NcError.internalServerError('Failed to get user profile');
     }

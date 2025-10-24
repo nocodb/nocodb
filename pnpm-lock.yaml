@@ -667,7 +667,7 @@ importers:
         version: 1.11.0(encoding@0.1.13)
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)
+        version: 3.1.0(mysql@2.18.1)(pg@8.16.0)(sqlite3@5.1.7)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -676,7 +676,7 @@ importers:
     dependencies:
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)
+        version: 3.1.0(mysql@2.18.1)(pg@8.16.0)(sqlite3@5.1.7)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -18959,7 +18959,7 @@ packages:
   vite-hot-client@2.0.4:
     resolution: {integrity: sha512-W9LOGAyGMrbGArYJN4LBCdOC5+Zwh7dHvOHC0KmGKkJhsOzaKbpo/jEjpPKVHIW0/jBWj8RZG0NUxfgA8BxgAg==}
     peerDependencies:
-      vite: '>=6.1.4'
+      vite: '>=6.1.6'
 
   vite-node@3.1.4:
     resolution: {integrity: sha512-6enNwYnpyDo4hEgytbmc6mYWHXDHYEn0D1/rw4Q+tnHUGtKTJsn8T1YkX6Q18wI5LCrS8CTYlBaiCqxOy2kvUA==}

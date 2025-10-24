@@ -14,6 +14,8 @@ export const useBases = defineStore('basesStore', () => {
 
   const { appInfo } = useGlobal()
 
+  const { blockTeams } = useEeConfig()
+
   const baseRoles = ref<Record<string, any>>({})
 
   const bases = ref<Map<string, NcProject>>(new Map())
@@ -96,7 +98,7 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   async function getBaseTeams({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
-    if (!baseId) return { teams: [], totalRows: 0 }
+    if (!baseId || blockTeams.value) return { teams: [], totalRows: 0 }
 
     if (!force && basesTeams.value.has(baseId)) {
       const teams = basesTeams.value.get(baseId)
@@ -590,7 +592,8 @@ export const useBases = defineStore('basesStore', () => {
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
-      !teamId
+      !teamId ||
+      blockTeams.value
     )
       return
 
@@ -618,7 +621,8 @@ export const useBases = defineStore('basesStore', () => {
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
-      !team.team_id
+      !team.team_id ||
+      blockTeams.value
     ) {
       return
     }
@@ -656,7 +660,8 @@ export const useBases = defineStore('basesStore', () => {
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
-      !updates.team_id
+      !updates.team_id ||
+      blockTeams.value
     ) {
       return
     }
@@ -690,7 +695,8 @@ export const useBases = defineStore('basesStore', () => {
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
-      !teamId
+      !teamId ||
+      blockTeams.value
     ) {
       return
     }
@@ -753,7 +759,6 @@ export const useBases = defineStore('basesStore', () => {
     // Base Teams
     isLoadingBaseTeams,
     basesTeams,
-
     getBaseTeams,
     baseTeamList,
     baseTeamGet,

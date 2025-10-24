@@ -55,6 +55,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const { blockTeams } = useEeConfig()
+
   const collaborators = ref<WorkspaceUserType[] | null>()
 
   const collaboratorsMap = computed(() => {
@@ -883,7 +885,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaceTeams = ref<Record<string, any>>([])
 
   async function workspaceTeamList(workspaceId: string = activeWorkspaceId.value!, showLoading = true) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeams.value) {
       isLoadingWorkspaceTeams.value = false
       return
     }
@@ -913,7 +915,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function workspaceTeamGet(workspaceId: string, teamId: string) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeams.value) return
 
     try {
       const teamDetails = (await $api.internal.getOperation(workspaceId, NO_SCOPE, {
@@ -934,7 +936,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
     },
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeams.value) return
 
     try {
       const res = await $api.internal.postOperation(
@@ -963,7 +965,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
     },
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || !updates.team_id) return
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeams.value || !updates.team_id) return
 
     try {
       const res = await $api.internal.postOperation(
@@ -986,7 +988,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function workspaceTeamRemove(workspaceId: string = activeWorkspaceId.value!, teamId: string) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || !teamId) return
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeams.value || !teamId) return
 
     try {
       const res = await $api.internal.postOperation(

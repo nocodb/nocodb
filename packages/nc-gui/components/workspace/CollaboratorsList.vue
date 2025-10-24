@@ -95,9 +95,7 @@ const workspaceTeamsToCollaborators = computed(() => {
 const filterCollaborators = computed(() => {
   if (!userSearchText.value) return (collaborators.value ?? []).concat(workspaceTeamsToCollaborators.value)
 
-  if (!collaborators.value) return []
-
-  return collaborators.value
+  return (collaborators.value || [])
     .concat(workspaceTeamsToCollaborators.value)
     .filter(
       (collab) =>
@@ -243,7 +241,7 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
 })
 
 const getTeamCompatibleAccessibleRoles = (roles: WorkspaceUserRoles[], record: any) => {
-  if (!record?.isTeam) return roles
+  if (!record?.isTeam || !isEeUI) return roles
 
   return roles.filter((r) => r !== WorkspaceUserRoles.OWNER)
 }

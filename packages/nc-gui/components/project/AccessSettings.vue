@@ -17,8 +17,8 @@ const { isTeamsEnabled, activeWorkspaceId } = storeToRefs(useWorkspace())
 const { isPrivateBase, base } = storeToRefs(useBase())
 
 const basesStore = useBases()
-const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
-const { activeProjectId, bases, basesUser } = storeToRefs(basesStore)
+const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
+const { activeProjectId, bases, basesUser, basesTeams } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles, loadRoles, isUIAllowed } = useRoles()
 
@@ -73,19 +73,36 @@ interface Collaborators {
 const isEditModalOpenUsingRouterPush = ref<boolean>(false)
 
 const collaborators = ref<Collaborators[]>([])
-const totalCollaborators = ref(0)
 const userSearchText = ref('')
 
 const isLoading = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
-const filteredCollaborators = computed(() =>
-  collaborators.value.filter(
-    (collab) =>
-      collab.display_name?.toLowerCase()?.includes(userSearchText.value.toLowerCase()) ||
-      collab.email.toLowerCase().includes(userSearchText.value.toLowerCase()),
-  ),
-)
+const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
+  if (!record?.isTeam || !isEeUI) return roles
+
+  return roles.filter((r) => r !== ProjectRoles.OWNER)
+}
+
+const baseTeamsToCollaborators = computed(() => {
+  if (!currentBase.value?.id) return []
+
+  return (basesTeams.value.get(currentBase.value.id) || []).map((bt) => ({
+    ...bt,
+    id: bt.team_id,
+    isTeam: true,
+    display_name: bt.team_title,
+    roles: bt.base_role,
+  }))
+})
+
+const filteredCollaborators = computed(() => {
+  if (!userSearchText.value) return collaborators.value.concat(baseTeamsToCollaborators.value)
+
+  return collaborators.value
+    .concat(baseTeamsToCollaborators.value)
+    .filter((collab) => searchCompare([collab.display_name, collab.email], userSearchText.value))
+})
 
 const sortedCollaborators = computed(() => {
   return handleGetSortedData(filteredCollaborators.value, sorts.value)
@@ -94,15 +111,28 @@ const sortedCollaborators = computed(() => {
 const loadCollaborators = async () => {
   try {
     if (!currentBase.value) return
-    const { users, totalRows } = await getBaseUsers({
-      baseId: currentBase.value.id!,
-      ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
-      force: true,
-    })
 
-    totalCollaborators.value = totalRows
+    const promises = []
+
+    promises.push(
+      getBaseUsers({
+        baseId: currentBase.value.id!,
+        ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
+        force: true,
+      }),
+    )
+
+    promises.push(
+      getBaseTeams({
+        baseId: currentBase.value.id!,
+        force: true,
+      }),
+    )
+
+    const [{ users }] = await Promise.all(promises)
+
     collaborators.value = [
-      ...users
+      ...(users || [])
         .filter((u: any) => !u?.deleted)
         .map((user: any) => ({
           ...user,
@@ -535,10 +565,16 @@ onBeforeUnmount(() => {
               </div>
             </div>
             <div v-if="column.key === 'role'">
-              <template v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles)">
+              <template
+                v-if="
+                  isDeleteOrUpdateAllowed(record) &&
+                  isOwnerOrCreator &&
+                  getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles)
+                "
+              >
                 <RolesSelectorV2
                   :role="record.roles"
-                  :roles="accessibleRoles"
+                  :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
                   :inherit="
                     isEeUI && !record.base_roles && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
                       ? WorkspaceRolesToProjectRoles[record.workspace_roles]

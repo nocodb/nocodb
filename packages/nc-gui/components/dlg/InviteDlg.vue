@@ -34,7 +34,7 @@ const workspaceStore = useWorkspace()
 
 const { baseRoles, workspaceRoles } = useRoles()
 
-const { createProjectUser } = basesStore
+const { createProjectUser, baseTeamAdd } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator, workspaceTeamAdd } = workspaceStore
 
@@ -354,7 +354,12 @@ const inviteCollaborator = async () => {
       inviteData.email = ''
       emailBadges.value = []
     } else {
-      if (props.type === 'workspace' && props.workspaceId) {
+      if (props.type === 'base' && props.baseId) {
+        await baseTeamAdd(props.baseId!, {
+          team_id: inviteData.selectedTeamIds[0]!,
+          base_role: inviteData.roles as Exclude<ProjectRoles, ProjectRoles.OWNER>,
+        })
+      } else if (props.type === 'workspace' && props.workspaceId) {
         await workspaceTeamAdd(props.workspaceId, {
           team_id: inviteData.selectedTeamIds[0]!,
           workspace_role: inviteData.roles as Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>,

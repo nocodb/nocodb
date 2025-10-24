@@ -8,6 +8,7 @@ const { hideSidebar } = storeToRefs(useSidebarStore())
 const workspaceStore = useWorkspace()
 
 const { loadRoles } = useRoles()
+
 const { activeWorkspace: _activeWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators } = workspaceStore
 

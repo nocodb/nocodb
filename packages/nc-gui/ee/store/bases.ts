@@ -14,11 +14,6 @@ export const useBases = defineStore('basesStore', () => {
 
   const { appInfo } = useGlobal()
 
-  // Todo: @rameshmane7218 not possible to use useEeConfig inside store, so we have to pass this prop in fn
-  // const { blockTeamsManagement } = useEeConfig()
-
-  const blockTeamsManagement = ref(false)
-
   const baseRoles = ref<Record<string, any>>({})
 
   const bases = ref<Map<string, NcProject>>(new Map())
@@ -101,7 +96,7 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   async function getBaseTeams({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
-    if (!baseId || blockTeamsManagement.value) return { teams: [], totalRows: 0 }
+    if (!baseId || workspaceStore.blockTeamsManagement) return { teams: [], totalRows: 0 }
 
     if (!force && basesTeams.value.has(baseId)) {
       const teams = basesTeams.value.get(baseId)
@@ -596,7 +591,7 @@ export const useBases = defineStore('basesStore', () => {
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
       !teamId ||
-      blockTeamsManagement.value
+      workspaceStore.blockTeamsManagement
     )
       return
 
@@ -625,7 +620,7 @@ export const useBases = defineStore('basesStore', () => {
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
       !team.team_id ||
-      blockTeamsManagement.value
+      workspaceStore.blockTeamsManagement
     ) {
       return
     }
@@ -664,7 +659,7 @@ export const useBases = defineStore('basesStore', () => {
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
       !updates.team_id ||
-      blockTeamsManagement.value
+      workspaceStore.blockTeamsManagement
     ) {
       return
     }
@@ -699,7 +694,7 @@ export const useBases = defineStore('basesStore', () => {
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
       !teamId ||
-      blockTeamsManagement.value
+      workspaceStore.blockTeamsManagement
     ) {
       return
     }

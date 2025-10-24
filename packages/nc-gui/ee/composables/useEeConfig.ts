@@ -33,7 +33,12 @@ export const useEeConfig = createSharedComposable(() => {
 
   const workspaceStore = useWorkspace()
 
-  const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
+  const {
+    activeWorkspace,
+    activeWorkspaceId,
+    workspaces,
+    blockTeamsManagement: _blockTeamsManagement,
+  } = storeToRefs(workspaceStore)
 
   const { isSideBannerExpanded } = eeConfigState()
 
@@ -41,7 +46,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   /** Ref or Computed value */
 
-  const isPaymentEnabled = computed(() => appInfo.value?.isCloud && !appInfo.value?.isOnPrem)
+  const isPaymentEnabled = computed(() => true || (appInfo.value?.isCloud && !appInfo.value?.isOnPrem))
 
   const isOnPrem = computed(() => appInfo.value?.isOnPrem)
 
@@ -231,6 +236,17 @@ export const useEeConfig = createSharedComposable(() => {
   const blockTeamsManagement = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
   })
+
+  watch(
+    [blockTeamsManagement, activeWorkspaceId],
+    ([newValue]) => {
+      _blockTeamsManagement.value = newValue
+    },
+    {
+      immediate: true,
+      flush: 'pre',
+    },
+  )
 
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`

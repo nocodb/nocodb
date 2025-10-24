@@ -54,8 +54,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const { user: currentUser } = useGlobal()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
-  // Todo: @rameshmane7218 not possible to use useEeConfig inside store, so we have to pass this prop in fn
-  // const { blockTeamsManagement } = useEeConfig()
 
   const blockTeamsManagement = ref(false)
 
@@ -259,9 +257,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const loadCollaborators = async (
     params?: { offset?: number; limit?: number; ignoreLoading?: boolean; includeDeleted?: boolean },
     workspaceId?: string,
-    extraParams?: {
-      blockTeamsManagement?: boolean
-    },
   ) => {
     if (!workspaceId && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
@@ -284,9 +279,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         ),
       )
 
-      if (!extraParams?.blockTeamsManagement) {
-        promises.push(workspaceTeamList(workspaceId ?? activeWorkspace.value.id!))
-      }
+      promises.push(workspaceTeamList(workspaceId ?? activeWorkspace.value.id!))
 
       const [{ list, pageInfo }] = await Promise.all(promises)
 
@@ -294,6 +287,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       collaborators.value = (list || [])?.filter((u: any) => !u?.deleted)
       workspaceUserCount.value = pageInfo.totalRows
       workspaceOwnerCount.value = collaborators.value?.filter((u: any) => u.roles === WorkspaceUserRoles.OWNER).length
+      // Todo: @ramesh & @pranav - consider paid team role count consideration for workspace owner count
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
@@ -1089,6 +1083,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removingCollaboratorMap,
 
     // Teams
+    blockTeamsManagement,
     teams,
     teamsMap,
     isTeamsEnabled,

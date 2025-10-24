@@ -99,8 +99,14 @@ const baseTeamsToCollaborators = computed(() => {
     id: bt.team_id,
     isTeam: true,
     display_name: bt.team_title,
-    roles: bt.base_role,
+    email: bt.team_title, // just for sort table by email
+    roles:
+      bt.base_role ??
+      (bt.workspace_role
+        ? WorkspaceRolesToProjectRoles[bt.workspace_role as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+        : ProjectRoles.NO_ACCESS),
     base_roles: bt.base_role,
+    workspace_roles: bt.workspace_role,
   }))
 })
 
@@ -113,7 +119,11 @@ const filteredCollaborators = computed(() => {
 })
 
 const sortedCollaborators = computed(() => {
-  return handleGetSortedData(filteredCollaborators.value, sorts.value)
+  return handleGetSortedData(
+    filteredCollaborators.value,
+    sorts.value,
+    baseTeamsToCollaborators.value.length ? { field: 'created_at', direction: 'asc' } : undefined,
+  )
 })
 
 const loadCollaborators = async () => {

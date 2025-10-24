@@ -960,10 +960,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   async function workspaceTeamAdd(
     workspaceId: string = activeWorkspaceId.value!,
-    team: {
+    teams: {
       team_id: string
       workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
-    },
+    }[],
   ) {
     if (!isTeamsEnabled.value || blockTeamsManagement.value) return
 
@@ -974,16 +974,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         {
           operation: 'workspaceTeamAdd',
         },
-        team,
+        teams,
       )
 
       if (!res) return
 
-      workspaceTeams.value.push(res)
-      return res
-    } catch (e: any) {
-      console.error('Error occurred while adding team to workspace', e)
-      message.error(await extractSdkResponseErrorMsg(e))
+      workspaceTeams.value.push(...(ncIsArray(res) ? res : [res]))
+      return ncIsArray(res) ? res : [res]
+    } finally {
+      // catch error is handled in inviteDlg
     }
   }
 
@@ -1016,8 +1015,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  async function workspaceTeamRemove(workspaceId: string = activeWorkspaceId.value!, teamId: string) {
-    if (!isTeamsEnabled.value || blockTeamsManagement.value || !teamId) return
+  async function workspaceTeamRemove(workspaceId: string = activeWorkspaceId.value!, teamIds: string[]) {
+    if (!isTeamsEnabled.value || blockTeamsManagement.value || !teamIds.length) return
 
     try {
       const res = await $api.internal.postOperation(
@@ -1026,12 +1025,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         {
           operation: 'workspaceTeamRemove',
         },
-        { team_id: teamId },
+        teamIds.map((teamId) => ({ team_id: teamId })),
       )
 
-      workspaceTeams.value = workspaceTeams.value.filter((team) => team.team_id !== teamId)
+      workspaceTeams.value = workspaceTeams.value.filter((team) => !teamIds.includes(team.team_id))
 
-      return res
+      return ncIsArray(res) ? res : [res]
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

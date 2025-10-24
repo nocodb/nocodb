@@ -603,16 +603,16 @@ export const useBases = defineStore('basesStore', () => {
 
   async function baseTeamAdd(
     baseId: string,
-    team: {
+    teams: {
       team_id: string
       base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>
-    },
+    }[],
   ) {
     if (
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
-      !team.team_id ||
+      !teams.length ||
       workspaceStore.blockTeamsManagement
     ) {
       return
@@ -625,17 +625,16 @@ export const useBases = defineStore('basesStore', () => {
         {
           operation: 'baseTeamAdd',
         },
-        team,
+        teams,
       )
 
       if (!res) return
 
-      basesTeams.value.set(baseId, [...(basesTeams.value.get(baseId) || []), res])
+      basesTeams.value.set(baseId, [...(basesTeams.value.get(baseId) || []), ...(ncIsArray(res) ? res : [res])])
 
-      return res
-    } catch (e: any) {
-      console.error('Error occurred while adding team to base', e)
-      message.error(await extractSdkResponseErrorMsg(e))
+      return ncIsArray(res) ? res : [res]
+    } finally {
+      // catch error is handled in inviteDlg
     }
   }
 
@@ -679,12 +678,12 @@ export const useBases = defineStore('basesStore', () => {
     }
   }
 
-  async function baseTeamRemove(baseId: string, teamId: string) {
+  async function baseTeamRemove(baseId: string, teamIds: string[]) {
     if (
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
-      !teamId ||
+      !teamIds.length ||
       workspaceStore.blockTeamsManagement
     ) {
       return
@@ -697,14 +696,14 @@ export const useBases = defineStore('basesStore', () => {
         {
           operation: 'baseTeamRemove',
         },
-        { team_id: teamId },
+        teamIds.map((teamId) => ({ team_id: teamId })),
       )
 
       basesTeams.value.set(
         baseId,
-        (basesTeams.value.get(baseId) || []).filter((team) => team.team_id !== teamId),
+        (basesTeams.value.get(baseId) || []).filter((team) => !teamIds.includes(team.team_id)),
       )
-      return res
+      return ncIsArray(res) ? res : [res]
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

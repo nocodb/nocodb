@@ -1,5 +1,5 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
+import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, getFirstNonPersonalView } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
@@ -27,7 +27,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
-    const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
+    const { activeView: view, activeNestedFilters, activeSorts, views } = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
 
@@ -54,7 +54,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isSharedForm = computed(() => isForm.value && shared)
-    const isDefaultView = computed(() => view.value?.is_default)
+    const isDefaultView = computed(() => {
+      const getFirstGridView = getFirstNonPersonalView(views.value, {
+        includeViewType: ViewTypes.GRID,
+      })
+
+      return getFirstGridView?.id === view.value?.id
+    })
     const gridEditEnabled = ref(true)
 
     const isExternalSource = computed(

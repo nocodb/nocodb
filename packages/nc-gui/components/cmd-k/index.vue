@@ -14,7 +14,6 @@ interface CmdAction {
   iconType?: string
   keywords?: string[]
   section?: string
-  is_default?: number | null
   iconColor?: string
 }
 
@@ -68,13 +67,10 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
   for (const el of props.data) {
     rt.push({
       ...el,
-      title: el?.section === 'Views' && el?.is_default ? t('title.defaultView') : el.title,
-      icon: el.section === 'Views' && el.is_default ? 'grid' : el.icon,
+      title: el.title,
+      icon: el.icon,
       parent: el.parent || 'root',
-      weight: commandScore(
-        `${el.section}${el?.section === 'Views' && el?.is_default ? t('title.defaultView') : el.title}${el.keywords?.join()}`,
-        debouncedCmdInput.value,
-      ),
+      weight: commandScore(`${el.section}${el.title}${el.keywords?.join()}`, debouncedCmdInput.value),
     })
   }
   return rt

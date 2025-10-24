@@ -134,7 +134,6 @@ onMounted(async () => {
         disable-label
         :disabled="!selectedModelId"
         :table-id="selectedModelId!"
-        label-default-view-as-default
         :filter-view="filterView"
         @update:value="onDataChange('view')"
       />

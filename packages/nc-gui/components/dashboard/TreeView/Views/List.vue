@@ -42,7 +42,7 @@ const { t } = useI18n()
 
 const { viewsByTable, activeView, allRecentViews, isShowEveryonePersonalViewsEnabled } = storeToRefs(useViewsStore())
 
-const views = computed(() => viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? [])
+const views = computed(() => viewsByTable.value.get(table.value.id!) ?? [])
 
 const { api } = useApi()
 

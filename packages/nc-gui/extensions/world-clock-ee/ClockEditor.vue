@@ -71,7 +71,7 @@ watchDebounced(
       <AddTimezoneAction v-model:model-value="city" />
 
       <div class="flex flex-col space-y-1 pt-3">
-        <span class="text-sm text-zinc-700">Theme</span>
+        <span class="text-sm text-nc-content-gray-subtle">Theme</span>
         <div class="flex gap-4 w-full flex-wrap">
           <button
             v-for="(theme, i) in themes"
@@ -95,7 +95,7 @@ watchDebounced(
         />
       </div>
       <NcButton type="secondary" size="small" @click="emits('removeInstance', clockInstance.id)">
-        <span class="text-red-600">Remove City</span>
+        <span class="text-nc-red-600">Remove City</span>
       </NcButton>
     </div>
   </div>

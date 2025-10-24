@@ -1605,6 +1605,8 @@ export class ImportService {
       // get default view
       await table.getViews(context);
 
+      let firstView = true;
+
       for (const view of viewsData) {
         const viewData = withoutId({
           ...view,
@@ -1624,9 +1626,11 @@ export class ImportService {
           table.views,
           param.user,
           param.req,
+          firstView,
         );
 
         if (!vw) continue;
+        firstView = false;
 
         idMap.set(view.id, vw.id);
 
@@ -1839,9 +1843,10 @@ export class ImportService {
     views: View[],
     user: UserType,
     req: NcRequest,
+    default_view,
   ): Promise<View> {
-    if (vw.is_default) {
-      const view = views.find((a) => a.is_default);
+    if (default_view) {
+      const view = views?.[0];
       if (view) {
         // update meta and coloring mode to default view
         if (vw.row_coloring_mode || Object.keys(vw.meta ?? {}).length > 0) {

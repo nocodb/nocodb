@@ -169,7 +169,7 @@ watch(
             v-for="(clockInstance, i) in clockInstances"
             :key="clockInstance.id"
             class="flex w-full justify-between border-t p-3 hover:cursor-pointer text-nc-content-gray-subtle group"
-            :class="{ 'bg-[#F0F3FF]': activeInstanceId === clockInstance.id, 'border-b': i === clockInstances.length - 1 }"
+            :class="{ 'bg-nc-bg-brand': activeInstanceId === clockInstance.id, 'border-b': i === clockInstances.length - 1 }"
             @click="activeInstanceId = clockInstance.id"
           >
             <div class="flex flex-col space-y-1 pl-2">

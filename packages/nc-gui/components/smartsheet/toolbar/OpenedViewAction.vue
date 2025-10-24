@@ -146,8 +146,7 @@ function openDeleteDialog() {
     v-if="isRenaming"
     class="h-6 relative"
     :class="{
-      'max-w-2/5': !isSharedBase && !isMobileMode && activeView?.is_default,
-      'max-w-3/5': !isSharedBase && !isMobileMode && !activeView?.is_default,
+      'max-w-3/5': !isSharedBase && !isMobileMode,
     }"
   >
     <input

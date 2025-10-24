@@ -119,15 +119,13 @@ const viewModeInfo = computed(() => {
       </SmartsheetTopbarProjectListDropdown>
       <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
     </template>
-    <template v-if="!(isMobileMode && !activeView?.is_default)">
+    <template v-if="!isMobileMode">
       <SmartsheetTopbarTableListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
             class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': isMobileMode,
-              'max-w-1/2': activeView?.is_default && !isMobileMode,
-              'max-w-1/4': !isSharedBase && !isMobileMode && !activeView?.is_default,
               'max-w-none': isSharedBase && !isMobileMode,
             }"
           >
@@ -171,7 +169,7 @@ const viewModeInfo = computed(() => {
 
     <GeneralIcon v-if="!isMobileMode" icon="ncSlash1" class="nc-breadcrumb-divider" />
 
-    <template v-if="!(isMobileMode && activeView?.is_default)">
+    <template v-if="!isMobileMode">
       <!-- <SmartsheetToolbarOpenedViewAction /> -->
 
       <SmartsheetTopbarViewListDropdown>
@@ -186,8 +184,7 @@ const viewModeInfo = computed(() => {
             :mouse-enter-delay="0.5"
             :class="{
               'max-w-full': isMobileMode,
-              'max-w-2/5': !isSharedBase && !isMobileMode && activeView?.is_default,
-              'max-w-1/2': !isSharedBase && !isMobileMode && !activeView?.is_default,
+              'max-w-1/2': !isSharedBase && !isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,
             }"
           >
@@ -196,7 +193,7 @@ const viewModeInfo = computed(() => {
                 <div>
                   <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.viewName') }}</div>
                   <div class="text-small leading-[18px]">
-                    {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
+                    {{ activeView?.title }}
                   </div>
                 </div>
 
@@ -233,7 +230,7 @@ const viewModeInfo = computed(() => {
 
               <NcTooltip class="truncate nc-active-view-title max-w-full !leading-5" show-on-truncate-only disabled>
                 <template #title>
-                  {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
+                  {{ activeView?.title }}
                 </template>
                 <span
                   class="text-ellipsis"
@@ -243,7 +240,7 @@ const viewModeInfo = computed(() => {
                     display: 'inline',
                   }"
                 >
-                  {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
+                  {{ activeView?.title }}
                 </span>
               </NcTooltip>
 

@@ -10,7 +10,7 @@ const selectedValue = useVModel(props, 'modelValue')
 </script>
 
 <template>
-  <div class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab justify-between h-8">
+  <div class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 nc-view-sidebar-tab justify-between h-8">
     <div
       v-for="option in options"
       :key="option.value"
@@ -28,7 +28,7 @@ const selectedValue = useVModel(props, 'modelValue')
 
 <style scoped lang="scss">
 .tab {
-  @apply flex flex-row items-center w-full justify-center rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center w-full justify-center rounded-md gap-x-2 text-nc-content-gray-subtle2 hover:text-nc-content-gray-extreme cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab-icon {
@@ -46,7 +46,7 @@ const selectedValue = useVModel(props, 'modelValue')
 }
 
 .active {
-  @apply bg-white;
+  @apply bg-nc-bg-default;
   .tab-title {
     @apply text-nc-content-gray-emphasis font-600;
   }

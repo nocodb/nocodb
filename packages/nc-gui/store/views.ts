@@ -1,5 +1,12 @@
 import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, RowColoringInfo, SortType, ViewType } from 'nocodb-sdk'
-import { ProjectRoles, ViewSettingOverrideOptions, ViewTypes, WorkspaceUserRoles, ViewTypes as _ViewTypes } from 'nocodb-sdk'
+import {
+  ProjectRoles,
+  ViewSettingOverrideOptions,
+  ViewTypes,
+  WorkspaceUserRoles,
+  ViewTypes as _ViewTypes,
+  getFirstNonPersonalView,
+} from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib/types'
@@ -95,7 +102,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const activeViewTitleOrId = computed(() => {
     if (!route.value.params.viewTitle?.length) {
       // find the default view and navigate to it, if not found navigate to the first one
-      const defaultView = views.value?.find((v) => v.is_default) || views.value?.[0]
+      const defaultView = getFirstNonPersonalView(views.value)
 
       return defaultView?.id
     }
@@ -484,7 +491,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       // If we deleted the active view, navigate to default or first view
       if (activeViewId === view.id) {
         const remainingViews = viewsByTable.value.get(view.fk_model_id) || []
-        const defaultView = remainingViews.find((v) => v.is_default) || remainingViews[0]
+        const defaultView = remainingViews[0]
 
         if (defaultView && activeTable.value) {
           await navigateToView({
@@ -668,7 +675,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
         viewName: activeView.value.title,
         tableName: tableName || '',
         baseName: baseName || '',
-        isDefaultView: !!activeView.value.is_default,
         isSharedView: !!sharedView.value?.id,
       }),
     )
@@ -972,9 +978,17 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }
 
   function getViewReadableUrlSlug({ tableTitle, viewOrViewTitle }: { tableTitle?: string; viewOrViewTitle: ViewType | string }) {
-    const viewTitle = ncIsObject(viewOrViewTitle) ? (viewOrViewTitle.is_default ? '' : viewOrViewTitle.title) : viewOrViewTitle
+    const viewTitle = ncIsObject(viewOrViewTitle) ? viewOrViewTitle.title : viewOrViewTitle
 
     return toReadableUrlSlug([tableTitle, viewTitle])
+  }
+
+  async function hasOnlyOneGridViewInTable(tableId: string) {
+    await loadViews({
+      tableId,
+    })
+    const grids = viewsByTable.value.get(tableId)?.filter((v) => v.type === ViewTypes.GRID && v.lock_type !== LockType.Personal)
+    return grids?.length === 1
   }
 
   watch(
@@ -1013,8 +1027,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         viewId: view.id,
         baseId: view.base_id as string,
         tableID: view.fk_model_id,
-        isDefault: !!view.is_default,
-        viewName: view.is_default ? (tableName as string) : view.title,
+        viewName: view.title,
         viewType: view.type,
         workspaceId: activeWorkspaceId.value,
         tableName: tableName as string,
@@ -1105,6 +1118,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     onViewsTabChange,
     navigateToView,
     changeView,
+    hasOnlyOneGridViewInTable,
     removeFromRecentViews,
     refreshViewTabTitle: refreshViewTabTitle.trigger,
     updateViewCoverImageColumnId,

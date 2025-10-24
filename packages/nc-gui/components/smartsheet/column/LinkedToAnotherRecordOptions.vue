@@ -531,8 +531,7 @@ const handleScrollIntoView = () => {
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralViewIcon :meta="view" class="text-gray-500" />
               </div>
-              <span v-if="view.is_default">{{ $t('labels.defaultView') }}</span>
-              <NcTooltip v-else class="flex-1 truncate" show-on-truncate-only>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ view.title }}</template>
                 <span>{{ view.title }}</span>
               </NcTooltip>

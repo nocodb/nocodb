@@ -1,4 +1,5 @@
 import {
+  getFirstNonPersonalView,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
@@ -275,7 +276,6 @@ export default class Model implements TableType {
         view: {
           fk_model_id: id,
           title: model.title || model.table_name,
-          is_default: true,
           type: ViewTypes.GRID,
           base_id: baseId,
           source_id: sourceId,
@@ -562,7 +562,9 @@ export default class Model implements TableType {
 
       await m.getViews(context, false, ncMeta);
 
-      const defaultViewId = m.views.find((view) => view.is_default).id;
+      const defaultViewId = getFirstNonPersonalView(m.views, {
+        includeViewType: ViewTypes.GRID,
+      })?.id;
 
       await m.getColumns(context, ncMeta, defaultViewId);
 
@@ -581,8 +583,8 @@ export default class Model implements TableType {
    * @param args.dbDriver - The base database driver
    * @param args.transaction - Optional transaction instance to use for operations
    * @param args.model - The model instance (optional, will be fetched if not provided)
-   * @param args.viewId - The view ID (optional)
    * @param args.extractDefaultView - Whether to extract the default view if viewId not provided
+   * @param args.viewId - The view ID (optional)
    * @param args.source - The data source (optional, will be fetched if not provided)
    * @param ncMeta - The NocoDB metadata instance
    * @returns A configured BaseModelSqlv2 instance
@@ -609,6 +611,7 @@ export default class Model implements TableType {
       const view = await View.getDefaultView(context, model.id, ncMeta);
       args.viewId = view.id;
     }
+
     let schema: string;
 
     if (source?.isMeta(true, 1)) {
@@ -904,16 +907,6 @@ export default class Model implements TableType {
       },
       tableId,
     );
-
-    // get default view and update alias
-    {
-      const defaultView = await View.getDefaultView(context, tableId, ncMeta);
-      if (defaultView) {
-        await View.update(context, defaultView.id, {
-          title,
-        });
-      }
-    }
 
     await NocoCache.update(context, `${CacheScope.MODEL}:${tableId}`, {
       title,

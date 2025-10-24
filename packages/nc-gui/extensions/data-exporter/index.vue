@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { SupportedExportCharset, type ViewType, ViewTypes, charsetOptions, csvColumnSeparatorOptions } from 'nocodb-sdk'
+import {
+  SupportedExportCharset,
+  type ViewType,
+  ViewTypes,
+  charsetOptions,
+  csvColumnSeparatorOptions,
+  getFirstNonPersonalView,
+} from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 const jobStatusTooltip = {
@@ -91,10 +98,10 @@ const viewList = computed(() => {
   if (!exportPayload.value.tableId) return []
   return (
     views.value
-      .filter((view) => view.type === ViewTypes.GRID)
+      .filter((view) => view.type !== ViewTypes.FORM)
       .map((view) => {
         return {
-          label: view.is_default ? `Default View` : view.title,
+          label: view.title,
           value: view.id,
           meta: view.meta,
           type: view.type,
@@ -119,11 +126,15 @@ const onTableSelect = async (tableId?: string) => {
     await reloadViews()
     exportPayload.value.viewId = activeViewTitleOrId.value
       ? views.value.find((view) => view.id === activeViewTitleOrId.value)?.id
-      : views.value.find((view) => view.is_default)?.id
+      : getFirstNonPersonalView(views.value, {
+          includeViewType: ViewTypes.GRID,
+        })?.id
   } else {
     exportPayload.value.tableId = tableId
     await reloadViews()
-    exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
+    exportPayload.value.viewId = getFirstNonPersonalView(views.value, {
+      excludeViewType: ViewTypes.FORM,
+    })?.id
   }
 
   await saveChanges()
@@ -238,7 +249,7 @@ function titleHelper() {
   const table = tables.value.find((t) => t.id === exportPayload.value.tableId)
   const view = views.value.find((v) => v.id === exportPayload.value.viewId)
 
-  return `${table?.title} (${view?.is_default ? 'Default View' : view?.title})`
+  return `${table?.title} (${view?.title})`
 }
 
 const onRemoveExportedFile = async (exportId: string) => {

@@ -1676,7 +1676,6 @@
                           "table_id": "mrc5unwjdov67vr",
                           "title": "Grid View",
                           "type": "grid",
-                          "is_default": true,
                           "lock_type": "collaborative",
                           "created_at": "2025-06-26 15:02:56+00:00",
                           "updated_at": "2025-06-26 15:36:25+00:00"
@@ -6224,10 +6223,6 @@
                   ],
                   "description": "View configuration edit state."
                 },
-                "is_default": {
-                  "type": "boolean",
-                  "description": "Indicates if this is the default view."
-                },
                 "created_by": {
                   "type": "string",
                   "description": "User ID of the creator."
@@ -6863,10 +6858,6 @@
               "table_id": {
                 "type": "string",
                 "description": "Id of table associated with the view."
-              },
-              "is_default": {
-                "type": "boolean",
-                "description": "Indicates if this is the default view. Omitted if not the default view."
               }
             },
             "required": [

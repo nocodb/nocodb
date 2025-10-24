@@ -29,7 +29,6 @@ export async function getCommandPaletteForUserWorkspace(
           't.order as table_order',
           'v.id as view_id',
           'v.title as view_title',
-          'v.is_default as view_is_default',
           'v.type as view_type',
           'v.meta as view_meta',
           'v.order as view_order',

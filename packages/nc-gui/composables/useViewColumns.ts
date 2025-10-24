@@ -1,14 +1,5 @@
-import {
-  type ButtonType,
-  type ColumnType,
-  CommonAggregations,
-  type GridColumnReqType,
-  type GridColumnType,
-  type MapType,
-  type TableType,
-  type ViewType,
-} from 'nocodb-sdk'
-import { ViewTypes, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
+import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
@@ -40,6 +31,18 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const { isUIAllowed } = useRoles()
 
     const { isSharedBase } = storeToRefs(useBase())
+
+    const viewStore = useViewsStore()
+
+    const { views } = storeToRefs(viewStore)
+
+    const isDefaultView = computed(() => {
+      return (
+        getFirstNonPersonalView(views.value, {
+          includeViewType: ViewTypes.GRID,
+        })?.id === view.value?.id
+      )
+    })
 
     const isViewColumnsLoading = ref(true)
 
@@ -211,7 +214,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           await $api.dbView.showAllColumn(view.value.id)
         }
 
-        if (view.value?.is_default) {
+        if (isDefaultView.value) {
           updateDefaultViewColumnMeta(undefined, { defaultViewColVisibility: true }, true)
         }
       }
@@ -263,7 +266,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           await $api.dbView.hideAllColumn(view.value.id)
         }
 
-        if (view.value?.is_default) {
+        if (isDefaultView.value) {
           updateDefaultViewColumnMeta(undefined, { defaultViewColVisibility: false }, true)
         }
       }
@@ -464,20 +467,20 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         undo: {
           fn: (v: boolean) => {
             field.show = !v
-            saveOrUpdate(field, fieldIndex, false, !!view.value?.is_default)
+            saveOrUpdate(field, fieldIndex, false, isDefaultView.value)
           },
           args: [checked],
         },
         redo: {
           fn: (v: boolean) => {
             field.show = v
-            saveOrUpdate(field, fieldIndex, false, !!view.value?.is_default)
+            saveOrUpdate(field, fieldIndex, false, isDefaultView.value)
           },
           args: [checked],
         },
         scope: defineViewScope({ view: view.value }),
       })
-      saveOrUpdate(field, fieldIndex, !checked, !!view.value?.is_default)
+      saveOrUpdate(field, fieldIndex, !checked, isDefaultView.value)
     }
 
     const toggleFieldStyles = (field: any, style: 'underline' | 'bold' | 'italic', status: boolean) => {

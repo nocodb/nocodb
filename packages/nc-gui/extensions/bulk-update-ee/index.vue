@@ -10,10 +10,10 @@ import {
   type TableType,
   UITypes,
   type ViewType,
-  ViewTypes,
   getSystemColumnsIds,
   isVirtualCol,
 } from 'nocodb-sdk'
+import { ViewTypes, getFirstNonPersonalView } from 'nocodb-sdk'
 
 const hiddenColTypes = [
   UITypes.Rollup,
@@ -168,10 +168,10 @@ const viewList = computed(() => {
   if (!savedPayloads.value.selectedTableId) return []
   return (
     views.value
-      .filter((view) => view.type === ViewTypes.GRID)
+      .filter((view) => view.type !== ViewTypes.FORM)
       .map((view) => {
         return {
-          label: view.is_default ? `Default View` : view.title,
+          label: view.title,
           value: view.id,
           meta: view.meta,
           type: view.type,
@@ -369,12 +369,16 @@ async function onTableSelect(tableId?: string) {
     savedPayloads.value.selectedTableId = activeTableId.value
     await reloadViews()
     savedPayloads.value.selectedViewId = activeViewTitleOrId.value
-      ? views.value.find((view) => view.type === ViewTypes.GRID && view.id === activeViewTitleOrId.value)?.id
-      : views.value.find((view) => view.is_default)?.id
+      ? views.value.find((view) => view.type !== ViewTypes.FORM && view.id === activeViewTitleOrId.value)?.id
+      : getFirstNonPersonalView(views.value, {
+          excludeViewType: ViewTypes.FORM,
+        })?.id
   } else {
     savedPayloads.value.selectedTableId = tableId
     await reloadViews()
-    savedPayloads.value.selectedViewId = views.value.find((view) => view.is_default)?.id
+    savedPayloads.value.selectedViewId = getFirstNonPersonalView(views.value, {
+      excludeViewType: ViewTypes.FORM,
+    })?.id
   }
 
   await updateColumns()
@@ -955,7 +959,7 @@ watch(
         >
           <div
             v-if="fullscreen"
-            class="w-[320px] border-r-1 border-r-nc-border-gray-medium bg-white p-4 pt-t flex flex-col gap-5"
+            class="w-[320px] border-r-1 border-r-nc-border-gray-medium bg-nc-bg-default p-4 pt-t flex flex-col gap-5"
           >
             <div class="text-base font-bold text-nc-content-gray-extreme">Settings</div>
             <div class="flex flex-col gap-2">
@@ -980,7 +984,7 @@ watch(
                   <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
                     <div class="w-full flex items-center gap-2">
                       <div class="min-w-5 flex items-center justify-center">
-                        <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+                        <GeneralTableIcon :meta="{ meta: table.meta }" class="text-nc-content-gray-muted" />
                       </div>
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ table.label }}</template>
@@ -1014,7 +1018,10 @@ watch(
                   <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
                     <div class="w-full flex items-center gap-2">
                       <div class="min-w-5 flex items-center justify-center">
-                        <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                        <GeneralViewIcon
+                          :meta="{ meta: view.meta, type: view.type }"
+                          class="flex-none text-nc-content-gray-muted"
+                        />
                       </div>
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ view.label }}</template>
@@ -1044,7 +1051,7 @@ watch(
               <template v-if="fullscreen">
                 <div
                   v-if="showNoRecordToUpdateInlineToast"
-                  class="w-full max-w-[520px] mx-auto p-4 flex items-start gap-4 bg-white border-1 border-nc-border-gray-medium rounded-lg"
+                  class="w-full max-w-[520px] mx-auto p-4 flex items-start gap-4 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg"
                 >
                   <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
                   <div class="flex flex-col gap-1">
@@ -1055,7 +1062,7 @@ watch(
                   </div>
                   <NcButton size="xs" type="text" icon-only @click="showNoRecordToUpdateInlineToast = false">
                     <template #icon>
-                      <GeneralIcon icon="close" class="text-gray-600" />
+                      <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
                     </template>
                   </NcButton>
                 </div>
@@ -1073,7 +1080,7 @@ watch(
                 layout="vertical"
                 class=""
                 :class="{
-                  'border-1 border-nc-border-gray-medium rounded-2xl bg-white w-full max-w-[520px] !mx-auto ': fullscreen,
+                  'border-1 border-nc-border-gray-medium rounded-2xl bg-nc-bg-default w-full max-w-[520px] !mx-auto ': fullscreen,
                   'flex-1 flex ': !fullscreen,
                 }"
               >
@@ -1403,7 +1410,7 @@ watch(
           class="flex items-center gap-3 justify-end"
           :class="{
             'pt-3': fullscreen,
-            'p-3 border-t-1 border-t-nc-border-gray-medium bg-white': !fullscreen,
+            'p-3 border-t-1 border-t-nc-border-gray-medium bg-nc-bg-default': !fullscreen,
           }"
         >
           <NcTooltip
@@ -1481,7 +1488,7 @@ watch(
 .nc-nc-bulk-update {
   @apply flex flex-col overflow-hidden h-full;
   .bulk-update-header {
-    @apply px-3 py-1 bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
+    @apply px-3 py-1 bg-nc-bg-gray-light text-[11px] leading-4 text-nc-content-gray-subtle2 border-b-1;
   }
   .nc-bulk-update-select-wrapper {
     &:not(:focus-within) {
@@ -1528,7 +1535,7 @@ watch(
   }
 
   .nc-bulk-update-field-config-section.ant-collapse {
-    @apply !rounded-2xl bg-white overflow-hidden !border-0 bg-transparent;
+    @apply !rounded-2xl bg-nc-bg-default overflow-hidden !border-0 bg-transparent;
 
     .ant-collapse-header {
       @apply !p-0 flex items-center !cursor-default children:first:flex;
@@ -1575,7 +1582,7 @@ watch(
   }
   .nc-cell,
   .nc-virtual-cell {
-    @apply bg-white dark:bg-slate-500 appearance-none;
+    @apply bg-nc-bg-default appearance-none;
 
     &.nc-cell-checkbox {
       @apply color-transition !border-0;
@@ -1610,7 +1617,7 @@ watch(
             @apply !outline-none h-full;
 
             &::placeholder {
-              @apply text-gray-400 dark:text-slate-300;
+              @apply text-nc-content-gray-disabled;
             }
           }
         }
@@ -1640,12 +1647,12 @@ watch(
             input,
             textarea,
             &.nc-virtual-cell {
-              @apply bg-white !disabled:bg-transparent;
+              @apply bg-nc-bg-default !disabled:bg-transparent;
             }
           }
           &.nc-cell-longtext {
             textarea {
-              @apply bg-white !disabled:bg-transparent;
+              @apply bg-nc-bg-default !disabled:bg-transparent;
             }
           }
         }
@@ -1658,7 +1665,7 @@ watch(
           }
 
           .chip {
-            @apply dark:(bg-slate-700 text-white);
+            @apply dark:(bg-slate-700 text-nc-content-gray-extreme);
           }
         }
 
@@ -1668,7 +1675,7 @@ watch(
           }
 
           .chip {
-            @apply dark:(bg-slate-700 text-white);
+            @apply dark:(bg-slate-700 text-nc-content-gray-extreme);
           }
         }
 
@@ -1721,7 +1728,7 @@ watch(
           @apply !py-0 !pl-0 flex items-stretch;
 
           .nc-currency-code {
-            @apply !bg-gray-100;
+            @apply !bg-nc-bg-gray-light;
           }
         }
         &.nc-cell-attachment {
@@ -1769,21 +1776,21 @@ watch(
 
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
 
     :deep(.nc-cell),
     :deep(.nc-virtual-cell) {
-      @apply text-gray-400;
+      @apply text-nc-content-gray-disabled;
     }
   }
 
   &.nc-readonly-div-data-cell:focus-within,
   &.nc-system-field:focus-within {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
   }
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
-    @apply !shadow-selected !border-1 !border-brand-500;
+    @apply !shadow-selected !border-1 !border-nc-border-brand;
   }
 }
 
@@ -1794,7 +1801,7 @@ watch(
 .nc-input-required-error {
   &:focus-within {
     :deep(.ant-form-item-explain-error) {
-      @apply text-gray-400;
+      @apply text-nc-content-gray-disabled;
     }
   }
 }

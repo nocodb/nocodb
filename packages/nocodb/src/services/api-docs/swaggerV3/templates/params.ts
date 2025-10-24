@@ -104,9 +104,7 @@ export const viewIdParam = (views: SwaggerView[]) => {
 
   for (const { view } of views) {
     viewIds.push(view.id);
-    description.push(
-      `* ${view.id} - ${view.is_default ? 'Default view' : view.title}`,
-    );
+    description.push(`* ${view.id} - ${view.title}`);
   }
 
   return {

@@ -3,6 +3,7 @@ import {
   CommonAggregations,
   EventType,
   ExpandedFormMode,
+  getFirstNonPersonalView,
   isSystemColumn,
   NcBaseError,
   parseProp,
@@ -87,7 +88,6 @@ export default class View implements ViewType {
   uuid?: string;
   password?: string;
   show: boolean;
-  is_default: boolean;
   order: number;
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
@@ -222,16 +222,13 @@ export default class View implements ViewType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.VIEWS,
+      view = getFirstNonPersonalView(
+        await this.list(context, fk_model_id, ncMeta),
         {
-          fk_model_id,
-          is_default: 1,
+          includeViewType: ViewTypes.GRID,
         },
-        null,
       );
+
       if (view) {
         view.meta = parseMetaProp(view);
 
@@ -311,7 +308,6 @@ export default class View implements ViewType {
       const insertObj = extractProps(view, [
         'id',
         'title',
-        'is_default',
         'description',
         'type',
         'fk_model_id',
@@ -1462,11 +1458,20 @@ export default class View implements ViewType {
       prepareForResponse(updateObj),
     );
 
-    if (oldView.is_default) {
-      await NocoCache.update(
+    // Get the first collaborative grid view to update default view cache
+    const defaultView = getFirstNonPersonalView(
+      await this.list(context, oldView.fk_model_id, ncMeta),
+      {
+        includeViewType: ViewTypes.GRID,
+      },
+    );
+
+    // Update the default view cache if the first collaborative grid view has changed
+    if (defaultView) {
+      await NocoCache.set(
         context,
         `${CacheScope.VIEW}:${oldView.fk_model_id}:default`,
-        prepareForResponse(updateObj),
+        defaultView,
       );
     }
 
@@ -2274,7 +2279,6 @@ export default class View implements ViewType {
     const insertObj = extractProps(view, [
       'id',
       'title',
-      'is_default',
       'description',
       'type',
       'fk_model_id',

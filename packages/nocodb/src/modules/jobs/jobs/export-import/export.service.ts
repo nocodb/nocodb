@@ -2,6 +2,7 @@ import { Readable } from 'stream';
 import { Injectable } from '@nestjs/common';
 import debug from 'debug';
 import {
+  getFirstNonPersonalView,
   isCrossBaseLink,
   isLinksOrLTAR,
   isSystemColumn,
@@ -213,7 +214,10 @@ export class ExportService {
 
       // if views are excluded, filter all views except default
       if (excludeViews) {
-        model.views = model.views.filter((v) => v.is_default);
+        const firstView = getFirstNonPersonalView(model.views, {
+          includeViewType: ViewTypes.GRID,
+        });
+        model.views = firstView ? [firstView as View] : [];
       }
 
       for (const column of model.columns) {
@@ -668,7 +672,6 @@ export class ExportService {
         views: model.views.map((view) => ({
           description: view.description,
           id: idMap.get(view.id),
-          is_default: view.is_default,
           type: view.type,
           meta: RowColorViewHelpers.withContext(context).mapMetaColumn({
             meta: view.meta,

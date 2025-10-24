@@ -2709,7 +2709,6 @@ export class AppHooksListenerService
                   ...extractNonSystemProps(param.view, [
                     'type',
                     'order',
-                    'is_default',
                     'description',
                     'created_by',
                     'title',
@@ -2762,7 +2761,6 @@ export class AppHooksListenerService
                     extractNonSystemProps(param.sharedView, [
                       'type',
                       'order',
-                      'is_default',
                       'description',
                       'created_by',
                       'title',
@@ -2802,7 +2800,6 @@ export class AppHooksListenerService
                   ...extractNonSystemProps(param.view, [
                     'type',
                     'order',
-                    'is_default',
                     'description',
                     'created_by',
                     'title',

@@ -30,9 +30,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'view', emits) as WritableComputedRef<
-  ViewType & { alias?: string; is_default: boolean; created_by?: string }
->
+const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { alias?: string; created_by?: string }>
 
 const { $e } = useNuxtApp()
 

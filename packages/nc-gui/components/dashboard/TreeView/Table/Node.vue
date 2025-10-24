@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, PlanFeatureTypes, PlanTitles, type TableType, ViewTypes } from 'nocodb-sdk'
+import { type BaseType, PlanFeatureTypes, PlanTitles, type TableType } from 'nocodb-sdk'
 
 import type { SidebarTableNode } from '~/lib/types'
 
@@ -45,11 +45,9 @@ const {
   tableRenameId,
 } = inject(TreeViewInj)!
 
-const { loadViews: _loadViews, navigateToView, duplicateView } = useViewsStore()
-const { activeView, activeViewTitleOrId, viewsByTable } = storeToRefs(useViewsStore())
+const { loadViews: _loadViews } = useViewsStore()
+const { activeView, viewsByTable } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-
-const { refreshCommandPalette } = useCommandPalette()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
@@ -213,31 +211,6 @@ watch(
   },
 )
 
-const isTableOpened = computed(() => {
-  return openedTableId.value === table.value?.id && (activeView.value?.is_default || !activeViewTitleOrId.value)
-})
-
-let tableTimeout: NodeJS.Timeout
-
-watch(openedTableId, () => {
-  if (tableTimeout) {
-    clearTimeout(tableTimeout)
-  }
-
-  if (table.value.id !== openedTableId.value && isExpanded.value) {
-    const views = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
-
-    if (views.length) return
-
-    tableTimeout = setTimeout(() => {
-      if (isExpanded.value) {
-        isExpanded.value = false
-      }
-      clearTimeout(tableTimeout)
-    }, 10000)
-  }
-})
-
 const duplicateTable = (table: SidebarTableNode) => {
   isOptionsOpen.value = false
 
@@ -291,45 +264,6 @@ const openTableDescriptionDialog = (table: SidebarTableNode) => {
 const deleteTable = () => {
   isOptionsOpen.value = false
   isTableDeleteDialogVisible.value = true
-}
-const isOnDuplicateLoading = ref<boolean>(false)
-
-async function onDuplicate() {
-  isOnDuplicateLoading.value = true
-
-  // Load views if not loaded
-  if (!viewsByTable.value.get(table.value.id as string)) {
-    await _openTable(table.value, undefined, false)
-  }
-
-  const views = viewsByTable.value.get(table.value.id as string)
-  const defaultView = views?.find((v) => v.is_default) || views?.[0]
-
-  if (defaultView) {
-    const view = await duplicateView(defaultView)
-
-    refreshCommandPalette()
-
-    await _loadViews({
-      force: true,
-      tableId: table.value!.id!,
-    })
-
-    if (view) {
-      navigateToView({
-        view,
-        tableId: table.value!.id!,
-        tableTitle: table.value.title,
-        baseId: base.value.id!,
-        hardReload: view.type === ViewTypes.FORM,
-      })
-
-      $e('a:view:create', { view: view.type, sidebar: true })
-    }
-  }
-
-  isOnDuplicateLoading.value = false
-  isOptionsOpen.value = false
 }
 
 async function onPermissions(_table: SidebarTableNode) {
@@ -451,7 +385,6 @@ async function onRename() {
           'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
           'pl-8 !xs:(pl-7)': sourceIndex !== 0,
           'pl-2 xs:(pl-2)': sourceIndex === 0,
-          '!bg-primary-selected': isTableOpened,
         }"
         :data-testid="`nc-tbl-side-node-${table.title}`"
         @contextmenu="setMenuContext('table', table)"
@@ -482,21 +415,11 @@ async function onRename() {
                       {{ $t('general.changeIcon') }}
                     </template>
 
-                    <component
-                      :is="iconMap.ncZap"
-                      v-if="table?.synced"
-                      class="w-4 text-sm"
-                      :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
-                    />
+                    <component :is="iconMap.ncZap" v-if="table?.synced" class="w-4 text-sm !text-gray-600/75" />
 
-                    <component
-                      :is="iconMap.table"
-                      v-else-if="table.type === 'table'"
-                      class="w-4 text-sm"
-                      :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
-                    />
+                    <component :is="iconMap.table" v-else-if="table.type === 'table'" class="w-4 text-sm !text-gray-600/75" />
 
-                    <MdiEye v-else class="flex w-5 text-sm" :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'" />
+                    <MdiEye v-else class="flex w-5 text-sm !text-gray-600/75" />
                   </NcTooltip>
                 </template>
               </LazyGeneralEmojiPicker>
@@ -508,9 +431,6 @@ async function onRename() {
             ref="input"
             v-model:value="formState.title"
             class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
-            :class="{
-              '!font-semibold !text-nc-content-brand-disabled': isTableOpened,
-            }"
             :style="{
               fontWeight: 'inherit',
             }"
@@ -525,7 +445,7 @@ async function onRename() {
         >
           <template #title>{{ table.title }}</template>
           <span
-            :class="isTableOpened ? 'text-nc-content-brand-disabled font-semibold' : 'text-nc-content-gray-subtle'"
+            class="text-nc-content-gray-subtle"
             :data-testid="`nc-tbl-title-${table.title}`"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onRenameMenuClick(table)"
@@ -682,18 +602,6 @@ async function onRename() {
                       </NcMenuItem>
                     </template>
                   </PaymentUpgradeBadgeProvider>
-                  <NcDivider />
-
-                  <NcMenuItem @click="onDuplicate">
-                    <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
-                    <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
-                    {{
-                      $t('general.duplicateEntity', {
-                        entity: $t('title.defaultView').toLowerCase(),
-                      })
-                    }}
-                  </NcMenuItem>
-
                   <NcDivider />
                   <NcMenuItem
                     v-if="isUIAllowed('tableDelete', { roles: baseRole, source })"

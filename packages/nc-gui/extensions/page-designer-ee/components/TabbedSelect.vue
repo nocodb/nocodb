@@ -26,7 +26,7 @@ const selected = defineModel()
 
 <style scoped>
 .tab {
-  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-nc-content-gray-subtle2 hover:text-black cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab-icon {

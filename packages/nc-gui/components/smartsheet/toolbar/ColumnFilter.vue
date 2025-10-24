@@ -337,6 +337,9 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
     await sync({ hookId: hookOrColId, nested })
   }
 
+  if (localNestedFilters.value && !localNestedFilters.value?.length) {
+    await localNestedFilters.value?.applyChanges?.(hookOrColId, true, undefined)
+  }
   if (!localNestedFilters.value?.length) return
 
   for (const nestedFilter of localNestedFilters.value) {
@@ -477,7 +480,7 @@ onMounted(async () => {
 
   await Promise.all([
     (async () => {
-      if (!initialModelValue)
+      if (!initialModelValue?.length)
         await loadFilters({
           hookId: hookId?.value,
           isWebhook: webHook.value,

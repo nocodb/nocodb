@@ -41,7 +41,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     // state
-    const { metas, getMeta } = useMetas()
+    const { getMeta, getMetaByKey } = useMetas()
 
     const { base, sqlUis } = storeToRefs(useBase())
 
@@ -125,9 +125,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const baseId = base.value?.id || (sharedView.value?.view as any)?.base_id
 
     // getters
-    const meta = computed(() => metas?.value?.[column?.value?.fk_model_id as string])
+    const meta = computed(() => getMetaByKey(column?.value?.base_id as string, column?.value?.fk_model_id as string))
     const relatedTableMeta = computed<TableType>(() => {
-      return metas.value?.[colOptions.value?.fk_related_model_id as string]
+      return getMetaByKey(column?.value?.base_id as string, colOptions.value?.fk_related_model_id as string)
     })
 
     const sqlUi = computed(() =>
@@ -279,9 +279,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const extractOnlyPrimaryValues = async (value: any, col: ColumnType) => {
       const currColOptions = (col.colOptions || {}) as LinkToAnotherRecordType
 
-      await getMeta(base.value?.id!, currColOptions.fk_related_model_id as string)
+      await getMeta(base.value?.id as string, currColOptions.fk_related_model_id as string)
 
-      const currColRelatedTableMeta = metas.value?.[currColOptions?.fk_related_model_id as string] as TableType
+      const currColRelatedTableMeta = getMetaByKey(base.value?.id as string, currColOptions?.fk_related_model_id as string)
 
       if (!currColRelatedTableMeta) return
 
@@ -492,7 +492,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
-            meta.value.base_id ?? baseId,
+            meta.value?.base_id ?? baseId,
             meta.value.id,
             encodeURIComponent(rowId.value),
             colOptions.value.type as RelationTypes,

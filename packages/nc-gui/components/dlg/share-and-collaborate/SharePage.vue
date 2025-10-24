@@ -11,7 +11,7 @@ const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
 
-const { metas, getMetaByKey } = useMetas()
+const { getMetaByKey } = useMetas()
 
 const { isPrivateBase } = storeToRefs(useBase())
 
@@ -269,9 +269,8 @@ const toggleViewShare = async () => {
   if (!activeView.value?.id) return
 
   if (activeView.value?.uuid) {
-    // Get base_id from existing meta first, then fetch updated meta
-    const existingMeta = Object.values(metas.value).find((m) => m.id === activeView.value.fk_model_id)
-    const meta = getMetaByKey(existingMeta?.base_id, activeView.value.fk_model_id)
+    // Get meta using base_id from activeView
+    const meta = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id)
     await $api.internal.postOperation(
       meta!.fk_workspace_id!,
       meta!.base_id!,
@@ -284,8 +283,8 @@ const toggleViewShare = async () => {
 
     activeView.value = { ...activeView.value, uuid: undefined, password: undefined }
   } else {
-    const existingMeta = Object.values(metas.value).find((m) => m.id === activeView.value.fk_model_id)
-    const meta = getMetaByKey(existingMeta?.base_id, activeView.value.fk_model_id)
+    // Get meta using base_id from activeView
+    const meta = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id)
     const response = await $api.internal.postOperation(
       meta!.fk_workspace_id!,
       meta!.base_id!,
@@ -299,8 +298,7 @@ const toggleViewShare = async () => {
 
     if (activeView.value!.type === ViewTypes.KANBAN) {
       // extract grouping column meta
-      const existingMeta2 = Object.values(metas.value).find((m) => m.id === viewStore.activeView!.fk_model_id)
-      const groupingFieldColumn = getMetaByKey(existingMeta2?.base_id, viewStore.activeView!.fk_model_id)?.columns!.find(
+      const groupingFieldColumn = getMetaByKey(viewStore.activeView!.base_id, viewStore.activeView!.fk_model_id)?.columns!.find(
         (col: ColumnType) => col.id === ((viewStore.activeView!.view! as KanbanType).fk_grp_col_id! as string),
       )
 
@@ -350,8 +348,8 @@ async function updateSharedView(custUrl = undefined) {
     if (!activeView.value?.meta) return
     const meta = activeView.value.meta
 
-    const existingMeta3 = Object.values(metas.value).find((m) => m.id === activeView.value.fk_model_id)
-    const metaInfo = getMetaByKey(existingMeta3?.base_id, activeView.value.fk_model_id)
+    // Get meta using base_id from activeView
+    const metaInfo = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id)
     const res = await $api.internal.postOperation(
       metaInfo!.fk_workspace_id!,
       metaInfo!.base_id!,

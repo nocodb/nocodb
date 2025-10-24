@@ -10,7 +10,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
 
     const { base } = storeToRefs(useBase())
 
-    const { metas } = useMetas()
+    const { getMetaByKey } = useMetas()
 
     const getRowLtarHelpers = (row: Row) => {
       if (!row.rowMeta) {
@@ -85,7 +85,7 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
 
         const colOptions = column.colOptions as LinkToAnotherRecordType
 
-        const relatedTableMeta = metas.value?.[colOptions?.fk_related_model_id as string]
+        const relatedTableMeta = getMetaByKey(metaValue?.base_id, colOptions?.fk_related_model_id as string)
 
         if (isHm(column) || isMm(column)) {
           const relatedRows = (getRowLtarHelpers(row)?.[column.title!] ?? []) as Record<string, any>[]
@@ -122,7 +122,10 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
       try {
         if (!column || !isLinksOrLTAR(column)) return
 
-        const relatedTableMeta = metas.value?.[(<LinkToAnotherRecordType>column?.colOptions)?.fk_related_model_id as string]
+        const relatedTableMeta = getMetaByKey(
+          meta.value?.base_id,
+          (<LinkToAnotherRecordType>column?.colOptions)?.fk_related_model_id as string,
+        )
 
         if (row.rowMeta.new) {
           getRowLtarHelpers(row)[column.title!] = null

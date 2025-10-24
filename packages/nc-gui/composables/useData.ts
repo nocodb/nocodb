@@ -20,7 +20,7 @@ export function useData(args: {
 
   const { t } = useI18n()
 
-  const { getMeta, metas } = useMetas()
+  const { getMeta, getMetaByKey } = useMetas()
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -492,7 +492,7 @@ export function useData(args: {
 
       const colOptions = column.colOptions as LinkToAnotherRecordType
 
-      const relatedTableMeta = metas.value?.[colOptions?.fk_related_model_id as string]
+      const relatedTableMeta = getMetaByKey(metaValue?.base_id, colOptions?.fk_related_model_id as string)
 
       if (isHm(column) || isMm(column)) {
         const relatedRows = (row[column.title!] ?? []) as Record<string, any>[]

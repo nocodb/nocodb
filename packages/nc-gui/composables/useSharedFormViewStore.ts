@@ -51,7 +51,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { api, isLoading } = useApi()
 
-  const { metas, setMeta, getMeta } = useMetas()
+  const { setMeta, getMeta, getMetaByKey } = useMetas()
 
   const worksapce = useWorkspace()
 
@@ -414,9 +414,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const attachment: Record<string, any> = {}
 
       /** find attachments in form data */
-      for (const col of metas.value?.[sharedView.value?.fk_model_id as string]?.columns) {
+      const formMeta = getMetaByKey(sharedView.value?.base_id, sharedView.value?.fk_model_id as string)
+      for (const col of formMeta?.columns ?? []) {
         if (col.uidt === UITypes.Attachment) {
-          if (data[col.title]) {
+          if (col.title && data[col.title]) {
             attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)
           }
         }

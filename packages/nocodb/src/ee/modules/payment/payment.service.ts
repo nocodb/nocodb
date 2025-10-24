@@ -15,6 +15,7 @@ import {
 } from 'nocodb-sdk';
 import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import type { ReseatSubscriptionJobData } from '~/interface/Jobs';
 import { JobTypes } from '~/interface/Jobs';
 import {
   Org,
@@ -43,6 +44,7 @@ const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
 });
 
 const NOCODB_INTERNAL = 'nocodb';
+const RESEAT_DELAY_MS = 10 * 60 * 1000; // 10 minutes
 
 @Injectable()
 export class PaymentService {
@@ -1047,14 +1049,49 @@ export class PaymentService {
 
   async reseatSubscription(
     workspaceOrOrgId: string,
-    ncMeta = Noco.ncMeta,
+    _ncMeta = Noco.ncMeta,
     initiator?: string,
   ) {
-    // we don't want to block the request
-    this.reseatSubscriptionAwaited(workspaceOrOrgId, ncMeta, initiator).catch(
-      () => {
-        // we handle the error in the promise
+    // Remove any existing delayed jobs for this workspace/org
+    // Bull will deduplicate jobs with the same jobId
+    const jobId = `reseat-${workspaceOrOrgId}`;
+
+    try {
+      // Check if there's an existing delayed job and remove it
+      const existingJob = await this.nocoJobsService.getJob(jobId);
+      if (existingJob) {
+        const state = await existingJob.getState();
+        if (state === 'delayed' || state === 'waiting') {
+          await existingJob.remove();
+          this.logger.log(
+            `Removed existing delayed reseat job for workspace/org ${workspaceOrOrgId}`,
+          );
+        }
+      }
+    } catch (e) {
+      // Job doesn't exist, continue
+    }
+
+    // Schedule a new delayed job
+    // Bull's jobId ensures that only one job with this ID exists at a time
+    await this.nocoJobsService.add(
+      JobTypes.ReseatSubscription,
+      {
+        workspaceOrOrgId,
+        initiator,
+        jobName: JobTypes.ReseatSubscription,
+        context: { workspace_id: workspaceOrOrgId, base_id: null },
+      } as ReseatSubscriptionJobData,
+      {
+        jobId,
+        delay: RESEAT_DELAY_MS,
       },
+    );
+
+    this.logger.log(
+      `Scheduled reseat for workspace/org ${workspaceOrOrgId} in ${
+        RESEAT_DELAY_MS / 1000
+      } seconds (jobId: ${jobId})`,
     );
   }
 

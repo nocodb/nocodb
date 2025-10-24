@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import type { ProjectRoles } from 'nocodb-sdk';
+import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   BaseTeamCreateV3BulkReqType,
@@ -34,27 +34,58 @@ export class BaseTeamsV3Service {
     context: NcContext,
     param: { baseId: string },
   ): Promise<BaseTeamListV3Type> {
+    // Get base to access workspace_id
+    const base = await Base.get(context, param.baseId);
+    if (!base) {
+      NcError.get(context).baseNotFound(param.baseId);
+    }
+
     // Get all team assignments for this base
-    const assignments = await PrincipalAssignment.listByResource(
+    const baseAssignments = await PrincipalAssignment.listByResource(
       context,
       ResourceType.BASE,
       param.baseId,
     );
 
-    // Filter only team assignments
-    const teamAssignments = assignments.filter(
+    // Filter only team assignments for base
+    const baseTeamAssignments = baseAssignments.filter(
       (assignment) => assignment.principal_type === PrincipalType.TEAM,
     );
 
-    // Get team details
-    const teams = await Promise.all(
-      teamAssignments.map(async (assignment) => {
+    // Get all team assignments for the workspace
+    const workspaceAssignments = await PrincipalAssignment.listByResource(
+      context,
+      ResourceType.WORKSPACE,
+      base.fk_workspace_id!,
+    );
+
+    // Filter only team assignments for workspace
+    const workspaceTeamAssignments = workspaceAssignments.filter(
+      (assignment) => assignment.principal_type === PrincipalType.TEAM,
+    );
+
+    // Create a map of team IDs that are already assigned to base
+    const baseTeamIds = new Set(
+      baseTeamAssignments.map((a) => a.principal_ref_id),
+    );
+
+    // Create a map of workspace assignments for quick lookup
+    const workspaceAssignmentMap = new Map(
+      workspaceTeamAssignments.map((a) => [a.principal_ref_id, a]),
+    );
+
+    // Get team details for base teams (including those also assigned to workspace)
+    const baseTeams = await Promise.all(
+      baseTeamAssignments.map(async (assignment) => {
         const team = await Team.get(context, assignment.principal_ref_id);
         if (!team) {
           return null;
         }
 
         const meta = parseMetaProp(team);
+        const workspaceAssignment = workspaceAssignmentMap.get(
+          assignment.principal_ref_id,
+        );
 
         return {
           team_id: team.id,
@@ -66,16 +97,54 @@ export class BaseTeamsV3Service {
             ProjectRoles,
             ProjectRoles.OWNER
           >,
+          workspace_role:
+            (workspaceAssignment?.roles as Exclude<
+              WorkspaceUserRoles,
+              WorkspaceUserRoles.OWNER
+            >) || null,
           created_at: assignment.created_at!,
           updated_at: assignment.updated_at!,
         };
       }),
     );
 
-    // Filter out null results
-    const validTeams = teams.filter((team) => team !== null);
+    // Get team details for workspace teams that are NOT assigned to base
+    const workspaceOnlyTeams = await Promise.all(
+      workspaceTeamAssignments
+        .filter((assignment) => !baseTeamIds.has(assignment.principal_ref_id))
+        .map(async (assignment) => {
+          const team = await Team.get(context, assignment.principal_ref_id);
+          if (!team) {
+            return null;
+          }
 
-    return { list: validTeams };
+          const meta = parseMetaProp(team);
+
+          return {
+            team_id: team.id,
+            team_title: team.title,
+            team_icon: meta.icon || null,
+            team_icon_type: meta.icon_type || null,
+            team_badge_color: meta.badge_color || null,
+            base_role: null,
+            workspace_role: assignment.roles as Exclude<
+              WorkspaceUserRoles,
+              WorkspaceUserRoles.OWNER
+            >,
+            created_at: assignment.created_at!,
+            updated_at: assignment.updated_at!,
+          };
+        }),
+    );
+
+    // Filter out null results and combine both lists
+    const validBaseTeams = baseTeams.filter((team) => team !== null);
+    const validWorkspaceOnlyTeams = workspaceOnlyTeams.filter(
+      (team) => team !== null,
+    );
+    const allTeams = [...validBaseTeams, ...validWorkspaceOnlyTeams];
+
+    return { list: allTeams };
   }
 
   async teamAdd(
@@ -366,17 +435,33 @@ export class BaseTeamsV3Service {
     context: NcContext,
     param: { baseId: string; teamId: string },
   ): Promise<BaseTeamDetailV3Type> {
+    // Get base to access workspace_id
+    const base = await Base.get(context, param.baseId);
+    if (!base) {
+      NcError.get(context).baseNotFound(param.baseId);
+    }
+
     // Check if team is assigned to base
-    const assignment = await PrincipalAssignment.get(
+    const baseAssignment = await PrincipalAssignment.get(
       context,
       ResourceType.BASE,
       param.baseId,
       PrincipalType.TEAM,
       param.teamId,
     );
-    if (!assignment) {
+
+    // Check if team is assigned to workspace
+    const workspaceAssignment = await PrincipalAssignment.get(
+      context,
+      ResourceType.WORKSPACE,
+      base.fk_workspace_id!,
+      PrincipalType.TEAM,
+      param.teamId,
+    );
+
+    if (!baseAssignment && !workspaceAssignment) {
       NcError.get(context).invalidRequestBody(
-        `Team ${param.teamId} is not assigned to this base`,
+        `Team ${param.teamId} is not assigned to this base or workspace`,
       );
     }
 
@@ -394,9 +479,16 @@ export class BaseTeamsV3Service {
       team_icon: meta.icon || null,
       team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
-      base_role: assignment.roles as Exclude<ProjectRoles, ProjectRoles.OWNER>,
-      created_at: assignment.created_at!,
-      updated_at: assignment.updated_at!,
+      base_role:
+        (baseAssignment?.roles as Exclude<ProjectRoles, ProjectRoles.OWNER>) ||
+        null,
+      workspace_role:
+        (workspaceAssignment?.roles as Exclude<
+          WorkspaceUserRoles,
+          WorkspaceUserRoles.OWNER
+        >) || null,
+      created_at: (baseAssignment || workspaceAssignment)!.created_at!,
+      updated_at: (baseAssignment || workspaceAssignment)!.updated_at!,
     };
   }
 }

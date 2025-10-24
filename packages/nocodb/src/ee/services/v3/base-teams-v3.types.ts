@@ -1,4 +1,4 @@
-import type { IconType, ProjectRoles } from 'nocodb-sdk';
+import type { IconType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 
 export interface BaseTeamV3ResponseType {
   team_id: string;
@@ -6,7 +6,8 @@ export interface BaseTeamV3ResponseType {
   team_icon?: string;
   team_icon_type?: IconType;
   team_badge_color?: string;
-  base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>;
+  base_role?: Exclude<ProjectRoles, ProjectRoles.OWNER>;
+  workspace_role?: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>;
   created_at: string;
   updated_at: string;
 }
@@ -43,7 +44,8 @@ export interface BaseTeamDetailV3Type {
   team_icon?: string;
   team_icon_type?: IconType;
   team_badge_color?: string;
-  base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>;
+  base_role?: Exclude<ProjectRoles, ProjectRoles.OWNER>;
+  workspace_role?: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>;
   created_at: string;
   updated_at: string;
 }

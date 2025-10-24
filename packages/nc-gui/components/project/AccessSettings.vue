@@ -163,10 +163,6 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         team_id: collab.id,
         base_role: roles,
       })
-
-      if (!res) return
-
-      message.success(t('msg.info.teamRoleUpdated'))
     } else {
       if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
         await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)

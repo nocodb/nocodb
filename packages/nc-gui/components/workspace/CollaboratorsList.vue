@@ -2,6 +2,7 @@
 import {
   HigherPlan,
   OrderedWorkspaceRoles,
+  PlanFeatureTypes,
   type PlanLimitExceededDetailsType,
   PlanLimitTypes,
   PlanTitles,
@@ -459,17 +460,30 @@ watch(inviteDlg, (newVal) => {
                   <GeneralIcon icon="ncUsers" />
                   {{ $t('activity.addMembers') }}
                 </NcMenuItem>
-                <NcMenuItem
-                  @click="
-                    () => {
-                      isInviteTeamDlg = true
-                      inviteDlg = true
-                    }
-                  "
-                >
-                  <GeneralIcon icon="ncBuilding" />
-                  {{ $t('labels.addTeams') }}
-                </NcMenuItem>
+                <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT">
+                  <template #default="{ click }">
+                    <NcMenuItem
+                      @click="
+                        click(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, () => {
+                          isInviteTeamDlg = true
+                          inviteDlg = true
+                        })
+                      "
+                    >
+                      <GeneralIcon icon="ncBuilding" />
+                      {{ $t('labels.addTeams') }}
+                      <LazyPaymentUpgradeBadge
+                        :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
+                        :title="$t('upgrade.upgradeToUseTeams')"
+                        :content="
+                          $t('upgrade.upgradeToUseTeamsSubtitle', {
+                            plan: PlanTitles.PLUS,
+                          })
+                        "
+                      />
+                    </NcMenuItem>
+                  </template>
+                </PaymentUpgradeBadgeProvider>
               </NcMenu>
             </template>
           </NcDropdown>

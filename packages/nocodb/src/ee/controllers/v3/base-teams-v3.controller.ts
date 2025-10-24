@@ -12,13 +12,13 @@ import {
 } from '@nestjs/common';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
+  BaseTeamCreateV3ReqType,
   BaseTeamDeleteV3ReqType,
   BaseTeamDetailV3Type,
   BaseTeamListV3Type,
   BaseTeamUpdateV3ReqType,
   BaseTeamV3ResponseType,
 } from '~/ee/services/v3/base-teams-v3.types';
-import { BaseTeamCreateV3ReqType } from '~/ee/services/v3/base-teams-v3.types';
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BaseTeamsV3Service } from '~/ee/services/v3/base-teams-v3.service';
@@ -74,15 +74,28 @@ export class BaseTeamsV3Controller {
   async teamAdd(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Body() team: BaseTeamCreateV3ReqType,
+    @Body() teams: BaseTeamCreateV3ReqType | BaseTeamCreateV3ReqType[],
     @Req() req: NcRequest,
-  ): Promise<BaseTeamV3ResponseType> {
+  ): Promise<BaseTeamV3ResponseType | BaseTeamV3ResponseType[]> {
     await this.canExecute(context);
-    return this.baseTeamsV3Service.teamAdd(context, {
-      baseId,
-      team,
-      req,
-    });
+
+    const teamsArray = Array.isArray(teams) ? teams : [teams];
+
+    if (teamsArray.length === 1) {
+      // Single request
+      return this.baseTeamsV3Service.teamAdd(context, {
+        baseId,
+        team: teamsArray[0],
+        req,
+      });
+    } else {
+      // Bulk request
+      return this.baseTeamsV3Service.teamAddBulk(context, {
+        baseId,
+        teams: { teams: teamsArray },
+        req,
+      });
+    }
   }
 
   @Get('/api/v3/meta/bases/:baseId/invites/:teamId')
@@ -126,14 +139,27 @@ export class BaseTeamsV3Controller {
   async teamRemove(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Body() team: BaseTeamDeleteV3ReqType | BaseTeamDeleteV3ReqType[],
+    @Body() teams: BaseTeamDeleteV3ReqType | BaseTeamDeleteV3ReqType[],
     @Req() req: NcRequest,
   ): Promise<{ msg: string }> {
     await this.canExecute(context);
-    return this.baseTeamsV3Service.teamRemove(context, {
-      baseId,
-      team,
-      req,
-    });
+
+    const teamsArray = Array.isArray(teams) ? teams : [teams];
+
+    if (teamsArray.length === 1) {
+      // Single request
+      return this.baseTeamsV3Service.teamRemove(context, {
+        baseId,
+        team: teamsArray[0],
+        req,
+      });
+    } else {
+      // Bulk request
+      return this.baseTeamsV3Service.teamRemoveBulk(context, {
+        baseId,
+        teams: { teams: teamsArray },
+        req,
+      });
+    }
   }
 }

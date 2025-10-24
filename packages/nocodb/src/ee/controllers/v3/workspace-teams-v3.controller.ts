@@ -12,16 +12,12 @@ import {
 } from '@nestjs/common';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
+  WorkspaceTeamCreateV3ReqType,
   WorkspaceTeamDeleteV3ReqType,
   WorkspaceTeamDetailV3Type,
   WorkspaceTeamListV3Type,
   WorkspaceTeamUpdateV3ReqType,
   WorkspaceTeamV3ResponseType,
-} from '~/ee/services/v3/workspace-teams-v3.types';
-import {
-  WorkspaceTeamCreateV3BulkReqType,
-  WorkspaceTeamCreateV3ReqType,
-  WorkspaceTeamDeleteV3BulkReqType,
 } from '~/ee/services/v3/workspace-teams-v3.types';
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -80,34 +76,29 @@ export class WorkspaceTeamsV3Controller {
   async teamAdd(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
-    @Body() team: WorkspaceTeamCreateV3ReqType,
+    @Body()
+    teams: WorkspaceTeamCreateV3ReqType | WorkspaceTeamCreateV3ReqType[],
     @Req() req: NcRequest,
-  ): Promise<WorkspaceTeamV3ResponseType> {
+  ): Promise<WorkspaceTeamV3ResponseType | WorkspaceTeamV3ResponseType[]> {
     await this.canExecute(context);
-    return this.workspaceTeamsV3Service.teamAdd(context, {
-      workspaceId,
-      team,
-      req,
-    });
-  }
 
-  @Post('/api/v3/meta/workspaces/:workspaceId/invites/bulk')
-  @HttpCode(200)
-  @Acl('teamCreate', {
-    scope: 'workspace',
-  })
-  async teamAddBulk(
-    @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
-    @Body() teams: WorkspaceTeamCreateV3BulkReqType,
-    @Req() req: NcRequest,
-  ): Promise<WorkspaceTeamV3ResponseType[]> {
-    await this.canExecute(context);
-    return this.workspaceTeamsV3Service.teamAddBulk(context, {
-      workspaceId,
-      teams,
-      req,
-    });
+    const teamsArray = Array.isArray(teams) ? teams : [teams];
+
+    if (teamsArray.length === 1) {
+      // Single request
+      return this.workspaceTeamsV3Service.teamAdd(context, {
+        workspaceId,
+        team: teamsArray[0],
+        req,
+      });
+    } else {
+      // Bulk request
+      return this.workspaceTeamsV3Service.teamAddBulk(context, {
+        workspaceId,
+        teams: { teams: teamsArray },
+        req,
+      });
+    }
   }
 
   @Get('/api/v3/meta/workspaces/:workspaceId/invites/:teamId')
@@ -151,32 +142,28 @@ export class WorkspaceTeamsV3Controller {
   async teamRemove(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
-    @Body() team: WorkspaceTeamDeleteV3ReqType | WorkspaceTeamDeleteV3ReqType[],
+    @Body()
+    teams: WorkspaceTeamDeleteV3ReqType | WorkspaceTeamDeleteV3ReqType[],
     @Req() req: NcRequest,
   ): Promise<{ msg: string }> {
     await this.canExecute(context);
-    return this.workspaceTeamsV3Service.teamRemove(context, {
-      workspaceId,
-      team,
-      req,
-    });
-  }
 
-  @Delete('/api/v3/meta/workspaces/:workspaceId/invites/bulk')
-  @Acl('teamDelete', {
-    scope: 'workspace',
-  })
-  async teamRemoveBulk(
-    @TenantContext() context: NcContext,
-    @Param('workspaceId') workspaceId: string,
-    @Body() teams: WorkspaceTeamDeleteV3BulkReqType,
-    @Req() req: NcRequest,
-  ): Promise<{ msg: string }> {
-    await this.canExecute(context);
-    return this.workspaceTeamsV3Service.teamRemoveBulk(context, {
-      workspaceId,
-      teams,
-      req,
-    });
+    const teamsArray = Array.isArray(teams) ? teams : [teams];
+
+    if (teamsArray.length === 1) {
+      // Single request
+      return this.workspaceTeamsV3Service.teamRemove(context, {
+        workspaceId,
+        team: teamsArray[0],
+        req,
+      });
+    } else {
+      // Bulk request
+      return this.workspaceTeamsV3Service.teamRemoveBulk(context, {
+        workspaceId,
+        teams: { teams: teamsArray },
+        req,
+      });
+    }
   }
 }

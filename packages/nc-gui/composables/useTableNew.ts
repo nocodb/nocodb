@@ -256,7 +256,7 @@ export function useTableNew(param: {
 
           await loadTables()
 
-          removeMeta(table.id as string, true)
+          removeMeta(table.base_id as string, table.id as string, true)
           refreshCommandPalette()
           // Deleted table successfully
           message.info(t('msg.info.tableDeleted'))

@@ -20,7 +20,7 @@ const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { getMeta, metas } = useMetas()
+const { getMeta, metas, getMetaByKey } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
@@ -66,7 +66,7 @@ const createLookups = async () => {
     const currIndex = meta.value?.columns?.length ?? 0
 
     for (const [k] of Object.entries(selectedFields.value).filter(([, v]) => v)) {
-      const lookupCol = metas.value[relatedModel.value?.id].columns.find((c) => c.id === k)
+      const lookupCol = getMetaByKey(meta.value?.base_id, relatedModel.value?.id)?.columns.find((c) => c.id === k)
       const index = filteredColumns.value.findIndex((c) => c.id === k)
       const tempCol = {
         uidt: UITypes.Lookup,
@@ -134,7 +134,7 @@ const createLookups = async () => {
 
 watch([relatedModel, searchField], async () => {
   if (relatedModel.value) {
-    const columns = metas.value[relatedModel.value?.id]?.columns || []
+    const columns = getMetaByKey(meta.value?.base_id, relatedModel.value?.id)?.columns || []
     filteredColumns.value = columns.filter(
       (c: any) =>
         getValidLookupColumn({

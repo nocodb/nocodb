@@ -25,7 +25,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const { validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const isMm = computed(() => vModel.value.type === RelationTypes.MANY_TO_MANY)
 
@@ -92,19 +92,19 @@ const columns = computed(() => {
 })
 
 const refTableColumns = computed(() => {
-  if (!vModel.value.custom?.ref_model_id || !metas.value[vModel.value.custom?.ref_model_id]) {
+  if (!vModel.value.custom?.ref_model_id || !getMetaByKey(meta.value?.base_id, vModel.value.custom?.ref_model_id)) {
     return []
   }
 
-  return filterSupportedColumns(metas.value[vModel.value.custom?.ref_model_id]?.columns)
+  return filterSupportedColumns(getMetaByKey(meta.value?.base_id, vModel.value.custom?.ref_model_id)?.columns)
 })
 
 const juncTableColumns = computed(() => {
-  if (!vModel.value.custom?.junc_model_id || !metas.value[vModel.value.custom?.junc_model_id]) {
+  if (!vModel.value.custom?.junc_model_id || !getMetaByKey(meta.value?.base_id, vModel.value.custom?.junc_model_id)) {
     return []
   }
 
-  return filterSupportedColumns(metas.value[vModel.value.custom?.junc_model_id]?.columns)
+  return filterSupportedColumns(getMetaByKey(meta.value?.base_id, vModel.value.custom?.junc_model_id)?.columns)
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())

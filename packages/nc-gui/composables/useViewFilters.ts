@@ -322,6 +322,8 @@ export function useViewFilters(
     loadAllFilters?: boolean
     isLink?: boolean
   } = {}) => {
+    if (!view.value?.id || !meta.value) return
+
     if (nestedMode.value || (isForm.value && !isWebhook)) {
       // ignore restoring if not root filter group
       return

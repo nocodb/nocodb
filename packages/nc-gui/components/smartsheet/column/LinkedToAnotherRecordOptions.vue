@@ -52,7 +52,7 @@ const { t } = useI18n()
 
 const { getPlanTitle } = useEeConfig()
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 if (!isEdit.value) {
   setAdditionalValidations({
@@ -123,8 +123,8 @@ const refTables = computed(() => {
   if (isEdit.value) {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const refTableId = referenceTableChildId.value
-    if (!metas.value[refTableId]) getMeta(meta.value?.base_id, refTableId)
-    return [metas.value[refTableId]]
+    if (!getMetaByKey(meta.value?.base_id, refTableId)) getMeta(meta.value?.base_id, refTableId)
+    return [getMetaByKey(meta.value?.base_id, refTableId)]
   }
 
   if (!crossBase.value) {
@@ -199,7 +199,7 @@ provide(
   MetaInj,
   computed(() => {
     const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
-    return metas.value[childId] || {}
+    return getMetaByKey(meta.value?.base_id, childId) || {}
   }),
 )
 

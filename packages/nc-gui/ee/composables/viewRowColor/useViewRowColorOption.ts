@@ -27,7 +27,7 @@ export function useViewRowColorOption(params: {
   const { eventBus } = useSmartsheetStoreOrThrow()
 
   const meta = inject(MetaInj, ref())
-  const { metas } = useMetas()
+  const { metas, getMetaByKey } = useMetas()
   const { getPlanLimit } = useWorkspace()
 
   const baseStore = useBase()
@@ -63,7 +63,7 @@ export function useViewRowColorOption(params: {
 
   const filterColumns = computedAsync(async () => {
     if (!metas.value || Object.keys(metas.value).length === 0) return []
-    return await composeColumnsForFilter({ rootMeta: meta.value, getMeta: async (id) => metas.value[id] })
+    return await composeColumnsForFilter({ rootMeta: meta.value, getMeta: async (id) => getMetaByKey(meta.value?.base_id, id) })
   }, [])
 
   const getViewById = (viewId: string) => {

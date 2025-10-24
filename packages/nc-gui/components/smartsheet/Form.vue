@@ -49,7 +49,7 @@ const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const { base, showBaseAccessRequestOverlay } = storeToRefs(useBase())
 
@@ -291,7 +291,7 @@ const getPrefillValue = (c: ColumnType, value: any) => {
 
       const rowIds = values
         .map((row) => {
-          return extractPkFromRow(row, metas.value[fk_related_model_id].columns || [])
+          return extractPkFromRow(row, getMetaByKey(meta.value?.base_id, fk_related_model_id)?.columns || [])
         })
         .filter((rowId) => !!rowId)
         .join(',')

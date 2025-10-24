@@ -34,7 +34,7 @@ const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const { t } = useI18n()
 
@@ -69,7 +69,7 @@ const refTables = computed(() => {
     .filter((c: ColumnType) => canUseForRollupLinkField(c))
     .map((c: ColumnType) => {
       const relTableId = (c.colOptions as any)?.fk_related_model_id
-      const table = metas.value[relTableId] ?? tables.value.find((t) => t.id === relTableId)
+      const table = getMetaByKey(meta.value?.base_id, relTableId) ?? tables.value.find((t) => t.id === relTableId)
       return {
         col: c.colOptions,
         column: c,
@@ -88,7 +88,7 @@ const columns = computed<ColumnType[]>(() => {
     return []
   }
 
-  return metas.value[selectedTable.value.id]?.columns.filter((c: ColumnType) => getValidRollupColumn(c))
+  return getMetaByKey(meta.value?.base_id, selectedTable.value.id)?.columns.filter((c: ColumnType) => getValidRollupColumn(c))
 })
 
 const limitRecToCond = computed({
@@ -108,7 +108,7 @@ provide(
   computed(() => {
     if (!selectedTable.value) return {}
 
-    return metas.value[selectedTable.value.id] || {}
+    return getMetaByKey(meta.value?.base_id, selectedTable.value.id) || {}
   }),
 )
 

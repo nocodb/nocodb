@@ -74,7 +74,7 @@ const onDelete = async () => {
     // Remove from recent views
     removeFromRecentViews({ baseId: props.baseId, tableId: toBeDeletedTable.id as string })
 
-    removeMeta(toBeDeletedTable.id as string, true)
+    removeMeta(toBeDeletedTable.base_id as string, toBeDeletedTable.id as string, true)
     refreshCommandPalette()
     // Deleted table successfully
     $e('a:table:delete')

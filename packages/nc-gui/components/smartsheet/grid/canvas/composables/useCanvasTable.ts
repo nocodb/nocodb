@@ -325,8 +325,15 @@ export function useCanvasTable({
   const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled.value)
 
   const fetchMetaIds = ref<string[][]>([])
+  const isLoadingMetas = ref(false)
 
   const columns = computed<CanvasGridColumn[]>(() => {
+    // Early return if meta is not available yet
+    if (!meta.value?.base_id) {
+      return []
+    }
+
+    const baseId = meta.value.base_id
     const fetchMetaIdsLocal: string[] = []
     const cols = fields.value
       .map((f) => {
@@ -341,23 +348,26 @@ export function useCanvasTable({
          */
         f.extra = {}
         if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
-          relatedColObj = metas.value?.[f.fk_model_id!]?.columns?.find(
+          const lookupMetaKey = `${baseId}:${f.fk_model_id!}`
+          relatedColObj = metas.value?.[lookupMetaKey]?.columns?.find(
             (c) => c.id === f?.colOptions?.fk_relation_column_id,
           ) as ColumnType
 
           if (relatedColObj && relatedColObj.colOptions?.fk_related_model_id) {
-            if (!metas.value?.[relatedColObj.colOptions.fk_related_model_id]) {
+            const relatedMetaKey = `${baseId}:${relatedColObj.colOptions.fk_related_model_id}`
+            if (!metas.value?.[relatedMetaKey]) {
               fetchMetaIdsLocal.push([relatedColObj.id, relatedColObj.colOptions.fk_related_model_id])
             } else {
-              relatedTableMeta = metas.value?.[relatedColObj.colOptions.fk_related_model_id]
+              relatedTableMeta = metas.value?.[relatedMetaKey]
             }
           }
         } else if (isLTAR(f.uidt, f.colOptions)) {
           if (f.colOptions?.fk_related_model_id) {
-            if (!metas.value?.[f.colOptions.fk_related_model_id]) {
+            const ltarMetaKey = `${baseId}:${f.colOptions.fk_related_model_id}`
+            if (!metas.value?.[ltarMetaKey]) {
               fetchMetaIdsLocal.push([f.id, f.colOptions.fk_related_model_id])
             } else {
-              relatedTableMeta = metas.value?.[f.colOptions.fk_related_model_id]
+              relatedTableMeta = metas.value?.[ltarMetaKey]
             }
           }
         }
@@ -1403,18 +1413,38 @@ export function useCanvasTable({
     async () => {
       if (!fetchMetaIds.value.length) return
 
-      await Promise.all(
-        fetchMetaIds.value.map(async ([colId, tableId]) => {
-          try {
-            await getMeta(meta.value!.base_id!, tableId, false, false, true)
-          } catch {}
-          if (!metas.value[tableId]) {
-            await getPartialMeta(colId, tableId)
-          }
-        }),
-      )
+      // Prevent concurrent executions that could cause infinite loops
+      if (isLoadingMetas.value) return
+
+      isLoadingMetas.value = true
+
+      // Copy the current fetch list and clear it immediately to prevent re-triggering
+      const metaIdsToFetch = [...fetchMetaIds.value]
       fetchMetaIds.value = []
-      triggerRefreshCanvas()
+
+      try {
+        const baseId = (meta.value as any)?.base_id
+        if (!baseId) {
+          console.warn('[useCanvasTable] Cannot load metas: base_id is missing from meta')
+          return
+        }
+
+        await Promise.all(
+          metaIdsToFetch.map(async ([colId, tableId]) => {
+            if (!tableId) return
+            try {
+              await getMeta(baseId, tableId, false, false, true)
+            } catch {}
+            const metaKey = `${baseId}:${tableId}`
+            if (!metas.value[metaKey]) {
+              await getPartialMeta(baseId, colId, tableId)
+            }
+          }),
+        )
+        triggerRefreshCanvas()
+      } finally {
+        isLoadingMetas.value = false
+      }
     },
   )
 

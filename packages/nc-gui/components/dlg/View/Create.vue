@@ -82,7 +82,7 @@ const { $e } = useNuxtApp()
 
 const { isMobileMode } = useGlobal()
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const workspaceStore = useWorkspace()
 
@@ -386,7 +386,7 @@ onMounted(async () => {
         const loadLookupMeta = async (originalCol: ColumnType, column: ColumnType, metaId?: string): Promise<void> => {
           const relationColumn =
             metaId || meta.value?.id
-              ? metas.value[metaId || meta.value?.id]?.columns?.find(
+              ? getMetaByKey(baseId.value, metaId || meta.value?.id)?.columns?.find(
                   (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
                 )
               : undefined
@@ -394,7 +394,7 @@ onMounted(async () => {
           if (relationColumn?.colOptions?.fk_related_model_id) {
             await getMeta(baseId.value, relationColumn.colOptions.fk_related_model_id!)
 
-            const lookupColumn = metas.value[relationColumn.colOptions.fk_related_model_id]?.columns?.find(
+            const lookupColumn = getMetaByKey(baseId.value, relationColumn.colOptions.fk_related_model_id)?.columns?.find(
               (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,
             ) as ColumnType | undefined
 

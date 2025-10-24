@@ -30,7 +30,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const {
   showSystemFields,
@@ -436,7 +436,7 @@ watch(
     const loadLookupMeta = async (originalCol: ColumnType, column: ColumnType, metaId?: string): Promise<void> => {
       const relationColumn =
         metaId || meta.value?.id
-          ? metas.value[metaId || meta.value?.id]?.columns?.find(
+          ? getMetaByKey(meta.value?.base_id, metaId || meta.value?.id)?.columns?.find(
               (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
             )
           : undefined
@@ -444,7 +444,7 @@ watch(
       if (relationColumn?.colOptions?.fk_related_model_id) {
         await getMeta(meta.value?.base_id as string, relationColumn.colOptions.fk_related_model_id!)
 
-        const lookupColumn = metas.value[relationColumn.colOptions.fk_related_model_id]?.columns?.find(
+        const lookupColumn = getMetaByKey(meta.value?.base_id, relationColumn.colOptions.fk_related_model_id)?.columns?.find(
           (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,
         ) as ColumnType | undefined
 

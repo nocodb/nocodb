@@ -16,7 +16,7 @@ useSidebar('nc-right-sidebar')
 
 const { isUIAllowed } = useRoles()
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const { ncNavigateTo } = useGlobal()
 
@@ -24,7 +24,7 @@ const route = useRoute()
 
 const meta = computed<TableType | undefined>(() => {
   const viewId = route.params.viewId as string
-  return viewId && metas.value[viewId]
+  return viewId && getMetaByKey(activeProjectId.value, viewId)
 })
 
 const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
@@ -110,7 +110,7 @@ const onDrop = async (event: DragEvent) => {
     if (data.type !== 'table' || meta.value?.type !== 'table') return
 
     const childMeta = await getMeta(meta.value.base_id!, data.id)
-    const parentMeta = metas.value[meta.value.id!]
+    const parentMeta = getMetaByKey(activeProjectId.value, meta.value.id!)
 
     if (!childMeta || !parentMeta) return
 

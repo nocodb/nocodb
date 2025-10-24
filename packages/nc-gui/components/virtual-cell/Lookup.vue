@@ -2,7 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const { isMobileMode } = useGlobal()
 
@@ -47,8 +47,8 @@ provide(RowHeightInj, providedHeightRef)
 const dropdownInitialHeight = ref(0)
 
 const relationColumn = computed(() => {
-  if (column.value?.fk_model_id) {
-    return metas.value[column.value.fk_model_id]?.columns?.find(
+  if (column.value?.fk_model_id && parentMeta.value?.base_id) {
+    return getMetaByKey(parentMeta.value.base_id, column.value.fk_model_id)?.columns?.find(
       (c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id,
     )
   }
@@ -58,7 +58,7 @@ const relationColumn = computed(() => {
 watch(
   column,
   async (newColumn) => {
-    if (!newColumn?.fk_model_id || metas.value[newColumn?.fk_model_id]) return
+    if (!newColumn?.fk_model_id || getMetaByKey(parentMeta.value?.base_id, newColumn?.fk_model_id)) return
     if (parentMeta.value?.base_id) await getMeta(parentMeta.value.base_id, newColumn.fk_model_id)
   },
   { immediate: true },
@@ -73,8 +73,8 @@ watch(
 )
 
 const lookupTableMeta = computed<Record<string, any> | undefined>(() => {
-  if (relationColumn.value && relationColumn.value?.colOptions)
-    return metas.value[relationColumn.value.colOptions.fk_related_model_id!]
+  if (relationColumn.value && relationColumn.value?.colOptions && parentMeta.value?.base_id)
+    return getMetaByKey(parentMeta.value.base_id, relationColumn.value.colOptions.fk_related_model_id!)
 
   return undefined
 })

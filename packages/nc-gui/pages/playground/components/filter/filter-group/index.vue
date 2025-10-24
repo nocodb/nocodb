@@ -7,7 +7,7 @@ const defaultTableId = 'mtWA9ZXvsuh'
 const rootMeta = ref({})
 const columns = computedAsync(async () => {
   if (!metas.value || Object.keys(metas.value).length === 0) return []
-  return await composeColumnsForFilter({ rootMeta: rootMeta.value, getMeta: async (id) => metas.value[id] })
+  return await composeColumnsForFilter({ rootMeta: rootMeta.value, getMeta: async (id) => metas.value[`${rootMeta.value?.base_id}:${id}`] })
 }, [])
 const filterMap = ref({})
 const filters = ref([])
@@ -95,8 +95,8 @@ const onRowChange = (event) => {
   lastRowChangeEvent1.value = event
 }
 onMounted(async () => {
-  await mockSetupInit()
-  rootMeta.value = metas.value[defaultTableId]
+  const setup = await mockSetupInit()
+  rootMeta.value = setup.meta
 })
 </script>
 

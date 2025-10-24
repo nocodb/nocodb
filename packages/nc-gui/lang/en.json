@@ -2010,7 +2010,8 @@
     "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
-    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action",
+    "basePermissionRole": "Base permission - {role}"
   },
   "placeholder": {
     "searchIcons": "Search icons",

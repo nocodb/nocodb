@@ -649,14 +649,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    * Teams section start here
    */
 
-  const isTeamsEnabled = computed(() => isFeatureEnabled('teams'))
+  // Todo: @rameshmane7218 - use this to restrict teams api call when the migration is temp enabled for local testing
+  const isTeamsMigrationEnabled = true
+
+  const isTeamsEnabled = computed(() => isFeatureEnabled('teams') && isTeamsMigrationEnabled)
 
   const isTeamsLoading = ref(true)
 
   const teams = ref<TeamV3V3Type[]>([])
-
-  // Todo: @rameshmane7218 - use this to restrict teams api call when the migration is temp enabled for local testing
-  const isTeamsMigrationEnabled = true
 
   const teamsMap = computed(() => {
     return (teams.value || [])?.reduce((acc, curr) => {
@@ -670,7 +670,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const editTeamDetails = ref<TeamDetailV3V3Type | null>(null)
 
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) {
+    if (!isTeamsEnabled.value) {
       isTeamsLoading.value = false
       return
     }
@@ -696,7 +696,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function getTeamById(workspaceId: string, teamId: string) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     if (!isUIAllowed('teamGet')) return
 
@@ -715,7 +715,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function createTeam(workspaceId: string, team: Pick<TeamType, 'title' | 'description' | 'meta'>) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     try {
       const res = (await $api.internal.postOperation(
@@ -738,7 +738,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function updateTeam(workspaceId: string, teamId: string, updates: Partial<TeamUpdateV3ReqV3Type>) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     if (!updates) return
 
@@ -771,7 +771,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teamId: string,
     members: TeamMembersAddV3ReqV3Type[],
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     try {
       const addedMembers = (await $api.internal.postOperation(
@@ -815,7 +815,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teamId: string,
     members: TeamMembersRemoveV3ReqV3Type[],
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     try {
       const removedMembers = (await $api.internal.postOperation(
@@ -862,7 +862,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teamId: string,
     members: TeamMembersUpdateV3ReqV3Type[],
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     try {
       const updatedMembers = (await $api.internal.postOperation(
@@ -914,7 +914,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaceTeams = ref<Record<string, any>>([])
 
   async function workspaceTeamList(workspaceId: string = activeWorkspaceId.value!, showLoading = true) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeamsManagement.value) {
+    if (!isTeamsEnabled.value || blockTeamsManagement.value) {
       isLoadingWorkspaceTeams.value = false
       return
     }
@@ -944,7 +944,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function workspaceTeamGet(workspaceId: string, teamId: string) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeamsManagement.value) return
+    if (!isTeamsEnabled.value || blockTeamsManagement.value) return
 
     try {
       const teamDetails = (await $api.internal.getOperation(workspaceId, NO_SCOPE, {
@@ -965,7 +965,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
     },
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeamsManagement.value) return
+    if (!isTeamsEnabled.value || blockTeamsManagement.value) return
 
     try {
       const res = await $api.internal.postOperation(
@@ -994,7 +994,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
     },
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeamsManagement.value || !updates.team_id) return
+    if (!isTeamsEnabled.value || blockTeamsManagement.value || !updates.team_id) return
 
     try {
       const res = await $api.internal.postOperation(
@@ -1017,7 +1017,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function workspaceTeamRemove(workspaceId: string = activeWorkspaceId.value!, teamId: string) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeamsManagement.value || !teamId) return
+    if (!isTeamsEnabled.value || blockTeamsManagement.value || !teamId) return
 
     try {
       const res = await $api.internal.postOperation(
@@ -1128,7 +1128,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     // Workspace Teams
     isLoadingWorkspaceTeams,
     workspaceTeams,
-    isTeamsMigrationEnabled,
     workspaceTeamList,
     workspaceTeamGet,
     workspaceTeamAdd,

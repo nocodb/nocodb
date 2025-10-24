@@ -16,7 +16,7 @@ const { user, disabled } = toRefs(props)
 <template>
   <div class="w-full flex gap-3 items-center">
     <template v-if="user?.email">
-      <GeneralUserIcon size="base" :user="user" class="flex-none" />
+      <GeneralUserIcon size="base" :user="user" :disabled="disabled" class="flex-none" />
       <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
         <div class="flex items-center gap-1">
           <NcTooltip

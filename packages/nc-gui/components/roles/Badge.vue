@@ -53,7 +53,11 @@ const roleProperties = computed(() => {
       'cursor-pointer': clickableRef,
     }"
   >
-    <template #title> {{ $t(`objects.roleType.${roleProperties.label}`) }}</template>
+    <template #title>
+      <slot name="tooltip" :label="roleProperties.label">
+        {{ $t(`objects.roleType.${roleProperties.label}`) }}
+      </slot>
+    </template>
 
     <NcBadge class="!px-2 w-full" :class="ncBadgeClass" :color="roleProperties.color" :border="borderRef" :size="sizeSelect">
       <div

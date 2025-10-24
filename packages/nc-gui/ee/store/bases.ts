@@ -557,12 +557,7 @@ export const useBases = defineStore('basesStore', () => {
   const isLoadingBaseTeams = ref(true)
 
   async function baseTeamList(baseId: string, showLoading = true) {
-    if (
-      !workspaceStore.isTeamsMigrationEnabled ||
-      !workspaceStore.isTeamsEnabled ||
-      !workspaceStore.activeWorkspaceId ||
-      !baseId
-    ) {
+    if (!workspaceStore.isTeamsEnabled || !workspaceStore.activeWorkspaceId || !baseId) {
       isLoadingBaseTeams.value = false
       return
     }
@@ -586,7 +581,6 @@ export const useBases = defineStore('basesStore', () => {
 
   async function baseTeamGet(baseId: string, teamId: string) {
     if (
-      !workspaceStore.isTeamsMigrationEnabled ||
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
@@ -615,7 +609,6 @@ export const useBases = defineStore('basesStore', () => {
     },
   ) {
     if (
-      !workspaceStore.isTeamsMigrationEnabled ||
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
@@ -654,7 +647,6 @@ export const useBases = defineStore('basesStore', () => {
     },
   ) {
     if (
-      !workspaceStore.isTeamsMigrationEnabled ||
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
@@ -689,7 +681,6 @@ export const useBases = defineStore('basesStore', () => {
 
   async function baseTeamRemove(baseId: string, teamId: string) {
     if (
-      !workspaceStore.isTeamsMigrationEnabled ||
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||

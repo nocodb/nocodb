@@ -263,7 +263,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
 
     if (!params?.ignoreLoading) isCollaboratorsLoading.value = true
-    let promises: Promise<any>[] = []
+    const promises: Promise<any>[] = []
 
     try {
       // todo: pagination

@@ -74,11 +74,11 @@ const handleAddMembers = async () => {
 
   if (addedMembers && ncIsArray(addedMembers)) {
     message.success({
-      title: t('objects.teams.membersAddedToTeam'),
-      content: t('objects.teams.nMembersHaveBeenAddedIntoTeam', {
+      content: t(`objects.teams.nMember${membersToAdd.length > 1 ? 's' : ''}HaveBeenAddedIntoTeam`, {
         n: membersToAdd.length,
         team: team.value.title,
       }),
+      showDuration: false,
     })
 
     visible.value = false

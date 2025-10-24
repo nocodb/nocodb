@@ -143,13 +143,10 @@ const handleAssignAsRole = async (member: TeamMember, role: TeamUserRoles) => {
 
   if (res) {
     message.success({
-      title:
-        role === TeamUserRoles.MANAGER
-          ? t('objects.teams.memberAssignedAsTeamOwner')
-          : t('objects.teams.memberAssignedAsTeamMember'),
       content: `${extractUserDisplayNameOrEmail(member)} is now a ${team.value?.title || 'team'} ${
         role === TeamUserRoles.MANAGER ? 'owner' : 'member'
       }`,
+      showDuration: false,
     })
   }
 }

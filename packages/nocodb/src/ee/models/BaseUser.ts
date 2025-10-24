@@ -513,7 +513,7 @@ export default class BaseUser extends BaseUserCE {
     context: NcContext,
     baseId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<BaseUser[]> {
+  ): Promise<any[]> {
     try {
       const teamUsers: BaseUser[] = [];
 

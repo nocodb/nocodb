@@ -613,7 +613,7 @@ export default class User extends UserCE implements UserType {
     return finalUser;
   }
 
-  protected static async clearCache(userId: string, ncMeta = Noco.ncMeta) {
+  public static async clearCache(userId: string, ncMeta = Noco.ncMeta) {
     const user = await this.get(userId, ncMeta);
     if (!user) NcError.userNotFound(userId);
 

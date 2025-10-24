@@ -185,9 +185,9 @@ export class WorkspaceTeamsV3Service {
         team_icon: meta.icon || null,
         team_icon_type: meta.icon_type || null,
         team_badge_color: meta.badge_color || null,
-        base_role: updatedAssignment.roles as Exclude<
-          ProjectRoles,
-          ProjectRoles.OWNER
+        workspace_role: updatedAssignment.roles as Exclude<
+          WorkspaceUserRoles,
+          WorkspaceUserRoles.OWNER
         >,
         created_at: updatedAssignment.created_at!,
         updated_at: updatedAssignment.updated_at!,

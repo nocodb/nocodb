@@ -100,7 +100,9 @@ export type InternalPOSTResponseType = Promise<
   | TeamV3ResponseType
   | TeamMemberV3ResponseType[]
   | BaseTeamV3ResponseType
+  | BaseTeamV3ResponseType[]
   | WorkspaceTeamV3ResponseType
+  | WorkspaceTeamV3ResponseType[]
   | { msg: string }
 >;
 

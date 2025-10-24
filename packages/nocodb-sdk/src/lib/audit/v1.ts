@@ -1111,6 +1111,7 @@ export interface TeamCreatePayload {
   team_title: string;
   workspace_title?: string;
   base_title?: string;
+  meta?: any;
 }
 
 export interface TeamUpdatePayload extends UpdatePayload {
@@ -1118,6 +1119,7 @@ export interface TeamUpdatePayload extends UpdatePayload {
   team_title: string;
   workspace_title?: string;
   base_title?: string;
+  meta?: any;
 }
 
 export interface TeamDeletePayload {
@@ -1125,6 +1127,7 @@ export interface TeamDeletePayload {
   team_title: string;
   workspace_title?: string;
   base_title?: string;
+  meta?: any;
 }
 
 export interface TeamMemberAddPayload {

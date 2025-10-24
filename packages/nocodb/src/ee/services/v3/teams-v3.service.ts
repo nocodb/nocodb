@@ -347,7 +347,7 @@ export class TeamsV3Service {
     this.appHooksService.emit(AppEvents.TEAM_CREATE, {
       context,
       req: param.req,
-      team: response,
+      team: team,
       workspace,
     });
 

@@ -95,7 +95,7 @@ export const useBases = defineStore('basesStore', () => {
     }
   }
 
-  async function getBaseTeams({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
+  async function getBaseTeams({ baseId, force = false }: { baseId: string; force?: boolean }) {
     if (!baseId || workspaceStore.blockTeamsManagement) return { teams: [], totalRows: 0 }
 
     if (!force && basesTeams.value.has(baseId)) {

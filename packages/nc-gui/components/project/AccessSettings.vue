@@ -166,7 +166,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
 
   try {
     if (collab?.isTeam) {
-      const res = await baseTeamUpdate(currentBase.value.id!, {
+      await baseTeamUpdate(currentBase.value.id!, {
         team_id: collab.id,
         base_role: roles,
       })

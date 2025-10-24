@@ -44,6 +44,7 @@ const {
   isWsOwner,
   navigateToPricing,
   isTopBannerVisible,
+  showUpgradeToAddMoreTeams,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -465,6 +466,8 @@ watch(inviteDlg, (newVal) => {
                     <NcMenuItem
                       @click="
                         click(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, () => {
+                          if (showUpgradeToAddMoreTeams()) return
+
                           isInviteTeamDlg = true
                           inviteDlg = true
                         })

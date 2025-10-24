@@ -237,6 +237,13 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
   })
 
+  const blockAddNewTeamToWs = computed(() => {
+    return (
+      isPaymentEnabled.value &&
+      getStatLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT) >= getLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT)
+    )
+  })
+
   watch(
     [blockTeamsManagement, activeWorkspaceId],
     ([newValue]) => {
@@ -1173,6 +1180,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToAddMoreTeams = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewTeamToWs.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToAddMoreTeams'),
+      content: t('upgrade.upgradeToAddMoreTeamsSubtitle', {
+        plan: getHigherPlan(),
+      }),
+      callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     calculatePrice,
@@ -1245,5 +1267,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiButtonField,
     blockTeamsManagement,
     showUpgradeToUseTeams,
+    blockAddNewTeamToWs,
+    showUpgradeToAddMoreTeams,
   }
 })

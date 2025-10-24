@@ -44,7 +44,7 @@ const { t } = useI18n()
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal } = useEeConfig()
+const { isPaymentEnabled, showUserPlanLimitExceededModal, showUpgradeToAddMoreTeams } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -519,6 +519,8 @@ onBeforeUnmount(() => {
                     <NcMenuItem
                       @click="
                         click(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, () => {
+                          if (showUpgradeToAddMoreTeams()) return
+
                           isInviteTeamDlg = true
                           isInviteModalVisible = true
                         })

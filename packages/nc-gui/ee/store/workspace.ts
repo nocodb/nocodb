@@ -1096,6 +1096,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     // Workspace Teams
     isLoadingWorkspaceTeams,
     workspaceTeams,
+    isTeamsMigrationEnabled,
     workspaceTeamList,
     workspaceTeamGet,
     workspaceTeamAdd,

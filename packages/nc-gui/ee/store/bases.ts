@@ -25,6 +25,8 @@ export const useBases = defineStore('basesStore', () => {
   )
   const basesUser = ref<Map<string, User[]>>(new Map())
 
+  const basesTeams = ref<Map<string, Record<string, any>[]>>(new Map())
+
   const router = useRouter()
   const route = router.currentRoute
 
@@ -93,8 +95,37 @@ export const useBases = defineStore('basesStore', () => {
     }
   }
 
+  async function getBaseTeams({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
+    if (!baseId) return { teams: [], totalRows: 0 }
+
+    if (!force && basesTeams.value.has(baseId)) {
+      const teams = basesTeams.value.get(baseId)
+      return {
+        teams,
+        totalRows: teams?.length ?? 0,
+      }
+    }
+
+    const response: any = await baseTeamList(baseId)
+
+    if (response) {
+      basesTeams.value.set(baseId, response)
+
+      return {
+        teams: response,
+        totalRows: response.length,
+      }
+    }
+
+    return {
+      teams: [],
+      totalRows: 0,
+    }
+  }
+
   const clearBasesUser = () => {
     basesUser.value.clear()
+    basesTeams.value.clear()
   }
 
   const createProjectUser = async (baseId: string, user: User) => {
@@ -523,6 +554,167 @@ export const useBases = defineStore('basesStore', () => {
     return baseRoles.value[baseId]
   }
 
+  const isLoadingBaseTeams = ref(true)
+
+  async function baseTeamList(baseId: string, showLoading = true) {
+    if (
+      !workspaceStore.isTeamsMigrationEnabled ||
+      !workspaceStore.isTeamsEnabled ||
+      !workspaceStore.activeWorkspaceId ||
+      !baseId
+    ) {
+      isLoadingBaseTeams.value = false
+      return
+    }
+
+    if (showLoading) {
+      isLoadingBaseTeams.value = true
+    }
+
+    try {
+      const { list } = await $api.internal.getOperation(workspaceStore.activeWorkspaceId, baseId, {
+        operation: 'baseTeamList',
+      })
+
+      return list || []
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoadingBaseTeams.value = false
+    }
+  }
+
+  async function baseTeamGet(baseId: string, teamId: string) {
+    if (
+      !workspaceStore.isTeamsMigrationEnabled ||
+      !workspaceStore.isTeamsEnabled ||
+      !workspaceStore.activeWorkspaceId ||
+      !baseId ||
+      !teamId
+    )
+      return
+
+    try {
+      const teamDetails = await $api.internal.getOperation(workspaceStore.activeWorkspaceId, baseId, {
+        operation: 'baseTeamGet',
+        teamId,
+      })
+
+      return teamDetails
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function baseTeamAdd(
+    baseId: string,
+    team: {
+      team_id: string
+      base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>
+    },
+  ) {
+    if (
+      !workspaceStore.isTeamsMigrationEnabled ||
+      !workspaceStore.isTeamsEnabled ||
+      !workspaceStore.activeWorkspaceId ||
+      !baseId ||
+      !team.team_id
+    ) {
+      return
+    }
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceStore.activeWorkspaceId,
+        baseId,
+        {
+          operation: 'baseTeamAdd',
+        },
+        team,
+      )
+
+      if (!res) return
+
+      basesTeams.value.set(baseId, [...(basesTeams.value.get(baseId) || []), res])
+
+      return res
+    } catch (e: any) {
+      console.error('Error occurred while adding team to base', e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function baseTeamUpdate(
+    baseId: string,
+    updates: {
+      team_id: string
+      base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>
+    },
+  ) {
+    if (
+      !workspaceStore.isTeamsMigrationEnabled ||
+      !workspaceStore.isTeamsEnabled ||
+      !workspaceStore.activeWorkspaceId ||
+      !baseId ||
+      !updates.team_id
+    ) {
+      return
+    }
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceStore.activeWorkspaceId,
+        baseId,
+        {
+          operation: 'baseTeamUpdate',
+        },
+        updates,
+      )
+
+      if (!res) return
+
+      basesTeams.value.set(
+        baseId,
+        (basesTeams.value.get(baseId) || []).map((team) => (team.team_id === updates.team_id ? { ...team, ...res } : team)),
+      )
+
+      return res
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function baseTeamRemove(baseId: string, teamId: string) {
+    if (
+      !workspaceStore.isTeamsMigrationEnabled ||
+      !workspaceStore.isTeamsEnabled ||
+      !workspaceStore.activeWorkspaceId ||
+      !baseId ||
+      !teamId
+    ) {
+      return
+    }
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceStore.activeWorkspaceId,
+        baseId,
+        {
+          operation: 'baseTeamRemove',
+        },
+        { team_id: teamId },
+      )
+
+      basesTeams.value.set(
+        baseId,
+        (basesTeams.value.get(baseId) || []).filter((team) => team.team_id !== teamId),
+      )
+      return res
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   return {
     bases,
     basesList,
@@ -557,6 +749,17 @@ export const useBases = defineStore('basesStore', () => {
     baseHomeSearchQuery,
     getBaseRoles,
     baseRoles,
+
+    // Base Teams
+    isLoadingBaseTeams,
+    basesTeams,
+
+    getBaseTeams,
+    baseTeamList,
+    baseTeamGet,
+    baseTeamAdd,
+    baseTeamUpdate,
+    baseTeamRemove,
   }
 })
 

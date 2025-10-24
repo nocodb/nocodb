@@ -3219,7 +3219,7 @@ declare interface ConfigItem {}
         size: number;
         signedPath?: string;
         signedUrl?: string;
-        thumbnails: {
+        thumbnails?: {
           tiny: {
             signedPath: string | never
             signedUrl: string | never

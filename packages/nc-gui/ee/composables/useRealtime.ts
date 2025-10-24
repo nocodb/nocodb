@@ -227,7 +227,8 @@ export const useRealtime = createSharedComposable(() => {
         baseExtensions.value[activeBaseId.value].extensions.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
       }
     } else if (event.action === 'extension_update') {
-      const { payload } = event
+      // TODO: handle realtime for extension update
+      /* const { payload } = event
       if (activeBaseId.value === payload.base_id && baseExtensions.value[activeBaseId.value]) {
         const extension = baseExtensions.value[activeBaseId.value].extensions.find((ext) => ext.id === payload.id)
         if (extension) {
@@ -235,7 +236,7 @@ export const useRealtime = createSharedComposable(() => {
           extension.deserialize(payload)
           extension.uiKey++
         }
-      }
+      } */
     } else if (event.action === 'extension_delete') {
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, -1)
       const { payload } = event

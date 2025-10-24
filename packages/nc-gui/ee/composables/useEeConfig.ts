@@ -228,6 +228,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD)
   })
 
+  const blockTeams = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TEAMS)
+  })
+
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
@@ -1138,6 +1142,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseTeams = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockTeams.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseTeams'),
+      content: t('upgrade.upgradeToUseTeamsSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     calculatePrice,
@@ -1208,5 +1227,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToDuplicateTableToOtherBase,
     blockAiButtonField,
     showUpgradeToUseAiButtonField,
+    blockTeams,
+    showUpgradeToUseTeams,
   }
 })

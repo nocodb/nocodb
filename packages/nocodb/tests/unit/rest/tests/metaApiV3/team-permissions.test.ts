@@ -3,6 +3,7 @@ import request from 'supertest';
 import {
   PlanFeatureTypes,
   ProjectRoles,
+  TeamUserRoles,
   UITypes,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
@@ -110,7 +111,7 @@ export default function () {
         .send([
           {
             user_id: teamManagerUser.user.id,
-            team_role: 'manager',
+            team_role: TeamUserRoles.MANAGER,
           },
         ])
         .expect(200);

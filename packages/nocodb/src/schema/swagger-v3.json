@@ -9213,7 +9213,7 @@
           "team_role": {
             "type": "string",
             "description": "Team role",
-            "enum": ["member", "manager"],
+            "enum": ["member", "owner"],
             "example": "member"
           }
         },
@@ -9240,7 +9240,7 @@
           "team_role": {
             "type": "string",
             "description": "Team role",
-            "enum": ["member", "manager"],
+            "enum": ["member", "owner"],
             "example": "member"
           }
         },
@@ -9262,7 +9262,7 @@
           "team_role": {
             "type": "string",
             "description": "Team role to assign",
-            "enum": ["member", "manager"],
+            "enum": ["member", "owner"],
             "example": "member"
           }
         },
@@ -9297,7 +9297,7 @@
           "team_role": {
             "type": "string",
             "description": "New team role",
-            "enum": ["member", "manager"],
+            "enum": ["member", "owner"],
             "example": "member"
           }
         },

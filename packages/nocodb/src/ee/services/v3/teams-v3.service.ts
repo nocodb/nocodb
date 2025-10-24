@@ -12,7 +12,6 @@ import type {
   TeamV3ResponseType,
 } from './teams-v3.types';
 import type {
-  TeamCreateEvent,
   TeamDeleteEvent,
   TeamMemberAddEvent,
   TeamMemberDeleteEvent,
@@ -207,7 +206,7 @@ export class TeamsV3Service {
       .map(({ assignment, user }) => ({
         user_email: user.email,
         user_id: user.id,
-        team_role: assignment.roles as 'member' | 'manager',
+        team_role: assignment.roles as TeamUserRoles,
       }));
 
     const meta =
@@ -315,7 +314,7 @@ export class TeamsV3Service {
           resource_id: teamId,
           principal_type: PrincipalType.USER,
           principal_ref_id: creatorId,
-          roles: 'manager',
+          roles: TeamUserRoles.MANAGER,
         });
       }
     }
@@ -400,7 +399,7 @@ export class TeamsV3Service {
         PrincipalType.USER,
         userId,
       );
-      if (!assignment || assignment.roles !== 'manager') {
+      if (!assignment || assignment.roles !== TeamUserRoles.MANAGER) {
         NcError.get(context).forbidden(
           'Only team managers can update team information',
         );
@@ -503,7 +502,8 @@ export class TeamsV3Service {
         PrincipalType.USER,
         userId,
       );
-      const isTeamManager = assignment && assignment.roles === 'manager';
+      const isTeamManager =
+        assignment && assignment.roles === TeamUserRoles.MANAGER;
 
       // TODO: Add org owner check when org ownership is implemented
       if (!isTeamManager) {
@@ -581,7 +581,7 @@ export class TeamsV3Service {
         PrincipalType.USER,
         userId,
       );
-      if (!assignment || assignment.roles !== 'manager') {
+      if (!assignment || assignment.roles !== TeamUserRoles.MANAGER) {
         NcError.get(context).forbidden('Only team managers can add members');
       }
     }
@@ -614,7 +614,10 @@ export class TeamsV3Service {
         resource_id: param.teamId,
         principal_type: PrincipalType.USER,
         principal_ref_id: member.user_id,
-        roles: member.team_role === 'manager' ? 'manager' : member.team_role,
+        roles:
+          member.team_role === TeamUserRoles.MANAGER
+            ? TeamUserRoles.MANAGER
+            : member.team_role,
       });
 
       // Emit team member add event
@@ -640,7 +643,7 @@ export class TeamsV3Service {
         return {
           user_id: user.id,
           user_email: user.email,
-          team_role: assignment.roles as 'member' | 'manager',
+          team_role: assignment.roles as TeamUserRoles,
         };
       }),
     );
@@ -702,7 +705,7 @@ export class TeamsV3Service {
             param.teamId,
             PrincipalType.USER,
             userId,
-          ).then((a) => a?.roles === 'manager')) || false
+          ).then((a) => a?.roles === TeamUserRoles.MANAGER)) || false
         : false;
       const isSelfRemoval = userId === member.user_id;
 
@@ -713,7 +716,7 @@ export class TeamsV3Service {
       }
 
       // If removing the last manager, prevent it
-      if (assignment!.roles === 'manager') {
+      if (assignment!.roles === TeamUserRoles.MANAGER) {
         const managersCount = await this.getTeamManagersCount(
           context,
           param.teamId,
@@ -788,7 +791,7 @@ export class TeamsV3Service {
         PrincipalType.USER,
         userId,
       );
-      if (!assignment || assignment.roles !== 'manager') {
+      if (!assignment || assignment.roles !== TeamUserRoles.MANAGER) {
         NcError.get(context).forbidden(
           'Only team managers can update member roles',
         );
@@ -848,7 +851,7 @@ export class TeamsV3Service {
         return {
           user_id: user.id,
           user_email: user.email,
-          team_role: assignment.roles as 'member' | 'manager',
+          team_role: assignment.roles as TeamUserRoles,
         };
       }),
     );

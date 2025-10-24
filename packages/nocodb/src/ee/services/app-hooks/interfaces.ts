@@ -14,7 +14,6 @@ import type {
   WidgetType,
   WorkspaceType,
 } from 'nocodb-sdk';
-import type { TeamV3ResponseType } from '~/ee/services/v3/teams-v3.types';
 import type Snapshot from '~/models/Snapshot';
 import type { CustomUrl, Permission } from '~/models';
 import type { Team } from '~/models';

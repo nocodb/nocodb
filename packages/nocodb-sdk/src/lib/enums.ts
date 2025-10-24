@@ -30,7 +30,7 @@ export enum WorkspaceUserRoles {
 
 export enum TeamUserRoles {
   MEMBER = 'member',
-  MANAGER = 'manager',
+  MANAGER = 'owner',
 }
 
 export enum AppEvents {

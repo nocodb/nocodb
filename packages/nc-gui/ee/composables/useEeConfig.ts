@@ -46,7 +46,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   /** Ref or Computed value */
 
-  const isPaymentEnabled = computed(() => true || (appInfo.value?.isCloud && !appInfo.value?.isOnPrem))
+  const isPaymentEnabled = computed(() => appInfo.value?.isCloud && !appInfo.value?.isOnPrem)
 
   const isOnPrem = computed(() => appInfo.value?.isOnPrem)
 

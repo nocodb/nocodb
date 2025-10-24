@@ -248,6 +248,46 @@ const closeTextArea = () => {
       </NcButton>
     </NcTooltip>
 
+    <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
+      <template #title>
+        <div class="flex flex-col items-center">
+          <div>{{ $t('labels.superscript') }}</div>
+        </div>
+      </template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('superscript') }"
+        :disabled="editor.isActive('codeBlock')"
+        :tabindex="tabIndex"
+        aria-label="Toggle superscript"
+        type="button"
+        @click="editor!.chain().focus().toggleSuperscript().run()"
+      >
+        <span>x<sup>2</sup></span>
+      </NcButton>
+    </NcTooltip>
+
+    <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
+      <template #title>
+        <div class="flex flex-col items-center">
+          <div>{{ $t('labels.subscript') }}</div>
+        </div>
+      </template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('subscript') }"
+        :disabled="editor.isActive('codeBlock')"
+        :tabindex="tabIndex"
+        aria-label="Toggle subscript"
+        type="button"
+        @click="editor!.chain().focus().toggleSubscript().run()"
+      >
+        <span>x<sub>2</sub></span>
+      </NcButton>
+    </NcTooltip>
+
     <div class="divider"></div>
 
     <template v-if="embedMode && !isFormField">

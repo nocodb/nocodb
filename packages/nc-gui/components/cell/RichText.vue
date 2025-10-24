@@ -282,25 +282,6 @@ onClickOutside(editorDom, (e) => {
     </div>
 
     <template v-else>
-      <!-- ✅ Superscript / Subscript Toolbar -->
-      <div v-if="editor && !readOnly" class="flex gap-1 items-center mb-2 pl-2">
-        <button
-          class="px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors"
-          :class="editor.isActive('superscript') ? 'bg-gray-200' : ''"
-          @click.prevent="editor.chain().focus().toggleSuperscript().run()"
-        >
-          x<sup>2</sup>
-        </button>
-        <button
-          class="px-2 py-1 text-sm rounded hover:bg-gray-100 transition-colors"
-          :class="editor.isActive('subscript') ? 'bg-gray-200' : ''"
-          @click.prevent="editor.chain().focus().toggleSubscript().run()"
-        >
-          x<sub>2</sub>
-        </button>
-      </div>
-
-      <!-- Rest of your editor -->
       <EditorContent
         ref="editorDom"
         :editor="editor"
@@ -318,11 +299,3 @@ onClickOutside(editorDom, (e) => {
   </div>
 </template>
 
-<style lang="scss">
-button {
-  @apply border border-gray-300 rounded-md px-2 py-1 text-sm;
-  &.active {
-    @apply bg-gray-200;
-  }
-}
-</style>

@@ -68,7 +68,7 @@ class SwaggerTypes {
       case 'multipoint':
       case 'multilinestring':
       case 'multipolygon':
-        field.type = 'string';
+        field.type = ['string', 'null'];
         break;
       case 'binary':
         field.type = ['string', 'null'];

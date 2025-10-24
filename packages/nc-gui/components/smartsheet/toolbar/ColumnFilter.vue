@@ -187,7 +187,7 @@ const {
 
 const { getPlanLimit } = useWorkspace()
 
-const localNestedFilters = ref()
+const localNestedFilters = ref([])
 
 const wrapperDomRef = ref<HTMLElement>()
 const addFiltersRowDomRef = ref<HTMLElement>()
@@ -335,10 +335,6 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
     await sync({ linkId: hookOrColId, nested })
   } else {
     await sync({ hookId: hookOrColId, nested })
-  }
-
-  if (localNestedFilters.value && !localNestedFilters.value?.length) {
-    await localNestedFilters.value?.applyChanges?.(hookOrColId, true, undefined)
   }
   if (!localNestedFilters.value?.length) return
 
@@ -845,7 +841,7 @@ defineExpose({
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="i"
-                  ref="localNestedFilters"
+                  :ref="(el) => localNestedFilters[i] = el"
                   v-model="filter.children"
                   v-model:is-open="isOpen"
                   :nested-level="nestedLevel + 1"

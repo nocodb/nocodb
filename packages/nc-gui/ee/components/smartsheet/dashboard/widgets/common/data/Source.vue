@@ -79,7 +79,7 @@ const useDebouncedGetWidget = useDebounceFn(async () => {
       skipNetworkCall: true,
     },
   )
-}, 500)
+}, 1000)
 
 watch(
   filters,
@@ -143,15 +143,15 @@ onMounted(async () => {
         <div
           class="h-9 border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm"
           :class="{
-            '!border-brand-500 shadow-selected': isConditionDropdownOpen,
-            'border-gray-200': !isConditionDropdownOpen,
-            'bg-[#F0F3FF]': filters.length,
+            '!border-nc-border-brand shadow-selected': isConditionDropdownOpen,
+            'border-nc-border-gray-medium': !isConditionDropdownOpen,
+            'bg-nc-bg-brand': filters.length,
           }"
         >
           <div
             class="nc-datasource-conditions-count flex-1"
             :class="{
-              'text-brand-500 ': filters.length,
+              'text-nc-content-brand ': filters.length,
             }"
           >
             {{ filters.length ? `${filters.length} condition${filters.length !== 1 ? 's' : ''}` : 'No conditions' }}
@@ -161,7 +161,7 @@ onMounted(async () => {
             icon="settings"
             class="flex-none w-4 h-4"
             :class="{
-              'text-brand-500 ': filters.length,
+              'text-nc-content-brand ': filters.length,
             }"
           />
         </div>

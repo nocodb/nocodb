@@ -14,9 +14,9 @@ export class XyChartMysqlHandler extends XyChartCommonHandler {
     query.orderByRaw(`?? ${safeDirection}`, [sortField]);
   }
 
-  protected buildOthersQuery(
+  protected async buildOthersQuery(
     baseModel: IBaseModelSqlV2,
-    buildBaseQuery: () => Knex.QueryBuilder,
+    buildBaseQuery: () => Promise<{ builder: Knex.QueryBuilder }>,
     xAxisColumnNameQuery: {
       builder: string | Knex.QueryBuilder;
     },
@@ -31,15 +31,15 @@ export class XyChartMysqlHandler extends XyChartCommonHandler {
     }>,
     sortFieldQuery: string | Knex.QueryBuilder | Knex.Raw,
     orderDirection: string,
-  ): any {
+  ): Promise<{ builder: Knex.QueryBuilder }> {
     // Validate and sanitize orderDirection
     const safeDirection =
       orderDirection.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    const othersQuery = buildBaseQuery();
+    const { builder: othersQuery } = await buildBaseQuery();
 
     // Create subquery to get top x-axis values
-    const top10ValuesSubquery = buildBaseQuery();
+    const { builder: top10ValuesSubquery } = await buildBaseQuery();
     top10ValuesSubquery
       .select(baseModel.dbDriver.raw('??', [xAxisColumnNameQuery.builder]))
       .groupBy(baseModel.dbDriver.raw('??', [xAxisColumnNameQuery.builder]));
@@ -94,6 +94,8 @@ export class XyChartMysqlHandler extends XyChartCommonHandler {
       othersQuery.select(baseModel.dbDriver.raw(`(${aggSql}) as ??`, [alias]));
     });
 
-    return othersQuery;
+    return {
+      builder: othersQuery,
+    };
   }
 }

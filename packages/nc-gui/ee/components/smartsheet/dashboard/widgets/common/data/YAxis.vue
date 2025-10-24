@@ -55,7 +55,7 @@ watch(
   modelId,
   async () => {
     if (modelId.value) {
-      tableMeta.value = await getMeta(modelId.value)
+      tableMeta.value = await getMeta(selectedWidget.value?.base_id, modelId.value)
     }
   },
   { immediate: true },

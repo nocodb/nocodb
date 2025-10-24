@@ -60,7 +60,7 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
   let meta = null
 
   if (modelId) {
-    meta = await getMeta(modelId)
+    meta = await getMeta(activeDashboard.value?.base_id, modelId)
   }
 
   const newWidget: Partial<WidgetType> = {

@@ -1001,7 +1001,7 @@ const saveChanges = async () => {
       }
     }
 
-    await getMeta(meta.value.id, true)
+    await getMeta(meta.value.base_id!, meta.value.id, true)
 
     metaToLocal()
     onInit()

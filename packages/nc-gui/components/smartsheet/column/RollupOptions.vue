@@ -138,7 +138,7 @@ const getNextColumnId = () => {
 
 const onRelationColChange = async () => {
   if (selectedTable.value) {
-    await getMeta(selectedTable.value.id)
+    await getMeta(meta.value?.base_id, selectedTable.value.id)
   }
   vModel.value.fk_rollup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()

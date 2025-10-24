@@ -122,6 +122,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         return ['mysql', ClientType.MYSQL].includes(sharedView.value?.client || ClientType.MYSQL)
       },
       getMeta,
+      baseId: meta.value?.base_id,
     })
   })
 
@@ -701,7 +702,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   async function loadLinkedRecords(column: ColumnType, ids: string[]) {
-    const relatedMeta = await getMeta((column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
+    const relatedMeta = await getMeta(meta.value?.base_id!, (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
 
     if (!relatedMeta) return []
 

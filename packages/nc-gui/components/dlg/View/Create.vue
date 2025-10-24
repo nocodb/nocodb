@@ -338,7 +338,7 @@ onMounted(async () => {
   ) {
     isMetaLoading.value = true
     try {
-      meta.value = (await getMeta(tableId.value))!
+      meta.value = (await getMeta(baseId.value, tableId.value))!
 
       if (props.type === ViewTypes.MAP) {
         viewSelectFieldOptions.value = meta
@@ -392,7 +392,7 @@ onMounted(async () => {
               : undefined
 
           if (relationColumn?.colOptions?.fk_related_model_id) {
-            await getMeta(relationColumn.colOptions.fk_related_model_id!)
+            await getMeta(baseId.value, relationColumn.colOptions.fk_related_model_id!)
 
             const lookupColumn = metas.value[relationColumn.colOptions.fk_related_model_id]?.columns?.find(
               (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,

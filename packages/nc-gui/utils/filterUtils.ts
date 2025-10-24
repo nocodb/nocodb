@@ -168,7 +168,7 @@ export const composeColumnsForFilter = async ({
   getMeta,
 }: {
   rootMeta: TableType
-  getMeta: (metaIdOrTitle: string) => Promise<TableType | null>
+  getMeta: (baseId: string, metaIdOrTitle: string) => Promise<TableType | null>
 }) => {
   const result: ColumnTypeForFilter[] = []
   for (const column of rootMeta.columns!) {
@@ -182,7 +182,7 @@ export const composeColumnsForFilter = async ({
     // include the column only if all only if all relations are bt
     while (nextCol && nextCol.uidt === UITypes.Lookup) {
       // extract the relation column meta
-      const lookupRelation: ColumnType | undefined = (await getMeta(nextCol.fk_model_id!))?.columns?.find(
+      const lookupRelation: ColumnType | undefined = (await getMeta(rootMeta.base_id!, nextCol.fk_model_id!))?.columns?.find(
         (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
       )
       // this is less likely to happen but if relation column is not found then break the loop
@@ -191,6 +191,7 @@ export const composeColumnsForFilter = async ({
       }
 
       const relatedTableMeta: TableType | null = await getMeta(
+        rootMeta.base_id!,
         (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
       )
       nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)

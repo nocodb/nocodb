@@ -94,7 +94,7 @@ const loadMetas = async () => {
   if (!props.tableId) return
   isLoading.value = true
 
-  tableMeta.value = (await getMeta(props.tableId))!
+  tableMeta.value = (await getMeta(tableMeta.value?.base_id, props.tableId))!
 
   if (props.viewId) {
     viewMeta.value = viewsByTable.value.get(props.tableId)?.find((v) => v.id === props.viewId)

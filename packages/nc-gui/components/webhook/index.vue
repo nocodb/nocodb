@@ -730,7 +730,7 @@ async function saveHooks() {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    getMeta(activeTable.value.id, true)
+    getMeta(activeTable.value.base_id!, activeTable.value.id, true)
     loading.value = false
   }
 }

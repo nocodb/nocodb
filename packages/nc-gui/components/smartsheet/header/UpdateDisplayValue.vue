@@ -87,7 +87,7 @@ const changeDisplayField = async () => {
       {},
     )
 
-    await getMeta(meta?.value?.id as string, true)
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     value.value = false

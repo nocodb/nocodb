@@ -350,7 +350,7 @@ export function useCopyPaste({
               },
             )
 
-            await getMeta(meta?.value?.id as string, true)
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }
         } else {
@@ -496,7 +496,7 @@ export function useCopyPaste({
 
             if (!foreignKeyColumn) return
 
-            const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+            const relatedTableMeta = await getMeta(meta?.value?.base_id as string, (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
 
             // update old row to allow undo redo as bt column update only through foreignKeyColumn title
             rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]

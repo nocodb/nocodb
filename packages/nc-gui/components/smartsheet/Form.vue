@@ -766,7 +766,7 @@ async function loadReleatedMetas() {
       const fk_related_model_id = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
 
       if (isVirtualCol(c) && isLinksOrLTAR(c) && fk_related_model_id) {
-        await getMeta(fk_related_model_id)
+        await getMeta(meta?.value?.base_id as string, fk_related_model_id)
       }
       return c
     }),

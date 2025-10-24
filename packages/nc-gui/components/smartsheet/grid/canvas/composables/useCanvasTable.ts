@@ -1406,7 +1406,7 @@ export function useCanvasTable({
       await Promise.all(
         fetchMetaIds.value.map(async ([colId, tableId]) => {
           try {
-            await getMeta(tableId, false, false, undefined, true)
+            await getMeta(meta.value!.base_id!, tableId, false, false, true)
           } catch {}
           if (!metas.value[tableId]) {
             await getPartialMeta(colId, tableId)

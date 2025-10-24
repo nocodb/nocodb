@@ -633,7 +633,7 @@ async function importTemplate() {
               updateImportTips(baseId, tableId!, progress, total)
               progress += batchData.length
               if (autoInsertOption.value) {
-                await getMeta(tableId, true)
+                await getMeta(baseId, tableId, true)
               }
             }
           })(key),

@@ -126,7 +126,7 @@ export function useTableNew(param: {
       table.isMetaLoading = true
 
       try {
-        await getMeta(table.id as string)
+        await getMeta(table.base_id as string, table.id as string)
       } catch (e) {
         console.error(e)
       } finally {
@@ -221,13 +221,14 @@ export function useTableNew(param: {
       width: 450,
       async onOk() {
         try {
-          const meta = (await getMeta(table.id as string, true)) as TableType
+          const meta = (await getMeta(table.base_id as string, table.id as string, true)) as TableType
           const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
           if (relationColumns?.length && !isXcdbBase(table.source_id)) {
             const refColMsgs = await Promise.all(
               relationColumns.map(async (c, i) => {
                 const refMeta = (await getMeta(
+                  table.base_id as string,
                   (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
                 )) as TableType
                 return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`

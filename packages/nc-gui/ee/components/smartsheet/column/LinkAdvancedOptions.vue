@@ -144,8 +144,8 @@ const resetSelectedColumns = (isJunction = false, resetOnChangeDataType = false)
 }
 const onModelIdChange = async (modelId: string, isJunctionModel = false) => {
   // todo: optimise
-  await getMeta(modelId, false, false, vModel.value.custom.base_id)
-  await getMeta(modelId)
+  await getMeta(vModel.value.custom.base_id, modelId)
+  await getMeta(meta.value?.base_id, modelId)
   await onDataTypeChange()
   resetSelectedColumns(isJunctionModel)
 }
@@ -194,10 +194,10 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
 
 onMounted(async () => {
   if (vModel.value?.custom?.junc_model_id) {
-    await getMeta(vModel.value.custom.junc_model_id)
+    await getMeta(vModel.value.custom.junc_base_id || meta.value?.base_id, vModel.value.custom.junc_model_id)
   }
   if (vModel.value?.custom?.ref_model_id) {
-    await getMeta(vModel.value.custom.ref_model_id)
+    await getMeta(vModel.value.custom.base_id || meta.value?.base_id, vModel.value.custom.ref_model_id)
   }
 })
 </script>

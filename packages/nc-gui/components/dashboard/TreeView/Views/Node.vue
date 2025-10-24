@@ -281,7 +281,7 @@ const viewModeInfo = computed(() => {
 watch(isDropdownOpen, async () => {
   if (!isDropdownOpen.value) return
 
-  injectedTable.value = (await getMeta(table.value.id!)) as any
+  injectedTable.value = (await getMeta(table.value.base_id!, table.value.id!)) as any
 })
 </script>
 

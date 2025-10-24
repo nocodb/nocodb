@@ -147,7 +147,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // actions
 
     const loadRelatedTableMeta = async () => {
-      await getMeta(colOptions.value.fk_related_model_id as string)
+      await getMeta(base.value?.id!, colOptions.value.fk_related_model_id as string)
 
       if (isPublic.value) return
 
@@ -279,7 +279,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const extractOnlyPrimaryValues = async (value: any, col: ColumnType) => {
       const currColOptions = (col.colOptions || {}) as LinkToAnotherRecordType
 
-      await getMeta(currColOptions.fk_related_model_id as string)
+      await getMeta(base.value?.id!, currColOptions.fk_related_model_id as string)
 
       const currColRelatedTableMeta = metas.value?.[currColOptions?.fk_related_model_id as string] as TableType
 

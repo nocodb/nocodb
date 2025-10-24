@@ -61,7 +61,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
-      await getMeta(activeTable.value.id!, true)
+      await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
     }
   }
 
@@ -103,7 +103,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
-      await getMeta(activeTable.value.id!, true)
+      await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
     }
   }
 
@@ -187,7 +187,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
         })
       }
     } finally {
-      await getMeta(activeTable.value.id!, true)
+      await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
     }
 
     $e('a:webhook:add', {

@@ -990,7 +990,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
         )
       ) {
         // default view col order and visibility is stored in column meta so we have to load it again
-        await getMeta(destView.fk_model_id!, true)
+        await getMeta(destView.base_id!, destView.fk_model_id!, true)
       }
 
       if (res?.view && destView.fk_model_id) {

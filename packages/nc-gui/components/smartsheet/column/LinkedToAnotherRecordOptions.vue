@@ -123,7 +123,7 @@ const refTables = computed(() => {
   if (isEdit.value) {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const refTableId = referenceTableChildId.value
-    if (!metas.value[refTableId]) getMeta(refTableId)
+    if (!metas.value[refTableId]) getMeta(meta.value?.base_id, refTableId)
     return [metas.value[refTableId]]
   }
 
@@ -159,7 +159,7 @@ watch(
   () => (vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId),
   async (tableId) => {
     if (tableId) {
-      getMeta(tableId).catch(() => {
+      getMeta(meta.value?.base_id, tableId).catch(() => {
         // ignore
       })
       viewsStore

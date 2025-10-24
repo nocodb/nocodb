@@ -659,7 +659,7 @@ const onVerifyImport = async () => {
     )
   }
 
-  const tableMeta = (await getMeta(importPayload.value.tableId))!
+  const tableMeta = (await getMeta(selectedTable.value?.base_id!, importPayload.value.tableId))!
 
   const upsertFieldTitle = columns.value[importPayload.value.upsertColumnId!]?.title ?? ''
 
@@ -799,7 +799,7 @@ async function onImport() {
     if (importPayload.value?.upsert) {
       $e(`c:extension:${EXTENSION_ID}:upsert`)
 
-      const tableMeta = await getMeta(importPayload.value.tableId)
+      const tableMeta = await getMeta(selectedTable.value?.base_id!, importPayload.value.tableId)
 
       if (!tableMeta?.columns) throw new Error('Table not found')
 
@@ -847,7 +847,7 @@ async function onImport() {
       }
 
       if (autoInsertOption.value) {
-        await getMeta(importPayload.value.tableId, true)
+        await getMeta(selectedTable.value?.base_id!, importPayload.value.tableId, true)
       }
     } else {
       $e(`c:extension:${EXTENSION_ID}:insert`)
@@ -870,7 +870,7 @@ async function onImport() {
         }
 
         if (autoInsertOption.value) {
-          await getMeta(importPayload.value.tableId, true)
+          await getMeta(selectedTable.value?.base_id!, importPayload.value.tableId, true)
         }
 
         processedRecords.value += chunk.length

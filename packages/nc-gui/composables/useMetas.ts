@@ -36,10 +36,10 @@ export const useMetas = createSharedComposable(() => {
 
   // todo: this needs a proper refactor, arbitrary waiting times are usually not a good idea
   const getMeta = async (
+    baseId: string,
     tableIdOrTitle: string,
     force = false,
     skipIfCacheMiss = false,
-    baseId?: string,
     disableError = false,
     navigateOnNotFound = false,
   ): Promise<TableType | null> => {
@@ -48,7 +48,7 @@ export const useMetas = createSharedComposable(() => {
     // if already deleted return null
     if (deletedTableIds.has(tableIdOrTitle)) return null
 
-    const tables = (baseId ? baseTables.value.get(baseId) : _tables.value) ?? []
+    const tables = baseTables.value.get(baseId) ?? []
 
     /** wait until loading is finished if requesting same meta
      * use while to recheck loading state since it can be changed by other requests

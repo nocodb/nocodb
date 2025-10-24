@@ -300,6 +300,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         if (groupby.column.uidt === UITypes.LinkToAnotherRecord) {
           const relatedTableMeta = await getMeta(
+            base.value?.id as string,
             (groupby.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
           )
           if (!relatedTableMeta) return
@@ -626,13 +627,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           let nextCol: ColumnType = col
           // Check if the lookup column is an unsupported type
           while (nextCol && nextCol.uidt === UITypes.Lookup) {
-            const lookupRelation = (await getMeta(nextCol.fk_model_id as string))?.columns?.find(
+            const lookupRelation = (await getMeta(base.value?.id as string, nextCol.fk_model_id as string))?.columns?.find(
               (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
             )
 
             if (!lookupRelation?.colOptions) break
 
             const relatedTableMeta = await getMeta(
+              base.value?.id as string,
               (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
             )
 

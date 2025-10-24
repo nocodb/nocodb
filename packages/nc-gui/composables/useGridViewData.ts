@@ -722,7 +722,7 @@ export function useGridViewData(
 
                 syncVisibleData()
 
-                await getMeta(meta.value?.id as string, true)
+                await getMeta(meta.value!.base_id!, meta.value?.id as string, true)
               } catch (e) {
               } finally {
                 isBulkOperationInProgress.value = false
@@ -757,7 +757,7 @@ export function useGridViewData(
                 await bulkUpsertRows(insertRows, updateRows, props, { metaValue, viewMetaValue }, columns, true, path)
                 isBulkOperationInProgress.value = true
 
-                await getMeta(meta.value?.id as string, true)
+                await getMeta(meta.value!.base_id!, meta.value?.id as string, true)
 
                 syncVisibleData()
               } finally {

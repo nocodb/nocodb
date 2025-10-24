@@ -813,7 +813,7 @@ export function useViewFilters(
         // include the column only if all only if all relations are bt
         while (nextCol && nextCol.uidt === UITypes.Lookup) {
           // extract the relation column meta
-          const lookupRelation = (await getMeta(nextCol.fk_model_id!))?.columns?.find(
+          const lookupRelation = (await getMeta(meta.value!.base_id!, nextCol.fk_model_id!))?.columns?.find(
             (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
           )
 
@@ -822,7 +822,7 @@ export function useViewFilters(
             break
           }
 
-          const relatedTableMeta = await getMeta((lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+          const relatedTableMeta = await getMeta(meta.value!.base_id!, (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
           nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
 
           // if next column is same as root lookup column then break the loop

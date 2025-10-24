@@ -10,6 +10,8 @@ const column = inject(ColumnInj, ref())
 
 const row = inject(RowInj)!
 
+const parentMeta = inject(MetaInj, ref())
+
 const cellValue = inject(CellValueInj, ref())
 
 const isGroupByLabel = inject(IsGroupByLabelInj, ref(false))
@@ -57,7 +59,7 @@ watch(
   column,
   async (newColumn) => {
     if (!newColumn?.fk_model_id || metas.value[newColumn?.fk_model_id]) return
-    await getMeta(newColumn.fk_model_id)
+    if (parentMeta.value?.base_id) await getMeta(parentMeta.value.base_id, newColumn.fk_model_id)
   },
   { immediate: true },
 )
@@ -65,7 +67,7 @@ watch(
 watch(
   relationColumn,
   async (relationCol: { colOptions: LinkToAnotherRecordType }) => {
-    if (relationCol && relationCol.colOptions) await getMeta(relationCol.colOptions.fk_related_model_id!)
+    if (relationCol && relationCol.colOptions && parentMeta.value?.base_id) await getMeta(parentMeta.value.base_id, relationCol.colOptions.fk_related_model_id!)
   },
   { immediate: true },
 )

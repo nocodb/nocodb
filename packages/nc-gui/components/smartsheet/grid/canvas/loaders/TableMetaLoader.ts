@@ -5,13 +5,15 @@ export class TableMetaLoader {
 
   constructor(
     private getMeta: (
+      baseId: string,
       tableIdOrTitle: string,
       force?: boolean,
       skipIfCacheMiss?: boolean,
-      baseId?: string,
       disableError?: boolean,
+      navigateOnNotFound?: boolean,
     ) => Promise<TableType | null>,
     private onSettled?: () => void,
+    private baseId?: string,
   ) {}
 
   async getTableMeta(tableIdOrTitle: string): Promise<TableType | undefined> {
@@ -19,7 +21,7 @@ export class TableMetaLoader {
 
     this.loadingCache.set(tableIdOrTitle, tableIdOrTitle)
     try {
-      await this.getMeta(tableIdOrTitle, undefined, undefined, undefined, true)
+      await this.getMeta(this.baseId!, tableIdOrTitle, undefined, undefined, true)
       this.onSettled?.()
     } finally {
       this.loadingCache.delete(tableIdOrTitle)

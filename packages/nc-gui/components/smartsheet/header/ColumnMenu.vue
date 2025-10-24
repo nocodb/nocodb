@@ -82,7 +82,7 @@ const setAsDisplayValue = async () => {
       {},
     )
 
-    await getMeta(meta?.value?.id as string, true)
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     $e('a:column:set-primary')
@@ -100,7 +100,7 @@ const setAsDisplayValue = async () => {
             {},
           )
 
-          await getMeta(meta?.value?.id as string, true)
+          await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
         },
@@ -118,7 +118,7 @@ const setAsDisplayValue = async () => {
             {},
           )
 
-          await getMeta(meta?.value?.id as string, true)
+          await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
         },
@@ -197,7 +197,7 @@ const duplicateVirtualColumn = async () => {
         },
       } as ColumnReqType,
     )
-    await getMeta(meta!.value!.id!, true)
+    await getMeta(meta!.value!.base_id!, meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     reloadDataHook?.trigger()
@@ -336,7 +336,7 @@ const hideOrShowField = async () => {
 
     if (!hidingViewColumnsMap.value[column.value.id!]) {
       if (isExpandedForm.value) {
-        await getMeta(meta?.value?.id as string, true)
+        await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
       } else {
         updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
       }
@@ -356,7 +356,7 @@ const hideOrShowField = async () => {
           await $api.dbViewColumn.update(viewId, id, { show: !show })
 
           if (isExpandedForm.value) {
-            await getMeta(meta?.value?.id as string, true)
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
           } else {
             updateDefaultViewColVisibility(fk_column_id, !show)
           }
@@ -373,7 +373,7 @@ const hideOrShowField = async () => {
           await $api.dbViewColumn.update(viewId, id, { show })
 
           if (isExpandedForm.value) {
-            await getMeta(meta?.value?.id as string, true)
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
           } else {
             updateDefaultViewColVisibility(fk_column_id, show)
           }

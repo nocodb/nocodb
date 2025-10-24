@@ -109,7 +109,7 @@ const onDrop = async (event: DragEvent) => {
     // if dragged item or opened view is not a table, return
     if (data.type !== 'table' || meta.value?.type !== 'table') return
 
-    const childMeta = await getMeta(data.id)
+    const childMeta = await getMeta(meta.value.base_id!, data.id)
     const parentMeta = metas.value[meta.value.id!]
 
     if (!childMeta || !parentMeta) return

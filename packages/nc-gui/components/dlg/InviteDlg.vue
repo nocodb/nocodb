@@ -437,10 +437,10 @@ const onTeamChange = async (_teamIds: RawValueType) => {
             ? 'Invite Members to Workspaces'
             : type === 'base'
             ? isTeam
-              ? $t('activity.addTeamToBase')
+              ? $t('activity.addTeamsToBase')
               : $t('activity.addMember')
             : isTeam
-            ? $t('activity.addTeamToWorkspace')
+            ? $t('activity.addTeamsToWorkspace')
             : $t('activity.inviteToWorkspace')
         }}
       </div>
@@ -611,12 +611,12 @@ const onTeamChange = async (_teamIds: RawValueType) => {
           @click="inviteCollaborator"
         >
           {{
-            type === 'base'
-              ? isTeam
-                ? $t('activity.addTeamToBase')
-                : $t('activity.inviteToBase')
-              : isTeam
-              ? $t('activity.addTeamToWorkspace')
+            isTeam
+              ? (inviteData.selectedTeamIds || []).length > 1
+                ? $t('labels.addTeams')
+                : $t('labels.addTeam')
+              : type === 'base'
+              ? $t('activity.inviteToBase')
               : $t('activity.inviteToWorkspace')
           }}
         </NcButton>

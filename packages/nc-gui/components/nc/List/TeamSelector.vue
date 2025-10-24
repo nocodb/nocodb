@@ -103,7 +103,7 @@ const selectedTeams = computed(() => {
         </NcRenderVisibleItems>
 
         <span v-if="!selectedTeams.length" class="text-nc-content-gray-muted">
-          -{{ isMultiSelect ? t('labels.selectTeams') : t('labels.selectTeam') }}-
+          -{{ isMultiSelect ? t('labels.selectOneOrMoreTeams') : t('labels.selectTeam') }}-
         </span>
       </div>
       <GeneralIcon

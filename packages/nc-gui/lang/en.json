@@ -1158,6 +1158,7 @@
     "goToMembers": "Go to Members",
     "addMember": "Add Member",
     "addTeam": "Add Team",
+    "addTeams": "Add Teams",
     "numberOfMembers": "No. Members",
     "numberOfBases": "No. Bases",
     "numberOfRecords": "No. Records",
@@ -1600,7 +1601,8 @@
     "copyConfiguration": "Copy configuration",
     "selectTeam": "Select team",
     "selectTeams": "Select teams",
-    "showEveryonesPersonalViews": "Show everyone's personal views"
+    "showEveryonesPersonalViews": "Show everyone's personal views",
+    "selectOneOrMoreTeams": "Select one or more teams"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1632,8 +1634,8 @@
     "inviteToBase": "Invite to Base",
     "inviteToWorkspace": "Invite to Workspace",
     "addMember": "Add Member to Base",
-    "addTeamToBase": "Add Team to Base",
-    "addTeamToWorkspace": "Add Team to Workspace",
+    "addTeamsToBase": "Add Teams to Base",
+    "addTeamsToWorkspace": "Add Teams to Workspace",
     "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
@@ -1901,7 +1903,7 @@
     "deleteTeam": "Delete team",
     "removeFromTeam": "Remove from team",
     "assignAsTeamOwner": "Assign as team owner",
-    "assignAsTeamMember": "Assign as team member",
+    "removeAsTeamOwner": "Remove as team owner",
     "revertToDefault": "Revert to Default",
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",

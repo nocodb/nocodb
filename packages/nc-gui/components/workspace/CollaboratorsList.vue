@@ -470,7 +470,7 @@ watch(inviteDlg, (newVal) => {
                   "
                 >
                   <GeneralIcon icon="ncBuilding" />
-                  {{ $t('labels.addTeam') }}
+                  {{ $t('labels.addTeams') }}
                 </NcMenuItem>
               </NcMenu>
             </template>

@@ -423,7 +423,7 @@ onMounted(() => {
                     @click="handleAssignAsRole(record as TeamMember, TeamUserRoles.MEMBER)"
                   >
                     <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4 transform rotate-180" />
-                    {{ $t('activity.assignAsTeamMember') }}
+                    {{ $t('activity.removeAsTeamOwner') }}
                   </NcMenuItem>
 
                   <!-- Show leave team option only if logged in user is same as record user -->

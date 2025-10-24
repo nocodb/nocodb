@@ -136,7 +136,7 @@ defineExpose({
     <NcListDropdown v-model:is-open="isOpenTableSelectDropdown" :disabled="disabled" :has-error="!!selectedTable?.ncItemDisabled">
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedTable" class="min-w-5 flex items-center justify-center">
-          <NcIconTable :table="selectedTable || { title: '', table_name: '' }" class="text-gray-500" />
+          <NcIconTable :table="selectedTable || { title: '', table_name: '' }" class="text-nc-content-muted" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span
@@ -174,7 +174,7 @@ defineExpose({
           <template #item="{ item }">
             <div class="w-full flex items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <NcIconTable :table="item" class="text-gray-500" />
+                <NcIconTable :table="item" class="text-nc-content-muted" />
               </div>
               <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ item.label }}</template>

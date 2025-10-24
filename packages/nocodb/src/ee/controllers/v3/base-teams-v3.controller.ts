@@ -10,7 +10,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   BaseTeamCreateV3ReqType,
   BaseTeamDeleteV3ReqType,
@@ -26,31 +25,11 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
-import { getFeature } from '~/helpers/paymentHelpers';
-import { NcError } from '~/helpers/catchError';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BaseTeamsV3Controller {
   constructor(private readonly baseTeamsV3Service: BaseTeamsV3Service) {}
-
-  /**
-   * Validates if the user has access to the Teams API.
-   * This method checks if the feature is enabled for the workspace.
-   * If not, it throws an error indicating that the feature is only available on paid plans.
-   */
-  async canExecute(context: NcContext) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
-        context.workspace_id,
-      ))
-    ) {
-      NcError.forbidden(
-        'Accessing Teams API is only available on paid plans. Please upgrade your workspace plan to enable this feature. Your current plan is not sufficient.',
-      );
-    }
-  }
 
   @Get('/api/v3/meta/bases/:baseId/invites')
   @Acl('baseTeamList', {
@@ -60,7 +39,6 @@ export class BaseTeamsV3Controller {
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
   ): Promise<BaseTeamListV3Type> {
-    await this.canExecute(context);
     return this.baseTeamsV3Service.teamList(context, {
       baseId,
     });
@@ -77,8 +55,6 @@ export class BaseTeamsV3Controller {
     @Body() teams: BaseTeamCreateV3ReqType | BaseTeamCreateV3ReqType[],
     @Req() req: NcRequest,
   ): Promise<BaseTeamV3ResponseType | BaseTeamV3ResponseType[]> {
-    await this.canExecute(context);
-
     const teamsArray = Array.isArray(teams) ? teams : [teams];
 
     if (teamsArray.length === 1) {
@@ -107,7 +83,6 @@ export class BaseTeamsV3Controller {
     @Param('baseId') baseId: string,
     @Param('teamId') teamId: string,
   ): Promise<BaseTeamDetailV3Type> {
-    await this.canExecute(context);
     return this.baseTeamsV3Service.teamDetail(context, {
       baseId,
       teamId,
@@ -124,7 +99,6 @@ export class BaseTeamsV3Controller {
     @Body() team: BaseTeamUpdateV3ReqType | BaseTeamUpdateV3ReqType[],
     @Req() req: NcRequest,
   ): Promise<BaseTeamV3ResponseType | BaseTeamV3ResponseType[]> {
-    await this.canExecute(context);
     return this.baseTeamsV3Service.teamUpdate(context, {
       baseId,
       team,
@@ -142,8 +116,6 @@ export class BaseTeamsV3Controller {
     @Body() teams: BaseTeamDeleteV3ReqType | BaseTeamDeleteV3ReqType[],
     @Req() req: NcRequest,
   ): Promise<{ msg: string }> {
-    await this.canExecute(context);
-
     const teamsArray = Array.isArray(teams) ? teams : [teams];
 
     if (teamsArray.length === 1) {

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, TeamUserRoles } from 'nocodb-sdk';
+import { AppEvents, PlanFeatureTypes, TeamUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   TeamCreateV3ReqType,
@@ -27,12 +27,31 @@ import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { getFeature } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class TeamsV3Service {
   protected readonly logger = new Logger(TeamsV3Service.name);
 
   constructor(private readonly appHooksService: AppHooksService) {}
+
+  /**
+   * Validates if the user has access to the Teams API.
+   * This method checks if the feature is enabled for the workspace.
+   * If not, it throws an error indicating that the feature is only available on paid plans.
+   */
+  private async validateFeatureAccess(context: NcContext) {
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+        context.workspace_id,
+      ))
+    ) {
+      NcError.get(context).forbidden(
+        'Accessing Teams API is only available on paid plans. Please upgrade your workspace plan to enable this feature. Your current plan is not sufficient.',
+      );
+    }
+  }
 
   async getTeamMembersCount(
     context: NcContext,
@@ -71,6 +90,8 @@ export class TeamsV3Service {
       workspaceOrOrgId: string;
     },
   ): Promise<{ list: TeamV3ResponseType[] }> {
+    await this.validateFeatureAccess(context);
+
     // For now, assume it's a workspace ID (can be enhanced later to detect org vs workspace)
     const filterParam = { fk_workspace_id: param.workspaceOrOrgId };
 
@@ -120,6 +141,8 @@ export class TeamsV3Service {
       teamId: string;
     },
   ): Promise<TeamDetailV3Type> {
+    await this.validateFeatureAccess(context);
+
     const team = await Team.get(context, param.teamId);
 
     if (!team) {
@@ -188,6 +211,8 @@ export class TeamsV3Service {
       req: NcRequest;
     },
   ): Promise<TeamV3ResponseType> {
+    await this.validateFeatureAccess(context);
+
     validatePayload(
       'swagger-v3.json#/components/schemas/TeamCreateV3Req',
       param.team,
@@ -317,6 +342,8 @@ export class TeamsV3Service {
       req: NcRequest;
     },
   ): Promise<TeamV3ResponseType> {
+    await this.validateFeatureAccess(context);
+
     validatePayload(
       'swagger-v3.json#/components/schemas/TeamUpdateV3Req',
       param.team,
@@ -421,6 +448,8 @@ export class TeamsV3Service {
       req: NcRequest;
     },
   ) {
+    await this.validateFeatureAccess(context);
+
     // Fetch workspace
     const workspace = await Workspace.get(param.workspaceOrOrgId);
     if (!workspace) {
@@ -497,6 +526,8 @@ export class TeamsV3Service {
       req: NcRequest;
     },
   ): Promise<TeamMemberV3ResponseType[]> {
+    await this.validateFeatureAccess(context);
+
     // Fetch workspace
     const workspace = await Workspace.get(param.workspaceOrOrgId);
     if (!workspace) {
@@ -602,6 +633,8 @@ export class TeamsV3Service {
       req: NcRequest;
     },
   ) {
+    await this.validateFeatureAccess(context);
+
     // Fetch workspace
     const workspace = await Workspace.get(param.workspaceOrOrgId);
     if (!workspace) {
@@ -700,6 +733,8 @@ export class TeamsV3Service {
       req: NcRequest;
     },
   ): Promise<TeamMemberV3ResponseType[]> {
+    await this.validateFeatureAccess(context);
+
     // Fetch workspace
     const workspace = await Workspace.get(param.workspaceOrOrgId);
     if (!workspace) {

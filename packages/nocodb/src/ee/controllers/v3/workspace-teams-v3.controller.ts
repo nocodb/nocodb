@@ -10,7 +10,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   WorkspaceTeamCreateV3ReqType,
   WorkspaceTeamDeleteV3ReqType,
@@ -26,8 +25,6 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
-import { getFeature } from '~/helpers/paymentHelpers';
-import { NcError } from '~/helpers/catchError';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
@@ -35,24 +32,6 @@ export class WorkspaceTeamsV3Controller {
   constructor(
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
   ) {}
-
-  /**
-   * Validates if the user has access to the Teams API.
-   * This method checks if the feature is enabled for the workspace.
-   * If not, it throws an error indicating that the feature is only available on paid plans.
-   */
-  async canExecute(context: NcContext) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
-        context.workspace_id,
-      ))
-    ) {
-      NcError.forbidden(
-        'Accessing Teams API is only available on paid plans. Please upgrade your workspace plan to enable this feature. Your current plan is not sufficient.',
-      );
-    }
-  }
 
   @Get('/api/v3/meta/workspaces/:workspaceId/invites')
   @Acl('teamList', {
@@ -62,7 +41,6 @@ export class WorkspaceTeamsV3Controller {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
   ): Promise<WorkspaceTeamListV3Type> {
-    await this.canExecute(context);
     return this.workspaceTeamsV3Service.teamList(context, {
       workspaceId,
     });
@@ -80,8 +58,6 @@ export class WorkspaceTeamsV3Controller {
     teams: WorkspaceTeamCreateV3ReqType | WorkspaceTeamCreateV3ReqType[],
     @Req() req: NcRequest,
   ): Promise<WorkspaceTeamV3ResponseType | WorkspaceTeamV3ResponseType[]> {
-    await this.canExecute(context);
-
     const teamsArray = Array.isArray(teams) ? teams : [teams];
 
     if (teamsArray.length === 1) {
@@ -110,7 +86,6 @@ export class WorkspaceTeamsV3Controller {
     @Param('workspaceId') workspaceId: string,
     @Param('teamId') teamId: string,
   ): Promise<WorkspaceTeamDetailV3Type> {
-    await this.canExecute(context);
     return this.workspaceTeamsV3Service.teamDetail(context, {
       workspaceId,
       teamId,
@@ -127,7 +102,6 @@ export class WorkspaceTeamsV3Controller {
     @Body() team: WorkspaceTeamUpdateV3ReqType | WorkspaceTeamUpdateV3ReqType[],
     @Req() req: NcRequest,
   ): Promise<WorkspaceTeamV3ResponseType | WorkspaceTeamV3ResponseType[]> {
-    await this.canExecute(context);
     return this.workspaceTeamsV3Service.teamUpdate(context, {
       workspaceId,
       team,
@@ -146,8 +120,6 @@ export class WorkspaceTeamsV3Controller {
     teams: WorkspaceTeamDeleteV3ReqType | WorkspaceTeamDeleteV3ReqType[],
     @Req() req: NcRequest,
   ): Promise<{ msg: string }> {
-    await this.canExecute(context);
-
     const teamsArray = Array.isArray(teams) ? teams : [teams];
 
     if (teamsArray.length === 1) {

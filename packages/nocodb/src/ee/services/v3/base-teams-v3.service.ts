@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
@@ -23,6 +23,7 @@ import { Base, PrincipalAssignment, Team, User } from '~/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { getFeature } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class BaseTeamsV3Service {
@@ -30,10 +31,30 @@ export class BaseTeamsV3Service {
 
   constructor(private readonly appHooksService: AppHooksService) {}
 
+  /**
+   * Validates if the user has access to the Teams API.
+   * This method checks if the feature is enabled for the workspace.
+   * If not, it throws an error indicating that the feature is only available on paid plans.
+   */
+  private async validateFeatureAccess(context: NcContext) {
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+        context.workspace_id,
+      ))
+    ) {
+      NcError.get(context).forbidden(
+        'Accessing Teams API is only available on paid plans. Please upgrade your workspace plan to enable this feature. Your current plan is not sufficient.',
+      );
+    }
+  }
+
   async teamList(
     context: NcContext,
     param: { baseId: string },
   ): Promise<BaseTeamListV3Type> {
+    await this.validateFeatureAccess(context);
+
     // Get base to access workspace_id
     const base = await Base.get(context, param.baseId);
     if (!base) {
@@ -155,6 +176,8 @@ export class BaseTeamsV3Service {
       req: NcRequest;
     },
   ): Promise<BaseTeamV3ResponseType> {
+    await this.validateFeatureAccess(context);
+
     validatePayload(
       'swagger-v3.json#/components/schemas/BaseTeamCreate',
       param.team,
@@ -229,6 +252,8 @@ export class BaseTeamsV3Service {
       req: NcRequest;
     },
   ): Promise<BaseTeamV3ResponseType | BaseTeamV3ResponseType[]> {
+    await this.validateFeatureAccess(context);
+
     // Fetch base
     const base = await Base.get(context, param.baseId);
     if (!base) {
@@ -313,6 +338,8 @@ export class BaseTeamsV3Service {
       req: NcRequest;
     },
   ): Promise<{ msg: string }> {
+    await this.validateFeatureAccess(context);
+
     // Fetch base
     const base = await Base.get(context, param.baseId);
     if (!base) {
@@ -386,6 +413,8 @@ export class BaseTeamsV3Service {
       req: NcRequest;
     },
   ): Promise<BaseTeamV3ResponseType[]> {
+    await this.validateFeatureAccess(context);
+
     validatePayload(
       'swagger-v3.json#/components/schemas/BaseTeamCreateBulk',
       param.teams,
@@ -414,6 +443,8 @@ export class BaseTeamsV3Service {
       req: NcRequest;
     },
   ): Promise<{ msg: string }> {
+    await this.validateFeatureAccess(context);
+
     validatePayload(
       'swagger-v3.json#/components/schemas/BaseTeamDeleteBulk',
       param.teams,
@@ -435,6 +466,8 @@ export class BaseTeamsV3Service {
     context: NcContext,
     param: { baseId: string; teamId: string },
   ): Promise<BaseTeamDetailV3Type> {
+    await this.validateFeatureAccess(context);
+
     // Get base to access workspace_id
     const base = await Base.get(context, param.baseId);
     if (!base) {

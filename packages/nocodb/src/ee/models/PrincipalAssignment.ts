@@ -17,6 +17,7 @@ export default class PrincipalAssignment {
   principal_type: PrincipalType; // Uses PrincipalType enum
   principal_ref_id: string; // FK to user/team/bot table
   roles: string; // Role(s) assigned
+  deleted: boolean; // Soft delete flag
   created_at?: string;
   updated_at?: string;
 
@@ -35,6 +36,65 @@ export default class PrincipalAssignment {
     assignment: Partial<PrincipalAssignment>,
     ncMeta = Noco.ncMeta,
   ): Promise<PrincipalAssignment> {
+    // Check if a soft-deleted assignment already exists
+    const existingAssignment = await ncMeta.metaGet(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.PRINCIPAL_ASSIGNMENTS,
+      {
+        resource_id: assignment.resource_id,
+        resource_type: assignment.resource_type,
+        principal_type: assignment.principal_type,
+        principal_ref_id: assignment.principal_ref_id,
+      },
+    );
+
+    if (existingAssignment && existingAssignment.deleted) {
+      // Restore the soft-deleted assignment
+      const updateObj = {
+        roles: assignment.roles,
+        deleted: false,
+      };
+
+      await ncMeta.metaUpdate(
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
+        MetaTable.PRINCIPAL_ASSIGNMENTS,
+        updateObj,
+        {
+          resource_type: assignment.resource_type,
+          resource_id: assignment.resource_id,
+          principal_type: assignment.principal_type,
+          principal_ref_id: assignment.principal_ref_id,
+        },
+      );
+
+      const restoredAssignment = await ncMeta.metaGet(
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
+        MetaTable.PRINCIPAL_ASSIGNMENTS,
+        {
+          resource_id: assignment.resource_id,
+          resource_type: assignment.resource_type,
+          principal_type: assignment.principal_type,
+          principal_ref_id: assignment.principal_ref_id,
+        },
+      );
+
+      await NocoCache.set(
+        context,
+        `${CacheScope.PRINCIPAL_ASSIGNMENT}:${assignment.resource_type}:${assignment.resource_id}:${assignment.principal_type}:${assignment.principal_ref_id}`,
+        restoredAssignment,
+      );
+
+      // Invalidate count cache for this resource
+      const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${assignment.resource_type}:${assignment.resource_id}`;
+      await NocoCache.del(context, countCacheKey);
+
+      return this.castType(restoredAssignment);
+    }
+
+    // Create new assignment
     const insertObj = extractProps(assignment, [
       'resource_type',
       'resource_id',
@@ -42,6 +102,9 @@ export default class PrincipalAssignment {
       'principal_ref_id',
       'roles',
     ]);
+
+    // Set deleted to false by default
+    insertObj.deleted = false;
 
     await ncMeta.metaInsert2(
       RootScopes.WORKSPACE,
@@ -95,6 +158,20 @@ export default class PrincipalAssignment {
           principal_type: principalType,
           principal_ref_id: principalRefId,
         },
+        xcCondition: {
+          _or: [
+            {
+              deleted: {
+                eq: false,
+              },
+            },
+            {
+              deleted: {
+                eq: null,
+              },
+            },
+          ],
+        },
       },
     );
 
@@ -109,15 +186,64 @@ export default class PrincipalAssignment {
       principal_type?: PrincipalType;
       principal_ref_id?: string;
       roles?: string;
+      deleted?: boolean; // Allow filtering by deleted status
     },
     ncMeta = Noco.ncMeta,
   ): Promise<PrincipalAssignment[]> {
+    const condition = { ...filter };
+
+    // Build xcCondition for soft delete filtering
+    let xcCondition: any = {};
+
+    if (filter?.deleted !== undefined) {
+      // Explicitly requested deleted status
+      if (filter.deleted === true) {
+        xcCondition = {
+          deleted: {
+            eq: true,
+          },
+        };
+      } else {
+        xcCondition = {
+          _or: [
+            {
+              deleted: {
+                eq: false,
+              },
+            },
+            {
+              deleted: {
+                eq: null,
+              },
+            },
+          ],
+        };
+      }
+    } else {
+      // Default: exclude soft-deleted records
+      xcCondition = {
+        _or: [
+          {
+            deleted: {
+              eq: false,
+            },
+          },
+          {
+            deleted: {
+              eq: null,
+            },
+          },
+        ],
+      };
+    }
+
     const assignments = await ncMeta.metaList2(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.PRINCIPAL_ASSIGNMENTS,
       {
-        condition: filter,
+        condition,
+        xcCondition,
       },
     );
 
@@ -197,14 +323,31 @@ export default class PrincipalAssignment {
     role: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    const assignments = await this.list(
-      context,
+    const assignments = await ncMeta.metaList2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.PRINCIPAL_ASSIGNMENTS,
       {
-        resource_type: resourceType,
-        resource_id: resourceId,
-        roles: role,
+        condition: {
+          resource_type: resourceType,
+          resource_id: resourceId,
+          roles: role,
+        },
+        xcCondition: {
+          _or: [
+            {
+              deleted: {
+                eq: false,
+              },
+            },
+            {
+              deleted: {
+                eq: null,
+              },
+            },
+          ],
+        },
       },
-      ncMeta,
     );
     return assignments.length;
   }
@@ -257,7 +400,92 @@ export default class PrincipalAssignment {
     return updatedAssignment!;
   }
 
+  public static async softDelete(
+    context: NcContext,
+    resourceType: ResourceType,
+    resourceId: string,
+    principalType: PrincipalType,
+    principalRefId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    await ncMeta.metaUpdate(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.PRINCIPAL_ASSIGNMENTS,
+      { deleted: true },
+      {
+        resource_type: resourceType,
+        resource_id: resourceId,
+        principal_type: principalType,
+        principal_ref_id: principalRefId,
+      },
+    );
+
+    // Clear cache
+    await NocoCache.deepDel(
+      context,
+      `${CacheScope.PRINCIPAL_ASSIGNMENT}:${resourceType}:${resourceId}:${principalType}:${principalRefId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    // Invalidate count cache for this resource
+    const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
+    await NocoCache.del(context, countCacheKey);
+  }
+
   public static async delete(
+    context: NcContext,
+    resourceType: ResourceType,
+    resourceId: string,
+    principalType: PrincipalType,
+    principalRefId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    // Use soft delete by default
+    return this.softDelete(
+      context,
+      resourceType,
+      resourceId,
+      principalType,
+      principalRefId,
+      ncMeta,
+    );
+  }
+
+  public static async restore(
+    context: NcContext,
+    resourceType: ResourceType,
+    resourceId: string,
+    principalType: PrincipalType,
+    principalRefId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    await ncMeta.metaUpdate(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.PRINCIPAL_ASSIGNMENTS,
+      { deleted: false },
+      {
+        resource_type: resourceType,
+        resource_id: resourceId,
+        principal_type: principalType,
+        principal_ref_id: principalRefId,
+      },
+    );
+
+    // Clear cache
+    await NocoCache.deepDel(
+      context,
+      `${CacheScope.PRINCIPAL_ASSIGNMENT}:${resourceType}:${resourceId}:${principalType}:${principalRefId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    // Invalidate count cache for this resource
+    const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
+    await NocoCache.del(context, countCacheKey);
+  }
+
+  public static async hardDelete(
     context: NcContext,
     resourceType: ResourceType,
     resourceId: string,

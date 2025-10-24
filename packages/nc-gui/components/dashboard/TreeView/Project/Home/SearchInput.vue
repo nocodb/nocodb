@@ -38,8 +38,25 @@ const handleClick = () => {
           <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
         </template>
         <template #suffix>
-          <div class="px-1 text-bodySmBold text-nc-content-gray-subtle bg-nc-bg-gray-medium rounded">
-            {{ renderCmdOrCtrlKey(true) }} K
+          <div class="flex items-center gap-2">
+            <div class="px-1 text-bodySmBold text-nc-content-gray-subtle bg-nc-bg-gray-medium rounded">
+              {{ renderCmdOrCtrlKey(true) }} K
+            </div>
+            <NcDropdown>
+              <NcButton icon-only size="xxsmall" type="text" @click.stop>
+                <template #icon> <GeneralIcon icon="ncSettings" /> </template>
+              </NcButton>
+              <template #overlay>
+                <NcMenu>
+                  <NcMenuItemLabel> Options </NcMenuItemLabel>
+                  <NcMenuItem @click.stop.prevent>
+                    <div class="off">
+                      <NcSwitch> Show everyonce(s) personal views </NcSwitch>
+                    </div>
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
           </div>
         </template>
       </a-input>

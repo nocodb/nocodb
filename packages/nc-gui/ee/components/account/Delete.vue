@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ApiTokenType, BaseType, IntegrationType, SourceType, WorkspaceType } from 'nocodb-sdk'
+import { userLocalStorageInfoManager } from '#imports'
 
 const { user, signOut } = useGlobal()
 
@@ -123,6 +124,9 @@ const onDeleteConfirm = async () => {
 
   try {
     await $api.user.delete()
+
+    userLocalStorageInfoManager.clearUser(user.value?.id!)
+
     message.success('Account deleted. See you later!')
     await signOut({
       redirectToSignin: true,

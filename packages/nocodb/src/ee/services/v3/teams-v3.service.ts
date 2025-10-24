@@ -20,7 +20,7 @@ import type {
 } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
-import { PrincipalAssignment, Team } from '~/ee/models';
+import { PrincipalAssignment, Team } from '~/models';
 import { User, Workspace } from '~/models';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
@@ -71,7 +71,7 @@ export class TeamsV3Service {
       context,
       ResourceType.TEAM,
       teamId,
-      TeamUserRoles.MANAGER,
+      TeamUserRoles.OWNER,
     );
   }
 
@@ -86,7 +86,7 @@ export class TeamsV3Service {
     const managerAssignments = teamAssignments.filter(
       (assignment) =>
         assignment.principal_type === PrincipalType.USER &&
-        assignment.roles === TeamUserRoles.MANAGER,
+        assignment.roles === TeamUserRoles.OWNER,
     );
 
     return managerAssignments.map((assignment) => assignment.principal_ref_id);
@@ -314,7 +314,7 @@ export class TeamsV3Service {
           resource_id: teamId,
           principal_type: PrincipalType.USER,
           principal_ref_id: creatorId,
-          roles: TeamUserRoles.MANAGER,
+          roles: TeamUserRoles.OWNER,
         });
       }
     }
@@ -399,7 +399,7 @@ export class TeamsV3Service {
         PrincipalType.USER,
         userId,
       );
-      if (!assignment || assignment.roles !== TeamUserRoles.MANAGER) {
+      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
         NcError.get(context).forbidden(
           'Only team managers can update team information',
         );
@@ -503,7 +503,7 @@ export class TeamsV3Service {
         userId,
       );
       const isTeamManager =
-        assignment && assignment.roles === TeamUserRoles.MANAGER;
+        assignment && assignment.roles === TeamUserRoles.OWNER;
 
       // TODO: Add org owner check when org ownership is implemented
       if (!isTeamManager) {
@@ -581,7 +581,7 @@ export class TeamsV3Service {
         PrincipalType.USER,
         userId,
       );
-      if (!assignment || assignment.roles !== TeamUserRoles.MANAGER) {
+      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
         NcError.get(context).forbidden('Only team managers can add members');
       }
     }
@@ -615,8 +615,8 @@ export class TeamsV3Service {
         principal_type: PrincipalType.USER,
         principal_ref_id: member.user_id,
         roles:
-          member.team_role === TeamUserRoles.MANAGER
-            ? TeamUserRoles.MANAGER
+          member.team_role === TeamUserRoles.OWNER
+            ? TeamUserRoles.OWNER
             : member.team_role,
       });
 
@@ -705,7 +705,7 @@ export class TeamsV3Service {
             param.teamId,
             PrincipalType.USER,
             userId,
-          ).then((a) => a?.roles === TeamUserRoles.MANAGER)) || false
+          ).then((a) => a?.roles === TeamUserRoles.OWNER)) || false
         : false;
       const isSelfRemoval = userId === member.user_id;
 
@@ -716,7 +716,7 @@ export class TeamsV3Service {
       }
 
       // If removing the last manager, prevent it
-      if (assignment!.roles === TeamUserRoles.MANAGER) {
+      if (assignment!.roles === TeamUserRoles.OWNER) {
         const managersCount = await this.getTeamManagersCount(
           context,
           param.teamId,
@@ -791,7 +791,7 @@ export class TeamsV3Service {
         PrincipalType.USER,
         userId,
       );
-      if (!assignment || assignment.roles !== TeamUserRoles.MANAGER) {
+      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
         NcError.get(context).forbidden(
           'Only team managers can update member roles',
         );

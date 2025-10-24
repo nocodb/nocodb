@@ -47,13 +47,13 @@ export interface TeamUpdateV3ReqType {
 
 export interface TeamMemberV3Type {
   user_id: string;
-  team_role: TeamUserRoles.MANAGER | TeamUserRoles.MEMBER;
+  team_role: TeamUserRoles.OWNER | TeamUserRoles.MEMBER;
 }
 
 export interface TeamMemberV3ResponseType {
   user_email: string;
   user_id: string;
-  team_role: TeamUserRoles.MANAGER | TeamUserRoles.MEMBER;
+  team_role: TeamUserRoles.OWNER | TeamUserRoles.MEMBER;
 }
 
 export interface TeamDetailV3Type {
@@ -66,7 +66,7 @@ export interface TeamDetailV3Type {
 
 export interface TeamMembersAddV3ReqType {
   user_id: string;
-  team_role: TeamUserRoles.MANAGER | TeamUserRoles.MEMBER;
+  team_role: TeamUserRoles.OWNER | TeamUserRoles.MEMBER;
 }
 
 export interface TeamMembersRemoveV3ReqType {
@@ -75,5 +75,5 @@ export interface TeamMembersRemoveV3ReqType {
 
 export interface TeamMembersUpdateV3ReqType {
   user_id: string;
-  team_role: TeamUserRoles.MANAGER | TeamUserRoles.MEMBER;
+  team_role: TeamUserRoles.OWNER | TeamUserRoles.MEMBER;
 }

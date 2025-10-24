@@ -27,7 +27,7 @@ const { teamsMap, editTeamDetails } = storeToRefs(workspaceStore)
 
 const hasEditPermission = computed(() => {
   return (editTeamDetails.value?.members || []).some(
-    (member) => member.user_id === user.value?.id && member.team_role === TeamUserRoles.MANAGER,
+    (member) => member.user_id === user.value?.id && member.team_role === TeamUserRoles.OWNER,
   )
 })
 

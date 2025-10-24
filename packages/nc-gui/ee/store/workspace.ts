@@ -797,7 +797,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
                 ...team,
                 members_count: (team.members_count || 0) + addedMembers.length,
                 managers_count:
-                  (team.managers_count || 0) + addedMembers.filter((member) => member.team_role === TeamUserRoles.MANAGER).length,
+                  (team.managers_count || 0) + addedMembers.filter((member) => member.team_role === TeamUserRoles.OWNER).length,
               }
             : team,
         )
@@ -842,7 +842,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
                   ...team,
                   members_count: editTeamDetails.value?.members?.length || 0,
                   managers_count: (editTeamDetails.value?.members || []).filter(
-                    (member) => member.team_role === TeamUserRoles.MANAGER,
+                    (member) => member.team_role === TeamUserRoles.OWNER,
                   ).length,
                 }
               : team,
@@ -895,7 +895,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
             ? {
                 ...team,
                 managers_count: editTeamDetails.value
-                  ? (editTeamDetails.value.members || []).filter((member) => member.team_role === TeamUserRoles.MANAGER).length
+                  ? (editTeamDetails.value.members || []).filter((member) => member.team_role === TeamUserRoles.OWNER).length
                   : team.managers_count,
               }
             : team,

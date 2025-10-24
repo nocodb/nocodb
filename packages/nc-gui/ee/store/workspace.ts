@@ -14,7 +14,7 @@ import type {
   WorkspaceType,
   WorkspaceUserType,
 } from 'nocodb-sdk'
-import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
+import { TeamUserRoles, WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 import { userLocalStorageInfoManager } from '#imports'
@@ -792,7 +792,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       if (teamsMap.value[teamId]) {
         teams.value = teams.value.map((team) =>
-          team.id === teamId ? { ...team, members_count: (team.members_count || 0) + addedMembers.length } : team,
+          team.id === teamId
+            ? {
+                ...team,
+                members_count: (team.members_count || 0) + addedMembers.length,
+                managers_count:
+                  (team.managers_count || 0) + addedMembers.filter((member) => member.team_role === TeamUserRoles.MANAGER).length,
+              }
+            : team,
         )
       }
 
@@ -827,12 +834,20 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         editTeamDetails.value.members = (editTeamDetails.value.members || []).filter(
           (member) => !removedMembers.find((rm) => rm.user_id === member.user_id),
         )
-      }
 
-      if (teamsMap.value[teamId]) {
-        teams.value = teams.value.map((team) =>
-          team.id === teamId ? { ...team, members_count: Math.max(0, (team.members_count || 0) - removedMembers.length) } : team,
-        )
+        if (teamsMap.value[teamId]) {
+          teams.value = teams.value.map((team) =>
+            team.id === teamId
+              ? {
+                  ...team,
+                  members_count: editTeamDetails.value?.members?.length || 0,
+                  managers_count: (editTeamDetails.value?.members || []).filter(
+                    (member) => member.team_role === TeamUserRoles.MANAGER,
+                  ).length,
+                }
+              : team,
+          )
+        }
       }
 
       return removedMembers || []
@@ -872,6 +887,19 @@ export const useWorkspace = defineStore('workspaceStore', () => {
             ...updatedMember,
           }
         })
+      }
+
+      if (teamsMap.value[teamId]) {
+        teams.value = teams.value.map((team) =>
+          team.id === teamId
+            ? {
+                ...team,
+                managers_count: editTeamDetails.value
+                  ? (editTeamDetails.value.members || []).filter((member) => member.team_role === TeamUserRoles.MANAGER).length
+                  : team.managers_count,
+              }
+            : team,
+        )
       }
 
       return updatedMembers || []

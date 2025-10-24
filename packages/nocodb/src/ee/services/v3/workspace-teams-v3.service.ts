@@ -19,7 +19,7 @@ import type {
 } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
-import { PrincipalAssignment, Team, User, Workspace } from '~/models';
+import { Base, PrincipalAssignment, Team, User, Workspace } from '~/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { validatePayload } from '~/helpers';
@@ -310,7 +310,37 @@ export class WorkspaceTeamsV3Service {
         principal_type: PrincipalType.USER,
       });
 
-      // Delete the assignment
+      // Get all base assignments for this team
+      const baseAssignments = await PrincipalAssignment.list(context, {
+        resource_type: ResourceType.BASE,
+        principal_type: PrincipalType.TEAM,
+        principal_ref_id: teamObj.team_id,
+      });
+
+      // Get base details to filter by workspace
+      const baseIds = [...new Set(baseAssignments.map((a) => a.resource_id))];
+      const bases = await Promise.all(
+        baseIds.map((baseId) => Base.get(context, baseId)),
+      );
+
+      // Filter assignments for bases that belong to this workspace
+      const validBaseAssignments = baseAssignments.filter((assignment) => {
+        const base = bases.find((b) => b && b.id === assignment.resource_id);
+        return base && base.fk_workspace_id === param.workspaceId;
+      });
+
+      // Delete all base assignments for this team in this workspace
+      for (const baseAssignment of validBaseAssignments) {
+        await PrincipalAssignment.delete(
+          context,
+          ResourceType.BASE,
+          baseAssignment.resource_id,
+          PrincipalType.TEAM,
+          teamObj.team_id,
+        );
+      }
+
+      // Delete the workspace assignment
       await PrincipalAssignment.delete(
         context,
         ResourceType.WORKSPACE,

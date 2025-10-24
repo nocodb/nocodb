@@ -676,5 +676,100 @@ export default function () {
       expect(editorTeam).to.exist;
       expect(viewerTeam).to.exist;
     });
+
+    it('Remove Team from Workspace - Also Removes from All Bases', async () => {
+      // Create a base first
+      const createBaseData = {
+        title: 'Test Base',
+        type: 'database',
+      };
+
+      const createBase = await request(context.app)
+        .post(`/api/v2/meta/workspaces/${workspaceId}/bases`)
+        .set('xc-token', context.xc_token)
+        .send(createBaseData)
+        .expect(201);
+
+      const baseId = createBase.body.id;
+
+      // Add team to workspace first
+      const addData = {
+        team_id: teamId,
+        workspace_role: WorkspaceUserRoles.EDITOR,
+      };
+
+      await request(context.app)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
+        .set('xc-token', context.xc_token)
+        .send(addData)
+        .expect(200);
+
+      // Add team to base
+      const addBaseData = {
+        team_id: teamId,
+        base_role: 'editor',
+      };
+
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .send(addBaseData)
+        .expect(200);
+
+      // Verify team is assigned to both workspace and base
+      const workspaceTeams = await request(context.app)
+        .get(`/api/v3/meta/workspaces/${workspaceId}/invites`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      const baseTeams = await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      expect(workspaceTeams.body.list).to.be.an('array').that.has.length(1);
+      expect(baseTeams.body.list).to.be.an('array').that.has.length(1);
+
+      // Remove team from workspace
+      const removeData = {
+        team_id: teamId,
+      };
+
+      const removeTeam = await request(context.app)
+        .delete(`/api/v3/meta/workspaces/${workspaceId}/invites`)
+        .set('xc-token', context.xc_token)
+        .send(removeData)
+        .expect(200);
+
+      // Validation
+      const response = removeTeam.body;
+      expect(response).to.be.an('object');
+      expect(response).to.have.property(
+        'msg',
+        'Team has been removed from workspace successfully',
+      );
+
+      // Verify team is removed from workspace
+      const workspaceTeamsAfter = await request(context.app)
+        .get(`/api/v3/meta/workspaces/${workspaceId}/invites`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      expect(workspaceTeamsAfter.body.list).to.be.an('array').that.is.empty;
+
+      // Verify team is also removed from base
+      const baseTeamsAfter = await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      expect(baseTeamsAfter.body.list).to.be.an('array').that.is.empty;
+
+      // Verify team detail endpoint returns error for base
+      await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}/invites/${teamId}`)
+        .set('xc-token', context.xc_token)
+        .expect(400);
+    });
   });
 }

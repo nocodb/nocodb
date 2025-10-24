@@ -23,6 +23,7 @@ export interface TeamV3ResponseType {
   badge_color?: string;
   members_count: number;
   managers_count: number;
+  managers: string[]; // Array of manager user IDs
   created_by?: string;
   created_at?: string;
   updated_at?: string;

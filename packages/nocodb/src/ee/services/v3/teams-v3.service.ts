@@ -76,6 +76,23 @@ export class TeamsV3Service {
     );
   }
 
+  async getTeamManagers(context: NcContext, teamId: string): Promise<string[]> {
+    const teamAssignments = await PrincipalAssignment.listByResource(
+      context,
+      ResourceType.TEAM,
+      teamId,
+    );
+
+    // Filter only manager assignments
+    const managerAssignments = teamAssignments.filter(
+      (assignment) =>
+        assignment.principal_type === PrincipalType.USER &&
+        assignment.roles === TeamUserRoles.MANAGER,
+    );
+
+    return managerAssignments.map((assignment) => assignment.principal_ref_id);
+  }
+
   async getUserById(context: NcContext, userId: string) {
     const user = await User.get(userId);
     if (!user) {
@@ -100,16 +117,18 @@ export class TeamsV3Service {
     // Get teams with member counts using optimized query
     const teamsWithCounts = await Promise.all(
       teams.map(async (team) => {
-        const [membersCount, menagersCount] = await Promise.all([
+        const [membersCount, managersCount, managers] = await Promise.all([
           this.getTeamMembersCount(context, team.id),
           this.getTeamManagersCount(context, team.id),
+          this.getTeamManagers(context, team.id),
         ]);
 
         return {
           ...team,
           members_count: membersCount,
           // todo: only one manager possible at the  moment
-          managers_count: menagersCount,
+          managers_count: managersCount,
+          managers: managers,
         };
       }),
     );
@@ -125,6 +144,7 @@ export class TeamsV3Service {
         badge_color: meta.badge_color || undefined,
         members_count: team.members_count,
         managers_count: team.managers_count,
+        managers: team.managers,
         created_by: team.fk_created_by,
         created_at: team.created_at,
         updated_at: team.updated_at,
@@ -301,9 +321,10 @@ export class TeamsV3Service {
     }
 
     // Get member count for the created team
-    const [teamUsers, teamManagersCount] = await Promise.all([
+    const [teamUsers, teamManagersCount, managers] = await Promise.all([
       this.getTeamMembersCount(context, team.id),
       this.getTeamManagersCount(context, team.id),
+      this.getTeamManagers(context, team.id),
     ]);
 
     // Transform to v3 response format
@@ -317,6 +338,7 @@ export class TeamsV3Service {
       badge_color: meta.badge_color || null,
       members_count: teamUsers,
       managers_count: teamManagersCount,
+      managers: managers,
       created_by: team.fk_created_by,
       created_at: team.created_at,
       updated_at: team.updated_at,
@@ -407,9 +429,10 @@ export class TeamsV3Service {
     const updatedTeam = await Team.update(context, param.teamId, updateData);
 
     // Get member count for the updated team
-    const [teamUsers, teamManagersCount] = await Promise.all([
+    const [teamUsers, teamManagersCount, managers] = await Promise.all([
       this.getTeamMembersCount(context, updatedTeam.id),
       this.getTeamManagersCount(context, updatedTeam.id),
+      this.getTeamManagers(context, updatedTeam.id),
     ]);
 
     // Transform to v3 response format
@@ -423,6 +446,7 @@ export class TeamsV3Service {
       badge_color: meta.badge_color || null,
       members_count: teamUsers,
       managers_count: teamManagersCount,
+      managers: managers,
       created_by: updatedTeam.fk_created_by,
       created_at: updatedTeam.created_at,
       updated_at: updatedTeam.updated_at,

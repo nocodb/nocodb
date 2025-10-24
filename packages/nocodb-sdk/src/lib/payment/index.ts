@@ -26,7 +26,6 @@ export enum PlanLimitTypes {
   LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
-  LIMIT_TEAMS = 'limit_teams',
 }
 
 export enum PlanFeatureTypes {
@@ -210,7 +209,6 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more scripts in a workspace.',
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
-  [PlanLimitTypes.LIMIT_TEAMS]: 'to add more teams.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {

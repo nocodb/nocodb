@@ -184,9 +184,9 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
     _sortField: string,
     _orderDirection: string,
   ) {}
-  protected buildOthersQuery(
+  protected async buildOthersQuery(
     baseModel: IBaseModelSqlV2,
-    _buildBaseQuery: () => Knex.QueryBuilder,
+    _buildBaseQuery: () => Promise<{ builder: Knex.QueryBuilder }>,
     _xAxisColumnNameQuery: {
       builder: string | Knex.QueryBuilder;
     },
@@ -201,8 +201,8 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
     }>,
     _sortFieldQuery: string | Knex.QueryBuilder | Knex.Raw,
     _orderDirection: string,
-  ): Knex.QueryBuilder {
-    return baseModel.dbDriver.select(`'ERR'`);
+  ): Promise<{ builder: Knex.QueryBuilder }> {
+    return { builder: baseModel.dbDriver.select(`'ERR'`) };
   }
 
   async getWidgetData(
@@ -250,9 +250,9 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
         : [];
 
     // Build base query with common filters
-    const buildBaseQuery = () => {
+    const buildBaseQuery = async () => {
       const query = baseModel.dbDriver(baseModel.tnPath);
-      baseModel.applySortAndFilter({
+      await baseModel.applySortAndFilter({
         table: model,
         qb: query,
         filters,
@@ -267,7 +267,7 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
         !chartData.xAxis?.includeEmptyRecords &&
         xAxisColumn.uidt !== UITypes.Checkbox
       ) {
-        conditionV2(
+        await conditionV2(
           baseModel,
           {
             fk_column_id: xAxisColumn.id,
@@ -277,7 +277,9 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
         );
       }
 
-      return query;
+      return {
+        builder: query,
+      };
     };
 
     // Get X-axis column name query
@@ -300,7 +302,8 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
     );
 
     // Build top 10 query
-    const top10Query = buildBaseQuery();
+    const top10Query = (await buildBaseQuery()).builder;
+
     const xAxisAlias = 'x_axis';
 
     top10Query
@@ -357,7 +360,7 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
     // Build and execute others query only if includeOthers is true
     let othersData = [];
     if (chartData.xAxis?.includeOthers) {
-      const othersQuery = this.buildOthersQuery(
+      const { builder: othersQueryBuilder } = await this.buildOthersQuery(
         baseModel,
         buildBaseQuery,
         xAxisColumnNameQuery,
@@ -367,7 +370,7 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
         orderDirection,
       );
 
-      othersData = await baseModel.execAndParse(othersQuery, null, {
+      othersData = await baseModel.execAndParse(othersQueryBuilder, null, {
         skipDateConversion: true,
         skipAttachmentConversion: true,
         skipUserConversion: true,

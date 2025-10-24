@@ -178,7 +178,7 @@ watch(
 </script>
 
 <template>
-  <div class="nc-pie-chart-widget h-full w-full flex flex-col relative bg-white !rounded-xl">
+  <div class="nc-pie-chart-widget h-full w-full flex flex-col relative bg-nc-bg-default !rounded-xl">
     <div class="flex flex-col p-4 pb-3">
       <div class="flex items-center">
         <div class="text-nc-content-gray-emphasis flex-1 text-subHeading2 truncate font-medium">

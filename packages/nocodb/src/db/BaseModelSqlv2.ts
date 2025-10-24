@@ -6364,6 +6364,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo?: boolean;
     },
   ): Promise<void> {
+    // Handle autoincrement primary key columns for insert operations
+    if (isInsertData && !extra?.undo) {
+      // Handle primary key
+      for (const pkColumn of this.model.primaryKeys) {
+        if (pkColumn.ai) {
+          const keyName =
+            data?.[pkColumn.column_name] !== undefined ? pkColumn.column_name : pkColumn.title;
+
+          if (data[keyName]) {
+            delete data[keyName];
+          }
+        }
+      }
+    }
+
     for (const column of this.model.columns) {
       if (
         !ncIsUndefined(data[column.column_name]) &&

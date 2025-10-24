@@ -14,7 +14,10 @@ export const useBases = defineStore('basesStore', () => {
 
   const { appInfo } = useGlobal()
 
-  const { blockTeams } = useEeConfig()
+  // Todo: @rameshmane7218 not possible to use useEeConfig inside store, so we have to pass this prop in fn
+  // const { blockTeams } = useEeConfig()
+
+  const blockTeams = ref(false)
 
   const baseRoles = ref<Record<string, any>>({})
 

@@ -54,8 +54,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const { user: currentUser } = useGlobal()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
+  // Todo: @rameshmane7218 not possible to use useEeConfig inside store, so we have to pass this prop in fn
+  // const { blockTeams } = useEeConfig()
 
-  const { blockTeams } = useEeConfig()
+  const blockTeams = ref(false)
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 

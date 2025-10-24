@@ -1,7 +1,12 @@
 import 'mocha';
 import request from 'supertest';
 import { expect } from 'chai';
-import { PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk';
+import {
+  PlanFeatureTypes,
+  ProjectRoles,
+  UITypes,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { WorkspaceRoles } from 'nocodb-sdk-v2';
 import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
@@ -85,7 +90,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             team_id: teamId,
-            base_role: 'creator',
+            base_role: ProjectRoles.CREATOR,
           })
           .expect(200);
 
@@ -97,7 +102,10 @@ export default function () {
           .expect(200);
 
         // User should have creator role inherited from team
-        expect(userWithRoles.body.base_roles).to.have.property('creator', true);
+        expect(userWithRoles.body.base_roles).to.have.property(
+          ProjectRoles.CREATOR,
+          true,
+        );
       });
 
       it('Base team role should override workspace team role', async () => {
@@ -121,7 +129,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             team_id: teamId,
-            workspace_role: 'editor',
+            workspace_role: WorkspaceUserRoles.EDITOR,
           })
           .expect(200);
 
@@ -131,18 +139,23 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             team_id: teamId,
-            base_role: 'creator',
+            base_role: ProjectRoles.CREATOR,
           })
           .expect(200);
 
         // 4. Verify user has creator role in base (base team role overrides workspace team role)
         const userWithRoles = await request(context.app)
-          .get(`/api/v1/auth/user/me`)
+          .get(`/api/v1/auth/user/me?base_id=${baseId}`)
           .set('xc-auth', testUserToken)
           .expect(200);
 
-        expect(userWithRoles.body.base_roles).to.have.property('creator', true);
-        expect(userWithRoles.body.base_roles).to.not.have.property('editor');
+        expect(userWithRoles.body.base_roles).to.have.property(
+          ProjectRoles.CREATOR,
+          true,
+        );
+        expect(userWithRoles.body.base_roles).to.not.have.property(
+          ProjectRoles.EDITOR,
+        );
       });
 
       it('Workspace team role should be inherited when no base team role', async () => {
@@ -166,18 +179,21 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             team_id: teamId,
-            workspace_role: 'editor',
+            workspace_role: WorkspaceUserRoles.EDITOR,
           })
           .expect(200);
 
         // 3. Don't assign team to base - user should inherit workspace team role
         // 4. Verify user inherits editor role in base from workspace team
         const userWithRoles = await request(context.app)
-          .get(`/api/v1/auth/user/me`)
+          .get(`/api/v1/auth/user/me?base_id=${baseId}`)
           .set('xc-auth', testUserToken)
           .expect(200);
 
-        expect(userWithRoles.body.base_roles).to.have.property('editor', true);
+        expect(userWithRoles.body.base_roles).to.have.property(
+          ProjectRoles.EDITOR,
+          true,
+        );
       });
 
       it('Direct workspace role should override workspace team role', async () => {
@@ -201,7 +217,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             team_id: teamId,
-            workspace_role: 'editor',
+            workspace_role: WorkspaceUserRoles.EDITOR,
           })
           .expect(200);
 
@@ -211,22 +227,22 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             user_id: testUser.id,
-            workspace_role: 'viewer',
+            workspace_role: WorkspaceUserRoles.VIEWER,
           })
           .expect(200);
 
         // 4. Verify user has viewer role in workspace (direct role overrides team role)
         const userWithRoles = await request(context.app)
-          .get(`/api/v1/auth/user/me`)
+          .get(`/api/v1/auth/user/me?base_id=${baseId}`)
           .set('xc-auth', testUserToken)
           .expect(200);
 
         expect(userWithRoles.body.workspace_roles).to.have.property(
-          'viewer',
+          WorkspaceUserRoles.VIEWER,
           true,
         );
         expect(userWithRoles.body.workspace_roles).to.not.have.property(
-          'editor',
+          WorkspaceUserRoles.EDITOR,
         );
       });
     });
@@ -239,7 +255,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             email: testUser.email,
-            base_role: 'creator',
+            roles: ProjectRoles.CREATOR,
           })
           .expect(200);
 
@@ -260,9 +276,8 @@ export default function () {
             table_name: 'test_table',
             columns: [
               {
-                column_name: 'id',
-                title: 'ID',
-                uidt: 'id',
+                title: 'title',
+                uidt: UITypes.SingleLineText,
               },
             ],
           })
@@ -276,7 +291,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             email: testUser.email,
-            base_role: 'viewer',
+            roles: ProjectRoles.VIEWER,
           })
           .expect(200);
 
@@ -297,9 +312,8 @@ export default function () {
             table_name: 'test_table',
             columns: [
               {
-                column_name: 'id',
-                title: 'ID',
-                uidt: 'id',
+                title: 'title',
+                uidt: UITypes.SingleLineText,
               },
             ],
           })
@@ -313,7 +327,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             email: testUser.email,
-            base_role: 'editor',
+            roles: ProjectRoles.EDITOR,
           })
           .expect(200);
 
@@ -325,21 +339,10 @@ export default function () {
 
         const userApiToken = tokenResponse.body.token;
 
-        // 3. Verify user can create table (editor permission)
+        // 3. Verify user can get table list (editor permission)
         await request(context.app)
-          .post(`/api/v1/db/meta/projects/${baseId}/tables`)
+          .get(`/api/v1/db/meta/projects/${baseId}/tables`)
           .set('xc-token', userApiToken)
-          .send({
-            title: 'Test Table',
-            table_name: 'test_table',
-            columns: [
-              {
-                column_name: 'id',
-                title: 'ID',
-                uidt: 'id',
-              },
-            ],
-          })
           .expect(200);
 
         // 4. Verify user cannot delete base (editor permission)
@@ -370,7 +373,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             team_id: teamId,
-            base_role: 'creator',
+            base_role: ProjectRoles.CREATOR,
           })
           .expect(200);
 
@@ -391,9 +394,8 @@ export default function () {
             table_name: 'test_table',
             columns: [
               {
-                column_name: 'id',
-                title: 'ID',
-                uidt: 'id',
+                title: 'title',
+                uidt: UITypes.SingleLineText,
               },
             ],
           })
@@ -449,7 +451,7 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             team_id: teamId,
-            base_role: 'editor',
+            base_role: ProjectRoles.EDITOR,
           })
           .expect(200);
 
@@ -459,18 +461,23 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             team_id: team2Id,
-            base_role: 'creator',
+            base_role: ProjectRoles.CREATOR,
           })
           .expect(200);
 
         // 4. Verify user has creator role (highest priority team role)
         const userWithRoles = await request(context.app)
-          .get(`/api/v1/auth/user/me`)
+          .get(`/api/v1/auth/user/me?base_id=${baseId}`)
           .set('xc-auth', testUserToken)
           .expect(200);
 
-        expect(userWithRoles.body.base_roles).to.have.property('creator', true);
-        expect(userWithRoles.body.base_roles).to.not.have.property('editor');
+        expect(userWithRoles.body.base_roles).to.have.property(
+          ProjectRoles.CREATOR,
+          true,
+        );
+        expect(userWithRoles.body.base_roles).to.not.have.property(
+          ProjectRoles.EDITOR,
+        );
       });
 
       it('Should handle role removal correctly', async () => {
@@ -493,17 +500,20 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             team_id: teamId,
-            base_role: 'creator',
+            base_role: ProjectRoles.CREATOR,
           })
           .expect(200);
 
         // 2. Verify user has creator role
         let userWithRoles = await request(context.app)
-          .get(`/api/v1/auth/user/me`)
+          .get(`/api/v1/auth/user/me?base_id=${baseId}`)
           .set('xc-auth', testUserToken)
           .expect(200);
 
-        expect(userWithRoles.body.base_roles).to.have.property('creator', true);
+        expect(userWithRoles.body.base_roles).to.have.property(
+          ProjectRoles.CREATOR,
+          true,
+        );
 
         // 3. Remove team from base
         await request(context.app)
@@ -516,7 +526,7 @@ export default function () {
 
         // 4. Verify user no longer has base role
         userWithRoles = await request(context.app)
-          .get(`/api/v1/auth/user/me`)
+          .get(`/api/v1/auth/user/me?base_id=${baseId}`)
           .set('xc-auth', testUserToken)
           .expect(200);
 
@@ -546,31 +556,34 @@ export default function () {
           .set('xc-token', context.xc_token)
           .send({
             team_id: teamId,
-            workspace_role: 'editor',
+            workspace_role: WorkspaceUserRoles.EDITOR,
           })
           .expect(200);
 
         // 3. Verify user inherits editor role in base from workspace team
         const userWithRoles = await request(context.app)
-          .get(`/api/v1/auth/user/me`)
+          .get(`/api/v1/auth/user/me?base_id=${baseId}`)
           .set('xc-auth', testUserToken)
           .expect(200);
 
-        expect(userWithRoles.body.base_roles).to.have.property('editor', true);
+        expect(userWithRoles.body.base_roles).to.have.property(
+          ProjectRoles.EDITOR,
+          true,
+        );
         expect(userWithRoles.body.workspace_roles).to.have.property(
-          'editor',
+          WorkspaceUserRoles.EDITOR,
           true,
         );
       });
 
-      it.only('Should not inherit workspace role when user has direct base role', async () => {
+      it('Should not inherit workspace role when user has direct base role', async () => {
         // 1. Assign user directly to workspace with editor role
         await request(context.app)
           .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
           .set('xc-token', context.xc_token)
           .send({
             user_id: testUser.id,
-            workspace_role: WorkspaceRoles.WorkspaceLevelEditor,
+            workspace_role: WorkspaceUserRoles.EDITOR,
           })
           .expect(200);
 

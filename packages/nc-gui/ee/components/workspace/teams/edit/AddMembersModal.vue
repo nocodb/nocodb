@@ -187,7 +187,11 @@ watch(
       >
       </NcAlert>
 
-      <div class="flex items-center justify-end pt-4">
+      <div class="flex items-center justify-between pt-4">
+        <div v-if="selectedUsers.length" class="text-nc-content-gray-muted">
+          {{ t(`objects.teams.nMember${selectedUsers.length > 1 ? 's' : ''}Selected`, { n: selectedUsers.length }) }}
+        </div>
+        <div v-else>&nbsp;</div>
         <div class="flex gap-2">
           <NcButton type="secondary" size="small" :disabled="isLoading" @click="visible = false"> Cancel </NcButton>
           <NcButton

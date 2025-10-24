@@ -36,7 +36,7 @@ async function onDelete() {
 <template>
   <GeneralDeleteModal v-model:visible="vModel" :entity-name="$t('general.snapshot')" :on-delete="onDelete">
     <template #entity-preview>
-      <div class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700">
+      <div class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle2">
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

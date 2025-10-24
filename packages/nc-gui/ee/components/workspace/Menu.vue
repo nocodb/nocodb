@@ -117,7 +117,7 @@ const onWorkspaceCreateClick = () => {
   <div
     v-else-if="activeWorkspace"
     :class="{
-      'flex flex-row flex-grow w-full max-w-85/100 hover:bg-gray-200 pl-2 pr-1 py-0.5 rounded-md': !isMiniSidebar,
+      'flex flex-row flex-grow w-full max-w-85/100 hover:bg-nc-bg-gray-medium pl-2 pr-1 py-0.5 rounded-md': !isMiniSidebar,
       'nc-mini-sidebar-btn-full-width flex items-center justify-center children:(h-auto w-full)': isMiniSidebar,
     }"
     :style="{
@@ -172,7 +172,7 @@ const onWorkspaceCreateClick = () => {
                 <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
                 <div class="flex-1 flex flex-col gap-y-0 max-w-[calc(100%-5.6rem)]">
                   <div
-                    class="mt-0.5 flex w-full capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
+                    class="mt-0.5 flex w-full capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-nc-content-gray-extreme font-medium"
                     style="line-height: 1.5rem"
                     data-testid="nc-workspace-list"
                   >
@@ -259,10 +259,10 @@ const onWorkspaceCreateClick = () => {
                       <template #title>
                         {{ $t('objects.roleType.owner') }}
                       </template>
-                      <div class="h-6.5 px-1 py-0.25 rounded-lg bg-purple-50">
+                      <div class="h-6.5 px-1 py-0.25 rounded-lg bg-nc-purple-50">
                         <GeneralIcon
                           icon="role_owner"
-                          class="min-w-4.5 min-h-4.5 text-xl !text-purple-700 !hover:text-purple-700"
+                          class="min-w-4.5 min-h-4.5 text-xl !text-nc-content-purple-dark !hover:text-nc-content-purple-dark"
                         />
                       </div>
                     </NcTooltip>
@@ -296,11 +296,11 @@ const onWorkspaceCreateClick = () => {
 }
 
 .nc-workspace-menu-item {
-  @apply flex items-center !py-0 !pl-1 text-sm hover:text-black;
+  @apply flex items-center !py-0 !pl-1 text-sm hover:text-nc-content-gray-extreme;
 }
 
 .nc-workspace-dropdown-active-workspace-info {
-  @apply flex text-xs text-gray-500;
+  @apply flex text-xs text-nc-content-gray-muted;
   font-weight: 400;
   line-height: 1.125rem; /* 150% */
   letter-spacing: -0.015rem;

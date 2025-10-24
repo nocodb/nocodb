@@ -188,7 +188,7 @@ watch(
         allow-clear
       >
         <template #prefix>
-          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
         </template>
       </a-input>
     </div>
@@ -210,7 +210,7 @@ watch(
           <template v-if="column.key === 'name'">
             <div
               v-if="record.type === 'table'"
-              class="w-full flex items-center gap-3 max-w-full text-gray-800"
+              class="w-full flex items-center gap-3 max-w-full text-nc-content-gray"
               data-testid="permissions-table-name"
             >
               <GeneralTableIcon :meta="(record as TableType)" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
@@ -221,7 +221,10 @@ watch(
                 {{ record?.title }}
               </NcTooltip>
             </div>
-            <div v-else-if="record.type === 'context_actions'" class="w-full flex gap-3 max-w-full text-gray-600 pl-6">
+            <div
+              v-else-if="record.type === 'context_actions'"
+              class="w-full flex gap-3 max-w-full text-nc-content-gray-subtle2 pl-6"
+            >
               <GeneralIcon icon="ncLock" class="flex-none h-4 w-4" />
               <span class="text-sm">{{ record.title }}</span>
             </div>

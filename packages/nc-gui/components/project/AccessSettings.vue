@@ -613,7 +613,10 @@ onBeforeUnmount(() => {
             class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
           >
             <template #prefix>
-              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+              <GeneralIcon
+                icon="search"
+                class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
+              />
             </template>
           </a-input>
 
@@ -695,14 +698,14 @@ onBeforeUnmount(() => {
               <GeneralUserIcon size="base" :user="record" class="flex-none" />
               <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                 <div class="flex gap-3">
-                  <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
+                  <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
                     <template #title>
                       {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                     </template>
                     {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                   </NcTooltip>
                 </div>
-                <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                   <template #title>
                     {{ record.email }}
                   </template>
@@ -825,7 +828,7 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .color-band {
-  @apply w-6 h-6 left-0 top-2.5 rounded-full flex justify-center uppercase text-white font-weight-bold text-xs items-center;
+  @apply w-6 h-6 left-0 top-2.5 rounded-full flex justify-center uppercase text-base-white font-weight-bold text-xs items-center;
 }
 
 :deep(.nc-collaborator-role-select .ant-select-selector) {

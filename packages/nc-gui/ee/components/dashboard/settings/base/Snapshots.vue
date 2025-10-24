@@ -107,7 +107,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
     <div
       v-if="isCreatingSnapshot"
       style="box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1)"
-      class="bg-white p-6 flex flex-col w-[488px] rounded-2xl"
+      class="bg-nc-bg-default p-6 flex flex-col w-[488px] rounded-2xl"
     >
       <div class="text-nc-content-gray-emphasis text-lg font-bold">Creating base snapshot</div>
       <div class="text-nc-gray-subtle2 mt-2">
@@ -199,17 +199,17 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
     >
       <template #bodyCell="{ column, record: snapshot }">
         <template v-if="column.key === 'name'">
-          <NcTooltip v-if="!snapshot.isNew" class="truncate max-w-full text-gray-800 font-semibold text-sm">
+          <NcTooltip v-if="!snapshot.isNew" class="truncate max-w-full text-nc-content-gray font-semibold text-sm">
             {{ snapshot.title }}
 
             <template #title>
-              <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-gray-300">
+              <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-nc-content-brand-hover">
                 {{ $t('labels.createdOn') }}
               </div>
               <div class="mt-1 text-[13px]">
                 {{ dayjs(snapshot.created_at).format('D MMMM YYYY, hh:mm A') }}
               </div>
-              <div class="text-[10px] leading-[14px] uppercase font-semibold mt-2 text-gray-300">
+              <div class="text-[10px] leading-[14px] uppercase font-semibold mt-2 text-nc-content-brand-hover">
                 {{ $t('labels.createdBy') }}
               </div>
               <div class="mt-1 pb-1 text-[13px]">
@@ -282,6 +282,6 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
 
 <style scoped lang="scss">
 .ant-input {
-  @apply rounded-lg py-1 px-3 w-398 h-8 border-1 focus:border-brand-500 border-gray-200;
+  @apply rounded-lg py-1 px-3 w-398 h-8 border-1 focus:border-nc-border-brand border-nc-border-gray-medium;
 }
 </style>

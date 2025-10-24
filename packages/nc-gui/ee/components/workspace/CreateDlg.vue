@@ -112,7 +112,7 @@ watch(
 <template>
   <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
-      <div class="flex flex-row items-center gap-x-2 text-base text-gray-800">
+      <div class="flex flex-row items-center gap-x-2 text-base text-nc-content-gray">
         <GeneralIcon icon="workspaceDefault" />
         <div>
           {{ $t('activity.createWorkspace') }}

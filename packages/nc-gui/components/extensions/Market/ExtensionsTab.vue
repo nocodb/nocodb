@@ -66,7 +66,7 @@ const onAddExtension = (ext: any) => {
       >
         <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
           <div
-            class="nc-market-extension-item flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
+            class="nc-market-extension-item flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-nc-bg-gray-extralight transition-all"
             :data-testid="`nc-extension-${ext.id}`"
             @click="onExtensionClick(ext.id)"
           >
@@ -118,7 +118,7 @@ const onAddExtension = (ext: any) => {
           v-if="searchQuery && !filteredAvailableExtensions.length && availableExtensions.length"
           class="w-full h-full flex items-center justify-center"
         >
-          <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
+          <div class="pb-6 text-nc-content-gray-muted flex flex-col items-center gap-6 text-center">
             <img
               src="~assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"

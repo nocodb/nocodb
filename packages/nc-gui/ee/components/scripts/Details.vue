@@ -108,7 +108,7 @@ const detailsBody = computed(() => {
     wrap-class-name="nc-modal-scripts-details"
   >
     <div v-if="activeScript" class="flex flex-col w-full h-full">
-      <div class="flex items-center gap-3 px-4 py-3 border-b-1 border-gray-200">
+      <div class="flex items-center gap-3 px-4 py-3 border-b-1 border-nc-border-gray-medium">
         <NcButton size="small" type="text" @click="onBack">
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
@@ -116,7 +116,7 @@ const detailsBody = computed(() => {
         <img :src="getScriptAssetsURL(activeScript.iconUrl)" alt="icon" class="h-[42px] w-[42px] object-contain" />
         <div class="flex-1 flex flex-col">
           <div class="font-semibold text-xl truncate">{{ activeScript.title }}</div>
-          <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeScript.subTitle }}</div>
+          <div class="text-small leading-[18px] text-nc-content-gray truncate">{{ activeScript.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
           <NcButton size="small" class="w-full" @click="onAddScript(activeScript)">
@@ -125,7 +125,7 @@ const detailsBody = computed(() => {
             </div>
           </NcButton>
           <NcButton size="small" type="text" @click="vModel = false">
-            <GeneralIcon icon="close" class="text-gray-600" />
+            <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
           </NcButton>
         </div>
       </div>
@@ -187,13 +187,13 @@ const detailsBody = computed(() => {
               <div>
                 <div v-for="(doc, idx) of activeScript.links" :key="idx" class="flex items-center gap-1">
                   <div class="h-7 w-7 flex items-center justify-center">
-                    <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
+                    <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-subtle2" />
                   </div>
                   <a
                     :href="doc.href"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="!text-gray-700 text-sm !no-underline !hover:underline"
+                    class="!text-nc-content-gray-subtle text-sm !no-underline !hover:underline"
                   >
                     {{ doc.title }}
                   </a>
@@ -216,17 +216,17 @@ const detailsBody = computed(() => {
   }
 
   .script-details-right {
-    @apply p-5 w-[320px] flex flex-col space-y-4 border-l-1 border-gray-200 bg-gray-50 nc-scrollbar-thin;
+    @apply p-5 w-[320px] flex flex-col space-y-4 border-l-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight nc-scrollbar-thin;
 
     .script-details-right-section {
       @apply flex flex-col gap-3;
     }
 
     .script-details-right-title {
-      @apply text-sm font-semibold text-gray-800;
+      @apply text-sm font-semibold text-nc-content-gray;
     }
     .script-details-right-subtitle {
-      @apply text-sm font-weight-500 text-gray-600;
+      @apply text-sm font-weight-500 text-nc-content-gray-subtle2;
     }
   }
 }

@@ -82,7 +82,7 @@ watch(showShareModal, (val) => {
           />
           <div>{{ $t('activity.shareView') }}</div>
           <div
-            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
           >
             <span>
@@ -127,7 +127,7 @@ watch(showShareModal, (val) => {
           </LazyGeneralEmojiPicker>
           <div>{{ $t('activity.shareDashboard') }}</div>
           <div
-            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
           >
             <span>
@@ -144,7 +144,7 @@ watch(showShareModal, (val) => {
 
           <div>{{ $t('activity.shareBase.label') }}</div>
           <div
-            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
           >
             {{ base.title }}
@@ -180,7 +180,7 @@ watch(showShareModal, (val) => {
 }
 
 .ant-collapse {
-  @apply !bg-white !border-0;
+  @apply !bg-nc-bg-default !border-0;
 }
 </style>
 
@@ -193,11 +193,11 @@ watch(showShareModal, (val) => {
   .share-view,
   .share-dashboard,
   .share-base {
-    @apply !border-1 border-gray-200 mx-3 rounded-lg mt-3 px-1 py-1;
+    @apply !border-1 border-nc-border-gray-medium mx-3 rounded-lg mt-3 px-1 py-1;
   }
 
   .ant-collapse-item {
-    @apply !border-1 border-gray-100;
+    @apply !border-1 border-nc-border-gray-light;
   }
 
   .ant-collapse-content {
@@ -213,7 +213,7 @@ watch(showShareModal, (val) => {
   }
 
   .ant-select-selector {
-    @apply !rounded-md !border-gray-200 !border-1;
+    @apply !rounded-md !border-nc-border-gray-medium !border-1;
   }
 
   .ant-form-item {
@@ -229,7 +229,7 @@ watch(showShareModal, (val) => {
   }
 
   .ant-select-selector {
-    @apply !bg-white;
+    @apply !bg-nc-bg-default;
   }
 }
 </style>

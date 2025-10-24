@@ -89,8 +89,8 @@ const code = computed(
     <template #header>
       <div class="flex w-full items-center p-2 justify-between">
         <div class="flex items-center gap-3 pl-1 flex-1">
-          <GeneralIcon class="text-gray-900 h-5 w-5" icon="mcp" />
-          <span class="text-gray-900 truncate font-semibold text-xl">
+          <GeneralIcon class="text-nc-content-gray-emphasis h-5 w-5" icon="mcp" />
+          <span class="text-nc-content-gray-emphasis truncate font-semibold text-xl">
             {{ token.title }}
           </span>
         </div>
@@ -102,7 +102,7 @@ const code = computed(
         </div>
       </div>
     </template>
-    <div class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
+    <div class="flex bg-nc-bg-default rounded-b-2xl h-[calc(100%_-_66px)]">
       <div
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"
@@ -113,14 +113,14 @@ const code = computed(
           </div>
 
           <!-- Workspace/Base Info (for account-level view) -->
-          <div v-if="showWorkspaceBaseInfo" class="flex flex-col gap-2 p-4 bg-gray-50 rounded-lg">
+          <div v-if="showWorkspaceBaseInfo" class="flex flex-col gap-2 p-4 bg-nc-bg-gray-extralight rounded-lg">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-semibold text-gray-700">{{ $t('objects.workspace') }}:</span>
-              <span class="text-sm text-gray-600">{{ token.workspace?.title || '-' }}</span>
+              <span class="text-sm font-semibold text-nc-content-gray-subtle">{{ $t('objects.workspace') }}:</span>
+              <span class="text-sm text-nc-content-gray-subtle2">{{ token.workspace?.title || '-' }}</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-sm font-semibold text-gray-700">{{ $t('objects.project') }}:</span>
-              <span class="text-sm text-gray-600">{{ token.base?.title || '-' }}</span>
+              <span class="text-sm font-semibold text-nc-content-gray-subtle">{{ $t('objects.project') }}:</span>
+              <span class="text-sm text-nc-content-gray-subtle2">{{ token.base?.title || '-' }}</span>
             </div>
           </div>
 
@@ -138,8 +138,8 @@ const code = computed(
               <template #tab>
                 <span
                   :class="{
-                    'text-brand-500 font-medium': activeTab === 'claude',
-                    'text-gray-700': activeTab !== 'claude',
+                    'text-nc-content-brand font-medium': activeTab === 'claude',
+                    'text-nc-content-gray-subtle': activeTab !== 'claude',
                   }"
                   class="text-sm"
                 >
@@ -173,8 +173,8 @@ const code = computed(
               <template #tab>
                 <span
                   :class="{
-                    'text-brand-500 font-medium': activeTab === 'cursor',
-                    'text-gray-700': activeTab !== 'cursor',
+                    'text-nc-content-brand font-medium': activeTab === 'cursor',
+                    'text-nc-content-gray-subtle': activeTab !== 'cursor',
                   }"
                   class="text-sm"
                 >
@@ -207,8 +207,8 @@ const code = computed(
               <template #tab>
                 <span
                   :class="{
-                    'text-brand-500 font-medium': activeTab === 'windsurf',
-                    'text-gray-700': activeTab !== 'windsurf',
+                    'text-nc-content-brand font-medium': activeTab === 'windsurf',
+                    'text-nc-content-gray-subtle': activeTab !== 'windsurf',
                   }"
                   class="text-sm"
                 >
@@ -242,19 +242,19 @@ const code = computed(
           </NcTabs>
         </div>
       </div>
-      <div class="h-full bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
+      <div class="h-full bg-nc-bg-gray-extralight border-l-1 w-80 p-5 rounded-br-2xl border-nc-border-gray-medium">
         <div class="w-full flex flex-col gap-3">
-          <h2 class="text-sm text-gray-700 font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
+          <h2 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
           <div>
             <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">
               <div class="h-7 w-7 flex items-center justify-center">
-                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-500" />
+                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
               </div>
               <NuxtLink
                 :href="doc.href"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="!text-gray-500 text-sm !no-underline !hover:underline"
+                class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"
               >
                 {{ doc.title }}
               </NuxtLink>
@@ -270,7 +270,7 @@ const code = computed(
 .nc-modal-mcp-token-create-edit {
   z-index: 1050;
   a {
-    @apply !no-underline !text-gray-700 !hover:text-primary;
+    @apply !no-underline !text-nc-content-gray-subtle !hover:text-primary;
   }
   .nc-modal {
     @apply !p-0;

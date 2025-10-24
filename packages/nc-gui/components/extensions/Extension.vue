@@ -225,7 +225,7 @@ watch(
       </template>
 
       <general-overlay :model-value="isLoadedExtension" inline transition class="!bg-opacity-15 rounded-xl overflow-hidden">
-        <div class="flex flex-col items-center justify-center h-full w-full !bg-white !bg-opacity-80">
+        <div class="flex flex-col items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-80">
           <a-spin size="large" />
         </div>
       </general-overlay>
@@ -235,7 +235,7 @@ watch(
 
 <style scoped lang="scss">
 .extension-wrapper {
-  @apply bg-white rounded-xl w-full border-1 relative;
+  @apply bg-nc-bg-default rounded-xl w-full border-1 relative;
   box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.08);
 
   &.isOpen {
@@ -253,10 +253,10 @@ watch(
 }
 
 .extension-modal {
-  @apply absolute top-0 left-0 z-1000 w-full h-full bg-black bg-opacity-50 flex items-center justify-center;
+  @apply absolute top-0 left-0 z-1000 w-full h-full bg-white bg-opacity-50 flex items-center justify-center;
 
   .extension-modal-content {
-    @apply bg-white rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col overflow-hidden;
+    @apply bg-nc-bg-default rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col overflow-hidden;
   }
 }
 
@@ -270,7 +270,7 @@ watch(
   }
 
   .ant-result-title {
-    @apply text-base text-gray-800 font-semibold;
+    @apply text-base text-nc-content-gray font-semibold;
   }
 
   .ant-result-extra {

@@ -359,9 +359,9 @@ const copyCustomUrl = async (custUrl = '') => {
 
 <template>
   <div class="flex flex-col py-2 px-3 mb-1">
-    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
+    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-nc-border-gray-medium border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between py-0.5">
-        <div class="text-gray-900 font-medium">
+        <div class="text-nc-content-gray-emphasis font-medium">
           {{ $t('activity.enabledPublicViewing') }}
         </div>
         <a-switch
@@ -377,7 +377,7 @@ const copyCustomUrl = async (custUrl = '') => {
         <div v-else class="text-nc-content-gray-muted">{{ $t('labels.sharingRestricted') }}</div>
       </div>
       <template v-if="isPublicShared">
-        <div class="mt-0.5 border-t-1 border-gray-100 pt-3">
+        <div class="mt-0.5 border-t-1 border-nc-border-gray-light pt-3">
           <GeneralCopyUrl v-model:url="url" />
         </div>
 
@@ -390,9 +390,9 @@ const copyCustomUrl = async (custUrl = '') => {
           :disabled="isReadOnly"
           @update-custom-url="updateSharedView"
         />
-        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
+        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md">
           <div class="flex flex-row items-center justify-between">
-            <div class="flex text-black">
+            <div class="flex text-nc-content-gray-extreme">
               {{ $t('activity.restrictAccessWithPassword') }}
             </div>
             <a-switch
@@ -411,7 +411,7 @@ const copyCustomUrl = async (custUrl = '') => {
               <a-input-password
                 v-model:value="password"
                 :placeholder="$t('placeholder.password.enter')"
-                class="!rounded-lg !py-1 !bg-white"
+                class="!rounded-lg !py-1 !bg-nc-bg-default"
                 data-testid="nc-modal-share-view__password"
                 size="small"
                 type="password"
@@ -425,10 +425,10 @@ const copyCustomUrl = async (custUrl = '') => {
             activeView &&
             [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
           "
-          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
         >
           <div class="flex flex-row items-center justify-between">
-            <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
+            <div class="flex text-nc-content-gray-extreme">{{ $t('activity.allowDownload') }}</div>
             <a-switch
               v-model:checked="allowCSVDownload"
               v-e="['c:share:view:allow-csv-download:toggle']"
@@ -441,9 +441,9 @@ const copyCustomUrl = async (custUrl = '') => {
           </div>
         </div>
 
-        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
+        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md">
           <div class="flex flex-row items-center justify-between">
-            <div class="flex text-black">
+            <div class="flex text-nc-content-gray-extreme">
               {{ $t('labels.language') }}
             </div>
             <a-switch
@@ -472,10 +472,10 @@ const copyCustomUrl = async (custUrl = '') => {
 
         <div
           v-if="activeView?.type === ViewTypes.FORM"
-          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
         >
           <div class="flex flex-row items-center justify-between">
-            <div class="text-black flex items-center space-x-1">
+            <div class="text-nc-content-gray-extreme flex items-center space-x-1">
               <div>
                 {{ $t('activity.surveyMode') }}
               </div>
@@ -496,10 +496,10 @@ const copyCustomUrl = async (custUrl = '') => {
 
         <div
           v-if="activeView?.type === ViewTypes.FORM"
-          class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+          class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
         >
           <div class="flex flex-row items-center justify-between">
-            <div class="text-black flex items-center space-x-1">
+            <div class="text-nc-content-gray-extreme flex items-center space-x-1">
               <div>
                 {{ $t('activity.preFilledFields.title') }}
               </div>
@@ -563,7 +563,7 @@ const copyCustomUrl = async (custUrl = '') => {
   @apply flex flex-col;
 
   .ant-radio-wrapper {
-    @apply !m-0 !flex !items-center w-full px-2 py-1 rounded-lg hover:bg-gray-100;
+    @apply !m-0 !flex !items-center w-full px-2 py-1 rounded-lg hover:bg-nc-bg-gray-light;
     .ant-radio {
       @apply !top-0;
     }

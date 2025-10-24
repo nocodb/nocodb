@@ -85,14 +85,14 @@ onMounted(() => {
     wrap-class-name="nc-modal-scripts-market"
   >
     <div class="h-full">
-      <div class="nc-scripts-market-header flex items-center gap-3 px-4 py-3 border-b-1 border-gray-200">
+      <div class="nc-scripts-market-header flex items-center gap-3 px-4 py-3 border-b-1 border-nc-border-gray-medium">
         <div
           class="flex items-center gap-3 flex-none"
           :style="{
             width: 'calc(\(100% - 358px - 24px\) / 2)',
           }"
         >
-          <GeneralIcon icon="ncScript" class="h-6 w-6 flex-none text-gray-700" />
+          <GeneralIcon icon="ncScript" class="h-6 w-6 flex-none text-nc-content-gray" />
           <div class="flex-1 font-semibold text-xl">Scripts</div>
         </div>
         <div class="flex bg-nc-bg-gray-medium rounded-lg p-1">
@@ -110,7 +110,7 @@ onMounted(() => {
               <div
                 class="px-3 py-1 flex items-center gap-2 text-xs rounded-md select-none"
                 :class="{
-                  'bg-white text-nc-content-gray-emphasis': activeTab === tab.tabKey,
+                  'bg-nc-bg-default text-nc-content-gray-emphasis': activeTab === tab.tabKey,
                   'text-nc-content-gray-subtle2': activeTab !== tab.tabKey,
                   'cursor-not-allowed opacity-60': tab.isDisabled,
                   'cursor-pointer': !tab.isDisabled,
@@ -144,7 +144,7 @@ onMounted(() => {
             </a-input>
           </div>
           <NcButton size="small" type="text" @click="vModel = false">
-            <GeneralIcon icon="close" class="text-gray-600" />
+            <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
           </NcButton>
         </div>
       </div>

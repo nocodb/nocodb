@@ -33,19 +33,32 @@ async function processColumnToSwaggerField(
           ncMeta,
         );
         if (colOpt) {
-          // LTAR fields in insert/update accept array of objects with id property
-          field.type = 'array';
-          field.items = {
-            type: 'object',
-            properties: {
+          if (
+            [RelationTypes.HAS_MANY, RelationTypes.MANY_TO_MANY].includes(
+              colOpt.type as RelationTypes,
+            )
+          ) {
+            field.type = 'array';
+            field.items = {
+              type: 'object',
+              properties: {
+                id: {
+                  oneOf: [{ type: 'string' }, { type: 'number' }],
+                  description: 'Record identifier for linking',
+                },
+              },
+              required: ['id'],
+            };
+            field.virtual = false;
+          } else {
+            field.type = ['object', 'null'];
+            field.properties = {
               id: {
                 oneOf: [{ type: 'string' }, { type: 'number' }],
                 description: 'Record identifier for linking',
               },
-            },
-            required: ['id'],
-          };
-          field.virtual = false;
+            };
+          }
         }
       }
       break;
@@ -55,29 +68,29 @@ async function processColumnToSwaggerField(
         const formulaDataType = column.colOptions.parsed_tree.dataType;
         switch (formulaDataType) {
           case FormulaDataTypes.NUMERIC:
-            field.type = 'number';
+            field.type = ['number', 'null'];
             break;
           case FormulaDataTypes.STRING:
-            field.type = 'string';
+            field.type = ['string', 'null'];
             break;
           case FormulaDataTypes.DATE:
-            field.type = 'string';
+            field.type = ['string', 'null'];
             field.format = 'date-time';
             break;
           case FormulaDataTypes.BOOLEAN:
           case FormulaDataTypes.LOGICAL:
           case FormulaDataTypes.COND_EXP:
-            field.type = 'boolean';
+            field.type = ['boolean', 'null'];
             break;
           case FormulaDataTypes.NULL:
           case FormulaDataTypes.UNKNOWN:
           default:
-            field.type = 'string';
+            field.type = ['string', 'null'];
             break;
         }
       } else {
         // Fallback to string if no parsed tree available
-        field.type = 'string';
+        field.type = ['string', 'null'];
       }
       break;
     case UITypes.Lookup:
@@ -98,7 +111,7 @@ async function processColumnToSwaggerField(
             dbType,
           );
         }
-        field.type = 'object';
+        field.type = ['object', 'null'];
       } else {
         // For main lookup processing, determine relation type and structure
         const colOpt = await column.getColOptions<LookupColumn>(
@@ -175,12 +188,12 @@ async function processColumnToSwaggerField(
       field.virtual = false;
       break;
     case UITypes.Email:
-      field.type = 'string';
+      field.type = ['string', 'null'];
       field.format = 'email';
       field.virtual = false;
       break;
     case UITypes.URL:
-      field.type = 'string';
+      field.type = ['string', 'null'];
       field.format = 'uri';
       field.virtual = false;
       break;
@@ -236,5 +249,6 @@ export interface SwaggerColumn {
   $ref?: any;
   column: Column;
   items?: any;
+  properties?: any;
   format?: string;
 }

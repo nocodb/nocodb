@@ -22,25 +22,25 @@ class SwaggerTypes {
       case 'smallint':
       case 'mediumint':
       case 'bigint':
-        field.type = 'integer';
+        field.type = ['integer', 'null'];
         break;
       case 'float':
       case 'decimal':
       case 'real':
-        field.type = 'number';
+        field.type = ['number', 'null'];
         break;
       case 'double':
-        field.type = 'number';
+        field.type = ['number', 'null'];
         field.format = 'double';
         break;
       case 'bit':
-        field.type = 'integer';
+        field.type = ['integer', 'null'];
         break;
       case 'boolean':
-        field.type = 'boolean';
+        field.type = ['boolean', 'null'];
         break;
       case 'serial':
-        field.type = 'string';
+        field.type = ['string', 'null'];
         break;
       case 'date':
       case 'datetime':
@@ -71,14 +71,14 @@ class SwaggerTypes {
         field.type = 'string';
         break;
       case 'binary':
-        field.type = 'string';
+        field.type = ['string', 'null'];
         field.format = 'binary';
         break;
       case 'json':
-        field.type = 'object';
+        field.type = ['object', 'null'];
         break;
       default:
-        field.type = 'string';
+        field.type = ['string', 'null'];
         break;
     }
   }
@@ -86,7 +86,7 @@ class SwaggerTypes {
   static setSwaggerTypeForPg(column, field) {
     switch (column.dt) {
       case 'decimal':
-        field.type = 'number';
+        field.type = ['number', 'null'];
         break;
       case 'int':
       case 'integer':
@@ -102,7 +102,7 @@ class SwaggerTypes {
       case 'serial8':
       case 'smallint':
       case 'smallserial':
-        field.type = 'integer';
+        field.type = ['integer', 'null'];
         break;
       case 'char':
       case 'character':
@@ -119,15 +119,15 @@ class SwaggerTypes {
       case 'timetz':
       case 'time with time zone':
       case 'daterange':
-        field.type = 'string';
+        field.type = ['string', 'null'];
         break;
 
       case 'bool':
       case 'boolean':
-        field.type = 'boolean';
+        field.type = ['boolean', 'null'];
         break;
       case 'double precision':
-        field.type = 'number';
+        field.type = ['number', 'null'];
         field.format = 'double';
         break;
 
@@ -137,18 +137,18 @@ class SwaggerTypes {
       case 'float8':
       case 'real':
       case 'numeric':
-        field.type = 'number';
+        field.type = ['number', 'null'];
         field.format = 'float';
         break;
 
       case 'uuid':
-        field.type = 'string';
+        field.type = ['string', 'null'];
         field.format = 'uuid';
         break;
 
       case 'json':
       case 'jsonb':
-        field.type = 'object';
+        field.type = ['object', 'null'];
         break;
       case 'gtsvector':
       case 'index_am_handler':
@@ -207,10 +207,10 @@ class SwaggerTypes {
       case 'void':
       case 'xid':
       case 'xml':
-        field.type = 'string';
+        field.type = ['string', 'null'];
         break;
       default:
-        field.type = 'string';
+        field.type = ['string', 'null'];
         break;
     }
   }
@@ -225,21 +225,21 @@ class SwaggerTypes {
       case 'bigint':
       case 'int2':
       case 'int8':
-        field.type = 'integer';
+        field.type = ['integer', 'null'];
         break;
       case 'character':
       case 'numeric':
       case 'real':
       case 'float':
-        field.type = 'number';
+        field.type = ['number', 'null'];
         break;
       case 'double':
       case 'double precision':
-        field.type = 'number';
+        field.type = ['number', 'null'];
         field.format = 'double';
         break;
       case 'boolean':
-        field.type = 'boolean';
+        field.type = ['boolean', 'null'];
         break;
       case 'date':
       case 'datetime':
@@ -248,10 +248,10 @@ class SwaggerTypes {
       case 'blob sub_type text':
       case 'varchar':
       case 'timestamp':
-        field.type = 'string';
+        field.type = ['string', 'null'];
         break;
       default:
-        field.type = 'string';
+        field.type = ['string', 'null'];
         break;
     }
   }

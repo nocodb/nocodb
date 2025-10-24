@@ -126,7 +126,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   >
     <div
       v-if="isRunningState || isFinishedState || playgroundData.length > 0"
-      class="flex mx-auto flex-col max-w-130 gap-6"
+      class="flex mx-auto playground-wrapper flex-col gap-6"
       :class="[{ 'pb-40': !compact, 'pb-4': compact }]"
     >
       <div
@@ -346,6 +346,14 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   height: calc(100svh - var(--topbar-height) - var(--footer-height));
 }
 
+.playground-wrapper {
+  @media not print {
+    @apply max-w-130;
+  }
+  @media print {
+    @apply max-w-180;
+  }
+}
 :deep(.vjs-tree) {
   .vjs-tree-node:hover {
     @apply !bg-nc-bg-gray-light;

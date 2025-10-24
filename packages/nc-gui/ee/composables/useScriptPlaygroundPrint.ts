@@ -1,5 +1,3 @@
-import html2pdf from 'html2pdf.js'
-
 export enum PrintPageType {
   LETTER = 'Letter (8.5 x 11 inches)',
   LEGAL = 'Legal (8.5 x 14 inches)',
@@ -52,6 +50,103 @@ export const useScriptPlaygroundPrint = () => {
   const pageSizes = computed(() => PAGE_SIZES)
   const orientations = computed(() => ORIENTATIONS)
 
+  let clonedElement: HTMLElement | null = null
+
+  const addPrintStyles = () => {
+    const existingStyle = document.getElementById('playground-print-styles')
+    if (existingStyle) {
+      existingStyle.remove()
+    }
+
+    const pageSize = PAGE_SIZES.find((size) => size.type === selectedPageSize.value)
+    const orientation = selectedOrientation.value === PrintOrientation.LANDSCAPE ? 'landscape' : 'portrait'
+
+    const style = document.createElement('style')
+    style.id = 'playground-print-styles'
+    style.textContent = `
+      @media print {
+        /* Hide everything except print container */
+        body > *:not(.print-playground-container) {
+          display: none !important;
+        }
+        
+        /* Page setup */
+        @page {
+          size: ${pageSize?.format || 'letter'} ${orientation};
+          margin: 0.5in;
+        }
+        
+        /* Reset body and html for print */
+        html, body {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+          font-size: 11pt !important;
+          line-height: 1.6 !important;
+          color: black !important;
+          height: auto !important;
+          overflow: visible !important;
+        }
+        
+        /* Style the print container */
+        .print-playground-container {
+          display: block !important;
+          position: static !important;
+          overflow: visible !important;
+          height: auto !important;
+          max-height: none !important;
+          width: 100% !important;
+          max-width: none !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+          box-shadow: none !important;
+          border: none !important;
+        }
+        
+        .print-playground-container .playground-wrapper {
+          width: 100% !important;
+          max-width: none !important;
+          padding-bottom: 0 !important;
+        }
+        
+        /* Ensure all content flows properly */
+        .print-playground-container * {
+          overflow: visible !important;
+          max-height: none !important;
+        }
+        
+        /* Page break controls */
+        h1, h2, h3, h4, h5, h6 {
+          page-break-after: avoid !important;
+          page-break-inside: avoid !important;
+        }
+        
+        .playground-item {
+          page-break-inside: avoid !important;
+        }
+        
+        .workflow-step-card {
+          page-break-inside: avoid !important;
+        }
+        
+        pre, blockquote, table, .nc-scripts-table {
+          page-break-inside: avoid !important;
+        }
+      }
+    `
+
+    document.head.appendChild(style)
+  }
+
+  const removePrintStyles = () => {
+    const existingStyle = document.getElementById('playground-print-styles')
+    if (existingStyle) {
+      existingStyle.remove()
+    }
+  }
+
   const printPlayground = async () => {
     const playgroundElement = document.querySelector('.nc-playground-container')
     if (!playgroundElement) {
@@ -59,164 +154,43 @@ export const useScriptPlaygroundPrint = () => {
       return
     }
 
-    const pageSize = PAGE_SIZES.find((size) => size.type === selectedPageSize.value)
-    if (!pageSize) {
-      message.error('Invalid page size selected')
-      return
-    }
-
     isGenerating.value = true
 
     try {
-      const playgroundContent = playgroundElement.querySelector('.flex.mx-auto.flex-col') || playgroundElement
+      clonedElement = playgroundElement.cloneNode(true) as HTMLElement
+      clonedElement.classList.add('print-playground-container')
+      clonedElement.classList.remove('nc-playground-container')
 
-      // Clone the content
-      const clonedContent = playgroundContent.cloneNode(true) as HTMLElement
+      addPrintStyles()
 
-      // Calculate dimensions based on orientation
-      const isLandscape = selectedOrientation.value === PrintOrientation.LANDSCAPE
-      const pageWidth = isLandscape ? pageSize.height : pageSize.width
+      document.body.appendChild(clonedElement)
 
-      // Create a clean wrapper for PDF
-      const wrapper = document.createElement('div')
-      wrapper.style.cssText = `
-        width: ${pageWidth - 1}in;
-        padding: 24px;
-        background-color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        font-size: 11pt;
-        line-height: 1.6;
-        color: #1f2937;
-      `
+      await ncDelay(100)
 
-      // Clean up the cloned content
-      clonedContent.style.cssText = `
-        max-width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-      `
-      // Fix workflow step cards
-      const workflowCards = clonedContent.querySelectorAll('.workflow-step-card')
-      workflowCards.forEach((card) => {
-        const htmlCard = card as HTMLElement
-        htmlCard.style.cssText = `
-          border: 1px solid;
-          border-radius: 8px;
-          overflow: hidden;
-          margin-bottom: 16px;
-          page-break-inside: avoid;
-          break-inside: avoid;
-        `
-      })
-
-      // Fix step headers
-      const stepHeaders = clonedContent.querySelectorAll('.step-header')
-      stepHeaders.forEach((header) => {
-        const htmlHeader = header as HTMLElement
-        htmlHeader.style.cssText = `
-          padding: 16px;
-          border-bottom: 1px solid;
-        `
-      })
-
-      // Fix step content
-      const stepContents = clonedContent.querySelectorAll('.step-content')
-      stepContents.forEach((content) => {
-        const htmlContent = content as HTMLElement
-        htmlContent.style.cssText = `
-          padding: 16px;
-        `
-      })
-
-      // Fix tables
-      const tables = clonedContent.querySelectorAll('.nc-scripts-table')
-      tables.forEach((table) => {
-        const htmlTable = table as HTMLElement
-        htmlTable.style.cssText = `
-          width: 100%;
-          border-collapse: collapse;
-          border: 1px solid #d1d5db;
-          margin: 8px 0;
-        `
-
-        const cells = table.querySelectorAll('th, td')
-        cells.forEach((cell) => {
-          const htmlCell = cell as HTMLElement
-          htmlCell.style.cssText = `
-            border: 1px solid #d1d5db;
-            padding: 8px;
-            text-align: left;
-          `
-        })
-
-        const headers = table.querySelectorAll('thead')
-        headers.forEach((thead) => {
-          const htmlThead = thead as HTMLElement
-          htmlThead.style.backgroundColor = '#f9fafb'
-        })
-      })
-
-      // Fix playground items
-      const playgroundItems = clonedContent.querySelectorAll('.playground-item')
-      playgroundItems.forEach((item) => {
-        const htmlItem = item as HTMLElement
-        htmlItem.style.cssText = `
-          page-break-inside: avoid;
-          break-inside: avoid;
-          margin-bottom: 16px;
-        `
-      })
-
-      // Fix prose/markdown content
-      const proseElements = clonedContent.querySelectorAll('.prose')
-      proseElements.forEach((prose) => {
-        const htmlProse = prose as HTMLElement
-        htmlProse.style.maxWidth = '100%'
-      })
-
-      wrapper.appendChild(clonedContent)
-
-      // Get orientation value
-      const orientationValue = ORIENTATIONS.find((o) => o.type === selectedOrientation.value)?.value || 'portrait'
-
-      // Configure html2pdf options
-      const options = {
-        margin: 0.5,
-        filename: `playground-output-${new Date().toISOString().split('T')[0]}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          windowWidth: (pageWidth - 1) * 96,
-          onclone: (clonedDoc: Document) => {
-            // Ensure all styles are computed in the cloned document
-            const clonedWrapper = clonedDoc.body.querySelector('div')
-            if (clonedWrapper) {
-              clonedWrapper.style.display = 'block'
-            }
-          },
-        },
-        jsPDF: {
-          unit: 'in',
-          format: pageSize.format,
-          orientation: orientationValue,
-        },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-      }
-
-      await html2pdf().set(options).from(wrapper).save()
-
-      message.success('PDF generated successfully')
+      window.print()
     } catch (error) {
-      console.error('Error generating PDF:', error)
-      message.error('Failed to generate PDF')
+      console.error('Error opening print dialog:', error)
+      message.error('Failed to print')
     } finally {
-      isGenerating.value = false
+      setTimeout(() => {
+        if (clonedElement && document.body.contains(clonedElement)) {
+          document.body.removeChild(clonedElement)
+          clonedElement = null
+        }
+
+        removePrintStyles()
+
+        isGenerating.value = false
+      }, 500)
     }
   }
+
+  onUnmounted(() => {
+    if (clonedElement && document.body.contains(clonedElement)) {
+      document.body.removeChild(clonedElement)
+    }
+    removePrintStyles()
+  })
 
   return {
     selectedPageSize,

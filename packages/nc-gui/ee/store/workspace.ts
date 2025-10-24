@@ -55,9 +55,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
   // Todo: @rameshmane7218 not possible to use useEeConfig inside store, so we have to pass this prop in fn
-  // const { blockTeams } = useEeConfig()
+  // const { blockTeamsManagement } = useEeConfig()
 
-  const blockTeams = ref(false)
+  const blockTeamsManagement = ref(false)
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -259,6 +259,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const loadCollaborators = async (
     params?: { offset?: number; limit?: number; ignoreLoading?: boolean; includeDeleted?: boolean },
     workspaceId?: string,
+    extraParams?: {
+      blockTeamsManagement?: boolean
+    },
   ) => {
     if (!workspaceId && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
@@ -281,9 +284,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         ),
       )
 
-      promises.push(workspaceTeamList(workspaceId ?? activeWorkspace.value.id!))
+      if (!extraParams?.blockTeamsManagement) {
+        promises.push(workspaceTeamList(workspaceId ?? activeWorkspace.value.id!))
+      }
 
-      const [{ list, pageInfo }, _workspaceTeamsList] = await Promise.all(promises)
+      const [{ list, pageInfo }] = await Promise.all(promises)
 
       allCollaborators.value = list
       collaborators.value = (list || [])?.filter((u: any) => !u?.deleted)
@@ -887,7 +892,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaceTeams = ref<Record<string, any>>([])
 
   async function workspaceTeamList(workspaceId: string = activeWorkspaceId.value!, showLoading = true) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeams.value) {
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeamsManagement.value) {
       isLoadingWorkspaceTeams.value = false
       return
     }
@@ -917,7 +922,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function workspaceTeamGet(workspaceId: string, teamId: string) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeams.value) return
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeamsManagement.value) return
 
     try {
       const teamDetails = (await $api.internal.getOperation(workspaceId, NO_SCOPE, {
@@ -938,7 +943,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
     },
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeams.value) return
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeamsManagement.value) return
 
     try {
       const res = await $api.internal.postOperation(
@@ -967,7 +972,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
     },
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeams.value || !updates.team_id) return
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeamsManagement.value || !updates.team_id) return
 
     try {
       const res = await $api.internal.postOperation(
@@ -990,7 +995,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function workspaceTeamRemove(workspaceId: string = activeWorkspaceId.value!, teamId: string) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeams.value || !teamId) return
+    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value || blockTeamsManagement.value || !teamId) return
 
     try {
       const res = await $api.internal.postOperation(

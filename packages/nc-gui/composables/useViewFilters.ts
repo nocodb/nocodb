@@ -317,8 +317,6 @@ export function useViewFilters(
     loadAllFilters?: boolean
     isLink?: boolean
   } = {}) => {
-    if (!view.value?.id) return
-
     if (nestedMode.value || (isForm.value && !isWebhook)) {
       // ignore restoring if not root filter group
       return
@@ -338,11 +336,11 @@ export function useViewFilters(
           } else if (linkColId?.value && !isNestedRoot) {
             filters.value = (await $api.dbTableLinkFilter.read(linkColId?.value)).list as ColumnFilterType[]
           }
-        } else if (isWidget || widgetId?.value) {
+        } else if (isWidget || widgetId) {
           if (parentId.value) {
             filters.value = (await $api.dbTableFilter.childrenRead(parentId.value)).list as ColumnFilterType[]
-          } else if (widgetId?.value && !isNestedRoot) {
-            filters.value = (await $api.dbWidgetFilter.read(widgetId?.value)).list as ColumnFilterType[]
+          } else if (widgetId && !isNestedRoot) {
+            filters.value = (await $api.dbWidgetFilter.read(widgetId)).list as ColumnFilterType[]
           }
         } else {
           if (parentId.value) {

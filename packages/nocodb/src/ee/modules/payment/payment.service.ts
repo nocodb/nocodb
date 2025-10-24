@@ -272,7 +272,7 @@ export class PaymentService {
     });
 
     await this.migrateDb(workspaceOrOrg.id, transaction);
-    await this.reseatSubscription(workspaceOrOrg.id, ncMeta);
+    await this.reseatSubscriptionImmediate(workspaceOrOrg.id, ncMeta);
 
     return subscription;
   }
@@ -1049,9 +1049,50 @@ export class PaymentService {
 
   async reseatSubscription(
     workspaceOrOrgId: string,
-    _ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncMeta,
     initiator?: string,
   ) {
+    try {
+      const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+      if (!workspaceOrOrg) return;
+
+      // if the workspace is a child of an org, we need to use the org id
+      if (workspaceOrOrg.entity === 'workspace') {
+        if (workspaceOrOrg?.fk_org_id) {
+          workspaceOrOrgId = workspaceOrOrg.fk_org_id;
+        }
+      }
+
+      const existingSub = await Subscription.getByWorkspaceOrOrg(
+        workspaceOrOrgId,
+        ncMeta,
+      );
+      if (!existingSub) return;
+
+      const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
+
+      // No change in seat count
+      if (existingSub.seat_count === seatCount) return;
+
+      // If reducing seats, do it immediately
+      if (existingSub.seat_count > seatCount) {
+        return this.reseatSubscriptionImmediate(
+          workspaceOrOrgId,
+          ncMeta,
+          initiator,
+        );
+      }
+    } catch (e) {
+      // Fall back to immediate reseat on error
+      return this.reseatSubscriptionImmediate(
+        workspaceOrOrgId,
+        ncMeta,
+        initiator,
+      );
+    }
+
+    // If increasing seats, schedule a delayed job to batch multiple requests
+
     // Remove any existing delayed jobs for this workspace/org
     // Bull will deduplicate jobs with the same jobId
     const jobId = `reseat-${workspaceOrOrgId}`;
@@ -1080,7 +1121,6 @@ export class PaymentService {
         workspaceOrOrgId,
         initiator,
         jobName: JobTypes.ReseatSubscription,
-        context: { workspace_id: workspaceOrOrgId, base_id: null },
       } as ReseatSubscriptionJobData,
       {
         jobId,
@@ -1092,6 +1132,19 @@ export class PaymentService {
       `Scheduled reseat for workspace/org ${workspaceOrOrgId} in ${
         RESEAT_DELAY_MS / 1000
       } seconds (jobId: ${jobId})`,
+    );
+  }
+
+  async reseatSubscriptionImmediate(
+    workspaceOrOrgId: string,
+    ncMeta = Noco.ncMeta,
+    initiator?: string,
+  ) {
+    // we don't want to block the request
+    this.reseatSubscriptionAwaited(workspaceOrOrgId, ncMeta, initiator).catch(
+      () => {
+        // we handle the error in the promise
+      },
     );
   }
 

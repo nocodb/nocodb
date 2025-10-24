@@ -489,6 +489,53 @@ export default function () {
         .that.includes('not assigned to');
     });
 
+    it('Update Base Team v3 - Workspace Inherited Team', async () => {
+      // Create a team and assign it to workspace only
+      const createData = {
+        title: 'Workspace Team',
+        icon: '🏢',
+        badge_color: '#00FF00',
+      };
+
+      const createTeam = await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+        .set('xc-token', context.xc_token)
+        .send(createData)
+        .expect(200);
+
+      const workspaceTeamId = createTeam.body.id;
+
+      // Add team to workspace
+      const workspaceAddData = {
+        team_id: workspaceTeamId,
+        workspace_role: WorkspaceUserRoles.EDITOR,
+      };
+
+      await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)
+        .set('xc-token', context.xc_token)
+        .send(workspaceAddData)
+        .expect(200);
+
+      // Now try to update the team's base role (should work with our fix)
+      const updateData = {
+        team_id: workspaceTeamId,
+        base_role: ProjectRoles.VIEWER,
+      };
+
+      const updateTeam = await request(context.app)
+        .patch(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .send(updateData)
+        .expect(200);
+
+      // Validation
+      const baseTeam = updateTeam.body;
+      await _validateBaseTeam(baseTeam);
+      expect(baseTeam).to.have.property('team_id', workspaceTeamId);
+      expect(baseTeam).to.have.property('base_role', ProjectRoles.VIEWER);
+    });
+
     it('Remove Team from Base v3', async () => {
       // Add team to base first
       const addData = {

@@ -170,7 +170,7 @@ export default class Team {
       };
 
       let xcCondition: any = {};
-      
+
       if (!include_deleted) {
         // Default: exclude soft-deleted records
         xcCondition = {

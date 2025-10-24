@@ -284,21 +284,51 @@ export class BaseTeamsV3Service {
         PrincipalType.TEAM,
         team.team_id,
       );
-      if (!existingAssignment) {
-        NcError.get(context).invalidRequestBody(
-          `Team ${team.team_id} is not assigned to this base`,
-        );
-      }
 
-      // Update the assignment
-      const updatedAssignment = await PrincipalAssignment.update(
-        context,
-        ResourceType.BASE,
-        param.baseId,
-        PrincipalType.TEAM,
-        team.team_id,
-        { roles: team.base_role },
-      );
+      let updatedAssignment;
+
+      if (existingAssignment) {
+        // Team is directly assigned to base - update the assignment
+        updatedAssignment = await PrincipalAssignment.update(
+          context,
+          ResourceType.BASE,
+          param.baseId,
+          PrincipalType.TEAM,
+          team.team_id,
+          { roles: team.base_role },
+        );
+      } else {
+        // Team is not directly assigned to base - check if it's assigned to workspace
+        const workspaceAssignment = await PrincipalAssignment.get(
+          context,
+          ResourceType.WORKSPACE,
+          base.fk_workspace_id!,
+          PrincipalType.TEAM,
+          team.team_id,
+        );
+
+        if (!workspaceAssignment) {
+          NcError.get(context).invalidRequestBody(
+            `Team ${team.team_id} is not assigned to this workspace or base`,
+          );
+        }
+
+        // Team is workspace-assigned - create a base assignment with the new role
+        // Use insert method which handles both creating new assignments and restoring soft-deleted ones
+        updatedAssignment = await PrincipalAssignment.insert(context, {
+          resource_type: ResourceType.BASE,
+          resource_id: param.baseId,
+          principal_type: PrincipalType.TEAM,
+          principal_ref_id: team.team_id,
+          roles: team.base_role,
+        });
+
+        if (!updatedAssignment) {
+          throw new Error(
+            `Failed to create base assignment for team ${team.team_id}`,
+          );
+        }
+      }
 
       const meta = parseMetaProp(teamData);
 
@@ -321,7 +351,7 @@ export class BaseTeamsV3Service {
         context,
         req: param.req,
         team: Array.isArray(param.team) ? results : results[0],
-        oldRole: existingAssignment.roles,
+        oldRole: existingAssignment?.roles,
         role: updatedAssignment.roles,
         base,
       } as BaseTeamUpdateEvent);

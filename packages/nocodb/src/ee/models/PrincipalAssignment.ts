@@ -114,7 +114,7 @@ export default class PrincipalAssignment {
       true,
     );
 
-    const assignmentData = await ncMeta.metaGet(
+    const assignmentData = await ncMeta.metaGet2(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.PRINCIPAL_ASSIGNMENTS,
@@ -124,12 +124,31 @@ export default class PrincipalAssignment {
         principal_type: insertObj.principal_type,
         principal_ref_id: insertObj.principal_ref_id,
       },
+      undefined,
+      {
+        _or: [
+          {
+            deleted: {
+              eq: false,
+            },
+          },
+          {
+            deleted: {
+              eq: null,
+            },
+          },
+        ],
+      },
     );
+
+    if (!assignmentData) {
+      throw new Error('Failed to retrieve created assignment');
+    }
 
     await NocoCache.set(
       context,
       `${CacheScope.PRINCIPAL_ASSIGNMENT}:${insertObj.resource_type}:${insertObj.resource_id}:${insertObj.principal_type}:${insertObj.principal_ref_id}`,
-      assignmentData,
+      assignmentData[0],
     );
 
     // Invalidate count cache for this resource

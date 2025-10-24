@@ -24,12 +24,12 @@ import type {
   BaseTeamDetailV3Type,
   BaseTeamListV3Type,
   BaseTeamV3ResponseType,
-} from '~/ee/services/v3/base-teams-v3.types';
+} from '~/services/v3/base-teams-v3.types';
 import type {
   WorkspaceTeamDetailV3Type,
   WorkspaceTeamListV3Type,
   WorkspaceTeamV3ResponseType,
-} from '~/ee/services/v3/workspace-teams-v3.types';
+} from '~/services/v3/workspace-teams-v3.types';
 
 export type InternalGETResponseType = Promise<
   | void
@@ -103,7 +103,6 @@ export type InternalPOSTResponseType = Promise<
   | BaseTeamV3ResponseType[]
   | WorkspaceTeamV3ResponseType
   | WorkspaceTeamV3ResponseType[]
-  | { msg: string }
 >;
 
 export interface InternalApiModule<

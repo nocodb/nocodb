@@ -182,6 +182,7 @@ watch(vVisible, (newValue) => {
                     >
                       <GeneralTeamIcon
                         :team="formState"
+                        show-placeholder-icon
                         class="!w-full !h-full !min-w-full select-none cursor-pointer !rounded-none"
                       />
                     </div>

@@ -604,7 +604,7 @@ export default function () {
           .expect(403);
       });
 
-      it.only('Team removed from base should lose base access but keep workspace access', async () => {
+      it('Team removed from base should lose base access but keep workspace access', async () => {
         // Assign team to workspace and base
         await request(context.app)
           .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)

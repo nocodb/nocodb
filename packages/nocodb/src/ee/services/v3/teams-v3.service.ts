@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { TeamUserRoles } from 'nocodb-sdk';
+import { AppEvents, TeamUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   TeamCreateV3ReqType,
@@ -11,9 +11,18 @@ import type {
   TeamUpdateV3ReqType,
   TeamV3ResponseType,
 } from './teams-v3.types';
+import type {
+  TeamCreateEvent,
+  TeamDeleteEvent,
+  TeamMemberAddEvent,
+  TeamMemberDeleteEvent,
+  TeamMemberUpdateEvent,
+  TeamUpdateEvent,
+} from '~/services/app-hooks/interfaces';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { PrincipalAssignment, Team } from '~/ee/models';
-import { User } from '~/models';
+import { User, Workspace } from '~/models';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
@@ -22,6 +31,8 @@ import { parseMetaProp } from '~/utils/modelUtils';
 @Injectable()
 export class TeamsV3Service {
   protected readonly logger = new Logger(TeamsV3Service.name);
+
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async getTeamMembersCount(
     context: NcContext,
@@ -183,6 +194,12 @@ export class TeamsV3Service {
       true,
     );
 
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check for duplicate team name in the same workspace
     const existingTeams = await Team.list(context, {
       fk_workspace_id: param.workspaceOrOrgId,
@@ -267,7 +284,7 @@ export class TeamsV3Service {
     // Transform to v3 response format
     const meta = parseMetaProp(team);
 
-    return {
+    const response = {
       id: team.id,
       title: team.title,
       icon: meta.icon || null,
@@ -279,6 +296,16 @@ export class TeamsV3Service {
       created_at: team.created_at,
       updated_at: team.updated_at,
     };
+
+    // Emit team create event
+    this.appHooksService.emit(AppEvents.TEAM_CREATE, {
+      context,
+      req: param.req,
+      team: response,
+      workspace,
+    });
+
+    return response;
   }
 
   async teamUpdate(
@@ -295,13 +322,19 @@ export class TeamsV3Service {
       param.team,
     );
 
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check if team exists and belongs to workspace/org
-    const team = await Team.get(context, param.teamId);
-    if (!team) {
+    const oldTeam = await Team.get(context, param.teamId);
+    if (!oldTeam) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope = oldTeam.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
@@ -329,7 +362,9 @@ export class TeamsV3Service {
     if (param.team.title !== undefined) updateData.title = param.team.title;
     if (param.team.icon !== undefined || param.team.badge_color !== undefined) {
       const existingMeta =
-        typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
+        typeof oldTeam.meta === 'string'
+          ? JSON.parse(oldTeam.meta)
+          : oldTeam.meta || {};
       updateData.meta = {
         ...existingMeta,
         ...(param.team.icon !== undefined && { icon: param.team.icon }),
@@ -353,7 +388,7 @@ export class TeamsV3Service {
     // Transform to v3 response format
     const meta = parseMetaProp(updatedTeam);
 
-    return {
+    const response = {
       id: updatedTeam.id,
       title: updatedTeam.title,
       icon: meta.icon || null,
@@ -365,6 +400,17 @@ export class TeamsV3Service {
       created_at: updatedTeam.created_at,
       updated_at: updatedTeam.updated_at,
     };
+
+    // Emit team update event
+    this.appHooksService.emit(AppEvents.TEAM_UPDATE, {
+      context,
+      req: param.req,
+      team: updatedTeam,
+      oldTeam,
+      workspace,
+    } as TeamUpdateEvent);
+
+    return response;
   }
 
   async teamDelete(
@@ -375,6 +421,12 @@ export class TeamsV3Service {
       req: NcRequest;
     },
   ) {
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
@@ -425,6 +477,14 @@ export class TeamsV3Service {
     // Delete the team
     await Team.delete(context, param.teamId);
 
+    // Emit team delete event
+    this.appHooksService.emit(AppEvents.TEAM_DELETE, {
+      context,
+      req: param.req,
+      team,
+      workspace,
+    } as TeamDeleteEvent);
+
     return { msg: 'Team has been deleted successfully' };
   }
 
@@ -437,6 +497,12 @@ export class TeamsV3Service {
       req: NcRequest;
     },
   ): Promise<TeamMemberV3ResponseType[]> {
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
@@ -496,6 +562,16 @@ export class TeamsV3Service {
         roles: member.team_role === 'manager' ? 'manager' : member.team_role,
       });
 
+      // Emit team member add event
+      this.appHooksService.emit(AppEvents.TEAM_MEMBER_ADD, {
+        context,
+        req: param.req,
+        team: team,
+        workspace,
+        user, // Include user info
+        teamRole: assignment.roles || '', // Include team role
+      } as TeamMemberAddEvent);
+
       addedMembers.push(assignment);
     }
 
@@ -526,6 +602,12 @@ export class TeamsV3Service {
       req: NcRequest;
     },
   ) {
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
@@ -542,6 +624,7 @@ export class TeamsV3Service {
     const removedMembers = [];
 
     for (const member of param.members ?? []) {
+      const user = await User.get(member.user_id);
       // Check if user is assigned to team
       const assignment = await PrincipalAssignment.get(
         context,
@@ -593,6 +676,16 @@ export class TeamsV3Service {
         member.user_id,
       );
       removedMembers.push({ user_id: member.user_id });
+
+      // Emit team member remove event
+      this.appHooksService.emit(AppEvents.TEAM_MEMBER_DELETE, {
+        context,
+        req: param.req,
+        team,
+        workspace,
+        user: user,
+        teamRole: assignment.roles,
+      } as TeamMemberDeleteEvent);
     }
 
     return removedMembers;
@@ -607,6 +700,12 @@ export class TeamsV3Service {
       req: NcRequest;
     },
   ): Promise<TeamMemberV3ResponseType[]> {
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
@@ -640,6 +739,9 @@ export class TeamsV3Service {
     const updatedMembers = [];
 
     for (const member of param.members ?? []) {
+      // check user exists
+      const user = await User.get(member.user_id);
+
       // Check if user is assigned to team
       const assignment = await PrincipalAssignment.get(
         context,
@@ -664,6 +766,17 @@ export class TeamsV3Service {
       );
 
       updatedMembers.push(updatedAssignment);
+
+      // Emit team member update event
+      this.appHooksService.emit(AppEvents.TEAM_MEMBER_UPDATE, {
+        context,
+        req: param.req,
+        team,
+        workspace,
+        user,
+        oldTeamRole: assignment.roles, // Include old team role
+        teamRole: member?.team_role || '', // Include new team role
+      } as TeamMemberUpdateEvent);
     }
 
     // Transform to v3 response format with email

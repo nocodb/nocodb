@@ -13,6 +13,9 @@ import type {
   BaseDeletePayload,
   BaseDuplicatePayload,
   BaseRenamePayload,
+  BaseTeamDeletePayload,
+  BaseTeamInvitePayload,
+  BaseTeamUpdatePayload,
   BaseUpdatePayload,
   BaseUserInvitePayload,
   BaseUserInviteResendPayload,
@@ -68,6 +71,12 @@ import type {
   TableDuplicatePayload,
   TableRenamePayload,
   TableUpdatePayload,
+  TeamCreatePayload,
+  TeamDeletePayload,
+  TeamMemberAddPayload,
+  TeamMemberDeletePayload,
+  TeamMemberUpdatePayload,
+  TeamUpdatePayload,
   UpdatePayload,
   UserInvitePayload,
   UserProfileUpdatePayload,
@@ -86,6 +95,9 @@ import type {
   WorkspaceDeletePayload,
   WorkspaceInvitePayload,
   WorkspaceRenamePayload,
+  WorkspaceTeamDeletePayload,
+  WorkspaceTeamInvitePayload,
+  WorkspaceTeamUpdatePayload,
   WorkspaceUpdatePayload,
   WorkspaceUserDeletePayload,
   WorkspaceUserUpdatePayload,
@@ -95,6 +107,9 @@ import type {
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
   BaseDuplicateEvent,
+  BaseTeamDeleteEvent,
+  BaseTeamInviteEvent,
+  BaseTeamUpdateEvent,
   CalendarViewUpdateEvent,
   ColumnDuplicateEvent,
   ColumnEvent,
@@ -142,6 +157,12 @@ import type {
   TableDuplicateEvent,
   TableEvent,
   TableUpdateEvent,
+  TeamCreateEvent,
+  TeamDeleteEvent,
+  TeamMemberAddEvent,
+  TeamMemberDeleteEvent,
+  TeamMemberUpdateEvent,
+  TeamUpdateEvent,
   UserEmailVerificationEvent,
   UserInviteEvent,
   UserPasswordChangeEvent,
@@ -163,6 +184,9 @@ import type {
   WidgetDuplicateEvent,
   WidgetUpdateEvent,
   WorkspaceEvent,
+  WorkspaceTeamDeleteEvent,
+  WorkspaceTeamInviteEvent,
+  WorkspaceTeamUpdateEvent,
   WorkspaceUpdateEvent,
   WorkspaceUserDeleteEvent,
   WorkspaceUserInviteEvent,
@@ -3408,6 +3432,321 @@ export class AppHooksListenerService
                 permission_id: param.permission.id,
                 entity: param.permission.entity,
                 entity_id: param.permission.entity_id,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      // Team Events
+      case AppEvents.TEAM_CREATE: {
+        const param = data as TeamCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<TeamCreatePayload>(
+            AuditV1OperationTypes.TEAM_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                team_id: param.team.id,
+                team_title: param.team.title,
+                workspace_title: param.workspace?.title,
+                base_title: param.base?.title,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.TEAM_UPDATE: {
+        const param = data as TeamUpdateEvent;
+        const updatePayload = populateUpdatePayloadDiff({
+          prev: param.oldTeam,
+          next: param.team,
+          parseMeta: true,
+          exclude: ['id'],
+          aliasMap: {
+            title: 'team_title',
+          },
+        });
+
+        if (!updatePayload) break;
+
+        await this.auditInsert(
+          await generateAuditV1Payload<TeamUpdatePayload>(
+            AuditV1OperationTypes.TEAM_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                team_id: param.team.id,
+                team_title: param.team.title,
+                workspace_title: param.workspace?.title,
+                base_title: param.base?.title,
+                ...updatePayload,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.TEAM_DELETE: {
+        const param = data as TeamDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<TeamDeletePayload>(
+            AuditV1OperationTypes.TEAM_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                team_id: param.team.id,
+                team_title: param.team.title,
+                workspace_title: param.workspace?.title,
+                base_title: param.base?.title,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.TEAM_MEMBER_ADD: {
+        const param = data as TeamMemberAddEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<TeamMemberAddPayload>(
+            AuditV1OperationTypes.TEAM_MEMBER_ADD,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                team_id: param.team.id,
+                team_title: param.team.title,
+                user_id: param.user.id,
+                user_email: param.user.email,
+                user_name: param.user.display_name,
+                team_role: param.teamRole,
+                workspace_title: param.workspace?.title,
+                base_title: param.base?.title,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.TEAM_MEMBER_UPDATE: {
+        const param = data as TeamMemberUpdateEvent;
+        const updatePayload = populateUpdatePayloadDiff({
+          prev: { team_role: param.oldTeamRole },
+          next: { team_role: param.teamRole },
+          aliasMap: {
+            team_role: 'team_role',
+          },
+        });
+
+        if (!updatePayload) break;
+
+        await this.auditInsert(
+          await generateAuditV1Payload<TeamMemberUpdatePayload>(
+            AuditV1OperationTypes.TEAM_MEMBER_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                team_id: param.team.id,
+                team_title: param.team.title,
+                user_id: param.user.id,
+                user_email: param.user.email,
+                user_name: param.user.display_name,
+                team_role: param.teamRole,
+                workspace_title: param.workspace?.title,
+                base_title: param.base?.title,
+                ...updatePayload,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.TEAM_MEMBER_DELETE: {
+        const param = data as TeamMemberDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<TeamMemberDeletePayload>(
+            AuditV1OperationTypes.TEAM_MEMBER_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                team_id: param.team.id,
+                team_title: param.team.title,
+                user_id: param.user.id,
+                user_email: param.user.email,
+                user_name: param.user.display_name,
+                team_role: param.teamRole,
+                workspace_title: param.workspace?.title,
+                base_title: param.base?.title,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      // Workspace Team Events
+      case AppEvents.WORKSPACE_TEAM_INVITE: {
+        const param = data as WorkspaceTeamInviteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<WorkspaceTeamInvitePayload>(
+            AuditV1OperationTypes.WORKSPACE_TEAM_INVITE,
+            {
+              req: param.req,
+              context: param.context,
+              fk_workspace_id: param.workspace.id,
+              details: {
+                workspace_title: param.workspace.title,
+                team_id: param.team.id,
+                team_title: param.team.title,
+                team_role: param.role,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.WORKSPACE_TEAM_UPDATE: {
+        const param = data as WorkspaceTeamUpdateEvent;
+        const updatePayload = populateUpdatePayloadDiff({
+          prev: {
+            role: param.oldRole,
+          },
+          next: {
+            role: param.role,
+          },
+          parseMeta: true,
+          exclude: ['id'],
+          aliasMap: {
+            title: 'team_title',
+          },
+        });
+
+        if (!updatePayload) break;
+
+        await this.auditInsert(
+          await generateAuditV1Payload<WorkspaceTeamUpdatePayload>(
+            AuditV1OperationTypes.WORKSPACE_TEAM_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              fk_workspace_id: param.workspace.id,
+              details: {
+                workspace_title: param.workspace.title,
+                team_id: param.team.id,
+                team_title: param.team.title,
+                team_role: param.role,
+                ...updatePayload,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.WORKSPACE_TEAM_DELETE: {
+        const param = data as WorkspaceTeamDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<WorkspaceTeamDeletePayload>(
+            AuditV1OperationTypes.WORKSPACE_TEAM_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              fk_workspace_id: param.workspace.id,
+              details: {
+                workspace_title: param.workspace.title,
+                team_id: param.team.id,
+                team_title: param.team.title,
+                team_role: param.role,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      // Base Team Events
+      case AppEvents.PROJECT_TEAM_INVITE: {
+        const param = data as BaseTeamInviteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<BaseTeamInvitePayload>(
+            AuditV1OperationTypes.BASE_TEAM_INVITE,
+            {
+              req: param.req,
+              context: param.context,
+              base_id: param.base.id,
+              details: {
+                base_title: param.base.title,
+                team_id: param.team.id,
+                team_title: param.team.title,
+                team_role: param.role,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.PROJECT_TEAM_UPDATE: {
+        const param = data as BaseTeamUpdateEvent;
+        const updatePayload = populateUpdatePayloadDiff({
+          prev: { role: param.oldRole },
+          next: { role: param.role },
+          parseMeta: true,
+          exclude: ['id'],
+          aliasMap: {
+            title: 'team_title',
+          },
+        });
+
+        if (!updatePayload) break;
+
+        await this.auditInsert(
+          await generateAuditV1Payload<BaseTeamUpdatePayload>(
+            AuditV1OperationTypes.BASE_TEAM_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              base_id: param.base.id,
+              details: {
+                base_title: param.base.title,
+                team_id: param.team.id,
+                team_title: param.team.title,
+                team_role: param.role,
+                ...updatePayload,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.PROJECT_TEAM_DELETE: {
+        const param = data as BaseTeamDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<BaseTeamDeletePayload>(
+            AuditV1OperationTypes.BASE_TEAM_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              base_id: param.base.id,
+              details: {
+                base_title: param.base.title,
+                team_id: param.team.id,
+                team_title: param.team.title,
+                team_role: param.role,
               },
             },
           ),

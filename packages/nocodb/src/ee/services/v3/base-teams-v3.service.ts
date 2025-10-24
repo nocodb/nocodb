@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { AppEvents } from 'nocodb-sdk';
 import type { ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
@@ -11,8 +12,14 @@ import type {
   BaseTeamUpdateV3ReqType,
   BaseTeamV3ResponseType,
 } from './base-teams-v3.types';
+import type {
+  BaseTeamDeleteEvent,
+  BaseTeamInviteEvent,
+  BaseTeamUpdateEvent,
+} from '~/services/app-hooks/interfaces';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
-import { PrincipalAssignment, Team, User } from '~/models';
+import { Base, PrincipalAssignment, Team, User } from '~/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
 import { parseMetaProp } from '~/utils/modelUtils';
@@ -20,6 +27,8 @@ import { parseMetaProp } from '~/utils/modelUtils';
 @Injectable()
 export class BaseTeamsV3Service {
   protected readonly logger = new Logger(BaseTeamsV3Service.name);
+
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async teamList(
     context: NcContext,
@@ -83,6 +92,12 @@ export class BaseTeamsV3Service {
       true,
     );
 
+    // Fetch base
+    const base = await Base.get(context, param.baseId);
+    if (!base) {
+      NcError.get(context).baseNotFound(param.baseId);
+    }
+
     // Check if team exists
     const team = await Team.get(context, param.team.team_id);
     if (!team) {
@@ -114,7 +129,7 @@ export class BaseTeamsV3Service {
 
     const meta = parseMetaProp(team);
 
-    return {
+    const response = {
       team_id: team.id,
       team_title: team.title,
       team_icon: meta.icon || null,
@@ -124,6 +139,17 @@ export class BaseTeamsV3Service {
       created_at: assignment.created_at!,
       updated_at: assignment.updated_at!,
     };
+
+    // Emit base team invite event
+    this.appHooksService.emit(AppEvents.PROJECT_TEAM_INVITE, {
+      context,
+      req: param.req,
+      team: team,
+      base,
+      role: assignment.roles,
+    } as BaseTeamInviteEvent);
+
+    return response;
   }
 
   async teamUpdate(
@@ -134,6 +160,12 @@ export class BaseTeamsV3Service {
       req: NcRequest;
     },
   ): Promise<BaseTeamV3ResponseType | BaseTeamV3ResponseType[]> {
+    // Fetch base
+    const base = await Base.get(context, param.baseId);
+    if (!base) {
+      NcError.get(context).baseNotFound(param.baseId);
+    }
+
     const teams = Array.isArray(param.team) ? param.team : [param.team];
     const results = [];
 
@@ -189,6 +221,16 @@ export class BaseTeamsV3Service {
         created_at: updatedAssignment.created_at!,
         updated_at: updatedAssignment.updated_at!,
       });
+
+      // Emit base team update event
+      this.appHooksService.emit(AppEvents.PROJECT_TEAM_UPDATE, {
+        context,
+        req: param.req,
+        team: Array.isArray(param.team) ? results : results[0],
+        oldRole: existingAssignment.roles,
+        role: updatedAssignment.roles,
+        base,
+      } as BaseTeamUpdateEvent);
     }
 
     return Array.isArray(param.team) ? results : results[0];
@@ -202,14 +244,22 @@ export class BaseTeamsV3Service {
       req: NcRequest;
     },
   ): Promise<{ msg: string }> {
+    // Fetch base
+    const base = await Base.get(context, param.baseId);
+    if (!base) {
+      NcError.get(context).baseNotFound(param.baseId);
+    }
+
     const teams = Array.isArray(param.team) ? param.team : [param.team];
 
-    for (const team of teams) {
+    for (const teamIdObj of teams) {
       validatePayload(
         'swagger-v3.json#/components/schemas/BaseTeamDelete',
-        team,
+        teamIdObj,
         true,
       );
+
+      const team = await Team.get(context, teamIdObj.team_id);
 
       // Check if team is assigned to base
       const existingAssignment = await PrincipalAssignment.get(
@@ -217,18 +267,18 @@ export class BaseTeamsV3Service {
         ResourceType.BASE,
         param.baseId,
         PrincipalType.TEAM,
-        team.team_id,
+        teamIdObj.team_id,
       );
       if (!existingAssignment) {
         NcError.get(context).invalidRequestBody(
-          `Team ${team.team_id} is not assigned to this base`,
+          `Team ${teamIdObj.team_id} is not assigned to this base`,
         );
       }
 
       // Get all users in the team before deleting the assignment
       const teamUsers = await PrincipalAssignment.list(context, {
         resource_type: ResourceType.TEAM,
-        resource_id: team.team_id,
+        resource_id: teamIdObj.team_id,
         principal_type: PrincipalType.USER,
       });
 
@@ -238,13 +288,22 @@ export class BaseTeamsV3Service {
         ResourceType.BASE,
         param.baseId,
         PrincipalType.TEAM,
-        team.team_id,
+        teamIdObj.team_id,
       );
 
       // Clear user cache for all users in the team
       for (const userAssignment of teamUsers) {
         await User.clearCache(userAssignment.principal_ref_id);
       }
+
+      // Emit base team delete event for each team
+      this.appHooksService.emit(AppEvents.PROJECT_TEAM_DELETE, {
+        context,
+        req: param.req,
+        team,
+        base,
+        role: existingAssignment.roles || '', // Include the role
+      } as BaseTeamDeleteEvent);
     }
 
     return { msg: 'Team has been removed from base successfully' };

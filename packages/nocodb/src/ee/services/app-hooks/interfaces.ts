@@ -14,8 +14,10 @@ import type {
   WidgetType,
   WorkspaceType,
 } from 'nocodb-sdk';
+import type { TeamV3ResponseType } from '~/ee/services/v3/teams-v3.types';
 import type Snapshot from '~/models/Snapshot';
 import type { CustomUrl, Permission } from '~/models';
+import type { Team } from '~/models';
 
 export interface WorkspaceUserInviteEvent
   extends Optional<NcBaseEvent, 'context'> {
@@ -181,6 +183,91 @@ export interface PermissionUpdateEvent extends NcBaseEvent {
 export interface PermissionDeleteEvent extends NcBaseEvent {
   permission: Permission;
   user: UserType;
+}
+
+// Team Events
+export interface TeamCreateEvent extends NcBaseEvent {
+  team: Team;
+  workspace?: WorkspaceType;
+  base?: BaseType;
+}
+
+export interface TeamUpdateEvent extends NcBaseEvent {
+  team: Team;
+  oldTeam: Team;
+  workspace?: WorkspaceType;
+  base?: BaseType;
+}
+
+export interface TeamDeleteEvent extends NcBaseEvent {
+  team: Team;
+  workspace?: WorkspaceType;
+  base?: BaseType;
+}
+
+export interface TeamMemberAddEvent extends NcBaseEvent {
+  team: Team;
+  user: UserType;
+  teamRole: string;
+  workspace?: WorkspaceType;
+  base?: BaseType;
+}
+
+export interface TeamMemberUpdateEvent extends NcBaseEvent {
+  team: Team;
+  user: UserType;
+  oldTeamRole: string;
+  teamRole: string;
+  workspace?: WorkspaceType;
+  base?: BaseType;
+}
+
+export interface TeamMemberDeleteEvent extends NcBaseEvent {
+  team: Team;
+  user: UserType;
+  teamRole: string;
+  workspace?: WorkspaceType;
+  base?: BaseType;
+}
+
+// Workspace Team Events
+export interface WorkspaceTeamInviteEvent extends NcBaseEvent {
+  workspace: WorkspaceType;
+  team: Team;
+  role: string;
+}
+
+export interface WorkspaceTeamUpdateEvent extends NcBaseEvent {
+  workspace: WorkspaceType;
+  team: Team;
+  oldRole: string;
+  role: string;
+}
+
+export interface WorkspaceTeamDeleteEvent extends NcBaseEvent {
+  workspace: WorkspaceType;
+  team: Team;
+  role: string;
+}
+
+// Base Team Events
+export interface BaseTeamInviteEvent extends NcBaseEvent {
+  base: BaseType;
+  team: Team;
+  role: string;
+}
+
+export interface BaseTeamUpdateEvent extends NcBaseEvent {
+  base: BaseType;
+  team: Team;
+  oldRole: string;
+  role: string;
+}
+
+export interface BaseTeamDeleteEvent extends NcBaseEvent {
+  base: BaseType;
+  team: Team;
+  role: string;
 }
 
 export * from 'src/services/app-hooks/interfaces';

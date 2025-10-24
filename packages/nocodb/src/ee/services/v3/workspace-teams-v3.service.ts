@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { AppEvents } from 'nocodb-sdk';
 import type { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
@@ -11,8 +12,14 @@ import type {
   WorkspaceTeamUpdateV3ReqType,
   WorkspaceTeamV3ResponseType,
 } from './workspace-teams-v3.types';
+import type {
+  WorkspaceTeamDeleteEvent,
+  WorkspaceTeamInviteEvent,
+  WorkspaceTeamUpdateEvent,
+} from '~/services/app-hooks/interfaces';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
-import { PrincipalAssignment, Team, User } from '~/models';
+import { PrincipalAssignment, Team, User, Workspace } from '~/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { validatePayload } from '~/helpers';
@@ -20,6 +27,8 @@ import { validatePayload } from '~/helpers';
 @Injectable()
 export class WorkspaceTeamsV3Service {
   protected readonly logger = new Logger(WorkspaceTeamsV3Service.name);
+
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async teamList(
     context: NcContext,
@@ -83,6 +92,12 @@ export class WorkspaceTeamsV3Service {
       true,
     );
 
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceId);
+    }
+
     // Check if team exists
     const team = await Team.get(context, param.team.team_id);
     if (!team) {
@@ -114,7 +129,7 @@ export class WorkspaceTeamsV3Service {
 
     const meta = parseMetaProp(team);
 
-    return {
+    const response = {
       team_id: team.id,
       team_title: team.title,
       team_icon: meta.icon || null,
@@ -127,6 +142,17 @@ export class WorkspaceTeamsV3Service {
       created_at: assignment.created_at!,
       updated_at: assignment.updated_at!,
     };
+
+    // Emit workspace team invite event
+    this.appHooksService.emit(AppEvents.WORKSPACE_TEAM_INVITE, {
+      context,
+      req: param.req,
+      team,
+      workspace,
+      role: assignment.roles || '',
+    } as WorkspaceTeamInviteEvent);
+
+    return response;
   }
 
   async teamUpdate(
@@ -137,6 +163,12 @@ export class WorkspaceTeamsV3Service {
       req: NcRequest;
     },
   ): Promise<WorkspaceTeamV3ResponseType | WorkspaceTeamV3ResponseType[]> {
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceId);
+    }
+
     const teams = Array.isArray(param.team) ? param.team : [param.team];
     const results = [];
 
@@ -194,6 +226,14 @@ export class WorkspaceTeamsV3Service {
       });
     }
 
+    // Emit workspace team update event
+    this.appHooksService.emit(AppEvents.WORKSPACE_TEAM_UPDATE, {
+      context,
+      req: param.req,
+      team: Array.isArray(param.team) ? results : results[0],
+      workspace,
+    } as WorkspaceTeamUpdateEvent);
+
     return Array.isArray(param.team) ? results : results[0];
   }
 
@@ -205,14 +245,22 @@ export class WorkspaceTeamsV3Service {
       req: NcRequest;
     },
   ): Promise<{ msg: string }> {
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceId);
+    }
+
     const teams = Array.isArray(param.team) ? param.team : [param.team];
 
-    for (const team of teams) {
+    for (const teamObj of teams) {
       validatePayload(
         'swagger-v3.json#/components/schemas/WorkspaceTeamDelete',
-        team,
+        teamObj,
         true,
       );
+
+      const team = await Team.get(context, teamObj.team_id);
 
       // Check if team is assigned to workspace
       const existingAssignment = await PrincipalAssignment.get(
@@ -220,18 +268,18 @@ export class WorkspaceTeamsV3Service {
         ResourceType.WORKSPACE,
         param.workspaceId,
         PrincipalType.TEAM,
-        team.team_id,
+        teamObj.team_id,
       );
       if (!existingAssignment) {
         NcError.get(context).invalidRequestBody(
-          `Team ${team.team_id} is not assigned to this workspace`,
+          `Team ${teamObj.team_id} is not assigned to this workspace`,
         );
       }
 
       // Get all users in the team before deleting the assignment
       const teamUsers = await PrincipalAssignment.list(context, {
         resource_type: ResourceType.TEAM,
-        resource_id: team.team_id,
+        resource_id: teamObj.team_id,
         principal_type: PrincipalType.USER,
       });
 
@@ -241,13 +289,22 @@ export class WorkspaceTeamsV3Service {
         ResourceType.WORKSPACE,
         param.workspaceId,
         PrincipalType.TEAM,
-        team.team_id,
+        teamObj.team_id,
       );
 
       // Clear user cache for all users in the team
       for (const userAssignment of teamUsers) {
         await User.clearCache(userAssignment.principal_ref_id);
       }
+
+      // Emit workspace team delete event for each team
+      this.appHooksService.emit(AppEvents.WORKSPACE_TEAM_DELETE, {
+        context,
+        req: param.req,
+        team: team,
+        workspace,
+        role: existingAssignment.roles || '', // Include the role
+      } as WorkspaceTeamDeleteEvent);
     }
 
     return { msg: 'Team has been removed from workspace successfully' };

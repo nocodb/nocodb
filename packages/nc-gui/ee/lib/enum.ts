@@ -30,6 +30,7 @@ export enum ScriptInputType {
   TEXT = 'text',
   SELECT = 'select',
   FILE = 'file',
+  UPLOAD_FILE = 'upload_file',
   BUTTONS = 'buttons',
   VIEW = 'view',
   TABLE = 'table',

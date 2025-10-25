@@ -3219,7 +3219,7 @@ declare interface ConfigItem {}
         size: number;
         signedPath?: string;
         signedUrl?: string;
-        thumbnails: {
+        thumbnails?: {
           tiny: {
             signedPath: string | never
             signedUrl: string | never
@@ -4227,6 +4227,18 @@ declare interface ConfigItem {}
   */
  parsedContents: any;
 }>;`)
+
+    // input.uploadFileAsync
+    this.formatJSDoc([
+      `Prompts the user to import a file.`,
+      `@param label - A label explaining what file being requested`,
+      `@param options - Options for file upload`,
+      `@param options.allowedFileTypes - Which file types can be imported (e.g. '.xlsx', 'application/json', 'image/*')`,
+    ])
+    this.write(`uploadFileAsync(label: string, options?: {
+ /** If provided, restricts allowed file types (e.g. '.xlsx', 'application/json', 'image/*') */
+ allowedFileTypes?: Array<string>;
+}): Promise<NocoDbFile[]>;`)
 
     // input.selectAsync
     this.formatJSDoc([

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { parse } from 'papaparse'
+import type { AttachmentReqType } from 'nocodb-sdk'
 import { ScriptInputType } from '~/lib/enum'
 import { type DynamicInputProps } from '~/lib/types'
 
@@ -10,7 +11,7 @@ const { content } = toRefs(props)
 const inputValue = ref(content.value?.defaultValue)
 const isResolved = ref(false)
 
-const resolveInput = (value?: string | File) => {
+const resolveInput = (value?: string | File | AttachmentReqType[]) => {
   if (value !== undefined || inputValue.value) {
     isResolved.value = true
     props.onResolve(value !== undefined ? value : inputValue.value)
@@ -294,6 +295,26 @@ watch(
         :table-id="content.tableId"
         :view-id="content.viewId"
       />
+    </div>
+  </template>
+  <template v-else-if="content.type === ScriptInputType.UPLOAD_FILE">
+    <div class="flex flex-col gap-2">
+      <label class="text-caption text-nc-content-gray-subtle2">
+        {{ content.label }}
+      </label>
+      <NcFile
+        :disabled="isResolved"
+        :accept="content.accept"
+        :multiple="true"
+        :enabled-providers="['local', 'url', 'webcam']"
+        @upload="(attachments) => resolveInput(attachments)"
+      >
+        <template #trigger="{ open }">
+          <NcButton v-if="!isResolved" size="small" :disabled="isResolved" type="secondary" @click="open">
+            Click to Upload
+          </NcButton>
+        </template>
+      </NcFile>
     </div>
   </template>
 </template>

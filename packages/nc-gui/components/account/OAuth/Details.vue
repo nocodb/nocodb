@@ -240,7 +240,7 @@ function copyToClipboard(text: string, label: string) {
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">Image shown during authorization (square recommended)</span>
               </template>
-              <NcUpload
+              <NcFileUpload
                 v-model:attachment="clientRef.logo_uri"
                 :upload-scope="PublicAttachmentScope.OAUTHCLIENTS"
                 upload-path="clients/logos"
@@ -255,7 +255,7 @@ function copyToClipboard(text: string, label: string) {
                     />
                   </div>
                 </template>
-              </NcUpload>
+              </NcFileUpload>
             </a-form-item>
 
             <!-- Client Type (Read-only) -->

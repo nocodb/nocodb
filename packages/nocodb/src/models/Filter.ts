@@ -316,6 +316,8 @@ export default class Filter implements FilterType {
       'is_group',
       'logical_op',
       'fk_value_col_id',
+      'meta',
+      'order',
     ]);
 
     if (typeof updateObj.value === 'string')

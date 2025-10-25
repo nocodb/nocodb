@@ -96,6 +96,16 @@ export function useViewFilters(
     },
   })
 
+  const getDraftFilterId = (): string => {
+    let id: string
+
+    do {
+      id = generateRandomUUID()
+    } while ((filters.value || []).some((f) => f.id === id || f.tmp_id === id))
+
+    return id
+  }
+
   // when a filter is deleted with auto apply disabled, the status is marked as 'delete'
   // nonDeletedFilters are those filters that are not deleted physically & virtually
   const nonDeletedFilters = computed(() => filters.value.filter((f) => f.status !== 'delete'))
@@ -215,7 +225,13 @@ export function useViewFilters(
 
   const placeholderFilter = (): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
-    return {
+
+    const defaultColumn = fieldsToFilter?.value?.find((col) => {
+      return !isSystemColumn(col)
+    })
+
+    const filter: ColumnFilterType = {
+      tmp_id: getDraftFilterId(),
       comparison_op: comparisonOpList(options.value?.[0].uidt as UITypes).filter((compOp) =>
         isComparisonOpAllowed({ fk_column_id: options.value?.[0].id }, compOp),
       )?.[0]?.value as FilterType['comparison_op'],
@@ -228,6 +244,7 @@ export function useViewFilters(
           return !isSystemColumn(col)
         })?.[0]?.id ?? undefined,
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
+      order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
     }
   }
 
@@ -235,10 +252,12 @@ export function useViewFilters(
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
 
     return {
+      tmp_id: getDraftFilterId(),
       is_group: true,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
+      order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
     }
   }
 
@@ -255,7 +274,7 @@ export function useViewFilters(
       if (filter.id && filter.is_group) {
         // Load children filters from the backend
         const childFilterPromise = $api.dbTableFilter.childrenRead(filter.id).then((response) => {
-          const childFilters = response.list as ColumnFilterType[]
+          const childFilters = (response.list as ColumnFilterType[]).sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
           allChildFilters.push(...childFilters)
           return loadAllChildFilters(childFilters)
         })
@@ -400,44 +419,76 @@ export function useViewFilters(
 
   const saveOrUpdateDebounced = useCachedDebouncedFunction(saveOrUpdate, 500, (_filter: ColumnFilterType, i: number) => i)
 
-  async function saveOrUpdate(filter: ColumnFilterType, i: number, force = false, undo = false, skipDataReload = false) {
+  async function saveOrUpdate(
+    filter: ColumnFilterType,
+    i: number,
+    force = false,
+    undo = false,
+    skipDataReload = false,
+    lastFilterIndex: number | undefined = undefined,
+  ) {
     // if already in progress the debounced function which will call this function again with 500ms delay until it's not saving
     if (savingStatus[i]) {
-      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
+      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload, lastFilterIndex)
     }
     // wait if any previous filter save is in progress, it's to avoid messing up the order of filters
     else if (Array.from({ length: i }).some((_, index) => savingStatus[index])) {
-      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload)
+      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload, lastFilterIndex)
     }
     savingStatus[i] = true
+    if (ncIsUndefined(lastFilterIndex)) {
+      lastFilterIndex = i
+    }
 
     if (!view.value && !linkColId?.value && !widgetId?.value) return
 
     if (!undo && !(isForm.value && !isWebhook)) {
-      const lastFilter = lastFilters.value[i]
+      const lastFilter = lastFilters.value[lastFilterIndex]
+
       if (lastFilter) {
-        const delta = clone(getFieldDelta(filter, lastFilter))
-        if (Object.keys(delta).length > 0) {
+        const delta = clone(getFieldDelta(filter, lastFilter)) as Partial<ColumnFilterType>
+        const keys = Object.keys(delta)
+
+        if (keys.length > 0) {
+          // Define extra keys to track
+          const extraKeys = ['value', 'order', 'logical_op']
+
+          // Always include the 0th key + any of the extra ones present
+          const targetKeys = Array.from(
+            new Set([
+              keys[0], // backward compat
+              ...keys.filter((k) => extraKeys.includes(k)), // allowed extras
+            ]),
+          )
+
+          const undoChanges = Object.fromEntries(targetKeys.map((k) => [k, delta[k as keyof ColumnFilterType]]))
+          const redoChanges = Object.fromEntries(targetKeys.map((k) => [k, filter[k as keyof ColumnFilterType]]))
+
           addUndo({
             undo: {
-              fn: (prop: string, data: any) => {
-                const f = filters.value[i]
+              fn: (changes: Partial<ColumnFilterType>, index: number) => {
+                const f = filters.value[index]
+
                 if (f) {
-                  f[prop as keyof ColumnFilterType] = data
-                  saveOrUpdate(f, i, force, true)
+                  for (const [prop, val] of Object.entries(changes)) {
+                    f[prop as keyof ColumnFilterType] = val
+                  }
+                  saveOrUpdate(f, index, force, true)
                 }
               },
-              args: [Object.keys(delta)[0], Object.values(delta)[0]],
+              args: [undoChanges, i],
             },
             redo: {
-              fn: (prop: string, data: any) => {
-                const f = filters.value[i]
+              fn: (changes: Partial<ColumnFilterType>, index: number) => {
+                const f = filters.value[index]
                 if (f) {
-                  f[prop as keyof ColumnFilterType] = data
-                  saveOrUpdate(f, i, force, true)
+                  for (const [prop, val] of Object.entries(changes)) {
+                    f[prop as keyof ColumnFilterType] = val
+                  }
+                  saveOrUpdate(f, index, force, true)
                 }
               },
-              args: [Object.keys(delta)[0], filter[Object.keys(delta)[0] as keyof ColumnFilterType]],
+              args: [redoChanges, lastFilterIndex],
             },
             scope: defineViewScope({ view: activeView.value }),
           })
@@ -447,7 +498,7 @@ export function useViewFilters(
     try {
       if (nestedMode.value) {
         filters.value[i] = { ...filter }
-        filters.value = [...filters.value]
+        filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
       } else if (!autoApply?.value && !force) {
         filter.status = filter.id ? 'update' : 'create'
       } else if (filters.value[i]?.id && filters.value[i]?.status !== 'create') {
@@ -458,10 +509,15 @@ export function useViewFilters(
         $e('a:filter:update', {
           logical: filter.logical_op,
           comparison: filter.comparison_op,
+          order: filter.order,
           link: !!isLink,
           widget: !!isWidget,
           webHook: !!isWebhook,
         })
+
+        if (undo) {
+          filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
+        }
       } else {
         if (linkColId?.value) {
           const savedFilter = await $api.dbTableLinkFilter.create(linkColId.value, {
@@ -502,6 +558,8 @@ export function useViewFilters(
             id: savedFilter.id,
             status: undefined,
           }
+
+          filters.value = filters.value.sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
         }
         if (!isLink && !isWebhook && !isWidget) allFilters.value.push(filters.value[+i] as FilterType)
       }
@@ -559,7 +617,7 @@ export function useViewFilters(
     // if shared or sync permission not allowed simply remove it from array
     if (nestedMode.value) {
       filters.value.splice(i, 1)
-      filters.value = [...filters.value]
+      filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
       if (!isWebhook && !isLink && !isWidget) reloadData?.()
     } else {
       if (filter.id) {
@@ -626,6 +684,7 @@ export function useViewFilters(
 
   const addFilterGroup = async () => {
     const child = placeholderFilter()
+    child.order = 1
 
     const placeHolderGroupFilter: ColumnFilterType = placeholderGroupFilter()
 
@@ -708,6 +767,7 @@ export function useViewFilters(
       const index = filters.value.findIndex((f) => f.id === payload.id)
       if (index !== -1) {
         filters.value[index] = payload
+        filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
       }
 
       const allIndex = allFilters.value.findIndex((f) => f.id === payload.id)
@@ -737,6 +797,7 @@ export function useViewFilters(
 
   return {
     filters,
+    lastFilters,
     nonDeletedFilters,
     loadFilters,
     sync,

@@ -125,7 +125,7 @@ const onDeleteConfirm = async () => {
   try {
     await $api.user.delete()
 
-    userLocalStorageInfoManager.clearUser(user.value?.id!)
+    userLocalStorageInfoManager.clearUser(user.value?.id)
 
     message.success('Account deleted. See you later!')
     await signOut({

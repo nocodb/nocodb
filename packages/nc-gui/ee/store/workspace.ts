@@ -786,18 +786,27 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
       )) as TeamMemberV3ResponseV3Type[]
 
+      if (!addedMembers) return []
+
       if (editTeamDetails.value && ncIsArray(addedMembers)) {
         editTeamDetails.value.members = [...(editTeamDetails.value.members || []), ...addedMembers]
       }
 
       if (teamsMap.value[teamId]) {
+        const addedOwners = addedMembers
+          .filter(
+            (member) =>
+              member.team_role === TeamUserRoles.OWNER && !(teamsMap.value[teamId]?.managers || []).includes(member.user_id),
+          )
+          .map((m) => m.user_id)
+
         teams.value = teams.value.map((team) =>
           team.id === teamId
             ? {
                 ...team,
                 members_count: (team.members_count || 0) + addedMembers.length,
-                managers_count:
-                  (team.managers_count || 0) + addedMembers.filter((member) => member.team_role === TeamUserRoles.OWNER).length,
+                managers_count: (team.managers_count || 0) + addedOwners.length,
+                managers: [...(team.managers || []), ...addedOwners],
               }
             : team,
         )
@@ -830,27 +839,30 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
       )) as TeamMembersRemoveV3ReqV3Type[]
 
+      if (!removedMembers) return []
+
       if (editTeamDetails.value && ncIsArray(removedMembers)) {
         editTeamDetails.value.members = (editTeamDetails.value.members || []).filter(
           (member) => !removedMembers.find((rm) => rm.user_id === member.user_id),
         )
-
-        if (teamsMap.value[teamId]) {
-          teams.value = teams.value.map((team) =>
-            team.id === teamId
-              ? {
-                  ...team,
-                  members_count: editTeamDetails.value?.members?.length || 0,
-                  managers_count: (editTeamDetails.value?.members || []).filter(
-                    (member) => member.team_role === TeamUserRoles.OWNER,
-                  ).length,
-                }
-              : team,
-          )
-        }
       }
 
-      return removedMembers || []
+      if (teamsMap.value[teamId]) {
+        const teamOwners = (teamsMap.value[teamId]?.managers || []).filter((m) => !removedMembers.some((rm) => rm.user_id === m))
+
+        teams.value = teams.value.map((team) =>
+          team.id === teamId
+            ? {
+                ...team,
+                members_count: team.members_count - removedMembers.length,
+                managers_count: teamOwners.length,
+                managers: teamOwners,
+              }
+            : team,
+        )
+      }
+
+      return removedMembers
     } catch (e: any) {
       console.error('Failed to remove members', e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -890,13 +902,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       }
 
       if (teamsMap.value[teamId]) {
+        const teamOwners = editTeamDetails.value
+          ? (editTeamDetails.value?.members || [])
+              .filter((member) => member.team_role === TeamUserRoles.OWNER)
+              .map((m) => m.user_id)
+          : teamsMap.value[teamId]?.managers || []
+
         teams.value = teams.value.map((team) =>
           team.id === teamId
             ? {
                 ...team,
-                managers_count: editTeamDetails.value
-                  ? (editTeamDetails.value.members || []).filter((member) => member.team_role === TeamUserRoles.OWNER).length
-                  : team.managers_count,
+                managers_count: teamOwners.length,
+                managers: teamOwners,
               }
             : team,
         )

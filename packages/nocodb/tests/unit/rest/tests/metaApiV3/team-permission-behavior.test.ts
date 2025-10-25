@@ -530,7 +530,8 @@ export default function () {
           .set('xc-auth', testUserToken)
           .expect(200);
 
-        expect(userWithRoles.body.base_roles).to.be.null;
+        expect(userWithRoles.body.base_roles?.[ProjectRoles.NO_ACCESS]).to.be
+          .true;
       });
     });
 

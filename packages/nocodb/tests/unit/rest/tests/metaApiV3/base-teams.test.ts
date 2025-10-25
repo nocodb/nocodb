@@ -569,10 +569,16 @@ export default function () {
       );
 
       // Verify team is removed from base
-      await request(context.app)
+      const baseTeam = await request(context.app)
         .get(`/api/v3/meta/bases/${baseId}/invites/${teamId}`)
         .set('xc-token', context.xc_token)
-        .expect(400);
+        .expect(200);
+
+      expect(baseTeam.body).to.be.an('object');
+      expect(baseTeam.body.base_role).to.be.null;
+      expect(baseTeam.body.workspace_role).to.be.equal(
+        WorkspaceUserRoles.NO_ACCESS,
+      );
     });
 
     it('Remove Team from Base v3 - Not Found', async () => {
@@ -809,7 +815,7 @@ export default function () {
 
       expect(baseTeam).to.exist;
       expect(baseTeam.base_role).to.equal(ProjectRoles.CREATOR);
-      expect(baseTeam.workspace_role).to.be.null;
+      expect(baseTeam.workspace_role).to.be.equal(WorkspaceUserRoles.NO_ACCESS);
 
       expect(workspaceTeam1).to.exist;
       expect(workspaceTeam1.base_role).to.be.null;
@@ -1020,7 +1026,9 @@ export default function () {
 
       expect(baseOnlyTeam).to.exist;
       expect(baseOnlyTeam.base_role).to.equal(ProjectRoles.VIEWER);
-      expect(baseOnlyTeam.workspace_role).to.be.null;
+      expect(baseOnlyTeam.workspace_role).to.be.equal(
+        WorkspaceUserRoles.NO_ACCESS,
+      );
 
       expect(workspaceOnlyTeam).to.exist;
       expect(workspaceOnlyTeam.base_role).to.be.null;
@@ -1087,6 +1095,78 @@ export default function () {
         'workspace_role',
         WorkspaceUserRoles.CREATOR,
       );
+    });
+
+    it('Add Team to Base v3 - Auto Add to Workspace with No Access', async () => {
+      // Create a team but don't assign it to workspace
+      const createData = {
+        title: 'New Team for Auto Add',
+        icon: '🚀',
+        badge_color: '#FF0000',
+      };
+
+      const createTeam = await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+        .set('xc-token', context.xc_token)
+        .send(createData)
+        .expect(200);
+
+      const teamId = createTeam.body.id;
+
+      // Verify team is not assigned to workspace yet
+      const workspaceTeamsBefore = await request(context.app)
+        .get(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      const workspaceTeamBefore = workspaceTeamsBefore.body.list.find(
+        (team) => team.team_id === teamId,
+      );
+      expect(workspaceTeamBefore).to.be.undefined;
+
+      // Add team to base - this should automatically add it to workspace with "no access"
+      const addData = {
+        team_id: teamId,
+        base_role: ProjectRoles.EDITOR,
+      };
+
+      const addResponse = await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .send(addData)
+        .expect(200);
+
+      _validateBaseTeam(addResponse.body, {
+        team_id: teamId,
+        base_role: ProjectRoles.EDITOR,
+      });
+
+      // Verify team is now assigned to workspace with "no access" role
+      const workspaceTeamsAfter = await request(context.app)
+        .get(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      const workspaceTeamAfter = workspaceTeamsAfter.body.list.find(
+        (team) => team.team_id === teamId,
+      );
+      expect(workspaceTeamAfter).to.exist;
+      expect(workspaceTeamAfter).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.NO_ACCESS,
+      );
+
+      // Verify team is also assigned to base
+      const baseTeams = await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      const baseTeam = baseTeams.body.list.find(
+        (team) => team.team_id === teamId,
+      );
+      expect(baseTeam).to.exist;
+      expect(baseTeam).to.have.property('base_role', ProjectRoles.EDITOR);
     });
   });
 }

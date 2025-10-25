@@ -8,6 +8,7 @@ import { Reflector } from '@nestjs/core';
 import {
   CloudOrgUserRoles,
   extractRolesObj,
+  isServiceUser,
   NcApiVersion,
   OrgUserRoles,
   PlanFeatureTypes,
@@ -732,10 +733,12 @@ export class AclMiddleware implements NestInterceptor {
 
     // if workspace associated to SSO, then only allow the workspace owner
     // to access the workspace without sso login
+    // Skip SSO check for service users (automation, sync, etc.)
     if (
       req.ncWorkspaceId &&
       !req.user?.workspace_roles?.[WorkspaceUserRoles.OWNER] &&
       !req.user?.extra?.workspace_id &&
+      !isServiceUser(req.user) &&
       (await checkIfWorkspaceSSOAvail(req.ncWorkspaceId, false))
     ) {
       const ssoClient = (
@@ -760,10 +763,12 @@ export class AclMiddleware implements NestInterceptor {
 
     // if org associated to SSO, then only allow the org owner
     // to access the org without sso login
+    // Skip SSO check for service users (automation, sync, etc.)
     if (
       req.ncOrgId &&
       !req.user?.org_roles?.[CloudOrgUserRoles.OWNER] &&
       !req.user?.extra?.org_id &&
+      !isServiceUser(req.user) &&
       (await checkIfOrgSSOAvail(req.ncOrgId, false))
     ) {
       const ssoClient = (

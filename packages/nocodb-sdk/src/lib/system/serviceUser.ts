@@ -20,4 +20,13 @@ const isAutomationUser = (user: any) => {
   );
 };
 
-export { NOCO_SERVICE_USERS, isAutomationUser };
+const isServiceUser = (user: any) => {
+  if (!user) return false;
+
+  return Object.values(NOCO_SERVICE_USERS).some(
+    (serviceUser) =>
+      user.email === serviceUser.email || user.id === serviceUser.id
+  );
+};
+
+export { NOCO_SERVICE_USERS, isAutomationUser, isServiceUser };

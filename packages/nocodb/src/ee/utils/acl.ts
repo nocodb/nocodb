@@ -605,7 +605,6 @@ const rolePermissions:
     exclude: {
       createBase: true,
       manageSnapshots: true,
-      viewSettingOverride: true,
     },
   },
   [ProjectRoles.OWNER]: {

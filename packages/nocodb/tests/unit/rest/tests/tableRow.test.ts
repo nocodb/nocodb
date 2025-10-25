@@ -394,7 +394,7 @@ function tableStaticTest() {
 
       // Check file content
       expect(fileResponse.headers['content-disposition']).to.include(
-        `${customerTable.title} (Default View).csv`,
+        `${customerTable.title} (Customer).csv`,
       );
       expect(fileResponse.headers['content-type']).to.include('text/csv');
       expect(fileResponse.text).to.be.a('string').and.not.empty;

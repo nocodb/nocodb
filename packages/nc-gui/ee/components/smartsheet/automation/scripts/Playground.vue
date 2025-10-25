@@ -126,13 +126,16 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   >
     <div
       v-if="isRunningState || isFinishedState || playgroundData.length > 0"
-      class="flex mx-auto flex-col max-w-130 gap-6"
+      class="flex mx-auto playground-wrapper flex-col gap-6"
       :class="[{ 'pb-40': !compact, 'pb-4': compact }]"
     >
       <div
         v-for="(item, index) in playgroundData"
         :key="index"
         class="playground-item"
+        :class="{
+          'overflow-y-auto': item.type === 'table',
+        }"
         :data-testid="`nc-playground-item-${item.type}`"
       >
         <template v-if="item.type === 'workflow-step'">
@@ -343,6 +346,14 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   height: calc(100svh - var(--topbar-height) - var(--footer-height));
 }
 
+.playground-wrapper {
+  @media not print {
+    @apply max-w-130;
+  }
+  @media print {
+    @apply max-w-180;
+  }
+}
 :deep(.vjs-tree) {
   .vjs-tree-node:hover {
     @apply !bg-nc-bg-gray-light;
@@ -369,7 +380,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   }
 
   tbody {
-    @apply bg-white;
+    @apply bg-nc-bg-default;
     tr {
       td {
         @apply border-r-1 border-t-1 last:rounded-br-lg first:rounded-bl-lg last:border-r-0 border-nc-border-gray-medium;
@@ -379,7 +390,9 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
 }
 
 .workflow-step-card {
-  @apply shadow-sm;
+  @media not print {
+    @apply shadow-sm;
+  }
 }
 
 .step-header {

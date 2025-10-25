@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { hasInputCalls, NOCO_SERVICE_USERS } from 'nocodb-sdk';
+import { hasInputCalls, NOCO_SERVICE_USERS, ServiceUserType } from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
 import { v4 as uuidv4 } from 'uuid';
 import type { AxiosResponse } from 'axios';
@@ -577,11 +577,11 @@ export class WebhookInvoker {
                 conditions: JSON.stringify(filters),
               },
               req: {
-                user: NOCO_SERVICE_USERS.AUTOMATION_USER,
+                user: NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER],
                 headers: {
                   'xc-auth': genJwt(
                     {
-                      ...NOCO_SERVICE_USERS.AUTOMATION_USER,
+                      ...NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER],
                       extra: {
                         context: {
                           ...context,

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NOCO_SERVICE_USERS, SyncTrigger } from 'nocodb-sdk';
+import { NOCO_SERVICE_USERS, ServiceUserType, SyncTrigger } from 'nocodb-sdk';
 import { SyncModuleService } from '~/integrations/sync/module/services/sync.service';
 import Noco from '~/Noco';
 import { Base, SyncConfig } from '~/models';
@@ -40,7 +40,7 @@ export class SyncModuleSyncScheduleProcessor {
         syncConfigId: syncConfig.id,
         bulk: true,
         req: {
-          user: NOCO_SERVICE_USERS.SYNC_USER,
+          user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
         } as any,
       });
 

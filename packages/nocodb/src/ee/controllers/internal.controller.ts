@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
-import { isAutomationUser } from 'nocodb-sdk';
+import { isServiceUser, ServiceUserType } from 'nocodb-sdk';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { DashboardsService } from '~/services/dashboards.service';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
@@ -421,7 +421,7 @@ export class InternalController extends InternalControllerCE {
         return await this.actionsService.triggerAction(context, payload, req);
 
       case 'sendEmail':
-        if (!isAutomationUser(req.user)) {
+        if (!isServiceUser(req.user, ServiceUserType.AUTOMATION_USER)) {
           NcError.notFound('Operation');
         }
         return await this.mailService.sendMailRaw(payload);

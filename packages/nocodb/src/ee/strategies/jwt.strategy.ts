@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
-import { NOCO_SERVICE_USERS, ProjectRoles } from 'nocodb-sdk';
+import { NOCO_SERVICE_USERS, ProjectRoles, ServiceUserType } from 'nocodb-sdk';
 import { User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
 import { NcError } from '~/helpers/catchError';
@@ -23,7 +23,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     )
       return jwtPayload;
 
-    if (jwtPayload?.email === NOCO_SERVICE_USERS.AUTOMATION_USER.email) {
+    if (
+      jwtPayload?.email ===
+      NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER].email
+    ) {
       // Avoid service user to get access to other workspaces and bases
       if (
         !jwtPayload?.context?.workspace_id ||

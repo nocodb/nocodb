@@ -1,23 +1,39 @@
+const ServiceUserType = {
+  AUTOMATION_USER: 'AUTOMATION_USER',
+  SYNC_USER: 'SYNC_USER',
+} as const;
+
 const NOCO_SERVICE_USERS = {
-  AUTOMATION_USER: {
+  [ServiceUserType.AUTOMATION_USER]: {
     id: 'usrautomation',
     email: 'automation@nocodb.com',
     display_name: 'NocoDB Automation',
     email_verified: true,
   },
-  SYNC_USER: {
+  [ServiceUserType.SYNC_USER]: {
     id: 'usrsync',
     email: 'sync-service@nocodb.com',
     display_name: 'NocoDB Sync',
     email_verified: true,
   },
-};
+} as const;
 
-const isAutomationUser = (user: any) => {
-  return (
-    user.email === NOCO_SERVICE_USERS.AUTOMATION_USER.email ||
-    user.id === NOCO_SERVICE_USERS.AUTOMATION_USER.id
+type ServiceUserKey = keyof typeof NOCO_SERVICE_USERS;
+
+const isServiceUser = (user: any, serviceType?: ServiceUserKey): boolean => {
+  if (!user) return false;
+
+  // If specific service type is provided, check against that service user only
+  if (serviceType) {
+    const serviceUser = NOCO_SERVICE_USERS[serviceType];
+    return user?.email === serviceUser.email || user?.id === serviceUser.id;
+  }
+
+  // Otherwise, check against all service users
+  return Object.values(NOCO_SERVICE_USERS).some(
+    (serviceUser) =>
+      user?.email === serviceUser.email || user?.id === serviceUser.id
   );
 };
 
-export { NOCO_SERVICE_USERS, isAutomationUser };
+export { ServiceUserType, NOCO_SERVICE_USERS, isServiceUser };

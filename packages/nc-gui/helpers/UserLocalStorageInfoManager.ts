@@ -1,9 +1,9 @@
 import { useStorage } from '@vueuse/core'
-import type { GroupKeysStorage } from '#imports'
+import { isEeUI } from '#imports'
 
 export interface WorkspaceSettings {
   data: {
-    showOtherUserPersonalViews: boolean
+    showOtherUserPersonalViews?: boolean
     // any other ws level keys we can store here
     [key: string]: any
   }
@@ -30,6 +30,8 @@ export class UserLocalStorageInfoManager {
 
   /** Cleanup expired workspace settings */
   private cleanExpired(): void {
+    if (!isEeUI) return
+
     const now = Date.now()
     const data = this.storage.value
 
@@ -52,6 +54,8 @@ export class UserLocalStorageInfoManager {
 
   /** Cleanup local storage workspaces that no longer exist */
   cleanMissingWorkspaces(userId: string, workspaceIds: string[]): void {
+    if (!isEeUI) return
+
     const userWorkspaces = this.storage.value[userId]
     if (!userWorkspaces) return
 
@@ -70,14 +74,16 @@ export class UserLocalStorageInfoManager {
   }
 
   /** Ensure workspace exists for user */
-  private ensureWorkspace(userId: string, workspaceId: string, defaultData: WorkspaceSettings['data'] = this.defaultData): void {
+  private ensureWorkspace(userId: string, workspaceId: string): void {
+    if (!isEeUI) return
+
     if (!userId || !workspaceId) return
 
     if (!this.storage.value[userId]) this.storage.value[userId] = {}
 
     if (!this.storage.value[userId][workspaceId]) {
       this.storage.value[userId][workspaceId] = {
-        data: { ...defaultData },
+        data: {},
         lastAccessed: Date.now(),
       }
     }
@@ -85,24 +91,37 @@ export class UserLocalStorageInfoManager {
 
   /** Update lastAccessed timestamp */
   private touch(userId: string, workspaceId: string): void {
-    if (!userId || !workspaceId) return
+    if (!userId || !workspaceId || !isEeUI) return
 
     if (this.storage.value[userId]?.[workspaceId]) {
       this.storage.value[userId][workspaceId].lastAccessed = Date.now()
+    } else {
+      this.storage.value[userId] = {
+        ...(this.storage.value[userId] || {}),
+        [workspaceId]: {
+          data: {},
+          lastAccessed: Date.now(),
+        },
+      }
     }
   }
 
   /** Get a workspace-level key */
   get(userId: string, workspaceId: string, key: keyof WorkspaceSettings['data'], defaultValue: any = null): any {
-    if (!userId || !workspaceId) return defaultValue
+    if (!userId || !workspaceId || !isEeUI) return defaultValue
 
     this.touch(userId, workspaceId)
-    return this.storage.value[userId]?.[workspaceId]?.data[key] ?? defaultValue
+
+    if (defaultValue !== null && ncIsUndefined(this.storage.value[userId]![workspaceId]!.data[key])) {
+      this.storage.value[userId]![workspaceId]!.data[key] = defaultValue
+    }
+
+    return this.storage.value[userId]![workspaceId]!.data[key]
   }
 
   /** Set a workspace-level key */
   set(userId: string, workspaceId: string, key: string, value: any): void {
-    if (!userId || !workspaceId || !key) return
+    if (!userId || !workspaceId || !key || !isEeUI) return
 
     this.ensureWorkspace(userId, workspaceId)
     this.storage.value[userId]![workspaceId]!.data[key] = value
@@ -111,7 +130,7 @@ export class UserLocalStorageInfoManager {
 
   /** Clear workspace for user */
   clearWorkspace(userId: string, workspaceId: string): void {
-    if (!userId || !workspaceId) return
+    if (!userId || !workspaceId || !isEeUI) return
 
     if (this.storage.value[userId]?.[workspaceId]) {
       delete this.storage.value[userId][workspaceId]
@@ -120,7 +139,7 @@ export class UserLocalStorageInfoManager {
 
   /** Clear all data for a user */
   clearUser(userId: string): void {
-    if (!userId) return
+    if (!userId || !isEeUI) return
 
     if (this.storage.value[userId]) {
       delete this.storage.value[userId]

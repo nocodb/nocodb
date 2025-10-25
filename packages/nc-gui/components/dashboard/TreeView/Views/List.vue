@@ -40,7 +40,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { viewsByTable, activeView, allRecentViews } = storeToRefs(useViewsStore())
+const { viewsByTable, activeView, allRecentViews, isShowEveryonePersonalViewsEnabled } = storeToRefs(useViewsStore())
 
 const views = computed(() => viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? [])
 
@@ -50,7 +50,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()
 
-const { navigateToView, loadViews } = useViewsStore()
+const { navigateToView, loadViews, isUserViewOwner } = useViewsStore()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -379,7 +379,15 @@ function onOpenModal({
 }
 
 const filteredViews = computed(() => {
-  return views.value.filter((view) => searchCompare(view.title, baseHomeSearchQuery.value))
+  return views.value.filter((view) => {
+    if (isShowEveryonePersonalViewsEnabled.value) {
+      return searchCompare(view.title, baseHomeSearchQuery.value)
+    }
+
+    const isPersonalViewOwner = activeView.value?.id === view.id || view?.lock_type !== LockType.Personal || isUserViewOwner(view)
+
+    return searchCompare(view.title, baseHomeSearchQuery.value) && isPersonalViewOwner
+  })
 })
 </script>
 

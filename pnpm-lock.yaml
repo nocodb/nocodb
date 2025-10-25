@@ -11458,7 +11458,6 @@ packages:
   eslint-plugin-markdown@3.0.1:
     resolution: {integrity: sha512-8rqoc148DWdGdmYF6WSQFT3uQ6PO7zXYgeBpHAOAakX/zpq+NvFYbDA/H7PYzHajwtmaOzAwfxyl++x0g1/N9A==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    deprecated: Please use @eslint/markdown instead
     peerDependencies:
       eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
 
@@ -16844,7 +16843,6 @@ packages:
 
   request-filtering-agent@1.1.2:
     resolution: {integrity: sha512-v6uYIoey6rhe+nQXB5rlYEWJI+5SrnvM72XGeLUsykzu2omOEPoW4QmzEH+8/sheK4M/hwQ85L7aPj1cTJfPLg==}
-    deprecated: This version is not maintain. Please upgrade to the latest version.
 
   request-ip@3.3.0:
     resolution: {integrity: sha512-cA6Xh6e0fDBBBwH77SLJaJPBmD3nWVAcF9/XAcsrIHdjhFzFiB5aNQFytdjCGPezU3ROwrR11IddKAM08vohxA==}

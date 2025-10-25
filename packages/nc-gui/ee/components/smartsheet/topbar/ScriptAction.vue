@@ -50,52 +50,47 @@ const hasPrintableContent = computed(() => {
         >
           <div class="flex gap-2 items-center">
             <GeneralIcon v-if="!isGenerating" icon="ncPrinter" />
-            {{ isGenerating ? 'Generating PDF...' : 'Print' }}
+            {{ isGenerating ? $t('labels.generatingPDF') : $t('labels.print') }}
           </div>
         </NcButton>
         <template #title>
-          {{ isGenerating ? 'Generating PDF...' : 'Run the script first to print output' }}
+          {{ isGenerating ? $t('labels.generatingPDF') : $t('labels.executeScriptToPrint') }}
         </template>
       </NcTooltip>
 
       <template #overlay>
-        <NcMenu class="nc-print-page-size-menu">
-          <div class="px-3 py-2 text-xs font-semibold text-nc-content-gray-subtle mb-1 border-b border-nc-border-gray-medium">
-            Page Size
-          </div>
+        <NcMenu variant="small" class="nc-print-page-size-menu">
+          <NcMenuItemLabel> {{ $t('labels.pageSize') }} </NcMenuItemLabel>
           <NcMenuItem v-for="pageSize in pageSizes" :key="pageSize.type" class="!py-2" @click="selectedPageSize = pageSize.type">
             <div class="flex items-center justify-between w-full gap-2">
               <span class="text-sm">{{ pageSize.type }}</span>
               <GeneralIcon v-if="selectedPageSize === pageSize.type" icon="check" class="text-nc-content-brand" />
             </div>
           </NcMenuItem>
-
-          <div
-            class="px-3 py-2 text-xs font-semibold text-nc-content-gray-subtle mb-1 mt-1 border-t border-b border-nc-border-gray-medium"
-          >
-            Orientation
-          </div>
+          <NcDivider />
+          <NcMenuItemLabel> {{ $t('labels.orientation') }} </NcMenuItemLabel>
           <NcMenuItem
             v-for="orientation in orientations"
             :key="orientation.type"
             class="!py-2"
             @click="selectedOrientation = orientation.type"
           >
-            <div class="flex items-center justify-between w-full gap-2">
-              <span class="text-sm">{{ orientation.type }}</span>
+            <div class="flex items-center flex-1 justify-between w-full gap-2">
+              <span class="text-sm w-full flex-1">{{ orientation.type }}</span>
               <GeneralIcon v-if="selectedOrientation === orientation.type" icon="check" class="text-nc-content-brand" />
             </div>
           </NcMenuItem>
+          <NcDivider />
 
-          <div class="border-t !pt-1 mt-1 border-nc-border-gray-medium">
-            <NcMenuItem class="!py-2" @click="handlePrint">
-              <div class="flex items-center gap-2 text-nc-content-brand">
-                <GeneralLoader v-if="isGenerating" />
-                <GeneralIcon v-else icon="ncPrinter" />
-                <span class="text-sm font-semibold">Generate PDF</span>
-              </div>
-            </NcMenuItem>
-          </div>
+          <NcMenuItem @click="handlePrint">
+            <div class="flex items-center gap-2 text-nc-content-brand">
+              <GeneralLoader v-if="isGenerating" />
+              <GeneralIcon v-else icon="ncPrinter" />
+              <span class="text-sm font-semibold">
+                {{ $t('labels.generatePDF') }}
+              </span>
+            </div>
+          </NcMenuItem>
         </NcMenu>
       </template>
     </NcDropdown>
@@ -150,5 +145,9 @@ const hasPrintableContent = computed(() => {
 <style scoped lang="scss">
 .nc-print-page-size-menu {
   min-width: 240px;
+}
+
+:deep(.nc-menu-item-inner) {
+  @apply w-full;
 }
 </style>

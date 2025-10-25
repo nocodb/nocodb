@@ -998,6 +998,12 @@
     "changeWorkspaceRoleTo": "Change Workspace Role to"
   },
   "labels": {
+    "generatePDF": "Generate PDF",
+    "orientation": "Orientation",
+    "pageSize": "Page Size",
+    "executeScriptToPrint": "Run the script first to print output",
+    "print": "Print",
+    "generatingPDF": "Generating PDF...",
     "activeMcpServersLabel": "View and manage your active Model Context Protocol servers across all bases",
     "activeMcpServers": "Active MCP Servers",
     "hideEditor": "Hide Editor",

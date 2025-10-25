@@ -182,7 +182,7 @@ export class ViewSidebarPage extends BasePage {
     await expect(
       this.get()
         .locator(`[data-testid="view-sidebar-view-${title}"]`)
-        .locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+        .locator(`.nc-view-icon-parent:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 

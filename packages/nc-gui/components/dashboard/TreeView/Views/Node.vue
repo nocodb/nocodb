@@ -336,7 +336,7 @@ watch(isDropdownOpen, async () => {
           @mouseleave="showViewNodeTooltip = true"
         >
           <LazyGeneralEmojiPicker
-            class="nc-table-icon"
+            class="nc-view-icon-parent"
             :emoji="props.view?.meta?.icon"
             size="small"
             :clearable="true"

@@ -26,6 +26,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 
+// Note: temporary controller for v3 base teams API, these paths will change in future
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class BaseTeamsV3Controller {

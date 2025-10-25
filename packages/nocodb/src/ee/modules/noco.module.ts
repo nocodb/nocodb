@@ -49,11 +49,11 @@ import { TeamsV3Controller } from '~/controllers/v3/teams-v3.controller';
 import { TeamsV3Service } from '~/ee/services/v3/teams-v3.service';
 
 /* Workspace Teams V3 */
-import { WorkspaceTeamsV3Controller } from '~/ee/controllers/v3/workspace-teams-v3.controller';
+// import { WorkspaceTeamsV3Controller } from '~/ee/controllers/v3/workspace-teams-v3.controller';
 import { WorkspaceTeamsV3Service } from '~/ee/services/v3/workspace-teams-v3.service';
 
 /* Base Teams V3 */
-import { BaseTeamsV3Controller } from '~/ee/controllers/v3/base-teams-v3.controller';
+// import { BaseTeamsV3Controller } from '~/ee/controllers/v3/base-teams-v3.controller';
 import { BaseTeamsV3Service } from '~/ee/services/v3/base-teams-v3.service';
 
 /* Snapshot */
@@ -146,16 +146,16 @@ export const nocoModuleEeMetadata = {
     /* Teams V3 */
     TeamsV3Controller,
 
-    /* Workspace Teams V3 */
-    WorkspaceTeamsV3Controller,
-
-    /* Base Teams V3 */
-    BaseTeamsV3Controller,
-
     /* Snapshot */
     SnapshotController,
 
     BaseMembersV3Controller,
+
+    // NOTE: COMMENTED OUT FOR NOW - ONLY USED FOR TESTING PURPOSES
+    // /* Workspace Teams V3 */
+    // WorkspaceTeamsV3Controller,
+    // /* Base Teams V3 */
+    // BaseTeamsV3Controller,
 
     ...nocoModuleMetadata.controllers,
   ],

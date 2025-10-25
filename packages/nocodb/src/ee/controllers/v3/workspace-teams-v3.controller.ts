@@ -17,15 +17,16 @@ import type {
   WorkspaceTeamListV3Type,
   WorkspaceTeamUpdateV3ReqType,
   WorkspaceTeamV3ResponseType,
-} from '~/ee/services/v3/workspace-teams-v3.types';
+} from '~/services/v3/workspace-teams-v3.types';
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { WorkspaceTeamsV3Service } from '~/ee/services/v3/workspace-teams-v3.service';
+import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 
+// Note: temporary controller for v3 workspace teams API, these paths will change in future
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class WorkspaceTeamsV3Controller {

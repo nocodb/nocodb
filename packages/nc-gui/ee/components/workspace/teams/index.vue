@@ -25,7 +25,7 @@ const { $api } = useNuxtApp()
 const { isUIAllowed } = useRoles()
 
 const hasEditPermission = computed(() => {
-  return isUIAllowed('teamUpdate')
+  return isUIAllowed('teamCreate')
 })
 
 const workspaceStore = useWorkspace()

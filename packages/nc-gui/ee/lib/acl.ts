@@ -106,11 +106,8 @@ const rolePermissions = {
 
       // Teams
       teamCreate: true,
-      teamUpdate: true,
       teamDelete: true,
-      teamUserAdd: true,
-      teamUserRemove: true,
-      teamUserUpdate: true,
+      workspaceTeamAdd: true,
     },
   },
   [WorkspaceUserRoles.EDITOR]: {

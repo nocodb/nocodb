@@ -920,8 +920,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
         },
       )
 
+      const defaultView = getFirstNonPersonalView(views.value, {
+        includeViewType: ViewTypes.GRID,
+      })
+
       if (
-        destView.is_default &&
+        defaultView?.id === destView.id &&
         [ViewSettingOverrideOptions.FIELD_ORDER, ViewSettingOverrideOptions.FIELD_VISIBILITY].some((type) =>
           settingToOverride.includes(type),
         )

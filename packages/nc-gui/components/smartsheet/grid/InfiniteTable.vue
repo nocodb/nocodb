@@ -1962,7 +1962,7 @@ onBeforeUnmount(async () => {
   const viewMetaValue = view.value
   const dataValue = cachedRows.value.values()
   if (viewMetaValue) {
-    getMeta(base.value?.id as string, viewMetaValue.fk_model_id, false, true).then((res) => {
+    getMeta(viewMetaValue.base_id as string, viewMetaValue.fk_model_id, false, true).then((res) => {
       const metaValue = res
       if (!metaValue) return
       saveOrUpdateRecords({

@@ -3866,10 +3866,92 @@
           }
         }
       }
+    },
+    "/api/v2/auth/password/set": {
+      "post": {
+        "summary": "Set Password",
+        "operationId": "auth-password-set",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "description": "Success Message"
+                    }
+                  }
+                },
+                "examples": {
+                  "Success response": {
+                    "value": {
+                      "msg": "Password has been updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Set password of google authenticated user with a new one.",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordSetReq"
+              },
+              "examples": {
+                "example-1": {
+                  "value": {
+                    "password": "newPassword"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
     }
   },
   "components": {
     "schemas": {
+      "PasswordSetReq": {
+        "description": "Model for Password Set Request",
+        "examples": [
+          {
+            "password": "newPassword"
+          }
+        ],
+        "properties": {
+          "password": {
+            "minLength": 8,
+            "maxLength": 128,
+            "type": "string"
+          }
+        },
+        "required": [
+          "password"
+        ],
+        "title": "Password Set Request Model",
+        "type": "object",
+        "x-stoplight": {
+          "id": "wvritsht82jyy"
+        }
+      },
       "BaseDefaultRoleEnum": {
         "description": "Default role for the users from Workspace",
         "oneOf": [{

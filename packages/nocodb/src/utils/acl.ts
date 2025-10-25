@@ -80,6 +80,8 @@ const permissionScopes = {
     'oAuthClientGet',
 
     'mcpRootList',
+
+    'getUserProfile',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -370,6 +372,7 @@ const rolePermissions:
 
       //mcp List Root
       mcpRootList: true,
+      getUserProfile: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

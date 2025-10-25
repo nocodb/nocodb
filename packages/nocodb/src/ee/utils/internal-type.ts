@@ -37,6 +37,18 @@ export type InternalGETResponseType = Promise<
   | {
       data: any;
     }
+  | {
+      user: {
+        id: string;
+        email: string;
+        display_name: string;
+        avatar: string;
+      };
+      accounts: {
+        email: boolean;
+        google: boolean;
+      };
+    }
 >;
 
 export type InternalPOSTResponseType = Promise<

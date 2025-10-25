@@ -174,6 +174,15 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'password_manage',
+    title: 'Password Manage',
+    description: 'Manage user password',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

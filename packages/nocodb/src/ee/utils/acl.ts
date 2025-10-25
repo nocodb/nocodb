@@ -112,6 +112,8 @@ const permissionScopes = {
 
     // mcp
     'mcpRootList',
+
+    'getUserProfile',
   ],
   workspace: [
     'workspaceBaseList',
@@ -362,6 +364,8 @@ const rolePermissions:
 
       // mcp
       mcpRootList: true,
+
+      getUserProfile: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {

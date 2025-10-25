@@ -5,6 +5,12 @@ const { user } = useGlobal()
 
 const { t } = useI18n()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isEnablePasswordManage = computed(() => {
+  return isFeatureEnabled(FEATURE_FLAG.PASSWORD_MANAGE)
+})
+
 const isErrored = ref(false)
 const isProfileUpdating = ref(false)
 
@@ -185,7 +191,7 @@ const onCancel = () => {
 
                   <div class="flex-1 flex flex-col gap-4">
                     <div>
-                      <div class="text-gray-800 mb-2" data-rec="true">{{ $t('general.name') }}</div>
+                      <div class="text-nc-content-gray mb-2" data-rec="true">{{ $t('general.name') }}</div>
                       <a-form-item name="title" :rules="formRules.title" class="!my-0">
                         <a-input
                           v-model:value="form.title"
@@ -196,7 +202,7 @@ const onCancel = () => {
                       </a-form-item>
                     </div>
                     <div>
-                      <div class="text-gray-800 mb-2" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
+                      <div class="text-nc-content-gray mb-2" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
                       <a-input
                         v-model:value="email"
                         class="w-full !rounded-lg !px-4 h-10"
@@ -233,6 +239,7 @@ const onCancel = () => {
               </a-form>
             </div>
           </div>
+          <AccountUpdatePassword v-if="isEnablePasswordManage" />
           <AccountDelete />
         </div>
       </div>

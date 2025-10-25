@@ -24,7 +24,7 @@ export const useRealtime = createSharedComposable(() => {
   const basesStore = useBases()
   const { bases, basesUser } = storeToRefs(basesStore)
 
-  const { setMeta } = useMetas()
+  const { setMeta, getMeta } = useMetas()
   const { tables: _tables, baseId: activeBaseId, base } = storeToRefs(useBase())
 
   const tableStore = useTablesStore()
@@ -55,6 +55,7 @@ export const useRealtime = createSharedComposable(() => {
         const baseObj = bases.value.get(baseId)
         if (baseObj) {
           baseObj.sources!.push(payload)
+          loadProjectTables(baseId, true)
         }
       }
       refreshCommandPalette()
@@ -80,9 +81,26 @@ export const useRealtime = createSharedComposable(() => {
           if (index !== -1) {
             baseObj.sources!.splice(index, 1)
           }
+          loadProjectTables(baseId, true)
         }
       }
       refreshCommandPalette()
+    } else if (event.action === 'source_meta_sync') {
+      const { payload } = event
+      const baseId = payload.base_id
+      if (baseId) {
+        loadProjectTables(baseId, true).then(() => {
+          const tables = baseTables.value.get(activeBaseId.value)
+          for (const table of tables || []) {
+            if (table.id && table.source_id === payload.source_id) {
+              getMeta(table.id, true)
+              break
+            }
+          }
+          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
+          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+        })
+      }
     } else if (event.action === 'table_create') {
       const tables = baseTables.value.get(activeBaseId.value)
       if (!tables) {

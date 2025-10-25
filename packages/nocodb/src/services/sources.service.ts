@@ -57,6 +57,7 @@ export class SourcesService {
     });
 
     source.config = undefined;
+    source.integration_config = undefined;
 
     const integration = await Integration.get(
       context,
@@ -130,6 +131,9 @@ export class SourcesService {
     try {
       const source = await Source.get(context, param.sourceId, false, ncMeta);
       await source.softDelete(context, ncMeta);
+
+      source.config = undefined;
+      source.integration_config = undefined;
 
       NocoSocket.broadcastEvent(
         context,
@@ -249,6 +253,7 @@ export class SourcesService {
       });
 
       source.config = undefined;
+      source.integration_config = undefined;
 
       this.appHooksService.emit(AppEvents.SOURCE_CREATE, {
         source,

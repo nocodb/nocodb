@@ -59,7 +59,7 @@ const hasPrintableContent = computed(() => {
       </NcTooltip>
 
       <template #overlay>
-        <NcMenu variant="small" class="nc-print-page-size-menu">
+        <NcMenu variant="medium" class="nc-print-page-size-menu">
           <NcMenuItemLabel> {{ $t('labels.pageSize') }} </NcMenuItemLabel>
           <NcMenuItem v-for="pageSize in pageSizes" :key="pageSize.type" class="!py-2" @click="selectedPageSize = pageSize.type">
             <div class="flex items-center justify-between w-full gap-2">

@@ -183,6 +183,15 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'show_everyones_personal_views',
+    title: 'Show Everyone\'s Personal Views',
+    description: 'With this feature we can avoid showing other users personal views in left sidebar',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

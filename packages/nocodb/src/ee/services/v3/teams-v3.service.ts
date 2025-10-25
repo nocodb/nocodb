@@ -19,6 +19,7 @@ import type {
   TeamUpdateEvent,
 } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { PaymentService } from '~/ee/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { PrincipalAssignment, Team } from '~/models';
 import { User, Workspace } from '~/models';
@@ -32,7 +33,10 @@ import { getFeature } from '~/helpers/paymentHelpers';
 export class TeamsV3Service {
   protected readonly logger = new Logger(TeamsV3Service.name);
 
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private readonly paymentService: PaymentService,
+  ) {}
 
   /**
    * Validates if the user has access to the Teams API.
@@ -351,6 +355,9 @@ export class TeamsV3Service {
       workspace,
     });
 
+    // Recalculate seat count after team creation
+    await this.paymentService.reseatSubscription(workspace.id);
+
     return response;
   }
 
@@ -460,6 +467,9 @@ export class TeamsV3Service {
       workspace,
     } as TeamUpdateEvent);
 
+    // Recalculate seat count after team update
+    await this.paymentService.reseatSubscription(workspace.id);
+
     return response;
   }
 
@@ -537,6 +547,9 @@ export class TeamsV3Service {
       team,
       workspace,
     } as TeamDeleteEvent);
+
+    // Recalculate seat count after team deletion
+    await this.paymentService.reseatSubscription(workspace.id);
 
     return { msg: 'Team has been deleted successfully' };
   }
@@ -632,6 +645,9 @@ export class TeamsV3Service {
 
       addedMembers.push(assignment);
     }
+
+    // Recalculate seat count after adding team members
+    await this.paymentService.reseatSubscription(workspace.id);
 
     // Transform to v3 response format with email
     const members = await Promise.all(
@@ -748,6 +764,9 @@ export class TeamsV3Service {
       } as TeamMemberDeleteEvent);
     }
 
+    // Recalculate seat count after removing team members
+    await this.paymentService.reseatSubscription(workspace.id);
+
     return removedMembers;
   }
 
@@ -840,6 +859,9 @@ export class TeamsV3Service {
         teamRole: member?.team_role || '', // Include new team role
       } as TeamMemberUpdateEvent);
     }
+
+    // Recalculate seat count after updating team member roles
+    await this.paymentService.reseatSubscription(workspace.id);
 
     // Transform to v3 response format with email
     const members = await Promise.all(

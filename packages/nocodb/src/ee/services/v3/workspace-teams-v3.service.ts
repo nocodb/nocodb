@@ -18,6 +18,7 @@ import type {
   WorkspaceTeamUpdateEvent,
 } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { PaymentService } from '~/ee/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { Base, PrincipalAssignment, Team, User, Workspace } from '~/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
@@ -29,7 +30,10 @@ import { getFeature } from '~/helpers/paymentHelpers';
 export class WorkspaceTeamsV3Service {
   protected readonly logger = new Logger(WorkspaceTeamsV3Service.name);
 
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private readonly paymentService: PaymentService,
+  ) {}
 
   /**
    * Validates if the user has access to the Teams API.
@@ -175,6 +179,9 @@ export class WorkspaceTeamsV3Service {
       role: assignment.roles || '',
     } as WorkspaceTeamInviteEvent);
 
+    // Recalculate seat count after adding team to workspace
+    await this.paymentService.reseatSubscription(workspace.id);
+
     return response;
   }
 
@@ -258,6 +265,9 @@ export class WorkspaceTeamsV3Service {
       team: Array.isArray(param.team) ? results : results[0],
       workspace,
     } as WorkspaceTeamUpdateEvent);
+
+    // Recalculate seat count after updating team roles in workspace
+    await this.paymentService.reseatSubscription(workspace.id);
 
     return Array.isArray(param.team) ? results : results[0];
   }
@@ -363,6 +373,9 @@ export class WorkspaceTeamsV3Service {
         role: existingAssignment.roles || '', // Include the role
       } as WorkspaceTeamDeleteEvent);
     }
+
+    // Recalculate seat count after removing team from workspace
+    await this.paymentService.reseatSubscription(workspace.id);
 
     return { msg: 'Team has been removed from workspace successfully' };
   }

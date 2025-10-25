@@ -19,6 +19,7 @@ import type {
   BaseTeamUpdateEvent,
 } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { PaymentService } from '~/ee/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { Base, PrincipalAssignment, Team, User } from '~/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
@@ -30,7 +31,10 @@ import { getFeature } from '~/helpers/paymentHelpers';
 export class BaseTeamsV3Service {
   protected readonly logger = new Logger(BaseTeamsV3Service.name);
 
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private readonly paymentService: PaymentService,
+  ) {}
 
   /**
    * Validates if the user has access to the Teams API.
@@ -262,6 +266,9 @@ export class BaseTeamsV3Service {
       role: assignment.roles,
     } as BaseTeamInviteEvent);
 
+    // Recalculate seat count after adding team to base
+    await this.paymentService.reseatSubscription(base.fk_workspace_id!);
+
     return response;
   }
 
@@ -378,6 +385,9 @@ export class BaseTeamsV3Service {
       } as BaseTeamUpdateEvent);
     }
 
+    // Recalculate seat count after updating team roles in base
+    await this.paymentService.reseatSubscription(base.fk_workspace_id!);
+
     return Array.isArray(param.team) ? results : results[0];
   }
 
@@ -452,6 +462,9 @@ export class BaseTeamsV3Service {
         role: existingAssignment.roles || '', // Include the role
       } as BaseTeamDeleteEvent);
     }
+
+    // Recalculate seat count after removing team from base
+    await this.paymentService.reseatSubscription(base.fk_workspace_id!);
 
     return { msg: 'Team has been removed from base successfully' };
   }

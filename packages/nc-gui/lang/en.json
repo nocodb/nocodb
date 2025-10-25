@@ -2593,6 +2593,7 @@
       "nCellsCopied": "{n} cells copied"
     },
     "success": {
+      "passwordSet": "Password set successfully",
       "mcpTokenDeleted": "MCP Token Deleted",
       "mcpTokenUpdated": "MCP Token Updated",
       "mcpTokenCreated": "MCP Token Created",
@@ -2632,7 +2633,7 @@
       "webhookTested": "Webhook tested successfully",
       "columnUpdated": "Field updated",
       "columnCreated": "Field created",
-      "passwordChanged": "Password changed successfully. Please login again.",
+      "passwordChanged": "Password changed successfully.",
       "settingsSaved": "Settings saved successfully",
       "roleUpdated": "Role updated successfully",
       "connectionAdded": "Integration connected successfully",

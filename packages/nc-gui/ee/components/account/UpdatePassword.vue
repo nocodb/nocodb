@@ -170,12 +170,13 @@ const onCancel = () => {
         @finish="passwordChange"
       >
         <Transition name="layout">
-          <div v-if="error" class="mb-4 bg-nc-red-500 text-nc-content-gray-extreme rounded-lg p-3">
-            <div class="flex items-center gap-2" data-rec="true">
-              <MaterialSymbolsWarning />
-              {{ error }}
-            </div>
-          </div>
+          <NcAlert
+            v-if="error"
+            type="error"
+            class="mt-3 mb-2"
+            :message="hasEmailAccount ? 'Error occurred while changing password' : 'Error occurred while setting password'"
+            :description="error"
+          />
         </Transition>
 
         <div class="flex flex-col gap-4">

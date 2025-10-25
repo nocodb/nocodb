@@ -900,10 +900,9 @@ export class UsersService extends UsersServiceCE {
         }),
       );
     } catch (error) {
-      if (error instanceof NcError) {
+      if (error instanceof NcError || error instanceof NcBaseError) {
         throw error;
       }
-      console.error(error);
       this.logger.error('Failed to reset password for email user', error);
 
       if (error.name === 'InvalidPasswordException') {
@@ -976,6 +975,7 @@ export class UsersService extends UsersServiceCE {
           Username: user.email,
           UserAttributes: [
             { Name: 'email', Value: user.email },
+            { Name: 'email_verified', Value: 'true' },
             { Name: 'name', Value: user.display_name || user.email },
           ],
           TemporaryPassword: param.password,
@@ -995,10 +995,9 @@ export class UsersService extends UsersServiceCE {
         }),
       );
     } catch (error) {
-      if (error instanceof NcError) {
+      if (error instanceof NcError || error instanceof NcBaseError) {
         throw error;
       }
-      console.error(error);
       this.logger.error(
         'Failed to set password for Google user',
         error?.stack || error,
@@ -1081,7 +1080,6 @@ export class UsersService extends UsersServiceCE {
         accounts,
       };
     } catch (error) {
-      console.error(error);
       this.logger.error('Failed to get user profile', error);
       NcError.internalServerError('Failed to get user profile');
     }

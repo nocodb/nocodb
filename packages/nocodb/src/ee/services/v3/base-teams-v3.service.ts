@@ -219,6 +219,26 @@ export class BaseTeamsV3Service {
       roles: param.team.base_role,
     });
 
+    // Check if team is already assigned to workspace, if not add with "no access"
+    const existingWorkspaceAssignment = await PrincipalAssignment.get(
+      context,
+      ResourceType.WORKSPACE,
+      context.workspace_id,
+      PrincipalType.TEAM,
+      param.team.team_id,
+    );
+
+    if (!existingWorkspaceAssignment) {
+      // Add team to workspace with "no access" role
+      await PrincipalAssignment.insert(context, {
+        resource_type: ResourceType.WORKSPACE,
+        resource_id: context.workspace_id,
+        principal_type: PrincipalType.TEAM,
+        principal_ref_id: param.team.team_id,
+        roles: WorkspaceUserRoles.NO_ACCESS,
+      });
+    }
+
     const meta = parseMetaProp(team);
 
     const response = {

@@ -59,7 +59,7 @@ const handleClick = () => {
                     class="flex items-center text-bodyDefaultSm text-nc-content-gray-muted hover:text-nc-content-gray-subtle2 xs:(text-base px-3.5 mx-0) select-none"
                   >
                     <NcSwitch v-model:checked="isShowEveryonePersonalViewsEnabled" size="xsmall">
-                      {{ $t('labels.showEveryoncesPersonalViews') }}
+                      {{ $t('labels.showEveryonesPersonalViews') }}
                     </NcSwitch>
                   </div>
                 </div>

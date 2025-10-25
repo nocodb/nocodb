@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
-import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { WorkspaceUserRoles } from 'nocodb-sdk';
+import type { ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   BaseTeamCreateV3BulkReqType,

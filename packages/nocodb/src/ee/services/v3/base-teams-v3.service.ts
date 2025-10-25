@@ -26,6 +26,7 @@ import { PrincipalType, ResourceType } from '~/utils/globals';
 import { validatePayload } from '~/helpers';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { getFeature } from '~/helpers/paymentHelpers';
+import { getProjectRolePower } from '~/utils/roleHelper';
 
 @Injectable()
 export class BaseTeamsV3Service {
@@ -201,6 +202,17 @@ export class BaseTeamsV3Service {
       NcError.get(context).teamNotFound(param.team.team_id);
     }
 
+    // Check if current user has sufficient privilege to assign this role
+    if (
+      getProjectRolePower({
+        base_roles: { [param.team.base_role]: true },
+      }) > getProjectRolePower(param.req.user)
+    ) {
+      NcError.get(context).forbidden(
+        `Insufficient privilege to assign team with this role`,
+      );
+    }
+
     // Check if team is already assigned to base
     const existingAssignment = await PrincipalAssignment.get(
       context,
@@ -304,6 +316,17 @@ export class BaseTeamsV3Service {
         NcError.get(context).teamNotFound(team.team_id);
       }
 
+      // Check if current user has sufficient privilege to assign this role
+      if (
+        getProjectRolePower({
+          base_roles: { [team.base_role]: true },
+        }) > getProjectRolePower(param.req.user)
+      ) {
+        NcError.get(context).forbidden(
+          `Insufficient privilege to assign team with this role`,
+        );
+      }
+
       // Check if team is assigned to base
       const existingAssignment = await PrincipalAssignment.get(
         context,
@@ -312,6 +335,19 @@ export class BaseTeamsV3Service {
         PrincipalType.TEAM,
         team.team_id,
       );
+
+      // Check if current user has sufficient privilege to update this team's role
+      if (existingAssignment) {
+        if (
+          getProjectRolePower({
+            base_roles: { [existingAssignment.roles as string]: true },
+          }) > getProjectRolePower(param.req.user)
+        ) {
+          NcError.get(context).forbidden(
+            `Insufficient privilege to update team with this role`,
+          );
+        }
+      }
 
       let updatedAssignment;
 
@@ -429,6 +465,17 @@ export class BaseTeamsV3Service {
       if (!existingAssignment) {
         NcError.get(context).invalidRequestBody(
           `Team ${teamIdObj.team_id} is not assigned to this base`,
+        );
+      }
+
+      // Check if current user has sufficient privilege to remove this team
+      if (
+        getProjectRolePower({
+          base_roles: { [existingAssignment.roles as string]: true },
+        }) > getProjectRolePower(param.req.user)
+      ) {
+        NcError.get(context).forbidden(
+          `Insufficient privilege to remove team with this role`,
         );
       }
 

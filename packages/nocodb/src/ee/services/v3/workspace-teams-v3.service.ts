@@ -25,6 +25,7 @@ import { PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { validatePayload } from '~/helpers';
 import { getFeature } from '~/helpers/paymentHelpers';
+import { getWorkspaceRolePower } from '~/utils/roleHelper';
 
 @Injectable()
 export class WorkspaceTeamsV3Service {
@@ -131,6 +132,17 @@ export class WorkspaceTeamsV3Service {
       NcError.get(context).teamNotFound(param.team.team_id);
     }
 
+    // Check if current user has sufficient privilege to assign this role
+    if (
+      getWorkspaceRolePower({
+        workspace_roles: { [param.team.workspace_role]: true },
+      }) > getWorkspaceRolePower(param.req.user)
+    ) {
+      NcError.get(context).forbidden(
+        `Insufficient privilege to assign team with this role`,
+      );
+    }
+
     // Check if team is already assigned to workspace
     const existingAssignment = await PrincipalAssignment.get(
       context,
@@ -217,6 +229,17 @@ export class WorkspaceTeamsV3Service {
         NcError.get(context).teamNotFound(team.team_id);
       }
 
+      // Check if current user has sufficient privilege to assign this role
+      if (
+        getWorkspaceRolePower({
+          workspace_roles: { [team.workspace_role]: true },
+        }) > getWorkspaceRolePower(param.req.user)
+      ) {
+        NcError.get(context).forbidden(
+          `Insufficient privilege to assign team with this role`,
+        );
+      }
+
       // Check if team is assigned to workspace
       const existingAssignment = await PrincipalAssignment.get(
         context,
@@ -228,6 +251,17 @@ export class WorkspaceTeamsV3Service {
       if (!existingAssignment) {
         NcError.get(context).invalidRequestBody(
           `Team ${team.team_id} is not assigned to this workspace`,
+        );
+      }
+
+      // Check if current user has sufficient privilege to update this team's role
+      if (
+        getWorkspaceRolePower({
+          workspace_roles: { [existingAssignment.roles as string]: true },
+        }) > getWorkspaceRolePower(param.req.user)
+      ) {
+        NcError.get(context).forbidden(
+          `Insufficient privilege to update team with this role`,
         );
       }
 
@@ -310,6 +344,17 @@ export class WorkspaceTeamsV3Service {
       if (!existingAssignment) {
         NcError.get(context).invalidRequestBody(
           `Team ${teamObj.team_id} is not assigned to this workspace`,
+        );
+      }
+
+      // Check if current user has sufficient privilege to remove this team
+      if (
+        getWorkspaceRolePower({
+          workspace_roles: { [existingAssignment.roles as string]: true },
+        }) > getWorkspaceRolePower(param.req.user)
+      ) {
+        NcError.get(context).forbidden(
+          `Insufficient privilege to remove team with this role`,
         );
       }
 

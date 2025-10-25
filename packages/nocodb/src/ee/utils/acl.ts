@@ -166,6 +166,13 @@ const permissionScopes = {
     'teamUserAdd',
     'teamUserRemove',
     'teamUserUpdate',
+
+    // Workspace-Team operations
+    'workspaceTeamList',
+    'workspaceTeamAdd',
+    'workspaceTeamGet',
+    'workspaceTeamUpdate',
+    'workspaceTeamRemove',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -438,21 +445,16 @@ const rolePermissions:
       // Teams
       teamList: true,
       teamGet: true,
+
+      // Workspace-Team operations
+      workspaceTeamList: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {
     include: {},
   },
   [WorkspaceUserRoles.EDITOR]: {
-    include: {
-      // Teams
-      teamCreate: true,
-      teamUpdate: true,
-      teamDelete: true,
-      teamUserAdd: true,
-      teamUserRemove: true,
-      teamUserUpdate: true,
-    },
+    include: {},
   },
   [WorkspaceUserRoles.CREATOR]: {
     exclude: {

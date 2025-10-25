@@ -47,13 +47,13 @@ onMounted(() => {
       <div
         v-if="enabledProviders.length > 1"
         style="border-top-left-radius: 1rem; border-bottom-left-radius: 1rem"
-        class="px-2 bg-gray-50"
+        class="px-2 bg-nc-bg-gray-extralight"
       >
-        <NcMenu class="!h-full !bg-gray-50 flex flex-col" :class="{ '!flex-row overflow-x-scroll': isMobileMode }">
+        <NcMenu class="!h-full !bg-nc-bg-gray-extralight flex flex-col" :class="{ '!flex-row overflow-x-scroll': isMobileMode }">
           <NcMenuItem
             v-if="enabledProviders.includes('local')"
             key="local"
-            class="!hover:bg-gray-200 !hover:text-gray-800 rounded-md"
+            class="!hover:bg-nc-bg-gray-medium !hover:text-nc-content-gray rounded-md"
             :class="{
               'active-menu': activeMenu === 'local',
             }"
@@ -68,7 +68,7 @@ onMounted(() => {
           <NcMenuItem
             v-if="enabledProviders.includes('url')"
             key="url"
-            class="!hover:bg-gray-200 !hover:text-gray-800 rounded-md"
+            class="!hover:bg-nc-bg-gray-medium !hover:text-nc-content-gray rounded-md"
             :class="{
               'active-menu': activeMenu === 'url',
             }"
@@ -83,7 +83,7 @@ onMounted(() => {
           <NcMenuItem
             v-if="enabledProviders.includes('webcam')"
             key="webcam"
-            class="!hover:bg-gray-200 !hover:text-gray-800 rounded-md"
+            class="!hover:bg-nc-bg-gray-medium !hover:text-nc-content-gray rounded-md"
             :class="{
               'active-menu': activeMenu === 'webcam',
             }"
@@ -111,7 +111,7 @@ onMounted(() => {
 <style lang="scss">
 .nc-modal-file-upload {
   .active-menu {
-    @apply bg-brand-50 font-semibold text-brand-500 rounded-md;
+    @apply bg-nc-bg-brand font-semibold text-content-brand rounded-md;
   }
 }
 

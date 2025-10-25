@@ -80,8 +80,8 @@ watch(url, () => {
 
 <template>
   <div class="py-2 px-2 h-full flex gap-2 flex-col">
-    <div class="flex w-full bg-white border-b-1 py-1 justify-between">
-      <h1 class="font-semibold">
+    <div class="flex w-full bg-nc-bg-default border-b-1 py-1 justify-between">
+      <h1 class="font-semibold text-nc-content-gray">
         {{ $t('title.uploadViaUrl') }}
       </h1>
 
@@ -94,11 +94,11 @@ watch(url, () => {
       </NcTooltip>
     </div>
 
-    <div class="flex-grow bg-white">
-      <h1 class="text-gray-800 font-semibold">
+    <div class="flex-grow bg-nc-bg-default">
+      <h1 class="text-nc-content-gray-subtle2 font-semibold">
         {{ $t('labels.addFilesFromUrl') }}
       </h1>
-      <div class="flex bg-white gap-2">
+      <div class="flex bg-nc-bg-default gap-2">
         <a-input
           ref="inputRef"
           v-model:value="url"
@@ -113,12 +113,12 @@ watch(url, () => {
           {{ $t('general.upload') }}
         </NcButton>
       </div>
-      <span v-if="url.length > 0 && !isValidUrl" class="text-red-500 text-[13px]">
+      <span v-if="url.length > 0 && !isValidUrl" class="text-nc-content-red-medium text-[13px]">
         {{ errorMessage.length > 0 ? errorMessage : $t('labels.enterValidUrl') }}
       </span>
       <template v-if="tempAttachments.length > 0">
-        <div :style="`height: ${!isValidUrl ? '208px' : '230px'}`" class="overflow-y-auto bg-white mt-1 !max-h-[250px]">
-          <h1 class="font-semibold capitalize sticky top-0 bg-white text-gray-800">
+        <div :style="`height: ${!isValidUrl ? '208px' : '230px'}`" class="overflow-y-auto bg-nc-bg-default mt-1 !max-h-[250px]">
+          <h1 class="font-semibold capitalize sticky top-0 bg-nc-bg-default text-nc-content-gray">
             {{ $t('objects.files') }}
           </h1>
 
@@ -133,7 +133,7 @@ watch(url, () => {
               {{ file.title }}
               <NcTooltip class="hover:underline">
                 <NuxtLink class="flex items-center" target="_blank" @click="openAttachment(file)">
-                  <component :is="iconMap.externalLink" class="w-3.5 h-3.5 text-gray-500" />
+                  <component :is="iconMap.externalLink" class="w-3.5 h-3.5 text-nc-content-gray-muted" />
                 </NuxtLink>
 
                 <template #title> {{ $t('labels.openFile') }} </template>
@@ -167,13 +167,13 @@ watch(url, () => {
 
 <style scoped lang="scss">
 .ant-input::placeholder {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .ant-input {
-  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
 }
 a {
-  @apply !text-gray-700 !no-underline !hover:underline;
+  @apply !text-nc-content-gray-subtle !no-underline !hover:underline;
 }
 </style>

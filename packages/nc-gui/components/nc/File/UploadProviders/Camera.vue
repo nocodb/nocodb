@@ -91,15 +91,15 @@ onBeforeUnmount(() => {
 
       <template #title> {{ $t('general.close') }} </template>
     </NcTooltip>
-    <div v-if="!permissionGranted" class="w-full h-full flex bg-gray-50 items-center justify-center">
+    <div v-if="!permissionGranted" class="w-full h-full flex bg-nc-bg-gray-extralight items-center justify-center">
       <div
-        class="flex flex-col hover:bg-white p-2 cursor-pointer rounded-md !transition-all transition-ease-in-out duration-300 gap-2 items-center justify-center"
+        class="flex flex-col hover:bg-nc-bg-default p-2 cursor-pointer rounded-md !transition-all transition-ease-in-out duration-300 gap-2 items-center justify-center"
         @click="startCamera"
       >
-        <div class="p-5 bg-white rounded-md shadow-sm">
-          <mdi-camera class="text-4xl text-gray-800" />
+        <div class="p-5 bg-nc-bg-default rounded-md shadow-sm">
+          <mdi-camera class="text-4xl text-nc-content-gray" />
         </div>
-        <h1 class="text-gray-800 font-semibold text-center text-xl">
+        <h1 class="text-nc-content-gray font-semibold text-center text-xl">
           {{ $t('labels.allowAccessToYourCamera') }}
         </h1>
       </div>
@@ -123,18 +123,21 @@ onBeforeUnmount(() => {
       <div v-show="capturedImage" class="flex group flex-col">
         <canvas ref="canvasRef" class="mb-2 rounded-md w-full aspect-video max-w-md flex-1 object-contain"></canvas>
 
-        <div class="relative text-[12px] font-semibold text-gray-800 flex">
+        <div class="relative text-[12px] font-semibold text-nc-content-gray flex">
           <div class="flex-auto truncate line-height-4">
             {{ capturedImage?.name }}
           </div>
-          <div v-if="!isLoading" class="flex-none hide-ui transition-all transition-ease-in-out !h-4 flex items-center bg-white">
+          <div
+            v-if="!isLoading"
+            class="flex-none hide-ui transition-all transition-ease-in-out !h-4 flex items-center bg-nc-bg-default"
+          >
             <NcTooltip placement="bottom">
               <template #title> {{ $t('title.removeFile') }} </template>
-              <GeneralIcon icon="delete" class="!text-red-500 cursor-pointer" @click="retakeImage" />
+              <GeneralIcon icon="delete" class="!text-nc-content-red-medium cursor-pointer" @click="retakeImage" />
             </NcTooltip>
           </div>
         </div>
-        <div class="flex-none text-[10px] font-semibold text-gray-500">
+        <div class="flex-none text-[10px] font-semibold text-nc-content-gray-muted">
           {{ formatBytes(capturedImage?.size, 0) }}
         </div>
       </div>

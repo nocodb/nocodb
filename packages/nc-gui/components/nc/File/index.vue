@@ -145,7 +145,7 @@ useProvideUploadState(handleModalUpload, handleAttachmentUpload, closeModalFn, u
             class="!opacity-0 group-hover:!opacity-100 transition-opacity"
             @click="handleRemove(file)"
           >
-            <GeneralIcon icon="delete" class="text-red-500" />
+            <GeneralIcon icon="delete" class="text-nc-content-red-medium" />
           </NcButton>
         </div>
       </slot>

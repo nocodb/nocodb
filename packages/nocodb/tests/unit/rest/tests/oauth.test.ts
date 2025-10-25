@@ -123,7 +123,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       const redirectUrl = new URL(authResponse.body.redirect_url);
       authCode = redirectUrl.searchParams.get('code');
@@ -276,7 +276,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
         'code',
@@ -393,7 +393,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       expect(response.body.redirect_url).to.include('error=access_denied');
     });
@@ -463,7 +463,7 @@ function oauthTests() {
           code_challenge_method: 'S256',
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       // Should succeed - base_id is optional
       expect(response.body).to.have.property('redirect_url');
@@ -508,7 +508,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
         'code',
@@ -547,7 +547,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
         'code',
@@ -586,7 +586,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
         'code',
@@ -626,7 +626,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
         'code',
@@ -666,7 +666,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
         'code',
@@ -706,7 +706,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
         'code',
@@ -747,7 +747,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
         'code',
@@ -799,7 +799,7 @@ function oauthTests() {
           base_id: baseId,
           ...(workspaceId && { workspace_id: workspaceId }),
         })
-        .expect(200);
+        .expect(201);
 
       const authCode = new URL(authResponse.body.redirect_url).searchParams.get(
         'code',

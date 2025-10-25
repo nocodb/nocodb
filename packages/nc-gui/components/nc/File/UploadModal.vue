@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useUploadState } from './UploadProviders/useUploadState'
+
 interface Props {
   visible: boolean
   enabledProviders?: ('local' | 'url' | 'webcam')[]
@@ -21,7 +23,10 @@ const dialogShow = useVModel(props, 'visible', emit)
 
 const activeMenu = ref<'local' | 'url' | 'webcam'>('local')
 
+const { clearFiles } = useUploadState()
+
 const selectMenu = (option: 'local' | 'url' | 'webcam') => {
+  clearFiles()
   activeMenu.value = option
 }
 

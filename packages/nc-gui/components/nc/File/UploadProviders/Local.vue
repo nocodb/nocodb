@@ -103,7 +103,7 @@ onUnmounted(() => {
     <div
       ref="dropZoneRef"
       :class="{
-        'border-brand-500': isOverDropZone,
+        'border-nc-border-brand': isOverDropZone,
         'border-dashed border-2': !tempFiles.length,
       }"
       data-testid="attachment-drop-zone"
@@ -113,11 +113,11 @@ onUnmounted(() => {
     >
       <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-4">
         <template v-if="!isOverDropZone">
-          <component :is="iconMap.upload" class="w-8 h-8 text-gray-500" />
+          <component :is="iconMap.upload" class="w-8 h-8 text-nc-content-gray-muted" />
           <span class="p-4">
             {{ $t('labels.clickTo') }}
 
-            <span class="font-semibold text-brand-500"> {{ $t('labels.browseFiles') }} </span>
+            <span class="font-semibold text-nc-content-brand"> {{ $t('labels.browseFiles') }} </span>
             {{ $t('general.or') }}
             <span class="font-semibold"> {{ $t('labels.dragFilesHere') }} </span>
 
@@ -125,8 +125,8 @@ onUnmounted(() => {
           </span>
         </template>
         <template v-if="isOverDropZone">
-          <component :is="iconMap.upload" class="w-8 text-brand-500 h-8" />
-          <h1 class="text-brand-500 font-bold">{{ $t('labels.dropHere') }}</h1>
+          <component :is="iconMap.upload" class="w-8 text-nc-content-brand h-8" />
+          <h1 class="text-nc-content-brand font-bold">{{ $t('labels.dropHere') }}</h1>
         </template>
       </div>
       <template v-else>
@@ -137,13 +137,13 @@ onUnmounted(() => {
             <div
               v-if="!thumbnails.get(file)"
               style="height: 140px"
-              class="flex items-center justify-center rounded-md bg-gray-100"
+              class="flex items-center justify-center rounded-md bg-nc-bg-gray-light"
             >
               <GeneralIcon :icon="getAttachmentIcon(file.name, file.type)" :class="isMobileMode ? 'w-12 h-12' : 'w-16 h-16'" />
             </div>
             <img v-else :src="thumbnails.get(file)" style="height: 140px" alt="thumbnail" class="rounded-md object-cover" />
 
-            <div class="relative text-[12px] font-semibold items-center text-gray-800 flex">
+            <div class="relative text-[12px] font-semibold items-center text-nc-content-gray flex">
               <NcTooltip class="flex-auto truncate" placement="bottom">
                 <template #title> {{ file.name }} </template>
                 {{ file.name }}
@@ -151,15 +151,19 @@ onUnmounted(() => {
 
               <div
                 v-if="!isLoading"
-                class="flex-none hide-ui transition-all transition-ease-in-out !h-4 flex items-center bg-white"
+                class="flex-none hide-ui transition-all transition-ease-in-out !h-4 flex items-center bg-nc-bg-default"
               >
                 <NcTooltip placement="bottom">
                   <template #title> {{ $t('title.removeFile') }} </template>
-                  <GeneralIcon icon="delete" class="!text-red-500 w-3 h-3 cursor-pointer" @click="onRemoveFileClick(file)" />
+                  <GeneralIcon
+                    icon="delete"
+                    class="!text-nc-content-red-medium w-3 h-3 cursor-pointer"
+                    @click="onRemoveFileClick(file)"
+                  />
                 </NcTooltip>
               </div>
             </div>
-            <div class="flex-none text-[10px] font-semibold text-gray-500">
+            <div class="flex-none text-[10px] font-semibold text-nc-content-gray-muted">
               {{ formatBytes(file.size, 0) }}
             </div>
           </div>

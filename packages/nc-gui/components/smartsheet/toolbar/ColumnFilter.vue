@@ -194,6 +194,10 @@ const addFiltersRowDomRef = ref<HTMLElement>()
 
 const isMounted = ref(false)
 
+const isReorderEnabled = computed(() => {
+  return isEeUI && isViewFilter.value
+})
+
 const getColumn = (filter: Filter) => {
   // extract looked up column if available
   return btLookupTypesMap.value[filter.fk_column_id] || columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
@@ -559,7 +563,7 @@ function onMoveCallback(event: any) {
 
 const onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: ColumnFilterType } }) => {
   // For now add reorder support only in view filter
-  if (!isViewFilter.value) return
+  if (!isReorderEnabled.value) return
 
   /**
    * If event has moved property that means reorder is on same level
@@ -814,7 +818,7 @@ defineExpose({
       ref="wrapperDomRef"
       v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
       :list="filters"
-      :disabled="!isViewFilter"
+      :disabled="!isReorderEnabled"
       group="nc-column-filters"
       ghost-class="bg-gray-50"
       draggable=".nc-column-filter-item"
@@ -841,7 +845,7 @@ defineExpose({
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="i"
-                  :ref="(el) => localNestedFilters[i] = el"
+                  :ref="(el) => (localNestedFilters[i] = el)"
                   v-model="filter.children"
                   v-model:is-open="isOpen"
                   :nested-level="nestedLevel + 1"
@@ -911,7 +915,7 @@ defineExpose({
                       <component :is="iconMap.deleteListItem" />
                     </NcButton>
                     <NcButton
-                      v-if="!filter.readOnly && !readOnly && isViewFilter"
+                      v-if="!filter.readOnly && !readOnly && isReorderEnabled"
                       type="text"
                       size="small"
                       class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
@@ -1169,7 +1173,7 @@ defineExpose({
             </NcButton>
 
             <NcButton
-              v-if="!filter.readOnly && !readOnly && isViewFilter"
+              v-if="!filter.readOnly && !readOnly && isReorderEnabled"
               type="text"
               size="small"
               class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"

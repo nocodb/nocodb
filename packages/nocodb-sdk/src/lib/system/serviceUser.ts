@@ -26,13 +26,13 @@ const isServiceUser = (user: any, serviceType?: ServiceUserKey): boolean => {
   // If specific service type is provided, check against that service user only
   if (serviceType) {
     const serviceUser = NOCO_SERVICE_USERS[serviceType];
-    return user.email === serviceUser.email && user.id === serviceUser.id;
+    return user.email === serviceUser.email || user.id === serviceUser.id;
   }
 
   // Otherwise, check against all service users
   return Object.values(NOCO_SERVICE_USERS).some(
     (serviceUser) =>
-      user.email === serviceUser.email && user.id === serviceUser.id
+      user.email === serviceUser.email || user.id === serviceUser.id
   );
 };
 

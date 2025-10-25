@@ -22,7 +22,7 @@ export class ButtonCellPageObject extends BasePage {
       uiAction: () => this.get({ index, columnHeader }).getByTestId('nc-button-cell').click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: 'operation=hook',
-      responseStatusCodeToMatch: 201,
+      responseStatusCodeToMatch: 200,
     });
   }
 }

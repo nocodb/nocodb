@@ -380,7 +380,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
   }
 
   tbody {
-    @apply bg-white;
+    @apply bg-nc-bg-default;
     tr {
       td {
         @apply border-r-1 border-t-1 last:rounded-br-lg first:rounded-bl-lg last:border-r-0 border-nc-border-gray-medium;
@@ -390,7 +390,9 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
 }
 
 .workflow-step-card {
-  @apply shadow-sm;
+  @media not print {
+    @apply shadow-sm;
+  }
 }
 
 .step-header {

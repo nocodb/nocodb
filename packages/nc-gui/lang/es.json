@@ -1997,7 +1997,7 @@
     "createTable": "¡Crea tu primera tabla!",
     "createScripts": "¡Crea tu primer script!",
     "createDashboard": "¡Crea tu primer dashboard!",
-    "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
+    "createTableLabel": "Desde cero o importar o conectarse a una base de datos externa",
     "createScriptsLabel": "Desde cero o usa scripts de plantilla",
     "createDashboardLabel": "Desde cero o usando dashboards de plantilla",
     "noTokenCreated": "No se han creado tokens de API",

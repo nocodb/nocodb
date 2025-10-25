@@ -60,15 +60,15 @@ const hasPrintableContent = computed(() => {
 
       <template #overlay>
         <NcMenu variant="medium" class="nc-print-page-size-menu">
-          <NcMenuItemLabel> {{ $t('labels.pageSize') }} </NcMenuItemLabel>
+          <NcMenuItemLabel class="!capitalize"> {{ $t('labels.pageSize') }} </NcMenuItemLabel>
           <NcMenuItem v-for="pageSize in pageSizes" :key="pageSize.type" class="!py-2" @click="selectedPageSize = pageSize.type">
             <div class="flex items-center justify-between w-full gap-2">
-              <span class="text-sm">{{ pageSize.type }}</span>
+              <span>{{ pageSize.type }}</span>
               <GeneralIcon v-if="selectedPageSize === pageSize.type" icon="check" class="text-nc-content-brand" />
             </div>
           </NcMenuItem>
           <NcDivider />
-          <NcMenuItemLabel> {{ $t('labels.orientation') }} </NcMenuItemLabel>
+          <NcMenuItemLabel class="!capitalize"> {{ $t('labels.orientation') }} </NcMenuItemLabel>
           <NcMenuItem
             v-for="orientation in orientations"
             :key="orientation.type"
@@ -76,7 +76,7 @@ const hasPrintableContent = computed(() => {
             @click="selectedOrientation = orientation.type"
           >
             <div class="flex items-center flex-1 justify-between w-full gap-2">
-              <span class="text-sm w-full flex-1">{{ orientation.type }}</span>
+              <span class="w-full flex-1">{{ orientation.type }}</span>
               <GeneralIcon v-if="selectedOrientation === orientation.type" icon="check" class="text-nc-content-brand" />
             </div>
           </NcMenuItem>
@@ -86,7 +86,7 @@ const hasPrintableContent = computed(() => {
             <div class="flex items-center gap-2 text-nc-content-brand">
               <GeneralLoader v-if="isGenerating" />
               <GeneralIcon v-else icon="ncPrinter" />
-              <span class="text-sm font-semibold">
+              <span class="font-semibold">
                 {{ $t('labels.generatePDF') }}
               </span>
             </div>

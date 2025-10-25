@@ -105,8 +105,8 @@ useProvideUploadState(handleModalUpload, handleAttachmentUpload, closeModalFn, u
   <div class="nc-file-upload flex flex-col gap-2">
     <!-- Trigger slot - customizable button/trigger -->
     <div>
-      <slot name="trigger" @click="openModal">
-        <NcButton size="small" :disabled="disabled" type="secondary">
+      <slot name="trigger" :open="openModal">
+        <NcButton size="small" :disabled="disabled" type="secondary" @click="openModal">
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="upload" />
             Click to Upload

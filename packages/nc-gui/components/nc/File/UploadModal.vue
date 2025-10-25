@@ -25,17 +25,6 @@ const selectMenu = (option: 'local' | 'url' | 'webcam') => {
   activeMenu.value = option
 }
 
-// Watch for active menu changes to handle cleanup
-watch(activeMenu, (newVal, oldValue) => {
-  // Stop camera when switching away from webcam
-  if (oldValue === 'webcam' && newVal !== 'webcam') {
-    // Give time for camera to initialize before stopping
-    setTimeout(() => {
-      // Camera cleanup is handled by the Camera component itself
-    }, 1000)
-  }
-})
-
 // Set initial active menu based on enabled providers
 onMounted(() => {
   if (props.enabledProviders.length > 0) {
@@ -122,7 +111,7 @@ onMounted(() => {
 <style lang="scss">
 .nc-modal-file-upload {
   .active-menu {
-    @apply bg-brand-50 font-sembold text-brand-500 rounded-md;
+    @apply bg-brand-50 font-semibold text-brand-500 rounded-md;
   }
 }
 

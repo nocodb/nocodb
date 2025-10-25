@@ -56,6 +56,10 @@ const onDrop = (files: File[], event: DragEvent) => {
 }
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
+
+onUnmounted(() => {
+  thumbnails.value.clear()
+})
 </script>
 
 <template>

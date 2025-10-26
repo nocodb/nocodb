@@ -195,7 +195,7 @@ async function processColumnToSwaggerField(
       break;
     default:
       field.virtual = false;
-      SwaggerTypes.setSwaggerType(column, field, dbType);
+      SwaggerTypes.setSwaggerType('3.1', column, field, dbType);
       break;
   }
 

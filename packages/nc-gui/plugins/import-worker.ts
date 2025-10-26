@@ -1,5 +1,4 @@
-// import worker script according to the doc of Vite
-import ImportWorker from '~/workers/importWorker?worker'
+import importWorkerUrl from '~/workers/importWorker?worker&url'
 
 const isWorkerSupport = typeof Worker !== 'undefined'
 const isDevelopment = process.env.NODE_ENV === 'development'
@@ -16,7 +15,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       if (!isWorkerSupport || isDevelopment) return null
 
       try {
-        const worker = new ImportWorker()
+        const worker = new Worker(importWorkerUrl, { type: 'module' })
 
         worker.onerror = (error) => {
           console.error('Import worker error:', error)

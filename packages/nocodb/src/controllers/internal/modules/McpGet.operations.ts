@@ -5,18 +5,19 @@ import type {
   InternalApiModule,
   InternalApiResponse,
 } from '~/controllers/internal/types';
-import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
+import { McpTokenService } from '~/services/mcp.service';
 
 @Injectable()
-export class OAuthClientListOperation implements InternalApiModule {
-  constructor(protected readonly oAuthClientService: OauthClientService) {}
-  operation: 'oAuthClientList';
+export class McpGetOperations implements InternalApiModule {
+  constructor(protected readonly mcpService: McpTokenService) {}
+  operations: ['mcpList', 'mcpGet', 'mcpRootList'];
   httpMethod: 'GET';
 
   async handle(
     context: NcContext,
     {
       req,
+      operation,
     }: {
       workspaceId: string;
       baseId: string;
@@ -25,6 +26,13 @@ export class OAuthClientListOperation implements InternalApiModule {
       req: NcRequest;
     },
   ): Promise<InternalApiResponse> {
-    return await this.oAuthClientService.listClients(context, req);
+    switch (operation) {
+      case 'mcpList':
+        return await this.mcpService.list(context, req);
+      case 'mcpGet':
+        return await this.mcpService.get(context, req.query.tokenId as string);
+      case 'mcpRootList':
+        return await this.mcpService.listByUserId(context, req);
+    }
   }
 }

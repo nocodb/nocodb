@@ -6413,7 +6413,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       for (const pkColumn of this.model.primaryKeys) {
         if (pkColumn.ai) {
           const keyName =
-            data?.[pkColumn.column_name] !== undefined ? pkColumn.column_name : pkColumn.title;
+            data?.[pkColumn.column_name] !== undefined
+              ? pkColumn.column_name
+              : pkColumn.title;
 
           if (data[keyName]) {
             delete data[keyName];

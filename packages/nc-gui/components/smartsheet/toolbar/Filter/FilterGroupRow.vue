@@ -232,7 +232,7 @@ const onDelete = () => {
 
 <style lang="scss" scoped>
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 .nc-filter-item-remove-btn,
@@ -315,17 +315,17 @@ const onDelete = () => {
 }
 
 .nc-filter-nested-level-0 {
-  @apply bg-[#f9f9fa];
+  @apply bg-nc-bg-gray-extralight;
 }
 
 .nc-filter-nested-level-1,
 .nc-filter-nested-level-3 {
-  @apply bg-gray-[#f4f4f5];
+  @apply bg-nc-bg-gray-light;
 }
 
 .nc-filter-nested-level-2,
 .nc-filter-nested-level-4 {
-  @apply bg-gray-[#e7e7e9];
+  @apply bg-nc-bg-gray-medium;
 }
 
 .nc-filter-logical-op-level-3,
@@ -336,11 +336,11 @@ const onDelete = () => {
 }
 
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 :deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
-  @apply bg-transparent text-gray-400;
+  @apply bg-transparent text-nc-content-gray-disabled;
 }
 
 :deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector) {
@@ -348,14 +348,14 @@ const onDelete = () => {
 }
 
 :deep(.nc-select-expand-btn) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .menu-filter-dropdown {
   input:not(:disabled),
   select:not(:disabled),
   .ant-select:not(.ant-select-disabled) {
-    @apply text-[#4A5268];
+    @apply text-nc-content-brand-disabled;
   }
 }
 

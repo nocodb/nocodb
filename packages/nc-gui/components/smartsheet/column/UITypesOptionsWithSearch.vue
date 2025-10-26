@@ -94,7 +94,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
 
 <template>
   <div
-    class="flex-1 border-1 border-gray-200 rounded-lg flex flex-col pb-2"
+    class="flex-1 border-1 border-nc-border-gray-medium rounded-lg flex flex-col pb-2"
     data-testid="nc-column-uitypes-options-list-wrapper"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
@@ -114,7 +114,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
       </a-input>
     </div>
     <div class="nc-column-list-wrapper flex-col w-full max-h-[290px] nc-scrollbar-thin !overflow-y-auto px-2">
-      <div v-if="!filteredOptions.length" class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6">
+      <div v-if="!filteredOptions.length" class="px-2 py-6 text-nc-content-gray-muted flex flex-col items-center gap-6">
         <img
           src="~assets/img/placeholder/no-search-result-found.png"
           class="!w-[164px] flex-none"
@@ -134,9 +134,9 @@ const { isSystem } = useColumnCreateStoreOrThrow()
           :class="[
             `nc-column-list-option-${index}`,
             {
-              'hover:bg-gray-100 cursor-pointer': !isDisabledUIType(option.name),
-              'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
-              '!text-gray-400 cursor-not-allowed': isDisabledUIType(option.name),
+              'hover:bg-nc-bg-gray-light cursor-pointer': !isDisabledUIType(option.name),
+              'bg-nc-bg-gray-light nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
+              '!text-nc-content-gray-disabled cursor-not-allowed': isDisabledUIType(option.name),
               '!text-nc-content-purple-dark': [AIButton, AIPrompt].includes(option.name),
             },
           ]"
@@ -147,10 +147,10 @@ const { isSystem } = useColumnCreateStoreOrThrow()
             <component
               :is="option.icon"
               class="w-4 h-4"
-              :class="isDisabledUIType(option.name) ? '!text-gray-400' : 'text-gray-700'"
+              :class="isDisabledUIType(option.name) ? '!text-nc-content-gray-disabled' : 'text-nc-content-gray-subtle'"
             />
             <div
-              class="text-sm"
+              class="text-sm !text-nc-content-gray-subtle"
               :class="{
                 'flex-1': !searchBasisInfoMap[option.name],
               }"
@@ -163,12 +163,16 @@ const { isSystem } = useColumnCreateStoreOrThrow()
               </NcTooltip>
             </div>
 
-            <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
-            <span v-if="option.isNew" class="text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md">{{
+            <span v-if="option.deprecated" class="!text-xs !text-nc-content-brand-hover">({{ $t('general.deprecated') }})</span>
+            <span v-if="option.isNew" class="text-sm text-nc-content-purple-dark bg-nc-bg-purple-light px-2 rounded-md">{{
               $t('general.new')
             }}</span>
           </div>
-          <GeneralIcon v-if="extraIcons && extraIcons[option.name]" class="!text-gray-500" :icon="extraIcons[option.name]" />
+          <GeneralIcon
+            v-if="extraIcons && extraIcons[option.name]"
+            class="!text-nc-content-gray-muted"
+            :icon="extraIcons[option.name]"
+          />
         </div>
       </GeneralSourceRestrictionTooltip>
     </div>

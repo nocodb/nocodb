@@ -559,21 +559,21 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .nc-relation-settings-table {
-  @apply min-w-[180px] w-[180px] flex flex-col border-1 border-gray-200 rounded-lg;
+  @apply min-w-[180px] w-[180px] flex flex-col border-1 border-nc-border-gray-medium rounded-lg;
 
   .nc-relation-settings-table-header {
-    @apply px-3 py-2 flex items-center space-x-3 bg-gray-100 text-xs font-semibold border-b border-gray-200 rounded-t-lg;
+    @apply px-3 py-2 flex items-center space-x-3 bg-nc-bg-gray-light text-xs font-semibold border-b border-nc-border-gray-medium rounded-t-lg;
   }
 
   .nc-relation-settings-table-row {
     @apply py-[1px] w-full flex items-center space-x-2 !my-0 relative;
 
     &:not(:last-child) {
-      @apply border-b border-gray-200;
+      @apply border-b border-nc-border-gray-medium;
     }
 
     &.disabled {
-      @apply bg-gray-50 text-gray-400;
+      @apply bg-nc-bg-gray-extralight text-nc-content-gray-disabled;
     }
 
     :deep(.ant-select-selector) {
@@ -623,19 +623,19 @@ onMounted(async () => {
     }
 
     .column-type-mm {
-      @apply bg-pink-500 text-pink-500;
+      @apply bg-nc-pink-500 text-nc-content-pink-medium;
     }
 
     .column-type-hm {
-      @apply bg-orange-500 text-orange-500;
+      @apply bg-nc-orange-500 text-nc-content-orange-medium;
     }
 
     .column-type-oo {
-      @apply bg-purple-500 text-purple-500;
+      @apply bg-nc-purple-500 text-nc-content-purple-medium;
     }
 
     .column-type-bt {
-      @apply bg-blue-400 text-blue-400;
+      @apply bg-nc-blue-400 text-nc-content-blue-medium;
     }
 
     :deep(.ant-form-item-explain) {

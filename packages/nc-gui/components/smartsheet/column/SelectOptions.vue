@@ -502,8 +502,8 @@ if (!isKanbanStack.value) {
       class="nc-col-option-select-option"
       :class="{
         'overflow-x-auto scrollbar-thin-dull rounded-lg': !isKanbanStack,
-        'border-1 border-gray-200': renderedOptions.length && !isKanbanStack,
-        'bg-white': isAiModeFieldModal,
+        'border-1 border-nc-border-gray-medium': renderedOptions.length && !isKanbanStack,
+        'bg-nc-bg-default': isAiModeFieldModal,
       }"
       :style="{
         maxHeight: props.fromTableExplorer ? 'calc(100vh - (var(--topbar-height) * 3.6) - 320px)' : 'calc(min(30vh, 250px))',
@@ -566,7 +566,7 @@ if (!isKanbanStack.value) {
 
           <div
             v-if="isNewStack"
-            class="ml-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center"
+            class="ml-1 hover:!text-black-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center"
             @click="emit('saveChanges', true, false)"
           >
             <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
@@ -599,7 +599,7 @@ if (!isKanbanStack.value) {
           @change="syncOptions"
         >
           <template #item="{ element, index }">
-            <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
+            <div class="flex py-1 items-center nc-select-option hover:bg-nc-bg-gray-light group">
               <div
                 class="flex items-center w-full"
                 :data-testid="`select-column-option-${index}`"
@@ -655,7 +655,7 @@ if (!isKanbanStack.value) {
               <div
                 v-if="element.status !== 'remove'"
                 :data-testid="`select-column-option-remove-${index}`"
-                class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
+                class="mx-1 hover:!text-black-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="removeRenderedOption(index)"
               >
                 <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
@@ -663,18 +663,18 @@ if (!isKanbanStack.value) {
               <div
                 v-else
                 :data-testid="`select-column-option-remove-undo-${index}`"
-                class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
+                class="mx-1 hover:!text-black-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="undoRemoveRenderedOption(index)"
               >
                 <MdiArrowULeftBottom
-                  class="hover:!text-black-500 text-gray-500 cursor-pointer w-4 h-4"
+                  class="hover:!text-black-500 text-nc-content-gray-muted cursor-pointer w-4 h-4"
                   @click="undoRemoveRenderedOption(index)"
                 />
               </div>
             </div>
           </template>
           <template v-if="isLoadingPredictOptions" #footer>
-            <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
+            <div class="flex py-1 items-center nc-select-option hover:bg-nc-bg-gray-light group">
               <div class="flex items-center w-full">
                 <div class="p-2 flex !cursor-disabled">
                   <component :is="iconMap.dragVertical" small class="handle opacity-75" />
@@ -731,7 +731,7 @@ if (!isKanbanStack.value) {
       class="nc-add-select-option-btn-wrapper flex shadow-sm"
       :class="{
         'mt-2': renderedOptions.length,
-        'bg-white': isAiModeFieldModal,
+        'bg-nc-bg-default': isAiModeFieldModal,
       }"
     >
       <NcButton

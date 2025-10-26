@@ -157,7 +157,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 </script>
 
 <template>
-  <div class="min-w-[640px] w-auto inline-block h-auto rounded-2xl bg-white p-4">
+  <div class="min-w-[640px] w-auto inline-block h-auto rounded-2xl bg-nc-bg-default p-4">
     <div class="flex flex-col gap-3">
       <Draggable
         ref="wrapperDomRef"
@@ -165,10 +165,10 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
         :list="vModel?.conditions || []"
         :disabled="!hasPermission"
         group="nc-row-color-filter-groups"
-        ghost-class="bg-gray-50"
+        ghost-class="bg-nc-bg-gray-extralight"
         draggable=".nc-row-color-filter-group"
         handle=".nc-row-color-filter-group-drag-handler"
-        class="border-1 border-nc-border-gray-medium rounded-lg bg-nc-gray-100 max-h-[60vh] nc-scrollbar-thin"
+        class="border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-gray-extralight max-h-[60vh] nc-scrollbar-thin"
         :move="onMoveCallback"
         @change="onMove($event)"
       >
@@ -290,7 +290,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
           type="text"
           size="small"
           :class="{
-            '!text-brand-500': !readOnlyFilter,
+            '!text-nc-content-brand': !readOnlyFilter,
           }"
           :disabled="readOnlyFilter"
           @click="addColor"

@@ -562,7 +562,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     </template>
     <div
       v-if="!visibleFilters || !visibleFilters.length"
-      class="flex flex-row text-gray-400 mt-2"
+      class="flex flex-row text-nc-content-gray-disabled mt-2"
       :class="{
         'ml-1': nested,
         'ml-0.5': !nested,
@@ -586,7 +586,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 
 <style lang="scss" scoped>
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 .nc-filter-item-remove-btn,
@@ -611,7 +611,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 }
 
 .nc-filter-wrapper {
-  @apply bg-nc-bg-default !rounded-lg border-1px border-[#E7E7E9];
+  @apply bg-nc-bg-default !rounded-lg border-1px border-nc-border-gray-medium;
 
   & > *,
   .nc-filter-value-select {
@@ -625,13 +625,13 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
   }
 
   & > :not(:last-child):not(:empty) {
-    border-right: 1px solid #eee !important;
+    border-right: 1px solid var(--nc-border-gray-medium) !important;
     border-bottom-right-radius: 0 !important;
     border-top-right-radius: 0 !important;
   }
 
   .nc-settings-dropdown {
-    border-left: 1px solid #eee !important;
+    border-left: 1px solid var(--nc-border-gray-medium) !important;
     border-radius: 0 !important;
   }
 
@@ -644,7 +644,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     @apply relative;
     &::after {
       content: '';
-      @apply absolute h-full w-1px bg-[#eee] -left-1px top-0;
+      @apply absolute h-full w-1px bg-[var(--nc-bg-gray-medium)] -left-1px top-0;
     }
   }
 
@@ -669,17 +669,17 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 }
 
 .nc-filter-nested-level-0 {
-  @apply bg-[#f9f9fa];
+  @apply bg-nc-bg-gray-extralight;
 }
 
 .nc-filter-nested-level-1,
 .nc-filter-nested-level-3 {
-  @apply bg-gray-[#f4f4f5];
+  @apply bg-nc-bg-gray-light;
 }
 
 .nc-filter-nested-level-2,
 .nc-filter-nested-level-4 {
-  @apply bg-gray-[#e7e7e9];
+  @apply bg-nc-bg-gray-medium;
 }
 
 .nc-filter-logical-op-level-3,
@@ -690,11 +690,11 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 }
 
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 :deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
-  @apply bg-transparent text-gray-400;
+  @apply bg-transparent text-nc-content-gray-disabled;
 }
 
 :deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector) {
@@ -702,14 +702,14 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 }
 
 :deep(.nc-select-expand-btn) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .menu-filter-dropdown {
   input:not(:disabled),
   select:not(:disabled),
   .ant-select:not(.ant-select-disabled) {
-    @apply text-[#4A5268];
+    @apply text-nc-content-gray-subtle2;
   }
 }
 

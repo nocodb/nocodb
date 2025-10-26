@@ -435,7 +435,7 @@ const handleScrollIntoView = () => {
             @change="onBaseChange(referenceBaseId)"
           >
             <template #suffixIcon>
-              <GeneralIcon icon="arrowDown" class="text-gray-700" />
+              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
             </template>
             <a-select-option
               v-for="base of basesList"
@@ -478,12 +478,12 @@ const handleScrollIntoView = () => {
           @change="handleUpdateRefTable"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
           <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon :meta="table" class="text-gray-500" />
+                <GeneralTableIcon :meta="table" class="text-nc-content-gray-muted" />
               </div>
               <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ table.title }}</template>
@@ -536,7 +536,7 @@ const handleScrollIntoView = () => {
           <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralViewIcon :meta="view" class="text-gray-500" />
+                <GeneralViewIcon :meta="view" class="text-nc-content-gray-muted" />
               </div>
               <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ view.title }}</template>
@@ -619,7 +619,7 @@ const handleScrollIntoView = () => {
         <NcButton
           size="small"
           type="text"
-          class="!text-gray-500 !hover:text-gray-700"
+          class="!text-nc-content-gray-muted !hover:text-nc-content-gray-subtle"
           @click.stop="advancedOptions = !advancedOptions"
         >
           <div class="flex items-center gap-2">
@@ -648,7 +648,7 @@ const handleScrollIntoView = () => {
                   <span class="capitalize">{{ $t('labels.onUpdate') }}</span>
                 </template>
                 <template #suffixIcon>
-                  <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                  <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
                 </template>
                 <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
                   <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
@@ -676,7 +676,7 @@ const handleScrollIntoView = () => {
                 @change="onDataTypeChange"
               >
                 <template #suffixIcon>
-                  <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                  <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
                 </template>
                 <a-select-option v-for="(option, i) of onUpdateDeleteOptions" :key="i" :value="option">
                   <template v-if="option === 'NO ACTION'">{{ $t('title.links.noAction') }}</template>
@@ -696,7 +696,7 @@ const handleScrollIntoView = () => {
             <a-form-item>
               <div class="flex items-center gap-1">
                 <NcSwitch v-model:checked="vModel.virtual" :disabled="vModel.is_custom_link" @change="onDataTypeChange">
-                  <div class="text-sm text-gray-800 select-none">
+                  <div class="text-sm text-nc-content-gray select-none">
                     {{ $t('title.virtualRelation') }}
                   </div>
                 </NcSwitch>
@@ -715,13 +715,13 @@ const handleScrollIntoView = () => {
 }
 
 :deep(.nc-ltar-relation-type .ant-radio-group) {
-  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-300 rounded-lg);
+  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-nc-border-gray-dark rounded-lg);
 
   .ant-radio-wrapper {
     @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3;
 
     &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled):focus-within {
-      @apply border-brand-500;
+      @apply border-nc-border-brand;
     }
 
     span:not(.ant-radio):not(.nc-ltar-icon) {

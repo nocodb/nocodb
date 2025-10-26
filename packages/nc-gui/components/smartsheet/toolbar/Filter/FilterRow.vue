@@ -565,7 +565,7 @@ const onChangeToDynamic = async () => {
                             class="w-4 h-4 text-primary"
                           />
                         </div>
-                        <div class="flex flex-row text-xs text-gray-400">Filter based on static value</div>
+                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
                       </div>
                       <div
                         v-e="['c:filter:dynamic-filter']"
@@ -585,7 +585,7 @@ const onChangeToDynamic = async () => {
                             class="w-4 h-4 text-primary"
                           />
                         </div>
-                        <div class="flex flex-row text-xs text-gray-400">Filter based on dynamic value</div>
+                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
                       </div>
                     </div>
                   </div>
@@ -631,7 +631,7 @@ const onChangeToDynamic = async () => {
 
 <style lang="scss" scoped>
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 .nc-filter-item-remove-btn,
@@ -656,7 +656,7 @@ const onChangeToDynamic = async () => {
 }
 
 .nc-filter-wrapper {
-  @apply bg-nc-bg-default !rounded-lg border-1px border-[#E7E7E9];
+  @apply bg-nc-bg-default !rounded-lg border-1px border-nc-border-gray-medium;
 
   & > *,
   .nc-filter-value-select {
@@ -670,7 +670,7 @@ const onChangeToDynamic = async () => {
   }
 
   & > :not(:last-child):not(:empty) {
-    border-right: 1px solid #eee !important;
+    border-right: 1px solid var(--nc-border-gray-medium) !important;
     border-bottom-right-radius: 0 !important;
     border-top-right-radius: 0 !important;
 
@@ -681,7 +681,7 @@ const onChangeToDynamic = async () => {
   }
 
   .nc-settings-dropdown {
-    border-left: 1px solid #eee !important;
+    border-left: 1px solid var(--nc-border-gray-medium) !important;
     border-radius: 0 !important;
   }
 
@@ -699,7 +699,7 @@ const onChangeToDynamic = async () => {
     @apply relative;
     &::after {
       content: '';
-      @apply absolute h-full w-1px bg-[#eee] -left-1px top-0;
+      @apply absolute h-full w-1px bg-[var(--nc-bg-gray-medium)] -left-1px top-0;
     }
   }
 
@@ -724,17 +724,17 @@ const onChangeToDynamic = async () => {
 }
 
 .nc-filter-nested-level-0 {
-  @apply bg-[#f9f9fa];
+  @apply bg-nc-bg-gray-extralight;
 }
 
 .nc-filter-nested-level-1,
 .nc-filter-nested-level-3 {
-  @apply bg-gray-[#f4f4f5];
+  @apply bg-nc-bg-gray-light;
 }
 
 .nc-filter-nested-level-2,
 .nc-filter-nested-level-4 {
-  @apply bg-gray-[#e7e7e9];
+  @apply bg-nc-bg-gray-medium;
 }
 
 .nc-filter-logical-op-level-3,
@@ -745,11 +745,11 @@ const onChangeToDynamic = async () => {
 }
 
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 :deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
-  @apply bg-transparent text-gray-400;
+  @apply bg-transparent text-nc-content-gray-disabled;
 }
 
 :deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector) {
@@ -757,14 +757,14 @@ const onChangeToDynamic = async () => {
 }
 
 :deep(.nc-select-expand-btn) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .menu-filter-dropdown {
   input:not(:disabled),
   select:not(:disabled),
   .ant-select:not(.ant-select-disabled) {
-    @apply text-[#4A5268];
+    @apply text-nc-content-gray-subtle2;
   }
 }
 

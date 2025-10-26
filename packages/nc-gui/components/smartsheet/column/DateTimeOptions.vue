@@ -69,7 +69,7 @@ const useSameTimezoneForAll = computed({
           show-search
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
 
           <a-select-option v-for="(format, i) of dateFormats" :key="i" :value="format">
@@ -93,7 +93,7 @@ const useSameTimezoneForAll = computed({
           :disabled="isSystem"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
 
           <a-select-option v-for="(format, i) of timeFormats" :key="i" :value="format">
@@ -122,7 +122,7 @@ const useSameTimezoneForAll = computed({
         <NcTooltip :disabled="true">
           <div class="flex items-center gap-1">
             <NcSwitch v-model:checked="isDisplayTimezone">
-              <div class="text-sm text-gray-800 select-none font-semibold">
+              <div class="text-sm text-nc-content-gray select-none font-semibold">
                 {{ $t('labels.displayTimezone') }}
               </div>
             </NcSwitch>
@@ -133,7 +133,7 @@ const useSameTimezoneForAll = computed({
         <NcTooltip :disabled="true">
           <div class="flex items-center gap-1">
             <NcSwitch v-model:checked="useSameTimezoneForAll">
-              <div class="text-sm text-gray-800 select-none font-semibold">
+              <div class="text-sm text-nc-content-gray select-none font-semibold">
                 {{ $t('labels.useSameTimezoneForAllMembers') }}
               </div>
             </NcSwitch>
@@ -152,7 +152,7 @@ const useSameTimezoneForAll = computed({
           :disabled="isSystem"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
 
           <a-select-opt-group label="Suggested">
@@ -209,12 +209,12 @@ const useSameTimezoneForAll = computed({
 
 <style lang="scss" scoped>
 :deep(.nc-time-form-layout) {
-  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-gray-300 rounded-lg);
+  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-nc-border-gray-dark rounded-lg);
 
   .ant-radio-wrapper {
     @apply transition-all;
     &:not(.ant-radio-wrapper-disabled).ant-radio-wrapper-checked {
-      @apply border-brand-500;
+      @apply border-nc-border-brand;
     }
   }
 }

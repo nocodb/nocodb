@@ -705,7 +705,7 @@ const validationErrorDisplay = computed(() => {
 <template>
   <div
     v-if="suggestionPreviewed && !suggestionPreviewed.unsupported && suggestionPreviewed.type === 'function'"
-    class="w-84 fixed bg-white z-11 pl-3 pt-3 border-1 shadow-md rounded-xl"
+    class="w-84 fixed bg-nc-bg-default z-11 pl-3 pt-3 border-1 shadow-md rounded-xl"
     :style="{
       left: suggestionPreviewPostion.left,
       top: suggestionPreviewPostion.top,
@@ -713,7 +713,7 @@ const validationErrorDisplay = computed(() => {
   >
     <div class="pr-3">
       <div class="flex flex-row w-full justify-between pb-2 border-b-1">
-        <div class="flex items-center gap-x-1 font-semibold text-lg text-gray-600">
+        <div class="flex items-center gap-x-1 font-semibold text-lg text-nc-content-gray-subtle2">
           <component :is="iconMap.function" class="text-lg" />
           {{ suggestionPreviewed.text }}
         </div>
@@ -723,17 +723,17 @@ const validationErrorDisplay = computed(() => {
       </div>
     </div>
     <div class="flex flex-col max-h-120 nc-scrollbar-thin pr-2">
-      <div class="flex mt-3 text-[13px] leading-6">{{ suggestionPreviewed.description }}</div>
+      <div class="flex mt-3 text-[13px] text-nc-content-gray-subtle2 leading-6">{{ suggestionPreviewed.description }}</div>
 
-      <div class="text-gray-500 uppercase text-[11px] mt-3 mb-2">Syntax</div>
-      <div class="bg-white rounded-md py-1 text-[13px] mono-font leading-6 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
-      <div class="text-gray-500 uppercase text-[11px] mt-3 mb-2">Examples</div>
+      <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">Syntax</div>
+      <div class="bg-nc-bg-default rounded-md py-1 text-[13px] text-nc-content-gray-subtle2 mono-font leading-6 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
+      <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">Examples</div>
       <div
         v-for="(example, index) of suggestionPreviewed.examples"
         :key="example"
-        class="bg-gray-100 mono-font text-[13px] leading-6 py-1 px-2"
+        class="bg-nc-border-gray-light text-nc-content-gray-subtle2 mono-font text-[13px] leading-6 py-1 px-2"
         :class="{
-          'border-t-1  border-gray-200': index !== 0,
+          'border-t-1  border-nc-border-gray-medium': index !== 0,
           'rounded-b-md': index === suggestionPreviewed.examples.length - 1 && suggestionPreviewed.examples.length !== 1,
           'rounded-t-md': index === 0 && suggestionPreviewed.examples.length !== 1,
           'rounded-md': suggestionPreviewed.examples.length === 1,
@@ -744,7 +744,7 @@ const validationErrorDisplay = computed(() => {
     </div>
     <div class="flex flex-row mt-3 mb-3 justify-end pr-3">
       <a v-if="suggestionPreviewed.docsUrl" target="_blank" rel="noopener noreferrer" :href="suggestionPreviewed.docsUrl">
-        <NcButton type="text" size="small" class="!text-gray-400 !hover:text-gray-700 !text-xs"
+        <NcButton type="text" size="small" class="!text-nc-content-gray-disabled !hover:text-nc-content-gray-subtle !text-xs"
           >View in Docs
           <GeneralIcon icon="openInNew" class="ml-1" />
         </NcButton>
@@ -758,11 +758,11 @@ const validationErrorDisplay = computed(() => {
         height: editorHeight ?? '100px',
       }"
       :class="{
-        '!border-red-500 formula-error':
+        '!border-nc-border-red formula-error':
           !validationErrorDisplay?.validateStatus || validationErrorDisplay?.validateStatus !== 'success',
-        '!focus-within:border-brand-500 shadow-default hover:shadow-hover formula-success':
+        '!focus-within:border-nc-border-brand shadow-default hover:shadow-hover formula-success':
           !validationErrorDisplay?.validateStatus || validationErrorDisplay?.validateStatus === 'success',
-        'bg-white': isAiModeFieldModal,
+        'bg-nc-bg-default': isAiModeFieldModal,
       }"
       class="formula-monaco transition-colors duration-300"
       @keydown.stop="handleKeydown"
@@ -813,7 +813,7 @@ const validationErrorDisplay = computed(() => {
                   <GeneralLoader class="!text-current" size="regular" />
                 </template>
                 <div class="flex items-center gap-1">
-                  <span class="text-[13px] font-semibold text-purple-400">Repair</span>
+                  <span class="text-[13px] font-semibold text-nc-purple-400">Repair</span>
                 </div>
               </NcButton>
               <NcButton
@@ -855,14 +855,14 @@ const validationErrorDisplay = computed(() => {
       'h-[250px]': suggestionHeight === 'large',
       'h-[150px]': suggestionHeight === 'medium',
       'h-[125px]': suggestionHeight === 'small',
-      'bg-white': isAiModeFieldModal,
+      'bg-nc-bg-default': isAiModeFieldModal,
     }"
-    class="overflow-auto flex flex-col nc-suggestion-list nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4"
+    class="overflow-auto flex flex-col nc-suggestion-list nc-scrollbar-thin border-1 border-nc-border-gray-medium rounded-lg mt-4"
   >
     <div v-if="suggestedFormulas && showFunctionList" :style="{ order: priority === -1 ? 2 : 1 }">
       <div
         v-if="!disableSuggestionHeaders"
-        class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10"
+        class="border-b-1 bg-nc-bg-gray-extralight px-3 py-1 uppercase text-nc-content-gray-subtle2 text-xs font-semibold sticky top-0 z-10"
       >
         Formulas
       </div>
@@ -875,9 +875,9 @@ const validationErrorDisplay = computed(() => {
                 sugOptionsRef[index] = el
               }
             "
-            class="cursor-pointer !overflow-hidden hover:bg-gray-50"
+            class="cursor-pointer !overflow-hidden hover:bg-nc-bg-gray-extralight"
             :class="{
-              '!bg-gray-100': isItemSelected(item),
+              '!bg-nc-bg-gray-light': isItemSelected(item),
               'cursor-not-allowed': item.unsupported,
             }"
             @click.prevent.stop="!item.unsupported && appendText(item)"
@@ -885,7 +885,7 @@ const validationErrorDisplay = computed(() => {
           >
             <a-list-item-meta>
               <template #title>
-                <div class="flex items-center gap-x-1" :class="{ 'text-gray-400': item.unsupported }">
+                <div class="flex items-center gap-x-1" :class="{ 'text-nc-content-gray-disabled': item.unsupported }">
                   <component
                     :is="iconMap.function"
                     v-if="item.type === 'function'"
@@ -896,9 +896,9 @@ const validationErrorDisplay = computed(() => {
 
                   <component :is="item.icon" v-if="item.type === 'column'" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
 
-                  <span class="text-small leading-[18px]" :class="{ 'text-gray-800': !item.unsupported }">{{ item.text }}</span>
+                  <span class="text-small leading-[18px]" :class="{ 'text-nc-content-gray': !item.unsupported }">{{ item.text }}</span>
                 </div>
-                <div v-if="item.unsupported" class="ml-5 text-gray-400 text-xs">{{ $t('msg.formulaNotSupported') }}</div>
+                <div v-if="item.unsupported" class="ml-5 text-nc-content-gray-disabled text-xs">{{ $t('msg.formulaNotSupported') }}</div>
               </template>
             </a-list-item-meta>
           </a-list-item>
@@ -909,7 +909,7 @@ const validationErrorDisplay = computed(() => {
     <div v-if="variableList" :style="{ order: priority === 1 ? 2 : 1 }">
       <div
         v-if="!disableSuggestionHeaders"
-        class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10"
+        class="border-b-1 bg-nc-bg-gray-extralight px-3 py-1 uppercase text-nc-content-gray-subtle2 text-xs font-semibold sticky top-0 z-10"
       >
         Fields
       </div>
@@ -928,9 +928,9 @@ const validationErrorDisplay = computed(() => {
               }
             "
             :class="{
-              '!bg-gray-100': isItemSelected(item),
+              '!bg-nc-bg-gray-light': isItemSelected(item),
             }"
-            class="cursor-pointer hover:bg-gray-50"
+            class="cursor-pointer hover:bg-nc-bg-gray-extralight"
             @click.prevent.stop="appendText(item)"
           >
             <a-list-item-meta class="nc-variable-list-item">
@@ -939,7 +939,7 @@ const validationErrorDisplay = computed(() => {
                   <div class="flex items-center gap-x-1 rounded-md px-1 h-5">
                     <component :is="item.icon" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
 
-                    <span class="text-small leading-[18px] text-gray-800 font-weight-500">{{ item.text }}</span>
+                    <span class="text-small leading-[18px] text-nc-content-gray font-weight-500">{{ item.text }}</span>
                   </div>
 
                   <NcButton size="small" type="text" class="nc-variable-list-item-use-field-btn !h-7 px-3 !text-small invisible">
@@ -974,7 +974,7 @@ const validationErrorDisplay = computed(() => {
   }
   &.ant-list-item,
   &.ant-list-item:last-child {
-    @apply !border-b-1 border-gray-200 border-solid;
+    @apply !border-b-1 border-nc-border-gray-medium border-solid;
   }
   &:hover .nc-variable-list-item-use-field-btn {
     @apply visible;
@@ -982,7 +982,7 @@ const validationErrorDisplay = computed(() => {
 }
 
 .formula-monaco {
-  @apply rounded-md nc-scrollbar-md border-gray-200 border-1 overflow-y-auto overflow-x-hidden resize-y;
+  @apply rounded-md nc-scrollbar-md border-nc-border-gray-medium border-1 overflow-y-auto overflow-x-hidden resize-y;
   max-height: 250px;
   min-height: 50px;
 
@@ -1009,10 +1009,10 @@ const validationErrorDisplay = computed(() => {
   }
 
   .prompt-input-wrapper {
-    @apply relative inline-block transition-all duration-300 shadow-default border-1 rounded-lg bg-nc-bg-gray-extralight border-purple-100 z-10;
+    @apply relative inline-block transition-all duration-300 shadow-default border-1 rounded-lg bg-nc-bg-gray-extralight border-nc-border-purple-light z-10;
 
     .nc-ai-formula-helper-input {
-      @apply rounded-b-lg !border-purple-100 !-m-[1px] !max-w-[calc(100%_+_2px)] !w-[calc(100%_+_2px)] !shadow-none;
+      @apply rounded-b-lg !border-nc-border-purple-light !-m-[1px] !max-w-[calc(100%_+_2px)] !w-[calc(100%_+_2px)] !shadow-none;
 
       &:focus {
         @apply rounded-lg !border-nc-border-purple !shadow-selected-ai;
@@ -1024,7 +1024,7 @@ const validationErrorDisplay = computed(() => {
 
 <style lang="scss">
 .formula-placeholder {
-  @apply !text-gray-500 !text-xs !font-medium;
+  @apply !text-nc-content-gray-muted !text-xs !font-medium;
   font-family: 'Inter';
 }
 .monaco-hover {

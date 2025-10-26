@@ -1329,7 +1329,7 @@ defineExpose({
 }
 
 .nc-filter-wrapper {
-  @apply bg-nc-bg-default !rounded-lg border-1px border-[#E7E7E9];
+  @apply bg-nc-bg-default !rounded-lg border-1px border-nc-border-gray-medium;
 
   & > *,
   .nc-filter-value-select {
@@ -1343,13 +1343,13 @@ defineExpose({
   }
 
   & > :not(:last-child):not(:empty) {
-    border-right: 1px solid #eee !important;
+    border-right: 1px solid var(--nc-border-gray-medium) !important;
     border-bottom-right-radius: 0 !important;
     border-top-right-radius: 0 !important;
   }
 
   .nc-settings-dropdown {
-    border-left: 1px solid #eee !important;
+    border-left: 1px solid var(--nc-border-gray-medium) !important;
     border-radius: 0 !important;
   }
 
@@ -1362,7 +1362,7 @@ defineExpose({
     @apply relative;
     &::after {
       content: '';
-      @apply absolute h-full w-1px bg-[#eee] -left-1px top-0;
+      @apply absolute h-full w-1px bg-[var(--nc-bg-gray-medium)] -left-1px top-0;
     }
   }
 
@@ -1386,17 +1386,17 @@ defineExpose({
   }
 }
 .nc-filter-nested-level-0 {
-  @apply bg-[#f9f9fa];
+  @apply bg-nc-bg-gray-extralight;
 }
 
 .nc-filter-nested-level-1,
 .nc-filter-nested-level-3 {
-  @apply bg-gray-[#f4f4f5];
+  @apply bg-nc-bg-gray-light;
 }
 
 .nc-filter-nested-level-2,
 .nc-filter-nested-level-4 {
-  @apply bg-gray-[#e7e7e9];
+  @apply bg-nc-bg-gray-medium;
 }
 
 .nc-filter-logical-op-level-3,
@@ -1426,7 +1426,7 @@ defineExpose({
   input:not(:disabled),
   select:not(:disabled),
   .ant-select:not(.ant-select-disabled) {
-    @apply text-[#4A5268];
+    @apply text-nc-content-gray-subtle2;
   }
 }
 

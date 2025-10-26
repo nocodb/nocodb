@@ -229,11 +229,11 @@ const onClick = (e: Event) => {
 
 <template>
   <div
-    class="flex items-center w-full h-full text-small text-gray-500 font-weight-medium group"
+    class="flex items-center w-full h-full text-small text-nc-content-gray-muted font-weight-medium group"
     :class="{
       'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm,
-      'bg-gray-100': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
-      'nc-cell-expanded-form-header cursor-pointer hover:bg-gray-100':
+      'bg-nc-bg-gray-light': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
+      'nc-cell-expanded-form-header cursor-pointer hover:bg-nc-bg-gray-light':
         isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
     }"
     @dblclick="openHeaderMenu"
@@ -311,7 +311,7 @@ const onClick = (e: Event) => {
         <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
       </template>
       <div>
-        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-nc-content-gray-muted flex-none" />
       </div>
     </NcTooltip>
 

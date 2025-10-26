@@ -574,7 +574,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               </template>
             </span>
           </div>
-          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">
+          <span v-if="numberOfHiddenFields" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">
             {{ numberOfHiddenFields }}
           </span>
         </div>

@@ -320,7 +320,7 @@ const getHookTypeText = (hook: HookType) => {
               allow-clear
             >
               <template #prefix>
-                <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
+                <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-inverted-secondary-disabled" />
               </template>
             </a-input>
             <NcButton
@@ -343,7 +343,7 @@ const getHookTypeText = (hook: HookType) => {
             v-e="['c:actions:webhook']"
             type="secondary"
             size="small"
-            class="!text-brand-500 !hover:text-brand-600"
+            class="!text-nc-content-brand !hover:text-nc-content-brand-disabled"
             data-testid="nc-new-webhook"
             @click="createWebhook"
           >
@@ -361,10 +361,10 @@ const getHookTypeText = (hook: HookType) => {
         >
           <div
             v-if="!hooks.length"
-            class="flex-col flex items-center gap-6 justify-center w-full h-full py-12 px-4 border-1 rounded-xl border-gray-200"
+            class="flex-col flex items-center gap-6 justify-center w-full h-full py-12 px-4 border-1 rounded-xl border-nc-border-gray-medium"
           >
-            <div class="text-gray-700 font-bold text-center text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
-            <div class="text-gray-700 text-center max-w-[24rem]">{{ $t('msg.createWebhookMsg2') }}</div>
+            <div class="text-nc-content-gray-subtle font-bold text-center text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
+            <div class="text-nc-content-gray-subtle text-center max-w-[24rem]">{{ $t('msg.createWebhookMsg2') }}</div>
             <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" size="small" @click="createWebhook">
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="plus" class="flex-none" />
@@ -398,7 +398,7 @@ const getHookTypeText = (hook: HookType) => {
               </NcTooltip>
 
               <template v-if="column.key === 'name'">
-                <NcTooltip class="truncate max-w-full flex-1 text-gray-800 font-semibold text-sm" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full flex-1 text-nc-content-gray font-semibold text-sm" show-on-truncate-only>
                   {{ hook.title }}
 
                   <template #title>
@@ -431,7 +431,7 @@ const getHookTypeText = (hook: HookType) => {
                       data-testid="nc-webhook-item-action"
                       @click.stop
                     >
-                      <component :is="iconMap.threeDotVertical" class="text-gray-700" />
+                      <component :is="iconMap.threeDotVertical" class="text-nc-content-gray-subtle" />
                     </NcButton>
                   </template>
                   <template #overlay>
@@ -470,8 +470,11 @@ const getHookTypeText = (hook: HookType) => {
         </div>
         <GeneralDeleteModal v-model:visible="showDeleteModal" :entity-name="$t('objects.webhook')" :on-delete="deleteHook">
           <template #entity-preview>
-            <div v-if="toBeDeleteHook" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
-              <component :is="iconMap.hook" class="text-gray-600" />
+            <div
+              v-if="toBeDeleteHook"
+              class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
+            >
+              <component :is="iconMap.hook" class="text-nc-content-gray-subtle2" />
               <div
                 class="capitalize text-ellipsis overflow-hidden select-none w-full pl-2.5"
                 :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
@@ -479,7 +482,10 @@ const getHookTypeText = (hook: HookType) => {
                 {{ toBeDeleteHook.title }}
               </div>
             </div>
-            <span v-if="toBeDeleteHook?.event === 'manual'" class="text-small leading-[18px] mb-2 text-gray-500">
+            <span
+              v-if="toBeDeleteHook?.event === 'manual'"
+              class="text-small leading-[18px] mb-2 text-nc-content-inverted-secondary-disabled"
+            >
               {{ $t('msg.warning.webhookDelete') }}
             </span>
           </template>
@@ -513,7 +519,7 @@ const getHookTypeText = (hook: HookType) => {
 
 <style lang="scss" scoped>
 :deep(.ant-input::placeholder) {
-  @apply text-gray-500;
+  @apply text-nc-content-inverted-secondary-disabled;
 }
 .btn-goto-docs:hover {
   background: var(--nc-bg-coloured-orange-dark, #fee6d6) !important;

@@ -159,13 +159,13 @@ const onClick = (e: Event) => {
 
 <template>
   <div
-    class="flex items-center w-full text-xs text-gray-500 font-weight-medium group"
+    class="flex items-center w-full text-xs text-nc-content-gray-muted font-weight-medium group"
     :class="{
       'h-full': column,
       'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm,
-      'nc-cell-expanded-form-header cursor-pointer hover:bg-gray-100':
+      'nc-cell-expanded-form-header cursor-pointer hover:bg-nc-bg-gray-light':
         isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
-      'bg-gray-100': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
+      'bg-nc-bg-gray-light': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
     }"
     @dblclick="openHeaderMenu($event, false)"
     @click.right="openDropDown"
@@ -226,7 +226,7 @@ const onClick = (e: Event) => {
         </span>
       </NcTooltip>
 
-      <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
+      <span v-if="(column.rqd && !column.cdf) || required" class="text-nc-content-red-medium">&nbsp;*</span>
 
       <PermissionsTooltip
         v-if="!isAllowedToEditField"
@@ -264,7 +264,7 @@ const onClick = (e: Event) => {
         <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
       </template>
       <div>
-        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-nc-content-gray-muted flex-none" />
       </div>
     </NcTooltip>
 

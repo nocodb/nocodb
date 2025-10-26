@@ -30,7 +30,7 @@ vModel.value.meta = {
     <a-form-item>
       <div class="flex items-center gap-1">
         <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.is_progress">
-          <div class="text-sm text-gray-800 select-none">{{ $t('labels.displayAsProgress') }}</div>
+          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.displayAsProgress') }}</div>
         </NcSwitch>
       </div>
     </a-form-item>

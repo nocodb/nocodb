@@ -2,7 +2,7 @@ import { NOCO_SERVICE_USERS, ProjectRoles } from 'nocodb-sdk';
 import { BaseUser as BaseUserCE } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceRolesV3Type } from 'nocodb-sdk';
-import type { BaseType } from 'nocodb-sdk';
+import type { BaseType, UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
 import {
@@ -513,9 +513,14 @@ export default class BaseUser extends BaseUserCE {
     context: NcContext,
     baseId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<any[]> {
+  ): Promise<
+    Pick<UserType, 'id' | 'email' | 'meta' | 'main_roles' | 'display_name'>[]
+  > {
     try {
-      const teamUsers: BaseUser[] = [];
+      const teamUsers: Pick<
+        UserType,
+        'id' | 'email' | 'meta' | 'main_roles' | 'display_name'
+      >[] = [];
 
       // Get base to access workspace_id
       const base = await Base.get(context, baseId, ncMeta);
@@ -550,16 +555,8 @@ export default class BaseUser extends BaseUserCE {
           `${MetaTable.USERS}.email`,
           `${MetaTable.USERS}.display_name`,
           `${MetaTable.USERS}.id as fk_user_id`,
-          `${MetaTable.USERS}.invite_token`,
           `${MetaTable.USERS}.roles as main_roles`,
           `${MetaTable.USERS}.meta`,
-          // ncMeta.knex.raw('NOW() as created_at'),
-          // ncMeta.knex.raw('NOW() as updated_at'),
-          // ncMeta.knex.raw('? as base_id', [baseId]),
-          // ncMeta.knex.raw('NULL as roles'),
-          // ncMeta.knex.raw('NULL as workspace_roles'),
-          // ncMeta.knex.raw('? as workspace_id', [context.workspace_id]),
-          // ncMeta.knex.raw('false as deleted'),
         ])
         .distinct();
 
@@ -628,9 +625,6 @@ export default class BaseUser extends BaseUserCE {
         const userId = user.id || user.fk_user_id;
         if (userId && !seenUserIds.has(userId)) {
           seenUserIds.add(userId);
-          user.base_id = baseId;
-          user.meta = parseMetaProp(user);
-          user.is_mapped = !!user.base_id;
           teamUsers.push(this.castType(user));
         }
       }

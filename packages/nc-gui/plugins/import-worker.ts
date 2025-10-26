@@ -2,21 +2,18 @@
 import getCrossOriginWorkerURL from 'crossoriginworker'
 import importWorkerUrl from '~/workers/importWorker?worker&url'
 const isWorkerSupport = typeof Worker !== 'undefined'
-const isDev = process.env.NODE_ENV === 'development'
+const isDevelopment = process.env.NODE_ENV === 'development'
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   let workerInitializationPromise: Promise<Worker | null> | null = null
 
   const initializeWorker = async () => {
-    if (isDev) {
-      return null
-    }
     if (workerInitializationPromise) {
       return workerInitializationPromise
     }
 
     workerInitializationPromise = (async () => {
-      if (!isWorkerSupport) return null
+      if (!isWorkerSupport || isDevelopment) return null
       try {
         const worker = new Worker(await getCrossOriginWorkerURL(importWorkerUrl))
 

@@ -3,15 +3,21 @@ import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
   InternalApiModule,
-  InternalApiResponse,
-} from '~/controllers/internal/types';
+  InternalPOSTResponseType,
+} from '~/utils/internal-type';
 import { McpTokenService } from '~/services/mcp.service';
 
 @Injectable()
-export class McpPostOperations implements InternalApiModule {
+export class McpPostOperations
+  implements InternalApiModule<InternalPOSTResponseType>
+{
   constructor(protected readonly mcpService: McpTokenService) {}
-  operations: ['mcpCreate', 'mcpUpdate', 'mcpDelete'];
-  httpMethod: 'POST';
+  operations = [
+    'mcpCreate' as const,
+    'mcpUpdate' as const,
+    'mcpDelete' as const,
+  ];
+  httpMethod = 'POST' as const;
 
   async handle(
     context: NcContext,
@@ -26,7 +32,7 @@ export class McpPostOperations implements InternalApiModule {
       payload: any;
       req: NcRequest;
     },
-  ): Promise<InternalApiResponse> {
+  ): InternalPOSTResponseType {
     switch (operation) {
       case 'mcpCreate':
         return await this.mcpService.create(context, payload, req);

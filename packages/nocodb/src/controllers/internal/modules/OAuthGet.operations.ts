@@ -3,19 +3,25 @@ import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
   InternalApiModule,
-  InternalApiResponse,
-} from '~/controllers/internal/types';
+  InternalGETResponseType,
+} from '~/utils/internal-type';
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 
 @Injectable()
-export class OAuthGetOperations implements InternalApiModule {
+export class OAuthGetOperations
+  implements InternalApiModule<InternalGETResponseType>
+{
   constructor(
     protected readonly oAuthClientService: OauthClientService,
     protected readonly oAuthTokenService: OauthTokenService,
   ) {}
-  operations: ['oAuthClientGet', 'oAuthClientList', 'oAuthAuthorizationList'];
-  httpMethod: 'GET';
+  operations = [
+    'oAuthClientGet' as const,
+    'oAuthClientList' as const,
+    'oAuthAuthorizationList' as const,
+  ];
+  httpMethod = 'GET' as const;
 
   async handle(
     context: NcContext,
@@ -29,7 +35,7 @@ export class OAuthGetOperations implements InternalApiModule {
       payload: any;
       req: NcRequest;
     },
-  ): Promise<InternalApiResponse> {
+  ): InternalGETResponseType {
     switch (operation) {
       case 'oAuthClientGet':
         return await this.oAuthClientService.getClient(context, {

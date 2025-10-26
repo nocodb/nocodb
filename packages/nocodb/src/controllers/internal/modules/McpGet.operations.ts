@@ -3,15 +3,17 @@ import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
   InternalApiModule,
-  InternalApiResponse,
-} from '~/controllers/internal/types';
+  InternalGETResponseType,
+} from '~/utils/internal-type';
 import { McpTokenService } from '~/services/mcp.service';
 
 @Injectable()
-export class McpGetOperations implements InternalApiModule {
+export class McpGetOperations
+  implements InternalApiModule<InternalGETResponseType>
+{
   constructor(protected readonly mcpService: McpTokenService) {}
-  operations: ['mcpList', 'mcpGet', 'mcpRootList'];
-  httpMethod: 'GET';
+  operations = ['mcpList' as const, 'mcpGet' as const, 'mcpRootList' as const];
+  httpMethod = 'GET' as const;
 
   async handle(
     context: NcContext,
@@ -25,7 +27,7 @@ export class McpGetOperations implements InternalApiModule {
       payload: any;
       req: NcRequest;
     },
-  ): Promise<InternalApiResponse> {
+  ): InternalGETResponseType {
     switch (operation) {
       case 'mcpList':
         return await this.mcpService.list(context, req);

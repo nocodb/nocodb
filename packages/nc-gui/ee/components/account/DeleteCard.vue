@@ -25,7 +25,7 @@ const _props = defineProps<{
       <GeneralWorkspaceIcon v-if="entityDef.key === 'workspaces'" :workspace="entity" size="medium" />
       <GeneralProjectIcon v-else-if="entityDef.key === 'bases'" :color="parseProp(entity.meta).iconColor" />
       <GeneralBaseLogo v-else-if="entityDef.key === 'sources'" />
-      <GeneralIcon v-else-if="entityDef.key === 'apiTokens'" class="text-yellow-500 mt-1" icon="key" />
+      <GeneralIcon v-else-if="entityDef.key === 'apiTokens'" class="text-nc-content-yellow-medium mt-1" icon="key" />
     </div>
     <div class="flex flex-col truncate">
       <template v-if="entityDef.key === 'bases'">

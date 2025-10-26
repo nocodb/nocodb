@@ -144,7 +144,7 @@ const onDeleteConfirm = async () => {
   <div ref="deleteAccountRef" class="nc-settings-item-card-wrapper mt-10">
     <div class="nc-settings-item-heading text-nc-content-red-dark" data-rec="true">{{ $t('labels.dangerZone') }}</div>
 
-    <div class="nc-settings-item-card flex flex-col border-1 rounded-2xl border-red-500">
+    <div class="nc-settings-item-card flex flex-col border-1 rounded-2xl border-nc-border-red">
       <div class="nc-settings-item">
         <div class="nc-settings-item-content">
           <div class="nc-settings-item-title">{{ $t('msg.deleteAccountPermanently') }}</div>
@@ -167,7 +167,7 @@ const onDeleteConfirm = async () => {
 
       <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-user-delete-modal" size="small" centered>
         <div class="flex flex-col gap-2 justify-center h-full !p-6">
-          <div class="text-lg font-semibold self-start mb-3 sticky top-0 bg-white">
+          <div class="text-lg font-semibold self-start mb-3 sticky top-0 bg-nc-bg-default">
             {{ $t('general.deleteEntity', { entity: $t('labels.account') }) }}
           </div>
 
@@ -183,7 +183,7 @@ const onDeleteConfirm = async () => {
                       <div
                         v-for="entity in toBeDeleted[ent.key]"
                         :key="entity.id"
-                        class="px-4 py-2 border-b-1 bg-gray-50 first:rounded-t-lg last:rounded-b-lg last:border-b-0"
+                        class="px-4 py-2 border-b-1 bg-nc-bg-gray-extralight first:rounded-t-lg last:rounded-b-lg last:border-b-0"
                       >
                         <AccountDeleteCard :entity="entity" :entity-def="ent" />
                       </div>
@@ -202,7 +202,7 @@ const onDeleteConfirm = async () => {
                       <div
                         v-for="entity in toBeDeleted.access[ent.key]"
                         :key="entity.id"
-                        class="px-4 py-2 border-b-1 bg-gray-50 first:rounded-t-lg last:rounded-b-lg border-b-1 last:border-b-0"
+                        class="px-4 py-2 border-b-1 bg-nc-bg-gray-extralight first:rounded-t-lg last:rounded-b-lg border-b-1 last:border-b-0"
                       >
                         <AccountDeleteCard :entity="entity" :entity-def="ent" />
                       </div>
@@ -214,7 +214,7 @@ const onDeleteConfirm = async () => {
           </div>
           <div class="flex flex-col gap-2">
             <span class="self-start mb-2 mt-3">
-              Enter your email to delete your account <span class="text-red-500">permanently</span>&nbsp;<b class="select-none">
+              Enter your email to delete your account <span class="text-nc-content-red-medium">permanently</span>&nbsp;<b class="select-none">
                 ‘{{ user?.email }}’
               </b>
             </span>

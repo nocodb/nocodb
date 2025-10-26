@@ -147,7 +147,7 @@ onMounted(async () => {
                 {{ oAuthClient.client_name }}
 
                 <template #title>
-                  <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-gray-300">
+                  <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-nc-content-brand-hover">
                     {{ $t('labels.createdOn') }}
                   </div>
                   <div class="mt-1 text-[13px]">

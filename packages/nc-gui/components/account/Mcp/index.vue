@@ -172,11 +172,11 @@ onMounted(async () => {
       >
         <template #bodyCell="{ column, record: token }">
           <template v-if="column.key === 'name'">
-            <NcTooltip class="truncate text-gray-800 font-semibold text-sm">
+            <NcTooltip class="truncate text-nc-content-gray font-semibold text-sm">
               {{ token.title }}
 
               <template #title>
-                <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-gray-300">
+                <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-nc-content-brand-hover">
                   {{ $t('labels.createdOn') }}
                 </div>
                 <div class="mt-1 text-[13px]">
@@ -243,6 +243,6 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .nc-account-mcp-token-item {
-  @apply hover:bg-gray-50;
+  @apply hover:bg-nc-bg-gray-extralight;
 }
 </style>

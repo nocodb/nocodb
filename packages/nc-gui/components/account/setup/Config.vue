@@ -100,7 +100,7 @@ const docLinks = computed(() => {
     </NcPageHeader>
     <div class="h-full flex h-[calc(100%_-_48px)]">
       <div class="nc-config-left-panel nc-scrollbar-thin relative h-full flex flex-col">
-        <div class="w-full flex items-center gap-3 border-gray-200 py-6 px-6">
+        <div class="w-full flex items-center gap-3 border-nc-border-gray-medium py-6 px-6">
           <span class="font-semibold text-base">{{ $t('labels.configuration') }}</span>
           <div class="flex-grow" />
 
@@ -131,7 +131,7 @@ const docLinks = computed(() => {
       </div>
       <div class="nc-config-right-panel">
         <div class="flex-grow flex flex-col gap-3">
-          <div class="text-gray-500 text-capitalize">{{ $t('labels.documentation') }}</div>
+          <div class="text-nc-content-gray-muted text-capitalize">{{ $t('labels.documentation') }}</div>
           <a
             v-for="doc of docLinks"
             :key="doc.title"
@@ -140,13 +140,13 @@ const docLinks = computed(() => {
             rel="noopener noreferrer"
             class="!no-underline !text-current flex gap-2 items-center"
           >
-            <GeneralIcon icon="bookOpen" class="text-gray-500" />
+            <GeneralIcon icon="bookOpen" class="text-nc-content-gray-muted" />
             {{ doc.title }}
           </a>
 
           <NcDivider />
 
-          <div class="text-gray-500 text-capitalize">{{ $t('labels.modifiedOn') }}</div>
+          <div class="text-nc-content-gray-muted text-capitalize">{{ $t('labels.modifiedOn') }}</div>
           <div class="">
             {{ dayjs(plugin.created_at).format('DD MMM YYYY HH:mm') }}
           </div>
@@ -162,6 +162,6 @@ const docLinks = computed(() => {
 }
 
 .nc-config-right-panel {
-  @apply p-5 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
+  @apply p-5 w-[320px] border-l-1 border-nc-border-gray-medium flex flex-col gap-4 bg-nc-bg-gray-extralight rounded-br-2xl;
 }
 </style>

@@ -140,20 +140,20 @@ const userRoleOptions = [
             <a-alert class="!mt-2" type="success" show-icon>
               <template #message>
                 <div class="flex flex-row justify-between items-center py-1">
-                  <div class="flex pl-2 text-green-700 text-xs" data-rec="true">
+                  <div class="flex pl-2 text-nc-content-green-dark text-xs" data-rec="true">
                     {{ inviteUrl }}
                   </div>
 
                   <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
-                      <component :is="iconMap.copy" class="flex mx-auto text-green-700 h-[1rem]" />
+                      <component :is="iconMap.copy" class="flex mx-auto text-nc-content-green-dark h-[1rem]" />
                     </template>
                   </a-button>
                 </div>
               </template>
             </a-alert>
 
-            <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2" data-rec="true">
+            <div class="flex text-xs text-nc-content-gray-muted mt-2 justify-start ml-2" data-rec="true">
               {{ $t('msg.info.userInviteNoSMTP') }}
               {{ usersData.invitationToken && usersData.emails }}
             </div>
@@ -161,9 +161,9 @@ const userRoleOptions = [
             <div class="flex flex-row justify-end mt-4 ml-2">
               <a-button size="middle" outlined @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
-                  <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]" />
+                  <MaterialSymbolsSendOutline class="flex mx-auto text-nc-content-gray-subtle2 h-[0.8rem]" />
 
-                  <div class="text-xs text-gray-600" data-rec="true">{{ $t('activity.inviteMore') }}</div>
+                  <div class="text-xs text-nc-content-gray-subtle2" data-rec="true">{{ $t('activity.inviteMore') }}</div>
                 </div>
               </a-button>
             </div>
@@ -187,7 +187,7 @@ const userRoleOptions = [
                     name="emails"
                     :rules="[{ required: true, message: $t('msg.plsInputEmail') }]"
                   >
-                    <div class="ml-1 mb-1 text-xs text-gray-500" data-rec="true">{{ $t('datatype.Email') }}:</div>
+                    <div class="ml-1 mb-1 text-xs text-nc-content-gray-muted" data-rec="true">{{ $t('datatype.Email') }}:</div>
 
                     <a-input
                       :ref="emailInput"
@@ -203,7 +203,7 @@ const userRoleOptions = [
 
                 <div v-show="!isEeUI" class="flex flex-col w-2/4">
                   <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
-                    <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
+                    <div class="ml-1 mb-1 text-xs text-nc-content-gray-muted">{{ $t('labels.selectUserRole') }}</div>
 
                     <NcSelect
                       v-model:value="usersData.role"
@@ -226,7 +226,7 @@ const userRoleOptions = [
                               {{ $t(option.title) }}
                             </NcTooltip>
 
-                            <div class="nc-select-hide-item text-gray-500 text-xs whitespace-normal" data-rec="true">
+                            <div class="nc-select-hide-item text-nc-content-gray-muted text-xs whitespace-normal" data-rec="true">
                               {{ $t(option.subtitle) }}
                             </div>
                           </div>

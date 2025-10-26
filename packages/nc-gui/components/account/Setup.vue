@@ -64,7 +64,7 @@ onMounted(async () => {
         <div
           v-for="config of configs"
           :key="config.key"
-          class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-2 hover:(shadow bg-gray-10)"
+          class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-2 hover:(shadow bg-gray-10)"
           :class="{
             'cursor-pointer': config.itemClick,
           }"
@@ -78,13 +78,13 @@ onMounted(async () => {
                   {{ $t('activity.pending') }}
                 </span>
               </template>
-              <GeneralIcon icon="ncAlertCircle" class="text-orange-500 -mt-1 w-6 h-6 nc-pending" />
+              <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium -mt-1 w-6 h-6 nc-pending" />
             </NcTooltip>
             <GeneralIcon v-else icon="circleCheckSolid" class="text-success w-6 h-6 bg-white-500 nc-configured" />
 
             <span class="font-bold text-base"> {{ config.title }}</span>
           </div>
-          <div class="text-gray-600 text-sm">{{ config.description }}</div>
+          <div class="text-nc-content-gray-subtle2 text-sm">{{ config.description }}</div>
 
           <div class="flex justify-between mt-4">
             <NcButton

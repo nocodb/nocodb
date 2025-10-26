@@ -513,13 +513,11 @@ export default class BaseUser extends BaseUserCE {
     context: NcContext,
     baseId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<
-    Pick<UserType, 'id' | 'email' | 'meta' | 'main_roles' | 'display_name'>[]
-  > {
+  ): Promise<Pick<UserType, 'id' | 'email' | 'meta' | 'display_name'>[]> {
     try {
       const teamUsers: Pick<
         UserType,
-        'id' | 'email' | 'meta' | 'main_roles' | 'display_name'
+        'id' | 'email' | 'meta' | 'display_name'
       >[] = [];
 
       // Get base to access workspace_id
@@ -625,7 +623,7 @@ export default class BaseUser extends BaseUserCE {
         const userId = user.id || user.fk_user_id;
         if (userId && !seenUserIds.has(userId)) {
           seenUserIds.add(userId);
-          teamUsers.push(this.castType(user));
+          teamUsers.push(user);
         }
       }
 

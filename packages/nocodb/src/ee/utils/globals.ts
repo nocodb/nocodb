@@ -154,7 +154,6 @@ export const orderedMetaTables = [
   MetaTable.MODEL_ROLE_VISIBILITY,
   MetaTable.PLUGIN,
   MetaTable.AUDIT,
-  MetaTable.TEAM_USERS,
   MetaTable.TEAMS,
   MetaTable.ORGS_OLD,
   MetaTable.PROJECT_USERS,
@@ -318,7 +317,6 @@ export const RootScopeTables = {
     MetaTable.OAUTH_AUTHORIZATION_CODES,
     MetaTable.OAUTH_TOKENS,
     MetaTable.TEAMS,
-    MetaTable.TEAM_USERS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

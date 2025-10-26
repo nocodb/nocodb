@@ -23,7 +23,7 @@ export const valueToTitle = (value: string, col: ColumnType, displayValueProp?: 
   return value ?? GROUP_BY_VARS.NULL
 }
 
-export const findKeyColor = (key?: string, col?: ColumnType, getNextColor: () => string): string => {
+export const findKeyColor = (key?: string, col?: ColumnType, getNextColor?: () => string): string => {
   if (col) {
     switch (col.uidt) {
       case UITypes.MultiSelect: {
@@ -40,7 +40,7 @@ export const findKeyColor = (key?: string, col?: ColumnType, getNextColor: () =>
       case UITypes.SingleSelect: {
         const option = (col.colOptions as SelectOptionsType).options?.find((o) => o.title === key)
         if (option) {
-          return option.color || getNextColor()
+          return option.color || getNextColor?.() || 'gray'
         }
         return 'gray'
       }
@@ -51,10 +51,10 @@ export const findKeyColor = (key?: string, col?: ColumnType, getNextColor: () =>
         return themeColors.error
       }
       default:
-        return key ? getNextColor() : 'gray'
+        return key ? getNextColor?.() || 'gray' : 'gray'
     }
   }
-  return key ? getNextColor() : 'gray'
+  return key ? getNextColor?.() || 'gray' : 'gray'
 }
 
 export const shouldRenderCell = (colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string) => {

@@ -205,7 +205,7 @@ watch(
     <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
       <div
         :class="{
-          'border-1 rounded-lg border-gray-200 overflow-hidden focus-within:(border-primary shadow-selected)': isMobileMode,
+          'border-1 rounded-lg border-nc-border-gray-medium overflow-hidden focus-within:(border-primary shadow-selected)': isMobileMode,
           'border-primary shadow-selected': isMobileMode && search.query.length !== 0,
         }"
       >

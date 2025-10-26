@@ -246,7 +246,7 @@ watch(
                 {{ $t('title.urlFilters') }}
                 <div
                   v-if="filtersFromUrlParams?.filters?.length"
-                  class="bg-[#F0F3FF] px-1 rounded rounded-6px font-medium text-brand-500 h-5"
+                  class="bg-nc-bg-brand px-1 rounded rounded-6px font-medium text-nc-content-brand h-5"
                 >
                   {{ filtersFromUrlParams.filters.length }}
                 </div>
@@ -309,7 +309,7 @@ watch(
 .nc-query-filter.readonly {
   input,
   .text-nc-content-gray-muted {
-    @apply !text-gray-400;
+    @apply !text-nc-content-gray-disabled;
   }
 }
 </style>

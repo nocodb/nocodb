@@ -77,7 +77,7 @@ const handleChange = () => {
     <template #overlay>
       <div
         v-if="mappedByDropdown"
-        class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
+        class="p-3 min-w-[280px] bg-nc-bg-gray-extralight shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
         @click.stop
       >
         <div>

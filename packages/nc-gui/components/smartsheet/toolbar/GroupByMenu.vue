@@ -230,7 +230,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               $t('activity.group')
             }}</span>
           </div>
-          <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">{{
+          <span v-if="groupedByColumnIds?.length" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">{{
             groupedByColumnIds.length
           }}</span>
         </div>
@@ -258,7 +258,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
             <Draggable
               :model-value="_groupBy"
               item-key="fk_column_id"
-              ghost-class="bg-gray-50"
+              ghost-class="bg-nc-bg-gray-extralight"
               :disabled="isLocked || !isEeUI"
               @change="onMove($event)"
             >
@@ -315,7 +315,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   <!--                <NcDropdown :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])" :trigger="['click']">
                   <NcButton
                     :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])"
-                    class="!rounded-none !border-gray-200 !border-l-transparent"
+                    class="!rounded-none !border-nc-border-gray-medium !border-l-transparent"
                     type="secondary"
                     size="small"
                   >
@@ -362,7 +362,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                 style="width: fit-content"
                 class="nc-add-group-by-btn"
                 :class="{
-                  '!text-brand-500': !isLocked,
+                  '!text-nc-content-brand': !isLocked,
                 }"
                 :disabled="isLocked"
                 @click.stop="showCreateGroupBy = true"
@@ -415,7 +415,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
 :deep(.nc-group-field-select) {
   @apply !w-36;
   .ant-select-selector {
-    @apply !rounded-none !border-r-0 !border-gray-200 !shadow-none !w-36;
+    @apply !rounded-none !border-r-0 !border-nc-border-gray-medium !shadow-none !w-36;
 
     &.ant-select-focused:not(.ant-select-disabled) {
       @apply !border-r-transparent;
@@ -436,13 +436,13 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
 :deep(.nc-select:not(.ant-select-disabled):hover) {
   &,
   .ant-select-selector {
-    @apply bg-gray-50;
+    @apply bg-nc-bg-gray-extralight;
   }
 }
 
 :deep(.nc-group-sort-dir-select) {
   .ant-select-selector {
-    @apply !rounded-none !border-gray-200 !shadow-none;
+    @apply !rounded-none !border-nc-border-gray-medium !shadow-none;
   }
 }
 </style>

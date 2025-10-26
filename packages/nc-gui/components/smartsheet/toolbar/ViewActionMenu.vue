@@ -494,10 +494,10 @@ defineOptions({
               <div>
                 {{ $t('labels.viewMode') }}
               </div>
-              <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
+              <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-nc-bg-brand">
                 <LazySmartsheetToolbarLockType
                   :type="lockType"
-                  class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink !cursor-auto"
+                  class="flex nc-view-actions-lock-type !text-nc-content-brand !flex-shrink !cursor-auto"
                   hide-tick
                 />
               </div>

@@ -152,7 +152,7 @@ function openDeleteDialog() {
     <input
       ref="renameInputDom"
       v-model="viewRenameTitle"
-      class="ml-0.25 w-full px-1 py-0.5 rounded-md font-medium text-gray-800"
+      class="ml-0.25 w-full px-1 py-0.5 rounded-md font-medium text-nc-content-gray"
       :class="{
         'outline-brand-500': !error,
         'outline-red-500 pr-6': error,
@@ -161,7 +161,7 @@ function openDeleteDialog() {
       @keydown.enter="onRenameBlur"
       @keydown.esc="resetViewRename"
     />
-    <NcTooltip v-if="error" class="absolute top-0.25 right-0.5 bg-white rounded-lg">
+    <NcTooltip v-if="error" class="absolute top-0.25 right-0.5 bg-nc-bg-default rounded-lg">
       <template #title>
         {{ error }}
       </template>

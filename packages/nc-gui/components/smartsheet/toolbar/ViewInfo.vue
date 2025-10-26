@@ -59,7 +59,7 @@ const viewModeInfo = computed(() => {
 
 <template>
   <div
-    class="flex flex-row items-center border-gray-50 transition-all duration-100 select-none"
+    class="flex flex-row items-center border-nc-border-gray-extralight transition-all duration-100 select-none"
     :class="{
       'text-base w-[calc(100%_-_52px)]': isMobileMode,
       'w-[calc(100%_-_44px)]': !isMobileMode && !isLeftSidebarOpen,
@@ -70,7 +70,7 @@ const viewModeInfo = computed(() => {
       <SmartsheetTopbarProjectListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer max-w-1/3"
+            class="rounded-lg h-8 px-2 text-nc-content-inverted-secondary font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis) flex items-center gap-1 cursor-pointer max-w-1/3"
             :class="{
               '!max-w-none': isSharedBase && !isMobileMode,
               '': !isMobileMode && isLeftSidebarOpen,
@@ -123,7 +123,7 @@ const viewModeInfo = computed(() => {
       <SmartsheetTopbarTableListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-nc-content-inverted-secondary font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,
@@ -135,8 +135,8 @@ const viewModeInfo = computed(() => {
                   icon="table"
                   class="min-w-5"
                   :class="{
-                    '!text-gray-500': !isMobileMode,
-                    '!text-gray-700': isMobileMode,
+                    '!text-nc-content-gray-muted': !isMobileMode,
+                    '!text-nc-content-inverted-secondary': isMobileMode,
                   }"
                 />
               </template>
@@ -190,14 +190,14 @@ const viewModeInfo = computed(() => {
           <template #title>
             <div class="flex flex-col gap-3">
               <div>
-                <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.viewName') }}</div>
+                <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.viewName') }}</div>
                 <div class="text-small leading-[18px]">
                   {{ activeView?.title }}
                 </div>
               </div>
 
               <div v-if="activeView?.created_by && idUserMap[activeView?.created_by]">
-                <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.createdBy') }}</div>
+                <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.createdBy') }}</div>
                 <div class="text-xs">
                   {{
                     idUserMap[activeView?.created_by]?.id === user?.id
@@ -207,7 +207,7 @@ const viewModeInfo = computed(() => {
                 </div>
               </div>
               <div>
-                <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.viewMode') }}</div>
+                <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.viewMode') }}</div>
                 <div class="text-xs flex items-start gap-2">
                   {{ viewModeInfo }}
                 </div>
@@ -215,7 +215,7 @@ const viewModeInfo = computed(() => {
             </div>
           </template>
           <div
-            class="rounded-lg h-8 px-2 text-gray-800 font-semibold hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-nc-content-gray font-semibold hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': !isSharedBase || isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,
@@ -265,8 +265,8 @@ const viewModeInfo = computed(() => {
                 v-else
                 class="flex-none w-3.5 h-3.5 mx-0.5"
                 :class="{
-                  'text-brand-400': activeView?.lock_type === ViewLockType.Personal && isViewOwner,
-                  'text-gray-400': !(activeView?.lock_type === ViewLockType.Personal && isViewOwner),
+                  'text-nc-brand-400': activeView?.lock_type === ViewLockType.Personal && isViewOwner,
+                  'text-nc-content-gray-disabled': !(activeView?.lock_type === ViewLockType.Personal && isViewOwner),
                 }"
               />
             </template>

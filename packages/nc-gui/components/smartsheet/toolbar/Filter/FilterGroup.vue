@@ -395,7 +395,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
       :list="vModel"
       v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
       group="nc-filter-group-rows"
-      ghost-class="bg-gray-50"
+      ghost-class="bg-nc-bg-gray-extralight"
       draggable=".nc-filter-group-row"
       handle=".nc-filter-group-row-drag-handler"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
@@ -591,7 +591,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 
 .nc-filter-item-remove-btn,
 .nc-filter-item-reorder-btn {
-  @apply text-gray-600 hover:text-gray-800;
+  @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 
 .nc-filter-grid {
@@ -611,7 +611,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 }
 
 .nc-filter-wrapper {
-  @apply bg-white !rounded-lg border-1px border-[#E7E7E9];
+  @apply bg-nc-bg-default !rounded-lg border-1px border-[#E7E7E9];
 
   & > *,
   .nc-filter-value-select {
@@ -663,7 +663,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
   :deep(.nc-select:not(.nc-disabled-logical-op):not(.ant-select-disabled):hover) {
     &,
     .ant-select-selector {
-      @apply bg-gray-50;
+      @apply bg-nc-bg-gray-extralight;
     }
   }
 }
@@ -720,6 +720,6 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 }
 
 .nc-btn-focus:focus {
-  @apply !text-brand-500 !shadow-none;
+  @apply !text-nc-content-brand !shadow-none;
 }
 </style>

@@ -574,7 +574,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               </template>
             </span>
           </div>
-          <span v-if="numberOfHiddenFields" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">
+          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">
             {{ numberOfHiddenFields }}
           </span>
         </div>
@@ -714,7 +714,7 @@ const onAddColumnDropdownVisibilityChange = () => {
           <div class="nc-fields-list">
             <div
               v-if="!localFilteredFieldList.length"
-              class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
+              class="px-2 py-6 text-nc-content-gray-muted flex flex-col items-center gap-6 text-center"
             >
               <img
                 src="~assets/img/placeholder/no-search-result-found.png"

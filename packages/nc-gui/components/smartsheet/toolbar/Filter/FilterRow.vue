@@ -375,7 +375,7 @@ const onChangeToDynamic = async () => {
 
 <template>
   <div
-    class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-white"
+    class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-nc-bg-default"
     :class="`nc-filter-wrapper-${vModel.fk_column_id}`"
     v-bind="containerProps"
   >
@@ -550,11 +550,11 @@ const onChangeToDynamic = async () => {
                 <template #overlay>
                   <div class="relative overflow-visible min-h-17 w-10">
                     <div
-                      class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
+                      class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
                       style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                     >
                       <div
-                        class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
+                        class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
                         @click="onResetDynamicField()"
                       >
                         <div class="flex flex-row items-center justify-between w-full">
@@ -569,7 +569,7 @@ const onChangeToDynamic = async () => {
                       </div>
                       <div
                         v-e="['c:filter:dynamic-filter']"
-                        class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
+                        class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
                         :class="
                           isDynamicFilterAllowed(vModel, column, dbClientType) && showFilterInput
                             ? 'cursor-pointer'
@@ -636,7 +636,7 @@ const onChangeToDynamic = async () => {
 
 .nc-filter-item-remove-btn,
 .nc-filter-item-reorder-btn {
-  @apply text-gray-600 hover:text-gray-800;
+  @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 
 .nc-filter-grid {
@@ -656,7 +656,7 @@ const onChangeToDynamic = async () => {
 }
 
 .nc-filter-wrapper {
-  @apply bg-white !rounded-lg border-1px border-[#E7E7E9];
+  @apply bg-nc-bg-default !rounded-lg border-1px border-[#E7E7E9];
 
   & > *,
   .nc-filter-value-select {
@@ -718,7 +718,7 @@ const onChangeToDynamic = async () => {
   :deep(.nc-select:not(.nc-disabled-logical-op):not(.ant-select-disabled):hover) {
     &,
     .ant-select-selector {
-      @apply bg-gray-50;
+      @apply bg-nc-bg-gray-extralight;
     }
   }
 }
@@ -775,6 +775,6 @@ const onChangeToDynamic = async () => {
 }
 
 .nc-btn-focus:focus {
-  @apply !text-brand-500 !shadow-none;
+  @apply !text-nc-content-brand !shadow-none;
 }
 </style>

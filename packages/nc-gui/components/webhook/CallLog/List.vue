@@ -75,7 +75,7 @@ const emit = defineEmits<Emit>()
       @apply bg-nc-bg-brand;
 
       h4 {
-        @apply text-brand-600;
+        @apply text-nc-content-brand-disabled;
         font-weight: bold;
       }
     }

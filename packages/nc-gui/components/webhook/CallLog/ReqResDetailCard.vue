@@ -33,7 +33,7 @@ const formattedPayload = computed(() => {
     <div class="detail-title font-weight-bold">{{ title }}</div>
     <div class="content">
       <div v-if="headers" class="detail-headers">
-        <span v-if="!headers['nc-script-id']" class="text-gray-500 font-weight-bold text-small1">Header</span>
+        <span v-if="!headers['nc-script-id']" class="text-nc-content-gray-muted font-weight-bold text-small1">Header</span>
         <div v-if="headers['nc-script-id']" class="log-details">
           <div class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
@@ -70,7 +70,7 @@ const formattedPayload = computed(() => {
         </div>
       </div>
       <div v-if="params && Object.keys(params).length" class="detail-params">
-        <span class="text-gray-500 font-weight-bold text-small1">Parameter</span>
+        <span class="text-nc-content-gray-muted font-weight-bold text-small1">Parameter</span>
         <div class="log-details">
           <div v-for="(value, key) in params" :key="key" class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
@@ -85,7 +85,7 @@ const formattedPayload = computed(() => {
         </div>
       </div>
       <div v-if="payload && Object.keys(payload).length" class="detail-payload -mt-1">
-        <div class="text-sm text-gray-500 font-weight-bold pb-2 flex justify-between items-center">
+        <div class="text-sm text-nc-content-gray-muted font-weight-bold pb-2 flex justify-between items-center">
           <span class="text-xs leading-[18px]">Payload</span>
           <GeneralCopyButton :content="copyPayloadContent" size="xs" class="!px-1" />
         </div>
@@ -117,10 +117,10 @@ const formattedPayload = computed(() => {
             />
           </template>
           <template #fallback>
-            <div class="min-h-50 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div class="min-h-50 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
               <div class="text-center">
                 <a-spin size="large" />
-                <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
               </div>
             </div>
           </template>
@@ -132,7 +132,7 @@ const formattedPayload = computed(() => {
 
 <style scoped lang="scss">
 .detail-card {
-  @apply flex flex-col w-full border-1 border-gray-200 rounded-lg bg-gray-50 h-full;
+  @apply flex flex-col w-full border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-gray-extralight h-full;
 
   & > .detail-title {
     @apply border-b border-nc-border-gray-medium px-3 py-2;
@@ -142,7 +142,7 @@ const formattedPayload = computed(() => {
     @apply flex-1 overflow-auto nc-scrollbar-thin flex flex-col;
 
     & > div:not(:last-child) {
-      @apply border-b border-gray-200;
+      @apply border-b border-nc-border-gray-medium;
     }
 
     & > div {

@@ -11,7 +11,7 @@ defineProps<Props>()
 
     <div class="content">
       <div class="detail-headers">
-        <span class="text-gray-500 font-weight-bold text-small1">Header</span>
+        <span class="text-nc-content-gray-muted font-weight-bold text-small1">Header</span>
         <div class="log-details">
           <a-skeleton
             v-for="idx in 2"
@@ -26,7 +26,7 @@ defineProps<Props>()
         </div>
       </div>
       <div class="detail-payload -mt-1">
-        <div class="text-sm text-gray-500 font-weight-bold pb-2 flex justify-between items-center">
+        <div class="text-sm text-nc-content-gray-muted font-weight-bold pb-2 flex justify-between items-center">
           <span class="text-xs leading-[18px]">Payload</span>
           <GeneralCopyButton content="" size="xs" class="!px-1" disabled />
         </div>
@@ -50,7 +50,7 @@ defineProps<Props>()
 
 <style lang="scss" scoped>
 .detail-card {
-  @apply flex-1 flex flex-col border-1 border-gray-200 rounded-lg bg-gray-50 h-full;
+  @apply flex-1 flex flex-col border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-gray-extralight h-full;
 
   & > .detail-title {
     @apply border-b border-nc-border-gray-medium px-3 py-2;
@@ -60,7 +60,7 @@ defineProps<Props>()
     @apply flex-1 overflow-auto nc-scrollbar-thin flex flex-col;
 
     & > div:not(:last-child) {
-      @apply border-b border-gray-200;
+      @apply border-b border-nc-border-gray-medium;
     }
 
     & > div {

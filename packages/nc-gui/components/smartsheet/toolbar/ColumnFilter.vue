@@ -192,6 +192,10 @@ const addFiltersRowDomRef = ref<HTMLElement>()
 
 const isMounted = ref(false)
 
+const isReorderEnabled = computed(() => {
+  return isEeUI && isViewFilter.value
+})
+
 const getColumn = (filter: Filter) => {
   // extract looked up column if available
   return btLookupTypesMap.value[filter.fk_column_id] || columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
@@ -540,6 +544,102 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
   await saveOrUpdate(filter, index)
 }
 
+function onMoveCallback(event: any) {
+  // disable nested drag drop for now
+  if (event.from !== event.to) {
+    return false
+  }
+}
+
+const onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: ColumnFilterType } }) => {
+  // For now add reorder support only in view filter
+  if (!isReorderEnabled.value) return
+
+  /**
+   * If event has moved property that means reorder is on same level
+   */
+  if (event.moved) {
+    const {
+      moved: { newIndex = 0, oldIndex = 0, element },
+    } = event
+
+    if (!element || (!element.id && !element.tmp_id) || visibleFilters.value.length === 1) return
+
+    let nextOrder: number
+    let changedLogicalOperatorEl: ColumnFilterType | undefined
+    let changedLogicalOperatorElIndex: number = -1
+
+    /**
+     * In all case the old first position filter might have different logical operator
+     * as we allow to change operator of second position filter and all next position filter logical operator will be same as second
+     */
+
+    // set new order value based on the new order of the items
+    if (visibleFilters.value.length - 1 === newIndex) {
+      // If moving to the end, set nextOrder greater than the maximum order in the list
+      nextOrder = Math.max(...visibleFilters.value.map((item) => item?.order ?? 0)) + 1
+
+      // This is when we drag first position filter and logical operator is different that others
+      if (
+        visibleFilters.value[newIndex] &&
+        visibleFilters.value[newIndex - 1] &&
+        element.logical_op !== visibleFilters.value[newIndex - 1]?.logical_op
+      ) {
+        element.logical_op = visibleFilters.value[newIndex - 1]?.logical_op
+      }
+    } else if (newIndex === 0) {
+      // If moving to the beginning, set nextOrder smaller than the minimum order in the list
+      nextOrder = Math.min(...visibleFilters.value.map((item) => item?.order ?? 0)) / 2
+
+      if (visibleFilters.value[1] && element.logical_op !== visibleFilters.value[1].logical_op) {
+        changedLogicalOperatorEl = visibleFilters.value[1]
+        changedLogicalOperatorEl.logical_op = element.logical_op
+        changedLogicalOperatorElIndex = 1
+      }
+    } else {
+      nextOrder =
+        (parseFloat(String(visibleFilters.value[newIndex - 1]?.order ?? 0)) +
+          parseFloat(String(visibleFilters.value[newIndex + 1]?.order ?? 0))) /
+        2
+
+      // This is when we drag first position filter and logical operator is different that others
+      if (visibleFilters.value[newIndex + 1] && element.logical_op !== visibleFilters.value[newIndex + 1]!.logical_op) {
+        element.logical_op = visibleFilters.value[newIndex + 1]?.logical_op
+      }
+    }
+
+    const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+    element.order = _nextOrder
+
+    const elementIndex =
+      visibleFilters.value.findIndex((item) => item?.id === element?.id) ||
+      visibleFilters.value.findIndex((item) => item?.tmp_id === element?.tmp_id)
+
+    const lastFilterElIndex =
+      lastFilters.value.findIndex((item) => item.id === element.id) ||
+      lastFilters.value.findIndex((item) => item.tmp_id === element.tmp_id)
+
+    const lastFilterChangedLogicalOperatorElIndex = changedLogicalOperatorEl
+      ? lastFilters.value.findIndex((item) => item.id === changedLogicalOperatorEl?.id) ||
+        lastFilters.value.findIndex((item) => item.tmp_id === changedLogicalOperatorEl?.tmp_id)
+      : -1
+
+    await saveOrUpdate(element, elementIndex, false, false, false, lastFilterElIndex)
+
+    if (changedLogicalOperatorEl) {
+      await saveOrUpdate(
+        changedLogicalOperatorEl,
+        changedLogicalOperatorElIndex,
+        false,
+        false,
+        false,
+        lastFilterChangedLogicalOperatorElIndex,
+      )
+    }
+  }
+}
+
 // watch for changes in filters and update the modelValue
 watch(
   filters,
@@ -705,6 +805,13 @@ defineExpose({
     <div
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
+      v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
+      :list="filters"
+      :disabled="!isReorderEnabled"
+      group="nc-column-filters"
+      ghost-class="bg-gray-50"
+      draggable=".nc-column-filter-item"
+      handle=".nc-column-filter-drag-handler"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
       :class="{
         'nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
@@ -725,7 +832,7 @@ defineExpose({
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="i"
-                  ref="localNestedFilters"
+                  :ref="(el) => (localNestedFilters[i] = el)"
                   v-model="filter.children"
                   v-model:is-open="isOpen"
                   :nested-level="nestedLevel + 1"
@@ -793,6 +900,16 @@ defineExpose({
                       @click.stop="deleteFilter(filter, i)"
                     >
                       <component :is="iconMap.deleteListItem" />
+                    </NcButton>
+                    <NcButton
+                      v-if="!filter.readOnly && !readOnly && isReorderEnabled"
+                      type="text"
+                      size="small"
+                      class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
+                      :shadow="false"
+                      :disabled="visibleFilters.length === 1"
+                    >
+                      <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
                     </NcButton>
                   </template>
                 </LazySmartsheetToolbarColumnFilter>
@@ -1039,6 +1156,17 @@ defineExpose({
               @click.stop="deleteFilter(filter, i)"
             >
               <component :is="iconMap.deleteListItem" />
+            </NcButton>
+
+            <NcButton
+              v-if="!filter.readOnly && !readOnly && isReorderEnabled"
+              type="text"
+              size="small"
+              class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
+              :shadow="false"
+              :disabled="visibleFilters.length === 1"
+            >
+              <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
             </NcButton>
           </div>
         </template>

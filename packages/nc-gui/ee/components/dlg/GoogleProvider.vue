@@ -91,29 +91,31 @@ const saveGoogleProvider = async () => {
         <a-form ref="formValidator" :model="form">
           <div class="flex flex-col gap-2">
             <div class="flex flex-row items-center">
-              <span class="text-gray-800">{{ $t('labels.redirectUrl') }}</span>
+              <span class="text-nc-content-gray">{{ $t('labels.redirectUrl') }}</span>
               <NcTooltip>
                 <template #title>
                   This is the URL where authentication responses will be sent after successful login. Also referred to as
                   'Callback URL' or 'Reply URL'.
                 </template>
-                <component :is="iconMap.info" class="ml-1 text-gray-800" />
+                <component :is="iconMap.info" class="ml-1 text-nc-content-gray" />
               </NcTooltip>
             </div>
-            <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
+            <div
+              class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg"
+            >
               <span
                 data-test-id="nc-google-redirect-url"
-                class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+                class="text-nc-content-gray text-nc-content-gray overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
               >
                 <!-- Get Redirect URL from Authentication Composable -->
                 {{ getRedirectUrl(google) }}
               </span>
               <NcButton size="xsmall" type="text" @click="copyRedirectUrl(getRedirectUrl(google))">
                 <MdiCheck v-if="isCopied.redirectUrl" class="h-3.5" />
-                <component :is="iconMap.copy" v-else class="text-gray-800" />
+                <component :is="iconMap.copy" v-else class="text-nc-content-gray" />
               </NcButton>
             </div>
-            <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
+            <span class="text-xs text-nc-content-gray-muted">{{ $t('msg.info.idpPaste') }}</span>
           </div>
           <a-form-item :rules="formRules.clientId" name="clientId">
             <a-input v-model:value="form.clientId" data-test-id="nc-google-client-id" placeholder="Client ID" />
@@ -142,10 +144,10 @@ const saveGoogleProvider = async () => {
 
 <style lang="scss" scoped>
 .ant-input::placeholder {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .ant-input {
-  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
 }
 </style>

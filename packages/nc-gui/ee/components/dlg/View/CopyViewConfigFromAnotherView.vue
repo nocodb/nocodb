@@ -140,7 +140,7 @@ watch(
           :data-testid="`nc-copy-view-config-option-${option.value}`"
           class="flex flex-row items-center rounded-md transition select-none"
           :class="{
-            'hover:bg-gray-100 cursor-pointer text-nc-content-gray': !option.disabled,
+            'hover:bg-nc-bg-gray-light cursor-pointer text-nc-content-gray': !option.disabled,
             'cursor-not-allowed text-nc-content-gray-muted': option.disabled,
           }"
           :title="$t('objects.copyViewConfig.notSupportedByViewType', { view: viewTypeAlias[selectViewRef?.selectedView?.type as ViewTypes] ?$t(`objects.viewType.${viewTypeAlias[selectViewRef?.selectedView?.type as ViewTypes]}`) : $t('general.selected') })"

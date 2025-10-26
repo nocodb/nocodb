@@ -230,7 +230,7 @@ onUnmounted(() => {
       <a
         v-if="step === 1"
         href="https://docs.nocodb.com/bases/import-base-from-nocodb#get-nocodb-credentials"
-        class="!text-gray-500 prose-sm ml-auto"
+        class="!text-nc-content-gray-muted prose-sm ml-auto"
         target="_blank"
         rel="noopener"
       >
@@ -243,7 +243,7 @@ onUnmounted(() => {
     </div>
 
     <div v-if="step === 1">
-      <div class="text-gray-600 text-sm px-2">
+      <div class="text-nc-content-gray-subtle2 text-sm px-2">
         <p class="mb-2">Easily migrate your base with the following steps:</p>
         <ol class="list-decimal list-inside mt-2 pl-1">
           <li>Open <strong>settings</strong> in your NocoDB base</li>
@@ -305,16 +305,16 @@ onUnmounted(() => {
           </span>
         </template>
         <template v-else-if="lastProgress?.status === JobStatus.FAILED">
-          <a-alert class="!rounded-lg !bg-transparent !border-gray-200 !p-3 !w-full">
+          <a-alert class="!rounded-lg !bg-transparent !border-nc-border-gray-medium !p-3 !w-full">
             >
             <template #message>
               <div class="flex flex-row items-center gap-2 mb-2">
-                <GeneralIcon icon="ncAlertCircleFilled" class="text-red-500 w-4 h-4" />
+                <GeneralIcon icon="ncAlertCircleFilled" class="text-nc-content-red-medium w-4 h-4" />
                 <span class="font-weight-700 text-[14px]">Import error</span>
               </div>
             </template>
             <template #description>
-              <div class="text-gray-500 text-[13px] leading-5 ml-6">
+              <div class="text-nc-content-gray-muted text-[13px] leading-5 ml-6">
                 {{ lastProgress?.msg ?? '---' }}
               </div>
             </template>

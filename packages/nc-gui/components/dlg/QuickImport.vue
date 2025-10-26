@@ -771,7 +771,7 @@ watch(
                 <a-upload-dragger
                   v-model:file-list="importState.fileList"
                   name="file"
-                  class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
+                  class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-nc-border-gray-medium"
                   :class="{
                     hidden: hideUpload,
                   }"
@@ -995,10 +995,10 @@ watch(
                       />
                     </template>
                     <template #fallback>
-                      <div class="!h-full w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                      <div class="!h-full w-full flex items-center justify-center bg-nc-bg-gray-extralight">
                         <div class="text-center">
                           <a-spin size="large" />
-                          <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                          <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
                         </div>
                       </div>
                     </template>
@@ -1192,7 +1192,7 @@ span:has(> .nc-modern-drag-import) {
   }
 }
 :deep(.nc-modern-drag-import:not(.ant-upload-disabled)) {
-  @apply bg-white hover:bg-gray-50;
+  @apply bg-nc-bg-default hover:bg-nc-bg-gray-extralight;
 }
 
 :deep(.nc-modern-drag-import.hidden + .ant-upload-list) {
@@ -1221,7 +1221,7 @@ span:has(> .nc-modern-drag-import) {
 
   .tab-title,
   :deep(.ant-tabs-tab-btn) {
-    @apply px-2 text-nc-content-gray-subtle2 rounded-md hover:bg-gray-100 transition-colors;
+    @apply px-2 text-nc-content-gray-subtle2 rounded-md hover:bg-nc-bg-gray-light transition-colors;
     span {
       @apply text-small !leading-[24px];
     }

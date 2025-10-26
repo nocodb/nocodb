@@ -53,7 +53,7 @@ async function onRevoke() {
         <span class="font-semibold">{{ authorization.client_name }} </span>.
       </div>
 
-      <div class="flex flex-row items-center mt-2 py-2 px-3 bg-gray-50 rounded-lg text-gray-700">
+      <div class="flex flex-row items-center mt-2 py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-gray-700">
         <div
           class="capitalize text-ellipsis overflow-hidden font-bold select-none w-full pl-3"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

@@ -97,7 +97,7 @@ const updateDescription = async (undo = false) => {
       <div class="flex flex-row items-center gap-x-2">
         <GeneralIcon icon="dashboards" class="mt-0.5 !text-2xl" />
 
-        <span class="text-gray-900 font-semibold">
+        <span class="text-nc-content-gray-emphasis font-semibold">
           {{ dashboard?.title }}
         </span>
       </div>
@@ -108,7 +108,7 @@ const updateDescription = async (undo = false) => {
           <a-textarea
             ref="inputEl"
             v-model:value="formState.description"
-            class="nc-input-sm !py-2 nc-text-area !text-gray-800 nc-input-shadow"
+            class="nc-input-sm !py-2 nc-text-area !text-nc-content-gray nc-input-shadow"
             hide-details
             size="small"
             :placeholder="$t('msg.info.enterScriptDescription')"
@@ -133,7 +133,7 @@ const updateDescription = async (undo = false) => {
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !leading-[20px] font-base !text-md text-gray-800 flex;
+  @apply !leading-[20px] font-base !text-md text-nc-content-gray flex;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;

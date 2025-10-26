@@ -187,12 +187,13 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
   padding: 0 !important;
   border-radius: 8px !important;
   & :deep(.nc-menu-item) {
+    border: 0px !important;
     &:hover {
-      @apply bg-gray-50 text-black;
+      @apply bg-nc-bg-gray-extralight text-black;
     }
     margin: 0 !important;
     &.ant-menu-item-disabled {
-      @apply bg-gray-50;
+      @apply bg-nc-bg-gray-extralight;
     }
     & .ant-menu-title-content {
       width: 100%;
@@ -203,5 +204,11 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
       }
     }
   }
+}
+
+.ant-menu-inline,
+.ant-menu-vertical,
+.ant-menu-vertical-left {
+  @apply border-r-nc-border-gray-medium;
 }
 </style>

@@ -1328,7 +1328,7 @@ watch(activeBaseId, () => {
                     "
                   >
                     <template #loadingIcon>
-                      <GeneralLoader class="!text-purple-700" size="medium" />
+                      <GeneralLoader class="!text-nc-content-purple-dark" size="medium" />
                     </template>
                     <template #icon>
                       <GeneralIcon icon="send" class="flex-none h-4 w-4" />

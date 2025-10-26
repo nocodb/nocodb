@@ -346,7 +346,7 @@ const collapseKey = ref('')
         </nc-button>
         <NcButton v-if="!isInProgress" icon-only type="text" size="xs" @click.stop="dialogShow = false">
           <template #icon>
-            <GeneralIcon icon="close" class="text-gray-600" />
+            <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
           </template>
         </NcButton>
       </div>

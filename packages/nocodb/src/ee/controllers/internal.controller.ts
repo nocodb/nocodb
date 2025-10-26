@@ -67,8 +67,6 @@ export class InternalController extends InternalControllerCE {
     protected readonly oAuthTokenService: OauthTokenService,
     private readonly teamsV3Service: TeamsV3Service,
     private readonly usersService: UsersService,
-    @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
-    protected readonly internalApiModules: InternalApiModule<any>[],
   ) {
     super(aclMiddleware, internalApiModules);
   }

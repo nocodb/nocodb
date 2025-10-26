@@ -437,17 +437,17 @@ onUnmounted(() => {
   .ant-message-notice {
     &:has(.nc-alert-notification) {
       .ant-message-notice-content {
-        @apply bg-white !rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden;
+        @apply bg-nc-bg-default !rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden;
 
         .ant-message-custom-content > span {
           @apply flex-none w-full block;
         }
 
         &:has(.nc-alert-type-toast) {
-          @apply py-2.5 px-3 bg-gray-700 border-gray-700;
+          @apply py-2.5 px-3 bg-bg-gray-700 border-nc-gray-700;
 
           .nc-alert-description {
-            @apply text-white;
+            @apply text-base-white;
           }
         }
       }

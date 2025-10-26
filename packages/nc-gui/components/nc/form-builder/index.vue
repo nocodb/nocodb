@@ -178,7 +178,7 @@ watch(
                           FormBuilderInputType.SelectBase,
                         ].includes(field.type)
                       "
-                      class="text-red-500"
+                      class="text-nc-content-red-medium"
                       >*</span
                     >
                     <NcTooltip v-if="field.helpText && field.showHintAsTooltip">
@@ -187,7 +187,7 @@ watch(
                           {{ field.helpText }}
                         </div>
                       </template>
-                      <GeneralIcon icon="info" class="text-gray-500 h-4" />
+                      <GeneralIcon icon="info" class="text-nc-content-gray-muted h-4" />
                     </NcTooltip>
                   </div>
                 </template>
@@ -235,11 +235,11 @@ watch(
                             {{ field.helpText }}
                           </div>
                         </template>
-                        <GeneralIcon icon="info" class="text-gray-500 h-4 ml-1" />
+                        <GeneralIcon icon="info" class="text-nc-content-gray-muted h-4 ml-1" />
                       </NcTooltip>
                     </div>
                     <div v-if="field.helpText && !field.showHintAsTooltip" class="w-full mt-1 pl-[35px]">
-                      <div class="text-xs text-gray-500">{{ field.helpText }}</div>
+                      <div class="text-xs text-nc-content-gray-muted">{{ field.helpText }}</div>
                     </div>
                   </div>
                 </template>
@@ -283,11 +283,11 @@ watch(
                       <component :is="menu" />
                       <a-divider style="margin: 4px 0" />
                       <div
-                        class="px-1.5 flex items-center text-brand-500 text-sm cursor-pointer"
+                        class="px-1.5 flex items-center text-nc-content-brand text-sm cursor-pointer"
                         @mousedown.prevent
                         @click="handleAddNewConnection(field)"
                       >
-                        <div class="w-full flex items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
+                        <div class="w-full flex items-center gap-2 px-2 py-2 rounded-md hover:bg-nc-bg-gray-light">
                           <GeneralIcon icon="plus" class="flex-none" />
                           {{ $t('general.new') }} {{ $t('general.connection').toLowerCase() }}
                         </div>
@@ -360,7 +360,7 @@ watch(
                   v-if="field.helpText && field.type !== FormBuilderInputType.Switch && !field.showHintAsTooltip"
                   class="w-full mt-1"
                 >
-                  <div class="text-xs text-gray-500">{{ field.helpText }}</div>
+                  <div class="text-xs text-nc-content-gray-muted">{{ field.helpText }}</div>
                 </div>
               </a-form-item>
             </template>
@@ -377,7 +377,7 @@ watch(
       <WorkspaceIntegrationsEditOrAdd />
     </template>
     <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
-      <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+      <div class="flex items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-85 z-1000">
         <a-spin size="large" />
       </div>
     </general-overlay>
@@ -432,7 +432,7 @@ watch(
   }
 
   :deep(.ant-form-item-label > label.ant-form-item-required:after) {
-    @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
+    @apply content-['*'] inline-block text-inherit text-nc-content-red-medium ml-1;
   }
 
   :deep(.ant-form-item) {
@@ -470,11 +470,11 @@ watch(
     &:not(.ant-form-item-has-error) {
       &:not(:has(.ant-input-password)) .ant-input {
         &:not(:hover):not(:focus):not(:disabled) {
-          @apply shadow-default border-gray-200;
+          @apply shadow-default border-nc-border-gray-medium;
         }
 
         &:hover:not(:focus):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
+          @apply border-nc-border-gray-medium shadow-hover;
         }
 
         &:focus {
@@ -485,11 +485,11 @@ watch(
       .ant-input-number,
       .ant-input-affix-wrapper.ant-input-password {
         &:not(:hover):not(:focus-within):not(:disabled) {
-          @apply shadow-default border-gray-200;
+          @apply shadow-default border-nc-border-gray-medium;
         }
 
         &:hover:not(:focus-within):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
+          @apply border-nc-border-gray-medium shadow-hover;
         }
 
         &:focus-within {

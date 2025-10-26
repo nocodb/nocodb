@@ -1654,9 +1654,12 @@ export class AtImportProcessor {
             break;
 
           case UITypes.SingleLineText:
-            // Barcode data
             if (value?.text) {
+              // Barcode data
               rec[key] = value.text;
+            } else if (value?.value) {
+              // AI generated text
+              rec[key] = value.value;
             }
             break;
 

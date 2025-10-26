@@ -284,7 +284,7 @@ export class UsersService extends UsersServiceCE {
 
     let createdWorkspace;
 
-    const { password } = param.req.body;
+    let { password } = param.req.body;
 
     // validate password and throw error if password is satisfying the conditions
     const { valid, error } = validatePassword(password);
@@ -318,6 +318,7 @@ export class UsersService extends UsersServiceCE {
     }
 
     const salt = await promisify(bcrypt.genSalt)(10);
+    password = await promisify(bcrypt.hash)(password, salt);
     const email_verification_token = uuidv4();
 
     if (!ignore_subscribe) {

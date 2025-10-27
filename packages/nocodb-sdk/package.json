@@ -43,7 +43,7 @@
     "chevrotain": "^10.5.0",
     "dayjs": "^1.11.13",
     "jsep": "^1.4.0",
-    "validator": "^13.12.0"
+    "validator": "^13.15.20"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

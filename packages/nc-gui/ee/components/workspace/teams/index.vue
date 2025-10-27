@@ -236,6 +236,7 @@ onMounted(async () => {
           inner-class="!gap-2"
           :disabled="isTeamsLoading"
           data-testid="nc-new-team-btn"
+          class="capitalize"
           @click="handleCreateTeam"
         >
           <template #icon>
@@ -278,7 +279,7 @@ onMounted(async () => {
               />
             </template>
             <template v-if="hasEditPermission" #action>
-              <NcButton size="small" inner-class="!gap-2" @click="handleCreateTeam">
+              <NcButton size="small" inner-class="!gap-2" class="capitalize" @click="handleCreateTeam">
                 <template #icon>
                   <GeneralIcon icon="plus" class="h-4 w-4" />
                 </template>

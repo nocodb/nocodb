@@ -136,7 +136,7 @@ watch(vVisible, (newValue) => {
   >
     <div class="py-5 flex flex-col gap-5">
       <div class="px-5 flex justify-between w-full items-center">
-        <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-gray-800">
+        <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-gray-800 capitalize">
           <GeneralIcon icon="ncBuilding" class="!text-gray-600 w-5 h-5" />
           {{ $t('labels.newTeam') }}
         </div>
@@ -235,6 +235,7 @@ watch(vVisible, (newValue) => {
               size="small"
               :disabled="validateInfos.title?.validateStatus === 'error' || creating"
               :loading="creating"
+              class="capitalize"
               @click="createTeam"
             >
               {{ $t('labels.createTeam') }}

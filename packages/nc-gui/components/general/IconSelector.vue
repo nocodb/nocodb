@@ -14,6 +14,7 @@ interface Props {
   hiddenTabs?: IconType[]
   defaultActiveTab?: IconType
   onBeforeTabChange?: (iconsType: IconType) => boolean
+  defaultSlotWrapperClass?: string
 }
 
 interface TabItemType {
@@ -27,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
   hiddenTabs: () => [],
   defaultActiveTab: IconType.ICON,
   onBeforeTabChange: () => true,
+  defaultSlotWrapperClass: '',
 })
 
 const emits = defineEmits(['update:icon', 'update:iconType', 'update:imageCropperData', 'submit'])
@@ -46,6 +48,8 @@ const { isMobileMode } = useGlobal()
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const isOpen = ref<boolean>(false)
+
+const triggerRef = ref<HTMLElement | null>(null)
 
 const isLoading = ref<boolean>(false)
 
@@ -274,6 +278,10 @@ watch(isOpen, (newValue) => {
     nextTick(() => {
       focusInput()
     })
+  } else {
+    nextTick(() => {
+      triggerRef.value?.focus()
+    })
   }
 })
 </script>
@@ -287,7 +295,16 @@ watch(isOpen, (newValue) => {
       class="nc-icon-selector"
       @visible-change="onVisibilityChange"
     >
-      <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType"> </slot>
+      <div :class="defaultSlotWrapperClass">
+        <button
+          ref="triggerRef"
+          type="button"
+          tabindex="-1"
+          class="sr-only outline-none ring-0 shadow-none focus:(outline-none shadow-none)"
+        ></button>
+
+        <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType"> </slot>
+      </div>
       <template #overlay>
         <div class="pt-2 h-[320px]">
           <NcTabs v-model:active-key="activeTab" class="nc-icon-selector-dropdown-tabs h-full">

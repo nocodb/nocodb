@@ -27,6 +27,7 @@ import Noco from '~/Noco';
 import { UseWorker } from '~/decorators/use-worker.decorator';
 
 interface AttachmentObject {
+  id?: string;
   url?: string;
   path?: string;
   title: string;
@@ -146,7 +147,7 @@ export class AttachmentsService {
             file,
           );
 
-          await FileReference.insert(
+          const referenceId = await FileReference.insert(
             {
               workspace_id: RootScopes.ROOT,
               base_id: RootScopes.ROOT,
@@ -171,6 +172,7 @@ export class AttachmentsService {
             mimetype: file.mimetype,
             size: file.size,
             icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
+            id: referenceId,
             ...tempMetadata,
           };
 
@@ -375,7 +377,7 @@ export class AttachmentsService {
             }
           }
 
-          await FileReference.insert(
+          const referencedId = await FileReference.insert(
             {
               workspace_id: RootScopes.ROOT,
               base_id: RootScopes.ROOT,
@@ -402,6 +404,7 @@ export class AttachmentsService {
             size: size ? parseInt(size) : urlMeta.size,
             icon:
               mimeIcons[path.extname(fileNameWithExt).slice(1)] || undefined,
+            id: referencedId,
             ...tempMetadata,
           };
 

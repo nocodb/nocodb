@@ -1055,7 +1055,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       return res
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+      if (appInfo.value?.isCloud && !appInfo.value?.isOnPrem && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
+        throw e
+      } else {
+        message.error(errorInfo.message)
+      }
     }
   }
 

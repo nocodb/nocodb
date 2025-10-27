@@ -676,7 +676,7 @@ export const useBases = defineStore('basesStore', () => {
 
       return res
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      throw e
     }
   }
 

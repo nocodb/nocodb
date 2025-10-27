@@ -12,6 +12,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
+// Todo: handle cache key when adding support for org level teams
 export default class Team {
   id: string;
   title: string;

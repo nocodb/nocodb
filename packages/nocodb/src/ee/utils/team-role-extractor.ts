@@ -14,6 +14,7 @@ export async function extractUserTeamRoles(
   userId: string,
   workspaceId: string,
 ): Promise<Record<string, boolean> | null> {
+  // todo: optimize with fewer queries
   try {
     // Get all team assignments for this workspace
     const workspaceTeamAssignments = await PrincipalAssignment.list(context, {

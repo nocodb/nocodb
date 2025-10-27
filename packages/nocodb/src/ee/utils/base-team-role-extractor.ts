@@ -9,6 +9,7 @@ import { PrincipalType, ResourceType } from '~/utils/globals';
  * @param baseId - Base ID
  * @returns Promise<Record<string, boolean> | null> - Base-team roles or null if no base-team roles
  */
+// todo: optimize with fewer queries
 export async function extractUserBaseTeamRoles(
   context: NcContext,
   userId: string,

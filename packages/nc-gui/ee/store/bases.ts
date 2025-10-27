@@ -557,7 +557,9 @@ export const useBases = defineStore('basesStore', () => {
   const isLoadingBaseTeams = ref(true)
 
   async function baseTeamList(baseId: string, showLoading = true) {
-    if (!workspaceStore.isTeamsEnabled || !workspaceStore.activeWorkspaceId || !baseId) {
+    await until(() => workspaceStore.blockTeamsManagement !== null).toBeTruthy()
+
+    if (!workspaceStore.isTeamsEnabled || !workspaceStore.activeWorkspaceId || !baseId || workspaceStore.blockTeamsManagement) {
       isLoadingBaseTeams.value = false
       return
     }

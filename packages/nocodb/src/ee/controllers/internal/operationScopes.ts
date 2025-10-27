@@ -52,6 +52,20 @@ export const OPERATION_SCOPES = {
   teamMembersRemove: 'workspace',
   teamMembersUpdate: 'workspace',
 
+  // Workspace-Team operations
+  workspaceTeamList: 'workspace',
+  workspaceTeamAdd: 'workspace',
+  workspaceTeamGet: 'workspace',
+  workspaceTeamUpdate: 'workspace',
+  workspaceTeamRemove: 'workspace',
+
+  // Base-Team operations
+  baseTeamList: 'base',
+  baseTeamAdd: 'base',
+  baseTeamGet: 'base',
+  baseTeamUpdate: 'base',
+  baseTeamRemove: 'base',
+
   // User Profile
 
   getUserProfile: 'org',

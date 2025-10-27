@@ -1180,6 +1180,9 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  /**
+   * Todo: @rameshmane7218, @pranav - use this when backend changes done for add team limit based on plan
+   */
   const showUpgradeToAddMoreTeams = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockAddNewTeamToWs.value) return
 

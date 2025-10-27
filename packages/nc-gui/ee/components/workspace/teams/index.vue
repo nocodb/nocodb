@@ -20,7 +20,7 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const { t } = useI18n()
 
-const { $api } = useNuxtApp()
+const { user } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
@@ -180,9 +180,8 @@ const handleLeaveTeam = (team: TeamV3V3Type) => {
     cancelText: t('labels.cancel'),
     okCallback: async () => {
       // Todo: api call
-      console.log('leave team', team)
-      await ncDelay(1000)
-      teams.value = teams.value.filter((t) => t.id !== team.id)
+
+      await workspaceStore.removeTeamMembers(activeWorkspaceId.value!, team.id, [{ user_id: user.value?.id! }])
     },
   })
 }
@@ -194,27 +193,7 @@ const handleDeleteTeam = (team: TeamV3V3Type) => {
     okText: t('activity.deleteTeam'),
     cancelText: t('labels.cancel'),
     okCallback: async () => {
-      // Todo: api call
-      console.log('delete team', team)
-      await ncDelay(2000)
-
-      try {
-        await $api.internal.postOperation(
-          activeWorkspaceId.value!,
-          NO_SCOPE,
-          {
-            operation: 'teamDelete',
-          },
-          {
-            teamId: team.id,
-          },
-        )
-
-        teams.value = teams.value.filter((t) => t.id !== team.id)
-      } catch (error: any) {
-        console.error(error)
-        message.error(await extractSdkResponseErrorMsg(error))
-      }
+      await workspaceStore.deleteTeam(activeWorkspaceId.value!, team.id)
     },
   })
 }
@@ -358,6 +337,7 @@ onMounted(async () => {
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}
                   </NcMenuItem>
+                  <!-- Todo: @rameshmane7218, @pranav - show leave team option only if logged in user is part of team -->
                   <NcTooltip
                     v-if="hasEditPermission"
                     :disabled="!hasSoleTeamOwner(record as TeamV3V3Type) "

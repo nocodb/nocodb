@@ -737,6 +737,32 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  async function deleteTeam(workspaceId: string, teamId: string) {
+    if (!isTeamsEnabled.value) return
+
+    try {
+      const res = (await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'teamDelete',
+        },
+        {
+          teamId,
+        },
+      )) as TeamV3V3Type
+
+      if (!res) return
+
+      teams.value = teams.value.filter((t) => t.id !== teamId)
+
+      return res
+    } catch (error: any) {
+      console.error(error)
+      message.error('Error occured while deleting team')
+    }
+  }
+
   async function updateTeam(workspaceId: string, teamId: string, updates: Partial<TeamUpdateV3ReqV3Type>) {
     if (!isTeamsEnabled.value) return
 
@@ -1134,6 +1160,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isTeamsLoading,
     editTeamDetails,
     createTeam,
+    deleteTeam,
     updateTeam,
     loadTeams,
     getTeamById,

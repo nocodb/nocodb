@@ -17,10 +17,10 @@ import type {
   BaseTeamListV3Type,
   BaseTeamUpdateV3ReqType,
   BaseTeamV3ResponseType,
-} from '~/ee/services/v3/base-teams-v3.types';
+} from '~/services/v3/base-teams-v3.types';
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { BaseTeamsV3Service } from '~/ee/services/v3/base-teams-v3.service';
+import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';

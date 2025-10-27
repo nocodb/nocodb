@@ -46,15 +46,15 @@ import { WorkspaceMembersV3Controller } from '~/controllers/v3/workspace-members
 
 /* Teams V3 */
 import { TeamsV3Controller } from '~/controllers/v3/teams-v3.controller';
-import { TeamsV3Service } from '~/ee/services/v3/teams-v3.service';
+import { TeamsV3Service } from '~/services/v3/teams-v3.service';
 
 /* Workspace Teams V3 */
-// import { WorkspaceTeamsV3Controller } from '~/ee/controllers/v3/workspace-teams-v3.controller';
-import { WorkspaceTeamsV3Service } from '~/ee/services/v3/workspace-teams-v3.service';
+// import { WorkspaceTeamsV3Controller } from '~/controllers/v3/workspace-teams-v3.controller';
+import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
 
 /* Base Teams V3 */
-// import { BaseTeamsV3Controller } from '~/ee/controllers/v3/base-teams-v3.controller';
-import { BaseTeamsV3Service } from '~/ee/services/v3/base-teams-v3.service';
+// import { BaseTeamsV3Controller } from '~/controllers/v3/base-teams-v3.controller';
+import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 
 /* Snapshot */
 import { SnapshotController } from '~/controllers/snapshot.controller';

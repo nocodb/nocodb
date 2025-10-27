@@ -315,7 +315,7 @@ export async function extractColumn({
                     refContext,
                     column.colOptions.fk_target_view_id,
                   ))) ||
-                (await View.getDefaultView(
+                (await View.getFirstCollaborativeView(
                   refContext,
                   parentBaseModel.model.id,
                 ));
@@ -627,7 +627,10 @@ export async function extractColumn({
                     childContext,
                     relationColOpts.fk_target_view_id,
                   )
-                : await View.getDefaultView(childContext, childModel.id);
+                : await View.getFirstCollaborativeView(
+                    childContext,
+                    childModel.id,
+                  );
               const childSorts = await view.getSorts(childContext);
 
               // apply sorts on nested query

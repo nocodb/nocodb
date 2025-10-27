@@ -822,7 +822,8 @@ export class ExportService {
           .filter((c) => !isLinksOrLTAR(c) && !isVirtualCol(c))
           .map((c) => c.title);
 
-    const refView = view ?? (await View.getDefaultView(context, model.id));
+    const refView =
+      view ?? (await View.getFirstCollaborativeView(context, model.id));
 
     const viewCols = await refView.getColumns(context);
     if (dataExportMode) {

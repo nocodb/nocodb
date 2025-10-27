@@ -72,7 +72,10 @@ export const relationDataFetcher = (param: {
         });
         const view = relationColOpts.fk_target_view_id
           ? await View.get(refContext, relationColOpts.fk_target_view_id)
-          : await View.getDefaultView(refContext, childBaseModel.model.id);
+          : await View.getFirstCollaborativeView(
+              refContext,
+              childBaseModel.model.id,
+            );
         await childBaseModel.applySortAndFilter({
           table: childTable,
           where,
@@ -228,7 +231,7 @@ export const relationDataFetcher = (param: {
       if (!sort || sort === '') {
         const view = relColOptions.fk_target_view_id
           ? await View.get(refContext, relColOptions.fk_target_view_id)
-          : await View.getDefaultView(refContext, refTable.id);
+          : await View.getFirstCollaborativeView(refContext, refTable.id);
         if (view) {
           const childSorts = await view.getSorts(refContext);
           await sortV2(refBaseModel, childSorts, qb);
@@ -579,7 +582,7 @@ export const relationDataFetcher = (param: {
 
       const view = relColOptions.fk_target_view_id
         ? await View.get(refContext, relColOptions.fk_target_view_id)
-        : await View.getDefaultView(refContext, refTable.id);
+        : await View.getFirstCollaborativeView(refContext, refTable.id);
       await refBaseModel.applySortAndFilter({
         table: refTable,
         where,

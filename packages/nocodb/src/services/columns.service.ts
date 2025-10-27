@@ -2024,7 +2024,7 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
-    const defaultView = await View.getDefaultView(
+    const defaultView = await View.getFirstCollaborativeView(
       context,
       column.fk_model_id,
       ncMeta,
@@ -2908,7 +2908,11 @@ export class ColumnsService implements IColumnsService {
         break;
     }
 
-    const defaultView = await View.getDefaultView(context, table.id, ncMeta);
+    const defaultView = await View.getFirstCollaborativeView(
+      context,
+      table.id,
+      ncMeta,
+    );
 
     await table.getColumns(context, undefined, defaultView?.id);
 
@@ -3573,7 +3577,11 @@ export class ColumnsService implements IColumnsService {
         );
       }
     }
-    const defaultView = await View.getDefaultView(context, table.id, ncMeta);
+    const defaultView = await View.getFirstCollaborativeView(
+      context,
+      table.id,
+      ncMeta,
+    );
 
     // Pass defaultViewId so that default view column order and visibility get added to the column meta
     await table.getColumns(context, ncMeta, defaultView?.id);

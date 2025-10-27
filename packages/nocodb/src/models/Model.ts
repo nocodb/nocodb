@@ -583,7 +583,7 @@ export default class Model implements TableType {
    * @param args.dbDriver - The base database driver
    * @param args.transaction - Optional transaction instance to use for operations
    * @param args.model - The model instance (optional, will be fetched if not provided)
-   * @param args.extractDefaultView - Whether to extract the default view if viewId not provided
+   * @param args.extractFirstCollaborativeView - Whether to extract the first collaborative grid view if viewId not provided
    * @param args.viewId - The view ID (optional)
    * @param args.source - The data source (optional, will be fetched if not provided)
    * @param ncMeta - The NocoDB metadata instance
@@ -597,7 +597,7 @@ export default class Model implements TableType {
       dbDriver: XKnex;
       transaction?: XKnex | Knex.Transaction;
       model?: Model;
-      extractDefaultView?: boolean;
+      extractFirstCollaborativeView?: boolean;
       source?: Source;
     },
     ncMeta = Noco.ncMeta,
@@ -607,8 +607,12 @@ export default class Model implements TableType {
       args.source ||
       (await Source.get(context, model.source_id, false, ncMeta));
 
-    if (!args?.viewId && args.extractDefaultView) {
-      const view = await View.getDefaultView(context, model.id, ncMeta);
+    if (!args?.viewId && args.extractFirstCollaborativeView) {
+      const view = await View.getFirstCollaborativeView(
+        context,
+        model.id,
+        ncMeta,
+      );
       args.viewId = view.id;
     }
 

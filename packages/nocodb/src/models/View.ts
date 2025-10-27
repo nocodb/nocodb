@@ -209,7 +209,7 @@ export default class View implements ViewType {
     return viewId && this.get(context, viewId?.id || viewId);
   }
 
-  public static async getDefaultView(
+  public static async getFirstCollaborativeView(
     context: NcContext,
     fk_model_id: string,
     ncMeta = Noco.ncMeta,

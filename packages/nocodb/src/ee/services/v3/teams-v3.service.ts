@@ -117,6 +117,9 @@ export class TeamsV3Service {
 
     const teams = await Team.list(context, filterParam);
 
+    // Get the current user ID from context
+    const currentUserId = context.user?.id;
+
     // Get teams with member counts using optimized query
     const teamsWithCounts = await Promise.all(
       teams.map(async (team) => {
@@ -126,12 +129,25 @@ export class TeamsV3Service {
           this.getTeamManagers(context, team.id),
         ]);
 
+        // Check if current user is a member of this team
+        let isMember = false;
+        if (currentUserId) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            team.id,
+            PrincipalType.USER,
+            currentUserId,
+          );
+          isMember = assignment !== null;
+        }
+
         return {
           ...team,
           members_count: membersCount,
-          // todo: only one manager possible at the  moment
           managers_count: managersCount,
           managers: managers,
+          is_member: isMember,
         };
       }),
     );
@@ -151,6 +167,7 @@ export class TeamsV3Service {
         created_by: team.fk_created_by,
         created_at: team.created_at,
         updated_at: team.updated_at,
+        is_member: team.is_member,
       };
     });
 

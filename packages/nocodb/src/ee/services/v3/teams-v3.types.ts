@@ -28,6 +28,7 @@ export interface TeamV3ResponseType {
   created_by?: string;
   created_at?: string;
   updated_at?: string;
+  is_member?: boolean; // Whether the current logged-in user is a member of the team
 }
 
 export interface TeamCreateV3ReqType {

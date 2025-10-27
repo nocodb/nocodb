@@ -9,6 +9,8 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  PrincipalType,
+  ResourceType,
   RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -584,13 +586,46 @@ export default class Base extends BaseCE {
 
   // EXTRA METHODS
 
+  /**
+   * Returns priority level for a base row based on available roles
+   * Higher number = higher priority
+   * 4: base_role (project_role)
+   * 3: team_base_role
+   * 2: workspace_role
+   * 1: team_workspace_role
+   * 0: no access
+   */
+  private static getPriorityLevel(base: any): number {
+    // Priority 4: base_role exists and not NO_ACCESS
+    if (base.project_role && base.project_role !== 'NO_ACCESS') {
+      return 4;
+    }
+
+    // Priority 3: team_base_role exists and not NO_ACCESS
+    if (base.team_base_role && base.team_base_role !== 'NO_ACCESS') {
+      return 3;
+    }
+
+    // Priority 2: workspace_role exists and not NO_ACCESS
+    if (base.workspace_role && base.workspace_role !== 'NO_ACCESS') {
+      return 2;
+    }
+
+    // Priority 1: team_workspace_role exists and not NO_ACCESS
+    if (base.team_workspace_role && base.team_workspace_role !== 'NO_ACCESS') {
+      return 1;
+    }
+
+    // Priority 0: no access
+    return 0;
+  }
+
   static listByWorkspaceAndUser? = async (
     fk_workspace_id: string,
     userId: string,
     ncMeta = Noco.ncMeta,
   ) => {
     // Todo: caching , pagination, query optimisation
-
     const baseListQb = ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
@@ -598,6 +633,8 @@ export default class Base extends BaseCE {
       .select(`${MetaTable.PROJECT_USERS}.starred`)
       .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
       .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)
+      .select('base_team_assignment.roles as team_base_role')
+      .select('workspace_team_assignment.roles as team_workspace_role')
       .leftJoin(MetaTable.WORKSPACE_USER, function () {
         this.on(
           `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
@@ -618,53 +655,210 @@ export default class Base extends BaseCE {
           ncMeta.knex.raw('?', [userId]),
         );
       })
+      // Join for team memberships (user -> team)
+      .leftJoin(
+        `${MetaTable.PRINCIPAL_ASSIGNMENTS} as user_team_assignment`,
+        function () {
+          this.on(
+            'user_team_assignment.principal_ref_id',
+            ncMeta.knex.raw('?', [userId]),
+          )
+            .andOn(
+              'user_team_assignment.principal_type',
+              ncMeta.knex.raw('?', [PrincipalType.USER]),
+            )
+            .andOn(
+              'user_team_assignment.resource_type',
+              ncMeta.knex.raw('?', [ResourceType.TEAM]),
+            )
+            .andOn(function () {
+              this.on(
+                'user_team_assignment.deleted',
+                ncMeta.knex.raw('?', [false]),
+              ).orOnNull('user_team_assignment.deleted');
+            });
+        },
+      )
+      // Join for base-level team assignments (team -> base)
+      .leftJoin(
+        `${MetaTable.PRINCIPAL_ASSIGNMENTS} as base_team_assignment`,
+        function () {
+          this.on('base_team_assignment.resource_id', `${MetaTable.PROJECT}.id`)
+            .andOn(
+              'base_team_assignment.resource_type',
+              ncMeta.knex.raw('?', [ResourceType.BASE]),
+            )
+            .andOn(
+              'base_team_assignment.principal_type',
+              ncMeta.knex.raw('?', [PrincipalType.TEAM]),
+            )
+            .andOn(
+              'base_team_assignment.principal_ref_id',
+              'user_team_assignment.resource_id',
+            )
+            .andOn(function () {
+              this.on(
+                'base_team_assignment.deleted',
+                ncMeta.knex.raw('?', [false]),
+              ).orOnNull('base_team_assignment.deleted');
+            });
+        },
+      )
+      // Join for workspace-level team assignments (team -> workspace)
+      .leftJoin(
+        `${MetaTable.PRINCIPAL_ASSIGNMENTS} as workspace_team_assignment`,
+        function () {
+          this.on(
+            'workspace_team_assignment.resource_id',
+            ncMeta.knex.raw('?', [fk_workspace_id]),
+          )
+            .andOn(
+              'workspace_team_assignment.resource_type',
+              ncMeta.knex.raw('?', [ResourceType.WORKSPACE]),
+            )
+            .andOn(
+              'workspace_team_assignment.principal_type',
+              ncMeta.knex.raw('?', [PrincipalType.TEAM]),
+            )
+            .andOn(
+              'workspace_team_assignment.principal_ref_id',
+              'user_team_assignment.resource_id',
+            )
+            .andOn(function () {
+              this.on(
+                'workspace_team_assignment.deleted',
+                ncMeta.knex.raw('?', [false]),
+              ).orOnNull('workspace_team_assignment.deleted');
+            });
+        },
+      )
       .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
       .whereNot(`${MetaTable.PROJECT}.deleted`, true)
       .whereNot(`${MetaTable.PROJECT}.is_snapshot`, true)
-      .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
       .andWhere(function () {
+        // Priority order:
+        // 1. base_role (direct project user role)
+        // 2. team_base_role (base-level team assignment)
+        // 3. workspace_role (direct workspace user role)
+        // 4. team_workspace_role (workspace-level team assignment)
         this.where(function () {
-          this.where(
-            `${MetaTable.WORKSPACE_USER}.roles`,
-            '!=',
-            WorkspaceUserRoles.NO_ACCESS,
-          ).andWhere(function () {
-            this.andWhere(
-              `${MetaTable.PROJECT_USERS}.roles`,
-              '!=',
-              ProjectRoles.NO_ACCESS,
-            ).orWhereNull(`${MetaTable.PROJECT_USERS}.roles`);
-          });
-        }).orWhere(function () {
-          this.where(
-            `${MetaTable.PROJECT_USERS}.roles`,
-            '!=',
-            ProjectRoles.NO_ACCESS,
-          ).whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
-        });
-      })
-      // if private base don't consider workspace role
-      .andWhere(function () {
-        this.where(function () {
+          // Priority 1: base_role is not null and not no access
           this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`).andWhere(
             `${MetaTable.PROJECT_USERS}.roles`,
             '!=',
             ProjectRoles.NO_ACCESS,
           );
         })
-          .orWhereNull(`${MetaTable.PROJECT}.default_role`)
-          .orWhereNot(
-            `${MetaTable.PROJECT}.default_role`,
-            ProjectRoles.NO_ACCESS,
-          );
+          .orWhere(function () {
+            // Priority 2: base_role is null AND team_base_role is not null and not no access
+            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+              .whereNotNull('base_team_assignment.resource_id')
+              .whereNotNull('base_team_assignment.roles')
+              .whereRaw('base_team_assignment.roles != ?', [
+                ProjectRoles.NO_ACCESS,
+              ]);
+          })
+          .orWhere(function () {
+            // Priority 3: base_role is null AND team_base_role is null AND workspace_role is not null and not no access
+            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+              .whereNull('base_team_assignment.resource_id')
+              .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
+              .andWhere(
+                `${MetaTable.WORKSPACE_USER}.roles`,
+                '!=',
+                WorkspaceUserRoles.NO_ACCESS,
+              );
+          })
+          .orWhere(function () {
+            // Priority 4: base_role is null AND team_base_role is null AND workspace_role is null AND team_workspace_role is not null and not no access
+            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+              .whereNull('base_team_assignment.resource_id')
+              .whereNull(`${MetaTable.WORKSPACE_USER}.roles`)
+              .whereNotNull('workspace_team_assignment.resource_id')
+              .whereNotNull('workspace_team_assignment.roles')
+              .whereRaw('workspace_team_assignment.roles != ?', [
+                WorkspaceUserRoles.NO_ACCESS,
+              ]);
+          });
+      })
+      // if private base don't consider workspace role
+      .andWhere(function () {
+        // Private base logic: only workspace/team workspace assignments need special handling
+        this.where(function () {
+          // Case 1: base_role exists (direct project user) - always allowed
+          this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
+        })
+          .orWhere(function () {
+            // Case 2: team_base_role exists - always allowed
+            this.whereNotNull('base_team_assignment.resource_id');
+          })
+          .orWhere(function () {
+            // Case 3: base_role and team_base_role are null, but workspace_role exists
+            // Need to check if it's not blocked by private base
+            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+              .whereNull('base_team_assignment.resource_id')
+              .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
+              .andWhere(
+                `${MetaTable.WORKSPACE_USER}.roles`,
+                '!=',
+                WorkspaceUserRoles.NO_ACCESS,
+              )
+              .andWhere(function () {
+                this.whereNull(`${MetaTable.PROJECT}.default_role`).orWhereNot(
+                  `${MetaTable.PROJECT}.default_role`,
+                  ProjectRoles.NO_ACCESS,
+                );
+              });
+          })
+          .orWhere(function () {
+            // Case 4: base_role, team_base_role, workspace_role are null, but team_workspace_role exists
+            // Need to check if it's not blocked by private base
+            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+              .whereNull('base_team_assignment.resource_id')
+              .whereNull(`${MetaTable.WORKSPACE_USER}.roles`)
+              .whereNotNull('workspace_team_assignment.resource_id')
+              .whereNotNull('workspace_team_assignment.roles')
+              .whereRaw('workspace_team_assignment.roles != ?', [
+                WorkspaceUserRoles.NO_ACCESS,
+              ])
+              .andWhere(function () {
+                this.whereNull(`${MetaTable.PROJECT}.default_role`).orWhereNot(
+                  `${MetaTable.PROJECT}.default_role`,
+                  ProjectRoles.NO_ACCESS,
+                );
+              });
+          });
       });
 
     const bases = await baseListQb;
 
     if (bases && bases?.length) {
+      // Deduplicate bases: keep the row with highest priority role
+      // Priority: base_role > team_base_role > workspace_role > team_workspace_role
+      const uniqueBasesMap = new Map();
+
+      for (const base of bases) {
+        const baseId = base.id;
+        const existing = uniqueBasesMap.get(baseId);
+
+        if (!existing) {
+          uniqueBasesMap.set(baseId, base);
+        } else {
+          // Determine which row has higher priority
+          const existingPriority = this.getPriorityLevel(existing);
+          const currentPriority = this.getPriorityLevel(base);
+
+          if (currentPriority > existingPriority) {
+            uniqueBasesMap.set(baseId, base);
+          }
+        }
+      }
+
+      const uniqueBases = Array.from(uniqueBasesMap.values());
+
       const promises = [];
 
-      const castedProjectList = bases
+      const castedProjectList = uniqueBases
         .sort(
           (a, b) =>
             (a.order != null ? a.order : Infinity) -

@@ -132,7 +132,7 @@ const selectedTeams = computed(() => {
           @escape="onEsc"
         >
           <template #listItem="{ option }">
-            <div class="w-full flex gap-2" :class="`nc-team-select-${option.value}`">
+            <div class="w-full flex items-center gap-2" :class="`nc-team-select-${option.value}`">
               <GeneralTeamInfo :team="option" class="flex-1 max-w-[100%_-_32px]" />
               <GeneralLoader v-if="compareValue(option.value, newTeam)" size="medium" />
               <GeneralIcon v-else-if="!newTeam && compareValue(option.value)" icon="check" class="text-primary h-4 w-4" />

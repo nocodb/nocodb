@@ -67,7 +67,7 @@ export class TeamsV3Service {
     );
   }
 
-  async getTeamManagersCount(
+  async getTeamOwnersCount(
     context: NcContext,
     teamId: string,
   ): Promise<number> {
@@ -79,7 +79,7 @@ export class TeamsV3Service {
     );
   }
 
-  async getTeamManagers(context: NcContext, teamId: string): Promise<string[]> {
+  async getTeamOwners(context: NcContext, teamId: string): Promise<string[]> {
     const teamAssignments = await PrincipalAssignment.listByResource(
       context,
       ResourceType.TEAM,
@@ -125,8 +125,8 @@ export class TeamsV3Service {
       teams.map(async (team) => {
         const [membersCount, managersCount, managers] = await Promise.all([
           this.getTeamMembersCount(context, team.id),
-          this.getTeamManagersCount(context, team.id),
-          this.getTeamManagers(context, team.id),
+          this.getTeamOwnersCount(context, team.id),
+          this.getTeamOwners(context, team.id),
         ]);
 
         // Check if current user is a member of this team
@@ -343,8 +343,8 @@ export class TeamsV3Service {
     // Get member count for the created team
     const [teamUsers, teamManagersCount, managers] = await Promise.all([
       this.getTeamMembersCount(context, team.id),
-      this.getTeamManagersCount(context, team.id),
-      this.getTeamManagers(context, team.id),
+      this.getTeamOwnersCount(context, team.id),
+      this.getTeamOwners(context, team.id),
     ]);
 
     // Transform to v3 response format
@@ -454,8 +454,8 @@ export class TeamsV3Service {
     // Get member count for the updated team
     const [teamUsers, teamManagersCount, managers] = await Promise.all([
       this.getTeamMembersCount(context, updatedTeam.id),
-      this.getTeamManagersCount(context, updatedTeam.id),
-      this.getTeamManagers(context, updatedTeam.id),
+      this.getTeamOwnersCount(context, updatedTeam.id),
+      this.getTeamOwners(context, updatedTeam.id),
     ]);
 
     // Transform to v3 response format
@@ -750,7 +750,7 @@ export class TeamsV3Service {
 
       // If removing the last manager, prevent it
       if (assignment!.roles === TeamUserRoles.OWNER) {
-        const managersCount = await this.getTeamManagersCount(
+        const managersCount = await this.getTeamOwnersCount(
           context,
           param.teamId,
         );

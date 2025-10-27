@@ -1103,15 +1103,20 @@ export class PaymentService {
       // Check if there's an existing delayed job and remove it
       const existingJob = await this.nocoJobsService.getJob(jobId);
       if (existingJob) {
-        const data = existingJob.data as ReseatSubscriptionJobData;
+        const jobState = await existingJob.getState();
 
-        this.logger.log(
-          `Time passed since last reseat request for workspace/org ${workspaceOrOrgId}: ${
-            timestamp - data.timestamp
-          } ms (jobId: ${jobId})`,
-        );
+        // If the existing job is still waiting or delayed, check if we are within the max delay window
+        if (['waiting', 'delayed'].includes(jobState)) {
+          const data = existingJob.data as ReseatSubscriptionJobData;
 
-        timestamp = data.timestamp;
+          this.logger.log(
+            `Time passed since last reseat request for workspace/org ${workspaceOrOrgId}: ${
+              timestamp - data.timestamp
+            } ms (jobId: ${jobId})`,
+          );
+
+          timestamp = data.timestamp;
+        }
 
         await existingJob.remove();
       }

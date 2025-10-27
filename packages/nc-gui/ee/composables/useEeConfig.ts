@@ -234,10 +234,15 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockTeamsManagement = computed(() => {
+    // Teams api allow only in paid plan, so better to mark it as block so that we don't call the api
+    if (!isPaymentEnabled.value) return true
+
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
   })
 
   const blockAddNewTeamToWs = computed(() => {
+    if (!isPaymentEnabled.value) return true
+
     return (
       isPaymentEnabled.value &&
       getStatLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT) >= getLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT)

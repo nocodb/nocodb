@@ -316,6 +316,8 @@ export class TeamsV3Service {
       }
     }
 
+    let isMember = false;
+
     // Add creator as team manager if not already added
     const creatorId = param.req.user?.id;
     if (creatorId) {
@@ -335,6 +337,8 @@ export class TeamsV3Service {
           principal_ref_id: creatorId,
           roles: TeamUserRoles.OWNER,
         });
+
+        isMember = true;
       }
     }
 
@@ -360,6 +364,7 @@ export class TeamsV3Service {
       created_by: team.created_by,
       created_at: team.created_at,
       updated_at: team.updated_at,
+      is_member: isMember,
     };
 
     // Emit team create event

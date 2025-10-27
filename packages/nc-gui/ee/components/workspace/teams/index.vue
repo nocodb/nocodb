@@ -79,7 +79,7 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const handleEditTeam = (team: TeamType) => {
-  if (!team?.id) return
+  if (!team?.id || !team?.is_member) return
 
   router.push({ query: { ...route.value.query, teamId: team.id } })
 
@@ -119,6 +119,7 @@ const columns = [
 ] as NcTableColumnProps<TeamV3V3Type>[]
 
 const customRow = (record: Record<string, any>) => ({
+  class: record.is_member ? '' : '!cursor-default',
   onClick: () => {
     handleEditTeam(record as TeamType)
   },
@@ -332,7 +333,7 @@ onMounted(async () => {
               </NcButton>
               <template #overlay>
                 <NcMenu variant="medium">
-                  <NcMenuItem @click="handleEditTeam(record as TeamV3V3Type)">
+                  <NcMenuItem v-if="record.is_member" @click="handleEditTeam(record as TeamV3V3Type)">
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}
                   </NcMenuItem>
@@ -350,7 +351,12 @@ onMounted(async () => {
                       {{ $t('activity.leaveTeam') }}
                     </NcMenuItem>
                   </NcTooltip>
-                  <NcMenuItem v-if="hasEditPermission" danger @click="handleDeleteTeam(record as TeamV3V3Type)">
+                  <NcMenuItem
+                    v-if="hasEditPermission"
+                    :disabled="!record.is_member"
+                    danger
+                    @click="handleDeleteTeam(record as TeamV3V3Type)"
+                  >
                     <GeneralIcon icon="delete" />
                     {{ $t('activity.deleteTeam') }}
                   </NcMenuItem>

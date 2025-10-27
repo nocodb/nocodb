@@ -673,11 +673,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await until(() => blockTeamsManagement.value !== null).toBeTruthy()
 
     if (!isTeamsEnabled.value || blockTeamsManagement.value) {
-      isTeamsLoading.value = false
-      return
-    }
-
-    if (!isUIAllowed('teamList')) {
+      teams.value = []
       isTeamsLoading.value = false
       return
     }
@@ -691,6 +687,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       teams.value = list
     } catch (e: any) {
+      teams.value = []
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isTeamsLoading.value = false
@@ -964,6 +961,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await until(() => blockTeamsManagement.value !== null).toBeTruthy()
 
     if (!isTeamsEnabled.value || blockTeamsManagement.value || !workspaceId) {
+      workspaceTeams.value = []
       isLoadingWorkspaceTeams.value = false
       return
     }
@@ -981,6 +979,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       return list || []
     } catch (e: any) {
+      workspaceTeams.value = []
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isLoadingWorkspaceTeams.value = false

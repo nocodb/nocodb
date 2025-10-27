@@ -1545,7 +1545,10 @@
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "selectRole": "Select Role",
-    "copyConfiguration": "Copy configuration"
+    "copyConfiguration": "Copy configuration",
+    "selectTeam": "Select team",
+    "selectTeams": "Select teams",
+    "showEveryoncesPersonalViews": "Show everyonce's personal views"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

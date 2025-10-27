@@ -164,14 +164,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const isShowEveryonePersonalViewsEnabled = computed({
     get: () => {
-      if (!isEeUI) {
+      if (!isEeUI || !isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)) {
         return true
       }
 
       return !!userLocalStorageInfoManager.get(user.value?.id, activeWorkspaceId.value, 'showOtherUserPersonalViews', true)
     },
     set: (value: boolean) => {
-      if (!isEeUI) {
+      if (!isEeUI || !isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)) {
         return
       }
 

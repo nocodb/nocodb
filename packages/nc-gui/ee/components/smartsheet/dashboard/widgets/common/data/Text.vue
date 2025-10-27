@@ -8,8 +8,8 @@ const emit = defineEmits<{
 const { selectedWidget } = useWidgetStore()
 
 const widgetData = reactive({
-  title: selectedWidget?.title || '',
-  description: selectedWidget?.description || '',
+  title: selectedWidget?.title ?? '',
+  description: selectedWidget?.description ?? '',
 })
 
 const useDebouncedUpdateWidget = useDebounceFn(async () => {

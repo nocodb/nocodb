@@ -17,10 +17,10 @@ const config = computed(() => ({
   formatting: {
     horizontalAlign: props.widget.config?.formatting?.horizontalAlign || 'flex-start',
     verticalAlign: props.widget.config?.formatting?.verticalAlign || 'flex-start',
-    bold: props.widget.config?.formatting?.bold || false,
-    italic: props.widget.config?.formatting?.italic || false,
-    underline: props.widget.config?.formatting?.underline || false,
-    strikethrough: props.widget.config?.formatting?.strikethrough || false,
+    bold: props.widget.config?.formatting?.bold ?? false,
+    italic: props.widget.config?.formatting?.italic ?? false,
+    underline: props.widget.config?.formatting?.underline ?? false,
+    strikethrough: props.widget.config?.formatting?.strikethrough ?? false,
   },
   appearance: {
     font: {

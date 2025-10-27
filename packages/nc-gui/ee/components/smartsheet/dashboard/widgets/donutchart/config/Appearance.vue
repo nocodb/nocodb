@@ -14,11 +14,11 @@ const legendPosition = [
   { label: 'Left', value: 'left' },
 ]
 
-const appearanceLegendPosition = ref(selectedWidget.value?.config?.appearance?.legendPosition || 'right')
+const appearanceLegendPosition = ref(selectedWidget.value?.config?.appearance?.legendPosition ?? 'right')
 
-const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCountInLegend || true)
+const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCountInLegend ?? true)
 
-const showPercentageOnChart = ref(selectedWidget.value?.config?.appearance?.showPercentageOnChart || true)
+const showPercentageOnChart = ref(selectedWidget.value?.config?.appearance?.showPercentageOnChart ?? true)
 
 const handleChange = () => {
   emit('update:appearance', {

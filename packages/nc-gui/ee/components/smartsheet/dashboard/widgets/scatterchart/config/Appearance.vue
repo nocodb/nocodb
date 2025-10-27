@@ -28,11 +28,11 @@ const sizeMap = {
 
 const size = computed(() => (selectedWidget.value?.position?.h === 5 ? 'small' : 'medium'))
 
-const appearanceLegendPosition = ref(selectedWidget.value?.config?.appearance?.legendPosition || 'right')
+const appearanceLegendPosition = ref(selectedWidget.value?.config?.appearance?.legendPosition ?? 'right')
 
-const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCountInLegend || true)
+const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCountInLegend ?? true)
 
-const showValueInChart = ref(selectedWidget.value?.config?.appearance?.showValueInChart || true)
+const showValueInChart = ref(selectedWidget.value?.config?.appearance?.showValueInChart ?? true)
 
 const fieldsYAxis = computed(() => selectedWidget.value?.config?.data?.yAxis?.fields || [])
 

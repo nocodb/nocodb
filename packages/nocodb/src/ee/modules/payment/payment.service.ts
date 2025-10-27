@@ -45,6 +45,7 @@ const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
 
 const NOCODB_INTERNAL = 'nocodb';
 const RESEAT_DELAY_MS = 10 * 60 * 1000; // 10 minutes
+const RESEAT_MAX_DELAY_MS = 60 * 60 * 1000; // 1 hour
 
 @Injectable()
 export class PaymentService {
@@ -1096,21 +1097,38 @@ export class PaymentService {
     // Remove any existing delayed jobs for this workspace/org
     // Bull will deduplicate jobs with the same jobId
     const jobId = `reseat-${workspaceOrOrgId}`;
+    let timestamp = Date.now();
 
     try {
       // Check if there's an existing delayed job and remove it
       const existingJob = await this.nocoJobsService.getJob(jobId);
       if (existingJob) {
-        const state = await existingJob.getState();
-        if (state === 'delayed' || state === 'waiting') {
-          await existingJob.remove();
-          this.logger.log(
-            `Removed existing delayed reseat job for workspace/org ${workspaceOrOrgId}`,
-          );
-        }
+        const data = existingJob.data as ReseatSubscriptionJobData;
+
+        this.logger.log(
+          `Time passed since last reseat request for workspace/org ${workspaceOrOrgId}: ${
+            timestamp - data.timestamp
+          } ms (jobId: ${jobId})`,
+        );
+
+        timestamp = data.timestamp;
+
+        await existingJob.remove();
       }
     } catch (e) {
       // Job doesn't exist, continue
+    }
+
+    if (Date.now() - timestamp > RESEAT_MAX_DELAY_MS) {
+      // If the last request was more than the max delay ago, do an immediate reseat
+      this.logger.log(
+        `Max delay exceeded for workspace/org ${workspaceOrOrgId}, performing immediate reseat (jobId: ${jobId})`,
+      );
+      return this.reseatSubscriptionImmediate(
+        workspaceOrOrgId,
+        ncMeta,
+        initiator,
+      );
     }
 
     // Schedule a new delayed job
@@ -1121,6 +1139,7 @@ export class PaymentService {
         workspaceOrOrgId,
         initiator,
         jobName: JobTypes.ReseatSubscription,
+        timestamp,
       } as ReseatSubscriptionJobData,
       {
         jobId,

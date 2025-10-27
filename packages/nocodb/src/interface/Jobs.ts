@@ -256,4 +256,5 @@ export interface ExecuteActionJobData extends JobData {
 export interface ReseatSubscriptionJobData extends JobData {
   workspaceOrOrgId: string;
   initiator?: string;
+  timestamp: number;
 }

@@ -5,12 +5,6 @@ const { user } = useGlobal()
 
 const { t } = useI18n()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isEnablePasswordManage = computed(() => {
-  return isFeatureEnabled(FEATURE_FLAG.PASSWORD_MANAGE)
-})
-
 const isErrored = ref(false)
 const isProfileUpdating = ref(false)
 
@@ -239,7 +233,7 @@ const onCancel = () => {
               </a-form>
             </div>
           </div>
-          <AccountUpdatePassword v-if="isEnablePasswordManage" />
+          <AccountUpdatePassword />
           <AccountDelete />
         </div>
       </div>

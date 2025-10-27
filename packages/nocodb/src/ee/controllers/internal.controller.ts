@@ -53,7 +53,6 @@ export class InternalController extends InternalControllerCE {
     @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
     protected readonly internalApiModules: InternalApiModule<any>[],
     protected readonly mcpService: McpTokenService,
-    protected readonly aclMiddleware: AclMiddleware,
     protected readonly auditsService: AuditsService,
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,

@@ -67,6 +67,5 @@ export const OPERATION_SCOPES = {
   baseTeamRemove: 'base',
 
   // User Profile
-
   getUserProfile: 'org',
 } as const;

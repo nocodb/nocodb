@@ -41,6 +41,9 @@ import {
 } from '~/models';
 import Workspace from '~/models/Workspace';
 import WorkspaceUser from '~/models/WorkspaceUser';
+import { Team } from '~/ee/models';
+import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
+import { PrincipalType, ResourceType } from '~/utils/globals';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MailService } from '~/services/mail/mail.service';
@@ -389,6 +392,41 @@ export class WorkspaceUsersService {
             base_id: base.id,
           }),
         );
+      }
+
+      // Remove user from all teams in the workspace
+      const teams = await Team.list(
+        { workspace_id: workspaceId },
+        { fk_workspace_id: workspaceId },
+        transaction,
+      );
+
+      for (const team of teams) {
+        // Check if user is a member of this team
+        const teamAssignment = await PrincipalAssignment.get(
+          {
+            workspace_id: workspaceId,
+          },
+          ResourceType.TEAM,
+          team.id,
+          PrincipalType.USER,
+          userId,
+          transaction,
+        );
+
+        if (teamAssignment) {
+          // Delete the user from the team
+          await PrincipalAssignment.delete(
+            {
+              workspace_id: workspaceId,
+            },
+            ResourceType.TEAM,
+            team.id,
+            PrincipalType.USER,
+            userId,
+            transaction,
+          );
+        }
       }
 
       res = await WorkspaceUser.softDelete(workspaceId, userId, transaction);

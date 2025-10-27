@@ -126,13 +126,10 @@ const sortedCollaborators = computed(() => {
   )
 })
 
-const paidUsersCount = computed(
-  () =>
-    (collaborators.value || []).concat(workspaceTeamsToCollaborators.value).filter((c) => !!parseProp(c?.meta).billable).length,
-)
+const paidUsersCount = computed(() => (collaborators.value || []).filter((c) => !!parseProp(c?.meta).billable).length)
 
 const nonPaidUsersCount = computed(() => {
-  return (collaborators.value || []).concat(workspaceTeamsToCollaborators.value).length - paidUsersCount.value
+  return (collaborators.value || []).length - paidUsersCount.value
 })
 
 const showBanner = false

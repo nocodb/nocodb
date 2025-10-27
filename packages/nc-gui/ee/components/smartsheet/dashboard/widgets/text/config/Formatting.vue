@@ -12,13 +12,13 @@ const horizontalAlign = ref(textWidget.value?.config?.formatting.horizontalAlign
 
 const verticalAlign = ref(textWidget.value?.config?.formatting.verticalAlign || 'flex-start')
 
-const bold = ref(textWidget.value?.config?.formatting.bold || false)
+const bold = ref(textWidget.value?.config?.formatting.bold ?? false)
 
-const italic = ref(textWidget.value?.config?.formatting.italic || false)
+const italic = ref(textWidget.value?.config?.formatting.italic ?? false)
 
-const underline = ref(textWidget.value?.config?.formatting.underline || false)
+const underline = ref(textWidget.value?.config?.formatting.underline ?? false)
 
-const strikeThrough = ref(textWidget.value?.config?.formatting.strikethrough || false)
+const strikeThrough = ref(textWidget.value?.config?.formatting.strikethrough ?? false)
 
 const updateFormatting = () => {
   emit('update:formatting', {

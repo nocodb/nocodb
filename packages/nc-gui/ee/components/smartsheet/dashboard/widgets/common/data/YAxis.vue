@@ -26,7 +26,7 @@ const fieldConfigurations = ref(selectedWidget.value?.config?.data?.yAxis?.field
 
 const groupByField = ref(selectedWidget.value?.config?.data?.yAxis?.groupBy || null)
 
-const startAtZero = ref(selectedWidget.value?.config?.data?.yAxis?.startAtZero || true)
+const startAtZero = ref(selectedWidget.value?.config?.data?.yAxis?.startAtZero ?? true)
 
 const fieldDropdownStates = ref<boolean[]>([])
 

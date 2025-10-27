@@ -11,8 +11,8 @@ const { selectedWidget } = storeToRefs(useWidgetStore())
 const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
 const selectedFieldId = ref(selectedWidget.value?.config?.data?.category?.column_id || null)
 const selectedOrderValue = ref(selectedWidget.value?.config?.data?.category?.orderBy || 'default')
-const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.category?.includeEmptyRecords || false)
-const includeOthers = ref(selectedWidget.value?.config?.data?.category?.includeOthers || true)
+const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.category?.includeEmptyRecords ?? false)
+const includeOthers = ref(selectedWidget.value?.config?.data?.category?.includeOthers ?? true)
 
 const fieldOrderOptions = [
   { value: 'default', label: 'Default field order' },

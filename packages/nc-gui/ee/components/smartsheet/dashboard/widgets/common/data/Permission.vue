@@ -8,8 +8,8 @@ const emit = defineEmits<{
 const { selectedWidget } = useWidgetStore()
 
 const permissionData = reactive({
-  allowUsersToViewRecords: selectedWidget?.config?.permission?.allowUsersToViewRecords || false,
-  allowUserToPrint: selectedWidget?.config?.permission?.allowUserToPrint || false,
+  allowUsersToViewRecords: selectedWidget?.config?.permission?.allowUsersToViewRecords ?? false,
+  allowUserToPrint: selectedWidget?.config?.permission?.allowUserToPrint ?? false,
 })
 
 const onDataChanged = () => {

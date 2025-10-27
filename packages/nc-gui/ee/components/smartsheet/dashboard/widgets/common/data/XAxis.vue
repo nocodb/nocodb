@@ -14,9 +14,9 @@ const selectedSortValue = ref(selectedWidget.value?.config?.data?.xAxis?.sortBy 
 
 const selectedOrderValue = ref(selectedWidget.value?.config?.data?.xAxis?.orderBy || 'default')
 
-const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.xAxis?.includeEmptyRecords || false)
+const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.xAxis?.includeEmptyRecords ?? false)
 
-const includeOthers = ref(selectedWidget.value?.config?.data?.xAxis?.includeOthers || true)
+const includeOthers = ref(selectedWidget.value?.config?.data?.xAxis?.includeOthers ?? true)
 
 const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
 

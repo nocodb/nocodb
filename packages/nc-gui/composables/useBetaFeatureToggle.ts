@@ -165,6 +165,33 @@ const FEATURES = [
     version: 2,
     isEE: true,
   },
+  {
+    id: 'teams',
+    title: 'Teams',
+    description: 'Teams are group of users',
+    enabled: false,
+    version: 2,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'password_manage',
+    title: 'Password Manage',
+    description: 'Manage user password',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'show_everyones_personal_views',
+    title: 'Show Everyone\'s Personal Views',
+    description: 'With this feature we can avoid showing other users personal views in left sidebar',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

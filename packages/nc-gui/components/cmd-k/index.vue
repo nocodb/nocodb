@@ -33,6 +33,10 @@ const vOpen = useVModel(props, 'open', emits)
 
 const { t } = useI18n()
 
+const router = useRouter()
+
+const route = router.currentRoute
+
 const activeScope = ref('root')
 
 const modalEl = ref<HTMLElement>()
@@ -268,7 +272,18 @@ const show = () => {
   vOpen.value = true
   cmdInput.value = ''
   nextTick(() => {
-    setScope(props.scope || 'root')
+    // Set scope based on the route params
+    if (route.value.params.typeOrId && ncIsString(route.value.params.typeOrId) && route.value.params.typeOrId.startsWith('w')) {
+      if (route.value.params.viewId) {
+        setScope(`tbl-${route.value.params.viewId}`)
+      } else if (route.value.params.baseId) {
+        setScope(`p-${route.value.params.baseId}`)
+      } else {
+        setScope(`ws-${route.value.params.typeOrId}`)
+      }
+    } else {
+      setScope(props.scope || 'root')
+    }
   })
 }
 

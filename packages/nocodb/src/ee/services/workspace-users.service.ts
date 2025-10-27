@@ -16,7 +16,7 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
-import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import type { NcContext, UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { WorkspaceUserDeleteEvent } from '~/services/app-hooks/interfaces';
 import Noco from '~/Noco';
@@ -293,6 +293,11 @@ export class WorkspaceUsersService {
     ncMeta = Noco.ncMeta,
   ) {
     const { workspaceId, userId } = param;
+    const context =
+      param.req?.context ||
+      ({
+        workspace_id: workspaceId,
+      } as NcContext);
 
     const workspace = await Workspace.get(workspaceId);
 
@@ -396,7 +401,7 @@ export class WorkspaceUsersService {
 
       // Remove user from all teams in the workspace
       const teams = await Team.list(
-        { workspace_id: workspaceId },
+        context,
         { fk_workspace_id: workspaceId },
         transaction,
       );
@@ -404,9 +409,7 @@ export class WorkspaceUsersService {
       for (const team of teams) {
         // Check if user is a member of this team
         const teamAssignment = await PrincipalAssignment.get(
-          {
-            workspace_id: workspaceId,
-          },
+          context,
           ResourceType.TEAM,
           team.id,
           PrincipalType.USER,
@@ -417,9 +420,7 @@ export class WorkspaceUsersService {
         if (teamAssignment) {
           // Delete the user from the team
           await PrincipalAssignment.delete(
-            {
-              workspace_id: workspaceId,
-            },
+            context,
             ResourceType.TEAM,
             team.id,
             PrincipalType.USER,

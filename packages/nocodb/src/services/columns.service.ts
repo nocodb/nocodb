@@ -2024,8 +2024,14 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
+    const defaultView = await View.getDefaultView(
+      context,
+      column.fk_model_id,
+      ncMeta,
+    );
+
     // Get all the columns in the table and return
-    await table.getColumns(context, undefined);
+    await table.getColumns(context, undefined, defaultView?.id);
 
     // Handle filter transformation if this is a column type change
     if (column.uidt !== colBody.uidt) {
@@ -2901,7 +2907,10 @@ export class ColumnsService implements IColumnsService {
         }
         break;
     }
-    await table.getColumns(context, undefined);
+
+    const defaultView = await View.getDefaultView(context, table.id, ncMeta);
+
+    await table.getColumns(context, undefined, defaultView?.id);
 
     const newColumn = table.columns.find((c) => c.title === param.column.title);
 
@@ -3564,8 +3573,10 @@ export class ColumnsService implements IColumnsService {
         );
       }
     }
+    const defaultView = await View.getDefaultView(context, table.id, ncMeta);
+
     // Pass defaultViewId so that default view column order and visibility get added to the column meta
-    await table.getColumns(context, ncMeta);
+    await table.getColumns(context, ncMeta, defaultView?.id);
 
     const displayValueColumn = mapDefaultDisplayValue(table.columns);
     if (displayValueColumn) {

@@ -2404,7 +2404,7 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
-      "cantDeleteLastGridView": "You can't delete a view when it's the only grid view in the table (Personal lock type views are not considered)",
+      "cantDeleteLastGridView": "You can't delete a view when it's the only collaborative grid view in the table",
       "inviteSent": "Invitation sent successfully",
       "userRoleUpdated": "User role updated successfully",
       "teamRoleUpdated": "Team role updated successfully",

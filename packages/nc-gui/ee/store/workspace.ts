@@ -883,6 +883,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
                 members_count: team.members_count - removedMembers.length,
                 managers_count: teamOwners.length,
                 managers: teamOwners,
+                is_member:
+                  team.is_member && removedMembers.some((rm) => rm.user_id === currentUser.value?.id) ? false : team.is_member,
               }
             : team,
         )

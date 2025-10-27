@@ -179,8 +179,6 @@ const handleLeaveTeam = (team: TeamV3V3Type) => {
     okText: t('activity.leaveTeam'),
     cancelText: t('labels.cancel'),
     okCallback: async () => {
-      // Todo: api call
-
       await workspaceStore.removeTeamMembers(activeWorkspaceId.value!, team.id, [{ user_id: user.value?.id! }])
     },
   })
@@ -337,10 +335,9 @@ onMounted(async () => {
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}
                   </NcMenuItem>
-                  <!-- Todo: @rameshmane7218, @pranav - show leave team option only if logged in user is part of team -->
                   <NcTooltip
-                    v-if="hasEditPermission"
-                    :disabled="!hasSoleTeamOwner(record as TeamV3V3Type) "
+                    v-if="record.is_member"
+                    :disabled="!hasSoleTeamOwner(record as TeamV3V3Type)"
                     :title="t('objects.teams.thisTeamHasOnlyOneOwnerTooltip')"
                     placement="left"
                   >

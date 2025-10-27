@@ -333,9 +333,6 @@ const permissionScopes = {
     'baseTeamGet',
     'baseTeamUpdate',
     'baseTeamDelete',
-    'baseTeamUserAdd',
-    'baseTeamUserRemove',
-    'baseTeamUserUpdate',
   ],
 };
 
@@ -448,6 +445,10 @@ const rolePermissions:
 
       // Workspace-Team operations
       workspaceTeamList: true,
+      workspaceTeamAdd: true,
+      workspaceTeamGet: true,
+      workspaceTeamUpdate: true,
+      workspaceTeamRemove: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {
@@ -469,6 +470,9 @@ const rolePermissions:
   [ProjectRoles.VIEWER]: {
     include: {
       userInvite: true,
+
+      // Base Teams
+      baseTeamCreate: true,
 
       formViewGet: true,
 
@@ -616,14 +620,6 @@ const rolePermissions:
 
       // Extensions
       extensionUpdate: true,
-
-      // Base Teams
-      baseTeamCreate: true,
-      baseTeamUpdate: true,
-      baseTeamDelete: true,
-      baseTeamUserAdd: true,
-      baseTeamUserRemove: true,
-      baseTeamUserUpdate: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -1056,9 +1052,6 @@ const permissionDescriptions: Record<string, string> = {
   baseTeamGet: 'view team details',
   baseTeamUpdate: 'update team details',
   baseTeamDelete: 'delete a team from the base',
-  baseTeamUserAdd: 'add users to a team',
-  baseTeamUserRemove: 'remove users from a team',
-  baseTeamUserUpdate: 'update user roles in a team',
 
   globalAuditList: 'view list of audits',
 

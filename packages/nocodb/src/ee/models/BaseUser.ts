@@ -12,7 +12,6 @@ import {
   MetaTable,
   PrincipalType,
   ResourceType,
-  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';

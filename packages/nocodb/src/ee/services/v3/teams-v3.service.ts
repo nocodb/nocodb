@@ -80,17 +80,15 @@ export class TeamsV3Service {
   }
 
   async getTeamOwners(context: NcContext, teamId: string): Promise<string[]> {
-    const teamAssignments = await PrincipalAssignment.listByResource(
-      context,
-      ResourceType.TEAM,
-      teamId,
-    );
+    const teamAssignments = await PrincipalAssignment.list(context, {
+      resource_type: ResourceType.TEAM,
+      resource_id: teamId,
+      principal_type: PrincipalType.USER,
+    });
 
     // Filter only manager assignments
     const managerAssignments = teamAssignments.filter(
-      (assignment) =>
-        assignment.principal_type === PrincipalType.USER &&
-        assignment.roles === TeamUserRoles.OWNER,
+      (assignment) => assignment.roles === TeamUserRoles.OWNER,
     );
 
     return managerAssignments.map((assignment) => assignment.principal_ref_id);

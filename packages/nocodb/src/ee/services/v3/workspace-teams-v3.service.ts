@@ -61,16 +61,11 @@ export class WorkspaceTeamsV3Service {
     await this.validateFeatureAccess(context);
 
     // Get all team assignments for this workspace
-    const assignments = await PrincipalAssignment.listByResource(
-      context,
-      ResourceType.WORKSPACE,
-      param.workspaceId,
-    );
-
-    // Filter only team assignments
-    const teamAssignments = assignments.filter(
-      (assignment) => assignment.principal_type === PrincipalType.TEAM,
-    );
+    const teamAssignments = await PrincipalAssignment.list(context, {
+      resource_type: ResourceType.WORKSPACE,
+      resource_id: param.workspaceId,
+      principal_type: PrincipalType.TEAM,
+    });
 
     // Get team details
     const teams = await Promise.all(

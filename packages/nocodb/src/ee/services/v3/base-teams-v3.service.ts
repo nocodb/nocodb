@@ -68,28 +68,18 @@ export class BaseTeamsV3Service {
     }
 
     // Get all team assignments for this base
-    const baseAssignments = await PrincipalAssignment.listByResource(
-      context,
-      ResourceType.BASE,
-      param.baseId,
-    );
-
-    // Filter only team assignments for base
-    const baseTeamAssignments = baseAssignments.filter(
-      (assignment) => assignment.principal_type === PrincipalType.TEAM,
-    );
+    const baseTeamAssignments = await PrincipalAssignment.list(context, {
+      resource_type: ResourceType.BASE,
+      resource_id: param.baseId,
+      principal_type: PrincipalType.TEAM,
+    });
 
     // Get all team assignments for the workspace
-    const workspaceAssignments = await PrincipalAssignment.listByResource(
-      context,
-      ResourceType.WORKSPACE,
-      base.fk_workspace_id!,
-    );
-
-    // Filter only team assignments for workspace
-    const workspaceTeamAssignments = workspaceAssignments.filter(
-      (assignment) => assignment.principal_type === PrincipalType.TEAM,
-    );
+    const workspaceTeamAssignments = await PrincipalAssignment.list(context, {
+      resource_type: ResourceType.WORKSPACE,
+      resource_id: base.fk_workspace_id,
+      principal_type: PrincipalType.TEAM,
+    });
 
     // Create a map of team IDs that are already assigned to base
     const baseTeamIds = new Set(

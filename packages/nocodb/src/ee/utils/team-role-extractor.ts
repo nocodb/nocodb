@@ -16,21 +16,16 @@ export async function extractUserTeamRoles(
 ): Promise<Record<string, boolean> | null> {
   try {
     // Get all team assignments for this workspace
-    const workspaceTeamAssignments = await PrincipalAssignment.listByResource(
-      context,
-      ResourceType.WORKSPACE,
-      workspaceId,
-    );
+    const workspaceTeamAssignments = await PrincipalAssignment.list(context, {
+      resource_type: ResourceType.WORKSPACE,
+      resource_id: workspaceId,
+      principal_type: PrincipalType.TEAM,
+    });
 
     // Collect workspace roles from teams where user is a member
     const workspaceRoles = [];
 
     for (const assignment of workspaceTeamAssignments) {
-      // Check if this assignment is for a team
-      if (assignment.principal_type !== PrincipalType.TEAM) {
-        continue;
-      }
-
       // Check if user is a member of this team
       const userTeamAssignment = await PrincipalAssignment.get(
         context,

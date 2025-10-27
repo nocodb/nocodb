@@ -55,7 +55,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const blockTeamsManagement = ref(false)
+  const blockTeamsManagement = ref<boolean | null>(null)
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
@@ -670,7 +670,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const editTeamDetails = ref<TeamDetailV3V3Type | null>(null)
 
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
-    if (!isTeamsEnabled.value) {
+    await until(() => blockTeamsManagement.value !== null).toBeTruthy()
+
+    if (!isTeamsEnabled.value || blockTeamsManagement.value) {
       isTeamsLoading.value = false
       return
     }
@@ -959,12 +961,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaceTeams = ref<Record<string, any>>([])
 
   async function workspaceTeamList(workspaceId: string = activeWorkspaceId.value!, showLoading = true) {
-    if (!isTeamsEnabled.value || blockTeamsManagement.value) {
-      isLoadingWorkspaceTeams.value = false
-      return
-    }
+    await until(() => blockTeamsManagement.value !== null).toBeTruthy()
 
-    if (!workspaceId) {
+    if (!isTeamsEnabled.value || blockTeamsManagement.value || !workspaceId) {
       isLoadingWorkspaceTeams.value = false
       return
     }

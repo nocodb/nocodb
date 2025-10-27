@@ -245,8 +245,10 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   watch(
-    [blockTeamsManagement, activeWorkspaceId],
-    ([newValue]) => {
+    [blockTeamsManagement, activeWorkspace],
+    ([newValue, workspace]) => {
+      if (!workspace?.payment?.plan?.meta) return
+
       _blockTeamsManagement.value = newValue
     },
     {

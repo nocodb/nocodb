@@ -279,6 +279,18 @@ onMounted(async () => {
                 class="!w-[320px] flex-none"
               />
             </template>
+            <template #subtitle>
+              {{ teams.length ? $t('title.noResultsMatchedYourSearch') : $t('placeholder.youHaveNotCreatedAnyTeamsSubtitle') }}
+
+              <!-- Todo: @rameshmane7218 update doc links -->
+              <a
+                v-if="!teams.length"
+                href="https://nocodb.com/docs/product-docs/collaboration/teams"
+                target="_blank"
+                rel="noopener noreferrer"
+                >{{ $t('msg.learnMore') }}</a
+              >
+            </template>
             <template v-if="hasEditPermission" #action>
               <NcButton size="small" inner-class="!gap-2" class="capitalize" @click="handleCreateTeam">
                 <template #icon>

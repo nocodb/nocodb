@@ -140,6 +140,11 @@ watch(vVisible, (newValue) => {
           <GeneralIcon icon="ncBuilding" class="!text-gray-600 w-5 h-5" />
           {{ $t('labels.newTeam') }}
         </div>
+
+        <!-- Todo: @rameshmane7218 update doc links -->
+        <a href="https://nocodb.com/docs/product-docs/collaboration/teams" target="_blank" rel="noopener noreferrer">{{
+          $t('msg.learnMore')
+        }}</a>
       </div>
 
       <a-form

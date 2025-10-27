@@ -172,7 +172,11 @@ watch(
         </template>
         <template #listItemExtraRight="{ option }">
           <div class="flex items-center gap-1">
-            <RolesBadge :border="false" :role="option.roles" icon-only nc-badge-class="!px-1" show-tooltip />
+            <RolesBadge :border="false" :role="option.roles" icon-only nc-badge-class="!px-1" show-tooltip>
+              <template #tooltip="{ label }">
+                {{ $t('tooltip.workspacePermissionRole', { role: $t(`objects.roleType.${label}`) }) }}
+              </template>
+            </RolesBadge>
           </div>
         </template>
         <template #listItemSelectedIcon> <NcSpanHidden /> </template>

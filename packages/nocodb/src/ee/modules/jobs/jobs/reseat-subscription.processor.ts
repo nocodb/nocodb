@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { Job } from 'bull';
 import type { ReseatSubscriptionJobData } from '~/interface/Jobs';
 import { PaymentService } from '~/modules/payment/payment.service';
 import Noco from '~/Noco';
@@ -9,8 +10,8 @@ export class ReseatSubscriptionProcessor {
 
   constructor(private readonly paymentService: PaymentService) {}
 
-  async job(data: ReseatSubscriptionJobData) {
-    const { workspaceOrOrgId, initiator } = data;
+  async job(job: Job<ReseatSubscriptionJobData>) {
+    const { workspaceOrOrgId, initiator } = job.data;
 
     this.logger.log(
       `Processing delayed reseat for workspace/org ${workspaceOrOrgId}`,

@@ -526,25 +526,6 @@ export default class BaseUser extends BaseUserCE {
         return teamUsers;
       }
 
-      // Check if PrincipalAssignment table exists by trying to query it
-      try {
-        // Test if the table exists by attempting a simple query
-        await ncMeta.metaList2(
-          RootScopes.WORKSPACE,
-          RootScopes.WORKSPACE,
-          MetaTable.PRINCIPAL_ASSIGNMENTS,
-          { limit: 1 },
-        );
-      } catch (tableError) {
-        // If table doesn't exist, return empty array
-        logger.warn(
-          'PrincipalAssignment table does not exist yet - skipping team users',
-        );
-        return teamUsers;
-      }
-
-      // Note: We no longer need individual assignment queries since we're using a single optimized query
-
       // Simple query: Get users who belong to teams assigned to workspace or base
       const queryBuilder = ncMeta
         .knex(MetaTable.USERS)

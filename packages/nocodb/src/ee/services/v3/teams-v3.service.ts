@@ -164,7 +164,7 @@ export class TeamsV3Service {
         members_count: team.members_count,
         managers_count: team.managers_count,
         managers: team.managers,
-        created_by: team.fk_created_by,
+        created_by: team.created_by,
         created_at: team.created_at,
         updated_at: team.updated_at,
         is_member: team.is_member,
@@ -293,7 +293,7 @@ export class TeamsV3Service {
         badge_color: param.team.badge_color,
       },
       fk_workspace_id: param.workspaceOrOrgId,
-      fk_created_by: param.req.user.id,
+      created_by: param.req.user.id,
     };
 
     const team = await Team.insert(context, teamData);
@@ -359,7 +359,7 @@ export class TeamsV3Service {
       members_count: teamUsers,
       managers_count: teamManagersCount,
       managers: managers,
-      created_by: team.fk_created_by,
+      created_by: team.created_by,
       created_at: team.created_at,
       updated_at: team.updated_at,
     };
@@ -470,7 +470,7 @@ export class TeamsV3Service {
       members_count: teamUsers,
       managers_count: teamManagersCount,
       managers: managers,
-      created_by: updatedTeam.fk_created_by,
+      created_by: updatedTeam.created_by,
       created_at: updatedTeam.created_at,
       updated_at: updatedTeam.updated_at,
     };

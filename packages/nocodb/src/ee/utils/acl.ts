@@ -329,7 +329,7 @@ const permissionScopes = {
 
     // Base Teams
     'baseTeamList',
-    'baseTeamCreate',
+    'baseTeamAdd',
     'baseTeamGet',
     'baseTeamUpdate',
     'baseTeamDelete',
@@ -472,7 +472,7 @@ const rolePermissions:
       userInvite: true,
 
       // Base Teams
-      baseTeamCreate: true,
+      baseTeamAdd: true,
 
       formViewGet: true,
 
@@ -1048,7 +1048,7 @@ const permissionDescriptions: Record<string, string> = {
 
   // Base Teams permissions
   baseTeamList: 'view list of teams in the base',
-  baseTeamCreate: 'create a new team in the base',
+  baseTeamAdd: 'create a new team in the base',
   baseTeamGet: 'view team details',
   baseTeamUpdate: 'update team details',
   baseTeamDelete: 'delete a team from the base',

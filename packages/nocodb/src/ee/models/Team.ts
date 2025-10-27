@@ -18,7 +18,7 @@ export default class Team {
   meta?: Record<string, any> | string;
   fk_org_id?: string;
   fk_workspace_id?: string;
-  fk_created_by?: string;
+  created_by?: string;
   deleted: boolean; // Soft delete flag
   created_at?: string;
   updated_at?: string;
@@ -42,7 +42,7 @@ export default class Team {
       'meta',
       'fk_org_id',
       'fk_workspace_id',
-      'fk_created_by',
+      'created_by',
     ]);
 
     // Set deleted to false by default

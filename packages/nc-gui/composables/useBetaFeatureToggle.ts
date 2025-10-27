@@ -185,7 +185,7 @@ const FEATURES = [
   },
   {
     id: 'show_everyones_personal_views',
-    title: 'Show Everyone\'s Personal Views',
+    title: "Show Everyone's Personal Views",
     description: 'With this feature we can avoid showing other users personal views in left sidebar',
     enabled: false,
     version: 1,

@@ -17,6 +17,7 @@ import type {
 import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
+import { userLocalStorageInfoManager } from '#imports'
 
 export interface NcWorkspace extends WorkspaceType {
   edit?: boolean
@@ -161,7 +162,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       // todo: pagination
       const { list, pageInfo: _ } = await $api.workspace.list()
 
-      const newWorkspaceIds = new Set(list?.map((w) => w.id) ?? [])
+      const newWorkspaceIds = new Set(list?.map((w) => w.id!) ?? [])
 
       // Update or insert current workspaces
       for (const workspace of list ?? []) {
@@ -171,6 +172,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           ...workspace,
         })
       }
+
+      userLocalStorageInfoManager.cleanMissingWorkspaces(currentUser.value?.id, Array.from(newWorkspaceIds))
 
       // Remove stale workspaces
       for (const existingId of workspaces.value.keys()) {
@@ -332,6 +335,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       // if user left the workspace, navigate to home
       if (currentUser.value?.id === userId) {
         onCurrentUserLeftCallback?.()
+        userLocalStorageInfoManager.clearWorkspace(currentUser.value?.id, workspaceId ?? activeWorkspace.value.id!)
+
         const list = await workspaceStore.loadWorkspaces()
         message.success(`You’ve left the workspace. Switched to ${list?.[0]?.title ?? 'another'} workspace.`)
         return await navigateTo(`/${list?.[0]?.id}`)

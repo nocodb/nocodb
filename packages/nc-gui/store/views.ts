@@ -5,6 +5,7 @@ import { useTitle } from '@vueuse/core'
 import type { ViewPageType } from '~/lib/types'
 import { getFormattedViewTabTitle } from '~/helpers/parsers/parserHelpers'
 import { DlgViewCopyViewConfigFromAnotherView, DlgViewCreate } from '#components'
+import { userLocalStorageInfoManager } from '#imports'
 
 // Types and Interfaces
 interface RecentView {
@@ -160,6 +161,23 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const isCopyViewConfigFromAnotherViewFeatureEnabled = computed(() =>
     isFeatureEnabled(FEATURE_FLAG.COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW),
   )
+
+  const isShowEveryonePersonalViewsEnabled = computed({
+    get: () => {
+      if (!isEeUI || !isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)) {
+        return true
+      }
+
+      return !!userLocalStorageInfoManager.get(user.value?.id, activeWorkspaceId.value, 'showOtherUserPersonalViews', true)
+    },
+    set: (value: boolean) => {
+      if (!isEeUI || !isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)) {
+        return
+      }
+
+      userLocalStorageInfoManager.set(user.value?.id, activeWorkspaceId.value, 'showOtherUserPersonalViews', value)
+    },
+  })
 
   const refreshViewTabTitle = createEventHook<void>()
 
@@ -1097,6 +1115,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     copyViewConfigurationFromAnotherView,
     isUserViewOwner,
     getCopyViewConfigBtnAccessStatus,
+    isShowEveryonePersonalViewsEnabled,
   }
 })
 

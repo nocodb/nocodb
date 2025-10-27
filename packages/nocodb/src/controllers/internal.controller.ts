@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Inject,
   Param,
   Post,
   Query,
@@ -9,53 +10,46 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { NcContext, NcRequest } from 'nocodb-sdk';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { GlobalGuard } from '~/guards/global/global.guard';
-import { McpTokenService } from '~/services/mcp.service';
-import { AuditsService } from '~/services/audits.service';
+import type { InternalApiModule } from '~/utils/internal-type';
+import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
+import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
-import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
-import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class InternalController {
   constructor(
-    protected readonly mcpService: McpTokenService,
     protected readonly aclMiddleware: AclMiddleware,
-    protected readonly auditsService: AuditsService,
-    protected readonly oAuthClientService: OauthClientService,
-    protected readonly oAuthTokenService: OauthTokenService,
-  ) {}
-
-  protected get operationScopes() {
-    return {
-      mcpList: 'base',
-      mcpCreate: 'base',
-      mcpUpdate: 'base',
-      mcpDelete: 'base',
-      mcpGet: 'base',
-      mcpRootList: 'org',
-      recordAuditList: 'base',
-      oAuthClientList: 'org',
-      oAuthClientCreate: 'org',
-      oAuthClientUpdate: 'org',
-      oAuthClientDelete: 'org',
-      oAuthClientGet: 'org',
-      oAuthAuthorizationList: 'org',
-      oAuthAuthorizationRevoke: 'org',
-      oAuthClientRegenerateSecret: 'org',
-    } as const;
+    @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
+    protected readonly internalApiModules: InternalApiModule<any>[],
+  ) {
+    if (!this.internalApiModuleMap) {
+      this.internalApiModuleMap = {};
+    }
+    for (const each of internalApiModules) {
+      this.internalApiModuleMap[each.httpMethod] =
+        this.internalApiModuleMap[each.httpMethod] ?? {};
+      for (const operation of each.operations) {
+        this.internalApiModuleMap[each.httpMethod][operation] = each;
+      }
+    }
   }
 
+  protected internalApiModuleMap: Record<
+    string,
+    Record<string, InternalApiModule<any>>
+  > = {};
+
   protected async checkAcl(
-    operation: keyof typeof this.operationScopes,
+    operation: keyof typeof OPERATION_SCOPES,
     req: NcRequest,
     scope?: string,
   ) {
@@ -74,36 +68,21 @@ export class InternalController {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Query('operation') operation: keyof typeof this.operationScopes,
+    @Query('operation') operation: keyof typeof OPERATION_SCOPES,
     @Req() req: NcRequest,
   ): InternalGETResponseType {
-    await this.checkAcl(operation, req, this.operationScopes[operation]);
+    await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
+    const module = this.internalApiModuleMap['GET'][operation];
 
-    switch (operation) {
-      case 'mcpList':
-        return await this.mcpService.list(context, req);
-      case 'mcpGet':
-        return await this.mcpService.get(context, req.query.tokenId as string);
-      case 'mcpRootList':
-        return await this.mcpService.listByUserId(context, req);
-      case 'recordAuditList':
-        return await this.auditsService.recordAuditList(context, {
-          row_id: req.query.row_id as string,
-          fk_model_id: req.query.fk_model_id as string,
-          cursor: req.query.cursor as string,
-        });
-      case 'oAuthClientGet':
-        return await this.oAuthClientService.getClient(context, {
-          clientId: req.query.clientId as string,
-          req,
-        });
-      case 'oAuthClientList':
-        return await this.oAuthClientService.listClients(context, req);
-      case 'oAuthAuthorizationList':
-        return await this.oAuthTokenService.listUserAuthorizations(req.user.id);
-      default:
-        return NcError.notFound('Operation');
+    if (module) {
+      return await module.handle(context, {
+        workspaceId,
+        baseId,
+        operation,
+        req,
+      });
     }
+    return NcError.notFound('Operation');
   }
 
   @Post(['/api/v2/internal/:workspaceId/:baseId'])
@@ -111,53 +90,22 @@ export class InternalController {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Query('operation') operation: keyof typeof this.operationScopes,
+    @Query('operation') operation: keyof typeof OPERATION_SCOPES,
     @Body() payload: any,
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {
-    await this.checkAcl(operation, req, this.operationScopes[operation]);
+    await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
+    const module = this.internalApiModuleMap['POST'][operation];
 
-    switch (operation) {
-      case 'mcpCreate':
-        return await this.mcpService.create(context, payload, req);
-      case 'mcpUpdate':
-        return await this.mcpService.regenerateToken(
-          context,
-          payload.tokenId,
-          payload,
-        );
-      case 'mcpDelete':
-        return await this.mcpService.delete(context, payload.tokenId);
-      case 'oAuthClientCreate':
-        return await this.oAuthClientService.createClient(
-          context,
-          payload,
-          req,
-        );
-      case 'oAuthClientUpdate':
-        return await this.oAuthClientService.updateClient(context, {
-          clientId: req.query.clientId as string,
-          body: payload,
-          req,
-        });
-      case 'oAuthClientDelete':
-        return await this.oAuthClientService.deleteClient(context, {
-          clientId: req.query.clientId as string,
-          req,
-        });
-      case 'oAuthAuthorizationRevoke':
-        await this.oAuthTokenService.revokeUserAuthorization(
-          req.user.id,
-          payload.tokenId,
-        );
-        return true;
-      case 'oAuthClientRegenerateSecret':
-        return await this.oAuthClientService.regenerateClientSecret(context, {
-          clientId: req.query.clientId as string,
-          req,
-        });
-      default:
-        NcError.get(context).notFound('Operation');
+    if (module) {
+      return await module.handle(context, {
+        workspaceId,
+        baseId,
+        operation,
+        req,
+        payload,
+      });
     }
+    return NcError.notFound('Operation');
   }
 }

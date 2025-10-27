@@ -1,6 +1,16 @@
-import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
 import { isServiceUser, ServiceUserType } from 'nocodb-sdk';
+import type { InternalApiModule } from '~/utils/internal-type';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { DashboardsService } from '~/services/dashboards.service';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
@@ -31,12 +41,16 @@ import { OauthClientService } from '~/modules/oauth/services/oauth-client.servic
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
 import { TeamsV3Service } from '~/services/v3/teams-v3.service';
 import { UsersService } from '~/services/users/users.service';
+import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
+import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
   constructor(
-    protected readonly mcpService: McpTokenService,
     protected readonly aclMiddleware: AclMiddleware,
+    @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
+    protected readonly internalApiModules: InternalApiModule<any>[],
+    protected readonly mcpService: McpTokenService,
     protected readonly auditsService: AuditsService,
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,
@@ -54,13 +68,7 @@ export class InternalController extends InternalControllerCE {
     private readonly teamsV3Service: TeamsV3Service,
     private readonly usersService: UsersService,
   ) {
-    super(
-      mcpService,
-      aclMiddleware,
-      auditsService,
-      oAuthClientService,
-      oAuthTokenService,
-    );
+    super(aclMiddleware, internalApiModules);
   }
 
   protected async checkAcl(operation: string, req, scope?: string) {
@@ -74,65 +82,6 @@ export class InternalController extends InternalControllerCE {
     );
   }
 
-  protected get operationScopes() {
-    return {
-      ...super.operationScopes,
-      createDataReflection: 'workspace',
-      getDataReflection: 'workspace',
-      deleteDataReflection: 'workspace',
-      refreshDataReflection: 'workspace',
-      listenRemoteImport: 'workspace',
-      createSync: 'base',
-      triggerSync: 'base',
-      migrateSync: 'base',
-      addChildSync: 'base',
-      authIntegrationTestConnection: 'workspace',
-      syncIntegrationFetchOptions: 'workspace',
-      listScripts: 'base',
-      getScript: 'base',
-      createScript: 'base',
-      updateScript: 'base',
-      deleteScript: 'base',
-      baseSchema: 'base',
-      workspaceAuditList: 'workspace',
-      duplicateScript: 'base',
-      setPermission: 'base',
-      dropPermission: 'base',
-      bulkDropPermissions: 'base',
-
-      dashboardList: 'base',
-      dashboardGet: 'base',
-      dashboardCreate: 'base',
-      dashboardUpdate: 'base',
-      dashboardDelete: 'base',
-      widgetList: 'base',
-      widgetGet: 'base',
-      widgetCreate: 'base',
-      widgetUpdate: 'base',
-      widgetDelete: 'base',
-      widgetDuplicate: 'base',
-      widgetDataGet: 'base',
-      dashboardShare: 'base',
-      triggerAction: 'base',
-      sendEmail: 'base',
-      integrationRemoteFetch: 'base',
-
-      // Teams operations
-      teamList: 'workspace',
-      teamCreate: 'workspace',
-      teamGet: 'workspace',
-      teamUpdate: 'workspace',
-      teamDelete: 'workspace',
-      teamMembersAdd: 'workspace',
-      teamMembersRemove: 'workspace',
-      teamMembersUpdate: 'workspace',
-
-      // User Profile
-
-      getUserProfile: 'org',
-    } as const;
-  }
-
   @Get(['/api/v2/internal/:workspaceId/:baseId'])
   protected async internalAPI(
     @TenantContext() context: NcContext,
@@ -141,7 +90,7 @@ export class InternalController extends InternalControllerCE {
     @Query('operation') operation: string,
     @Req() req: NcRequest,
   ): InternalGETResponseType {
-    await this.checkAcl(operation, req, this.operationScopes[operation]);
+    await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
     switch (operation) {
       case 'getDataReflection':
@@ -246,7 +195,7 @@ export class InternalController extends InternalControllerCE {
     @Body() payload: any,
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {
-    await this.checkAcl(operation, req, this.operationScopes[operation]);
+    await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
     switch (operation) {
       case 'createDataReflection':

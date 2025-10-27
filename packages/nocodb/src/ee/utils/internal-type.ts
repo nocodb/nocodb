@@ -1,3 +1,4 @@
+import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { TestConnectionResponse } from '@noco-local-integrations/core';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type {
@@ -16,6 +17,9 @@ import type {
   TeamMemberV3ResponseType,
   TeamV3ResponseType,
 } from '~/services/v3/teams-v3.types';
+import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
+
+export { INTERNAL_API_MODULE_PROVIDER_KEY } from 'src/utils/internal-type';
 
 export type InternalGETResponseType = Promise<
   | void
@@ -83,3 +87,20 @@ export type InternalPOSTResponseType = Promise<
   | TeamMemberV3ResponseType[]
   | { msg: string }
 >;
+
+export interface InternalApiModule<
+  T extends InternalGETResponseType | InternalPOSTResponseType,
+> {
+  operations: (keyof typeof OPERATION_SCOPES)[];
+  httpMethod: 'GET' | 'POST';
+  handle(
+    context: NcContext,
+    param: {
+      workspaceId: string;
+      baseId: string;
+      operation: keyof typeof OPERATION_SCOPES;
+      payload?: any;
+      req: NcRequest;
+    },
+  ): T;
+}

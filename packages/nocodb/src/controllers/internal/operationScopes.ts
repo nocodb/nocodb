@@ -1,0 +1,17 @@
+export const OPERATION_SCOPES = {
+  mcpList: 'base',
+  mcpCreate: 'base',
+  mcpUpdate: 'base',
+  mcpDelete: 'base',
+  mcpGet: 'base',
+  mcpRootList: 'org',
+  recordAuditList: 'base',
+  oAuthClientList: 'org',
+  oAuthClientCreate: 'org',
+  oAuthClientUpdate: 'org',
+  oAuthClientDelete: 'org',
+  oAuthClientGet: 'org',
+  oAuthAuthorizationList: 'org',
+  oAuthAuthorizationRevoke: 'org',
+  oAuthClientRegenerateSecret: 'org',
+} as const;

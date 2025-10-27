@@ -213,11 +213,23 @@ export class ExportService {
       await model.getViews(context);
 
       // if views are excluded, filter all views except default
+      const firstView = getFirstNonPersonalView(model.views, {
+        includeViewType: ViewTypes.GRID,
+      });
+
       if (excludeViews) {
-        const firstView = getFirstNonPersonalView(model.views, {
-          includeViewType: ViewTypes.GRID,
-        });
+        if (firstView) {
+          (firstView as any).is_default = true;
+        }
+
         model.views = firstView ? [firstView as View] : [];
+      } else {
+        model.views = model.views.map((view) => {
+          if (view.id === firstView.id) {
+            (view as any).is_default = true;
+          }
+          return view;
+        });
       }
 
       for (const column of model.columns) {
@@ -677,6 +689,7 @@ export class ExportService {
             meta: view.meta,
             idMap,
           }),
+          is_default: (view as any).is_default,
           order: view.order,
           title: view.title,
           show: view.show,

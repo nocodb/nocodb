@@ -63,6 +63,7 @@ import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class ImportService {
@@ -1605,8 +1606,6 @@ export class ImportService {
       // get default view
       await table.getViews(context);
 
-      let firstView = true;
-
       for (const view of viewsData) {
         const viewData = withoutId({
           ...view,
@@ -1626,11 +1625,9 @@ export class ImportService {
           table.views,
           param.user,
           param.req,
-          firstView,
         );
 
         if (!vw) continue;
-        firstView = false;
 
         idMap.set(view.id, vw.id);
 
@@ -1843,15 +1840,23 @@ export class ImportService {
     views: View[],
     user: UserType,
     req: NcRequest,
-    default_view,
   ): Promise<View> {
-    if (default_view) {
+    if ((vw as any)?.is_default) {
       const view = views?.[0];
       if (view) {
         // update meta and coloring mode to default view
-        if (vw.row_coloring_mode || Object.keys(vw.meta ?? {}).length > 0) {
-          await View.update(context, view.id, vw);
-        }
+        await View.update(
+          context,
+          view.id,
+          extractProps(vw, [
+            'title',
+            'show_system_fields',
+            'meta',
+            'expanded_record_mode',
+            'row_coloring_mode',
+            'attachment_mode_column_id',
+          ]),
+        );
         const gridData = withoutNull(vw.view);
         if (gridData) {
           await this.gridsService.gridViewUpdate(context, {

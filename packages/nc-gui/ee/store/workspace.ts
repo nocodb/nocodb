@@ -447,7 +447,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (force || !wsState || !(wsState as any)?.payment) {
       await loadWorkspace(workspaceId)
       await loadRoles(route.value.params.baseId)
-      await loadTeams({ workspaceId })
+      // todo: handle in a better way
+      loadTeams({ workspaceId }).catch(() => {
+        // ignore
+      })
     }
 
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {
@@ -1094,7 +1097,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    */
   watch(activeWorkspaceId, async () => {
     await loadRoles(undefined, {}, activeWorkspaceId.value)
-    await loadTeams({ workspaceId: activeWorkspaceId.value! })
+    if (activeWorkspaceId.value) await loadTeams({ workspaceId: activeWorkspaceId.value! })
   })
 
   watch(

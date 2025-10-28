@@ -200,6 +200,8 @@ const getDefaultChartConfig = (
             column_id: getDefaultCategoryColumn(columns),
             orderBy: 'default' as const,
             includeEmptyRecords: false,
+            includeOthers: false,
+            categoryLimit: 10,
           },
           value: {
             type: 'count' as const,
@@ -228,6 +230,8 @@ const getDefaultChartConfig = (
             column_id: getDefaultCategoryColumn(columns),
             orderBy: 'default' as const,
             includeEmptyRecords: false,
+            includeOthers: false,
+            categoryLimit: 10,
           },
           value: {
             type: 'count' as const,
@@ -263,6 +267,8 @@ const getDefaultChartConfig = (
             sortBy: 'xAxis' as const,
             orderBy: 'default' as const,
             includeEmptyRecords: false,
+            includeOthers: false,
+            categoryLimit: 10,
           },
           yAxis: {
             startAtZero: true,

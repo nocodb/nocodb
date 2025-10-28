@@ -1,4 +1,9 @@
-import { ChartTypes, formatAggregation, UITypes } from 'nocodb-sdk';
+import {
+  ChartTypes,
+  formatAggregation,
+  ncIsNullOrUndefined,
+  UITypes,
+} from 'nocodb-sdk';
 import type {
   BarChartConfig,
   ChartWidgetType,
@@ -21,7 +26,25 @@ import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import conditionV2 from '~/db/conditionV2';
 
 export class XyChartCommonHandler extends BaseWidgetHandler {
-  protected MAX_WIDGET_CATEGORY_COUNT = 10;
+  protected readonly MIN_CATEGORY_LIMIT = 10;
+  protected readonly MAX_CATEGORY_LIMIT = 50;
+  protected readonly DEFAULT_CATEGORY_LIMIT = 10;
+
+  protected getCategoryLimit(
+    config: BarChartConfig | LineChartConfig | ScatterPlotConfig,
+  ): number {
+    const categoryLimit = config?.data?.xAxis?.categoryLimit;
+
+    if (ncIsNullOrUndefined(categoryLimit)) {
+      return this.DEFAULT_CATEGORY_LIMIT;
+    }
+
+    // Clamp the value between MIN and MAX
+    return Math.max(
+      this.MIN_CATEGORY_LIMIT,
+      Math.min(this.MAX_CATEGORY_LIMIT, categoryLimit),
+    );
+  }
 
   async validateWidgetData(
     context: NcContext,
@@ -201,6 +224,7 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
     }>,
     _sortFieldQuery: string | Knex.QueryBuilder | Knex.Raw,
     _orderDirection: string,
+    _categoryLimit: number,
   ): Promise<{ builder: Knex.QueryBuilder }> {
     return { builder: baseModel.dbDriver.select(`'ERR'`) };
   }
@@ -301,12 +325,12 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
       }),
     );
 
-    // Build top 10 query
-    const top10Query = (await buildBaseQuery()).builder;
+    // Build top N query
+    const topNQuery = (await buildBaseQuery()).builder;
 
     const xAxisAlias = 'x_axis';
 
-    top10Query
+    topNQuery
       .select(
         baseModel.dbDriver.raw('(??) as ??', [
           xAxisColumnNameQuery.builder,
@@ -316,9 +340,9 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
       .groupBy(xAxisAlias)
       .count('* as record_count');
 
-    // Add Y-axis aggregations to top 10 query
+    // Add Y-axis aggregations to top N query
     yAxisSelections.forEach(({ alias, aggSql }) => {
-      top10Query.select(baseModel.dbDriver.raw(`(${aggSql}) as ??`, [alias]));
+      topNQuery.select(baseModel.dbDriver.raw(`(${aggSql}) as ??`, [alias]));
     });
 
     // Determine sort field and direction
@@ -346,12 +370,13 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
         ? baseModel.dbDriver.raw(yAxisSelections[0].aggSql)
         : xAxisColumnNameQuery.builder;
 
-    // Order by sort field and limit to max widget category count (database-specific)
-    this.applyOrderBy(top10Query, sortField, orderDirection);
-    top10Query.limit(this.MAX_WIDGET_CATEGORY_COUNT);
+    // Order by sort field and limit to category limit (database-specific)
+    this.applyOrderBy(topNQuery, sortField, orderDirection);
+    const categoryLimit = this.getCategoryLimit(config);
+    topNQuery.limit(categoryLimit);
 
-    // Execute top 10 query
-    const top10Data = await baseModel.execAndParse(top10Query, null, {
+    // Execute top N query
+    const topNData = await baseModel.execAndParse(topNQuery, null, {
       skipDateConversion: true,
       skipAttachmentConversion: true,
       skipUserConversion: true,
@@ -368,6 +393,7 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
         yAxisSelections,
         sortFieldQuery,
         orderDirection,
+        categoryLimit,
       );
 
       othersData = await baseModel.execAndParse(othersQueryBuilder, null, {
@@ -378,7 +404,7 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
     }
 
     // Combine results
-    const rawData = [...top10Data];
+    const rawData = [...topNData];
     if (othersData.length > 0 && othersData[0].record_count > 0) {
       rawData.push(othersData[0]);
     }

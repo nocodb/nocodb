@@ -31,6 +31,7 @@ export class XyChartPgHandler extends XyChartCommonHandler {
     }>,
     sortFieldQuery: string | Knex.QueryBuilder | Knex.Raw,
     orderDirection: string,
+    categoryLimit: number,
   ): Promise<{ builder: Knex.QueryBuilder }> {
     // Validate and sanitize orderDirection
     const safeDirection =
@@ -39,26 +40,26 @@ export class XyChartPgHandler extends XyChartCommonHandler {
     const { builder: othersQuery } = await buildBaseQuery();
 
     // Create subquery to get top x-axis values (same logic as original)
-    const { builder: top10ValuesSubquery } = await buildBaseQuery();
-    top10ValuesSubquery
+    const { builder: topNValuesSubquery } = await buildBaseQuery();
+    topNValuesSubquery
       .select(baseModel.dbDriver.raw(`??`, [xAxisColumnNameQuery.builder]))
       .groupBy(baseModel.dbDriver.raw(`??`, [xAxisColumnNameQuery.builder]));
 
-    // Add sorting aggregation to subquery for top 10 values
+    // Add sorting aggregation to subquery for top N values
     const sortAggSql =
       yAxisSelections.length > 0 ? yAxisSelections[0].aggSql : 'COUNT(*)';
-    top10ValuesSubquery
+    topNValuesSubquery
       .select(baseModel.dbDriver.raw(`(${sortAggSql}) as sort_val`))
       .orderByRaw(`sort_val ${safeDirection}`)
-      .limit(this.MAX_WIDGET_CATEGORY_COUNT);
+      .limit(categoryLimit);
 
-    // Now build others query excluding top 10 values
+    // Now build others query excluding top N values
     othersQuery
       .select(baseModel.dbDriver.raw(`'Others' as ??`, [xAxisAlias]))
       .count('* as record_count')
       .whereRaw(`?? NOT IN (??)`, [
         baseModel.dbDriver.raw(`??`, [xAxisColumnNameQuery.builder]),
-        top10ValuesSubquery
+        topNValuesSubquery
           .clone()
           .clearSelect()
           .clearOrder()

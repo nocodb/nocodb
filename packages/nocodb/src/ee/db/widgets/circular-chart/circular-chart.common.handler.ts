@@ -1,4 +1,4 @@
-import { ChartTypes } from 'nocodb-sdk';
+import { ChartTypes, ncIsNullOrUndefined } from 'nocodb-sdk';
 import type {
   DonutChartConfig,
   NcContext,
@@ -11,7 +11,25 @@ import { Column, Model, View } from '~/models';
 import { validateAggregationColType } from '~/db/aggregation';
 
 export class CircularChartCommonHandler extends BaseWidgetHandler {
-  protected MAX_WIDGET_CATEGORY_COUNT = 10;
+  protected readonly MIN_CATEGORY_LIMIT = 10;
+  protected readonly MAX_CATEGORY_LIMIT = 50;
+  protected readonly DEFAULT_CATEGORY_LIMIT = 10;
+
+  protected getCategoryLimit(
+    config: PieChartConfig | DonutChartConfig,
+  ): number {
+    const categoryLimit = config?.data?.category?.categoryLimit;
+
+    if (ncIsNullOrUndefined(categoryLimit)) {
+      return this.DEFAULT_CATEGORY_LIMIT;
+    }
+
+    // Clamp the value between MIN and MAX
+    return Math.max(
+      this.MIN_CATEGORY_LIMIT,
+      Math.min(this.MAX_CATEGORY_LIMIT, categoryLimit),
+    );
+  }
 
   /**
    * Validate and sanitize order direction

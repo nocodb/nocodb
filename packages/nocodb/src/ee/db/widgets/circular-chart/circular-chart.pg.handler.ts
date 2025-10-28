@@ -161,13 +161,15 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       );
     }
 
+    const categoryLimit = this.getCategoryLimit(config);
+
     // Cast TEXT to avoid type conflicts, preserve original for sorting
     const mainQuery = baseModel.dbDriver
       .select('*')
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN CAST(category AS TEXT)
+          WHEN rn <= ${categoryLimit} THEN CAST(category AS TEXT)
           ELSE 'Others'
         END as final_category
       `),
@@ -176,7 +178,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN category
+          WHEN rn <= ${categoryLimit} THEN category
           ELSE NULL
         END as original_category
       `),
@@ -185,7 +187,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN ??
+          WHEN rn <= ${categoryLimit} THEN ??
           ELSE 0
         END as final_value
       `,
@@ -196,7 +198,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn > ${this.MAX_WIDGET_CATEGORY_COUNT} THEN ??
+          WHEN rn > ${categoryLimit} THEN ??
           ELSE 0
         END as others_value
       `,
@@ -206,7 +208,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN record_count
+          WHEN rn <= ${categoryLimit} THEN record_count
           ELSE 0
         END as final_count
       `),
@@ -214,7 +216,7 @@ export class CircularChartPgHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn > ${this.MAX_WIDGET_CATEGORY_COUNT} THEN record_count
+          WHEN rn > ${categoryLimit} THEN record_count
           ELSE 0
         END as others_count
       `),

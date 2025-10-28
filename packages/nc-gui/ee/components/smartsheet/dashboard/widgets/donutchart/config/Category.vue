@@ -12,6 +12,7 @@ const selectedFieldId = ref(selectedWidget.value?.config?.data?.category?.column
 const selectedOrderValue = ref(selectedWidget.value?.config?.data?.category?.orderBy || 'default')
 const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.category?.includeEmptyRecords ?? false)
 const includeOthers = ref(selectedWidget.value?.config?.data?.category?.includeOthers ?? true)
+const categoryLimit = ref(selectedWidget.value?.config?.data?.category?.categoryLimit ?? 10)
 
 const fieldOrderOptions = [
   { value: 'default', label: 'Default field order' },
@@ -39,6 +40,7 @@ const handleChange = () => {
     orderBy: selectedOrderValue.value,
     includeEmptyRecords: includeEmptyRecords.value,
     includeOthers: includeOthers.value,
+    categoryLimit: categoryLimit.value,
   })
 }
 
@@ -91,13 +93,29 @@ watch([() => selectedWidget.value?.fk_model_id], ([value], [oldValue]) => {
         <span class="text-caption text-nc-content-gray select-none">
           <NcTooltip class="flex items-center" hide-on-click>
             <template #title>
-              By default the chart will show top 10 categories and remaining categories will be grouped as "Others". Disabling
-              this will hide "Others" category.
+              By default the chart will show top {{ categoryLimit }} categories and remaining categories will be grouped as
+              "Others". Disabling this will hide "Others" category.
             </template>
             Include others
           </NcTooltip>
         </span>
       </NcSwitch>
+    </div>
+
+    <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <label>
+        <NcTooltip class="flex items-center" hide-on-click>
+          <template #title> Number of top categories to display (min: 10, max: 50) </template>
+          Category limit
+        </NcTooltip>
+      </label>
+      <NcNonNullableNumberInput
+        v-model:model-value="categoryLimit"
+        :min="10"
+        :max="50"
+        class="nc-input-shadow w-full"
+        @update:model-value="handleChange"
+      />
     </div>
   </div>
 </template>

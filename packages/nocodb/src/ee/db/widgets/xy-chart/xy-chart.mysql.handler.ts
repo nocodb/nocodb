@@ -31,6 +31,7 @@ export class XyChartMysqlHandler extends XyChartCommonHandler {
     }>,
     sortFieldQuery: string | Knex.QueryBuilder | Knex.Raw,
     orderDirection: string,
+    categoryLimit: number,
   ): Promise<{ builder: Knex.QueryBuilder }> {
     // Validate and sanitize orderDirection
     const safeDirection =
@@ -39,18 +40,18 @@ export class XyChartMysqlHandler extends XyChartCommonHandler {
     const { builder: othersQuery } = await buildBaseQuery();
 
     // Create subquery to get top x-axis values
-    const { builder: top10ValuesSubquery } = await buildBaseQuery();
-    top10ValuesSubquery
+    const { builder: topNValuesSubquery } = await buildBaseQuery();
+    topNValuesSubquery
       .select(baseModel.dbDriver.raw('??', [xAxisColumnNameQuery.builder]))
       .groupBy(baseModel.dbDriver.raw('??', [xAxisColumnNameQuery.builder]));
 
-    // Add sorting aggregation to subquery for top 10 values
+    // Add sorting aggregation to subquery for top N values
     const sortAggSql =
       yAxisSelections.length > 0 ? yAxisSelections[0].aggSql : 'COUNT(*)';
-    top10ValuesSubquery
+    topNValuesSubquery
       .select(baseModel.dbDriver.raw(`(${sortAggSql}) as sort_val`))
       .orderByRaw(`sort_val ${safeDirection}`)
-      .limit(this.MAX_WIDGET_CATEGORY_COUNT);
+      .limit(categoryLimit);
 
     /**
      * Using LEFT JOIN instead of NOT IN with LIMIT subquery
@@ -68,7 +69,7 @@ export class XyChartMysqlHandler extends XyChartCommonHandler {
       .count('* as record_count')
       .leftJoin(
         baseModel.dbDriver.raw('(??) as top_values', [
-          top10ValuesSubquery
+          topNValuesSubquery
             .clone()
             .clearSelect()
             .clearOrder()

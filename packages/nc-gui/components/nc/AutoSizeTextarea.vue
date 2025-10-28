@@ -22,7 +22,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
-  (e: 'input', value: string): void
 }>()
 
 /**
@@ -44,11 +43,24 @@ const { textarea, input } = useTextareaAutosize({
  */
 watch(value, (val) => {
   emit('update:modelValue', val)
-  emit('input', val)
 })
 
 watch(modelValue, (val) => {
   if (val !== value.value) value.value = val ?? ''
+})
+
+// ✅ expose textarea DOM element directly
+defineExpose({
+  $el: textarea,
+  focus: () => {
+    textarea.value?.focus()
+  },
+  blur: () => {
+    textarea.value?.blur()
+  },
+  select: () => {
+    textarea.value?.select()
+  },
 })
 </script>
 
@@ -68,8 +80,11 @@ watch(modelValue, (val) => {
 </template>
 <style scoped lang="scss">
 .nc-auto-size-textarea {
+  transition-property: border, box-shadow;
+  @apply !outline-none !ring-0 border-1 border-nc-border-gray-medium focus:(!outline-none !ring-0 border-nc-border-brand shadow-selected) duration-300;
+
   &.nc-no-border {
-    @apply !border-0 !border-none !outline-none !ring-0 focus:(!border-0 !outline-none !ring-0);
+    @apply !border-0 !border-none focus:(!border-0);
   }
 
   &.nc-hide-scrollbar {

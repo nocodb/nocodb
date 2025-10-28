@@ -1298,11 +1298,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               :bordered="false"
                               :data-testid="NcForm.heading"
                               :data-title="NcForm.heading"
-                              @input="
-                                (value) => {
-                                  updateView()
-                                }
-                              "
+                              @input="updateView"
                               @focus="activeRow = NcForm.heading"
                               @blur="activeRow = ''"
                             />

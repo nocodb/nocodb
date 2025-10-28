@@ -7,7 +7,7 @@ import { useTextareaAutosize, type UseTextareaAutosizeOptions } from '@vueuse/co
  */
 
 interface Props {
-  modelValue?: string
+  modelValue?: string | number | null
   disabled?: boolean
   placeholder?: string
   bordered?: boolean
@@ -28,7 +28,7 @@ const emit = defineEmits<{
  * Make props reactive — keeps modelValue in sync
  */
 const { modelValue } = toRefs(props)
-const value = ref(modelValue.value ?? '')
+const value = ref(modelValue.value?.toString() ?? '')
 
 /**
  * Auto-resize logic from @vueuse/core
@@ -80,7 +80,9 @@ defineExpose({
 </template>
 <style scoped lang="scss">
 .nc-auto-size-textarea {
+  vertical-align: middle;
   transition-property: border, box-shadow;
+
   @apply !outline-none !ring-0 focus:(!outline-none !ring-0) duration-300;
 
   &.nc-no-border {

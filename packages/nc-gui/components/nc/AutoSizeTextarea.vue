@@ -81,10 +81,14 @@ defineExpose({
 <style scoped lang="scss">
 .nc-auto-size-textarea {
   transition-property: border, box-shadow;
-  @apply !outline-none !ring-0 border-1 border-nc-border-gray-medium focus:(!outline-none !ring-0 border-nc-border-brand shadow-selected) duration-300;
+  @apply !outline-none !ring-0 focus:(!outline-none !ring-0) duration-300;
 
   &.nc-no-border {
     @apply !border-0 !border-none focus:(!border-0);
+  }
+
+  &:not(.nc-no-border) {
+    @apply border-1 border-nc-border-gray-medium focus:(border-nc-border-brand shadow-selected);
   }
 
   &.nc-hide-scrollbar {

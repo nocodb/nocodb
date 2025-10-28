@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import axios from 'axios';
+import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import { NcError } from '~/helpers/catchError';
 
 const logger = new Logger('MuxHelpers');
@@ -35,7 +36,17 @@ export async function runExternal(
     return data;
   } catch (e) {
     if (e.response?.data?.error) {
-      NcError._.externalError(e.response.data.error);
+      const { _errorType } = e.response.data.error;
+      if (_errorType !== 'DatabaseError') {
+        NcError._.externalError(e.response.data.error);
+      } else {
+        NcError._.externalError(
+          DBErrorExtractor.get().extractDbError(e.response.data.error, {
+            clientType: config.client,
+            ignoreDefault: false,
+          }) as any as Error,
+        );
+      }
     }
 
     if (e?.message.includes('timeout')) {

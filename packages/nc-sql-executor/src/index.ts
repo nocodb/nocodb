@@ -113,6 +113,7 @@ function serializeError(err: any) {
     ...err,
     message: err.message,
     stack: err.stack,
+    _errorType: err.constructor?.name,
   };
 }
 

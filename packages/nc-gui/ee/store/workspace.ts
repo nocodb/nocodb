@@ -55,8 +55,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const blockTeamsManagement = ref<boolean | null>(null)
-
   const collaborators = ref<WorkspaceUserType[] | null>()
 
   const collaboratorsMap = computed(() => {
@@ -669,7 +667,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const editTeamDetails = ref<TeamDetailV3V3Type | null>(null)
 
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
-    await until(() => blockTeamsManagement.value !== null).toBeTruthy()
+    await until(() => !!activeWorkspace.value?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
+    const { blockTeamsManagement } = useEeConfig()
 
     if (!isTeamsEnabled.value || blockTeamsManagement.value) {
       teams.value = []
@@ -957,7 +956,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaceTeams = ref<Record<string, any>>([])
 
   async function workspaceTeamList(workspaceId: string = activeWorkspaceId.value!, showLoading = true) {
-    await until(() => blockTeamsManagement.value !== null).toBeTruthy()
+    await until(() => !!activeWorkspace.value?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
+    const { blockTeamsManagement } = useEeConfig()
 
     if (!isTeamsEnabled.value || blockTeamsManagement.value || !workspaceId) {
       workspaceTeams.value = []
@@ -986,6 +986,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function workspaceTeamGet(workspaceId: string, teamId: string) {
+    const { blockTeamsManagement } = useEeConfig()
+
     if (!isTeamsEnabled.value || blockTeamsManagement.value) return
 
     try {
@@ -1007,6 +1009,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
     }[],
   ) {
+    const { blockTeamsManagement } = useEeConfig()
+
     if (!isTeamsEnabled.value || blockTeamsManagement.value) return
 
     try {
@@ -1035,6 +1039,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
     },
   ) {
+    const { blockTeamsManagement } = useEeConfig()
+
     if (!isTeamsEnabled.value || blockTeamsManagement.value || !updates.team_id) return
 
     try {
@@ -1064,6 +1070,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function workspaceTeamRemove(workspaceId: string = activeWorkspaceId.value!, teamIds: string[]) {
+    const { blockTeamsManagement } = useEeConfig()
+
     if (!isTeamsEnabled.value || blockTeamsManagement.value || !teamIds.length) return
 
     try {
@@ -1158,7 +1166,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removingCollaboratorMap,
 
     // Teams
-    blockTeamsManagement,
     teams,
     teamsMap,
     isTeamsEnabled,

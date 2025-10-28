@@ -96,7 +96,10 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   async function getBaseTeams({ baseId, force = false }: { baseId: string; force?: boolean }) {
-    if (!baseId || workspaceStore.blockTeamsManagement) return { teams: [], totalRows: 0 }
+    await until(() => !!workspaceStore.activeWorkspace?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!baseId || blockTeamsManagement.value) return { teams: [], totalRows: 0 }
 
     if (!force && basesTeams.value.has(baseId)) {
       const teams = basesTeams.value.get(baseId)
@@ -557,9 +560,10 @@ export const useBases = defineStore('basesStore', () => {
   const isLoadingBaseTeams = ref(true)
 
   async function baseTeamList(baseId: string, showLoading = true) {
-    await until(() => workspaceStore.blockTeamsManagement !== null).toBeTruthy()
+    await until(() => !!workspaceStore.activeWorkspace?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
+    const { blockTeamsManagement } = useEeConfig()
 
-    if (!workspaceStore.isTeamsEnabled || !workspaceStore.activeWorkspaceId || !baseId || workspaceStore.blockTeamsManagement) {
+    if (!workspaceStore.isTeamsEnabled || !workspaceStore.activeWorkspaceId || !baseId || blockTeamsManagement.value) {
       isLoadingBaseTeams.value = false
       return
     }
@@ -582,14 +586,11 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   async function baseTeamGet(baseId: string, teamId: string) {
-    if (
-      !workspaceStore.isTeamsEnabled ||
-      !workspaceStore.activeWorkspaceId ||
-      !baseId ||
-      !teamId ||
-      workspaceStore.blockTeamsManagement
-    )
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!workspaceStore.isTeamsEnabled || !workspaceStore.activeWorkspaceId || !baseId || !teamId || blockTeamsManagement.value) {
       return
+    }
 
     try {
       const teamDetails = await $api.internal.getOperation(workspaceStore.activeWorkspaceId, baseId, {
@@ -610,12 +611,14 @@ export const useBases = defineStore('basesStore', () => {
       base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>
     }[],
   ) {
+    const { blockTeamsManagement } = useEeConfig()
+
     if (
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
       !teams.length ||
-      workspaceStore.blockTeamsManagement
+      blockTeamsManagement.value
     ) {
       return
     }
@@ -647,12 +650,14 @@ export const useBases = defineStore('basesStore', () => {
       base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>
     },
   ) {
+    const { blockTeamsManagement } = useEeConfig()
+
     if (
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
       !updates.team_id ||
-      workspaceStore.blockTeamsManagement
+      blockTeamsManagement.value
     ) {
       return
     }
@@ -681,12 +686,14 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   async function baseTeamRemove(baseId: string, teamIds: string[]) {
+    const { blockTeamsManagement } = useEeConfig()
+
     if (
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
       !teamIds.length ||
-      workspaceStore.blockTeamsManagement
+      blockTeamsManagement.value
     ) {
       return
     }

@@ -33,12 +33,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const workspaceStore = useWorkspace()
 
-  const {
-    activeWorkspace,
-    activeWorkspaceId,
-    workspaces,
-    blockTeamsManagement: _blockTeamsManagement,
-  } = storeToRefs(workspaceStore)
+  const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
 
   const { isSideBannerExpanded } = eeConfigState()
 
@@ -235,35 +230,19 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockTeamsManagement = computed(() => {
     // Teams api allow only in paid plan, so better to mark it as block so that we don't call the api
-    if (!isPaymentEnabled.value) return true
+    if (!isPaymentEnabled.value && !isOnPrem.value) return true
 
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
   })
 
   const blockAddNewTeamToWs = computed(() => {
-    if (!isPaymentEnabled.value) return true
+    if (!isPaymentEnabled.value && !isOnPrem.value) return true
 
     return (
       isPaymentEnabled.value &&
       getStatLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT) >= getLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT)
     )
   })
-
-  watch(
-    [blockTeamsManagement, () => activeWorkspace.value?.payment?.plan?.meta],
-    ([newValue, paymentMeta]) => {
-      if (!paymentMeta) {
-        _blockTeamsManagement.value = null
-        return
-      }
-
-      _blockTeamsManagement.value = newValue
-    },
-    {
-      immediate: true,
-      flush: 'pre',
-    },
-  )
 
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`

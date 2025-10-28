@@ -744,6 +744,8 @@ const updateFieldTitle = (value: string) => {
   if (!activeField.value) return
 
   activeField.value.label = value.trimStart()
+
+  updateColMeta(activeField.value)
 }
 
 const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {

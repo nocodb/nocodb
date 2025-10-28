@@ -2,6 +2,7 @@ import {
   ChartTypes,
   formatAggregation,
   ncIsNullOrUndefined,
+  ncIsNumber,
   UITypes,
 } from 'nocodb-sdk';
 import type {
@@ -35,7 +36,7 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
   ): number {
     const categoryLimit = config?.data?.xAxis?.categoryLimit;
 
-    if (ncIsNullOrUndefined(categoryLimit)) {
+    if (ncIsNullOrUndefined(categoryLimit) || !ncIsNumber(categoryLimit)) {
       return this.DEFAULT_CATEGORY_LIMIT;
     }
 

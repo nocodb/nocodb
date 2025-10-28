@@ -1,4 +1,4 @@
-import { ChartTypes, ncIsNullOrUndefined } from 'nocodb-sdk';
+import { ChartTypes, ncIsNullOrUndefined, ncIsNumber } from 'nocodb-sdk';
 import type {
   DonutChartConfig,
   NcContext,
@@ -20,7 +20,7 @@ export class CircularChartCommonHandler extends BaseWidgetHandler {
   ): number {
     const categoryLimit = config?.data?.category?.categoryLimit;
 
-    if (ncIsNullOrUndefined(categoryLimit)) {
+    if (ncIsNullOrUndefined(categoryLimit) || !ncIsNumber(categoryLimit)) {
       return this.DEFAULT_CATEGORY_LIMIT;
     }
 

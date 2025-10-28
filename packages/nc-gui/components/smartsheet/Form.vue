@@ -1665,13 +1665,12 @@ const { message: templatedMessage } = useTemplatedMessage(
                       {{ $t('objects.field') }} {{ $t('general.text').toLowerCase() }}
                     </div>
 
-                    <a-textarea
+                    <NcAutoSizeTextarea
                       ref="focusLabel"
-                      :value="activeFieldLabel"
+                      :model-value="activeFieldLabel"
                       :rows="1"
-                      auto-size
-                      hide-details
-                      class="form-meta-input nc-form-input-label !max-h-7.5rem nc-form-scrollbar"
+                      :hide-scrollbar="false"
+                      class="form-meta-input nc-form-input-label !max-h-7.5rem nc-form-scrollbar hover:(border-brand-400)"
                       data-testid="nc-form-input-label"
                       :placeholder="$t('msg.info.formInput')"
                       @focus="onFocusActiveFieldLabel"

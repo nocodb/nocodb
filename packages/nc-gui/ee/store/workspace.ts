@@ -263,35 +263,31 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
 
     if (!params?.ignoreLoading) isCollaboratorsLoading.value = true
-    const promises: Promise<any>[] = []
 
     try {
       // todo: pagination
-      promises.push(
-        $api.workspaceUser.list(
-          workspaceId ?? activeWorkspace.value.id!,
-          { ...params },
-          {
-            baseURL: appInfo.value.baseHostName
-              ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
-              : undefined,
-          },
-        ),
+      const { list, pageInfo } = $api.workspaceUser.list(
+        workspaceId ?? activeWorkspace.value.id!,
+        { ...params },
+        {
+          baseURL: appInfo.value.baseHostName
+            ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
+            : undefined,
+        },
       )
-
-      promises.push(workspaceTeamList(workspaceId ?? activeWorkspace.value.id!))
-
-      const [{ list, pageInfo }] = await Promise.all(promises)
 
       allCollaborators.value = list
       collaborators.value = (list || [])?.filter((u: any) => !u?.deleted)
       workspaceUserCount.value = pageInfo.totalRows
       workspaceOwnerCount.value = collaborators.value?.filter((u: any) => u.roles === WorkspaceUserRoles.OWNER).length
-      // Todo: @ramesh & @pranav - consider paid team role count consideration for workspace owner count
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       if (!params?.ignoreLoading) isCollaboratorsLoading.value = false
+
+      workspaceTeamList(workspaceId ?? activeWorkspace.value!.id!).catch(() => {
+        // ignore
+      })
     }
   }
 

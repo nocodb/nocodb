@@ -201,14 +201,17 @@ export const useBase = defineStore('baseStore', () => {
 
     await loadTables()
 
-    await Promise.all([
-      basesStore.getBaseUsers({
+    await basesStore.getBaseUsers({
+      baseId: base.value.id || baseId.value,
+    })
+
+    basesStore
+      .getBaseTeams({
         baseId: base.value.id || baseId.value,
-      }),
-      basesStore.getBaseTeams({
-        baseId: base.value.id || baseId.value,
-      }),
-    ])
+      })
+      .catch(() => {
+        // ignore
+      })
 
     // if (withTheme) setTheme(baseMeta.value?.theme)
 

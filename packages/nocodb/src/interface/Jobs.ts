@@ -54,6 +54,7 @@ export enum JobTypes {
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',
   ExecuteAction = 'execute-action',
+  ReseatSubscription = 'reseat-subscription',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -67,6 +68,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.UpdateSrcStat,
   JobTypes.UpdateUsageStats,
   JobTypes.SyncModuleSchedule,
+  JobTypes.ReseatSubscription,
 ];
 
 export enum JobStatus {
@@ -249,4 +251,10 @@ export interface ExecuteActionJobData extends JobData {
   modelId?: string;
   viewId?: string;
   scriptId: string;
+}
+
+export interface ReseatSubscriptionJobData extends JobData {
+  workspaceOrOrgId: string;
+  initiator?: string;
+  timestamp: number;
 }

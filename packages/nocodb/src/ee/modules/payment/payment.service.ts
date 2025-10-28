@@ -15,6 +15,7 @@ import {
 } from 'nocodb-sdk';
 import type { PlanFeatureTypes, PlanLimitTypes, PlanTitles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import type { ReseatSubscriptionJobData } from '~/interface/Jobs';
 import { JobTypes } from '~/interface/Jobs';
 import {
   Org,
@@ -43,6 +44,8 @@ const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
 });
 
 const NOCODB_INTERNAL = 'nocodb';
+const RESEAT_DELAY_MS = 10 * 60 * 1000; // 10 minutes
+const RESEAT_MAX_DELAY_MS = 60 * 60 * 1000; // 1 hour
 
 @Injectable()
 export class PaymentService {
@@ -270,7 +273,7 @@ export class PaymentService {
     });
 
     await this.migrateDb(workspaceOrOrg.id, transaction);
-    await this.reseatSubscription(workspaceOrOrg.id, ncMeta);
+    await this.reseatSubscriptionImmediate(workspaceOrOrg.id, ncMeta);
 
     return subscription;
   }
@@ -1046,6 +1049,117 @@ export class PaymentService {
   }
 
   async reseatSubscription(
+    workspaceOrOrgId: string,
+    ncMeta = Noco.ncMeta,
+    initiator?: string,
+  ) {
+    try {
+      const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+      if (!workspaceOrOrg) return;
+
+      // if the workspace is a child of an org, we need to use the org id
+      if (workspaceOrOrg.entity === 'workspace') {
+        if (workspaceOrOrg?.fk_org_id) {
+          workspaceOrOrgId = workspaceOrOrg.fk_org_id;
+        }
+      }
+
+      const existingSub = await Subscription.getByWorkspaceOrOrg(
+        workspaceOrOrgId,
+        ncMeta,
+      );
+      if (!existingSub) return;
+
+      const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
+
+      // No change in seat count
+      if (existingSub.seat_count === seatCount) return;
+
+      // If reducing seats, do it immediately
+      if (existingSub.seat_count > seatCount) {
+        return this.reseatSubscriptionImmediate(
+          workspaceOrOrgId,
+          ncMeta,
+          initiator,
+        );
+      }
+    } catch (e) {
+      // Fall back to immediate reseat on error
+      return this.reseatSubscriptionImmediate(
+        workspaceOrOrgId,
+        ncMeta,
+        initiator,
+      );
+    }
+
+    // If increasing seats, schedule a delayed job to batch multiple requests
+
+    // Remove any existing delayed jobs for this workspace/org
+    // Bull will deduplicate jobs with the same jobId
+    const jobId = `reseat-${workspaceOrOrgId}`;
+    let timestamp = Date.now();
+
+    try {
+      // Check if there's an existing delayed job and remove it
+      const existingJob = await this.nocoJobsService.getJob(jobId);
+      if (existingJob) {
+        const jobState = await existingJob.getState();
+
+        // If the existing job is still waiting or delayed, check if we are within the max delay window
+        if (['waiting', 'delayed'].includes(jobState)) {
+          const data = existingJob.data as ReseatSubscriptionJobData;
+
+          this.logger.log(
+            `Time passed since last reseat request for workspace/org ${workspaceOrOrgId}: ${
+              timestamp - data.timestamp
+            } ms (jobId: ${jobId})`,
+          );
+
+          timestamp = data.timestamp;
+        }
+
+        await existingJob.remove();
+      }
+    } catch (e) {
+      // Job doesn't exist, continue
+    }
+
+    if (Date.now() - timestamp > RESEAT_MAX_DELAY_MS) {
+      // If the last request was more than the max delay ago, do an immediate reseat
+      this.logger.log(
+        `Max delay exceeded for workspace/org ${workspaceOrOrgId}, performing immediate reseat (jobId: ${jobId})`,
+      );
+      return this.reseatSubscriptionImmediate(
+        workspaceOrOrgId,
+        ncMeta,
+        initiator,
+      );
+    }
+
+    // Schedule a new delayed job
+    // Bull's jobId ensures that only one job with this ID exists at a time
+    await this.nocoJobsService.add(
+      JobTypes.ReseatSubscription,
+      {
+        workspaceOrOrgId,
+        initiator,
+        jobName: JobTypes.ReseatSubscription,
+        timestamp,
+      } as ReseatSubscriptionJobData,
+      {
+        jobId,
+        delay: RESEAT_DELAY_MS,
+      },
+    );
+
+    this.logger.log(
+      `Scheduled reseat for workspace/org ${workspaceOrOrgId} in ${
+        RESEAT_DELAY_MS / 1000
+      } seconds (jobId: ${jobId})`,
+    );
+  }
+
+  async reseatSubscriptionImmediate(
     workspaceOrOrgId: string,
     ncMeta = Noco.ncMeta,
     initiator?: string,

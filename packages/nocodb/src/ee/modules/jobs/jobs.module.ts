@@ -14,11 +14,17 @@ import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-im
 import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stats.processor';
 import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
 import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.processor';
+import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscription.processor';
 import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
+import { PaymentModule } from '~/modules/payment/payment.module';
 
 @Module({
   ...JobsModuleMetadata,
-  imports: [...JobsModuleMetadata.imports, forwardRef(() => NocoSyncModule)],
+  imports: [
+    ...JobsModuleMetadata.imports,
+    forwardRef(() => NocoSyncModule),
+    forwardRef(() => PaymentModule),
+  ],
   controllers: [
     ...JobsModuleMetadata.controllers,
     WorkerController,
@@ -35,6 +41,7 @@ import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
     UpdateUsageStatsProcessor,
     CloudDbMigrateProcessor,
     ActionExecutionProcessor,
+    ReseatSubscriptionProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

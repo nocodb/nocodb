@@ -293,7 +293,15 @@ export function useViewRowColorOption(params: {
     }
     await pushPendingAction(async () => {
       const toInsert = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
-      const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, toInsert)
+      const result = await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'rowColorConditionsFilterCreate',
+          rowColorConditionId: conditionToAdd.id,
+        },
+        toInsert,
+      )
       filter.id = result.id
     })
 
@@ -333,7 +341,15 @@ export function useViewRowColorOption(params: {
     await pushPendingAction(async () => {
       const toInsert = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
       delete toInsert.children
-      const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, toInsert)
+      const result = await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'rowColorConditionsFilterCreate',
+          rowColorConditionId: conditionToAdd.id,
+        },
+        toInsert,
+      )
       filter.id = result.id
     })
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)

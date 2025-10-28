@@ -351,7 +351,12 @@ export function useViewFilters(
               })
             ).list as ColumnFilterType[]
           } else if (linkColId?.value && !isNestedRoot) {
-            filters.value = (await $api.dbTableLinkFilter.read(linkColId?.value)).list as ColumnFilterType[]
+            filters.value = (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'linkFilterList',
+                columnId: linkColId.value,
+              })
+            ).list as ColumnFilterType[]
           }
         } else if (isWidget || widgetId) {
           if (parentId.value) {
@@ -362,7 +367,12 @@ export function useViewFilters(
               })
             ).list as ColumnFilterType[]
           } else if (widgetId && !isNestedRoot) {
-            filters.value = (await $api.dbWidgetFilter.read(widgetId)).list as ColumnFilterType[]
+            filters.value = (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'widgetFilterList',
+                widgetId,
+              })
+            ).list as ColumnFilterType[]
           }
         } else {
           if (parentId.value) {
@@ -442,17 +452,33 @@ export function useViewFilters(
               fk_parent_id: parentId.value,
             } as FilterType)) as ColumnFilterType
           } else if (linkId || linkColId?.value) {
-            filters.value[+i] = (await $api.dbTableLinkFilter.create(linkId || linkColId.value, {
-              ...filter,
-              children: undefined,
-              fk_parent_id: parentId.value,
-            } as FilterType)) as ColumnFilterType
-          } else if (widgetId || widgetId?.value) {
-            filters.value[+i] = (await $api.dbWidgetFilter.create(widgetId || widgetId.value, {
-              ...filter,
-              children: undefined,
-              fk_parent_id: parentId.value,
-            } as FilterType)) as ColumnFilterType
+            filters.value[+i] = (await $api.internal.postOperation(
+              (meta.value as any).fk_workspace_id!,
+              (meta.value as any).base_id!,
+              {
+                operation: 'linkFilterCreate',
+                columnId: linkId || linkColId!.value,
+              },
+              {
+                ...filter,
+                children: undefined,
+                fk_parent_id: parentId.value,
+              } as FilterType,
+            )) as ColumnFilterType
+          } else if (widgetId) {
+            filters.value[+i] = (await $api.internal.postOperation(
+              (meta.value as any).fk_workspace_id!,
+              (meta.value as any).base_id!,
+              {
+                operation: 'widgetFilterCreate',
+                widgetId,
+              },
+              {
+                ...filter,
+                children: undefined,
+                fk_parent_id: parentId.value,
+              } as FilterType,
+            )) as ColumnFilterType
           } else {
             filters.value[+i] = (await $api.internal.postOperation(
               meta.value!.fk_workspace_id!,
@@ -592,10 +618,18 @@ export function useViewFilters(
         }
       } else {
         if (linkColId?.value) {
-          const savedFilter = await $api.dbTableLinkFilter.create(linkColId.value, {
-            ...filter,
-            fk_parent_id: parentId.value,
-          })
+          const savedFilter = await $api.internal.postOperation(
+            (meta.value as any).fk_workspace_id!,
+            (meta.value as any).base_id!,
+            {
+              operation: 'linkFilterCreate',
+              columnId: linkColId.value,
+            },
+            {
+              ...filter,
+              fk_parent_id: parentId.value,
+            },
+          )
           // extract id from saved filter and update the filter object
           // avoiding whole object update to prevent overwriting of current filter object changes
           filters.value[i] = {
@@ -603,12 +637,20 @@ export function useViewFilters(
             fk_parent_id: parentId.value,
             id: savedFilter.id,
             status: undefined,
-          }
+          } as ColumnFilterType
         } else if (widgetId?.value) {
-          const savedFilter = await $api.dbWidgetFilter.create(widgetId.value, {
-            ...filter,
-            fk_parent_id: parentId.value,
-          })
+          const savedFilter = await $api.internal.postOperation(
+            (meta.value as any).fk_workspace_id!,
+            (meta.value as any).base_id!,
+            {
+              operation: 'widgetFilterCreate',
+              widgetId: widgetId.value,
+            },
+            {
+              ...filter,
+              fk_parent_id: parentId.value,
+            },
+          )
           // extract id from saved filter and update the filter object
           // avoiding whole object update to prevent overwriting of current filter object changes
           filters.value[i] = {
@@ -616,7 +658,7 @@ export function useViewFilters(
             fk_parent_id: parentId.value,
             id: savedFilter.id,
             status: undefined,
-          }
+          } as ColumnFilterType
         } else {
           const savedFilter = await $api.internal.postOperation(
             meta.value!.fk_workspace_id!,

@@ -40,6 +40,7 @@ import { ActionsService } from '~/services/actions.service';
 import { MailService } from '~/services/mail/mail.service';
 import { TablesService } from '~/services/tables.service';
 import { ViewsService } from '~/services/views.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
 import { FiltersService } from '~/services/filters.service';
 import { SortsService } from '~/services/sorts.service';
 import { HooksService } from '~/services/hooks.service';
@@ -69,6 +70,7 @@ export class InternalController extends InternalControllerCE {
     protected readonly auditsService: AuditsService,
     protected readonly tablesService: TablesService,
     protected readonly viewsService: ViewsService,
+    protected readonly viewColumnsService: ViewColumnsService,
     protected readonly filtersService: FiltersService,
     protected readonly sortsService: SortsService,
     protected readonly hooksService: HooksService,
@@ -208,6 +210,12 @@ export class InternalController extends InternalControllerCE {
             user: req.user,
           }),
         );
+      case 'viewColumnList':
+        return new PagedResponseImpl(
+          await this.viewColumnsService.columnList(context, {
+            viewId: req.query.viewId as string,
+          }),
+        );
       case 'filterList':
         return new PagedResponseImpl(
           await this.filtersService.filterList(context, {
@@ -218,6 +226,18 @@ export class InternalController extends InternalControllerCE {
         return new PagedResponseImpl(
           await this.filtersService.filterChildrenList(context, {
             filterId: req.query.filterId as string,
+          }),
+        );
+      case 'linkFilterList':
+        return new PagedResponseImpl(
+          await this.filtersService.linkFilterList(context, {
+            columnId: req.query.columnId as string,
+          }),
+        );
+      case 'widgetFilterList':
+        return new PagedResponseImpl(
+          await this.filtersService.widgetFilterList(context, {
+            widgetId: req.query.widgetId as string,
           }),
         );
       case 'sortList':
@@ -237,6 +257,12 @@ export class InternalController extends InternalControllerCE {
           await this.hooksService.hookLogList(context, {
             hookId: req.query.hookId as string,
             query: req.query,
+          }),
+        );
+      case 'hookFilterList':
+        return new PagedResponseImpl(
+          await this.filtersService.hookFilterList(context, {
+            hookId: req.query.hookId as string,
           }),
         );
       case 'hookSamplePayload':
@@ -593,6 +619,13 @@ export class InternalController extends InternalControllerCE {
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
         });
+      case 'viewColumnUpdate':
+        return await this.viewColumnsService.columnUpdate(context, {
+          viewId: req.query.viewId,
+          columnId: req.query.columnId,
+          column: payload,
+          req,
+        });
       case 'filterCreate':
         return await this.filtersService.filterCreate(context, {
           viewId: req.query.viewId,
@@ -611,6 +644,25 @@ export class InternalController extends InternalControllerCE {
         return await this.filtersService.filterDelete(context, {
           filterId: req.query.filterId,
           req,
+        });
+      case 'linkFilterCreate':
+        return await this.filtersService.linkFilterCreate(context, {
+          columnId: req.query.columnId,
+          filter: payload,
+          user: req.user,
+          req,
+        });
+      case 'widgetFilterCreate':
+        return await this.filtersService.widgetFilterCreate(context, {
+          widgetId: req.query.widgetId,
+          filter: payload,
+          user: req.user,
+          req,
+        });
+      case 'rowColorConditionsFilterCreate':
+        return await this.filtersService.rowColorConditionsCreate(context, {
+          rowColorConditionsId: req.query.rowColorConditionId,
+          filter: payload,
         });
       case 'sortCreate':
         return await this.sortsService.sortCreate(context, {
@@ -662,6 +714,13 @@ export class InternalController extends InternalControllerCE {
         return await this.hooksService.hookTrigger(context, {
           hookId: req.query.hookId as string,
           rowId: req.query.rowId as string,
+          req,
+        });
+      case 'hookFilterCreate':
+        return await this.filtersService.hookFilterCreate(context, {
+          hookId: req.query.hookId,
+          filter: payload,
+          user: req.user,
           req,
         });
       case 'gridViewCreate':

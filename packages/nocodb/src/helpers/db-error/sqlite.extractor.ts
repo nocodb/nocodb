@@ -119,6 +119,11 @@ export class SqliteDBErrorExtractor implements IClientDbErrorExtractor {
         break;
 
       default:
+        this.option.dbErrorLogger.error(
+          `${error.code} is not handled on database sqlite`,
+        );
+        message = `An error occured when querying sqlite database.`;
+        httpStatus = 500;
         return;
     }
 

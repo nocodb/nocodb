@@ -419,6 +419,69 @@ export class NcErrorBase {
     );
   }
 
+  pluginTestError(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TEST_PLUGIN_FAILED, {
+      params: message,
+      ...args,
+    });
+  }
+
+  relationFieldNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_RELATION_FIELD_NOT_FOUND,
+      {
+        params: id,
+        ...args,
+      }
+    );
+  }
+
+  unSupportedRelation(relation: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_UNSUPPORTED_RELATION, {
+      params: `Relation ${relation} is not supported`,
+      ...args,
+    });
+  }
+
+  // for nc-sql-executor, the error returned is possible to be an Error object
+  // thus `error.message` is needed to access it
+  externalError(error: string | Error, args?: NcErrorArgs): never {
+    let message: string = '';
+    if (['string'].includes(typeof error)) {
+      message = `${error}`;
+    } else if (typeof error === 'object') {
+      if (error.message) {
+        message = error.message;
+      } else {
+        // we log the error if we don't know the schema yet
+        console.log(
+          `Unknown error schema from nc-sql-executor: ${JSON.stringify(error)}`
+        );
+      }
+    }
+    if (!message || message === '') {
+      // generic error message to prevent programmatic error to propagate to UI
+      message =
+        'Error when executing query in external data source, please contact administration to solve this issue';
+    }
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_IN_EXTERNAL_DATA_SOURCE,
+      {
+        params: message,
+        ...args,
+      }
+    );
+  }
+
+  externalTimeOut(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT,
+      {
+        params: message,
+        ...args,
+      }
+    );
+  }
   prohibitedSyncTableOperation(
     param: {
       modelName: string;

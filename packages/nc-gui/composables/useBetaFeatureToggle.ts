@@ -175,15 +175,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'password_manage',
-    title: 'Password Manage',
-    description: 'Manage user password',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
     id: 'show_everyones_personal_views',
     title: "Show Everyone's Personal Views",
     description: 'With this feature we can avoid showing other users personal views in left sidebar',

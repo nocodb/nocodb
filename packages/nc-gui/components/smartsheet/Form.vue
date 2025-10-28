@@ -2,6 +2,7 @@
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
+import { nextTick } from 'vue'
 import 'splitpanes/dist/splitpanes.css'
 
 import {
@@ -193,6 +194,56 @@ const focusLabel = ref<HTMLTextAreaElement>()
 const searchQuery = ref('')
 
 const autoScrollFormField = ref(false)
+
+const headingTextareaRef = ref<HTMLTextAreaElement | null>(null)
+const headingDraft = ref('')
+const headingFocused = ref(false)
+const headingComposing = ref(false)
+
+const commitHeading = (value: string) => {
+  if (!formViewData.value) return
+  if (formViewData.value.heading === value) return
+  formViewData.value.heading = value
+  updateView()
+}
+
+const getHeadingValue = (): string => {
+  return headingTextareaRef.value?.value ?? headingDraft.value
+}
+
+const onHeadingInput = (event: Event) => {
+  const target = event.target as HTMLTextAreaElement | null
+  if (!target) return
+  headingDraft.value = target.value
+  if (!headingComposing.value) {
+    commitHeading(target.value)
+  }
+}
+
+const onHeadingCompositionStart = () => {
+  headingComposing.value = true
+}
+
+const onHeadingCompositionEnd = (event: Event) => {
+  const target = event.target as HTMLTextAreaElement | null
+  if (!target) return
+  headingComposing.value = false
+  commitHeading(target.value)
+  headingDraft.value = target.value
+}
+
+watch(
+  () => formViewData.value?.heading,
+  (val) => {
+    if (!headingFocused.value && !headingComposing.value && typeof val === 'string') {
+      headingDraft.value = val
+      if (headingTextareaRef.value) {
+        headingTextareaRef.value.value = val
+      }
+    }
+  },
+  { immediate: true },
+)
 
 const { t } = useI18n()
 
@@ -1295,13 +1346,14 @@ const { message: templatedMessage } = useTemplatedMessage(
                             <a-textarea
                               v-model:value="formViewData.heading"
                               class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
+                              ref="headingTextareaRef"
+                              :value="headingDraft"
                               :style="{
                                 'borderRightWidth': '0px !important',
                                 'height': '70px',
                                 'max-height': '250px',
                                 'resize': 'vertical',
                               }"
-                              auto-size
                               size="large"
                               hide-details
                               :disabled="isLocked"
@@ -1309,8 +1361,10 @@ const { message: templatedMessage } = useTemplatedMessage(
                               :bordered="false"
                               :data-testid="NcForm.heading"
                               :data-title="NcForm.heading"
-                              @input="updateView"
-                              @focus="activeRow = NcForm.heading"
+                              @input="onHeadingInput"
+                              @compositionstart="onHeadingCompositionStart"
+                              @compositionend="onHeadingCompositionEnd"
+                              @focus="activeRow = NcForm.subheading"
                               @blur="activeRow = ''"
                             />
                           </a-form-item>

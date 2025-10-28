@@ -8,6 +8,7 @@ import LineChartWidgetConfig from './widgets/linechart/config/index.vue'
 import ScatterChartWidgetConfig from './widgets/scatterchart/config/index.vue'
 import TextWidgetConfig from './widgets/text/config/index.vue'
 import IframeWidgetConfig from './widgets/iframe/config/index.vue'
+import GaugeWidgetConfig from './widgets/gauge/config/index.vue'
 const widgetStore = useWidgetStore()
 const { selectedWidget } = storeToRefs(widgetStore)
 
@@ -21,6 +22,8 @@ const configComponent = computed(() => {
       return TextWidgetConfig
     case WidgetTypes.IFRAME:
       return IframeWidgetConfig
+    case WidgetTypes.GAUGE:
+      return GaugeWidgetConfig
     case WidgetTypes.CHART:
       switch ((selectedWidget.value.config as ChartWidgetConfig).chartType) {
         case ChartTypes.PIE:

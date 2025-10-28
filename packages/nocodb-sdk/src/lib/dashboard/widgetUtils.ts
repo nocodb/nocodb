@@ -99,6 +99,25 @@ const getDefaultConfig = (
         },
       };
 
+    case WidgetTypes.GAUGE:
+      return {
+        dataSource: WidgetDataSourceTypes.MODEL,
+        metric: {
+          type: 'count' as const,
+          aggregation: 'count' as const,
+        },
+        range: {
+          min: 0,
+          max: 100,
+        },
+        appearance: {
+          type: 'filled' as const,
+          theme: 'blue' as const,
+          showValue: true,
+          showPercentage: true,
+        },
+      };
+
     case WidgetTypes.CHART:
       return getDefaultChartConfig(chartType, columns);
     case WidgetTypes.IFRAME:

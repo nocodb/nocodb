@@ -1,6 +1,7 @@
 import { ChartTypes, WidgetTypes } from 'nocodb-sdk';
 import type { NcContext, NcRequest, WidgetType } from 'nocodb-sdk';
 import { MetricCommonHandler } from '~/db/widgets/metric/metric.common.handler';
+import { GaugeCommonHandler } from '~/db/widgets/gauge/gauge.common.handler';
 import { NcError } from '~/helpers/ncError';
 import { Model, Source } from '~/models';
 import { CircularChartPgHandler } from '~/db/widgets/circular-chart/circular-chart.pg.handler';
@@ -33,6 +34,8 @@ export async function getWidgetHandler(
   switch (widget.type) {
     case WidgetTypes.METRIC:
       return new MetricCommonHandler();
+    case WidgetTypes.GAUGE:
+      return new GaugeCommonHandler();
     case WidgetTypes.CHART:
       switch (widget.config.chartType) {
         case ChartTypes.PIE:

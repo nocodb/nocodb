@@ -569,6 +569,7 @@ import NcChartDonut from '~icons/nc-icons-v2/chart-donut.svg'
 import NcChartBar from '~icons/nc-icons-v2/chart-bar.svg'
 import NcChartLine from '~icons/nc-icons-v2/chart-line.svg'
 import NcChartPie from '~icons/nc-icons-v2/chart-pie.svg'
+import NcGaugeWidget from '~icons/nc-icons-v2/gauge-widget.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -1806,6 +1807,7 @@ export const iconMap = {
   'ncChartLine': h(NcChartLine, { stroke: 'transparent' }),
   'ncChartDonut': h(NcChartDonut, { stroke: 'transparent' }),
   'ncChartPie': h(NcChartPie, { stroke: 'transparent' }),
+  'ncGaugeWidget': h(NcGaugeWidget, { stroke: 'transparent' }),
   'ncSun': NcSun,
   'ncGraduationCap': NcGraduationCap,
   'ncSupportAgent': h(NcSupportAgent, { stroke: 'transparent' }),

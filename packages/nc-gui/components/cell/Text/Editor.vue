@@ -26,7 +26,7 @@ const inputRef = ref<HTMLInputElement | HTMLTextAreaElement>()
 
 const focus: VNodeRef = (el) => {
   if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
-    inputRef.value = el as HTMLInputElement
+    inputRef.value = (el?.$el as HTMLTextAreaElement) || (el as HTMLInputElement)
     inputRef.value?.focus()
   }
 }
@@ -68,13 +68,14 @@ function updateInput(e: any) {
     @selectstart.capture.stop
     @mousedown.stop
   />
-  <a-textarea
+  <NcAutoSizeTextarea
     v-else
     :ref="focus"
-    v-model:value="textareaValue"
-    :auto-size="{ minRows: 1, maxRows: 6 }"
-    class="!border-0 !border-none !outline-0 !ring-0 focus:!border-0 focus:!outline-0 focus:!ring-0 !px-2 !py-1 nc-scrollbar-thin"
-    style="color: inherit; resize: auto !important; min-height: 32px !important; height: 32px !important"
+    v-model:model-value="textareaValue"
+    :hide-scrollbar="false"
+    :bordered="false"
+    class="!px-2 !py-1 !min-h-7 !max-h-7.5rem resize-none nc-scrollbar-thin"
+    style="color: inherit"
     @keydown.enter.prevent
   />
 </template>

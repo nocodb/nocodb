@@ -288,7 +288,7 @@ export class KanbansService {
     }
 
     // Update groupingFieldColumn in view meta
-    const viewMeta = parseProp(view) || {};
+    const viewMeta = parseProp(view?.meta) || {};
     await View.update(context, view.id, {
       ...view,
       meta: {

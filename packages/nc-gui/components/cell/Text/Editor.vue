@@ -26,7 +26,7 @@ const inputRef = ref<HTMLInputElement | HTMLTextAreaElement>()
 
 const focus: VNodeRef = (el) => {
   if (!isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
-    inputRef.value = (el?.$el as HTMLTextAreaElement) || (el as HTMLInputElement)
+    inputRef.value = el as HTMLInputElement
     inputRef.value?.focus()
   }
 }

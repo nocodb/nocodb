@@ -541,7 +541,27 @@ export class NcErrorBase {
     });
   }
 
-  externalError(message: string, args?: NcErrorArgs): never {
+  // for nc-sql-executor, the error returned is possible to be an Error object
+  // thus `error.message` is needed to access it
+  externalError(error: string | Error, args?: NcErrorArgs): never {
+    let message: string = '';
+    if (['string'].includes(typeof error)) {
+      message = `${error}`;
+    } else if (typeof error === 'object') {
+      if (error.message) {
+        message = error.message;
+      } else {
+        // we log the error if we don't know the schema yet
+        console.log(
+          `Unknown error schema from nc-sql-executor: ${JSON.stringify(error)}`
+        );
+      }
+    }
+    if (!message || message === '') {
+      // generic error message to prevent programmatic error to propagate to UI
+      message =
+        'Error when executing query in external data source, please contact administration to solve this issue';
+    }
     throw this.errorCodex.generateError(
       NcErrorType.ERR_IN_EXTERNAL_DATA_SOURCE,
       {

@@ -180,7 +180,7 @@ const handleLeaveTeam = (team: TeamV3V3Type) => {
     okText: t('activity.leaveTeam'),
     cancelText: t('labels.cancel'),
     okCallback: async () => {
-      await workspaceStore.removeTeamMembers(activeWorkspaceId.value!, team.id, [{ user_id: user.value?.id! }])
+      await workspaceStore.removeTeamMembers(activeWorkspaceId.value!, team.id, [{ user_id: user.value?.id }])
     },
   })
 }

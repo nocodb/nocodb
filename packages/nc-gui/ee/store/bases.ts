@@ -680,8 +680,8 @@ export const useBases = defineStore('basesStore', () => {
       )
 
       return res
-    } catch (e: any) {
-      throw e
+    } finally {
+      // catch error is handled in parent function
     }
   }
 

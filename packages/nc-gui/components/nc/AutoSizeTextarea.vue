@@ -51,15 +51,9 @@ watch(modelValue, (val) => {
 // ✅ expose textarea DOM element directly
 defineExpose({
   $el: textarea,
-  focus: () => {
-    textarea.value?.focus()
-  },
-  blur: () => {
-    textarea.value?.blur()
-  },
-  select: () => {
-    textarea.value?.select()
-  },
+  focus: () => textarea.value?.focus(),
+  blur: () => textarea.value?.blur(),
+  select: () => textarea.value?.select(),
 })
 </script>
 

@@ -163,9 +163,9 @@ const permissionScopes = {
     'teamGet',
     'teamUpdate',
     'teamDelete',
-    'teamUserAdd',
-    'teamUserRemove',
-    'teamUserUpdate',
+    'teamMembersAdd',
+    'teamMembersRemove',
+    'teamMembersUpdate',
 
     // Workspace-Team operations
     'workspaceTeamList',
@@ -445,6 +445,9 @@ const rolePermissions:
       teamCreate: true,
       teamUpdate: true,
       teamDelete: true,
+      teamMembersAdd: true,
+      teamMembersRemove: true,
+      teamMembersUpdate: true,
 
       // Workspace-Team operations
       workspaceTeamList: true,
@@ -937,9 +940,9 @@ const permissionDescriptions: Record<string, string> = {
   teamGet: 'view team details',
   teamUpdate: 'update team details',
   teamDelete: 'delete a team from the workspace',
-  teamUserAdd: 'add users to a team',
-  teamUserRemove: 'remove users from a team',
-  teamUserUpdate: 'update user roles in a team',
+  teamMembersAdd: 'add members to a team',
+  teamMembersRemove: 'remove members from a team',
+  teamMembersUpdate: 'update member roles in a team',
 
   // base permissions
   formViewGet: 'view forms',

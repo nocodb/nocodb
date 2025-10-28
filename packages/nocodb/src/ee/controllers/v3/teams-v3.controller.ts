@@ -107,7 +107,7 @@ export class TeamsV3Controller {
 
   @Post('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/members')
   @HttpCode(200)
-  @Acl('teamUserAdd', { scope: 'workspace' })
+  @Acl('teamMembersAdd', { scope: 'workspace' })
   async teamMembersAdd(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -124,7 +124,7 @@ export class TeamsV3Controller {
   }
 
   @Delete('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/members')
-  @Acl('teamUserRemove', { scope: 'workspace' })
+  @Acl('teamMembersRemove', { scope: 'workspace' })
   async teamMembersRemove(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
@@ -145,7 +145,7 @@ export class TeamsV3Controller {
   }
 
   @Patch('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/members')
-  @Acl('teamUserUpdate', { scope: 'workspace' })
+  @Acl('teamMembersUpdate', { scope: 'workspace' })
   async teamMembersUpdate(
     @TenantContext() context: NcContext,
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,

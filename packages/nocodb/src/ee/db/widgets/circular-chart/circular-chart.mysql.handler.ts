@@ -156,12 +156,14 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       );
     }
 
+    const categoryLimit = this.getCategoryLimit(config);
+
     const mainQuery = baseModel.dbDriver
       .select('*')
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN CAST(category AS CHAR)
+          WHEN rn <= ${categoryLimit} THEN CAST(category AS CHAR)
           ELSE 'Others'
         END as final_category
       `),
@@ -170,7 +172,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN category
+          WHEN rn <= ${categoryLimit} THEN category
           ELSE NULL
         END as original_category
       `),
@@ -179,7 +181,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN ??
+          WHEN rn <= ${categoryLimit} THEN ??
           ELSE 0
         END as final_value
       `,
@@ -190,7 +192,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
         baseModel.dbDriver.raw(
           `
         CASE 
-          WHEN rn > ${this.MAX_WIDGET_CATEGORY_COUNT} THEN ??
+          WHEN rn > ${categoryLimit} THEN ??
           ELSE 0
         END as others_value
       `,
@@ -200,7 +202,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn <= ${this.MAX_WIDGET_CATEGORY_COUNT} THEN record_count
+          WHEN rn <= ${categoryLimit} THEN record_count
           ELSE 0
         END as final_count
       `),
@@ -208,7 +210,7 @@ export class CircularChartMysqlHandler extends CircularChartCommonHandler {
       .select(
         baseModel.dbDriver.raw(`
         CASE 
-          WHEN rn > ${this.MAX_WIDGET_CATEGORY_COUNT} THEN record_count
+          WHEN rn > ${categoryLimit} THEN record_count
           ELSE 0
         END as others_count
       `),

@@ -18,12 +18,15 @@ const includeEmptyRecords = ref(selectedWidget.value?.config?.data?.xAxis?.inclu
 
 const includeOthers = ref(selectedWidget.value?.config?.data?.xAxis?.includeOthers ?? true)
 
+const categoryLimit = ref(selectedWidget.value?.config?.data?.xAxis?.categoryLimit ?? 10)
+
 const modelId = computed(() => selectedWidget.value?.fk_model_id || null)
 
-const handleChange = (type: 'field' | 'sort' | 'order' | 'includeEmptyRecords') => {
+const handleChange = (type: 'field' | 'sort' | 'order' | 'includeEmptyRecords' | 'categoryLimit') => {
   const xAxis = {
     includeEmptyRecords: includeEmptyRecords.value,
     includeOthers: includeOthers.value,
+    categoryLimit: categoryLimit.value,
   }
 
   if (type === 'field') {
@@ -123,13 +126,29 @@ const filterField = (column: ColumnType) => {
         <span class="text-caption text-nc-content-gray select-none">
           <NcTooltip class="flex items-center" hide-on-click>
             <template #title>
-              By default the chart will show top 10 categories and remaining categories will be grouped as "Others". Disabling
-              this will hide "Others" category.
+              By default the chart will show top {{ categoryLimit }} categories and remaining categories will be grouped as
+              "Others". Disabling this will hide "Others" category.
             </template>
             Include others
           </NcTooltip>
         </span>
       </NcSwitch>
+    </div>
+
+    <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <label>
+        <NcTooltip class="flex items-center" hide-on-click>
+          <template #title> Number of top categories to display (min: 10, max: 50) </template>
+          Category limit
+        </NcTooltip>
+      </label>
+      <NcNonNullableNumberInput
+        v-model:model-value="categoryLimit"
+        :min="10"
+        :max="50"
+        class="nc-input-shadow w-full"
+        @update:model-value="handleChange('categoryLimit')"
+      />
     </div>
   </GroupedSettings>
 </template>

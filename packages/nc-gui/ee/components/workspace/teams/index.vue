@@ -24,6 +24,10 @@ const { user } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
+const hasEditPermission = computed(() => {
+  return isUIAllowed('teamCreate')
+})
+
 const workspaceStore = useWorkspace()
 
 const { teams, isTeamsLoading, collaboratorsMap, activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
@@ -228,6 +232,7 @@ onMounted(async () => {
         </a-input>
 
         <NcButton
+          v-if="hasEditPermission"
           size="small"
           inner-class="!gap-2"
           :disabled="isTeamsLoading"
@@ -286,7 +291,7 @@ onMounted(async () => {
                 >{{ $t('msg.learnMore') }}</a
               >
             </template>
-            <template #action>
+            <template v-if="hasEditPermission" #action>
               <NcButton size="small" inner-class="!gap-2" class="capitalize" @click="handleCreateTeam">
                 <template #icon>
                   <GeneralIcon icon="plus" class="h-4 w-4" />
@@ -358,7 +363,12 @@ onMounted(async () => {
                       {{ $t('activity.leaveTeam') }}
                     </NcMenuItem>
                   </NcTooltip>
-                  <NcMenuItem :disabled="!record.is_member" danger @click="handleDeleteTeam(record as TeamV3V3Type)">
+                  <NcMenuItem
+                    v-if="hasEditPermission"
+                    :disabled="!record.is_member"
+                    danger
+                    @click="handleDeleteTeam(record as TeamV3V3Type)"
+                  >
                     <GeneralIcon icon="delete" />
                     {{ $t('activity.deleteTeam') }}
                   </NcMenuItem>

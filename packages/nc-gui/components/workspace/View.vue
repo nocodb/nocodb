@@ -29,7 +29,7 @@ const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled, getFeature, block
   useEeConfig()
 
 const hasTeamsEditPermission = computed(() => {
-  return isEeUI && isTeamsEnabled.value
+  return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
 })
 
 const currentWorkspace = computedAsync(async () => {

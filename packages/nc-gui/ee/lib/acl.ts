@@ -103,11 +103,6 @@ const rolePermissions = {
       excelImport: true,
       nocodbImport: true,
       workspaceIntegrations: true,
-
-      // Teams
-      teamCreate: true,
-      teamDelete: true,
-      workspaceTeamAdd: true,
     },
   },
   [WorkspaceUserRoles.EDITOR]: {
@@ -123,6 +118,9 @@ const rolePermissions = {
       // Teams
       teamList: true,
       teamGet: true,
+      teamCreate: true,
+      teamDelete: true,
+      workspaceTeamAdd: true,
     },
   },
   [WorkspaceUserRoles.NO_ACCESS]: {

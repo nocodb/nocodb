@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, PlanFeatureTypes, TeamUserRoles } from 'nocodb-sdk';
+import {
+  AppEvents,
+  PlanFeatureTypes,
+  TeamUserRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   TeamCreateV3ReqType,
@@ -192,6 +197,29 @@ export class TeamsV3Service {
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
+    }
+
+    // check if the current user have access to this team
+    // user should be member of the team or workspace admin
+    const currentUserId = context.user?.id;
+    if (currentUserId) {
+      const isWorkspaceAdmin =
+        !!context.user?.workspace_roles?.[WorkspaceUserRoles.OWNER];
+
+      const assignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.TEAM,
+        param.teamId,
+        PrincipalType.USER,
+        currentUserId,
+      );
+      const isTeamMember = assignment !== null;
+
+      if (!isTeamMember && !isWorkspaceAdmin) {
+        NcError.get(context).forbidden(
+          'You do not have access to view this team details',
+        );
+      }
     }
 
     // Get team members with user details using optimized query

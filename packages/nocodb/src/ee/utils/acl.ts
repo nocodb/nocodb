@@ -442,6 +442,9 @@ const rolePermissions:
       // Teams
       teamList: true,
       teamGet: true,
+      teamCreate: true,
+      teamUpdate: true,
+      teamDelete: true,
 
       // Workspace-Team operations
       workspaceTeamList: true,

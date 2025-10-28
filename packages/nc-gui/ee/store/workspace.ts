@@ -266,7 +266,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     try {
       // todo: pagination
-      const { list, pageInfo } = $api.workspaceUser.list(
+      const { list, pageInfo } = await $api.workspaceUser.list(
         workspaceId ?? activeWorkspace.value.id!,
         { ...params },
         {

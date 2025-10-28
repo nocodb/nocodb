@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, toRefs } from 'vue'
-import { useTextareaAutosize, type UseTextareaAutosizeOptions } from '@vueuse/core'
+import { type UseTextareaAutosizeOptions, useTextareaAutosize } from '@vueuse/core'
 
 /**
  * Define props — you can extend this later if needed.
@@ -78,6 +77,7 @@ defineExpose({
     }"
   />
 </template>
+
 <style scoped lang="scss">
 .nc-auto-size-textarea {
   vertical-align: middle;

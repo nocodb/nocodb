@@ -153,7 +153,7 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         this.option.dbErrorLogger.error(
           `${error.code} is not handled on database mysql`,
         );
-        message = `An error occured when querying mysql database.`;
+        message = `An error occurred when querying mysql database.`;
         httpStatus = 500;
         return;
     }

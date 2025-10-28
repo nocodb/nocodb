@@ -179,7 +179,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         this.option.dbErrorLogger.error(
           `${error.code} is not handled on database pg`,
         );
-        message = `An error occured when querying postgresql database.`;
+        message = `An error occurred when querying postgresql database.`;
         httpStatus = 500;
         return;
     }

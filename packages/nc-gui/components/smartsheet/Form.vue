@@ -927,7 +927,6 @@ const handleOnClick = (e: MouseEvent) => {
     isSidebarVisible.value = true
   }
 }
-
 const { message: templatedMessage } = useTemplatedMessage(
   computed(() => formViewData?.value?.success_msg),
   computed(() => formState.value),
@@ -1292,24 +1291,18 @@ const { message: templatedMessage } = useTemplatedMessage(
                           @click.stop="onFormItemClick({ id: NcForm.heading })"
                         >
                           <a-form-item v-if="isEditable" class="!my-0">
-                            <a-textarea
-                              v-model:value="formViewData.heading"
-                              class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
-                              :style="{
-                                'borderRightWidth': '0px !important',
-                                'height': '70px',
-                                'max-height': '250px',
-                                'resize': 'vertical',
-                              }"
-                              auto-size
-                              size="large"
-                              hide-details
-                              :disabled="isLocked"
+                            <NcAutoSizeTextarea
+                              v-model:model-value="formViewData.heading"
+                              class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !bg-transparent !text-gray-900"
                               placeholder="Form Title"
                               :bordered="false"
                               :data-testid="NcForm.heading"
                               :data-title="NcForm.heading"
-                              @input="updateView"
+                              @input="
+                                (value) => {
+                                  updateView()
+                                }
+                              "
                               @focus="activeRow = NcForm.heading"
                               @blur="activeRow = ''"
                             />

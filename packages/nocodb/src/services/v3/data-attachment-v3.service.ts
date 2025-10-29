@@ -201,7 +201,36 @@ export class DataAttachmentV3Service {
 
   async appendUrlAttachmentToCellData(
     param: AttachmentAppendParam<AttachmentPayloadUrl>,
-  ) {}
+  ) {
+    const { context, modelId, columnId, recordId, scope, attachment, req } =
+      param;
+
+    if (!attachment.url) {
+      NcError.get(context).invalidRequestBody(`Field url is required`);
+    }
+
+    const baseModel = await getBaseModelSqlFromModelId({
+      context: context,
+      modelId: modelId,
+    });
+    await baseModel.model.getColumns(context);
+    const column = baseModel.model.columns.find((col) => col.id === columnId);
+
+    // Check if column exists in model
+    if (!column) {
+      NcError.get(context).fieldNotFound(columnId);
+    }
+
+    // Get the row data
+    const rowData = await baseModel
+      .dbDriver(baseModel.getTnPath(baseModel.model))
+      .where(await _wherePk(baseModel.model.primaryKeys, recordId, true))
+      .first();
+
+    if (!rowData) {
+      NcError.get(context).recordNotFound(recordId);
+    }
+  }
 
   async appendBase64AttachmentToCellData(
     param: AttachmentAppendParam<AttachmentPayloadBase64>,

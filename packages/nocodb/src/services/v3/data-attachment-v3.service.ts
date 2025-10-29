@@ -8,7 +8,9 @@ import slash from 'slash';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
 import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
 import type {
-  AttachmentBase64UploadParam,
+  AttachmentAppendParam,
+  AttachmentPayloadBase64,
+  AttachmentPayloadUrl,
   AttachmentUrlUploadParam,
 } from '~/types/data-columns/attachment';
 import {
@@ -181,7 +183,29 @@ export class DataAttachmentV3Service {
     );
   }
 
-  async appendBase64AttachmentToCellData(param: AttachmentBase64UploadParam) {
+  async appendAttachmentToCellData(
+    param: AttachmentAppendParam<
+      AttachmentPayloadBase64 | AttachmentPayloadUrl
+    >,
+  ) {
+    if ('file' in param.attachment) {
+      return this.appendBase64AttachmentToCellData(
+        param as AttachmentAppendParam<AttachmentPayloadBase64>,
+      );
+    } else {
+      return this.appendUrlAttachmentToCellData(
+        param as AttachmentAppendParam<AttachmentPayloadUrl>,
+      );
+    }
+  }
+
+  async appendUrlAttachmentToCellData(
+    param: AttachmentAppendParam<AttachmentPayloadUrl>,
+  ) {}
+
+  async appendBase64AttachmentToCellData(
+    param: AttachmentAppendParam<AttachmentPayloadBase64>,
+  ) {
     const { context, modelId, columnId, recordId, scope, attachment, req } =
       param;
 

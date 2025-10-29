@@ -39,16 +39,23 @@ export interface AttachmentUrlUploadParam {
   )[];
 }
 
-export interface AttachmentBase64UploadParam {
+export interface AttachmentAppendParam<
+  T extends AttachmentPayloadBase64 | AttachmentPayloadUrl,
+> {
   context: NcContext;
   scope?: PublicAttachmentScope;
   modelId: string;
   columnId: string;
   recordId: string;
   req?: Partial<NcRequest>;
-  attachment: {
-    contentType: string;
-    file: string; // base64-encoded-file-content
-    filename: string;
-  };
+  attachment: T;
+}
+export interface AttachmentPayloadUrl {
+  url: string;
+}
+
+export interface AttachmentPayloadBase64 {
+  contentType: string;
+  file: string; // base64-encoded-file-content
+  filename: string;
 }

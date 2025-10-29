@@ -20,6 +20,10 @@ import type {
   DataRecord,
   DataUpdateRequest,
 } from '~/services/v3/data-v3.types';
+import type {
+  AttachmentPayloadBase64,
+  AttachmentPayloadUrl,
+} from '~/types/data-columns/attachment';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -93,11 +97,9 @@ export class Datav3Controller {
     @Param('recordId') recordId: string,
     @Param('columnId') columnId: string,
     @Body()
-    body:
-      | { contentType: string; file: string; filename: string }
-      | { url: string },
+    body: AttachmentPayloadBase64 | AttachmentPayloadUrl,
   ) {
-    return await this.dataAttachmentV3Service.appendBase64AttachmentToCellData({
+    return await this.dataAttachmentV3Service.appendAttachmentToCellData({
       context,
       modelId,
       recordId,

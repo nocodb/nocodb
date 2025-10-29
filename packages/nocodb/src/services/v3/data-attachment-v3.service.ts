@@ -3,7 +3,12 @@ import { PassThrough } from 'stream';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
-import { AuditV1OperationTypes, EventType, ncIsNull } from 'nocodb-sdk';
+import {
+  AuditV1OperationTypes,
+  EventType,
+  isValidURL,
+  ncIsNull,
+} from 'nocodb-sdk';
 import slash from 'slash';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
 import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
@@ -208,6 +213,12 @@ export class DataAttachmentV3Service {
 
     if (!attachment.url) {
       NcError.get(context).invalidRequestBody(`Field url is required`);
+    } else if (
+      !isValidURL(attachment.url, {
+        require_tld: process.env.NC_ALLOW_LOCAL_HOOKS !== 'true',
+      })
+    ) {
+      NcError.get(context).invalidRequestBody(`Url is not valid`);
     }
 
     const baseModel = await getBaseModelSqlFromModelId({

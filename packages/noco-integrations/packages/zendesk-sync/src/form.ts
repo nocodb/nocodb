@@ -30,20 +30,7 @@ const form: FormDefinition = [
     model: 'config.includeClosed',
     category: 'Source',
     defaultValue: true,
-  },
-  {
-    type: FormBuilderInputType.Space,
-    width: 4,
-    category: 'Source',
-  },
-  {
-    type: FormBuilderInputType.Switch,
-    label: 'Include archived tickets',
-    width: 48,
-    model: 'config.includeArchived',
-    category: 'Source',
-    defaultValue: false,
-  },
+  }
 ];
 
 export default form;

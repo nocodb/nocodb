@@ -24,7 +24,6 @@ interface ZendeskClient {
 
 export interface ZendeskSyncPayload {
   includeClosed: boolean;
-  includeArchived: boolean;
 }
 
 export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncPayload> {
@@ -68,7 +67,7 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
     >
   > {
     const client = auth;
-    const { includeClosed, includeArchived } = this.config;
+    const { includeClosed } = this.config;
     const { targetTableIncrementalValues } = args;
 
     const stream = new DataObjectStream<
@@ -130,11 +129,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
           for (const ticket of data.tickets) {
             // Filter based on status
             if (!includeClosed && ['closed', 'solved'].includes(ticket.status)) {
-              continue;
-            }
-
-            // Filter archived tickets
-            if (!includeArchived && ticket.status === 'archived') {
               continue;
             }
 
@@ -364,7 +358,7 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
       Tags: ticket.tags?.join(', ') || null,
       'Ticket Type': ticket.type || null,
       Url: ticket.url || null,
-      'Is Active': !['closed', 'solved', 'archived'].includes(ticket.status),
+      'Is Active': !['closed', 'solved'].includes(ticket.status),
       'Completed At': ticket.status === 'closed' || ticket.status === 'solved' ? ticket.updated_at : null,
       'Ticket Number': ticket.id?.toString() || null,
       RemoteCreatedAt: ticket.created_at || null,

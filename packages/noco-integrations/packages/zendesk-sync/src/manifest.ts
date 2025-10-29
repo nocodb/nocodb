@@ -5,7 +5,7 @@ import {
 
 const manifest: IntegrationManifest = {
   title: 'Zendesk',
-  icon: 'zendeskSolid',
+  icon: 'ncLogoZendesk',
   version: '0.1.0',
   description: 'Sync Zendesk tickets and users',
   sync_category: SyncCategory.TICKETING,

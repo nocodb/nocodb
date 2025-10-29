@@ -147,14 +147,60 @@ const handleDeleteSync = async (syncId: string) => {
   }
 }
 
-const isSearchResultAvailable = () => {
-  if (!searchQuery.value) return true
-  return syncs.value.some(
+const filteredSyncs = computed(() => {
+  if (!searchQuery.value) return syncs.value
+  return syncs.value.filter(
     (sync) =>
       sync.title?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       sync.sync_type?.toLowerCase().includes(searchQuery.value.toLowerCase()),
   )
-}
+})
+
+const columns = [
+  {
+    key: 'name',
+    title: 'Name',
+    name: 'Name',
+    dataIndex: 'title',
+    minWidth: 160,
+    padding: '0px 24px',
+  },
+  {
+    key: 'type',
+    title: 'Type',
+    name: 'Type',
+    dataIndex: 'sync_type',
+    width: 150,
+    minWidth: 150,
+    padding: '0px 24px',
+  },
+  {
+    key: 'frequency',
+    title: 'Frequency',
+    name: 'Frequency',
+    dataIndex: 'frequency',
+    width: 150,
+    minWidth: 150,
+    padding: '0px 24px',
+  },
+  {
+    key: 'last_sync',
+    title: 'Last Run',
+    name: 'Last Run',
+    dataIndex: 'last_sync_at',
+    width: 240,
+    minWidth: 240,
+    padding: '0px 24px',
+  },
+  {
+    key: 'actions',
+    title: 'Actions',
+    name: 'Actions',
+    width: 100,
+    minWidth: 100,
+    padding: '0px 24px',
+  },
+] as NcTableColumnProps[]
 
 // Load syncs when component is mounted
 onMounted(() => {
@@ -216,105 +262,67 @@ watch(
     </div>
 
     <div class="flex-1 overflow-auto">
-      <div class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mb-4">
-        <div class="ds-table-head sticky top-0 bg-white z-10">
-          <div class="ds-table-row !border-0">
-            <div class="ds-table-col ds-table-name">Name</div>
-            <div class="ds-table-col ds-table-type">Type</div>
-            <div class="ds-table-col ds-table-frequency">Frequency</div>
-            <div class="ds-table-col ds-table-last-sync">Last Run</div>
-            <div class="ds-table-col ds-table-actions">Actions</div>
+      <NcTable
+        :columns="columns"
+        :data="filteredSyncs"
+        :is-data-loading="isLoading"
+        row-height="54px"
+        header-row-height="54px"
+        class="h-full w-full"
+        @row-click="(record) => handleEditSync(record.id)"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'name'">
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="ncZap" class="!text-green-700 !h-5 !w-5" />
+              <span class="font-medium">{{ record.title || 'Untitled Sync' }}</span>
+            </div>
+          </template>
+          <template v-else-if="column.key === 'type'">
+            <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate !border-transparent">
+              {{ record.sync_type === SyncType.Full ? 'Full' : 'Incremental' }}
+            </NcBadge>
+          </template>
+          <template v-else-if="column.key === 'frequency'">
+            {{ record.frequency }}
+          </template>
+          <template v-else-if="column.key === 'last_sync'">
+            {{ formatDate(record.last_sync_at) }}
+          </template>
+          <template v-else-if="column.key === 'actions'">
+            <div class="flex justify-end gap-2">
+              <NcDropdown placement="bottomRight" @click.stop>
+                <NcButton size="small" type="text" class="nc-action-btn !w-8 !px-1 !rounded-lg">
+                  <GeneralIcon icon="threeDotVertical" />
+                </NcButton>
+                <template #overlay>
+                  <NcMenu variant="small">
+                    <NcMenuItem @click="handleEditSync(record.id)">
+                      <GeneralIcon icon="edit" />
+                      <span>Edit</span>
+                    </NcMenuItem>
+                    <NcDivider />
+                    <NcMenuItem danger @click="handleDeleteSync(record.id)">
+                      <GeneralIcon icon="delete" />
+                      <span>Delete</span>
+                    </NcMenuItem>
+                  </NcMenu>
+                </template>
+              </NcDropdown>
+            </div>
+          </template>
+        </template>
+        <template #emptyText>
+          <div class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center">
+            <img
+              src="~assets/img/placeholder/no-search-result-found.png"
+              class="!w-[164px] flex-none"
+              :alt="syncs.length === 0 ? 'No syncs found' : 'No search results found'"
+            />
+            {{ syncs.length === 0 ? 'No syncs found' : 'No results matched your search' }}
           </div>
-        </div>
-        <div class="ds-table-body relative">
-          <div
-            v-for="sync in syncs"
-            :key="sync.id"
-            class="ds-table-row border-gray-200 cursor-pointer"
-            :class="{
-              '!hidden':
-                searchQuery &&
-                !sync.title?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-                !sync.sync_type?.toLowerCase().includes(searchQuery.toLowerCase()),
-            }"
-            @click="handleEditSync(sync.id)"
-          >
-            <div class="ds-table-col ds-table-name font-medium">
-              <div class="flex items-center gap-1">
-                <GeneralIcon icon="ncZap" class="!text-green-700 !h-5 !w-5" />
-                {{ sync.title || 'Untitled Sync' }}
-              </div>
-            </div>
-            <div class="ds-table-col ds-table-type">
-              <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate !border-transparent">
-                {{ sync.sync_type === SyncType.Full ? 'Full' : 'Incremental' }}
-              </NcBadge>
-            </div>
-            <div class="ds-table-col ds-table-frequency">
-              {{ sync.frequency }}
-            </div>
-            <div class="ds-table-col ds-table-last-sync">
-              {{ formatDate(sync.last_sync_at) }}
-            </div>
-            <div class="ds-table-col ds-table-actions">
-              <div class="flex justify-end gap-2">
-                <NcDropdown placement="bottomRight" @click.stop>
-                  <NcButton size="small" type="text" class="nc-action-btn !w-8 !px-1 !rounded-lg">
-                    <GeneralIcon icon="threeDotVertical" />
-                  </NcButton>
-                  <template #overlay>
-                    <NcMenu variant="small">
-                      <NcMenuItem @click="handleEditSync(sync.id)">
-                        <GeneralIcon icon="edit" />
-                        <span>Edit</span>
-                      </NcMenuItem>
-                      <NcDivider />
-                      <NcMenuItem danger @click="handleDeleteSync(sync.id)">
-                        <GeneralIcon icon="delete" />
-                        <span>Delete</span>
-                      </NcMenuItem>
-                    </NcMenu>
-                  </template>
-                </NcDropdown>
-              </div>
-            </div>
-          </div>
-
-          <div
-            v-if="!isLoading && syncs.length === 0"
-            class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
-          >
-            <div class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center">
-              <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[164px] flex-none" alt="No syncs found" />
-              No syncs found
-            </div>
-          </div>
-
-          <div
-            v-if="!isLoading && syncs.length > 0 && !isSearchResultAvailable()"
-            class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
-          >
-            <div class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center">
-              <img
-                src="~assets/img/placeholder/no-search-result-found.png"
-                class="!w-[164px] flex-none"
-                alt="No search results found"
-              />
-              No results matched your search
-            </div>
-          </div>
-        </div>
-
-        <div
-          v-show="isLoading"
-          class="flex items-center justify-center absolute left-0 top-0 w-full h-[calc(100%_-_45px)] z-10 pb-10 pointer-events-none"
-        >
-          <div class="flex flex-col justify-center items-center gap-2">
-            <GeneralLoader size="xlarge" />
-            <span class="text-center">Loading</span>
-          </div>
-        </div>
-      </div>
+        </template>
+      </NcTable>
     </div>
 
     <!-- Create Sync Modal -->
@@ -338,50 +346,5 @@ watch(
 </template>
 
 <style scoped>
-.ds-table {
-  @apply border-1 border-gray-200 rounded-lg h-full;
-}
-.ds-table-head {
-  @apply flex items-center border-b-1 text-gray-500 bg-gray-50 text-sm font-weight-500;
-}
-
-.ds-table-body {
-  @apply flex flex-col;
-}
-
-.ds-table-row {
-  @apply grid grid-cols-12 border-b border-gray-100 w-full h-full;
-}
-
-.ds-table-col {
-  @apply flex items-center justify-center py-3 mr-2;
-}
-
-.ds-table-name {
-  @apply col-span-4 items-center capitalize;
-}
-
-.ds-table-type {
-  @apply col-span-2 items-center;
-}
-
-.ds-table-frequency {
-  @apply col-span-2 items-center;
-}
-
-.ds-table-last-sync {
-  @apply col-span-2 items-center;
-}
-
-.ds-table-actions {
-  @apply col-span-2 flex w-full;
-}
-
-.ds-table-col:last-child {
-  @apply border-r-0;
-}
-
-.ds-table-body .ds-table-row:hover {
-  @apply bg-gray-50/60;
-}
+/* Styles are now handled by NcTable component */
 </style>

@@ -26,10 +26,16 @@ enum Step {
 }
 
 const step = ref(Step.Category)
-const goToDashboard = ref(false)
-const goBack = ref(false)
 const progressRef = ref()
-const creatingSync = ref(false)
+const syncState = ref<{
+  creating: boolean
+  completed: boolean
+  failed: boolean
+}>({
+  creating: false,
+  completed: false,
+  failed: false,
+})
 
 // Create a new integration configs store instance for this component
 const {
@@ -46,7 +52,7 @@ const {
 
 const handleSubmit = async () => {
   isLoading.value = true
-  creatingSync.value = true
+  syncState.value.creating = true
 
   try {
     const syncData = await createSync()
@@ -71,19 +77,14 @@ const handleSubmit = async () => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
             progressRef.value?.pushProgress('Done!', data.status)
-
             await loadTables()
-
             refreshCommandPalette()
-            goToDashboard.value = true
+            syncState.value.completed = true
           } else if (data.status === JobStatus.FAILED) {
             progressRef.value?.pushProgress(data.data?.error?.message ?? 'Sync failed', data.status)
-
             await loadTables()
-
             refreshCommandPalette()
-
-            goBack.value = true
+            syncState.value.failed = true
           } else {
             progressRef.value?.pushProgress(data.data?.message ?? 'Syncing...', 'progress')
           }
@@ -94,10 +95,24 @@ const handleSubmit = async () => {
     )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-    creatingSync.value = false
+    syncState.value.creating = false
   } finally {
     isLoading.value = false
   }
+}
+
+const validateDestinationSchema = () => {
+  if (!formState.value.config.custom_schema) return false
+
+  for (const table of Object.values(formState.value.config.custom_schema) as {
+    systemFields: { primaryKey: string[] }
+  }[]) {
+    if (!table.systemFields.primaryKey || table.systemFields.primaryKey.length === 0) {
+      message.error('Every table must have at least one unique identifier column')
+      return false
+    }
+  }
+  return true
 }
 
 const nextStep = async () => {
@@ -105,38 +120,20 @@ const nextStep = async () => {
     case Step.Category:
       step.value = Step.SyncSettings
       break
-    case Step.Integration:
-      if (await saveCurrentFormState()) {
-        if (syncConfigForm.value.sync_category === 'custom') {
-          step.value = Step.DestinationSchema
-        } else {
-          step.value = Step.Create
-        }
-      }
-      break
     case Step.SyncSettings:
       try {
         await validateSyncConfig()
         step.value = Step.Integration
       } catch {}
       break
+    case Step.Integration:
+      if (await saveCurrentFormState()) {
+        step.value = syncConfigForm.value.sync_category === 'custom' ? Step.DestinationSchema : Step.Create
+      }
+      break
     case Step.DestinationSchema:
-      if (formState.value.config.custom_schema) {
-        // make sure every table has a primary key
-        for (const table of Object.values(formState.value.config.custom_schema) as {
-          systemFields: {
-            primaryKey: string[]
-          }
-        }[]) {
-          if (!table.systemFields.primaryKey || table.systemFields.primaryKey.length === 0) {
-            message.error('Every table must have at least one unique identifier column')
-            return
-          }
-        }
-
-        if (await saveCurrentFormState()) {
-          step.value = Step.Create
-        }
+      if (validateDestinationSchema() && (await saveCurrentFormState())) {
+        step.value = Step.Create
       }
       break
     case Step.Create:
@@ -145,27 +142,19 @@ const nextStep = async () => {
   }
 }
 
+const stepFlow = {
+  [Step.Category]: Step.Category,
+  [Step.SyncSettings]: Step.Category,
+  [Step.Integration]: Step.SyncSettings,
+  [Step.DestinationSchema]: Step.Integration,
+  [Step.Create]: Step.Integration,
+}
+
 const previousStep = () => {
-  switch (step.value) {
-    case Step.Category:
-      step.value = Step.Category
-      break
-    case Step.SyncSettings:
-      step.value = Step.Category
-      break
-    case Step.Integration:
-      step.value = Step.SyncSettings
-      break
-    case Step.DestinationSchema:
-      step.value = Step.Integration
-      break
-    case Step.Create:
-      if (syncConfigForm.value.sync_category === 'custom') {
-        step.value = Step.DestinationSchema
-      } else {
-        step.value = Step.Integration
-      }
-      break
+  if (step.value === Step.Create && syncConfigForm.value.sync_category === 'custom') {
+    step.value = Step.DestinationSchema
+  } else {
+    step.value = stepFlow[step.value]
   }
 }
 
@@ -208,25 +197,20 @@ watch(
   },
 )
 
-const refreshState = () => {
-  goBack.value = false
-  creatingSync.value = false
-  goToDashboard.value = false
-}
-
-function onDashboard() {
-  refreshState()
-  vOpen.value = false
+const resetSyncState = () => {
+  syncState.value = {
+    creating: false,
+    completed: false,
+    failed: false,
+  }
 }
 
 const onClose = () => {
-  refreshState()
+  resetSyncState()
   vOpen.value = false
 }
 
-const isModalClosable = computed(() => {
-  return !creatingSync.value
-})
+const isModalClosable = computed(() => !syncState.value.creating)
 </script>
 
 <template>
@@ -241,77 +225,77 @@ const isModalClosable = computed(() => {
   >
     <div class="flex-1 flex flex-col max-h-full create-source">
       <div class="px-4 py-3 w-full flex items-center gap-3 border-b-1 border-gray-200">
-        <div class="flex items-center">
+        <div class="flex items-center gap-2">
           <GeneralIcon icon="ncZap" class="!text-green-700 !h-5 !w-5" />
+          <div class="text-base font-weight-700">Create Sync</div>
         </div>
-        <div class="flex-1 text-base font-weight-700">Create Sync</div>
 
-        <div class="flex items-center gap-3">
-          <NcButton :disabled="creatingSync" size="small" type="text" @click="onClose">
-            <GeneralIcon icon="close" class="text-gray-600" />
+        <div class="flex-1" />
+
+        <!-- Navigation Buttons in Header -->
+        <div v-if="!syncState.creating" class="flex items-center gap-2">
+          <NcButton type="ghost" size="small" :disabled="step === Step.Category" @click="previousStep"> Back </NcButton>
+          <NcButton type="primary" size="small" :disabled="!continueEnabled" @click="nextStep">
+            {{ step === Step.Create ? 'Create' : 'Continue' }}
           </NcButton>
         </div>
+
+        <NcButton :disabled="syncState.creating" size="small" type="text" @click="onClose">
+          <GeneralIcon icon="close" class="text-gray-600" />
+        </NcButton>
       </div>
       <div class="h-[calc(100%_-_58px)] flex justify-center p-5">
         <div class="flex flex-col gap-10 w-full items-center overflow-y-auto">
           <div class="w-5xl">
             <DashboardSettingsSyncSteps :current="step" />
           </div>
-          <div class="flex rounded-lg p-6 border-1 border-nc-border-gray-medium">
-            <a-form name="external-base-create-form" layout="vertical" no-style hide-required-mark class="flex flex-col w-full">
-              <div class="nc-form-section">
-                <div class="flex flex-col gap-5">
-                  <div v-if="step === Step.Category" class="w-3xl">
-                    <a-row :gutter="24">
-                      <a-col :span="24">
-                        <a-form-item label="Sync Category">
-                          <DashboardSettingsSyncCategorySelect
-                            :model-value="deepReference('sync_category')"
-                            @change="onCategoryChange($event)"
-                          />
-                        </a-form-item>
-                      </a-col>
-                    </a-row>
-                  </div>
-                  <div v-if="step === Step.Integration" class="w-3xl">
-                    <div>
-                      <!-- Integration tabs and configuration -->
-                      <DashboardSettingsSyncIntegrationTabs />
-                      <DashboardSettingsSyncIntegrationConfig />
-                    </div>
-                  </div>
-                  <div v-if="step === Step.SyncSettings" class="w-3xl">
-                    <DashboardSettingsSyncSettings />
-                  </div>
-                  <div v-if="syncConfigForm.sync_category === 'custom' && step === Step.DestinationSchema">
-                    <DashboardSettingsSyncDestinationSchema />
-                  </div>
-                  <div v-if="step === Step.Create" class="w-3xl">
-                    <div v-if="creatingSync">
-                      <div class="mb-4 prose-xl font-bold">Creating sync schema and syncing initial data</div>
 
-                      <GeneralProgressPanel ref="progressRef" class="w-full" />
+          <div class="flex w-full max-w-5xl mx-auto">
+            <a-form layout="vertical" no-style hide-required-mark class="flex flex-col w-full">
+              <div class="flex flex-col gap-5">
+                <!-- Step 1: Category -->
+                <div v-if="step === Step.Category">
+                  <a-form-item label="Sync Category">
+                    <DashboardSettingsSyncCategorySelect
+                      :model-value="deepReference('sync_category')"
+                      @change="onCategoryChange($event)"
+                    />
+                  </a-form-item>
+                </div>
 
-                      <div v-if="goToDashboard" class="flex justify-center items-center">
-                        <NcButton class="mt-6 mb-8" size="medium" @click="onDashboard"> 🚀 Go To Dashboard 🚀</NcButton>
-                      </div>
-                      <div v-else-if="goBack" class="flex justify-center items-center">
-                        <NcButton class="mt-6 mb-8" type="ghost" size="medium" @click="onDashboard">Go Dashboard</NcButton>
-                      </div>
+                <!-- Step 2: Sync Settings -->
+                <div v-else-if="step === Step.SyncSettings">
+                  <DashboardSettingsSyncSettings />
+                </div>
+
+                <!-- Step 3: Integration -->
+                <div v-else-if="step === Step.Integration">
+                  <DashboardSettingsSyncIntegrationTabs />
+                  <DashboardSettingsSyncIntegrationConfig />
+                </div>
+
+                <!-- Step 4: Destination Schema (custom only) -->
+                <div v-else-if="step === Step.DestinationSchema">
+                  <DashboardSettingsSyncDestinationSchema />
+                </div>
+
+                <!-- Step 5: Review & Create -->
+                <div v-else-if="step === Step.Create">
+                  <div v-if="syncState.creating">
+                    <div class="mb-4 prose-xl font-bold">Creating sync schema and syncing initial data</div>
+                    <GeneralProgressPanel ref="progressRef" class="w-full" />
+
+                    <div v-if="syncState.completed" class="flex justify-center items-center">
+                      <NcButton class="mt-6 mb-8" size="medium" @click="onClose"> 🚀 Go To Dashboard 🚀 </NcButton>
                     </div>
-                    <div v-else>
-                      <DashboardSettingsSyncReview />
+                    <div v-else-if="syncState.failed" class="flex justify-center items-center">
+                      <NcButton class="mt-6 mb-8" type="ghost" size="medium" @click="onClose"> Go Dashboard </NcButton>
                     </div>
                   </div>
+                  <DashboardSettingsSyncReview v-else />
                 </div>
               </div>
             </a-form>
-          </div>
-          <div v-if="!creatingSync" class="w-3xl flex justify-between">
-            <NcButton type="ghost" :disabled="step === Step.Category" @click="previousStep"> Back </NcButton>
-            <NcButton type="primary" :loading="creatingSync" :disabled="!continueEnabled" @click="nextStep">
-              {{ step === Step.Create ? 'Create' : 'Continue' }}
-            </NcButton>
           </div>
         </div>
       </div>
@@ -320,31 +304,6 @@ const isModalClosable = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-:deep(.ant-steps-item-finish .ant-steps-icon) {
-  top: -3px;
-}
-
-.nc-form-section > div > div {
-  @apply flex flex-col gap-2;
-}
-
-.nc-add-source-left-panel {
-  @apply p-6 flex-1 flex justify-center;
-}
-.nc-add-source-right-panel {
-  @apply p-4 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
-}
-:deep(.ant-collapse-header) {
-  @apply !-mt-4 !p-0 flex items-center !cursor-default children:first:flex;
-}
-:deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
-  @apply !right-0;
-}
-
-:deep(.ant-collapse-content-box) {
-  @apply !px-0 !pb-0 !pt-3;
-}
-
 :deep(.ant-form-item-explain-error) {
   @apply !text-xs;
 }

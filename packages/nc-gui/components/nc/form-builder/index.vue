@@ -135,9 +135,9 @@ watch(
                   :required="false"
                   :data-testid="`nc-form-input-${field.model}`"
                 >
-                  <template #label>
+                  <template v-if="![FormBuilderInputType.Switch].includes(field.type)" #label>
                     <div class="flex items-center gap-1">
-                      <span v-if="![FormBuilderInputType.Switch].includes(field.type)">{{ field.label }}</span>
+                      <span>{{ field.label }}</span>
                       <span v-if="field.required" class="text-red-500">*</span>
                       <NcTooltip v-if="field.helpText && field.showHintAsTooltip">
                         <template #title>
@@ -295,6 +295,7 @@ watch(
 
 <style lang="scss" scoped>
 .nc-form-item {
+  @apply px-0.5;
   margin-bottom: 12px;
 }
 

@@ -240,7 +240,12 @@ export function useViewRowColorOption(params: {
     }
   }
 
-  const onRowColorConditionUpdate = async (params: { index: number; color: string; is_set_as_background: boolean }) => {
+  const onRowColorConditionUpdate = async (params: {
+    index: number
+    color: string
+    is_set_as_background: boolean
+    nc_order?: number
+  }) => {
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToUpdate = conditions[params.index]!
@@ -250,7 +255,7 @@ export function useViewRowColorOption(params: {
       await $api.dbView.viewRowColorConditionUpdate(view.value.id, conditionToUpdate?.id, {
         color: params.color,
         is_set_as_background: params.is_set_as_background,
-        nc_order: conditionToUpdate.nc_order,
+        nc_order: params.nc_order ?? conditionToUpdate.nc_order,
       })
     } catch (err: any) {
       console.log('error', err)

@@ -14,9 +14,9 @@ const buttonClass = 'flex-grow !inline-flex !border-none !shadow-none !rounded-[
           <span>Using Single select field</span>
         </div>
         <div>
-          <span class="text-nc-content-gray-muted ml-[24px]" style="font-size: 13px"
-            >Colour records based on single select field</span
-          >
+          <span class="text-nc-content-gray-muted ml-[24px]" style="font-size: 13px">
+            Colour records based on single select field
+          </span>
         </div>
       </div>
     </a-button>

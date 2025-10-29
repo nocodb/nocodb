@@ -161,8 +161,8 @@ const FEATURES = [
     id: 'copy_view_config_from_another_view',
     title: 'Copy View Config From Another View',
     description: 'Copy view config from another view.',
-    enabled: false,
-    version: 2,
+    enabled: true,
+    version: 3,
     isEE: true,
   },
   {

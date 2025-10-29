@@ -40,49 +40,49 @@ const paidBadgeVisible = false
 </script>
 
 <template>
-  <SmartsheetToolbarNotAllowedTooltip
-    v-if="isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled"
-    :enabled="copyViewConfigBtnAccessStatus.isDisabled"
-    placement="top"
-    class="flex items-center justify-end flex-1"
-  >
-    <template #title>
-      <div class="max-w-70">
-        {{ copyViewConfigBtnAccessStatus.tooltip }}
-      </div>
-    </template>
-
-    <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER">
-      <template #default="{ click }">
-        <NcButton
-          v-bind="buttonProps"
-          :disabled="copyViewConfigBtnAccessStatus.isDisabled"
-          @click.stop="
-            () => {
-              emits('open')
-
-              click(PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER, () => {
-                onOpenCopyViewConfigFromAnotherViewModal({ destView: view, defaultOptions })
-              })
-            }
-          "
-        >
-          {{ $t('objects.copyViewConfig.copyFromAnotherView') }}
-        </NcButton>
-
-        <PaymentUpgradeBadge
-          v-show="paidBadgeVisible"
-          :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER"
-          :limit-or-feature="'to access copy view configuration from another view feature.' as PlanFeatureTypes"
-          :content="
-            $t('upgrade.upgradeToAccessCopyViewConfigFromAnotherViewSubtitle', {
-              plan: getPlanTitle(PlanTitles.PLUS),
-            })
-          "
-        />
+  <div class="flex-1 w-full flex items-center justify-end">
+    <SmartsheetToolbarNotAllowedTooltip
+      v-if="isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled"
+      :enabled="copyViewConfigBtnAccessStatus.isDisabled"
+      placement="right"
+      class="flex items-center justify-end"
+    >
+      <template #title>
+        <div class="max-w-70">
+          {{ copyViewConfigBtnAccessStatus.tooltip }}
+        </div>
       </template>
-    </PaymentUpgradeBadgeProvider>
-  </SmartsheetToolbarNotAllowedTooltip>
-</template>
 
-<style lang="scss" scoped></style>
+      <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER">
+        <template #default="{ click }">
+          <NcButton
+            v-bind="buttonProps"
+            :disabled="copyViewConfigBtnAccessStatus.isDisabled"
+            @click.stop="
+              () => {
+                emits('open')
+
+                click(PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER, () => {
+                  onOpenCopyViewConfigFromAnotherViewModal({ destView: view, defaultOptions })
+                })
+              }
+            "
+          >
+            {{ $t('objects.copyViewConfig.copyFromAnotherView') }}
+          </NcButton>
+
+          <PaymentUpgradeBadge
+            v-show="paidBadgeVisible"
+            :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER"
+            :limit-or-feature="'to access copy view configuration from another view feature.' as PlanFeatureTypes"
+            :content="
+              $t('upgrade.upgradeToAccessCopyViewConfigFromAnotherViewSubtitle', {
+                plan: getPlanTitle(PlanTitles.PLUS),
+              })
+            "
+          />
+        </template>
+      </PaymentUpgradeBadgeProvider>
+    </SmartsheetToolbarNotAllowedTooltip>
+  </div>
+</template>

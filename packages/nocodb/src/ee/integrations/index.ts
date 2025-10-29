@@ -25,6 +25,8 @@ import OpenaiAi from '@noco-local-integrations/openai-ai';
 import OpenaiCompatibleAi from '@noco-local-integrations/openai-compatible-ai';
 import PostgresAuth from '@noco-local-integrations/postgres-auth';
 import PostgresSync from '@noco-local-integrations/postgres-sync';
+import ZendeskAuth from '@noco-local-integrations/zendesk-auth';
+import ZendeskSync from '@noco-local-integrations/zendesk-sync';
 
 import type { IntegrationEntry } from '@noco-local-integrations/core';
 
@@ -51,4 +53,6 @@ export default [
   OpenaiCompatibleAi,
   PostgresAuth,
   PostgresSync,
+  ZendeskAuth,
+  ZendeskSync,
 ] as IntegrationEntry[];

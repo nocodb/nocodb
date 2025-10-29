@@ -23,42 +23,88 @@ const configs = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center mb-4 border-b border-gray-200 flex-wrap">
-    <div
-      v-for="(config, index) in configs"
-      :key="index"
-      class="px-4 py-2 cursor-pointer flex items-center gap-2"
-      :class="{
-        'border-b-2 border-primary text-primary': selectedIntegrationIndex === index,
-        'text-gray-500': selectedIntegrationIndex !== index,
-      }"
-      @click="switchToIntegrationConfig(index)"
-    >
-      <GeneralIntegrationIcon v-if="config.sub_type" :type="config.sub_type" class="h-5 w-5" />
-      <span v-else class="h-5 w-5 flex items-center justify-center bg-gray-100 rounded-full">
-        {{ index + 1 }}
-      </span>
-      <span>
-        {{ config?.title || config?.sub_type || 'New Source' }}
-      </span>
-      <a-button
-        v-if="integrationConfigs.length > 1 && !editMode"
+  <div class="nc-integration-tabs">
+    <div class="nc-tabs-container">
+      <div
+        v-for="(config, index) in configs"
+        :key="index"
+        class="nc-tab"
+        :class="{
+          'nc-tab-active': selectedIntegrationIndex === index,
+        }"
+        @click="switchToIntegrationConfig(index)"
+      >
+        <div class="nc-tab-content">
+          <GeneralIntegrationIcon v-if="config.sub_type" :type="config.sub_type" class="h-5 w-5" />
+          <span class="nc-tab-label capitalize">
+            {{ config?.title || config?.sub_type || 'New Source' }}
+          </span>
+          <NcButton
+            v-if="integrationConfigs.length > 1 && !editMode"
+            type="text"
+            size="xxsmall"
+            class="nc-tab-close"
+            @click.stop="removeIntegrationConfig(index)"
+          >
+            <GeneralIcon icon="close" class="h-3 w-3" />
+          </NcButton>
+        </div>
+      </div>
+      <NcButton
+        v-if="(!editMode || !editModeModified) && syncConfigEditForm?.sync_category !== 'custom'"
         type="text"
         size="small"
-        class="!p-0 !min-w-0 !h-auto text-gray-400 hover:text-red-500"
-        @click.stop="removeIntegrationConfig(index)"
+        class="nc-add-source-btn"
+        @click="addIntegrationConfig"
       >
-        <GeneralIcon icon="close" class="h-3 w-3" />
-      </a-button>
+        <GeneralIcon icon="plus" class="h-4 w-4" />
+        <span>Add Source</span>
+      </NcButton>
     </div>
-    <a-button
-      v-if="(!editMode || !editModeModified) && syncConfigEditForm?.sync_category !== 'custom'"
-      type="text"
-      class="ml-2 flex items-center"
-      @click="addIntegrationConfig"
-    >
-      <GeneralIcon icon="plus" class="h-3 w-3 mr-1" />
-      Add Source
-    </a-button>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-integration-tabs {
+  @apply mb-4;
+}
+
+.nc-tabs-container {
+  @apply flex items-center gap-1 border-b border-gray-200 flex-wrap;
+}
+
+.nc-tab {
+  @apply px-4 py-2.5 cursor-pointer transition-all duration-200 relative;
+  @apply border-b-2 border-transparent;
+  @apply hover:bg-gray-50;
+
+  &.nc-tab-active {
+    @apply border-brand-500;
+
+    .nc-tab-content {
+      @apply text-brand-600;
+    }
+  }
+}
+
+.nc-tab-content {
+  @apply flex items-center gap-2 text-gray-600;
+}
+
+.nc-tab-number {
+  @apply h-5 w-5 flex items-center justify-center bg-gray-100 rounded-full text-xs font-medium;
+}
+
+.nc-tab-label {
+  @apply text-sm font-medium;
+}
+
+.nc-tab-close {
+  @apply !p-0 !min-w-0 !h-auto text-gray-400;
+  @apply hover:!text-red-500 transition-colors;
+}
+
+.nc-add-source-btn {
+  @apply ml-2 !px-3 !py-1.5 flex items-center gap-1.5;
+}
+</style>

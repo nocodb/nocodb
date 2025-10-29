@@ -4196,7 +4196,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.validateOptions(column, data);
       } catch (ex) {
         if (ex instanceof OptionsNotExistsError && typecast) {
-          await Column.update(this.context, column.id, {
+          const UpdatedColumn = await Column.update(this.context, column.id, {
             ...column,
             colOptions: {
               options: [
@@ -4210,6 +4210,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   ),
                 })),
               ],
+            },
+          });
+
+          const table = await Model.getWithInfo(this.context, {
+            id: column.fk_model_id,
+          });
+
+          NocoSocket.broadcastEvent(this.context, {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'column_update',
+              payload: {
+                table,
+                column: UpdatedColumn,
+              },
             },
           });
         } else {

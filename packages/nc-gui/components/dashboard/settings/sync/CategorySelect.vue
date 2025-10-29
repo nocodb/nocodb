@@ -19,23 +19,57 @@ const selectCategory = (value: SyncCategory) => {
 </script>
 
 <template>
-  <div class="w-full flex flex-wrap gap-4 overflow-y-auto">
-    <template v-for="category in categories" :key="category.value">
-      <NcAlert
-        type="info"
-        :message="category.label"
-        :description="category.description"
-        show-icon
-        class="cursor-pointer hover:!bg-gray-50"
-        :class="{
-          '!border-primary': vModel === category.value,
-        }"
-        @click="selectCategory(category.value)"
-      >
-        <template #icon>
-          <GeneralIcon :icon="category.icon" class="text-primary mt-1" />
-        </template>
-      </NcAlert>
-    </template>
+  <div class="w-full flex flex-col gap-4">
+    <div
+      v-for="category in categories"
+      :key="category.value"
+      class="nc-category-card"
+      :class="{
+        'nc-category-selected': vModel === category.value,
+      }"
+      @click="selectCategory(category.value)"
+    >
+      <div class="flex items-start gap-3">
+        <div class="nc-category-icon">
+          <GeneralIcon :icon="category.icon" class="w-5 h-5" />
+        </div>
+        <div class="flex-1">
+          <div class="nc-category-title">{{ category.label }}</div>
+          <div class="nc-category-description">{{ category.description }}</div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-category-card {
+  @apply p-4 rounded-lg border-2 border-gray-200 cursor-pointer transition-all duration-200;
+  @apply hover:border-brand-500 hover:bg-brand-50/30;
+
+  &.nc-category-selected {
+    @apply border-brand-500 bg-brand-50/50;
+
+    .nc-category-icon {
+      @apply bg-brand-500 text-white;
+    }
+
+    .nc-category-title {
+      @apply text-brand-600;
+    }
+  }
+}
+
+.nc-category-icon {
+  @apply w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center;
+  @apply text-gray-600 transition-all duration-200;
+}
+
+.nc-category-title {
+  @apply text-sm font-semibold text-gray-800 mb-1;
+}
+
+.nc-category-description {
+  @apply text-xs text-gray-500 leading-relaxed;
+}
+</style>

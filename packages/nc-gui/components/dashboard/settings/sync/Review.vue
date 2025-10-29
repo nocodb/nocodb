@@ -41,137 +41,132 @@ const selectedModels = computed(() => {
 </script>
 
 <template>
-  <div class="review-container">
-    <!-- Basic configuration -->
-    <div class="section">
-      <div class="section-title">
-        <GeneralIcon icon="settings" class="text-primary mr-2" />
-        <h3>Sync Configuration</h3>
-      </div>
-      <a-card class="mb-4 !rounded-lg">
-        <div class="grid grid-cols-2 gap-4">
-          <div class="info-item">
-            <div class="info-label">Title</div>
-            <div class="info-value">{{ syncConfigForm.title }}</div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Sync Type</div>
-            <div class="info-value">
-              <GeneralIcon icon="refresh" class="text-primary mr-2" />
-              {{ syncTypeLabel }}
-            </div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">Sync Trigger</div>
-            <div class="info-value">
-              <GeneralIcon icon="clock" class="text-primary mr-2" />
-              {{ syncTriggerLabel }}
-            </div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">On Delete Action</div>
-            <div class="info-value">
-              <GeneralIcon icon="delete" class="text-primary mr-2" />
-              {{ onDeleteActionLabel }}
-            </div>
-          </div>
+  <div class="nc-review-container">
+    <!-- Title Section -->
+    <div class="nc-review-hero">
+      <div class="flex items-center gap-3">
+        <div class="nc-hero-icon">
+          <GeneralIcon icon="ncZap" class="w-6 h-6 text-brand-600" />
         </div>
-      </a-card>
+        <div>
+          <div class="text-lg font-semibold text-gray-900">{{ syncConfigForm.title || 'Untitled Sync' }}</div>
+          <div class="text-xs text-gray-500 mt-0.5">Review your sync configuration before creating</div>
+        </div>
+      </div>
     </div>
 
-    <!-- Models to sync -->
-    <div class="section">
-      <div class="section-title">
-        <GeneralIcon icon="table" class="text-primary mr-2" />
-        <h3>Models to Sync</h3>
-        <div class="text-xs text-gray-500 ml-auto">
-          {{
-            syncAllModels ? 'All models will be synced' : `${selectedModels.length} of ${availableModels.length} models selected`
-          }}
+    <!-- Configuration Grid -->
+    <div class="nc-config-grid">
+      <div class="nc-config-item">
+        <div class="nc-config-header">
+          <div class="nc-config-icon-wrapper">
+            <GeneralIcon icon="refresh" class="w-4 h-4 text-brand-600" />
+          </div>
+          <div class="nc-config-label">Sync Type</div>
         </div>
+        <div class="nc-config-value">{{ syncTypeLabel }}</div>
       </div>
-      <a-card class="mb-4 !rounded-lg">
-        <div class="model-list">
-          <div v-if="syncAllModels" class="flex items-center py-2">
-            <GeneralIcon icon="check" class="text-green-600 mr-2" />
-            <span class="text-sm">All available models will be synced</span>
+
+      <div class="nc-config-item">
+        <div class="nc-config-header">
+          <div class="nc-config-icon-wrapper">
+            <GeneralIcon icon="clock" class="w-4 h-4 text-brand-600" />
           </div>
-          <div v-else class="grid grid-cols-2 gap-2">
-            <div v-for="model in selectedModels" :key="model.value" class="model-item">
-              <GeneralIcon :icon="model.icon" class="text-primary mr-2" />
-              <span>{{ model.label }}</span>
-            </div>
-          </div>
+          <div class="nc-config-label">Sync Trigger</div>
         </div>
-      </a-card>
+        <div class="nc-config-value">{{ syncTriggerLabel }}</div>
+      </div>
+
+      <div class="nc-config-item">
+        <div class="nc-config-header">
+          <div class="nc-config-icon-wrapper">
+            <GeneralIcon icon="delete" class="w-4 h-4 text-brand-600" />
+          </div>
+          <div class="nc-config-label">On Delete</div>
+        </div>
+        <div class="nc-config-value">{{ onDeleteActionLabel }}</div>
+      </div>
     </div>
 
-    <!-- Integrations 
-    <div class="section">
-      <div class="section-title">
-        <GeneralIcon icon="link" class="text-primary mr-2" />
-        <h3>Integration</h3>
+    <!-- Models Section -->
+    <div v-if="syncConfigForm.sync_category !== 'custom'" class="nc-models-section">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="table" class="text-gray-600 w-4 h-4" />
+          <span class="text-sm font-semibold text-gray-800">Models</span>
+        </div>
+        <div class="text-xs text-gray-500 font-medium">
+          {{ syncAllModels ? 'All models' : `${selectedModels.length} selected` }}
+        </div>
       </div>
-      <div class="flex flex-col gap-2">
-        <a-card v-for="(integration, i) in integrationConfigs" :key="`${integration.sub_type}-${i}`" class="!rounded-lg">
-          <div v-if="integration.sub_type" class="flex items-center">
-            <div class="rounded-full p-3 mr-4">
-              <GeneralIntegrationIcon :type="integration.sub_type" />
-            </div>
-            <div>
-              <div class="text-base font-medium">{{ integration.sub_type }}</div>
-              <div class="text-gray-500 text-sm">Connected and ready to sync</div>
-            </div>
-          </div>
-          <div v-else class="text-gray-500 text-sm flex items-center">
-            <GeneralIcon icon="warning" class="text-amber-500 mr-2" />
-            No integration configured
-          </div>
-        </a-card>
+
+      <div v-if="syncAllModels" class="nc-all-models-badge">
+        <GeneralIcon icon="check" class="text-green-600 w-4 h-4" />
+        <span>All available models will be synced</span>
+      </div>
+
+      <div v-else class="nc-models-grid">
+        <div v-for="model in selectedModels" :key="model.value" class="nc-model-chip">
+          <GeneralIcon :icon="model.icon" class="w-3.5 h-3.5 text-gray-600" />
+          <span>{{ model.label }}</span>
+        </div>
       </div>
     </div>
-    -->
   </div>
 </template>
 
 <style lang="scss" scoped>
-.review-container {
-  @apply w-full;
+.nc-review-container {
+  @apply w-full flex flex-col gap-6;
 }
 
-.section {
-  @apply mb-6;
+.nc-review-hero {
+  @apply pb-6 border-b border-gray-200;
 }
 
-.section-title {
-  @apply flex items-center mb-3;
-
-  h3 {
-    @apply text-base font-medium m-0 text-gray-700;
-  }
+.nc-hero-icon {
+  @apply w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center;
 }
 
-.info-item {
-  @apply mb-2;
+.nc-config-grid {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-3;
 }
 
-.info-label {
-  @apply text-xs text-gray-500 mb-1;
+.nc-config-item {
+  @apply flex flex-col gap-3 p-4 rounded-lg border border-gray-200 bg-gray-50;
+  @apply hover:border-brand-200 hover:bg-white transition-all duration-200;
 }
 
-.info-value {
-  @apply text-sm font-medium flex items-center;
+.nc-config-header {
+  @apply flex items-center gap-2;
 }
 
-.model-item {
-  @apply flex items-center py-1 px-2 text-sm bg-gray-50 rounded-md;
+.nc-config-icon-wrapper {
+  @apply w-7 h-7 rounded-lg bg-brand-50 flex items-center justify-center;
 }
 
-:deep(.ant-card) {
-  @apply border border-gray-200 shadow-sm;
+.nc-config-label {
+  @apply text-xs font-semibold text-gray-600;
 }
 
-:deep(.ant-card-body) {
-  @apply p-4;
+.nc-config-value {
+  @apply text-base font-semibold text-gray-900;
+}
+
+.nc-models-section {
+  @apply flex flex-col;
+}
+
+.nc-all-models-badge {
+  @apply flex items-center gap-2 p-3 rounded-lg bg-green-50 text-sm font-medium text-green-700;
+}
+
+.nc-models-grid {
+  @apply flex flex-wrap gap-2;
+}
+
+.nc-model-chip {
+  @apply flex items-center gap-1.5 px-3 py-1.5 rounded-full;
+  @apply bg-gray-100 text-xs font-medium text-gray-700;
 }
 </style>

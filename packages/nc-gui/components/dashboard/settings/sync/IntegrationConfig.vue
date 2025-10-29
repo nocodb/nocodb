@@ -41,30 +41,32 @@ const onDeleteSync = async () => {
 </script>
 
 <template>
-  <div>
-    <a-row v-if="!editMode || editModeAddIntegration" :gutter="24" :class="{ 'mb-4': editMode }">
-      <a-col :span="24">
-        <a-form-item label="Select Source" class="w-full">
-          <DashboardSettingsSyncSelect
-            :value="formState.sub_type"
-            :category="syncConfigForm.sync_category"
-            @change="changeIntegration"
-          />
-        </a-form-item>
-      </a-col>
-    </a-row>
+  <div class="nc-integration-config">
+    <div v-if="!editMode || editModeAddIntegration" class="nc-config-section">
+      <a-form-item label="Select Source" class="w-full">
+        <DashboardSettingsSyncSelect
+          :value="formState.sub_type"
+          :category="syncConfigForm.sync_category"
+          @change="changeIntegration"
+        />
+      </a-form-item>
+    </div>
+
     <NcFormBuilder
       v-if="formState.sub_type"
       :key="`${selectedIntegrationIndex}-${formState.sub_type}`"
-      class="pt-4"
+      class="nc-config-section"
       @change="editModeModified = true"
     />
-    <div v-if="editMode" class="flex justify-between">
-      <NcTooltip v-if="!formState.parentSyncConfigId" placement="top">
-        <template #title> You can't delete first integration </template>
-        <NcButton class="!px-4" type="danger" size="small" disabled> Delete Integration </NcButton>
-      </NcTooltip>
-      <NcButton v-else class="!px-4" type="danger" size="small" @click="onDeleteSync"> Delete Integration </NcButton>
+
+    <div v-if="editMode" class="nc-config-actions">
+      <div>
+        <NcTooltip v-if="!formState.parentSyncConfigId" placement="top">
+          <template #title> You can't delete first integration </template>
+          <NcButton class="!px-4" type="danger" size="small" disabled> Delete Integration </NcButton>
+        </NcTooltip>
+        <NcButton v-else class="!px-4" type="danger" size="small" @click="onDeleteSync"> Delete Integration </NcButton>
+      </div>
       <NcButton
         v-if="syncConfigEditForm?.sync_category === 'custom'"
         class="!px-4"
@@ -78,6 +80,7 @@ const onDeleteSync = async () => {
         Update Integration
       </NcButton>
     </div>
+
     <GeneralModal
       v-if="destinationSchemaModalVisible"
       v-model:visible="destinationSchemaModalVisible"
@@ -91,3 +94,17 @@ const onDeleteSync = async () => {
     </GeneralModal>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-integration-config {
+  @apply flex flex-col gap-6;
+}
+
+.nc-config-section {
+  @apply flex flex-col gap-4;
+}
+
+.nc-config-actions {
+  @apply flex justify-between items-center pt-4 border-t border-gray-200;
+}
+</style>

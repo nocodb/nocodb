@@ -461,6 +461,18 @@ export class DataAttachmentV3Service {
       responseType: 'stream',
       maxRedirects: NC_ATTACHMENT_URL_MAX_REDIRECT,
       maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
+      // if NC_ALLOW_LOCAL_HOOKS is not true, do not make a request from local url
+      // to prevent SSRF
+      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
+        ? {
+            httpAgent: useAgent(url, {
+              stopPortScanningByUrlRedirection: true,
+            }),
+            httpsAgent: useAgent(url, {
+              stopPortScanningByUrlRedirection: true,
+            }),
+          }
+        : {}),
     });
 
     // Extract file information from response headers

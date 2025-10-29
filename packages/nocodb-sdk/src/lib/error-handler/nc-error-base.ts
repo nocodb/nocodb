@@ -559,8 +559,7 @@ export class NcErrorBase {
     }
     if (!message || message === '') {
       // generic error message to prevent programmatic error to propagate to UI
-      message =
-        'Error when executing query in external data source, please contact administration to solve this issue';
+      message = 'Error when executing query in external data source';
     }
     throw this.errorCodex.generateError(
       NcErrorType.ERR_IN_EXTERNAL_DATA_SOURCE,

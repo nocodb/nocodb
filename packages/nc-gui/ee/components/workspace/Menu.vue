@@ -22,6 +22,8 @@ const { navigateToProject, isMobileMode } = useGlobal()
 
 const isWorkspaceDropdownOpen = ref(false)
 
+const copyBtnRef = ref()
+
 watch(isLeftSidebarOpen, () => {
   isWorkspaceDropdownOpen.value = false
 })
@@ -169,7 +171,7 @@ const onWorkspaceCreateClick = () => {
           @click="isWorkspaceDropdownOpen = false"
         >
           <a-menu-item-group class="!border-t-0 w-full">
-            <div class="flex gap-x-3 min-w-0 pl-4 pr-3 w-full py-3 items-center">
+            <div class="flex gap-x-3 min-w-0 pl-4 pr-3 w-full py-1 items-center">
               <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
               <div class="flex-1 flex flex-col gap-y-0 max-w-[calc(100%-5.6rem)]">
                 <div
@@ -203,6 +205,22 @@ const onWorkspaceCreateClick = () => {
                     </template>
                   </template>
                 </div>
+                <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" placement="top" hide-on-click class="flex">
+                  <div
+                    class="flex items-center gap-1.5 nc-workspace-dropdown-active-workspace-info cursor-pointer"
+                    @click="copyBtnRef?.copyContent()"
+                  >
+                    {{ $t('labels.workspaceId', { workspaceId: activeWorkspace.id }) }}
+
+                    <GeneralCopyButton
+                      ref="copyBtnRef"
+                      type="text"
+                      size="xxsmall"
+                      :content="activeWorkspace.id"
+                      :show-toast="false"
+                    />
+                  </div>
+                </NcTooltip>
               </div>
               <NcTooltip v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER" class="!z-1" placement="bottomRight">
                 <template #title>

@@ -5,6 +5,8 @@ defineProps<{
   baseId: string
 }>()
 
+const emits = defineEmits(['createTable'])
+
 const { $e } = useNuxtApp()
 
 const { api } = useApi()
@@ -229,6 +231,7 @@ onKeyStroke('Escape', () => {
                 :base-id="baseId"
                 :source-index="0"
                 :show-create-table-btn="hasTableCreatePermission"
+                @create-table="emits('createTable')"
               />
             </div>
           </div>

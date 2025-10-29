@@ -5,6 +5,8 @@ defineProps<{
   baseId: string
 }>()
 
+const emits = defineEmits(['createTable'])
+
 const { $e } = useNuxtApp()
 
 const { api } = useApi()
@@ -47,8 +49,6 @@ const sourceRenameHelpers = ref<
   >
 >({})
 
-const projectNodeRef = ref()
-
 const [searchActive] = useToggle()
 
 const base = inject(ProjectInj)!
@@ -61,12 +61,6 @@ const hasTableCreatePermission = computed(() => {
     source: base.value?.sources?.[0],
   })
 })
-
-const addNewProjectChildEntity = async (showSourceSelector = true) => {
-  if (!projectNodeRef.value) return
-
-  projectNodeRef.value?.addNewProjectChildEntity?.(showSourceSelector)
-}
 
 const enableEditModeForSource = (sourceId: string) => {
   if (!isUIAllowed('baseRename')) return
@@ -245,7 +239,7 @@ onKeyStroke('Escape', () => {
                 :base-id="baseId"
                 :source-index="0"
                 :show-create-table-btn="hasTableCreatePermission"
-                @create-table="addNewProjectChildEntity()"
+                @create-table="emits('createTable')"
               />
             </div>
           </div>

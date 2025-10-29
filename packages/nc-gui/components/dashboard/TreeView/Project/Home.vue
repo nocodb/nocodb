@@ -151,7 +151,7 @@ const hasTableCreatePermission = computed(() => {
     </div>
 
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
-      <Table :base-id="base.id" />
+      <Table :base-id="base.id" @create-table="addNewProjectChildEntity()" />
     </div>
 
     <slot name="footer"> </slot>

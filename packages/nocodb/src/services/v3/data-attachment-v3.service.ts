@@ -19,6 +19,7 @@ import {
 } from '~/constants';
 import {
   constructFilePath,
+  getFileNameFromUrl,
   validateNumberOfFilesInCell,
 } from '~/helpers/attachmentHelpers';
 import { _wherePk, getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
@@ -202,8 +203,7 @@ export class DataAttachmentV3Service {
   async appendUrlAttachmentToCellData(
     param: AttachmentAppendParam<AttachmentPayloadUrl>,
   ) {
-    const { context, modelId, columnId, recordId, scope, attachment, req } =
-      param;
+    const { context, modelId, columnId, recordId, scope, attachment } = param;
 
     if (!attachment.url) {
       NcError.get(context).invalidRequestBody(`Field url is required`);
@@ -230,6 +230,39 @@ export class DataAttachmentV3Service {
     if (!rowData) {
       NcError.get(context).recordNotFound(recordId);
     }
+
+    // Update the cell field using baseModel.dbDriver directly
+    const currentAttachments = rowData[column.column_name]
+      ? JSON.parse(rowData[column.column_name])
+      : [];
+    await validateNumberOfFilesInCell(
+      context,
+      currentAttachments.length + 1,
+      column,
+    );
+
+    const { mimeType, response, originalFileName } =
+      await this.downloadFileAndGetInfo(context, {
+        url: attachment.url,
+        scope,
+      });
+
+    const chunks = [];
+    for await (const chunk of response.data) {
+      chunks.push(chunk);
+    }
+
+    const buffer = Buffer.concat(chunks);
+    const base64 = buffer.toString('base64');
+
+    return this.appendBase64AttachmentToCellData({
+      ...param,
+      attachment: {
+        contentType: mimeType,
+        file: base64,
+        filename: originalFileName,
+      },
+    });
   }
 
   async appendBase64AttachmentToCellData(
@@ -410,16 +443,14 @@ export class DataAttachmentV3Service {
     });
   }
 
-  protected async downloadAndStoreAttachment(
-    context: NcContext,
+  protected async downloadFileAndGetInfo(
+    _context: NcContext,
     {
       url,
-      filePath,
       scope,
     }: {
       url: string;
-      filePath: AttachmentFilePathConstructed;
-      scope: string;
+      scope?: string;
     },
   ) {
     // Configure axios for download
@@ -437,15 +468,6 @@ export class DataAttachmentV3Service {
     const contentLength = response.headers['content-length'];
     const contentDisposition = response.headers['content-disposition'];
 
-    const passthrough = new PassThrough(); // Track size via the PassThrough stream
-    let totalBytes = 0;
-    if (!contentLength) {
-      passthrough.on('data', (chunk) => {
-        totalBytes += chunk.length;
-      });
-    }
-
-    const storageAdapter = await NcPluginMgrv2.storageAdapter();
     const mimeType = contentType.split(';')[0].trim();
 
     // Extract filename from URL or content-disposition header
@@ -465,7 +487,49 @@ export class DataAttachmentV3Service {
               5,
             )}${path.extname(originalFileName)}`;
       }
+    } else {
+      const filenameFromUrl = getFileNameFromUrl({
+        url,
+        scope,
+      });
+      filename = filenameFromUrl.fileName;
+      originalFileName = filenameFromUrl.originalFileName;
     }
+
+    return {
+      response,
+      mimeType,
+      filename,
+      originalFileName,
+      contentLength,
+    };
+  }
+
+  protected async downloadAndStoreAttachment(
+    context: NcContext,
+    {
+      url,
+      filePath,
+      scope,
+    }: {
+      url: string;
+      filePath: AttachmentFilePathConstructed;
+      scope: string;
+    },
+  ) {
+    const { response, mimeType, filename, originalFileName, contentLength } =
+      await this.downloadFileAndGetInfo(context, { url, scope });
+
+    const passthrough = new PassThrough(); // Track size via the PassThrough stream
+    let totalBytes = 0;
+    if (!contentLength) {
+      passthrough.on('data', (chunk) => {
+        totalBytes += chunk.length;
+      });
+    }
+
+    const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
     const filePathConstructed = filename
       ? constructFilePath(context, {
           ...filePath,

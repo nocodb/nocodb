@@ -14,22 +14,16 @@ export const recordIdParam = {
 };
 export const fieldsParam = {
   schema: {
-    type: 'array',
-    items: {
-      type: 'string',
-    },
+    type: 'string',
   },
   in: 'query',
   name: 'fields',
   description:
-    'Specify fields to include in the API response. \n\nExample: fields=`field1` will include only field1 in the response.',
+    'Specify fields to include in the API response. Comma-separated value. \n\nExample: fields=`field1` or fields=`field1,field2` will include only field1 in the response.',
 };
 export const sortParam = {
   schema: {
-    type: 'array',
-    items: {
-      type: 'string',
-    },
+    type: 'string',
   },
   in: 'query',
   name: 'sort',

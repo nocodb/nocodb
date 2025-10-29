@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ColumnTimezoneUpdateDependencyHandler } from './handler/column/column-timezone-update.handler';
 import type { MetaDependencyEventRequest, MetaEventHandler } from './types';
 import type { MetaEventType, NcContext } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
+import { ColumnTimezoneUpdateDependencyHandler } from '~/services/meta-dependency/handler/column/column-timezone-update.handler';
 import Noco from '~/Noco';
 
 @Injectable()

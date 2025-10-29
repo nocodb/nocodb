@@ -11,6 +11,12 @@ import { MetaTable } from '~/cli';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import Noco from '~/Noco';
 
+/**
+ * @class ColumnTimezoneUpdateDependencyHandler
+ * @description Handles updates to column timezones and propagates these changes to dependent filters.
+ * This class is responsible for identifying when a column's timezone changes (for DateTime, Date, or Formula types)
+ * and then updating any associated filter expressions that rely on that column's timezone.
+ */
 @Injectable()
 export class ColumnTimezoneUpdateDependencyHandler implements MetaEventHandler {
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_UPDATED];
@@ -23,6 +29,7 @@ export class ColumnTimezoneUpdateDependencyHandler implements MetaEventHandler {
     const affectedColumnIds: string[] = [];
     if (
       [UITypes.DateTime, UITypes.Date].includes(param.newEntity.uidt) &&
+      // we leave it as is if the new meta timezone empty / not set
       parseProp(param.newEntity.meta).timezone &&
       parseProp(param.newEntity.meta).timezone !==
         parseProp(param.oldEntity?.meta).timezone

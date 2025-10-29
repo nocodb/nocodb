@@ -6,6 +6,7 @@ import TableNode from './Node.vue'
 const props = withDefaults(
   defineProps<{
     base: BaseType
+    baseId: string
     sourceIndex?: number
     showCreateTableBtn?: boolean
   }>(),

@@ -7,7 +7,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['@update:visible', 'newTable', 'emptyScript'])
+const emits = defineEmits(['update:visible', 'newTable', 'emptyScript'])
 
 const vVisible = useVModel(props, 'visible', emits)
 

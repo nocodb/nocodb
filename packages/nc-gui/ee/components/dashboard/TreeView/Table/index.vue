@@ -5,6 +5,8 @@ defineProps<{
   baseId: string
 }>()
 
+const emits = defineEmits(['createTable'])
+
 const { $e } = useNuxtApp()
 
 const { api } = useApi()
@@ -47,8 +49,6 @@ const sourceRenameHelpers = ref<
   >
 >({})
 
-const projectNodeRef = ref()
-
 const [searchActive] = useToggle()
 
 const base = inject(ProjectInj)!
@@ -61,12 +61,6 @@ const hasTableCreatePermission = computed(() => {
     source: base.value?.sources?.[0],
   })
 })
-
-const addNewProjectChildEntity = async (showSourceSelector = true) => {
-  if (!projectNodeRef.value) return
-
-  projectNodeRef.value?.addNewProjectChildEntity?.(showSourceSelector)
-}
 
 const enableEditModeForSource = (sourceId: string) => {
   if (!isUIAllowed('baseRename')) return
@@ -242,9 +236,10 @@ onKeyStroke('Escape', () => {
             <div class="transition-height duration-200">
               <DashboardTreeViewTableList
                 :base="base"
+                :base-id="baseId"
                 :source-index="0"
                 :show-create-table-btn="hasTableCreatePermission"
-                @create-table="addNewProjectChildEntity()"
+                @create-table="emits('createTable')"
               />
             </div>
           </div>
@@ -443,7 +438,12 @@ onKeyStroke('Escape', () => {
                       :key="`sortable-${source.id}-${source.id && source.id in keys ? keys[source.id] : '0'}`"
                       :nc-source="source.id"
                     >
-                      <DashboardTreeViewTableList :base="base" :source-index="baseIndex" :show-create-table-btn="false" />
+                      <DashboardTreeViewTableList
+                        :base="base"
+                        :base-id="baseId"
+                        :source-index="baseIndex"
+                        :show-create-table-btn="false"
+                      />
                     </div>
                   </a-collapse-panel>
                 </a-collapse>

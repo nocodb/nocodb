@@ -92,7 +92,10 @@ export class Datav3Controller {
     @Param('modelId') modelId: string,
     @Param('recordId') recordId: string,
     @Param('columnId') columnId: string,
-    @Body() body: { contentType: string; file: string; filename: string },
+    @Body()
+    body:
+      | { contentType: string; file: string; filename: string }
+      | { url: string },
   ) {
     return await this.dataAttachmentV3Service.appendBase64AttachmentToCellData({
       context,

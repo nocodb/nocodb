@@ -242,6 +242,7 @@ onKeyStroke('Escape', () => {
             <div class="transition-height duration-200">
               <DashboardTreeViewTableList
                 :base="base"
+                :base-id="baseId"
                 :source-index="0"
                 :show-create-table-btn="hasTableCreatePermission"
                 @create-table="addNewProjectChildEntity()"
@@ -443,7 +444,12 @@ onKeyStroke('Escape', () => {
                       :key="`sortable-${source.id}-${source.id && source.id in keys ? keys[source.id] : '0'}`"
                       :nc-source="source.id"
                     >
-                      <DashboardTreeViewTableList :base="base" :source-index="baseIndex" :show-create-table-btn="false" />
+                      <DashboardTreeViewTableList
+                        :base="base"
+                        :base-id="baseId"
+                        :source-index="baseIndex"
+                        :show-create-table-btn="false"
+                      />
                     </div>
                   </a-collapse-panel>
                 </a-collapse>

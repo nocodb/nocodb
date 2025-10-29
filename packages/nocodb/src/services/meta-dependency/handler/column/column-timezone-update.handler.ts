@@ -27,20 +27,21 @@ export class ColumnTimezoneUpdateDependencyHandler implements MetaEventHandler {
   ): Promise<AffectedDependencyResult> {
     let validForProcess = false;
     const affectedColumnIds: string[] = [];
+    const newEntityMeta = parseProp(param.newEntity.meta);
+    const oldEntityMeta = parseProp(param.oldEntity.meta);
     if (
       [UITypes.DateTime, UITypes.Date].includes(param.newEntity.uidt) &&
       // we leave it as is if the new meta timezone empty / not set
-      parseProp(param.newEntity.meta).timezone &&
-      parseProp(param.newEntity.meta).timezone !==
-        parseProp(param.oldEntity?.meta).timezone
+      newEntityMeta.timezone &&
+      newEntityMeta.timezone !== oldEntityMeta.timezone
     ) {
       validForProcess = true;
       affectedColumnIds.push(param.newEntity.id);
     } else if (
       [UITypes.Formula].includes(param.newEntity.uidt) &&
-      parseProp(param.newEntity.meta).display_column_meta?.timezone &&
-      parseProp(param.newEntity.meta).display_column_meta?.timezone !==
-        parseProp(param.oldEntity?.meta).display_column_meta?.timezone
+      newEntityMeta.display_column_meta?.timezone &&
+      newEntityMeta.display_column_meta?.timezone !==
+        oldEntityMeta.display_column_meta?.timezone
     ) {
       validForProcess = true;
       affectedColumnIds.push(param.newEntity.id);

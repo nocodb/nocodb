@@ -189,6 +189,7 @@ export class DataAttachmentV3Service {
       AttachmentPayloadBase64 | AttachmentPayloadUrl
     >,
   ) {
+    // if the file property exists it means it's a base64 payload
     if ('file' in param.attachment) {
       return this.appendBase64AttachmentToCellData(
         param as AttachmentAppendParam<AttachmentPayloadBase64>,

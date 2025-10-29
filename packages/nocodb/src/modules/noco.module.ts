@@ -154,6 +154,12 @@ import { AttachmentUrlUploadHandler } from '~/services/emit-handler/attachment-u
 /* ACL */
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataAttachmentV3Service } from '~/services/v3/data-attachment-v3.service';
+import { OAuthModule } from '~/modules/oauth/oauth.module';
+import {
+  InternalApiModuleProvider,
+  InternalApiModules,
+} from '~/controllers/internal/provider';
+import { MetaDependencyServices } from '~/services/meta-dependency/meta-dependency.services';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -345,6 +351,10 @@ export const nocoModuleMetadata = {
 
     /* emit handlers */
     AttachmentUrlUploadHandler,
+
+    ...InternalApiModules,
+    InternalApiModuleProvider,
+    ...MetaDependencyServices,
   ],
   exports: [
     /* Generic */
@@ -392,6 +402,9 @@ export const nocoModuleMetadata = {
     'IViewsV3Service',
 
     AttachmentUrlUploadHandler,
+
+    ...InternalApiModules,
+    ...MetaDependencyServices,
   ],
 };
 

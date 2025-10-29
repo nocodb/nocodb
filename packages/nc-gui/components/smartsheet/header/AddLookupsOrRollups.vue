@@ -24,7 +24,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const menuColumn = inject(ColumnInj)
 
-const canvasColumn = inject(CanvasColumnInj)
+const canvasColumn = inject(CanvasColumnInj, ref())
 
 const column = computed(() => menuColumn?.value || canvasColumn?.value)
 

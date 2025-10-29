@@ -744,6 +744,8 @@ const updateFieldTitle = (value: string) => {
   if (!activeField.value) return
 
   activeField.value.label = value.trimStart()
+
+  updateColMeta(activeField.value)
 }
 
 const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {
@@ -927,7 +929,6 @@ const handleOnClick = (e: MouseEvent) => {
     isSidebarVisible.value = true
   }
 }
-
 const { message: templatedMessage } = useTemplatedMessage(
   computed(() => formViewData?.value?.success_msg),
   computed(() => formState.value),
@@ -1292,19 +1293,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                           @click.stop="onFormItemClick({ id: NcForm.heading })"
                         >
                           <a-form-item v-if="isEditable" class="!my-0">
-                            <a-textarea
-                              v-model:value="formViewData.heading"
-                              class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !border-0 !rounded-none !text-gray-900"
-                              :style="{
-                                'borderRightWidth': '0px !important',
-                                'height': '70px',
-                                'max-height': '250px',
-                                'resize': 'vertical',
-                              }"
-                              auto-size
-                              size="large"
-                              hide-details
-                              :disabled="isLocked"
+                            <NcAutoSizeTextarea
+                              v-model:model-value="formViewData.heading"
+                              class="nc-form-focus-element !p-0 !m-0 w-full !font-bold !text-2xl !bg-transparent !text-gray-900"
                               placeholder="Form Title"
                               :bordered="false"
                               :data-testid="NcForm.heading"
@@ -1672,13 +1663,12 @@ const { message: templatedMessage } = useTemplatedMessage(
                       {{ $t('objects.field') }} {{ $t('general.text').toLowerCase() }}
                     </div>
 
-                    <a-textarea
+                    <NcAutoSizeTextarea
                       ref="focusLabel"
-                      :value="activeFieldLabel"
+                      :model-value="activeFieldLabel"
                       :rows="1"
-                      auto-size
-                      hide-details
-                      class="form-meta-input nc-form-input-label !max-h-7.5rem nc-form-scrollbar"
+                      :hide-scrollbar="false"
+                      class="form-meta-input nc-form-input-label !max-h-7.5rem nc-form-scrollbar hover:(border-brand-400)"
                       data-testid="nc-form-input-label"
                       :placeholder="$t('msg.info.formInput')"
                       @focus="onFocusActiveFieldLabel"

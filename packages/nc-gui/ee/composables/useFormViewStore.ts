@@ -553,7 +553,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     )
 
     const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
-      if (col.id && isEditable) {
+      if (col?.id && isEditable) {
         validateActiveField(col)
 
         try {

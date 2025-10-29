@@ -1160,10 +1160,11 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseTeams'),
       content: t('upgrade.upgradeToUseTeamsSubtitle', {
-        plan: PlanTitles.PLUS,
+        plan: PlanTitles.BUSINESS,
       }),
       callback,
-      limitOrFeature: PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+      requiredPlan: PlanTitles.BUSINESS,
     })
 
     return true

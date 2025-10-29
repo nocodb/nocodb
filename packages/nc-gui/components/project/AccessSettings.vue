@@ -537,9 +537,10 @@ onBeforeUnmount(() => {
                         :title="$t('upgrade.upgradeToUseTeams')"
                         :content="
                           $t('upgrade.upgradeToUseTeamsSubtitle', {
-                            plan: PlanTitles.PLUS,
+                            plan: PlanTitles.BUSINESS,
                           })
                         "
+                        :plan-title="PlanTitles.BUSINESS"
                       />
                     </NcMenuItem>
                   </template>

@@ -1,0 +1,94 @@
+import {
+  FormBuilderInputType,
+  FormBuilderValidatorType,
+} from '@noco-integrations/core';
+import { AuthType } from '@noco-integrations/core';
+import type { FormDefinition } from '@noco-integrations/core';
+
+export const form: FormDefinition = [
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Integration name',
+    width: 100,
+    model: 'title',
+    placeholder: 'Integration name',
+    category: 'General',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'Integration name is required',
+      },
+    ],
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Zendesk Subdomain',
+    width: 100,
+    model: 'config.subdomain',
+    category: 'General',
+    placeholder: 'e.g., yourcompany (from yourcompany.zendesk.com)',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'Zendesk subdomain is required',
+      },
+    ],
+  },
+  {
+    type: FormBuilderInputType.Select,
+    label: 'Auth Type',
+    width: 48,
+    model: 'config.type',
+    category: 'Authentication',
+    placeholder: 'Select auth type',
+    defaultValue: AuthType.ApiKey,
+    options: [
+      {
+        label: 'API Key',
+        value: AuthType.ApiKey,
+      },
+    ],
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'Auth type is required',
+      },
+    ],
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Email Address',
+    width: 100,
+    model: 'config.email',
+    category: 'Authentication',
+    placeholder: 'Enter your Zendesk email address',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'Email is required',
+      },
+    ],
+    condition: {
+      model: 'config.type',
+      value: AuthType.ApiKey,
+    },
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'API Token',
+    width: 100,
+    model: 'config.token',
+    category: 'Authentication',
+    placeholder: 'Enter your API Token',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'API Token is required',
+      },
+    ],
+    condition: {
+      model: 'config.type',
+      value: AuthType.ApiKey,
+    },
+  },
+];

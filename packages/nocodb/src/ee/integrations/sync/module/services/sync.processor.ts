@@ -905,6 +905,11 @@ export class SyncModuleSyncDataProcessor {
           }
         }
 
+        req.query = {
+          ...req.query,
+          typecast: 'true',
+        };
+
         if (dataToUpdate.length) {
           await this.dataTableService.dataUpdate(context, {
             baseId: model.base_id,

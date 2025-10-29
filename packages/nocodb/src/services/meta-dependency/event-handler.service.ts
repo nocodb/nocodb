@@ -63,7 +63,7 @@ export class MetaDependencyEventHandler {
           );
         }
       }
-      await trxNcMeta.commit();
+      await trxNcMeta?.commit();
     } catch (ex) {
       await trxNcMeta?.rollback();
       throw ex;

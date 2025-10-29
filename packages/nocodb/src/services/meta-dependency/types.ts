@@ -1,6 +1,8 @@
 import type { MetaEntityType, MetaEventType, NcContext } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 
+export const META_DEPENDENCY_MODULE_PROVIDER_KEY = 'META_DEPENDENCY';
+
 export interface AffectedDependencyResult {
   bases?: any[];
   models?: any[];

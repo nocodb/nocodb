@@ -3,7 +3,6 @@ import type { ViewType } from 'nocodb-sdk'
 import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
-import type { Menu as AntMenu } from 'ant-design-vue'
 
 interface Emits {
   (
@@ -58,7 +57,7 @@ const selected = ref<string[]>([])
 /** dragging renamable view items */
 const dragging = ref(false)
 
-const menuRef = ref<typeof AntMenu>()
+const menuRef = useTemplateRef('menuRef')
 
 const isMarked = ref<string | false>(false)
 
@@ -102,107 +101,82 @@ function validate(view: ViewType) {
 
 let sortable: Sortable
 
-function onSortStart(evt: SortableEvent) {
-  evt.stopImmediatePropagation()
-  evt.preventDefault()
-  dragging.value = true
-}
-
-async function onSortEnd(evt: SortableEvent, undo = false) {
-  if (!undo) {
-    evt.stopImmediatePropagation()
-    evt.preventDefault()
-    dragging.value = false
-  }
-
-  if (views.value.length < 2) return
-
-  let { newIndex = 0, oldIndex = 0 } = evt
-
-  newIndex = newIndex - 1
-  oldIndex = oldIndex - 1
-
-  if (newIndex === oldIndex) return
-
-  if (!undo) {
-    addUndo({
-      redo: {
-        fn: async () => {
-          const ord = sortable.toArray()
-          const temp = ord.splice(oldIndex, 1)
-          ord.splice(newIndex, 0, temp[0])
-          sortable.sort(ord)
-          await onSortEnd(evt, true)
-        },
-        args: [],
-      },
-      undo: {
-        fn: async () => {
-          const ord = sortable.toArray()
-          const temp = ord.splice(newIndex, 1)
-          ord.splice(oldIndex, 0, temp[0])
-          sortable.sort(ord)
-          await onSortEnd({ ...evt, oldIndex: newIndex, newIndex: oldIndex }, true)
-        },
-        args: [],
-      },
-      scope: defineModelScope({ view: activeView.value }),
-    })
-  }
-
-  const children = Array.from(evt.to.children as unknown as HTMLLIElement[])
-
-  // remove `Create View` children from list
-  children.shift()
-
-  const previousEl = children[newIndex - 1]
-  const nextEl = children[newIndex + 1]
-
-  const currentItem = views.value.find((v) => v.id === evt.item.id)
-
-  if (!currentItem || !currentItem.id) return
-
-  // set default order value as 0 if item not found
-  const previousItem = (previousEl ? views.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : { order: 0 }) as ViewType
-  const nextItem = (nextEl ? views.value.find((v) => v.id === nextEl.id) : {}) as ViewType
-
-  let nextOrder: number
-
-  // set new order value based on the new order of the items
-  if (views.value.length - 1 === newIndex) {
-    nextOrder = parseFloat(String(previousItem.order)) + 1
-  } else if (newIndex === 0) {
-    nextOrder = parseFloat(String(nextItem.order)) / 2
-  } else {
-    nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
-  }
-
-  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
-
-  currentItem.order = _nextOrder
-
-  await api.dbView.update(currentItem.id, { order: _nextOrder })
-
-  markItem(currentItem.id)
-
-  $e('a:view:reorder')
-}
-
-const initSortable = (el: HTMLElement) => {
-  if (sortable) sortable.destroy()
+const initSortable = (el: Element) => {
   if (isMobileMode.value) return
+  if (sortable) sortable.destroy()
 
-  sortable = new Sortable(el, {
-    // handle: '.nc-drag-icon',
+  sortable = Sortable.create(el as HTMLElement, {
     ghostClass: 'ghost',
-    onStart: onSortStart,
-    onEnd: onSortEnd,
+    onStart: (evt: SortableEvent) => {
+      evt.stopImmediatePropagation()
+      evt.preventDefault()
+      dragging.value = true
+    },
+    onEnd: async (evt) => {
+      const { newIndex = 0, oldIndex = 0 } = evt
+
+      evt.stopImmediatePropagation()
+      evt.preventDefault()
+
+      dragging.value = false
+
+      if (newIndex === oldIndex) return
+
+      const itemEl = evt.item as HTMLElement
+      const currentItem = views.value.find((v) => v.id === itemEl.dataset.id)
+
+      if (!currentItem || !currentItem.id) return
+
+      // get the html collection of all list items
+      const children: HTMLCollection = evt.to.children
+
+      // skip if children count is 1
+      if (children.length < 2) return
+
+      // get items before and after the moved item
+      const itemBeforeEl = children[newIndex - 1] as HTMLElement
+      const itemAfterEl = children[newIndex + 1] as HTMLElement
+
+      // get items meta of before and after the moved item
+      const itemBefore = itemBeforeEl && views.value.find((v) => v.id === itemBeforeEl.dataset.id)
+      const itemAfter = itemAfterEl && views.value.find((v) => v.id === itemAfterEl.dataset.id)
+
+      // set new order value based on the new order of the items
+      if (children.length - 1 === newIndex) {
+        // Item moved to last position
+        currentItem.order = (itemBefore?.order ?? 0) + 1
+      } else if (newIndex === 0) {
+        // Item moved to first position
+        currentItem.order = (itemAfter?.order ?? 1) / 2
+      } else {
+        // Item moved to middle position
+        currentItem.order = ((itemBefore?.order ?? 0) + (itemAfter?.order ?? 0)) / 2
+      }
+
+      // Update the order in the viewsByTable map to trigger reactivity
+      const tableViews = viewsByTable.value.get(table.value.id!)
+      if (tableViews) {
+        // Sort the views array by order to reflect the new position
+        tableViews.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      }
+
+      await api.dbView.update(currentItem.id, { order: currentItem.order })
+
+      markItem(currentItem.id)
+      $e('a:view:reorder')
+    },
+    animation: 150,
+    revertOnSpill: true,
     filter: isTouchEvent,
     ...getDraggableAutoScrollOptions({ scrollSensitivity: 50 }),
   })
 }
 
-onMounted(() => menuRef.value && isUIAllowed('viewCreateOrEdit') && initSortable(menuRef.value.$el))
+watchEffect(() => {
+  if (menuRef.value && isUIAllowed('viewCreateOrEdit')) {
+    initSortable(menuRef.value)
+  }
+})
 
 /** Navigate to view by changing url param */
 async function changeView(view: ViewType) {
@@ -392,12 +366,7 @@ const filteredViews = computed(() => {
 </script>
 
 <template>
-  <a-menu
-    ref="menuRef"
-    :class="{ dragging }"
-    :selected-keys="selected"
-    class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
-  >
+  <div>
     <template v-if="!isSharedBase">
       <DashboardTreeViewCreateViewBtn
         v-if="isUIAllowed('viewCreateOrEdit')"
@@ -429,17 +398,23 @@ const filteredViews = computed(() => {
         </div>
       </DashboardTreeViewCreateViewBtn>
     </template>
-    <template v-if="filteredViews.length">
+    <div
+      v-if="filteredViews.length"
+      ref="menuRef"
+      :class="{ dragging }"
+      class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
+    >
       <DashboardTreeViewViewsNode
         v-for="view of filteredViews"
-        :id="view.id"
         :key="view.id"
+        :data-id="view.id"
+        :data-order="view.order"
+        :data-title="view.title"
         :class="{
           'bg-nc-bg-gray-medium': isMarked === view.id,
           'active': activeView?.id === view.id,
           [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
         }"
-        :data-view-id="view.id"
         :on-validate="validate"
         :table="table"
         :view="view"
@@ -450,8 +425,8 @@ const filteredViews = computed(() => {
         @open-modal="onOpenModal"
         @select-icon="setIcon($event, view)"
       />
-    </template>
-  </a-menu>
+    </div>
+  </div>
 </template>
 
 <style lang="scss">
@@ -461,26 +436,14 @@ const filteredViews = computed(() => {
     @apply !pointer-events-none;
   }
 
-  &.dragging {
-    .nc-icon:not(.nc-create-view-btn-icon):not(.nc-view-icon) {
-      @apply !hidden;
-    }
+  .ghost {
+    @apply !bg-nc-bg-gray-medium;
+  }
 
+  &.dragging {
     .nc-view-icon {
       @apply !block;
     }
-  }
-
-  .ant-menu-item:not(.sortable-chosen) {
-    @apply color-transition;
-  }
-
-  .ant-menu-title-content {
-    @apply !w-full;
-  }
-
-  .sortable-chosen {
-    @apply !bg-nc-bg-gray-medium;
   }
 
   .active {

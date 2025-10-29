@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { NotFoundHandlerModule } from './not-found-handler.module';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
@@ -161,6 +162,10 @@ import {
   InternalApiModuleProvider,
   InternalApiModules,
 } from '~/controllers/internal/provider';
+import {
+  MetaDependencyModuleProvider,
+  MetaDependencyServices,
+} from '~/services/meta-dependency/meta-dependency.provider';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -358,6 +363,11 @@ export const nocoModuleMetadata = {
 
     ...InternalApiModules,
     InternalApiModuleProvider,
+
+    /* Dependency handler */
+    MetaDependencyEventHandler,
+    ...MetaDependencyServices,
+    MetaDependencyModuleProvider,
   ],
   exports: [
     /* Generic */
@@ -407,6 +417,8 @@ export const nocoModuleMetadata = {
     AttachmentUrlUploadHandler,
 
     ...InternalApiModules,
+    MetaDependencyEventHandler,
+    ...MetaDependencyServices,
   ],
 };
 

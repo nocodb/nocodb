@@ -1903,6 +1903,8 @@ export default class Column<T = any> implements ColumnType {
     cleanBaseSchemaCacheForBase(context.base_id).catch(() => {
       logger.error('Failed to clean base schema cache');
     });
+
+    return this.get(context, { colId }, ncMeta);
   }
 
   static async updateCustomIndexName(

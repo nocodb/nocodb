@@ -400,7 +400,7 @@ const onCancel = () => {
                 </a-form-item>
               </div>
             </div>
-            <div class="flex flex-row w-full justify-end mt-8 gap-4">
+            <div v-if="hasWorkspaceManagePermission" class="flex flex-row w-full justify-end mt-8 gap-4">
               <NcButton
                 v-if="isSaveChangesBtnEnabled"
                 type="secondary"

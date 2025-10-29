@@ -319,7 +319,7 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
       prepareForResponse(updateObject),
     );
 
-    return res;
+    return this.get(id, false, ncMeta);
   }
 
   public static async updateStatusAndPlan(

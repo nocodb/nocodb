@@ -193,7 +193,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
                 });
               }
             } catch (error) {
-              console.error(error);
               this.log(`[Zendesk Sync] Error fetching users batch: ${error}`);
             }
 
@@ -248,7 +247,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
                       data: userData.data as TicketingUserRecord,
                     });
                   } catch (error) {
-                    console.error(error);
                     this.log(
                       `[Zendesk Sync] Error fetching comment author ${comment.author_id}: ${error}`,
                     );
@@ -267,7 +265,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
                 // Stop trying to fetch more comments if we get 401
                 break;
               } else {
-                console.error(error);
                 this.log(
                   `[Zendesk Sync] Error fetching comments for ticket ${ticketId}: ${error.message || error}`,
                 );
@@ -303,14 +300,12 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
               }
             }
           } catch (error) {
-            console.error(error);
             this.log(`[Zendesk Sync] Error fetching organizations: ${error}`);
           }
         }
 
         stream.push(null); // End the stream
       } catch (error) {
-        console.error(error);
         this.log(`[Zendesk Sync] Error fetching data: ${error}`);
         stream.emit('error', error);
       }

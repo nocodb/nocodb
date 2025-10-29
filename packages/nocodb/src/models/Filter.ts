@@ -330,7 +330,13 @@ export default class Filter implements FilterType {
       id,
     );
 
-    await NocoCache.update(`${CacheScope.FILTER_EXP}:${id}`, updateObj);
+    ncMeta.knex.attachToTransaction(async () => {
+      await NocoCache.update(
+        context,
+        `${CacheScope.FILTER_EXP}:${id}`,
+        updateObj,
+      );
+    });
 
     // on update delete any optimised single query cache
     {

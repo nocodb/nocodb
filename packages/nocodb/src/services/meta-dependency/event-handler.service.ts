@@ -1,16 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import type { MetaDependencyEventRequest, MetaEventHandler } from './types';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  META_DEPENDENCY_MODULE_PROVIDER_KEY,
+  type MetaDependencyEventRequest,
+  type MetaEventHandler,
+} from './types';
 import type { MetaEventType, NcContext } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import { ColumnTimezoneUpdateDependencyHandler } from '~/services/meta-dependency/handler/column/column-timezone-update.handler';
 import Noco from '~/Noco';
 
 @Injectable()
 export class MetaDependencyEventHandler {
   constructor(
-    columnTimezoneUpdateDependencyHandler: ColumnTimezoneUpdateDependencyHandler,
+    @Inject(META_DEPENDENCY_MODULE_PROVIDER_KEY)
+    protected readonly metaEventHandlers: MetaEventHandler[],
   ) {
-    this.registerEvents([columnTimezoneUpdateDependencyHandler]);
+    this.registerEvents(metaEventHandlers);
   }
 
   metaEventHandlerMap: Record<MetaEventType, MetaEventHandler[]> = {

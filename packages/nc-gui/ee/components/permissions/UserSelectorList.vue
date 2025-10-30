@@ -49,7 +49,7 @@ const { basesUser, basesTeams } = storeToRefs(basesStore)
 const listRef = ref()
 
 // Todo: @rameshmane7218, @pranav - remove this flag once the teams table and field permissions are enabled
-const isTeamsTableAndFieldPermissionsEnabled = false
+const isTeamsTableAndFieldPermissionsEnabled = true
 
 const showTeams = computed(() => {
   return !blockTeamsManagement.value && isTeamsEnabled.value && isTeamsTableAndFieldPermissionsEnabled
@@ -116,7 +116,15 @@ const computedNcList = computed(() => {
 // Selected users display
 const selectedUsersList = computed(() => {
   return Array.from(selectedUsers.value)
-    .map((userId) => baseUsers.value.find((user) => user.id === userId))
+    .map((userId) => {
+      // Check if it's a team
+      const team = baseTeams.value.find((team) => team.id === userId)
+      if (team) {
+        return team
+      }
+      // It's a user
+      return baseUsers.value.find((user) => user.id === userId)
+    })
     .filter(Boolean)
 })
 

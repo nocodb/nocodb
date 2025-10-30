@@ -128,7 +128,7 @@ const onWorkspaceCreateClick = () => {
       v-model:visible="isWorkspaceDropdownOpen"
       class="h-full min-w-0 rounded-lg"
       placement="bottomLeft"
-      :overlay-class-name="`nc-dropdown-workspace-menu !overflow-hidden  ${isMiniSidebar ? '!left-1' : ''}`"
+      :overlay-class-name="`nc-dropdown-workspace-menu !overflow-hidden ${isMiniSidebar ? '!left-1' : ''}`"
     >
       <div
         v-e="['c:workspace:menu']"
@@ -165,11 +165,7 @@ const onWorkspaceCreateClick = () => {
       </div>
 
       <template #overlay>
-        <NcMenu
-          class="nc-workspace-dropdown-inner"
-          :style="`width: ${leftSidebarWidth - 4}px`"
-          @click="isWorkspaceDropdownOpen = false"
-        >
+        <NcMenu class="nc-workspace-dropdown-inner min-w-[332px] max-w-[360px]" @click="isWorkspaceDropdownOpen = false">
           <a-menu-item-group class="!border-t-0 w-full">
             <div class="flex gap-x-3 min-w-0 pl-4 pr-3 w-full py-1 items-center">
               <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
@@ -193,12 +189,12 @@ const onWorkspaceCreateClick = () => {
                     </template>
                   </template>
                   <template v-else>
-                    <div class="nc-workspace-dropdown-active-workspace-info">
+                    <div class="nc-workspace-dropdown-active-workspace-info truncate">
                       {{ activeWorkspace.payment?.plan?.title || 'Free Plan' }}
                     </div>
                     <template v-if="workspaceUserCount !== undefined">
                       <div class="nc-workspace-dropdown-active-workspace-info">-</div>
-                      <div class="nc-workspace-dropdown-active-workspace-info">
+                      <div class="nc-workspace-dropdown-active-workspace-info truncate">
                         {{ workspaceUserCount }}
                         {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
                       </div>
@@ -238,14 +234,13 @@ const onWorkspaceCreateClick = () => {
               :list="otherWorkspaces"
               height="auto"
               :options="{ itemHeight: 40 }"
-              class="my-1 max-h-[min(60vh,600px)] nc-scrollbar-md"
+              class="my-1 max-h-[min(60vh,600px)] nc-scrollbar-md w-full"
             >
               <template #default="{ data: workspace }">
-                <NcMenuItem :key="workspace.id!" class="!h-[40px]" @click="switchWorkspace(workspace.id!)">
+                <NcMenuItem :key="workspace.id!" class="!h-[40px]" inner-class="w-full" @click="switchWorkspace(workspace.id!)">
                   <div
-                    class="nc-workspace-menu-item group capitalize max-w-[calc(100%-3.5rem)] flex items-center"
+                    class="nc-workspace-menu-item group capitalize flex items-center w-full max-w-full"
                     data-testid="nc-workspace-list"
-                    :style="`width: ${leftSidebarWidth + 26}px`"
                   >
                     <div class="flex flex-row w-[calc(100%-2rem)] truncate items-center gap-2">
                       <GeneralWorkspaceIcon :workspace="workspace" size="medium" />

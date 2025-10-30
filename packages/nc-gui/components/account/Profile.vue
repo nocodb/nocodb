@@ -8,6 +8,8 @@ const { t } = useI18n()
 const isErrored = ref(false)
 const isProfileUpdating = ref(false)
 
+const copyBtnRef = ref()
+
 const form = ref<{
   title: string
   email: string
@@ -184,7 +186,26 @@ const onCancel = () => {
 
                   <div class="flex-1 flex flex-col gap-4">
                     <div>
-                      <div class="text-gray-800 mb-2" data-rec="true">{{ $t('general.name') }}</div>
+                      <div class="flex items-center gap-1.5 justify-between mb-2">
+                        <div class="text-nc-content-gray" data-rec="true">{{ $t('general.name') }}</div>
+                        <NcTooltip v-if="user" :title="$t('labels.clickToCopyUserID')" placement="top" hide-on-click class="flex">
+                          <div
+                            data-rec="true"
+                            class="flex items-center gap-1.5 text-bodyDefaultSm text-nc-content-gray-subtle2 cursor-pointer"
+                            @click="copyBtnRef?.copyContent()"
+                          >
+                            {{ $t('labels.userIdColon', { userId: user?.id }) }}
+
+                            <GeneralCopyButton
+                              ref="copyBtnRef"
+                              type="text"
+                              size="xxsmall"
+                              :content="user?.id"
+                              :show-toast="false"
+                            />
+                          </div>
+                        </NcTooltip>
+                      </div>
                       <a-form-item name="title" :rules="formRules.title" class="!my-0">
                         <a-input
                           v-model:value="form.title"

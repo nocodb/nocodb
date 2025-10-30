@@ -10,6 +10,8 @@ const props = defineProps({
 
 const widgetStore = useWidgetStore()
 
+const { $e } = useNuxtApp()
+
 const { duplicateWidget, deleteWidget, updateWidget } = widgetStore
 
 const { activeDashboardId } = storeToRefs(useDashboardStore())
@@ -21,6 +23,10 @@ const loadingState = reactive({
 
 const onDuplicate = async () => {
   try {
+    $e('a:dashboard:widget:duplicate', {
+      widget_type: props.widget.type,
+      source: 'context-menu',
+    })
     await duplicateWidget(activeDashboardId.value, props.widget.id)
   } finally {
     loadingState.duplicate = false
@@ -34,6 +40,10 @@ const widgetType = computed(() => {
 const onDelete = async () => {
   try {
     loadingState.delete = true
+    $e('a:dashboard:widget:delete', {
+      widget_type: props.widget.type,
+      source: 'context-menu',
+    })
     await deleteWidget(activeDashboardId.value, props.widget.id)
   } finally {
     loadingState.delete = false
@@ -59,6 +69,12 @@ const onResizeClick = (size: 'small' | 'medium' | 'large') => {
         }
       }
   }
+
+  $e('a:dashboard:widget:resize', {
+    widget_type: props.widget.type,
+    size,
+    source: 'context-menu',
+  })
 
   updateWidget(activeDashboardId.value, props.widget.id, {
     position: {

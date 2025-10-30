@@ -13,6 +13,8 @@ import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
 const dashboardStore = useDashboardStore()
 const widgetStore = useWidgetStore()
 
+const { $e } = useNuxtApp()
+
 const { isEditingDashboard, activeDashboardId } = storeToRefs(dashboardStore)
 const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
 
@@ -57,7 +59,17 @@ const layout = computed({
 const handleWidgetClick = (widget: WidgetType) => {
   if (isEditingDashboard.value) {
     selectedWidget.value = widget
+
+    $e('c:dashboard:widget:select', {
+      widget_type: widget.type,
+      widget_id: widget.id,
+    })
   }
+}
+
+const handleEnableEditMode = (source: string) => {
+  $e('c:dashboard:edit-mode:enable', { source })
+  dashboardStore.isEditingDashboard = true
 }
 
 const getWidgetComponent = (widget: WidgetType) => {
@@ -116,6 +128,10 @@ const handleMoved = (i: string, newX: number, newY: number) => {
       x: newX,
       y: newY,
     })
+
+    $e('a:dashboard:widget:move', {
+      widget_type: widget.type,
+    })
   }
 
   // Reset drag state after a small delay to prevent click
@@ -150,6 +166,12 @@ const handleResized = (i: string, newH: number, newW: number) => {
   if (widget) {
     widgetStore.updateWidgetPosition(activeDashboardId.value, i, {
       ...widget.position!,
+      w: newW,
+      h: newH,
+    })
+
+    $e('a:dashboard:widget:resize', {
+      widget_type: widget.type,
       w: newW,
       h: newH,
     })
@@ -297,7 +319,7 @@ watch(
       <img :src="PlaceholderImage" class="w-120 mb-4" alt="Start building your dashboard" />
       <h3 class="text-lg text-nc-content-gray font-medium mb-2">Get started with Dashboards</h3>
       <p class="text-sm text-center">Start building your dashboard by adding widgets from the widget bar.</p>
-      <NcButton @click="dashboardStore.isEditingDashboard = true">Edit Dashboard</NcButton>
+      <NcButton @click="handleEnableEditMode('empty-state')"> Edit Dashboard </NcButton>
     </div>
     <div
       v-if="(isPublic || !isUIAllowed('dashboardEdit')) && !activeDashboardWidgets.length"

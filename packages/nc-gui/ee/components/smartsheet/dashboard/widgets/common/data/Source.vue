@@ -8,6 +8,8 @@ const emit = defineEmits<{
 
 const widgetStore = useWidgetStore()
 
+const { $e } = useNuxtApp()
+
 const { updateWidget } = widgetStore
 
 const { selectedWidget } = storeToRefs(widgetStore)
@@ -43,6 +45,11 @@ const updateDataSource = () => {
   } else if (selectedDataSourceType.value === 'filter') {
     dataSource.fk_model_id = selectedModelId.value || null
   }
+
+  $e('a:dashboard:widget:config:data-source', {
+    widget_type: selectedWidget.value?.type,
+    source_type: selectedDataSourceType.value,
+  })
 
   emit('update:source', dataSource)
 }

@@ -221,7 +221,7 @@ const getWidgetPositionConfig = (item: string) => {
     }
     case WidgetTypes.GAUGE: {
       return {
-        minW: 2,
+        minW: 1,
         minH: 3,
         maxW: 2,
         maxH: 4,

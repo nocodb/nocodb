@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { GaugeWidgetType } from 'nocodb-sdk'
-import { colorColoured, colorFilled } from './config/color'
+import type { GaugeRange, GaugeWidgetType } from 'nocodb-sdk'
 
 interface Props {
   widget: GaugeWidgetType
@@ -17,22 +16,30 @@ const widgetStore = useWidgetStore()
 const widgetData = ref<any>(null)
 const isLoading = ref(false)
 
-const colors = computed(() => {
-  const type = (widgetRef.value?.config.appearance as any)?.type ?? 'default'
-  if (type === 'filled') {
-    return colorFilled.find((c) => c.id === (widgetRef.value?.config.appearance as any)?.theme) ?? colorFilled[0]
-  } else if (type === 'coloured') {
-    return colorColoured.find((c) => c.id === (widgetRef.value?.config.appearance as any)?.theme) ?? colorColoured[0]
-  }
-
-  return {
-    fill: 'var(--nc-bg-default)',
-    color: 'var(--nc-content-gray-subtle2)',
-  }
+const gaugeRanges = computed<GaugeRange[]>(() => {
+  return widgetRef.value?.config?.appearance?.ranges || []
 })
 
-const gaugePercentage = computed(() => {
-  return widgetData.value?.data?.percentage ?? 0
+const minValue = computed(() => {
+  if (gaugeRanges.value.length > 0) {
+    return Math.min(...gaugeRanges.value.map((r) => r.min))
+  }
+  return 0
+})
+
+const maxValue = computed(() => {
+  if (gaugeRanges.value.length > 0) {
+    return Math.max(...gaugeRanges.value.map((r) => r.max))
+  }
+  return 100
+})
+
+const backgroundColor = computed(() => {
+  const type = (widgetRef.value?.config.appearance as any)?.type ?? 'default'
+  if (type === 'filled' || type === 'coloured') {
+    return 'var(--nc-bg-default)'
+  }
+  return 'var(--nc-bg-default)'
 })
 
 const gaugeValue = computed(() => {
@@ -43,10 +50,6 @@ const showValue = computed(() => {
   return widgetRef.value?.config.appearance?.showValue ?? true
 })
 
-const showPercentage = computed(() => {
-  return widgetRef.value?.config.appearance?.showPercentage ?? true
-})
-
 async function loadData() {
   if (!widgetRef.value?.id || widgetRef.value?.error) return
   isLoading.value = true
@@ -54,6 +57,71 @@ async function loadData() {
   widgetData.value = await widgetStore.loadWidgetData(widgetRef.value.id)
   isLoading.value = false
 }
+
+// Gauge configuration
+const size = 200
+const strokeWidth = 20
+const radius = (size - strokeWidth) / 2
+const angle = 180
+const startAngle = -90
+
+// Normalize value to 0-1 range
+const normalizedValue = computed(() => {
+  return Math.max(0, Math.min(1, (gaugeValue.value - minValue.value) / (maxValue.value - minValue.value)))
+})
+
+// Find the current range for the needle color
+const needleColor = computed(() => {
+  const currentRange = gaugeRanges.value.find(
+    (range) => gaugeValue.value >= range.min && gaugeValue.value <= range.max,
+  )
+  return currentRange?.color || '#999'
+})
+
+// Calculate needle rotation (0 to 180 degrees)
+const needleRotation = computed(() => {
+  return normalizedValue.value * angle
+})
+
+// Background arc path
+const backgroundArcPath = computed(() => {
+  const startRad = (startAngle * Math.PI) / 180
+  const endRad = ((startAngle + angle) * Math.PI) / 180
+  const startX = size / 2 + radius * Math.cos(startRad)
+  const startY = size / 2 + radius * Math.sin(startRad)
+  const endX = size / 2 + radius * Math.cos(endRad)
+  const endY = size / 2 + radius * Math.sin(endRad)
+  return `M ${startX} ${startY} A ${radius} ${radius} 0 1 1 ${endX} ${endY}`
+})
+
+// Create range arcs
+const rangeArcs = computed(() => {
+  return gaugeRanges.value.map((range) => {
+    const rangeMin = Math.max(range.min, minValue.value)
+    const rangeMax = Math.min(range.max, maxValue.value)
+
+    const startNorm = (rangeMin - minValue.value) / (maxValue.value - minValue.value)
+    const endNorm = (rangeMax - minValue.value) / (maxValue.value - minValue.value)
+
+    const startAngleRange = startAngle + startNorm * angle
+    const endAngleRange = startAngle + endNorm * angle
+
+    const startRadRange = (startAngleRange * Math.PI) / 180
+    const endRadRange = (endAngleRange * Math.PI) / 180
+
+    const startXRange = size / 2 + radius * Math.cos(startRadRange)
+    const startYRange = size / 2 + radius * Math.sin(startRadRange)
+    const endXRange = size / 2 + radius * Math.cos(endRadRange)
+    const endYRange = size / 2 + radius * Math.sin(endRadRange)
+
+    const largeArc = endNorm - startNorm > 0.5 ? 1 : 0
+
+    return {
+      range,
+      path: `M ${startXRange} ${startYRange} A ${radius} ${radius} 0 ${largeArc} 1 ${endXRange} ${endYRange}`,
+    }
+  })
+})
 
 onMounted(() => {
   loadData()
@@ -68,33 +136,13 @@ watch(
     deep: true,
   },
 )
-
-// Gauge calculations using strokeDasharray approach
-const radius = 100
-const strokeWidth = 16
-const innerRadius = radius - strokeWidth / 2
-
-const circumference = computed(() => innerRadius * 2 * Math.PI)
-
-// Using 270 degrees for the gauge arc (leaving 90 degrees gap at bottom)
-const arcAngle = 270
-const arc = computed(() => circumference.value * (arcAngle / 360))
-
-const dashArray = computed(() => `${arc.value} ${circumference.value}`)
-
-// Rotate 135 degrees to start from bottom left (matching the article)
-const transform = `rotate(135, ${radius}, ${radius})`
-
-const percentNormalized = computed(() => Math.min(Math.max(gaugePercentage.value, 0), 100))
-
-const dashOffset = computed(() => arc.value - (percentNormalized.value / 100) * arc.value)
 </script>
 
 <template>
   <div
     class="nc-gauge-widget !rounded-xl h-full w-full p-4 flex group flex-col gap-1 relative"
     :style="{
-      backgroundColor: colors?.fill,
+      backgroundColor,
     }"
   >
     <div
@@ -104,12 +152,7 @@ const dashOffset = computed(() => arc.value - (percentNormalized.value / 100) * 
       }"
       class="flex items-center"
     >
-      <div
-        :style="{
-          color: colors?.color,
-        }"
-        class="text-nc-content-gray-emphasis flex-1 truncate pr-1 text-subHeading2"
-      >
+      <div class="text-nc-content-gray-emphasis flex-1 truncate pr-1 text-subHeading2">
         {{ widget.title }}
       </div>
       <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" :widget="widget" />
@@ -132,41 +175,59 @@ const dashOffset = computed(() => arc.value - (percentNormalized.value / 100) * 
         <div class="text-nc-content-gray-subtle2">Loading...</div>
       </template>
       <template v-else>
-        <div class="relative w-full flex flex-col items-center justify-center">
-          <svg viewBox="0 0 200 120" class="w-full" style="max-width: 240px; max-height: 140px">
-            <!-- Background circle -->
-            <circle
-              :cx="radius"
-              :cy="radius"
-              :r="innerRadius"
-              fill="transparent"
-              :stroke="colors.fill === 'var(--nc-bg-default)' ? 'rgba(0, 0, 0, 0.08)' : 'rgba(0, 0, 0, 0.12)'"
+        <div class="flex flex-col items-center justify-center gap-2 h-full w-full">
+          <svg
+            :width="size"
+            :height="size / 2 + 20"
+            :viewBox="`0 0 ${size} ${size / 2 + 20}`"
+            class="drop-shadow-lg w-full"
+            style="max-width: 100%"
+          >
+            <!-- Background arc -->
+            <path :d="backgroundArcPath" fill="none" stroke="#e5e7eb" :stroke-width="strokeWidth" stroke-linecap="round" />
+
+            <!-- Range arcs -->
+            <path
+              v-for="(arc, index) in rangeArcs"
+              :key="index"
+              :d="arc.path"
+              fill="none"
+              :stroke="arc.range.color"
               :stroke-width="strokeWidth"
-              :stroke-dasharray="dashArray"
               stroke-linecap="round"
-              :transform="transform"
+              opacity="0.8"
             />
-            <!-- Foreground circle (progress) -->
-            <circle
-              :cx="radius"
-              :cy="radius"
-              :r="innerRadius"
-              fill="transparent"
-              :stroke="colors.color"
-              :stroke-width="strokeWidth"
-              :stroke-dasharray="dashArray"
-              :stroke-dashoffset="dashOffset"
-              stroke-linecap="round"
-              :transform="transform"
-              class="gauge-progress"
-            />
+
+            <!-- Needle -->
+            <g :transform="`translate(${size / 2}, ${size / 2}) rotate(${needleRotation - 90})`">
+              <line
+                x1="0"
+                y1="0"
+                :x2="radius - strokeWidth / 2"
+                y2="0"
+                :stroke="needleColor"
+                :stroke-width="strokeWidth / 2"
+                stroke-linecap="round"
+              />
+              <circle cx="0" cy="0" :r="strokeWidth / 1.5" :fill="needleColor" />
+            </g>
+
+            <!-- Center circle -->
+            <circle :cx="size / 2" :cy="size / 2" :r="strokeWidth / 1.2" fill="white" :stroke="needleColor" stroke-width="2" />
           </svg>
-          <div class="text-center -mt-16">
-            <div v-if="showValue" :style="{ color: colors.color }" class="text-heading1 font-bold leading-tight">
-              {{ gaugeValue }}
-            </div>
-            <div v-if="showPercentage" :style="{ color: colors.color }" class="text-bodyDefaultSm opacity-80 mt-1">
-              {{ Math.round(gaugePercentage) }}%
+
+          <!-- Value display -->
+          <div v-if="showValue" class="text-center -mt-2">
+            <p class="text-xl font-bold text-gray-700">
+              {{ Intl.NumberFormat('en-US').format(gaugeValue) }}
+            </p>
+          </div>
+
+          <!-- Range legend -->
+          <div v-if="gaugeRanges.length > 0" class="flex flex-wrap gap-2 justify-center px-2">
+            <div v-for="(range, index) in gaugeRanges" :key="index" class="flex items-center gap-1.5">
+              <div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: range.color }" />
+              <span class="text-xs text-gray-600">{{ range.label || `${range.min}-${range.max}` }}</span>
             </div>
           </div>
         </div>
@@ -176,11 +237,6 @@ const dashOffset = computed(() => arc.value - (percentNormalized.value / 100) * 
 </template>
 
 <style scoped lang="scss">
-.gauge-progress {
-  transition: stroke-dashoffset 0.6s ease-in-out, stroke 0.3s ease;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
 .nc-gauge-widget {
   transition: background-color 0.3s ease;
 }

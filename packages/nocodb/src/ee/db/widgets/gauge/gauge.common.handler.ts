@@ -93,7 +93,7 @@ export class GaugeCommonHandler extends BaseWidgetHandler {
       addError('range', 'Range min must be less than max');
     }
 
-    return errors.length > 0 ? errors : undefined;
+    return errors.length > 0 ? errors : [];
   }
 
   async getWidgetData(
@@ -220,6 +220,6 @@ export class GaugeCommonHandler extends BaseWidgetHandler {
             : null,
         },
       },
-    } as any;
+    };
   }
 }

@@ -28,16 +28,6 @@ const handleConfigUpdate = async (type: string, updates: any) => {
         },
       },
     })
-  } else if (type === 'range') {
-    await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
-      config: {
-        ...selectedWidget.value?.config,
-        range: {
-          ...selectedWidget.value?.config?.range,
-          ...updates,
-        },
-      },
-    })
   } else if (type === 'appearance') {
     await updateWidget(activeDashboardId.value, selectedWidget.value?.id, {
       config: {
@@ -59,9 +49,6 @@ const handleConfigUpdate = async (type: string, updates: any) => {
       <SmartsheetDashboardWidgetsCommonDataSource @update:source="handleConfigUpdate('dataSource', $event)" />
       <GroupedSettings title="Display">
         <SmartsheetDashboardWidgetsCommonDataAggregation @update:aggregation="handleConfigUpdate('metric', $event)" />
-      </GroupedSettings>
-      <GroupedSettings title="Range">
-        <SmartsheetDashboardWidgetsGaugeConfigRange @update:range="handleConfigUpdate('range', $event)" />
       </GroupedSettings>
     </template>
     <template #appearance>

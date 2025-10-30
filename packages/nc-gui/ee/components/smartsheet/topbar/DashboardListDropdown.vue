@@ -43,11 +43,12 @@ function openDashboardCreateDialog() {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen">
+  <NcDropdown v-model:visible="isOpen" v-e="['c:dashboard:dropdown:open']">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <LazyNcList
         v-model:open="isOpen"
+        v-e="['c:dashboard:open']"
         :value="activeDashboardId"
         :list="activeBaseDashboards"
         option-value-key="id"

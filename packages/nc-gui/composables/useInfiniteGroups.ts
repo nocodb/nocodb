@@ -546,6 +546,7 @@ export const useInfiniteGroups = (
       if (throwError) {
         throw e
       }
+    }
   }
 
   async function updateGroupAggregations(

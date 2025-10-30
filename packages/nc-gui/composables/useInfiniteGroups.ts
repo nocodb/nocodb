@@ -484,58 +484,68 @@ export const useInfiniteGroups = (
     }
   }
 
-  async function syncCount(group?: CanvasGroup) {
+  async function syncCount(group?: CanvasGroup, throwError = false, showToastMessage = false) {
     if (!view.value || !meta.value?.columns?.length) return
 
-    if (!group) {
-      const groupCol = groupByColumns.value?.[0]
-      if (!groupCol) return
+    try {
+      if (!group) {
+        const groupCol = groupByColumns.value?.[0]
+        if (!groupCol) return
 
-      totalGroups.value = isPublic.value
-        ? await $api.public.dataGroupByCount(
-            sharedView.value!.uuid!,
-            {
+        totalGroups.value = isPublic.value
+          ? await $api.public.dataGroupByCount(
+              sharedView.value!.uuid!,
+              {
+                where: where?.value,
+                column_name: groupCol.column.title,
+                filterArrJson: JSON.stringify(nestedFilters.value),
+              },
+              {
+                headers: {
+                  'xc-password': sharedViewPassword.value,
+                },
+              },
+            )
+          : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
               where: where?.value,
               column_name: groupCol.column.title,
-              filterArrJson: JSON.stringify(nestedFilters.value),
-            },
-            {
-              headers: {
-                'xc-password': sharedViewPassword.value,
+            })
+      } else {
+        const groupCol = groupByColumns.value?.[group.nestedIn.length]
+
+        if (!groupCol) return
+
+        const groupFilterArr = buildNestedFilterArr(group) ?? []
+
+        group.groupCount = isPublic.value
+          ? await $api.public.dataGroupByCount(
+              sharedView.value!.uuid!,
+              {
+                where: where?.value,
+                column_name: groupCol.column.title,
+                filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...groupFilterArr]),
               },
-            },
-          )
-        : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
-            where: where?.value,
-            column_name: groupCol.column.title,
-          })
-    } else {
-      const groupCol = groupByColumns.value?.[group.nestedIn.length]
-
-      if (!groupCol) return
-
-      const groupFilterArr = buildNestedFilterArr(group) ?? []
-
-      group.groupCount = isPublic.value
-        ? await $api.public.dataGroupByCount(
-            sharedView.value!.uuid!,
-            {
+              {
+                headers: {
+                  'xc-password': sharedViewPassword.value,
+                },
+              },
+            )
+          : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
               where: where?.value,
               column_name: groupCol.column.title,
-              filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...groupFilterArr]),
-            },
-            {
-              headers: {
-                'xc-password': sharedViewPassword.value,
-              },
-            },
-          )
-        : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
-            where: where?.value,
-            column_name: groupCol.column.title,
-            filterArrJson: JSON.stringify(groupFilterArr),
-          })
-    }
+              filterArrJson: JSON.stringify(groupFilterArr),
+            })
+      }
+    } catch (e: any) {
+      if (showToastMessage) {
+        const errorMessage = await extractSdkResponseErrorMsg(e)
+        message.error(`Failed to sync count: ${errorMessage}`)
+      }
+
+      if (throwError) {
+        throw e
+      }
   }
 
   async function updateGroupAggregations(

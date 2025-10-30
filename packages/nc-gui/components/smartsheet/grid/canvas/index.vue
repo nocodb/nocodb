@@ -125,7 +125,7 @@ const props = defineProps<{
   }>
   toggleExpand: (group: CanvasGroup) => void
   toggleExpandAll: (path: Array<number>, expand: boolean) => void
-  groupSyncCount: (group?: CanvasGroup) => Promise<void>
+  groupSyncCount: (group?: CanvasGroup, throwError?: boolean, showToastMessage?: boolean) => Promise<void>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
 }>()
@@ -2503,7 +2503,7 @@ watch(
         clearTextCache()
         await until(isViewColumnsLoading).toMatch((c) => !c)
         if (isGroupBy.value) {
-          await syncGroupCount()
+          await syncGroupCount(undefined, true)
           calculateSlices()
         } else {
           await syncCount()

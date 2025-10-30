@@ -65,7 +65,7 @@ const props = defineProps<{
   rowSortRequiredRows: Row[]
   applySorting?: (newRows?: Row | Row[]) => void
   clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
-  syncCount: () => Promise<void>
+  syncCount: (path?: Array<number>, throwError?: boolean, showToastMessage?: boolean) => Promise<void>
   selectedRows: Array<Row>
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
@@ -2016,7 +2016,7 @@ watch(
         }
         try {
           // Sync the count
-          await syncCount()
+          await syncCount(undefined, false, false)
           // Calculate the slices and load the view aggregate and data
           calculateSlices()
 

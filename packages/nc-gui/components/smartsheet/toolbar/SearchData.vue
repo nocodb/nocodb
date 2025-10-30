@@ -7,6 +7,8 @@ const reloadAggregate = inject(ReloadAggregateHookInj)
 
 const activeView = inject(ActiveViewInj, ref())
 
+const { $e } = useNuxtApp()
+
 const { meta, eventBus, isGrid, isGallery, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
   useSmartsheetStoreOrThrow()
 
@@ -67,6 +69,7 @@ watch(
 )
 
 function onPressEnter() {
+  $e('a:view:search')
   reloadData.trigger({ shouldShowLoading: false, offset: 0 })
   reloadAggregate?.trigger()
 }

@@ -494,16 +494,36 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                     <div class="flex items-center gap-1">-</div>
                   </div>
 
-                  <div class="ds-table-col ds-table-actions">
-                    <NcButton
-                      v-if="!sources[0].is_meta && !sources[0].is_local"
-                      size="small"
-                      class="nc-action-btn nc-edit-base cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
-                      type="text"
-                      @click.stop="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
-                    >
-                      <GeneralIcon icon="edit" class="text-gray-600" />
-                    </NcButton>
+                  <div class="ds-table-col justify-end gap-x-1 ds-table-actions" @click.stop>
+                    <div class="flex justify-end">
+                      <NcDropdown placement="bottomRight">
+                        <NcButton size="small" type="secondary">
+                          <GeneralIcon icon="threeDotVertical" />
+                        </NcButton>
+                        <template #overlay>
+                          <NcMenu variant="small">
+                            <NcMenuItemCopyId
+                              :id="sources[0].id"
+                              :tooltip="$t('labels.clickToCopySourceID')"
+                              :label="
+                                $t('labels.sourceIdColon', {
+                                  sourceId: sources[0].id,
+                                })
+                              "
+                            />
+
+                            <template v-if="!sources[0].is_meta && !sources[0].is_local">
+                              <NcDivider />
+
+                              <NcMenuItem @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)">
+                                <GeneralIcon icon="edit" />
+                                <span>{{ $t('general.edit') }}</span>
+                              </NcMenuItem>
+                            </template>
+                          </NcMenu>
+                        </template>
+                      </NcDropdown>
+                    </div>
                   </div>
                 </div>
               </template>
@@ -564,22 +584,36 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                   </div>
                   <div class="ds-table-col justify-end gap-x-1 ds-table-actions" @click.stop>
                     <div class="flex justify-end">
-                      <NcDropdown v-if="!source.is_meta && !source.is_local" placement="bottomRight">
+                      <NcDropdown placement="bottomRight">
                         <NcButton size="small" type="secondary">
                           <GeneralIcon icon="threeDotVertical" />
                         </NcButton>
                         <template #overlay>
                           <NcMenu variant="small">
-                            <NcMenuItem @click="handleClickRow(source, 'edit')">
-                              <GeneralIcon icon="edit" />
-                              <span>{{ $t('general.edit') }}</span>
-                            </NcMenuItem>
+                            <NcMenuItemCopyId
+                              :id="source.id"
+                              :tooltip="$t('labels.clickToCopySourceID')"
+                              :label="
+                                $t('labels.sourceIdColon', {
+                                  sourceId: source.id,
+                                })
+                              "
+                            />
 
-                            <NcDivider />
-                            <NcMenuItem danger @click.stop="openDeleteBase(source)">
-                              <GeneralIcon icon="delete" />
-                              {{ $t('general.remove') }}
-                            </NcMenuItem>
+                            <template v-if="!source.is_meta && !source.is_local">
+                              <NcDivider />
+
+                              <NcMenuItem @click="handleClickRow(source, 'edit')">
+                                <GeneralIcon icon="edit" />
+                                <span>{{ $t('general.edit') }}</span>
+                              </NcMenuItem>
+
+                              <NcDivider />
+                              <NcMenuItem danger @click.stop="openDeleteBase(source)">
+                                <GeneralIcon icon="delete" />
+                                {{ $t('general.remove') }}
+                              </NcMenuItem>
+                            </template>
                           </NcMenu>
                         </template>
                       </NcDropdown>

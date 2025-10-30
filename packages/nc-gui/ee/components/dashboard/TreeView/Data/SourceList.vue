@@ -337,6 +337,18 @@ onMounted(() => {
                         variant="small"
                         @click="isBasesOptionsOpen[source!.id!] = false"
                       >
+                        <NcMenuItemCopyId
+                          @click.stop
+                          :id="source.id"
+                          :tooltip="$t('labels.clickToCopySourceID')"
+                          :label="
+                            $t('labels.sourceIdColon', {
+                              sourceId: source.id,
+                            })
+                          "
+                        />
+                        <NcDivider />
+
                         <NcMenuItem
                           v-if="isUIAllowed('baseRename')"
                           data-testid="nc-sidebar-source-rename"

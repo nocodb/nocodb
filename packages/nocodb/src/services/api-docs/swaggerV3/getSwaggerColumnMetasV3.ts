@@ -1,6 +1,6 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { parseProp, RelationTypes, UITypes } from 'nocodb-sdk';
 import { FormulaDataTypes } from 'nocodb-sdk';
-import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import type { Column, LinkToAnotherRecordColumn, RollupColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
 import type { DriverClient } from '~/utils/nc-config';
@@ -72,12 +72,13 @@ async function processColumnToSwaggerField(
           case FormulaDataTypes.NULL:
           case FormulaDataTypes.UNKNOWN:
           default:
-            field.type = 'string';
+            // Fallback to any if type not handled
+            field.type = '{}';
             break;
         }
       } else {
-        // Fallback to string if no parsed tree available
-        field.type = 'string';
+        // Fallback to any if no parsed tree available
+        field.type = '{}';
       }
       break;
     case UITypes.Lookup:
@@ -161,16 +162,33 @@ async function processColumnToSwaggerField(
         }
       }
       break;
-    case UITypes.Rollup:
-      field.type = 'number';
+    case UITypes.Rollup: {
+      const colOptions = await column.getColOptions<RollupColumn>(
+        context,
+        ncMeta,
+      );
+      if (!['max', 'min'].includes(colOptions.rollup_function.toLowerCase())) {
+        field.type = 'number';
+      } else {
+        // if min or max, let it be any
+        field.type = '{}';
+      }
       break;
+    }
     case UITypes.Links:
       field.type = 'integer';
       break;
     case UITypes.Attachment:
-      field.type = 'array';
+      field.type = ['array', 'null'];
       field.items = {
         $ref: `#/components/schemas/Attachment`,
+      };
+      field.virtual = false;
+      break;
+    case UITypes.MultiSelect:
+      field.type = ['array', 'null'];
+      field.items = {
+        type: 'string',
       };
       field.virtual = false;
       break;
@@ -184,6 +202,25 @@ async function processColumnToSwaggerField(
       field.format = 'uri';
       field.virtual = false;
       break;
+    case UITypes.User: {
+      const userProperties = {
+        id: { type: 'string' },
+        email: { type: 'string' },
+        display_name: { type: ['string', 'null'] },
+      };
+      if (parseProp(column.meta).is_multi) {
+        field.type = ['array', 'null'];
+        field.items = {
+          type: 'object',
+          properties: userProperties,
+        };
+      } else {
+        field.type = ['object', 'null'];
+        field.properties = userProperties;
+      }
+      field.virtual = false;
+      break;
+    }
     case UITypes.LastModifiedTime:
     case UITypes.CreatedTime:
       field.type = 'string';
@@ -192,6 +229,12 @@ async function processColumnToSwaggerField(
     case UITypes.LastModifiedBy:
     case UITypes.CreatedBy:
       field.type = 'object';
+      break;
+    case UITypes.QrCode:
+    case UITypes.Barcode:
+      // both set to any for now
+      // not worth to handle atm
+      field.type = '{}';
       break;
     default:
       field.virtual = false;

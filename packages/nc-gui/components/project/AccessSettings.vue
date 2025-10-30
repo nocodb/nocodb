@@ -143,6 +143,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       currentBaseUsers = currentBaseUsers.map((user) => {
         if (user.id === currentCollaborator.id) {
           user.roles = currentCollaborator.roles as any
+          user.base_roles = currentCollaborator.base_roles as any
         }
         return user
       })

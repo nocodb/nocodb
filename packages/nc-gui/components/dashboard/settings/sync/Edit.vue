@@ -302,89 +302,88 @@ const isModalClosable = computed(() => {
     @apply flex flex-col gap-3;
   }
 
-  .nc-connection-json-editor {
-    @apply min-h-[300px] max-h-[600px];
-    resize: vertical;
-    overflow-y: auto;
-  }
+.nc-connection-json-editor {
+  @apply min-h-[300px] max-h-[600px];
+  resize: vertical;
+  overflow-y: auto;
+}
 
-  :deep(.ant-form-item-label > label.ant-form-item-required:after) {
-    @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
-  }
+:deep(.ant-form-item-label > label.ant-form-item-required:after) {
+  @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
+}
 
-  .nc-form-extra-connectin-parameters {
-    :deep(.ant-input) {
+.nc-form-extra-connectin-parameters {
+  :deep(.ant-input) {
+    &:not(:hover):not(:focus):not(:disabled) {
+      @apply !shadow-default !border-gray-200;
+    }
+    &:hover:not(:focus):not(:disabled) {
+      @apply !border-gray-200 !shadow-hover;
+    }
+    &:focus {
+      @apply !shadow-selected !ring-0;
+      border-color: var(--ant-primary-color-hover) !important;
+    }
+  }
+}
+:deep(.ant-form-item) {
+  &.ant-form-item-has-error {
+    &:not(:has(.ant-input-password)) .ant-input {
       &:not(:hover):not(:focus):not(:disabled) {
-        @apply !shadow-default !border-gray-200;
+        @apply shadow-default;
       }
       &:hover:not(:focus):not(:disabled) {
-        @apply !border-gray-200 !shadow-hover;
+        @apply shadow-hover;
       }
       &:focus {
-        @apply !shadow-selected !ring-0;
-        border-color: var(--ant-primary-color-hover) !important;
+        @apply shadow-error ring-0;
+      }
+    }
+
+    .ant-input-number,
+    .ant-input-affix-wrapper.ant-input-password {
+      &:not(:hover):not(:focus-within):not(:disabled) {
+        @apply shadow-default;
+      }
+      &:hover:not(:focus-within):not(:disabled) {
+        @apply shadow-hover;
+      }
+      &:focus-within {
+        @apply shadow-error ring-0;
       }
     }
   }
-  :deep(.ant-form-item) {
-    &.ant-form-item-has-error {
-      &:not(:has(.ant-input-password)) .ant-input {
-        &:not(:hover):not(:focus):not(:disabled) {
-          @apply shadow-default;
-        }
-        &:hover:not(:focus):not(:disabled) {
-          @apply shadow-hover;
-        }
-        &:focus {
-          @apply shadow-error ring-0;
-        }
+  &:not(.ant-form-item-has-error) {
+    &:not(:has(.ant-input-password)) .ant-input {
+      &:not(:hover):not(:focus):not(:disabled) {
+        @apply shadow-default border-gray-200;
       }
-
-      .ant-input-number,
-      .ant-input-affix-wrapper.ant-input-password {
-        &:not(:hover):not(:focus-within):not(:disabled) {
-          @apply shadow-default;
-        }
-        &:hover:not(:focus-within):not(:disabled) {
-          @apply shadow-hover;
-        }
-        &:focus-within {
-          @apply shadow-error ring-0;
-        }
+      &:hover:not(:focus):not(:disabled) {
+        @apply border-gray-200 shadow-hover;
+      }
+      &:focus {
+        @apply shadow-selected ring-0;
       }
     }
-    &:not(.ant-form-item-has-error) {
-      &:not(:has(.ant-input-password)) .ant-input {
-        &:not(:hover):not(:focus):not(:disabled) {
-          @apply shadow-default border-gray-200;
-        }
-        &:hover:not(:focus):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
-        }
-        &:focus {
-          @apply shadow-selected ring-0;
-        }
+    .ant-input-number,
+    .ant-input-affix-wrapper.ant-input-password {
+      &:not(:hover):not(:focus-within):not(:disabled) {
+        @apply shadow-default border-gray-200;
       }
-      .ant-input-number,
-      .ant-input-affix-wrapper.ant-input-password {
-        &:not(:hover):not(:focus-within):not(:disabled) {
-          @apply shadow-default border-gray-200;
-        }
-        &:hover:not(:focus-within):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
-        }
-        &:focus-within {
-          @apply shadow-selected ring-0;
-        }
+      &:hover:not(:focus-within):not(:disabled) {
+        @apply border-gray-200 shadow-hover;
+      }
+      &:focus-within {
+        @apply shadow-selected ring-0;
       }
     }
   }
+}
 
-  :deep(.ant-row:not(.ant-form-item)) {
-    @apply !-mx-1.5;
-    & > .ant-col {
-      @apply !px-1.5;
-    }
+:deep(.ant-row:not(.ant-form-item)) {
+  @apply !-mx-1.5;
+  & > .ant-col {
+    @apply !px-1.5;
   }
 }
 </style>

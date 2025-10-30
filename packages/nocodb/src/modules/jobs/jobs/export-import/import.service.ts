@@ -1573,7 +1573,7 @@ export class ImportService {
         });
 
         const vw = await this.createView(
-          context,
+          targetContext,
           idMap,
           table,
           viewData,

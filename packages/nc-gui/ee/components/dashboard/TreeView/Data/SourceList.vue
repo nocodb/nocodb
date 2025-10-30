@@ -338,7 +338,6 @@ onMounted(() => {
                         @click="isBasesOptionsOpen[source!.id!] = false"
                       >
                         <NcMenuItemCopyId
-                          @click.stop
                           :id="source.id"
                           :tooltip="$t('labels.clickToCopySourceID')"
                           :label="
@@ -346,6 +345,7 @@ onMounted(() => {
                               sourceId: source.id,
                             })
                           "
+                          @click.stop
                         />
                         <NcDivider />
 

@@ -11,7 +11,7 @@ const { loadWorkspaces } = workspaceStore
 
 const { appInfo } = useGlobal()
 
-const { leftSidebarState, isLeftSidebarOpen, nonHiddenLeftSidebarWidth: leftSidebarWidth } = storeToRefs(useSidebarStore())
+const { leftSidebarState, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 const viewportWidth = ref(window.innerWidth)
 
 const { navigateToTable } = useTablesStore()

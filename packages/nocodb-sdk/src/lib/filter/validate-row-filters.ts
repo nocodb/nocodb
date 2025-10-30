@@ -68,6 +68,13 @@ export function validateRowFilters(params: {
           filter.comparison_op!
         )
       ) {
+        const getTimezone = () => {
+          return getNodejsTimezone(
+            parseProp(filter.meta).timezone,
+            parseProp(column.meta).timezone,
+            params.options?.timezone
+          );
+        };
         const dateFormat =
           client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';
 

@@ -155,14 +155,14 @@ async function setupMonacoEditor() {
 watch(
   () => activeAutomation.value?._dirty,
   (newVal) => {
-    if (newVal) {
-      const pos = editor.getPosition()
-      if (activeAutomation.value?.script !== editor.getValue()) {
-        dirty = true
-        editor.setValue(activeAutomation.value.script)
-      }
-      editor.setPosition(pos)
+    if (!newVal || !editor) return
+
+    const pos = editor.getPosition()
+    if (activeAutomation.value?.script !== editor.getValue()) {
+      dirty = true
+      editor.setValue(activeAutomation.value.script)
     }
+    editor.setPosition(pos)
   },
 )
 

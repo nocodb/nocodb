@@ -1329,7 +1329,7 @@ export function useInfiniteData(args: {
 
       dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
       dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
-      await syncCount(path)
+      await syncCount(path, true, false)
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
       console.error(e)
@@ -1581,13 +1581,17 @@ export function useInfiniteData(args: {
               dataCache.totalRows.value = tempTotalRows
               dataCache.actualTotalRows.value = tempActualTotalRows
 
-              await updateRowProperty(
-                { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
-                property,
-                undefined,
-                true,
-                path,
-              )
+              try {
+                await updateRowProperty(
+                  { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
+                  property,
+                  undefined,
+                  true,
+                  path,
+                )
+              } catch (e: any) {
+                // ignore
+              }
             },
             args: [
               clone(toUpdate),
@@ -1600,7 +1604,11 @@ export function useInfiniteData(args: {
           },
           redo: {
             fn: async (toUpdate: Row, property: string, path) => {
-              await updateRowProperty(toUpdate, property, undefined, true, path)
+              try {
+                await updateRowProperty(toUpdate, property, undefined, true, path)
+              } catch (e: any) {
+                // ignore
+              }
             },
             args: [clone(toUpdate), property, clone(path)],
           },
@@ -1731,7 +1739,11 @@ export function useInfiniteData(args: {
           return acc
         }, row.row)
       }
-      data = await updateRowProperty(row, property, args, false, path)
+      try {
+        data = await updateRowProperty(row, property, args, false, path)
+      } catch (e: any) {
+        // ignore
+      }
     }
 
     const isValidationFailed = !validateRowFilters(
@@ -1876,7 +1888,7 @@ export function useInfiniteData(args: {
     return false
   }
 
-  async function syncCount(path: Array<number> = []): Promise<void> {
+  async function syncCount(path: Array<number> = [], throwError = false, showToastMessage = true): Promise<void> {
     if (!isPublic?.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
 
     const dataCache = getDataCache(path)
@@ -1930,9 +1942,14 @@ export function useInfiniteData(args: {
 
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
-      const errorMessage = await extractSdkResponseErrorMsg(error)
-      message.error(`Failed to sync count: ${errorMessage}`)
-      throw error
+      if (showToastMessage) {
+        const errorMessage = await extractSdkResponseErrorMsg(error)
+        message.error(`Failed to sync count: ${errorMessage}`)
+      }
+
+      if (throwError) {
+        throw error
+      }
     }
   }
 

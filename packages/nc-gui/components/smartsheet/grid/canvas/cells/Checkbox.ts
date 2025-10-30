@@ -97,7 +97,11 @@ export const CheckboxCellRenderer: CellRenderer = {
 
     if (e.key === 'Enter') {
       row.row[columnObj.title!] = !row.row[columnObj.title!]
-      await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, ctx.path)
+      try {
+        await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, ctx.path)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
       return true
     }
 
@@ -109,7 +113,11 @@ export const CheckboxCellRenderer: CellRenderer = {
 
     if (selected) {
       row.row[column.title!] = !row.row[column.title!]
-      await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
+      try {
+        await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
       return true
     }
 
@@ -126,7 +134,11 @@ export const CheckboxCellRenderer: CellRenderer = {
 
     if (isBoxHovered(checkboxBounds, mousePosition)) {
       row.row[column.title!] = !row.row[column.title!]
-      await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
+      try {
+        await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
       return true
     }
 

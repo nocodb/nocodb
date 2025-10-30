@@ -237,6 +237,11 @@ export const useScriptExecutor = createSharedComposable(() => {
     if (!execution) {
       return
     }
+
+    if (!execution.playground) {
+      execution.playground = []
+    }
+
     switch (message.type) {
       case ScriptActionType.WORKFLOW_STEP_START: {
         const stepItem: WorkflowStepItem = {

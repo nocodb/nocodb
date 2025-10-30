@@ -122,6 +122,10 @@ export const AttachmentCellRenderer: CellRenderer = {
 
     try {
       attachments = (typeof value === 'string' ? JSON.parse(value) : value) || []
+
+      if (!ncIsArray(attachments)) {
+        attachments = []
+      }
     } catch {
       attachments = []
     }

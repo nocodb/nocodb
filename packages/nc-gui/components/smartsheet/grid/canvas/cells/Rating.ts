@@ -289,7 +289,11 @@ export const RatingCellRenderer: CellRenderer = {
 
     if (/^[0-9]$/.test(e.key)) {
       row.row[columnObj.title!] = Number(e.key)
-      await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, path)
+      try {
+        await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, path)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
       return true
     }
 

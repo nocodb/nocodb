@@ -462,7 +462,7 @@ export function useGridViewData(
 
       dataCache.totalRows.value += validRowsToInsert.length
 
-      await syncCount(path)
+      await syncCount(path, true, false)
       syncVisibleData()
 
       return bulkInsertedIds
@@ -752,7 +752,7 @@ export function useGridViewData(
       }
       reloadViewDataHook?.trigger()
       syncVisibleData()
-      await syncCount(path)
+      await syncCount(path, true, false)
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     } finally {

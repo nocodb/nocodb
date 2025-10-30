@@ -286,7 +286,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     function updateAttachmentTitle(idx: number, title: string) {
-      attachments.value[idx]!.title = title
+      if (attachments.value[idx]) {
+        attachments.value[idx]!.title = title
+      }
+
       updateModelValue(attachments.value)
     }
 

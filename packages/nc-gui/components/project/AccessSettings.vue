@@ -8,7 +8,11 @@ const props = defineProps<{
 
 const router = useRouter()
 
-const { isTeamsEnabled } = storeToRefs(useWorkspace())
+const { user, ncNavigateTo } = useGlobal()
+
+const { showInfoModal } = useNcConfirmModal()
+
+const { isTeamsEnabled, activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const { isPrivateBase, base } = storeToRefs(useBase())
 
@@ -171,7 +175,21 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       message.error(errorInfo.message)
     }
   } finally {
-    loadCollaborators()
+    if (user.value?.id === currentCollaborator.id && currentCollaborator.roles === ProjectRoles.NO_ACCESS) {
+      bases.value.delete(currentBase.value?.id!)
+
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        baseId: undefined,
+        tableId: undefined,
+      })
+      showInfoModal({
+        title: `Base access no longer available`,
+        content: `You removed your access from base ${currentBase.value?.title}.`,
+      })
+    } else {
+      loadCollaborators()
+    }
   }
 }
 const showOverlay = computed(() => {

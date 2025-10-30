@@ -99,6 +99,13 @@ export const useBases = defineStore('basesStore', () => {
 
   const createProjectUser = async (baseId: string, user: User) => {
     await api.auth.baseUserAdd(baseId, user as ProjectUserReqType)
+
+    if (user.id === currentUser.value?.id) {
+      bases.value.set(baseId, {
+        ...(bases.value.get(baseId) || {}),
+        project_role: user.roles,
+      })
+    }
   }
 
   const updateProjectUser = async (baseId: string, user: User) => {
@@ -108,6 +115,11 @@ export const useBases = defineStore('basesStore', () => {
     if (user.id === currentUser.value?.id) {
       loadRoles(baseId).catch(() => {
         // ignore
+      })
+
+      bases.value.set(baseId, {
+        ...(bases.value.get(baseId) || {}),
+        project_role: user.roles,
       })
     }
   }

@@ -29,6 +29,8 @@ const { showInfoModal } = useNcConfirmModal()
 
 const leavedWsUserId = ref('')
 
+const copyBtnRef = ref()
+
 const formValidator = ref()
 const isErrored = ref(false)
 const isWorkspaceUpdating = ref(false)
@@ -367,7 +369,25 @@ const onCancel = () => {
                 </GeneralIconSelector>
               </div>
               <div class="flex-1">
-                <div class="text-sm text-nc-content-gray-subtle2">{{ $t('general.name') }}</div>
+                <div class="flex items-center gap-1.5 justify-between">
+                  <div class="text-sm text-nc-content-gray-subtle2">{{ $t('general.name') }}</div>
+                  <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" placement="top" hide-on-click class="flex">
+                    <div
+                      class="flex items-center gap-1.5 text-bodyDefaultSm text-nc-content-gray-subtle2 cursor-pointer"
+                      @click="copyBtnRef?.copyContent()"
+                    >
+                      {{ $t('labels.workspaceId', { workspaceId: currentWorkspace.id }) }}
+
+                      <GeneralCopyButton
+                        ref="copyBtnRef"
+                        type="text"
+                        size="xxsmall"
+                        :content="currentWorkspace.id"
+                        :show-toast="false"
+                      />
+                    </div>
+                  </NcTooltip>
+                </div>
                 <a-form-item name="title" :rules="formRules.title" class="!mt-2 !mb-0">
                   <a-input
                     v-model:value="form.title"

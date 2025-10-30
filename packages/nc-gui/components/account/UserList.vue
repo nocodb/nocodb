@@ -328,14 +328,8 @@ const userRoleOptions = [
                   {{ $t(`objects.roleType.orgLevelCreator`) }}
                 </div>
               </template>
-              <div
-                v-if="column.key === 'action'"
-                class="flex items-center gap-2"
-                :class="{
-                  'opacity-0 pointer-events-none': el.roles?.includes('super'),
-                }"
-              >
-                <NcDropdown :trigger="['click']">
+              <div v-if="column.key === 'action'" class="flex items-center gap-2">
+                <NcDropdown :trigger="['click']" placement="bottomRight">
                   <NcButton size="xsmall" type="ghost">
                     <MdiDotsVertical
                       class="text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
@@ -344,7 +338,19 @@ const userRoleOptions = [
 
                   <template #overlay>
                     <NcMenu variant="small">
+                      <NcMenuItemCopyId
+                        :id="el.id"
+                        :tooltip="$t('labels.clickToCopyUserID')"
+                        :label="
+                          $t('labels.userIdColon', {
+                            userId: el.id,
+                          })
+                        "
+                      />
+
                       <template v-if="!el.roles?.includes('super')">
+                        <NcDivider />
+
                         <!-- Resend invite Email -->
                         <NcMenuItem @click="resendInvite(el)">
                           <component :is="iconMap.email" class="flex text-gray-600" />
@@ -358,13 +364,13 @@ const userRoleOptions = [
                           <component :is="iconMap.copy" class="flex text-gray-600" />
                           <div>{{ $t('activity.copyPasswordResetURL') }}</div>
                         </NcMenuItem>
-                      </template>
-                      <template v-if="el.id !== loggedInUser?.id">
-                        <NcDivider v-if="!el.roles?.includes('super')" />
-                        <NcMenuItem data-rec="true" danger @click="openDeleteModal(el)">
-                          <MaterialSymbolsDeleteOutlineRounded />
-                          {{ $t('general.remove') }} {{ $t('objects.user') }}
-                        </NcMenuItem>
+                        <template v-if="el.id !== loggedInUser?.id">
+                          <NcDivider v-if="!el.roles?.includes('super')" />
+                          <NcMenuItem data-rec="true" danger @click="openDeleteModal(el)">
+                            <MaterialSymbolsDeleteOutlineRounded />
+                            {{ $t('general.remove') }} {{ $t('objects.user') }}
+                          </NcMenuItem>
+                        </template>
                       </template>
                     </NcMenu>
                   </template>

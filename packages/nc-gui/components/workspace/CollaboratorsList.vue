@@ -554,36 +554,50 @@ watch(inviteDlg, (newVal) => {
             </div>
 
             <div v-if="column.key === 'action'">
-              <NcDropdown v-if="isOwnerOrCreator || record.id === user.id">
+              <NcDropdown placement="bottomRight">
                 <NcButton size="small" type="secondary">
                   <component :is="iconMap.ncMoreVertical" />
                 </NcButton>
                 <template #overlay>
                   <NcMenu variant="small">
-                    <template v-if="isAdminPanel">
-                      <NcMenuItem data-testid="nc-admin-org-user-delete">
-                        <GeneralIcon icon="signout" />
-                        <span>{{ $t('labels.signOutUser') }}</span>
-                      </NcMenuItem>
+                    <NcMenuItemCopyId
+                      :id="record.id"
+                      :tooltip="$t('labels.clickToCopyUserID')"
+                      :label="
+                        $t('labels.userIdColon', {
+                          userId: record.id,
+                        })
+                      "
+                    />
 
+                    <template v-if="isOwnerOrCreator || record.id === user.id">
                       <NcDivider />
-                    </template>
-                    <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
-                      <template #title>
-                        {{ $t('tooltip.leaveWorkspace') }}
+
+                      <template v-if="isAdminPanel">
+                        <NcMenuItem data-testid="nc-admin-org-user-delete">
+                          <GeneralIcon icon="signout" />
+                          <span>{{ $t('labels.signOutUser') }}</span>
+                        </NcMenuItem>
+
+                        <NcDivider />
                       </template>
-                      <NcMenuItem
-                        :disabled="!isDeleteOrUpdateAllowed(record)"
-                        danger
-                        @click="removeCollaborator(record.id, currentWorkspace?.id)"
-                      >
-                        <div v-if="removingCollaboratorMap[record.id]" class="h-4 w-4 flex items-center justify-center">
-                          <GeneralLoader class="!flex-none !text-current" />
-                        </div>
-                        <GeneralIcon v-else icon="delete" />
-                        {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeMember') }}
-                      </NcMenuItem>
-                    </NcTooltip>
+                      <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
+                        <template #title>
+                          {{ $t('tooltip.leaveWorkspace') }}
+                        </template>
+                        <NcMenuItem
+                          :disabled="!isDeleteOrUpdateAllowed(record)"
+                          danger
+                          @click="removeCollaborator(record.id, currentWorkspace?.id)"
+                        >
+                          <div v-if="removingCollaboratorMap[record.id]" class="h-4 w-4 flex items-center justify-center">
+                            <GeneralLoader class="!flex-none !text-current" />
+                          </div>
+                          <GeneralIcon v-else icon="delete" />
+                          {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeMember') }}
+                        </NcMenuItem>
+                      </NcTooltip>
+                    </template>
                   </NcMenu>
                 </template>
               </NcDropdown>

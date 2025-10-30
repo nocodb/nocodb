@@ -46,7 +46,7 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
 
         isAmplifyConfigured.value = true
 
-        const { refreshToken, signedIn } = useGlobal()
+        const { refreshToken, signedIn, isSsoUser } = useGlobal()
         const { authStatus } = toRefs(useAuthenticator())
 
         watch(
@@ -54,6 +54,10 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
           async ([status]) => {
             if (status === 'authenticated' && !signedIn.value) {
               try {
+                // if current user token generated using sso login then skip cognito based login
+                if (isSsoUser.value) {
+                  return
+                }
                 await refreshToken({
                   cognitoOnly: true,
                 })

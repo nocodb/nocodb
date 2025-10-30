@@ -176,7 +176,9 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
     }
   } finally {
     if (user.value?.id === currentCollaborator.id && currentCollaborator.roles === ProjectRoles.NO_ACCESS) {
-      bases.value.delete(currentBase.value?.id!)
+      if (currentBase.value) {
+        bases.value.delete(currentBase.value.id!)
+      }
 
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,

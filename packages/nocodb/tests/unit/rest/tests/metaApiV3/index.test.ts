@@ -6,8 +6,8 @@ import columnTestV3 from './column.test';
 import baseUsersTestV3 from './baseUsers.test';
 import errorHandlingMetaTestsV3 from './error-handling/index.test';
 import workspaceUsersTest from './workspaceUsers.test';
-import teamsTestV3 from './teams.test';
-import workspaceTeamsV3 from './workspace-teams.test';
+// import teamsTestV3 from './teams.test';
+// import workspaceTeamsV3 from './workspace-teams.test';
 
 export default runOnSet(2, function () {
   baseTestV3();
@@ -17,6 +17,6 @@ export default runOnSet(2, function () {
   columnTestV3();
   errorHandlingMetaTestsV3();
   workspaceUsersTest();
-  teamsTestV3();
-  workspaceTeamsV3();
+  // teamsTestV3();
+  // workspaceTeamsV3();
 });

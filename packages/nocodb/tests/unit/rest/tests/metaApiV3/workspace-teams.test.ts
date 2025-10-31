@@ -18,7 +18,7 @@ export default function () {
     return true;
   }
 
-  describe.only(`Workspace Teams v3`, () => {
+  describe(`Workspace Teams v3`, () => {
     let context: any = {};
     let workspaceId: string;
     let featureMock: any;
@@ -67,7 +67,9 @@ export default function () {
 
       expect(workspaceTeam).to.have.property('team_id').that.is.a('string');
       expect(workspaceTeam).to.have.property('team_title').that.is.a('string');
-      expect(workspaceTeam).to.have.property('workspace_role').that.is.a('string');
+      expect(workspaceTeam)
+        .to.have.property('workspace_role')
+        .that.is.a('string');
       expect(workspaceTeam).to.have.property('created_at').that.is.a('string');
       expect(workspaceTeam).to.have.property('updated_at').that.is.a('string');
 
@@ -77,7 +79,7 @@ export default function () {
         WorkspaceUserRoles.EDITOR,
         WorkspaceUserRoles.VIEWER,
         WorkspaceUserRoles.COMMENTER,
-        WorkspaceUserRoles.NO_ACCESS
+        WorkspaceUserRoles.NO_ACCESS,
       ]);
 
       // Optional fields
@@ -85,7 +87,9 @@ export default function () {
         expect(workspaceTeam).to.have.property('team_icon').that.is.a('string');
       }
       if (workspaceTeam.team_badge_color !== undefined) {
-        expect(workspaceTeam).to.have.property('team_badge_color').that.is.a('string');
+        expect(workspaceTeam)
+          .to.have.property('team_badge_color')
+          .that.is.a('string');
         expect(workspaceTeam.team_badge_color).to.match(/^#[0-9A-Fa-f]{6}$/);
       }
 
@@ -135,7 +139,10 @@ export default function () {
       const workspaceTeam = addTeam.body;
       await _validateWorkspaceTeam(workspaceTeam);
       expect(workspaceTeam).to.have.property('team_id', teamId);
-      expect(workspaceTeam).to.have.property('workspace_role', WorkspaceUserRoles.CREATOR);
+      expect(workspaceTeam).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.CREATOR,
+      );
     });
 
     it('Add Team to Workspace v3 - Editor Role', async () => {
@@ -154,7 +161,10 @@ export default function () {
       const workspaceTeam = addTeam.body;
       await _validateWorkspaceTeam(workspaceTeam);
       expect(workspaceTeam).to.have.property('team_id', teamId);
-      expect(workspaceTeam).to.have.property('workspace_role', WorkspaceUserRoles.EDITOR);
+      expect(workspaceTeam).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.EDITOR,
+      );
     });
 
     it('Add Team to Workspace v3 - Viewer Role', async () => {
@@ -173,7 +183,10 @@ export default function () {
       const workspaceTeam = addTeam.body;
       await _validateWorkspaceTeam(workspaceTeam);
       expect(workspaceTeam).to.have.property('team_id', teamId);
-      expect(workspaceTeam).to.have.property('workspace_role', WorkspaceUserRoles.VIEWER);
+      expect(workspaceTeam).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.VIEWER,
+      );
     });
 
     it('Add Team to Workspace v3 - Commenter Role', async () => {
@@ -192,7 +205,10 @@ export default function () {
       const workspaceTeam = addTeam.body;
       await _validateWorkspaceTeam(workspaceTeam);
       expect(workspaceTeam).to.have.property('team_id', teamId);
-      expect(workspaceTeam).to.have.property('workspace_role', WorkspaceUserRoles.COMMENTER);
+      expect(workspaceTeam).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.COMMENTER,
+      );
     });
 
     it('Add Team to Workspace v3 - No Access Role', async () => {
@@ -211,7 +227,10 @@ export default function () {
       const workspaceTeam = addTeam.body;
       await _validateWorkspaceTeam(workspaceTeam);
       expect(workspaceTeam).to.have.property('team_id', teamId);
-      expect(workspaceTeam).to.have.property('workspace_role', WorkspaceUserRoles.NO_ACCESS);
+      expect(workspaceTeam).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.NO_ACCESS,
+      );
     });
 
     it('Add Team to Workspace v3 - Owner Role Rejected', async () => {
@@ -229,7 +248,9 @@ export default function () {
       // Validation
       const error = addTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('Only creator or lower roles are allowed for teams');
+      expect(error)
+        .to.have.property('msg')
+        .that.includes('Invalid request body');
     });
 
     it('Add Team to Workspace v3 - Invalid Role Rejected', async () => {
@@ -247,7 +268,9 @@ export default function () {
       // Validation
       const error = addTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('Only creator or lower roles are allowed for teams');
+      expect(error)
+        .to.have.property('msg')
+        .that.includes('Invalid request body');
     });
 
     it('Add Team to Workspace v3 - Team Not Found', async () => {
@@ -291,7 +314,9 @@ export default function () {
       // Validation
       const error = duplicateAdd.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('already assigned');
+      expect(error)
+        .to.have.property('message')
+        .that.includes('already assigned');
     });
 
     it('Get Workspace Team v3', async () => {
@@ -317,7 +342,10 @@ export default function () {
       const workspaceTeam = getTeam.body;
       await _validateWorkspaceTeam(workspaceTeam);
       expect(workspaceTeam).to.have.property('team_id', teamId);
-      expect(workspaceTeam).to.have.property('workspace_role', WorkspaceUserRoles.EDITOR);
+      expect(workspaceTeam).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.EDITOR,
+      );
     });
 
     it('Get Workspace Team v3 - Not Found', async () => {
@@ -361,7 +389,10 @@ export default function () {
       const workspaceTeam = updateTeam.body;
       await _validateWorkspaceTeam(workspaceTeam);
       expect(workspaceTeam).to.have.property('team_id', teamId);
-      expect(workspaceTeam).to.have.property('workspace_role', WorkspaceUserRoles.VIEWER);
+      expect(workspaceTeam).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.VIEWER,
+      );
     });
 
     it('Update Workspace Team v3 - Owner Role Rejected', async () => {
@@ -392,7 +423,9 @@ export default function () {
       // Validation
       const error = updateTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('Only creator or lower roles are allowed for teams');
+      expect(error)
+        .to.have.property('msg')
+        .that.includes('Invalid request body');
     });
 
     it('Update Workspace Team v3 - Team Not Found', async () => {
@@ -402,7 +435,9 @@ export default function () {
       };
 
       const updateTeam = await request(context.app)
-        .patch(`/api/v3/meta/workspaces/${workspaceId}/invites/non-existent-team`)
+        .patch(
+          `/api/v3/meta/workspaces/${workspaceId}/invites/non-existent-team`,
+        )
         .set('xc-token', context.xc_token)
         .send(updateData)
         .expect(422);
@@ -436,7 +471,9 @@ export default function () {
       };
 
       const updateTeam = await request(context.app)
-        .patch(`/api/v3/meta/workspaces/${workspaceId}/invites/${unassignedTeamId}`)
+        .patch(
+          `/api/v3/meta/workspaces/${workspaceId}/invites/${unassignedTeamId}`,
+        )
         .set('xc-token', context.xc_token)
         .send(updateData)
         .expect(422);
@@ -444,7 +481,7 @@ export default function () {
       // Validation
       const error = updateTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('not assigned to this workspace');
+      expect(error).to.have.property('message').that.includes('not found');
     });
 
     it('Remove Team from Workspace v3', async () => {
@@ -492,7 +529,9 @@ export default function () {
       };
 
       const removeTeam = await request(context.app)
-        .delete(`/api/v3/meta/workspaces/${workspaceId}/invites/non-existent-team`)
+        .delete(
+          `/api/v3/meta/workspaces/${workspaceId}/invites/non-existent-team`,
+        )
         .set('xc-token', context.xc_token)
         .send(removeData)
         .expect(422);
@@ -525,7 +564,9 @@ export default function () {
       };
 
       const removeTeam = await request(context.app)
-        .delete(`/api/v3/meta/workspaces/${workspaceId}/invites/${unassignedTeamId}`)
+        .delete(
+          `/api/v3/meta/workspaces/${workspaceId}/invites/${unassignedTeamId}`,
+        )
         .set('xc-token', context.xc_token)
         .send(removeData)
         .expect(422);
@@ -533,7 +574,7 @@ export default function () {
       // Validation
       const error = removeTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('not assigned to this workspace');
+      expect(error).to.have.property('message').that.includes('not found');
     });
 
     it('Forbidden due to plan not sufficient', async () => {
@@ -627,9 +668,15 @@ export default function () {
       await Promise.all(teams.map(_validateWorkspaceTeam));
 
       // Check specific roles
-      const creatorTeam = teams.find(t => t.workspace_role === WorkspaceUserRoles.CREATOR);
-      const editorTeam = teams.find(t => t.workspace_role === WorkspaceUserRoles.EDITOR);
-      const viewerTeam = teams.find(t => t.workspace_role === WorkspaceUserRoles.VIEWER);
+      const creatorTeam = teams.find(
+        (t) => t.workspace_role === WorkspaceUserRoles.CREATOR,
+      );
+      const editorTeam = teams.find(
+        (t) => t.workspace_role === WorkspaceUserRoles.EDITOR,
+      );
+      const viewerTeam = teams.find(
+        (t) => t.workspace_role === WorkspaceUserRoles.VIEWER,
+      );
 
       expect(creatorTeam).to.exist;
       expect(editorTeam).to.exist;

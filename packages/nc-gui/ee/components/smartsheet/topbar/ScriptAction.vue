@@ -30,6 +30,7 @@ const hasPrintableContent = computed(() => {
   <div v-if="!isLoadingAutomation && activeAutomation" class="flex items-center gap-2">
     <NcButton
       v-if="shouldShowSettings"
+      v-e="['a:script:settings:toggle', { visible: !isSettingsOpen }]"
       :class="{ '!bg-nc-bg-brand !hover:bg-brand-100/70 !text-nc-content-brand is-settings-open': isSettingsOpen }"
       type="secondary"
       size="small"
@@ -82,7 +83,10 @@ const hasPrintableContent = computed(() => {
           </NcMenuItem>
           <NcDivider />
 
-          <NcMenuItem @click="handlePrint">
+          <NcMenuItem
+            v-e="['a:script:print', { pageSize: selectedPageSize, orientation: selectedOrientation }]"
+            @click="handlePrint"
+          >
             <div class="flex items-center gap-2 text-nc-content-brand">
               <GeneralLoader v-if="isGenerating" />
               <GeneralIcon v-else icon="ncPrinter" />
@@ -106,13 +110,21 @@ const hasPrintableContent = computed(() => {
         Running Script ...
       </NcButton>
       <div class="flex items-center">
-        <NcButton type="secondary" size="small" class="!rounded-r-none" data-testid="nc-script-stop-btn" @click="stopExecution">
+        <NcButton
+          v-e="['a:script:stop']"
+          type="secondary"
+          size="small"
+          class="!rounded-r-none"
+          data-testid="nc-script-stop-btn"
+          @click="stopExecution"
+        >
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="ncStopCircle" />
             Stop
           </div>
         </NcButton>
         <NcButton
+          v-e="['a:script:restart']"
           type="secondary"
           size="small"
           class="!rounded-l-none !border-l-0"

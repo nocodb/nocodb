@@ -141,6 +141,8 @@ export const useAutomationStore = defineStore('automation', () => {
 
       await refreshCommandPalette()
 
+      $e('a:script:duplicate')
+
       return created
     } catch (e) {
       console.error(e)
@@ -216,6 +218,10 @@ export const useAutomationStore = defineStore('automation', () => {
 
       await refreshCommandPalette()
 
+      if (!options?.skipNetworkCall) {
+        $e('a:script:update')
+      }
+
       const baseAutomations = automations.value.get(baseId) || []
       const index = baseAutomations.findIndex((a) => a.id === automationId)
       if (index !== -1) {
@@ -270,6 +276,8 @@ export const useAutomationStore = defineStore('automation', () => {
       }
 
       await refreshCommandPalette()
+
+      $e('a:script:delete')
 
       if (!filtered.length) {
         ncNavigateTo({

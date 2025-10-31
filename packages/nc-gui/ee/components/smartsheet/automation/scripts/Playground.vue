@@ -315,6 +315,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
     <div v-else-if="showRunButton && scriptStore" class="flex items-center flex-col gap-3 h-full justify-center">
       <NcTooltip :disabled="scriptStore.isValidConfig">
         <NcButton
+          v-e="['a:script:run:playground']"
           size="small"
           type="primary"
           :disabled="!scriptStore.isValidConfig"

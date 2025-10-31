@@ -113,7 +113,7 @@ export const usePermissionSelector = (
       } else if (currentPermission.value === PermissionOptionValue.SPECIFIC_USERS) {
         granted_type = PermissionGrantedType.USER
         subjects = selectedUsers.value.map((user) => ({
-          type: 'user',
+          type: user.type ?? 'user',
           id: user.id,
         }))
       } else if (currentPermission.value === PermissionOptionValue.NOBODY) {

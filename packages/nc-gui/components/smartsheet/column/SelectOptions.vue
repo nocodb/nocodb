@@ -574,7 +574,14 @@ if (!isKanbanStack.value) {
         </div>
       </template>
       <template v-else>
-        <InfiniteLoading v-if="isReverseLazyLoad" v-bind="$attrs" @infinite="loadListDataReverse">
+        <InfiniteLoading
+          v-if="isReverseLazyLoad"
+          v-bind="$attrs"
+          top
+          :target="optionsWrapperDomRef"
+          :distance="80"
+          @infinite="loadListDataReverse"
+        >
           <template #spinner>
             <div class="flex flex-row w-full justify-center mt-2">
               <GeneralLoader />
@@ -691,7 +698,13 @@ if (!isKanbanStack.value) {
             </div>
           </template>
         </Draggable>
-        <InfiniteLoading v-if="!isReverseLazyLoad" v-bind="$attrs" @infinite="loadListData">
+        <InfiniteLoading
+          v-if="!isReverseLazyLoad"
+          v-bind="$attrs"
+          :target="optionsWrapperDomRef"
+          :distance="80"
+          @infinite="loadListData"
+        >
           <template #spinner>
             <div class="flex flex-row w-full justify-center mt-2">
               <GeneralLoader />

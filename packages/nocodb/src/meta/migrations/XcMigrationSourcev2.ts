@@ -167,6 +167,12 @@ export default class XcMigrationSourcev2 {
       'nc_089_dashboard_sharing',
       'nc_090_add_is_new_user_to_users',
       'nc_091_unify_model',
+      'nc_092_composite_pk',
+      'nc_093_oauth_server',
+      'nc_094_add_meta_to_filter_exp_v2',
+      'nc_096_deprecate_unused',
+      'nc_097_unify_schema',
+      'nc_098_default_workspace',
     ]);
   }
 

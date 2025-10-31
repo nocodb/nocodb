@@ -1,10 +1,7 @@
-import { down as cleanDown, up as cleanUp } from './nc_032_cleanup';
 import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  await cleanUp(knex);
-
   // Create nc_teams table
   await knex.schema.createTable(MetaTable.TEAMS, (table) => {
     table.string('id', 20).primary().notNullable();
@@ -62,8 +59,6 @@ const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.PRINCIPAL_ASSIGNMENTS);
   await knex.schema.dropTable(MetaTable.PRINCIPALS);
   await knex.schema.dropTable(MetaTable.TEAMS);
-
-  await cleanDown(knex);
 };
 
 export { up, down };

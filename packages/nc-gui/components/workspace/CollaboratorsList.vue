@@ -722,6 +722,8 @@ watch(inviteDlg, (newVal) => {
         ok-class="capitalize"
         :ok-text="$t('general.confirm')"
         :show-icon="false"
+        :keyboard="true"
+        :mask-closable="true"
         @cancel="onCancelRoleChangeConfirmationModal"
         @ok="onConfirmRoleChangeConfirmationModal"
       >

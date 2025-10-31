@@ -18,7 +18,7 @@ const props = defineProps<{
 const router = useRouter()
 const route = router.currentRoute
 
-const { workspaceRoles, isUIAllowed } = useRoles()
+const { workspaceRoles } = useRoles()
 
 const { user, isMobileMode } = useGlobal()
 

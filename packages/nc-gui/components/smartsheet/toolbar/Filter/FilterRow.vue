@@ -27,6 +27,8 @@ interface Props {
   deleteButtonProps?: any
   isColourFilter?: boolean
   isLoadingFilter?: boolean
+  // total visible filter count at current nested level
+  visibleFilterCount?: number
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -618,7 +620,7 @@ const onChangeToDynamic = async () => {
           class="nc-filter-item-reorder-btn nc-filter-group-row-drag-handler self-center"
           :class="{ 'pointer-events-none': isLoadingFilter }"
           :shadow="false"
-          :disabled="(vModel?.children || []).length === 1"
+          :disabled="!visibleFilterCount || visibleFilterCount <= 1"
         >
           <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
         </NcButton>

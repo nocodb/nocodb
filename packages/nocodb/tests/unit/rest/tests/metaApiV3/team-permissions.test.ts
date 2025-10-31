@@ -111,7 +111,7 @@ export default function () {
         .send([
           {
             user_id: teamManagerUser.user.id,
-            team_role: TeamUserRoles.MANAGER,
+            team_role: TeamUserRoles.OWNER,
           },
         ])
         .expect(200);

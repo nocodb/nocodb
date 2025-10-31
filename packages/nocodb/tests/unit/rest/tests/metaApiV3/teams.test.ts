@@ -102,7 +102,7 @@ export default function () {
         expect(member).to.have.property('user_email').that.is.a('string');
         expect(member).to.have.property('team_role').that.is.a('string');
         expect(member.team_role).to.be.oneOf([
-          TeamUserRoles.MANAGER,
+          TeamUserRoles.OWNER,
           TeamUserRoles.MEMBER,
         ]);
       }
@@ -123,7 +123,7 @@ export default function () {
         .and.includes('@');
       expect(member).to.have.property('team_role').that.is.a('string');
       expect(member.team_role).to.be.oneOf([
-        TeamUserRoles.MANAGER,
+        TeamUserRoles.OWNER,
         TeamUserRoles.MEMBER,
       ]);
     }
@@ -231,11 +231,11 @@ export default function () {
         members: [
           {
             user_id: manager1.id,
-            team_role: TeamUserRoles.MANAGER,
+            team_role: TeamUserRoles.OWNER,
           },
           {
             user_id: manager2.id,
-            team_role: TeamUserRoles.MANAGER,
+            team_role: TeamUserRoles.OWNER,
           },
         ],
       };
@@ -580,7 +580,7 @@ export default function () {
         },
         {
           user_id: user2.id,
-          team_role: TeamUserRoles.MANAGER,
+          team_role: TeamUserRoles.OWNER,
         },
       ];
 
@@ -599,7 +599,7 @@ export default function () {
       expect(member1).to.have.property('team_role', TeamUserRoles.MEMBER);
 
       const member2 = members.find((m) => m.user_id === user2.id);
-      expect(member2).to.have.property('team_role', TeamUserRoles.MANAGER);
+      expect(member2).to.have.property('team_role', TeamUserRoles.OWNER);
     });
 
     it('Add Members to Team v3 - User Not Found', async () => {
@@ -763,7 +763,7 @@ export default function () {
       const updateMemberData = [
         {
           user_id: user.id,
-          team_role: TeamUserRoles.MANAGER,
+          team_role: TeamUserRoles.OWNER,
         },
       ];
 
@@ -778,7 +778,7 @@ export default function () {
       expect(members).to.be.an('array').that.is.not.empty;
       await _validateTeamMember(members[0]);
       expect(members[0]).to.have.property('user_id', user.id);
-      expect(members[0]).to.have.property('team_role', TeamUserRoles.MANAGER);
+      expect(members[0]).to.have.property('team_role', TeamUserRoles.OWNER);
     });
 
     it('Update Team Members v3 - Member Not Found', async () => {
@@ -801,7 +801,7 @@ export default function () {
       const updateMemberData = [
         {
           user_id: 'non-existent-user',
-          team_role: TeamUserRoles.MANAGER,
+          team_role: TeamUserRoles.OWNER,
         },
       ];
 

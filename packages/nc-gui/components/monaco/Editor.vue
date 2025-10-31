@@ -271,7 +271,7 @@ watch(readOnly, (v) => {
 </script>
 
 <template>
-  <div class="relative h-full w-full">
+  <div class="relative h-full w-full flex flex-col">
     <!-- Loading State -->
     <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div class="text-center">
@@ -289,7 +289,7 @@ watch(readOnly, (v) => {
     </div>
 
     <!-- Monaco Editor -->
-    <div ref="root" class="h-full w-full" :class="{ 'opacity-0': isLoading || loadError }" />
+    <div ref="root" class="h-full w-full flex-1" :class="{ 'opacity-0': isLoading || loadError }" />
   </div>
 </template>
 

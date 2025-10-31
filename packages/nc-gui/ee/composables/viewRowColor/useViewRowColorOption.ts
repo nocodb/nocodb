@@ -138,6 +138,7 @@ export function useViewRowColorOption(params: {
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const filter = {
       id: undefined,
+      tmp_id: generateUniqueRandomUUID([], ['id', 'tmp_id']),
       fk_column_id: evalColumn?.id,
       comparison_op: 'eq',
       is_group: false,
@@ -153,6 +154,7 @@ export function useViewRowColorOption(params: {
 
     const conditionToAdd = {
       id: undefined,
+      tmp_id: generateUniqueRandomUUID(conditions, ['id', 'tmp_id']),
       color: getThemeV3RandomColor(conditions.length),
       conditions: [filter],
       is_set_as_background: false,
@@ -349,7 +351,6 @@ export function useViewRowColorOption(params: {
   }
 
   const onRowColorConditionFilterUpdate = async (colorIndex: number, params: FilterRowChangeEvent) => {
-    console.log('condition filter update', colorIndex, params, (rowColorInfo.value as RowColoringInfoFilter)?.conditions)
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToUpdate = conditions[colorIndex]!

@@ -121,8 +121,6 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 
     const colorConditions = vModel.value?.conditions || []
 
-    console.log('on move', event, colorConditions)
-
     if (!element || (!element.id && !element.tmp_id) || colorConditions.length === 1) return
 
     let nextOrder: number

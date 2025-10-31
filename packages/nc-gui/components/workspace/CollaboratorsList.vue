@@ -15,6 +15,9 @@ const props = defineProps<{
   height?: string
 }>()
 
+const router = useRouter()
+const route = router.currentRoute
+
 const { workspaceRoles, isUIAllowed } = useRoles()
 
 const { user, isMobileMode } = useGlobal()
@@ -364,6 +367,30 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
     })
   }
 }
+
+const handleEditTeam = (team: any) => {
+  if (!team?.team_id) return
+
+  router.push({ query: { ...route.value.query, teamId: team.team_id } })
+
+  isEditModalOpenUsingRouterPush.value = true
+}
+
+/**
+ * Reset search query on unmount
+ */
+watch(
+  () => props.isActive,
+  () => {
+    userSearchText.value = ''
+  },
+)
+
+watch(inviteDlg, (newVal) => {
+  if (!newVal) {
+    isInviteTeamDlg.value = false
+  }
+})
 </script>
 
 <template>
@@ -625,7 +652,11 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
                     <template v-if="isOwnerOrCreator || record.id === user.id">
                       <NcDivider />
 
-                      <template v-if="isAdminPanel">
+                      <NcMenuItem v-if="record.isTeam" @click="handleEditTeam(record)">
+                      <GeneralIcon icon="ncEdit" class="h-4 w-4" />
+                      {{ $t('general.edit') }}
+                    </NcMenuItem>
+                    <template v-if="isAdminPanel">
                         <NcMenuItem data-testid="nc-admin-org-user-delete">
                           <GeneralIcon icon="signout" />
                           <span>{{ $t('labels.signOutUser') }}</span>
@@ -633,7 +664,8 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
 
                         <NcDivider />
                       </template>
-                      <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
+  
+                    <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
                         <template #title>
                           {{ $t('tooltip.leaveWorkspace') }}
                         </template>

@@ -590,17 +590,6 @@ const rolePermissions:
       // Sync
       triggerSync: true,
 
-      // Dashboard
-      dashboardCreate: true,
-      dashboardUpdate: true,
-      dashboardDelete: true,
-
-      // Widget
-      widgetCreate: true,
-      widgetDuplicate: true,
-      widgetUpdate: true,
-      widgetDelete: true,
-
       // Extensions
       extensionUpdate: true,
     },

@@ -329,16 +329,16 @@ export default function () {
       expect(baseTeam).to.have.property('base_role', ProjectRoles.EDITOR);
     });
 
-    it('Get Base Team v3 - Not Found', async () => {
+    it('Get Base Team v3 - Is not assigned', async () => {
       const getTeam = await request(context.app)
         .get(`/api/v3/meta/bases/${baseId}/invites/non-existent-team`)
         .set('xc-token', context.xc_token)
-        .expect(422);
+        .expect(400);
 
       // Validation
       const error = getTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('not found');
+      expect(error).to.have.property('message').that.includes('is not assigned');
     });
 
     it('Update Base Team v3 - Role Change', async () => {
@@ -361,7 +361,7 @@ export default function () {
       };
 
       const updateTeam = await request(context.app)
-        .patch(`/api/v3/meta/bases/${baseId}/invites/${teamId}`)
+        .patch(`/api/v3/meta/bases/${baseId}/invites`)
         .set('xc-token', context.xc_token)
         .send(updateData)
         .expect(200);
@@ -393,7 +393,7 @@ export default function () {
       };
 
       const updateTeam = await request(context.app)
-        .patch(`/api/v3/meta/bases/${baseId}/invites/${teamId}`)
+        .patch(`/api/v3/meta/bases/${baseId}/invites`)
         .set('xc-token', context.xc_token)
         .send(updateData)
         .expect(400);
@@ -413,7 +413,7 @@ export default function () {
       };
 
       const updateTeam = await request(context.app)
-        .patch(`/api/v3/meta/bases/${baseId}/invites/non-existent-team`)
+        .patch(`/api/v3/meta/bases/${baseId}/invites`)
         .set('xc-token', context.xc_token)
         .send(updateData)
         .expect(422);
@@ -447,15 +447,15 @@ export default function () {
       };
 
       const updateTeam = await request(context.app)
-        .patch(`/api/v3/meta/bases/${baseId}/invites/${unassignedTeamId}`)
+        .patch(`/api/v3/meta/bases/${baseId}/invites`)
         .set('xc-token', context.xc_token)
         .send(updateData)
-        .expect(422);
+        .expect(400);
 
       // Validation
       const error = updateTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('not found');
+      expect(error).to.have.property('message').that.includes('not assigned to');
     });
 
     it('Remove Team from Base v3', async () => {
@@ -477,7 +477,7 @@ export default function () {
       };
 
       const removeTeam = await request(context.app)
-        .delete(`/api/v3/meta/bases/${baseId}/invites/${teamId}`)
+        .delete(`/api/v3/meta/bases/${baseId}/invites`)
         .set('xc-token', context.xc_token)
         .send(removeData)
         .expect(200);
@@ -503,15 +503,15 @@ export default function () {
       };
 
       const removeTeam = await request(context.app)
-        .delete(`/api/v3/meta/bases/${baseId}/invites/non-existent-team`)
+        .delete(`/api/v3/meta/bases/${baseId}/invites`)
         .set('xc-token', context.xc_token)
         .send(removeData)
-        .expect(422);
+        .expect(400);
 
       // Validation
       const error = removeTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('not found');
+      expect(error).to.have.property('message').that.includes('is not assigned');
     });
 
     it('Remove Team from Base v3 - Not Assigned to Base', async () => {
@@ -536,15 +536,15 @@ export default function () {
       };
 
       const removeTeam = await request(context.app)
-        .delete(`/api/v3/meta/bases/${baseId}/invites/${unassignedTeamId}`)
+        .delete(`/api/v3/meta/bases/${baseId}/invites`)
         .set('xc-token', context.xc_token)
         .send(removeData)
-        .expect(422);
+        .expect(400);
 
       // Validation
       const error = removeTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('not found');
+      expect(error).to.have.property('message').that.includes('is not assigned');
     });
 
     it('Forbidden due to plan not sufficient', async () => {

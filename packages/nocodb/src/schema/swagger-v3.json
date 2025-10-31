@@ -8581,6 +8581,33 @@
           "workspace_role"
         ]
       },
+      "WorkspaceTeamCreateBulk": {
+        "type": "object",
+        "description": "Bulk create workspace team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to add to workspace",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceTeamCreate"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123",
+                "workspace_role": "workspace-level-editor"
+              },
+              {
+                "team_id": "team456",
+                "workspace_role": "workspace-level-viewer"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
+        ]
+      },
       "WorkspaceTeamUpdate": {
         "type": "object",
         "description": "Update workspace team request for v3 API",
@@ -8622,6 +8649,31 @@
           "team_id"
         ]
       },
+      "WorkspaceTeamDeleteBulk": {
+        "type": "object",
+        "description": "Bulk delete workspace team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to remove from workspace",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceTeamDelete"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123"
+              },
+              {
+                "team_id": "team456"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
+        ]
+      },
       "BaseTeamCreate": {
         "type": "object",
         "description": "Create base team request for v3 API",
@@ -8647,6 +8699,33 @@
         "required": [
           "team_id",
           "base_role"
+        ]
+      },
+      "BaseTeamCreateBulk": {
+        "type": "object",
+        "description": "Bulk create base team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to add to base",
+            "items": {
+              "$ref": "#/components/schemas/BaseTeamCreate"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123",
+                "base_role": "editor"
+              },
+              {
+                "team_id": "team456",
+                "base_role": "viewer"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
         ]
       },
       "BaseTeamUpdate": {
@@ -8688,6 +8767,31 @@
         },
         "required": [
           "team_id"
+        ]
+      },
+      "BaseTeamDeleteBulk": {
+        "type": "object",
+        "description": "Bulk delete base team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to remove from base",
+            "items": {
+              "$ref": "#/components/schemas/BaseTeamDelete"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123"
+              },
+              {
+                "team_id": "team456"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
         ]
       }
     },

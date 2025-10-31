@@ -17,47 +17,37 @@ const up = async (knex: Knex) => {
     table.index('fk_workspace_id', 'nc_teams_workspace_idx');
   });
 
-  // Note: Team membership is handled through nc_principals and nc_principal_assignments tables
-  // No separate nc_team_users table needed
+  // Note: Team membership is handled through nc_principal_assignments table
+  // No separate nc_team_users or nc_principals table needed
 
-  // Create nc_principals table (polymorphic access control)
-  await knex.schema.createTable(MetaTable.PRINCIPALS, (table) => {
-    table.string('id', 20).primary().notNullable();
-    table.string('principal_type', 20).notNullable(); // 'user', 'team', 'bot', etc.
-    table.string('ref_id', 20).notNullable(); // FK to user/team/bot table
-    table.timestamps(true, true);
-
-    // Index for fast lookup by type and reference
-    table.index(['principal_type', 'ref_id'], 'nc_principals_type_ref_idx');
-  });
-
-  // Create nc_principal_assignments table (polymorphic resource assignments)
+  // Create nc_principal_assignments table (simplified polymorphic resource assignments)
   await knex.schema.createTable(MetaTable.PRINCIPAL_ASSIGNMENTS, (table) => {
-    table.string('resource_type', 20).notNullable(); // 'org', 'workspace', 'base', etc.
+    table.string('resource_type', 20).notNullable(); // 'org', 'workspace', 'base', 'team', etc.
     table.string('resource_id', 20).notNullable(); // ID of the resource
-    table.string('fk_principal_id', 20).notNullable();
+    table.string('principal_type', 20).notNullable(); // 'user', 'team', 'workspace', etc.
+    table.string('principal_ref_id', 20).notNullable(); // FK to user/team/workspace table
     table.string('roles', 255).notNullable(); // Role(s) assigned
     table.timestamps(true, true);
 
     // Primary key on composite columns
     table.primary(
-      ['resource_type', 'resource_id', 'fk_principal_id'],
+      ['resource_type', 'resource_id', 'principal_type', 'principal_ref_id'],
       'nc_principal_assignments_pk',
     );
 
     // Indexes for fast lookups
-    table.index('fk_principal_id', 'nc_principal_assignments_principal_idx');
+    table.index(['principal_type', 'principal_ref_id'], 'nc_principal_assignments_principal_idx');
     table.index(
       ['resource_type', 'resource_id'],
       'nc_principal_assignments_resource_idx',
     );
+    table.index(['principal_type', 'principal_ref_id', 'resource_type'], 'nc_principal_assignments_principal_resource_idx');
   });
 };
 
 const down = async (knex: Knex) => {
   // Drop tables in reverse order
   await knex.schema.dropTable(MetaTable.PRINCIPAL_ASSIGNMENTS);
-  await knex.schema.dropTable(MetaTable.PRINCIPALS);
   await knex.schema.dropTable(MetaTable.TEAMS);
 };
 

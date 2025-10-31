@@ -8635,13 +8635,13 @@
             "type": "string",
             "description": "Base role to assign to the team (creator or lower only)",
             "enum": [
-              "project-level-creator",
-              "project-level-editor",
-              "project-level-viewer",
-              "project-level-commenter",
-              "project-level-no-access"
+              "creator",
+              "editor",
+              "viewer",
+              "commenter",
+              "no-access"
             ],
-            "example": "project-level-editor"
+            "example": "editor"
           }
         },
         "required": [
@@ -8662,13 +8662,13 @@
             "type": "string",
             "description": "New base role for the team (creator or lower only)",
             "enum": [
-              "project-level-creator",
-              "project-level-editor",
-              "project-level-viewer",
-              "project-level-commenter",
-              "project-level-no-access"
+              "creator",
+              "editor",
+              "viewer",
+              "commenter",
+              "no-access"
             ],
-            "example": "project-level-viewer"
+            "example": "viewer"
           }
         },
         "required": [

@@ -1,6 +1,11 @@
 import 'mocha';
 import request from 'supertest';
-import { PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk';
+import {
+  ncIsNullOrUndefined,
+  PlanFeatureTypes,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
 import { overrideFeature } from '../../../utils/plan.utils';
@@ -61,25 +66,47 @@ export default function () {
       expect(Object.keys(baseTeam)).to.include.members([
         'team_id',
         'team_title',
-        'base_role',
         'created_at',
         'updated_at',
       ]);
 
       expect(baseTeam).to.have.property('team_id').that.is.a('string');
       expect(baseTeam).to.have.property('team_title').that.is.a('string');
-      expect(baseTeam).to.have.property('base_role').that.is.a('string');
       expect(baseTeam).to.have.property('created_at').that.is.a('string');
       expect(baseTeam).to.have.property('updated_at').that.is.a('string');
 
-      // Validate base role is one of the allowed values
-      expect(baseTeam.base_role).to.be.oneOf([
-        ProjectRoles.CREATOR,
-        ProjectRoles.EDITOR,
-        ProjectRoles.VIEWER,
-        ProjectRoles.COMMENTER,
-        ProjectRoles.NO_ACCESS,
-      ]);
+      // Either base_role or workspace_role should be present
+      expect(baseTeam).to.satisfy(
+        (team) =>
+          !ncIsNullOrUndefined(team.base_role) ||
+          !ncIsNullOrUndefined(team.workspace_role),
+        'Team should have either base_role or workspace_role',
+      );
+
+      // Validate base role if present
+      if (baseTeam.base_role !== undefined && baseTeam.base_role !== null) {
+        expect(baseTeam.base_role).to.be.oneOf([
+          ProjectRoles.CREATOR,
+          ProjectRoles.EDITOR,
+          ProjectRoles.VIEWER,
+          ProjectRoles.COMMENTER,
+          ProjectRoles.NO_ACCESS,
+        ]);
+      }
+
+      // Validate workspace role if present
+      if (
+        baseTeam.workspace_role !== undefined &&
+        baseTeam.workspace_role !== null
+      ) {
+        expect(baseTeam.workspace_role).to.be.oneOf([
+          WorkspaceUserRoles.CREATOR,
+          WorkspaceUserRoles.EDITOR,
+          WorkspaceUserRoles.VIEWER,
+          WorkspaceUserRoles.COMMENTER,
+          WorkspaceUserRoles.NO_ACCESS,
+        ]);
+      }
 
       // Optional fields
       if (baseTeam.team_icon !== undefined) {
@@ -338,7 +365,9 @@ export default function () {
       // Validation
       const error = getTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('is not assigned');
+      expect(error)
+        .to.have.property('message')
+        .that.includes('is not assigned');
     });
 
     it('Update Base Team v3 - Role Change', async () => {
@@ -455,7 +484,9 @@ export default function () {
       // Validation
       const error = updateTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('not assigned to');
+      expect(error)
+        .to.have.property('message')
+        .that.includes('not assigned to');
     });
 
     it('Remove Team from Base v3', async () => {
@@ -511,7 +542,9 @@ export default function () {
       // Validation
       const error = removeTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('is not assigned');
+      expect(error)
+        .to.have.property('message')
+        .that.includes('is not assigned');
     });
 
     it('Remove Team from Base v3 - Not Assigned to Base', async () => {
@@ -544,7 +577,9 @@ export default function () {
       // Validation
       const error = removeTeam.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('message').that.includes('is not assigned');
+      expect(error)
+        .to.have.property('message')
+        .that.includes('is not assigned');
     });
 
     it('Forbidden due to plan not sufficient', async () => {
@@ -647,6 +682,364 @@ export default function () {
       expect(creatorTeam).to.exist;
       expect(editorTeam).to.exist;
       expect(viewerTeam).to.exist;
+    });
+
+    it('List Base Teams v3 - Include Workspace Teams', async () => {
+      // Create additional teams for workspace assignment
+      const workspaceTeamData1 = {
+        title: 'Workspace Team 1',
+        icon: '🏢',
+        badge_color: '#FF0000',
+      };
+
+      const workspaceTeamData2 = {
+        title: 'Workspace Team 2',
+        icon: '🏭',
+        badge_color: '#00FF00',
+      };
+
+      const createWorkspaceTeam1 = await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+        .set('xc-token', context.xc_token)
+        .send(workspaceTeamData1)
+        .expect(200);
+
+      const createWorkspaceTeam2 = await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+        .set('xc-token', context.xc_token)
+        .send(workspaceTeamData2)
+        .expect(200);
+
+      const workspaceTeamId1 = createWorkspaceTeam1.body.id;
+      const workspaceTeamId2 = createWorkspaceTeam2.body.id;
+
+      // Add teams to workspace with different roles
+      await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: workspaceTeamId1,
+          workspace_role: WorkspaceUserRoles.EDITOR,
+        })
+        .expect(200);
+
+      await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: workspaceTeamId2,
+          workspace_role: WorkspaceUserRoles.VIEWER,
+        })
+        .expect(200);
+
+      // Add original team to base
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: teamId,
+          base_role: ProjectRoles.CREATOR,
+        })
+        .expect(200);
+
+      // List base teams - should include both base teams and workspace teams
+      const listTeams = await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      // Validation
+      const teams = listTeams.body.list;
+      expect(teams).to.be.an('array').that.has.length(3);
+
+      // Validate each team
+      await Promise.all(teams.map(_validateBaseTeam));
+
+      // Check specific roles
+      const baseTeam = teams.find((t) => t.team_id === teamId);
+      const workspaceTeam1 = teams.find((t) => t.team_id === workspaceTeamId1);
+      const workspaceTeam2 = teams.find((t) => t.team_id === workspaceTeamId2);
+
+      expect(baseTeam).to.exist;
+      expect(baseTeam.base_role).to.equal(ProjectRoles.CREATOR);
+      expect(baseTeam.workspace_role).to.be.null;
+
+      expect(workspaceTeam1).to.exist;
+      expect(workspaceTeam1.base_role).to.be.null;
+      expect(workspaceTeam1.workspace_role).to.equal(WorkspaceUserRoles.EDITOR);
+
+      expect(workspaceTeam2).to.exist;
+      expect(workspaceTeam2.base_role).to.be.null;
+      expect(workspaceTeam2.workspace_role).to.equal(WorkspaceUserRoles.VIEWER);
+    });
+
+    it('Get Base Team v3 - Workspace Team', async () => {
+      // Create a workspace team
+      const workspaceTeamData = {
+        title: 'Workspace Team Detail',
+        icon: '🔍',
+        badge_color: '#0000FF',
+      };
+
+      const createWorkspaceTeam = await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+        .set('xc-token', context.xc_token)
+        .send(workspaceTeamData)
+        .expect(200);
+
+      const workspaceTeamId = createWorkspaceTeam.body.id;
+
+      // Add team to workspace
+      await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: workspaceTeamId,
+          workspace_role: WorkspaceUserRoles.COMMENTER,
+        })
+        .expect(200);
+
+      // Get workspace team details through base team endpoint
+      const getTeam = await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}/invites/${workspaceTeamId}`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      // Validation
+      const baseTeam = getTeam.body;
+      await _validateBaseTeam(baseTeam);
+      expect(baseTeam).to.have.property('team_id', workspaceTeamId);
+      expect(baseTeam).to.have.property('base_role', null);
+      expect(baseTeam).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.COMMENTER,
+      );
+    });
+
+    it('Get Base Team v3 - Shows Both Base and Workspace Roles', async () => {
+      // Create a team
+      const teamData = {
+        title: 'Precedence Team',
+        icon: '⚖️',
+        badge_color: '#FFFF00',
+      };
+
+      const createTeam = await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+        .set('xc-token', context.xc_token)
+        .send(teamData)
+        .expect(200);
+
+      const precedenceTeamId = createTeam.body.id;
+
+      // Add team to workspace first
+      await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: precedenceTeamId,
+          workspace_role: WorkspaceUserRoles.VIEWER,
+        })
+        .expect(200);
+
+      // Add same team to base
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: precedenceTeamId,
+          base_role: ProjectRoles.EDITOR,
+        })
+        .expect(200);
+
+      // Get team details - should show both base role and workspace role
+      const getTeam = await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}/invites/${precedenceTeamId}`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      // Validation
+      const baseTeam = getTeam.body;
+      await _validateBaseTeam(baseTeam);
+      expect(baseTeam).to.have.property('team_id', precedenceTeamId);
+      expect(baseTeam).to.have.property('base_role', ProjectRoles.EDITOR);
+      expect(baseTeam).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.VIEWER,
+      );
+    });
+
+    it('List Base Teams v3 - Mixed Base and Workspace Teams', async () => {
+      // Create teams for different scenarios
+      const baseOnlyTeamData = {
+        title: 'Base Only Team',
+        icon: '📁',
+        badge_color: '#FF00FF',
+      };
+
+      const workspaceOnlyTeamData = {
+        title: 'Workspace Only Team',
+        icon: '🏢',
+        badge_color: '#00FFFF',
+      };
+
+      const bothTeamData = {
+        title: 'Both Teams',
+        icon: '🔄',
+        badge_color: '#FFFFFF',
+      };
+
+      const createBaseOnlyTeam = await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+        .set('xc-token', context.xc_token)
+        .send(baseOnlyTeamData)
+        .expect(200);
+
+      const createWorkspaceOnlyTeam = await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+        .set('xc-token', context.xc_token)
+        .send(workspaceOnlyTeamData)
+        .expect(200);
+
+      const createBothTeam = await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+        .set('xc-token', context.xc_token)
+        .send(bothTeamData)
+        .expect(200);
+
+      const baseOnlyTeamId = createBaseOnlyTeam.body.id;
+      const workspaceOnlyTeamId = createWorkspaceOnlyTeam.body.id;
+      const bothTeamId = createBothTeam.body.id;
+
+      // Add base only team to base
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: baseOnlyTeamId,
+          base_role: ProjectRoles.VIEWER,
+        })
+        .expect(200);
+
+      // Add workspace only team to workspace
+      await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: workspaceOnlyTeamId,
+          workspace_role: WorkspaceUserRoles.CREATOR,
+        })
+        .expect(200);
+
+      // Add both team to workspace
+      await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: bothTeamId,
+          workspace_role: WorkspaceUserRoles.COMMENTER,
+        })
+        .expect(200);
+
+      // Add both team to base
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: bothTeamId,
+          base_role: ProjectRoles.EDITOR,
+        })
+        .expect(200);
+
+      // List all teams
+      const listTeams = await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      // Validation
+      const teams = listTeams.body.list;
+      expect(teams).to.be.an('array').that.has.length(3);
+
+      // Validate each team
+      await Promise.all(teams.map(_validateBaseTeam));
+
+      // Check specific scenarios
+      const baseOnlyTeam = teams.find((t) => t.team_id === baseOnlyTeamId);
+      const workspaceOnlyTeam = teams.find(
+        (t) => t.team_id === workspaceOnlyTeamId,
+      );
+      const bothTeam = teams.find((t) => t.team_id === bothTeamId);
+
+      expect(baseOnlyTeam).to.exist;
+      expect(baseOnlyTeam.base_role).to.equal(ProjectRoles.VIEWER);
+      expect(baseOnlyTeam.workspace_role).to.be.null;
+
+      expect(workspaceOnlyTeam).to.exist;
+      expect(workspaceOnlyTeam.base_role).to.be.null;
+      expect(workspaceOnlyTeam.workspace_role).to.equal(
+        WorkspaceUserRoles.CREATOR,
+      );
+
+      expect(bothTeam).to.exist;
+      expect(bothTeam.base_role).to.equal(ProjectRoles.EDITOR);
+      expect(bothTeam.workspace_role).to.equal(WorkspaceUserRoles.COMMENTER); // Both roles shown
+    });
+
+    it('List Base Teams v3 - Shows Both Roles When Assigned to Both', async () => {
+      // Create a team
+      const teamData = {
+        title: 'Both Roles Team',
+        icon: '🔄',
+        badge_color: '#FFA500',
+      };
+
+      const createTeam = await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+        .set('xc-token', context.xc_token)
+        .send(teamData)
+        .expect(200);
+
+      const bothRolesTeamId = createTeam.body.id;
+
+      // Add team to workspace first
+      await request(context.app)
+        .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: bothRolesTeamId,
+          workspace_role: WorkspaceUserRoles.CREATOR,
+        })
+        .expect(200);
+
+      // Add same team to base
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .send({
+          team_id: bothRolesTeamId,
+          base_role: ProjectRoles.VIEWER,
+        })
+        .expect(200);
+
+      // List base teams - should show both roles
+      const listTeams = await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}/invites`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      // Validation
+      const teams = listTeams.body.list;
+      expect(teams).to.be.an('array').that.has.length(1);
+
+      const team = teams[0];
+      await _validateBaseTeam(team);
+      expect(team).to.have.property('team_id', bothRolesTeamId);
+      expect(team).to.have.property('base_role', ProjectRoles.VIEWER);
+      expect(team).to.have.property(
+        'workspace_role',
+        WorkspaceUserRoles.CREATOR,
+      );
     });
   });
 }

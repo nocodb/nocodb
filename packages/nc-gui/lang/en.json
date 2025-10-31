@@ -2433,7 +2433,8 @@
       "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
       "matchedByButtonLabel": "Matched by button label",
       "matchedByFieldDescription": "Matched by field description",
-      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles."
+      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles.",
+      "workspaceTeamRoleUpdateNotice": "Changing a team’s workspace role will also update team’s access to bases where they do not have explict roles."
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",

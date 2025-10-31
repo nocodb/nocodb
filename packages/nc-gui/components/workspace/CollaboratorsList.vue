@@ -691,7 +691,11 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
               <template #description>
                 <div class="text-nc-content-yellow-dark">
                   <b>{{ $t('general.notice') }}:</b>
-                  {{ $t('msg.info.workspaceRoleUpdateNotice') }}
+                  {{
+                    userRoleUpdateInfo.collab?.isTeam
+                      ? $t('msg.info.workspaceTeamRoleUpdateNotice')
+                      : $t('msg.info.workspaceRoleUpdateNotice')
+                  }}
                 </div>
               </template>
             </NcAlert>

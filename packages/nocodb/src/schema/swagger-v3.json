@@ -8553,6 +8553,68 @@
           "workspace-level-commenter",
           "workspace-level-no-access"
         ]
+      },
+      "WorkspaceTeamCreate": {
+        "type": "object",
+        "description": "Create workspace team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to add to workspace",
+            "example": "team123"
+          },
+          "workspace_role": {
+            "type": "string",
+            "description": "Workspace role to assign to the team (creator or lower only)",
+            "$ref": "#/components/schemas/WorkspaceRoles",
+            "example": "workspace-level-editor"
+          }
+        },
+        "required": [
+          "team_id",
+          "workspace_role"
+        ]
+      },
+      "WorkspaceTeamUpdate": {
+        "type": "object",
+        "description": "Update workspace team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to update in workspace",
+            "example": "team123"
+          },
+          "workspace_role": {
+            "type": "string",
+            "description": "New workspace role for the team (creator or lower only)",
+            "enum": [
+              "workspace-level-creator",
+              "workspace-level-editor",
+              "workspace-level-viewer",
+              "workspace-level-commenter",
+              "workspace-level-no-access"
+            ],
+            "example": "workspace-level-viewer"
+          }
+        },
+        "required": [
+          "team_id",
+          "workspace_role"
+        ]
+      },
+      "WorkspaceTeamDelete": {
+        "type": "object",
+        "description": "Delete workspace team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to remove from workspace",
+            "example": "team123"
+          }
+        },
+        "required": [
+          "team_id"
+        ]
       }
     },
     "responses": {

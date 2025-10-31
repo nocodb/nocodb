@@ -28,6 +28,10 @@ const { orgId, org } = storeToRefs(orgStore)
 const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled, getFeature, blockTeamsManagement, showUpgradeToUseTeams } =
   useEeConfig()
 
+const hasTeamsEditPermission = computed(() => {
+  return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
+})
+
 const currentWorkspace = computedAsync(async () => {
   if (deletingWorkspace.value) return
   let ws
@@ -59,7 +63,7 @@ const tab = computed({
       })
     }
 
-    if (isEeUI && tab === 'teams' && isTeamsEnabled.value && showUpgradeToUseTeams()) return
+    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
 
     if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({} as any, props.workspaceId)
@@ -109,7 +113,7 @@ watch(
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
-      (isEeUI && isTeamsEnabled.value && blockTeamsManagement.value && newTab === 'teams')
+      ((!isEeUI || !hasTeamsEditPermission.value || blockTeamsManagement.value) && newTab === 'teams')
     ) {
       tab.value = 'collaborators'
     }
@@ -200,7 +204,18 @@ onBeforeUnmount(() => {
             </div>
           </template>
 
-          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
+          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="tab === 'collaborators'" />
+        </a-tab-pane>
+
+        <a-tab-pane v-if="isEeUI && hasTeamsEditPermission" key="teams" class="w-full h-full">
+          <template #tab>
+            <div class="tab-title">
+              <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
+              {{ $t('general.teams') }}
+            </div>
+          </template>
+
+          <WorkspaceTeams :workspace-id="currentWorkspace.id" :is-active="tab === 'teams'" />
         </a-tab-pane>
       </template>
       <template v-if="!isMobileMode">

@@ -15,7 +15,7 @@ const props = defineProps<{
   height?: string
 }>()
 
-const { workspaceRoles } = useRoles()
+const { workspaceRoles, isUIAllowed } = useRoles()
 
 const { user, isMobileMode } = useGlobal()
 
@@ -443,6 +443,7 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
                 <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT">
                   <template #default="{ click }">
                     <NcMenuItem
+                      :disabled="!isUIAllowed('workspaceTeamAdd')"
                       @click="
                         click(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, () => {
                           if (showUpgradeToAddMoreTeams()) return

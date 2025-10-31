@@ -711,7 +711,10 @@
       "alreadyAdded": "Already added",
       "membersAddedToTeam": "Members added to team",
       "nMembersHaveBeenAddedIntoTeam": "{n} members have been added into the {team} team",
-      "unableToAddMembers": "Unable to add members"
+      "unableToAddMembers": "Unable to add members",
+      "removeTeam": "Remove team",
+      "confirmRemoveTeamFromWorkspaceTitle": "Are you sure you want to remove team from workspace?",
+      "confirmRemoveTeamFromWorkspaceSubtitle": "If you remove, team members will lose access to all bases and data within this workspace"
     }
   },
   "datatype": {

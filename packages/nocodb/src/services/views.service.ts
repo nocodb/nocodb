@@ -4,6 +4,7 @@ import {
   EventType,
   getFirstNonPersonalView,
   ProjectRoles,
+  ViewLockType,
   ViewTypes,
 } from 'nocodb-sdk';
 import type {
@@ -215,7 +216,7 @@ export class ViewsService {
     // if the owned_by is not the same as the user, then throw error
     // if owned_by is empty, then only allow owner of project to change
     if (
-      param.view.lock_type === 'personal' &&
+      param.view.lock_type === ViewLockType.Personal &&
       param.view.lock_type !== oldView.lock_type
     ) {
       // Check if this is the last collaborative grid view
@@ -353,7 +354,10 @@ export class ViewsService {
 
     // Check if this is the last collaborative grid view
     // Use helper to find if there's at least one other non-personal grid view
-    if (view.type === ViewTypes.GRID && view.lock_type !== 'personal') {
+    if (
+      view.type === ViewTypes.GRID &&
+      view.lock_type !== ViewLockType.Personal
+    ) {
       const otherNonPersonalGridView = getFirstNonPersonalView(
         views.filter((v) => v.id !== view.id),
         { includeViewType: ViewTypes.GRID },

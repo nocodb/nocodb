@@ -3032,7 +3032,11 @@ class PGClient extends KnexClient {
       query += n.rqd ? ' NOT NULL' : ' NULL';
       query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
       query += n.unique ? ` UNIQUE` : '';
-      query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
+      query = this.genQuery(
+        `ALTER TABLE ?? ?;`,
+        [t, this.sqlClient.raw(query)],
+        shouldSanitize,
+      );
     } else {
       if (n.cn !== o.cn) {
         query += this.genQuery(

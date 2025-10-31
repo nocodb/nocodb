@@ -36,6 +36,7 @@ const {
   removingCollaboratorMap,
   isTeamsEnabled,
   teams,
+  teamsMap,
   workspaceTeams,
 } = storeToRefs(workspaceStore)
 
@@ -561,7 +562,7 @@ watch(inviteDlg, (newVal) => {
             </template>
 
             <template v-if="column.key === 'email' && record.isTeam">
-              <GeneralTeamInfo :team="transformToTeamObject(record)" :show-members-count="false" />
+              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" />
             </template>
 
             <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center">
@@ -648,7 +649,7 @@ watch(inviteDlg, (newVal) => {
                     <template v-if="isOwnerOrCreator || record.id === user.id">
                       <NcDivider />
 
-                      <NcMenuItem v-if="record.isTeam" @click="handleEditTeam(record)">
+                      <NcMenuItem v-if="record.isTeam && teamsMap[record.id]?.is_member" @click="handleEditTeam(record)">
                       <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                       {{ $t('general.edit') }}
                     </NcMenuItem>

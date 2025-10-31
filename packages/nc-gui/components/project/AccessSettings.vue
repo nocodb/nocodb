@@ -15,6 +15,12 @@ const props = defineProps<{
 
 const router = useRouter()
 
+const { user, ncNavigateTo } = useGlobal()
+
+const { showInfoModal } = useNcConfirmModal()
+
+const { isTeamsEnabled, activeWorkspaceId, teamsMap } = storeToRefs(useWorkspace())
+
 const { isPrivateBase, base } = storeToRefs(useBase())
 
 const basesStore = useBases()
@@ -548,7 +554,7 @@ onBeforeUnmount(() => {
             </template>
 
             <template v-if="column.key === 'email' && record.isTeam">
-              <GeneralTeamInfo :team="transformToTeamObject(record)" :show-members-count="false" />
+              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" />
             </template>
 
             <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">

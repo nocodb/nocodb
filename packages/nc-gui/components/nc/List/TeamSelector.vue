@@ -55,18 +55,18 @@ async function onChangeTeam(val: SelectValue) {
 }
 
 const teamSelectorOptions = computed<NcListItemType[]>(() => {
-  return (props.teams || teamList.value || []).map(
-    (team): NcListItemType => ({
-      ...team,
-      value: team.id,
-      label: team.title,
-      description: `${team.members_count || 0} ${t('labels.members')}`,
-      icon: team.icon,
-      icon_type: team.icon_type,
-      ncItemDisabled: props.existingTeamIds?.includes(team.id),
-      ncItemTooltip: props.existingTeamIds?.includes(team.id) ? t('objects.teams.alreadyAdded') : '',
-    }),
-  )
+  return (props.teams || teamList.value || [])
+    .filter((team) => !props.existingTeamIds?.includes(team.id))
+    .map(
+      (team): NcListItemType => ({
+        ...team,
+        value: team.id,
+        label: team.title,
+        description: `${team.members_count || 0} ${t('labels.members')}`,
+        icon: team.icon,
+        icon_type: team.icon_type,
+      }),
+    )
 })
 
 const selectedTeams = computed(() => {
@@ -122,6 +122,9 @@ const selectedTeams = computed(() => {
           :close-on-select="!isMultiSelect"
           class="!w-auto"
           :is-locked="!!newTeam"
+          :empty-description="
+            !teamSelectorOptions.length && existingTeamIds?.length ? $t('objects.teams.noMoreTeamsToAdd') : undefined
+          "
           variant="default"
           item-class-name="nc-team-select-dropdown"
           :wrapper-class-name="`!h-auto nc-team-selector-dropdown ${!!newTeam ? '!cursor-wait' : ''}`"

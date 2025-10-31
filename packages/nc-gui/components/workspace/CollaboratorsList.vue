@@ -24,8 +24,16 @@ const workspaceStore = useWorkspace()
 
 const { removeCollaborator: _removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading, removingCollaboratorMap } =
-  storeToRefs(workspaceStore)
+const {
+  collaborators,
+  activeWorkspace,
+  workspacesList,
+  isCollaboratorsLoading,
+  removingCollaboratorMap,
+  isTeamsEnabled,
+  teams,
+  workspaceTeams,
+} = storeToRefs(workspaceStore)
 
 const {
   isPaymentEnabled,
@@ -569,6 +577,8 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
         :workspace-id="currentWorkspace?.id"
         type="workspace"
         :users="sortedCollaborators"
+        :teams="teams"
+        :existing-team-ids="workspaceTeams?.map((team: any) => team.team_id) || []"
       />
 
       <NcModalConfirm

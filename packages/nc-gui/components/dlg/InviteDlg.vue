@@ -18,6 +18,8 @@ const props = defineProps<{
   emails?: string[]
   workspaceId?: string
   users?: Array<Pick<UserType, 'email'>>
+  teams?: Array<TeamV3V3Type>
+  existingTeamIds?: string[]
 }>()
 const emit = defineEmits(['update:modelValue'])
 
@@ -31,7 +33,7 @@ const { baseRoles, workspaceRoles } = useRoles()
 
 const { createProjectUser } = basesStore
 
-const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
+const { inviteCollaborator: inviteWsCollaborator, workspaceTeamAdd } = workspaceStore
 
 const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, showUserMayChargeAlert } = useEeConfig()
 
@@ -47,6 +49,7 @@ const userRoles = computed(() => {
 
 const inviteData = reactive({
   email: '',
+  selectedTeamIds: [],
   roles: orderedRoles.value.NO_ACCESS,
 })
 
@@ -103,13 +106,19 @@ watch(dialogShow, async (newVal) => {
   if (newVal) {
     try {
       const rolesArr = Object.values(orderedRoles.value)
-      const currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
+      let currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
+
       if (currentRoleIndex !== -1) {
+        // We don't allow user to assign owner role to a team
+        if (props.isTeam && currentRoleIndex === 0) {
+          currentRoleIndex = 1
+        }
+
         allowedRoles.value = rolesArr.slice(currentRoleIndex)
         disabledRoles.value = rolesArr.slice(0, currentRoleIndex)
       } else {
-        allowedRoles.value = rolesArr
-        disabledRoles.value = []
+        allowedRoles.value = props.isTeam ? rolesArr.slice(1) : rolesArr
+        disabledRoles.value = props.isTeam ? rolesArr.slice(0, 1) : []
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -119,6 +128,10 @@ watch(dialogShow, async (newVal) => {
       emailBadges.value = props.emails
     }
 
+    if (props.isTeam) {
+      emailValidation.isError = false
+    }
+
     setTimeout(() => {
       focusOnDiv()
     }, 100)
@@ -126,6 +139,7 @@ watch(dialogShow, async (newVal) => {
     emailBadges.value = []
     inviteData.email = ''
     singleEmailValue.value = ''
+    inviteData.selectedTeamIds = []
   }
 })
 
@@ -161,6 +175,10 @@ const emailInputValidation = (input: string, isBulkEmailCopyPaste = false): bool
 }
 
 const isInviteButtonDisabled = computed(() => {
+  if (props.isTeam) {
+    return !inviteData.selectedTeamIds?.length
+  }
+
   if (!emailBadges.value.length && !singleEmailValue.value.length) {
     return true
   }
@@ -183,6 +201,10 @@ const showUserWillChargedWarning = computed(() => {
 })
 
 watch(inviteData, (newVal) => {
+  if (props.isTeam) {
+    return
+  }
+
   // when user only want to enter a single email
   // we don't convert that as badge
 
@@ -231,6 +253,8 @@ const handleEnter = () => {
 }
 // remove one email per backspace
 onKeyStroke('Backspace', () => {
+  if (props.isTeam) return
+
   if (isDivFocused.value && inviteData.email.length < 1) {
     emailBadges.value.pop()
   }
@@ -283,47 +307,57 @@ const onPaste = (e: ClipboardEvent) => {
 const inviteCollaborator = async () => {
   try {
     isLoading.value = true
-    const payloadData = singleEmailValue.value || emailBadges.value.join(',')
-    if (!payloadData.includes(',')) {
-      const validationStatus = validateEmail(payloadData)
-      if (!validationStatus) {
-        emailValidation.isError = true
-        emailValidation.message = 'invalid email'
-      }
-    }
 
-    for (const email of payloadData?.split(',')) {
-      if (props.users?.some((u) => u.email === email.trim())) {
-        let scopeLabel = 'objects.project'
-
-        if (props.type === 'workspace') {
-          scopeLabel = 'objects.workspace'
-        } else if (props.type === 'organization') {
-          scopeLabel = 'general.organization'
+    if (!props.isTeam) {
+      const payloadData = singleEmailValue.value || emailBadges.value.join(',')
+      if (!payloadData.includes(',')) {
+        const validationStatus = validateEmail(payloadData)
+        if (!validationStatus) {
+          emailValidation.isError = true
+          emailValidation.message = 'invalid email'
         }
+      }
 
-        warningMsg.value = t('msg.userAlreadyExists', { email: email.trim(), scope: t(scopeLabel).toLowerCase() })
-        return
+      for (const email of payloadData?.split(',')) {
+        if (props.users?.some((u) => u.email === email.trim())) {
+          let scopeLabel = 'objects.project'
+
+          if (props.type === 'workspace') {
+            scopeLabel = 'objects.workspace'
+          } else if (props.type === 'organization') {
+            scopeLabel = 'general.organization'
+          }
+
+          warningMsg.value = t('msg.userAlreadyExists', { email: email.trim(), scope: t(scopeLabel).toLowerCase() })
+          return
+        }
+      }
+
+      if (props.type === 'base' && props.baseId) {
+        await createProjectUser(props.baseId!, {
+          email: payloadData,
+          roles: inviteData.roles,
+        } as unknown as User)
+      } else if (props.type === 'workspace' && props.workspaceId) {
+        await inviteWsCollaborator(payloadData, inviteData.roles, props.workspaceId)
+      } else if (props.type === 'organization') {
+        // TODO: Add support for Bulk Workspace Invite
+        for (const workspace of selectedWorkspaces.value) {
+          await inviteWsCollaborator(payloadData, inviteData.roles, workspace.id)
+        }
+      }
+
+      message.success(t('msg.info.inviteSent'))
+      inviteData.email = ''
+      emailBadges.value = []
+    } else {
+      if (props.type === 'workspace' && props.workspaceId) {
+        await workspaceTeamAdd(props.workspaceId, {
+          team_id: inviteData.selectedTeamIds[0]!,
+          workspace_role: inviteData.roles as Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>,
+        })
       }
     }
-
-    if (props.type === 'base' && props.baseId) {
-      await createProjectUser(props.baseId!, {
-        email: payloadData,
-        roles: inviteData.roles,
-      } as unknown as User)
-    } else if (props.type === 'workspace' && props.workspaceId) {
-      await inviteWsCollaborator(payloadData, inviteData.roles, props.workspaceId)
-    } else if (props.type === 'organization') {
-      // TODO: Add support for Bulk Workspace Invite
-      for (const workspace of selectedWorkspaces.value) {
-        await inviteWsCollaborator(payloadData, inviteData.roles, workspace.id)
-      }
-    }
-
-    message.success(t('msg.info.inviteSent'))
-    inviteData.email = ''
-    emailBadges.value = []
     dialogShow.value = false
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
@@ -377,6 +411,10 @@ const removeEmail = (index: number) => {
   if (emailBadges.value.length === 0) {
     inviteData.email = ''
   }
+}
+
+const onTeamChange = async (_teamIds: RawValueType) => {
+  inviteData.selectedTeamIds = (_teamIds as string[]) ?? []
 }
 </script>
 
@@ -441,6 +479,18 @@ const removeEmail = (index: number) => {
               @input="warningMsg = null"
             />
           </div>
+          <NcListTeamSelector
+            v-else
+            :on-change="onTeamChange"
+            :value="inviteData.selectedTeamIds || []"
+            is-multi-select
+            :teams="teams"
+            :existing-team-ids="existingTeamIds"
+            class="!min-w-[152px] nc-add-team-selector"
+            size="lg"
+            placement="bottomLeft"
+          />
+
           <div class="flex items-center justify-between gap-4">
             <div class="md:hidden text-nc-content-gray text-bodyLg">{{ $t('labels.selectRole') }}:</div>
             <div class="flex items-center">

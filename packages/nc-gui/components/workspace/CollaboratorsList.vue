@@ -653,7 +653,7 @@ watch(inviteDlg, (newVal) => {
                       <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                       {{ $t('general.edit') }}
                     </NcMenuItem>
-                    <template v-if="isAdminPanel">
+                    <template v-if="isAdminPanel && !record.isTeam">
                         <NcMenuItem data-testid="nc-admin-org-user-delete">
                           <GeneralIcon icon="signout" />
                           <span>{{ $t('labels.signOutUser') }}</span>
@@ -667,7 +667,7 @@ watch(inviteDlg, (newVal) => {
                           {{ $t('tooltip.leaveWorkspace') }}
                         </template>
                         <NcMenuItem
-                          :disabled="!isDeleteOrUpdateAllowed(record)"
+                          :disabled="!isDeleteOrUpdateAllowed(record) || (record.isTeam && !isOwnerOrCreator)"
                           danger
                           @click="removeCollaborator(record.id, currentWorkspace?.id, record)"
                         >

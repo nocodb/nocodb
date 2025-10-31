@@ -716,7 +716,9 @@
       "unableToAddMembers": "Unable to add members",
       "removeTeam": "Remove team",
       "confirmRemoveTeamFromWorkspaceTitle": "Are you sure you want to remove team from workspace?",
-      "confirmRemoveTeamFromWorkspaceSubtitle": "If you remove, team members will lose access to all bases and data within this workspace"
+      "confirmRemoveTeamFromWorkspaceSubtitle": "If you remove, team members will lose access to all bases and data within this workspace",
+      "nMemberSelected": "{n} member selected",
+      "nMembersSelected": "{n} members selected"
     }
   },
   "datatype": {

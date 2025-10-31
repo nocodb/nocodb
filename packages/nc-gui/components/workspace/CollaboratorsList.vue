@@ -237,6 +237,12 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
   return OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
 })
 
+const getTeamCompatibleAccessibleRoles = (roles: WorkspaceUserRoles[], record: any) => {
+  if (!record?.isTeam) return roles
+
+  return roles.filter((r) => r !== WorkspaceUserRoles.OWNER)
+}
+
 onMounted(async () => {
   loadSorts()
 })
@@ -526,12 +532,12 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
             </div>
             <div v-if="column.key === 'role'">
               <template
-                v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles as WorkspaceUserRoles)"
+                v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles as WorkspaceUserRoles)"
               >
                 <RolesSelectorV2
                   :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
                   :role="record.roles"
-                  :roles="accessibleRoles"
+                  :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
                   class="cursor-pointer"
                 />
               </template>

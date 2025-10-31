@@ -7,11 +7,11 @@ import { createUser } from '../../../factory/user';
 import { overrideFeature } from '../../../utils/plan.utils';
 
 // routes
-// List : http://localhost:8080/api/v3/workspaces/{workspace_id}/teams
-// Add : http://localhost:8080/api/v3/workspaces/{workspace_id}/teams
-// Get : http://localhost:8080/api/v3/workspaces/{workspace_id}/teams/{team_id}
-// Update : http://localhost:8080/api/v3/workspaces/{workspace_id}/teams/{team_id}
-// Remove : http://localhost:8080/api/v3/workspaces/{workspace_id}/teams/{team_id}
+// List : http://localhost:8080/api/v3/meta/workspaces/{workspace_id}/invites
+// Add : http://localhost:8080/api/v3/meta/workspaces/{workspace_id}/invites
+// Get : http://localhost:8080/api/v3/meta/workspaces/{workspace_id}/invites/{team_id}
+// Update : http://localhost:8080/api/v3/meta/workspaces/{workspace_id}/invites/{team_id}
+// Remove : http://localhost:8080/api/v3/meta/workspaces/{workspace_id}/invites/{team_id}
 
 export default function () {
   if (!isEE()) {
@@ -102,14 +102,14 @@ export default function () {
       };
 
       await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
 
       // List workspace teams
       const listTeams = await request(context.app)
-        .get(`/api/v3/workspaces/${workspaceId}/teams`)
+        .get(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .expect(200);
 
@@ -126,7 +126,7 @@ export default function () {
       };
 
       const addTeam = await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
@@ -145,7 +145,7 @@ export default function () {
       };
 
       const addTeam = await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
@@ -164,7 +164,7 @@ export default function () {
       };
 
       const addTeam = await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
@@ -183,7 +183,7 @@ export default function () {
       };
 
       const addTeam = await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
@@ -202,7 +202,7 @@ export default function () {
       };
 
       const addTeam = await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
@@ -221,7 +221,7 @@ export default function () {
       };
 
       const addTeam = await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(400);
@@ -239,7 +239,7 @@ export default function () {
       };
 
       const addTeam = await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(400);
@@ -257,10 +257,10 @@ export default function () {
       };
 
       const addTeam = await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
-        .expect(404);
+        .expect(422);
 
       // Validation
       const error = addTeam.body;
@@ -276,14 +276,14 @@ export default function () {
 
       // Add team first time
       await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
 
       // Try to add same team again
       const duplicateAdd = await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(400);
@@ -302,14 +302,14 @@ export default function () {
       };
 
       await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
 
       // Get workspace team details
       const getTeam = await request(context.app)
-        .get(`/api/v3/workspaces/${workspaceId}/teams/${teamId}`)
+        .get(`/api/v3/meta/workspaces/${workspaceId}/invites/${teamId}`)
         .set('xc-token', context.xc_token)
         .expect(200);
 
@@ -322,9 +322,9 @@ export default function () {
 
     it('Get Workspace Team v3 - Not Found', async () => {
       const getTeam = await request(context.app)
-        .get(`/api/v3/workspaces/${workspaceId}/teams/non-existent-team`)
+        .get(`/api/v3/meta/workspaces/${workspaceId}/invites/non-existent-team`)
         .set('xc-token', context.xc_token)
-        .expect(404);
+        .expect(422);
 
       // Validation
       const error = getTeam.body;
@@ -340,7 +340,7 @@ export default function () {
       };
 
       await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
@@ -352,7 +352,7 @@ export default function () {
       };
 
       const updateTeam = await request(context.app)
-        .patch(`/api/v3/workspaces/${workspaceId}/teams/${teamId}`)
+        .patch(`/api/v3/meta/workspaces/${workspaceId}/invites/${teamId}`)
         .set('xc-token', context.xc_token)
         .send(updateData)
         .expect(200);
@@ -372,7 +372,7 @@ export default function () {
       };
 
       await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
@@ -384,7 +384,7 @@ export default function () {
       };
 
       const updateTeam = await request(context.app)
-        .patch(`/api/v3/workspaces/${workspaceId}/teams/${teamId}`)
+        .patch(`/api/v3/meta/workspaces/${workspaceId}/invites/${teamId}`)
         .set('xc-token', context.xc_token)
         .send(updateData)
         .expect(400);
@@ -402,10 +402,10 @@ export default function () {
       };
 
       const updateTeam = await request(context.app)
-        .patch(`/api/v3/workspaces/${workspaceId}/teams/non-existent-team`)
+        .patch(`/api/v3/meta/workspaces/${workspaceId}/invites/non-existent-team`)
         .set('xc-token', context.xc_token)
         .send(updateData)
-        .expect(404);
+        .expect(422);
 
       // Validation
       const error = updateTeam.body;
@@ -436,10 +436,10 @@ export default function () {
       };
 
       const updateTeam = await request(context.app)
-        .patch(`/api/v3/workspaces/${workspaceId}/teams/${unassignedTeamId}`)
+        .patch(`/api/v3/meta/workspaces/${workspaceId}/invites/${unassignedTeamId}`)
         .set('xc-token', context.xc_token)
         .send(updateData)
-        .expect(400);
+        .expect(422);
 
       // Validation
       const error = updateTeam.body;
@@ -455,7 +455,7 @@ export default function () {
       };
 
       await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send(addData)
         .expect(200);
@@ -466,7 +466,7 @@ export default function () {
       };
 
       const removeTeam = await request(context.app)
-        .delete(`/api/v3/workspaces/${workspaceId}/teams/${teamId}`)
+        .delete(`/api/v3/meta/workspaces/${workspaceId}/invites/${teamId}`)
         .set('xc-token', context.xc_token)
         .send(removeData)
         .expect(200);
@@ -481,9 +481,9 @@ export default function () {
 
       // Verify team is removed from workspace
       await request(context.app)
-        .get(`/api/v3/workspaces/${workspaceId}/teams/${teamId}`)
+        .get(`/api/v3/meta/workspaces/${workspaceId}/invites/${teamId}`)
         .set('xc-token', context.xc_token)
-        .expect(404);
+        .expect(400);
     });
 
     it('Remove Team from Workspace v3 - Not Found', async () => {
@@ -492,10 +492,10 @@ export default function () {
       };
 
       const removeTeam = await request(context.app)
-        .delete(`/api/v3/workspaces/${workspaceId}/teams/non-existent-team`)
+        .delete(`/api/v3/meta/workspaces/${workspaceId}/invites/non-existent-team`)
         .set('xc-token', context.xc_token)
         .send(removeData)
-        .expect(404);
+        .expect(422);
 
       // Validation
       const error = removeTeam.body;
@@ -525,10 +525,10 @@ export default function () {
       };
 
       const removeTeam = await request(context.app)
-        .delete(`/api/v3/workspaces/${workspaceId}/teams/${unassignedTeamId}`)
+        .delete(`/api/v3/meta/workspaces/${workspaceId}/invites/${unassignedTeamId}`)
         .set('xc-token', context.xc_token)
         .send(removeData)
-        .expect(400);
+        .expect(422);
 
       // Validation
       const error = removeTeam.body;
@@ -545,7 +545,7 @@ export default function () {
 
       // Try to list workspace teams
       const listTeams = await request(context.app)
-        .get(`/api/v3/workspaces/${workspaceId}/teams`)
+        .get(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .expect(403);
 
@@ -587,7 +587,7 @@ export default function () {
 
       // Add all teams to workspace with different roles
       await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send({
           team_id: teamId,
@@ -596,7 +596,7 @@ export default function () {
         .expect(200);
 
       await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send({
           team_id: teamId1,
@@ -605,7 +605,7 @@ export default function () {
         .expect(200);
 
       await request(context.app)
-        .post(`/api/v3/workspaces/${workspaceId}/teams`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .send({
           team_id: teamId2,
@@ -615,7 +615,7 @@ export default function () {
 
       // List all workspace teams
       const listTeams = await request(context.app)
-        .get(`/api/v3/workspaces/${workspaceId}/teams`)
+        .get(`/api/v3/meta/workspaces/${workspaceId}/invites`)
         .set('xc-token', context.xc_token)
         .expect(200);
 

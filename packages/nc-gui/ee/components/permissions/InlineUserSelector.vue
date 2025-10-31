@@ -35,11 +35,11 @@ const selectedUsersList = computed(() => {
   const basesStore = useBases()
   const { basesTeams } = storeToRefs(basesStore)
   const teams = basesTeams.value.get(props.baseId) || []
-  
+
   return Array.from(selectedUsers.value)
     .map((userId) => {
       // Check if it's a team
-      const team = teams.find(team => team.team_id === userId)
+      const team = teams.find((team) => team.team_id === userId)
       if (team) {
         return {
           ...team,
@@ -86,45 +86,45 @@ async function calculateVisibleUsers() {
   hiddenCount.value = selectedUsersList.value.length - count
 }
 
-  // Handle save
-  const handleSave = async () => {
-    const selectedIds = Array.from(selectedUsers.value)
-    const basesStore = useBases()
-    const { basesTeams } = storeToRefs(basesStore)
+// Handle save
+const handleSave = async () => {
+  const selectedIds = Array.from(selectedUsers.value)
+  const basesStore = useBases()
+  const { basesTeams } = storeToRefs(basesStore)
 
-    const users: PermissionSelectorUser[] = []
-    
-    for (const id of selectedIds) {
-      // Check if it's a team
-      const teams = basesTeams.value.get(props.baseId) || []
-      const team = teams.find(team => team.team_id === id)
-      
-      if (team) {
+  const users: PermissionSelectorUser[] = []
+
+  for (const id of selectedIds) {
+    // Check if it's a team
+    const teams = basesTeams.value.get(props.baseId) || []
+    const team = teams.find((team) => team.team_id === id)
+
+    if (team) {
+      users.push({
+        id: team.team_id,
+        display_name: team.team_title,
+        type: 'team',
+      })
+    } else {
+      // It's a user
+      const user = baseUsers.value.find((user) => user.id === id)
+      if (user) {
         users.push({
-          id: team.team_id,
-          display_name: team.team_title,
-          type: 'team',
+          id: user.id,
+          email: user.email,
+          display_name: user.display_name,
+          type: 'user',
         })
-      } else {
-        // It's a user
-        const user = baseUsers.value.find((user) => user.id === id)
-        if (user) {
-          users.push({
-            id: user.id,
-            email: user.email,
-            display_name: user.display_name,
-            type: 'user',
-          })
-        }
       }
     }
-
-    emits('save', {
-      selectedUsers: users,
-    })
-
-    $e('a:permissions:users:save')
   }
+
+  emits('save', {
+    selectedUsers: users,
+  })
+
+  $e('a:permissions:users:save')
+}
 
 // Reset search and save when dropdown closes
 watch(isDropdownOpen, (isOpen) => {
@@ -204,12 +204,8 @@ watch(selectedUsersList, () => {
               class="flex items-stretch gap-2 text-small"
             >
               <div>
-                <GeneralTeamInfo
-                  v-if="user?.isTeam"
-                  :team="user"
-                  class="!text-[0.6rem]"
-                />
-        <GeneralUserIcon
+                <GeneralTeamIcon v-if="user?.isTeam" show-placeholder-icon :team="user" class="!text-[0.6rem] !h-[18px]" />
+                <GeneralUserIcon
                   v-else
                   size="auto"
                   :user="user"
@@ -217,7 +213,7 @@ watch(selectedUsersList, () => {
                   :disabled="selectedBelowMinimumRoleUsers.includes(user?.id ?? '')"
                 />
               </div>
-                <NcTooltip class="truncate max-w-full !leading-5 !text-caption" show-on-truncate-only>
+              <NcTooltip class="truncate max-w-full !leading-5 !text-caption" show-on-truncate-only>
                 <template #title>
                   {{ user?.isTeam ? user.display_name : extractUserDisplayNameOrEmail(user) }}
                 </template>

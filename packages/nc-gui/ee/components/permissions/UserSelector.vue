@@ -40,12 +40,12 @@ const onSave = async () => {
     const { basesTeams } = storeToRefs(basesStore)
 
     const users: PermissionSelectorUser[] = []
-    
+
     for (const id of selectedIds) {
       // Check if it's a team
       const teams = basesTeams.value.get(props.baseId) || []
-      const team = teams.find(team => team.team_id === id)
-      
+      const team = teams.find((team) => team.team_id === id)
+
       if (team) {
         users.push({
           id: team.team_id,

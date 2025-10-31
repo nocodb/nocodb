@@ -8,6 +8,8 @@ import { EventBusEnum, ScriptActionType, SmartsheetScriptActions } from '~/lib/e
 export const useScriptExecutor = createSharedComposable(() => {
   const { internalApi, api } = useApi()
 
+  const { $e } = useNuxtApp()
+
   const automationStore = useAutomationStore()
 
   const { loadAutomation, updateBaseSchema } = automationStore
@@ -77,6 +79,7 @@ export const useScriptExecutor = createSharedComposable(() => {
         }
 
         execution.playground.push(item)
+        $e('a:script:output', { type: 'log' })
       }
     },
     error: (scriptId: string, stepId?: string, ...args: any[]) => {
@@ -93,6 +96,7 @@ export const useScriptExecutor = createSharedComposable(() => {
         }
 
         execution.playground.push(item)
+        $e('a:script:output', { type: 'error' })
       }
     },
     warn: (scriptId: string, stepId?: string, ...args: any[]) => {
@@ -109,6 +113,7 @@ export const useScriptExecutor = createSharedComposable(() => {
         }
 
         execution.playground.push(item)
+        $e('a:script:output', { type: 'warn' })
       }
     },
     output: {
@@ -126,6 +131,7 @@ export const useScriptExecutor = createSharedComposable(() => {
           }
 
           execution.playground.push(item)
+          $e('a:script:output', { type: 'text', style: type })
         }
       },
       markdown: (scriptId: string, content: string, stepId?: string) => {
@@ -142,6 +148,7 @@ export const useScriptExecutor = createSharedComposable(() => {
           }
 
           execution.playground.push(item)
+          $e('a:script:output', { type: 'markdown' })
         }
       },
       table: (scriptId: string, data: any[] | object, stepId?: string) => {
@@ -158,6 +165,7 @@ export const useScriptExecutor = createSharedComposable(() => {
           }
 
           execution.playground.push(item)
+          $e('a:script:output', { type: 'table' })
         }
       },
       clear: (scriptId: string) => {
@@ -181,6 +189,7 @@ export const useScriptExecutor = createSharedComposable(() => {
           }
 
           execution.playground.push(item)
+          $e('a:script:output', { type: 'inspect' })
         }
       },
     },
@@ -253,6 +262,8 @@ export const useScriptExecutor = createSharedComposable(() => {
         }
         activeSteps.value.set(message.payload.stepId, stepItem)
         execution.playground.push(stepItem)
+
+        $e('a:script:output', { type: 'workflow-step', color: message.payload.color })
 
         // Update ActionManager with current step title
         eventBus.emit(SmartsheetScriptActions.UPDATE_STEP_TITLE, {

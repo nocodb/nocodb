@@ -11,6 +11,8 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'change'])
 
+const { $e } = useNuxtApp()
+
 const { updateScript, isSettingsOpen, isValidConfig } = useScriptStoreOrThrow()
 
 const configValue = useVModel(props, 'modelValue', emit)
@@ -66,6 +68,9 @@ const triggerUpdate = async () => {
     await updateScript({
       config: configValue.value,
     })
+
+    $e('a:script:config:save')
+
     message.toast('Script settings saved!')
     isSettingsOpen.value = false
   } catch (error) {

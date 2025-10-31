@@ -9,6 +9,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const { activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
   const { activeProjectId } = storeToRefs(useBases())
   const { isUIAllowed } = useRoles()
+  const { $e } = useNuxtApp()
   const isEditorOpen = ref(true)
   const {
     runScript: executeScript,
@@ -108,6 +109,8 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
       ...activeAutomation.value,
       script: activeAutomation.value.script,
     })
+
+    $e('a:script:run')
   }
 
   const stopScript = () => {

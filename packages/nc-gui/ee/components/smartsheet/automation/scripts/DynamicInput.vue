@@ -8,20 +8,22 @@ const props = defineProps<DynamicInputProps>()
 
 const { content } = toRefs(props)
 
+const { $e } = useNuxtApp()
+
 const inputValue = ref(content.value?.defaultValue)
 const isResolved = ref(false)
 
 const resolveInput = (value?: string | File | AttachmentReqType[]) => {
   if (value !== undefined || inputValue.value) {
     isResolved.value = true
+    $e('a:script:input:resolve', { type: content.value?.type })
     props.onResolve(value !== undefined ? value : inputValue.value)
   }
 }
 
 const onChange = () => {
   if (inputValue.value) {
-    isResolved.value = true
-    props.onResolve(inputValue.value)
+    resolveInput(inputValue.value)
   }
 }
 

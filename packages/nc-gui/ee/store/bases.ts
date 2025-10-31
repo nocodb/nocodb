@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
-import { SqlUiFactory } from 'nocodb-sdk'
+import { ProjectRoles, SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type Record from '~icons/*'
 
@@ -99,16 +99,32 @@ export const useBases = defineStore('basesStore', () => {
 
   const createProjectUser = async (baseId: string, user: User) => {
     await api.auth.baseUserAdd(baseId, user as ProjectUserReqType)
+
+    if (user.id === currentUser.value?.id && user.roles !== ProjectRoles.NO_ACCESS) {
+      if (bases.value.has(baseId)) {
+        bases.value.set(baseId, {
+          ...(bases.value.get(baseId) || {}),
+          project_role: user.roles,
+        })
+      }
+    }
   }
 
   const updateProjectUser = async (baseId: string, user: User) => {
     await api.auth.baseUserUpdate(baseId, user.id, user as ProjectUserReqType)
 
     // reload roles if updating roles of current user
-    if (user.id === currentUser.value?.id) {
+    if (user.id === currentUser.value?.id && user.roles !== ProjectRoles.NO_ACCESS) {
       loadRoles(baseId).catch(() => {
         // ignore
       })
+
+      if (bases.value.has(baseId)) {
+        bases.value.set(baseId, {
+          ...(bases.value.get(baseId) || {}),
+          project_role: user.roles,
+        })
+      }
     }
   }
 

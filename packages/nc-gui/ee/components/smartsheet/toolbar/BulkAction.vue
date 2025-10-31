@@ -349,7 +349,7 @@ const executeAction = async (
               </NcButton>
             </NcTooltip>
           </div>
-          <NcDivider />
+          <NcDivider v-if="buttonActionColumns.length" />
           <div class="px-2">
             <NcButton full-width class="w-full" type="text" size="small" @click="activeActionPane">
               <div class="flex items-center !w-full gap-2">

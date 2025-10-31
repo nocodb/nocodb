@@ -13,6 +13,8 @@ export const useRealtime = createSharedComposable(() => {
 
   const { user, ncNavigateTo } = useGlobal()
 
+  const { loadRoles } = useRoles()
+
   const { updateStatLimit } = useEeConfig()
 
   const { showInfoModal } = useNcConfirmModal()
@@ -453,19 +455,34 @@ export const useRealtime = createSharedComposable(() => {
           }
         }
 
-        if (payload.fk_user_id === user.value?.id && payload.roles === 'no-access') {
-          bases.value.delete(baseId)
+        if (payload.fk_user_id === user.value?.id) {
+          if (payload.roles === 'no-access') {
+            bases.value.delete(baseId)
 
-          if (activeBaseId.value === baseId) {
-            ncNavigateTo({
-              workspaceId: activeWorkspaceId.value,
-              baseId: undefined,
-              tableId: undefined,
-            })
-            showInfoModal({
-              title: `Base no longer available`,
-              content: `${payload.title} may have been deleted or your access removed.`,
-            })
+            if (activeBaseId.value === baseId) {
+              ncNavigateTo({
+                workspaceId: activeWorkspaceId.value,
+                baseId: undefined,
+                tableId: undefined,
+              })
+              showInfoModal({
+                title: `Base no longer available`,
+                content: `${payload.title} may have been deleted or your access removed.`,
+              })
+            }
+          } else {
+            if (activeBaseId.value === baseId) {
+              loadRoles(baseId).catch(() => {
+                // ignore
+              })
+            }
+
+            if (bases.value.has(baseId)) {
+              bases.value.set(baseId, {
+                ...(bases.value.get(baseId) || {}),
+                project_role: payload.roles,
+              })
+            }
           }
         }
         refreshCommandPalette()

@@ -195,9 +195,8 @@ const onDelete = () => {
           </div>
         </template>
         <template #nestedRowEnd>
-          <div class="flex items-center" :class="{ 'cursor-wait': isLoadingFilter }">
+          <div v-if="!vModel.readOnly && !disabled" class="flex items-center" :class="{ 'cursor-wait': isLoadingFilter }">
             <NcButton
-              v-if="!vModel.readOnly && !disabled"
               :key="index"
               v-e="['c:filter:delete', { link: !!link, webHook: !!webHook, widget: !!widget }]"
               type="text"
@@ -209,9 +208,9 @@ const onDelete = () => {
             >
               <component :is="iconMap.deleteListItem" />
             </NcButton>
-
+          </div>
+          <div v-if="!isDisabled" class="flex items-center" :class="{ 'cursor-wait': isLoadingFilter }">
             <NcButton
-              v-if="!isDisabled"
               v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook, widget: !!widget }]"
               type="text"
               size="small"
@@ -234,7 +233,8 @@ const onDelete = () => {
   @apply text-gray-400;
 }
 
-.nc-filter-item-remove-btn {
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn {
   @apply text-gray-600 hover:text-gray-800;
 }
 

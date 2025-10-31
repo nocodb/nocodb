@@ -617,7 +617,8 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
   @apply text-gray-400;
 }
 
-.nc-filter-item-remove-btn {
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn {
   @apply text-gray-600 hover:text-gray-800;
 }
 

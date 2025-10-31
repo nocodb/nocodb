@@ -184,7 +184,9 @@
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature.",
     "upgradeToUseTeams": "Upgrade to use teams",
-    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases."
+    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToAddMoreTeams": "Upgrade to add more teams",
+    "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace."
   },
   "general": {
     "script": "Script",

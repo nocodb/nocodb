@@ -44,6 +44,7 @@ const {
   isWsOwner,
   navigateToPricing,
   isTopBannerVisible,
+  showUpgradeToAddMoreTeams,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -439,6 +440,8 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
                     <NcMenuItem
                       @click="
                         click(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, () => {
+                          if (showUpgradeToAddMoreTeams()) return
+
                           isInviteTeamDlg = true
                           inviteDlg = true
                         })

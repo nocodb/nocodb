@@ -657,14 +657,16 @@ watch(inviteDlg, (newVal) => {
                       "
                     />
 
-                    <template v-if="isOwnerOrCreator || record.id === user.id">
+                    <template
+                      v-if="isOwnerOrCreator || record.id === user?.id || (record.isTeam && teamsMap[record.id]?.is_member)"
+                    >
                       <NcDivider />
 
                       <NcMenuItem v-if="record.isTeam && teamsMap[record.id]?.is_member" @click="handleEditTeam(record)">
-                      <GeneralIcon icon="ncEdit" class="h-4 w-4" />
-                      {{ $t('general.edit') }}
-                    </NcMenuItem>
-                    <template v-if="isAdminPanel && !record.isTeam">
+                        <GeneralIcon icon="ncEdit" class="h-4 w-4" />
+                        {{ $t('general.edit') }}
+                      </NcMenuItem>
+                      <template v-if="isAdminPanel && !record.isTeam">
                         <NcMenuItem data-testid="nc-admin-org-user-delete">
                           <GeneralIcon icon="signout" />
                           <span>{{ $t('labels.signOutUser') }}</span>
@@ -672,8 +674,8 @@ watch(inviteDlg, (newVal) => {
 
                         <NcDivider />
                       </template>
-  
-                    <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
+
+                      <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
                         <template #title>
                           {{ $t('tooltip.leaveWorkspace') }}
                         </template>
@@ -687,12 +689,12 @@ watch(inviteDlg, (newVal) => {
                           </div>
                           <GeneralIcon v-else icon="delete" />
                           {{
-                          record.isTeam
-                            ? $t('objects.teams.removeTeam')
-                            : record.id === user.id
-                            ? t('activity.leaveWorkspace')
-                            : t('activity.removeMember')
-                        }}
+                            record.isTeam
+                              ? $t('objects.teams.removeTeam')
+                              : record.id === user.id
+                              ? t('activity.leaveWorkspace')
+                              : t('activity.removeMember')
+                          }}
                         </NcMenuItem>
                       </NcTooltip>
                     </template>

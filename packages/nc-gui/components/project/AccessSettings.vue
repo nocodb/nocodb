@@ -125,24 +125,11 @@ const loadCollaborators = async () => {
   try {
     if (!currentBase.value) return
 
-    const promises = []
-
-    promises.push(
-      getBaseUsers({
-        baseId: currentBase.value.id!,
-        ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
-        force: true,
-      }),
-    )
-
-    promises.push(
-      getBaseTeams({
-        baseId: currentBase.value.id!,
-        force: true,
-      }),
-    )
-
-    const [{ users }] = await Promise.all(promises)
+    const { users } = await getBaseUsers({
+      baseId: currentBase.value.id!,
+      ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
+      force: true,
+    })
 
     collaborators.value = [
       ...(users || [])
@@ -159,6 +146,15 @@ const loadCollaborators = async () => {
     ]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    if (currentBase.value) {
+      getBaseTeams({
+        baseId: currentBase.value.id!,
+        force: true,
+      }).catch(() => {
+        // ignore
+      })
+    }
   }
 }
 

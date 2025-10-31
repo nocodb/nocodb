@@ -25,7 +25,7 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled, getFeature } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled, getFeature, blockTeams, showUpgradeToUseTeams } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
   if (deletingWorkspace.value) return
@@ -58,7 +58,9 @@ const tab = computed({
       })
     }
 
-    if (tab === 'collaborators' && isUIAllowed('workspaceCollaborators')) {
+    if (isEeUI && isTeamsEnabled.value && showUpgradeToUseTeams()) return
+
+    if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
       loadCollaborators({} as any, props.workspaceId)
     }
 
@@ -104,7 +106,10 @@ watch(
 
     if (!isUIAllowed('workspaceCollaborators')) {
       tab.value = 'settings'
-    } else if (!isWsAuditEnabled.value && newTab === 'audits') {
+    } else if (
+      (!isWsAuditEnabled.value && newTab === 'audits') ||
+      (isEeUI && isTeamsEnabled.value && blockTeams.value && newTab === 'teams')
+    ) {
       tab.value = 'collaborators'
     }
   },

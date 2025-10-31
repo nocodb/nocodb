@@ -35,7 +35,6 @@ export { default as Sort } from './Sort';
 export { default as Store } from './Store';
 export { default as SyncLogs } from './SyncLogs';
 export { default as SyncSource } from './SyncSource';
-export { default as TeamUser } from './TeamUser';
 export { default as User } from './User';
 export { default as View } from './View';
 export { default as LinksColumn } from './LinksColumn';

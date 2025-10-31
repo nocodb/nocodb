@@ -345,6 +345,14 @@ onMounted(async () => {
               </NcButton>
               <template #overlay>
                 <NcMenu variant="medium">
+                  <NcMenuItemCopyId
+                    :id="record.id"
+                    :tooltip="$t(`labels.clickToCopyTeamID`)"
+                    :label="$t(`labels.teamIdColon`, { teamId: record.id })"
+                  />
+
+                  <NcDivider v-if="record.is_member || hasEditPermission" />
+
                   <NcMenuItem v-if="record.is_member" @click="handleEditTeam(record as TeamV3V3Type)">
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}

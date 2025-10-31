@@ -9,7 +9,7 @@ const up = async (knex: Knex) => {
     table.text('meta'); // JSON field for icon, badge_color, etc.
     table.string('fk_org_id', 20);
     table.string('fk_workspace_id', 20);
-    table.string('fk_created_by', 20).index('nc_teams_created_by_idx');
+    table.string('created_by', 20).index('nc_teams_created_by_idx');
     table.boolean('deleted').defaultTo(false); // Soft delete flag
     table.timestamps(true, true);
 

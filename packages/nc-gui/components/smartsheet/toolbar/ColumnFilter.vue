@@ -916,6 +916,7 @@ defineExpose({
                     </NcButton>
                     <NcButton
                       v-if="!filter.readOnly && !readOnly && isReorderEnabled"
+                      v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
                       type="text"
                       size="small"
                       class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
@@ -1174,6 +1175,7 @@ defineExpose({
 
             <NcButton
               v-if="!filter.readOnly && !readOnly && isReorderEnabled"
+              v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
               type="text"
               size="small"
               class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"

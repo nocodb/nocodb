@@ -595,7 +595,7 @@ const onChangeToDynamic = async () => {
           <SmartsheetToolbarFilterTimezoneAbbreviation :column="column" :filter="vModel" />
         </div>
       </template>
-      <div :class="{ 'cursor-wait': isLoadingFilter }">
+      <div class="flex items-center" :class="{ 'cursor-wait': isLoadingFilter }">
         <!-- if locked view, do not hide the button -->
         <NcButton
           v-if="!vModel.readOnly && !disabled"
@@ -609,6 +609,19 @@ const onChangeToDynamic = async () => {
           @click.stop="onDelete()"
         >
           <component :is="iconMap.deleteListItem" />
+        </NcButton>
+
+        <NcButton
+          v-if="!isDisabled"
+          v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook, widget: !!widget }]"
+          type="text"
+          size="small"
+          class="nc-filter-item-reorder-btn nc-filter-group-row-drag-handler self-center"
+          :class="{ 'pointer-events-none': isLoadingFilter }"
+          :shadow="false"
+          :disabled="(vModel?.children || []).length === 1"
+        >
+          <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
         </NcButton>
       </div>
     </template>

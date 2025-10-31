@@ -57,8 +57,10 @@ const filtersCount = computed(() => {
 })
 
 const scrollToBottom = () => {
-  wrapperDomRef.value?.scrollTo({
-    top: wrapperDomRef.value.scrollHeight,
+  const wrapperDomRefEl = wrapperDomRef.value?.$el as HTMLDivElement
+
+  wrapperDomRefEl?.scrollTo({
+    top: wrapperDomRefEl?.scrollHeight,
     behavior: 'smooth',
   })
 }

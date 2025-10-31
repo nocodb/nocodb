@@ -86,6 +86,7 @@ const workspaceTeamsToCollaborators = computed(() => {
     isTeam: true,
     display_name: wt.team_title,
     roles: wt.workspace_role,
+    email: wt.team_title, // just for sort table by email
   }))
 })
 
@@ -111,7 +112,11 @@ const toggleSelectAll = (value: boolean) => {
 }
 
 const sortedCollaborators = computed(() => {
-  return handleGetSortedData(filterCollaborators.value, sorts.value)
+  return handleGetSortedData(
+    filterCollaborators.value,
+    sorts.value,
+    workspaceTeamsToCollaborators.value.length ? { field: 'created_at', direction: 'asc' } : undefined,
+  )
 })
 
 const paidUsersCount = computed(() => (collaborators.value || []).filter((c) => !!parseProp(c?.meta).billable).length)
@@ -339,7 +344,7 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
       },
       okText: t('general.remove'),
       okCallback: async () => {
-        workspaceStore.workspaceTeamRemove(workspaceId, record.id)
+        workspaceStore.workspaceTeamRemove(workspaceId, [record.id])
       },
     })
   } else {

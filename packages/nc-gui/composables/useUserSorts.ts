@@ -102,7 +102,16 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
    * @returns A new array containing sorted objects.
    * @template T - The type of objects in the input array.
    */
-  function handleGetSortedData<T extends Record<string, any>>(data: T[], sortsConfig: UsersSortType = sorts.value): T[] {
+  function handleGetSortedData<T extends Record<string, any>>(
+    data: T[],
+    sortsConfig: UsersSortType = sorts.value,
+    defaultSortConfig?: UsersSortType,
+  ): T[] {
+    // Apply default sort if sortConfig is not present
+    if (ncIsEmptyObject(sortsConfig) && defaultSortConfig) {
+      sortsConfig = defaultSortConfig
+    }
+
     let userRoleOrder: string[] = []
     if (roleType === 'Workspace') {
       userRoleOrder = Object.values(OrderedWorkspaceRoles)

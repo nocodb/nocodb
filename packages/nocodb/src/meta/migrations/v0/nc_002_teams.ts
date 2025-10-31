@@ -10,6 +10,7 @@ const up = async (knex: Knex) => {
     table.string('fk_org_id', 20);
     table.string('fk_workspace_id', 20);
     table.string('fk_created_by', 20).index('nc_teams_created_by_idx');
+    table.boolean('deleted').defaultTo(false); // Soft delete flag
     table.timestamps(true, true);
 
     // Indexes for fast lookups
@@ -27,6 +28,7 @@ const up = async (knex: Knex) => {
     table.string('principal_type', 20).notNullable(); // 'user', 'team', 'workspace', etc.
     table.string('principal_ref_id', 20).notNullable(); // FK to user/team/workspace table
     table.string('roles', 255).notNullable(); // Role(s) assigned
+    table.boolean('deleted').defaultTo(false); // Soft delete flag
     table.timestamps(true, true);
 
     // Primary key on composite columns

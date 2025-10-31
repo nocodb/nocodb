@@ -216,6 +216,10 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
       await refreshCommandPalette()
 
+      if (!options?.skipNetworkCall) {
+        $e('a:dashboard:update')
+      }
+
       return updated
     } catch (e) {
       console.error(e)
@@ -227,6 +231,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const deleteDashboard = async (baseId: string, dashboardId: string) => {
     if (!activeWorkspaceId.value) return null
     try {
+      const dashboard = dashboards.value.get(baseId)?.find((a) => a.id === dashboardId)
+      const widgetCount = (dashboard as any)?.widgets?.length || 0
+
       await $api.internal.postOperation(
         activeWorkspaceId.value,
         baseId,
@@ -239,6 +246,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
       )
 
       updateStatLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE, -1)
+
+      $e('a:dashboard:delete', { widget_count: widgetCount })
 
       // Update local state
       const baseDashboards = dashboards.value.get(baseId) || []
@@ -293,6 +302,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
     if (['base'].includes(route.params.typeOrId as string)) {
       baseIdOrBaseId = route.params.baseId as string
     }
+
+    $e('c:dashboard:open')
 
     ncNavigateTo({
       workspaceId: workspaceIdOrType,
@@ -444,6 +455,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
           ...shareData,
         },
       )
+
+      $e('a:dashboard:share', {
+        has_password: !!shareData.password,
+        has_custom_url: !!shareData.custom_url_path,
+      })
 
       const baseDashboards = dashboards.value.get(baseId)
       if (baseDashboards) {

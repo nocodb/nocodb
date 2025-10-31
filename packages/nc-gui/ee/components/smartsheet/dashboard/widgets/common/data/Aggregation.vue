@@ -9,6 +9,8 @@ const emit = defineEmits<{
 
 const { selectedWidget } = storeToRefs(useWidgetStore())
 
+const { $e } = useNuxtApp()
+
 const selectedValue = ref(
   selectedWidget.value?.config?.metric?.type || selectedWidget.value?.config?.data?.value?.type || 'count',
 )
@@ -40,6 +42,12 @@ const handleChange = (type: 'field' | 'aggregation') => {
     aggregation.column_id = selectedFieldId.value
     aggregation.aggregation = selectedAggregationType.value
   }
+
+  $e('a:dashboard:widget:config:aggregation', {
+    widget_type: selectedWidget.value?.type,
+    aggregation_type: selectedAggregationType.value,
+    value_type: selectedValue.value,
+  })
 
   emit('update:aggregation', aggregation)
 }

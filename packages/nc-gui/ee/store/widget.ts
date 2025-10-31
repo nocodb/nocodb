@@ -1,7 +1,7 @@
 import { type WidgetType, type WidgetTypes } from 'nocodb-sdk'
 
 export const useWidgetStore = defineStore('widget', () => {
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -85,6 +85,11 @@ export const useWidgetStore = defineStore('widget', () => {
       dashboardWidgets.push(created)
       widgets.value.set(dashboardId, dashboardWidgets)
 
+      $e('a:dashboard:widget:create', {
+        widget_type: created.type,
+        chart_type: (created.config as any)?.chartType,
+      })
+
       return created
     } catch (e) {
       console.error(e)
@@ -96,6 +101,8 @@ export const useWidgetStore = defineStore('widget', () => {
   const duplicateWidget = async (dashboardId: string, widgetId: string) => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) return null
     try {
+      const widget = widgets.value.get(dashboardId)?.find((w) => w.id === widgetId)
+
       const created = (await $api.internal.postOperation(
         activeWorkspaceId.value,
         openedProject.value.id,
@@ -110,6 +117,10 @@ export const useWidgetStore = defineStore('widget', () => {
       const dashboardWidgets = widgets.value.get(dashboardId) || []
       dashboardWidgets.push(created)
       widgets.value.set(dashboardId, dashboardWidgets)
+
+      $e('a:dashboard:widget:duplicate', {
+        widget_type: widget?.type || created.type,
+      })
 
       return created
     } catch (e) {
@@ -172,6 +183,8 @@ export const useWidgetStore = defineStore('widget', () => {
     if (!activeWorkspaceId.value || !openedProject.value?.id) return null
 
     try {
+      const widget = widgets.value.get(dashboardId)?.find((w) => w.id === widgetId)
+
       await $api.internal.postOperation(
         activeWorkspaceId.value,
         openedProject.value.id,
@@ -191,6 +204,10 @@ export const useWidgetStore = defineStore('widget', () => {
       if (selectedWidget.value?.id === widgetId) {
         selectedWidget.value = null
       }
+
+      $e('a:dashboard:widget:delete', {
+        widget_type: widget?.type,
+      })
 
       return true
     } catch (e) {

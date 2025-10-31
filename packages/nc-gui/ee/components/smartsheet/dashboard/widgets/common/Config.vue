@@ -8,6 +8,8 @@ defineProps<{
 
 const { selectedWidget } = storeToRefs(useWidgetStore())
 
+const { $e } = useNuxtApp()
+
 const chartLabel = computed(() => {
   if (selectedWidget.value?.type === WidgetTypes.CHART) {
     return WidgetChartLabelMap[selectedWidget.value?.config?.chartType as ChartTypes]
@@ -20,10 +22,35 @@ const { activeDashboard } = storeToRefs(useDashboardStore())
 
 const handleConfigUpdate = async (config: any) => {
   if (selectedWidget.value && activeDashboard.value?.id) {
+    // Track chart type changes
+    if (config.chartType && config.chartType !== selectedWidget.value.config?.chartType) {
+      $e('c:dashboard:widget:chart-type:change', {
+        from: selectedWidget.value.config?.chartType,
+        to: config.chartType,
+      })
+    }
+
+    // Track text widget type changes
+    if (config.type && selectedWidget.value.type === WidgetTypes.TEXT && config.type !== selectedWidget.value.config?.type) {
+      $e('c:dashboard:widget:text-type:change', {
+        from: selectedWidget.value.config?.type,
+        to: config.type,
+      })
+    }
+
     await updateWidget(activeDashboard.value.id, selectedWidget.value.id, {
       config: { ...selectedWidget.value.config, ...config },
     })
   }
+}
+
+const handleCloseEditor = () => {
+  $e('c:dashboard:widget-editor:close')
+  selectedWidget.value = null
+}
+
+const handleTabChange = (key: string) => {
+  $e('c:dashboard:widget-editor:tab-change', { tab: key, widget_type: selectedWidget.value?.type })
 }
 </script>
 
@@ -33,7 +60,7 @@ const handleConfigUpdate = async (config: any) => {
       <div class="flex-1 text-nc-content-gray text-lg font-bold">
         {{ chartLabel }}
       </div>
-      <NcButton size="small" type="text" @click="selectedWidget = null">
+      <NcButton size="small" type="text" @click="handleCloseEditor">
         <GeneralIcon icon="close" class="w-5 h-5 text-nc-content-gray" />
       </NcButton>
     </div>
@@ -69,7 +96,7 @@ const handleConfigUpdate = async (config: any) => {
       </NcSelect>
     </div>
 
-    <NcTabs class="!mt-3">
+    <NcTabs class="!mt-3" @change="handleTabChange">
       <a-tab-pane key="data" tab="Data">
         <template #tab>Data</template>
         <div

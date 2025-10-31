@@ -1,6 +1,13 @@
 <script lang="ts" setup>
 import type { MetaType, PlanLimitExceededDetailsType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import {
+  OrderedProjectRoles,
+  OrgUserRoles,
+  PlanFeatureTypes,
+  PlanTitles,
+  ProjectRoles,
+  WorkspaceRolesToProjectRoles,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -471,17 +478,30 @@ onBeforeUnmount(() => {
                   <GeneralIcon icon="ncUsers" />
                   {{ $t('activity.addMembers') }}
                 </NcMenuItem>
-                <NcMenuItem
-                  @click="
-                    () => {
-                      isInviteTeamDlg = true
-                      isInviteModalVisible = true
-                    }
-                  "
-                >
-                  <GeneralIcon icon="ncBuilding" />
-                  {{ $t('labels.addTeams') }}
-                </NcMenuItem>
+                <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT">
+                  <template #default="{ click }">
+                    <NcMenuItem
+                      @click="
+                        click(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, () => {
+                          isInviteTeamDlg = true
+                          isInviteModalVisible = true
+                        })
+                      "
+                    >
+                      <GeneralIcon icon="ncBuilding" />
+                      {{ $t('labels.addTeams') }}
+                      <LazyPaymentUpgradeBadge
+                        :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
+                        :title="$t('upgrade.upgradeToUseTeams')"
+                        :content="
+                          $t('upgrade.upgradeToUseTeamsSubtitle', {
+                            plan: PlanTitles.PLUS,
+                          })
+                        "
+                      />
+                    </NcMenuItem>
+                  </template>
+                </PaymentUpgradeBadgeProvider>
               </NcMenu>
             </template>
           </NcDropdown>

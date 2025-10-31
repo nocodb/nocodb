@@ -418,6 +418,34 @@ onBeforeUnmount(() => {
               {{ $t('activity.addMembers') }}
             </div>
           </NcButton>
+
+          <NcDropdown v-else :disabled="isLoading">
+            <NcButton size="small" :disabled="isLoading">
+              <div class="flex items-center gap-2">
+                <component :is="iconMap.plus" class="!h-4 !w-4" />
+                {{ $t('general.add') }}
+              </div>
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem @click="isInviteModalVisible = true">
+                  <GeneralIcon icon="ncUsers" />
+                  {{ $t('activity.addMembers') }}
+                </NcMenuItem>
+                <NcMenuItem
+                  @click="
+                    () => {
+                      isInviteTeamDlg = true
+                      isInviteModalVisible = true
+                    }
+                  "
+                >
+                  <GeneralIcon icon="ncBuilding" />
+                  {{ $t('labels.addTeams') }}
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </div>
 
         <NcTable

@@ -63,6 +63,7 @@ export enum PlanFeatureTypes {
   FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
   FEATURE_COPY_VIEW_SETTING_FROM_OTHER = 'feature_copy_view_setting_other',
+  FEATURE_TEAMS = 'feature_teams',
 }
 
 // todo: separate as a new enum
@@ -250,6 +251,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: 'to use private bases.',
   [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]:
     'to use member management api.',
+  [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: 'to use team management api.',
   [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
     'to visualize records in a calendar range.',
@@ -261,6 +263,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to target different workspace when duplicate table.',
   [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]:
     'to copy view configuration from another view.',
+  [PlanFeatureTypes.FEATURE_TEAMS]: 'to use teams.',
 };
 
 export const getUpgradeMessage = (

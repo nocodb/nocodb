@@ -421,6 +421,34 @@ const removeCollaborator = (userId: string, workspaceId: string, record: any) =>
               {{ $t('labels.addMember') }}
             </div>
           </NcButton>
+
+          <NcDropdown v-else :disabled="isCollaboratorsLoading">
+            <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn">
+              <div class="flex items-center gap-2">
+                <component :is="iconMap.plus" class="!h-4 !w-4" />
+                {{ $t('general.add') }}
+              </div>
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem @click="inviteDlg = true">
+                  <GeneralIcon icon="ncUsers" />
+                  {{ $t('activity.addMembers') }}
+                </NcMenuItem>
+                <NcMenuItem
+                  @click="
+                    () => {
+                      isInviteTeamDlg = true
+                      inviteDlg = true
+                    }
+                  "
+                >
+                  <GeneralIcon icon="ncBuilding" />
+                  {{ $t('labels.addTeams') }}
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </div>
       </div>
 

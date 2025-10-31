@@ -646,11 +646,11 @@ onBeforeUnmount(() => {
                   <NcMenu variant="small">
                     <NcMenuItemCopyId
                       :id="record.id"
-                      :tooltip="$t('labels.clickToCopyUserID')"
+                      :tooltip="record.isTeam ? $t(`labels.clickToCopyTeamID`) : $t(`labels.clickToCopyUserID`)"
                       :label="
-                        $t('labels.userIdColon', {
-                          userId: record.id,
-                        })
+                        record.isTeam
+                          ? $t(`labels.teamIdColon`, { teamId: record.id })
+                          : $t(`labels.userIdColon`, { userId: record.id })
                       "
                     />
                   </NcMenu>

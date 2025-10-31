@@ -23,6 +23,8 @@ const selectedUsers = useVModel(props, 'selectedUsers', emits)
 
 const vOpen = useVModel(props, 'open', emits)
 
+const { t } = useI18n()
+
 const {
   open: _open,
   selectedUsers: _selectedUsers,
@@ -36,11 +38,22 @@ const {
   ...restProps
 } = props
 
+const { blockTeamsManagement } = useEeConfig()
+
+const { isTeamsEnabled } = storeToRefs(useWorkspace())
+
 const basesStore = useBases()
 
-const { basesUser } = storeToRefs(basesStore)
+const { basesUser, basesTeams } = storeToRefs(basesStore)
 
 const listRef = ref()
+
+// Todo: @rameshmane7218, @pranav - remove this flag once the teams table and field permissions are enabled
+const isTeamsTableAndFieldPermissionsEnabled = false
+
+const showTeams = computed(() => {
+  return !blockTeamsManagement.value && isTeamsEnabled.value && isTeamsTableAndFieldPermissionsEnabled
+})
 
 const baseUsers = computed(() => {
   return (basesUser.value.get(baseId) || []).map((user) => ({
@@ -50,20 +63,35 @@ const baseUsers = computed(() => {
       (user.workspace_roles
         ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
         : ProjectRoles.NO_ACCESS),
+    ncGroupHeaderLabel: showTeams.value ? t('labels.members') : undefined,
   }))
 })
 
+const baseTeams = computed<NcListItemType[]>(() => {
+  if (!showTeams.value) return []
+
+  return (basesTeams.value.get(baseId) || []).map((bt) => ({
+    ...bt,
+    id: bt.team_id,
+    isTeam: true,
+    display_name: bt.team_title,
+    roles: bt.base_role,
+    base_roles: bt.base_role,
+    ncGroupHeaderLabel: t('general.teams'),
+  })) as NcListItemType[]
+})
+
 // Filter users based on minimum role requirement from PermissionMeta
-const roleFilteredUsers = computed(() => {
-  if (!permission) return baseUsers.value
+const roleFilteredUsers = computed<NcListItemType[]>(() => {
+  if (!permission) return baseTeams.value.concat(baseUsers.value)
 
   const permissionMeta = PermissionMeta[permission]
-  if (!permissionMeta) return baseUsers.value
+  if (!permissionMeta) return baseTeams.value.concat(baseUsers.value)
 
   const minimumRolePower = PermissionRolePower[permissionMeta.minimumRole]
-  if (!minimumRolePower) return baseUsers.value
+  if (!minimumRolePower) return baseTeams.value.concat(baseUsers.value)
 
-  return baseUsers.value.filter((user) => {
+  return baseTeams.value.concat(baseUsers.value).filter((user) => {
     if (typeof user.roles === 'string') {
       const userRoles = (user.roles as string).split(',').map((r) => r.trim())
       return userRoles.some((role) => {
@@ -144,6 +172,7 @@ defineExpose({
     v-bind="restProps"
     :value="selectedUserIds"
     :list="roleFilteredUsers"
+    :group-order="[$t('general.teams'), $t('labels.members')]"
     option-label-key="email"
     option-value-key="id"
     :item-height="52"
@@ -160,24 +189,27 @@ defineExpose({
     </template>
 
     <template #listItemContent="{ option }">
-      <div v-if="option?.email" class="w-full flex gap-3 items-center max-w-[calc(100%_-_24px)]">
-        <GeneralUserIcon :user="option" size="base" class="flex-none" :disabled="disabledUsers?.includes(option.id)" />
-        <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]" :class="{ 'opacity-50': disabledUsers?.includes(option.id) }">
-          <div class="w-full flex gap-3">
-            <span class="text-sm text-gray-800 capitalize font-semibold truncate">
-              {{ option?.display_name || option?.email?.slice(0, option?.email.indexOf('@')) }}
-            </span>
-          </div>
-          <span class="text-xs text-gray-600 truncate">
-            {{ option?.email }}
-          </span>
-        </div>
-      </div>
+      <GeneralTeamInfo
+        v-if="option?.isTeam"
+        :team="transformToTeamObject(option)"
+        :disabled="disabledUsers?.includes(option.id)"
+        class="max-w-[calc(100%_-_24px)]"
+      />
+      <NcUserInfo
+        v-else-if="option?.email"
+        :user="option"
+        :disabled="disabledUsers?.includes(option.id)"
+        class="w-full max-w-[calc(100%_-_24px)]"
+      />
       <template v-else>{{ option.email ?? option.id }} </template>
     </template>
     <template #listItemExtraRight="{ option }">
       <div class="flex items-center gap-1">
-        <RolesBadge :border="false" :role="option.roles" icon-only nc-badge-class="!px-1" show-tooltip />
+        <RolesBadge :border="false" :role="option.roles" icon-only nc-badge-class="!px-1" show-tooltip>
+          <template #tooltip="{ label }">
+            {{ $t('tooltip.basePermissionRole', { role: $t(`objects.roleType.${label}`) }) }}
+          </template>
+        </RolesBadge>
       </div>
     </template>
     <template #listItemSelectedIcon> </template>

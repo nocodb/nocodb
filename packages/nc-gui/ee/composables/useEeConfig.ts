@@ -228,6 +228,22 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD)
   })
 
+  const blockTeamsManagement = computed(() => {
+    // Teams api allow only in paid plan, so better to mark it as block so that we don't call the api
+    if (!isPaymentEnabled.value && !isOnPrem.value) return true
+
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
+  })
+
+  const blockAddNewTeamToWs = computed(() => {
+    if (!isPaymentEnabled.value && !isOnPrem.value) return true
+
+    return (
+      isPaymentEnabled.value &&
+      getStatLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT) >= getLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT)
+    )
+  })
+
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
@@ -1138,6 +1154,40 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseTeams = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockTeamsManagement.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseTeams'),
+      content: t('upgrade.upgradeToUseTeamsSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+      requiredPlan: PlanTitles.BUSINESS,
+    })
+
+    return true
+  }
+
+  /**
+   * Todo: @rameshmane7218, @pranav - use this when backend changes done for add team limit based on plan
+   */
+  const showUpgradeToAddMoreTeams = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewTeamToWs.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToAddMoreTeams'),
+      content: t('upgrade.upgradeToAddMoreTeamsSubtitle', {
+        plan: getHigherPlan(),
+      }),
+      callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     calculatePrice,
@@ -1208,5 +1258,9 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToDuplicateTableToOtherBase,
     blockAiButtonField,
     showUpgradeToUseAiButtonField,
+    blockTeamsManagement,
+    showUpgradeToUseTeams,
+    blockAddNewTeamToWs,
+    showUpgradeToAddMoreTeams,
   }
 })

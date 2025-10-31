@@ -1,6 +1,6 @@
 import type { Source } from '~/models';
 import type { NcContext } from '~/interface/config';
-import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
+// import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 
 export default async function canUseOptimisedQuery(
   context: NcContext,

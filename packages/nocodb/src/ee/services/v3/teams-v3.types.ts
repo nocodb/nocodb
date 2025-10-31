@@ -1,4 +1,5 @@
-import { IconType } from 'nocodb-sdk';
+import type { TeamUserRoles } from 'nocodb-sdk';
+import type { IconType } from 'nocodb-sdk';
 
 export interface TeamV3Type {
   id: string;
@@ -10,6 +11,7 @@ export interface TeamV3Type {
   managers_count: number;
   fk_org_id?: string;
   fk_workspace_id?: string;
+  created_by?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -22,8 +24,11 @@ export interface TeamV3ResponseType {
   badge_color?: string;
   members_count: number;
   managers_count: number;
+  managers: string[]; // Array of manager user IDs
+  created_by?: string;
   created_at?: string;
   updated_at?: string;
+  is_member?: boolean; // Whether the current logged-in user is a member of the team
 }
 
 export interface TeamCreateV3ReqType {
@@ -43,13 +48,13 @@ export interface TeamUpdateV3ReqType {
 
 export interface TeamMemberV3Type {
   user_id: string;
-  team_role: 'member' | 'manager';
+  team_role: TeamUserRoles.OWNER | TeamUserRoles.MEMBER;
 }
 
 export interface TeamMemberV3ResponseType {
   user_email: string;
   user_id: string;
-  team_role: 'member' | 'manager';
+  team_role: TeamUserRoles.OWNER | TeamUserRoles.MEMBER;
 }
 
 export interface TeamDetailV3Type {
@@ -62,7 +67,7 @@ export interface TeamDetailV3Type {
 
 export interface TeamMembersAddV3ReqType {
   user_id: string;
-  team_role: 'member' | 'manager';
+  team_role: TeamUserRoles.OWNER | TeamUserRoles.MEMBER;
 }
 
 export interface TeamMembersRemoveV3ReqType {
@@ -71,5 +76,5 @@ export interface TeamMembersRemoveV3ReqType {
 
 export interface TeamMembersUpdateV3ReqType {
   user_id: string;
-  team_role: 'member' | 'manager';
+  team_role: TeamUserRoles.OWNER | TeamUserRoles.MEMBER;
 }

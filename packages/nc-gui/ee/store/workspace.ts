@@ -14,7 +14,7 @@ import type {
   WorkspaceType,
   WorkspaceUserType,
 } from 'nocodb-sdk'
-import { WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
+import { TeamUserRoles, WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 import { userLocalStorageInfoManager } from '#imports'
@@ -275,13 +275,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       )
 
       allCollaborators.value = list
-      collaborators.value = (list || [])?.filter((u) => !u?.deleted)
+      collaborators.value = (list || [])?.filter((u: any) => !u?.deleted)
       workspaceUserCount.value = pageInfo.totalRows
-      workspaceOwnerCount.value = collaborators.value.filter((u) => u.roles === WorkspaceUserRoles.OWNER).length
+      workspaceOwnerCount.value = collaborators.value?.filter((u: any) => u.roles === WorkspaceUserRoles.OWNER).length
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       if (!params?.ignoreLoading) isCollaboratorsLoading.value = false
+
+      workspaceTeamList(workspaceId ?? activeWorkspace.value!.id!).catch(() => {
+        // ignore
+      })
     }
   }
 
@@ -437,7 +441,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (force || !wsState || !(wsState as any)?.payment) {
       await loadWorkspace(workspaceId)
       await loadRoles(route.value.params.baseId)
-      await loadTeams({ workspaceId })
+      // todo: handle in a better way
+      loadTeams({ workspaceId }).catch(() => {
+        // ignore
+      })
     }
 
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {
@@ -639,14 +646,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    * Teams section start here
    */
 
-  const isTeamsEnabled = computed(() => isFeatureEnabled('teams'))
+  // Todo: @rameshmane7218 - use this to restrict teams api call when the migration is temp enabled for local testing
+  const isTeamsMigrationEnabled = true
+
+  const isTeamsEnabled = computed(() => isFeatureEnabled('teams') && isTeamsMigrationEnabled)
 
   const isTeamsLoading = ref(true)
 
   const teams = ref<TeamV3V3Type[]>([])
-
-  // Todo: @rameshmane7218 - toggle this when the migration is finalised or enabled for local testing
-  const isTeamsMigrationEnabled = false
 
   const teamsMap = computed(() => {
     return (teams.value || [])?.reduce((acc, curr) => {
@@ -660,12 +667,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const editTeamDetails = ref<TeamDetailV3V3Type | null>(null)
 
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) {
-      isTeamsLoading.value = false
-      return
-    }
+    await until(() => !!activeWorkspace.value?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
+    const { blockTeamsManagement } = useEeConfig()
 
-    if (!isUIAllowed('teamList')) {
+    if (!isTeamsEnabled.value || blockTeamsManagement.value) {
+      teams.value = []
       isTeamsLoading.value = false
       return
     }
@@ -679,6 +685,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       teams.value = list
     } catch (e: any) {
+      teams.value = []
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isTeamsLoading.value = false
@@ -686,7 +693,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function getTeamById(workspaceId: string, teamId: string) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     if (!isUIAllowed('teamGet')) return
 
@@ -705,7 +712,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   async function createTeam(workspaceId: string, team: Pick<TeamType, 'title' | 'description' | 'meta'>) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     try {
       const res = (await $api.internal.postOperation(
@@ -727,8 +734,34 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  async function deleteTeam(workspaceId: string, teamId: string) {
+    if (!isTeamsEnabled.value) return
+
+    try {
+      const res = (await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'teamDelete',
+        },
+        {
+          teamId,
+        },
+      )) as TeamV3V3Type
+
+      if (!res) return
+
+      teams.value = teams.value.filter((t) => t.id !== teamId)
+
+      return res
+    } catch (error: any) {
+      console.error(error)
+      message.error('Error occured while deleting team')
+    }
+  }
+
   async function updateTeam(workspaceId: string, teamId: string, updates: Partial<TeamUpdateV3ReqV3Type>) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     if (!updates) return
 
@@ -761,7 +794,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teamId: string,
     members: TeamMembersAddV3ReqV3Type[],
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     try {
       const addedMembers = (await $api.internal.postOperation(
@@ -776,12 +809,30 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
       )) as TeamMemberV3ResponseV3Type[]
 
+      if (!addedMembers) return []
+
       if (editTeamDetails.value && ncIsArray(addedMembers)) {
         editTeamDetails.value.members = [...(editTeamDetails.value.members || []), ...addedMembers]
       }
 
       if (teamsMap.value[teamId]) {
-        teamsMap.value[teamId].members_count = (teamsMap.value[teamId].members_count || 0) + addedMembers.length
+        const addedOwners = addedMembers
+          .filter(
+            (member) =>
+              member.team_role === TeamUserRoles.OWNER && !(teamsMap.value[teamId]?.managers || []).includes(member.user_id),
+          )
+          .map((m) => m.user_id)
+
+        teams.value = teams.value.map((team) =>
+          team.id === teamId
+            ? {
+                ...team,
+                members_count: (team.members_count || 0) + addedMembers.length,
+                managers_count: (team.managers_count || 0) + addedOwners.length,
+                managers: [...(team.managers || []), ...addedOwners],
+              }
+            : team,
+        )
       }
 
       return addedMembers || []
@@ -796,7 +847,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teamId: string,
     members: TeamMembersRemoveV3ReqV3Type[],
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     try {
       const removedMembers = (await $api.internal.postOperation(
@@ -811,6 +862,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
       )) as TeamMembersRemoveV3ReqV3Type[]
 
+      if (!removedMembers) return []
+
       if (editTeamDetails.value && ncIsArray(removedMembers)) {
         editTeamDetails.value.members = (editTeamDetails.value.members || []).filter(
           (member) => !removedMembers.find((rm) => rm.user_id === member.user_id),
@@ -818,10 +871,23 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       }
 
       if (teamsMap.value[teamId]) {
-        teamsMap.value[teamId].members_count = Math.max(0, (teamsMap.value[teamId].members_count || 0) - removedMembers.length)
+        const teamOwners = (teamsMap.value[teamId]?.managers || []).filter((m) => !removedMembers.some((rm) => rm.user_id === m))
+
+        teams.value = teams.value.map((team) =>
+          team.id === teamId
+            ? {
+                ...team,
+                members_count: team.members_count - removedMembers.length,
+                managers_count: teamOwners.length,
+                managers: teamOwners,
+                is_member:
+                  team.is_member && removedMembers.some((rm) => rm.user_id === currentUser.value?.id) ? false : team.is_member,
+              }
+            : team,
+        )
       }
 
-      return removedMembers || []
+      return removedMembers
     } catch (e: any) {
       console.error('Failed to remove members', e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -833,7 +899,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     teamId: string,
     members: TeamMembersUpdateV3ReqV3Type[],
   ) {
-    if (!isTeamsMigrationEnabled || !isTeamsEnabled.value) return
+    if (!isTeamsEnabled.value) return
 
     try {
       const updatedMembers = (await $api.internal.postOperation(
@@ -860,9 +926,168 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         })
       }
 
+      if (teamsMap.value[teamId]) {
+        const teamOwners = editTeamDetails.value
+          ? (editTeamDetails.value?.members || [])
+              .filter((member) => member.team_role === TeamUserRoles.OWNER)
+              .map((m) => m.user_id)
+          : teamsMap.value[teamId]?.managers || []
+
+        teams.value = teams.value.map((team) =>
+          team.id === teamId
+            ? {
+                ...team,
+                managers_count: teamOwners.length,
+                managers: teamOwners,
+              }
+            : team,
+        )
+      }
+
       return updatedMembers || []
     } catch (e: any) {
       console.error('Failed to update members', e)
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const isLoadingWorkspaceTeams = ref(true)
+
+  const workspaceTeams = ref<Record<string, any>>([])
+
+  async function workspaceTeamList(workspaceId: string = activeWorkspaceId.value!, showLoading = true) {
+    await until(() => !!activeWorkspace.value?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!isTeamsEnabled.value || blockTeamsManagement.value || !workspaceId) {
+      workspaceTeams.value = []
+      isLoadingWorkspaceTeams.value = false
+      return
+    }
+
+    if (showLoading) {
+      isLoadingWorkspaceTeams.value = true
+    }
+
+    try {
+      const { list } = await $api.internal.getOperation(workspaceId, NO_SCOPE, {
+        operation: 'workspaceTeamList',
+      })
+
+      workspaceTeams.value = list || []
+
+      return list || []
+    } catch (e: any) {
+      workspaceTeams.value = []
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoadingWorkspaceTeams.value = false
+    }
+  }
+
+  async function workspaceTeamGet(workspaceId: string, teamId: string) {
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!isTeamsEnabled.value || blockTeamsManagement.value) return
+
+    try {
+      const teamDetails = (await $api.internal.getOperation(workspaceId, NO_SCOPE, {
+        operation: 'workspaceTeamGet',
+        teamId,
+      })) as TeamDetailV3V3Type
+
+      return teamDetails
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function workspaceTeamAdd(
+    workspaceId: string = activeWorkspaceId.value!,
+    teams: {
+      team_id: string
+      workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
+    }[],
+  ) {
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!isTeamsEnabled.value || blockTeamsManagement.value) return
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'workspaceTeamAdd',
+        },
+        teams,
+      )
+
+      if (!res) return
+
+      workspaceTeams.value.push(...(ncIsArray(res) ? res : [res]))
+      return ncIsArray(res) ? res : [res]
+    } finally {
+      // catch error is handled in inviteDlg
+    }
+  }
+
+  async function workspaceTeamUpdate(
+    workspaceId: string,
+    updates: {
+      team_id: string
+      workspace_role: Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>
+    },
+  ) {
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!isTeamsEnabled.value || blockTeamsManagement.value || !updates.team_id) return
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'workspaceTeamUpdate',
+        },
+        updates,
+      )
+
+      if (!res) return
+
+      workspaceTeams.value = workspaceTeams.value.map((team) => (team.team_id === updates.team_id ? { ...team, ...res } : team))
+
+      return res
+    } catch (e: any) {
+      const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+      if (appInfo.value?.isCloud && !appInfo.value?.isOnPrem && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
+        throw e
+      } else {
+        message.error(errorInfo.message)
+      }
+    }
+  }
+
+  async function workspaceTeamRemove(workspaceId: string = activeWorkspaceId.value!, teamIds: string[]) {
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!isTeamsEnabled.value || blockTeamsManagement.value || !teamIds.length) return
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'workspaceTeamRemove',
+        },
+        teamIds.map((teamId) => ({ team_id: teamId })),
+      )
+
+      workspaceTeams.value = workspaceTeams.value.filter((team) => !teamIds.includes(team.team_id))
+
+      return ncIsArray(res) ? res : [res]
+    } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -876,7 +1101,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    */
   watch(activeWorkspaceId, async () => {
     await loadRoles(undefined, {}, activeWorkspaceId.value)
-    await loadTeams({ workspaceId: activeWorkspaceId.value! })
+    if (activeWorkspaceId.value) await loadTeams({ workspaceId: activeWorkspaceId.value! })
   })
 
   watch(
@@ -947,12 +1172,22 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isTeamsLoading,
     editTeamDetails,
     createTeam,
+    deleteTeam,
     updateTeam,
     loadTeams,
     getTeamById,
     addTeamMembers,
     removeTeamMembers,
     updateTeamMembers,
+
+    // Workspace Teams
+    isLoadingWorkspaceTeams,
+    workspaceTeams,
+    workspaceTeamList,
+    workspaceTeamGet,
+    workspaceTeamAdd,
+    workspaceTeamUpdate,
+    workspaceTeamRemove,
   }
 })
 

@@ -2,6 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { AppHooksService as ApppHookServiceCE } from 'src/services/app-hooks/app-hooks.service';
 import type { AppEvents } from 'nocodb-sdk';
 import type {
+  BaseTeamDeleteEvent,
+  BaseTeamInviteEvent,
+  BaseTeamUpdateEvent,
   ColumnEvent,
   FilterEvent,
   ProjectCreateEvent,
@@ -10,11 +13,20 @@ import type {
   ProjectUpdateEvent,
   SortEvent,
   TableEvent,
+  TeamCreateEvent,
+  TeamDeleteEvent,
+  TeamMemberAddEvent,
+  TeamMemberDeleteEvent,
+  TeamMemberUpdateEvent,
+  TeamUpdateEvent,
   UserSigninEvent,
   UserSignupEvent,
   ViewEvent,
   WelcomeEvent,
   WorkspaceEvent,
+  WorkspaceTeamDeleteEvent,
+  WorkspaceTeamInviteEvent,
+  WorkspaceTeamUpdateEvent,
   WorkspaceUserInviteEvent,
 } from './interfaces';
 
@@ -210,6 +222,67 @@ export class AppHooksService extends ApppHookServiceCE {
   on(
     event: AppEvents.ROW_USER_MENTION,
     listener: (data: RowMentionEvent) => void,
+  ): () => void;
+
+  // Team Events
+  on(
+    event: AppEvents.TEAM_CREATE,
+    listener: (data: TeamCreateEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.TEAM_UPDATE,
+    listener: (data: TeamUpdateEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.TEAM_DELETE,
+    listener: (data: TeamDeleteEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.TEAM_MEMBER_ADD,
+    listener: (data: TeamMemberAddEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.TEAM_MEMBER_UPDATE,
+    listener: (data: TeamMemberUpdateEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.TEAM_MEMBER_DELETE,
+    listener: (data: TeamMemberDeleteEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.WORKSPACE_TEAM_INVITE,
+    listener: (data: WorkspaceTeamInviteEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.WORKSPACE_TEAM_UPDATE,
+    listener: (data: WorkspaceTeamUpdateEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.WORKSPACE_TEAM_DELETE,
+    listener: (data: WorkspaceTeamDeleteEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.PROJECT_TEAM_INVITE,
+    listener: (data: BaseTeamInviteEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.PROJECT_TEAM_UPDATE,
+    listener: (data: BaseTeamUpdateEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.PROJECT_TEAM_DELETE,
+    listener: (data: BaseTeamDeleteEvent) => void,
   ): () => void;
 
   on(
@@ -571,6 +644,32 @@ export class AppHooksService extends ApppHookServiceCE {
     event: AppEvents.USER_PROFILE_UPDATE,
     data: UserProfileUpdateEvent,
   ): void;
+
+  // Team Events
+  emit(event: AppEvents.TEAM_CREATE, data: TeamCreateEvent): void;
+  emit(event: AppEvents.TEAM_UPDATE, data: TeamUpdateEvent): void;
+  emit(event: AppEvents.TEAM_DELETE, data: TeamDeleteEvent): void;
+  emit(event: AppEvents.TEAM_MEMBER_ADD, data: TeamMemberAddEvent): void;
+  emit(event: AppEvents.TEAM_MEMBER_UPDATE, data: TeamMemberUpdateEvent): void;
+  emit(event: AppEvents.TEAM_MEMBER_DELETE, data: TeamMemberDeleteEvent): void;
+
+  emit(
+    event: AppEvents.WORKSPACE_TEAM_INVITE,
+    data: WorkspaceTeamInviteEvent,
+  ): void;
+  emit(
+    event: AppEvents.WORKSPACE_TEAM_UPDATE,
+    data: WorkspaceTeamUpdateEvent,
+  ): void;
+  emit(
+    event: AppEvents.WORKSPACE_TEAM_DELETE,
+    data: WorkspaceTeamDeleteEvent,
+  ): void;
+
+  emit(event: AppEvents.PROJECT_TEAM_INVITE, data: BaseTeamInviteEvent): void;
+  emit(event: AppEvents.PROJECT_TEAM_UPDATE, data: BaseTeamUpdateEvent): void;
+  emit(event: AppEvents.PROJECT_TEAM_DELETE, data: BaseTeamDeleteEvent): void;
+
   emit(event, data): void {
     return super.emit(event, data);
   }

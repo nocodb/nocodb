@@ -8,6 +8,9 @@ enum AuditV1OperationTypes {
   WORKSPACE_USER_INVITE = 'WORKSPACE_USER_INVITE',
   WORKSPACE_USER_UPDATE = 'WORKSPACE_USER_UPDATE',
   WORKSPACE_USER_DELETE = 'WORKSPACE_USER_DELETE',
+  WORKSPACE_TEAM_INVITE = 'WORKSPACE_TEAM_INVITE',
+  WORKSPACE_TEAM_UPDATE = 'WORKSPACE_TEAM_UPDATE',
+  WORKSPACE_TEAM_DELETE = 'WORKSPACE_TEAM_DELETE',
 
   USER_PASSWORD_CHANGE = 'USER_PASSWORD_CHANGE',
   USER_PASSWORD_RESET = 'USER_PASSWORD_RESET',
@@ -17,6 +20,9 @@ enum AuditV1OperationTypes {
   BASE_USER_INVITE = 'BASE_USER_INVITE',
   BASE_USER_UPDATE = 'BASE_USER_UPDATE',
   BASE_USER_INVITE_RESEND = 'BASE_USER_INVITE_RESEND',
+  BASE_TEAM_INVITE = 'BASE_TEAM_INVITE',
+  BASE_TEAM_UPDATE = 'BASE_TEAM_UPDATE',
+  BASE_TEAM_DELETE = 'BASE_TEAM_DELETE',
 
   TABLE_CREATE = 'TABLE_CREATE',
   TABLE_DELETE = 'TABLE_DELETE',
@@ -154,6 +160,13 @@ enum AuditV1OperationTypes {
   PERMISSION_CREATE = 'PERMISSION_CREATE',
   PERMISSION_UPDATE = 'PERMISSION_UPDATE',
   PERMISSION_DELETE = 'PERMISSION_DELETE',
+
+  TEAM_CREATE = 'TEAM_CREATE',
+  TEAM_UPDATE = 'TEAM_UPDATE',
+  TEAM_DELETE = 'TEAM_DELETE',
+  TEAM_MEMBER_ADD = 'TEAM_MEMBER_ADD',
+  TEAM_MEMBER_UPDATE = 'TEAM_MEMBER_UPDATE',
+  TEAM_MEMBER_DELETE = 'TEAM_MEMBER_DELETE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -252,6 +265,13 @@ export const auditV1OperationsCategory: Record<
     value: 'WORKSPACE',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('WORKSPACE_')
+    ),
+  },
+  TEAM: {
+    label: 'objects.team',
+    value: 'TEAM',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('TEAM_')
     ),
   },
   HOOK: {
@@ -358,6 +378,27 @@ export interface BaseUserRoleUpdatePayload extends UpdatePayload {
   base_role: string;
   user_name?: string;
   base_title: string;
+}
+
+export interface BaseTeamInvitePayload {
+  base_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
+}
+
+export interface BaseTeamUpdatePayload extends UpdatePayload {
+  base_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
+}
+
+export interface BaseTeamDeletePayload {
+  base_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
 }
 
 export interface UserProfileUpdatePayload extends UpdatePayload {
@@ -580,6 +621,27 @@ export interface WorkspaceUserDeletePayload {
   user_name?: string;
   user_id: string;
   user_role: string;
+}
+
+export interface WorkspaceTeamInvitePayload {
+  workspace_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
+}
+
+export interface WorkspaceTeamUpdatePayload extends UpdatePayload {
+  workspace_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
+}
+
+export interface WorkspaceTeamDeletePayload {
+  workspace_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
 }
 
 export interface BaseDuplicatePayload {
@@ -1042,6 +1104,63 @@ export interface PermissionDeletePayload {
   permission: string;
   entity: string;
   entity_id: string;
+}
+
+export interface TeamCreatePayload {
+  team_id: string;
+  team_title: string;
+  workspace_title?: string;
+  base_title?: string;
+  meta?: any;
+}
+
+export interface TeamUpdatePayload extends UpdatePayload {
+  team_id: string;
+  team_title: string;
+  workspace_title?: string;
+  base_title?: string;
+  meta?: any;
+}
+
+export interface TeamDeletePayload {
+  team_id: string;
+  team_title: string;
+  workspace_title?: string;
+  base_title?: string;
+  meta?: any;
+}
+
+export interface TeamMemberAddPayload {
+  team_id: string;
+  team_title: string;
+  user_id: string;
+  user_email: string;
+  user_name?: string;
+  team_role: string;
+  workspace_title?: string;
+  base_title?: string;
+}
+
+export interface TeamMemberUpdatePayload extends UpdatePayload {
+  team_id: string;
+  team_title: string;
+  user_id: string;
+  user_email: string;
+  user_name?: string;
+  team_role: string;
+  workspace_title?: string;
+  base_title?: string;
+}
+
+export interface TeamMemberDeletePayload {
+  team_id: string;
+  team_title: string;
+  user_id: string;
+  user_email: string;
+  user_name?: string;
+  team_role: string;
+  workspace_title?: string;
+  base_title?: string;
 }
 
 export interface AuditV1<T = any> {

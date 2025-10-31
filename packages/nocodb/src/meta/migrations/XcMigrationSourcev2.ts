@@ -178,8 +178,6 @@ export default class XcMigrationSourcev2 {
       'nc_092_composite_pk',
       'nc_093_oauth_server',
       'nc_094_add_meta_to_filter_exp_v2',
-      // TODO: removing this migration in this iteration, enable later once the migration finalised
-      // 'nc_095_teams',
       'nc_096_deprecate_unused',
       'nc_097_unify_schema',
       'nc_098_default_workspace',

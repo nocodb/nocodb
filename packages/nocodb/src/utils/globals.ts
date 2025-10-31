@@ -165,9 +165,7 @@ export const orderedMetaTables = [
   MetaTable.MODEL_ROLE_VISIBILITY,
   MetaTable.PLUGIN,
   MetaTable.AUDIT,
-  MetaTable.TEAM_USERS,
   MetaTable.TEAMS,
-  MetaTable.PRINCIPALS,
   MetaTable.PRINCIPAL_ASSIGNMENTS,
   MetaTable.ORGS_OLD,
   MetaTable.PROJECT_USERS,
@@ -359,6 +357,7 @@ export const RootScopeTables = {
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
+    MetaTable.TEAMS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,
@@ -372,6 +371,11 @@ export const RootScopeTables = {
     MetaTable.WORKSPACE_USER,
     MetaTable.INTEGRATIONS,
     MetaTable.SOURCES,
+    // We need to clear fk_integration_id from following tables
+    MetaTable.COL_BUTTON,
+    MetaTable.COL_LONG_TEXT,
+
+    MetaTable.PRINCIPAL_ASSIGNMENTS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };
@@ -397,3 +401,18 @@ export enum BaseVersion {
 }
 
 export const NC_STORE_DEFAULT_WORKSPACE_ID_KEY = 'NC_DEFAULT_WORKSPACE_ID';
+
+export enum ResourceType {
+  ORG = 'org',
+  WORKSPACE = 'workspace',
+  BASE = 'base',
+  TEAM = 'team',
+}
+
+export enum PrincipalType {
+  USER = 'user',
+  TEAM = 'team',
+  BOT = 'bot',
+  GROUP = 'group',
+  SERVICE = 'service',
+}

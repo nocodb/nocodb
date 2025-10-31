@@ -163,9 +163,16 @@ const permissionScopes = {
     'teamGet',
     'teamUpdate',
     'teamDelete',
-    'teamUserAdd',
-    'teamUserRemove',
-    'teamUserUpdate',
+    'teamMembersAdd',
+    'teamMembersRemove',
+    'teamMembersUpdate',
+
+    // Workspace-Team operations
+    'workspaceTeamList',
+    'workspaceTeamAdd',
+    'workspaceTeamGet',
+    'workspaceTeamUpdate',
+    'workspaceTeamRemove',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -319,6 +326,13 @@ const permissionScopes = {
     'widgetUpdate',
     'widgetDelete',
     'widgetDataGet',
+
+    // Base Teams
+    'baseTeamList',
+    'baseTeamAdd',
+    'baseTeamGet',
+    'baseTeamUpdate',
+    'baseTeamDelete',
   ],
 };
 
@@ -428,6 +442,19 @@ const rolePermissions:
       // Teams
       teamList: true,
       teamGet: true,
+      teamCreate: true,
+      teamUpdate: true,
+      teamDelete: true,
+      teamMembersAdd: true,
+      teamMembersRemove: true,
+      teamMembersUpdate: true,
+
+      // Workspace-Team operations
+      workspaceTeamList: true,
+      workspaceTeamAdd: true,
+      workspaceTeamGet: true,
+      workspaceTeamUpdate: true,
+      workspaceTeamRemove: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {
@@ -449,6 +476,9 @@ const rolePermissions:
   [ProjectRoles.VIEWER]: {
     include: {
       userInvite: true,
+
+      // Base Teams
+      baseTeamAdd: true,
 
       formViewGet: true,
 
@@ -525,6 +555,10 @@ const rolePermissions:
       widgetList: true,
       widgetGet: true,
       widgetDataGet: true,
+
+      // Base Teams
+      baseTeamList: true,
+      baseTeamGet: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -900,6 +934,16 @@ const permissionDescriptions: Record<string, string> = {
   integrationStore: "get data from an integration's store",
   integrationEndpointGet: 'call get request to an exposed integration endpoint',
 
+  // Teams permissions
+  teamList: 'view list of teams in the workspace',
+  teamCreate: 'create a new team in the workspace',
+  teamGet: 'view team details',
+  teamUpdate: 'update team details',
+  teamDelete: 'delete a team from the workspace',
+  teamMembersAdd: 'add members to a team',
+  teamMembersRemove: 'remove members from a team',
+  teamMembersUpdate: 'update member roles in a team',
+
   // base permissions
   formViewGet: 'view forms',
   baseGet: 'view base details',
@@ -1007,6 +1051,13 @@ const permissionDescriptions: Record<string, string> = {
   widgetUpdate: 'update widget details',
   widgetDelete: 'delete a widget',
   widgetDataGet: 'view widget data',
+
+  // Base Teams permissions
+  baseTeamList: 'view list of teams in the base',
+  baseTeamAdd: 'create a new team in the base',
+  baseTeamGet: 'view team details',
+  baseTeamUpdate: 'update team details',
+  baseTeamDelete: 'delete a team from the base',
 
   globalAuditList: 'view list of audits',
 

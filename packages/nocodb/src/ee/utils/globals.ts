@@ -154,7 +154,6 @@ export const orderedMetaTables = [
   MetaTable.MODEL_ROLE_VISIBILITY,
   MetaTable.PLUGIN,
   MetaTable.AUDIT,
-  MetaTable.TEAM_USERS,
   MetaTable.TEAMS,
   MetaTable.ORGS_OLD,
   MetaTable.PROJECT_USERS,
@@ -290,6 +289,8 @@ export enum CacheScope {
   OAUTH_CLIENT = 'oAuthClient',
   OAUTH_AUTH_CODE = 'oAuthAuthCode',
   OAUTH_TOKEN = 'oAuthToken',
+  PRINCIPAL = 'principal',
+  PRINCIPAL_ASSIGNMENT = 'principalAssignment',
 }
 
 export const RootScopeTables = {
@@ -316,7 +317,6 @@ export const RootScopeTables = {
     MetaTable.OAUTH_AUTHORIZATION_CODES,
     MetaTable.OAUTH_TOKENS,
     MetaTable.TEAMS,
-    MetaTable.TEAM_USERS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,
@@ -330,6 +330,8 @@ export const RootScopeTables = {
     MetaTable.WORKSPACE_USER,
     MetaTable.INTEGRATIONS,
     MetaTable.SOURCES,
+
+    MetaTable.PRINCIPAL_ASSIGNMENTS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };

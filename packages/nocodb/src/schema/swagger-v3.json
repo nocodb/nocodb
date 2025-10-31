@@ -9213,7 +9213,7 @@
           "team_role": {
             "type": "string",
             "description": "Team role",
-            "enum": ["member", "manager"],
+            "enum": ["member", "owner"],
             "example": "member"
           }
         },
@@ -9240,7 +9240,7 @@
           "team_role": {
             "type": "string",
             "description": "Team role",
-            "enum": ["member", "manager"],
+            "enum": ["member", "owner"],
             "example": "member"
           }
         },
@@ -9262,7 +9262,7 @@
           "team_role": {
             "type": "string",
             "description": "Team role to assign",
-            "enum": ["member", "manager"],
+            "enum": ["member", "owner"],
             "example": "member"
           }
         },
@@ -9297,7 +9297,7 @@
           "team_role": {
             "type": "string",
             "description": "New team role",
-            "enum": ["member", "manager"],
+            "enum": ["member", "owner"],
             "example": "member"
           }
         },
@@ -9349,6 +9349,246 @@
           "workspace-level-viewer",
           "workspace-level-commenter",
           "workspace-level-no-access"
+        ]
+      },
+      "WorkspaceTeamCreate": {
+        "type": "object",
+        "description": "Create workspace team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to add to workspace",
+            "example": "team123"
+          },
+          "workspace_role": {
+            "type": "string",
+            "description": "Workspace role to assign to the team (creator or lower only)",
+            "enum": [
+              "workspace-level-creator",
+              "workspace-level-editor",
+              "workspace-level-viewer",
+              "workspace-level-commenter",
+              "workspace-level-no-access"
+            ],
+            "example": "workspace-level-editor"
+          }
+        },
+        "required": [
+          "team_id",
+          "workspace_role"
+        ]
+      },
+      "WorkspaceTeamCreateBulk": {
+        "type": "object",
+        "description": "Bulk create workspace team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to add to workspace",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceTeamCreate"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123",
+                "workspace_role": "workspace-level-editor"
+              },
+              {
+                "team_id": "team456",
+                "workspace_role": "workspace-level-viewer"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
+        ]
+      },
+      "WorkspaceTeamUpdate": {
+        "type": "object",
+        "description": "Update workspace team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to update in workspace",
+            "example": "team123"
+          },
+          "workspace_role": {
+            "type": "string",
+            "description": "New workspace role for the team (creator or lower only)",
+            "enum": [
+              "workspace-level-creator",
+              "workspace-level-editor",
+              "workspace-level-viewer",
+              "workspace-level-commenter",
+              "workspace-level-no-access"
+            ],
+            "example": "workspace-level-viewer"
+          }
+        },
+        "required": [
+          "team_id",
+          "workspace_role"
+        ]
+      },
+      "WorkspaceTeamDelete": {
+        "type": "object",
+        "description": "Delete workspace team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to remove from workspace",
+            "example": "team123"
+          }
+        },
+        "required": [
+          "team_id"
+        ]
+      },
+      "WorkspaceTeamDeleteBulk": {
+        "type": "object",
+        "description": "Bulk delete workspace team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to remove from workspace",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceTeamDelete"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123"
+              },
+              {
+                "team_id": "team456"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
+        ]
+      },
+      "BaseTeamCreate": {
+        "type": "object",
+        "description": "Create base team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to add to base",
+            "example": "team123"
+          },
+          "base_role": {
+            "type": "string",
+            "description": "Base role to assign to the team (creator or lower only)",
+            "enum": [
+              "creator",
+              "editor",
+              "viewer",
+              "commenter",
+              "no-access"
+            ],
+            "example": "editor"
+          }
+        },
+        "required": [
+          "team_id",
+          "base_role"
+        ]
+      },
+      "BaseTeamCreateBulk": {
+        "type": "object",
+        "description": "Bulk create base team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to add to base",
+            "items": {
+              "$ref": "#/components/schemas/BaseTeamCreate"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123",
+                "base_role": "editor"
+              },
+              {
+                "team_id": "team456",
+                "base_role": "viewer"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
+        ]
+      },
+      "BaseTeamUpdate": {
+        "type": "object",
+        "description": "Update base team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to update in base",
+            "example": "team123"
+          },
+          "base_role": {
+            "type": "string",
+            "description": "New base role for the team (creator or lower only)",
+            "enum": [
+              "creator",
+              "editor",
+              "viewer",
+              "commenter",
+              "no-access"
+            ],
+            "example": "viewer"
+          }
+        },
+        "required": [
+          "team_id",
+          "base_role"
+        ]
+      },
+      "BaseTeamDelete": {
+        "type": "object",
+        "description": "Delete base team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to remove from base",
+            "example": "team123"
+          }
+        },
+        "required": [
+          "team_id"
+        ]
+      },
+      "BaseTeamDeleteBulk": {
+        "type": "object",
+        "description": "Bulk delete base team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to remove from base",
+            "items": {
+              "$ref": "#/components/schemas/BaseTeamDelete"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123"
+              },
+              {
+                "team_id": "team456"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
         ]
       }
     },

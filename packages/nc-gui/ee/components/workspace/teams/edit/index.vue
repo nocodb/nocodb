@@ -27,13 +27,14 @@ const { teamsMap, editTeamDetails } = storeToRefs(workspaceStore)
 
 const hasEditPermission = computed(() => {
   return (editTeamDetails.value?.members || []).some(
-    (member) => member.user_id === user.value?.id && member.team_role === TeamUserRoles.MANAGER,
+    (member) => member.user_id === user.value?.id && member.team_role === TeamUserRoles.OWNER,
   )
 })
 
 const teamId = computed(() => {
   const isWsSettingsAllowedPage =
-    route.value.name === 'index-typeOrId-settings' && ['teams', 'collaborators'].includes(route.value.query?.tab as string)
+    route.value.name === 'index-typeOrId-settings' &&
+    (!route.value.query?.tab || ['teams', 'collaborators'].includes(route.value.query?.tab as string))
 
   const isBaseSettingsAllowedPage =
     route.value.name === 'index-typeOrId-baseId-index-index' && route.value.query?.page === 'collaborator'
@@ -91,7 +92,7 @@ const supportedDocs: SupportedDocsType[] = [
         <div class="flex items-center">
           <GeneralIcon icon="ncBuilding" class="!h-6 !w-6 pl-1" />
         </div>
-        <div class="flex-1 text-lg font-bold text-nc-content-gray-emphasis">Team: {{ editTeam?.title }}</div>
+        <div class="flex-1 text-lg font-bold text-nc-content-gray-emphasis">{{ editTeam?.title }}</div>
 
         <div class="flex items-center gap-3">
           <NcButton size="small" type="text" @click="vVisible = false">

@@ -182,7 +182,11 @@
     "upgradeToUseAiTextFieldSubtitle": "Upgrade to the {plan} plan to use AI Text fields to generate text based on your prompt.",
     "upgradeToUseAiButtonField": "Upgrade to use AI Button fields",
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
-    "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature."
+    "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature.",
+    "upgradeToUseTeams": "Upgrade to use teams",
+    "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
+    "upgradeToAddMoreTeams": "Upgrade to add more teams",
+    "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace."
   },
   "general": {
     "authorization": "Authorization",
@@ -703,17 +707,21 @@
       "thisIsTheOnlyTeamOwnerTooltip": "This is the only owner of this team. Transfer ownership to another member before removing it.",
       "thisTeamHasOnlyOneOwnerTooltip": "This team has only one owner. Transfer ownership to another member before removing it.",
       "removeFromTeamRestrictionTooltip": "You can’t remove all owners. Deselect at least one owner to proceed.",
-      "memberAssignedAsTeamOwner": "Member assigned as team owner",
-      "memberAssignedAsTeamMember": "Member assigned as team member",
       "teamOwner": "Team owner",
       "removeMemberFromTeam": "Remove member from team",
       "removeMemberFromTeamPlural": "Remove members from team",
       "addMembersToTeam": "Add members to Team",
       "selectMembersToAddIntoTeam": "Select members to add into the {team} Team",
       "alreadyPartOfTeam": "Already part of the team",
-      "membersAddedToTeam": "Members added to team",
-      "nMembersHaveBeenAddedIntoTeam": "{n} members have been added into the {team} team",
-      "unableToAddMembers": "Unable to add members"
+      "nMembersHaveBeenAddedIntoTeam": "{n} members added to {team} team",
+      "nMemberHaveBeenAddedIntoTeam": "{n} member added to {team} team",
+      "unableToAddMembers": "Unable to add members",
+      "removeTeam": "Remove team",
+      "confirmRemoveTeamFromWorkspaceTitle": "Are you sure you want to remove team from workspace?",
+      "confirmRemoveTeamFromWorkspaceSubtitle": "If you remove, team members will lose access to all bases and data within this workspace",
+      "nMemberSelected": "{n} member selected",
+      "nMembersSelected": "{n} members selected",
+      "noMoreTeamsToAdd": "No more teams to add"
     }
   },
   "datatype": {
@@ -1154,6 +1162,7 @@
     "goToMembers": "Go to Members",
     "addMember": "Add Member",
     "addTeam": "Add Team",
+    "addTeams": "Add Teams",
     "numberOfMembers": "No. Members",
     "numberOfBases": "No. Bases",
     "numberOfRecords": "No. Records",
@@ -1225,6 +1234,7 @@
     "duplicateAttachment": "File with name {filename} already attached",
     "workspaceId": "WORKSPACE ID: {workspaceId}",
     "userIdColon": "USER ID: {userId}",
+    "teamIdColon": "TEAM ID: {teamId}",
     "sourceIdColon": "SOURCE ID: {sourceId}",
     "tableIdColon": "TABLE ID: {tableId}",
     "baseIdColon": "BASE ID: {baseId}",
@@ -1272,6 +1282,7 @@
     "clickToCopy": "Click to copy",
     "clickToCopyWorkspaceID": "Click to copy Workspace ID",
     "clickToCopyUserID": "Click to copy User ID",
+    "clickToCopyTeamID": "Click to copy Team ID",
     "clickToCopySourceID": "Click to copy Source ID",
     "clickToCopyTableID": "Click to copy Table ID",
     "clickToCopyBaseID": "Click to copy Base ID",
@@ -1596,7 +1607,8 @@
     "copyConfiguration": "Copy configuration",
     "selectTeam": "Select team",
     "selectTeams": "Select teams",
-    "showEveryonesPersonalViews": "Show everyone's personal views"
+    "showEveryonesPersonalViews": "Show everyone's personal views",
+    "selectOneOrMoreTeams": "Select one or more teams"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1628,8 +1640,8 @@
     "inviteToBase": "Invite to Base",
     "inviteToWorkspace": "Invite to Workspace",
     "addMember": "Add Member to Base",
-    "addTeamToBase": "Add Team to Base",
-    "addTeamToWorkspace": "Add Team to Workspace",
+    "addTeamsToBase": "Add Teams to Base",
+    "addTeamsToWorkspace": "Add Teams to Workspace",
     "noRange": "Calendar view requires a date range",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
@@ -1897,7 +1909,7 @@
     "deleteTeam": "Delete team",
     "removeFromTeam": "Remove from team",
     "assignAsTeamOwner": "Assign as team owner",
-    "assignAsTeamMember": "Assign as team member",
+    "removeAsTeamOwner": "Remove as team owner",
     "revertToDefault": "Revert to Default",
     "viewFieldPermissions": "View field permissions",
     "resetPermissions": "Reset permissions",
@@ -2002,7 +2014,9 @@
     "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
-    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action",
+    "basePermissionRole": "Base permission - {role}",
+    "workspacePermissionRole": "Workspace permission - {role}"
   },
   "placeholder": {
     "searchIcons": "Search icons",
@@ -2249,6 +2263,7 @@
     "info": {
       "inviteSent": "Invitation sent successfully",
       "userRoleUpdated": "User role updated successfully",
+      "teamRoleUpdated": "Team role updated successfully",
       "actionIrreversible": "This action is irreversible",
       "deleteAccount": "Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases, your access permissions will be revoked.",
       "calendarReadOnly": "You will not be able to drag records between dates when computed or system fields are used.",
@@ -2450,7 +2465,8 @@
       "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
       "matchedByButtonLabel": "Matched by button label",
       "matchedByFieldDescription": "Matched by field description",
-      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles."
+      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles.",
+      "workspaceTeamRoleUpdateNotice": "Changing a team’s workspace role will also update its access to bases where it doesn’t have an explicit role."
     },
     "error": {
       "passwordChangeFailed": "Failed to change password",

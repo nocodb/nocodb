@@ -12,12 +12,15 @@ import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
+// Todo: handle cache key when adding support for org level teams
 export default class Team {
   id: string;
   title: string;
   meta?: Record<string, any> | string;
   fk_org_id?: string;
   fk_workspace_id?: string;
+  created_by?: string;
+  deleted: boolean; // Soft delete flag
   created_at?: string;
   updated_at?: string;
 
@@ -40,7 +43,11 @@ export default class Team {
       'meta',
       'fk_org_id',
       'fk_workspace_id',
+      'created_by',
     ]);
+
+    // Set deleted to false by default
+    insertObj.deleted = false;
 
     // Prepare meta for database storage
     const preparedTeam = prepareForDb(insertObj, 'meta');
@@ -63,11 +70,22 @@ export default class Team {
 
     await NocoCache.set(context, `${CacheScope.TEAM}:${id}`, fullTeam);
 
+    // Use the same cache key logic as list method for consistency
+    const baseCacheKey = context.workspace_id ?? context.org_id;
+    const cacheKey = baseCacheKey; // New teams are always active (not deleted)
+
     await NocoCache.appendToList(
       context,
       CacheScope.TEAM,
-      [context.workspace_id ?? context.org_id],
+      [cacheKey],
       `${CacheScope.TEAM}:${id}`,
+    );
+
+    // Invalidate list cache to ensure new team appears in subsequent list calls
+    await NocoCache.deepDel(
+      context,
+      CacheScope.TEAM,
+      CacheDelDirection.CHILD_TO_PARENT,
     );
 
     return this.castType(fullTeam);
@@ -87,12 +105,32 @@ export default class Team {
       ));
 
     if (!teamData) {
-      teamData = await ncMeta.metaGet(
+      const teams = await ncMeta.metaList2(
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.TEAMS,
-        teamId,
+        {
+          condition: {
+            id: teamId,
+          },
+          xcCondition: {
+            _or: [
+              {
+                deleted: {
+                  eq: false,
+                },
+              },
+              {
+                deleted: {
+                  eq: null,
+                },
+              },
+            ],
+          },
+        },
       );
+
+      teamData = teams.length > 0 ? teams[0] : null;
 
       if (teamData) {
         await NocoCache.set(context, `${CacheScope.TEAM}:${teamId}`, teamData);
@@ -107,38 +145,62 @@ export default class Team {
     {
       fk_org_id,
       fk_workspace_id,
+      include_deleted = false,
     }: {
       fk_org_id?: string;
       fk_workspace_id?: string;
+      include_deleted?: boolean;
     } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<Team[]> {
+    // Include include_deleted in cache key to prevent cache conflicts
+    const baseCacheKey = context.workspace_id ?? context.org_id;
+    const cacheKey = include_deleted ? `${baseCacheKey}:deleted` : baseCacheKey;
+
     const cachedList = await NocoCache.getList(context, CacheScope.TEAM, [
-      context.workspace_id ?? context.org_id,
+      cacheKey,
     ]);
 
     let { list: teamList } = cachedList;
     const { isNoneList } = cachedList;
 
     if (!isNoneList && !teamList.length) {
+      const condition: any = {
+        ...(fk_org_id && { fk_org_id }),
+        ...(fk_workspace_id && { fk_workspace_id }),
+      };
+
+      let xcCondition: any = {};
+
+      if (!include_deleted) {
+        // Default: exclude soft-deleted records
+        xcCondition = {
+          _or: [
+            {
+              deleted: {
+                eq: false,
+              },
+            },
+            {
+              deleted: {
+                eq: null,
+              },
+            },
+          ],
+        };
+      }
+
       teamList = await ncMeta.metaList2(
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.TEAMS,
         {
-          condition: {
-            ...(fk_org_id && { fk_org_id }),
-            ...(fk_workspace_id && { fk_workspace_id }),
-          },
+          condition,
+          ...(Object.keys(xcCondition).length > 0 && { xcCondition }),
         },
       );
 
-      await NocoCache.setList(
-        context,
-        CacheScope.TEAM,
-        [context.workspace_id ?? context.org_id],
-        teamList,
-      );
+      await NocoCache.setList(context, CacheScope.TEAM, [cacheKey], teamList);
     }
 
     return teamList.map((team) => this.castType(team));
@@ -199,7 +261,70 @@ export default class Team {
     return this.castType(fullTeam);
   }
 
+  public static async softDelete(
+    context: NcContext,
+    teamId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAMS,
+      { deleted: true },
+      { id: teamId },
+    );
+
+    await NocoCache.del(context, `${CacheScope.TEAM}:${teamId}`);
+
+    // Invalidate both active and deleted cache lists
+    const baseCacheKey = context.workspace_id ?? context.org_id;
+    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}`);
+    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
+
+    await NocoCache.deepDel(
+      context,
+      CacheScope.TEAM,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+  }
+
   public static async delete(
+    context: NcContext,
+    teamId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // Use soft delete by default
+    return this.softDelete(context, teamId, ncMeta);
+  }
+
+  public static async restore(
+    context: NcContext,
+    teamId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAMS,
+      { deleted: false },
+      { id: teamId },
+    );
+
+    await NocoCache.del(context, `${CacheScope.TEAM}:${teamId}`);
+
+    // Invalidate both active and deleted cache lists
+    const baseCacheKey = context.workspace_id ?? context.org_id;
+    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}`);
+    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
+
+    await NocoCache.deepDel(
+      context,
+      CacheScope.TEAM,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+  }
+
+  public static async hardDelete(
     context: NcContext,
     teamId: string,
     ncMeta = Noco.ncMeta,
@@ -209,6 +334,11 @@ export default class Team {
     });
 
     await NocoCache.del(context, `${CacheScope.TEAM}:${teamId}`);
+
+    // Invalidate both active and deleted cache lists
+    const baseCacheKey = context.workspace_id ?? context.org_id;
+    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}`);
+    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
 
     await NocoCache.deepDel(
       context,

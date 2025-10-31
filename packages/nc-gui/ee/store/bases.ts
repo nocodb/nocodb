@@ -25,6 +25,8 @@ export const useBases = defineStore('basesStore', () => {
   )
   const basesUser = ref<Map<string, User[]>>(new Map())
 
+  const basesTeams = ref<Map<string, Record<string, any>[]>>(new Map())
+
   const router = useRouter()
   const route = router.currentRoute
 
@@ -93,8 +95,40 @@ export const useBases = defineStore('basesStore', () => {
     }
   }
 
+  async function getBaseTeams({ baseId, force = false }: { baseId: string; force?: boolean }) {
+    await until(() => !!workspaceStore.activeWorkspace?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!baseId || blockTeamsManagement.value) return { teams: [], totalRows: 0 }
+
+    if (!force && basesTeams.value.has(baseId)) {
+      const teams = basesTeams.value.get(baseId)
+      return {
+        teams,
+        totalRows: teams?.length ?? 0,
+      }
+    }
+
+    const response: any = await baseTeamList(baseId)
+
+    if (response) {
+      basesTeams.value.set(baseId, response)
+
+      return {
+        teams: response,
+        totalRows: response.length,
+      }
+    }
+
+    return {
+      teams: [],
+      totalRows: 0,
+    }
+  }
+
   const clearBasesUser = () => {
     basesUser.value.clear()
+    basesTeams.value.clear()
   }
 
   const createProjectUser = async (baseId: string, user: User) => {
@@ -523,6 +557,167 @@ export const useBases = defineStore('basesStore', () => {
     return baseRoles.value[baseId]
   }
 
+  const isLoadingBaseTeams = ref(true)
+
+  async function baseTeamList(baseId: string, showLoading = true) {
+    await until(() => !!workspaceStore.activeWorkspace?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!workspaceStore.isTeamsEnabled || !workspaceStore.activeWorkspaceId || !baseId || blockTeamsManagement.value) {
+      isLoadingBaseTeams.value = false
+      return
+    }
+
+    if (showLoading) {
+      isLoadingBaseTeams.value = true
+    }
+
+    try {
+      const { list } = await $api.internal.getOperation(workspaceStore.activeWorkspaceId, baseId, {
+        operation: 'baseTeamList',
+      })
+
+      return list || []
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoadingBaseTeams.value = false
+    }
+  }
+
+  async function baseTeamGet(baseId: string, teamId: string) {
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!workspaceStore.isTeamsEnabled || !workspaceStore.activeWorkspaceId || !baseId || !teamId || blockTeamsManagement.value) {
+      return
+    }
+
+    try {
+      const teamDetails = await $api.internal.getOperation(workspaceStore.activeWorkspaceId, baseId, {
+        operation: 'baseTeamGet',
+        teamId,
+      })
+
+      return teamDetails
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function baseTeamAdd(
+    baseId: string,
+    teams: {
+      team_id: string
+      base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>
+    }[],
+  ) {
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (
+      !workspaceStore.isTeamsEnabled ||
+      !workspaceStore.activeWorkspaceId ||
+      !baseId ||
+      !teams.length ||
+      blockTeamsManagement.value
+    ) {
+      return
+    }
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceStore.activeWorkspaceId,
+        baseId,
+        {
+          operation: 'baseTeamAdd',
+        },
+        teams,
+      )
+
+      if (!res) return
+
+      basesTeams.value.set(baseId, [...(basesTeams.value.get(baseId) || []), ...(ncIsArray(res) ? res : [res])])
+
+      return ncIsArray(res) ? res : [res]
+    } finally {
+      // catch error is handled in inviteDlg
+    }
+  }
+
+  async function baseTeamUpdate(
+    baseId: string,
+    updates: {
+      team_id: string
+      base_role: Exclude<ProjectRoles, ProjectRoles.OWNER>
+    },
+  ) {
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (
+      !workspaceStore.isTeamsEnabled ||
+      !workspaceStore.activeWorkspaceId ||
+      !baseId ||
+      !updates.team_id ||
+      blockTeamsManagement.value
+    ) {
+      return
+    }
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceStore.activeWorkspaceId,
+        baseId,
+        {
+          operation: 'baseTeamUpdate',
+        },
+        updates,
+      )
+
+      if (!res) return
+
+      basesTeams.value.set(
+        baseId,
+        (basesTeams.value.get(baseId) || []).map((team) => (team.team_id === updates.team_id ? { ...team, ...res } : team)),
+      )
+
+      return res
+    } finally {
+      // catch error is handled in parent function
+    }
+  }
+
+  async function baseTeamRemove(baseId: string, teamIds: string[]) {
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (
+      !workspaceStore.isTeamsEnabled ||
+      !workspaceStore.activeWorkspaceId ||
+      !baseId ||
+      !teamIds.length ||
+      blockTeamsManagement.value
+    ) {
+      return
+    }
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceStore.activeWorkspaceId,
+        baseId,
+        {
+          operation: 'baseTeamRemove',
+        },
+        teamIds.map((teamId) => ({ team_id: teamId })),
+      )
+
+      basesTeams.value.set(
+        baseId,
+        (basesTeams.value.get(baseId) || []).filter((team) => !teamIds.includes(team.team_id)),
+      )
+      return ncIsArray(res) ? res : [res]
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   return {
     bases,
     basesList,
@@ -557,6 +752,16 @@ export const useBases = defineStore('basesStore', () => {
     baseHomeSearchQuery,
     getBaseRoles,
     baseRoles,
+
+    // Base Teams
+    isLoadingBaseTeams,
+    basesTeams,
+    getBaseTeams,
+    baseTeamList,
+    baseTeamGet,
+    baseTeamAdd,
+    baseTeamUpdate,
+    baseTeamRemove,
   }
 })
 

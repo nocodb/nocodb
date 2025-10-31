@@ -16,7 +16,7 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
-import type { UserType, WorkspaceType } from 'nocodb-sdk';
+import type { NcContext, UserType, WorkspaceType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { WorkspaceUserDeleteEvent } from '~/services/app-hooks/interfaces';
 import Noco from '~/Noco';
@@ -41,6 +41,9 @@ import {
 } from '~/models';
 import Workspace from '~/models/Workspace';
 import WorkspaceUser from '~/models/WorkspaceUser';
+import { Team } from '~/ee/models';
+import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
+import { PrincipalType, ResourceType } from '~/utils/globals';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MailService } from '~/services/mail/mail.service';
@@ -290,6 +293,11 @@ export class WorkspaceUsersService {
     ncMeta = Noco.ncMeta,
   ) {
     const { workspaceId, userId } = param;
+    const context =
+      param.req?.context ||
+      ({
+        workspace_id: workspaceId,
+      } as NcContext);
 
     const workspace = await Workspace.get(workspaceId);
 
@@ -389,6 +397,37 @@ export class WorkspaceUsersService {
             base_id: base.id,
           }),
         );
+      }
+
+      // Remove user from all teams in the workspace
+      const teams = await Team.list(
+        context,
+        { fk_workspace_id: workspaceId },
+        transaction,
+      );
+
+      for (const team of teams) {
+        // Check if user is a member of this team
+        const teamAssignment = await PrincipalAssignment.get(
+          context,
+          ResourceType.TEAM,
+          team.id,
+          PrincipalType.USER,
+          userId,
+          transaction,
+        );
+
+        if (teamAssignment) {
+          // Delete the user from the team
+          await PrincipalAssignment.delete(
+            context,
+            ResourceType.TEAM,
+            team.id,
+            PrincipalType.USER,
+            userId,
+            transaction,
+          );
+        }
       }
 
       res = await WorkspaceUser.softDelete(workspaceId, userId, transaction);

@@ -215,103 +215,228 @@ export default class Subscription {
     return true;
   }
 
+  /**
+   * Calculates seat count for a workspace including team users
+   *
+   * This method counts users who consume seats based on their roles in:
+   * 1. Direct workspace assignments
+   * 2. Direct base assignments within the workspace
+   * 3. Team memberships where teams are assigned to the workspace or its bases
+   *
+   * Seat counting logic:
+   * - A user is counted as seat-consuming if they have ANY seat-consuming role at ANY level
+   * - This includes: direct base roles, direct workspace roles, base team roles, workspace team roles
+   * - If a user has multiple roles, having even one seat-consuming role makes them count as seat-consuming
+   * - Team member roles (manager/member) are not considered for seat counting
+   *
+   * @param workspaceId Workspace ID
+   * @param ncMeta Database metadata instance
+   * @returns Object containing seat count, non-seat count, and user maps
+   */
   public static async calculateWorkspaceSeatCount(
     workspaceId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const workspaceUsers = await ncMeta.metaList2(
-      workspaceId,
-      RootScopes.WORKSPACE,
-      MetaTable.WORKSPACE_USER,
-      {
-        xcCondition: {
-          _and: [
-            {
-              fk_workspace_id: {
-                eq: workspaceId,
-              },
-            },
-            {
-              _or: [
-                {
-                  deleted: {
-                    eq: false,
-                  },
-                },
-                {
-                  deleted: {
-                    eq: null,
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      },
-    );
-
+    // Get active base IDs for this workspace
     const bases = await Base.list(workspaceId, ncMeta);
-
     const activeBaseIds = (bases ?? []).map((b) => b.id);
 
-    const baseUsers = await ncMeta.metaList2(
-      workspaceId,
-      RootScopes.WORKSPACE,
-      MetaTable.PROJECT_USERS,
-      {
-        condition: {
-          fk_workspace_id: workspaceId,
+    // Single comprehensive query to get all user roles
+    const allUserRoles = await ncMeta.knexConnection
+      .select(
+        `${MetaTable.USERS}.id as user_id`,
+        'workspace_users.roles as workspace_role',
+        'base_users.roles as base_role',
+        'workspace_team_assignments.roles as workspace_team_role',
+        'base_team_assignments.roles as base_team_role',
+      )
+      .from(MetaTable.USERS)
+      // Left join with direct workspace users
+      .leftJoin(`${MetaTable.WORKSPACE_USER} as workspace_users`, function () {
+        this.on(`${MetaTable.USERS}.id`, '=', 'workspace_users.fk_user_id')
+          .andOn(
+            'workspace_users.fk_workspace_id',
+            '=',
+            ncMeta.knex.raw('?', [workspaceId]),
+          )
+          .andOn(function () {
+            this.on(
+              'workspace_users.deleted',
+              ncMeta.knex.raw('?', [false]),
+            ).orOnNull('workspace_users.deleted');
+          });
+      })
+      // Left join with direct base users
+      .leftJoin(`${MetaTable.PROJECT_USERS} as base_users`, function () {
+        this.on(`${MetaTable.USERS}.id`, '=', 'base_users.fk_user_id')
+          .andOn(
+            'base_users.fk_workspace_id',
+            '=',
+            ncMeta.knex.raw('?', [workspaceId]),
+          )
+          .andOnIn('base_users.base_id', activeBaseIds);
+      })
+      // Left join with team assignments (user -> team)
+      .leftJoin(
+        `${MetaTable.PRINCIPAL_ASSIGNMENTS} as team_assignments`,
+        function () {
+          this.on(
+            'team_assignments.principal_ref_id',
+            '=',
+            `${MetaTable.USERS}.id`,
+          )
+            .andOn(
+              'team_assignments.principal_type',
+              '=',
+              ncMeta.knex.raw('?', ['user']),
+            )
+            .andOn(
+              'team_assignments.resource_type',
+              '=',
+              ncMeta.knex.raw('?', ['team']),
+            )
+            .andOn(function () {
+              this.on(
+                'team_assignments.deleted',
+                ncMeta.knex.raw('?', [false]),
+              ).orOnNull('team_assignments.deleted');
+            });
         },
-        xcCondition: {
-          _and: [
-            {
-              base_id: {
-                in: activeBaseIds,
-              },
-            },
-          ],
+      )
+      // Left join with workspace team assignments (team -> workspace)
+      .leftJoin(
+        `${MetaTable.PRINCIPAL_ASSIGNMENTS} as workspace_team_assignments`,
+        function () {
+          this.on(
+            'workspace_team_assignments.principal_ref_id',
+            '=',
+            'team_assignments.resource_id',
+          )
+            .andOn(
+              'workspace_team_assignments.principal_type',
+              '=',
+              ncMeta.knex.raw('?', ['team']),
+            )
+            .andOn(
+              'workspace_team_assignments.resource_type',
+              '=',
+              ncMeta.knex.raw('?', ['workspace']),
+            )
+            .andOn(
+              'workspace_team_assignments.resource_id',
+              '=',
+              ncMeta.knex.raw('?', [workspaceId]),
+            )
+            .andOn(function () {
+              this.on(
+                'workspace_team_assignments.deleted',
+                ncMeta.knex.raw('?', [false]),
+              ).orOnNull('workspace_team_assignments.deleted');
+            });
         },
-      },
-    );
+      )
+      // Left join with base team assignments (team -> base)
+      .leftJoin(
+        `${MetaTable.PRINCIPAL_ASSIGNMENTS} as base_team_assignments`,
+        function () {
+          this.on(
+            'base_team_assignments.principal_ref_id',
+            '=',
+            'team_assignments.resource_id',
+          )
+            .andOn(
+              'base_team_assignments.principal_type',
+              '=',
+              ncMeta.knex.raw('?', ['team']),
+            )
+            .andOn(
+              'base_team_assignments.resource_type',
+              '=',
+              ncMeta.knex.raw('?', ['base']),
+            )
+            .andOn(function () {
+              this.on(
+                'base_team_assignments.deleted',
+                ncMeta.knex.raw('?', [false]),
+              ).orOnNull('base_team_assignments.deleted');
+            });
+        },
+      )
+      // Filter: only users who have at least one role assignment
+      .where(function () {
+        this.whereNotNull('workspace_users.fk_user_id')
+          .orWhereNotNull('base_users.fk_user_id')
+          .orWhereNotNull('team_assignments.principal_ref_id');
+      })
+      // Filter base team assignments by active base IDs
+      .where(function () {
+        this.where(function () {
+          // If no base team assignment, no filter needed
+          this.whereNull('base_team_assignments.resource_id');
+        }).orWhere(function () {
+          // If base team assignment exists, filter by active base IDs
+          this.whereNotNull('base_team_assignments.resource_id').whereIn(
+            'base_team_assignments.resource_id',
+            activeBaseIds,
+          );
+        });
+      });
 
     /*
-      Count users based on their roles in either workspace or base
-      and exclude users with roles that do not consume a seat
+      Count users based on their roles - if they have ANY seat-consuming role at ANY level,
+      they are counted as seat-consuming. This includes:
+      - Direct base assignments
+      - Direct workspace assignments  
+      - Base team roles
+      - Workspace team roles
     */
     const seatUsersMap = new Map<string, true>();
-
     const nonSeatUsersMap = new Map<string, true>();
 
-    for (const user of workspaceUsers) {
-      const userId = user.fk_user_id;
-      const role = user.roles;
-      if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
-        seatUsersMap.set(userId, true);
+    for (const userRole of allUserRoles) {
+      const userId = userRole.user_id;
+
+      // Collect all roles that the user has
+      const effectiveRoles = [];
+
+      // extract base level role
+      if (userRole.base_role) {
+        effectiveRoles.push(userRole.base_role);
+      } else if (userRole.base_team_role) {
+        effectiveRoles.push(userRole.base_team_role);
       }
 
-      if (!nonSeatUsersMap.has(userId) && NON_SEAT_ROLES.includes(role)) {
-        nonSeatUsersMap.set(userId, true);
+      if (userRole.workspace_role) {
+        effectiveRoles.push(userRole.workspace_role);
+      } else if (userRole.workspace_team_role) {
+        effectiveRoles.push(userRole.workspace_team_role);
+      }
+
+      // Check if user has any seat-consuming role among all their roles
+      const hasSeatConsumingRole = effectiveRoles.some(
+        (role) => !NON_SEAT_ROLES.includes(role),
+      );
+
+      if (hasSeatConsumingRole) {
+        // User has at least one seat-consuming role at any level
+        if (!seatUsersMap.has(userId)) {
+          seatUsersMap.set(userId, true);
+        }
+
+        // Remove from non-seat map if present (role override)
+        if (nonSeatUsersMap.has(userId)) {
+          nonSeatUsersMap.delete(userId);
+        }
+      } else {
+        // User has only non-seat roles or no roles
+        // Only add to non-seat map if not already in seat map (no override)
+        if (!seatUsersMap.has(userId) && !nonSeatUsersMap.has(userId)) {
+          nonSeatUsersMap.set(userId, true);
+        }
       }
     }
 
-    for (const user of baseUsers) {
-      const userId = user.fk_user_id;
-      const role = user.roles;
-      if (!seatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
-        seatUsersMap.set(userId, true);
-      }
-
-      if (nonSeatUsersMap.has(userId) && !NON_SEAT_ROLES.includes(role)) {
-        // If user is present in nonSeatUsersMap and in some base it is seat user then remove it
-        nonSeatUsersMap.delete(userId);
-      } else if (
-        !nonSeatUsersMap.has(userId) &&
-        NON_SEAT_ROLES.includes(role)
-      ) {
-        nonSeatUsersMap.set(userId, true);
-      }
-    }
-
+    // Handle NocoDB internal users (skip seat counting for @nocodb.com emails)
     if (NOCODB_SKIP_SEAT) {
       const users = await ncMeta.metaList2(
         RootScopes.ROOT,
@@ -346,6 +471,16 @@ export default class Subscription {
     };
   }
 
+  /**
+   * Calculates seat count for an organization by aggregating all workspace seat counts
+   *
+   * TODO: Update in next iteration to include team users across all workspaces
+   * Currently only counts direct workspace and base users
+   *
+   * @param orgId Organization ID
+   * @param ncMeta Database metadata instance
+   * @returns Total seat count for the organization
+   */
   public static async calculateOrgSeatCount(
     orgId: string,
     ncMeta = Noco.ncMeta,
@@ -354,19 +489,22 @@ export default class Subscription {
     const workspaceUsers = await ncMeta.knexConnection
       .select('fk_user_id', 'roles')
       .from(MetaTable.WORKSPACE_USER)
-      .where(
+      .whereIn(
         'fk_workspace_id',
-        'in',
         ncMeta
           .knex(MetaTable.WORKSPACE)
           .select('id')
           .where('fk_org_id', orgId)
           .where((kn) => {
-            kn.where('deleted', false).orWhereNull('deleted');
+            kn.where('deleted', ncMeta.knex.raw('?', [false])).orWhereNull(
+              'deleted',
+            );
           }),
       )
       .where((kn) => {
-        kn.where('deleted', false).orWhereNull('deleted');
+        kn.where('deleted', ncMeta.knex.raw('?', [false])).orWhereNull(
+          'deleted',
+        );
       });
 
     // Get all base users across all bases in all workspaces in the organization
@@ -388,14 +526,16 @@ export default class Subscription {
       )
       .where(`${MetaTable.WORKSPACE}.fk_org_id`, orgId)
       .where((kn) => {
-        kn.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
+        kn.where(
           `${MetaTable.PROJECT}.deleted`,
-        );
+          ncMeta.knex.raw('?', [false]),
+        ).orWhereNull(`${MetaTable.PROJECT}.deleted`);
       })
       .where((kn) => {
-        kn.where(`${MetaTable.WORKSPACE}.deleted`, false).orWhereNull(
+        kn.where(
           `${MetaTable.WORKSPACE}.deleted`,
-        );
+          ncMeta.knex.raw('?', [false]),
+        ).orWhereNull(`${MetaTable.WORKSPACE}.deleted`);
       });
 
     /*

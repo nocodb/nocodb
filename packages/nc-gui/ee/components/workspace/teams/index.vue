@@ -20,12 +20,12 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const { t } = useI18n()
 
-const { $api } = useNuxtApp()
+const { user } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
 const hasEditPermission = computed(() => {
-  return isUIAllowed('teamUpdate')
+  return isUIAllowed('teamCreate')
 })
 
 const workspaceStore = useWorkspace()
@@ -79,7 +79,7 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const handleEditTeam = (team: TeamType) => {
-  if (!team?.id) return
+  if (!team?.id || !team?.is_member) return
 
   router.push({ query: { ...route.value.query, teamId: team.id } })
 
@@ -119,6 +119,7 @@ const columns = [
 ] as NcTableColumnProps<TeamV3V3Type>[]
 
 const customRow = (record: Record<string, any>) => ({
+  class: record.is_member ? '' : '!cursor-default',
   onClick: () => {
     handleEditTeam(record as TeamType)
   },
@@ -179,10 +180,7 @@ const handleLeaveTeam = (team: TeamV3V3Type) => {
     okText: t('activity.leaveTeam'),
     cancelText: t('labels.cancel'),
     okCallback: async () => {
-      // Todo: api call
-      console.log('leave team', team)
-      await ncDelay(1000)
-      teams.value = teams.value.filter((t) => t.id !== team.id)
+      await workspaceStore.removeTeamMembers(activeWorkspaceId.value!, team.id, [{ user_id: user.value?.id }])
     },
   })
 }
@@ -194,27 +192,7 @@ const handleDeleteTeam = (team: TeamV3V3Type) => {
     okText: t('activity.deleteTeam'),
     cancelText: t('labels.cancel'),
     okCallback: async () => {
-      // Todo: api call
-      console.log('delete team', team)
-      await ncDelay(2000)
-
-      try {
-        await $api.internal.postOperation(
-          activeWorkspaceId.value!,
-          NO_SCOPE,
-          {
-            operation: 'teamDelete',
-          },
-          {
-            teamId: team.id,
-          },
-        )
-
-        teams.value = teams.value.filter((t) => t.id !== team.id)
-      } catch (error: any) {
-        console.error(error)
-        message.error(await extractSdkResponseErrorMsg(error))
-      }
+      await workspaceStore.deleteTeam(activeWorkspaceId.value!, team.id)
     },
   })
 }
@@ -259,6 +237,7 @@ onMounted(async () => {
           inner-class="!gap-2"
           :disabled="isTeamsLoading"
           data-testid="nc-new-team-btn"
+          class="capitalize"
           @click="handleCreateTeam"
         >
           <template #icon>
@@ -300,8 +279,20 @@ onMounted(async () => {
                 class="!w-[320px] flex-none"
               />
             </template>
+            <template #subtitle>
+              {{ teams.length ? $t('title.noResultsMatchedYourSearch') : $t('placeholder.youHaveNotCreatedAnyTeamsSubtitle') }}
+
+              <!-- Todo: @rameshmane7218 update doc links -->
+              <a
+                v-if="!teams.length"
+                href="https://nocodb.com/docs/product-docs/collaboration/teams"
+                target="_blank"
+                rel="noopener noreferrer"
+                >{{ $t('msg.learnMore') }}</a
+              >
+            </template>
             <template v-if="hasEditPermission" #action>
-              <NcButton size="small" inner-class="!gap-2" @click="handleCreateTeam">
+              <NcButton size="small" inner-class="!gap-2" class="capitalize" @click="handleCreateTeam">
                 <template #icon>
                   <GeneralIcon icon="plus" class="h-4 w-4" />
                 </template>
@@ -332,9 +323,9 @@ onMounted(async () => {
                 <div class="flex items-center gap-1">
                   <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize text-captionBold" show-on-truncate-only>
                     <template #title>
-                      {{ collaboratorsMap[record.created_by]?.display_name || extractNameFromEmail(record.created_by) }}
+                      {{ extractUserDisplayNameOrEmail(collaboratorsMap[record.created_by]) }}
                     </template>
-                    {{ collaboratorsMap[record.created_by]?.display_name || extractNameFromEmail(record.created_by) }}
+                    {{ extractUserDisplayNameOrEmail(collaboratorsMap[record.created_by]) }}
                   </NcTooltip>
                 </div>
                 <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-muted" show-on-truncate-only>
@@ -354,13 +345,21 @@ onMounted(async () => {
               </NcButton>
               <template #overlay>
                 <NcMenu variant="medium">
-                  <NcMenuItem @click="handleEditTeam(record as TeamV3V3Type)">
+                  <NcMenuItemCopyId
+                    :id="record.id"
+                    :tooltip="$t(`labels.clickToCopyTeamID`)"
+                    :label="$t(`labels.teamIdColon`, { teamId: record.id })"
+                  />
+
+                  <NcDivider v-if="record.is_member || hasEditPermission" />
+
+                  <NcMenuItem v-if="record.is_member" @click="handleEditTeam(record as TeamV3V3Type)">
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}
                   </NcMenuItem>
                   <NcTooltip
-                    v-if="hasEditPermission"
-                    :disabled="!hasSoleTeamOwner(record as TeamV3V3Type) "
+                    v-if="record.is_member"
+                    :disabled="!hasSoleTeamOwner(record as TeamV3V3Type)"
                     :title="t('objects.teams.thisTeamHasOnlyOneOwnerTooltip')"
                     placement="left"
                   >
@@ -372,7 +371,12 @@ onMounted(async () => {
                       {{ $t('activity.leaveTeam') }}
                     </NcMenuItem>
                   </NcTooltip>
-                  <NcMenuItem v-if="hasEditPermission" danger @click="handleDeleteTeam(record as TeamV3V3Type)">
+                  <NcMenuItem
+                    v-if="hasEditPermission"
+                    :disabled="!record.is_member"
+                    danger
+                    @click="handleDeleteTeam(record as TeamV3V3Type)"
+                  >
                     <GeneralIcon icon="delete" />
                     {{ $t('activity.deleteTeam') }}
                   </NcMenuItem>

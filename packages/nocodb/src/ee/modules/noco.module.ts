@@ -44,6 +44,18 @@ import { WorkspaceMembersV3Service } from '~/services/v3/workspace-members-v3.se
 import { WorkspaceV3Controller } from '~/ee/controllers/v3/workspace-v3.controller';
 import { WorkspaceMembersV3Controller } from '~/controllers/v3/workspace-members-v3.controller';
 
+/* Teams V3 */
+import { TeamsV3Controller } from '~/controllers/v3/teams-v3.controller';
+import { TeamsV3Service } from '~/services/v3/teams-v3.service';
+
+/* Workspace Teams V3 */
+// import { WorkspaceTeamsV3Controller } from '~/controllers/v3/workspace-teams-v3.controller';
+import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
+
+/* Base Teams V3 */
+// import { BaseTeamsV3Controller } from '~/controllers/v3/base-teams-v3.controller';
+import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
+
 /* Snapshot */
 import { SnapshotController } from '~/controllers/snapshot.controller';
 import { SnapshotService } from '~/services/snapshot.service';
@@ -87,6 +99,15 @@ export const nocoModuleEeMetadata = {
     WorkspaceV3Service,
     WorkspaceMembersV3Service,
 
+    /* Teams V3 */
+    TeamsV3Service,
+
+    /* Workspace Teams V3 */
+    WorkspaceTeamsV3Service,
+
+    /* Base Teams V3 */
+    BaseTeamsV3Service,
+
     /* Snapshot */
     SnapshotService,
 
@@ -122,10 +143,19 @@ export const nocoModuleEeMetadata = {
     WorkspaceV3Controller,
     WorkspaceMembersV3Controller,
 
+    /* Teams V3 */
+    TeamsV3Controller,
+
     /* Snapshot */
     SnapshotController,
 
     BaseMembersV3Controller,
+
+    // NOTE: COMMENTED OUT FOR NOW - ONLY USED FOR TESTING PURPOSES
+    // /* Workspace Teams V3 */
+    // WorkspaceTeamsV3Controller,
+    // /* Base Teams V3 */
+    // BaseTeamsV3Controller,
 
     ...nocoModuleMetadata.controllers,
   ],
@@ -145,6 +175,15 @@ export const nocoModuleEeMetadata = {
     /* Workspace V3 */
     WorkspaceV3Service,
     WorkspaceMembersV3Service,
+
+    /* Teams V3 */
+    TeamsV3Service,
+
+    /* Workspace Teams V3 */
+    WorkspaceTeamsV3Service,
+
+    /* Base Teams V3 */
+    BaseTeamsV3Service,
 
     /* Orgs */
     OrgsService,

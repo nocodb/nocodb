@@ -74,11 +74,11 @@ const handleAddMembers = async () => {
 
   if (addedMembers && ncIsArray(addedMembers)) {
     message.success({
-      title: t('objects.teams.membersAddedToTeam'),
-      content: t('objects.teams.nMembersHaveBeenAddedIntoTeam', {
+      content: t(`objects.teams.nMember${membersToAdd.length > 1 ? 's' : ''}HaveBeenAddedIntoTeam`, {
         n: membersToAdd.length,
         team: team.value.title,
       }),
+      showDuration: false,
     })
 
     visible.value = false
@@ -172,7 +172,11 @@ watch(
         </template>
         <template #listItemExtraRight="{ option }">
           <div class="flex items-center gap-1">
-            <RolesBadge :border="false" :role="option.roles" icon-only nc-badge-class="!px-1" show-tooltip />
+            <RolesBadge :border="false" :role="option.roles" icon-only nc-badge-class="!px-1" show-tooltip>
+              <template #tooltip="{ label }">
+                {{ $t('tooltip.workspacePermissionRole', { role: $t(`objects.roleType.${label}`) }) }}
+              </template>
+            </RolesBadge>
           </div>
         </template>
         <template #listItemSelectedIcon> <NcSpanHidden /> </template>
@@ -187,7 +191,11 @@ watch(
       >
       </NcAlert>
 
-      <div class="flex items-center justify-end pt-4">
+      <div class="flex items-center justify-between pt-4">
+        <div v-if="selectedUsers.length" class="text-nc-content-gray-muted">
+          {{ t(`objects.teams.nMember${selectedUsers.length > 1 ? 's' : ''}Selected`, { n: selectedUsers.length }) }}
+        </div>
+        <div v-else>&nbsp;</div>
         <div class="flex gap-2">
           <NcButton type="secondary" size="small" :disabled="isLoading" @click="visible = false"> Cancel </NcButton>
           <NcButton

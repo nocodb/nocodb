@@ -1,6 +1,13 @@
 <script lang="ts" setup>
 import type { MetaType, PlanLimitExceededDetailsType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import {
+  OrderedProjectRoles,
+  OrgUserRoles,
+  PlanFeatureTypes,
+  PlanTitles,
+  ProjectRoles,
+  WorkspaceRolesToProjectRoles,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -12,13 +19,13 @@ const { user, ncNavigateTo } = useGlobal()
 
 const { showInfoModal } = useNcConfirmModal()
 
-const { isTeamsEnabled, activeWorkspaceId } = storeToRefs(useWorkspace())
+const { isTeamsEnabled, activeWorkspaceId, teamsMap } = storeToRefs(useWorkspace())
 
 const { isPrivateBase, base } = storeToRefs(useBase())
 
 const basesStore = useBases()
-const { getBaseUsers, createProjectUser, updateProjectUser, removeProjectUser } = basesStore
-const { activeProjectId, bases, basesUser } = storeToRefs(basesStore)
+const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser, baseTeamUpdate } = basesStore
+const { activeProjectId, bases, basesUser, basesTeams } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles, loadRoles, isUIAllowed } = useRoles()
 
@@ -73,36 +80,64 @@ interface Collaborators {
 const isEditModalOpenUsingRouterPush = ref<boolean>(false)
 
 const collaborators = ref<Collaborators[]>([])
-const totalCollaborators = ref(0)
 const userSearchText = ref('')
 
 const isLoading = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
-const filteredCollaborators = computed(() =>
-  collaborators.value.filter(
-    (collab) =>
-      collab.display_name?.toLowerCase()?.includes(userSearchText.value.toLowerCase()) ||
-      collab.email.toLowerCase().includes(userSearchText.value.toLowerCase()),
-  ),
-)
+const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
+  if (!record?.isTeam || !isEeUI) return roles
+
+  return roles.filter((r) => r !== ProjectRoles.OWNER)
+}
+
+const baseTeamsToCollaborators = computed(() => {
+  if (!currentBase.value?.id) return []
+
+  return (basesTeams.value.get(currentBase.value.id) || []).map((bt) => ({
+    ...bt,
+    id: bt.team_id,
+    isTeam: true,
+    display_name: bt.team_title,
+    email: bt.team_title, // just for sort table by email
+    roles:
+      bt.base_role ??
+      (bt.workspace_role
+        ? WorkspaceRolesToProjectRoles[bt.workspace_role as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+        : ProjectRoles.NO_ACCESS),
+    base_roles: bt.base_role,
+    workspace_roles: bt.workspace_role,
+  }))
+})
+
+const filteredCollaborators = computed(() => {
+  if (!userSearchText.value) return collaborators.value.concat(baseTeamsToCollaborators.value)
+
+  return collaborators.value
+    .concat(baseTeamsToCollaborators.value)
+    .filter((collab) => searchCompare([collab.display_name, collab.email], userSearchText.value))
+})
 
 const sortedCollaborators = computed(() => {
-  return handleGetSortedData(filteredCollaborators.value, sorts.value)
+  return handleGetSortedData(
+    filteredCollaborators.value,
+    sorts.value,
+    baseTeamsToCollaborators.value.length ? { field: 'created_at', direction: 'asc' } : undefined,
+  )
 })
 
 const loadCollaborators = async () => {
   try {
     if (!currentBase.value) return
-    const { users, totalRows } = await getBaseUsers({
+
+    const { users } = await getBaseUsers({
       baseId: currentBase.value.id!,
       ...(!userSearchText.value ? {} : ({ searchText: userSearchText.value } as any)),
       force: true,
     })
 
-    totalCollaborators.value = totalRows
     collaborators.value = [
-      ...users
+      ...(users || [])
         .filter((u: any) => !u?.deleted)
         .map((user: any) => ({
           ...user,
@@ -116,6 +151,15 @@ const loadCollaborators = async () => {
     ]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    if (currentBase.value) {
+      getBaseTeams({
+        baseId: currentBase.value.id!,
+        force: true,
+      }).catch(() => {
+        // ignore
+      })
+    }
   }
 }
 
@@ -127,39 +171,46 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   const currentCollaborator = collaborators.value.find((coll) => coll.id === collab.id)!
 
   try {
-    if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
-      await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
-      if (
-        currentCollaborator.workspace_roles &&
-        WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
-        isEeUI
-      ) {
-        currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
-      } else {
-        currentCollaborator.roles = ProjectRoles.NO_ACCESS
-      }
-      currentCollaborator.base_roles = null
-    } else if (currentCollaborator.base_roles) {
-      currentCollaborator.roles = roles
-      await updateProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
-    } else {
-      currentCollaborator.roles = roles
-      currentCollaborator.base_roles = roles
-      await createProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
-    }
-
-    let currentBaseUsers = basesUser.value.get(currentBase.value.id)
-
-    if (currentBaseUsers?.length) {
-      currentBaseUsers = currentBaseUsers.map((user) => {
-        if (user.id === currentCollaborator.id) {
-          user.roles = currentCollaborator.roles as any
-          user.base_roles = currentCollaborator.base_roles as any
-        }
-        return user
+    if (collab?.isTeam) {
+      await baseTeamUpdate(currentBase.value.id!, {
+        team_id: collab.id,
+        base_role: roles,
       })
+    } else {
+      if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
+        await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        if (
+          currentCollaborator.workspace_roles &&
+          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
+          isEeUI
+        ) {
+          currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
+        } else {
+          currentCollaborator.roles = ProjectRoles.NO_ACCESS
+        }
+        currentCollaborator.base_roles = null
+      } else if (currentCollaborator.base_roles) {
+        currentCollaborator.roles = roles
+        await updateProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+      } else {
+        currentCollaborator.roles = roles
+        currentCollaborator.base_roles = roles
+        await createProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+      }
 
-      basesUser.value.set(currentBase.value.id, currentBaseUsers)
+      let currentBaseUsers = basesUser.value.get(currentBase.value.id)
+
+      if (currentBaseUsers?.length) {
+        currentBaseUsers = currentBaseUsers.map((user) => {
+          if (user.id === currentCollaborator.id) {
+            user.roles = currentCollaborator.roles as any
+            user.base_roles = currentCollaborator.base_roles as any
+          }
+          return user
+        })
+
+        basesUser.value.set(currentBase.value.id, currentBaseUsers)
+      }
     }
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
@@ -469,17 +520,31 @@ onBeforeUnmount(() => {
                   <GeneralIcon icon="ncUsers" />
                   {{ $t('activity.addMembers') }}
                 </NcMenuItem>
-                <NcMenuItem
-                  @click="
-                    () => {
-                      isInviteTeamDlg = true
-                      isInviteModalVisible = true
-                    }
-                  "
-                >
-                  <GeneralIcon icon="ncBuilding" />
-                  {{ $t('labels.addTeam') }}
-                </NcMenuItem>
+                <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT">
+                  <template #default="{ click }">
+                    <NcMenuItem
+                      @click="
+                        click(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, () => {
+                          isInviteTeamDlg = true
+                          isInviteModalVisible = true
+                        })
+                      "
+                    >
+                      <GeneralIcon icon="ncBuilding" />
+                      {{ $t('labels.addTeams') }}
+                      <LazyPaymentUpgradeBadge
+                        :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
+                        :title="$t('upgrade.upgradeToUseTeams')"
+                        :content="
+                          $t('upgrade.upgradeToUseTeamsSubtitle', {
+                            plan: PlanTitles.BUSINESS,
+                          })
+                        "
+                        :plan-title="PlanTitles.BUSINESS"
+                      />
+                    </NcMenuItem>
+                  </template>
+                </PaymentUpgradeBadgeProvider>
               </NcMenu>
             </template>
           </NcDropdown>
@@ -515,7 +580,11 @@ onBeforeUnmount(() => {
               <NcCheckbox v-model:checked="selected[record.id]" />
             </template>
 
-            <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
+            <template v-if="column.key === 'email' && record.isTeam">
+              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" />
+            </template>
+
+            <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
               <GeneralUserIcon size="base" :user="record" class="flex-none" />
               <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                 <div class="flex gap-3">
@@ -535,10 +604,16 @@ onBeforeUnmount(() => {
               </div>
             </div>
             <div v-if="column.key === 'role'">
-              <template v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles)">
+              <template
+                v-if="
+                  isDeleteOrUpdateAllowed(record) &&
+                  isOwnerOrCreator &&
+                  getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles)
+                "
+              >
                 <RolesSelectorV2
                   :role="record.roles"
-                  :roles="accessibleRoles"
+                  :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
                   :inherit="
                     isEeUI && !record.base_roles && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
                       ? WorkspaceRolesToProjectRoles[record.workspace_roles]
@@ -592,6 +667,7 @@ onBeforeUnmount(() => {
         :users="collaborators"
         :is-team="isInviteTeamDlg"
         type="base"
+        :existing-team-ids="baseTeamsToCollaborators.map((bt) => bt.id)"
       />
 
       <WorkspaceTeamsEdit v-if="isEeUI && isTeamsEnabled" :is-open-using-router-push="isEditModalOpenUsingRouterPush" />

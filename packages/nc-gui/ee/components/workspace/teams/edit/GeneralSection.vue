@@ -109,13 +109,22 @@ onMounted(() => {
   formState.badge_color = team.value.badge_color ?? undefined
   formState.icon = team.value.icon ?? ''
   formState.icon_type = team.value.icon_type ?? ''
-
-  if (readOnly.value) return
-
-  nextTick(() => {
-    inputEl.value?.focus()
-  })
 })
+
+watch(
+  readOnly,
+  (newVal) => {
+    if (newVal) return
+
+    forcedNextTick(() => {
+      inputEl.value?.focus()
+    })
+  },
+  {
+    immediate: true,
+    flush: 'post',
+  },
+)
 </script>
 
 <template>
@@ -169,6 +178,7 @@ onMounted(() => {
                 >
                   <GeneralTeamIcon
                     :team="formState"
+                    show-placeholder-icon
                     class="!w-full !h-full !min-w-full select-none cursor-pointer !rounded-none"
                     :class="readOnly ? 'cursor-not-allowed' : 'cursor-pointer'"
                   />

@@ -39,10 +39,14 @@ const team = computed(() => {
   }
 })
 
+const isPlaceholderIconShown = ref(false)
+
 const teamIcon = computed<{
   icon: any
   iconType: IconType | string
 }>(() => {
+  isPlaceholderIconShown.value = false
+
   if (props.isDeleted) {
     return {
       icon: 'ncSlash',
@@ -53,12 +57,13 @@ const teamIcon = computed<{
   const icon = team.value.icon || ''
   const iconType = team.value.icon_type || ''
 
-  // if ((!icon || !iconType) && props.placeholderIcon) {
-  //   return {
-  //     icon: props.placeholderIcon,
-  //     iconType: IconType.ICON,
-  //   }
-  // }
+  if ((!icon || !iconType) && props.placeholderIcon && props.showPlaceholderIcon) {
+    isPlaceholderIconShown.value = true
+    return {
+      icon: props.placeholderIcon,
+      iconType: IconType.ICON,
+    }
+  }
 
   if (!icon || !iconType) {
     return {
@@ -184,7 +189,7 @@ const teamInitials = computed(() => {
         'w-5 h-5': size === 'base',
         'w-12 h-12': size === 'large',
         'w-14 h-14': size === 'xlarge',
-        '!opacity-50': isDeleted,
+        '!opacity-50': isDeleted || isPlaceholderIconShown,
       }"
     />
     <div

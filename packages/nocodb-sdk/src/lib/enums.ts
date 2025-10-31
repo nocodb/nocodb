@@ -30,7 +30,7 @@ export enum WorkspaceUserRoles {
 
 export enum TeamUserRoles {
   MEMBER = 'member',
-  MANAGER = 'manager',
+  OWNER = 'owner',
 }
 
 export enum AppEvents {
@@ -38,6 +38,9 @@ export enum AppEvents {
   PROJECT_INVITE = 'base.invite',
   PROJECT_USER_UPDATE = 'base.user.update',
   PROJECT_USER_RESEND_INVITE = 'base.user.resend.invite',
+  PROJECT_TEAM_INVITE = 'base.team.invite',
+  PROJECT_TEAM_UPDATE = 'base.team.update',
+  PROJECT_TEAM_DELETE = 'base.team.delete',
   PROJECT_DELETE = 'base.delete',
   PROJECT_UPDATE = 'base.update',
   PROJECT_CLONE = 'base.clone',
@@ -47,6 +50,9 @@ export enum AppEvents {
   WORKSPACE_USER_INVITE = 'workspace.invite',
   WORKSPACE_USER_UPDATE = 'workspace.user.update',
   WORKSPACE_USER_DELETE = 'workspace.user.delete',
+  WORKSPACE_TEAM_INVITE = 'workspace.team.invite',
+  WORKSPACE_TEAM_UPDATE = 'workspace.team.update',
+  WORKSPACE_TEAM_DELETE = 'workspace.team.delete',
   WORKSPACE_CREATE = 'workspace.create',
   WORKSPACE_DELETE = 'workspace.delete',
   WORKSPACE_UPDATE = 'workspace.update',
@@ -61,6 +67,13 @@ export enum AppEvents {
   USER_PASSWORD_FORGOT = 'user.password.forgot',
   USER_DELETE = 'user.delete',
   USER_EMAIL_VERIFICATION = 'user.email.verification',
+
+  TEAM_CREATE = 'team.create',
+  TEAM_UPDATE = 'team.update',
+  TEAM_DELETE = 'team.delete',
+  TEAM_MEMBER_ADD = 'team.member.add',
+  TEAM_MEMBER_UPDATE = 'team.member.update',
+  TEAM_MEMBER_DELETE = 'team.member.delete',
 
   TABLE_CREATE = 'table.create',
   TABLE_DELETE = 'table.delete',

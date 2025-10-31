@@ -43,6 +43,8 @@ import { TeamsV3Service } from '~/services/v3/teams-v3.service';
 import { UsersService } from '~/services/users/users.service';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
+import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
+import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -67,6 +69,8 @@ export class InternalController extends InternalControllerCE {
     protected readonly oAuthTokenService: OauthTokenService,
     private readonly teamsV3Service: TeamsV3Service,
     private readonly usersService: UsersService,
+    private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
+    private readonly baseTeamsV3Service: BaseTeamsV3Service,
   ) {
     super(aclMiddleware, internalApiModules);
   }
@@ -169,6 +173,24 @@ export class InternalController extends InternalControllerCE {
       case 'teamGet':
         return await this.teamsV3Service.teamGet(context, {
           workspaceOrOrgId: workspaceId,
+          teamId: req.query.teamId as string,
+        });
+      case 'workspaceTeamList':
+        return await this.workspaceTeamsV3Service.teamList(context, {
+          workspaceId,
+        });
+      case 'workspaceTeamGet':
+        return await this.workspaceTeamsV3Service.teamDetail(context, {
+          workspaceId,
+          teamId: req.query.teamId as string,
+        });
+      case 'baseTeamList':
+        return await this.baseTeamsV3Service.teamList(context, {
+          baseId,
+        });
+      case 'baseTeamGet':
+        return await this.baseTeamsV3Service.teamDetail(context, {
+          baseId,
           teamId: req.query.teamId as string,
         });
       case 'getUserProfile':
@@ -437,6 +459,104 @@ export class InternalController extends InternalControllerCE {
           members: payload.members,
           req,
         });
+      case 'workspaceTeamAdd': {
+        // Handle both single object and array of objects
+        const workspaceTeamsArray = Array.isArray(payload)
+          ? payload
+          : [payload];
+
+        if (workspaceTeamsArray.length === 1) {
+          // Single request
+          return await this.workspaceTeamsV3Service.teamAdd(context, {
+            workspaceId,
+            team: workspaceTeamsArray[0],
+            req,
+          });
+        } else {
+          // Bulk request
+          return await this.workspaceTeamsV3Service.teamAddBulk(context, {
+            workspaceId,
+            teams: { teams: workspaceTeamsArray },
+            req,
+          });
+        }
+      }
+      case 'workspaceTeamUpdate':
+        return await this.workspaceTeamsV3Service.teamUpdate(context, {
+          workspaceId,
+          team: payload,
+          req,
+        });
+      case 'workspaceTeamRemove': {
+        // Handle both single object and array of objects
+        const workspaceRemoveTeamsArray = Array.isArray(payload)
+          ? payload
+          : [payload];
+
+        if (workspaceRemoveTeamsArray.length === 1) {
+          // Single request
+          return await this.workspaceTeamsV3Service.teamRemove(context, {
+            workspaceId,
+            team: workspaceRemoveTeamsArray[0],
+            req,
+          });
+        } else {
+          // Bulk request
+          return await this.workspaceTeamsV3Service.teamRemoveBulk(context, {
+            workspaceId,
+            teams: { teams: workspaceRemoveTeamsArray },
+            req,
+          });
+        }
+      }
+      case 'baseTeamAdd': {
+        // Handle both single object and array of objects
+        const baseTeamsArray = Array.isArray(payload) ? payload : [payload];
+
+        if (baseTeamsArray.length === 1) {
+          // Single request
+          return await this.baseTeamsV3Service.teamAdd(context, {
+            baseId,
+            team: baseTeamsArray[0],
+            req,
+          });
+        } else {
+          // Bulk request
+          return await this.baseTeamsV3Service.teamAddBulk(context, {
+            baseId,
+            teams: { teams: baseTeamsArray },
+            req,
+          });
+        }
+      }
+      case 'baseTeamUpdate':
+        return await this.baseTeamsV3Service.teamUpdate(context, {
+          baseId,
+          team: payload,
+          req,
+        });
+      case 'baseTeamRemove': {
+        // Handle both single object and array of objects
+        const baseRemoveTeamsArray = Array.isArray(payload)
+          ? payload
+          : [payload];
+
+        if (baseRemoveTeamsArray.length === 1) {
+          // Single request
+          return await this.baseTeamsV3Service.teamRemove(context, {
+            baseId,
+            team: baseRemoveTeamsArray[0],
+            req,
+          });
+        } else {
+          // Bulk request
+          return await this.baseTeamsV3Service.teamRemoveBulk(context, {
+            baseId,
+            teams: { teams: baseRemoveTeamsArray },
+            req,
+          });
+        }
+      }
       default:
         return await super.internalAPIPost(
           context,

@@ -205,6 +205,14 @@ export const useBase = defineStore('baseStore', () => {
       baseId: base.value.id || baseId.value,
     })
 
+    basesStore
+      .getBaseTeams({
+        baseId: base.value.id || baseId.value,
+      })
+      .catch(() => {
+        // ignore
+      })
+
     // if (withTheme) setTheme(baseMeta.value?.theme)
 
     return baseLoadedHook.trigger(base.value)

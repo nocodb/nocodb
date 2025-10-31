@@ -76,6 +76,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAiButtonField = computed(() => true)
 
+  const blockTeamsManagement = computed(() => true)
+
+  const blockAddNewTeamToWs = computed(() => true)
+
   const calculatePrice = (..._args: any[]) => {}
 
   const getLimit = (..._args: any[]) => {}
@@ -139,6 +143,10 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseAiPromptField = (..._args: any[]) => {}
 
   const showUpgradeToUseAiButtonField = (..._args: any[]) => {}
+
+  const showUpgradeToUseTeams = (..._args: any[]) => {}
+
+  const showUpgradeToAddMoreTeams = (..._args: any[]) => {}
 
   return {
     calculatePrice,
@@ -204,5 +212,9 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiPromptField,
     blockAiButtonField,
     showUpgradeToUseAiButtonField,
+    blockTeamsManagement,
+    showUpgradeToUseTeams,
+    blockAddNewTeamToWs,
+    showUpgradeToAddMoreTeams,
   }
 })

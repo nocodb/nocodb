@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { TeamUserRoles } from 'nocodb-sdk';
-import { TeamsV3Service as TeamsV3ServiceCE } from 'src/services/v3/teams-v3.service';
+import {
+  AppEvents,
+  PlanFeatureTypes,
+  TeamUserRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   TeamCreateV3ReqType,
@@ -12,32 +16,87 @@ import type {
   TeamUpdateV3ReqType,
   TeamV3ResponseType,
 } from './teams-v3.types';
+import type {
+  TeamDeleteEvent,
+  TeamMemberAddEvent,
+  TeamMemberDeleteEvent,
+  TeamMemberUpdateEvent,
+  TeamUpdateEvent,
+} from '~/services/app-hooks/interfaces';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { PaymentService } from '~/ee/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
-import { Team, TeamUser, User } from '~/models';
+import { PrincipalAssignment, Team } from '~/models';
+import { User, Workspace } from '~/models';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { getFeature } from '~/helpers/paymentHelpers';
+
 @Injectable()
-export class TeamsV3Service extends TeamsV3ServiceCE {
+export class TeamsV3Service {
   protected readonly logger = new Logger(TeamsV3Service.name);
+
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private readonly paymentService: PaymentService,
+  ) {}
+
+  /**
+   * Validates if the user has access to the Teams API.
+   * This method checks if the feature is enabled for the workspace.
+   * If not, it throws an error indicating that the feature is only available on paid plans.
+   */
+  private async validateFeatureAccess(context: NcContext) {
+    if (
+      !(await getFeature(
+        PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+        context.workspace_id,
+      ))
+    ) {
+      NcError.get(context).forbidden(
+        'Accessing Teams API is only available on paid plans. Please upgrade your workspace plan to enable this feature. Your current plan is not sufficient.',
+      );
+    }
+  }
 
   async getTeamMembersCount(
     context: NcContext,
     teamId: string,
   ): Promise<number> {
-    return await TeamUser.countByTeam(context, teamId);
+    return await PrincipalAssignment.countByResource(
+      context,
+      ResourceType.TEAM,
+      teamId,
+    );
   }
 
-  async getTeamManagersCount(
+  async getTeamOwnersCount(
     context: NcContext,
     teamId: string,
   ): Promise<number> {
-    return await TeamUser.countByTeamAndRole(
+    return await PrincipalAssignment.countByResourceAndRole(
       context,
+      ResourceType.TEAM,
       teamId,
-      TeamUserRoles.MANAGER,
+      TeamUserRoles.OWNER,
     );
+  }
+
+  async getTeamOwners(context: NcContext, teamId: string): Promise<string[]> {
+    const teamAssignments = await PrincipalAssignment.list(context, {
+      resource_type: ResourceType.TEAM,
+      resource_id: teamId,
+      principal_type: PrincipalType.USER,
+    });
+
+    // Filter only manager assignments
+    const managerAssignments = teamAssignments.filter(
+      (assignment) => assignment.roles === TeamUserRoles.OWNER,
+    );
+
+    return managerAssignments.map((assignment) => assignment.principal_ref_id);
   }
 
   async getUserById(context: NcContext, userId: string) {
@@ -54,23 +113,44 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       workspaceOrOrgId: string;
     },
   ): Promise<{ list: TeamV3ResponseType[] }> {
+    await this.validateFeatureAccess(context);
+
     // For now, assume it's a workspace ID (can be enhanced later to detect org vs workspace)
     const filterParam = { fk_workspace_id: param.workspaceOrOrgId };
 
     const teams = await Team.list(context, filterParam);
 
+    // Get the current user ID from context
+    const currentUserId = context.user?.id;
+
     // Get teams with member counts using optimized query
     const teamsWithCounts = await Promise.all(
       teams.map(async (team) => {
-        const [membersCount, menagersCount] = await Promise.all([
+        const [membersCount, managersCount, managers] = await Promise.all([
           this.getTeamMembersCount(context, team.id),
-          this.getTeamManagersCount(context, team.id),
+          this.getTeamOwnersCount(context, team.id),
+          this.getTeamOwners(context, team.id),
         ]);
+
+        // Check if current user is a member of this team
+        let isMember = false;
+        if (currentUserId) {
+          const assignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            team.id,
+            PrincipalType.USER,
+            currentUserId,
+          );
+          isMember = assignment !== null;
+        }
 
         return {
           ...team,
           members_count: membersCount,
-          managers_count: menagersCount,
+          managers_count: managersCount,
+          managers: managers,
+          is_member: isMember,
         };
       }),
     );
@@ -86,8 +166,11 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
         badge_color: meta.badge_color || undefined,
         members_count: team.members_count,
         managers_count: team.managers_count,
+        managers: team.managers,
+        created_by: team.created_by,
         created_at: team.created_at,
         updated_at: team.updated_at,
+        is_member: team.is_member,
       };
     });
 
@@ -101,6 +184,8 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       teamId: string;
     },
   ): Promise<TeamDetailV3Type> {
+    await this.validateFeatureAccess(context);
+
     const team = await Team.get(context, param.teamId);
 
     if (!team) {
@@ -114,24 +199,62 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
+    // check if the current user have access to this team
+    // user should be member of the team or workspace admin
+    const currentUserId = context.user?.id;
+    if (currentUserId) {
+      const isWorkspaceAdmin =
+        !!context.user?.workspace_roles?.[WorkspaceUserRoles.OWNER];
+
+      const assignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.TEAM,
+        param.teamId,
+        PrincipalType.USER,
+        currentUserId,
+      );
+      const isTeamMember = assignment !== null;
+
+      if (!isTeamMember && !isWorkspaceAdmin) {
+        NcError.get(context).forbidden(
+          'You do not have access to view this team details',
+        );
+      }
+    }
+
     // Get team members with user details using optimized query
-    const teamUsers = await TeamUser.listByTeam(context, param.teamId);
+    const teamAssignments = await PrincipalAssignment.listByResource(
+      context,
+      ResourceType.TEAM,
+      param.teamId,
+    );
+
+    // Filter only user assignments
+    const userAssignments = teamAssignments.filter(
+      (assignment) => assignment.principal_type === PrincipalType.USER,
+    );
+
     const membersWithUsers = await Promise.all(
-      teamUsers.map(async (teamUser) => {
-        const user = await User.get(teamUser.fk_user_id);
+      userAssignments.map(async (assignment) => {
+        const user = await User.get(assignment.principal_ref_id);
+        if (!user) {
+          return null;
+        }
         return {
-          teamUser,
+          assignment,
           user,
         };
       }),
     );
 
-    // Transform members to v3 response format with email
-    const members = membersWithUsers.map(({ teamUser, user }) => ({
-      user_email: user.email,
-      user_id: user.id,
-      team_role: teamUser.roles as 'member' | 'manager',
-    }));
+    // Filter out null entries and transform to v3 response format with email
+    const members = membersWithUsers
+      .filter((item) => item !== null)
+      .map(({ assignment, user }) => ({
+        user_email: user.email,
+        user_id: user.id,
+        team_role: assignment.roles as TeamUserRoles,
+      }));
 
     const meta =
       typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
@@ -154,11 +277,19 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       req: NcRequest;
     },
   ): Promise<TeamV3ResponseType> {
+    await this.validateFeatureAccess(context);
+
     validatePayload(
       'swagger-v3.json#/components/schemas/TeamCreateV3Req',
       param.team,
       true,
     );
+
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
 
     // Check for duplicate team name in the same workspace
     const existingTeams = await Team.list(context, {
@@ -188,51 +319,68 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
         badge_color: param.team.badge_color,
       },
       fk_workspace_id: param.workspaceOrOrgId,
+      created_by: param.req.user.id,
     };
 
     const team = await Team.insert(context, teamData);
 
     // Add members if provided
     if (param.team.members && param.team.members.length > 0) {
-      for (const member of param.team.members) {
+      for (const member of param.team.members ?? []) {
         // Verify user exists and belongs to workspace/org
         const user = await User.get(member.user_id);
         if (!user) {
           NcError.get(context).userNotFound(member.user_id);
         }
 
-        // Add user to team
-        await TeamUser.insert(context, {
-          fk_team_id: teamId,
-          fk_user_id: member.user_id,
+        // Add user to team via principal assignment
+        await PrincipalAssignment.insert(context, {
+          resource_type: ResourceType.TEAM,
+          resource_id: teamId,
+          principal_type: PrincipalType.USER,
+          principal_ref_id: member.user_id,
           roles: member.team_role,
         });
       }
     }
 
-    // Add creator as team owner if not already added
+    let isMember = false;
+
+    // Add creator as team manager if not already added
     const creatorId = param.req.user?.id;
     if (creatorId) {
-      const existingCreator = await TeamUser.get(context, teamId, creatorId);
-      if (!existingCreator) {
-        await TeamUser.insert(context, {
-          fk_team_id: teamId,
-          fk_user_id: creatorId,
-          roles: 'manager',
+      // Check if creator is already assigned to team
+      const existingAssignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.TEAM,
+        teamId,
+        PrincipalType.USER,
+        creatorId,
+      );
+      if (!existingAssignment) {
+        await PrincipalAssignment.insert(context, {
+          resource_type: ResourceType.TEAM,
+          resource_id: teamId,
+          principal_type: PrincipalType.USER,
+          principal_ref_id: creatorId,
+          roles: TeamUserRoles.OWNER,
         });
+
+        isMember = true;
       }
     }
 
     // Get member count for the created team
-    const [teamUsers, teamManagersCount] = await Promise.all([
+    const [teamUsers, teamManagersCount, managers] = await Promise.all([
       this.getTeamMembersCount(context, team.id),
-      this.getTeamManagersCount(context, team.id),
+      this.getTeamOwnersCount(context, team.id),
+      this.getTeamOwners(context, team.id),
     ]);
 
     // Transform to v3 response format
     const meta = parseMetaProp(team);
 
-    return {
+    const response = {
       id: team.id,
       title: team.title,
       icon: meta.icon || null,
@@ -240,9 +388,25 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       badge_color: meta.badge_color || null,
       members_count: teamUsers,
       managers_count: teamManagersCount,
+      managers: managers,
+      created_by: team.created_by,
       created_at: team.created_at,
       updated_at: team.updated_at,
+      is_member: isMember,
     };
+
+    // Emit team create event
+    this.appHooksService.emit(AppEvents.TEAM_CREATE, {
+      context,
+      req: param.req,
+      team: team,
+      workspace,
+    });
+
+    // Recalculate seat count after team creation
+    await this.paymentService.reseatSubscription(workspace.id);
+
+    return response;
   }
 
   async teamUpdate(
@@ -254,28 +418,43 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       req: NcRequest;
     },
   ): Promise<TeamV3ResponseType> {
+    await this.validateFeatureAccess(context);
+
     validatePayload(
       'swagger-v3.json#/components/schemas/TeamUpdateV3Req',
       param.team,
     );
 
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check if team exists and belongs to workspace/org
-    const team = await Team.get(context, param.teamId);
-    if (!team) {
+    const oldTeam = await Team.get(context, param.teamId);
+    if (!oldTeam) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    const belongsToScope = team.fk_workspace_id === param.workspaceOrOrgId;
+    const belongsToScope = oldTeam.fk_workspace_id === param.workspaceOrOrgId;
 
     if (!belongsToScope) {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    // Check if user is team owner
+    // Check if user is team manager
     const userId = param.req.user?.id;
     if (userId) {
-      const teamUser = await TeamUser.get(context, param.teamId, userId);
-      if (!teamUser || teamUser.roles !== 'manager') {
+      // Check if user is assigned as manager to this team
+      const assignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.TEAM,
+        param.teamId,
+        PrincipalType.USER,
+        userId,
+      );
+      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
         NcError.get(context).forbidden(
           'Only team managers can update team information',
         );
@@ -286,7 +465,9 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
     if (param.team.title !== undefined) updateData.title = param.team.title;
     if (param.team.icon !== undefined || param.team.badge_color !== undefined) {
       const existingMeta =
-        typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
+        typeof oldTeam.meta === 'string'
+          ? JSON.parse(oldTeam.meta)
+          : oldTeam.meta || {};
       updateData.meta = {
         ...existingMeta,
         ...(param.team.icon !== undefined && { icon: param.team.icon }),
@@ -302,15 +483,16 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
     const updatedTeam = await Team.update(context, param.teamId, updateData);
 
     // Get member count for the updated team
-    const [teamUsers, teamManagersCount] = await Promise.all([
+    const [teamUsers, teamManagersCount, managers] = await Promise.all([
       this.getTeamMembersCount(context, updatedTeam.id),
-      this.getTeamManagersCount(context, updatedTeam.id),
+      this.getTeamOwnersCount(context, updatedTeam.id),
+      this.getTeamOwners(context, updatedTeam.id),
     ]);
 
     // Transform to v3 response format
     const meta = parseMetaProp(updatedTeam);
 
-    return {
+    const response = {
       id: updatedTeam.id,
       title: updatedTeam.title,
       icon: meta.icon || null,
@@ -318,9 +500,25 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       badge_color: meta.badge_color || null,
       members_count: teamUsers,
       managers_count: teamManagersCount,
+      managers: managers,
+      created_by: updatedTeam.created_by,
       created_at: updatedTeam.created_at,
       updated_at: updatedTeam.updated_at,
     };
+
+    // Emit team update event
+    this.appHooksService.emit(AppEvents.TEAM_UPDATE, {
+      context,
+      req: param.req,
+      team: updatedTeam,
+      oldTeam,
+      workspace,
+    } as TeamUpdateEvent);
+
+    // Recalculate seat count after team update
+    await this.paymentService.reseatSubscription(workspace.id);
+
+    return response;
   }
 
   async teamDelete(
@@ -331,6 +529,14 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       req: NcRequest;
     },
   ) {
+    await this.validateFeatureAccess(context);
+
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
@@ -343,11 +549,19 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    // Check if user is team owner or org owner
+    // Check if user is team manager or org owner
     const userId = param.req.user?.id;
     if (userId) {
-      const teamUser = await TeamUser.get(context, param.teamId, userId);
-      const isTeamManager = teamUser && teamUser.roles === 'manager';
+      // Check if user is assigned as manager to this team
+      const assignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.TEAM,
+        param.teamId,
+        PrincipalType.USER,
+        userId,
+      );
+      const isTeamManager =
+        assignment && assignment.roles === TeamUserRoles.OWNER;
 
       // TODO: Add org owner check when org ownership is implemented
       if (!isTeamManager) {
@@ -355,14 +569,35 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       }
     }
 
-    // Delete all team users first
-    const teamUsers = await TeamUser.listByTeam(context, param.teamId);
-    for (const teamUser of teamUsers) {
-      await TeamUser.delete(context, param.teamId, teamUser.fk_user_id);
+    // Delete all team assignments first
+    const teamAssignments = await PrincipalAssignment.listByResource(
+      context,
+      ResourceType.TEAM,
+      param.teamId,
+    );
+    for (const assignment of teamAssignments) {
+      await PrincipalAssignment.delete(
+        context,
+        ResourceType.TEAM,
+        param.teamId,
+        assignment.principal_type,
+        assignment.principal_ref_id,
+      );
     }
 
     // Delete the team
     await Team.delete(context, param.teamId);
+
+    // Emit team delete event
+    this.appHooksService.emit(AppEvents.TEAM_DELETE, {
+      context,
+      req: param.req,
+      team,
+      workspace,
+    } as TeamDeleteEvent);
+
+    // Recalculate seat count after team deletion
+    await this.paymentService.reseatSubscription(workspace.id);
 
     return { msg: 'Team has been deleted successfully' };
   }
@@ -376,6 +611,14 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       req: NcRequest;
     },
   ): Promise<TeamMemberV3ResponseType[]> {
+    await this.validateFeatureAccess(context);
+
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
@@ -388,53 +631,83 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    // Check if user is team owner
+    // Check if user is team manager
     const userId = param.req.user?.id;
     if (userId) {
-      const teamUser = await TeamUser.get(context, param.teamId, userId);
-      if (!teamUser || teamUser.roles !== 'manager') {
+      // Check if user is assigned as manager to this team
+      const assignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.TEAM,
+        param.teamId,
+        PrincipalType.USER,
+        userId,
+      );
+      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
         NcError.get(context).forbidden('Only team managers can add members');
       }
     }
 
     const addedMembers = [];
 
-    for (const member of param.members) {
+    for (const member of param.members ?? []) {
       // Check if user exists
       const user = await User.get(member.user_id);
       if (!user) {
         NcError.get(context).userNotFound(member.user_id);
       }
 
-      // Check if user is already in team
-      const existingTeamUser = await TeamUser.get(
+      // Check if user is already assigned to team
+      const existingAssignment = await PrincipalAssignment.get(
         context,
+        ResourceType.TEAM,
         param.teamId,
+        PrincipalType.USER,
         member.user_id,
       );
-      if (existingTeamUser) {
+      if (existingAssignment) {
         NcError.get(context).invalidRequestBody(
           `User ${member.user_id} is already a member of this team`,
         );
       }
 
-      const teamUser = await TeamUser.insert(context, {
-        fk_team_id: param.teamId,
-        fk_user_id: member.user_id,
-        roles: member.team_role === 'manager' ? 'manager' : member.team_role,
+      const assignment = await PrincipalAssignment.insert(context, {
+        resource_type: ResourceType.TEAM,
+        resource_id: param.teamId,
+        principal_type: PrincipalType.USER,
+        principal_ref_id: member.user_id,
+        roles:
+          member.team_role === TeamUserRoles.OWNER
+            ? TeamUserRoles.OWNER
+            : member.team_role,
       });
 
-      addedMembers.push(teamUser);
+      // Emit team member add event
+      this.appHooksService.emit(AppEvents.TEAM_MEMBER_ADD, {
+        context,
+        req: param.req,
+        team: team,
+        workspace,
+        user, // Include user info
+        teamRole: assignment.roles || '', // Include team role
+      } as TeamMemberAddEvent);
+
+      addedMembers.push(assignment);
     }
+
+    // Recalculate seat count after adding team members
+    await this.paymentService.reseatSubscription(workspace.id);
 
     // Transform to v3 response format with email
     const members = await Promise.all(
-      addedMembers.map(async (teamUser) => {
-        const user = await this.getUserById(context, teamUser.fk_user_id);
+      addedMembers.map(async (assignment) => {
+        const user = await this.getUserById(
+          context,
+          assignment.principal_ref_id,
+        );
         return {
           user_id: user.id,
           user_email: user.email,
-          team_role: teamUser.roles as 'member' | 'manager',
+          team_role: assignment.roles as TeamUserRoles,
         };
       }),
     );
@@ -451,6 +724,14 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       req: NcRequest;
     },
   ) {
+    await this.validateFeatureAccess(context);
+
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
@@ -466,39 +747,44 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
     const userId = param.req.user?.id;
     const removedMembers = [];
 
-    for (const member of param.members) {
-      // Check if team user exists
-      const teamUser = await TeamUser.get(
+    for (const member of param.members ?? []) {
+      const user = await User.get(member.user_id);
+      // Check if user is assigned to team
+      const assignment = await PrincipalAssignment.get(
         context,
+        ResourceType.TEAM,
         param.teamId,
+        PrincipalType.USER,
         member.user_id,
       );
-      if (!teamUser) {
+      if (!assignment) {
         NcError.get(context).userNotFound(member.user_id);
       }
 
-      // Check permissions: team owner or user removing themselves
-      const isTeamOwner =
-        (userId &&
-          (await TeamUser.get(context, param.teamId, userId).then(
-            (tu) => tu?.roles === 'manager',
-          ))) ||
-        false;
+      // Check permissions: team manager or user removing themselves
+      const isTeamManager = userId
+        ? (await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.teamId,
+            PrincipalType.USER,
+            userId,
+          ).then((a) => a?.roles === TeamUserRoles.OWNER)) || false
+        : false;
       const isSelfRemoval = userId === member.user_id;
 
-      if (!isTeamOwner && !isSelfRemoval) {
+      if (!isTeamManager && !isSelfRemoval) {
         NcError.get(context).forbidden(
           'Only team managers can remove members or users can remove themselves',
         );
       }
 
       // If removing the last manager, prevent it
-      if (teamUser.roles === 'manager') {
-        const managersCount = await this.getTeamManagersCount(
+      if (assignment!.roles === TeamUserRoles.OWNER) {
+        const managersCount = await this.getTeamOwnersCount(
           context,
           param.teamId,
         );
-
         if (managersCount === 1) {
           NcError.get(context).invalidRequestBody(
             'Cannot remove the last manager',
@@ -506,9 +792,28 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
         }
       }
 
-      await TeamUser.delete(context, param.teamId, member.user_id);
+      await PrincipalAssignment.delete(
+        context,
+        ResourceType.TEAM,
+        param.teamId,
+        PrincipalType.USER,
+        member.user_id,
+      );
       removedMembers.push({ user_id: member.user_id });
+
+      // Emit team member remove event
+      this.appHooksService.emit(AppEvents.TEAM_MEMBER_DELETE, {
+        context,
+        req: param.req,
+        team,
+        workspace,
+        user: user,
+        teamRole: assignment.roles,
+      } as TeamMemberDeleteEvent);
     }
+
+    // Recalculate seat count after removing team members
+    await this.paymentService.reseatSubscription(workspace.id);
 
     return removedMembers;
   }
@@ -522,6 +827,14 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       req: NcRequest;
     },
   ): Promise<TeamMemberV3ResponseType[]> {
+    await this.validateFeatureAccess(context);
+
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
     // Check if team exists and belongs to workspace/org
     const team = await Team.get(context, param.teamId);
     if (!team) {
@@ -534,11 +847,18 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
-    // Check if user is team owner
+    // Check if user is team manager
     const userId = param.req.user?.id;
     if (userId) {
-      const teamUser = await TeamUser.get(context, param.teamId, userId);
-      if (!teamUser || teamUser.roles !== 'manager') {
+      // Check if user is assigned as manager to this team
+      const assignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.TEAM,
+        param.teamId,
+        PrincipalType.USER,
+        userId,
+      );
+      if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
         NcError.get(context).forbidden(
           'Only team managers can update member roles',
         );
@@ -547,37 +867,61 @@ export class TeamsV3Service extends TeamsV3ServiceCE {
 
     const updatedMembers = [];
 
-    for (const member of param.members) {
-      // Check if team user exists
-      const teamUser = await TeamUser.get(
+    for (const member of param.members ?? []) {
+      // check user exists
+      const user = await User.get(member.user_id);
+
+      // Check if user is assigned to team
+      const assignment = await PrincipalAssignment.get(
         context,
+        ResourceType.TEAM,
         param.teamId,
+        PrincipalType.USER,
         member.user_id,
       );
-      if (!teamUser) {
+      if (!assignment) {
         NcError.get(context).invalidRequestBody(
           `User ${member.user_id} not found in this team`,
         );
       }
 
-      const updatedTeamUser = await TeamUser.update(
+      const updatedAssignment = await PrincipalAssignment.update(
         context,
+        ResourceType.TEAM,
         param.teamId,
+        PrincipalType.USER,
         member.user_id,
         { roles: member.team_role },
       );
 
-      updatedMembers.push(updatedTeamUser);
+      updatedMembers.push(updatedAssignment);
+
+      // Emit team member update event
+      this.appHooksService.emit(AppEvents.TEAM_MEMBER_UPDATE, {
+        context,
+        req: param.req,
+        team,
+        workspace,
+        user,
+        oldTeamRole: assignment.roles, // Include old team role
+        teamRole: member?.team_role || '', // Include new team role
+      } as TeamMemberUpdateEvent);
     }
+
+    // Recalculate seat count after updating team member roles
+    await this.paymentService.reseatSubscription(workspace.id);
 
     // Transform to v3 response format with email
     const members = await Promise.all(
-      updatedMembers.map(async (teamUser) => {
-        const user = await this.getUserById(context, teamUser.fk_user_id);
+      updatedMembers.map(async (assignment) => {
+        const user = await this.getUserById(
+          context,
+          assignment.principal_ref_id,
+        );
         return {
           user_id: user.id,
           user_email: user.email,
-          team_role: teamUser.roles as 'member' | 'manager',
+          team_role: assignment.roles as TeamUserRoles,
         };
       }),
     );

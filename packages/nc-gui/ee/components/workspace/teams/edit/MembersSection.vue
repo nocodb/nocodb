@@ -51,7 +51,7 @@ const filterMembers = computed(() => {
 })
 
 const teamOwners = computed(() => {
-  return teamMembers.value.filter((member) => member.team_role === TeamUserRoles.MANAGER)
+  return teamMembers.value.filter((member) => member.team_role === TeamUserRoles.OWNER)
 })
 
 const hasSoleTeamOwner = computed(() => {
@@ -59,7 +59,7 @@ const hasSoleTeamOwner = computed(() => {
 })
 
 const isTeamOwner = (member: TeamMember) => {
-  return member.team_role === TeamUserRoles.MANAGER
+  return member.team_role === TeamUserRoles.OWNER
 }
 
 // NcTable columns configuration
@@ -143,13 +143,10 @@ const handleAssignAsRole = async (member: TeamMember, role: TeamUserRoles) => {
 
   if (res) {
     message.success({
-      title:
-        role === TeamUserRoles.MANAGER
-          ? t('objects.teams.memberAssignedAsTeamOwner')
-          : t('objects.teams.memberAssignedAsTeamMember'),
       content: `${extractUserDisplayNameOrEmail(member)} is now a ${team.value?.title || 'team'} ${
-        role === TeamUserRoles.MANAGER ? 'owner' : 'member'
+        role === TeamUserRoles.OWNER ? 'owner' : 'member'
       }`,
+      showDuration: false,
     })
   }
 }
@@ -412,7 +409,7 @@ onMounted(() => {
                   <NcMenuItem
                     v-if="!isTeamOwner(record as TeamMember)"
                     :disabled="readOnly"
-                    @click="handleAssignAsRole(record as TeamMember, TeamUserRoles.MANAGER)"
+                    @click="handleAssignAsRole(record as TeamMember, TeamUserRoles.OWNER)"
                   >
                     <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
                     {{ $t('activity.assignAsTeamOwner') }}
@@ -423,7 +420,7 @@ onMounted(() => {
                     @click="handleAssignAsRole(record as TeamMember, TeamUserRoles.MEMBER)"
                   >
                     <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4 transform rotate-180" />
-                    {{ $t('activity.assignAsTeamMember') }}
+                    {{ $t('activity.removeAsTeamOwner') }}
                   </NcMenuItem>
 
                   <!-- Show leave team option only if logged in user is same as record user -->

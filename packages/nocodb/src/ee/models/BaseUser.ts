@@ -2,7 +2,7 @@ import { NOCO_SERVICE_USERS, ProjectRoles } from 'nocodb-sdk';
 import { BaseUser as BaseUserCE } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceRolesV3Type } from 'nocodb-sdk';
-import type { BaseType } from 'nocodb-sdk';
+import type { BaseType, UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
 import {
@@ -10,6 +10,8 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  PrincipalType,
+  ResourceType,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -222,6 +224,7 @@ export default class BaseUser extends BaseUserCE {
       user_ids,
       include_internal_user = false,
       skipOverridingWorkspaceRoles = false,
+      include_team_users = false,
     }: {
       base_id: string;
       mode?: 'full' | 'viewer';
@@ -235,6 +238,10 @@ export default class BaseUser extends BaseUserCE {
        * the actual workspace roles instead of the default role
        */
       skipOverridingWorkspaceRoles?: boolean;
+      /**
+       * If true, will include users who are part of workspace or base through teams
+       */
+      include_team_users?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -315,6 +322,27 @@ export default class BaseUser extends BaseUserCE {
           return u;
         }),
       );
+    }
+
+    // If include_team_users is true, fetch users who are part of workspace or base through teams
+    if (include_team_users) {
+      try {
+        const teamUsers = await this.getTeamUsers(context, base_id, ncMeta);
+
+        // Merge team users with existing base users, avoiding duplicates
+        const existingUserIds = new Set(baseUsers.map((u) => u.id));
+        const newTeamUsers = teamUsers.filter(
+          (u) => !existingUserIds.has(u.id),
+        );
+
+        baseUsers.push(...newTeamUsers);
+      } catch (error) {
+        // If PrincipalAssignment table doesn't exist yet (migration not run), skip team users
+        logger.warn(
+          'Team users not available - PrincipalAssignment table may not exist yet:',
+          error.message,
+        );
+      }
     }
 
     // if default_role is present, override workspace roles with the default roles
@@ -468,5 +496,121 @@ export default class BaseUser extends BaseUserCE {
           ]
         : []),
     ];
+  }
+
+  /**
+   * Get users who are part of workspace or base through teams
+   * This includes users from:
+   * 1. Teams assigned to the workspace (workspace team users)
+   * 2. Teams assigned to the base (base team users)
+   * @param context - NocoDB context
+   * @param baseId - Base ID
+   * @param ncMeta - NocoDB meta instance
+   * @returns Promise<BaseUser[]> - Array of team users
+   */
+  private static async getTeamUsers(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Pick<UserType, 'id' | 'email' | 'meta' | 'display_name'>[]> {
+    try {
+      const teamUsers: Pick<
+        UserType,
+        'id' | 'email' | 'meta' | 'display_name'
+      >[] = [];
+
+      // Get base to access workspace_id
+      const base = await Base.get(context, baseId, ncMeta);
+      if (!base) {
+        return teamUsers;
+      }
+
+      // Simple query: Get users who belong to teams assigned to workspace or base
+      const queryBuilder = ncMeta
+        .knex(MetaTable.USERS)
+        .select([
+          `${MetaTable.USERS}.id`,
+          `${MetaTable.USERS}.email`,
+          `${MetaTable.USERS}.display_name`,
+          `${MetaTable.USERS}.id as fk_user_id`,
+          `${MetaTable.USERS}.roles as main_roles`,
+          `${MetaTable.USERS}.meta`,
+        ])
+        .distinct();
+
+      // Join with team assignments (user -> team)
+      queryBuilder
+        .innerJoin(
+          `${MetaTable.PRINCIPAL_ASSIGNMENTS} as team_assignments`,
+          function () {
+            this.on(
+              'team_assignments.principal_ref_id',
+              '=',
+              `${MetaTable.USERS}.id`,
+            )
+              .andOn(
+                'team_assignments.principal_type',
+                '=',
+                ncMeta.knex.raw('?', [PrincipalType.USER]),
+              )
+              .andOn(
+                'team_assignments.resource_type',
+                '=',
+                ncMeta.knex.raw('?', [ResourceType.TEAM]),
+              );
+          },
+        )
+        // Join with resource assignments (team -> workspace/base)
+        .innerJoin(
+          `${MetaTable.PRINCIPAL_ASSIGNMENTS} as resource_assignments`,
+          function () {
+            this.on(
+              'resource_assignments.principal_ref_id',
+              '=',
+              'team_assignments.resource_id',
+            ).andOn(
+              'resource_assignments.principal_type',
+              '=',
+              ncMeta.knex.raw('?', [PrincipalType.TEAM]),
+            );
+          },
+        )
+        // Filter: teams assigned to workspace OR base
+        .where(function () {
+          this.where(function () {
+            // Teams assigned to workspace
+            this.where(
+              'resource_assignments.resource_type',
+              ResourceType.WORKSPACE,
+            ).andWhere(
+              'resource_assignments.resource_id',
+              base.fk_workspace_id,
+            );
+          }).orWhere(function () {
+            // Teams assigned to base
+            this.where(
+              'resource_assignments.resource_type',
+              ResourceType.BASE,
+            ).andWhere('resource_assignments.resource_id', baseId);
+          });
+        });
+
+      const users = await queryBuilder;
+
+      // Process results and deduplicate by user ID (in case distinct() doesn't work perfectly)
+      const seenUserIds = new Set<string>();
+      for (const user of users) {
+        const userId = user.id || user.fk_user_id;
+        if (userId && !seenUserIds.has(userId)) {
+          seenUserIds.add(userId);
+          teamUsers.push(user);
+        }
+      }
+
+      return teamUsers;
+    } catch (error) {
+      logger.error('Error fetching team users:', error);
+      return [];
+    }
   }
 }

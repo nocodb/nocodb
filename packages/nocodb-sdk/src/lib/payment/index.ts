@@ -26,6 +26,7 @@ export enum PlanLimitTypes {
   LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
+  LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
 }
 
 export enum PlanFeatureTypes {
@@ -209,6 +210,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more scripts in a workspace.',
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
+  [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]:
+    'to add more teams in a workspace.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -251,8 +254,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: 'to use private bases.',
   [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]:
     'to use member management api.',
-  [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]:
-    'to use team management api.',
+  [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: 'to use team management.',
   [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
     'to visualize records in a calendar range.',

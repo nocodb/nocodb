@@ -253,6 +253,8 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: false,
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: false,
   [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]: false,
+  [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,
+  [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 0,
 };
 
 export const FreePlan = Plan.prepare({

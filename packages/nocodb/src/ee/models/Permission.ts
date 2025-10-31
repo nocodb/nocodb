@@ -574,7 +574,7 @@ export default class Permission {
       if (cachedPermission && cachedPermission.subjects) {
         // Remove the subject from the cached subjects array
         const updatedSubjects = cachedPermission.subjects.filter(
-          (s: { type: 'user' | 'group'; id: string }) =>
+          (s: { type: 'user' | 'team'; id: string }) =>
             !(s.type === subject.type && s.id === subject.id),
         );
 

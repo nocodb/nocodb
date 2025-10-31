@@ -1084,7 +1084,7 @@ export interface PermissionCreatePayload {
   granted_role?: string;
   enforce_for_form?: boolean;
   enforce_for_automation?: boolean;
-  subjects?: Array<{ type: 'user' | 'group'; id: string }>;
+  subjects?: Array<{ type: 'user' | 'team'; id: string }>;
 }
 
 export interface PermissionUpdatePayload {
@@ -1096,7 +1096,7 @@ export interface PermissionUpdatePayload {
   granted_role?: string;
   enforce_for_form?: boolean;
   enforce_for_automation?: boolean;
-  subjects?: Array<{ type: 'user' | 'group'; id: string }>;
+  subjects?: Array<{ type: 'user' | 'team'; id: string }>;
 }
 
 export interface PermissionDeletePayload {

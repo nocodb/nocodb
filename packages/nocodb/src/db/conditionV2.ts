@@ -870,7 +870,7 @@ const parseConditionV2 = async (
               {
                 // Condition for filter, without negation
                 const condition = (builder: Knex.QueryBuilder) => {
-                  let items = val?.split(',');
+                  let items = val?.split(',') ?? [];
                   // remove trailing space if database is MySQL and datatype is enum/set
                   if (
                     ['mysql2', 'mysql'].includes(knex.clientType()) &&

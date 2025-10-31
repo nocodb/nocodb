@@ -62,7 +62,7 @@ const tab = computed({
     if (isEeUI && tab === 'teams' && isTeamsEnabled.value && showUpgradeToUseTeams()) return
 
     if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
-      loadCollaborators({} as any, props.workspaceId, { blockTeamsManagement: blockTeamsManagement.value })
+      loadCollaborators({} as any, props.workspaceId)
     }
 
     router.push({ query: { ...route.value.query, tab } })

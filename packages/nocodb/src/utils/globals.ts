@@ -274,6 +274,7 @@ export const RootScopeTables = {
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
+    MetaTable.TEAMS,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss
@@ -299,4 +300,26 @@ export enum FilterCacheScope {
   LINK_COL = 'linkCol',
   WIDGET = 'widget',
   PARENT = 'parent',
+}
+
+export enum BaseVersion {
+  V2 = 2,
+  V3 = 3,
+}
+
+export const NC_STORE_DEFAULT_WORKSPACE_ID_KEY = 'NC_DEFAULT_WORKSPACE_ID';
+
+export enum ResourceType {
+  ORG = 'org',
+  WORKSPACE = 'workspace',
+  BASE = 'base',
+  TEAM = 'team',
+}
+
+export enum PrincipalType {
+  USER = 'user',
+  TEAM = 'team',
+  BOT = 'bot',
+  GROUP = 'group',
+  SERVICE = 'service',
 }

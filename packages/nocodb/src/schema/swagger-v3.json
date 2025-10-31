@@ -8542,6 +8542,359 @@
         },
         "description": "Array of workspace users to be deleted."
       },
+      "TeamV3": {
+        "type": "object",
+        "description": "Team information for v3 API",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique team identifier",
+            "example": "t12345"
+          },
+          "title": {
+            "type": "string",
+            "description": "Team name",
+            "example": "Design Team",
+            "maxLength": 50
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Team icon (emoji or icon identifier)",
+            "example": "🎨"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["EMOJI", "ICON"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
+          },
+          "badge_color": {
+            "type": "string",
+            "description": "Team badge color (hex code)",
+            "example": "#FF5733",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "members_count": {
+            "type": "integer",
+            "description": "Number of team members",
+            "example": 10
+          },
+          "managers_count": {
+            "type": "integer",
+            "description": "Number of team managers",
+            "example": 2
+          },
+          "fk_org_id": {
+            "type": "string",
+            "description": "Organization ID (for Cloud Enterprise)"
+          },
+          "fk_workspace_id": {
+            "type": "string",
+            "description": "Workspace ID (for other plans)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Team creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Team last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "members_count"
+        ]
+      },
+      "TeamCreateV3Req": {
+        "type": "object",
+        "description": "Team creation request for v3 API",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Team name",
+            "example": "Design Team",
+            "maxLength": 50,
+            "minLength": 1
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Team icon (emoji or icon identifier)",
+            "example": "🎨"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["EMOJI", "ICON"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
+          },
+          "badge_color": {
+            "type": "string",
+            "description": "Team badge color (hex code)",
+            "example": "#FF5733",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "members": {
+            "type": "array",
+            "description": "Initial team members",
+            "items": {
+              "$ref": "#/components/schemas/TeamMemberV3"
+            }
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "TeamUpdateV3Req": {
+        "type": "object",
+        "description": "Team update request for v3 API",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Updated team name",
+            "example": "Updated Team Name",
+            "maxLength": 50,
+            "minLength": 1
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Updated team icon (emoji or icon identifier)",
+            "example": "🛠️"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["EMOJI", "ICON"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
+          },
+          "badge_color": {
+            "type": "string",
+            "description": "Updated team badge color (hex code)",
+            "example": "#00AEEF",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          }
+        }
+      },
+      "TeamDetailV3": {
+        "type": "object",
+        "description": "Detailed team information for v3 API",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Team name",
+            "example": "Design Team"
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Team icon (emoji or icon identifier)",
+            "example": "🎨"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": ["EMOJI", "ICON"]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
+          },
+          "badge_color": {
+            "type": "string",
+            "description": "Team badge color (hex code)",
+            "example": "#FF5733"
+          },
+          "members": {
+            "type": "array",
+            "description": "Team members",
+            "items": {
+              "$ref": "#/components/schemas/TeamMemberV3Response"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "members"
+        ]
+      },
+      "TeamMemberV3": {
+        "type": "object",
+        "description": "Team member information for v3 API",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID",
+            "example": "xxxx"
+          },
+          "team_role": {
+            "type": "string",
+            "description": "Team role",
+            "enum": ["member", "owner"],
+            "example": "member"
+          }
+        },
+        "required": [
+          "user_id",
+          "team_role"
+        ]
+      },
+      "TeamMemberV3Response": {
+        "type": "object",
+        "description": "Team member response for v3 API",
+        "properties": {
+          "user_email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email address",
+            "example": "user@nocodb.com"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "User ID",
+            "example": "id"
+          },
+          "team_role": {
+            "type": "string",
+            "description": "Team role",
+            "enum": ["member", "owner"],
+            "example": "member"
+          }
+        },
+        "required": [
+          "user_email",
+          "user_id",
+          "team_role"
+        ]
+      },
+      "TeamMembersAddV3Req": {
+        "type": "object",
+        "description": "Add team members request for v3 API",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID to add",
+            "example": "xxxx"
+          },
+          "team_role": {
+            "type": "string",
+            "description": "Team role to assign",
+            "enum": ["member", "owner"],
+            "example": "member"
+          }
+        },
+        "required": [
+          "user_id",
+          "team_role"
+        ]
+      },
+      "TeamMembersRemoveV3Req": {
+        "type": "object",
+        "description": "Remove team members request for v3 API",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID to remove",
+            "example": "user123"
+          }
+        },
+        "required": [
+          "user_id"
+        ]
+      },
+      "TeamMembersUpdateV3Req": {
+        "type": "object",
+        "description": "Update team members request for v3 API",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID to update",
+            "example": "user123"
+          },
+          "team_role": {
+            "type": "string",
+            "description": "New team role",
+            "enum": ["member", "owner"],
+            "example": "member"
+          }
+        },
+        "required": [
+          "user_id",
+          "team_role"
+        ]
+      },
+      "TeamUser": {
+        "type": "object",
+        "description": "Team user relationship",
+        "properties": {
+          "fk_team_id": {
+            "type": "string",
+            "description": "Team ID"
+          },
+          "fk_user_id": {
+            "type": "string",
+            "description": "User ID"
+          },
+          "is_owner": {
+            "type": "boolean",
+            "description": "Whether user is team owner"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "fk_team_id",
+          "fk_user_id",
+          "is_owner"
+        ]
+      },
       "WorkspaceRoles": {
         "type": "string",
         "description": "Workspace roles for the user.",

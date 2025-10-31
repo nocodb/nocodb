@@ -1,6 +1,6 @@
 import 'mocha';
 import request from 'supertest';
-import { PlanFeatureTypes } from 'nocodb-sdk';
+import { PlanFeatureTypes, TeamUserRoles } from 'nocodb-sdk';
 import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
 import { createUser } from '../../../factory/user';
@@ -101,7 +101,10 @@ export default function () {
         expect(member).to.have.property('user_id').that.is.a('string');
         expect(member).to.have.property('user_email').that.is.a('string');
         expect(member).to.have.property('team_role').that.is.a('string');
-        expect(member.team_role).to.be.oneOf(['manager', 'member']);
+        expect(member.team_role).to.be.oneOf([
+          TeamUserRoles.MANAGER,
+          TeamUserRoles.MEMBER,
+        ]);
       }
     }
 
@@ -119,7 +122,10 @@ export default function () {
         .that.is.a('string')
         .and.includes('@');
       expect(member).to.have.property('team_role').that.is.a('string');
-      expect(member.team_role).to.be.oneOf(['manager', 'member']);
+      expect(member.team_role).to.be.oneOf([
+        TeamUserRoles.MANAGER,
+        TeamUserRoles.MEMBER,
+      ]);
     }
 
     it('List Teams v3', async () => {
@@ -187,7 +193,7 @@ export default function () {
         members: [
           {
             user_id: user.id,
-            team_role: 'member',
+            team_role: TeamUserRoles.MEMBER,
           },
         ],
       };
@@ -225,11 +231,11 @@ export default function () {
         members: [
           {
             user_id: manager1.id,
-            team_role: 'manager',
+            team_role: TeamUserRoles.MANAGER,
           },
           {
             user_id: manager2.id,
-            team_role: 'manager',
+            team_role: TeamUserRoles.MANAGER,
           },
         ],
       };
@@ -525,7 +531,7 @@ export default function () {
       const addMemberData = [
         {
           user_id: user.id,
-          team_role: 'member',
+          team_role: TeamUserRoles.MEMBER,
         },
       ];
 
@@ -540,7 +546,7 @@ export default function () {
       expect(members).to.be.an('array').that.is.not.empty;
       await _validateTeamMember(members[0]);
       expect(members[0]).to.have.property('user_id', user.id);
-      expect(members[0]).to.have.property('team_role', 'member');
+      expect(members[0]).to.have.property('team_role', TeamUserRoles.MEMBER);
     });
 
     it('Add Members to Team v3 - Multiple Members', async () => {
@@ -570,11 +576,11 @@ export default function () {
       const addMembersData = [
         {
           user_id: user1.id,
-          team_role: 'member',
+          team_role: TeamUserRoles.MEMBER,
         },
         {
           user_id: user2.id,
-          team_role: 'manager',
+          team_role: TeamUserRoles.MANAGER,
         },
       ];
 
@@ -590,10 +596,10 @@ export default function () {
       await Promise.all(members.map(_validateTeamMember));
 
       const member1 = members.find((m) => m.user_id === user1.id);
-      expect(member1).to.have.property('team_role', 'member');
+      expect(member1).to.have.property('team_role', TeamUserRoles.MEMBER);
 
       const member2 = members.find((m) => m.user_id === user2.id);
-      expect(member2).to.have.property('team_role', 'manager');
+      expect(member2).to.have.property('team_role', TeamUserRoles.MANAGER);
     });
 
     it('Add Members to Team v3 - User Not Found', async () => {
@@ -616,7 +622,7 @@ export default function () {
       const addMemberData = [
         {
           user_id: 'non-existent-user',
-          team_role: 'member',
+          team_role: TeamUserRoles.MEMBER,
         },
       ];
 
@@ -645,7 +651,7 @@ export default function () {
         members: [
           {
             user_id: user.id,
-            team_role: 'member',
+            team_role: TeamUserRoles.MEMBER,
           },
         ],
       };
@@ -740,7 +746,7 @@ export default function () {
         members: [
           {
             user_id: user.id,
-            team_role: 'member',
+            team_role: TeamUserRoles.MEMBER,
           },
         ],
       };
@@ -757,7 +763,7 @@ export default function () {
       const updateMemberData = [
         {
           user_id: user.id,
-          team_role: 'manager',
+          team_role: TeamUserRoles.MANAGER,
         },
       ];
 
@@ -772,7 +778,7 @@ export default function () {
       expect(members).to.be.an('array').that.is.not.empty;
       await _validateTeamMember(members[0]);
       expect(members[0]).to.have.property('user_id', user.id);
-      expect(members[0]).to.have.property('team_role', 'manager');
+      expect(members[0]).to.have.property('team_role', TeamUserRoles.MANAGER);
     });
 
     it('Update Team Members v3 - Member Not Found', async () => {
@@ -795,7 +801,7 @@ export default function () {
       const updateMemberData = [
         {
           user_id: 'non-existent-user',
-          team_role: 'manager',
+          team_role: TeamUserRoles.MANAGER,
         },
       ];
 

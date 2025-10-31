@@ -28,6 +28,11 @@ export enum WorkspaceUserRoles {
   NO_ACCESS = 'workspace-level-no-access',
 }
 
+export enum TeamUserRoles {
+  MEMBER = 'member',
+  MANAGER = 'owner',
+}
+
 export enum AppEvents {
   PROJECT_CREATE = 'base.create',
   PROJECT_INVITE = 'base.invite',

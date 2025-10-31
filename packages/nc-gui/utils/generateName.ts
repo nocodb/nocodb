@@ -67,4 +67,6 @@ export const generateUniqueRandomUUID = (list: Record<string, any>[] = [], keys:
       return keys.some((key) => item[key] === id)
     })
   )
+
+  return id
 }

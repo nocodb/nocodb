@@ -271,6 +271,7 @@ export function useViewRowColorOption(params: {
     const evalColumn = filterColumns.value.find((k) => k.pv)
     const filter = {
       id: undefined,
+      tmp_id: params.tmp_id,
       fk_row_color_condition_id: conditionToAdd.id,
       fk_parent_id: params.fk_parent_id,
       fk_column_id: evalColumn?.id,
@@ -316,6 +317,7 @@ export function useViewRowColorOption(params: {
     const conditionToAdd = conditions[colorIndex]!
     const filter = {
       id: undefined,
+      tmp_id: params.tmp_id,
       fk_row_color_condition_id: conditionToAdd.id,
       fk_parent_id: params.fk_parent_id,
       is_group: true,
@@ -347,6 +349,7 @@ export function useViewRowColorOption(params: {
   }
 
   const onRowColorConditionFilterUpdate = async (colorIndex: number, params: FilterRowChangeEvent) => {
+    console.log('condition filter update', colorIndex, params, (rowColorInfo.value as RowColoringInfoFilter)?.conditions)
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToUpdate = conditions[colorIndex]!

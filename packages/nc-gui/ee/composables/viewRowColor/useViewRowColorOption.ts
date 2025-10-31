@@ -358,20 +358,19 @@ export function useViewRowColorOption(params: {
     if (!filter) return
 
     filter[params.type] = params.value
-    if (params.filter!.fk_column_id) {
-      if (['fk_column_id'].includes(params.type)) {
-        const evalColumn = filterColumns.value.find((k) => k.id === params.filter!.fk_column_id)
-        adjustFilterWhenColumnChange({
-          column: evalColumn,
-          filter,
-          showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
-        })
+    if (params.filter!.fk_column_id && ['fk_column_id'].includes(params.type)) {
+      const evalColumn = filterColumns.value.find((k) => k.id === params.filter!.fk_column_id)
+      adjustFilterWhenColumnChange({
+        column: evalColumn,
+        filter,
+        showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
+      })
 
-        if (params.prevValue && evalColumn?.id && params.prevValue !== evalColumn?.id) {
-          reloadViewDataIfNeeded(evalColumn?.id)
-        }
+      if (params.prevValue && evalColumn?.id && params.prevValue !== evalColumn?.id) {
+        reloadViewDataIfNeeded(evalColumn?.id)
       }
     }
+
     if (['logical_op'].includes(params.type)) {
       const siblings = filter.fk_parent_id
         ? conditionToUpdate.conditions.find((f) => f.id === filter.fk_parent_id)?.children
@@ -380,12 +379,18 @@ export function useViewRowColorOption(params: {
         sibling.logical_op = params.value
         const updateObj = { ...sibling }
         delete updateObj.children
-        await $api.dbTableFilter.update(updateObj.id, updateObj)
+
+        if (updateObj.id) {
+          await $api.dbTableFilter.update(updateObj.id, updateObj)
+        }
       }
     }
     const updateObj = { ...filter }
     delete updateObj.children
-    await $api.dbTableFilter.update(filter!.id, updateObj)
+
+    if (filter.id) {
+      await $api.dbTableFilter.update(filter!.id, updateObj)
+    }
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 

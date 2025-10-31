@@ -268,6 +268,8 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 
     if (!element || (!element.id && !element.tmp_id) || visibleFilters.value.length === 1) return
 
+    const oldOrder = element.order
+
     let nextOrder: number
     let changedLogicalOperatorEl: ColumnFilterType | undefined
     let changedLogicalOperatorElIndex: number = -1
@@ -316,30 +318,18 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     element.order = _nextOrder
 
     const elementIndex =
-      visibleFilters.value.findIndex((item) => item?.id === element?.id) ||
-      visibleFilters.value.findIndex((item) => item?.tmp_id === element?.tmp_id)
+      vModel.value.findIndex((item) => item?.id === element?.id) ||
+      vModel.value.findIndex((item) => item?.tmp_id === element?.tmp_id)
 
-    // const lastFilterElIndex =
-    //   lastFilters.value.findIndex((item) => item.id === element.id) ||
-    //   lastFilters.value.findIndex((item) => item.tmp_id === element.tmp_id)
-
-    // const lastFilterChangedLogicalOperatorElIndex = changedLogicalOperatorEl
-    //   ? lastFilters.value.findIndex((item) => item.id === changedLogicalOperatorEl?.id) ||
-    //     lastFilters.value.findIndex((item) => item.tmp_id === changedLogicalOperatorEl?.tmp_id)
-    //   : -1
-
-    // await saveOrUpdate(element, elementIndex, false, false, false, lastFilterElIndex)
-
-    // if (changedLogicalOperatorEl) {
-    //   await saveOrUpdate(
-    //     changedLogicalOperatorEl,
-    //     changedLogicalOperatorElIndex,
-    //     false,
-    //     false,
-    //     false,
-    //     lastFilterChangedLogicalOperatorElIndex,
-    //   )
-    // }
+    if (props.handler?.rowChange) {
+      props.handler.rowChange({
+        filter: element,
+        type: 'order',
+        prevValue: oldOrder,
+        value: _nextOrder,
+        index: elementIndex,
+      })
+    }
   }
 }
 // #endregion

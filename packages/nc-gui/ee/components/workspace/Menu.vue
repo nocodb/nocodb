@@ -167,40 +167,54 @@ const onWorkspaceCreateClick = () => {
       <template #overlay>
         <NcMenu class="nc-workspace-dropdown-inner min-w-[332px] max-w-[360px]" @click="isWorkspaceDropdownOpen = false">
           <a-menu-item-group class="!border-t-0 w-full">
-            <div class="flex gap-x-3 min-w-0 pl-4 pr-3 w-full py-1 items-center">
-              <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
-              <div class="flex-1 flex flex-col gap-y-0 max-w-[calc(100%-5.6rem)]">
-                <div
-                  class="mt-0.5 flex w-full capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
-                  style="line-height: 1.5rem"
-                  data-testid="nc-workspace-list"
-                >
-                  <span data-testid="nc-workspace-list-title" class="truncate">
-                    {{ activeWorkspace?.title }}
-                  </span>
-                </div>
-                <div class="flex flex-row items-center gap-x-2">
-                  <template v-if="appInfo.isOnPrem">
-                    <template v-if="workspaceUserCount !== undefined">
-                      <div class="nc-workspace-dropdown-active-workspace-info">
-                        {{ workspaceUserCount }}
-                        {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
-                      </div>
+            <div class="pl-4 pr-3 min-w-0 w-full py-1">
+              <div class="flex gap-x-3 w-full items-center">
+                <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
+                <div class="flex-1 flex flex-col gap-y-0 max-w-[calc(100%-5.6rem)]">
+                  <div
+                    class="mt-0.5 flex w-full capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-black font-medium"
+                    style="line-height: 1.5rem"
+                    data-testid="nc-workspace-list"
+                  >
+                    <span data-testid="nc-workspace-list-title" class="truncate">
+                      {{ activeWorkspace?.title }}
+                    </span>
+                  </div>
+                  <div class="flex flex-row items-center gap-x-2">
+                    <template v-if="appInfo.isOnPrem">
+                      <template v-if="workspaceUserCount !== undefined">
+                        <div class="nc-workspace-dropdown-active-workspace-info">
+                          {{ workspaceUserCount }}
+                          {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
+                        </div>
+                      </template>
                     </template>
-                  </template>
-                  <template v-else>
-                    <div class="nc-workspace-dropdown-active-workspace-info truncate">
-                      {{ activeWorkspace.payment?.plan?.title || 'Free Plan' }}
-                    </div>
-                    <template v-if="workspaceUserCount !== undefined">
-                      <div class="nc-workspace-dropdown-active-workspace-info">-</div>
+                    <template v-else>
                       <div class="nc-workspace-dropdown-active-workspace-info truncate">
-                        {{ workspaceUserCount }}
-                        {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
+                        {{ activeWorkspace.payment?.plan?.title || 'Free Plan' }}
                       </div>
+                      <template v-if="workspaceUserCount !== undefined">
+                        <div class="nc-workspace-dropdown-active-workspace-info">-</div>
+                        <div class="nc-workspace-dropdown-active-workspace-info truncate">
+                          {{ workspaceUserCount }}
+                          {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
+                        </div>
+                      </template>
                     </template>
-                  </template>
+                  </div>
                 </div>
+
+                <NcTooltip v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER" class="!z-1" placement="bottomRight">
+                  <template #title>
+                    {{ $t('objects.roleType.owner') }}
+                  </template>
+                  <div class="h-6.5 px-1 py-0.25 rounded-lg bg-purple-50">
+                    <GeneralIcon icon="role_owner" class="min-w-4.5 min-h-4.5 text-xl !text-purple-700 !hover:text-purple-700" />
+                  </div>
+                </NcTooltip>
+              </div>
+
+              <div class="flex mt-1">
                 <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" placement="top" hide-on-click class="flex">
                   <div
                     class="flex items-center gap-1.5 nc-workspace-dropdown-active-workspace-info cursor-pointer"
@@ -218,14 +232,6 @@ const onWorkspaceCreateClick = () => {
                   </div>
                 </NcTooltip>
               </div>
-              <NcTooltip v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER" class="!z-1" placement="bottomRight">
-                <template #title>
-                  {{ $t('objects.roleType.owner') }}
-                </template>
-                <div class="h-6.5 px-1 py-0.25 rounded-lg bg-purple-50">
-                  <GeneralIcon icon="role_owner" class="min-w-4.5 min-h-4.5 text-xl !text-purple-700 !hover:text-purple-700" />
-                </div>
-              </NcTooltip>
             </div>
 
             <NcDivider v-if="!isMobileMode" class="!mb-0" />

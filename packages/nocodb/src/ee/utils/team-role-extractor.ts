@@ -13,7 +13,12 @@ export async function extractUserTeamRoles(
   context: NcContext,
   userId: string,
   workspaceId: string,
-): Promise<Record<string, boolean> | null> {
+): Promise<{
+  roles: Record<string, boolean> | null;
+  teams: { team_id: string; roles: string }[];
+}> {
+  const teams: { team_id: string; roles: string }[] = [];
+
   // todo: optimize with fewer queries
   try {
     // Get all team assignments for this workspace
@@ -37,13 +42,18 @@ export async function extractUserTeamRoles(
       );
 
       if (userTeamAssignment) {
+        teams.push({
+          team_id: assignment.principal_ref_id,
+          roles: assignment.roles,
+        });
+
         // User is a member of this team, add the team's workspace role
         workspaceRoles.push(assignment.roles);
       }
     }
 
     if (workspaceRoles.length === 0) {
-      return null;
+      return { roles: null, teams };
     }
 
     // Return the workspace roles from teams
@@ -57,9 +67,11 @@ export async function extractUserTeamRoles(
       }
     }
 
-    return Object.keys(roles).length > 0 ? roles : null;
+    return Object.keys(roles).length > 0
+      ? { roles, teams }
+      : { roles: null, teams };
   } catch (error) {
     // Return null on error to avoid breaking the role extraction
-    return null;
+    return { roles: null, teams };
   }
 }

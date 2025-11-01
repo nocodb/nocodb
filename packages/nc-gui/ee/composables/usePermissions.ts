@@ -125,7 +125,22 @@ export const usePermissions = () => {
       // Check if user exists in subjects array
       return (
         permissionObj.subjects?.some(
-          (subject: { type: string; id: string }) => subject.type === 'user' && subject.id === user.value?.id,
+          (subject: { type: string; id: string }) =>
+            (subject.type === 'user' && subject.id === user.value?.id) ||
+            (subject.type === 'team' && user.value?.teams?.some((t) => t.team_id === subject.id)),
+        ) || false
+      )
+    }
+
+    if (permissionObj.granted_type === PermissionGrantedType.USER) {
+      // In shared form user is anonymous, but in form builder user role is present so we have to treat it as shared form
+      if (options?.isFormView) return false
+      // Check if user exists in subjects array
+      return (
+        permissionObj.subjects?.some(
+          (subject: { type: string; id: string }) =>
+            (subject.type === 'user' && subject.id === user.value?.id) ||
+            (subject.type === 'team' && user.value?.teams?.some((t) => t.team_id === subject.id)),
         ) || false
       )
     }

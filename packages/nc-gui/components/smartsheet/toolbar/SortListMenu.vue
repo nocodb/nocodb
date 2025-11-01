@@ -229,7 +229,7 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="flex items-center justify-between children:flex-none empty:hidden pr-4 mt-1 mb-2">
+          <div class="flex items-center justify-between empty:hidden pr-4 mt-1 mb-2">
             <NcDropdown
               v-if="availableColumns.length"
               v-model:visible="showCreateSort"

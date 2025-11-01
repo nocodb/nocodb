@@ -24,25 +24,22 @@ const emits = defineEmits<{
 
 const { view } = toRefs(props)
 
-const { isUIAllowed } = useRoles()
-
 const viewsStore = useViewsStore()
 
 const { getCopyViewConfigBtnAccessStatus, onOpenCopyViewConfigFromAnotherViewModal } = viewsStore
 
-const { isCopyViewConfigFromAnotherViewFeatureEnabled } = storeToRefs(viewsStore)
-
 const { getPlanTitle } = useEeConfig()
 
-const copyViewConfigBtnAccessStatus = computed(() => getCopyViewConfigBtnAccessStatus(view.value))
+const copyViewConfigBtnAccessStatus = computed(() => getCopyViewConfigBtnAccessStatus(view.value, 'toolbar'))
+
+const isVisibleCopyBtn = computed(() => view.value && copyViewConfigBtnAccessStatus.value.isVisible)
 
 const paidBadgeVisible = false
 </script>
 
 <template>
-  <div class="flex-1 w-full flex items-center justify-end">
+  <div v-if="isVisibleCopyBtn" class="flex-1 flex items-center justify-end">
     <SmartsheetToolbarNotAllowedTooltip
-      v-if="isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled"
       :enabled="copyViewConfigBtnAccessStatus.isDisabled"
       placement="right"
       class="flex items-center justify-end"

@@ -117,6 +117,10 @@ const usernameInitials = computed(() => {
 
   if (displayNameSplit.length > 0) {
     if (displayNameSplit.length > 1) {
+      if (props.initialsLength === 1) {
+        return displayNameSplit[0][0]
+      }
+
       return displayNameSplit[0][0] + displayNameSplit[1][0]
     } else {
       return user.value.display_name.slice(0, props.initialsLength)

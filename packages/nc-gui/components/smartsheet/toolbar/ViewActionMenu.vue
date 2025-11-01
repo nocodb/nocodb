@@ -297,11 +297,9 @@ defineOptions({
         </NcMenuItem>
       </template>
 
-      <NcDivider
-        v-if="isEeUI && isUIAllowed('viewCreateOrEdit') && view?.is_default && isCopyViewConfigFromAnotherViewFeatureEnabled"
-      />
+      <NcDivider v-if="copyViewConfigMenuItemStatus.isVisible && view?.is_default" />
       <SmartsheetToolbarNotAllowedTooltip
-        v-if="isEeUI && isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled"
+        v-if="copyViewConfigMenuItemStatus.isVisible"
         :enabled="copyViewConfigMenuItemStatus.isDisabled"
       >
         <template #title>

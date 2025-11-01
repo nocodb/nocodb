@@ -347,7 +347,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               </template>
             </Draggable>
           </div>
-          <div class="flex items-center justify-between children:flex-none mt-2 empty:hidden">
+          <div class="flex items-center justify-between mt-2 empty:hidden">
             <NcDropdown
               v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
               v-model:visible="showCreateGroupBy"

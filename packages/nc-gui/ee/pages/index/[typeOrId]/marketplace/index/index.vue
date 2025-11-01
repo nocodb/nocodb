@@ -23,9 +23,9 @@ onMounted(() => {
   <div class="flex-1 flex flex-col">
     <div class="mb-6">
       <h2 class="text-xl text-nc-content-gray font-bold">
-        {{ categoryInfo.marketplace.title }}
+        {{ categoryInfo.marketplace?.title }}
       </h2>
-      <div class="text-nc-content-gray-subtle2">{{ categoryInfo.marketplace.subtitle }}</div>
+      <div class="text-nc-content-gray-subtle2">{{ categoryInfo.marketplace?.subtitle }}</div>
     </div>
 
     <div class="overflow-auto">

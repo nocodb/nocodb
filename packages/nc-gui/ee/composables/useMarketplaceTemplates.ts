@@ -178,7 +178,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
   }
 
   const currentCategoryInfo = computed(() => {
-    return categoryInfo[activeCategory.value] || categoryInfo.marketplace
+    return categoryInfo[activeCategory.value] || (categoryInfo.marketplace as TemplateCategoryInfoItemType)
   })
 
   const loadTemplates = async (reset = false) => {

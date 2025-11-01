@@ -3466,12 +3466,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       const hasPermission = await Permission.isAllowed(
+        this.context,
         permissionObj,
         {
           id: user.id,
           role: getProjectRole(user),
         },
-        this.context,
       );
 
       if (!hasPermission) {

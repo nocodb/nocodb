@@ -602,12 +602,12 @@ export default class Permission {
   }
 
   static async isAllowed(
+    context: NcContext,
     permissionObj: Permission,
     user: {
       id: string;
       role: ProjectRoles | WorkspaceUserRoles;
     },
-    context: any,
   ): Promise<boolean> {
     if (!permissionObj || (!user.id && !user.role)) {
       return true;

@@ -155,9 +155,6 @@ export class PermissionsService {
                 `Team with id '${subject.id}' does not belong to this workspace`,
               );
             }
-          } else if (subject.type === 'group') {
-            // TODO implement
-            NcError.notImplemented('Group permissions are not implemented yet');
           }
         }
 

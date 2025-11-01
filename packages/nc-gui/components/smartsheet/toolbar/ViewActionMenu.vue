@@ -467,15 +467,16 @@ defineOptions({
           >
             <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="!isUIAllowed('fieldAdd')" />
           </NcMenuItem>
-          <SmartsheetToolbarNotAllowedTooltip
-            v-if="isEeUI"
-            :enabled="disablePersonalView"
-            :message="
-              blockViewOperations && view?.lock_type !== LockType.Personal
-                ? $t('msg.toast.notAllowedToChangeGridView')
-                : 'Only view owner can change to personal view'
-            "
-          >
+          <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI" :enabled="disablePersonalView">
+            <template #title>
+              <div class="max-w-80">
+                {{
+                  blockViewOperations && view?.lock_type !== LockType.Personal
+                    ? $t('msg.toast.notAllowedToChangeGridView')
+                    : 'Only view owner can change to personal view'
+                }}
+              </div>
+            </template>
             <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
               <template #default="{ click }">
                 <NcMenuItem

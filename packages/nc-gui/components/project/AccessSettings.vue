@@ -88,7 +88,7 @@ const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>(
 const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
   if (!record?.isTeam || !isEeUI) return roles
 
-  return roles.filter((r) => r !== ProjectRoles.OWNER)
+  return roles.filter((r) => r !== ProjectRoles.OWNER && r !== ProjectRoles.INHERIT)
 }
 
 const baseTeamsToCollaborators = computed(() => {
@@ -172,6 +172,12 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
 
   try {
     if (collab?.isTeam) {
+      // INHERIT role can only be assigned to individual users, not teams
+      if (roles === ProjectRoles.INHERIT) {
+        message.error(t('msg.error.inheritRoleOnlyForUsers'))
+        return
+      }
+
       await baseTeamUpdate(currentBase.value.id!, {
         team_id: collab.id,
         base_role: roles,

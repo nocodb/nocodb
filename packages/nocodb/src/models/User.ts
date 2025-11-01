@@ -2,6 +2,7 @@ import {
   extractRolesObj,
   IconType,
   ncIsObject,
+  ProjectRoles,
   type UserType,
 } from 'nocodb-sdk';
 import type { MetaType } from 'nocodb-sdk';
@@ -371,7 +372,13 @@ export default class User implements UserType {
             const roles = baseUser?.roles;
             // + (user.roles ? `,${user.roles}` : '');
             if (roles) {
-              resolve(extractRolesObj(roles));
+              // If role is INHERIT (can be 'inherit' string), treat it as null to fall back to workspace roles
+              // Since INHERIT at base level means inherit from workspace level
+              if (roles === ProjectRoles.INHERIT || roles === 'inherit') {
+                resolve(null);
+              } else {
+                resolve(extractRolesObj(roles));
+              }
             } else {
               resolve(null);
             }

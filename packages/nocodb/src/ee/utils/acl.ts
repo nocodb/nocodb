@@ -16,6 +16,7 @@ const roleScopes = {
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
     WorkspaceUserRoles.VIEWER,
+    WorkspaceUserRoles.INHERIT,
     WorkspaceUserRoles.COMMENTER,
     WorkspaceUserRoles.EDITOR,
     WorkspaceUserRoles.CREATOR,
@@ -23,6 +24,7 @@ const roleScopes = {
   ],
   base: [
     ProjectRoles.VIEWER,
+    ProjectRoles.INHERIT,
     ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
     ProjectRoles.CREATOR,

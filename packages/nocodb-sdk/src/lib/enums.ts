@@ -16,6 +16,7 @@ export enum ProjectRoles {
   EDITOR = 'editor',
   COMMENTER = 'commenter',
   VIEWER = 'viewer',
+  INHERIT = 'inherit',
   NO_ACCESS = 'no-access',
 }
 
@@ -25,6 +26,7 @@ export enum WorkspaceUserRoles {
   EDITOR = 'workspace-level-editor',
   COMMENTER = 'workspace-level-commenter',
   VIEWER = 'workspace-level-viewer',
+  INHERIT = 'workspace-level-inherit',
   NO_ACCESS = 'workspace-level-no-access',
 }
 
@@ -278,12 +280,14 @@ export const RoleLabels = {
   [WorkspaceUserRoles.EDITOR]: 'editor',
   [WorkspaceUserRoles.COMMENTER]: 'commenter',
   [WorkspaceUserRoles.VIEWER]: 'viewer',
+  [WorkspaceUserRoles.INHERIT]: 'inherit',
   [WorkspaceUserRoles.NO_ACCESS]: 'noaccess',
   [ProjectRoles.OWNER]: 'owner',
   [ProjectRoles.CREATOR]: 'creator',
   [ProjectRoles.EDITOR]: 'editor',
   [ProjectRoles.COMMENTER]: 'commenter',
   [ProjectRoles.VIEWER]: 'viewer',
+  [ProjectRoles.INHERIT]: 'inherit',
   [ProjectRoles.NO_ACCESS]: 'noaccess',
   [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
   [OrgUserRoles.CREATOR]: 'creator',
@@ -299,12 +303,14 @@ export const RoleColors = {
   [WorkspaceUserRoles.EDITOR]: 'green',
   [WorkspaceUserRoles.COMMENTER]: 'orange',
   [WorkspaceUserRoles.VIEWER]: 'yellow',
+  [WorkspaceUserRoles.INHERIT]: 'yellow',
   [WorkspaceUserRoles.NO_ACCESS]: 'red',
   [ProjectRoles.OWNER]: 'purple',
   [ProjectRoles.CREATOR]: 'blue',
   [ProjectRoles.EDITOR]: 'green',
   [ProjectRoles.COMMENTER]: 'orange',
   [ProjectRoles.VIEWER]: 'yellow',
+  [ProjectRoles.INHERIT]: 'yellow',
   [OrgUserRoles.SUPER_ADMIN]: 'maroon',
   [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
@@ -324,6 +330,7 @@ export const RoleDescriptions = {
   [WorkspaceUserRoles.COMMENTER]:
     'Can view and comment on records within workspace bases',
   [WorkspaceUserRoles.VIEWER]: 'Can only view records within workspace bases',
+  [WorkspaceUserRoles.INHERIT]: 'Can only view records within workspace bases (inherit)',
   [WorkspaceUserRoles.NO_ACCESS]: 'No access to this workspace',
 
   [ProjectRoles.OWNER]:
@@ -333,6 +340,7 @@ export const RoleDescriptions = {
     'Can add, edit, and delete records, but cannot modify base configurations',
   [ProjectRoles.COMMENTER]: 'Can view and comment on records within the base',
   [ProjectRoles.VIEWER]: 'Can only view records within the base',
+  [ProjectRoles.INHERIT]: 'Can only view records within the base (inherit)',
   [ProjectRoles.NO_ACCESS]: 'No access to this base',
 
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
@@ -351,12 +359,14 @@ export const RoleIcons = {
   [WorkspaceUserRoles.EDITOR]: 'role_editor',
   [WorkspaceUserRoles.COMMENTER]: 'role_commenter',
   [WorkspaceUserRoles.VIEWER]: 'role_viewer',
+  [WorkspaceUserRoles.INHERIT]: 'role_viewer',
   [WorkspaceUserRoles.NO_ACCESS]: 'role_no_access',
   [ProjectRoles.OWNER]: 'role_owner',
   [ProjectRoles.CREATOR]: 'role_creator',
   [ProjectRoles.EDITOR]: 'role_editor',
   [ProjectRoles.COMMENTER]: 'role_commenter',
   [ProjectRoles.VIEWER]: 'role_viewer',
+  [ProjectRoles.INHERIT]: 'role_viewer',
   [ProjectRoles.NO_ACCESS]: 'role_no_access',
   [OrgUserRoles.SUPER_ADMIN]: 'role_super',
   [OrgUserRoles.CREATOR]: 'role_creator',
@@ -373,6 +383,7 @@ export const WorkspaceRolesToProjectRoles = {
   [WorkspaceUserRoles.EDITOR]: ProjectRoles.EDITOR,
   [WorkspaceUserRoles.COMMENTER]: ProjectRoles.COMMENTER,
   [WorkspaceUserRoles.VIEWER]: ProjectRoles.VIEWER,
+  [WorkspaceUserRoles.INHERIT]: ProjectRoles.VIEWER,
   [WorkspaceUserRoles.NO_ACCESS]: ProjectRoles.NO_ACCESS,
 };
 
@@ -382,6 +393,7 @@ export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.EDITOR,
   WorkspaceUserRoles.COMMENTER,
   WorkspaceUserRoles.VIEWER,
+  WorkspaceUserRoles.INHERIT,
   WorkspaceUserRoles.NO_ACCESS,
 ];
 
@@ -397,6 +409,7 @@ export const OrderedProjectRoles = [
   ProjectRoles.EDITOR,
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
+  ProjectRoles.INHERIT,
   ProjectRoles.NO_ACCESS,
 ];
 

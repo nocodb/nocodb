@@ -127,6 +127,13 @@ export class WorkspaceTeamsV3Service {
       NcError.get(context).teamNotFound(param.team.team_id);
     }
 
+    // INHERIT role can only be assigned to individual users, not teams
+    if (param.team.workspace_role === WorkspaceUserRoles.INHERIT) {
+      NcError.get(context).badRequest(
+        'INHERIT role can only be assigned to individual users, not teams',
+      );
+    }
+
     // Check if current user has sufficient privilege to assign this role
     if (
       getWorkspaceRolePower({

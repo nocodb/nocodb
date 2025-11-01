@@ -117,11 +117,29 @@ watch(dialogShow, async (newVal) => {
           currentRoleIndex = 1
         }
 
-        allowedRoles.value = rolesArr.slice(currentRoleIndex)
-        disabledRoles.value = rolesArr.slice(0, currentRoleIndex)
+        // Filter out INHERIT role for teams (workspace or base teams)
+        let filteredRoles = rolesArr
+        if (props.isTeam) {
+          filteredRoles = rolesArr.filter(
+            (role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT
+          )
+        }
+
+        allowedRoles.value = filteredRoles.slice(currentRoleIndex)
+        disabledRoles.value = filteredRoles.slice(0, currentRoleIndex)
       } else {
-        allowedRoles.value = props.isTeam ? rolesArr.slice(1) : rolesArr
-        disabledRoles.value = props.isTeam ? rolesArr.slice(0, 1) : []
+        // Filter out INHERIT role for teams (workspace or base teams)
+        let filteredRoles = rolesArr
+        if (props.isTeam) {
+          filteredRoles = rolesArr.filter(
+            (role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT
+          )
+          allowedRoles.value = filteredRoles.slice(1)
+          disabledRoles.value = filteredRoles.slice(0, 1)
+        } else {
+          allowedRoles.value = rolesArr
+          disabledRoles.value = []
+        }
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))

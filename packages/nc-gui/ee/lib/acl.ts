@@ -6,6 +6,7 @@ const roleScopes = {
   workspace: [
     WorkspaceUserRoles.NO_ACCESS,
     WorkspaceUserRoles.VIEWER,
+    WorkspaceUserRoles.INHERIT,
     WorkspaceUserRoles.COMMENTER,
     WorkspaceUserRoles.EDITOR,
     WorkspaceUserRoles.CREATOR,
@@ -14,6 +15,7 @@ const roleScopes = {
   base: [
     ProjectRoles.NO_ACCESS,
     ProjectRoles.VIEWER,
+    ProjectRoles.INHERIT,
     ProjectRoles.COMMENTER,
     ProjectRoles.EDITOR,
     ProjectRoles.CREATOR,
@@ -112,6 +114,18 @@ const rolePermissions = {
     include: {},
   },
   [WorkspaceUserRoles.VIEWER]: {
+    include: {
+      workspaceCollaborators: true,
+
+      // Teams
+      teamList: true,
+      teamGet: true,
+      teamCreate: true,
+      teamDelete: true,
+      workspaceTeamAdd: true,
+    },
+  },
+  [WorkspaceUserRoles.INHERIT]: {
     include: {
       workspaceCollaborators: true,
 
@@ -234,6 +248,9 @@ const rolePermissions = {
       // Extensions
       extensionList: true,
     },
+  },
+  [ProjectRoles.INHERIT]: {
+    include: {},
   },
   [ProjectRoles.NO_ACCESS]: {
     include: {},

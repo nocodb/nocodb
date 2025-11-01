@@ -101,13 +101,15 @@ async function listBaseUsers(
   ncMeta: MetaService,
 ) {
   // return base_role considering inherited roles from workspace
+  // Handle INHERIT: if base role is INHERIT, treat as null; if workspace role is INHERIT, use team roles
   const qb = ncMeta
     .knexConnection(`${MetaTable.WORKSPACE_USER} as wu`)
     .select(
       'wu.*',
       ncMeta.knexConnection.raw(`CASE
-        WHEN "bu"."roles" IS NOT NULL THEN "bu"."roles"
+        WHEN "bu"."roles" IS NOT NULL AND "bu"."roles" != '${WorkspaceUserRoles.INHERIT}' AND "bu"."roles" != '${ProjectRoles.INHERIT}' AND "bu"."roles" != 'inherit' THEN "bu"."roles"
         ${Object.values(WorkspaceUserRoles)
+          .filter((value) => value !== WorkspaceUserRoles.INHERIT)
           .map(
             (value) =>
               `WHEN "wu"."roles" = '${value}' THEN '${WorkspaceRolesToProjectRoles[value]}'`,

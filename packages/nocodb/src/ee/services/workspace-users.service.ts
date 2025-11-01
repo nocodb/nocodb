@@ -546,6 +546,7 @@ export class WorkspaceUsersService {
         WorkspaceUserRoles.OWNER,
         WorkspaceUserRoles.CREATOR,
         WorkspaceUserRoles.VIEWER,
+        WorkspaceUserRoles.INHERIT,
         WorkspaceUserRoles.EDITOR,
         WorkspaceUserRoles.COMMENTER,
         WorkspaceUserRoles.NO_ACCESS,

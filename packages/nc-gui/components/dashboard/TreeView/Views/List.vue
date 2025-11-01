@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ViewType } from 'nocodb-sdk'
-import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { ViewTypes, getFirstNonPersonalView, viewTypeAlias } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 
@@ -49,7 +49,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()
 
-const { navigateToView, loadViews, isUserViewOwner } = useViewsStore()
+const { navigateToView, loadViews, isUserViewOwner, updateView } = useViewsStore()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -127,6 +127,12 @@ const initSortable = (el: Element) => {
 
       if (!currentItem || !currentItem.id) return
 
+      const firstCollaborativeView = getFirstNonPersonalView(views.value, {
+        includeViewType: ViewTypes.GRID,
+      })
+
+      const isFirstCollaborativeView = firstCollaborativeView?.id === currentItem.id
+
       // get the html collection of all list items
       const children: HTMLCollection = evt.to.children
 
@@ -160,7 +166,19 @@ const initSortable = (el: Element) => {
         tableViews.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
       }
 
-      await api.dbView.update(currentItem.id, { order: currentItem.order })
+      const defaultViewAfterUpdate = getFirstNonPersonalView(tableViews, {
+        includeViewType: ViewTypes.GRID,
+      })
+
+      await updateView(
+        currentItem.id,
+        {
+          order: currentItem.order,
+        },
+        {
+          is_default_view: isFirstCollaborativeView || defaultViewAfterUpdate?.id !== firstCollaborativeView?.id,
+        },
+      )
 
       markItem(currentItem.id)
       $e('a:view:reorder')

@@ -4,7 +4,9 @@ import {
   type MetaPayload,
   PlanLimitTypes,
   type ScriptPayload,
+  ViewTypes,
   type WidgetPayload,
+  getFirstNonPersonalView,
   isVirtualCol,
 } from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
@@ -170,7 +172,24 @@ export const useRealtime = createSharedComposable(() => {
       }
     } else if (event.action === 'view_create') {
       const views = viewsByTable.value.get(event.payload.fk_model_id) || []
+
+      // Check if there was a first collaborative grid view before
+      const oldFirstCollabGridView = getFirstNonPersonalView(views, {
+        includeViewType: ViewTypes.GRID,
+      })
+
       views.push(event.payload)
+
+      // Check if there's a new first collaborative grid view after adding
+      const newFirstCollabGridView = getFirstNonPersonalView(views, {
+        includeViewType: ViewTypes.GRID,
+      })
+
+      // If the first collaborative grid view changed, trigger getMeta
+      if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id) {
+        getMeta(event.payload.fk_model_id, true)
+      }
+
       refreshCommandPalette()
     } else if (event.action === 'view_update') {
       const tableViews = viewsByTable.value.get(event.payload.fk_model_id)
@@ -178,8 +197,24 @@ export const useRealtime = createSharedComposable(() => {
       if (view) {
         const needReload = !view?.show_system_fields && event.payload?.show_system_fields
 
+        // Check if there was a first collaborative grid view before update
+        const oldFirstCollabGridView = getFirstNonPersonalView(tableViews, {
+          includeViewType: ViewTypes.GRID,
+        })
+
         Object.assign(view, event.payload)
         tableViews?.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+
+        // Check if there's a new first collaborative grid view after update
+        const newFirstCollabGridView = getFirstNonPersonalView(tableViews, {
+          includeViewType: ViewTypes.GRID,
+        })
+
+        // If the first collaborative grid view changed (e.g., view changed from personal to collaborative)
+        // trigger getMeta to refresh table metadata
+        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id) {
+          getMeta(event.payload.fk_model_id, true)
+        }
 
         if (needReload) $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
         if (event.payload?.from_row_color)
@@ -189,6 +224,11 @@ export const useRealtime = createSharedComposable(() => {
     } else if (event.action === 'view_delete') {
       const views = viewsByTable.value.get(event.payload.fk_model_id)
       if (views) {
+        // Check if there was a first collaborative grid view before delete
+        const oldFirstCollabGridView = getFirstNonPersonalView(views, {
+          includeViewType: ViewTypes.GRID,
+        })
+
         if (activeViewTitleOrId.value === event.payload.id) {
           const firstView = views[0]
           if (firstView) {
@@ -203,6 +243,16 @@ export const useRealtime = createSharedComposable(() => {
         const index = views.findIndex((v) => v.id === event.payload.id)
         if (index !== -1) {
           views.splice(index, 1)
+        }
+
+        // Check if there's a new first collaborative grid view after delete
+        const newFirstCollabGridView = getFirstNonPersonalView(views, {
+          includeViewType: ViewTypes.GRID,
+        })
+
+        // If the first collaborative grid view changed after deletion, trigger getMeta
+        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id) {
+          getMeta(event.payload.fk_model_id, true)
         }
       }
       refreshCommandPalette()

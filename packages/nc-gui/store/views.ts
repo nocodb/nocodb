@@ -380,7 +380,23 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (data) {
         // Add the new view to the store
         const tableViews = viewsByTable.value.get(tableId) || []
+
+        // Get the first collaborative grid view before
+        const oldFirstCollabGridView = getFirstNonPersonalView(tableViews, {
+          includeViewType: ViewTypes.GRID,
+        })
+
         viewsByTable.value.set(tableId, [...tableViews, data])
+
+        // Get the new first collaborative grid view after adding
+        const newFirstCollabGridView = getFirstNonPersonalView([...tableViews, data], {
+          includeViewType: ViewTypes.GRID,
+        })
+
+        // If the first collaborative grid view changed, trigger getMeta
+        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && tableId) {
+          await getMeta(tableId, true)
+        }
 
         // Refresh command palette
         refreshCommandPalette()
@@ -472,8 +488,24 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       // Remove view from the viewsByTable map
       const tableViews = viewsByTable.value.get(view.fk_model_id) || []
+
+      // Get the first collaborative grid view before delete
+      const oldFirstCollabGridView = getFirstNonPersonalView(tableViews, {
+        includeViewType: ViewTypes.GRID,
+      })
+
       const updatedViews = tableViews.filter((v) => v.id !== view.id)
       viewsByTable.value.set(view.fk_model_id, updatedViews)
+
+      // Get the new first collaborative grid view after delete
+      const newFirstCollabGridView = getFirstNonPersonalView(updatedViews, {
+        includeViewType: ViewTypes.GRID,
+      })
+
+      // If the first collaborative grid view changed after deletion, trigger getMeta
+      if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && view.fk_model_id) {
+        await getMeta(view.fk_model_id, true)
+      }
 
       // Remove from recent views
       removeFromRecentViews({
@@ -515,7 +547,13 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
   }
 
-  const updateView = async (viewId: string, updates: Partial<ViewType>): Promise<ViewType | null> => {
+  const updateView = async (
+    viewId: string,
+    updates: Partial<ViewType>,
+    extra?: {
+      is_default_view?: boolean
+    },
+  ): Promise<ViewType | null> => {
     try {
       const updatedView = await $api.dbView.update(viewId, updates)
 
@@ -526,9 +564,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
         const viewIndex = tableViews.findIndex((v) => v.id === viewId)
 
         if (viewIndex !== -1) {
-          // Replace with the response from API
-          tableViews[viewIndex] = updatedView
-          viewsByTable.value.set(tableId, [...tableViews])
+          if (extra?.is_default_view && tableId) {
+            await getMeta(tableId, true)
+          }
 
           // Update recent views if title changed
           if (updatedView.title) {

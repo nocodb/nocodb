@@ -40,8 +40,6 @@ const {
   getCopyViewConfigBtnAccessStatus,
 } = viewsStore
 
-const { isCopyViewConfigFromAnotherViewFeatureEnabled } = storeToRefs(viewsStore)
-
 const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()

@@ -23,7 +23,7 @@ export default defineNuxtConfig({
   modules: ['nuxt-echarts', '@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   echarts: {
     renderer: ['canvas'],
-    charts: ['BarChart', 'LineChart', 'PieChart', 'GaugeChart'],
+    charts: ['BarChart', 'LineChart', 'PieChart'],
     components: ['DatasetComponent', 'GridComponent', 'TooltipComponent', 'TitleComponent', 'LegendComponent'],
     ssr: false,
   },

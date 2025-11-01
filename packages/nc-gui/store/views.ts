@@ -826,8 +826,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
     const result = {
       isDisabled: false,
       tooltip: '',
-      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit'),
+      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled.value,
     }
+
+    if (!view) return result
 
     if (view?.lock_type === LockType.Personal && !isUserViewOwner(view)) {
       result.isDisabled = true

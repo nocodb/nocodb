@@ -1,4 +1,5 @@
 import {
+  parseProp,
   PermissionGrantedType,
   type PermissionKey,
   type PermissionRole,
@@ -233,6 +234,11 @@ export default class Permission {
 
       // Ensure subjects is always an array for each permission
       const processedPermissions = permissionsWithSubjects.map((permission) => {
+        // if json string, parse it
+        if (typeof permission.subjects === 'string') {
+          permission.subjects = parseProp(permission.subjects, []);
+        }
+
         // Subjects are already JSON objects from the aggregation function
         if (!permission.subjects || !Array.isArray(permission.subjects)) {
           permission.subjects = [];

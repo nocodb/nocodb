@@ -61,7 +61,7 @@ export async function extractUserBaseTeamRoles(
     }
 
     if (userBaseTeamRoles.length === 0) {
-      return { roles: null, teams};
+      return { roles: null, teams };
     }
 
     // Merge base-team roles - take the highest privilege

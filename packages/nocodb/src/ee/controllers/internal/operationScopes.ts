@@ -71,4 +71,5 @@ export const OPERATION_SCOPES = {
 
   // Templates
   templates: 'ncSkipAcl',
+  template: 'ncSkipAcl',
 } as const;

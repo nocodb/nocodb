@@ -205,6 +205,9 @@ export class InternalController extends InternalControllerCE {
       case 'templates': {
         return await this.utilsService.templates(req);
       }
+      case 'template': {
+        return await this.utilsService.template(req);
+      }
       default:
         return await super.internalAPI(
           context,

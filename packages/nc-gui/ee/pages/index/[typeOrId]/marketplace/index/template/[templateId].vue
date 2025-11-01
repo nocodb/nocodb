@@ -8,12 +8,13 @@ import type { CarouselApi } from '~/components/nc/Carousel/interface'
 
 const route = useRoute()
 const router = useRouter()
-const templateId = computed(() => route.params.templateId)
+const templateId = computed(() => route.params.templateId as string)
 const typeOrId = computed(() => route.params.typeOrId)
 
-const { categoryInfo, activeCategory, getTemplateById, currentCategoryInfo } = useMarketplaceTemplates('marketplace')
+const { categoryInfo, activeCategory, getTemplateById, currentCategoryInfo, templatesMap } =
+  useMarketplaceTemplates('marketplace')
 
-const template = ref<Record<string, any> | null>(null)
+const template = ref<Template | null>(null)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 const carouselApi = ref<CarouselApi>()
@@ -42,83 +43,14 @@ const fetchTemplateDetails = async () => {
   }
 }
 
-const dummyTemplate = {
-  'Id': 1,
-  'Title': 'Sales CRM',
-  'Description':
-    'Streamline your sales process with this Sales CRM template. Track leads, manage contacts, and close more deals efficiently with this powerful and customizable Sales CRM solution.',
-  'Thumbnail': 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop',
-  'Features': [
-    'Lead tracking and management',
-    'Contact organization',
-    'Deal pipeline visualization',
-    'Sales analytics and reporting',
-    'Task management and reminders',
-    'Email integration',
-    'Customizable fields and workflows',
-  ],
-  'Structure':
-    'Perfect for sales teams looking to organize leads, track customer interactions, and manage the sales pipeline from prospect to close. Ideal for small to medium businesses wanting to improve their sales process efficiency.',
-  'UseCase':
-    'Perfect for sales teams looking to organize leads, track customer interactions, and manage the sales pipeline from prospect to close. Ideal for small to medium businesses wanting to improve their sales process efficiency.',
-  'Industry': 'Sales',
-  'Screenshots': [
-    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1531538606174-0f90ff5dce83?q=80&w=2074&auto=format&fit=crop',
-  ],
-  'Shared Base Url': 'https://example.com/template/sales-crm',
-}
-
-// Use dummy data for now
 onMounted(() => {
-  // fetchTemplateDetails()
-  setTimeout(() => {
-    template.value = dummyTemplate
+  if (templateId.value && templatesMap.value[templateId.value]) {
+    template.value = templatesMap.value[templateId.value] as Template
     isLoading.value = false
-  }, 500)
+  } else {
+    fetchTemplateDetails()
+  }
 })
-
-// Related templates
-const relatedTemplates = [
-  {
-    Id: 2,
-    Title: 'Sales Pipeline',
-    Thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop',
-    Description: 'Track, manage, and optimize your sales process with this Sales Pipeline template',
-  },
-  {
-    Id: 3,
-    Title: 'Intercom',
-    Thumbnail: 'https://images.unsplash.com/photo-1556745757-8d76bdb6984b?q=80&w=2066&auto=format&fit=crop',
-    Description: 'Manage customer conversations, support tickets, and customer feedback efficiently',
-  },
-  {
-    Id: 4,
-    Title: 'Sales CRM',
-    Thumbnail: 'https://images.unsplash.com/photo-1560472355-536de3962603?q=80&w=2070&auto=format&fit=crop',
-    Description: 'Streamline your sales process with this powerful and customizable Sales CRM solution',
-  },
-  {
-    Id: 5,
-    Title: 'Dashboard CRM',
-    Thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop',
-    Description: 'Manage your sales pipeline, track leads, and close more deals',
-  },
-  {
-    Id: 6,
-    Title: 'Organization Finance',
-    Thumbnail: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=2011&auto=format&fit=crop',
-    Description: 'Track expenses, manage budgets, and monitor financial health',
-  },
-  {
-    Id: 7,
-    Title: 'Human Resources',
-    Thumbnail: 'https://images.unsplash.com/photo-1551434678-e076c223a692?q=80&w=2070&auto=format&fit=crop',
-    Description: 'Streamline HR management, track recruitment, and organize employee data',
-  },
-]
 
 const openRelatedTemplate = (templateId) => {
   router.push(`/${typeOrId.value}/marketplace/template/${templateId}`)
@@ -151,14 +83,23 @@ const navigateToHome = () => {
   router.push(`/${typeOrId.value}/marketplace`)
 }
 
+const relatedTemplates = computed(() => {
+  return template.value?.['Related Templates'] || []
+})
+
 const screenshots = computed(() => {
   if (template.value?.Screenshots?.length) {
-    return template.value.Screenshots
+    return template.value.Screenshots.map((screenshot, i) => ({
+      url: screenshot,
+      title: `${template.value?.Title} ${i + 1}`,
+    }))
   }
+
   return [
-    { url: template.value?.Image || '/img/marketplace/template-placeholder.png', title: 'Screenshot 1' },
-    { url: '/img/marketplace/template-placeholder-2.png', title: 'Screenshot 2' },
-    { url: '/img/marketplace/template-placeholder-3.png', title: 'Screenshot 3' },
+    {
+      url: template.value?.Thumbnail || '/img/marketplace/template-placeholder.png',
+      title: template.value?.Title || 'Screenshot 1',
+    },
   ]
 })
 
@@ -191,7 +132,7 @@ const scrollToSlide = (index: number) => {
 
       <div v-else-if="error" class="flex flex-col items-center justify-center py-12">
         <div class="text-nc-content-grey-subtle2 text-lg">{{ error }}</div>
-        <button class="mt-4 btn-primary" @click="fetchTemplateDetails">Retry</button>
+        <button class="mt-4 btn-primary" @click="fetchTemplateDetails">{{ $t('general.retry') }}</button>
       </div>
 
       <div v-else-if="template" class="template-detail mb-10">
@@ -246,7 +187,7 @@ const scrollToSlide = (index: number) => {
             <div class="my-4" v-html="structureRendered"></div>
           </a-tab-pane>
         </NcTabs>
-        <div>
+        <div v-if="relatedTemplates.length">
           <h2 class="text-heading3 font-semibold mt-6">
             Other <span class="capitalize">{{ activeCategory === 'marketplace' ? '' : activeCategory }}</span> Templates
           </h2>
@@ -255,7 +196,7 @@ const scrollToSlide = (index: number) => {
           </div>
           <div class="grid grid-cols-1 mt-8 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <MarketplaceCard
-              v-for="relatedTemplate in relatedTemplates"
+              v-for="relatedTemplate of relatedTemplates"
               :key="relatedTemplate.Id"
               class="template-card"
               :title="relatedTemplate.Title"

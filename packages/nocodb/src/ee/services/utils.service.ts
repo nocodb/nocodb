@@ -229,4 +229,43 @@ export class UtilsService extends UtilsServiceCE {
 
     return response.data;
   }
+
+  async template(req: NcRequest) {
+    const { id } = req.query as {
+      id: string;
+    };
+
+    const key = `${CacheScope.TEMPLATES}:record:${id}`;
+
+    const cachedData = await NocoCache.get(
+      'root',
+      key,
+      CacheGetType.TYPE_OBJECT,
+    );
+
+    if (cachedData) {
+      return cachedData;
+    }
+
+    let response;
+    try {
+      response = await axios.get('https://nocodb.com/api/v1/cloud/templates', {
+        params: {
+          id,
+        },
+      });
+    } catch (e) {
+      this.logger.error(e?.message, e);
+      return null;
+    }
+
+    await NocoCache.setExpiring(
+      'root',
+      key,
+      JSON.stringify(response.data, getCircularReplacer),
+      2 * 60 * 60,
+    );
+
+    return response.data;
+  }
 }

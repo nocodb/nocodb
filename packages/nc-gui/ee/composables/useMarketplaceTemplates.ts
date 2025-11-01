@@ -55,6 +55,14 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const templates = ref<Template[]>([])
+
+  const templatesMap = computed(() => {
+    return templates.value.reduce((acc, template) => {
+      acc[template.Id] = template
+      return acc
+    }, {} as Record<string, Template>)
+  })
+
   const isLoading = ref(false)
   const hasMore = ref(true)
   const page = ref(1)
@@ -357,6 +365,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
 
   return {
     templates,
+    templatesMap,
     isLoading,
     hasMore,
     loadTemplates,

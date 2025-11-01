@@ -40,14 +40,6 @@ const maxValue = computed(() => {
   return 100
 })
 
-const backgroundColor = computed(() => {
-  const type = (widgetRef.value?.config.appearance as any)?.type ?? 'default'
-  if (type === 'filled' || type === 'coloured') {
-    return 'var(--nc-bg-default)'
-  }
-  return 'var(--nc-bg-default)'
-})
-
 const gaugeValue = computed(() => {
   return widgetData.value?.data?.value ?? 0
 })
@@ -76,6 +68,7 @@ const totalGaugeAngle = gaugeEndAngle - gaugeStartAngle
 
 // Normalize value to 0-1 range
 const normalizedValue = computed(() => {
+  if (maxValue.value === minValue.value) return 0
   return Math.max(0, Math.min(1, (gaugeValue.value - minValue.value) / (maxValue.value - minValue.value)))
 })
 
@@ -123,8 +116,12 @@ const rangeArcs = computed(() => {
     const rangeMax = Math.min(range.max, maxValue.value)
 
     // Calculate angles for this range
-    const rangeStartNorm = (rangeMin - minValue.value) / (maxValue.value - minValue.value)
-    const rangeEndNorm = (rangeMax - minValue.value) / (maxValue.value - minValue.value)
+    let rangeStartNorm = 0
+    let rangeEndNorm = 0
+    if (maxValue.value !== minValue.value) {
+      rangeStartNorm = (rangeMin - minValue.value) / (maxValue.value - minValue.value)
+      rangeEndNorm = (rangeMax - minValue.value) / (maxValue.value - minValue.value)
+    }
 
     const rangeStartAngle = gaugeStartAngle + rangeStartNorm * totalGaugeAngle
     const rangeEndAngle = gaugeStartAngle + rangeEndNorm * totalGaugeAngle
@@ -164,12 +161,7 @@ watch(
 </script>
 
 <template>
-  <div
-    class="nc-gauge-widget !rounded-xl h-full w-full p-4 flex group flex-col gap-1 relative"
-    :style="{
-      backgroundColor,
-    }"
-  >
+  <div class="nc-gauge-widget !rounded-xl h-full w-full p-4 flex group flex-col gap-1 relative">
     <div
       :class="{
         'mb-1.5': widget.description,

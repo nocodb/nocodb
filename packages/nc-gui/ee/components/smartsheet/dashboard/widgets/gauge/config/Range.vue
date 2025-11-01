@@ -5,9 +5,8 @@ const emit = defineEmits<{
 
 const { selectedWidget } = storeToRefs(useWidgetStore())
 
-const minValue = ref(selectedWidget.value?.config?.range?.min ?? 0)
-const maxValue = ref(selectedWidget.value?.config?.range?.max ?? 100)
-
+const minValue = ref(selectedWidget.value?.config?.appearance?.ranges?.[0]?.min ?? 0)
+const maxValue = ref(selectedWidget.value?.config?.appearance?.ranges?.[0]?.max ?? 100)
 const onMinChange = () => {
   emit('update:range', {
     min: minValue.value,

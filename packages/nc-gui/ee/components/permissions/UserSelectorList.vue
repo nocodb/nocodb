@@ -75,7 +75,11 @@ const baseTeams = computed<NcListItemType[]>(() => {
     id: bt.team_id,
     isTeam: true,
     display_name: bt.team_title,
-    roles: bt.base_role,
+    roles:
+      bt.base_role ??
+      (bt.workspace_role
+        ? WorkspaceRolesToProjectRoles[bt.workspace_role as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+        : ProjectRoles.NO_ACCESS),
     base_roles: bt.base_role,
     ncGroupHeaderLabel: t('general.teams'),
   })) as NcListItemType[]

@@ -226,7 +226,7 @@ watch(
 
           <!-- Value display -->
           <div v-if="showValue" class="text-center text-xl font-bold text-gray-700">
-            {{ Intl.NumberFormat('en-US').format(gaugeValue) }}
+            {{ Intl.NumberFormat().format(gaugeValue) }}
           </div>
 
           <!-- Range legend -->

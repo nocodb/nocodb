@@ -106,15 +106,16 @@ const getDefaultConfig = (
           type: 'count' as const,
           aggregation: 'count' as const,
         },
-        range: {
-          min: 0,
-          max: 100,
-        },
         appearance: {
           type: 'filled' as const,
           theme: 'blue' as const,
           showValue: true,
           showPercentage: true,
+          ranges: [
+            { color: '#FF6E76', min: 0, max: 33, label: 'Low' },
+            { color: '#FDDD60', min: 33, max: 67, label: 'Medium' },
+            { color: '#7CFFB2', min: 67, max: 100, label: 'High' },
+          ],
         },
       };
 

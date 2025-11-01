@@ -56,6 +56,12 @@ const filterAggregation = (value: AggregationValue) => {
   if (selectedWidget.value?.type === WidgetTypes.METRIC) {
     return true
   }
+
+  // For gauge widgets, only show aggregations that return numerical values
+  if (selectedWidget.value?.type === WidgetTypes.GAUGE) {
+    return ![AllAggregations.EarliestDate, AllAggregations.LatestDate, AllAggregations.None].includes(value as any)
+  }
+
   return [
     AllAggregations.Sum,
     AllAggregations.Min,

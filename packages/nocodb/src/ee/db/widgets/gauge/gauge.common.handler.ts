@@ -1,16 +1,13 @@
 import { formatAggregation } from 'nocodb-sdk';
-import type { NcContext, NcRequest, WidgetType, WidgetTypes } from 'nocodb-sdk';
+import type { GaugeWidgetType, NcContext, NcRequest } from 'nocodb-sdk';
 import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation, { validateAggregationColType } from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 
-export class GaugeCommonHandler extends BaseWidgetHandler {
-  async validateWidgetData(
-    context: NcContext,
-    widget: WidgetType<WidgetTypes.GAUGE>,
-  ) {
-    const { dataSource, metric, range } = widget.config;
+export class GaugeCommonHandler extends BaseWidgetHandler<GaugeWidgetType> {
+  async validateWidgetData(context: NcContext, widget: GaugeWidgetType) {
+    const { dataSource, metric } = widget.config;
     const errors = [];
 
     const addError = (path: string, message: string) => {
@@ -76,36 +73,20 @@ export class GaugeCommonHandler extends BaseWidgetHandler {
       }
     }
 
-    if (!range) {
-      addError('range', 'Range is required');
-      return errors;
-    }
-
-    if (typeof range.min !== 'number') {
-      addError('range.min', 'Range min must be a number');
-    }
-
-    if (typeof range.max !== 'number') {
-      addError('range.max', 'Range max must be a number');
-    }
-
-    if (range.min >= range.max) {
-      addError('range', 'Range min must be less than max');
-    }
-
     return errors.length > 0 ? errors : [];
   }
 
   async getWidgetData(
     context: NcContext,
     params: {
-      widget: WidgetType<WidgetTypes.GAUGE>;
+      widget: GaugeWidgetType;
       req: NcRequest;
     },
   ) {
     const { widget } = params;
-    const { config } = widget;
-    const { dataSource, metric, range } = config;
+    const {
+      config: { dataSource, metric },
+    } = widget;
 
     // Get model
     const model = await Model.getByIdOrName(context, {
@@ -179,27 +160,16 @@ export class GaugeCommonHandler extends BaseWidgetHandler {
       );
     }
 
-    // Calculate percentage based on range
-    const percentage = Math.min(
-      100,
-      Math.max(
-        0,
-        ((Number(data.count) - range.min) / (range.max - range.min)) * 100,
-      ),
-    );
-
     return {
       data: {
         value,
-        percentage,
-        range,
       },
     };
   }
 
   async serializeOrDeserializeWidget(
     context: NcContext,
-    widget: WidgetType<WidgetTypes.GAUGE>,
+    widget: GaugeWidgetType,
     idMap: Map<string, string>,
     mode: 'serialize' | 'deserialize' = 'serialize',
   ) {

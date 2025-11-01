@@ -13,8 +13,8 @@ const showValue = ref(selectedWidget.value?.config?.appearance?.showValue ?? tru
 const ranges = ref<GaugeRange[]>(
   selectedWidget.value?.config?.appearance?.ranges || [
     { color: '#FF6E76', min: 0, max: 33, label: 'Low' },
-    { color: '#FDDD60', min: 33, max: 66, label: 'Medium' },
-    { color: '#7CFFB2', min: 66, max: 100, label: 'High' },
+    { color: '#FDDD60', min: 33, max: 67, label: 'Medium' },
+    { color: '#7CFFB2', min: 67, max: 100, label: 'High' },
   ],
 )
 
@@ -55,7 +55,21 @@ const updateRange = (index: number, field: keyof GaugeRange, value: any) => {
   const range = ranges.value[index]
   if (!range) return
 
-  ranges.value[index][field] = value as never
+  if (field === 'min' || field === 'max') {
+    const numValue = Number(value)
+    ranges.value[index][field] = numValue as never
+
+    // Auto-adjust adjacent ranges to maintain continuity
+    if (field === 'max' && index < ranges.value.length - 1) {
+      ranges.value[index + 1].min = numValue
+    }
+    if (field === 'min' && index > 0) {
+      ranges.value[index - 1].max = numValue
+    }
+  } else {
+    ranges.value[index][field] = value as never
+  }
+
   onRangesUpdate()
 }
 </script>
@@ -73,18 +87,19 @@ const updateRange = (index: number, field: keyof GaugeRange, value: any) => {
           />
           <NcNonNullableNumberInput
             :model-value="range.min"
-            :min="ranges[index - 1]?.max ?? 0"
+            :min="0"
             :max="range.max - 1"
             class="flex-1"
             placeholder="Min"
+            :disabled="index > 0"
             @update:model-value="updateRange(index, 'min', $event)"
           />
           <NcNonNullableNumberInput
             :model-value="range.max"
             :min="range.min + 1"
-            :max="ranges[index + 1]?.min ?? Infinity"
             class="flex-1"
             placeholder="Max"
+            :disabled="index < ranges.length - 1"
             @update:model-value="updateRange(index, 'max', $event)"
           />
           <NcButton v-if="ranges.length > 1" size="small" type="text" @click="removeRange(index)">

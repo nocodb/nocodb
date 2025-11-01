@@ -1,16 +1,15 @@
 import { ChartTypes, ncIsNullOrUndefined, ncIsNumber } from 'nocodb-sdk';
 import type {
+  ChartWidgetType,
   DonutChartConfig,
   NcContext,
   PieChartConfig,
-  WidgetType,
-  WidgetTypes,
 } from 'nocodb-sdk';
 import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 import { Column, Model, View } from '~/models';
 import { validateAggregationColType } from '~/db/aggregation';
 
-export class CircularChartCommonHandler extends BaseWidgetHandler {
+export class CircularChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
   protected readonly MIN_CATEGORY_LIMIT = 10;
   protected readonly MAX_CATEGORY_LIMIT = 50;
   protected readonly DEFAULT_CATEGORY_LIMIT = 10;
@@ -41,10 +40,7 @@ export class CircularChartCommonHandler extends BaseWidgetHandler {
     return null; // For default case
   }
 
-  async validateWidgetData(
-    context: NcContext,
-    widget: WidgetType<WidgetTypes.CHART>,
-  ) {
+  async validateWidgetData(context: NcContext, widget: ChartWidgetType) {
     const errors = [];
 
     const addError = (path: string, message: string) => {
@@ -162,7 +158,7 @@ export class CircularChartCommonHandler extends BaseWidgetHandler {
 
   async serializeOrDeserializeWidget(
     context: NcContext,
-    widget: WidgetType<WidgetTypes.CHART>,
+    widget: ChartWidgetType,
     idMap: Map<string, string>,
     mode: 'serialize' | 'deserialize' = 'serialize',
   ) {

@@ -17,7 +17,13 @@ const widgetData = ref<any>(null)
 const isLoading = ref(false)
 
 const gaugeRanges = computed<GaugeRange[]>(() => {
-  return widgetRef.value?.config?.appearance?.ranges || []
+  return (
+    widgetRef.value?.config?.appearance?.ranges || [
+      { color: '#FF6E76', min: 0, max: 33, label: 'Low' },
+      { color: '#FDDD60', min: 33, max: 67, label: 'Medium' },
+      { color: '#7CFFB2', min: 67, max: 100, label: 'High' },
+    ]
+  )
 })
 
 const minValue = computed(() => {
@@ -58,12 +64,15 @@ async function loadData() {
   isLoading.value = false
 }
 
-// Gauge configuration
 const size = 200
-const strokeWidth = 20
+const strokeWidth = 15
+const centerX = size / 2
+const centerY = size / 2
 const radius = (size - strokeWidth) / 2
-const angle = 180
-const startAngle = -90
+
+const gaugeStartAngle = -90 // Start at left (-90 degrees)
+const gaugeEndAngle = 90 // End at right (90 degrees)
+const totalGaugeAngle = gaugeEndAngle - gaugeStartAngle
 
 // Normalize value to 0-1 range
 const normalizedValue = computed(() => {
@@ -72,55 +81,71 @@ const normalizedValue = computed(() => {
 
 // Find the current range for the needle color
 const needleColor = computed(() => {
-  const currentRange = gaugeRanges.value.find(
-    (range) => gaugeValue.value >= range.min && gaugeValue.value <= range.max,
-  )
+  const currentRange = gaugeRanges.value.find((range) => gaugeValue.value >= range.min && gaugeValue.value < range.max)
+  // Handle edge case where value equals the max of the last range
+  const lastRange = gaugeRanges.value[gaugeRanges.value.length - 1]
+  if (!currentRange && lastRange && gaugeValue.value === lastRange.max) {
+    return lastRange.color
+  }
   return currentRange?.color || '#999'
 })
 
-// Calculate needle rotation (0 to 180 degrees)
-const needleRotation = computed(() => {
-  return normalizedValue.value * angle
+const needleAngle = computed(() => {
+  return gaugeStartAngle + normalizedValue.value * totalGaugeAngle
 })
+
+// Helper function to convert angle to coordinates
+const angleToCoords = (angle: number, r: number) => {
+  const rad = (angle * Math.PI) / 180
+  // Adjust so 0 degrees is at top, 90 is right, 180 is bottom
+  const adjustedRad = rad - Math.PI / 2
+  return {
+    x: centerX + r * Math.cos(adjustedRad),
+    y: centerY + r * Math.sin(adjustedRad),
+  }
+}
+
+// Background arc coordinates
+const startCoords = computed(() => angleToCoords(gaugeStartAngle, radius))
+const endCoords = computed(() => angleToCoords(gaugeEndAngle, radius))
 
 // Background arc path
 const backgroundArcPath = computed(() => {
-  const startRad = (startAngle * Math.PI) / 180
-  const endRad = ((startAngle + angle) * Math.PI) / 180
-  const startX = size / 2 + radius * Math.cos(startRad)
-  const startY = size / 2 + radius * Math.sin(startRad)
-  const endX = size / 2 + radius * Math.cos(endRad)
-  const endY = size / 2 + radius * Math.sin(endRad)
-  return `M ${startX} ${startY} A ${radius} ${radius} 0 1 1 ${endX} ${endY}`
+  const start = startCoords.value
+  const end = endCoords.value
+  return `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 1 ${end.x} ${end.y}`
 })
 
-// Create range arcs
+// Create range arcs with no overlap
 const rangeArcs = computed(() => {
   return gaugeRanges.value.map((range) => {
     const rangeMin = Math.max(range.min, minValue.value)
     const rangeMax = Math.min(range.max, maxValue.value)
 
-    const startNorm = (rangeMin - minValue.value) / (maxValue.value - minValue.value)
-    const endNorm = (rangeMax - minValue.value) / (maxValue.value - minValue.value)
+    // Calculate angles for this range
+    const rangeStartNorm = (rangeMin - minValue.value) / (maxValue.value - minValue.value)
+    const rangeEndNorm = (rangeMax - minValue.value) / (maxValue.value - minValue.value)
 
-    const startAngleRange = startAngle + startNorm * angle
-    const endAngleRange = startAngle + endNorm * angle
+    const rangeStartAngle = gaugeStartAngle + rangeStartNorm * totalGaugeAngle
+    const rangeEndAngle = gaugeStartAngle + rangeEndNorm * totalGaugeAngle
 
-    const startRadRange = (startAngleRange * Math.PI) / 180
-    const endRadRange = (endAngleRange * Math.PI) / 180
+    const rangeStartCoords = angleToCoords(rangeStartAngle, radius)
+    const rangeEndCoords = angleToCoords(rangeEndAngle, radius)
 
-    const startXRange = size / 2 + radius * Math.cos(startRadRange)
-    const startYRange = size / 2 + radius * Math.sin(startRadRange)
-    const endXRange = size / 2 + radius * Math.cos(endRadRange)
-    const endYRange = size / 2 + radius * Math.sin(endRadRange)
-
-    const largeArc = endNorm - startNorm > 0.5 ? 1 : 0
+    const angleSpan = rangeEndAngle - rangeStartAngle
+    const largeArc = angleSpan > 90 ? 1 : 0
 
     return {
       range,
-      path: `M ${startXRange} ${startYRange} A ${radius} ${radius} 0 ${largeArc} 1 ${endXRange} ${endYRange}`,
+      path: `M ${rangeStartCoords.x} ${rangeStartCoords.y} A ${radius} ${radius} 0 ${largeArc} 1 ${rangeEndCoords.x} ${rangeEndCoords.y}`,
     }
   })
+})
+
+// Needle coordinates
+const needleEndCoords = computed(() => {
+  const needleLength = radius - strokeWidth / 2
+  return angleToCoords(needleAngle.value, needleLength)
 })
 
 onMounted(() => {
@@ -176,13 +201,7 @@ watch(
       </template>
       <template v-else>
         <div class="flex flex-col items-center justify-center gap-2 h-full w-full">
-          <svg
-            :width="size"
-            :height="size / 2 + 20"
-            :viewBox="`0 0 ${size} ${size / 2 + 20}`"
-            class="drop-shadow-lg w-full"
-            style="max-width: 100%"
-          >
+          <svg :width="size" :height="120" :viewBox="`0 0 ${size} 120`" class="drop-shadow-lg w-full" style="max-width: 100%">
             <!-- Background arc -->
             <path :d="backgroundArcPath" fill="none" stroke="#e5e7eb" :stroke-width="strokeWidth" stroke-linecap="round" />
 
@@ -199,28 +218,23 @@ watch(
             />
 
             <!-- Needle -->
-            <g :transform="`translate(${size / 2}, ${size / 2}) rotate(${needleRotation - 90})`">
-              <line
-                x1="0"
-                y1="0"
-                :x2="radius - strokeWidth / 2"
-                y2="0"
-                :stroke="needleColor"
-                :stroke-width="strokeWidth / 2"
-                stroke-linecap="round"
-              />
-              <circle cx="0" cy="0" :r="strokeWidth / 1.5" :fill="needleColor" />
-            </g>
+            <line
+              :x1="centerX"
+              :y1="centerY"
+              :x2="needleEndCoords.x"
+              :y2="needleEndCoords.y"
+              :stroke="needleColor"
+              :stroke-width="strokeWidth / 2"
+              stroke-linecap="round"
+            />
 
             <!-- Center circle -->
-            <circle :cx="size / 2" :cy="size / 2" :r="strokeWidth / 1.2" fill="white" :stroke="needleColor" stroke-width="2" />
+            <circle :cx="centerX" :cy="centerY" :r="strokeWidth / 1.2" fill="white" :stroke="needleColor" stroke-width="2" />
           </svg>
 
           <!-- Value display -->
-          <div v-if="showValue" class="text-center -mt-2">
-            <p class="text-xl font-bold text-gray-700">
-              {{ Intl.NumberFormat('en-US').format(gaugeValue) }}
-            </p>
+          <div v-if="showValue" class="text-center text-xl font-bold text-gray-700">
+            {{ Intl.NumberFormat('en-US').format(gaugeValue) }}
           </div>
 
           <!-- Range legend -->

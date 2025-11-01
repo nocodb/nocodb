@@ -1,18 +1,23 @@
 import { UITypes } from 'nocodb-sdk';
-import type { ColumnType, NcContext, NcRequest, WidgetType } from 'nocodb-sdk';
+import type {
+  AnyWidgetType,
+  ColumnType,
+  NcContext,
+  NcRequest,
+} from 'nocodb-sdk';
 import { BaseUser } from '~/models';
 
-export class BaseWidgetHandler {
+export class BaseWidgetHandler<T extends AnyWidgetType = AnyWidgetType> {
   async validateWidgetData(
     _context: NcContext,
-    _widgetData: WidgetType,
+    _widgetData: T,
   ): Promise<any[]> {
     return [];
   }
 
   async getWidgetData(
     _context: NcContext,
-    _params: { widget: WidgetType; req: NcRequest },
+    _params: { widget: T; req: NcRequest },
   ) {
     return {};
   }
@@ -46,7 +51,7 @@ export class BaseWidgetHandler {
   }
   async serializeOrDeserializeWidget(
     context: NcContext,
-    widget: WidgetType,
+    widget: T,
     idMap: Map<string, string>,
     mode: 'serialize' | 'deserialize' = 'serialize',
   ) {

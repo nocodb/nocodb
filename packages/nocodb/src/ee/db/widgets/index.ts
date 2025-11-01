@@ -1,5 +1,5 @@
 import { ChartTypes, WidgetTypes } from 'nocodb-sdk';
-import type { NcContext, NcRequest, WidgetType } from 'nocodb-sdk';
+import type { AnyWidgetType, NcContext, NcRequest } from 'nocodb-sdk';
 import { MetricCommonHandler } from '~/db/widgets/metric/metric.common.handler';
 import { GaugeCommonHandler } from '~/db/widgets/gauge/gauge.common.handler';
 import { NcError } from '~/helpers/ncError';
@@ -15,11 +15,11 @@ import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 export async function getWidgetHandler(
   context: NcContext,
   params: {
-    widget: WidgetType;
+    widget: AnyWidgetType;
     req: NcRequest;
     idMap?: Map<string, string>;
   },
-) {
+): Promise<BaseWidgetHandler<AnyWidgetType>> {
   const { widget, idMap } = params;
 
   const modelId = idMap?.get(widget.fk_model_id) || widget.fk_model_id;
@@ -66,7 +66,7 @@ export async function getWidgetHandler(
 export async function getWidgetData(
   context: NcContext,
   params: {
-    widget: WidgetType;
+    widget: AnyWidgetType;
     req: NcRequest;
   },
 ) {
@@ -74,14 +74,14 @@ export async function getWidgetData(
 
   const handler = await getWidgetHandler(context, { widget, req });
 
-  const errors = await handler.validateWidgetData(context, widget as any);
+  const errors = await handler.validateWidgetData(context, widget);
 
   if (errors?.length > 0) {
     NcError.badRequest('Widget validation failed');
   }
 
   return await handler.getWidgetData(context, {
-    widget: widget as any,
+    widget,
     req,
   });
 }

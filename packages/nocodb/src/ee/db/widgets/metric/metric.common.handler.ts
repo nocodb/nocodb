@@ -1,15 +1,12 @@
 import { formatAggregation } from 'nocodb-sdk';
-import type { NcContext, NcRequest, WidgetType, WidgetTypes } from 'nocodb-sdk';
+import type { MetricWidgetType, NcContext, NcRequest } from 'nocodb-sdk';
 import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation, { validateAggregationColType } from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 
-export class MetricCommonHandler extends BaseWidgetHandler {
-  async validateWidgetData(
-    context: NcContext,
-    widget: WidgetType<WidgetTypes.METRIC>,
-  ) {
+export class MetricCommonHandler extends BaseWidgetHandler<MetricWidgetType> {
+  async validateWidgetData(context: NcContext, widget: MetricWidgetType) {
     const { dataSource, metric } = widget.config;
     const errors = [];
 
@@ -82,7 +79,7 @@ export class MetricCommonHandler extends BaseWidgetHandler {
   async getWidgetData(
     context: NcContext,
     params: {
-      widget: WidgetType<WidgetTypes.METRIC>;
+      widget: MetricWidgetType;
       req: NcRequest;
     },
   ) {
@@ -167,7 +164,7 @@ export class MetricCommonHandler extends BaseWidgetHandler {
 
   async serializeOrDeserializeWidget(
     context: NcContext,
-    widget: WidgetType<WidgetTypes.METRIC>,
+    widget: MetricWidgetType,
     idMap: Map<string, string>,
     mode: 'serialize' | 'deserialize' = 'serialize',
   ) {

@@ -26610,7 +26610,8 @@
               "guest",
               "owner",
               "viewer",
-              "creator"
+              "creator",
+              "inherit"
             ],
             "type": "string",
             "description": "Base User Role"
@@ -26647,7 +26648,8 @@
               "guest",
               "owner",
               "viewer",
-              "creator"
+              "creator",
+              "inherit"
             ],
             "type": "string",
             "description": "Base User Role"

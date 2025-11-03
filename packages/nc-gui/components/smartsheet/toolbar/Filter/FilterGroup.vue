@@ -263,46 +263,19 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     const oldOrder = element.order
 
     let nextOrder: number
-    let changedLogicalOperatorEl: ColumnFilterType | undefined
-    let changedLogicalOperatorElIndex: number = -1
-
-    /**
-     * In all case the old first position filter might have different logical operator
-     * as we allow to change operator of second position filter and all next position filter logical operator will be same as second
-     */
 
     // set new order value based on the new order of the items
     if (visibleFilters.value.length - 1 === newIndex) {
       // If moving to the end, set nextOrder greater than the maximum order in the list
       nextOrder = Math.max(...visibleFilters.value.map((item) => item?.order ?? 0)) + 1
-
-      // This is when we drag first position filter and logical operator is different that others
-      if (
-        visibleFilters.value[newIndex] &&
-        visibleFilters.value[newIndex - 1] &&
-        element.logical_op !== visibleFilters.value[newIndex - 1]?.logical_op
-      ) {
-        element.logical_op = visibleFilters.value[newIndex - 1]?.logical_op
-      }
     } else if (newIndex === 0) {
       // If moving to the beginning, set nextOrder smaller than the minimum order in the list
       nextOrder = Math.min(...visibleFilters.value.map((item) => item?.order ?? 0)) / 2
-
-      if (visibleFilters.value[1] && element.logical_op !== visibleFilters.value[1].logical_op) {
-        changedLogicalOperatorEl = visibleFilters.value[1]
-        changedLogicalOperatorEl.logical_op = element.logical_op
-        changedLogicalOperatorElIndex = 1
-      }
     } else {
       nextOrder =
         (parseFloat(String(visibleFilters.value[newIndex - 1]?.order ?? 0)) +
           parseFloat(String(visibleFilters.value[newIndex + 1]?.order ?? 0))) /
         2
-
-      // This is when we drag first position filter and logical operator is different that others
-      if (visibleFilters.value[newIndex + 1] && element.logical_op !== visibleFilters.value[newIndex + 1]!.logical_op) {
-        element.logical_op = visibleFilters.value[newIndex + 1]?.logical_op
-      }
     }
 
     const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex

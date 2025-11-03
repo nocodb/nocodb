@@ -330,7 +330,8 @@ export const RoleDescriptions = {
   [WorkspaceUserRoles.COMMENTER]:
     'Can view and comment on records within workspace bases',
   [WorkspaceUserRoles.VIEWER]: 'Can only view records within workspace bases',
-  [WorkspaceUserRoles.INHERIT]: 'Can only view records within workspace bases (inherit)',
+  [WorkspaceUserRoles.INHERIT]:
+    'Inherits role from workspace-level team assignment',
   [WorkspaceUserRoles.NO_ACCESS]: 'No access to this workspace',
 
   [ProjectRoles.OWNER]:
@@ -340,7 +341,8 @@ export const RoleDescriptions = {
     'Can add, edit, and delete records, but cannot modify base configurations',
   [ProjectRoles.COMMENTER]: 'Can view and comment on records within the base',
   [ProjectRoles.VIEWER]: 'Can only view records within the base',
-  [ProjectRoles.INHERIT]: 'Can only view records within the base (inherit)',
+  [ProjectRoles.INHERIT]:
+    'Inherits role from base-level team, or workspace level if no base-level team',
   [ProjectRoles.NO_ACCESS]: 'No access to this base',
 
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',

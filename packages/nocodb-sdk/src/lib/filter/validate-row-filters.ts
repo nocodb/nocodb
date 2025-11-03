@@ -19,6 +19,10 @@ extend(isSameOrBefore);
 extend(isSameOrAfter);
 extend(isBetween);
 
+const ncToString = (value: any) => {
+  return value?.toString?.() || '';
+};
+
 export function validateRowFilters(params: {
   filters: FilterType[];
   data: any;
@@ -228,13 +232,15 @@ export function validateRowFilters(params: {
             ? [data[field].id]
             : [];
 
-          const filterValues = (filter.value?.split(',') || []).map((v) => {
-            let result = v.trim();
-            if (result === CURRENT_USER_TOKEN) {
-              result = params.options?.currentUser?.id ?? result;
+          const filterValues = (ncToString(filter.value).split(',') || []).map(
+            (v) => {
+              let result = v.trim();
+              if (result === CURRENT_USER_TOKEN) {
+                result = params.options?.currentUser?.id ?? result;
+              }
+              return result;
             }
-            return result;
-          });
+          );
 
           switch (filter.comparison_op) {
             case 'anyof':
@@ -282,46 +288,52 @@ export function validateRowFilters(params: {
               const childFieldName = childColumn.title;
               const childValues = linkData
                 .map((item) => {
-                  return item?.[childFieldName]?.toString() || '';
+                  return ncToString(item?.[childFieldName]);
                 })
                 .filter((val) => val !== '');
 
               switch (filter.comparison_op) {
                 case 'eq':
-                  res = childValues.includes(filter.value);
+                  res = childValues.includes(ncToString(filter.value));
                   break;
                 case 'neq':
-                  res = !childValues.includes(filter.value);
+                  res = !childValues.includes(ncToString(filter.value));
                   break;
                 case 'like':
                   res = childValues.some((val) =>
                     val
                       .toLowerCase()
-                      .includes(filter.value?.toLowerCase() || '')
+                      .includes(ncToString(filter.value).toLowerCase())
                   );
                   break;
                 case 'nlike':
                   res = !childValues.some((val) =>
                     val
                       .toLowerCase()
-                      .includes(filter.value?.toLowerCase() || '')
+                      .includes(ncToString(filter.value).toLowerCase())
                   );
                   break;
                 case 'anyof': {
                   const filterValues =
-                    filter.value?.split(',').map((v) => v.trim()) || [];
+                    ncToString(filter.value)
+                      .split(',')
+                      .map((v) => v.trim()) || [];
                   res = childValues.some((val) => filterValues.includes(val));
                   break;
                 }
                 case 'nanyof': {
                   const filterValues2 =
-                    filter.value?.split(',').map((v) => v.trim()) || [];
+                    ncToString(filter.value)
+                      .split(',')
+                      .map((v) => v.trim()) || [];
                   res = !childValues.some((val) => filterValues2.includes(val));
                   break;
                 }
                 case 'allof': {
                   const filterValues3 =
-                    filter.value?.split(',').map((v) => v.trim()) || [];
+                    ncToString(filter.value)
+                      .split(',')
+                      .map((v) => v.trim()) || [];
                   res = filterValues3.every((filterVal) =>
                     childValues.includes(filterVal)
                   );
@@ -329,7 +341,9 @@ export function validateRowFilters(params: {
                 }
                 case 'nallof': {
                   const filterValues4 =
-                    filter.value?.split(',').map((v) => v.trim()) || [];
+                    ncToString(filter.value)
+                      .split(',')
+                      .map((v) => v.trim()) || [];
                   res = !filterValues4.every((filterVal) =>
                     childValues.includes(filterVal)
                   );
@@ -368,17 +382,15 @@ export function validateRowFilters(params: {
               break;
             case 'like':
               res =
-                data[field]
-                  ?.toString?.()
-                  ?.toLowerCase()
-                  ?.indexOf(filter.value?.toLowerCase()) > -1;
+                ncToString(data[field])
+                  .toLowerCase()
+                  .indexOf(ncToString(filter.value).toLowerCase()) > -1;
               break;
             case 'nlike':
               res =
-                data[field]
-                  ?.toString?.()
-                  ?.toLowerCase()
-                  ?.indexOf(filter.value?.toLowerCase()) === -1;
+                ncToString(data[field])
+                  .toLowerCase()
+                  .indexOf(ncToString(filter.value).toLowerCase()) === -1;
               break;
             case 'empty':
             case 'blank':
@@ -409,23 +421,39 @@ export function validateRowFilters(params: {
               break;
             case 'allof':
               res = (
-                filter.value?.split(',').map((item) => item.trim()) ?? []
-              ).every((item) => (data[field]?.split(',') ?? []).includes(item));
+                ncToString(filter.value)
+                  .split(',')
+                  .map((item) => item.trim()) ?? []
+              ).every((item) =>
+                (ncToString(data[field]).split(',') ?? []).includes(item)
+              );
               break;
             case 'anyof':
               res = (
-                filter.value?.split(',').map((item) => item.trim()) ?? []
-              ).some((item) => (data[field]?.split(',') ?? []).includes(item));
+                ncToString(filter.value)
+                  .split(',')
+                  .map((item) => item.trim()) ?? []
+              ).some((item) =>
+                (ncToString(data[field]).split(',') ?? []).includes(item)
+              );
               break;
             case 'nallof':
               res = !(
-                filter.value?.split(',').map((item) => item.trim()) ?? []
-              ).every((item) => (data[field]?.split(',') ?? []).includes(item));
+                ncToString(filter.value)
+                  .split(',')
+                  .map((item) => item.trim()) ?? []
+              ).every((item) =>
+                (ncToString(data[field]).split(',') ?? []).includes(item)
+              );
               break;
             case 'nanyof':
               res = !(
-                filter.value?.split(',').map((item) => item.trim()) ?? []
-              ).some((item) => (data[field]?.split(',') ?? []).includes(item));
+                ncToString(filter.value)
+                  .split(',')
+                  .map((item) => item.trim()) ?? []
+              ).some((item) =>
+                (ncToString(data[field]).split(',') ?? []).includes(item)
+              );
               break;
             case 'lt':
               res = +data[field] < +filter.value;

@@ -4,6 +4,7 @@ import type {
   NcBaseEvent,
 } from 'src/services/app-hooks/interfaces';
 import type {
+  AutomationType,
   BaseType,
   DashboardType,
   IntegrationType,
@@ -111,6 +112,22 @@ export interface ScriptDuplicateEvent extends NcBaseEvent {
   error?: string;
   sourceScript: ScriptType;
   destScript: ScriptType;
+  user: UserType;
+}
+
+export interface AutomationCreateEvent extends NcBaseEvent {
+  automation: AutomationType;
+  user: UserType;
+}
+
+export interface AutomationUpdateEvent extends NcBaseEvent {
+  automation: AutomationType;
+  user: UserType;
+  oldAutomation: AutomationType;
+}
+
+export interface AutomationDeleteEvent extends NcBaseEvent {
+  automation: AutomationType;
   user: UserType;
 }
 

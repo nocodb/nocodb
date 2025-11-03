@@ -98,6 +98,9 @@ export enum MetaTable {
   OAUTH_CLIENTS = 'nc_oauth_clients',
   OAUTH_AUTHORIZATION_CODES = 'nc_oauth_authorization_codes',
   OAUTH_TOKENS = 'nc_oauth_tokens',
+  AUTOMATIONS = 'nc_automations',
+  AUTOMATION_EXECUTIONS = 'nc_automation_executions',
+  DEPENDENCY_TRACKER = 'nc_dependency_tracker',
 }
 
 export const BaseRelatedMetaTables = [
@@ -148,6 +151,9 @@ export const BaseRelatedMetaTables = [
   MetaTable.VIEWS,
   MetaTable.WIDGETS,
   MetaTable.MODEL_STAT,
+  MetaTable.AUTOMATIONS,
+  MetaTable.AUTOMATION_EXECUTIONS,
+  MetaTable.DEPENDENCY_TRACKER,
 ];
 
 export const orderedMetaTables = [
@@ -292,6 +298,9 @@ export enum CacheScope {
   PRINCIPAL = 'principal',
   PRINCIPAL_ASSIGNMENT = 'principalAssignment',
   TEMPLATES = 'templates',
+  AUTOMATION = 'automation',
+  AUTOMATION_EXECUTION = 'automationExecution',
+  DEPENDENCY_TRACKER = 'dependencyTracker',
 }
 
 export const RootScopeTables = {

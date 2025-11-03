@@ -29615,6 +29615,57 @@
           "id": "4zvzrppfjxrqb"
         }
       },
+      "Automation": {
+        "description": "Model for Automation",
+        "title": "Automation Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the Automation"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the automation is enabled"
+          },
+          "nodes": {
+            "type": "object",
+            "description": "Nodes configuration for the automation workflow"
+          },
+          "edges": {
+            "type": "object",
+            "description": "Edges configuration for the automation workflow"
+          },
+          "meta": {
+            "type": "object",
+            "description": "Meta data for the Automation"
+          },
+          "trigger_count": {
+            "type": "number",
+            "description": "Number of times the automation has been triggered"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last updated time"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation time"
+          }
+        }
+      },
       "ExtensionReq": {
         "type": "object",
         "properties": {

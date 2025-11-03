@@ -36,3 +36,8 @@ export { default as Widget } from './Widget';
 // Teams-related models
 export { default as Team } from './Team';
 export { default as PrincipalAssignment } from './PrincipalAssignment';
+
+// Automation-related models
+export { default as Automation } from './Automation';
+export { default as AutomationExecution } from './AutomationExecution';
+// export { default as DependencyTracker } from './DependencyTracker';

@@ -72,4 +72,11 @@ export const OPERATION_SCOPES = {
   // Templates
   templates: 'ncSkipAcl',
   template: 'ncSkipAcl',
+
+  // Automation operations
+  automationList: 'base',
+  automationGet: 'base',
+  automationCreate: 'base',
+  automationUpdate: 'base',
+  automationDelete: 'base',
 } as const;

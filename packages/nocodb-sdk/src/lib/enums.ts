@@ -229,6 +229,10 @@ export enum AppEvents {
   SCRIPT_UPDATE = 'script.update',
   SCRIPT_DUPLICATE = 'script.duplicate',
 
+  AUTOMATION_CREATE = 'automation.create',
+  AUTOMATION_UPDATE = 'automation.update',
+  AUTOMATION_DELETE = 'automation.delete',
+
   DASHBOARD_CREATE = 'dashboard.create',
   DASHBOARD_UPDATE = 'dashboard.update',
   DASHBOARD_DELETE = 'dashboard.delete',

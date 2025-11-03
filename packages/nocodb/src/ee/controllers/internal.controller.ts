@@ -46,6 +46,7 @@ import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
 import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 import { UtilsService } from '~/services/utils.service';
+import { AutomationsService } from '~/services/automations.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -73,6 +74,7 @@ export class InternalController extends InternalControllerCE {
     private readonly usersService: UsersService,
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
     private readonly baseTeamsV3Service: BaseTeamsV3Service,
+    private readonly automationsService: AutomationsService,
   ) {
     super(aclMiddleware, internalApiModules);
   }
@@ -208,6 +210,13 @@ export class InternalController extends InternalControllerCE {
       case 'template': {
         return await this.utilsService.template(req);
       }
+      case 'automationList':
+        return await this.automationsService.list(context);
+      case 'automationGet':
+        return await this.automationsService.get(
+          context,
+          req.query.automationId as string,
+        );
       default:
         return await super.internalAPI(
           context,
@@ -560,6 +569,21 @@ export class InternalController extends InternalControllerCE {
           });
         }
       }
+      case 'automationCreate':
+        return await this.automationsService.create(context, payload, req);
+      case 'automationUpdate':
+        return await this.automationsService.update(
+          context,
+          payload.automationId,
+          payload,
+          req,
+        );
+      case 'automationDelete':
+        return await this.automationsService.delete(
+          context,
+          payload.automationId,
+          req,
+        );
       default:
         return await super.internalAPIPost(
           context,

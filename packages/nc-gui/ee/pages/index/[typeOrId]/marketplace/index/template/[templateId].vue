@@ -1,4 +1,8 @@
 <script setup lang="ts">
+defineRouteRules({
+  prerender: true,
+})
+
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
@@ -9,6 +13,11 @@ import type { CarouselApi } from '~/components/nc/Carousel/interface'
 const route = useRoute()
 const router = useRouter()
 
+const { $api } = useNuxtApp()
+
+const baseURL = $api.instance.defaults.baseURL
+
+const workspaceId = computed(() => route.params.typeOrId as string)
 const templateId = computed(() => route.params.templateId as string)
 const typeOrId = computed(() => route.params.typeOrId)
 
@@ -17,12 +26,22 @@ const { categoryInfo, activeCategory, getTemplateById, currentCategoryInfo, temp
 
 const { sharedBaseId, duplicateSharedBase, isLoading: isCopyingTemplate, options, isUseThisTemplate } = useCopySharedBase()
 
-const workspaceStore = useWorkspace()
+const {
+  data: template,
+  pending,
+  error: templateError,
+  refresh: refreshTemplate,
+} = await useFetch<Template>(() => `/api/v2/internal/${workspaceId.value}/nc`, {
+  key: () => `template:${workspaceId.value}:${templateId.value}`, // ✅ stable cache key
+  method: 'GET',
+  params: {
+    operation: 'template',
+    id: templateId.value,
+  },
+  baseURL,
+})
 
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
-
-const template = ref<Template | null>(null)
-const isLoading = ref(true)
+const isLoading = pending
 const error = ref<string | null>(null)
 const carouselApi = ref<CarouselApi>()
 const currentSlideIndex = ref(0)
@@ -41,8 +60,14 @@ const browseByCategories = computed(() => {
 })
 
 const fetchTemplateDetails = async () => {
+  await refreshTemplate()
+
+  return
+
   isLoading.value = true
   error.value = null
+
+  return
 
   try {
     template.value = await getTemplateById(templateId.value)
@@ -55,12 +80,12 @@ const fetchTemplateDetails = async () => {
 }
 
 onMounted(() => {
-  if (templateId.value && templatesMap.value[templateId.value]) {
-    template.value = templatesMap.value[templateId.value] as Template
-    isLoading.value = false
-  } else {
-    fetchTemplateDetails()
-  }
+  // if (templateId.value && templatesMap.value[templateId.value]) {
+  //   template.value = templatesMap.value[templateId.value] as Template
+  //   isLoading.value = false
+  // } else {
+  //   fetchTemplateDetails()
+  // }
 })
 
 const openRelatedTemplate = (templateId) => {
@@ -152,7 +177,7 @@ const onUseThisTemplate = () => {
   sharedBaseId.value = resolvedRoute.params.baseId as string
 
   duplicateSharedBase({
-    workspaceId: activeWorkspaceId.value!,
+    workspaceId: workspaceId.value!,
   })
 }
 </script>
@@ -164,7 +189,7 @@ const onUseThisTemplate = () => {
         <GeneralLoader size="large" />
       </div>
 
-      <div v-else-if="error" class="flex flex-col items-center justify-center py-12">
+      <div v-else-if="error || !template" class="flex flex-col items-center justify-center py-12">
         <div class="text-nc-content-grey-subtle2 text-lg">{{ error }}</div>
         <button class="mt-4 btn-primary" @click="fetchTemplateDetails">{{ $t('general.retry') }}</button>
       </div>

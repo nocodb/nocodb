@@ -18,6 +18,7 @@ export default defineNuxtConfig({
   },
   experimental: {
     componentIslands: false,
+    inlineRouteRules: true,
   },
   modules: ['nuxt-echarts', '@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   echarts: {
@@ -26,7 +27,6 @@ export default defineNuxtConfig({
     components: ['DatasetComponent', 'GridComponent', 'TooltipComponent', 'TitleComponent', 'LegendComponent'],
     ssr: false,
   },
-  ssr: false,
   alias: {
     '@': resolve(__dirname),
   },

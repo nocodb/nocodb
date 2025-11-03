@@ -121,6 +121,7 @@ const innerAdd = async (isGroup: boolean) => {
   const prevValue = [...vModel.value]
   if (isGroup && props.handler?.addFilterGroup) {
     await props.handler.addFilterGroup({
+      tmp_id: generateUniqueRandomUUID(vModel.value || [], ['id', 'tmp_id']),
       type: 'add',
       filter: null,
       filters: vModel.value,
@@ -132,6 +133,7 @@ const innerAdd = async (isGroup: boolean) => {
     })
   } else if (!isGroup && props.handler?.addFilter) {
     await props.handler.addFilter({
+      tmp_id: generateUniqueRandomUUID(vModel.value || [], ['id', 'tmp_id']),
       type: 'add',
       filter: null,
       filters: vModel.value,
@@ -144,6 +146,7 @@ const innerAdd = async (isGroup: boolean) => {
   } else {
     const newFilter = isGroup
       ? {
+          tmp_id: generateUniqueRandomUUID(vModel.value || [], ['id', 'tmp_id']),
           _id: Math.random().toString(36).substring(2, 15),
           is_group: true,
           logical_op: vModel.value[0]?.logical_op ?? 'and',
@@ -153,6 +156,7 @@ const innerAdd = async (isGroup: boolean) => {
           order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
         }
       : {
+          tmp_id: generateUniqueRandomUUID(vModel.value || [], ['id', 'tmp_id']),
           _id: Math.random().toString(36).substring(2, 15),
           is_group: false,
           logical_op: vModel.value[0]?.logical_op ?? 'and',

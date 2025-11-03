@@ -86,6 +86,7 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
 
 export interface Getters {
   signedIn: ComputedRef<boolean>
+  isSsoUser: ComputedRef<boolean>
   isLoading: WritableComputedRef<boolean>
 }
 

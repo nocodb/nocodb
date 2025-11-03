@@ -279,33 +279,38 @@ export default class WorkspaceUser {
         ncMeta.knex.raw('?', [fk_user_id]),
       );
 
-      // Workspace access through team role - uses WHERE IN with subquery
-      // This subquery uses:
-      // - principal_resource_idx: to find user's teams (principal_type, principal_ref_id, resource_type)
-      // - resource_principal_type_idx: to find workspace assignments for those teams
-      this.orWhereIn(
-        `${MetaTable.WORKSPACE}.id`,
-        ncMeta
-          .knex(MetaTable.PRINCIPAL_ASSIGNMENTS)
-          .select('wt.resource_id')
-          .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wt`)
-          .innerJoin(
-            `${MetaTable.PRINCIPAL_ASSIGNMENTS} as ut`,
-            'ut.resource_id',
-            'wt.principal_ref_id',
-          )
-          .where('wt.resource_type', ResourceType.WORKSPACE)
-          .where('wt.principal_type', PrincipalType.TEAM)
-          .where('ut.principal_type', PrincipalType.USER)
-          .where('ut.resource_type', ResourceType.TEAM)
-          .where('ut.principal_ref_id', fk_user_id)
-          .where(function () {
-            this.where('wt.deleted', false).orWhereNull('wt.deleted');
-            this.where('ut.deleted', false).orWhereNull('ut.deleted');
-          })
-          .whereNotNull('wt.roles')
-          .whereNot('wt.roles', WorkspaceUserRoles.NO_ACCESS),
-      );
+      // Workspace access through team role - only if direct workspace role is null or INHERIT
+      this.orWhere(function () {
+        this.where(function () {
+          this.whereNull(`${MetaTable.WORKSPACE_USER}.roles`).orWhere(
+            `${MetaTable.WORKSPACE_USER}.roles`,
+            '=',
+            WorkspaceUserRoles.INHERIT,
+          );
+        }).whereIn(
+          `${MetaTable.WORKSPACE}.id`,
+          ncMeta
+            .knex(MetaTable.PRINCIPAL_ASSIGNMENTS)
+            .select('wt.resource_id')
+            .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wt`)
+            .innerJoin(
+              `${MetaTable.PRINCIPAL_ASSIGNMENTS} as ut`,
+              'ut.resource_id',
+              'wt.principal_ref_id',
+            )
+            .where('wt.resource_type', ResourceType.WORKSPACE)
+            .where('wt.principal_type', PrincipalType.TEAM)
+            .where('ut.principal_type', PrincipalType.USER)
+            .where('ut.resource_type', ResourceType.TEAM)
+            .where('ut.principal_ref_id', fk_user_id)
+            .where(function () {
+              this.where('wt.deleted', false).orWhereNull('wt.deleted');
+              this.where('ut.deleted', false).orWhereNull('ut.deleted');
+            })
+            .whereNotNull('wt.roles')
+            .whereNot('wt.roles', WorkspaceUserRoles.NO_ACCESS),
+        );
+      });
 
       // Workspace access through base membership (direct base user)
       this.orWhereIn(
@@ -329,7 +334,7 @@ export default class WorkspaceUser {
       );
 
       // Workspace access through base-level team assignments
-      // If user has access to at least one base via team assignment, show the workspace
+      // Only consider team role if direct base role is null or INHERIT
       this.orWhereIn(
         `${MetaTable.WORKSPACE}.id`,
         ncMeta
@@ -345,6 +350,26 @@ export default class WorkspaceUser {
             'ut.resource_id',
             'bt.principal_ref_id',
           )
+          .leftJoin(MetaTable.PROJECT_USERS, function () {
+            this.on(
+              `${MetaTable.PROJECT_USERS}.base_id`,
+              '=',
+              `${MetaTable.PROJECT}.id`,
+            ).andOn(
+              `${MetaTable.PROJECT_USERS}.fk_user_id`,
+              '=',
+              ncMeta.knex.raw('?', [fk_user_id]),
+            );
+          })
+          .where(function () {
+            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+              .orWhere(
+                `${MetaTable.PROJECT_USERS}.roles`,
+                '=',
+                ProjectRoles.INHERIT,
+              )
+              .orWhere(`${MetaTable.PROJECT_USERS}.roles`, '=', 'inherit');
+          })
           .where('bt.resource_type', ResourceType.BASE)
           .where('bt.principal_type', PrincipalType.TEAM)
           .where('ut.principal_type', PrincipalType.USER)
@@ -355,8 +380,7 @@ export default class WorkspaceUser {
             this.where('ut.deleted', false).orWhereNull('ut.deleted');
           })
           .whereNotNull('bt.roles')
-          .whereNot('bt.roles', ProjectRoles.NO_ACCESS)
-          .whereNot('bt.roles', ProjectRoles.INHERIT),
+          .whereNot('bt.roles', ProjectRoles.NO_ACCESS),
       );
     });
 

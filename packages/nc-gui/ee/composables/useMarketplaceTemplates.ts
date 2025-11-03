@@ -26,6 +26,45 @@ export interface Template {
   'Related Templates'?: Template[]
 }
 
+/**
+ * Key will be used in url so remove special characters and spaces
+ * Value is select option value of `Use Case` column of published templates table
+ */
+export enum TemplateUseCasesEnum {
+  sales = 'Sales',
+  marketing = 'Marketing',
+  operations = 'Operations',
+  finance = 'Finance',
+  'human-resources' = 'Human Resources',
+  'product-management' = 'Product Management',
+  'project-management' = 'Project Management',
+  'supply-chain-management' = 'Supply chain management',
+  'it-and-operations' = 'IT & Operations',
+  'finance-and-legal' = 'Finance & Legal',
+  'hr-and-recruiting' = 'HR & Recruiting',
+  product = 'Product',
+  reusing = 'Reusing',
+}
+
+/**
+ * Key will be used in url so remove special characters and spaces
+ * Value is select option value of `Industry` column of published templates table
+ */
+export enum TemplateIndustriesEnum {
+  technology = 'Technology',
+  healthcare = 'Healthcare',
+  finance = 'Finance',
+  education = 'Education',
+  retail = 'Retail',
+  manufacturing = 'Manufacturing',
+  'real-estate' = 'Real Estate',
+  transportation = 'Transportation',
+  hospitality = 'Hospitality',
+  entertainment = 'Entertainment',
+}
+
+export type TemplateCategoryType = 'all-templates' | keyof typeof TemplateUseCasesEnum | keyof typeof TemplateIndustriesEnum
+
 export interface TemplateCategoryInfoItemType {
   order: number
   sidebarTitle: string
@@ -33,6 +72,7 @@ export interface TemplateCategoryInfoItemType {
   subtitle: string
   group?: string
   sidebarImg?: string
+  value?: TemplateUseCasesEnum | TemplateIndustriesEnum
 }
 
 export enum TemplateCategoryGroup {
@@ -40,7 +80,7 @@ export enum TemplateCategoryGroup {
   Industries = 'industries',
 }
 
-export const useMarketplaceTemplates = createSharedComposable((initialCategory = 'marketplace') => {
+export const useMarketplaceTemplates = createSharedComposable((initialCategory: TemplateCategoryType = 'all-templates') => {
   const { $api } = useNuxtApp()
 
   const route = useRoute()
@@ -50,7 +90,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
 
   const typeOrId = computed(() => route.params.typeOrId as string)
 
-  const category = computed(() => route.params.category as string)
+  const category = computed(() => route.params.category as TemplateCategoryType)
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -76,14 +116,14 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
     per_page: perPage.value,
   })
 
-  const activeCategory = ref(initialCategory)
+  const activeCategory = ref<TemplateCategoryType>(initialCategory as TemplateCategoryType)
 
-  const categoryInfo: Record<string, TemplateCategoryInfoItemType> = {
-    'marketplace': {
+  const categoryInfo: Record<TemplateCategoryType, TemplateCategoryInfoItemType> = {
+    'all-templates': {
       order: 1,
-      sidebarTitle: t('objects.templates.marketplace.sidebarTitle'),
-      title: t('objects.templates.marketplace.title'),
-      subtitle: t('objects.templates.marketplace.subtitle'),
+      sidebarTitle: t('objects.templates.all-templates.sidebarTitle'),
+      title: t('objects.templates.all-templates.title'),
+      subtitle: t('objects.templates.all-templates.subtitle'),
     },
     // Departments
     'sales': {
@@ -93,6 +133,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.sales.subtitle'),
       group: TemplateCategoryGroup.Departments,
       sidebarImg: salesImg,
+      value: TemplateUseCasesEnum.sales,
     },
     'marketing': {
       order: 3,
@@ -101,14 +142,16 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.marketing.subtitle'),
       group: TemplateCategoryGroup.Departments,
       sidebarImg: marketingImg,
+      value: TemplateUseCasesEnum.marketing,
     },
-    'hr': {
+    'human-resources': {
       order: 4,
-      sidebarTitle: t('objects.templates.hr.sidebarTitle'),
-      title: t('objects.templates.hr.title'),
-      subtitle: t('objects.templates.hr.subtitle'),
+      sidebarTitle: t('objects.templates.human-resources.sidebarTitle'),
+      title: t('objects.templates.human-resources.title'),
+      subtitle: t('objects.templates.human-resources.subtitle'),
       group: TemplateCategoryGroup.Departments,
       sidebarImg: hrImg,
+      value: TemplateUseCasesEnum['human-resources'],
     },
     'product-management': {
       order: 5,
@@ -117,6 +160,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.product-management.subtitle'),
       group: TemplateCategoryGroup.Departments,
       sidebarImg: productManagementImg,
+      value: TemplateUseCasesEnum['product-management'],
     },
     'operations': {
       order: 6,
@@ -125,6 +169,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.operations.subtitle'),
       group: TemplateCategoryGroup.Departments,
       sidebarImg: operationsImg,
+      value: TemplateUseCasesEnum.operations,
     },
     'project-management': {
       order: 7,
@@ -133,7 +178,63 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.project-management.subtitle'),
       group: TemplateCategoryGroup.Departments,
       sidebarImg: projectManagementImg,
+      value: TemplateUseCasesEnum['project-management'],
     },
+    'supply-chain-management': {
+      order: 8,
+      sidebarTitle: t('objects.templates.supply-chain-management.sidebarTitle'),
+      title: t('objects.templates.supply-chain-management.title'),
+      subtitle: t('objects.templates.supply-chain-management.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: projectManagementImg, // todo image update
+      value: TemplateUseCasesEnum['supply-chain-management'],
+    },
+    'it-and-operations': {
+      order: 9,
+      sidebarTitle: t('objects.templates.it-and-operations.sidebarTitle'),
+      title: t('objects.templates.it-and-operations.title'),
+      subtitle: t('objects.templates.it-and-operations.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: projectManagementImg, // todo image update
+      value: TemplateUseCasesEnum['it-and-operations'],
+    },
+    'finance-and-legal': {
+      order: 10,
+      sidebarTitle: t('objects.templates.finance-and-legal.sidebarTitle'),
+      title: t('objects.templates.finance-and-legal.title'),
+      subtitle: t('objects.templates.finance-and-legal.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: projectManagementImg, // todo image update
+      value: TemplateUseCasesEnum['finance-and-legal'],
+    },
+    'hr-and-recruiting': {
+      order: 11,
+      sidebarTitle: t('objects.templates.hr-and-recruiting.sidebarTitle'),
+      title: t('objects.templates.hr-and-recruiting.title'),
+      subtitle: t('objects.templates.hr-and-recruiting.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: projectManagementImg, // todo image update
+      value: TemplateUseCasesEnum['hr-and-recruiting'],
+    },
+    'product': {
+      order: 12,
+      sidebarTitle: t('objects.templates.product.sidebarTitle'),
+      title: t('objects.templates.product.title'),
+      subtitle: t('objects.templates.product.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: projectManagementImg, // todo image update
+      value: TemplateUseCasesEnum.product,
+    },
+    'reusing': {
+      order: 13,
+      sidebarTitle: t('objects.templates.reusing.sidebarTitle'),
+      title: t('objects.templates.reusing.title'),
+      subtitle: t('objects.templates.reusing.subtitle'),
+      group: TemplateCategoryGroup.Departments,
+      sidebarImg: projectManagementImg,
+      value: TemplateUseCasesEnum.reusing,
+    },
+
     // Industries
     'healthcare': {
       order: 8,
@@ -142,6 +243,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.healthcare.subtitle'),
       group: TemplateCategoryGroup.Industries,
       sidebarImg: healthcareImg,
+      value: TemplateIndustriesEnum.healthcare,
     },
     'finance': {
       order: 9,
@@ -150,6 +252,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.finance.subtitle'),
       group: TemplateCategoryGroup.Industries,
       sidebarImg: financeImg,
+      value: TemplateIndustriesEnum.finance,
     },
     'education': {
       order: 10,
@@ -158,6 +261,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.education.subtitle'),
       group: TemplateCategoryGroup.Industries,
       sidebarImg: educationImg,
+      value: TemplateIndustriesEnum.education,
     },
     'manufacturing': {
       order: 11,
@@ -166,6 +270,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.manufacturing.subtitle'),
       group: TemplateCategoryGroup.Industries,
       sidebarImg: manufacturingImg,
+      value: TemplateIndustriesEnum.manufacturing,
     },
     'real-estate': {
       order: 12,
@@ -174,6 +279,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.real-estate.subtitle'),
       group: TemplateCategoryGroup.Industries,
       sidebarImg: realEstateImg,
+      value: TemplateIndustriesEnum['real-estate'],
     },
     'retail': {
       order: 13,
@@ -182,11 +288,48 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
       subtitle: t('objects.templates.retail.subtitle'),
       group: TemplateCategoryGroup.Industries,
       sidebarImg: retailImg,
+      value: TemplateIndustriesEnum.retail,
+    },
+    'transportation': {
+      order: 14,
+      sidebarTitle: t('objects.templates.transportation.sidebarTitle'),
+      title: t('objects.templates.transportation.title'),
+      subtitle: t('objects.templates.transportation.subtitle'),
+      group: TemplateCategoryGroup.Industries,
+      sidebarImg: retailImg, // todo image update
+      value: TemplateIndustriesEnum.transportation,
+    },
+    'hospitality': {
+      order: 15,
+      sidebarTitle: t('objects.templates.hospitality.sidebarTitle'),
+      title: t('objects.templates.hospitality.title'),
+      subtitle: t('objects.templates.hospitality.subtitle'),
+      group: TemplateCategoryGroup.Industries,
+      sidebarImg: retailImg, // todo image update
+      value: TemplateIndustriesEnum.hospitality,
+    },
+    'entertainment': {
+      order: 16,
+      sidebarTitle: t('objects.templates.entertainment.sidebarTitle'),
+      title: t('objects.templates.entertainment.title'),
+      subtitle: t('objects.templates.entertainment.subtitle'),
+      group: TemplateCategoryGroup.Industries,
+      sidebarImg: retailImg, // todo image update
+      value: TemplateIndustriesEnum.entertainment,
+    },
+    'technology': {
+      order: 17,
+      sidebarTitle: t('objects.templates.technology.sidebarTitle'),
+      title: t('objects.templates.technology.title'),
+      subtitle: t('objects.templates.technology.subtitle'),
+      group: TemplateCategoryGroup.Industries,
+      sidebarImg: retailImg, // todo image update
+      value: TemplateIndustriesEnum.technology,
     },
   }
 
   const currentCategoryInfo = computed(() => {
-    return categoryInfo[activeCategory.value] || (categoryInfo.marketplace as TemplateCategoryInfoItemType)
+    return categoryInfo[activeCategory.value] || (categoryInfo['all-templates'] as TemplateCategoryInfoItemType)
   })
 
   const loadTemplates = async (reset = false) => {
@@ -300,19 +443,21 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
     query.usecase = null
     query.industry = null
 
-    if (activeCategory.value === 'marketplace') return
-
-    const departments = ['sales', 'marketing', 'hr', 'product-management', 'operations', 'project-management']
-    if (departments.includes(activeCategory.value)) {
-      query.usecase = activeCategory.value
+    if (
+      activeCategory.value === 'all-templates' ||
+      !categoryInfo[activeCategory.value] ||
+      !categoryInfo[activeCategory.value].value
+    ) {
       return
     }
 
-    const industries = ['healthcare', 'finance', 'education', 'manufacturing', 'real-estate', 'retail']
-    if (industries.includes(activeCategory.value)) {
-      query.industry = activeCategory.value
+    if (categoryInfo[activeCategory.value].group === TemplateCategoryGroup.Departments) {
+      query.usecase = categoryInfo[activeCategory.value].value as TemplateUseCasesEnum
+    } else if (categoryInfo[activeCategory.value].group === TemplateCategoryGroup.Industries) {
+      query.industry = categoryInfo[activeCategory.value].value as TemplateIndustriesEnum
     }
   }
+
   watch(
     () => ({ search: query.search, industry: query.industry, usecase: query.usecase }),
     () => {
@@ -346,8 +491,8 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory =
     category,
     (newValue) => {
       if (!newValue) {
-        if (activeCategory.value !== 'marketplace') {
-          activeCategory.value = 'marketplace'
+        if (activeCategory.value !== 'all-templates') {
+          activeCategory.value = 'all-templates'
         }
 
         return

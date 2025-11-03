@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { hideSidebar } = storeToRefs(useSidebarStore())
 
-const { activeCategory } = useMarketplaceTemplates('marketplace')
+const { activeCategory } = useMarketplaceTemplates('all-templates')
 
 onMounted(() => {
   hideSidebar.value = true

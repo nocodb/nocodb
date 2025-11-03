@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { isLoading, loadingTrigger, hasMore, templates } = useMarketplaceTemplates('marketplace')
+const { isLoading, loadingTrigger, hasMore, templates } = useMarketplaceTemplates('all-templates')
 </script>
 <template>
   <div v-if="hasMore && templates.length" ref="loadingTrigger" class="py-4 flex justify-center">

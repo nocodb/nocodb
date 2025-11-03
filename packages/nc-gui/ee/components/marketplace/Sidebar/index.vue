@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  activeCategory: string
+  activeCategory: TemplateCategoryType | string
 }>()
 
 const activeCategory = useVModel(props, 'activeCategory')
@@ -14,12 +14,12 @@ const { t } = useI18n()
 
 const isSearchFocused = ref(false)
 
-const setActiveItem = (category: string) => {
+const setActiveItem = (category: TemplateCategoryType) => {
   activeCategory.value = category
 
   const typeOrId = route.params.typeOrId
 
-  if (category === 'marketplace') {
+  if (category === 'all-templates') {
     router.push(`/${typeOrId}/marketplace`)
   } else {
     router.push(`/${typeOrId}/marketplace/${category}`)
@@ -27,14 +27,14 @@ const setActiveItem = (category: string) => {
 }
 
 interface SidebarItem extends TemplateCategoryInfoItemType {
-  key: string
+  key: TemplateCategoryType | string
   isFolder?: boolean
   childrens?: SidebarItem[]
 }
 
 const sidebarItems = computed(() => {
   return [
-    { key: 'marketplace', ...categoryInfo.marketplace, onClick: () => setActiveItem('marketplace') },
+    { key: 'all-templates', ...categoryInfo['all-templates'], onClick: () => setActiveItem('all-templates') },
     {
       key: 'departments',
       title: t('objects.templates.departments'),

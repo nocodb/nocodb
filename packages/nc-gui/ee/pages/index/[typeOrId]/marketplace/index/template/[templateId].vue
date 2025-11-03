@@ -8,17 +8,28 @@ import type { CarouselApi } from '~/components/nc/Carousel/interface'
 
 const route = useRoute()
 const router = useRouter()
+
 const templateId = computed(() => route.params.templateId as string)
 const typeOrId = computed(() => route.params.typeOrId)
 
 const { categoryInfo, activeCategory, getTemplateById, currentCategoryInfo, templatesMap } =
-  useMarketplaceTemplates('marketplace')
+  useMarketplaceTemplates('all-templates')
+
+const { sharedBaseId, duplicateSharedBase, isLoading: isCopyingTemplate, options, isUseThisTemplate } = useCopySharedBase()
+
+const workspaceStore = useWorkspace()
+
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const template = ref<Template | null>(null)
 const isLoading = ref(true)
 const error = ref<string | null>(null)
 const carouselApi = ref<CarouselApi>()
 const currentSlideIndex = ref(0)
+
+const templateSharedBaseUrl = computed(() => {
+  return template.value?.['Shared Base Url']
+})
 
 const browseByCategories = computed(() => {
   return Object.entries(categoryInfo)
@@ -121,6 +132,29 @@ const scrollToSlide = (index: number) => {
     currentSlideIndex.value = index
   }
 }
+
+const onUseThisTemplate = () => {
+  if (!templateSharedBaseUrl.value) return
+
+  options.value.includeData = true
+  options.value.includeViews = true
+
+  isUseThisTemplate.value = true
+
+  const hashPath = new URL(templateSharedBaseUrl.value as string).hash.replace(/^#/, '') // "/base/123"
+
+  if (!hashPath) return
+
+  const resolvedRoute = router.resolve(hashPath)
+
+  if (!resolvedRoute?.params?.baseId) return
+
+  sharedBaseId.value = resolvedRoute.params.baseId as string
+
+  duplicateSharedBase({
+    workspaceId: activeWorkspaceId.value!,
+  })
+}
 </script>
 
 <template>
@@ -141,7 +175,14 @@ const scrollToSlide = (index: number) => {
             {{ template.Title }}
           </div>
 
-          <NcButton size="small"> {{ $t('labels.useThisTemplate') }} </NcButton>
+          <NcTooltip :disabled="!!templateSharedBaseUrl">
+            <template #title>
+              {{ $t('tooltip.missingSharedBaseUrl') }}
+            </template>
+            <NcButton size="small" :disabled="!templateSharedBaseUrl" :loading="isCopyingTemplate" @click="onUseThisTemplate">
+              {{ $t('labels.useThisTemplate') }}
+            </NcButton>
+          </NcTooltip>
         </div>
 
         <div class="mb-16">
@@ -189,7 +230,7 @@ const scrollToSlide = (index: number) => {
         </NcTabs>
         <div v-if="relatedTemplates.length">
           <h2 class="text-heading3 font-semibold mt-6">
-            Other <span class="capitalize">{{ activeCategory === 'marketplace' ? '' : activeCategory }}</span> Templates
+            Other <span class="capitalize">{{ activeCategory === 'all-templates' ? '' : activeCategory }}</span> Templates
           </h2>
           <div class="text-body text-nc-content-grey">
             {{ currentCategoryInfo?.subtitle }}

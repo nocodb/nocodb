@@ -4,10 +4,10 @@ const router = useRouter()
 const typeOrId = computed(() => route.params.typeOrId as string)
 
 const { templates, isLoading, activeCategory, templateContainer, openTemplate, categoryInfo, setupObserver } =
-  useMarketplaceTemplates('marketplace')
+  useMarketplaceTemplates('all-templates')
 
 watch(activeCategory, (newCategory) => {
-  if (newCategory !== 'marketplace') {
+  if (newCategory !== 'all-templates') {
     router.push(`/${typeOrId.value}/marketplace/${newCategory}`)
   }
 })

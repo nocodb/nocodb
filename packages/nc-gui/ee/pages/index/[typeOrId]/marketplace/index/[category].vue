@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const router = useRouter()
-const category = computed(() => route.params.category as string)
+const category = computed(() => route.params.category as TemplateCategoryType)
 const typeOrId = computed(() => route.params.typeOrId as string)
 
 const {

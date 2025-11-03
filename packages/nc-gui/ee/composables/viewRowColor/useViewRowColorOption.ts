@@ -138,6 +138,7 @@ export function useViewRowColorOption(params: {
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const filter = {
       id: undefined,
+      tmp_id: generateUniqueRandomUUID([], ['id', 'tmp_id']),
       fk_column_id: evalColumn?.id,
       comparison_op: 'eq',
       is_group: false,
@@ -153,6 +154,7 @@ export function useViewRowColorOption(params: {
 
     const conditionToAdd = {
       id: undefined,
+      tmp_id: generateUniqueRandomUUID(conditions, ['id', 'tmp_id']),
       color: getThemeV3RandomColor(conditions.length),
       conditions: [filter],
       is_set_as_background: false,
@@ -240,7 +242,12 @@ export function useViewRowColorOption(params: {
     }
   }
 
-  const onRowColorConditionUpdate = async (params: { index: number; color: string; is_set_as_background: boolean }) => {
+  const onRowColorConditionUpdate = async (params: {
+    index: number
+    color: string
+    is_set_as_background: boolean
+    nc_order?: number
+  }) => {
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToUpdate = conditions[params.index]!
@@ -250,7 +257,7 @@ export function useViewRowColorOption(params: {
       await $api.dbView.viewRowColorConditionUpdate(view.value.id, conditionToUpdate?.id, {
         color: params.color,
         is_set_as_background: params.is_set_as_background,
-        nc_order: conditionToUpdate.nc_order,
+        nc_order: params.nc_order ?? conditionToUpdate.nc_order,
       })
     } catch (err: any) {
       console.log('error', err)
@@ -266,6 +273,7 @@ export function useViewRowColorOption(params: {
     const evalColumn = filterColumns.value.find((k) => k.pv)
     const filter = {
       id: undefined,
+      tmp_id: params.tmp_id,
       fk_row_color_condition_id: conditionToAdd.id,
       fk_parent_id: params.fk_parent_id,
       fk_column_id: evalColumn?.id,
@@ -311,6 +319,7 @@ export function useViewRowColorOption(params: {
     const conditionToAdd = conditions[colorIndex]!
     const filter = {
       id: undefined,
+      tmp_id: params.tmp_id,
       fk_row_color_condition_id: conditionToAdd.id,
       fk_parent_id: params.fk_parent_id,
       is_group: true,
@@ -350,20 +359,19 @@ export function useViewRowColorOption(params: {
     if (!filter) return
 
     filter[params.type] = params.value
-    if (params.filter!.fk_column_id) {
-      if (['fk_column_id'].includes(params.type)) {
-        const evalColumn = filterColumns.value.find((k) => k.id === params.filter!.fk_column_id)
-        adjustFilterWhenColumnChange({
-          column: evalColumn,
-          filter,
-          showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
-        })
+    if (params.filter!.fk_column_id && ['fk_column_id'].includes(params.type)) {
+      const evalColumn = filterColumns.value.find((k) => k.id === params.filter!.fk_column_id)
+      adjustFilterWhenColumnChange({
+        column: evalColumn,
+        filter,
+        showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
+      })
 
-        if (params.prevValue && evalColumn?.id && params.prevValue !== evalColumn?.id) {
-          reloadViewDataIfNeeded(evalColumn?.id)
-        }
+      if (params.prevValue && evalColumn?.id && params.prevValue !== evalColumn?.id) {
+        reloadViewDataIfNeeded(evalColumn?.id)
       }
     }
+
     if (['logical_op'].includes(params.type)) {
       const siblings = filter.fk_parent_id
         ? conditionToUpdate.conditions.find((f) => f.id === filter.fk_parent_id)?.children
@@ -372,12 +380,18 @@ export function useViewRowColorOption(params: {
         sibling.logical_op = params.value
         const updateObj = { ...sibling }
         delete updateObj.children
-        await $api.dbTableFilter.update(updateObj.id, updateObj)
+
+        if (updateObj.id) {
+          await $api.dbTableFilter.update(updateObj.id, updateObj)
+        }
       }
     }
     const updateObj = { ...filter }
     delete updateObj.children
-    await $api.dbTableFilter.update(filter!.id, updateObj)
+
+    if (filter.id) {
+      await $api.dbTableFilter.update(filter!.id, updateObj)
+    }
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 

@@ -27,6 +27,8 @@ interface Props {
   deleteButtonProps?: any
   isColourFilter?: boolean
   isLoadingFilter?: boolean
+  // total visible filter count at current nested level
+  visibleFilterCount?: number
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -595,10 +597,9 @@ const onChangeToDynamic = async () => {
           <SmartsheetToolbarFilterTimezoneAbbreviation :column="column" :filter="vModel" />
         </div>
       </template>
-      <div :class="{ 'cursor-wait': isLoadingFilter }">
+      <div v-if="!vModel.readOnly && !disabled" :class="{ 'cursor-wait': isLoadingFilter }">
         <!-- if locked view, do not hide the button -->
         <NcButton
-          v-if="!vModel.readOnly && !disabled"
           v-e="['c:filter:delete', { link: !!link, webHook: !!webHook, widget: !!widget }]"
           v-bind="deleteButtonProps"
           type="text"
@@ -611,6 +612,19 @@ const onChangeToDynamic = async () => {
           <component :is="iconMap.deleteListItem" />
         </NcButton>
       </div>
+      <div v-if="!isDisabled" :class="{ 'cursor-wait': isLoadingFilter }">
+        <NcButton
+          v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook, widget: !!widget }]"
+          type="text"
+          size="small"
+          class="nc-filter-item-reorder-btn nc-filter-group-row-drag-handler self-center"
+          :class="{ 'pointer-events-none': isLoadingFilter }"
+          :shadow="false"
+          :disabled="!visibleFilterCount || visibleFilterCount <= 1"
+        >
+          <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
+        </NcButton>
+      </div>
     </template>
   </div>
 </template>
@@ -620,7 +634,8 @@ const onChangeToDynamic = async () => {
   @apply text-gray-400;
 }
 
-.nc-filter-item-remove-btn {
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn {
   @apply text-gray-600 hover:text-gray-800;
 }
 
@@ -658,6 +673,11 @@ const onChangeToDynamic = async () => {
     border-right: 1px solid #eee !important;
     border-bottom-right-radius: 0 !important;
     border-top-right-radius: 0 !important;
+
+    & > button {
+      border-bottom-right-radius: 0 !important;
+      border-top-right-radius: 0 !important;
+    }
   }
 
   .nc-settings-dropdown {
@@ -668,6 +688,11 @@ const onChangeToDynamic = async () => {
   & > :not(:first-child) {
     border-bottom-left-radius: 0 !important;
     border-top-left-radius: 0 !important;
+
+    & > button {
+      border-bottom-left-radius: 0 !important;
+      border-top-left-radius: 0 !important;
+    }
   }
 
   & > :last-child {

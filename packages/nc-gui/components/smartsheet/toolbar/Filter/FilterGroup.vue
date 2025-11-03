@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import Draggable from 'vuedraggable'
 import { type FilterType, UITypes, parseProp } from 'nocodb-sdk'
 import { type GroupEmits, type GroupProps } from './types'
 import { SmartsheetToolbarFilterGroupRow } from '#components'
+
 const props = defineProps<GroupProps>()
 const emits = defineEmits<GroupEmits>()
 const vModel = useVModel(props, 'modelValue', emits)
@@ -23,8 +25,10 @@ const nested = computed(() => props.nestedLevel > 0)
 const visibleFilters = computed(() => vModel.value.filter((filter) => filter.status !== 'delete'))
 
 const scrollToBottom = () => {
-  wrapperDomRef.value?.scrollTo({
-    top: wrapperDomRef.value.scrollHeight,
+  const wrapperDomRefEl = wrapperDomRef.value?.$el as HTMLDivElement
+
+  wrapperDomRefEl?.scrollTo({
+    top: wrapperDomRefEl?.scrollHeight,
     behavior: 'smooth',
   })
 }
@@ -123,8 +127,12 @@ const onLockedViewFooterOpen = () => {}
 
 const innerAdd = async (isGroup: boolean) => {
   const prevValue = [...vModel.value]
+
+  const tmp_id = generateUniqueRandomUUID(vModel.value || [], ['id', 'tmp_id'])
+
   if (isGroup && props.handler?.addFilterGroup) {
     await props.handler.addFilterGroup({
+      tmp_id,
       type: 'add',
       filter: null,
       filters: vModel.value,
@@ -136,6 +144,7 @@ const innerAdd = async (isGroup: boolean) => {
     })
   } else if (!isGroup && props.handler?.addFilter) {
     await props.handler.addFilter({
+      tmp_id,
       type: 'add',
       filter: null,
       filters: vModel.value,
@@ -148,6 +157,7 @@ const innerAdd = async (isGroup: boolean) => {
   } else {
     const newFilter = isGroup
       ? {
+          tmp_id,
           _id: Math.random().toString(36).substring(2, 15),
           is_group: true,
           logical_op: vModel.value[0]?.logical_op ?? 'and',
@@ -157,6 +167,7 @@ const innerAdd = async (isGroup: boolean) => {
           order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
         }
       : {
+          tmp_id,
           _id: Math.random().toString(36).substring(2, 15),
           is_group: false,
           logical_op: vModel.value[0]?.logical_op ?? 'and',
@@ -236,6 +247,62 @@ const onFilterDelete = async (
       fk_parent_id: props.fkParentId,
       prevValue,
     })
+  }
+}
+
+function onMoveCallback(event: any) {
+  // disable nested drag drop for now
+  if (event.from !== event.to) {
+    return false
+  }
+}
+
+const onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: ColumnFilterType } }) => {
+  /**
+   * If event has moved property that means reorder is on same level
+   */
+  if (event.moved) {
+    const {
+      moved: { newIndex = 0, oldIndex = 0, element },
+    } = event
+
+    if (!element || (!element.id && !element.tmp_id) || visibleFilters.value.length === 1) return
+
+    const oldOrder = element.order
+
+    let nextOrder: number
+
+    // set new order value based on the new order of the items
+    if (visibleFilters.value.length - 1 === newIndex) {
+      // If moving to the end, set nextOrder greater than the maximum order in the list
+      nextOrder = Math.max(...visibleFilters.value.map((item) => item?.order ?? 0)) + 1
+    } else if (newIndex === 0) {
+      // If moving to the beginning, set nextOrder smaller than the minimum order in the list
+      nextOrder = Math.min(...visibleFilters.value.map((item) => item?.order ?? 0)) / 2
+    } else {
+      nextOrder =
+        (parseFloat(String(visibleFilters.value[newIndex - 1]?.order ?? 0)) +
+          parseFloat(String(visibleFilters.value[newIndex + 1]?.order ?? 0))) /
+        2
+    }
+
+    const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+    element.order = _nextOrder
+
+    const elementIndex =
+      vModel.value.findIndex((item) => item?.id === element?.id) ||
+      vModel.value.findIndex((item) => item?.tmp_id === element?.tmp_id)
+
+    if (props.handler?.rowChange) {
+      props.handler.rowChange({
+        filter: element,
+        type: 'order',
+        prevValue: oldOrder,
+        value: _nextOrder,
+        index: elementIndex,
+      })
+    }
   }
 }
 // #endregion
@@ -322,18 +389,26 @@ const onFilterDelete = async (
       <slot name="root-header"></slot>
     </template>
     <!-- #region filter group rows -->
-    <div
+    <Draggable
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
+      :list="vModel"
+      v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
+      group="nc-filter-group-rows"
+      ghost-class="bg-gray-50"
+      draggable=".nc-filter-group-row"
+      handle=".nc-filter-group-row-drag-handler"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
       :class="{
         'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
         '!pr-0': webHook && !nested,
       }"
+      :move="onMoveCallback"
+      @change="onMove($event)"
       @click.stop
     >
-      <template v-for="(filter, i) in vModel" :key="i">
-        <template v-if="filter.status !== 'delete'">
+      <template #item="{ element: filter, index: i }">
+        <div v-if="filter.status !== 'delete'" :key="i" class="nc-filter-group-row min-w-full w-min max-w-full">
           <template v-if="filter.is_group">
             <slot name="filterGroupRow"> </slot>
             <template v-if="!slotHasChildren('filterGroupRow')">
@@ -355,6 +430,7 @@ const onFilterDelete = async (
                 :filter-per-view-limit="filterPerViewLimit"
                 :disable-add-new-filter="disableAddNewFilter"
                 :filters-count="filtersCount"
+                :visible-filter-count="visibleFilters.length"
                 :query-filter="queryFilter"
                 :handler="handler"
                 :is-colour-filter="isColourFilter"
@@ -380,6 +456,7 @@ const onFilterDelete = async (
                 :widget="widget"
                 :link="link"
                 :handler="handler"
+                :visible-filter-count="visibleFilters.length"
                 :is-colour-filter="isColourFilter"
                 :is-loading-filter="isLoadingFilter"
                 @change="onFilterRowChange($event, i)"
@@ -387,9 +464,9 @@ const onFilterDelete = async (
               />
             </template>
           </template>
-        </template>
+        </div>
       </template>
-    </div>
+    </Draggable>
     <!-- #endregion filter group rows -->
     <template v-if="!nested">
       <template v-if="isEeUI && !isPublic">
@@ -512,7 +589,8 @@ const onFilterDelete = async (
   @apply text-gray-400;
 }
 
-.nc-filter-item-remove-btn {
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn {
   @apply text-gray-600 hover:text-gray-800;
 }
 

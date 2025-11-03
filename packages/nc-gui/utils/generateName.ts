@@ -56,3 +56,17 @@ export const generateRandomNumber = () => {
 export const generateRandomUUID = () => {
   return window.crypto.randomUUID()
 }
+
+export const generateUniqueRandomUUID = (list: Record<string, any>[] = [], keys: string[] = ['id']) => {
+  let id: string
+
+  do {
+    id = generateRandomUUID()
+  } while (
+    list.some((item) => {
+      return keys.some((key) => item[key] === id)
+    })
+  )
+
+  return id
+}

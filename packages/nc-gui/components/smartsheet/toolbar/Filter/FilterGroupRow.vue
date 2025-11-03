@@ -28,6 +28,8 @@ interface Props {
   filterPerViewLimit: number
   // total filter already added into section
   filtersCount?: number
+  // total visible filter count at current nested level
+  visibleFilterCount?: number
 
   // what's this???
   queryFilter?: boolean
@@ -195,9 +197,8 @@ const onDelete = () => {
           </div>
         </template>
         <template #nestedRowEnd>
-          <div :class="{ 'cursor-wait': isLoadingFilter }">
+          <div v-if="!vModel.readOnly && !disabled" class="inline-block" :class="{ 'cursor-wait': isLoadingFilter }">
             <NcButton
-              v-if="!vModel.readOnly && !disabled"
               :key="index"
               v-e="['c:filter:delete', { link: !!link, webHook: !!webHook, widget: !!widget }]"
               type="text"
@@ -208,6 +209,19 @@ const onDelete = () => {
               @click.stop="onDelete()"
             >
               <component :is="iconMap.deleteListItem" />
+            </NcButton>
+          </div>
+          <div v-if="!isDisabled" class="inline-block" :class="{ 'cursor-wait': isLoadingFilter }">
+            <NcButton
+              v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook, widget: !!widget }]"
+              type="text"
+              size="small"
+              class="nc-filter-item-reorder-btn nc-filter-group-row-drag-handler self-center"
+              :class="{ 'pointer-events-none': isLoadingFilter }"
+              :shadow="false"
+              :disabled="!visibleFilterCount || visibleFilterCount <= 1"
+            >
+              <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
             </NcButton>
           </div>
         </template>
@@ -221,7 +235,8 @@ const onDelete = () => {
   @apply text-gray-400;
 }
 
-.nc-filter-item-remove-btn {
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn {
   @apply text-gray-600 hover:text-gray-800;
 }
 

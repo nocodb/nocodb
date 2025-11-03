@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import type { ClientType, RowColoringInfoFilter } from 'nocodb-sdk'
+import type { ClientType, RowColoringInfoFilter, RowColoringInfoFilterRow } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
+import Draggable from 'vuedraggable'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 
 interface Props {
@@ -13,7 +14,7 @@ interface Props {
   isLoadingFilter?: boolean
   handler: {
     conditionAdd: () => void
-    conditionUpdate: (params: { index: number; color: string; is_set_as_background: boolean }) => void
+    conditionUpdate: (params: { index: number; color: string; is_set_as_background: boolean; nc_order?: number }) => void
     conditionDelete: (index: number) => void
     allConditionDeleted: () => void
     filters: {
@@ -56,8 +57,10 @@ const filtersCount = computed(() => {
 })
 
 const scrollToBottom = () => {
-  wrapperDomRef.value?.scrollTo({
-    top: wrapperDomRef.value.scrollHeight,
+  const wrapperDomRefEl = wrapperDomRef.value?.$el as HTMLDivElement
+
+  wrapperDomRefEl?.scrollTo({
+    top: wrapperDomRefEl?.scrollHeight,
     behavior: 'smooth',
   })
 }
@@ -97,17 +100,83 @@ const updateColor = (index: number, field: string, value: string) => {
   }
   clearRowColouringCache()
 }
+
+function onMoveCallback(event: any) {
+  // disable nested drag drop for now
+  if (event.from !== event.to) {
+    return false
+  }
+}
+
+const onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: RowColoringInfoFilterRow } }) => {
+  if (!hasPermission.value) return
+
+  /**
+   * If event has moved property that means reorder is on same level
+   */
+  if (event.moved) {
+    const {
+      moved: { newIndex = 0, oldIndex = 0, element },
+    } = event
+
+    const colorConditions = vModel.value?.conditions || []
+
+    if (!element || (!element.id && !element.tmp_id) || colorConditions.length === 1) return
+
+    let nextOrder: number
+
+    // set new order value based on the new order of the items
+    if (colorConditions.length - 1 === newIndex) {
+      // If moving to the end, set nextOrder greater than the maximum order in the list
+      nextOrder = Math.max(...colorConditions.map((item) => item?.nc_order ?? 0)) + 1
+    } else if (newIndex === 0) {
+      // If moving to the beginning, set nextOrder smaller than the minimum order in the list
+      nextOrder = Math.min(...colorConditions.map((item) => item?.nc_order ?? 0)) / 2
+    } else {
+      nextOrder =
+        (parseFloat(String(colorConditions[newIndex - 1]?.nc_order ?? 0)) +
+          parseFloat(String(colorConditions[newIndex + 1]?.nc_order ?? 0))) /
+        2
+    }
+
+    const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+    element.nc_order = _nextOrder
+
+    const elementIndex =
+      colorConditions.findIndex((item) => item?.id === element?.id) ||
+      colorConditions.findIndex((item) => item?.tmp_id === element?.tmp_id)
+
+    await props.handler.conditionUpdate({
+      index: elementIndex,
+      ...element,
+      nc_order: _nextOrder,
+    })
+  }
+}
 </script>
 
 <template>
   <div class="min-w-[640px] w-auto inline-block h-auto rounded-2xl bg-white p-4">
     <div class="flex flex-col gap-3">
-      <div
+      <Draggable
         ref="wrapperDomRef"
-        class="border-1 border-nc-border-gray-medium rounded-lg bg-[#FCFCFC] max-h-[60vh] nc-scrollbar-thin"
+        v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
+        :list="vModel?.conditions || []"
+        :disabled="!hasPermission"
+        group="nc-row-color-filter-groups"
+        ghost-class="bg-gray-50"
+        draggable=".nc-row-color-filter-group"
+        handle=".nc-row-color-filter-group-drag-handler"
+        class="border-1 border-nc-border-gray-medium rounded-lg bg-nc-gray-100 max-h-[60vh] nc-scrollbar-thin"
+        :move="onMoveCallback"
+        @change="onMove($event)"
       >
-        <template v-for="(rowColorConfig, i) in vModel?.conditions" :key="i">
-          <div class="px-2 border-b-1 border-nc-border-gray-medium last-of-type:border-b-0">
+        <template #item="{ element: rowColorConfig, index: i }">
+          <div
+            :key="i"
+            class="nc-row-color-filter-group px-2 border-b-1 border-nc-border-gray-medium last-of-type:border-b-0 bg-nc-gray-100"
+          >
             <!-- index here is 0, since we evaluate the logic op individually per color -->
             <SmartsheetToolbarFilterGroup
               v-model="rowColorConfig.nestedConditions"
@@ -172,7 +241,7 @@ const updateColor = (index: number, field: string, value: string) => {
                       </NcButton>
                     </template>
                   </div>
-                  <div class="justify-end">
+                  <div class="flex items-center justify-end">
                     <NcButton
                       v-if="!disabled"
                       type="text"
@@ -182,6 +251,16 @@ const updateColor = (index: number, field: string, value: string) => {
                       @click="removeColor(i)"
                     >
                       <component :is="iconMap.deleteListItem" />
+                    </NcButton>
+                    <NcButton
+                      v-if="!disabled && hasPermission"
+                      type="text"
+                      size="small"
+                      class="nc-filter-item-reorder-btn nc-row-color-filter-group-drag-handler self-center"
+                      :shadow="false"
+                      :disabled="(vModel?.conditions || []).length === 1"
+                    >
+                      <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
                     </NcButton>
                   </div>
                 </div>
@@ -203,7 +282,7 @@ const updateColor = (index: number, field: string, value: string) => {
             </SmartsheetToolbarFilterGroup>
           </div>
         </template>
-      </div>
+      </Draggable>
 
       <div v-if="hasPermission">
         <NcButton

@@ -3,6 +3,9 @@ import { DBError } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 
+const REGEX_DATE_TIME_OUT_OF_RANGE =
+  /date\/time field value out of range:\s*(.*)$/;
+
 export class PgDBErrorExtractor implements IClientDbErrorExtractor {
   constructor(
     private readonly option?: {
@@ -21,6 +24,15 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
     // todo: handle not null constraint error for all databases
     switch (error.code) {
       // postgres errors
+      case '22008': {
+        const matchedMessage = error.message.match(
+          REGEX_DATE_TIME_OUT_OF_RANGE,
+        )?.[0];
+        message = matchedMessage
+          ? `${matchedMessage[0].toUpperCase()}${matchedMessage.substring(1)}`
+          : 'Date/time field value out of range';
+        break;
+      }
       case '23505':
         message = 'This record already exists.';
         break;

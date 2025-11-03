@@ -8,6 +8,8 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  PrincipalType,
+  ResourceType,
   RootScopes,
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
@@ -277,6 +279,35 @@ export default class WorkspaceUser {
         ncMeta.knex.raw('?', [fk_user_id]),
       );
 
+      // Workspace access through team role - uses WHERE IN with subquery
+      // This subquery uses:
+      // - principal_resource_idx: to find user's teams (principal_type, principal_ref_id, resource_type)
+      // - resource_principal_type_idx: to find workspace assignments for those teams
+      this.orWhereIn(
+        `${MetaTable.WORKSPACE}.id`,
+        ncMeta
+          .knex(MetaTable.PRINCIPAL_ASSIGNMENTS)
+          .select('wt.resource_id')
+          .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wt`)
+          .innerJoin(
+            `${MetaTable.PRINCIPAL_ASSIGNMENTS} as ut`,
+            'ut.resource_id',
+            'wt.principal_ref_id',
+          )
+          .where('wt.resource_type', ResourceType.WORKSPACE)
+          .where('wt.principal_type', PrincipalType.TEAM)
+          .where('ut.principal_type', PrincipalType.USER)
+          .where('ut.resource_type', ResourceType.TEAM)
+          .where('ut.principal_ref_id', fk_user_id)
+          .where(function () {
+            this.where('wt.deleted', false).orWhereNull('wt.deleted');
+            this.where('ut.deleted', false).orWhereNull('ut.deleted');
+          })
+          .whereNotNull('wt.roles')
+          .whereNot('wt.roles', WorkspaceUserRoles.NO_ACCESS),
+      );
+
+      // Workspace access through base membership
       this.orWhereIn(
         `${MetaTable.WORKSPACE}.id`,
         ncMeta
@@ -293,7 +324,8 @@ export default class WorkspaceUser {
               ncMeta.knex.raw('?', [fk_user_id]),
             );
           })
-          .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.NO_ACCESS),
+          .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.NO_ACCESS)
+          .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.INHERIT),
       );
     });
 

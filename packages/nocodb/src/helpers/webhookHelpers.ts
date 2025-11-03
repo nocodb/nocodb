@@ -62,7 +62,7 @@ export function parseBody(template: string, data: any): string {
 export async function validateCondition(
   context: NcContext,
   filters: Filter[],
-  data: any,
+  data: any = {},
   {
     client,
   }: {

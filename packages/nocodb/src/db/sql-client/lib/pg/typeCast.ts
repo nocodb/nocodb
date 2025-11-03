@@ -80,7 +80,7 @@ function generateDateTimeCastQuery(source: string, dateFormat: string) {
 
         // Combine regex patterns: remove $ from date regex and ^ from time regex
         const combinedRegex = timeFormat
-          ? `${regex.slice(0, -1)}\\s+${timeRegex.slice(1)}`
+          ? `${regex.slice(0, -1)}\\s*${timeRegex.slice(1)}`
           : regex;
 
         return `WHEN ${source} ~ '${combinedRegex}' THEN to_date_time_safe(${source}, '${formatString}')`;

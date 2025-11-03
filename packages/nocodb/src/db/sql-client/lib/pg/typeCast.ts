@@ -74,12 +74,17 @@ function generateDateTimeCastQuery(source: string, dateFormat: string) {
 
   const cases = DATE_FORMATS[dateFormat].map(([format, regex]) =>
     timeFormats
-      .map(
-        ([timeFormat, timeRegex]) =>
-          `WHEN ${source} ~ '${regex.slice(0, -1)}\\s*${timeRegex.slice(
-            1,
-          )}' THEN to_date_time_safe(${source}, '${format} ${timeFormat}')`,
-      )
+      .map(([timeFormat, timeRegex]) => {
+        // For empty time format (date only), don't add space in format string
+        const formatString = timeFormat ? `${format} ${timeFormat}` : format;
+
+        // Combine regex patterns: remove $ from date regex and ^ from time regex
+        const combinedRegex = timeFormat
+          ? `${regex.slice(0, -1)}\\s+${timeRegex.slice(1)}`
+          : regex;
+
+        return `WHEN ${source} ~ '${combinedRegex}' THEN to_date_time_safe(${source}, '${formatString}')`;
+      })
       .join('\n'),
   );
 

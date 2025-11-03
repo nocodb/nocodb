@@ -412,7 +412,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
   // Template navigation
   const openTemplate = (template: Template) => {
     if (template && template.Id) {
-      router.push(`/${typeOrId.value}/marketplace/template/${template.Id}`)
+      router.push(`/${typeOrId.value}/marketplace/${activeCategory.value}/${template.Id}`)
     } else if (template && template['Shared Base Url']) {
       window.open(template['Shared Base Url'], '_blank')
     }

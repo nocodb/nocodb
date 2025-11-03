@@ -89,7 +89,7 @@ onMounted(() => {
 })
 
 const openRelatedTemplate = (templateId) => {
-  router.push(`/${typeOrId.value}/marketplace/template/${templateId}`)
+  router.push(`/${typeOrId.value}/marketplace/${activeCategory.value}/${templateId}`)
 }
 
 const descriptionRendered = computedAsync(async () => {

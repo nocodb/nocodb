@@ -22,7 +22,7 @@ if (!validCategories.includes(category.value)) {
 
 watch(activeCategory, (newCategory) => {
   if (newCategory !== category.value) {
-    if (newCategory === 'marketplace') {
+    if (newCategory === 'all-templates') {
       router.push(`/${typeOrId.value}/marketplace`)
     } else {
       router.push(`/${typeOrId.value}/marketplace/${newCategory}`)

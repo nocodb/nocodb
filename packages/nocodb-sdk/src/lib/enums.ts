@@ -382,20 +382,20 @@ export const RoleIcons = {
 export const WorkspaceRolesToProjectRoles = {
   [WorkspaceUserRoles.OWNER]: ProjectRoles.OWNER,
   [WorkspaceUserRoles.CREATOR]: ProjectRoles.CREATOR,
+  [WorkspaceUserRoles.INHERIT]: ProjectRoles.VIEWER,
   [WorkspaceUserRoles.EDITOR]: ProjectRoles.EDITOR,
   [WorkspaceUserRoles.COMMENTER]: ProjectRoles.COMMENTER,
   [WorkspaceUserRoles.VIEWER]: ProjectRoles.VIEWER,
-  [WorkspaceUserRoles.INHERIT]: ProjectRoles.VIEWER,
   [WorkspaceUserRoles.NO_ACCESS]: ProjectRoles.NO_ACCESS,
 };
 
 export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.OWNER,
   WorkspaceUserRoles.CREATOR,
+  WorkspaceUserRoles.INHERIT,
   WorkspaceUserRoles.EDITOR,
   WorkspaceUserRoles.COMMENTER,
   WorkspaceUserRoles.VIEWER,
-  WorkspaceUserRoles.INHERIT,
   WorkspaceUserRoles.NO_ACCESS,
 ];
 

@@ -232,7 +232,11 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       message.error(errorInfo.message)
     }
   } finally {
-    if (user.value?.id === currentCollaborator.id && currentCollaborator.roles === ProjectRoles.NO_ACCESS) {
+    if (
+      currentCollaborator &&
+      user.value?.id === currentCollaborator.id &&
+      currentCollaborator.roles === ProjectRoles.NO_ACCESS
+    ) {
       if (currentBase.value) {
         bases.value.delete(currentBase.value.id!)
       }

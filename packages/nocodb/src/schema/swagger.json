@@ -29641,15 +29641,15 @@
             "description": "Whether the automation is enabled"
           },
           "nodes": {
-            "type": "object",
+            "$ref": "#/components/schemas/Meta",
             "description": "Nodes configuration for the automation workflow"
           },
           "edges": {
-            "type": "object",
+            "$ref": "#/components/schemas/Meta",
             "description": "Edges configuration for the automation workflow"
           },
           "meta": {
-            "type": "object",
+            "$ref": "#/components/schemas/Meta",
             "description": "Meta data for the Automation"
           },
           "trigger_count": {

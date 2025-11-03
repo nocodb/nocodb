@@ -1,4 +1,5 @@
 import { PlanLimitTypes } from 'nocodb-sdk';
+import type { AutomationType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
@@ -11,17 +12,13 @@ import {
   MetaTable,
 } from '~/utils/globals';
 
-export default class Automation {
+export default class Automation implements AutomationType {
   id?: string;
   title?: string;
   fk_workspace_id?: string;
   base_id?: string;
 
   enabled?: boolean;
-  nodes?: string;
-  edges?: string;
-
-  meta?: string;
 
   trigger_count?: number;
 
@@ -115,16 +112,17 @@ export default class Automation {
       'title',
       'base_id',
       'fk_workspace_id',
-      'created_by',
-      'status',
-      'automation_base_id',
+      'enabled',
+      'nodes',
+      'edges',
+      'meta',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
       MetaTable.AUTOMATIONS,
-      prepareForDb(insertObj),
+      prepareForDb(insertObj, ['nodes', 'edges', 'meta']),
     );
 
     await NocoCache.incrHashField(
@@ -151,13 +149,19 @@ export default class Automation {
     automation: Partial<Automation>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(automation, ['title', 'status']);
+    const updateObj = extractProps(automation, [
+      'title',
+      'enabled',
+      'nodes',
+      'edges',
+      'meta',
+    ]);
 
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.AUTOMATIONS,
-      prepareForDb(updateObj),
+      prepareForDb(updateObj, ['nodes', 'edges', 'meta']),
       automationId,
     );
 

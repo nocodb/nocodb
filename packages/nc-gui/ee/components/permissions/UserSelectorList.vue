@@ -49,7 +49,7 @@ const { basesUser, basesTeams } = storeToRefs(basesStore)
 const listRef = ref()
 
 // Todo: @rameshmane7218, @pranav - remove this flag once the teams table and field permissions are enabled
-const isTeamsTableAndFieldPermissionsEnabled = false
+const isTeamsTableAndFieldPermissionsEnabled = true
 
 const showTeams = computed(() => {
   return !blockTeamsManagement.value && isTeamsEnabled.value && isTeamsTableAndFieldPermissionsEnabled
@@ -75,7 +75,11 @@ const baseTeams = computed<NcListItemType[]>(() => {
     id: bt.team_id,
     isTeam: true,
     display_name: bt.team_title,
-    roles: bt.base_role,
+    roles:
+      bt.base_role ??
+      (bt.workspace_role
+        ? WorkspaceRolesToProjectRoles[bt.workspace_role as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
+        : ProjectRoles.NO_ACCESS),
     base_roles: bt.base_role,
     ncGroupHeaderLabel: t('general.teams'),
   })) as NcListItemType[]
@@ -116,7 +120,15 @@ const computedNcList = computed(() => {
 // Selected users display
 const selectedUsersList = computed(() => {
   return Array.from(selectedUsers.value)
-    .map((userId) => baseUsers.value.find((user) => user.id === userId))
+    .map((userId) => {
+      // Check if it's a team
+      const team = baseTeams.value.find((team) => team.id === userId)
+      if (team) {
+        return team
+      }
+      // It's a user
+      return baseUsers.value.find((user) => user.id === userId)
+    })
     .filter(Boolean)
 })
 

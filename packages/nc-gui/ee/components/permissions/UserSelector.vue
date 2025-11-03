@@ -35,19 +35,36 @@ const baseUsers = computed(() => {
 const onSave = async () => {
   isLoading.value = true
   try {
-    const selectedUsersList = Array.from(selectedUsers.value)
+    const selectedIds = Array.from(selectedUsers.value)
+    const basesStore = useBases()
+    const { basesTeams } = storeToRefs(basesStore)
 
-    const users = selectedUsersList
-      .map((userId) => {
-        const user = baseUsers.value.find((user) => user.id === userId)
-        if (!user) return null
-        return {
-          id: user.id,
-          email: user.email,
-          display_name: user.display_name,
+    const users: PermissionSelectorUser[] = []
+
+    for (const id of selectedIds) {
+      // Check if it's a team
+      const teams = basesTeams.value.get(props.baseId) || []
+      const team = teams.find((team) => team.team_id === id)
+
+      if (team) {
+        users.push({
+          id: team.team_id,
+          display_name: team.team_title,
+          type: 'team',
+        })
+      } else {
+        // It's a user
+        const user = baseUsers.value.find((user) => user.id === id)
+        if (user) {
+          users.push({
+            id: user.id,
+            email: user.email,
+            display_name: user.display_name,
+            type: 'user',
+          })
         }
-      })
-      .filter((user) => user !== null) as PermissionSelectorUser[]
+      }
+    }
 
     emits('save', {
       selectedUsers: users,

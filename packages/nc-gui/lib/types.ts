@@ -687,8 +687,9 @@ interface PermissionConfig {
 
 interface PermissionSelectorUser {
   id: string
-  email: string
+  email?: string
   display_name?: string | null
+  type?: 'user' | 'team'
 }
 
 // NcList type starts here

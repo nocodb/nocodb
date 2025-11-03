@@ -460,98 +460,109 @@ export default class User extends UserCE implements UserType {
 
     if (!user) NcError.userNotFound(userId);
 
-    const [workspaceRoles, _baseRoles, orgRoles, teamRoles, baseTeamRoles] =
-      await Promise.all([
-        // extract workspace evel roles
-        new Promise((resolve) => {
-          if (args.workspaceId ?? context.workspace_id) {
-            // todo: cache
-            // extract workspace role
-            WorkspaceUser.get(
-              args.workspaceId ?? context.workspace_id,
-              user.id,
-              ncMeta,
-            )
-              .then((workspaceUser) => {
-                if (workspaceUser?.roles) {
-                  resolve(extractRolesObj(workspaceUser.roles));
-                } else {
-                  resolve(null);
-                }
-              })
-              .catch(() => resolve(null));
-          } else {
-            resolve(null);
-          }
-        }) as Promise<ReturnType<typeof extractRolesObj> | null>,
-        // extract base level roles
-        new Promise((resolve) => {
-          if (args.baseId) {
-            BaseUser.get(context, args.baseId, user.id, ncMeta)
-              .then(async (baseUser) => {
-                const roles = baseUser?.roles;
-                // + (user.roles ? `,${user.roles}` : '');
-                if (roles) {
-                  resolve(extractRolesObj(roles));
-                } else {
-                  resolve(null);
-                }
-                // todo: cache
-              })
-              .catch(() => resolve(null));
-          } else {
-            resolve(null);
-          }
-        }) as Promise<ReturnType<typeof extractRolesObj> | null>,
-        // extract org level roles
-        new Promise((resolve) => {
-          if (args.orgId) {
-            OrgUser.get(args.orgId, user.id, ncMeta)
-              .then(async (orgUser) => {
-                const roles = orgUser?.roles;
-                if (roles) {
-                  resolve(extractRolesObj(roles));
-                } else {
-                  resolve(null);
-                }
-                // todo: cache
-              })
-              .catch((_e) => {
+    const [
+      workspaceRoles,
+      _baseRoles,
+      orgRoles,
+      { roles: teamRoles, teams: workspaceTeams },
+      { roles: baseTeamRoles, teams: baseTeams },
+    ] = await Promise.all([
+      // extract workspace evel roles
+      new Promise((resolve) => {
+        if (args.workspaceId ?? context.workspace_id) {
+          // todo: cache
+          // extract workspace role
+          WorkspaceUser.get(
+            args.workspaceId ?? context.workspace_id,
+            user.id,
+            ncMeta,
+          )
+            .then((workspaceUser) => {
+              if (workspaceUser?.roles) {
+                resolve(extractRolesObj(workspaceUser.roles));
+              } else {
                 resolve(null);
-              });
-          } else {
-            resolve(null);
-          }
-        }) as Promise<ReturnType<typeof extractRolesObj> | null>,
-        // extract team roles for workspace
-        new Promise((resolve) => {
-          if (args.workspaceId ?? context.workspace_id) {
-            extractUserTeamRoles(
-              context,
-              user.id,
-              args.workspaceId ?? context.workspace_id,
-            )
-              .then((roles) => {
-                resolve(roles);
-              })
-              .catch(() => resolve(null));
-          } else {
-            resolve(null);
-          }
-        }) as Promise<Record<string, boolean> | null>,
-        // extract base-team roles for base
-        new Promise((resolve) => {
-          if (args.baseId) {
-            extractUserBaseTeamRoles(context, user.id, args.baseId)
-              .then((roles) => {
-                resolve(roles);
-              })
-              .catch(() => resolve(null));
-          } else {
-            resolve(null);
-          }
-        }) as Promise<Record<string, boolean> | null>,
-      ]);
+              }
+            })
+            .catch(() => resolve(null));
+        } else {
+          resolve(null);
+        }
+      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
+      // extract base level roles
+      new Promise((resolve) => {
+        if (args.baseId) {
+          BaseUser.get(context, args.baseId, user.id, ncMeta)
+            .then(async (baseUser) => {
+              const roles = baseUser?.roles;
+              // + (user.roles ? `,${user.roles}` : '');
+              if (roles) {
+                resolve(extractRolesObj(roles));
+              } else {
+                resolve(null);
+              }
+              // todo: cache
+            })
+            .catch(() => resolve(null));
+        } else {
+          resolve(null);
+        }
+      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
+      // extract org level roles
+      new Promise((resolve) => {
+        if (args.orgId) {
+          OrgUser.get(args.orgId, user.id, ncMeta)
+            .then(async (orgUser) => {
+              const roles = orgUser?.roles;
+              if (roles) {
+                resolve(extractRolesObj(roles));
+              } else {
+                resolve(null);
+              }
+              // todo: cache
+            })
+            .catch((_e) => {
+              resolve(null);
+            });
+        } else {
+          resolve(null);
+        }
+      }) as Promise<ReturnType<typeof extractRolesObj> | null>,
+      // extract team roles for workspace
+      new Promise((resolve) => {
+        if (args.workspaceId ?? context.workspace_id) {
+          extractUserTeamRoles(
+            context,
+            user.id,
+            args.workspaceId ?? context.workspace_id,
+          )
+            .then((roles) => {
+              resolve(roles);
+            })
+            .catch(() => resolve({}));
+        } else {
+          resolve({});
+        }
+      }) as Promise<{
+        roles?: Record<string, boolean> | null;
+        teams?: { team_id: string; roles: string }[];
+      }>,
+      // extract base-team roles for base
+      new Promise((resolve) => {
+        if (args.baseId) {
+          extractUserBaseTeamRoles(context, user.id, args.baseId)
+            .then((roles) => {
+              resolve(roles);
+            })
+            .catch(() => resolve({}));
+        } else {
+          resolve({});
+        }
+      }) as Promise<{
+        roles?: Record<string, boolean> | null;
+        teams?: { team_id: string; roles: string }[];
+      }>,
+    ]);
     let baseRoles = _baseRoles;
 
     if (!baseRoles && args.baseId) {
@@ -608,6 +619,8 @@ export default class User extends UserCE implements UserType {
       workspace_roles: finalWorkspaceRoles ? finalWorkspaceRoles : null,
       base_roles: finalBaseRoles ?? null,
       org_roles: orgRoles ? orgRoles : null,
+      teams: workspaceTeams,
+      base_teams: baseTeams,
     } as any;
 
     return finalUser;

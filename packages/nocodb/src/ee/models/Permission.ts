@@ -1,4 +1,5 @@
 import {
+  parseProp,
   PermissionGrantedType,
   type PermissionKey,
   type PermissionRole,
@@ -16,10 +17,13 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  PrincipalType,
+  ResourceType,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/ncError';
+import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 
 export default class Permission {
   id: string;
@@ -35,7 +39,7 @@ export default class Permission {
   granted_role: PermissionRole;
 
   subjects?: {
-    type: 'user' | 'group';
+    type: 'user' | 'team';
     id: string;
   }[];
 
@@ -230,6 +234,11 @@ export default class Permission {
 
       // Ensure subjects is always an array for each permission
       const processedPermissions = permissionsWithSubjects.map((permission) => {
+        // if json string, parse it
+        if (typeof permission.subjects === 'string') {
+          permission.subjects = parseProp(permission.subjects, []);
+        }
+
         // Subjects are already JSON objects from the aggregation function
         if (!permission.subjects || !Array.isArray(permission.subjects)) {
           permission.subjects = [];
@@ -407,7 +416,7 @@ export default class Permission {
   public static async setSubjects(
     context: NcContext,
     permissionId: string,
-    subjects: { type: 'user' | 'group'; id: string }[],
+    subjects: { type: 'user' | 'team'; id: string }[],
     ncMeta = Noco.ncMeta,
   ) {
     const permission = await this.get(context, permissionId, ncMeta);
@@ -514,7 +523,7 @@ export default class Permission {
 
   public static async removeSubjectBase(
     context: NcContext,
-    subject: { type: 'user' | 'group'; id: string },
+    subject: { type: 'user' | 'team'; id: string },
     ncMeta = Noco.ncMeta,
   ) {
     // Get all permission subjects for this subject in the workspace
@@ -571,7 +580,7 @@ export default class Permission {
       if (cachedPermission && cachedPermission.subjects) {
         // Remove the subject from the cached subjects array
         const updatedSubjects = cachedPermission.subjects.filter(
-          (s: { type: 'user' | 'group'; id: string }) =>
+          (s: { type: 'user' | 'team'; id: string }) =>
             !(s.type === subject.type && s.id === subject.id),
         );
 
@@ -592,24 +601,52 @@ export default class Permission {
     );
   }
 
-  static isAllowed(
+  static async isAllowed(
+    context: NcContext,
     permissionObj: Permission,
     user: {
       id: string;
       role: ProjectRoles | WorkspaceUserRoles;
     },
-  ) {
+  ): Promise<boolean> {
     if (!permissionObj || (!user.id && !user.role)) {
       return true;
     }
 
     if (permissionObj.granted_type === PermissionGrantedType.USER) {
       // Check if user exists in subjects array
-      return (
-        permissionObj.subjects?.some(
-          (subject) => subject.type === 'user' && subject.id === user.id,
-        ) || false
+      const isUserSubject = permissionObj.subjects?.some(
+        (subject) => subject.type === 'user' && subject.id === user.id,
       );
+
+      if (isUserSubject) {
+        return true;
+      }
+
+      // Check if user is a member of any team in subjects
+      if (permissionObj.subjects) {
+        const teamSubjects = permissionObj.subjects.filter(
+          (subject) => subject.type === 'team',
+        );
+
+        if (teamSubjects.length > 0) {
+          for (const teamSubject of teamSubjects) {
+            const assignment = await PrincipalAssignment.get(
+              context,
+              ResourceType.TEAM,
+              teamSubject.id,
+              PrincipalType.USER,
+              user.id,
+            );
+
+            if (assignment) {
+              return true;
+            }
+          }
+        }
+      }
+
+      return false;
     }
 
     if (permissionObj.granted_type === PermissionGrantedType.ROLE) {

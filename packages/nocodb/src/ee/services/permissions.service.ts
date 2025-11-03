@@ -9,6 +9,7 @@ import {
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
+import { Team } from '~/models';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/ncError';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
@@ -124,7 +125,7 @@ export class PermissionsService {
         permissionEntryCreated = true;
       }
 
-      // Insert new permission users
+      // Insert new permission users/teams
       if (permission.granted_type === PermissionGrantedType.USER) {
         for (const subject of permissionObj.subjects) {
           if (subject.type === 'user') {
@@ -139,9 +140,21 @@ export class PermissionsService {
                 `User with id '${subject.id}' is not part of this workspace`,
               );
             }
-          } else if (subject.type === 'group') {
-            // TODO implement
-            NcError.notImplemented('Group permissions are not implemented yet');
+          } else if (subject.type === 'team') {
+            const team = await Team.get(context, subject.id, ncMeta);
+
+            if (!team) {
+              NcError.unprocessableEntity(
+                `Team with id '${subject.id}' not found or is deleted`,
+              );
+            }
+
+            // Verify team belongs to the workspace
+            if (team.fk_workspace_id !== context.workspace_id) {
+              NcError.unprocessableEntity(
+                `Team with id '${subject.id}' does not belong to this workspace`,
+              );
+            }
           }
         }
 

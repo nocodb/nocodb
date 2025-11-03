@@ -21,7 +21,7 @@ export default class Permission {
   granted_role: PermissionRole;
 
   subjects?: {
-    type: 'user' | 'group';
+    type: 'user' | 'team';
     id: string;
   }[];
 

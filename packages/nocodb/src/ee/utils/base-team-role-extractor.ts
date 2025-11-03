@@ -14,7 +14,12 @@ export async function extractUserBaseTeamRoles(
   context: NcContext,
   userId: string,
   baseId: string,
-): Promise<Record<string, boolean> | null> {
+): Promise<{
+  roles: Record<string, boolean> | null;
+  teams: { team_id: string; roles: string }[];
+}> {
+  const teams: { team_id: string; roles: string }[] = [];
+
   try {
     // Get all team assignments for this base
     const baseTeamAssignments = await PrincipalAssignment.listByResource(
@@ -42,6 +47,11 @@ export async function extractUserBaseTeamRoles(
       );
 
       if (userTeamAssignment) {
+        teams.push({
+          team_id: assignment.principal_ref_id,
+          roles: assignment.roles,
+        });
+
         // User is a member of this team, add the team's base role
         userBaseTeamRoles.push({
           teamRole: userTeamAssignment.roles, // User's role in the team (member/manager)
@@ -51,7 +61,7 @@ export async function extractUserBaseTeamRoles(
     }
 
     if (userBaseTeamRoles.length === 0) {
-      return null;
+      return { roles: null, teams };
     }
 
     // Merge base-team roles - take the highest privilege
@@ -96,12 +106,12 @@ export async function extractUserBaseTeamRoles(
     }
 
     if (highestRole) {
-      return { [highestRole]: true };
+      return { roles: { [highestRole]: true }, teams };
     }
 
-    return null;
+    return { roles: null, teams: teams };
   } catch (error) {
     // Return null on error to avoid breaking the role extraction
-    return null;
+    return { roles: null, teams: [] };
   }
 }

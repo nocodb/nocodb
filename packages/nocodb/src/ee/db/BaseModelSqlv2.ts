@@ -3465,10 +3465,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         NcError.get(this.context).forbidden(errorMessage);
       }
 
-      const hasPermission = Permission.isAllowed(permissionObj, {
-        id: user.id,
-        role: getProjectRole(user),
-      });
+      const hasPermission = await Permission.isAllowed(
+        this.context,
+        permissionObj,
+        {
+          id: user.id,
+          role: getProjectRole(user),
+        },
+      );
 
       if (!hasPermission) {
         NcError.get(this.context).forbidden(errorMessage);

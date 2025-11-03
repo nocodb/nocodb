@@ -26342,7 +26342,7 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "enum": ["user", "group"],
+                        "enum": ["user", "team"],
                         "description": "Type of the subject"
                       },
                       "id": {

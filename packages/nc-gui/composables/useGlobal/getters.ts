@@ -16,7 +16,7 @@ export function useGlobalGetters(state: State): Getters {
 
   /** Verify that a user is signed in by checking if token exists and is not expired */
   const isSsoUser: Getters['isSsoUser'] = computed(
-    () => !!(!!state.token && state.jwtPayload.value && state.jwtPayload.extra?.sso_client_id),
+    () => !!(!!state.token && state.jwtPayload.value && (state.jwtPayload.value as any)?.sso_client_id),
   )
 
   /** global loading state */

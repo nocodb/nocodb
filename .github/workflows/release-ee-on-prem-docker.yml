@@ -125,7 +125,11 @@ jobs:
       - name: Set NocoDB version
         run: |
           # Generate date components
-          VERSION_PREFIX=$(date +%Y.%m)
+          if date -d "last month" +%Y.%m >/dev/null 2>&1; then
+            VERSION_PREFIX=$(date -d "last month" +%Y.%m)
+          else
+            VERSION_PREFIX=$(date -v-1m +%Y.%m)
+          fi
           # Use provided suffix
           SUFFIX="${{ inputs.versionSuffix }}"
           # Combine prefix and suffix to create final version

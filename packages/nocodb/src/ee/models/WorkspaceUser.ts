@@ -307,7 +307,7 @@ export default class WorkspaceUser {
           .whereNot('wt.roles', WorkspaceUserRoles.NO_ACCESS),
       );
 
-      // Workspace access through base membership
+      // Workspace access through base membership (direct base user)
       this.orWhereIn(
         `${MetaTable.WORKSPACE}.id`,
         ncMeta
@@ -326,6 +326,37 @@ export default class WorkspaceUser {
           })
           .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.NO_ACCESS)
           .whereNot(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.INHERIT),
+      );
+
+      // Workspace access through base-level team assignments
+      // If user has access to at least one base via team assignment, show the workspace
+      this.orWhereIn(
+        `${MetaTable.WORKSPACE}.id`,
+        ncMeta
+          .knex(MetaTable.PROJECT)
+          .select(`${MetaTable.PROJECT}.fk_workspace_id`)
+          .innerJoin(
+            `${MetaTable.PRINCIPAL_ASSIGNMENTS} as bt`,
+            'bt.resource_id',
+            `${MetaTable.PROJECT}.id`,
+          )
+          .innerJoin(
+            `${MetaTable.PRINCIPAL_ASSIGNMENTS} as ut`,
+            'ut.resource_id',
+            'bt.principal_ref_id',
+          )
+          .where('bt.resource_type', ResourceType.BASE)
+          .where('bt.principal_type', PrincipalType.TEAM)
+          .where('ut.principal_type', PrincipalType.USER)
+          .where('ut.resource_type', ResourceType.TEAM)
+          .where('ut.principal_ref_id', fk_user_id)
+          .where(function () {
+            this.where('bt.deleted', false).orWhereNull('bt.deleted');
+            this.where('ut.deleted', false).orWhereNull('ut.deleted');
+          })
+          .whereNotNull('bt.roles')
+          .whereNot('bt.roles', ProjectRoles.NO_ACCESS)
+          .whereNot('bt.roles', ProjectRoles.INHERIT),
       );
     });
 

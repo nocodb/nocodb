@@ -1,13 +1,20 @@
 <script lang="ts" setup>
 const route = useRoute()
 
-const { sharedBaseId } = useCopySharedBase()
+const { sharedBaseId, isUseThisTemplate, options } = useCopySharedBase()
 
 const { forcedProjectId } = storeToRefs(useBase())
 
 onMounted(() => {
+  isUseThisTemplate.value = false
+
+  options.value.includeData = true
+  options.value.includeViews = true
+
   sharedBaseId.value = route.query.base as string
+
   if (forcedProjectId?.value) forcedProjectId.value = undefined
+
   navigateTo(`/`)
 })
 </script>

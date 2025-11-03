@@ -815,8 +815,8 @@ export function useCanvasRender({
     let isIncludeFixed = false
     for (let i = startCol; i <= endCol; i++) {
       width += parseCellWidth(columns.value[i]?.width)
-      includeNonFixed = includeNonFixed || !columns.value[i]!.fixed
-      isIncludeFixed = isIncludeFixed || columns.value[i]!.fixed
+      includeNonFixed = includeNonFixed || !columns.value[i]?.fixed
+      isIncludeFixed = isIncludeFixed || !!columns.value[i]?.fixed
     }
     // add additional 1 px if the columns include both fixed and non-fixed columns
     return width + (includeNonFixed && isIncludeFixed ? 1 : 0)

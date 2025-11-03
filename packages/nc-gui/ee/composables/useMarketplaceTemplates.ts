@@ -10,6 +10,9 @@ import educationImg from '~/assets/img/marketplace/education.png'
 import manufacturingImg from '~/assets/img/marketplace/manufacturing.png'
 import realEstateImg from '~/assets/img/marketplace/realestate.png'
 import retailImg from '~/assets/img/marketplace/retail.png'
+import transportationImg from '~/assets/img/marketplace/transportation.png'
+import hospitalityImg from '~/assets/img/marketplace/hospitality.png'
+import entertainmentImg from '~/assets/img/marketplace/entertainment.png'
 
 export interface Template {
   'Id': number
@@ -204,7 +207,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
       title: t('objects.templates.finance-and-legal.title'),
       subtitle: t('objects.templates.finance-and-legal.subtitle'),
       group: TemplateCategoryGroup.Departments,
-      sidebarImg: projectManagementImg, // todo image update
+      sidebarImg: financeImg,
       value: TemplateUseCasesEnum['finance-and-legal'],
     },
     'hr-and-recruiting': {
@@ -213,7 +216,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
       title: t('objects.templates.hr-and-recruiting.title'),
       subtitle: t('objects.templates.hr-and-recruiting.subtitle'),
       group: TemplateCategoryGroup.Departments,
-      sidebarImg: projectManagementImg, // todo image update
+      sidebarImg: hrImg,
       value: TemplateUseCasesEnum['hr-and-recruiting'],
     },
     'product': {
@@ -296,7 +299,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
       title: t('objects.templates.transportation.title'),
       subtitle: t('objects.templates.transportation.subtitle'),
       group: TemplateCategoryGroup.Industries,
-      sidebarImg: retailImg, // todo image update
+      sidebarImg: transportationImg,
       value: TemplateIndustriesEnum.transportation,
     },
     'hospitality': {
@@ -305,7 +308,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
       title: t('objects.templates.hospitality.title'),
       subtitle: t('objects.templates.hospitality.subtitle'),
       group: TemplateCategoryGroup.Industries,
-      sidebarImg: retailImg, // todo image update
+      sidebarImg: hospitalityImg,
       value: TemplateIndustriesEnum.hospitality,
     },
     'entertainment': {
@@ -314,7 +317,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
       title: t('objects.templates.entertainment.title'),
       subtitle: t('objects.templates.entertainment.subtitle'),
       group: TemplateCategoryGroup.Industries,
-      sidebarImg: retailImg, // todo image update
+      sidebarImg: entertainmentImg,
       value: TemplateIndustriesEnum.entertainment,
     },
     'technology': {

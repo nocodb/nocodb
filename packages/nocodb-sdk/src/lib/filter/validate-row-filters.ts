@@ -42,7 +42,7 @@ export function validateRowFilters(params: {
     timezone?: string;
   };
 }) {
-  const { filters: _filters, data, columns, client, metas } = params;
+  const { filters: _filters, data = {}, columns, client, metas } = params;
   if (!_filters.length) {
     return true;
   }

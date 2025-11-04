@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk';
+import { AppEvents, PlanFeatureTypes, TeamUserRoles, ProjectRoles } from 'nocodb-sdk';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
@@ -18,6 +18,8 @@ import type {
   BaseTeamUpdateEvent,
 } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/ee/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { Base, PrincipalAssignment, Team, User } from '~/models';
@@ -26,6 +28,7 @@ import { validatePayload } from '~/helpers';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { getFeature } from '~/helpers/paymentHelpers';
 import { getProjectRolePower } from '~/utils/roleHelper';
+import Noco from '~/Noco';
 
 @Injectable()
 export class BaseTeamsV3Service {
@@ -34,6 +37,7 @@ export class BaseTeamsV3Service {
   constructor(
     private readonly appHooksService: AppHooksService,
     private readonly paymentService: PaymentService,
+    private readonly mailService: MailService,
   ) {}
 
   /**
@@ -276,6 +280,34 @@ export class BaseTeamsV3Service {
 
     // Recalculate seat count after adding team to base
     await this.paymentService.reseatSubscription(base.fk_workspace_id!);
+
+    // Notify team owners via email
+    const teamAssignments = await PrincipalAssignment.list(context, {
+      resource_type: ResourceType.TEAM,
+      resource_id: team.id,
+      principal_type: PrincipalType.USER,
+    });
+    const ownerAssignments = teamAssignments.filter(
+      (assignment) => assignment.roles === TeamUserRoles.OWNER,
+    );
+    for (const ownerAssignment of ownerAssignments) {
+      const owner = await User.get(ownerAssignment.principal_ref_id);
+      if (owner) {
+        await this.mailService.sendMail(
+          {
+            mailEvent: MailEvent.TEAM_ASSIGNED_TO_BASE,
+            payload: {
+              req: param.req,
+              owner,
+              team,
+              base,
+              baseRole: assignment.roles,
+            },
+          },
+          Noco.ncMeta,
+        );
+      }
+    }
 
     return response;
   }

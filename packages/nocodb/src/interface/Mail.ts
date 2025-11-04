@@ -26,6 +26,11 @@ enum MailEvent {
   WORKSPACE_INVITE = 'WORKSPACE_INVITE',
   WORKSPACE_ROLE_UPDATE = 'WORKSPACE_ROLE_UPDATE',
   WORKSPACE_REQUEST_UPGRADE = 'WORKSPACE_REQUEST_UPGRADE',
+  TEAM_MEMBER_INVITE = 'TEAM_MEMBER_INVITE',
+  TEAM_MEMBER_ROLE_UPDATE = 'TEAM_MEMBER_ROLE_UPDATE',
+  TEAM_MEMBER_REMOVED = 'TEAM_MEMBER_REMOVED',
+  TEAM_ASSIGNED_TO_WORKSPACE = 'TEAM_ASSIGNED_TO_WORKSPACE',
+  TEAM_ASSIGNED_TO_BASE = 'TEAM_ASSIGNED_TO_BASE',
 }
 
 interface CommentPayload {
@@ -127,8 +132,59 @@ type MailParams =
       payload: OrganizationRoleUpdatePayload;
     }
   | {
+      mailEvent: MailEvent.TEAM_MEMBER_INVITE;
+      payload: {
+        req: NcRequest;
+        user: UserType;
+        team: any;
+        workspace: any;
+        teamRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.TEAM_MEMBER_ROLE_UPDATE;
+      payload: {
+        req: NcRequest;
+        user: UserType;
+        team: any;
+        workspace: any;
+        oldTeamRole: string;
+        teamRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.TEAM_MEMBER_REMOVED;
+      payload: {
+        req: NcRequest;
+        user: UserType;
+        team: any;
+        workspace: any;
+        teamRole: string;
+      };
+    }
+  | {
       mailEvent: MailEvent.FORM_SUBMISSION;
       payload: FormSubmissionPayload;
+    }
+  | {
+      mailEvent: MailEvent.TEAM_ASSIGNED_TO_WORKSPACE;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        workspace: any;
+        workspaceRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.TEAM_ASSIGNED_TO_BASE;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        base: any;
+        baseRole: string;
+      };
     };
 
 interface RawMailParams {

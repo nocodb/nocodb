@@ -6,6 +6,11 @@ import OrganizationInvite from '~/services/mail/templates/org-invite';
 import OrganizationRoleUpdate from '~/services/mail/templates/org-role-update';
 import BaseRoleUpdate from '~/services/mail/templates/base-role-update';
 import FormSubmission from '~/services/mail/templates/form-submission';
+import TeamMemberInvite from '~/services/mail/templates/team-member-invite';
+import TeamMemberRoleUpdate from '~/services/mail/templates/team-member-role-update';
+import TeamMemberRemoved from '~/services/mail/templates/team-member-removed';
+import TeamAssignedToWorkspace from '~/services/mail/templates/team-assigned-workspace';
+import TeamAssignedToBase from '~/services/mail/templates/team-assigned-base';
 
 export {
   Welcome,
@@ -16,4 +21,9 @@ export {
   OrganizationInvite,
   OrganizationRoleUpdate,
   FormSubmission,
+  TeamMemberInvite,
+  TeamMemberRoleUpdate,
+  TeamMemberRemoved,
+  TeamAssignedToWorkspace,
+  TeamAssignedToBase,
 };

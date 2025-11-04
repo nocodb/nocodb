@@ -2628,7 +2628,13 @@
       "invalidSearchQueryForDisplayField": "Invalid search query for display field",
       "promptHasDeletedColumn": "Prompt has deleted column(s): {columns}",
       "errorOccuredWhileDroppingAttachments": "Error occured while dropping attachments",
-      "unableToLoadFeed": "Unable to load feed"
+      "unableToLoadFeed": "Unable to load feed",
+      "teamNameRequired": "Team name is required",
+      "teamNameExceedsCharacters": "Team name exceeds {value} characters",
+      "somethingWentWrongTryAgainLater": "Something went wrong, try again later",
+      "duplicateTeamName": "Duplicate team name",
+      "failedToDuplicateSharedBase": "Failed to duplicate shared base",
+      "failedToCopyTemplate": "Failed to copy template"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

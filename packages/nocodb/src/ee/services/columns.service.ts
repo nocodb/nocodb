@@ -269,11 +269,12 @@ export class ColumnsService extends ColumnsServiceCE {
         (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
         (param.column as LinkToAnotherColumnReqType).type === 'bt'
       ) {
+        const isBt = (param.column as LinkToAnotherColumnReqType).type === 'bt';
         await createHmAndBtColumn(
           context,
           param.req,
-          child,
-          parent,
+          isBt ? parent : child,
+          isBt ? child : parent,
           childColumn,
           childView,
           (param.column as LinkToAnotherColumnReqType).type as RelationTypes,

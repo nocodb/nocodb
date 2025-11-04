@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ProjectTypes, WorkspaceUserRoles } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -7,94 +7,23 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const { api } = useApi()
-
-const { sharedBaseId } = useCopySharedBase()
+const { duplicateSharedBase, isLoading, options, selectedWorkspace, isUseThisTemplate } = useCopySharedBase()
 
 const workspaceStore = useWorkspace()
 
-const { populateWorkspace } = workspaceStore
-
 const { workspacesList } = storeToRefs(workspaceStore)
 
-const { ncNavigateTo } = useGlobal()
-
 const dialogShow = useVModel(props, 'modelValue', emit)
-
-const options = ref({
-  includeData: true,
-  includeViews: true,
-})
-
-const optionsToExclude = computed(() => {
-  const { includeData, includeViews } = options.value
-  return {
-    excludeData: !includeData,
-    excludeViews: !includeViews,
-  }
-})
-
-const isLoading = ref(false)
-
-const selectedWorkspace = ref<string>()
-
-const { $e, $poller } = useNuxtApp()
 
 const _duplicate = async () => {
   if (!selectedWorkspace.value && isEeUI) return
 
-  try {
-    isLoading.value = true
-    const jobData = await api.base.duplicateShared(selectedWorkspace.value ?? 'nc', sharedBaseId.value, {
-      options: optionsToExclude.value,
-      base: isEeUI
-        ? {
-            fk_workspace_id: selectedWorkspace.value,
-            type: ProjectTypes.DATABASE,
-          }
-        : {},
-    })
-
-    sharedBaseId.value = null
-
-    $poller.subscribe(
-      { id: jobData.id },
-      async (data: {
-        id: string
-        status?: string
-        data?: {
-          error?: {
-            message: string
-          }
-          message?: string
-          result?: any
-        }
-      }) => {
-        if (data.status !== 'close') {
-          if (data.status === JobStatus.COMPLETED) {
-            console.log('job completed', jobData)
-            ncNavigateTo({
-              ...(isEeUI ? { workspaceId: jobData.fk_workspace_id } : {}),
-              baseId: jobData.base_id,
-            })
-            isLoading.value = false
-            dialogShow.value = false
-          } else if (data.status === JobStatus.FAILED) {
-            message.error('Failed to duplicate shared base')
-            await populateWorkspace()
-            isLoading.value = false
-            dialogShow.value = false
-          }
-        }
-      },
-    )
-
-    $e('a:base:duplicate-shared-base')
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-    isLoading.value = false
-    dialogShow.value = false
-  }
+  await duplicateSharedBase({
+    workspaceId: selectedWorkspace.value ?? 'nc',
+    onComplete: () => {
+      dialogShow.value = false
+    },
+  })
 }
 
 const filteredWorkspaces = computed(() => {
@@ -107,9 +36,21 @@ const filteredWorkspaces = computed(() => {
 <template>
   <GeneralModal v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-project-duplicate">
     <div>
-      <div class="prose-xl font-bold self-center">{{ $t('general.duplicate') }} {{ $t('labels.sharedBase') }}</div>
+      <div class="prose-xl font-bold self-center">
+        <template v-if="isUseThisTemplate">
+          {{ $t('labels.useThisTemplate') }}
+        </template>
+        <template v-else> {{ $t('general.duplicate') }} {{ $t('labels.sharedBase') }} </template>
+      </div>
+
       <template v-if="isEeUI">
-        <div class="my-4">Select workspace to duplicate shared base to:</div>
+        <div class="my-4">
+          {{
+            isUseThisTemplate
+              ? $t('labels.selectWorkspaceToUseThisTemplateTo')
+              : $t('labels.selectWorkspaceToDuplicateSharedBaseTo')
+          }}
+        </div>
 
         <NcSelect v-model:value="selectedWorkspace" class="w-full" :options="filteredWorkspaces" placeholder="Select Workspace" />
       </template>

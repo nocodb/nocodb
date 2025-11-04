@@ -99,6 +99,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
 
+  const isMarketplacePageOpened = computed(() => (route.value.name as string)?.startsWith('index-typeOrId-marketplace'))
+
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
@@ -601,6 +603,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       })
     } else {
       router.push({ name: 'index-typeOrId-feed', params: { typeOrId: workspaceId }, query })
+    }
+  }
+
+  const navigateToMarketplace = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
+    workspaceId = workspaceId || activeWorkspaceId.value!
+
+    if (cmdOrCtrl) {
+      await navigateTo(router.resolve({ name: 'index-typeOrId-marketplace', params: { typeOrId: workspaceId }, query }).href, {
+        open: navigateToBlankTargetOpenOption,
+      })
+    } else {
+      router.push({ name: 'index-typeOrId-marketplace-index', params: { typeOrId: workspaceId }, query })
     }
   }
 
@@ -1157,6 +1171,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isIntegrationsPageOpened,
     navigateToIntegrations,
     navigateToFeed,
+    navigateToMarketplace,
+    isMarketplacePageOpened,
     isFeedPageOpened,
     deletingWorkspace,
     ssoLoginRequiredDlg,

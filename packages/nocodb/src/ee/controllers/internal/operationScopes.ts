@@ -68,4 +68,8 @@ export const OPERATION_SCOPES = {
 
   // User Profile
   getUserProfile: 'org',
+
+  // Templates
+  templates: 'ncSkipAcl',
+  template: 'ncSkipAcl',
 } as const;

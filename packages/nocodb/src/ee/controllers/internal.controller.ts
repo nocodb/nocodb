@@ -45,6 +45,7 @@ import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
 import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
+import { UtilsService } from '~/services/utils.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -67,6 +68,7 @@ export class InternalController extends InternalControllerCE {
     protected readonly viewSettingsOverrideService: ViewSettingsOverrideService,
     protected readonly oAuthClientService: OauthClientService,
     protected readonly oAuthTokenService: OauthTokenService,
+    private readonly utilsService: UtilsService,
     private readonly teamsV3Service: TeamsV3Service,
     private readonly usersService: UsersService,
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
@@ -76,6 +78,9 @@ export class InternalController extends InternalControllerCE {
   }
 
   protected async checkAcl(operation: string, req, scope?: string) {
+    if (scope === 'ncSkipAcl') {
+      return;
+    }
     await this.aclMiddleware.aclFn(
       operation,
       {
@@ -197,6 +202,12 @@ export class InternalController extends InternalControllerCE {
         return await this.usersService.getUserProfile(context, {
           req,
         });
+      case 'templates': {
+        return await this.utilsService.templates(req);
+      }
+      case 'template': {
+        return await this.utilsService.template(req);
+      }
       default:
         return await super.internalAPI(
           context,

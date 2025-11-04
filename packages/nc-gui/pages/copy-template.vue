@@ -6,7 +6,7 @@ const { sharedBaseId, isUseThisTemplate, options } = useCopySharedBase()
 const { forcedProjectId } = storeToRefs(useBase())
 
 onMounted(() => {
-  isUseThisTemplate.value = false
+  isUseThisTemplate.value = true
 
   options.value.includeData = true
   options.value.includeViews = true

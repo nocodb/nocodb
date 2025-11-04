@@ -11,10 +11,19 @@ const { meta: metaKey, control } = useMagicKeys()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened, isWorkspacesLoading } =
-  storeToRefs(workspaceStore)
+const {
+  activeWorkspaceId,
+  isWorkspaceSettingsPageOpened,
+  isIntegrationsPageOpened,
+  isWorkspacesLoading,
+  isMarketplacePageOpened,
+} = storeToRefs(workspaceStore)
 
-const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrations } = workspaceStore
+const {
+  navigateToWorkspaceSettings,
+  navigateToIntegrations: _navigateToIntegrations,
+  navigateToMarketplace: _navigateToMarketplace,
+} = workspaceStore
 
 const { basesList, showProjectList } = storeToRefs(useBases())
 
@@ -25,6 +34,8 @@ const { isUIAllowed } = useRoles()
 const { setActiveCmdView } = useCommand()
 
 const { isChatWootEnabled } = useProvideChatwoot()
+
+const { isTemplatesFeatureEnabled } = useMarketplaceTemplates()
 
 const isProjectListOrHomePageOpen = computed(() => {
   return (
@@ -63,6 +74,12 @@ const navigateToSettings = () => {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   navigateToWorkspaceSettings('', cmdOrCtrl)
+}
+
+const navigateToMarketplace = () => {
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  _navigateToMarketplace('', cmdOrCtrl)
 }
 
 const navigateToIntegrations = () => {
@@ -246,10 +263,29 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
-
       <div v-if="!isMobileMode" class="px-2 w-full">
         <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
       </div>
+      <DashboardMiniSidebarItemWrapper v-if="isTemplatesFeatureEnabled">
+        <NcTooltip :title="$t('general.marketplace')" placement="right" hide-on-click :arrow="false">
+          <div
+            v-e="['c:marketplace']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-marketplace-btn"
+            @click="navigateToMarketplace"
+          >
+            <div
+              class="nc-mini-sidebar-btn"
+              :class="{
+                active: isMarketplacePageOpened,
+              }"
+            >
+              <GeneralIcon icon="globe" class="h-4 w-4" />
+            </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+
       <DashboardMiniSidebarItemWrapper>
         <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
           <NotificationMenu />

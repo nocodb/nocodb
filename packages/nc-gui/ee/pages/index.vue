@@ -17,6 +17,8 @@ const { populateWorkspace } = workspaceStore
 const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading } =
   storeToRefs(workspaceStore)
 
+const { isDuplicateDlgOpen } = useCopySharedBase()
+
 const { isSharedBase, isSharedErd } = storeToRefs(useBase())
 
 const basesStore = useBases()
@@ -132,9 +134,11 @@ const isSharedFormView = computed(() => {
 
 const { sharedBaseId } = useCopySharedBase()
 
-const isDuplicateDlgOpen = ref(false)
-
 onMounted(async () => {
+  if (isDuplicateDlgOpen.value) {
+    isDuplicateDlgOpen.value = false
+  }
+
   if (route.value.meta.public) return
 
   toggle(true)

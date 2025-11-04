@@ -693,6 +693,37 @@
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
       "copyFromAView": "Copy from a view"
+    },
+    "teams": {
+      "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
+      "confirmLeaveTeamSubtitle": "You may lose access to bases unless you were explicitly invited or have a role at the workspace level.",
+      "confirmDeleteTeamTitle": "Are you sure you want to delete this team?",
+      "confirmDeleteTeamSubtitle": "Members may still have access to bases if they were explicitly invited or hold a role at the workspace level.",
+      "soleTeamOwnerTooltip": "You’re the sole owner of this team. Transfer ownership to another member before leaving.",
+      "thisIsTheOnlyTeamOwnerTooltip": "This is the only owner of this team. Transfer ownership to another member before removing it.",
+      "thisTeamHasOnlyOneOwnerTooltip": "This team has only one owner. Transfer ownership to another member before removing it.",
+      "removeFromTeamRestrictionTooltip": "You can’t remove all owners. Deselect at least one owner to proceed.",
+      "teamOwner": "Team owner",
+      "removeMemberFromTeam": "Remove member from team",
+      "removeMemberFromTeamPlural": "Remove members from team",
+      "addMembersToTeam": "Add members to Team",
+      "selectMembersToAddIntoTeam": "Select members to add into the {team} Team",
+      "alreadyPartOfTeam": "Already part of the team",
+      "nMembersHaveBeenAddedIntoTeam": "{n} members added to {team} team",
+      "nMemberHaveBeenAddedIntoTeam": "{n} member added to {team} team",
+      "unableToAddMembers": "Unable to add members",
+      "removeTeam": "Remove team",
+      "confirmRemoveTeamFromWorkspaceTitle": "Are you sure you want to remove team from workspace?",
+      "confirmRemoveTeamFromWorkspaceSubtitle": "If you remove, team members will lose access to all bases and data within this workspace",
+      "nMemberSelected": "{n} member selected",
+      "nMembersSelected": "{n} members selected",
+      "noMoreTeamsToAdd": "No more teams to add"
+    },
+    "templates": {
+      "noTemplatesFound": "No templates found",
+      "tryCheckingBackLaterForNewTemplates": "Try checking back later for new templates",
+      "tryAdjustingYourSearchOrFilters": "Try adjusting your search or filters",
+      "loadingMoreTemplates": "Loading more templates"
     }
   },
   "datatype": {

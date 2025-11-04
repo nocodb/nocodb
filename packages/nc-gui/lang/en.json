@@ -451,7 +451,8 @@
     "selected": "selected",
     "notice": "Notice",
     "teams": "Teams",
-    "structure": "Structure"
+    "structure": "Structure",
+    "retry": "Retry"
   },
   "objects": {
     "script": "Script",

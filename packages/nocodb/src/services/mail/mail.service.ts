@@ -298,7 +298,10 @@ export class MailService {
             html: await this.renderMail('TeamAssignedToWorkspace', {
               teamTitle: team.title,
               workspaceTitle: workspace.title,
-              inviterName: extractDisplayNameFromEmail(inviter.email, inviter.display_name),
+              inviterName: extractDisplayNameFromEmail(
+                inviter.email,
+                inviter.display_name,
+              ),
               inviterEmail: inviter.email,
               roleLabel: RoleLabels[workspaceRole] || workspaceRole,
               link: this.buildUrl(req, { workspaceId: workspace.id }),
@@ -315,10 +318,16 @@ export class MailService {
             html: await this.renderMail('TeamAssignedToBase', {
               teamTitle: team.title,
               baseTitle: base.title,
-              inviterName: extractDisplayNameFromEmail(inviter.email, inviter.display_name),
+              inviterName: extractDisplayNameFromEmail(
+                inviter.email,
+                inviter.display_name,
+              ),
               inviterEmail: inviter.email,
               roleLabel: RoleLabels[baseRole] || baseRole,
-              link: this.buildUrl(req, { workspaceId: base.fk_workspace_id, baseId: base.id }),
+              link: this.buildUrl(req, {
+                workspaceId: base.fk_workspace_id,
+                baseId: base.id,
+              }),
             }),
           });
           break;
@@ -332,7 +341,10 @@ export class MailService {
             html: await this.renderMail('TeamMemberInvite', {
               teamTitle: team.title,
               workspaceTitle: workspace?.title,
-              inviterName: extractDisplayNameFromEmail(inviter.email, inviter.display_name),
+              inviterName: extractDisplayNameFromEmail(
+                inviter.email,
+                inviter.display_name,
+              ),
               inviterEmail: inviter.email,
               roleLabel: RoleLabels[teamRole] || teamRole,
               link: this.buildUrl(req, { workspaceId: workspace?.id }),
@@ -341,7 +353,8 @@ export class MailService {
           break;
         }
         case MailEvent.TEAM_MEMBER_ROLE_UPDATE: {
-          const { req, user, team, workspace, oldTeamRole, teamRole } = payload as any;
+          const { req, user, team, workspace, oldTeamRole, teamRole } =
+            payload as any;
           const updater = req.user;
           await mailerAdapter.mailSend({
             to: user.email,
@@ -349,7 +362,10 @@ export class MailService {
             html: await this.renderMail('TeamMemberRoleUpdate', {
               teamTitle: team.title,
               workspaceTitle: workspace?.title,
-              updaterName: extractDisplayNameFromEmail(updater.email, updater.display_name),
+              updaterName: extractDisplayNameFromEmail(
+                updater.email,
+                updater.display_name,
+              ),
               updaterEmail: updater.email,
               oldRoleLabel: RoleLabels[oldTeamRole] || oldTeamRole,
               newRoleLabel: RoleLabels[teamRole] || teamRole,
@@ -367,7 +383,10 @@ export class MailService {
             html: await this.renderMail('TeamMemberRemoved', {
               teamTitle: team.title,
               workspaceTitle: workspace?.title,
-              removerName: extractDisplayNameFromEmail(remover.email, remover.display_name),
+              removerName: extractDisplayNameFromEmail(
+                remover.email,
+                remover.display_name,
+              ),
               removerEmail: remover.email,
               roleLabel: RoleLabels[teamRole] || teamRole,
               link: this.buildUrl(req, { workspaceId: workspace?.id }),

@@ -227,6 +227,10 @@ export enum CacheScope {
   PERMISSION_USER = 'permissionUser',
   DASHBOARD = 'dashboard',
   WIDGET = 'widget',
+  OAUTH_CLIENT = 'oAuthClient',
+  OAUTH_AUTH_CODE = 'oAuthAuthCode',
+  OAUTH_TOKEN = 'oAuthToken',
+  TEMPLATES = 'templates',
 }
 
 export enum CacheGetType {

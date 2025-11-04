@@ -408,10 +408,10 @@ export const OrderedOrgRoles = [
 export const OrderedProjectRoles = [
   ProjectRoles.OWNER,
   ProjectRoles.CREATOR,
+  ProjectRoles.INHERIT,
   ProjectRoles.EDITOR,
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
-  ProjectRoles.INHERIT,
   ProjectRoles.NO_ACCESS,
 ];
 

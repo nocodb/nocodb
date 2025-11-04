@@ -272,6 +272,9 @@ onMounted(async () => {
     } else if (currentRoleIndex !== -1) {
       accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
     }
+
+    moveInheritRole()
+
     loadSorts()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -283,7 +286,17 @@ onMounted(async () => {
 watch(baseRoles, (br) => {
   const currentRoleIndex = OrderedProjectRoles.findIndex((role) => br && Object.keys(br).includes(role))
   accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
+
+  moveInheritRole()
 })
+
+function moveInheritRole() {
+  // move INHERIT role to the end of the list
+  const inheritIndex = accessibleRoles.value.indexOf(ProjectRoles.INHERIT)
+  if (inheritIndex !== -1) {
+    accessibleRoles.value.push(...accessibleRoles.value.splice(inheritIndex, 1))
+  }
+}
 
 const selected = reactive<{
   [key: string]: boolean

@@ -2693,7 +2693,8 @@
       "somethingWentWrongTryAgainLater": "Something went wrong, try again later",
       "duplicateTeamName": "Duplicate team name",
       "failedToDuplicateSharedBase": "Failed to duplicate shared base",
-      "failedToCopyTemplate": "Failed to copy template"
+      "failedToCopyTemplate": "Failed to copy template",
+      "failedToLoadTemplateDetails": "Failed to load template details"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

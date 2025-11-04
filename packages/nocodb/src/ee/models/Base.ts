@@ -830,12 +830,11 @@ export default class Base extends BaseCE {
             })
               .whereNull('base_team_assignment.resource_id')
               .where(function () {
-                this.whereNull(`${MetaTable.WORKSPACE_USER}.roles`)
-                  .orWhere(
-                    `${MetaTable.WORKSPACE_USER}.roles`,
-                    '=',
-                    WorkspaceUserRoles.INHERIT,
-                  );
+                this.whereNull(`${MetaTable.WORKSPACE_USER}.roles`).orWhere(
+                  `${MetaTable.WORKSPACE_USER}.roles`,
+                  '=',
+                  WorkspaceUserRoles.INHERIT,
+                );
               })
               .whereNotNull('workspace_team_assignment.resource_id')
               .whereNotNull('workspace_team_assignment.roles')
@@ -916,12 +915,11 @@ export default class Base extends BaseCE {
             })
               .whereNull('base_team_assignment.resource_id')
               .where(function () {
-                this.whereNull(`${MetaTable.WORKSPACE_USER}.roles`)
-                  .orWhere(
-                    `${MetaTable.WORKSPACE_USER}.roles`,
-                    '=',
-                    WorkspaceUserRoles.INHERIT,
-                  );
+                this.whereNull(`${MetaTable.WORKSPACE_USER}.roles`).orWhere(
+                  `${MetaTable.WORKSPACE_USER}.roles`,
+                  '=',
+                  WorkspaceUserRoles.INHERIT,
+                );
               })
               .whereNotNull('workspace_team_assignment.resource_id')
               .whereNotNull('workspace_team_assignment.roles')

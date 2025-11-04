@@ -107,7 +107,11 @@ async function listBaseUsers(
     .select(
       'wu.*',
       ncMeta.knexConnection.raw(`CASE
-        WHEN "bu"."roles" IS NOT NULL AND "bu"."roles" != '${WorkspaceUserRoles.INHERIT}' AND "bu"."roles" != '${ProjectRoles.INHERIT}' AND "bu"."roles" != 'inherit' THEN "bu"."roles"
+        WHEN "bu"."roles" IS NOT NULL AND "bu"."roles" != '${
+          WorkspaceUserRoles.INHERIT
+        }' AND "bu"."roles" != '${
+        ProjectRoles.INHERIT
+      }' AND "bu"."roles" != 'inherit' THEN "bu"."roles"
         ${Object.values(WorkspaceUserRoles)
           .filter((value) => value !== WorkspaceUserRoles.INHERIT)
           .map(

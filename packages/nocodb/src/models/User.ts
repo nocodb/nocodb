@@ -374,7 +374,7 @@ export default class User implements UserType {
             if (roles) {
               // If role is INHERIT (can be 'inherit' string), treat it as null to fall back to workspace roles
               // Since INHERIT at base level means inherit from workspace level
-              if (roles === ProjectRoles.INHERIT || roles === 'inherit') {
+              if (roles === ProjectRoles.INHERIT) {
                 resolve(null);
               } else {
                 resolve(extractRolesObj(roles));

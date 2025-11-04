@@ -296,7 +296,7 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
       await resetWorkspaceDbServer(workspace.id);
     }
 
-    const res = await ncMeta.metaUpdate(
+    await ncMeta.metaUpdate(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.WORKSPACE,

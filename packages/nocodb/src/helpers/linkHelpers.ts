@@ -37,6 +37,17 @@ export const getCustomLinkParam = async (
       ref_model_id: mapId(colOptions.fk_related_model_id),
       ref_column_id: mapId(colOptions.fk_parent_column_id),
     };
+  } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+    return {
+      base_id: context.base_id,
+      column_id: mapId(colOptions.fk_child_column_id),
+      junc_base_id: mapId(colOptions.fk_mm_base_id) ?? context.base_id,
+      junc_model_id: mapId(colOptions.fk_mm_model_id),
+      junc_column_id: mapId(colOptions.fk_mm_child_column_id),
+      junc_ref_column_id: mapId(colOptions.fk_mm_parent_column_id),
+      ref_model_id: mapId(colOptions.fk_related_model_id),
+      ref_column_id: mapId(colOptions.fk_parent_column_id),
+    };
   }
 
   return;

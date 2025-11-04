@@ -6,6 +6,7 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
+  parseProp,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -369,7 +370,19 @@ export class DuplicateProcessor {
       const relatedModelIds = sourceModel.columns
         .filter((col) => isLinksOrLTAR(col))
         .map((col) => col.colOptions.fk_related_model_id)
-        .filter((id) => id);
+        .filter((id) => id)
+        .concat(
+          // concat with mm models where it's custom
+          sourceModel.columns
+            .filter(
+              (col) =>
+                isLinksOrLTAR(col) &&
+                col.colOptions.type === 'mm' &&
+                parseProp(col.meta).custom,
+            )
+            .map((col) => col.colOptions.fk_mm_model_id)
+            .filter((id) => id),
+        );
 
       const relatedModels = models.filter((m) =>
         relatedModelIds.includes(m.id),

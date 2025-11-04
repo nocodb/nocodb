@@ -737,6 +737,20 @@ export class ImportService {
                           colOptions.fk_target_view_id &&
                           getIdOrExternalId(colOptions.fk_target_view_id),
                       },
+                      ...(parseProp(col.meta).custom
+                        ? {
+                            custom: await getCustomLinkParam(
+                              targetContext,
+                              {
+                                col: withoutId(col),
+                                colOptions,
+                                mapId: getIdOrExternalId,
+                              },
+                              ncMeta,
+                            ),
+                            is_custom_link: true,
+                          }
+                        : {}),
                     }) as any,
                     req: param.req,
                     user: param.user,

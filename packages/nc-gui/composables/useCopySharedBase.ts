@@ -7,6 +7,10 @@ export const useCopySharedBase = createSharedComposable(() => {
 
   const sharedBaseId = ref<string | null>(null)
 
+  const isDuplicateDlgOpen = ref(false)
+
+  const selectedWorkspace = ref<string>()
+
   const isUseThisTemplate = ref(false)
 
   const isLoading = ref(false)
@@ -110,5 +114,7 @@ export const useCopySharedBase = createSharedComposable(() => {
     options,
     optionsToExclude,
     duplicateSharedBase,
+    isDuplicateDlgOpen,
+    selectedWorkspace,
   }
 })

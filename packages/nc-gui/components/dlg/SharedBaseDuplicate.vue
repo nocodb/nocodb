@@ -7,15 +7,13 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const { duplicateSharedBase, isLoading, options } = useCopySharedBase()
+const { duplicateSharedBase, isLoading, options, selectedWorkspace, isUseThisTemplate } = useCopySharedBase()
 
 const workspaceStore = useWorkspace()
 
 const { workspacesList } = storeToRefs(workspaceStore)
 
 const dialogShow = useVModel(props, 'modelValue', emit)
-
-const selectedWorkspace = ref<string>()
 
 const _duplicate = async () => {
   if (!selectedWorkspace.value && isEeUI) return
@@ -38,9 +36,21 @@ const filteredWorkspaces = computed(() => {
 <template>
   <GeneralModal v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-project-duplicate">
     <div>
-      <div class="prose-xl font-bold self-center">{{ $t('general.duplicate') }} {{ $t('labels.sharedBase') }}</div>
+      <div class="prose-xl font-bold self-center">
+        <template v-if="isUseThisTemplate">
+          {{ $t('labels.useThisTemplate') }}
+        </template>
+        <template v-else> {{ $t('general.duplicate') }} {{ $t('labels.sharedBase') }} </template>
+      </div>
+
       <template v-if="isEeUI">
-        <div class="my-4">Select workspace to duplicate shared base to:</div>
+        <div class="my-4">
+          {{
+            isUseThisTemplate
+              ? $t('labels.selectWorkspaceToUseThisTemplateTo')
+              : $t('labels.selectWorkspaceToDuplicateSharedBaseTo')
+          }}
+        </div>
 
         <NcSelect v-model:value="selectedWorkspace" class="w-full" :options="filteredWorkspaces" placeholder="Select Workspace" />
       </template>

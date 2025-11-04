@@ -23,7 +23,14 @@ const typeOrId = computed(() => route.params.typeOrId)
 
 const { categoryInfo, activeCategory, getTemplateById, currentCategoryInfo } = useMarketplaceTemplates('all-templates')
 
-const { sharedBaseId, duplicateSharedBase, isLoading: isCopyingTemplate, options, isUseThisTemplate } = useCopySharedBase()
+const {
+  sharedBaseId,
+  isLoading: isCopyingTemplate,
+  options,
+  isUseThisTemplate,
+  isDuplicateDlgOpen,
+  selectedWorkspace,
+} = useCopySharedBase()
 
 const templateKey = computed(() => `template:${workspaceId.value}:${templateId.value}`)
 
@@ -167,17 +174,23 @@ const onUseThisTemplate = () => {
 
   const hashPath = new URL(templateSharedBaseUrl.value as string).hash.replace(/^#/, '') // "/base/123"
 
-  if (!hashPath) return
+  if (!hashPath) {
+    message.error('Invalid template shared base url')
+    return
+  }
 
   const resolvedRoute = router.resolve(hashPath)
 
-  if (!resolvedRoute?.params?.baseId) return
+  if (!resolvedRoute?.params?.baseId) {
+    message.error('Invalid template shared base url')
+    return
+  }
 
   sharedBaseId.value = resolvedRoute.params.baseId as string
 
-  duplicateSharedBase({
-    workspaceId: workspaceId.value!,
-  })
+  selectedWorkspace.value = workspaceId.value!
+
+  isDuplicateDlgOpen.value = true
 }
 </script>
 

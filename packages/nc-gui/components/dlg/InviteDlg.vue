@@ -119,8 +119,7 @@ watch(dialogShow, async (newVal) => {
           currentRoleIndex = 1
         }
 
-        // Filter out INHERIT role for teams (workspace or base teams)
-        let filteredRoles = rolesAr
+        let filteredRoles = rolesArr
 
         // If teams are not enabled, filter out INHERIT role as well
         // todo: remove this check once teams are enabled by default

@@ -21,6 +21,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isOrderCol,
+  isSelfLinkCol,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
@@ -2872,7 +2873,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (
           col.system &&
           !allowSystemColumn &&
-          [UITypes.ForeignKey].includes(col.uidt)
+          !isSelfLinkCol(col) &&
+          ([UITypes.ForeignKey].includes(col.uidt) ||
+            (col.uidt !== UITypes.Order && !params.undo))
         ) {
           NcError.get(this.context).badRequest(
             `Column "${col.title}" is system column and cannot be updated`,
@@ -2882,17 +2885,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (!allowSystemColumn && col.readonly) {
           NcError.get(this.context).badRequest(
             `Column "${col.title}" is readonly column and cannot be updated`,
-          );
-        }
-
-        if (
-          col.system &&
-          !allowSystemColumn &&
-          col.uidt !== UITypes.Order &&
-          !params.undo
-        ) {
-          NcError.get(this.context).badRequest(
-            `Column "${col.title}" is system column and cannot be updated`,
           );
         }
       }
@@ -4179,7 +4171,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (
           !allowSystemColumn &&
           column.system &&
-          ![UITypes.ForeignKey, UITypes.Order].includes(column.uidt)
+          !isSelfLinkCol(column) &&
+          column.uidt !== UITypes.Order
         ) {
           NcError.get(this.context).badRequest(
             `Column "${column.title}" is system column and cannot be updated`,

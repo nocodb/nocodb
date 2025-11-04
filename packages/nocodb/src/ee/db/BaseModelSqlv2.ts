@@ -10,6 +10,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isOrderCol,
+  isSelfLinkCol,
   isSystemColumn,
   isVirtualCol,
   NcErrorType,
@@ -1623,7 +1624,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               if (
                 col.system &&
                 !allowSystemColumn &&
-                UITypes.ForeignKey === col.uidt
+                !isSelfLinkCol(col) &&
+                ([UITypes.ForeignKey].includes(col.uidt) ||
+                  (col.uidt !== UITypes.Order && !undo))
               ) {
                 NcError.get(this.context).badRequest(
                   `Column "${col.title}" is system column and cannot be updated`,
@@ -1633,17 +1636,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               if (!allowSystemColumn && col.readonly) {
                 NcError.get(this.context).badRequest(
                   `Column "${col.title}" is readonly column and cannot be updated`,
-                );
-              }
-
-              if (
-                col.system &&
-                !allowSystemColumn &&
-                col.uidt !== UITypes.Order &&
-                !undo
-              ) {
-                NcError.get(this.context).badRequest(
-                  `Column "${col.title}" is system column and cannot be updated`,
                 );
               }
             }

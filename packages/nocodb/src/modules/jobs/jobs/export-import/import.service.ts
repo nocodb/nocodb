@@ -5,6 +5,8 @@ import {
   isLinksOrLTAR,
   isVirtualCol,
   NcApiVersion,
+  NcBaseError,
+  parseProp,
   RelationTypes,
   SqlUiFactory,
   UITypes,
@@ -19,6 +21,7 @@ import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { CalendarView, LinksColumn, User } from '~/models';
+import { getCustomLinkParam } from '~/helpers/linkHelpers';
 import { validateImportSchema } from '~/utils/modelUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
@@ -847,7 +850,7 @@ export class ImportService {
                 delete col.column_name;
 
                 const freshModelData = (await this.columnsService.columnAdd(
-                  context,
+                  targetContext,
                   {
                     tableId: table.id,
                     column: withoutId({
@@ -867,6 +870,20 @@ export class ImportService {
                           colOptions.fk_target_view_id &&
                           getIdOrExternalId(colOptions.fk_target_view_id),
                       },
+                      ...(parseProp(col.meta).custom
+                        ? {
+                            custom: await getCustomLinkParam(
+                              targetContext,
+                              {
+                                col: withoutId(col),
+                                colOptions,
+                                mapId: getIdOrExternalId,
+                              },
+                              ncMeta,
+                            ),
+                            is_custom_link: true,
+                          }
+                        : {}),
                     }) as any,
                     req: param.req,
                     user: param.user,
@@ -1053,6 +1070,20 @@ export class ImportService {
                           colOptions.fk_target_view_id &&
                           getIdOrExternalId(colOptions.fk_target_view_id),
                       },
+                      ...(parseProp(col.meta).custom
+                        ? {
+                            custom: await getCustomLinkParam(
+                              targetContext,
+                              {
+                                col: withoutId(col),
+                                colOptions,
+                                mapId: getIdOrExternalId,
+                              },
+                              ncMeta,
+                            ),
+                            is_custom_link: true,
+                          }
+                        : {}),
                     }) as any,
                     req: param.req,
                     user: param.user,

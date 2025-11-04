@@ -253,7 +253,15 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
     (role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role),
   )
   if (currentRoleIndex === -1) return []
-  return OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
+  const roles = OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
+
+  // move INHERIT role to the end of the list
+  const inheritIndex = roles.indexOf(WorkspaceUserRoles.INHERIT)
+  if (inheritIndex !== -1) {
+    roles.push(...roles.splice(inheritIndex, 1))
+  }
+
+  return roles
 })
 
 const getTeamCompatibleAccessibleRoles = (roles: WorkspaceUserRoles[], record: any) => {

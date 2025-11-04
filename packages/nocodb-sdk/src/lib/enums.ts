@@ -16,8 +16,8 @@ export enum ProjectRoles {
   EDITOR = 'editor',
   COMMENTER = 'commenter',
   VIEWER = 'viewer',
-  INHERIT = 'inherit',
   NO_ACCESS = 'no-access',
+  INHERIT = 'inherit',
 }
 
 export enum WorkspaceUserRoles {
@@ -26,8 +26,8 @@ export enum WorkspaceUserRoles {
   EDITOR = 'workspace-level-editor',
   COMMENTER = 'workspace-level-commenter',
   VIEWER = 'workspace-level-viewer',
-  INHERIT = 'workspace-level-inherit',
   NO_ACCESS = 'workspace-level-no-access',
+  INHERIT = 'workspace-level-inherit',
 }
 
 export enum TeamUserRoles {

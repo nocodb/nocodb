@@ -1621,16 +1621,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 );
               }
 
-              if (
-                col.system &&
-                !allowSystemColumn &&
-                !isSelfLinkCol(col) &&
-                ([UITypes.ForeignKey].includes(col.uidt) ||
-                  (col.uidt !== UITypes.Order && !undo))
-              ) {
-                NcError.get(this.context).badRequest(
-                  `Column "${col.title}" is system column and cannot be updated`,
-                );
+              if (col.system && !allowSystemColumn) {
+                let shouldThrow = true;
+
+                // allow updating order column during undo operation
+                if (col.uidt === UITypes.Order && undo) {
+                  shouldThrow = false;
+                }
+                // allow updating self link column (system counter part)
+                else if (isSelfLinkCol(col)) {
+                  shouldThrow = false;
+                }
+
+                if (shouldThrow) {
+                  NcError.get(this.context).badRequest(
+                    `Column "${col.title}" is system column and cannot be updated`,
+                  );
+                }
               }
 
               if (!allowSystemColumn && col.readonly) {

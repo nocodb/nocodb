@@ -2870,16 +2870,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
         }
 
-        if (
-          col.system &&
-          !allowSystemColumn &&
-          !isSelfLinkCol(col) &&
-          ([UITypes.ForeignKey].includes(col.uidt) ||
-            (col.uidt !== UITypes.Order && !params.undo))
-        ) {
-          NcError.get(this.context).badRequest(
-            `Column "${col.title}" is system column and cannot be updated`,
-          );
+        if (col.system && !allowSystemColumn) {
+          let shouldThrow = true;
+
+          // allow updating order column during undo operation
+          if (col.uidt === UITypes.Order && params.undo) {
+            shouldThrow = false;
+          }
+          // allow updating self link column (system counter part)
+          else if (isSelfLinkCol(col)) {
+            shouldThrow = false;
+          }
+
+          if (shouldThrow) {
+            NcError.get(this.context).badRequest(
+              `Column "${col.title}" is system column and cannot be updated`,
+            );
+          }
         }
 
         if (!allowSystemColumn && col.readonly) {
@@ -4168,15 +4175,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
         }
 
-        if (
-          !allowSystemColumn &&
-          column.system &&
-          !isSelfLinkCol(column) &&
-          column.uidt !== UITypes.Order
-        ) {
-          NcError.get(this.context).badRequest(
-            `Column "${column.title}" is system column and cannot be updated`,
-          );
+        if (column.system && !allowSystemColumn) {
+          let shouldThrow = true;
+
+          // allow updating order column (required for undo/redo operations)
+          // TODO: add undo flag here
+          if (column.uidt === UITypes.Order) {
+            shouldThrow = false;
+          }
+          // allow updating self link column (system counter part)
+          else if (isSelfLinkCol(column)) {
+            shouldThrow = false;
+          }
+
+          if (shouldThrow) {
+            NcError.get(this.context).badRequest(
+              `Column "${column.title}" is system column and cannot be updated`,
+            );
+          }
         }
 
         if (!allowSystemColumn && column.readonly) {

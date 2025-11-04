@@ -165,6 +165,34 @@ const FEATURES = [
     version: 3,
     isEE: true,
   },
+  {
+    id: 'teams',
+    title: 'Teams',
+    description: 'Teams are group of users',
+    enabled: false,
+    version: 2,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'show_everyones_personal_views',
+    title: "Show Everyone's Personal Views",
+    description: 'With this feature we can avoid showing other users personal views in left sidebar',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'templates',
+    title: 'Templates',
+    description: 'Enable templates feature to browse and use templates.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+    isOnPrem: false,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

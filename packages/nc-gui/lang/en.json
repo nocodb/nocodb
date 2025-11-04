@@ -723,13 +723,13 @@
       "noMoreTeamsToAdd": "No more teams to add"
     },
     "templates": {
-      "marketplace": {
-        "sidebarTitle": "Marketplace",
+      "all-templates": {
+        "sidebarTitle": "All Templates",
         "title": "Popular templates",
         "subtitle": "Browse the most popular bases among our users."
       },
       "sales": {
-        "sidebarTitle": "sales",
+        "sidebarTitle": "Sales",
         "title": "Sales Templates",
         "subtitle": "Streamline your sales process with these ready-to-use templates."
       },
@@ -738,7 +738,7 @@
         "title": "Marketing Templates",
         "subtitle": "Boost your marketing efforts with these specialized templates."
       },
-      "hr": {
+      "human-resources": {
         "sidebarTitle": "Human Resources",
         "title": "Human Resources Templates",
         "subtitle": "Simplify HR management with these comprehensive templates."
@@ -757,6 +757,36 @@
         "sidebarTitle": "Project Management",
         "title": "Project Management Templates",
         "subtitle": "Track and manage your projects effectively with these templates."
+      },
+      "supply-chain-management": {
+        "sidebarTitle": "Supply Chain Management",
+        "title": "Supply Chain Management Templates",
+        "subtitle": "Optimize your supply chain management with these templates."
+      },
+      "it-and-operations": {
+        "sidebarTitle": "IT & Operations",
+        "title": "IT & Operations Templates",
+        "subtitle": "Streamline your IT and operations with these templates."
+      },
+      "finance-and-legal": {
+        "sidebarTitle": "Finance & Legal",
+        "title": "Finance & Legal Templates",
+        "subtitle": "Manage your finance and legal processes with these templates."
+      },
+      "hr-and-recruiting": {
+        "sidebarTitle": "HR & Recruiting",
+        "title": "HR & Recruiting Templates",
+        "subtitle": "Simplify HR and recruiting processes with these templates."
+      },
+      "product": {
+        "sidebarTitle": "Product",
+        "title": "Product Templates",
+        "subtitle": "Optimize your product development with these templates."
+      },
+      "reusing": {
+        "sidebarTitle": "Reusing",
+        "title": "Reusing Templates",
+        "subtitle": "Reuse your templates with these templates."
       },
       "healthcare": {
         "sidebarTitle": "Healthcare",
@@ -787,6 +817,26 @@
         "sidebarTitle": "Retail",
         "title": "Retail Templates",
         "subtitle": "Optimize inventory and sales tracking with these retail-focused templates."
+      },
+      "transportation": {
+        "sidebarTitle": "Transportation",
+        "title": "Transportation Templates",
+        "subtitle": "Optimize your transportation processes with these templates."
+      },
+      "hospitality": {
+        "sidebarTitle": "Hospitality",
+        "title": "Hospitality Templates",
+        "subtitle": "Optimize your hospitality processes with these templates."
+      },
+      "entertainment": {
+        "sidebarTitle": "Entertainment",
+        "title": "Entertainment Templates",
+        "subtitle": "Optimize your entertainment processes with these templates."
+      },
+      "technology": {
+        "sidebarTitle": "Technology",
+        "title": "Technology Templates",
+        "subtitle": "Optimize your technology processes with these templates."
       },
       "departments": "Departments",
       "industries": "Industries",
@@ -2062,7 +2112,10 @@
     "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
-    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action",
+    "basePermissionRole": "Base permission - {role}",
+    "workspacePermissionRole": "Workspace permission - {role}",
+    "missingSharedBaseUrl": "Missing shared base URL"
   },
   "placeholder": {
     "searchIcons": "Search icons",

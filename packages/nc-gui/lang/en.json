@@ -1713,7 +1713,9 @@
     "selectTeam": "Select team",
     "selectTeams": "Select teams",
     "showEveryonesPersonalViews": "Show everyone's personal views",
-    "selectOneOrMoreTeams": "Select one or more teams"
+    "selectOneOrMoreTeams": "Select one or more teams",
+    "selectWorkspaceToDuplicateSharedBaseTo": "Select workspace to duplicate shared base to:",
+    "selectWorkspaceToUseThisTemplateTo": "Select workspace to use this template to:"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

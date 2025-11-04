@@ -21,10 +21,11 @@ const workspaceId = computed(() => route.params.typeOrId as string)
 const templateId = computed(() => route.params.templateId as string)
 const typeOrId = computed(() => route.params.typeOrId)
 
-const { categoryInfo, activeCategory, getTemplateById, currentCategoryInfo, templatesMap } =
-  useMarketplaceTemplates('all-templates')
+const { categoryInfo, activeCategory, getTemplateById, currentCategoryInfo } = useMarketplaceTemplates('all-templates')
 
 const { sharedBaseId, duplicateSharedBase, isLoading: isCopyingTemplate, options, isUseThisTemplate } = useCopySharedBase()
+
+const templateKey = computed(() => `template:${workspaceId.value}:${templateId.value}`)
 
 const {
   data: template,
@@ -32,7 +33,7 @@ const {
   error: templateError,
   refresh: refreshTemplate,
 } = await useFetch<Template>(() => `/api/v2/internal/${workspaceId.value}/nc`, {
-  key: () => `template:${workspaceId.value}:${templateId.value}`, // ✅ stable cache key
+  key: templateKey,
   method: 'GET',
   params: {
     operation: 'template',
@@ -62,21 +63,19 @@ const browseByCategories = computed(() => {
 const fetchTemplateDetails = async () => {
   await refreshTemplate()
 
-  return
+  // isLoading.value = true
+  // error.value = null
 
-  isLoading.value = true
-  error.value = null
+  // return
 
-  return
-
-  try {
-    template.value = await getTemplateById(templateId.value)
-  } catch (err) {
-    console.error('Failed to fetch template details:', err)
-    error.value = 'Failed to load template details'
-  } finally {
-    isLoading.value = false
-  }
+  // try {
+  //   template.value = await getTemplateById(templateId.value)
+  // } catch (err) {
+  //   console.error('Failed to fetch template details:', err)
+  //   error.value = 'Failed to load template details'
+  // } finally {
+  //   isLoading.value = false
+  // }
 }
 
 onMounted(() => {
@@ -238,22 +237,29 @@ const onUseThisTemplate = () => {
           </NcCarousel>
         </div>
 
-        <NcTabs>
+        <NcTabs class="nc-template-tabs">
           <a-tab-pane key="overview" class="w-full">
             <template #tab>
-              <div class="font-bold text-captionBold">{{ $t('general.overview') }}</div>
+              <div>{{ $t('general.overview') }}</div>
             </template>
             <div class="my-4" v-html="descriptionRendered"></div>
           </a-tab-pane>
 
           <a-tab-pane key="structure" class="w-full">
             <template #tab>
-              <div class="font-bold text-captionBold">{{ $t('general.structure') }}</div>
+              <div>{{ $t('general.structure') }}</div>
             </template>
             <div class="my-4" v-html="structureRendered"></div>
           </a-tab-pane>
         </NcTabs>
         <div v-if="relatedTemplates.length">
+          <div v-if="currentCategoryInfo?.sidebarImg" class="my-6">
+            <img
+              :src="currentCategoryInfo?.sidebarImg"
+              :alt="currentCategoryInfo.sidebarTitle"
+              class="w-12 h-12 object-contain"
+            />
+          </div>
           <h2 class="text-heading3 font-semibold mt-6">
             Other <span class="capitalize">{{ activeCategory === 'all-templates' ? '' : activeCategory }}</span> Templates
           </h2>
@@ -306,7 +312,11 @@ const onUseThisTemplate = () => {
   }
 
   .ant-tabs-tab {
-    @apply pt-1 pb-1.5;
+    @apply pt-2 pb-2.5 text-caption transition-none;
+
+    &.ant-tabs-tab-active {
+      @apply !text-captionBold;
+    }
   }
 
   .template-category-item {

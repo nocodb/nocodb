@@ -13,21 +13,21 @@ export enum CloudOrgUserRoles {
 export enum ProjectRoles {
   OWNER = 'owner',
   CREATOR = 'creator',
+  INHERIT = 'inherit',
   EDITOR = 'editor',
   COMMENTER = 'commenter',
   VIEWER = 'viewer',
   NO_ACCESS = 'no-access',
-  INHERIT = 'inherit',
 }
 
 export enum WorkspaceUserRoles {
   OWNER = 'workspace-level-owner',
   CREATOR = 'workspace-level-creator',
+  INHERIT = 'workspace-level-inherit',
   EDITOR = 'workspace-level-editor',
   COMMENTER = 'workspace-level-commenter',
   VIEWER = 'workspace-level-viewer',
   NO_ACCESS = 'workspace-level-no-access',
-  INHERIT = 'workspace-level-inherit',
 }
 
 export enum TeamUserRoles {

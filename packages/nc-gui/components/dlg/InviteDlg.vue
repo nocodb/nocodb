@@ -141,6 +141,12 @@ watch(dialogShow, async (newVal) => {
           disabledRoles.value = []
         }
       }
+      // move INHERIT role to the end of the list, if present in allowed roles
+      let inheritIndex = allowedRoles.value.indexOf(WorkspaceUserRoles.INHERIT)
+      inheritIndex = inheritIndex === -1 ? allowedRoles.value.indexOf(ProjectRoles.INHERIT) : inheritIndex
+      if (inheritIndex !== -1) {
+        allowedRoles.value.push(...allowedRoles.value.splice(inheritIndex, 1))
+      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

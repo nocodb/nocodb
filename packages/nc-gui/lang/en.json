@@ -2184,7 +2184,13 @@
     "noAutomations": "No automations",
     "emptyTablePlaceholder": "This base is empty—for now.",
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access.",
-    "noDashboards": "No dashboards"
+    "noDashboards": "No dashboards",
+    "searchATeam": "Search a team",
+    "youHaveNotCreatedAnyTeams": "You have not created any teams",
+    "youHaveNotCreatedAnyTeamsSubtitle": "Group members into teams for easier assignments and permission configurations",
+    "enterTeamName": "Enter team name",
+    "enterTeamDescription": "Enter team description",
+    "searchTemplates": "Search templates"
   },
   "msg": {
     "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",

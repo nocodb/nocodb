@@ -100,17 +100,22 @@ const sidebarItems = computed(() => {
 
     <TransitionGroup name="stagger-items" tag="div" class="flex-1 flex flex-col gap-6 nc-scrollbar-thin">
       <template v-for="item of sidebarItems" :key="item.key">
-        <MarketplaceSidebarItem v-if="!item.isFolder" :active="activeCategory === item.key" @click="setActiveItem(item.key)">
+        <MarketplaceSidebarItem
+          v-if="!item.isFolder"
+          :active="activeCategory === item.key"
+          class="my-[1px]"
+          @click="setActiveItem(item.key)"
+        >
           <template v-if="item.sidebarImg" #icon>
             <img :src="item.sidebarImg" :alt="item.sidebarTitle" class="w-5 h-5 object-contain" />
           </template>
           {{ item.sidebarTitle }}
         </MarketplaceSidebarItem>
-        <MarketplaceSidebarFolder v-else :key="item.key">
+        <MarketplaceSidebarFolder v-else :key="item.key" class="my-[1px]">
           <template #title> {{ item.title }} </template>
 
           <template v-for="child of item.childrens" :key="child.key">
-            <MarketplaceSidebarItem :active="activeCategory === child.key" @click="setActiveItem(child.key)">
+            <MarketplaceSidebarItem :active="activeCategory === child.key" class="my-[1px]" @click="setActiveItem(child.key)">
               <template v-if="child.sidebarImg" #icon>
                 <img :src="child.sidebarImg" alt="" class="w-5 h-5" />
               </template>

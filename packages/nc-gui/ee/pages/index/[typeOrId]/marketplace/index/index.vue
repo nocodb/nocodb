@@ -21,14 +21,14 @@ onMounted(() => {
 
 <template>
   <div class="flex-1 flex flex-col">
-    <div class="mb-6">
-      <h2 class="text-xl text-nc-content-gray font-bold">
+    <div class="mb-8">
+      <h2 class="text-subHeading1 text-nc-content-gray mb-3">
         {{ categoryInfo['all-templates']?.title }}
       </h2>
-      <div class="text-nc-content-gray-subtle2">{{ categoryInfo['all-templates']?.subtitle }}</div>
+      <div class="text-nc-content-gray-subtle2 text-body">{{ categoryInfo['all-templates']?.subtitle }}</div>
     </div>
 
-    <div class="overflow-auto">
+    <div class="nc-scrollbar-thin pb-8">
       <div ref="templateContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 template-container">
         <template v-if="templates.length">
           <MarketplaceCard

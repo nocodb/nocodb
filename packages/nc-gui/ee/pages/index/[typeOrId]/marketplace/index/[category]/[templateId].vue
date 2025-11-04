@@ -184,14 +184,14 @@ const onUseThisTemplate = () => {
 
 <template>
   <div class="flex-1 flex flex-col">
-    <div class="overflow-auto">
+    <div class="nc-scrollbar-thin">
       <div v-if="isLoading" class="flex justify-center items-center h-64">
         <GeneralLoader size="large" />
       </div>
 
       <div v-else-if="error || !template" class="flex flex-col items-center justify-center py-12">
-        <div class="text-nc-content-grey-subtle2 text-lg">{{ error }}</div>
-        <button class="mt-4 btn-primary" @click="fetchTemplateDetails">{{ $t('general.retry') }}</button>
+        <div class="text-nc-content-grey-subtle2 text-lg">{{ error || $t('msg.error.failedToLoadTemplateDetails') }}</div>
+        <NcButton class="mt-4" size="small" type="text" @click="fetchTemplateDetails">{{ $t('general.retry') }}</NcButton>
       </div>
 
       <div v-else-if="template" class="template-detail mb-10">
@@ -232,7 +232,7 @@ const onUseThisTemplate = () => {
                 :class="{ selected: currentSlideIndex === index }"
                 @click="scrollToSlide(index)"
               >
-                <img :src="screenshot.url" :alt="`Thumbnail ${index + 1}`" class="h-16 w-24 object-cover rounded" />
+                <img :src="screenshot.url" :alt="`Thumbnail ${index + 1}`" class="h-[68px] w-[120px] object-cover rounded" />
               </div>
             </div>
           </NcCarousel>
@@ -353,6 +353,10 @@ const onUseThisTemplate = () => {
         @apply opacity-100 shadow-md border-1 border-nc-border-brand;
         box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
         transform: translateY(-2px);
+      }
+
+      &:not(.selected) {
+        @apply border-1 border-transparent;
       }
     }
   }

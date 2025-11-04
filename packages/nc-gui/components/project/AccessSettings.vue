@@ -86,7 +86,7 @@ const isLoading = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
-  if (!record?.isTeam || !isEeUI) return roles
+  if (!record?.isTeam || !isEeUI) return roles.filter((r) => r !== ProjectRoles.INHERIT || isTeamsEnabled.value)
 
   return roles.filter((r) => r !== ProjectRoles.OWNER && r !== ProjectRoles.INHERIT)
 }

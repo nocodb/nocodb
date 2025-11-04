@@ -38,6 +38,8 @@ const { createProjectUser, baseTeamAdd } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator, workspaceTeamAdd } = workspaceStore
 
+const { isTeamsEnabled } = storeToRefs(workspaceStore)
+
 const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, showUserMayChargeAlert } = useEeConfig()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
@@ -118,11 +120,12 @@ watch(dialogShow, async (newVal) => {
         }
 
         // Filter out INHERIT role for teams (workspace or base teams)
-        let filteredRoles = rolesArr
-        if (props.isTeam) {
-          filteredRoles = rolesArr.filter(
-            (role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT
-          )
+        let filteredRoles = rolesAr
+
+        // If teams are not enabled, filter out INHERIT role as well
+        // todo: remove this check once teams are enabled by default
+        if (props.isTeam || !isTeamsEnabled.value) {
+          filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
         }
 
         allowedRoles.value = filteredRoles.slice(currentRoleIndex)
@@ -131,9 +134,7 @@ watch(dialogShow, async (newVal) => {
         // Filter out INHERIT role for teams (workspace or base teams)
         let filteredRoles = rolesArr
         if (props.isTeam) {
-          filteredRoles = rolesArr.filter(
-            (role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT
-          )
+          filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
           allowedRoles.value = filteredRoles.slice(1)
           disabledRoles.value = filteredRoles.slice(0, 1)
         } else {

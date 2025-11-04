@@ -257,7 +257,7 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
 })
 
 const getTeamCompatibleAccessibleRoles = (roles: WorkspaceUserRoles[], record: any) => {
-  if (!record?.isTeam || !isEeUI) return roles
+  if (!record?.isTeam || !isEeUI) return roles.filter((r) => r !== WorkspaceUserRoles.INHERIT || isTeamsEnabled.value)
 
   return roles.filter((r) => r !== WorkspaceUserRoles.OWNER && r !== WorkspaceUserRoles.INHERIT)
 }

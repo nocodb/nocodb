@@ -228,9 +228,7 @@ export default class WorkspaceUser {
         `${MetaTable.WORKSPACE_USER}.invite_accepted`,
         `${MetaTable.WORKSPACE_USER}.roles as roles`,
       )
-      .where(`${MetaTable.WORKSPACE}.deleted`, false)
-      .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`);
-
+      .where(`${MetaTable.WORKSPACE}.deleted`, false);
     // get sso client count
     queryBuilder.select(
       ncMeta
@@ -273,11 +271,19 @@ export default class WorkspaceUser {
     });
 
     queryBuilder.where(function () {
-      this.where(
-        `${MetaTable.WORKSPACE_USER}.fk_user_id`,
-        '=',
-        ncMeta.knex.raw('?', [fk_user_id]),
-      );
+      this.where(function () {
+        this.where(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          ncMeta.knex.raw('?', [fk_user_id]),
+        )
+          .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
+          .whereNotIn(`${MetaTable.WORKSPACE_USER}.roles`, [
+            // if direct workspace role is set, it should not be NO_ACCESS or INHERIT
+            WorkspaceUserRoles.NO_ACCESS,
+            WorkspaceUserRoles.INHERIT,
+          ]);
+      });
 
       // Workspace access through team role - only if direct workspace role is null or INHERIT
       this.orWhere(function () {
@@ -290,9 +296,8 @@ export default class WorkspaceUser {
         }).whereIn(
           `${MetaTable.WORKSPACE}.id`,
           ncMeta
-            .knex(MetaTable.PRINCIPAL_ASSIGNMENTS)
+            .knex(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wt`)
             .select('wt.resource_id')
-            .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wt`)
             .innerJoin(
               `${MetaTable.PRINCIPAL_ASSIGNMENTS} as ut`,
               'ut.resource_id',

@@ -69,13 +69,14 @@ const sidebarItems = computed(() => {
 
 <template>
   <aside class="nc-marketplace-sidebar flex flex-col gap-6 w-[242px]">
-    <h1 class="text-nc-content-gray-subtle2 font-bold leading-6">{{ $t('title.categories') }}</h1>
+    <h1 class="text-nc-content-gray-subtle2 text-bodyLgBold">{{ $t('title.categories') }}</h1>
     <Transition name="search-slide" appear>
       <div class="relative">
         <a-input
           v-model:value="query.search"
           type="text"
-          placeholder="Search for keywords like CRM..."
+          allow-clear
+          :placeholder="$t('placeholder.searchTemplates')"
           class="nc-input-sm nc-input-shadow transition-all duration-300"
           @focus="isSearchFocused = true"
           @blur="isSearchFocused = false"
@@ -84,9 +85,10 @@ const sidebarItems = computed(() => {
             <Transition name="search-icon" mode="out-in">
               <GeneralIcon
                 :key="query.search?.length ? 'active' : 'inactive'"
+                class="nc-search-icon"
                 :class="{
                   'text-nc-content-brand': query.search?.length || isSearchFocused,
-                  'text-nc-content-gray-muted': !query.search?.length && !isSearchFocused,
+                  'text-nc-content-gray-disabled': !query.search?.length && !isSearchFocused,
                 }"
                 icon="search"
               />
@@ -96,11 +98,11 @@ const sidebarItems = computed(() => {
       </div>
     </Transition>
 
-    <TransitionGroup name="stagger-items" tag="div" class="flex flex-col gap-6">
+    <TransitionGroup name="stagger-items" tag="div" class="flex-1 flex flex-col gap-6 nc-scrollbar-thin">
       <template v-for="item of sidebarItems" :key="item.key">
         <MarketplaceSidebarItem v-if="!item.isFolder" :active="activeCategory === item.key" @click="setActiveItem(item.key)">
           <template v-if="item.sidebarImg" #icon>
-            <img :src="item.sidebarImg" alt="" class="w-5 h-5" />
+            <img :src="item.sidebarImg" :alt="item.sidebarTitle" class="w-5 h-5 object-contain" />
           </template>
           {{ item.sidebarTitle }}
         </MarketplaceSidebarItem>

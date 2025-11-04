@@ -35,7 +35,7 @@ const handleClick = () => {
         :class="{
           'text-nc-content-brand': active,
         }"
-        class="text-nc-content-gray-subtle font-bold leading-4.5 transition-all duration-200"
+        class="text-nc-content-gray-subtle text-bodyDefaultSmBold transition-all duration-200"
       >
         <slot />
       </div>

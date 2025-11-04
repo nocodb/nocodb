@@ -35,6 +35,8 @@ const { setActiveCmdView } = useCommand()
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
+const { isTemplatesFeatureEnabled } = useMarketplaceTemplates()
+
 const isProjectListOrHomePageOpen = computed(() => {
   return (
     route.value.name?.startsWith('index-typeOrId-baseId-') ||
@@ -264,7 +266,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <div v-if="!isMobileMode" class="px-2 w-full">
         <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
       </div>
-      <DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper v-if="isTemplatesFeatureEnabled">
         <NcTooltip :title="$t('general.marketplace')" placement="right" hide-on-click :arrow="false">
           <div
             v-e="['c:marketplace']"

@@ -102,6 +102,8 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
   const templates = ref<Template[]>([])
 
   const templatesMap = computed(() => {
@@ -110,6 +112,8 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
       return acc
     }, {} as Record<string, Template>)
   })
+
+  const isTemplatesFeatureEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.TEMPLATES))
 
   const isLoading = ref(false)
   const hasMore = ref(true)
@@ -534,5 +538,6 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
     typeOrId,
     route,
     router,
+    isTemplatesFeatureEnabled,
   }
 })

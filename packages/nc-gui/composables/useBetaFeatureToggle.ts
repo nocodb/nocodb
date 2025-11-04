@@ -183,6 +183,16 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'templates',
+    title: 'Templates',
+    description: 'Enable templates feature to browse and use templates.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+    isOnPrem: false,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

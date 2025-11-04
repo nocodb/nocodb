@@ -367,13 +367,11 @@ export default class WorkspaceUser {
             );
           })
           .where(function () {
-            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
-              .orWhere(
-                `${MetaTable.PROJECT_USERS}.roles`,
-                '=',
-                ProjectRoles.INHERIT,
-              )
-              .orWhere(`${MetaTable.PROJECT_USERS}.roles`, '=', 'inherit');
+            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '=',
+              ProjectRoles.INHERIT,
+            );
           })
           .where('bt.resource_type', ResourceType.BASE)
           .where('bt.principal_type', PrincipalType.TEAM)

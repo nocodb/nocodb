@@ -2,7 +2,6 @@ import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  // Create nc_automations table
   await knex.schema.createTable(MetaTable.AUTOMATIONS, (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('title', 255).notNullable();
@@ -18,13 +17,14 @@ const up = async (knex: Knex) => {
 
     table.integer('trigger_count').defaultTo(0);
 
+    table.float('order');
+
     table.timestamps(true, true);
 
     // Indexes for fast lookups
     table.index(['base_id', 'fk_workspace_id'], 'nc_automations_context_idx');
   });
 
-  // Create nc_principal_assignments table (simplified polymorphic resource assignments)
   await knex.schema.createTable(MetaTable.AUTOMATION_EXECUTIONS, (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('fk_workspace_id', 20);

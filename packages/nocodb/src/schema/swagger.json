@@ -29656,6 +29656,10 @@
             "type": "number",
             "description": "Number of times the automation has been triggered"
           },
+          "order": {
+            "description": "The order of the automation in the list",
+            "type": "number"
+          },
           "updated_at": {
             "type": "string",
             "description": "Last updated time"

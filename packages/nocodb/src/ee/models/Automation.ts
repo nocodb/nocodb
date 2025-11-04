@@ -22,6 +22,8 @@ export default class Automation implements AutomationType {
 
   trigger_count?: number;
 
+  order?: number;
+
   created_at?: string;
   updated_at?: string;
 
@@ -116,7 +118,15 @@ export default class Automation implements AutomationType {
       'nodes',
       'edges',
       'meta',
+      'order',
     ]);
+
+    if (!insertObj.order) {
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.AUTOMATIONS, {
+        fk_workspace_id: context.workspace_id,
+        base_id: context.base_id,
+      });
+    }
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -155,6 +165,7 @@ export default class Automation implements AutomationType {
       'nodes',
       'edges',
       'meta',
+      'order',
     ]);
 
     await ncMeta.metaUpdate(

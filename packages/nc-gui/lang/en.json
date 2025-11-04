@@ -449,7 +449,9 @@
     "baseType": "Base Type",
     "beta": "Beta",
     "selected": "selected",
-    "notice": "Notice"
+    "notice": "Notice",
+    "teams": "Teams",
+    "structure": "Structure"
   },
   "objects": {
     "script": "Script",
@@ -790,7 +792,9 @@
       "noTemplatesFound": "No templates found",
       "tryCheckingBackLaterForNewTemplates": "Try checking back later for new templates",
       "tryAdjustingYourSearchOrFilters": "Try adjusting your search or filters",
-      "loadingMoreTemplates": "Loading more templates"
+      "loadingMoreTemplates": "Loading more templates",
+      "browseByCategory": "Browse by category",
+      "browseByCategorySubtitle": "Explore further to discover the base that fits you best"
     }
   },
   "datatype": {
@@ -1652,7 +1656,13 @@
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "selectRole": "Select Role",
-    "copyConfiguration": "Copy configuration"
+    "copyConfiguration": "Copy configuration",
+    "backToHome": "Back to Home",
+    "useThisTemplate": "Use this Template",
+    "selectTeam": "Select team",
+    "selectTeams": "Select teams",
+    "showEveryonesPersonalViews": "Show everyone's personal views",
+    "selectOneOrMoreTeams": "Select one or more teams"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

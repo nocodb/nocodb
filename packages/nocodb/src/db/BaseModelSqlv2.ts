@@ -21,6 +21,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isOrderCol,
+  isSelfLinkCol,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
@@ -2869,30 +2870,28 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
         }
 
-        if (
-          col.system &&
-          !allowSystemColumn &&
-          [UITypes.ForeignKey].includes(col.uidt)
-        ) {
-          NcError.get(this.context).badRequest(
-            `Column "${col.title}" is system column and cannot be updated`,
-          );
+        if (col.system && !allowSystemColumn) {
+          let shouldThrow = true;
+
+          // allow updating order column during undo operation
+          if (col.uidt === UITypes.Order && params.undo) {
+            shouldThrow = false;
+          }
+          // allow updating self link column (system counter part)
+          else if (isSelfLinkCol(col)) {
+            shouldThrow = false;
+          }
+
+          if (shouldThrow) {
+            NcError.get(this.context).badRequest(
+              `Column "${col.title}" is system column and cannot be updated`,
+            );
+          }
         }
 
         if (!allowSystemColumn && col.readonly) {
           NcError.get(this.context).badRequest(
             `Column "${col.title}" is readonly column and cannot be updated`,
-          );
-        }
-
-        if (
-          col.system &&
-          !allowSystemColumn &&
-          col.uidt !== UITypes.Order &&
-          !params.undo
-        ) {
-          NcError.get(this.context).badRequest(
-            `Column "${col.title}" is system column and cannot be updated`,
           );
         }
       }
@@ -4176,14 +4175,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
         }
 
-        if (
-          !allowSystemColumn &&
-          column.system &&
-          ![UITypes.ForeignKey, UITypes.Order].includes(column.uidt)
-        ) {
-          NcError.get(this.context).badRequest(
-            `Column "${column.title}" is system column and cannot be updated`,
-          );
+        if (column.system && !allowSystemColumn) {
+          let shouldThrow = true;
+
+          // allow updating order column (required for undo/redo operations)
+          // TODO: add undo flag here
+          if (column.uidt === UITypes.Order) {
+            shouldThrow = false;
+          }
+          // allow updating self link column (system counter part)
+          else if (isSelfLinkCol(column)) {
+            shouldThrow = false;
+          }
+
+          if (shouldThrow) {
+            NcError.get(this.context).badRequest(
+              `Column "${column.title}" is system column and cannot be updated`,
+            );
+          }
         }
 
         if (!allowSystemColumn && column.readonly) {

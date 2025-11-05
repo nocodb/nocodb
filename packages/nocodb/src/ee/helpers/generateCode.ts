@@ -19,7 +19,7 @@ enum ScriptActionType {
 
 function generateRemoteFetch(): string {
   return `
-    const remoteFetch = async (url, options = {}) => {
+    const remoteFetchAsync = async (url, options = {}) => {
       try {
         const response = await fetch(url, {
           method: options.method || 'GET',

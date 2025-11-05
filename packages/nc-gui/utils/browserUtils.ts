@@ -107,7 +107,12 @@ export function isSinglePrintableKey(key: string) {
 }
 
 export const isMousePointerType = (event: Event) => {
-  return event instanceof PointerEvent && event?.pointerType === 'mouse'
+  return (
+    // PointerEvent style with mouse
+    ('pointerType' in event && (event as PointerEvent).pointerType === 'mouse') ||
+    // Safari fallback to MouseEvent
+    event instanceof MouseEvent
+  )
 }
 
 export const isTouchEvent = (event: Event | TouchEvent) => !isMousePointerType(event)

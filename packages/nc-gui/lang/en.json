@@ -1554,6 +1554,7 @@
     "emptyScript": "Empty Script",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
+    "clickToOpenInNewTabToEnterFullscreen": "Click to open in new tab to enter fullscreen",
     "selectRole": "Select Role",
     "copyConfiguration": "Copy configuration",
     "backToHome": "Back to Home",

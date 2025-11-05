@@ -8,6 +8,7 @@ interface Props {
   disableLabel?: boolean
   autoSelect?: boolean
   disabled?: boolean
+  placeholder?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -123,7 +124,7 @@ defineExpose({
     >
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedWorkspace" class="min-w-5 flex items-center justify-center">
-          <GeneralWorkspaceIcon :workspace="selectedWorkspace" />
+          <GeneralWorkspaceIcon :workspace="selectedWorkspace" size="account-sidebar" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span
@@ -134,7 +135,9 @@ defineExpose({
           >
             {{ selectedWorkspace?.label }}
           </span>
-          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select workspace --</span>
+          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">
+            <slot name="placeholder">{{ placeholder || '-- Select workspace --' }}</slot>
+          </span>
 
           <template #title>
             {{ selectedWorkspace?.label || 'Select workspace' }}
@@ -158,21 +161,9 @@ defineExpose({
           @update:value="handleValueUpdate"
           @escape="onEsc"
         >
-          <template #item="{ item }">
-            <div class="w-full flex items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralWorkspaceIcon :workspace="item" />
-              </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ item.label }}</template>
-                <span>{{ item.label }}</span>
-              </NcTooltip>
-              <component
-                :is="iconMap.check"
-                v-if="modelValue === item.value"
-                id="nc-selected-item-icon"
-                class="flex-none text-primary w-4 h-4"
-              />
+          <template #listItemExtraLeft="{ option }">
+            <div class="min-w-5 flex items-center justify-center">
+              <GeneralWorkspaceIcon :workspace="option as WorkspaceType" size="account-sidebar" class="flex-none" />
             </div>
           </template>
         </NcList>

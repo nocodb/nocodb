@@ -7,11 +7,16 @@ const props = defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-col gap-2 h-full cursor-pointer">
+  <div class="flex flex-col gap-2 h-full cursor-pointer group">
     <div class="flex items-center gap-2">
-      <NuxtImg :src="props.image" :alt="props.title" loading="lazy" class="h-50 w-full aspect-video rounded-lg object-cover" />
+      <NuxtImg
+        :src="props.image"
+        :alt="props.title"
+        loading="lazy"
+        class="h-50 w-full aspect-video rounded-lg object-cover shadow-md group-hover:shadow-xl transition-shadow duration-200"
+      />
     </div>
-    <div class="text-nc-content-gray text-bodyLgBold">{{ props.title }}</div>
+    <div class="text-nc-content-gray text-bodyLgBold group-hover:underline transition-colors duration-200">{{ props.title }}</div>
     <div class="text-nc-content-gray-subtle2 text-bodyDefaultSm line-clamp-2">
       {{ props.description }}
     </div>

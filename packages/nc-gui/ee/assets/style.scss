@@ -1433,3 +1433,17 @@ svg.nc-virtual-cell-icon {
     @apply text-body font-500 text-nc-content-gray-subtle;
   }
 }
+
+
+.template-card {
+  transition: transform 0.2s ease-in-out;
+  will-change: transform;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+}
+
+.template-card-skeleton {
+  @extend .template-card;
+}

@@ -1,8 +1,4 @@
 <script setup lang="ts">
-defineRouteRules({
-  prerender: true,
-})
-
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
@@ -13,15 +9,12 @@ import type { CarouselApi } from '~/components/nc/Carousel/interface'
 const route = useRoute()
 const router = useRouter()
 
-const { $api } = useNuxtApp()
-
-const baseURL = $api.instance.defaults.baseURL
-
 const workspaceId = computed(() => route.params.typeOrId as string)
 const templateId = computed(() => route.params.templateId as string)
 const typeOrId = computed(() => route.params.typeOrId)
 
-const { categoryInfo, activeCategory, getTemplateById, currentCategoryInfo } = useMarketplaceTemplates('all-templates')
+const { categoryInfo, activeCategory, currentCategoryInfo, templatesMap, getTemplateById } =
+  useMarketplaceTemplates('all-templates')
 
 const {
   sharedBaseId,
@@ -30,32 +23,30 @@ const {
   isUseThisTemplate,
   isDuplicateDlgOpen,
   selectedWorkspace,
+  templateName,
 } = useCopySharedBase()
 
-const templateKey = computed(() => `template:${workspaceId.value}:${templateId.value}`)
+const template = ref<Template | null>(null)
 
-const {
-  data: template,
-  pending,
-  error: templateError,
-  refresh: refreshTemplate,
-} = await useFetch<Template>(() => `/api/v2/internal/${workspaceId.value}/nc`, {
-  key: templateKey,
-  method: 'GET',
-  params: {
-    operation: 'template',
-    id: templateId.value,
-  },
-  baseURL,
-})
-
-const isLoading = pending
+const isLoading = ref<Boolean>(true)
 const error = ref<string | null>(null)
+
+const isIframeLoaded = ref(false)
+
 const carouselApi = ref<CarouselApi>()
 const currentSlideIndex = ref(0)
 
 const templateSharedBaseUrl = computed(() => {
-  return template.value?.['Shared Base Url']
+  return template.value?.['Shared Base Url'] as string
+})
+
+const isValidTemplateSharedBaseUrl = computed(() => {
+  try {
+    const newUrl = new URL(templateSharedBaseUrl.value)
+    return !!newUrl
+  } catch (e) {
+    return false
+  }
 })
 
 const browseByCategories = computed(() => {
@@ -68,34 +59,38 @@ const browseByCategories = computed(() => {
 })
 
 const fetchTemplateDetails = async () => {
-  await refreshTemplate()
+  isLoading.value = true
+  error.value = null
 
-  // isLoading.value = true
-  // error.value = null
+  try {
+    template.value = await getTemplateById(templateId.value)
 
-  // return
-
-  // try {
-  //   template.value = await getTemplateById(templateId.value)
-  // } catch (err) {
-  //   console.error('Failed to fetch template details:', err)
-  //   error.value = 'Failed to load template details'
-  // } finally {
-  //   isLoading.value = false
-  // }
+    if (template.value) {
+      router.currentRoute.value.meta.templateName = template.value.Title
+    }
+  } catch (err) {
+    console.error('Failed to fetch template details:', err)
+    error.value = 'Failed to load template details'
+  } finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(() => {
-  // if (templateId.value && templatesMap.value[templateId.value]) {
-  //   template.value = templatesMap.value[templateId.value] as Template
-  //   isLoading.value = false
-  // } else {
-  //   fetchTemplateDetails()
-  // }
+  if (templateId.value && templatesMap.value[templateId.value]) {
+    template.value = templatesMap.value[templateId.value] as Template
+    isLoading.value = false
+
+    if (template.value) {
+      router.currentRoute.value.meta.templateName = template.value.Title
+    }
+  } else {
+    fetchTemplateDetails()
+  }
 })
 
 const openRelatedTemplate = (templateId) => {
-  router.push(`/${typeOrId.value}/marketplace/${activeCategory.value}/${templateId}`)
+  router.push(`/${typeOrId.value}/templates/${activeCategory.value}/${templateId}`)
 }
 
 const descriptionRendered = computedAsync(async () => {
@@ -107,22 +102,13 @@ const descriptionRendered = computedAsync(async () => {
     .process(template.value?.Description ?? '')
 })
 
-const structureRendered = computedAsync(async () => {
-  return await unified()
-    .use(remarkParse)
-    .use(remarkRehype)
-    .use(rehypeSanitize)
-    .use(rehypeStringify)
-    .process(template.value?.Structure ?? '')
-})
-
 const navigateToCategory = (category: string) => {
   activeCategory.value = category
-  router.push(`/${typeOrId.value}/marketplace/${category}`)
+  router.push(`/${typeOrId.value}/templates/${category}`)
 }
 
 const navigateToHome = () => {
-  router.push(`/${typeOrId.value}/marketplace`)
+  router.push(`/${typeOrId.value}/templates`)
 }
 
 const relatedTemplates = computed(() => {
@@ -164,6 +150,22 @@ const scrollToSlide = (index: number) => {
   }
 }
 
+const scrollToNextSlide = () => {
+  if (currentSlideIndex.value === screenshots.value.length - 1) return scrollToSlide(0)
+
+  if (carouselApi.value && carouselApi.value.canScrollNext()) {
+    carouselApi.value.scrollNext()
+  }
+}
+
+const scrollToPreviousSlide = () => {
+  if (currentSlideIndex.value === 0) return scrollToSlide(screenshots.value.length - 1)
+
+  if (carouselApi.value && carouselApi.value.canScrollPrev()) {
+    carouselApi.value.scrollPrev()
+  }
+}
+
 const onUseThisTemplate = () => {
   if (!templateSharedBaseUrl.value) return
 
@@ -186,18 +188,24 @@ const onUseThisTemplate = () => {
     return
   }
 
+  templateName.value = template.value?.Title || ''
+
   sharedBaseId.value = resolvedRoute.params.baseId as string
 
   selectedWorkspace.value = workspaceId.value!
 
   isDuplicateDlgOpen.value = true
 }
+
+const onIframeLoad = () => {
+  isIframeLoaded.value = true
+}
 </script>
 
 <template>
   <div class="flex-1 flex flex-col">
-    <div class="nc-scrollbar-thin">
-      <div v-if="isLoading" class="flex justify-center items-center h-64">
+    <div>
+      <div v-if="isLoading" class="flex justify-center items-center h-64 pt-6">
         <GeneralLoader size="large" />
       </div>
 
@@ -207,8 +215,8 @@ const onUseThisTemplate = () => {
       </div>
 
       <div v-else-if="template" class="template-detail mb-10">
-        <div class="flex items-center gap-3 mb-6 sticky top-0 bg-white z-10">
-          <div class="text-nc-content-grey text-heading2 font-semibold flex-1">
+        <div class="flex items-center gap-3 mb-4 pb-2 pt-6 sticky top-0 bg-nc-bg-default z-10 -mx-6 px-6">
+          <div class="text-nc-content-grey text-heading3 font-semibold flex-1">
             {{ template.Title }}
           </div>
 
@@ -222,30 +230,40 @@ const onUseThisTemplate = () => {
           </NcTooltip>
         </div>
 
-        <div class="mb-16">
+        <div v-if="screenshots.length" class="mb-8">
           <NcCarousel class="w-full template-carousel" @init-api="onCarouselInit">
             <NcCarouselContent>
               <NcCarouselItem v-for="(screenshot, index) in screenshots" :key="index">
-                <div class="w-full h-[300px] flex items-center justify-center">
+                <div
+                  class="aspect-video max-w-full max-h-[calc(min(100dvh_-_250px,600px))] flex items-center justify-center mb-6 mt-3"
+                >
                   <img
                     :src="screenshot.url"
                     :alt="screenshot.title || `Screenshot ${index + 1}`"
-                    class="max-h-full max-w-full object-contain rounded-lg shadow-lg"
+                    class="max-h-full max-w-full h-[calc(min(100dvh_-_250px,600px))] object-contain rounded-lg shadow-lg"
                   />
                 </div>
               </NcCarouselItem>
             </NcCarouselContent>
 
-            <div class="flex items-center justify-center gap-3 mt-6 flex-wrap">
+            <div v-if="screenshots.length > 1" class="flex items-center justify-center gap-2 py-2">
+              <NcButton type="secondary" size="small" class="mr-2 !rounded-full" @click="scrollToPreviousSlide">
+                <GeneralIcon icon="arrowLeft" class="w-4 h-4" />
+              </NcButton>
+
               <div
-                v-for="(screenshot, index) in screenshots"
+                v-for="(_screenshot, index) in screenshots"
                 :key="index"
                 class="thumbnail-wrapper cursor-pointer transition-all"
                 :class="{ selected: currentSlideIndex === index }"
                 @click="scrollToSlide(index)"
               >
-                <img :src="screenshot.url" :alt="`Thumbnail ${index + 1}`" class="h-[68px] w-[120px] object-cover rounded" />
+                <div class="w-3 h-3 rounded-full bg-nc-bg-gray-medium"></div>
               </div>
+
+              <NcButton type="secondary" size="small" class="ml-2 !rounded-full" @click="scrollToNextSlide">
+                <GeneralIcon icon="arrowRight" class="w-4 h-4" />
+              </NcButton>
             </div>
           </NcCarousel>
         </div>
@@ -255,14 +273,29 @@ const onUseThisTemplate = () => {
             <template #tab>
               <div>{{ $t('general.overview') }}</div>
             </template>
-            <div class="my-4" v-html="descriptionRendered"></div>
+            <div class="mb-4" v-html="descriptionRendered"></div>
           </a-tab-pane>
 
           <a-tab-pane key="structure" class="w-full">
             <template #tab>
               <div>{{ $t('general.structure') }}</div>
             </template>
-            <div class="my-4" v-html="structureRendered"></div>
+            <div class="mb-4 nc-template-shared-base-iframe">
+              <div v-if="isValidTemplateSharedBaseUrl" class="nc-template-iframe-container">
+                <div v-if="!isIframeLoaded" class="inset-0 absolute z-10 flex items-center justify-center">
+                  <a-spin size="large" />
+                </div>
+
+                <iframe
+                  ref="iframeRef"
+                  :src="templateSharedBaseUrl"
+                  allowfullscreen
+                  allow="fullscreen"
+                  class="w-full h-full border-0"
+                  @load="onIframeLoad"
+                />
+              </div>
+            </div>
           </a-tab-pane>
         </NcTabs>
         <div v-if="relatedTemplates.length">
@@ -279,7 +312,7 @@ const onUseThisTemplate = () => {
           <div class="text-body text-nc-content-grey">
             {{ currentCategoryInfo?.subtitle }}
           </div>
-          <div class="grid grid-cols-1 mt-8 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 mt-8 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
             <MarketplaceCard
               v-for="relatedTemplate of relatedTemplates"
               :key="relatedTemplate.Id"
@@ -292,7 +325,7 @@ const onUseThisTemplate = () => {
           </div>
         </div>
         <div>
-          <h2 class="text-heading3 font-semibold mt-16">{{ $t('objects.templates.browseByCategory') }}</h2>
+          <h2 class="text-heading3 font-semibold mt-12">{{ $t('objects.templates.browseByCategory') }}</h2>
           <div class="text-body text-nc-content-grey">{{ $t('objects.templates.browseByCategorySubtitle') }}.</div>
           <div class="grid grid-cols-[repeat(auto-fit,minmax(162px,1fr))] gap-6 my-8">
             <div
@@ -362,7 +395,7 @@ const onUseThisTemplate = () => {
     }
 
     .thumbnail-wrapper {
-      @apply opacity-70 transition-all rounded overflow-hidden;
+      @apply opacity-70 transition-all rounded-full overflow-hidden;
 
       img {
         @apply transition-all duration-200;
@@ -375,12 +408,20 @@ const onUseThisTemplate = () => {
       &.selected {
         @apply opacity-100 shadow-md border-1 border-nc-border-brand;
         box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
-        transform: translateY(-2px);
       }
 
       &:not(.selected) {
         @apply border-1 border-transparent;
+        box-shadow: 0px 0px 0px 2px transparent;
       }
+    }
+  }
+
+  .nc-template-iframe-container {
+    @apply border-1 border-nc-border-gray-medium rounded-xl overflow-hidden aspect-video w-full max-h-[calc(100dvh_-_200px)] flex group relative;
+
+    iframe {
+      @apply bg-nc-bg-default;
     }
   }
 }

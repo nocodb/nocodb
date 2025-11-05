@@ -267,11 +267,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
       </div>
       <DashboardMiniSidebarItemWrapper v-if="isTemplatesFeatureEnabled">
-        <NcTooltip :title="$t('general.marketplace')" placement="right" hide-on-click :arrow="false">
+        <NcTooltip :title="$t('general.templates')" placement="right" hide-on-click :arrow="false">
           <div
-            v-e="['c:marketplace']"
+            v-e="['c:templates']"
             class="nc-mini-sidebar-btn-full-width"
-            data-testid="nc-sidebar-marketplace-btn"
+            data-testid="nc-sidebar-templates-btn"
             @click="navigateToMarketplace"
           >
             <div

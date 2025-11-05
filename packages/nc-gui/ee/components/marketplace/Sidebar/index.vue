@@ -5,7 +5,7 @@ const props = defineProps<{
 
 const activeCategory = useVModel(props, 'activeCategory')
 
-const { query, categoryInfo } = useMarketplaceTemplates()
+const { query, categoryInfo, onInit } = useMarketplaceTemplates()
 
 const route = useRoute()
 const router = useRouter()
@@ -20,9 +20,9 @@ const setActiveItem = (category: TemplateCategoryType) => {
   const typeOrId = route.params.typeOrId
 
   if (category === 'all-templates') {
-    router.push(`/${typeOrId}/marketplace`)
+    router.push(`/${typeOrId}/templates`)
   } else {
-    router.push(`/${typeOrId}/marketplace/${category}`)
+    router.push(`/${typeOrId}/templates/${category}`)
   }
 }
 
@@ -65,13 +65,18 @@ const sidebarItems = computed(() => {
     },
   ] as SidebarItem[]
 })
+
+onMounted(() => {
+  query.search = ''
+  activeCategory.value = (route.params.category as TemplateCategoryType) || 'all-templates'
+  onInit()
+})
 </script>
 
 <template>
-  <aside class="nc-marketplace-sidebar flex flex-col gap-6 w-[242px]">
-    <h1 class="text-nc-content-gray-subtle2 text-bodyLgBold">{{ $t('title.categories') }}</h1>
+  <aside class="nc-marketplace-sidebar flex flex-col gap-4 w-[266px] pt-6">
     <Transition name="search-slide" appear>
-      <div class="relative">
+      <div class="relative px-3">
         <a-input
           v-model:value="query.search"
           type="text"
@@ -98,7 +103,7 @@ const sidebarItems = computed(() => {
       </div>
     </Transition>
 
-    <TransitionGroup name="stagger-items" tag="div" class="flex-1 flex flex-col gap-6 nc-scrollbar-thin">
+    <TransitionGroup name="stagger-items" tag="div" class="flex-1 flex flex-col gap-4 nc-scrollbar-thin px-3 relative pb-3">
       <template v-for="item of sidebarItems" :key="item.key">
         <MarketplaceSidebarItem
           v-if="!item.isFolder"
@@ -106,8 +111,11 @@ const sidebarItems = computed(() => {
           class="my-[1px]"
           @click="setActiveItem(item.key)"
         >
-          <template v-if="item.sidebarImg" #icon>
-            <img :src="item.sidebarImg" :alt="item.sidebarTitle" class="w-5 h-5 object-contain" />
+          <template v-if="item.sidebarImg || item.icon" #icon>
+            <img v-if="item.sidebarImg" :src="item.sidebarImg" :alt="item.sidebarTitle" class="w-5 h-5 object-contain" />
+            <div v-else class="flex items-center justify-center w-5 h-5">
+              <GeneralIcon :icon="item.icon" class="w-4 h-4 flex-none opacity-90" />
+            </div>
           </template>
           {{ item.sidebarTitle }}
         </MarketplaceSidebarItem>

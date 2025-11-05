@@ -80,6 +80,7 @@ export interface TemplateCategoryInfoItemType {
   subtitle: string
   group?: string
   sidebarImg?: string
+  icon?: IconMapKey
   value?: TemplateUseCasesEnum | TemplateIndustriesEnum
 }
 
@@ -136,6 +137,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
       sidebarTitle: t('objects.templates.all-templates.sidebarTitle'),
       title: t('objects.templates.all-templates.title'),
       subtitle: t('objects.templates.all-templates.subtitle'),
+      icon: 'globe',
     },
     // Departments
     'sales': {
@@ -388,16 +390,16 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
   }
 
   // Get template by ID
-  const getTemplateById = async (id: string | string[]) => {
+  const getTemplateById = async (id: string) => {
     if (!activeWorkspaceId.value) return null
 
     isLoading.value = true
 
     try {
-      const template = await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
+      const template = (await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
         operation: 'template',
         id,
-      })
+      })) as Template
 
       return template
     } catch (error) {
@@ -416,7 +418,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
   // Template navigation
   const openTemplate = (template: Template) => {
     if (template && template.Id) {
-      router.push(`/${typeOrId.value}/marketplace/${activeCategory.value}/${template.Id}`)
+      router.push(`/${typeOrId.value}/templates/${activeCategory.value}/${template.Id}`)
     } else if (template && template['Shared Base Url']) {
       window.open(template['Shared Base Url'], '_blank')
     }
@@ -483,11 +485,14 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
     loadTemplates(true)
   })
 
-  onMounted(() => {
+  function onInit() {
     applyCategoryFilters()
     loadTemplates(true)
-    setupObserver()
-  })
+
+    forcedNextTick(() => {
+      setupObserver()
+    })
+  }
 
   onBeforeUnmount(() => {
     if (observer) {
@@ -539,5 +544,6 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
     route,
     router,
     isTemplatesFeatureEnabled,
+    onInit,
   }
 })

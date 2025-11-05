@@ -22,11 +22,17 @@ const handleClick = () => {
         'bg-nc-bg-brand active': active,
         'hover:bg-nc-bg-gray-light': !active,
       }"
-      class="px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 flex gap-3 items-center group"
+      class="px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 flex gap-3 items-center group"
       @click="handleClick"
     >
       <template v-if="slots.icon?.()">
-        <div :key="active ? 'active' : 'inactive'" class="flex-shrink-0">
+        <div
+          :key="active ? 'active' : 'inactive'"
+          class="flex-shrink-0 text-nc-content-gray-subtle"
+          :class="{
+            'text-nc-content-brand': active,
+          }"
+        >
           <slot name="icon" />
         </div>
       </template>
@@ -35,7 +41,7 @@ const handleClick = () => {
         :class="{
           'text-nc-content-brand': active,
         }"
-        class="text-nc-content-gray-subtle text-bodyDefaultSmBold transition-all duration-200"
+        class="nc-marketplace-sidebar-item-title text-nc-content-gray-subtle text-bodyDefaultSmBold transition-all duration-200"
       >
         <slot />
       </div>
@@ -54,7 +60,7 @@ const handleClick = () => {
 }
 
 .group:hover {
-  .text-nc-content-gray-subtle {
+  .nc-marketplace-sidebar-item-title {
     transform: translateX(2px);
   }
 }

@@ -17,21 +17,21 @@ const {
 
 const validCategories = Object.keys(categoryInfo)
 if (!validCategories.includes(category.value)) {
-  router.replace(`/${typeOrId.value}/marketplace`)
+  router.replace(`/${typeOrId.value}/templates`)
 }
 
 watch(activeCategory, (newCategory) => {
   if (newCategory !== category.value) {
     if (newCategory === 'all-templates') {
-      router.push(`/${typeOrId.value}/marketplace`)
+      router.push(`/${typeOrId.value}/templates`)
     } else {
-      router.push(`/${typeOrId.value}/marketplace/${newCategory}`)
+      router.push(`/${typeOrId.value}/templates/${newCategory}`)
     }
   }
 })
 
 onMounted(() => {
-  nextTick(() => {
+  forcedNextTick(() => {
     setupObserver()
   })
 })
@@ -39,15 +39,18 @@ onMounted(() => {
 
 <template>
   <div class="flex-1 flex flex-col">
-    <div class="mb-8">
-      <h2 class="text-subHeading1 text-nc-content-gray mb-3">
+    <div class="mb-6 pb-2 pt-6 sticky top-0 bg-nc-bg-default z-10 -mx-6 px-6">
+      <h2 class="text-heading3 text-nc-content-gray mb-2">
         {{ currentCategoryInfo.title }}
       </h2>
       <div class="text-nc-content-gray-subtle2 text-body">{{ currentCategoryInfo.subtitle }}</div>
     </div>
 
-    <div class="nc-scrollbar-thin pb-8">
-      <div ref="templateContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 template-container">
+    <div class="pb-8">
+      <div
+        ref="templateContainer"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-8 template-container"
+      >
         <template v-if="templates.length">
           <MarketplaceCard
             v-for="template in templates"
@@ -77,18 +80,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped lang="scss">
-.template-card {
-  transition: transform 0.2s ease-in-out;
-  will-change: transform;
-
-  &:hover {
-    transform: translateY(-4px);
-  }
-}
-
-.template-card-skeleton {
-  @extend .template-card;
-}
-</style>

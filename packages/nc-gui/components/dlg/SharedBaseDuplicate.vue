@@ -7,11 +7,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const { duplicateSharedBase, isLoading, options, selectedWorkspace, isUseThisTemplate } = useCopySharedBase()
-
-const workspaceStore = useWorkspace()
-
-const { workspacesList } = storeToRefs(workspaceStore)
+const { duplicateSharedBase, isLoading, options, selectedWorkspace, isUseThisTemplate, templateName } = useCopySharedBase()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -26,11 +22,11 @@ const _duplicate = async () => {
   })
 }
 
-const filteredWorkspaces = computed(() => {
-  return workspacesList.value
-    ?.filter((ws) => ws.roles === WorkspaceUserRoles.OWNER || ws.roles === WorkspaceUserRoles.CREATOR)
-    .map((w) => ({ label: `${w.title[0].toUpperCase()}${w.title.slice(1)}`, value: w.id }))
-})
+const filterWorkspace = (workspace: NcWorkspace) => {
+  if (!workspace) return false
+
+  return [WorkspaceUserRoles.OWNER, WorkspaceUserRoles.CREATOR].includes(workspace.roles as WorkspaceUserRoles)
+}
 </script>
 
 <template>
@@ -38,33 +34,45 @@ const filteredWorkspaces = computed(() => {
     <div>
       <div class="prose-xl font-bold self-center">
         <template v-if="isUseThisTemplate">
-          {{ $t('labels.useThisTemplate') }}
+          {{ templateName || $t('labels.useThisTemplate') }}
         </template>
         <template v-else> {{ $t('general.duplicate') }} {{ $t('labels.sharedBase') }} </template>
       </div>
 
       <template v-if="isEeUI">
-        <div class="my-4">
+        <div class="mt-4 mb-2">
           {{
-            isUseThisTemplate
-              ? $t('labels.selectWorkspaceToUseThisTemplateTo')
-              : $t('labels.selectWorkspaceToDuplicateSharedBaseTo')
+            isUseThisTemplate ? $t('labels.chooseWorkspaceToApplyTemplate') : $t('labels.selectWorkspaceToDuplicateSharedBaseTo')
           }}
         </div>
 
-        <NcSelect v-model:value="selectedWorkspace" class="w-full" :options="filteredWorkspaces" placeholder="Select Workspace" />
+        <NcListWorkspaceSelector
+          v-model:value="selectedWorkspace"
+          placeholder="Select workspace"
+          force-layout="vertical"
+          disable-label
+          :filter-workspace="filterWorkspace"
+        />
       </template>
 
-      <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
+      <template v-if="!isUseThisTemplate">
+        <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
 
-      <a-divider class="!m-0 !p-0 !my-2" />
+        <a-divider class="!m-0 !p-0 !my-2" />
 
-      <div class="text-xs p-2">
-        <a-checkbox v-model:checked="options.includeData">{{ $t('labels.includeData') }}</a-checkbox>
-        <a-checkbox v-model:checked="options.includeViews">{{ $t('labels.includeView') }}</a-checkbox>
-      </div>
+        <div class="text-xs p-2">
+          <a-checkbox v-model:checked="options.includeData">{{ $t('labels.includeData') }}</a-checkbox>
+          <a-checkbox v-model:checked="options.includeViews">{{ $t('labels.includeView') }}</a-checkbox>
+        </div>
+      </template>
     </div>
-    <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+    <div
+      class="flex flex-row gap-x-2 pt-2.5 justify-end"
+      :class="{
+        'mt-2.5': !isUseThisTemplate,
+        'mt-4.5': isUseThisTemplate,
+      }"
+    >
       <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
       <NcButton
         key="submit"
@@ -72,7 +80,8 @@ const filteredWorkspaces = computed(() => {
         :loading="isLoading"
         :disabled="!selectedWorkspace && isEeUI"
         @click="_duplicate"
-        >{{ $t('general.confirm') }}
+      >
+        {{ isUseThisTemplate ? $t('general.apply') : $t('general.confirm') }}
       </NcButton>
     </div>
   </GeneralModal>

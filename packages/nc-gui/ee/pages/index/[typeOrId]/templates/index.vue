@@ -13,10 +13,14 @@ onMounted(() => {
     <NuxtLayout name="empty">
       <div class="marketplace-container">
         <MarketplaceHeader />
-        <div class="container">
-          <MarketplaceSidebar v-model:active-category="activeCategory" class="sticky top-0" />
+        <div class="main-container flex">
+          <MarketplaceSidebar v-model:active-category="activeCategory" />
 
-          <NuxtPage />
+          <div class="flex-1 nc-scrollbar-thin">
+            <div class="container">
+              <NuxtPage />
+            </div>
+          </div>
         </div>
       </div>
     </NuxtLayout>
@@ -25,13 +29,15 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .marketplace-container {
-  & > .container {
-    @apply flex gap-8 mt-8 px-8 mx-auto relative;
-
-    @apply h-[calc(100vh_-_80px)];
+  .main-container {
+    @apply h-[calc(100vh_-_48px)];
 
     @supports (height: 100dvh) {
-      @apply h-[calc(100dvh_-_80px)];
+      @apply h-[calc(100dvh_-_48px)];
+    }
+
+    .container {
+      @apply flex gap-8 px-8 mx-auto 2xl:max-w-[1536px] 3xl:max-w-[1920px] 4xl:max-w-[2360px];
     }
   }
 }

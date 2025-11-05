@@ -13,8 +13,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const key = ref(0)
 
-const iframeRef = ref<HTMLIFrameElement | null>(null)
-
 const { appInfo } = useGlobal()
 
 const scriptConfig = computed(() => {
@@ -41,29 +39,6 @@ watch(
     key.value++
   },
 )
-
-useEventListener('message', (event) => {
-  if (!isValidUrl.value || !supportsKeyboardLock) return
-
-  try {
-    const iframeOrigin = new URL(scriptConfig.value?.url).origin
-    if (event.origin !== iframeOrigin) return
-  } catch (e) {
-    return
-  }
-
-  if (event.data.type === 'request-fullscreen-esc-key-lock') {
-    if ((window as any).ncLockAcquired) return
-    ;(window as any).ncLockAcquired = true
-    navigator.keyboard.lock(['Escape'])
-  } else if (event.data.type === 'request-fullscreen-esc-key-unlock') {
-    ;(window as any).ncLockAcquired = false
-    navigator.keyboard.unlock()
-  } else if (event.data.type === 'request-nc-iframe-fullscreen-supported') {
-    // ✅ Send back message to iframe
-    iframeRef.value?.contentWindow?.postMessage({ type: 'nc-iframe-fullscreen-supported', supported: true }, event.origin)
-  }
-})
 </script>
 
 <template>
@@ -78,7 +53,6 @@ useEventListener('message', (event) => {
     </SmartsheetDashboardWidgetsCommonWidgetsError>
     <iframe
       v-else
-      ref="iframeRef"
       :key="key"
       :class="{
         'pointer-events-none': isEditing,

@@ -13,6 +13,8 @@ export const useCopySharedBase = createSharedComposable(() => {
 
   const isUseThisTemplate = ref(false)
 
+  const templateName = ref<string>('')
+
   const isLoading = ref(false)
 
   const options = ref({
@@ -116,5 +118,6 @@ export const useCopySharedBase = createSharedComposable(() => {
     duplicateSharedBase,
     isDuplicateDlgOpen,
     selectedWorkspace,
+    templateName,
   }
 })

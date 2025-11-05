@@ -192,6 +192,7 @@
     "authorization": "Authorization",
     "revoke": "Revoke",
     "marketplace": "Marketplace",
+    "templates": "Templates",
     "script": "Script",
     "dashboard": "Dashboard",
     "supported": "Supported",
@@ -1734,16 +1735,17 @@
     "workspaceRole": "Workspace role",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
+    "clickToOpenInNewTabToEnterFullscreen": "Click to open in new tab to enter fullscreen",
     "selectRole": "Select Role",
     "copyConfiguration": "Copy configuration",
     "backToHome": "Back to Home",
-    "useThisTemplate": "Use this Template",
+    "useThisTemplate": "Use this template",
     "selectTeam": "Select team",
     "selectTeams": "Select teams",
     "showEveryonesPersonalViews": "Show everyone's personal views",
     "selectOneOrMoreTeams": "Select one or more teams",
     "selectWorkspaceToDuplicateSharedBaseTo": "Select workspace to duplicate shared base to:",
-    "selectWorkspaceToUseThisTemplateTo": "Select workspace to use this template to:"
+    "chooseWorkspaceToApplyTemplate": "Choose a workspace to apply this template"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

@@ -176,21 +176,9 @@ defineExpose({
           @update:value="handleValueUpdate"
           @escape="onEsc"
         >
-          <template #item="{ item }">
-            <div class="w-full flex items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralProjectIcon :color="parseProp(item.meta).iconColor" size="small" />
-              </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ item.label }}</template>
-                <span>{{ item.label }}</span>
-              </NcTooltip>
-              <component
-                :is="iconMap.check"
-                v-if="modelValue === item.value"
-                id="nc-selected-item-icon"
-                class="flex-none text-primary w-4 h-4"
-              />
+          <template #listItemExtraLeft="{ option }">
+            <div class="min-w-5 flex items-center justify-center">
+              <GeneralProjectIcon :color="parseProp(option.meta).iconColor" size="small" />
             </div>
           </template>
         </NcList>

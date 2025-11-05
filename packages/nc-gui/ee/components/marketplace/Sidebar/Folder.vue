@@ -31,10 +31,10 @@ const onLeave = (el: Element) => {
 <template>
   <div class="folder-container">
     <div
-      class="flex px-3 py-2 cursor-pointer hover:bg-nc-bg-gray-light items-center rounded-lg justify-between transition-all duration-200"
+      class="flex px-3 py-1.5 cursor-pointer hover:bg-nc-bg-gray-light items-center rounded-lg justify-between transition-all duration-200"
       @click="toggleFolder"
     >
-      <div class="text-nc-content-gray-muted text-caption">
+      <div class="text-nc-content-gray-muted text-caption font-semibold">
         <slot name="title" />
       </div>
       <Transition name="chevron-rotate" mode="out-in">

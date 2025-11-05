@@ -99,7 +99,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
 
-  const isMarketplacePageOpened = computed(() => (route.value.name as string)?.startsWith('index-typeOrId-marketplace'))
+  const isMarketplacePageOpened = computed(() => (route.value.name as string)?.startsWith('index-typeOrId-templates'))
 
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 
@@ -610,11 +610,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceId = workspaceId || activeWorkspaceId.value!
 
     if (cmdOrCtrl) {
-      await navigateTo(router.resolve({ name: 'index-typeOrId-marketplace', params: { typeOrId: workspaceId }, query }).href, {
+      await navigateTo(router.resolve({ name: 'index-typeOrId-templates', params: { typeOrId: workspaceId }, query }).href, {
         open: navigateToBlankTargetOpenOption,
       })
     } else {
-      router.push({ name: 'index-typeOrId-marketplace-index', params: { typeOrId: workspaceId }, query })
+      router.push({ name: 'index-typeOrId-templates-index', params: { typeOrId: workspaceId }, query })
     }
   }
 

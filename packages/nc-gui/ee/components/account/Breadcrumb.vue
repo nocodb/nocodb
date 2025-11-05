@@ -4,9 +4,12 @@ const route = useRoute()
 interface BreadcrumbType {
   title: string
   active?: boolean
+  path?: string
 }
 
 const { t } = useI18n()
+
+const { categoryInfo } = useMarketplaceTemplates()
 
 const breadcrumb = computed<BreadcrumbType[]>(() => {
   const payload: BreadcrumbType[] = [
@@ -42,17 +45,30 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
     return payload
   }
 
-  if (route.name?.toString().includes('index-typeOrId-marketplace')) {
+  if (route.name?.toString().includes('index-typeOrId-templates')) {
     payload.pop()
 
-    switch (route.name.toString().split('-').pop()) {
-      default: {
-        payload.push({
-          title: t('general.community'),
-          active: true,
-        })
-        break
-      }
+    payload.push({
+      title: t('general.templates'),
+      active: (!route.params.category || route.params.category === 'all-templates') && !route.meta.templateName,
+      path: `/${route.params.typeOrId}/templates`,
+    })
+
+    if (route.params.category && route.params.category !== 'all-templates') {
+      payload.push({
+        title:
+          categoryInfo[route.params.category as TemplateCategoryType]?.sidebarTitle ||
+          (route.params.category as unknown as string),
+        active: !route.meta.templateName,
+        path: `/${route.params.typeOrId}/templates/${route.params.category}`,
+      })
+    }
+
+    if (route.meta.templateName) {
+      payload.push({
+        title: route.meta.templateName as string,
+        active: true,
+      })
     }
 
     return payload
@@ -171,6 +187,12 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
 
   return payload
 })
+
+const onClick = async (item: BreadcrumbType) => {
+  if (item.path && !item.active) {
+    await navigateTo(item.path)
+  }
+}
 </script>
 
 <template>
@@ -179,8 +201,10 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       <div
         class="nc-breadcrumb-item"
         :class="{
-          active: item.active,
+          'active': item.active,
+          'cursor-pointer hover:underline': item.path && !item.active,
         }"
+        @click="onClick(item)"
       >
         {{ item.title }}
       </div>

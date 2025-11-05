@@ -87,7 +87,7 @@ const viewModeInfo = computed(() => {
             </NcTooltip>
             <template v-if="isSharedBase">
               <NcTooltip
-                class="ml-1 truncate nc-active-base-title max-w-full !leading-5"
+                class="ml-1 truncate nc-active-base-title max-w-full !leading-5 !hidden lg:!block"
                 show-on-truncate-only
                 :disabled="isOpen"
               >
@@ -110,7 +110,7 @@ const viewModeInfo = computed(() => {
               </NcTooltip>
               <GeneralIcon
                 icon="chevronDown"
-                class="!text-current opacity-70 flex-none transform transition-transform duration-25 w-3.5 h-3.5"
+                class="!text-current opacity-70 flex-none transform transition-transform duration-25 w-3.5 h-3.5 !hidden lg:!block"
                 :class="{ '!rotate-180': isOpen }"
               />
             </template>

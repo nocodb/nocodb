@@ -250,6 +250,26 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <div v-if="!isMobileMode" class="px-2 w-full">
         <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
       </div>
+      <DashboardMiniSidebarItemWrapper v-if="isTemplatesFeatureEnabled">
+        <NcTooltip :title="$t('general.templates')" placement="right" hide-on-click :arrow="false">
+          <div
+            v-e="['c:templates']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-templates-btn"
+            @click="navigateToMarketplace"
+          >
+            <div
+              class="nc-mini-sidebar-btn"
+              :class="{
+                active: isMarketplacePageOpened,
+              }"
+            >
+              <GeneralIcon icon="globe" class="h-4 w-4" />
+            </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+
       <DashboardMiniSidebarItemWrapper>
         <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
           <NotificationMenu />

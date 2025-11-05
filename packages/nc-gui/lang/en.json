@@ -185,6 +185,10 @@
     "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature."
   },
   "general": {
+    "authorization": "Authorization",
+    "revoke": "Revoke",
+    "marketplace": "Marketplace",
+    "templates": "Templates",
     "script": "Script",
     "dashboard": "Dashboard",
     "supported": "Supported",

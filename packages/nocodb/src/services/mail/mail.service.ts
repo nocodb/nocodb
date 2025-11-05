@@ -275,20 +275,22 @@ export class MailService {
           });
           break;
         }
-        case MailEvent.FORM_SUBMISSION: {
-          const { formView, data, model, emails, base } = payload;
+        case MailEvent.FORM_SUBMISSION:
+          {
+            const { formView, data, model, emails, base } = payload;
 
-          await mailerAdapter.mailSend({
-            to: emails.join(','),
-            subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
-            html: await this.renderMail('FormSubmission', {
-              formTitle: formView.title,
-              tableTitle: model.title,
-              submissionData: data,
-              baseTitle: base.title,
-            }),
-          });
-        }
+            await mailerAdapter.mailSend({
+              to: emails.join(','),
+              subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
+              html: await this.renderMail('FormSubmission', {
+                formTitle: formView.title,
+                tableTitle: model.title,
+                submissionData: data,
+                baseTitle: base.title,
+              }),
+            });
+          }
+          break;
         case MailEvent.TEAM_ASSIGNED_TO_WORKSPACE: {
           const { req, owner, team, workspace, workspaceRole } = payload as any;
           const inviter = req.user;

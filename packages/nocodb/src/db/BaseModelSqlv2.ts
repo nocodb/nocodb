@@ -4183,6 +4183,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           if (column.uidt === UITypes.Order) {
             shouldThrow = false;
           }
+
+          // allow updating ForeignKey since we are using it for belongs to
+          if (column.uidt === UITypes.ForeignKey) {
+            shouldThrow = false;
+          }
+
           // allow updating self link column (system counter part)
           else if (isSelfLinkCol(column)) {
             shouldThrow = false;

@@ -1,6 +1,7 @@
 import * as nc_001_init from './v0/nc_001_init';
 import * as nc_002_teams from './v0/nc_002_teams';
 import * as nc_003_alter_row_color_condition_nc_order_col from './v0/nc_003_alter_row_color_condition_nc_order_col';
+import * as nc_004_workflows from './v0/nc_004_workflows';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -13,6 +14,7 @@ export default class XcMigrationSourcev0 {
       'nc_001_init',
       'nc_002_teams',
       'nc_003_alter_row_color_condition_nc_order_col',
+      'nc_004_workflows'
     ]);
   }
 
@@ -28,6 +30,8 @@ export default class XcMigrationSourcev0 {
         return nc_002_teams;
       case 'nc_003_alter_row_color_condition_nc_order_col':
         return nc_003_alter_row_color_condition_nc_order_col;
+      case 'nc_004_workflows':
+        return nc_004_workflows;
     }
   }
 }

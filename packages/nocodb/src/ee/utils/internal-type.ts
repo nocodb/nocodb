@@ -2,13 +2,13 @@ import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { TestConnectionResponse } from '@noco-local-integrations/core';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type {
-  Automation,
   DataReflection,
   Integration,
   MCPToken,
   OAuthClient,
   Script,
   SyncConfig,
+  Workflow,
 } from '~/models';
 import type Dashboard from '~/models/Dashboard';
 import type Widget from '~/models/Widget';
@@ -47,8 +47,8 @@ export type InternalGETResponseType = Promise<
   | OAuthClient
   | OAuthClient[]
   | Widget[]
-  | Automation
-  | Automation[]
+  | Workflow
+  | Workflow[]
   | { list: TeamV3ResponseType[] }
   | TeamDetailV3Type
   | BaseTeamListV3Type
@@ -80,7 +80,7 @@ export type InternalPOSTResponseType = Promise<
   | Dashboard
   | Widget
   | OAuthClient
-  | Automation
+  | Workflow
   | { id: JobId; secret?: string }
   | {
       integration: Integration;

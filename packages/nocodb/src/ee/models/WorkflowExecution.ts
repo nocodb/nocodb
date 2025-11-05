@@ -10,11 +10,11 @@ import {
   MetaTable,
 } from '~/utils/globals';
 
-export default class AutomationExecution {
+export default class WorkflowExecution {
   id?: string;
   fk_workspace_id?: string;
   base_id?: string;
-  fk_automation_id?: string;
+  fk_workflow_id?: string;
 
   workflow_data?: string;
   execution_data?: string;
@@ -27,8 +27,8 @@ export default class AutomationExecution {
   created_at?: string;
   updated_at?: string;
 
-  constructor(automationExecution: AutomationExecution) {
-    Object.assign(this, automationExecution);
+  constructor(workflowExecution: WorkflowExecution) {
+    Object.assign(this, workflowExecution);
   }
 
   public static async get(
@@ -38,7 +38,7 @@ export default class AutomationExecution {
   ) {
     let execution = await NocoCache.get(
       context,
-      `${CacheScope.AUTOMATION_EXECUTION}:${executionId}`,
+      `${CacheScope.WORKFLOW_EXECUTION}:${executionId}`,
       CacheGetType.TYPE_OBJECT,
     );
 
@@ -46,7 +46,7 @@ export default class AutomationExecution {
       execution = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.AUTOMATION_EXECUTIONS,
+        MetaTable.WORKFLOW_EXECUTIONS,
         executionId,
       );
 
@@ -58,32 +58,32 @@ export default class AutomationExecution {
 
         await NocoCache.set(
           context,
-          `${CacheScope.AUTOMATION_EXECUTION}:${executionId}`,
+          `${CacheScope.WORKFLOW_EXECUTION}:${executionId}`,
           execution,
         );
       }
     }
 
-    return execution && new AutomationExecution(execution);
+    return execution && new WorkflowExecution(execution);
   }
 
   public static async list(
     context: NcContext,
     params: {
-      automationId?: string;
+      workflowId?: string;
       limit?: number;
       offset?: number;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const { automationId, limit = 25, offset = 0 } = params;
+    const { workflowId, limit = 25, offset = 0 } = params;
 
     // Build cache key based on params
-    const cacheKey = automationId ? [automationId] : ['all'];
+    const cacheKey = workflowId ? [workflowId] : ['all'];
 
     const cachedList = await NocoCache.getList(
       context,
-      CacheScope.AUTOMATION_EXECUTION,
+      CacheScope.WORKFLOW_EXECUTION,
       cacheKey,
     );
 
@@ -92,14 +92,14 @@ export default class AutomationExecution {
     if (!cachedList.isNoneList && !executionList.length) {
       const condition: any = {};
 
-      if (automationId) {
-        condition.fk_automation_id = automationId;
+      if (workflowId) {
+        condition.fk_workflow_id = workflowId;
       }
 
       executionList = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
-        MetaTable.AUTOMATION_EXECUTIONS,
+        MetaTable.WORKFLOW_EXECUTIONS,
         {
           condition,
           orderBy: {
@@ -116,22 +116,22 @@ export default class AutomationExecution {
 
       await NocoCache.setList(
         context,
-        CacheScope.AUTOMATION_EXECUTION,
+        CacheScope.WORKFLOW_EXECUTION,
         cacheKey,
         executionList,
       );
     }
 
-    return executionList.map((execution) => new AutomationExecution(execution));
+    return executionList.map((execution) => new WorkflowExecution(execution));
   }
 
   public static async insert(
     context: NcContext,
-    execution: Partial<AutomationExecution>,
+    execution: Partial<WorkflowExecution>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(execution, [
-      'fk_automation_id',
+      'fk_workflow_id',
       'base_id',
       'fk_workspace_id',
       'workflow_data',
@@ -145,26 +145,26 @@ export default class AutomationExecution {
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.AUTOMATION_EXECUTIONS,
+      MetaTable.WORKFLOW_EXECUTIONS,
       prepareForDb(insertObj, ['workflow_data', 'execution_data']),
     );
 
     return this.get(context, id, ncMeta).then(async (res) => {
-      // Append to both automation-specific and base-level caches
-      if (execution.fk_automation_id) {
+      // Append to both workflow-specific and base-level caches
+      if (execution.fk_workflow_id) {
         await NocoCache.appendToList(
           context,
-          CacheScope.AUTOMATION_EXECUTION,
-          [execution.fk_automation_id],
-          `${CacheScope.AUTOMATION_EXECUTION}:${id}`,
+          CacheScope.WORKFLOW_EXECUTION,
+          [execution.fk_workflow_id],
+          `${CacheScope.WORKFLOW_EXECUTION}:${id}`,
         );
       }
       if (execution.base_id) {
         await NocoCache.appendToList(
           context,
-          CacheScope.AUTOMATION_EXECUTION,
+          CacheScope.WORKFLOW_EXECUTION,
           [execution.base_id],
-          `${CacheScope.AUTOMATION_EXECUTION}:${id}`,
+          `${CacheScope.WORKFLOW_EXECUTION}:${id}`,
         );
       }
       return res;
@@ -174,7 +174,7 @@ export default class AutomationExecution {
   public static async update(
     context: NcContext,
     executionId: string,
-    execution: Partial<AutomationExecution>,
+    execution: Partial<WorkflowExecution>,
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(execution, [
@@ -188,14 +188,14 @@ export default class AutomationExecution {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.AUTOMATION_EXECUTIONS,
+      MetaTable.WORKFLOW_EXECUTIONS,
       prepareForDb(updateObj, ['workflow_data', 'execution_data']),
       executionId,
     );
 
     await NocoCache.update(
       context,
-      `${CacheScope.AUTOMATION_EXECUTION}:${executionId}`,
+      `${CacheScope.WORKFLOW_EXECUTION}:${executionId}`,
       updateObj,
     );
 
@@ -210,13 +210,13 @@ export default class AutomationExecution {
     const res = await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.AUTOMATION_EXECUTIONS,
+      MetaTable.WORKFLOW_EXECUTIONS,
       executionId,
     );
 
     await NocoCache.deepDel(
       context,
-      `${CacheScope.AUTOMATION_EXECUTION}:${executionId}`,
+      `${CacheScope.WORKFLOW_EXECUTION}:${executionId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 

@@ -2,7 +2,7 @@ import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  await knex.schema.createTable(MetaTable.AUTOMATIONS, (table) => {
+  await knex.schema.createTable(MetaTable.WORKFLOWS, (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('title', 255).notNullable();
     table.string('fk_workspace_id', 20);
@@ -22,14 +22,14 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
 
     // Indexes for fast lookups
-    table.index(['base_id', 'fk_workspace_id'], 'nc_automations_context_idx');
+    table.index(['base_id', 'fk_workspace_id'], 'nc_workflows_context_idx');
   });
 
-  await knex.schema.createTable(MetaTable.AUTOMATION_EXECUTIONS, (table) => {
+  await knex.schema.createTable(MetaTable.WORKFLOW_EXECUTIONS, (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('fk_workspace_id', 20);
     table.string('base_id', 20);
-    table.string('fk_automation_id', 20).notNullable();
+    table.string('fk_workflow_id', 20).notNullable();
 
     table.text('workflow_data');
     table.text('execution_data');
@@ -44,12 +44,9 @@ const up = async (knex: Knex) => {
     // Indexes for fast lookups
     table.index(
       ['base_id', 'fk_workspace_id'],
-      'nc_automation_executions_context_idx',
+      'nc_workflow_executions_context_idx',
     );
-    table.index(
-      ['fk_automation_id'],
-      'nc_automation_executions_automation_idx',
-    );
+    table.index(['fk_workflow_id'], 'nc_workflow_executions_workflow_idx');
   });
 
   await knex.schema.createTable(MetaTable.DEPENDENCY_TRACKER, (table) => {
@@ -81,8 +78,8 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropTable(MetaTable.AUTOMATION_EXECUTIONS);
-  await knex.schema.dropTable(MetaTable.AUTOMATIONS);
+  await knex.schema.dropTable(MetaTable.WORKFLOW_EXECUTIONS);
+  await knex.schema.dropTable(MetaTable.WORKFLOWS);
   await knex.schema.dropTable(MetaTable.DEPENDENCY_TRACKER);
 };
 

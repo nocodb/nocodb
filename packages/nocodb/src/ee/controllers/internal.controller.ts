@@ -46,7 +46,7 @@ import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
 import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 import { UtilsService } from '~/services/utils.service';
-import { AutomationsService } from '~/services/automations.service';
+import { WorkflowsService } from '~/ee/services/workflows.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -74,7 +74,7 @@ export class InternalController extends InternalControllerCE {
     private readonly usersService: UsersService,
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
     private readonly baseTeamsV3Service: BaseTeamsV3Service,
-    private readonly automationsService: AutomationsService,
+    private readonly workflowsService: WorkflowsService,
   ) {
     super(aclMiddleware, internalApiModules);
   }
@@ -210,12 +210,12 @@ export class InternalController extends InternalControllerCE {
       case 'template': {
         return await this.utilsService.template(req);
       }
-      case 'automationList':
-        return await this.automationsService.list(context);
-      case 'automationGet':
-        return await this.automationsService.get(
+      case 'workflowList':
+        return await this.workflowsService.list(context);
+      case 'workflowGet':
+        return await this.workflowsService.get(
           context,
-          req.query.automationId as string,
+          req.query.workflowId as string,
         );
       default:
         return await super.internalAPI(
@@ -569,19 +569,19 @@ export class InternalController extends InternalControllerCE {
           });
         }
       }
-      case 'automationCreate':
-        return await this.automationsService.create(context, payload, req);
-      case 'automationUpdate':
-        return await this.automationsService.update(
+      case 'workflowCreate':
+        return await this.workflowsService.create(context, payload, req);
+      case 'workflowUpdate':
+        return await this.workflowsService.update(
           context,
-          payload.automationId,
+          payload.workflowId,
           payload,
           req,
         );
-      case 'automationDelete':
-        return await this.automationsService.delete(
+      case 'workflowDelete':
+        return await this.workflowsService.delete(
           context,
-          payload.automationId,
+          payload.workflowId,
           req,
         );
       default:

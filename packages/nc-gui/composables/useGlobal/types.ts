@@ -122,6 +122,10 @@ export interface Actions {
     viewTitle?: string
     automationId?: string
     automationTitle?: string
+    dashboardId?: string
+    dashboardTitle?: string
+    workflowId?: string
+    workflowTitle?: string
     replace?: boolean
     dashboardId?: string
     dashboardTitle?: string

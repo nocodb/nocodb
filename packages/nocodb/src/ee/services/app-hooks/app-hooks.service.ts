@@ -2,9 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { AppHooksService as ApppHookServiceCE } from 'src/services/app-hooks/app-hooks.service';
 import type { AppEvents } from 'nocodb-sdk';
 import type {
-  AutomationCreateEvent,
-  AutomationDeleteEvent,
-  AutomationUpdateEvent,
   BaseTeamDeleteEvent,
   BaseTeamInviteEvent,
   BaseTeamUpdateEvent,
@@ -26,6 +23,9 @@ import type {
   UserSignupEvent,
   ViewEvent,
   WelcomeEvent,
+  WorkflowCreateEvent,
+  WorkflowDeleteEvent,
+  WorkflowUpdateEvent,
   WorkspaceEvent,
   WorkspaceTeamDeleteEvent,
   WorkspaceTeamInviteEvent,
@@ -320,16 +320,16 @@ export class AppHooksService extends ApppHookServiceCE {
   ): () => void;
 
   on(
-    event: AppEvents.AUTOMATION_CREATE,
-    listener: (data: AutomationCreateEvent) => void,
+    event: AppEvents.WORKFLOW_CREATE,
+    listener: (data: WorkflowCreateEvent) => void,
   ): () => void;
   on(
-    event: AppEvents.AUTOMATION_UPDATE,
-    listener: (data: AutomationUpdateEvent) => void,
+    event: AppEvents.WORKFLOW_UPDATE,
+    listener: (data: WorkflowUpdateEvent) => void,
   ): () => void;
   on(
-    event: AppEvents.AUTOMATION_DELETE,
-    listener: (data: AutomationDeleteEvent) => void,
+    event: AppEvents.WORKFLOW_DELETE,
+    listener: (data: WorkflowDeleteEvent) => void,
   ): () => void;
 
   on(
@@ -628,9 +628,9 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.SCRIPT_DELETE, data: ScriptDeleteEvent): void;
   emit(event: AppEvents.SCRIPT_DUPLICATE, data: ScriptDuplicateEvent): void;
 
-  emit(event: AppEvents.AUTOMATION_CREATE, data: AutomationCreateEvent): void;
-  emit(event: AppEvents.AUTOMATION_UPDATE, data: AutomationUpdateEvent): void;
-  emit(event: AppEvents.AUTOMATION_DELETE, data: AutomationDeleteEvent): void;
+  emit(event: AppEvents.WORKFLOW_CREATE, data: WorkflowCreateEvent): void;
+  emit(event: AppEvents.WORKFLOW_UPDATE, data: WorkflowUpdateEvent): void;
+  emit(event: AppEvents.WORKFLOW_DELETE, data: WorkflowDeleteEvent): void;
 
   emit(event: AppEvents.DASHBOARD_CREATE, data: DashboardCreateEvent): void;
   emit(event: AppEvents.DASHBOARD_UPDATE, data: DashboardUpdateEvent): void;

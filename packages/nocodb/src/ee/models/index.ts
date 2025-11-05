@@ -37,7 +37,7 @@ export { default as Widget } from './Widget';
 export { default as Team } from './Team';
 export { default as PrincipalAssignment } from './PrincipalAssignment';
 
-// Automation-related models
-export { default as Automation } from './Automation';
-export { default as AutomationExecution } from './AutomationExecution';
+// Workflow-related models
+export { default as Workflow } from './Workflow';
+export { default as WorkflowExecution } from './WorkflowExecution';
 // export { default as DependencyTracker } from './DependencyTracker';

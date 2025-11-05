@@ -4,7 +4,6 @@ import type {
   NcBaseEvent,
 } from 'src/services/app-hooks/interfaces';
 import type {
-  AutomationType,
   BaseType,
   DashboardType,
   IntegrationType,
@@ -13,6 +12,7 @@ import type {
   ScriptType,
   UserType,
   WidgetType,
+  WorkflowType,
   WorkspaceType,
 } from 'nocodb-sdk';
 import type Snapshot from '~/models/Snapshot';
@@ -115,19 +115,19 @@ export interface ScriptDuplicateEvent extends NcBaseEvent {
   user: UserType;
 }
 
-export interface AutomationCreateEvent extends NcBaseEvent {
-  automation: AutomationType;
+export interface WorkflowCreateEvent extends NcBaseEvent {
+  workflow: WorkflowType;
   user: UserType;
 }
 
-export interface AutomationUpdateEvent extends NcBaseEvent {
-  automation: AutomationType;
+export interface WorkflowUpdateEvent extends NcBaseEvent {
+  workflow: WorkflowType;
   user: UserType;
-  oldAutomation: AutomationType;
+  oldWorkflow: WorkflowType;
 }
 
-export interface AutomationDeleteEvent extends NcBaseEvent {
-  automation: AutomationType;
+export interface WorkflowDeleteEvent extends NcBaseEvent {
+  workflow: WorkflowType;
   user: UserType;
 }
 

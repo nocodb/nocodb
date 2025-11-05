@@ -63,8 +63,8 @@ import { SnapshotService } from '~/services/snapshot.service';
 /* Scripts */
 import { ScriptsService } from '~/services/scripts.service';
 
-/* Automations */
-import { AutomationsService } from '~/ee/services/automations.service';
+/* Workflows */
+import { WorkflowsService } from '~/ee/services/workflows.service';
 
 /* Dashboards */
 import { DashboardsService } from '~/services/dashboards.service';
@@ -117,8 +117,8 @@ export const nocoModuleEeMetadata = {
     /* Scripts */
     ScriptsService,
 
-    /* Automations */
-    AutomationsService,
+    /* Workflows */
+    WorkflowsService,
 
     /* Dashboards */
     DashboardsService,
@@ -167,7 +167,7 @@ export const nocoModuleEeMetadata = {
   ],
   exports: [
     ScriptsService,
-    AutomationsService,
+    WorkflowsService,
     DashboardsService,
     PermissionsService,
     ActionsService,

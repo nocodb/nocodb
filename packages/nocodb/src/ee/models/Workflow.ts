@@ -1,5 +1,5 @@
 import { PlanLimitTypes } from 'nocodb-sdk';
-import type { AutomationType } from 'nocodb-sdk';
+import type { WorkflowType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
@@ -12,7 +12,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 
-export default class Automation implements AutomationType {
+export default class Workflow implements WorkflowType {
   id?: string;
   title?: string;
   fk_workspace_id?: string;
@@ -27,41 +27,41 @@ export default class Automation implements AutomationType {
   created_at?: string;
   updated_at?: string;
 
-  constructor(automation: Automation) {
-    Object.assign(this, automation);
+  constructor(workflow: Workflow) {
+    Object.assign(this, workflow);
   }
 
   public static async get(
     context: NcContext,
-    automationId: string,
+    workflowId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    let automation = await NocoCache.get(
+    let workflow = await NocoCache.get(
       context,
-      `${CacheScope.AUTOMATION}:${automationId}`,
+      `${CacheScope.WORKFLOW}:${workflowId}`,
       CacheGetType.TYPE_OBJECT,
     );
 
-    if (!automation) {
-      automation = await ncMeta.metaGet2(
+    if (!workflow) {
+      workflow = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.AUTOMATIONS,
-        automationId,
+        MetaTable.WORKFLOWS,
+        workflowId,
       );
 
-      if (automation) {
-        automation = prepareForResponse(automation, ['nodes', 'edges', 'meta']);
+      if (workflow) {
+        workflow = prepareForResponse(workflow, ['nodes', 'edges', 'meta']);
 
         await NocoCache.set(
           context,
-          `${CacheScope.AUTOMATION}:${automationId}`,
-          automation,
+          `${CacheScope.WORKFLOW}:${workflowId}`,
+          workflow,
         );
       }
     }
 
-    return automation && new Automation(automation);
+    return workflow && new Workflow(workflow);
   }
 
   public static async list(
@@ -69,17 +69,17 @@ export default class Automation implements AutomationType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.AUTOMATION, [
+    const cachedList = await NocoCache.getList(context, CacheScope.WORKFLOW, [
       baseId,
     ]);
 
-    let { list: automationList } = cachedList;
+    let { list: workflowList } = cachedList;
 
-    if (!cachedList.isNoneList && !automationList.length) {
-      automationList = await ncMeta.metaList2(
+    if (!cachedList.isNoneList && !workflowList.length) {
+      workflowList = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
-        MetaTable.AUTOMATIONS,
+        MetaTable.WORKFLOWS,
         {
           condition: {
             base_id: baseId,
@@ -90,27 +90,27 @@ export default class Automation implements AutomationType {
         },
       );
 
-      automationList = automationList.map((automation) =>
-        prepareForResponse(automation, ['nodes', 'edges', 'meta']),
+      workflowList = workflowList.map((workflow) =>
+        prepareForResponse(workflow, ['nodes', 'edges', 'meta']),
       );
 
       await NocoCache.setList(
         context,
-        CacheScope.AUTOMATION,
+        CacheScope.WORKFLOW,
         [baseId],
-        automationList,
+        workflowList,
       );
     }
 
-    return automationList.map((automation) => new Automation(automation));
+    return workflowList.map((workflow) => new Workflow(workflow));
   }
 
   public static async insert(
     context: NcContext,
-    automation: Partial<Automation>,
+    workflow: Partial<Workflow>,
     ncMeta = Noco.ncMeta,
   ) {
-    const insertObj = extractProps(automation, [
+    const insertObj = extractProps(workflow, [
       'title',
       'base_id',
       'fk_workspace_id',
@@ -122,7 +122,7 @@ export default class Automation implements AutomationType {
     ]);
 
     if (!insertObj.order) {
-      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.AUTOMATIONS, {
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.WORKFLOWS, {
         fk_workspace_id: context.workspace_id,
         base_id: context.base_id,
       });
@@ -131,23 +131,23 @@ export default class Automation implements AutomationType {
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.AUTOMATIONS,
+      MetaTable.WORKFLOWS,
       prepareForDb(insertObj, ['nodes', 'edges', 'meta']),
     );
 
     await NocoCache.incrHashField(
       'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
-      PlanLimitTypes.LIMIT_AUTOMATION_PER_WORKSPACE,
+      PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
       1,
     );
 
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
         context,
-        CacheScope.AUTOMATION,
-        [automation.base_id],
-        `${CacheScope.AUTOMATION}:${id}`,
+        CacheScope.WORKFLOW,
+        [workflow.base_id],
+        `${CacheScope.WORKFLOW}:${id}`,
       );
       return res;
     });
@@ -155,11 +155,11 @@ export default class Automation implements AutomationType {
 
   public static async update(
     context: NcContext,
-    automationId: string,
-    automation: Partial<Automation>,
+    workflowId: string,
+    workflow: Partial<Workflow>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(automation, [
+    const updateObj = extractProps(workflow, [
       'title',
       'enabled',
       'nodes',
@@ -171,42 +171,42 @@ export default class Automation implements AutomationType {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.AUTOMATIONS,
+      MetaTable.WORKFLOWS,
       prepareForDb(updateObj, ['nodes', 'edges', 'meta']),
-      automationId,
+      workflowId,
     );
 
     await NocoCache.update(
       context,
-      `${CacheScope.AUTOMATION}:${automationId}`,
+      `${CacheScope.WORKFLOW}:${workflowId}`,
       updateObj,
     );
 
-    return this.get(context, automationId, ncMeta);
+    return this.get(context, workflowId, ncMeta);
   }
 
   static async delete(
     context: NcContext,
-    automationId: any,
+    workflowId: any,
     ncMeta = Noco.ncMeta,
   ) {
     const res = await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.AUTOMATIONS,
-      automationId,
+      MetaTable.WORKFLOWS,
+      workflowId,
     );
 
     await NocoCache.deepDel(
       context,
-      `${CacheScope.AUTOMATION}:${automationId}`,
+      `${CacheScope.WORKFLOW}:${workflowId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
     await NocoCache.incrHashField(
       'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
-      PlanLimitTypes.LIMIT_AUTOMATION_PER_WORKSPACE,
+      PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
       -1,
     );
 

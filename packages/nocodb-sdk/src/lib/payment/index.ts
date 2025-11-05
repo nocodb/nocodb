@@ -27,7 +27,7 @@ export enum PlanLimitTypes {
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
-  LIMIT_AUTOMATION_PER_WORKSPACE = 'limit_automation',
+  LIMIT_WORKFLOW_PER_WORKSPACE = 'limit_workflow',
 }
 
 export enum PlanFeatureTypes {
@@ -214,8 +214,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
-  [PlanLimitTypes.LIMIT_AUTOMATION_PER_WORKSPACE]:
-    'to add more automations in a workspace.',
+  [PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE]:
+    'to add more workflows in a workspace.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {

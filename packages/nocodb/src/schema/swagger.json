@@ -29615,9 +29615,9 @@
           "id": "4zvzrppfjxrqb"
         }
       },
-      "Automation": {
-        "description": "Model for Automation",
-        "title": "Automation Model",
+      "Workflow": {
+        "description": "Model for Workflow",
+        "title": "Workflow Model",
         "type": "object",
         "properties": {
           "id": {
@@ -29626,7 +29626,7 @@
           },
           "title": {
             "type": "string",
-            "description": "Title of the Automation"
+            "description": "Title of the Workflow"
           },
           "base_id": {
             "$ref": "#/components/schemas/Id",
@@ -29638,26 +29638,26 @@
           },
           "enabled": {
             "type": "boolean",
-            "description": "Whether the automation is enabled"
+            "description": "Whether the workflow is enabled"
           },
           "nodes": {
             "$ref": "#/components/schemas/Meta",
-            "description": "Nodes configuration for the automation workflow"
+            "description": "Nodes configuration for the workflow workflow"
           },
           "edges": {
             "$ref": "#/components/schemas/Meta",
-            "description": "Edges configuration for the automation workflow"
+            "description": "Edges configuration for the workflow workflow"
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
-            "description": "Meta data for the Automation"
+            "description": "Meta data for the Workflow"
           },
           "trigger_count": {
             "type": "number",
-            "description": "Number of times the automation has been triggered"
+            "description": "Number of times the workflow has been triggered"
           },
           "order": {
-            "description": "The order of the automation in the list",
+            "description": "The order of the workflow in the list",
             "type": "number"
           },
           "updated_at": {

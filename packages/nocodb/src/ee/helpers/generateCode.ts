@@ -17,17 +17,66 @@ enum ScriptActionType {
   RECORD_UPDATE_COMPLETE = 'recordUpdateComplete',
 }
 
-function generateRemoteFetch() {
+function generateRemoteFetch(): string {
   return `
-  const remoteFetchAsync = async (url, options) => {
-    return fetch(url, options).then(response => {
-      if (response.ok) {
-        return response.json();
-      } else {
-        throw new Error('Request failed with status: ' + response.status);
+    const remoteFetch = async (url, options = {}) => {
+      try {
+        const response = await fetch(url, {
+          method: options.method || 'GET',
+          headers: options.headers || {},
+          body: options.body || undefined,
+        });
+        
+        // Try to parse response body - handle both JSON and text
+        let data;
+        const contentType = response.headers.get('content-type');
+        
+        try {
+          if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+          } else {
+            data = await response.text();
+          }
+        } catch (parseError) {
+          // Fallback to text if JSON parsing fails
+          data = await response.text();
+        }
+        
+        // Return same structure as backend axios remoteFetch
+        return {
+          data: data,
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries()),
+          config: {
+            url: url,
+            method: options.method || 'GET',
+            headers: options.headers || {},
+            data: options.body || null,
+          },
+        };
+      } catch (e) {
+        // Network error - same structure as backend error handling
+        return {
+          data: null,
+          status: 0,
+          statusText: 'Network Error',
+          headers: {},
+          config: {
+            url: url,
+            method: options.method || 'GET',
+            headers: options.headers || {},
+            data: options.body || null,
+          },
+          error: {
+            message: e.message,
+            code: e.code || 'NETWORK_ERROR',
+            name: e.name,
+            stack: e.stack,
+          },
+        };
       }
-    });
-  }
+    };
   `;
 }
 

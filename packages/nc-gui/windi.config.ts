@@ -104,18 +104,13 @@ export default defineConfig({
     },
     extend: {
       screens: {
-        'xs': {
-          max: '480px',
-        },
-        'sm': {
-          min: '480px',
-        },
-        'md': {
-          min: '820px',
-        },
-        '2xl': {
-          min: '1780px',
-        },
+        'xs': { max: '480px' },
+        'sm': { min: '480px' },
+        'md': { min: '820px' },
+        '2xl': { min: '1780px' },
+        '3xl': { min: '1920px' },
+        '4xl': { min: '2560px' },
+        '5xl': { min: '3200px' },
       },
       fontSize: {
         tiny: ['11px', '14px'],

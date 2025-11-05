@@ -249,9 +249,11 @@ export const NO_SCOPE = 'nc';
 export const NON_SEAT_ROLES = [
   WorkspaceUserRoles.NO_ACCESS,
   WorkspaceUserRoles.VIEWER,
+  WorkspaceUserRoles.INHERIT,
   WorkspaceUserRoles.COMMENTER,
   ProjectRoles.NO_ACCESS,
   ProjectRoles.VIEWER,
+  ProjectRoles.INHERIT,
   ProjectRoles.COMMENTER,
 ];
 

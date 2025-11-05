@@ -38,6 +38,8 @@ const { createProjectUser, baseTeamAdd } = basesStore
 
 const { inviteCollaborator: inviteWsCollaborator, workspaceTeamAdd } = workspaceStore
 
+const { isTeamsEnabled } = storeToRefs(workspaceStore)
+
 const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, showUserMayChargeAlert } = useEeConfig()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
@@ -117,11 +119,33 @@ watch(dialogShow, async (newVal) => {
           currentRoleIndex = 1
         }
 
-        allowedRoles.value = rolesArr.slice(currentRoleIndex)
-        disabledRoles.value = rolesArr.slice(0, currentRoleIndex)
+        let filteredRoles = rolesArr
+
+        // If teams are not enabled, filter out INHERIT role as well
+        // todo: remove this check once teams are enabled by default
+        if (props.isTeam || !isTeamsEnabled.value) {
+          filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
+        }
+
+        allowedRoles.value = filteredRoles.slice(currentRoleIndex)
+        disabledRoles.value = filteredRoles.slice(0, currentRoleIndex)
       } else {
-        allowedRoles.value = props.isTeam ? rolesArr.slice(1) : rolesArr
-        disabledRoles.value = props.isTeam ? rolesArr.slice(0, 1) : []
+        // Filter out INHERIT role for teams (workspace or base teams)
+        let filteredRoles = rolesArr
+        if (props.isTeam) {
+          filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
+          allowedRoles.value = filteredRoles.slice(1)
+          disabledRoles.value = filteredRoles.slice(0, 1)
+        } else {
+          allowedRoles.value = rolesArr
+          disabledRoles.value = []
+        }
+      }
+      // move INHERIT role to the end of the list, if present in allowed roles
+      let inheritIndex = allowedRoles.value.indexOf(WorkspaceUserRoles.INHERIT)
+      inheritIndex = inheritIndex === -1 ? allowedRoles.value.indexOf(ProjectRoles.INHERIT) : inheritIndex
+      if (inheritIndex !== -1) {
+        allowedRoles.value.push(...allowedRoles.value.splice(inheritIndex, 1))
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))

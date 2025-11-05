@@ -176,6 +176,7 @@ export class WorkspaceUsersService {
         WorkspaceUserRoles.EDITOR,
         WorkspaceUserRoles.COMMENTER,
         WorkspaceUserRoles.NO_ACCESS,
+        WorkspaceUserRoles.INHERIT,
       ].includes(param.roles)
     ) {
       NcError.badRequest('Invalid role');
@@ -546,6 +547,7 @@ export class WorkspaceUsersService {
         WorkspaceUserRoles.OWNER,
         WorkspaceUserRoles.CREATOR,
         WorkspaceUserRoles.VIEWER,
+        WorkspaceUserRoles.INHERIT,
         WorkspaceUserRoles.EDITOR,
         WorkspaceUserRoles.COMMENTER,
         WorkspaceUserRoles.NO_ACCESS,

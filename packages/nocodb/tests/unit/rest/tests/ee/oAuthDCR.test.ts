@@ -316,8 +316,7 @@ function oauthDCRTests() {
           client_name: 'Client With Logo',
           redirect_uris: ['https://example.com/callback'],
           client_uri: 'https://example.com',
-          logo_uri:
-            'https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg',
+          logo_uri: 'https://cdn.nocodb.com/logo.png',
         })
         .expect(201);
 

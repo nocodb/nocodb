@@ -85,6 +85,7 @@ export class BaseUsersService {
         ProjectRoles.EDITOR,
         ProjectRoles.COMMENTER,
         ProjectRoles.VIEWER,
+        ProjectRoles.INHERIT,
         ProjectRoles.NO_ACCESS,
       ].includes(param.baseUser.roles as ProjectRoles)
     ) {
@@ -405,6 +406,7 @@ export class BaseUsersService {
         ProjectRoles.EDITOR,
         ProjectRoles.COMMENTER,
         ProjectRoles.VIEWER,
+        ProjectRoles.INHERIT,
         ProjectRoles.NO_ACCESS,
       ].includes(param.baseUser.roles as ProjectRoles)
     ) {

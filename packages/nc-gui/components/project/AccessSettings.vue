@@ -86,9 +86,9 @@ const isLoading = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
-  if (!record?.isTeam || !isEeUI) return roles
+  if (!record?.isTeam || !isEeUI) return roles.filter((r) => r !== ProjectRoles.INHERIT || isTeamsEnabled.value)
 
-  return roles.filter((r) => r !== ProjectRoles.OWNER)
+  return roles.filter((r) => r !== ProjectRoles.OWNER && r !== ProjectRoles.INHERIT)
 }
 
 const baseTeamsToCollaborators = computed(() => {
@@ -172,6 +172,12 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
 
   try {
     if (collab?.isTeam) {
+      // INHERIT role can only be assigned to individual users, not teams
+      if (roles === ProjectRoles.INHERIT) {
+        message.error(t('msg.error.inheritRoleOnlyForUsers'))
+        return
+      }
+
       await baseTeamUpdate(currentBase.value.id!, {
         team_id: collab.id,
         base_role: roles,
@@ -226,7 +232,11 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
       message.error(errorInfo.message)
     }
   } finally {
-    if (user.value?.id === currentCollaborator.id && currentCollaborator.roles === ProjectRoles.NO_ACCESS) {
+    if (
+      currentCollaborator &&
+      user.value?.id === currentCollaborator.id &&
+      currentCollaborator.roles === ProjectRoles.NO_ACCESS
+    ) {
       if (currentBase.value) {
         bases.value.delete(currentBase.value.id!)
       }
@@ -262,6 +272,9 @@ onMounted(async () => {
     } else if (currentRoleIndex !== -1) {
       accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
     }
+
+    moveInheritRole()
+
     loadSorts()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -273,7 +286,17 @@ onMounted(async () => {
 watch(baseRoles, (br) => {
   const currentRoleIndex = OrderedProjectRoles.findIndex((role) => br && Object.keys(br).includes(role))
   accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
+
+  moveInheritRole()
 })
+
+function moveInheritRole() {
+  // move INHERIT role to the end of the list
+  const inheritIndex = accessibleRoles.value.indexOf(ProjectRoles.INHERIT)
+  if (inheritIndex !== -1) {
+    accessibleRoles.value.push(...accessibleRoles.value.splice(inheritIndex, 1))
+  }
+}
 
 const selected = reactive<{
   [key: string]: boolean

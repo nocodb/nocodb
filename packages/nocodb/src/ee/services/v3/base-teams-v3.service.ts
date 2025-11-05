@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
+import { AppEvents, PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
-import type { ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   BaseTeamCreateV3BulkReqType,
@@ -192,6 +191,13 @@ export class BaseTeamsV3Service {
       NcError.get(context).teamNotFound(param.team.team_id);
     }
 
+    // INHERIT role can only be assigned to individual users, not teams
+    if (param.team.base_role === ProjectRoles.INHERIT) {
+      NcError.get(context).badRequest(
+        'INHERIT role can only be assigned to individual users, not teams',
+      );
+    }
+
     // Check if current user has sufficient privilege to assign this role
     if (
       getProjectRolePower({
@@ -304,6 +310,13 @@ export class BaseTeamsV3Service {
       const teamData = await Team.get(context, team.team_id);
       if (!teamData) {
         NcError.get(context).teamNotFound(team.team_id);
+      }
+
+      // INHERIT role can only be assigned to individual users, not teams
+      if (team.base_role === ProjectRoles.INHERIT) {
+        NcError.get(context).badRequest(
+          'INHERIT role can only be assigned to individual users, not teams',
+        );
       }
 
       // Check if current user has sufficient privilege to assign this role

@@ -1,5 +1,10 @@
 import UserCE from 'src/models/User';
-import { extractRolesObj, ProjectRoles, type UserType } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  ProjectRoles,
+  type UserType,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
@@ -479,7 +484,13 @@ export default class User extends UserCE implements UserType {
           )
             .then((workspaceUser) => {
               if (workspaceUser?.roles) {
-                resolve(extractRolesObj(workspaceUser.roles));
+                const rolesObj = extractRolesObj(workspaceUser.roles);
+                // If role is INHERIT, treat it as null to fall back to team roles
+                if (rolesObj && rolesObj[WorkspaceUserRoles.INHERIT]) {
+                  resolve(null);
+                } else {
+                  resolve(rolesObj);
+                }
               } else {
                 resolve(null);
               }
@@ -497,7 +508,12 @@ export default class User extends UserCE implements UserType {
               const roles = baseUser?.roles;
               // + (user.roles ? `,${user.roles}` : '');
               if (roles) {
-                resolve(extractRolesObj(roles));
+                // Since INHERIT at base level means inherit from team or workspace level
+                if (roles === ProjectRoles.INHERIT) {
+                  resolve(null);
+                } else {
+                  resolve(extractRolesObj(roles));
+                }
               } else {
                 resolve(null);
               }

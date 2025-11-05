@@ -742,16 +742,41 @@ export default class Base extends BaseCE {
         // 3. workspace_role (direct workspace user role)
         // 4. team_workspace_role (workspace-level team assignment)
         this.where(function () {
-          // Priority 1: base_role is not null and not no access
-          this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`).andWhere(
-            `${MetaTable.PROJECT_USERS}.roles`,
-            '!=',
-            ProjectRoles.NO_ACCESS,
-          );
+          // Priority 1: base_role is not null and not no access and not INHERIT
+          this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`)
+            .andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
+              ProjectRoles.NO_ACCESS,
+            )
+            .andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
+              WorkspaceUserRoles.INHERIT,
+            )
+            .andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
+              ProjectRoles.INHERIT,
+            )
+            .andWhere(`${MetaTable.PROJECT_USERS}.roles`, '!=', 'inherit');
         })
           .orWhere(function () {
-            // Priority 2: base_role is null AND team_base_role is not null and not no access
-            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+            // Priority 2: base_role is null/INHERIT AND team_base_role is not null and not no access
+            this.where(function () {
+              this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+                .orWhere(
+                  `${MetaTable.PROJECT_USERS}.roles`,
+                  '=',
+                  WorkspaceUserRoles.INHERIT,
+                )
+                .orWhere(
+                  `${MetaTable.PROJECT_USERS}.roles`,
+                  '=',
+                  ProjectRoles.INHERIT,
+                )
+                .orWhere(`${MetaTable.PROJECT_USERS}.roles`, '=', 'inherit');
+            })
               .whereNotNull('base_team_assignment.resource_id')
               .whereNotNull('base_team_assignment.roles')
               .whereRaw('base_team_assignment.roles != ?', [
@@ -759,21 +784,58 @@ export default class Base extends BaseCE {
               ]);
           })
           .orWhere(function () {
-            // Priority 3: base_role is null AND team_base_role is null AND workspace_role is not null and not no access
-            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+            // Priority 3: base_role is null/INHERIT AND team_base_role is null AND workspace_role is not null and not no access/INHERIT
+            this.where(function () {
+              this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+                .orWhere(
+                  `${MetaTable.PROJECT_USERS}.roles`,
+                  '=',
+                  WorkspaceUserRoles.INHERIT,
+                )
+                .orWhere(
+                  `${MetaTable.PROJECT_USERS}.roles`,
+                  '=',
+                  ProjectRoles.INHERIT,
+                )
+                .orWhere(`${MetaTable.PROJECT_USERS}.roles`, '=', 'inherit');
+            })
               .whereNull('base_team_assignment.resource_id')
               .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
               .andWhere(
                 `${MetaTable.WORKSPACE_USER}.roles`,
                 '!=',
                 WorkspaceUserRoles.NO_ACCESS,
+              )
+              .andWhere(
+                `${MetaTable.WORKSPACE_USER}.roles`,
+                '!=',
+                WorkspaceUserRoles.INHERIT,
               );
           })
           .orWhere(function () {
-            // Priority 4: base_role is null AND team_base_role is null AND workspace_role is null AND team_workspace_role is not null and not no access
-            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+            // Priority 4: base_role is null/INHERIT AND team_base_role is null AND workspace_role is null/INHERIT AND team_workspace_role is not null and not no access
+            this.where(function () {
+              this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+                .orWhere(
+                  `${MetaTable.PROJECT_USERS}.roles`,
+                  '=',
+                  WorkspaceUserRoles.INHERIT,
+                )
+                .orWhere(
+                  `${MetaTable.PROJECT_USERS}.roles`,
+                  '=',
+                  ProjectRoles.INHERIT,
+                )
+                .orWhere(`${MetaTable.PROJECT_USERS}.roles`, '=', 'inherit');
+            })
               .whereNull('base_team_assignment.resource_id')
-              .whereNull(`${MetaTable.WORKSPACE_USER}.roles`)
+              .where(function () {
+                this.whereNull(`${MetaTable.WORKSPACE_USER}.roles`).orWhere(
+                  `${MetaTable.WORKSPACE_USER}.roles`,
+                  '=',
+                  WorkspaceUserRoles.INHERIT,
+                );
+              })
               .whereNotNull('workspace_team_assignment.resource_id')
               .whereNotNull('workspace_team_assignment.roles')
               .whereRaw('workspace_team_assignment.roles != ?', [
@@ -785,23 +847,47 @@ export default class Base extends BaseCE {
       .andWhere(function () {
         // Private base logic: only workspace/team workspace assignments need special handling
         this.where(function () {
-          // Case 1: base_role exists (direct project user) - always allowed
-          this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`);
+          // Case 1: base_role exists (direct project user) and not INHERIT - always allowed
+          this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`)
+            .andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
+              ProjectRoles.INHERIT,
+            )
+            .andWhere(`${MetaTable.PROJECT_USERS}.roles`, '!=', 'inherit');
         })
           .orWhere(function () {
             // Case 2: team_base_role exists - always allowed
             this.whereNotNull('base_team_assignment.resource_id');
           })
           .orWhere(function () {
-            // Case 3: base_role and team_base_role are null, but workspace_role exists
+            // Case 3: base_role and team_base_role are null/INHERIT, but workspace_role exists and not INHERIT
             // Need to check if it's not blocked by private base
-            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+            this.where(function () {
+              this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+                .orWhere(
+                  `${MetaTable.PROJECT_USERS}.roles`,
+                  '=',
+                  WorkspaceUserRoles.INHERIT,
+                )
+                .orWhere(
+                  `${MetaTable.PROJECT_USERS}.roles`,
+                  '=',
+                  ProjectRoles.INHERIT,
+                )
+                .orWhere(`${MetaTable.PROJECT_USERS}.roles`, '=', 'inherit');
+            })
               .whereNull('base_team_assignment.resource_id')
               .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
               .andWhere(
                 `${MetaTable.WORKSPACE_USER}.roles`,
                 '!=',
                 WorkspaceUserRoles.NO_ACCESS,
+              )
+              .andWhere(
+                `${MetaTable.WORKSPACE_USER}.roles`,
+                '!=',
+                WorkspaceUserRoles.INHERIT,
               )
               .andWhere(function () {
                 this.whereNull(`${MetaTable.PROJECT}.default_role`).orWhereNot(
@@ -811,11 +897,30 @@ export default class Base extends BaseCE {
               });
           })
           .orWhere(function () {
-            // Case 4: base_role, team_base_role, workspace_role are null, but team_workspace_role exists
+            // Case 4: base_role, team_base_role, workspace_role are null/INHERIT, but team_workspace_role exists
             // Need to check if it's not blocked by private base
-            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+            this.where(function () {
+              this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+                .orWhere(
+                  `${MetaTable.PROJECT_USERS}.roles`,
+                  '=',
+                  WorkspaceUserRoles.INHERIT,
+                )
+                .orWhere(
+                  `${MetaTable.PROJECT_USERS}.roles`,
+                  '=',
+                  ProjectRoles.INHERIT,
+                )
+                .orWhere(`${MetaTable.PROJECT_USERS}.roles`, '=', 'inherit');
+            })
               .whereNull('base_team_assignment.resource_id')
-              .whereNull(`${MetaTable.WORKSPACE_USER}.roles`)
+              .where(function () {
+                this.whereNull(`${MetaTable.WORKSPACE_USER}.roles`).orWhere(
+                  `${MetaTable.WORKSPACE_USER}.roles`,
+                  '=',
+                  WorkspaceUserRoles.INHERIT,
+                );
+              })
               .whereNotNull('workspace_team_assignment.resource_id')
               .whereNotNull('workspace_team_assignment.roles')
               .whereRaw('workspace_team_assignment.roles != ?', [

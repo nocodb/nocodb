@@ -157,6 +157,12 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overri
 
   try {
     if (collab?.isTeam) {
+      // INHERIT role can only be assigned to individual users, not teams
+      if (roles === WorkspaceUserRoles.INHERIT) {
+        message.error(t('msg.error.inheritRoleOnlyForUsers'))
+        return
+      }
+
       const res = await workspaceStore.workspaceTeamUpdate(currentWorkspace.value.id, {
         team_id: collab.id,
         workspace_role: roles,
@@ -247,13 +253,21 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
     (role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role),
   )
   if (currentRoleIndex === -1) return []
-  return OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
+  const roles = OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
+
+  // move INHERIT role to the end of the list
+  const inheritIndex = roles.indexOf(WorkspaceUserRoles.INHERIT)
+  if (inheritIndex !== -1) {
+    roles.push(...roles.splice(inheritIndex, 1))
+  }
+
+  return roles
 })
 
 const getTeamCompatibleAccessibleRoles = (roles: WorkspaceUserRoles[], record: any) => {
-  if (!record?.isTeam || !isEeUI) return roles
+  if (!record?.isTeam || !isEeUI) return roles.filter((r) => r !== WorkspaceUserRoles.INHERIT || isTeamsEnabled.value)
 
-  return roles.filter((r) => r !== WorkspaceUserRoles.OWNER)
+  return roles.filter((r) => r !== WorkspaceUserRoles.OWNER && r !== WorkspaceUserRoles.INHERIT)
 }
 
 onMounted(async () => {

@@ -11,6 +11,10 @@ import TeamMemberRoleUpdate from '~/services/mail/templates/team-member-role-upd
 import TeamMemberRemoved from '~/services/mail/templates/team-member-removed';
 import TeamAssignedToWorkspace from '~/services/mail/templates/team-assigned-workspace';
 import TeamAssignedToBase from '~/services/mail/templates/team-assigned-base';
+import WorkspaceTeamRemoved from '~/services/mail/templates/workspace-team-removed';
+import WorkspaceTeamRoleUpdate from '~/services/mail/templates/workspace-team-role-update';
+import BaseTeamRemoved from '~/services/mail/templates/base-team-removed';
+import BaseTeamRoleUpdate from '~/services/mail/templates/base-team-role-update';
 
 export {
   Welcome,
@@ -26,4 +30,8 @@ export {
   TeamMemberRemoved,
   TeamAssignedToWorkspace,
   TeamAssignedToBase,
+  WorkspaceTeamRemoved,
+  WorkspaceTeamRoleUpdate,
+  BaseTeamRemoved,
+  BaseTeamRoleUpdate,
 };

@@ -324,6 +324,35 @@ export class WorkspaceTeamsV3Service {
         created_at: updatedAssignment.created_at!,
         updated_at: updatedAssignment.updated_at!,
       });
+
+      // Notify all team owners via email about role update
+      const teamAssignments = await PrincipalAssignment.list(context, {
+        resource_type: ResourceType.TEAM,
+        resource_id: teamData.id,
+        principal_type: PrincipalType.USER,
+      });
+      const ownerAssignments = teamAssignments.filter(
+        (assignment) => assignment.roles === TeamUserRoles.OWNER,
+      );
+      for (const ownerAssignment of ownerAssignments) {
+        const owner = await User.get(ownerAssignment.principal_ref_id);
+        if (owner) {
+          await this.mailService.sendMail(
+            {
+              mailEvent: MailEvent.WORKSPACE_TEAM_ROLE_UPDATE,
+              payload: {
+                req: param.req,
+                owner,
+                team: teamData,
+                workspace,
+                oldWorkspaceRole: existingAssignment.roles || '',
+                workspaceRole: updatedAssignment.roles || '',
+              },
+            },
+            Noco.ncMeta,
+          );
+        }
+      }
     }
 
     // Emit workspace team update event
@@ -441,6 +470,34 @@ export class WorkspaceTeamsV3Service {
       // Clear user cache for all users in the team
       for (const userAssignment of teamUsers) {
         await User.clearCache(userAssignment.principal_ref_id);
+      }
+
+      // Notify all team owners via email about removal
+      const teamAssignments = await PrincipalAssignment.list(context, {
+        resource_type: ResourceType.TEAM,
+        resource_id: teamObj.team_id,
+        principal_type: PrincipalType.USER,
+      });
+      const ownerAssignments = teamAssignments.filter(
+        (assignment) => assignment.roles === TeamUserRoles.OWNER,
+      );
+      for (const ownerAssignment of ownerAssignments) {
+        const owner = await User.get(ownerAssignment.principal_ref_id);
+        if (owner) {
+          await this.mailService.sendMail(
+            {
+              mailEvent: MailEvent.WORKSPACE_TEAM_REMOVED,
+              payload: {
+                req: param.req,
+                owner,
+                team,
+                workspace,
+                workspaceRole: existingAssignment.roles || '',
+              },
+            },
+            Noco.ncMeta,
+          );
+        }
       }
 
       // Emit workspace team delete event for each team

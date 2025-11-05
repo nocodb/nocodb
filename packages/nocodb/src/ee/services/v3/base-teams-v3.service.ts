@@ -450,6 +450,35 @@ export class BaseTeamsV3Service {
         updated_at: updatedAssignment.updated_at!,
       });
 
+      // Notify all team owners via email about role update
+      const teamAssignments = await PrincipalAssignment.list(context, {
+        resource_type: ResourceType.TEAM,
+        resource_id: teamData.id,
+        principal_type: PrincipalType.USER,
+      });
+      const ownerAssignments = teamAssignments.filter(
+        (assignment) => assignment.roles === TeamUserRoles.OWNER,
+      );
+      for (const ownerAssignment of ownerAssignments) {
+        const owner = await User.get(ownerAssignment.principal_ref_id);
+        if (owner) {
+          await this.mailService.sendMail(
+            {
+              mailEvent: MailEvent.BASE_TEAM_ROLE_UPDATE,
+              payload: {
+                req: param.req,
+                owner,
+                team: teamData,
+                base,
+                oldBaseRole: existingAssignment?.roles || '',
+                baseRole: updatedAssignment.roles || '',
+              },
+            },
+            Noco.ncMeta,
+          );
+        }
+      }
+
       // Emit base team update event
       this.appHooksService.emit(AppEvents.PROJECT_TEAM_UPDATE, {
         context,
@@ -538,6 +567,34 @@ export class BaseTeamsV3Service {
       // Clear user cache for all users in the team
       for (const userAssignment of teamUsers) {
         await User.clearCache(userAssignment.principal_ref_id);
+      }
+
+      // Notify all team owners via email about removal
+      const teamAssignments = await PrincipalAssignment.list(context, {
+        resource_type: ResourceType.TEAM,
+        resource_id: teamIdObj.team_id,
+        principal_type: PrincipalType.USER,
+      });
+      const ownerAssignments = teamAssignments.filter(
+        (assignment) => assignment.roles === TeamUserRoles.OWNER,
+      );
+      for (const ownerAssignment of ownerAssignments) {
+        const owner = await User.get(ownerAssignment.principal_ref_id);
+        if (owner) {
+          await this.mailService.sendMail(
+            {
+              mailEvent: MailEvent.BASE_TEAM_REMOVED,
+              payload: {
+                req: param.req,
+                owner,
+                team,
+                base,
+                baseRole: existingAssignment.roles || '',
+              },
+            },
+            Noco.ncMeta,
+          );
+        }
       }
 
       // Emit base team delete event for each team

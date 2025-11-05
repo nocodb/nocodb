@@ -31,6 +31,10 @@ enum MailEvent {
   TEAM_MEMBER_REMOVED = 'TEAM_MEMBER_REMOVED',
   TEAM_ASSIGNED_TO_WORKSPACE = 'TEAM_ASSIGNED_TO_WORKSPACE',
   TEAM_ASSIGNED_TO_BASE = 'TEAM_ASSIGNED_TO_BASE',
+  WORKSPACE_TEAM_REMOVED = 'WORKSPACE_TEAM_REMOVED',
+  WORKSPACE_TEAM_ROLE_UPDATE = 'WORKSPACE_TEAM_ROLE_UPDATE',
+  BASE_TEAM_REMOVED = 'BASE_TEAM_REMOVED',
+  BASE_TEAM_ROLE_UPDATE = 'BASE_TEAM_ROLE_UPDATE',
 }
 
 interface CommentPayload {
@@ -183,6 +187,48 @@ type MailParams =
         owner: UserType;
         team: any;
         base: any;
+        baseRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.WORKSPACE_TEAM_REMOVED;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        workspace: any;
+        workspaceRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.WORKSPACE_TEAM_ROLE_UPDATE;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        workspace: any;
+        oldWorkspaceRole: string;
+        workspaceRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.BASE_TEAM_REMOVED;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        base: any;
+        baseRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.BASE_TEAM_ROLE_UPDATE;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        base: any;
+        oldBaseRole: string;
         baseRole: string;
       };
     };

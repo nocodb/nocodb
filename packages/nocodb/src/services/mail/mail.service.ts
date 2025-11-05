@@ -381,7 +381,7 @@ export class MailService {
           const remover = req.user;
           await mailerAdapter.mailSend({
             to: user.email,
-            subject: 'You’ve been removed from a Team',
+            subject: "You've been removed from a Team",
             html: await this.renderMail('TeamMemberRemoved', {
               teamTitle: team.title,
               workspaceTitle: workspace?.title,
@@ -392,6 +392,102 @@ export class MailService {
               removerEmail: remover.email,
               roleLabel: RoleLabels[teamRole] || teamRole,
               link: this.buildUrl(req, { workspaceId: workspace?.id }),
+            }),
+          });
+          break;
+        }
+        case MailEvent.WORKSPACE_TEAM_REMOVED: {
+          const { req, owner, team, workspace, workspaceRole } = payload as any;
+          const remover = req.user;
+          await mailerAdapter.mailSend({
+            to: owner.email,
+            subject: 'Your Team was removed from a Workspace',
+            html: await this.renderMail('WorkspaceTeamRemoved', {
+              teamTitle: team.title,
+              workspaceTitle: workspace.title,
+              removerName: extractDisplayNameFromEmail(
+                remover.email,
+                remover.display_name,
+              ),
+              removerEmail: remover.email,
+              roleLabel: RoleLabels[workspaceRole] || workspaceRole,
+              link: this.buildUrl(req, { workspaceId: workspace.id }),
+            }),
+          });
+          break;
+        }
+        case MailEvent.WORKSPACE_TEAM_ROLE_UPDATE: {
+          const {
+            req,
+            owner,
+            team,
+            workspace,
+            oldWorkspaceRole,
+            workspaceRole,
+          } = payload as any;
+          const updater = req.user;
+          await mailerAdapter.mailSend({
+            to: owner.email,
+            subject: "Your Team's workspace role has been updated",
+            html: await this.renderMail('WorkspaceTeamRoleUpdate', {
+              teamTitle: team.title,
+              workspaceTitle: workspace.title,
+              updaterName: extractDisplayNameFromEmail(
+                updater.email,
+                updater.display_name,
+              ),
+              updaterEmail: updater.email,
+              oldRoleLabel: RoleLabels[oldWorkspaceRole] || oldWorkspaceRole,
+              newRoleLabel: RoleLabels[workspaceRole] || workspaceRole,
+              link: this.buildUrl(req, { workspaceId: workspace.id }),
+            }),
+          });
+          break;
+        }
+        case MailEvent.BASE_TEAM_REMOVED: {
+          const { req, owner, team, base, baseRole } = payload as any;
+          const remover = req.user;
+          await mailerAdapter.mailSend({
+            to: owner.email,
+            subject: 'Your Team was removed from a Base',
+            html: await this.renderMail('BaseTeamRemoved', {
+              teamTitle: team.title,
+              baseTitle: base.title,
+              removerName: extractDisplayNameFromEmail(
+                remover.email,
+                remover.display_name,
+              ),
+              removerEmail: remover.email,
+              roleLabel: RoleLabels[baseRole] || baseRole,
+              link: this.buildUrl(req, {
+                workspaceId: base.fk_workspace_id,
+                baseId: base.id,
+              }),
+            }),
+          });
+          break;
+        }
+        case MailEvent.BASE_TEAM_ROLE_UPDATE: {
+          const { req, owner, team, base, oldBaseRole, baseRole } =
+            payload as any;
+          const updater = req.user;
+          await mailerAdapter.mailSend({
+            to: owner.email,
+            subject: "Your Team's base role has been updated",
+            html: await this.renderMail('BaseTeamRoleUpdate', {
+              teamTitle: team.title,
+              baseTitle: base.title,
+              updaterName: extractDisplayNameFromEmail(
+                updater.email,
+                updater.display_name,
+              ),
+              updaterEmail: updater.email,
+              oldRoleLabel: RoleLabels[oldBaseRole] || oldBaseRole,
+              newRoleLabel: RoleLabels[baseRole] || baseRole,
+              link: this.buildUrl(req, {
+                workspaceId: base.fk_workspace_id,
+                baseId: base.id,
+              }),
             }),
           });
           break;

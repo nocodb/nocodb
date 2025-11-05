@@ -30,8 +30,6 @@ const emits = defineEmits(['update:open', 'scope'])
 
 const vOpen = useVModel(props, 'open', emits)
 
-const { t } = useI18n()
-
 const router = useRouter()
 
 const route = router.currentRoute

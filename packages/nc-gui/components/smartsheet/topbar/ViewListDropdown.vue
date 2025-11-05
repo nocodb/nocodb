@@ -3,8 +3,6 @@ import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-
 
 const { isMobileMode } = useGlobal()
 
-const { t } = useI18n()
-
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()

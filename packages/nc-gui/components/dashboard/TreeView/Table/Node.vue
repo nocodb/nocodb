@@ -46,7 +46,7 @@ const {
 } = inject(TreeViewInj)!
 
 const { loadViews: _loadViews } = useViewsStore()
-const { activeView, viewsByTable } = storeToRefs(useViewsStore())
+const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()

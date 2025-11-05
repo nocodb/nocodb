@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WorkspaceUserRoles, type WorkspaceType } from 'nocodb-sdk'
+import { WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -10,14 +10,6 @@ const emit = defineEmits(['update:modelValue'])
 const { api } = useApi()
 
 const { sharedBaseId } = useCopySharedBase()
-
-const workspaceStore = useWorkspace()
-
-const { populateWorkspace } = workspaceStore
-
-const { workspacesList } = storeToRefs(workspaceStore)
-
-const { ncNavigateTo } = useGlobal()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 

@@ -137,7 +137,7 @@ const onClick = async (item: BreadcrumbType) => {
         class="nc-breadcrumb-item capitalize"
         :class="{
           'active': item.active,
-          'cursor-pointer': item.path && !item.active,
+          'cursor-pointer hover:underline': item.path && !item.active,
         }"
         @click="onClick(item)"
       >

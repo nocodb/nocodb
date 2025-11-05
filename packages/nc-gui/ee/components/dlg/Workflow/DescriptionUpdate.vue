@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { AutomationType } from 'nocodb-sdk'
+import type { WorkflowType } from 'nocodb-sdk'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 
 interface Props {
   modelValue?: boolean
-  automation: AutomationType
+  workflow: WorkflowType
 }
 
-const { automation, ...props } = defineProps<Props>()
+const { workflow, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
@@ -47,7 +47,7 @@ const { validateInfos } = useForm(formState, validators)
 
 watchEffect(
   () => {
-    if (automation?.description) formState.description = `${automation.description}`
+    if (workflow?.description) formState.description = `${workflow.description}`
 
     nextTick(() => {
       const input = inputEl.value?.$el as HTMLInputElement
@@ -62,7 +62,7 @@ watchEffect(
 )
 
 const updateDescription = async (undo = false) => {
-  if (!automation) return
+  if (!workflow) return
 
   if (formState.description) {
     formState.description = formState.description.trim()
@@ -70,7 +70,7 @@ const updateDescription = async (undo = false) => {
 
   loading.value = true
   try {
-    await updateWorkflow(automation.base_id, automation.id as string, {
+    await updateWorkflow(workflow.base_id, workflow.id as string, {
       description: formState.description,
     })
 
@@ -90,13 +90,13 @@ const updateDescription = async (undo = false) => {
             formState.description = t
             updateDescription(true)
           },
-          args: [automation.description],
+          args: [workflow.description],
         },
-        scope: defineProjectScope({ base_id: automation.base_id }),
+        scope: defineProjectScope({ base_id: workflow.base_id }),
       })
     }
 
-    await loadWorkflows({ baseId: automation.base_id, force: true })
+    await loadWorkflows({ baseId: workflow.base_id, force: true })
 
     $e('a:workflow:description:update')
 
@@ -116,7 +116,7 @@ const updateDescription = async (undo = false) => {
         <GeneralIcon icon="workflow" class="mt-0.5 !text-2xl" />
 
         <span class="text-gray-900 font-semibold">
-          {{ automation?.title }}
+          {{ workflow?.title }}
         </span>
       </div>
     </template>
@@ -142,7 +142,7 @@ const updateDescription = async (undo = false) => {
           type="primary"
           size="small"
           :disabled="
-            validateInfos?.description?.validateStatus === 'error' || formState.description?.trim() === automation?.description
+            validateInfos?.description?.validateStatus === 'error' || formState.description?.trim() === workflow?.description
           "
           :loading="loading"
           @click="() => updateDescription()"

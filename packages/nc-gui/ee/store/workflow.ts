@@ -1,4 +1,5 @@
 import { PlanLimitTypes, type WorkflowType } from 'nocodb-sdk'
+import { DlgWorkflowCreate } from '#components'
 
 export const useWorkflowStore = defineStore('workflow', () => {
   const { $api, $e } = useNuxtApp()
@@ -297,7 +298,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
         description: workflow.description,
         nodes: workflow.nodes,
         edges: workflow.edges,
-        config: workflow.config,
         meta: workflow.meta,
       })
 
@@ -311,16 +311,52 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
-  const openNewWorkflowModal = async ({ baseId }: { baseId: string }) => {
-    if (showWorkflowPlanLimitExceededModal()) {
-      return
-    }
+  async function openNewWorkflowModal({
+    baseId,
+    e,
+    loadWorkflowsOnClose,
+    scrollOnCreate,
+  }: {
+    baseId?: string
+    e?: string
+    loadWorkflowsOnClose?: boolean
+    scrollOnCreate?: boolean
+  }) {
+    if (!baseId || showWorkflowPlanLimitExceededModal()) return
 
-    // For now, just create a new workflow with a default name
-    const workflowCount = (workflows.value.get(baseId) || []).length
-    await createWorkflow(baseId, {
-      title: `Workflow ${workflowCount + 1}`,
+    const isDlgOpen = ref(true)
+
+    const { close } = useDialog(DlgWorkflowCreate, {
+      'modelValue': isDlgOpen,
+      'baseId': baseId,
+      'onUpdate:modelValue': () => closeDialog(),
+      'onCreated': async (workflow: WorkflowType) => {
+        closeDialog()
+
+        if (loadWorkflowsOnClose) {
+          await loadWorkflows({ baseId, force: true })
+        }
+
+        $e(e ?? 'a:workflow:create')
+
+        if (!workflow) return
+
+        if (scrollOnCreate) {
+          setTimeout(() => {
+            const newWorkflowDom = document.querySelector(`[data-workflow-id="${workflow.id}"]`)
+            if (!newWorkflowDom) return
+
+            // Scroll to the workflow node
+            newWorkflowDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+          }, 1000)
+        }
+      },
     })
+
+    function closeDialog() {
+      isDlgOpen.value = false
+      close(1000)
+    }
   }
 
   const openWorkflowDescriptionDialog = (workflow: WorkflowType) => {

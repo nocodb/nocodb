@@ -12,6 +12,7 @@ const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
 const { openNewScriptModal } = useAutomationStore()
+const { openNewWorkflowModal } = useWorkflowStore()
 
 const base = inject(ProjectInj)!
 
@@ -134,6 +135,7 @@ const hasTableCreatePermission = computed(() => {
                 v-model:visible="isVisibleCreateNew"
                 @new-table="addNewProjectChildEntity()"
                 @empty-script="openNewScriptModal({ baseId: base.id })"
+                @empty-workflow="openNewWorkflowModal({ baseId: base.id })"
               />
             </template>
           </NcDropdown>

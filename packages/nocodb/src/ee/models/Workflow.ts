@@ -102,6 +102,8 @@ export default class Workflow implements WorkflowType {
       );
     }
 
+    workflowList.sort((a, b) => a.order - b.order);
+
     return workflowList.map((workflow) => new Workflow(workflow));
   }
 
@@ -179,7 +181,7 @@ export default class Workflow implements WorkflowType {
     await NocoCache.update(
       context,
       `${CacheScope.WORKFLOW}:${workflowId}`,
-      updateObj,
+      prepareForResponse(updateObj, ['nodes', 'edges', 'meta']),
     );
 
     return this.get(context, workflowId, ncMeta);

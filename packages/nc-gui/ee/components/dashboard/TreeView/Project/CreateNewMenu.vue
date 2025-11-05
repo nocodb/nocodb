@@ -7,7 +7,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['update:visible', 'newTable', 'emptyScript'])
+const emits = defineEmits(['update:visible', 'newTable', 'emptyScript', 'emptyWorkflow'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
@@ -132,11 +132,9 @@ const openMarketPlace = () => {
         </NcSubMenu>
       </div>
     </NcMenuItem>
-    <NcMenuItem inner-class="w-full" data-testid="create-new-automation" disabled>
+    <NcMenuItem inner-class="w-full" data-testid="create-new-workflow" @click="emits('emptyWorkflow')">
       <GeneralIcon icon="ncAutomation" />
-      {{ $t('general.automation') }}
-      <div class="flex-1 w-full" />
-      <NcBadge :border="false" size="xs" class="!text-nc-content-brand-disabled !bg-nc-bg-brand"> Soon </NcBadge>
+      {{ $t('general.workflow') }}
     </NcMenuItem>
   </NcMenu>
 </template>

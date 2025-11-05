@@ -109,6 +109,9 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.PERMISSION_SUBJECTS]: 'pers',
       [MetaTable.DASHBOARDS]: 'dash',
       [MetaTable.WIDGETS]: 'wgt',
+      [MetaTable.WORKFLOWS]: 'wf',
+      [MetaTable.WORKFLOW_EXECUTIONS]: 'wfex',
+      [MetaTable.DEPENDENCY_TRACKER]: 'dt',
     };
 
     const prefix = prefixMap[target] || 'nc';

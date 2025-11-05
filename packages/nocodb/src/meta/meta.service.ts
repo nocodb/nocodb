@@ -128,6 +128,9 @@ export class MetaService {
       [MetaTable.DASHBOARDS]: 'dash',
       [MetaTable.WIDGETS]: 'wgt',
       [MetaTable.WORKSPACE]: 'w',
+      [MetaTable.WORKFLOWS]: 'wf',
+      [MetaTable.WORKFLOW_EXECUTIONS]: 'wfex',
+      [MetaTable.DEPENDENCY_TRACKER]: 'dt',
     };
 
     const prefix = prefixMap[target] || 'nc';

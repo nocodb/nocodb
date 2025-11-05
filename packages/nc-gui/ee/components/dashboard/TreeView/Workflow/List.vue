@@ -47,19 +47,18 @@ function onSortStart(evt: SortableEvent) {
   evt.preventDefault()
   dragging.value = true
 }
+
 async function onSortEnd(evt: SortableEvent, undo = false) {
+  // only touch the real drag event
   if (!undo) {
-    evt.stopImmediatePropagation()
-    evt.preventDefault()
+    evt?.stopPropagation()
+    evt?.preventDefault()
     dragging.value = false
   }
 
   if (workflows.value.length < 2) return
 
-  let { newIndex = 0, oldIndex = 0 } = evt
-
-  newIndex = newIndex - 1
-  oldIndex = oldIndex - 1
+  const { newIndex = 0, oldIndex = 0 } = evt
 
   if (newIndex === oldIndex) return
 
@@ -71,7 +70,8 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
           const temp = ord.splice(oldIndex, 1)
           ord.splice(newIndex, 0, temp[0])
           sortable.sort(ord)
-          await onSortEnd(evt, true)
+          // call without re-offsetting
+          await onSortEnd({ ...evt, oldIndex, newIndex }, true)
         },
         args: [],
       },
@@ -81,7 +81,7 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
           const temp = ord.splice(newIndex, 1)
           ord.splice(oldIndex, 0, temp[0])
           sortable.sort(ord)
-          await onSortEnd({ ...evt, oldIndex: newIndex, newIndex: oldIndex }, true)
+          await onSortEnd({ ...evt, oldIndex, newIndex: oldIndex }, true)
         },
         args: [],
       },
@@ -89,36 +89,32 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
     })
   }
 
-  const children = Array.from(evt.to.children as unknown as HTMLLIElement[])
-
-  // remove `Create View` children from list
-  children.shift()
+  const children = Array.from(evt.to.children) as HTMLLIElement[]
 
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
 
-  const currentItem = workflows.value.find((v) => v.id === evt.item.id)
+  const itemId = (evt.item as HTMLElement).id || (evt.item as HTMLElement).dataset.id
+  const currentItem = workflows.value.find((v) => v.id === itemId)
+  if (!currentItem) return
 
-  if (!currentItem || !currentItem.id) return
+  const previousItem = previousEl ? workflows.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : { order: 0 }
 
-  // set default order value as 0 if item not found
-  const previousItem = (
-    previousEl ? workflows.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : { order: 0 }
-  ) as WorkflowType
-  const nextItem = (nextEl ? workflows.value.find((v) => v.id === nextEl.id) : {}) as WorkflowType
+  const nextItem = nextEl ? workflows.value.find((v) => v.id === nextEl.id) ?? {} : {}
 
   let nextOrder: number
 
-  // set new order value based on the new order of the items
-  if (workflows.value.length - 1 === newIndex) {
-    nextOrder = parseFloat(String(previousItem.order)) + 1
+  if (children.length - 1 === newIndex) {
+    // last item
+    nextOrder = Number(previousItem.order) + 1
   } else if (newIndex === 0) {
-    nextOrder = parseFloat(String(nextItem.order)) / 2
+    // first item
+    nextOrder = Number(nextItem.order) / 2
   } else {
-    nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
+    nextOrder = (Number(previousItem.order) + Number(nextItem.order)) / 2
   }
 
-  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+  const _nextOrder = Number.isFinite(nextOrder) ? nextOrder : oldIndex
 
   currentItem.order = _nextOrder
 
@@ -127,7 +123,6 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
   })
 
   markItem(currentItem.id)
-
   $e('a:workflow:reorder')
 }
 
@@ -282,7 +277,7 @@ const filteredWorkflows = computed(() => {
             <div>
               {{
                 $t('general.createEntity', {
-                  entity: 'workflow',
+                  entity: $t('objects.workflow'),
                 })
               }}
             </div>

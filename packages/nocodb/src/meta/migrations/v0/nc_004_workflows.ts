@@ -5,6 +5,8 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.WORKFLOWS, (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('title', 255).notNullable();
+    table.text('description');
+
     table.string('fk_workspace_id', 20);
     table.string('base_id', 20);
 

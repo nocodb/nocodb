@@ -29628,6 +29628,10 @@
             "type": "string",
             "description": "Title of the Workflow"
           },
+          "description": {
+            "type": "string",
+            "description": "Description of the Workflow"
+          },
           "base_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Base ID"

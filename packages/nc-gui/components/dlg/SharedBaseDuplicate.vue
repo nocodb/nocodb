@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ProjectTypes, WorkspaceUserRoles } from 'nocodb-sdk'
+import { WorkspaceUserRoles, type WorkspaceType } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -97,11 +97,11 @@ const _duplicate = async () => {
   }
 }
 
-const filteredWorkspaces = computed(() => {
-  return workspacesList.value
-    ?.filter((ws) => ws.roles === WorkspaceUserRoles.OWNER || ws.roles === WorkspaceUserRoles.CREATOR)
-    .map((w) => ({ label: `${w.title[0].toUpperCase()}${w.title.slice(1)}`, value: w.id }))
-})
+const filterWorkspace = (workspace: NcWorkspace) => {
+  if (!workspace) return false
+
+  return [WorkspaceUserRoles.OWNER, WorkspaceUserRoles.CREATOR].includes(workspace.roles as WorkspaceUserRoles)
+}
 </script>
 
 <template>
@@ -109,9 +109,21 @@ const filteredWorkspaces = computed(() => {
     <div>
       <div class="prose-xl font-bold self-center">{{ $t('general.duplicate') }} {{ $t('labels.sharedBase') }}</div>
       <template v-if="isEeUI">
-        <div class="my-4">Select workspace to duplicate shared base to:</div>
+        <div class="mt-4 mb-2">
+          {{
+            isUseThisTemplate
+              ? $t('labels.selectWorkspaceToUseThisTemplateTo')
+              : $t('labels.selectWorkspaceToDuplicateSharedBaseTo')
+          }}
+        </div>
 
-        <NcSelect v-model:value="selectedWorkspace" class="w-full" :options="filteredWorkspaces" placeholder="Select Workspace" />
+        <NcListWorkspaceSelector
+          v-model:value="selectedWorkspace"
+          placeholder="Select workspace"
+          force-layout="vertical"
+          disable-label
+          :filter-workspace="filterWorkspace"
+        />
       </template>
 
       <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>

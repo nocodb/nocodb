@@ -179,21 +179,6 @@ defineExpose({
           <template #listItemExtraLeft="{ option }">
             <NcIconAutomation :automation="option as ScriptType" />
           </template>
-
-          <template #item="{ item }">
-            <div class="w-full flex items-center gap-2">
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ item.label }}</template>
-                <span>{{ item.label }}</span>
-              </NcTooltip>
-              <component
-                :is="iconMap.check"
-                v-if="modelValue === item.value"
-                id="nc-selected-item-icon"
-                class="flex-none text-primary w-4 h-4"
-              />
-            </div>
-          </template>
         </NcList>
       </template>
     </NcListDropdown>

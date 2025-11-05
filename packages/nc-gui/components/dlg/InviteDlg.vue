@@ -444,8 +444,7 @@ const removeEmail = (index: number) => {
           <div class="flex items-center justify-between gap-4">
             <div class="md:hidden text-nc-content-gray text-bodyLg">{{ $t('labels.selectRole') }}:</div>
             <div class="flex items-center">
-              <RolesSelector
-                :description="false"
+              <RolesSelectorV2
                 :on-role-change="onRoleChange"
                 :role="inviteData.roles"
                 :disabled-roles="disabledRoles"

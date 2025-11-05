@@ -406,8 +406,8 @@ const scrollBounds = computed(() => {
   return {
     left: 0,
     top: 0,
-    right: (contentWrapper.value?.scrollWidth ?? 0) - (wrapperRef.value?.clientWidth ?? 0),
-    bottom: (contentWrapper.value?.scrollHeight ?? 0) - (wrapperRef.value?.clientHeight ?? 0),
+    right: scrollWidth.value - width.value,
+    bottom: scrollHeight.value - height.value,
   }
 })
 

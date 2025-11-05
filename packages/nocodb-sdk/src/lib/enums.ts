@@ -297,25 +297,34 @@ export const RoleColors = {
 };
 
 export const RoleDescriptions = {
-  [WorkspaceUserRoles.OWNER]: 'Full access to workspace',
+  [WorkspaceUserRoles.OWNER]:
+    'Has full control over all workspace bases, settings, and billing',
   [WorkspaceUserRoles.CREATOR]:
-    'Can create bases, sync tables, views, setup web-hooks and more',
-  [WorkspaceUserRoles.EDITOR]: 'Can edit data in workspace bases',
+    'Can create, configure, and edit all bases within the workspace',
+  [WorkspaceUserRoles.EDITOR]:
+    'Can add, edit, and delete records, but cannot modify base configurations',
   [WorkspaceUserRoles.COMMENTER]:
-    'Can view and comment data in workspace bases',
-  [WorkspaceUserRoles.VIEWER]: 'Can view data in workspace bases',
-  [WorkspaceUserRoles.NO_ACCESS]: 'Cannot access this workspace',
-  [ProjectRoles.OWNER]: 'Full access to base',
-  [ProjectRoles.CREATOR]:
-    'Can create tables, views, setup webhook, invite collaborators and more',
-  [ProjectRoles.EDITOR]: 'Can view, add & modify records, add comments on them',
-  [ProjectRoles.COMMENTER]: 'Can view records and add comment on them',
-  [ProjectRoles.VIEWER]: 'Can only view records',
-  [ProjectRoles.NO_ACCESS]: 'Cannot access this base',
+    'Can view and comment on records within workspace bases',
+  [WorkspaceUserRoles.VIEWER]: 'Can only view records within workspace bases',
+  [WorkspaceUserRoles.NO_ACCESS]: 'No access to this workspace',
+
+  [ProjectRoles.OWNER]:
+    'Has full control over the base, including configuration and deletion rights',
+  [ProjectRoles.CREATOR]: 'Can fully configure the base but cannot delete it',
+  [ProjectRoles.EDITOR]:
+    'Can add, edit, and delete records, but cannot modify base configurations',
+  [ProjectRoles.COMMENTER]: 'Can view and comment on records within the base',
+  [ProjectRoles.VIEWER]: 'Can only view records within the base',
+  [ProjectRoles.NO_ACCESS]: 'No access to this base',
+
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
-  [OrgUserRoles.CREATOR]:
-    'Can create bases, sync tables, views, setup web-hooks and more',
-  [OrgUserRoles.VIEWER]: 'Can only view bases',
+  [OrgUserRoles.CREATOR]: 'Can fully configure and edit bases',
+  [OrgUserRoles.VIEWER]: 'Can only view records in bases',
+
+  [CloudOrgUserRoles.OWNER]: 'Full access to organization and workspaces',
+  [CloudOrgUserRoles.CREATOR]:
+    'Can create and manage domains, users and workspaces',
+  [CloudOrgUserRoles.VIEWER]: 'Can only view organization and workspaces',
 };
 
 export const RoleIcons = {

@@ -296,7 +296,7 @@ export class AtImportProcessor {
       if (!sDB.shareId)
         throw {
           message:
-            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
+            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://dub.sh/import-airtable-to-nocodb for details',
         };
 
       if (sDB.shareId.startsWith('exp')) {
@@ -313,7 +313,7 @@ export class AtImportProcessor {
       if (!ft.baseId) {
         throw {
           message:
-            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details',
+            'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://dub.sh/import-airtable-to-nocodb for details',
         };
       }
 
@@ -1654,9 +1654,12 @@ export class AtImportProcessor {
             break;
 
           case UITypes.SingleLineText:
-            // Barcode data
             if (value?.text) {
+              // Barcode data
               rec[key] = value.text;
+            } else if (value?.value) {
+              // AI generated text
+              rec[key] = value.value;
             }
             break;
 

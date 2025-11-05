@@ -2202,6 +2202,8 @@ export class ImportService {
                     chunkSize: chunk.length + 1,
                     foreign_key_checks: !!destBase.isMeta(),
                     raw: true,
+                    // this is to avoid skipping autoincrement column
+                    undo: true,
                   });
                 } catch (e) {
                   // stop the stream
@@ -2226,6 +2228,8 @@ export class ImportService {
                 chunkSize: chunk.length + 1,
                 foreign_key_checks: !!destBase.isMeta(),
                 raw: true,
+                // this is to avoid skipping autoincrement column
+                undo: true,
               });
             } catch (e) {
               // stop the stream
@@ -2267,6 +2271,8 @@ export class ImportService {
             chunkSize: 1000,
             foreign_key_checks: !!destBase.isMeta(),
             raw: true,
+            // this is to avoid skipping autoincrement column
+            undo: true,
           });
           lChunks[k] = [];
         } catch (e) {

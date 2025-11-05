@@ -273,8 +273,15 @@ const columns = [
   {
     key: 'created_at',
     title: t('title.dateJoined'),
-    basis: '25%',
+    basis: '20%',
     minWidth: 200,
+  },
+  {
+    key: 'action',
+    title: t('labels.actions'),
+    width: 110,
+    minWidth: 110,
+    justify: 'justify-end',
   },
 ] as NcTableColumnProps[]
 
@@ -464,16 +471,15 @@ onBeforeUnmount(() => {
             </div>
             <div v-if="column.key === 'role'">
               <template v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles)">
-                <RolesSelector
+                <RolesSelectorV2
                   :role="record.roles"
                   :roles="accessibleRoles"
                   :inherit="
-                    isEeUI && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
+                    isEeUI && !record.base_roles && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
                       ? WorkspaceRolesToProjectRoles[record.workspace_roles]
                       : null
                   "
                   show-inherit
-                  :description="false"
                   :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
                 />
               </template>
@@ -490,6 +496,26 @@ onBeforeUnmount(() => {
                   {{ timeAgo(record.created_at) }}
                 </span>
               </NcTooltip>
+            </div>
+            <div v-if="column.key === 'action'">
+              <NcDropdown placement="bottomRight">
+                <NcButton size="small" type="secondary">
+                  <component :is="iconMap.ncMoreVertical" />
+                </NcButton>
+                <template #overlay>
+                  <NcMenu variant="small">
+                    <NcMenuItemCopyId
+                      :id="record.id"
+                      :tooltip="$t('labels.clickToCopyUserID')"
+                      :label="
+                        $t('labels.userIdColon', {
+                          userId: record.id,
+                        })
+                      "
+                    />
+                  </NcMenu>
+                </template>
+              </NcDropdown>
             </div>
           </template>
         </NcTable>

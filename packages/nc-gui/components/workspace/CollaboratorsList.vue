@@ -6,6 +6,7 @@ import {
   PlanLimitTypes,
   PlanTitles,
   WorkspaceUserRoles,
+  type WorkspaceUserType,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -118,11 +119,11 @@ const selectAll = computed({
   },
 })
 
-const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
+const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overrideBaseRole: boolean = false) => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
   try {
-    const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, isAdminPanel.value)
+    const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, overrideBaseRole)
     if (!res) return
     message.success(t('msg.info.userRoleUpdated'))
 
@@ -145,6 +146,52 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
       })
     }
   }
+}
+
+// Todo: Enable this after we add support for overriding base role in backend
+const showOverrideBaseRoleCheckbox = ref(false)
+
+const userRoleUpdateInfo = ref<{
+  collab?: WorkspaceUserType
+  roles?: WorkspaceUserRoles
+  showConfirmationModal: boolean
+  overrideBaseRole: boolean
+}>({
+  showConfirmationModal: false,
+  overrideBaseRole: false,
+})
+
+/**
+ * If user is only owner in any base then we should restrict overriding base role
+ */
+const showRoleChangeConfirmationModal = async (collab: any, roles: WorkspaceUserRoles) => {
+  if (!currentWorkspace.value || !currentWorkspace.value.id) return
+
+  userRoleUpdateInfo.value.collab = collab
+  userRoleUpdateInfo.value.roles = roles
+  userRoleUpdateInfo.value.overrideBaseRole = false
+
+  try {
+    /**
+     * Todo: API call to check if user has explicit base role assigned to any base or not
+     * And whether user is only owner in any base or not
+     */
+
+    userRoleUpdateInfo.value.showConfirmationModal = true
+  } catch (e: any) {
+    console.error(e)
+  }
+}
+
+const onCancelRoleChangeConfirmationModal = () => {
+  userRoleUpdateInfo.value.showConfirmationModal = false
+  userRoleUpdateInfo.value.overrideBaseRole = false
+}
+
+const onConfirmRoleChangeConfirmationModal = () => {
+  userRoleUpdateInfo.value.showConfirmationModal = false
+
+  updateCollaborator(userRoleUpdateInfo.value.collab, userRoleUpdateInfo.value.roles!, userRoleUpdateInfo.value.overrideBaseRole)
 }
 
 const isOwnerOrCreator = computed(() => {
@@ -430,9 +477,8 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
               <template
                 v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles as WorkspaceUserRoles)"
               >
-                <RolesSelector
-                  :description="false"
-                  :on-role-change="(role) => updateCollaborator(record, role as WorkspaceUserRoles)"
+                <RolesSelectorV2
+                  :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
                   :role="record.roles"
                   :roles="accessibleRoles"
                   class="cursor-pointer"
@@ -454,36 +500,50 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
             </div>
 
             <div v-if="column.key === 'action'">
-              <NcDropdown v-if="isOwnerOrCreator || record.id === user.id">
+              <NcDropdown placement="bottomRight">
                 <NcButton size="small" type="secondary">
                   <component :is="iconMap.ncMoreVertical" />
                 </NcButton>
                 <template #overlay>
                   <NcMenu variant="small">
-                    <template v-if="isAdminPanel">
-                      <NcMenuItem data-testid="nc-admin-org-user-delete">
-                        <GeneralIcon icon="signout" />
-                        <span>{{ $t('labels.signOutUser') }}</span>
-                      </NcMenuItem>
+                    <NcMenuItemCopyId
+                      :id="record.id"
+                      :tooltip="$t('labels.clickToCopyUserID')"
+                      :label="
+                        $t('labels.userIdColon', {
+                          userId: record.id,
+                        })
+                      "
+                    />
 
+                    <template v-if="isOwnerOrCreator || record.id === user.id">
                       <NcDivider />
-                    </template>
-                    <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
-                      <template #title>
-                        {{ $t('tooltip.leaveWorkspace') }}
+
+                      <template v-if="isAdminPanel">
+                        <NcMenuItem data-testid="nc-admin-org-user-delete">
+                          <GeneralIcon icon="signout" />
+                          <span>{{ $t('labels.signOutUser') }}</span>
+                        </NcMenuItem>
+
+                        <NcDivider />
                       </template>
-                      <NcMenuItem
-                        :disabled="!isDeleteOrUpdateAllowed(record)"
-                        danger
-                        @click="removeCollaborator(record.id, currentWorkspace?.id)"
-                      >
-                        <div v-if="removingCollaboratorMap[record.id]" class="h-4 w-4 flex items-center justify-center">
-                          <GeneralLoader class="!flex-none !text-current" />
-                        </div>
-                        <GeneralIcon v-else icon="delete" />
-                        {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeMember') }}
-                      </NcMenuItem>
-                    </NcTooltip>
+                      <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
+                        <template #title>
+                          {{ $t('tooltip.leaveWorkspace') }}
+                        </template>
+                        <NcMenuItem
+                          :disabled="!isDeleteOrUpdateAllowed(record)"
+                          danger
+                          @click="removeCollaborator(record.id, currentWorkspace?.id)"
+                        >
+                          <div v-if="removingCollaboratorMap[record.id]" class="h-4 w-4 flex items-center justify-center">
+                            <GeneralLoader class="!flex-none !text-current" />
+                          </div>
+                          <GeneralIcon v-else icon="delete" />
+                          {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeMember') }}
+                        </NcMenuItem>
+                      </NcTooltip>
+                    </template>
                   </NcMenu>
                 </template>
               </NcDropdown>
@@ -510,6 +570,55 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
         type="workspace"
         :users="sortedCollaborators"
       />
+
+      <NcModalConfirm
+        v-if="currentWorkspace"
+        v-model:visible="userRoleUpdateInfo.showConfirmationModal"
+        ok-class="capitalize"
+        :ok-text="$t('general.confirm')"
+        :show-icon="false"
+        @cancel="onCancelRoleChangeConfirmationModal"
+        @ok="onConfirmRoleChangeConfirmationModal"
+      >
+        <template #title>
+          <div>
+            <div class="inline-flex !align-top mr-2">
+              {{ $t('title.changeWorkspaceRoleTo') }}
+            </div>
+
+            <RolesBadge :border="false" :role="userRoleUpdateInfo.roles" class="inline-flex text-body"> </RolesBadge>
+          </div>
+        </template>
+        <template #extraContent>
+          <div class="flex flex-col gap-5 text-caption text-nc-content-gray">
+            <NcAlert
+              type="info"
+              :show-icon="false"
+              class="!p-3 bg-nc-bg-yellow-light !border-nc-fill-yellow-light"
+              description-class="!line-clamp-none"
+            >
+              <template #description>
+                <div class="text-nc-content-yellow-dark">
+                  <b>{{ $t('general.notice') }}:</b>
+                  {{ $t('msg.info.workspaceRoleUpdateNotice') }}
+                </div>
+              </template>
+            </NcAlert>
+            <div v-if="showOverrideBaseRoleCheckbox" class="flex items-start gap-3">
+              <div class="flex items-center h-5">
+                <NcCheckbox v-model:checked="userRoleUpdateInfo.overrideBaseRole" />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="font-semibold">Apply to all bases</div>
+                <div class="text-nc-content-gray-subtle">
+                  This will override explicit base roles and apply the workspace role to all bases.
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </NcModalConfirm>
     </div>
   </div>
 </template>

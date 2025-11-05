@@ -33,6 +33,10 @@ const vOpen = useVModel(props, 'open', emits)
 
 const { t } = useI18n()
 
+const router = useRouter()
+
+const route = router.currentRoute
+
 const activeScope = ref('root')
 
 const modalEl = ref<HTMLElement>()
@@ -259,6 +263,12 @@ const setScope = (scope: string) => {
   })
 }
 
+const determineInitialScope = (): string => {
+  if (route.value.params.viewId) return `tbl-${route.value.params.viewId}`
+  if (route.value.params.baseId) return `p-${route.value.params.baseId}`
+
+  return props.scope || 'root'
+}
 const show = () => {
   if (!user.value) return
   if (props.scope === 'disabled') return
@@ -268,7 +278,7 @@ const show = () => {
   vOpen.value = true
   cmdInput.value = ''
   nextTick(() => {
-    setScope(props.scope || 'root')
+    setScope(determineInitialScope())
   })
 }
 

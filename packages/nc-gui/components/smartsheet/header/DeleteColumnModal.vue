@@ -15,7 +15,7 @@ const { $api, $e } = useNuxtApp()
 
 const menuColumn = inject(ColumnInj)
 
-const canvasColumn = inject(CanvasColumnInj)
+const canvasColumn = inject(CanvasColumnInj, ref())
 
 const column = computed<ColumnType>(() => {
   return menuColumn?.value || canvasColumn?.value

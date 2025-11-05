@@ -259,12 +259,13 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               :model-value="_groupBy"
               item-key="fk_column_id"
               ghost-class="bg-gray-50"
-              :disabled="isLocked"
+              :disabled="isLocked || !isEeUI"
               @change="onMove($event)"
             >
               <template #item="{ element: group }">
                 <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
                   <NcButton
+                    v-if="isEeUI"
                     type="secondary"
                     size="small"
                     class="!border-r-transparent !rounded-r-none"
@@ -276,6 +277,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   <LazySmartsheetToolbarFieldListAutoCompleteDropdown
                     v-model="group.fk_column_id"
                     class="caption nc-group-field-select !w-36"
+                    :class="!isEeUI ? 'nc-disable-reorder' : ''"
                     :columns="getFieldsToGroupBy(group)"
                     :allow-empty="true"
                     :meta="meta"
@@ -345,7 +347,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               </template>
             </Draggable>
           </div>
-          <div class="flex items-center justify-between children:flex-none mt-2 empty:hidden">
+          <div class="flex items-center justify-between mt-2 empty:hidden">
             <NcDropdown
               v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
               v-model:visible="showCreateGroupBy"
@@ -422,6 +424,12 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
     .field-selection-tooltip-wrapper {
       @apply !max-w-21;
     }
+  }
+}
+
+:deep(.nc-group-field-select.nc-disable-reorder) {
+  .ant-select-selector {
+    @apply !rounded-l-lg;
   }
 }
 

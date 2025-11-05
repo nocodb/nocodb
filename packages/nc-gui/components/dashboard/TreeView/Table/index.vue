@@ -5,6 +5,8 @@ defineProps<{
   baseId: string
 }>()
 
+const emits = defineEmits(['createTable'])
+
 const { $e } = useNuxtApp()
 
 const { api } = useApi()
@@ -224,7 +226,13 @@ onKeyStroke('Escape', () => {
         <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
           <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
             <div class="transition-height duration-200">
-              <DashboardTreeViewTableList :base="base" :source-index="0" :show-create-table-btn="hasTableCreatePermission" />
+              <DashboardTreeViewTableList
+                :base="base"
+                :base-id="baseId"
+                :source-index="0"
+                :show-create-table-btn="hasTableCreatePermission"
+                @create-table="emits('createTable')"
+              />
             </div>
           </div>
 
@@ -364,6 +372,18 @@ onKeyStroke('Escape', () => {
                                 variant="small"
                                 @click="isBasesOptionsOpen[source!.id!] = false"
                               >
+                                <NcMenuItemCopyId
+                                  :id="source.id"
+                                  :tooltip="$t('labels.clickToCopySourceID')"
+                                  :label="
+                                    $t('labels.sourceIdColon', {
+                                      sourceId: source.id,
+                                    })
+                                  "
+                                  @click.stop
+                                />
+                                <NcDivider />
+
                                 <NcMenuItem
                                   v-if="isUIAllowed('baseRename')"
                                   data-testid="nc-sidebar-source-rename"
@@ -412,7 +432,7 @@ onKeyStroke('Escape', () => {
                       :key="`sortable-${source.id}-${source.id && source.id in keys ? keys[source.id] : '0'}`"
                       :nc-source="source.id"
                     >
-                      <DashboardTreeViewTableList :base="base" :source-index="sourceIndex" />
+                      <DashboardTreeViewTableList :base="base" :base-id="baseId" :source-index="sourceIndex" />
                     </div>
                   </a-collapse-panel>
                 </a-collapse>

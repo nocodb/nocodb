@@ -74,7 +74,18 @@ onMounted(generate)
       @click="onBarcodeClick"
     ></svg>
     <slot v-if="errorForCurrentInput" name="barcodeRenderError" />
-    <div v-if="props.showDownload" class="flex justify-end gap-2 py-2 px-3">
+
+    <div v-if="showDownload" class="bg-nc-bg-gray-light mx-4 px-3 py-2 rounded-lg">
+      <NcTooltip show-on-truncate-only class="truncate">
+        <template #title>
+          {{ barcodeValue }}
+        </template>
+
+        {{ barcodeValue }}
+      </NcTooltip>
+    </div>
+
+    <div v-if="showDownload" class="flex justify-end gap-2 py-2 px-3">
       <NcTooltip>
         <template #title>
           {{ $t('labels.clickToCopy') }}

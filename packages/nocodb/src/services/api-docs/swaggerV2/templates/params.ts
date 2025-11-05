@@ -6,7 +6,7 @@ import {
 } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
-import type { SwaggerView } from '~/services/api-docs/swaggerV2/getSwaggerJSONV2';
+import type { SwaggerView } from '~/services/api-docs/shared/swaggerUtils';
 import type { NcContext } from '~/interface/config';
 
 export const recordIdParam = {

@@ -9,7 +9,7 @@ import { IconType } from 'nocodb-sdk'
 interface Props {
   icon: string | Record<string, any>
   iconType: IconType | string
-  imageCropperData: Omit<ImageCropperProps, 'showCropper'>
+  imageCropperData?: Omit<ImageCropperProps, 'showCropper'>
   tabOrder?: IconType[]
   defaultActiveTab?: IconType
   onBeforeTabChange?: (iconsType: IconType) => boolean
@@ -33,7 +33,9 @@ const vIcon = useVModel(props, 'icon', emits)
 
 const vIconType = useVModel(props, 'iconType', emits)
 
-const imageCropperData = useVModel(props, 'imageCropperData', emits)
+const imageCropperData = useVModel(props, 'imageCropperData', emits, {
+  defaultValue: {} as Omit<ImageCropperProps, 'showCropper'>,
+})
 
 const { t } = useI18n()
 
@@ -153,17 +155,19 @@ const handleChange = (info: UploadChangeParam) => {
 
   if (status === 'done' && info.file.originFileObj instanceof File) {
     // 1. Revoke the object URL, to allow the garbage collector to destroy the uploaded before file
-    if (imageCropperData.value.imageConfig.src) {
+    if (imageCropperData.value?.imageConfig?.src) {
       URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
     }
     // 2. Create the blob link to the file to optimize performance:
     const blob = URL.createObjectURL(info.file.originFileObj)
 
     // 3. Update the image. The type will be derived from the extension
-    imageCropperData.value.imageConfig = {
-      src: blob,
-      type: info.file.originFileObj.type,
-      name: info.file.originFileObj.name,
+    if (imageCropperData.value) {
+      imageCropperData.value.imageConfig = {
+        src: blob,
+        type: info.file.originFileObj.type,
+        name: info.file.originFileObj.name,
+      }
     }
 
     isUploadingImage.value = false
@@ -405,6 +409,7 @@ watch(isOpen, (newValue) => {
     </NcDropdown>
 
     <GeneralImageCropper
+      v-if="tabs.some((t) => t.value === IconType.IMAGE) && imageCropperData"
       v-model:show-cropper="showImageCropper"
       :cropper-config="imageCropperData.cropperConfig"
       :image-config="imageCropperData.imageConfig"

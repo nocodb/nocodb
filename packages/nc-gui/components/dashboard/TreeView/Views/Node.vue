@@ -386,8 +386,25 @@ watch(isDropdownOpen, async () => {
             {{ vModel.alias || vModel.title }}
           </div>
         </NcTooltip>
-        <div v-if="!isEditing && [LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)" class="flex-1 flex">
+        <div v-if="!isEditing && [LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)" class="flex-1 flex mx-0.5">
+          <div
+            v-if="vModel.lock_type === ViewLockType.Personal && vModel.owned_by && idUserMap[vModel.owned_by]"
+            class="flex items-center justify-center"
+          >
+            <GeneralUserIcon
+              :user="idUserMap[vModel.owned_by]"
+              :initials-length="1"
+              size="auto"
+              class="flex-none !h-[14px] !min-h-[14px]"
+              :class="{
+                '!text-[8px]': !parseProp(idUserMap[vModel.owned_by]?.meta).iconType,
+                '!text-tiny': parseProp(idUserMap[vModel.owned_by]?.meta).iconType,
+              }"
+            />
+          </div>
+
           <component
+            v-else
             :is="viewLockIcons[vModel.lock_type].icon"
             class="ml-1 flex-none w-3.5 h-3.5"
             :class="{

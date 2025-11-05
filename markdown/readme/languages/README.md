@@ -19,4 +19,5 @@ Supported Translations:
     <li><a href="indonesian.md">Indonesian</a></li>
     <li><a href="ukrainian.md">Ukrainian</a></li>
     <li><a href="vietnamese.md">Vietnamese</a></li>
+    <li><a href="bengali.md">Bengali</a></li>
 </ul>

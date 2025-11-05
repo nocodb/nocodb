@@ -409,6 +409,7 @@ export class DataV3Service {
           // Array of records - each should have id property
           transformedFields[column.title] = fieldValue.map((nestedRecord) =>
             this.convertRecordIdToInternal(
+              context,
               nestedRecord,
               relatedPrimaryKey,
               relatedPrimaryKeys,
@@ -422,6 +423,7 @@ export class DataV3Service {
         ) {
           // Single record with id property (v3 format)
           transformedFields[column.title] = this.convertRecordIdToInternal(
+            context,
             fieldValue,
             relatedPrimaryKey,
             relatedPrimaryKeys,
@@ -440,6 +442,7 @@ export class DataV3Service {
    * Convert a record ID from v3 format to internal format
    */
   private convertRecordIdToInternal(
+    context: NcContext,
     nestedRecord: any,
     relatedPrimaryKey: Column,
     relatedPrimaryKeys: Column[],
@@ -452,7 +455,7 @@ export class DataV3Service {
 
       // Validate that we have the correct number of parts
       if (idParts.length !== relatedPrimaryKeys.length) {
-        NcError.unprocessableEntity(
+        NcError.get(context).unprocessableEntity(
           `Invalid composite key: expected ${relatedPrimaryKeys.length} parts but got ${idParts.length} in "${idString}"`,
         );
       }
@@ -463,7 +466,7 @@ export class DataV3Service {
 
         // Validate that the part exists and is not empty
         if (part === undefined || part === null) {
-          NcError.unprocessableEntity(
+          NcError.get(context).unprocessableEntity(
             `Invalid composite key part at index ${index}: got ${part} in "${idString}"`,
           );
         }
@@ -473,7 +476,7 @@ export class DataV3Service {
 
         // Don't allow completely empty string primary keys (after cleaning)
         if (cleanedPart === '') {
-          NcError.unprocessableEntity(
+          NcError.get(context).unprocessableEntity(
             `Empty primary key part at index ${index} after cleaning in "${idString}"`,
           );
         }
@@ -485,7 +488,9 @@ export class DataV3Service {
       // Single primary key - validate it's not empty
       const pkValue = String(nestedRecord.id);
       if (pkValue === '' || pkValue === 'undefined' || pkValue === 'null') {
-        NcError.unprocessableEntity(`Invalid primary key value: "${pkValue}"`);
+        NcError.get(context).unprocessableEntity(
+          `Invalid primary key value: "${pkValue}"`,
+        );
       }
 
       return {
@@ -527,7 +532,7 @@ export class DataV3Service {
         ];
 
     if (transformedBody.length > V3_INSERT_LIMIT) {
-      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+      NcError.get(context).maxInsertLimitExceeded(V3_INSERT_LIMIT);
     }
 
     const result = await this.dataTableService.dataInsert(context, {
@@ -635,7 +640,7 @@ export class DataV3Service {
     }));
 
     if (recordIds.length > V3_INSERT_LIMIT) {
-      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+      NcError.get(context).maxInsertLimitExceeded(V3_INSERT_LIMIT);
     }
     await this.dataTableService.dataDelete(context, {
       ...param,
@@ -688,7 +693,7 @@ export class DataV3Service {
         ];
 
     if (transformedBody.length > V3_INSERT_LIMIT) {
-      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+      NcError.get(context).maxInsertLimitExceeded(V3_INSERT_LIMIT);
     }
 
     await this.dataTableService.dataUpdate(context, {

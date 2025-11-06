@@ -2,7 +2,6 @@
 import {
   HigherPlan,
   OrderedWorkspaceRoles,
-  PlanFeatureTypes,
   type PlanLimitExceededDetailsType,
   PlanLimitTypes,
   PlanTitles,

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { TeamUserRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import { RoleColors, RoleIcons, RoleLabels, TeamUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { TeamMemberV3ResponseV3Type, TeamV3V3Type, WorkspaceUserType } from 'nocodb-sdk'
 
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'

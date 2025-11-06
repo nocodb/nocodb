@@ -1,13 +1,6 @@
 <script lang="ts" setup>
 import type { MetaType, PlanLimitExceededDetailsType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
-import {
-  OrderedProjectRoles,
-  OrgUserRoles,
-  PlanFeatureTypes,
-  PlanTitles,
-  ProjectRoles,
-  WorkspaceRolesToProjectRoles,
-} from 'nocodb-sdk'
+import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string

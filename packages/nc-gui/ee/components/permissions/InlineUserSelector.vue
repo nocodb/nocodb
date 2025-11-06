@@ -17,6 +17,8 @@ const selectedUsers = useVModel(props, 'selectedUsers', emits)
 
 const { $e } = useNuxtApp()
 
+const { isTeamsEnabled } = storeToRefs(useWorkspace())
+
 const basesStore = useBases()
 
 const { basesUser, basesTeams } = storeToRefs(basesStore)
@@ -41,6 +43,8 @@ const selectedUsersList = computed(() => {
       // Check if it's a team
       const team = baseTeams.value.find((team) => team.team_id === userId)
       if (team) {
+        if (!isTeamsEnabled.value) return
+
         return {
           ...team,
           isTeam: true,
@@ -51,7 +55,7 @@ const selectedUsersList = computed(() => {
       // It's a user
       return baseUsers.value.find((user) => user.id === userId)
     })
-    .filter(Boolean)
+    .filter(Boolean)!
 })
 
 const visibleUsers = ref<User[]>([])
@@ -139,7 +143,7 @@ const selectedBelowMinimumRoleUsers = computed(() => {
 
     const team = baseTeams.value.find((team) => team.team_id === userId)
 
-    let roleToCheck = user?.roles || team?.base_role
+    const roleToCheck = user?.roles || team?.base_role
 
     if (!roleToCheck) return false
 

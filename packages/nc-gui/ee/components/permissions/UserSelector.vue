@@ -108,7 +108,7 @@ const selectedBelowMinimumRoleUsers = computed(() => {
 
     const team = baseTeams.value.find((team) => team.team_id === userId)
 
-    let roleToCheck = user?.roles || team?.base_role
+    const roleToCheck = user?.roles || team?.base_role
 
     if (!roleToCheck) return false
 

@@ -24,6 +24,9 @@ export const usePermissionSelector = (
   currentValue: Ref<string>,
 ) => {
   const { $api, $e } = useNuxtApp()
+
+  const { isTeamsEnabled } = storeToRefs(useWorkspace())
+
   const basesStore = useBases()
   const { basesUser, basesTeams } = storeToRefs(basesStore)
 
@@ -210,7 +213,7 @@ export const usePermissionSelector = (
         const baseUsers = basesUser.value.get(base.value.id!) || []
 
         // Map baseTeams data to PermissionSelectorUser format
-        const baseTeams = basesTeams.value.get(base.value.id!) || []
+        const baseTeams = isTeamsEnabled.value ? basesTeams.value.get(base.value.id!) || [] : []
 
         selectedUsers.value = baseUsers
           .filter((user) => permission.subjects?.some((subject) => subject.type === 'user' && subject.id === user.id))

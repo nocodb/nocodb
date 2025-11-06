@@ -48,6 +48,7 @@ const {
   isWsOwner,
   navigateToPricing,
   isTopBannerVisible,
+  showUpgradeToUseTeams,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -465,60 +466,43 @@ watch(inviteDlg, (newVal) => {
             <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
           </template>
 
-          <NcButton
-            v-if="!isTeamsEnabled || isAdminPanel"
-            size="small"
-            :disabled="isCollaboratorsLoading"
-            data-testid="nc-add-member-btn"
-            @click="inviteDlg = true"
-          >
-            <div class="flex items-center gap-2">
-              <component :is="iconMap.plus" class="!h-4 !w-4" />
-              {{ $t('labels.addMember') }}
-            </div>
-          </NcButton>
-
-          <NcDropdown v-else :disabled="isCollaboratorsLoading">
-            <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn">
+          <div class="flex items-center gap-2">
+            <NcButton
+              size="small"
+              :type="isTeamsEnabled ? 'secondary' : 'primary'"
+              :disabled="isCollaboratorsLoading"
+              data-testid="nc-add-member-btn"
+              :text-color="isTeamsEnabled ? 'primary' : undefined"
+              @click="inviteDlg = true"
+            >
               <div class="flex items-center gap-2">
-                <component :is="iconMap.plus" class="!h-4 !w-4" />
-                {{ $t('general.add') }}
+                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
+                {{ $t('activity.addMembers') }}
               </div>
             </NcButton>
-            <template #overlay>
-              <NcMenu variant="small">
-                <NcMenuItem @click="inviteDlg = true">
-                  <GeneralIcon icon="ncUsers" />
-                  {{ $t('activity.addMembers') }}
-                </NcMenuItem>
-                <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT">
-                  <template #default="{ click }">
-                    <NcMenuItem
-                      @click="
-                        click(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, () => {
-                          isInviteTeamDlg = true
-                          inviteDlg = true
-                        })
-                      "
-                    >
-                      <GeneralIcon icon="ncBuilding" />
-                      {{ $t('labels.addTeams') }}
-                      <LazyPaymentUpgradeBadge
-                        :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
-                        :title="$t('upgrade.upgradeToUseTeams')"
-                        :content="
-                          $t('upgrade.upgradeToUseTeamsSubtitle', {
-                            plan: PlanTitles.BUSINESS,
-                          })
-                        "
-                        :plan-title="PlanTitles.BUSINESS"
-                      />
-                    </NcMenuItem>
-                  </template>
-                </PaymentUpgradeBadgeProvider>
-              </NcMenu>
-            </template>
-          </NcDropdown>
+
+            <NcButton
+              v-if="isTeamsEnabled && !isAdminPanel"
+              size="small"
+              type="secondary"
+              :disabled="isCollaboratorsLoading"
+              data-testid="nc-add-teams-btn"
+              text-color="primary"
+              @click="
+                showUpgradeToUseTeams({
+                  successCallback: () => {
+                    isInviteTeamDlg = true
+                    inviteDlg = true
+                  },
+                })
+              "
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncBuilding" />
+                {{ $t('labels.addTeams') }}
+              </div>
+            </NcButton>
+          </div>
         </div>
       </div>
 

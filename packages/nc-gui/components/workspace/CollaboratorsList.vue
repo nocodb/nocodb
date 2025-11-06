@@ -433,7 +433,7 @@ watch(inviteDlg, (newVal) => {
           allow-clear
           :disabled="isCollaboratorsLoading"
           class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
-          :placeholder="$t('title.searchMembers')"
+          :placeholder="isTeamsEnabled ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
         >
           <template #prefix>
             <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />

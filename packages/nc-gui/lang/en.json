@@ -728,7 +728,8 @@
       "confirmRemoveTeamFromWorkspaceSubtitle": "If you remove, team members will lose access to all bases and data within this workspace",
       "nMemberSelected": "{n} member selected",
       "nMembersSelected": "{n} members selected",
-      "noMoreTeamsToAdd": "No more teams to add"
+      "noMoreTeamsToAdd": "No more teams to add",
+      "alreadyAdded": "Already added"
     },
     "templates": {
       "all-templates": {

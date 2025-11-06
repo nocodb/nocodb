@@ -1,4 +1,4 @@
-import { NON_SEAT_ROLES } from 'nocodb-sdk';
+import { NON_SEAT_ROLES, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import {
   CacheGetType,
   CacheScope,
@@ -292,7 +292,7 @@ export default class Subscription {
           this.andOnIn('bta.resource_id', activeBaseIds);
         } else {
           // If no active bases, make the join condition always false
-          this.andOn('1', '=', '0');
+          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
         }
       })
       .where('pa.principal_type', '=', 'user')
@@ -373,7 +373,7 @@ export default class Subscription {
       const effectiveRoles = [];
 
       // Extract base level role
-      if (userRole.base_role) {
+      if (userRole.base_role && userRole.base_role !== ProjectRoles.INHERIT) {
         effectiveRoles.push(userRole.base_role);
       } // Extract base team roles (now an array)
       else if (
@@ -384,7 +384,10 @@ export default class Subscription {
       }
 
       // Extract workspace role
-      if (userRole.workspace_role) {
+      if (
+        userRole.workspace_role &&
+        userRole.workspace_role !== WorkspaceUserRoles.INHERIT
+      ) {
         effectiveRoles.push(userRole.workspace_role);
       } // Extract workspace team roles (now an array)
       else if (

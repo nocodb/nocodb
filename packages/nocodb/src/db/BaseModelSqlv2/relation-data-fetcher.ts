@@ -336,6 +336,7 @@ export const relationDataFetcher = (param: {
         nested?: boolean;
       },
       args: { limit?; offset?; fieldSet?: Set<string> } = {},
+      selectAllRecords = false,
     ) {
       try {
         const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
@@ -389,8 +390,10 @@ export const relationDataFetcher = (param: {
             .where(_wherePk(parentTable.primaryKeys, id)),
         );
         // todo: sanitize
-        qb.limit(+rest?.limit || 25);
-        qb.offset(+rest?.offset || 0);
+        if (!selectAllRecords) {
+          qb.limit(+rest?.limit || 25);
+        }
+        qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
 
         await childBaseModel.selectObject({
           qb,

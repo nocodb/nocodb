@@ -1291,8 +1291,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       nested?: boolean;
     },
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
+    selectAllRecords = false,
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).hmList(param, args);
+    return relationDataFetcher({ baseModel: this, logger }).hmList(
+      param,
+      args,
+      selectAllRecords,
+    );
   }
 
   async hmListCount({ colId, id }, args) {
@@ -3240,16 +3245,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           let existingLinks = [];
 
           if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
-            existingLinks = await trxBaseModel.mmList({
-              colId: col.id,
-              parentId: rowId,
-            });
+            existingLinks = await trxBaseModel.mmList(
+              {
+                colId: col.id,
+                parentId: rowId,
+              },
+              undefined,
+              true,
+            );
           } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
-            existingLinks = await trxBaseModel.hmList({
-              colId: col.id,
-              id: rowId,
-            });
+            existingLinks = await trxBaseModel.hmList(
+              {
+                colId: col.id,
+                id: rowId,
+              },
+              undefined,
+              true,
+            );
           } else {
+            // btRead has no limit/offset
             existingLinks = await trxBaseModel.btRead({
               colId: col.id,
               id: rowId,

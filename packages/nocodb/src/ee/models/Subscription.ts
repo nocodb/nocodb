@@ -241,152 +241,125 @@ export default class Subscription {
     const bases = await Base.list(workspaceId, ncMeta);
     const activeBaseIds = (bases ?? []).map((b) => b.id);
 
+    // Note: Query implementation specific to PostgreSQL due to ARRAY_AGG usage
+    // Subquery for workspace team roles (teams → workspace roles per user)
+    const workspaceTeamRolesSubquery = ncMeta.knexConnection
+      .select(
+        'pa.principal_ref_id as user_id',
+        ncMeta.knex.raw(
+          'ARRAY_AGG(DISTINCT wta.roles) as workspace_team_roles',
+        ),
+      )
+      .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+      .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wta`, function () {
+        this.on('wta.principal_ref_id', '=', 'pa.resource_id')
+          .andOn('wta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+          .andOn('wta.resource_type', '=', ncMeta.knex.raw('?', ['workspace']))
+          .andOn('wta.resource_id', '=', ncMeta.knex.raw('?', [workspaceId]))
+          .andOn(
+            ncMeta.knex.raw('COALESCE(wta.deleted, FALSE)'),
+            '=',
+            ncMeta.knex.raw('?', [false]),
+          );
+      })
+      .where('pa.principal_type', '=', 'user')
+      .where('pa.resource_type', '=', 'team')
+      .where(
+        ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
+        '=',
+        ncMeta.knex.raw('?', [false]),
+      )
+      .groupBy('pa.principal_ref_id')
+      .as('wtr');
+
+    // Subquery for base team roles (teams → base roles per user)
+    const baseTeamRolesSubquery = ncMeta.knexConnection
+      .select(
+        'pa.principal_ref_id as user_id',
+        ncMeta.knex.raw('ARRAY_AGG(DISTINCT bta.roles) as base_team_roles'),
+      )
+      .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+      .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as bta`, function () {
+        this.on('bta.principal_ref_id', '=', 'pa.resource_id')
+          .andOn('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+          .andOn('bta.resource_type', '=', ncMeta.knex.raw('?', ['base']))
+          .andOn(
+            ncMeta.knex.raw('COALESCE(bta.deleted, FALSE)'),
+            '=',
+            ncMeta.knex.raw('?', [false]),
+          );
+        if (activeBaseIds.length > 0) {
+          this.andOnIn('bta.resource_id', activeBaseIds);
+        } else {
+          // If no active bases, make the join condition always false
+          this.andOn('1', '=', '0');
+        }
+      })
+      .where('pa.principal_type', '=', 'user')
+      .where('pa.resource_type', '=', 'team')
+      .where(
+        ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
+        '=',
+        ncMeta.knex.raw('?', [false]),
+      )
+      .groupBy('pa.principal_ref_id')
+      .as('btr');
+
     // Single comprehensive query to get all user roles
     const allUserRoles = await ncMeta.knexConnection
       .select(
         `${MetaTable.USERS}.id as user_id`,
-        'workspace_users.roles as workspace_role',
-        'base_users.roles as base_role',
-        'workspace_team_assignments.roles as workspace_team_role',
-        'base_team_assignments.roles as base_team_role',
+        'wu.roles as workspace_role',
+        'bu.roles as base_role',
+        'wtr.workspace_team_roles as workspace_team_role',
+        'btr.base_team_roles as base_team_role',
       )
       .from(MetaTable.USERS)
       // Left join with direct workspace users
-      .leftJoin(`${MetaTable.WORKSPACE_USER} as workspace_users`, function () {
-        this.on(`${MetaTable.USERS}.id`, '=', 'workspace_users.fk_user_id')
+      .leftJoin(`${MetaTable.WORKSPACE_USER} as wu`, function () {
+        this.on(`${MetaTable.USERS}.id`, '=', 'wu.fk_user_id')
+          .andOn('wu.fk_workspace_id', '=', ncMeta.knex.raw('?', [workspaceId]))
           .andOn(
-            'workspace_users.fk_workspace_id',
+            ncMeta.knex.raw('COALESCE(wu.deleted, FALSE)'),
             '=',
-            ncMeta.knex.raw('?', [workspaceId]),
-          )
-          .andOn(function () {
-            this.on(
-              'workspace_users.deleted',
-              ncMeta.knex.raw('?', [false]),
-            ).orOnNull('workspace_users.deleted');
-          });
+            ncMeta.knex.raw('?', [false]),
+          );
       })
       // Left join with direct base users
-      .leftJoin(`${MetaTable.PROJECT_USERS} as base_users`, function () {
-        this.on(`${MetaTable.USERS}.id`, '=', 'base_users.fk_user_id')
-          .andOn(
-            'base_users.fk_workspace_id',
-            '=',
-            ncMeta.knex.raw('?', [workspaceId]),
-          )
-          .andOnIn('base_users.base_id', activeBaseIds);
+      .leftJoin(`${MetaTable.PROJECT_USERS} as bu`, function () {
+        this.on(`${MetaTable.USERS}.id`, '=', 'bu.fk_user_id').andOn(
+          'bu.fk_workspace_id',
+          '=',
+          ncMeta.knex.raw('?', [workspaceId]),
+        );
+        if (activeBaseIds.length > 0) {
+          this.andOnIn('bu.base_id', activeBaseIds);
+        } else {
+          // If no active bases, make the join condition always false
+          this.andOn('1', '=', '0');
+        }
       })
-      // Left join with team assignments (user -> team)
+      // Left join with workspace team roles subquery
       .leftJoin(
-        `${MetaTable.PRINCIPAL_ASSIGNMENTS} as team_assignments`,
-        function () {
-          this.on(
-            'team_assignments.principal_ref_id',
-            '=',
-            `${MetaTable.USERS}.id`,
-          )
-            .andOn(
-              'team_assignments.principal_type',
-              '=',
-              ncMeta.knex.raw('?', ['user']),
-            )
-            .andOn(
-              'team_assignments.resource_type',
-              '=',
-              ncMeta.knex.raw('?', ['team']),
-            )
-            .andOn(function () {
-              this.on(
-                'team_assignments.deleted',
-                ncMeta.knex.raw('?', [false]),
-              ).orOnNull('team_assignments.deleted');
-            });
-        },
+        workspaceTeamRolesSubquery,
+        'wtr.user_id',
+        `${MetaTable.USERS}.id`,
       )
-      // Left join with workspace team assignments (team -> workspace)
-      .leftJoin(
-        `${MetaTable.PRINCIPAL_ASSIGNMENTS} as workspace_team_assignments`,
-        function () {
-          this.on(
-            'workspace_team_assignments.principal_ref_id',
-            '=',
-            'team_assignments.resource_id',
-          )
-            .andOn(
-              'workspace_team_assignments.principal_type',
-              '=',
-              ncMeta.knex.raw('?', ['team']),
-            )
-            .andOn(
-              'workspace_team_assignments.resource_type',
-              '=',
-              ncMeta.knex.raw('?', ['workspace']),
-            )
-            .andOn(
-              'workspace_team_assignments.resource_id',
-              '=',
-              ncMeta.knex.raw('?', [workspaceId]),
-            )
-            .andOn(function () {
-              this.on(
-                'workspace_team_assignments.deleted',
-                ncMeta.knex.raw('?', [false]),
-              ).orOnNull('workspace_team_assignments.deleted');
-            });
-        },
-      )
-      // Left join with base team assignments (team -> base)
-      .leftJoin(
-        `${MetaTable.PRINCIPAL_ASSIGNMENTS} as base_team_assignments`,
-        function () {
-          this.on(
-            'base_team_assignments.principal_ref_id',
-            '=',
-            'team_assignments.resource_id',
-          )
-            .andOn(
-              'base_team_assignments.principal_type',
-              '=',
-              ncMeta.knex.raw('?', ['team']),
-            )
-            .andOn(
-              'base_team_assignments.resource_type',
-              '=',
-              ncMeta.knex.raw('?', ['base']),
-            )
-            .andOn(function () {
-              this.on(
-                'base_team_assignments.deleted',
-                ncMeta.knex.raw('?', [false]),
-              ).orOnNull('base_team_assignments.deleted');
-            });
-        },
-      )
+      // Left join with base team roles subquery
+      .leftJoin(baseTeamRolesSubquery, 'btr.user_id', `${MetaTable.USERS}.id`)
       // Filter: only users who have at least one role assignment
       .where(function () {
-        this.whereNotNull('workspace_users.fk_user_id')
-          .orWhereNotNull('base_users.fk_user_id')
-          .orWhereNotNull('team_assignments.principal_ref_id');
-      })
-      // Filter base team assignments by active base IDs
-      .where(function () {
-        this.where(function () {
-          // If no base team assignment, no filter needed
-          this.whereNull('base_team_assignments.resource_id');
-        }).orWhere(function () {
-          // If base team assignment exists, filter by active base IDs
-          this.whereNotNull('base_team_assignments.resource_id').whereIn(
-            'base_team_assignments.resource_id',
-            activeBaseIds,
-          );
-        });
+        this.whereNotNull('wu.fk_user_id')
+          .orWhereNotNull('bu.fk_user_id')
+          .orWhereNotNull('wtr.user_id')
+          .orWhereNotNull('btr.user_id');
       });
 
     /*
       Count users based on their roles - if they have ANY seat-consuming role at ANY level,
       they are counted as seat-consuming. This includes:
       - Direct base assignments
-      - Direct workspace assignments  
+      - Direct workspace assignments
       - Base team roles
       - Workspace team roles
     */
@@ -399,17 +372,26 @@ export default class Subscription {
       // Collect all roles that the user has
       const effectiveRoles = [];
 
-      // extract base level role
+      // Extract base level role
       if (userRole.base_role) {
         effectiveRoles.push(userRole.base_role);
-      } else if (userRole.base_team_role) {
-        effectiveRoles.push(userRole.base_team_role);
+      } // Extract base team roles (now an array)
+      else if (
+        userRole.base_team_role &&
+        Array.isArray(userRole.base_team_role)
+      ) {
+        effectiveRoles.push(...userRole.base_team_role);
       }
 
+      // Extract workspace role
       if (userRole.workspace_role) {
         effectiveRoles.push(userRole.workspace_role);
-      } else if (userRole.workspace_team_role) {
-        effectiveRoles.push(userRole.workspace_team_role);
+      } // Extract workspace team roles (now an array)
+      else if (
+        userRole.workspace_team_role &&
+        Array.isArray(userRole.workspace_team_role)
+      ) {
+        effectiveRoles.push(...userRole.workspace_team_role);
       }
 
       // Check if user has any seat-consuming role among all their roles

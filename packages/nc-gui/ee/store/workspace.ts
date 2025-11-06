@@ -829,6 +829,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
               members_count: (team.members_count || 0) + addedMembers.length,
               managers_count: (team.managers_count || 0) + addedOwners.length,
               managers: [...(team.managers || []), ...addedOwners],
+              is_member: addedMembers.some((am) => am.user_id === currentUser.value?.id) ? true : team.is_member,
             }
           : team,
       )
@@ -949,6 +950,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
             .filter((member) => member.team_role === TeamUserRoles.OWNER)
             .map((m) => m.user_id)
         : teamsMap.value[teamId]?.managers || []
+
+      // Todo: team manager local state update issue
 
       teams.value = teams.value.map((team) =>
         team.id === teamId

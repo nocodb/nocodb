@@ -22,7 +22,7 @@ export const useRealtime = createSharedComposable(() => {
   const { refreshCommandPalette } = useCommandPalette()
 
   const workspaceStore = useWorkspace()
-  const { activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
+  const { activeWorkspaceId, workspaces, teams } = storeToRefs(workspaceStore)
   const basesStore = useBases()
   const { bases, basesUser } = storeToRefs(basesStore)
 
@@ -48,6 +48,7 @@ export const useRealtime = createSharedComposable(() => {
   const activeAutomationListener = ref<string | null>(null)
   const activeDashboardListener = ref<string | null>(null)
   const activeWidgetListener = ref<string | null>(null)
+  const activeTeamListener = ref<string | null>(null)
 
   const handleBaseMetaEvent = (event: MetaPayload) => {
     if (event.action === 'source_create') {
@@ -520,6 +521,47 @@ export const useRealtime = createSharedComposable(() => {
     }
   }
 
+  const handleTeamEvent = async (event: any) => {
+    const { id, action, payload } = event
+
+    switch (action) {
+      case 'teamCreate': {
+        if (payload) {
+          teams.value.push(payload)
+        }
+        break
+      }
+      case 'teamUpdate': {
+        if (payload) {
+          teams.value = teams.value.map((team) => (team.id === id ? { ...team, ...payload } : team))
+        }
+        break
+      }
+      case 'teamDelete': {
+        teams.value = teams.value.filter((t) => t.id !== id)
+        break
+      }
+      case 'teamMembersAdd': {
+        if (payload) {
+          workspaceStore.onAddTeamMembers(id, payload)
+        }
+        break
+      }
+      case 'teamMembersRemove': {
+        if (payload) {
+          workspaceStore.onRemoveTeamMembers(id, payload)
+        }
+        break
+      }
+      case 'teamMembersUpdate': {
+        if (payload) {
+          workspaceStore.onUpdateTeamMembers(id, payload)
+        }
+        break
+      }
+    }
+  }
+
   watch(
     [activeWorkspaceId, activeBaseId],
     () => {
@@ -530,6 +572,15 @@ export const useRealtime = createSharedComposable(() => {
       if (user.value?.id) {
         activeUserListener.value = $ncSocket.onMessage(`user:${user.value.id}`, handleUserEvent)
       }
+
+      if (activeTeamListener.value) {
+        $ncSocket.offMessage(activeTeamListener.value)
+      }
+
+      activeTeamListener.value = $ncSocket.onMessage(
+        `${EventType.TEAM_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
+        handleTeamEvent,
+      )
 
       if (activeBaseId.value) {
         // Handle base meta events
@@ -589,6 +640,7 @@ export const useRealtime = createSharedComposable(() => {
       activeAutomationListener.value,
       activeDashboardListener.value,
       activeWidgetListener.value,
+      activeTeamListener.value,
     ]
       .filter(Boolean)
       .forEach((channel) => {

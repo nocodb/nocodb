@@ -809,6 +809,32 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const onAddTeamMembers = (teamId: string, addedMembers: TeamMemberV3ResponseV3Type[]) => {
+    if (editTeamDetails.value && ncIsArray(addedMembers)) {
+      editTeamDetails.value.members = [...(editTeamDetails.value.members || []), ...addedMembers]
+    }
+
+    if (teamsMap.value[teamId]) {
+      const addedOwners = addedMembers
+        .filter(
+          (member) =>
+            member.team_role === TeamUserRoles.OWNER && !(teamsMap.value[teamId]?.managers || []).includes(member.user_id),
+        )
+        .map((m) => m.user_id)
+
+      teams.value = teams.value.map((team) =>
+        team.id === teamId
+          ? {
+              ...team,
+              members_count: (team.members_count || 0) + addedMembers.length,
+              managers_count: (team.managers_count || 0) + addedOwners.length,
+              managers: [...(team.managers || []), ...addedOwners],
+            }
+          : team,
+      )
+    }
+  }
+
   async function addTeamMembers(
     workspaceId: string = activeWorkspaceId.value!,
     teamId: string,
@@ -835,34 +861,37 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       if (!addedMembers) return []
 
-      if (editTeamDetails.value && ncIsArray(addedMembers)) {
-        editTeamDetails.value.members = [...(editTeamDetails.value.members || []), ...addedMembers]
-      }
+      onAddTeamMembers(teamId, addedMembers)
 
-      if (teamsMap.value[teamId]) {
-        const addedOwners = addedMembers
-          .filter(
-            (member) =>
-              member.team_role === TeamUserRoles.OWNER && !(teamsMap.value[teamId]?.managers || []).includes(member.user_id),
-          )
-          .map((m) => m.user_id)
-
-        teams.value = teams.value.map((team) =>
-          team.id === teamId
-            ? {
-                ...team,
-                members_count: (team.members_count || 0) + addedMembers.length,
-                managers_count: (team.managers_count || 0) + addedOwners.length,
-                managers: [...(team.managers || []), ...addedOwners],
-              }
-            : team,
-        )
-      }
-
-      return addedMembers || []
+      return addedMembers
     } catch (e: any) {
       console.error('Failed to add members', e)
       message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const onRemoveTeamMembers = (teamId: string, removedMembers: TeamMembersRemoveV3ReqV3Type[]) => {
+    if (editTeamDetails.value && ncIsArray(removedMembers)) {
+      editTeamDetails.value.members = (editTeamDetails.value.members || []).filter(
+        (member) => !removedMembers.find((rm) => rm.user_id === member.user_id),
+      )
+    }
+
+    if (teamsMap.value[teamId]) {
+      const teamOwners = (teamsMap.value[teamId]?.managers || []).filter((m) => !removedMembers.some((rm) => rm.user_id === m))
+
+      teams.value = teams.value.map((team) =>
+        team.id === teamId
+          ? {
+              ...team,
+              members_count: team.members_count - removedMembers.length,
+              managers_count: teamOwners.length,
+              managers: teamOwners,
+              is_member:
+                team.is_member && removedMembers.some((rm) => rm.user_id === currentUser.value?.id) ? false : team.is_member,
+            }
+          : team,
+      )
     }
   }
 
@@ -892,33 +921,44 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       if (!removedMembers) return []
 
-      if (editTeamDetails.value && ncIsArray(removedMembers)) {
-        editTeamDetails.value.members = (editTeamDetails.value.members || []).filter(
-          (member) => !removedMembers.find((rm) => rm.user_id === member.user_id),
-        )
-      }
-
-      if (teamsMap.value[teamId]) {
-        const teamOwners = (teamsMap.value[teamId]?.managers || []).filter((m) => !removedMembers.some((rm) => rm.user_id === m))
-
-        teams.value = teams.value.map((team) =>
-          team.id === teamId
-            ? {
-                ...team,
-                members_count: team.members_count - removedMembers.length,
-                managers_count: teamOwners.length,
-                managers: teamOwners,
-                is_member:
-                  team.is_member && removedMembers.some((rm) => rm.user_id === currentUser.value?.id) ? false : team.is_member,
-              }
-            : team,
-        )
-      }
+      onRemoveTeamMembers(teamId, removedMembers)
 
       return removedMembers
     } catch (e: any) {
       console.error('Failed to remove members', e)
       message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const onUpdateTeamMembers = (teamId: string, updatedMembers: TeamMemberV3ResponseV3Type[]) => {
+    if (editTeamDetails.value && ncIsArray(updatedMembers)) {
+      editTeamDetails.value.members = (editTeamDetails.value.members || []).map((member) => {
+        const updatedMember = updatedMembers.find((um) => um.user_id === member.user_id)
+        if (!updatedMember) return member
+
+        return {
+          ...member,
+          ...updatedMember,
+        }
+      })
+    }
+
+    if (teamsMap.value[teamId]) {
+      const teamOwners = editTeamDetails.value
+        ? (editTeamDetails.value?.members || [])
+            .filter((member) => member.team_role === TeamUserRoles.OWNER)
+            .map((m) => m.user_id)
+        : teamsMap.value[teamId]?.managers || []
+
+      teams.value = teams.value.map((team) =>
+        team.id === teamId
+          ? {
+              ...team,
+              managers_count: teamOwners.length,
+              managers: teamOwners,
+            }
+          : team,
+      )
     }
   }
 
@@ -946,35 +986,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         teamId,
       })
 
-      if (editTeamDetails.value && ncIsArray(updatedMembers)) {
-        editTeamDetails.value.members = (editTeamDetails.value.members || []).map((member) => {
-          const updatedMember = updatedMembers.find((um) => um.user_id === member.user_id)
-          if (!updatedMember) return member
-
-          return {
-            ...member,
-            ...updatedMember,
-          }
-        })
-      }
-
-      if (teamsMap.value[teamId]) {
-        const teamOwners = editTeamDetails.value
-          ? (editTeamDetails.value?.members || [])
-              .filter((member) => member.team_role === TeamUserRoles.OWNER)
-              .map((m) => m.user_id)
-          : teamsMap.value[teamId]?.managers || []
-
-        teams.value = teams.value.map((team) =>
-          team.id === teamId
-            ? {
-                ...team,
-                managers_count: teamOwners.length,
-                managers: teamOwners,
-              }
-            : team,
-        )
-      }
+      onUpdateTeamMembers(teamId, updatedMembers || [])
 
       return updatedMembers || []
     } catch (e: any) {
@@ -1217,8 +1229,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     loadTeams,
     getTeamById,
     addTeamMembers,
+    onAddTeamMembers,
     removeTeamMembers,
+    onRemoveTeamMembers,
     updateTeamMembers,
+    onUpdateTeamMembers,
 
     // Workspace Teams
     isLoadingWorkspaceTeams,

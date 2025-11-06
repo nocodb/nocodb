@@ -312,7 +312,7 @@ onMounted(async () => {
           <div v-if="column.key === 'badge'">
             <NcBadge class="uppercase">
               <GeneralTeamIcon v-if="record.icon" :team="record" icon-bg-color="transparent" />
-              {{ record.title?.slice(0, 3) }}
+              {{ getSafeInitials(record.title, 3) }}
             </NcBadge>
           </div>
 

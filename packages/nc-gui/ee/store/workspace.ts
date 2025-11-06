@@ -945,13 +945,23 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
 
     if (teamsMap.value[teamId]) {
-      const teamOwners = editTeamDetails.value
-        ? (editTeamDetails.value?.members || [])
-            .filter((member) => member.team_role === TeamUserRoles.OWNER)
-            .map((m) => m.user_id)
-        : teamsMap.value[teamId]?.managers || []
+      let teamOwners = [] as string[]
 
-      // Todo: team manager local state update issue
+      if (editTeamDetails.value) {
+        teamOwners = editTeamDetails.value.members
+          .filter((member) => member.team_role === TeamUserRoles.OWNER)
+          .map((m) => m.user_id)
+      } else {
+        teamOwners = teamsMap.value[teamId]?.managers || []
+
+        updatedMembers.forEach((member) => {
+          if (member.team_role === TeamUserRoles.OWNER && !teamOwners.includes(member.user_id)) {
+            teamOwners.push(member.user_id)
+          } else if (member.team_role !== TeamUserRoles.OWNER && teamOwners.includes(member.user_id)) {
+            teamOwners = teamOwners.filter((owner) => owner !== member.user_id)
+          }
+        })
+      }
 
       teams.value = teams.value.map((team) =>
         team.id === teamId

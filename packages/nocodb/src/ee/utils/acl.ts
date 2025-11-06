@@ -397,6 +397,9 @@ const rolePermissions:
     include: {
       workspaceGet: true,
       workspaceBaseList: true,
+
+      // Teams
+      teamList: true,
     },
   },
 
@@ -440,7 +443,6 @@ const rolePermissions:
       requestUpgrade: true,
 
       // Teams
-      teamList: true,
       teamGet: true,
       teamCreate: true,
       teamUpdate: true,

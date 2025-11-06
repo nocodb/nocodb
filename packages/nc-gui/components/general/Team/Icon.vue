@@ -113,7 +113,7 @@ const teamInitials = computed(() => {
     return ''
   }
 
-  return getSafeInitials(team.value.title, props.initialsLength)
+  return getSafeInitials(team.value.title, props.initialsLength, true)
 })
 </script>
 

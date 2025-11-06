@@ -2,6 +2,7 @@ import type { DefaultOptionType } from 'ant-design-vue/lib/select'
 import type { SortableOptions } from 'sortablejs'
 import type { AutoScrollOptions } from 'sortablejs/plugins'
 import type { UserType } from 'nocodb-sdk'
+import { ncIsArray } from 'nocodb-sdk'
 
 export const modalSizes = {
   xs: {
@@ -83,8 +84,12 @@ export const isUnicodeEmoji = (emoji: string) => {
 
 /**
  * Get safe initials, emoji-safe & surrogate-safe.
+ *
+ * Rules: if limitEmojiToOne is true, then:
+ * - Emoji + Letter → keep both
+ * - Emoji + Emoji → keep only first emoji
  */
-export const getSafeInitials = (title?: string, initialsLength: number = 2): string => {
+export const getSafeInitials = (title?: string, initialsLength: number = 2, limitEmojiToOne: boolean = false): string => {
   if (!title?.trim()) return ''
 
   const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' })
@@ -107,7 +112,16 @@ export const getSafeInitials = (title?: string, initialsLength: number = 2): str
     initials.push(...g.slice(1, 1 + remaining)) // continue slicing same word
   }
 
-  return initials.slice(0, initialsLength).join('')
+  // Final slice by allowed length
+  const resultClusters = splitGraphemes(initials.join('')).slice(0, initialsLength)
+
+  // ✅ Smart emoji limit:
+  // If ALL characters are emoji & more than 1 → limit to 1
+  if (resultClusters.length > 1 && resultClusters.every((ch) => isUnicodeEmoji(ch))) {
+    return resultClusters[0] ?? '' // only first emoji
+  }
+
+  return resultClusters.join('')
 }
 
 /**

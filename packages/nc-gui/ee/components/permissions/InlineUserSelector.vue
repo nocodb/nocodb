@@ -19,7 +19,7 @@ const { $e } = useNuxtApp()
 
 const basesStore = useBases()
 
-const { basesUser } = storeToRefs(basesStore)
+const { basesUser, basesTeams } = storeToRefs(basesStore)
 
 // Dropdown state
 const isDropdownOpen = ref(false)
@@ -30,16 +30,16 @@ const baseUsers = computed(() => {
   return basesUser.value.get(props.baseId) || []
 })
 
+const baseTeams = computed(() => {
+  return basesTeams.value.get(props.baseId) || []
+})
+
 // Selected users display
 const selectedUsersList = computed(() => {
-  const basesStore = useBases()
-  const { basesTeams } = storeToRefs(basesStore)
-  const teams = basesTeams.value.get(props.baseId) || []
-
   return Array.from(selectedUsers.value)
     .map((userId) => {
       // Check if it's a team
-      const team = teams.find((team) => team.team_id === userId)
+      const team = baseTeams.value.find((team) => team.team_id === userId)
       if (team) {
         return {
           ...team,
@@ -89,15 +89,12 @@ async function calculateVisibleUsers() {
 // Handle save
 const handleSave = async () => {
   const selectedIds = Array.from(selectedUsers.value)
-  const basesStore = useBases()
-  const { basesTeams } = storeToRefs(basesStore)
 
   const users: PermissionSelectorUser[] = []
 
   for (const id of selectedIds) {
     // Check if it's a team
-    const teams = basesTeams.value.get(props.baseId) || []
-    const team = teams.find((team) => team.team_id === id)
+    const team = baseTeams.value.find((team) => team.team_id === id)
 
     if (team) {
       users.push({
@@ -139,10 +136,15 @@ const selectedBelowMinimumRoleUsers = computed(() => {
 
   return selectedUsersArray.filter((userId) => {
     const user = baseUsers.value.find((user) => user.id === userId)
-    if (!user) return false
 
-    if (typeof user.roles === 'string') {
-      const userRoles = (user.roles as string).split(',').map((r) => r.trim())
+    const team = baseTeams.value.find((team) => team.team_id === userId)
+
+    let roleToCheck = user?.roles || team?.base_role
+
+    if (!roleToCheck) return false
+
+    if (typeof roleToCheck === 'string') {
+      const userRoles = (roleToCheck as string).split(',').map((r) => r.trim())
       return userRoles.some((role) => {
         const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
         const rolePower = PermissionRolePower[mappedRole]
@@ -150,7 +152,7 @@ const selectedBelowMinimumRoleUsers = computed(() => {
       })
     }
 
-    return Object.keys(user.roles ?? {}).some((role) => {
+    return Object.keys(roleToCheck ?? {}).some((role) => {
       const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
       const rolePower = PermissionRolePower[mappedRole]
       return rolePower && rolePower < minimumRolePower
@@ -196,7 +198,12 @@ watch(selectedUsersList, () => {
               class="flex items-stretch gap-2 text-small"
             >
               <div>
-                <GeneralTeamIcon v-if="user?.isTeam" show-placeholder-icon :team="user" class="!text-[0.6rem] !h-[18px]" />
+                <GeneralTeamIcon
+                  v-if="user?.isTeam"
+                  show-placeholder-icon
+                  :team="transformToTeamObject(user)"
+                  class="!text-[0.6rem] !h-[18px]"
+                />
                 <GeneralUserIcon
                   v-else
                   size="auto"

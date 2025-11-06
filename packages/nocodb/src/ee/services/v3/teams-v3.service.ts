@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
+  EventType,
   PlanFeatureTypes,
   TeamUserRoles,
   WorkspaceUserRoles,
@@ -33,6 +34,7 @@ import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { getFeature } from '~/helpers/paymentHelpers';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class TeamsV3Service {
@@ -406,6 +408,19 @@ export class TeamsV3Service {
     // Recalculate seat count after team creation
     await this.paymentService.reseatSubscription(workspace.id);
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: response.id,
+          action: 'teamCreate',
+          payload: response as TeamV3ResponseType,
+        },
+      },
+      context.socket_id,
+    );
+
     return response;
   }
 
@@ -518,6 +533,19 @@ export class TeamsV3Service {
     // Recalculate seat count after team update
     await this.paymentService.reseatSubscription(workspace.id);
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: response.id,
+          action: 'teamUpdate',
+          payload: response as TeamV3ResponseType,
+        },
+      },
+      context.socket_id,
+    );
+
     return response;
   }
 
@@ -598,6 +626,18 @@ export class TeamsV3Service {
 
     // Recalculate seat count after team deletion
     await this.paymentService.reseatSubscription(workspace.id);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: team.id,
+          action: 'teamDelete',
+        },
+      },
+      context.socket_id,
+    );
 
     return { msg: 'Team has been deleted successfully' };
   }
@@ -712,6 +752,19 @@ export class TeamsV3Service {
       }),
     );
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: team.id,
+          action: 'teamMembersAdd',
+          payload: members as TeamMemberV3ResponseType[],
+        },
+      },
+      context.socket_id,
+    );
+
     return members;
   }
 
@@ -814,6 +867,19 @@ export class TeamsV3Service {
 
     // Recalculate seat count after removing team members
     await this.paymentService.reseatSubscription(workspace.id);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: team.id,
+          action: 'teamMembersRemove',
+          payload: removedMembers as TeamMembersRemoveV3ReqType[],
+        },
+      },
+      context.socket_id,
+    );
 
     return removedMembers;
   }
@@ -924,6 +990,19 @@ export class TeamsV3Service {
           team_role: assignment.roles as TeamUserRoles,
         };
       }),
+    );
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: team.id,
+          action: 'teamMembersUpdate',
+          payload: members as TeamMemberV3ResponseType[],
+        },
+      },
+      context.socket_id,
     );
 
     return members;

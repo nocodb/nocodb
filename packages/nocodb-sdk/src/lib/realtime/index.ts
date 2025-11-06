@@ -12,6 +12,7 @@ export enum EventType {
   DASHBOARD_EVENT = 'event-dashboard',
   WIDGET_EVENT = 'event-widget',
   SCRIPT_EVENT = 'event-script',
+  TEAM_EVENT = 'event-team',
 }
 
 // Base payload interface for all socket events

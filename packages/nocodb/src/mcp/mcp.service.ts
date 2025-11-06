@@ -121,8 +121,8 @@ export class McpService {
           const tables = (
             await this.tablesV3Service.getAccessibleTables(context, {
               baseId: context.base_id,
-              sourceId: undefined as string,
               roles: extractRolesObj(user?.base_roles),
+              allSources: true,
             })
           ).filter((t) => !t.source_id);
 

@@ -126,14 +126,6 @@ const handleSave = async () => {
   $e('a:permissions:users:save')
 }
 
-// Reset search and save when dropdown closes
-watch(isDropdownOpen, (isOpen) => {
-  if (!isOpen) {
-    // Save changes when dropdown closes
-    handleSave()
-  }
-})
-
 const selectedBelowMinimumRoleUsers = computed(() => {
   if (!props.permission) return []
 
@@ -253,6 +245,7 @@ watch(selectedUsersList, () => {
           :close-on-select="false"
           :disabled-users="selectedBelowMinimumRoleUsers"
           @escape="onEsc"
+          @change="handleSave"
         >
         </PermissionsUserSelectorList>
       </template>

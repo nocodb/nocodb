@@ -91,7 +91,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
           v-model:open="isDropdownOpen"
           :value="role"
           :list="roleSelectorOptions"
-          :item-height="48"
+          :item-height="!description ? 48 : 72"
           class="!w-auto max-w-80"
           :class="{
             'min-w-50': !description,

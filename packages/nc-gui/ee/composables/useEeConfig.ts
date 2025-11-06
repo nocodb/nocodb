@@ -1154,8 +1154,13 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseTeams = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockTeamsManagement.value) return
+  const showUpgradeToUseTeams = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel', successCallback?: () => void) => void; successCallback?: () => void } = {}) => {
+    if (!blockTeamsManagement.value) {
+      return successCallback?.()
+    }
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseTeams'),

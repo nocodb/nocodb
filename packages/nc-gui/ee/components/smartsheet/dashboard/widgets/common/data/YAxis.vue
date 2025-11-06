@@ -170,11 +170,11 @@ watch(
   <GroupedSettings title="Y-axis">
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-nc-content-gray-subtle">Fields</label>
-      <div class="flex flex-col border-nc-border-grey-medium border-1 rounded-lg overflow-hidden">
+      <div class="flex flex-col border-nc-border-gray-medium border-1 rounded-lg overflow-hidden">
         <div
           v-for="(field, index) in fieldConfigurations"
           :key="index"
-          class="flex items-center gap-2 px-1.5 py-2 h-8 border-b border-nc-border-grey-medium"
+          class="flex items-center gap-2 px-1.5 py-2 h-8 border-b border-nc-border-gray-medium"
         >
           <!-- Field Selector -->
           <div class="flex-1 min-w-0">

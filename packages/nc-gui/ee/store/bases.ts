@@ -633,6 +633,8 @@ export const useBases = defineStore('basesStore', () => {
         teams,
       )
 
+      $e('a:base:teamAdd')
+
       if (!res) return
 
       basesTeams.value.set(baseId, [...(basesTeams.value.get(baseId) || []), ...(ncIsArray(res) ? res : [res])])
@@ -672,6 +674,8 @@ export const useBases = defineStore('basesStore', () => {
         updates,
       )
 
+      $e('a:base:teamUpdate')
+
       if (!res) return
 
       basesTeams.value.set(
@@ -707,6 +711,8 @@ export const useBases = defineStore('basesStore', () => {
         },
         teamIds.map((teamId) => ({ team_id: teamId })),
       )
+
+      $e('a:base:teamRemove')
 
       basesTeams.value.set(
         baseId,

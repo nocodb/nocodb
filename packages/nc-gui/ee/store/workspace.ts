@@ -738,6 +738,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         team,
       )) as TeamV3V3Type
 
+      $e('a:team:create')
+
       if (!res) return
 
       teams.value.push(res)
@@ -762,6 +764,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           teamId,
         },
       )) as TeamV3V3Type
+
+      $e('a:team:delete')
 
       if (!res) return
 
@@ -791,6 +795,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           ...updates,
         },
       )) as TeamV3V3Type
+
+      $e('a:team:update')
 
       if (!res) return
 
@@ -822,6 +828,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           members,
         },
       )) as TeamMemberV3ResponseV3Type[]
+
+      $e('a:team:membersAdd', {
+        teamId,
+      })
 
       if (!addedMembers) return []
 
@@ -876,6 +886,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
       )) as TeamMembersRemoveV3ReqV3Type[]
 
+      $e('a:team:membersRemove', {
+        teamId,
+      })
+
       if (!removedMembers) return []
 
       if (editTeamDetails.value && ncIsArray(removedMembers)) {
@@ -927,6 +941,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           members,
         },
       )) as TeamMemberV3ResponseV3Type[]
+
+      $e('a:team:membersUpdate', {
+        teamId,
+      })
 
       if (editTeamDetails.value && ncIsArray(updatedMembers)) {
         editTeamDetails.value.members = (editTeamDetails.value.members || []).map((member) => {
@@ -1037,6 +1055,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         teams,
       )
 
+      $e('a:workspace:teamAdd')
+
       if (!res) return
 
       workspaceTeams.value.push(...(ncIsArray(res) ? res : [res]))
@@ -1066,6 +1086,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
         updates,
       )
+
+      $e('a:workspace:teamUpdate')
 
       if (!res) return
 
@@ -1097,6 +1119,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
         teamIds.map((teamId) => ({ team_id: teamId })),
       )
+
+      $e('a:workspace:teamRemove')
 
       workspaceTeams.value = workspaceTeams.value.filter((team) => !teamIds.includes(team.team_id))
 

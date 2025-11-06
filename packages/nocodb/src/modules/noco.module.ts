@@ -52,7 +52,6 @@ import { HooksController } from '~/controllers/hooks.controller';
 import { JobsMetaController } from '~/controllers/jobs-meta.controller';
 import { KanbansController } from '~/controllers/kanbans.controller';
 import { MapsController } from '~/controllers/maps.controller';
-import { MetaDiffsController } from '~/controllers/meta-diffs.controller';
 import { ModelVisibilitiesController } from '~/controllers/model-visibilities.controller';
 import { NotificationsController } from '~/controllers/notifications.controller';
 import { OrgLcenseController } from '~/controllers/org-lcense.controller';
@@ -209,7 +208,6 @@ export const nocoModuleMetadata = {
           HooksController,
           KanbansController,
           MapsController,
-          MetaDiffsController,
           ModelVisibilitiesController,
           OrgLcenseController,
           OrgTokensController,

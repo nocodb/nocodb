@@ -25,6 +25,8 @@ const syncCompleted = ref(false)
 
 const metadiff = ref<any[]>([])
 
+const { $poller } = useNuxtApp()
+
 async function loadMetaDiff(afterSync = false) {
   try {
     if (!base.value?.id) return
@@ -33,22 +35,46 @@ async function loadMetaDiff(afterSync = false) {
 
     isLoading.value = true
     isDifferent.value = false
-    metadiff.value = await $api.source.metaDiffGet(base.value?.id, props.sourceId)
-    for (const model of metadiff.value) {
-      if (model.detectedChanges?.length > 0) {
-        model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
-        isDifferent.value = true
-      }
-    }
+    const jobData = await $api.source.metaDiffGet(base.value?.id, props.sourceId)
+
+    $poller.subscribe(
+      { id: jobData.id },
+      async (data: {
+        id: string
+        status?: string
+        data?: {
+          error?: {
+            message: string
+          }
+          message?: string
+          result?: any
+        }
+      }) => {
+        if (data.status !== 'close') {
+          if (data.status === JobStatus.COMPLETED) {
+            metadiff.value = data.data?.result || []
+
+            for (const model of metadiff.value) {
+              if (model.detectedChanges?.length > 0) {
+                model.syncState = model.detectedChanges.map((el: any) => el?.msg).join(', ')
+                isDifferent.value = true
+              }
+            }
+
+            isLoading.value = false
+            if (afterSync) syncCompleted.value = true
+          } else if (data.status === JobStatus.FAILED) {
+            isLoading.value = false
+            if (afterSync) syncCompleted.value = true
+            throw new Error(data.data?.error?.message || 'Failed to load metadata diff')
+          }
+        }
+      },
+    )
   } catch (e) {
     console.error(e)
-  } finally {
-    isLoading.value = false
-    if (afterSync) syncCompleted.value = true
   }
 }
-
-const { $poller } = useNuxtApp()
 
 const onBack = () => {
   triggeredSync.value = false

@@ -29,6 +29,7 @@ export enum JobTypes {
   DuplicateDashboard = 'duplicate-dashboard',
   AtImport = 'at-import',
   MetaSync = 'meta-sync',
+  MetaDiff = 'meta-diff',
   SourceCreate = 'source-create',
   SourceDelete = 'source-delete',
   UpdateModelStat = 'update-model-stat',

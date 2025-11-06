@@ -66,4 +66,36 @@ export class MetaSyncProcessor {
 
     this.debugLog(`job completed for ${job.id}`);
   }
+
+  async metaDiffJob(job: Job) {
+    this.debugLog(`job started for ${job.id}`);
+
+    const info: {
+      context: NcContext;
+      sourceId: string;
+      user: any;
+      req: NcRequest;
+    } = job.data;
+
+    const context = info.context;
+    const baseId = context.base_id;
+
+    let result = null;
+
+    if (info.sourceId === 'all') {
+      result = await this.metaDiffsService.metaDiff(context, {
+        baseId,
+      });
+    } else {
+      result = await this.metaDiffsService.baseMetaDiff(context, {
+        sourceId: info.sourceId,
+        baseId,
+        user: info.req.user,
+      });
+    }
+
+    this.debugLog(`job completed for ${job.id}`);
+
+    return result;
+  }
 }

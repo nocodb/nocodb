@@ -18,6 +18,8 @@ const props = defineProps<{
 const router = useRouter()
 const route = router.currentRoute
 
+const { $e } = useNuxtApp()
+
 const { workspaceRoles } = useRoles()
 
 const { user, isMobileMode } = useGlobal()
@@ -357,6 +359,8 @@ const handleScroll = (e) => {
 
 const removeCollaborator = (userId: string, workspaceId: string, record: any) => {
   if (record?.isTeam) {
+    $e('c:workspace:team-remove')
+
     showInfoModal({
       title: t('objects.teams.confirmRemoveTeamFromWorkspaceTitle'),
       content: t('objects.teams.confirmRemoveTeamFromWorkspaceSubtitle'),
@@ -483,6 +487,7 @@ watch(inviteDlg, (newVal) => {
 
             <NcButton
               v-if="isTeamsEnabled && !isAdminPanel"
+              v-e="['c:workspace:team-add']"
               size="small"
               type="secondary"
               :disabled="isCollaboratorsLoading"

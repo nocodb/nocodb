@@ -418,6 +418,7 @@ onMounted(() => {
                 <NcMenu variant="medium" @click="isOpenContextMenu[record.fk_user_id!] = false">
                   <NcMenuItem
                     v-if="!isTeamOwner(record as TeamMember)"
+                    v-e="['c:team:assign-as-owner', { teamId: team.id, userId: record.fk_user_id }]"
                     :disabled="readOnly"
                     @click="handleAssignAsRole(record as TeamMember, TeamUserRoles.OWNER)"
                   >
@@ -426,6 +427,7 @@ onMounted(() => {
                   </NcMenuItem>
                   <NcMenuItem
                     v-if="!hasSoleTeamOwner && isTeamOwner(record as TeamMember)"
+                    v-e="['c:team:remove-as-owner', { teamId: team.id, userId: record.fk_user_id }]"
                     :disabled="readOnly"
                     @click="handleAssignAsRole(record as TeamMember, TeamUserRoles.MEMBER)"
                   >
@@ -441,6 +443,7 @@ onMounted(() => {
                     placement="left"
                   >
                     <NcMenuItem
+                      v-e="['c:team:member-leave', { teamId: team.id, userId: record.fk_user_id }]"
                       :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
                       danger
                       @click="handleLeaveTeam(record as TeamMember)"
@@ -452,6 +455,7 @@ onMounted(() => {
 
                   <NcTooltip
                     v-else
+                    v-e="['c:team:member-remove', { teamId: team.id, userId: record.fk_user_id }]"
                     :disabled="!(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
                     :title="t('objects.teams.thisIsTheOnlyTeamOwnerTooltip')"
                     placement="left"

@@ -633,7 +633,7 @@ export const useBases = defineStore('basesStore', () => {
         teams,
       )
 
-      $e('a:base:teamAdd')
+      $e('a:base:team-add')
 
       if (!res) return
 
@@ -674,7 +674,7 @@ export const useBases = defineStore('basesStore', () => {
         updates,
       )
 
-      $e('a:base:teamUpdate')
+      $e('a:base:team-update')
 
       if (!res) return
 
@@ -712,7 +712,7 @@ export const useBases = defineStore('basesStore', () => {
         teamIds.map((teamId) => ({ team_id: teamId })),
       )
 
-      $e('a:base:teamRemove')
+      $e('a:base:team-remove')
 
       basesTeams.value.set(
         baseId,

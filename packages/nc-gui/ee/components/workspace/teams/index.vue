@@ -22,6 +22,8 @@ const { t } = useI18n()
 
 const { user } = useGlobal()
 
+const { $e } = useNuxtApp()
+
 const { isUIAllowed } = useRoles()
 
 const hasEditPermission = computed(() => {
@@ -121,6 +123,8 @@ const columns = [
 const customRow = (record: Record<string, any>) => ({
   class: record.is_member ? '' : '!cursor-default',
   onClick: () => {
+    $e('c:team:edit', { teamId: record.id })
+
     handleEditTeam(record as TeamType)
   },
 })
@@ -353,7 +357,11 @@ onMounted(async () => {
 
                   <NcDivider v-if="record.is_member || hasEditPermission" />
 
-                  <NcMenuItem v-if="record.is_member" @click="handleEditTeam(record as TeamV3V3Type)">
+                  <NcMenuItem
+                    v-if="record.is_member"
+                    v-e="['c:team:edit', { teamId: record.id }]"
+                    @click="handleEditTeam(record as TeamV3V3Type)"
+                  >
                     <GeneralIcon icon="ncEdit" class="h-4 w-4" />
                     {{ $t('general.edit') }}
                   </NcMenuItem>
@@ -364,6 +372,7 @@ onMounted(async () => {
                     placement="left"
                   >
                     <NcMenuItem
+                      v-e="['c:team:leave', { teamId: record.id }]"
                       :disabled="hasSoleTeamOwner(record as TeamV3V3Type) "
                       @click="handleLeaveTeam(record as TeamV3V3Type)"
                     >
@@ -373,6 +382,7 @@ onMounted(async () => {
                   </NcTooltip>
                   <NcMenuItem
                     v-if="hasEditPermission"
+                    v-e="['c:team:delete', { teamId: record.id }]"
                     :disabled="!record.is_member"
                     danger
                     @click="handleDeleteTeam(record as TeamV3V3Type)"

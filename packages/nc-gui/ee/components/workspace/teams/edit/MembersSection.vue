@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import { type TeamMemberV3ResponseV3Type, TeamUserRoles, type TeamV3V3Type, type WorkspaceUserType } from 'nocodb-sdk'
+import { TeamUserRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { TeamMemberV3ResponseV3Type, TeamV3V3Type, WorkspaceUserType } from 'nocodb-sdk'
+
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
 export type TeamMember = TeamMemberV3ResponseV3Type & WorkspaceUserType
@@ -323,7 +325,8 @@ onMounted(() => {
                   size="small"
                   type="secondary"
                   class="absolute"
-                  inner-class="!gap-2 text-nc-content-brand"
+                  text-color="primary"
+                  inner-class="!gap-2"
                   @click="isAddMembersModalVisible = true"
                 >
                   <template #icon>
@@ -386,7 +389,8 @@ onMounted(() => {
             <NcTooltip
               v-if="isTeamOwner(record)"
               :title="$t('objects.teams.teamOwner')"
-              class="text-nc-content-gray-muted text-captionSm line-clamp-1"
+              class="text-captionSm font-medium line-clamp-1"
+              :class="roleColorsMapping[RoleColors[WorkspaceUserRoles.OWNER]]?.content"
               show-on-truncate-only
             >
               {{ $t('objects.teams.teamOwner') }}
@@ -394,7 +398,13 @@ onMounted(() => {
           </div>
         </template>
         <template v-else-if="column.key === 'workspace_role'">
-          <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
+          <div
+            class="text-bodyDefaultSm font-medium flex items-center gap-1"
+            :class="roleColorsMapping[RoleColors[record.roles as keyof typeof RoleLabels]]?.content"
+          >
+            <GeneralIcon :icon="RoleIcons[record.roles as keyof typeof RoleLabels]" class="w-4 h-4 flex-none" />
+            {{ $t(`objects.roleType.${RoleLabels[record.roles as keyof typeof RoleLabels]}`) }}
+          </div>
         </template>
         <template v-else-if="column.key === 'action'">
           <div v-if="column.key === 'action'" @click.stop>

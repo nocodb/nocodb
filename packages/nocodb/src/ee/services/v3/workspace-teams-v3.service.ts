@@ -438,7 +438,9 @@ export class WorkspaceTeamsV3Service {
       // Get base details to filter by workspace
       const baseIds = [...new Set(baseAssignments.map((a) => a.resource_id))];
       const bases = await Promise.all(
-        baseIds.map((baseId) => Base.get(context, baseId)),
+        baseIds.map((baseId) =>
+          Base.get({ ...context, base_id: baseId }, baseId),
+        ),
       );
 
       // Filter assignments for bases that belong to this workspace

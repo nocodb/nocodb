@@ -105,7 +105,7 @@ const usernameInitials = computed(() => {
     return ''
   }
 
-  return getSafeInitials(user.value.display_name?.trim() || user.value.email?.split('@')[0], props.initialsLength)
+  return getSafeInitials(user.value.display_name?.trim() || user.value.email?.split('@')[0], props.initialsLength, true)
 })
 </script>
 

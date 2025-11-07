@@ -14,6 +14,11 @@ const props = defineProps<{
   height?: string
 }>()
 
+const router = useRouter()
+const route = router.currentRoute
+
+const { $e } = useNuxtApp()
+
 const { workspaceRoles } = useRoles()
 
 const { user, isMobileMode } = useGlobal()
@@ -291,21 +296,39 @@ const handleScroll = (e) => {
   topScroll.value = e.target?.scrollTop
 }
 
-const removeCollaborator = (userId: string, workspaceId: string) => {
-  showInfoModal({
-    title: userId === user.value?.id ? t('title.confirmLeaveWorkspaceTitle') : t('title.confirmRemoveMemberFromWorkspaceTitle'),
-    content:
-      userId === user.value?.id ? t('title.confirmLeaveWorkspaceSubtile') : t('title.confirmRemoveMemberFromWorkspaceSubtitle'),
-    showCancelBtn: true,
-    showIcon: false,
-    okProps: {
-      type: 'danger',
-    },
-    okText: userId === user.value?.id ? t('activity.leaveWorkspace') : t('general.remove'),
-    okCallback: async () => {
-      _removeCollaborator(userId, workspaceId)
-    },
-  })
+const removeCollaborator = (userId: string, workspaceId: string, record: any) => {
+  if (record?.isTeam) {
+    $e('c:workspace:team-remove')
+
+    showInfoModal({
+      title: t('objects.teams.confirmRemoveTeamFromWorkspaceTitle'),
+      content: t('objects.teams.confirmRemoveTeamFromWorkspaceSubtitle'),
+      showCancelBtn: true,
+      showIcon: false,
+      okProps: {
+        type: 'danger',
+      },
+      okText: t('general.remove'),
+      okCallback: async () => {
+        workspaceStore.workspaceTeamRemove(workspaceId, [record.id])
+      },
+    })
+  } else {
+    showInfoModal({
+      title: userId === user.value?.id ? t('title.confirmLeaveWorkspaceTitle') : t('title.confirmRemoveMemberFromWorkspaceTitle'),
+      content:
+        userId === user.value?.id ? t('title.confirmLeaveWorkspaceSubtile') : t('title.confirmRemoveMemberFromWorkspaceSubtitle'),
+      showCancelBtn: true,
+      showIcon: false,
+      okProps: {
+        type: 'danger',
+      },
+      okText: userId === user.value?.id ? t('activity.leaveWorkspace') : t('general.remove'),
+      okCallback: async () => {
+        _removeCollaborator(userId, workspaceId)
+      },
+    })
+  }
 }
 </script>
 
@@ -380,6 +403,7 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
 
             <NcButton
               v-if="isTeamsEnabled && !isAdminPanel"
+              v-e="['c:workspace:team-add']"
               size="small"
               type="secondary"
               :disabled="isCollaboratorsLoading"

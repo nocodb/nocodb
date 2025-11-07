@@ -429,6 +429,7 @@ onBeforeUnmount(() => {
 
             <NcButton
               v-if="isTeamsEnabled && !isAdminPanel"
+              v-e="['c:base:team-add']"
               size="small"
               type="secondary"
               :disabled="isLoading"

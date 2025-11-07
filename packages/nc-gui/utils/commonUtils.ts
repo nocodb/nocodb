@@ -117,7 +117,7 @@ export const getSafeInitials = (title?: string, initialsLength: number = 2, limi
 
   // ✅ Smart emoji limit:
   // If ALL characters are emoji & more than 1 → limit to 1
-  if (resultClusters.length > 1 && resultClusters.every((ch) => isUnicodeEmoji(ch))) {
+  if (limitEmojiToOne && resultClusters.length > 1 && resultClusters.every((ch) => isUnicodeEmoji(ch))) {
     return resultClusters[0] ?? '' // only first emoji
   }
 

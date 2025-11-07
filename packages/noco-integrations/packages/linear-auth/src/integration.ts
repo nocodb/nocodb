@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { LinearClient } from '@linear/sdk';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
-import { clientId, clientSecret, redirectUri, tokenUri } from './config'
+import { clientId, clientSecret, redirectUri, tokenUri } from './config';
 import type {
   AuthResponse,
   TestConnectionResponse,
@@ -32,7 +32,7 @@ export class LinearAuthIntegration extends AuthIntegration {
         await this.tokenRefreshCallback(tokens);
       }
     } catch (error) {
-      this.log('Failed to refresh token: ' + error);
+      console.log('Failed to refresh token: ' + error);
       throw error;
     }
   }

@@ -29,7 +29,7 @@ export class GitlabAuthIntegration extends AuthIntegration {
         await this.tokenRefreshCallback(tokens);
       }
     } catch (error) {
-      this.log('Failed to refresh token: ' + error);
+      console.log('Failed to refresh token: ' + error);
       throw error;
     }
   }

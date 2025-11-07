@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { RoleColors, RoleIcons, RoleLabels, TeamUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { RoleColors, TeamUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { TeamMemberV3ResponseV3Type, TeamV3V3Type, WorkspaceUserType } from 'nocodb-sdk'
 
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
@@ -75,13 +75,6 @@ const membersColumns = [
   {
     key: 'member_name',
     title: t('objects.member'),
-  },
-  {
-    key: 'workspace_role',
-    title: t('labels.workspaceRole'),
-    basis: '15%',
-    minWidth: 180,
-    dataIndex: 'workspace_role',
   },
   {
     key: 'action',
@@ -395,15 +388,6 @@ onMounted(() => {
             >
               {{ $t('objects.teams.teamOwner') }}
             </NcTooltip>
-          </div>
-        </template>
-        <template v-else-if="column.key === 'workspace_role'">
-          <div
-            class="text-bodyDefaultSm font-medium flex items-center gap-1"
-            :class="roleColorsMapping[RoleColors[record.roles as keyof typeof RoleLabels]]?.content"
-          >
-            <GeneralIcon :icon="RoleIcons[record.roles as keyof typeof RoleLabels]" class="w-4 h-4 flex-none" />
-            {{ $t(`objects.roleType.${RoleLabels[record.roles as keyof typeof RoleLabels]}`) }}
           </div>
         </template>
         <template v-else-if="column.key === 'action'">

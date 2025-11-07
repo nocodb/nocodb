@@ -5,6 +5,7 @@ const props = defineProps<{
   value: string
   element: FormBuilderElement
   haveValue?: boolean
+  formData?: Record<string, any>
 }>()
 
 const emits = defineEmits(['update:value'])
@@ -108,8 +109,40 @@ const openPopup = (url: string, name: string, state: string, codeVerifier: strin
   })
 }
 
-const handleOAuth = async () => {
+// Helper to get nested value from object using dot notation
+const getNestedValue = (obj: any, path: string): any => {
+  return path.split('.').reduce((current, key) => current?.[key], obj)
+}
+
+// Resolve authUri by replacing template variables like {{config.subdomain}}
+const getResolvedAuthUri = computed(() => {
   let url = OAuthConfig.value.authUri
+
+  if (!url || !props.formData) return url
+
+  // Replace all {{path.to.value}} with actual values from formData
+  url = url.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
+    const value = getNestedValue(props.formData, path.trim())
+    return value !== undefined && value !== null ? String(value) : match
+  })
+
+  return url
+})
+
+const handleOAuth = async () => {
+  let url = getResolvedAuthUri.value
+
+  // Check if URL still has unresolved templates
+  if (url.includes('{{') && url.includes('}}')) {
+    message.error('Please fill in all required fields before authenticating')
+    return
+  }
+
+  // Check if URL is empty or invalid
+  if (!url || url.trim() === '') {
+    message.error('Please fill in all required fields before authenticating')
+    return
+  }
 
   const codeVerifier = generateCodeVerifier()
   const codeChallenge = await generateCodeChallenge(codeVerifier)

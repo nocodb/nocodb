@@ -13,5 +13,5 @@ const integration: IntegrationEntry = {
   form,
   manifest,
 };
-
+export { ZendeskClient } from './config'
 export default integration;

@@ -83,6 +83,8 @@ const onBack = () => {
 
 async function syncMetaDiff() {
   try {
+    if (isLoading.value) return
+
     if (!base.value?.id || !isDifferent.value) return
 
     isLoading.value = true
@@ -167,7 +169,13 @@ const customRow = (record: Record<string, any>) => ({
       <div class="flex flex-row justify-between items-center w-full mb-4">
         <div class="flex">
           <div v-if="isDifferent">
-            <a-button v-e="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
+            <a-button
+              v-e="['a:proj-meta:meta-data:sync']"
+              class="nc-btn-metasync-sync-now"
+              type="primary"
+              :disabled="isLoading"
+              @click="syncMetaDiff"
+            >
               <div class="flex items-center gap-2">
                 <component :is="iconMap.databaseSync" />
                 {{ $t('activity.metaSync') }}

@@ -127,6 +127,10 @@ const list = computed(() => {
   })
 })
 
+const listWithoutGroupHeaders = computed(() => {
+  return list.value.filter((item) => !item.ncGroupHeader)
+})
+
 const {
   list: virtualList,
   containerProps,
@@ -336,7 +340,7 @@ watch(searchQuery, () => {
 })
 
 defineExpose({
-  list,
+  list: listWithoutGroupHeaders,
 })
 
 const handleEscape = (event: KeyboardEvent) => {

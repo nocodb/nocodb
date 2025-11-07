@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import { type TeamMemberV3ResponseV3Type, TeamUserRoles, type TeamV3V3Type, type WorkspaceUserType } from 'nocodb-sdk'
+import { RoleColors, RoleIcons, RoleLabels, TeamUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { TeamMemberV3ResponseV3Type, TeamV3V3Type, WorkspaceUserType } from 'nocodb-sdk'
+
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
 export type TeamMember = TeamMemberV3ResponseV3Type & WorkspaceUserType
@@ -323,7 +325,8 @@ onMounted(() => {
                   size="small"
                   type="secondary"
                   class="absolute"
-                  inner-class="!gap-2 text-nc-content-brand"
+                  text-color="primary"
+                  inner-class="!gap-2"
                   @click="isAddMembersModalVisible = true"
                 >
                   <template #icon>
@@ -386,7 +389,8 @@ onMounted(() => {
             <NcTooltip
               v-if="isTeamOwner(record)"
               :title="$t('objects.teams.teamOwner')"
-              class="text-nc-content-gray-muted text-captionSm line-clamp-1"
+              class="text-captionSm font-medium line-clamp-1"
+              :class="roleColorsMapping[RoleColors[WorkspaceUserRoles.OWNER]]?.content"
               show-on-truncate-only
             >
               {{ $t('objects.teams.teamOwner') }}
@@ -394,7 +398,13 @@ onMounted(() => {
           </div>
         </template>
         <template v-else-if="column.key === 'workspace_role'">
-          <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
+          <div
+            class="text-bodyDefaultSm font-medium flex items-center gap-1"
+            :class="roleColorsMapping[RoleColors[record.roles as keyof typeof RoleLabels]]?.content"
+          >
+            <GeneralIcon :icon="RoleIcons[record.roles as keyof typeof RoleLabels]" class="w-4 h-4 flex-none" />
+            {{ $t(`objects.roleType.${RoleLabels[record.roles as keyof typeof RoleLabels]}`) }}
+          </div>
         </template>
         <template v-else-if="column.key === 'action'">
           <div v-if="column.key === 'action'" @click.stop>
@@ -408,6 +418,7 @@ onMounted(() => {
                 <NcMenu variant="medium" @click="isOpenContextMenu[record.fk_user_id!] = false">
                   <NcMenuItem
                     v-if="!isTeamOwner(record as TeamMember)"
+                    v-e="['c:team:assign-as-owner', { teamId: team.id, userId: record.fk_user_id }]"
                     :disabled="readOnly"
                     @click="handleAssignAsRole(record as TeamMember, TeamUserRoles.OWNER)"
                   >
@@ -416,6 +427,7 @@ onMounted(() => {
                   </NcMenuItem>
                   <NcMenuItem
                     v-if="!hasSoleTeamOwner && isTeamOwner(record as TeamMember)"
+                    v-e="['c:team:remove-as-owner', { teamId: team.id, userId: record.fk_user_id }]"
                     :disabled="readOnly"
                     @click="handleAssignAsRole(record as TeamMember, TeamUserRoles.MEMBER)"
                   >
@@ -431,6 +443,7 @@ onMounted(() => {
                     placement="left"
                   >
                     <NcMenuItem
+                      v-e="['c:team:member-leave', { teamId: team.id, userId: record.fk_user_id }]"
                       :disabled="(hasSoleTeamOwner && isTeamOwner(record as TeamMember))"
                       danger
                       @click="handleLeaveTeam(record as TeamMember)"
@@ -442,6 +455,7 @@ onMounted(() => {
 
                   <NcTooltip
                     v-else
+                    v-e="['c:team:member-remove', { teamId: team.id, userId: record.fk_user_id }]"
                     :disabled="!(hasSoleTeamOwner && isTeamOwner(record as TeamMember)) || readOnly"
                     :title="t('objects.teams.thisIsTheOnlyTeamOwnerTooltip')"
                     placement="left"

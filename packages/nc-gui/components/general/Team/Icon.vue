@@ -113,15 +113,7 @@ const teamInitials = computed(() => {
     return ''
   }
 
-  const displayNameSplit = team.value.title?.split(' ').filter((name) => name) ?? []
-
-  if (displayNameSplit.length > 0) {
-    if (displayNameSplit.length > 1) {
-      return displayNameSplit[0][0] + displayNameSplit[1][0]
-    } else {
-      return team.value.title.slice(0, props.initialsLength)
-    }
-  }
+  return getSafeInitials(team.value.title, props.initialsLength, true)
 })
 </script>
 

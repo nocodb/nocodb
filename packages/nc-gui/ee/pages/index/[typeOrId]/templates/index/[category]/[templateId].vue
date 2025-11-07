@@ -210,13 +210,13 @@ const onIframeLoad = () => {
       </div>
 
       <div v-else-if="error || !template" class="flex flex-col items-center justify-center py-12">
-        <div class="text-nc-content-grey-subtle2 text-lg">{{ error || $t('msg.error.failedToLoadTemplateDetails') }}</div>
+        <div class="text-nc-content-gray-subtle2 text-lg">{{ error || $t('msg.error.failedToLoadTemplateDetails') }}</div>
         <NcButton class="mt-4" size="small" type="text" @click="fetchTemplateDetails">{{ $t('general.retry') }}</NcButton>
       </div>
 
       <div v-else-if="template" class="template-detail mb-10">
         <div class="flex items-center gap-3 mb-4 pb-2 pt-6 sticky top-0 bg-nc-bg-default z-10 -mx-6 px-6">
-          <div class="text-nc-content-grey text-heading3 font-semibold flex-1">
+          <div class="text-nc-content-gray text-heading3 font-semibold flex-1">
             {{ template.Title }}
           </div>
 
@@ -309,7 +309,7 @@ const onIframeLoad = () => {
           <h2 class="text-heading3 font-semibold mt-6">
             Other <span class="capitalize">{{ activeCategory === 'all-templates' ? '' : activeCategory }}</span> Templates
           </h2>
-          <div class="text-body text-nc-content-grey">
+          <div class="text-body text-nc-content-gray">
             {{ currentCategoryInfo?.subtitle }}
           </div>
           <div class="grid grid-cols-1 mt-8 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
@@ -326,7 +326,7 @@ const onIframeLoad = () => {
         </div>
         <div>
           <h2 class="text-heading3 font-semibold mt-12">{{ $t('objects.templates.browseByCategory') }}</h2>
-          <div class="text-body text-nc-content-grey">{{ $t('objects.templates.browseByCategorySubtitle') }}.</div>
+          <div class="text-body text-nc-content-gray">{{ $t('objects.templates.browseByCategorySubtitle') }}.</div>
           <div class="grid grid-cols-[repeat(auto-fit,minmax(162px,1fr))] gap-6 my-8">
             <div
               v-for="item of browseByCategories"

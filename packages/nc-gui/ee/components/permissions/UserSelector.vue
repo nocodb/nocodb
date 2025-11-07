@@ -22,13 +22,17 @@ const { $e } = useNuxtApp()
 
 const basesStore = useBases()
 
-const { basesUser } = storeToRefs(basesStore)
+const { basesUser, basesTeams } = storeToRefs(basesStore)
 
 // Search functionality
 const isLoading = ref(false)
 
 const baseUsers = computed(() => {
   return basesUser.value.get(props.baseId) || []
+})
+
+const baseTeams = computed(() => {
+  return basesTeams.value.get(props.baseId) || []
 })
 
 // Handle save
@@ -101,18 +105,24 @@ const selectedBelowMinimumRoleUsers = computed(() => {
 
   return selectedUsersArray.filter((userId) => {
     const user = baseUsers.value.find((user) => user.id === userId)
-    if (!user) return false
 
-    if (typeof user.roles === 'string') {
-      const userRoles = (user.roles as string).split(',').map((r) => r.trim())
+    const team = baseTeams.value.find((team) => team.team_id === userId)
+
+    const roleToCheck = user?.roles || team?.base_role
+
+    if (!roleToCheck) return false
+
+    if (typeof roleToCheck === 'string') {
+      const userRoles = (roleToCheck as string).split(',').map((r) => r.trim())
       return userRoles.some((role) => {
         const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
         const rolePower = PermissionRolePower[mappedRole]
+
         return rolePower && rolePower < minimumRolePower
       })
     }
 
-    return Object.keys(user.roles ?? {}).some((role) => {
+    return Object.keys(roleToCheck ?? {}).some((role) => {
       const mappedRole = PermissionRoleMap[role as keyof typeof PermissionRoleMap]
       const rolePower = PermissionRolePower[mappedRole]
       return rolePower && rolePower < minimumRolePower
@@ -184,15 +194,7 @@ const selectedBelowMinimumRoleUsers = computed(() => {
 
         <div class="flex gap-2">
           <NcButton type="secondary" size="small" :disabled="isLoading" @click="visible = false"> Cancel </NcButton>
-          <NcButton
-            type="primary"
-            size="small"
-            :loading="isLoading"
-            :disabled="isLoading || selectedUsers.size === 0"
-            @click="onSave"
-          >
-            Save
-          </NcButton>
+          <NcButton type="primary" size="small" :loading="isLoading" :disabled="isLoading" @click="onSave"> Save </NcButton>
         </div>
       </div>
     </div>

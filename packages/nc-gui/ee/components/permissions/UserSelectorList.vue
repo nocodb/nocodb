@@ -17,7 +17,7 @@ interface Props extends Partial<NcListProps> {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['update:selectedUsers', 'update:open', 'escape'])
+const emits = defineEmits(['update:selectedUsers', 'change', 'update:open', 'escape'])
 
 const selectedUsers = useVModel(props, 'selectedUsers', emits)
 
@@ -140,6 +140,8 @@ const toggleUser = (userId: string) => {
   } else {
     selectedUsers.value.add(userId)
   }
+
+  emits('change', selectedUsers.value)
 }
 
 const selectAll = (filteredList: NcListItemType[] = listRef?.value?.list ?? roleFilteredUsers.value) => {
@@ -148,6 +150,8 @@ const selectAll = (filteredList: NcListItemType[] = listRef?.value?.list ?? role
   filteredList.forEach((user) => {
     selectedUsers.value.add(user.id)
   })
+
+  emits('change', selectedUsers.value)
 }
 
 const clearAll = (filteredList: NcListItemType[] = listRef?.value?.list ?? roleFilteredUsers.value) => {
@@ -156,6 +160,8 @@ const clearAll = (filteredList: NcListItemType[] = listRef?.value?.list ?? roleF
   filteredList.forEach((user) => {
     selectedUsers.value.delete(user.id)
   })
+
+  emits('change', selectedUsers.value)
 }
 
 const selectedUserIds = computed(() => {

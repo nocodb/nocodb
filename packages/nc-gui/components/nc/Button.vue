@@ -27,6 +27,7 @@ export interface NcButtonProps {
   iconOnly?: boolean
   iconPosition?: 'left' | 'right'
   theme?: 'default' | 'ai'
+  textColor?: 'primary'
   bordered?: boolean
   shadow?: boolean
   innerClass?: string
@@ -110,6 +111,7 @@ useEventListener(NcButton, 'mousedown', () => {
       'bordered': bordered,
       'nc-btn-shadow': shadow,
       'nc-show-as-disabled': props.showAsDisabled,
+      'nc-text-primary': textColor === 'primary',
     }"
     :disabled="props.disabled"
     :loading="loading"
@@ -259,6 +261,13 @@ useEventListener(NcButton, 'mousedown', () => {
 
   &.theme-ai {
     @apply bg-nc-bg-purple-light text-nc-content-purple-light md:(hover:bg-nc-bg-purple-light);
+  }
+}
+.nc-button.ant-btn.nc-text-primary {
+  &:not(.nc-show-as-disabled):not(:disabled) {
+    &.theme-default {
+      @apply text-primary md:(hover:text-primary);
+    }
   }
 }
 

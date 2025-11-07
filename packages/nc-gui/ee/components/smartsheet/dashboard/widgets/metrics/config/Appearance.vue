@@ -10,7 +10,7 @@ const { selectedWidget } = storeToRefs(useWidgetStore())
 
 const appearanceType = ref(selectedWidget.value?.config?.appearance?.type || 'default')
 
-const appearanceTheme = ref(selectedWidget.value?.config?.appearance?.theme || 'grey')
+const appearanceTheme = ref(selectedWidget.value?.config?.appearance?.theme || 'gray')
 
 const onAppearanceTypeChange = () => {
   emit('update:appearance', {
@@ -52,7 +52,7 @@ const colors = computed(() => {
         class="flex flex-col border-2 rounded-lg cursor-pointer gap-2 p-4"
         :class="{
           'border-nc-fill-primary rounded-lg': color.id === appearanceTheme,
-          ' border-nc-bg-default': color.id !== appearanceTheme,
+          'border-nc-bg-default': color.id !== appearanceTheme,
         }"
         @click="onAppearanceThemeChange(color.id)"
       >

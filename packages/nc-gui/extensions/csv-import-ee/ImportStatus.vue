@@ -52,7 +52,7 @@ const handleScroll = () => {
           <slot name="subtitle">
             <div class="text-sm text-nc-content-gray-subtle leading-6">
               <NcBadge
-                color="grey"
+                color="gray"
                 :border="false"
                 class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium leading-5 align-middle"
               >
@@ -75,7 +75,7 @@ const handleScroll = () => {
               }}
 
               <NcBadge
-                color="grey"
+                color="gray"
                 :border="false"
                 class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium leading-5 align-middle"
               >

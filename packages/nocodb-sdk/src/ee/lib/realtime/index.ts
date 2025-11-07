@@ -1,6 +1,12 @@
 import { ScriptType } from '~/lib/Api';
 import { DashboardType, WidgetType } from '~/lib/dashboard';
 import {
+  TeamCreateV3ReqType,
+  TeamV3ResponseType,
+  TeamMemberV3ResponseType,
+  TeamMembersRemoveV3ReqType,
+} from '~/lib/teams/teams-v3';
+import {
   EventType,
   BaseSocketPayload,
   ConnectionWelcomePayload,
@@ -44,17 +50,35 @@ export interface ScriptPayload extends BaseSocketPayload {
   payload: ScriptType;
 }
 
+export interface TeamPayload extends BaseSocketPayload {
+  id: string;
+  action:
+    | 'teamCreate'
+    | 'teamUpdate'
+    | 'teamDelete'
+    | 'teamMembersAdd'
+    | 'teamMembersRemove'
+    | 'teamMembersUpdate';
+  payload?:
+    | TeamCreateV3ReqType
+    | TeamV3ResponseType
+    | TeamMemberV3ResponseType[]
+    | TeamMembersRemoveV3ReqType[];
+}
+
 // Union type for all socket event payloads
 export type SocketEventPayload =
   | SocketEventPayloadOSS
   | DashboardPayload
-  | WidgetPayload;
+  | WidgetPayload
+  | TeamPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = SocketEventPayloadMapOSS & {
   [EventType.DASHBOARD_EVENT]: DashboardPayload;
   [EventType.WIDGET_EVENT]: WidgetPayload;
   [EventType.SCRIPT_EVENT]: ScriptPayload;
+  [EventType.TEAM_EVENT]: TeamPayload;
 };
 
 // Helper type to get payload type for a specific event

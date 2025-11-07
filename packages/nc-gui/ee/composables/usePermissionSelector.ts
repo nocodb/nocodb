@@ -24,8 +24,11 @@ export const usePermissionSelector = (
   currentValue: Ref<string>,
 ) => {
   const { $api, $e } = useNuxtApp()
+
+  const { isTeamsEnabled } = storeToRefs(useWorkspace())
+
   const basesStore = useBases()
-  const { basesUser } = storeToRefs(basesStore)
+  const { basesUser, basesTeams } = storeToRefs(basesStore)
 
   const { permissionsByEntity } = usePermissions()
 
@@ -208,13 +211,28 @@ export const usePermissionSelector = (
       if (permission.granted_type === PermissionGrantedType.USER) {
         // Map basesUser data to PermissionSelectorUser format
         const baseUsers = basesUser.value.get(base.value.id!) || []
+
+        // Map baseTeams data to PermissionSelectorUser format
+        const baseTeams = isTeamsEnabled.value ? basesTeams.value.get(base.value.id!) || [] : []
+
         selectedUsers.value = baseUsers
           .filter((user) => permission.subjects?.some((subject) => subject.type === 'user' && subject.id === user.id))
           .map((user) => ({
             id: user.id,
-            email: user.email,
+            email: user.email ?? user.display_name,
             display_name: user.display_name,
+            type: 'user',
           }))
+          .concat(
+            baseTeams
+              .filter((team) => permission.subjects?.some((subject) => subject.type === 'team' && subject.id === team.team_id))
+              .map((team) => ({
+                id: team.team_id,
+                email: team.team_title,
+                display_name: team.team_title,
+                type: 'team',
+              })),
+          )
 
         userSelectorSelectedUsers.value = new Set(permission.subjects?.map((subject) => subject.id) || [])
       }

@@ -1113,7 +1113,7 @@ watch(
                             <NcCheckbox v-model:checked="fieldConfig.selected" :disabled="!extensionAccess.update" @click.stop />
                             <div class="flex items-center gap-1 w-[calc(100%_-_36px)]">
                               {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
-                              <NcBadge color="grey" :border="false" class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium">
+                              <NcBadge color="gray" :border="false" class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium">
                                 <SmartsheetHeaderIcon
                                   :column="meta?.columnsById?.[fieldConfig.columnId]"
                                   class="flex-none h-3.5 w-3.5 !mx-0"

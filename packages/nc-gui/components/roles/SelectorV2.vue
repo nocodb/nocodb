@@ -8,6 +8,7 @@ const props = withDefaults(
     role: keyof typeof RoleLabels
     roles: (keyof typeof RoleLabels)[]
     disabledRoles?: (keyof typeof RoleLabels)[]
+    disabledRolesTooltip?: Record<keyof typeof RoleLabels, string>
     onRoleChange: (role: keyof typeof RoleLabels) => void | Promise<any>
     border?: boolean
     description?: boolean
@@ -52,6 +53,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
       icon: RoleIcons[role],
       color: RoleColors[role],
       ncItemDisabled: props.disabledRoles?.includes(role),
+      ncItemTooltip: props.disabledRoles?.includes(role) ? props.disabledRolesTooltip?.[role] ?? '' : '',
     }),
   )
 })
@@ -91,7 +93,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
           v-model:open="isDropdownOpen"
           :value="role"
           :list="roleSelectorOptions"
-          :item-height="48"
+          :item-height="!description ? 48 : 72"
           class="!w-auto max-w-80"
           :class="{
             'min-w-50': !description,

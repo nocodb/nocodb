@@ -14,9 +14,9 @@ const { integrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
 
-const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesStore)
+const { openedProject, activeProjectId, basesUser, bases, basesTeams } = storeToRefs(basesStore)
 const { activeTable } = storeToRefs(useTablesStore())
-const { activeWorkspace } = storeToRefs(useWorkspace())
+const { activeWorkspace, isTeamsEnabled } = storeToRefs(useWorkspace())
 
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
@@ -53,11 +53,20 @@ const baseSettingsState = ref('')
 
 const userCount = computed(() => {
   // if private base and don't have owner permission then return
-  if (base.value?.default_role && !baseRoles.value[ProjectRoles.OWNER]) {
+  if (base.value?.default_role && !baseRoles.value?.[ProjectRoles.OWNER]) {
     return
   }
 
-  return activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0
+  if (activeProjectId.value) {
+    const teamsCount = !isAdminPanel.value && isTeamsEnabled.value ? basesTeams.value.get(activeProjectId.value)?.length ?? 0 : 0
+    const usersCount = activeProjectId.value
+      ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length ?? 0
+      : 0
+
+    return teamsCount + usersCount
+  }
+
+  return 0
 })
 
 const { isTableAndFieldPermissionsEnabled } = usePermissions()
@@ -205,7 +214,7 @@ onMounted(() => {
             v-if="isPrivateBase"
             size="xs"
             class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
-            color="grey"
+            color="gray"
             :border="false"
           >
             <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />

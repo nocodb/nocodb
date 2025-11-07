@@ -667,7 +667,7 @@ defineExpose({
                       size="sm"
                       class="!text-bodySm !bg-transparent hover:bg-nc-bg-gray-medium group-hover:hover:!bg-nc-bg-gray-dark !font-normal !text-nc-content-gray-subtle2 !h-5 !w-5 !px-0.5"
                       rounded="md"
-                      color="grey"
+                      color="gray"
                       :border="false"
                     >
                       <GeneralIcon v-if="isPrivateBase" icon="ncLock" class="flex-none text-nc-content-gray-muted" />

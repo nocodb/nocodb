@@ -5,7 +5,7 @@ const props = defineProps<{
 
 const activeCategory = useVModel(props, 'activeCategory')
 
-const { query, categoryInfo, onInit } = useMarketplaceTemplates()
+const { query, categoryInfo, onInit, loadTemplates } = useMarketplaceTemplates()
 
 const route = useRoute()
 const router = useRouter()
@@ -71,6 +71,10 @@ onMounted(() => {
   activeCategory.value = (route.params.category as TemplateCategoryType) || 'all-templates'
   onInit()
 })
+
+const onSearchChange = useDebounceFn(() => {
+  loadTemplates(true)
+}, 500)
 </script>
 
 <template>
@@ -79,6 +83,7 @@ onMounted(() => {
       <div class="relative px-3">
         <a-input
           v-model:value="query.search"
+          @input="onSearchChange"
           type="text"
           allow-clear
           :placeholder="$t('placeholder.searchTemplates')"

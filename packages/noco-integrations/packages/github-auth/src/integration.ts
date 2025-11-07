@@ -1,7 +1,7 @@
 import { Octokit } from 'octokit';
 import axios from 'axios';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
-import { clientId, clientSecret, tokenUri } from './config';
+import { clientId, clientSecret, redirectUri, tokenUri } from './config';
 import type {
   AuthResponse,
   TestConnectionResponse,
@@ -55,21 +55,35 @@ export class GithubAuthIntegration extends AuthIntegration {
 
   public async exchangeToken(payload: {
     code: string;
-  }): Promise<{ oauth_token: string }> {
-    const response = await axios.post(
-      tokenUri,
-      {
-        client_id: clientId,
-        client_secret: clientSecret,
-        code: payload.code,
-      },
-      {
+  }): Promise<{ oauth_token: string; refresh_token?: string }> {
+    const [code, codeVerifier] = payload.code.includes('|')
+      ? payload.code.split('|')
+      : [payload.code, undefined];
+
+    const params: any = {
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      redirect_uri: redirectUri,
+    };
+
+    if (codeVerifier) {
+      params.code_verifier = codeVerifier;
+    }
+
+    let response;
+    try {
+      response = await axios.post(tokenUri, params, {
         headers: {
           Accept: 'application/json',
         },
-      },
-    );
+      });
+    } catch (e) {
+      this.log('Failed to exchange token: ' + e);
+      throw e;
+    }
 
+    // GitHub OAuth tokens don't expire and don't have refresh tokens
     return {
       oauth_token: response.data.access_token,
     };

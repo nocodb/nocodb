@@ -118,13 +118,14 @@ export class McpService {
       },
       async () => {
         try {
-          const tables = (
-            await this.tablesV3Service.getAccessibleTables(context, {
+          const tables = await this.tablesV3Service.getAccessibleTables(
+            context,
+            {
               baseId: context.base_id,
               roles: extractRolesObj(user?.base_roles),
               allSources: true,
-            })
-          ).filter((t) => !t.source_id);
+            },
+          );
 
           return {
             content: [{ type: 'text', text: JSON.stringify(tables, null, 2) }],

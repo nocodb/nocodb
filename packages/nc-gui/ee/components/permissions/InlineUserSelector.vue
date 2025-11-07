@@ -43,7 +43,7 @@ const selectedUsersList = computed(() => {
       // Check if it's a team
       const team = baseTeams.value.find((team) => team.team_id === userId)
       if (team) {
-        if (!isTeamsEnabled.value) return
+        if (!isTeamsEnabled.value) return undefined
 
         return {
           ...team,

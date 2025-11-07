@@ -1,3 +1,6 @@
+import axios from 'axios'
+
+// Images
 import salesImg from '~/assets/img/marketplace/sales.png'
 import marketingImg from '~/assets/img/marketplace/marketing.png'
 import hrImg from '~/assets/img/marketplace/human-resources.png'
@@ -346,6 +349,8 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
     return categoryInfo[activeCategory.value] || (categoryInfo['all-templates'] as TemplateCategoryInfoItemType)
   })
 
+  const controller = ref()
+
   const loadTemplates = async (reset = false) => {
     if (!activeWorkspaceId.value) return
 
@@ -356,17 +361,32 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
       hasMore.value = true
     }
 
-    if (isLoading.value || !hasMore.value) return
+    if (!hasMore.value) return
+
+    // Cancel any ongoing request before starting a new one
+    if (controller.value) {
+      controller.value.cancel() // Cancels the previous request to prevent overlapping calls.
+    }
+
+    const CancelToken = axios.CancelToken // Axios CancelToken utility.
+    controller.value = CancelToken.source() // Create a new token source for the current request.
 
     isLoading.value = true
 
     try {
-      const res = await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
-        operation: 'templates',
-        page: page.value,
-        per_page: perPage.value,
-        ...query,
-      })
+      const res = await $api.internal.getOperation(
+        activeWorkspaceId.value,
+        NO_SCOPE,
+        {
+          operation: 'templates',
+          page: page.value,
+          per_page: perPage.value,
+          ...query,
+        },
+        {
+          cancelToken: controller.value.token,
+        },
+      )
 
       if (Array.isArray(res)) {
         if (reset) {
@@ -382,10 +402,14 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
         page.value++
         query.page = page.value
       }
-    } catch (error) {
-      console.error('Error loading templates:', error)
-    } finally {
+
       isLoading.value = false
+    } catch (error: any) {
+      if (error?.code === 'ERR_CANCELED') return
+
+      isLoading.value = false
+
+      console.error('Error loading templates:', error)
     }
   }
 
@@ -473,7 +497,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
   }
 
   watch(
-    () => ({ search: query.search, industry: query.industry, usecase: query.usecase }),
+    () => ({ industry: query.industry, usecase: query.usecase }),
     () => {
       loadTemplates(true)
     },

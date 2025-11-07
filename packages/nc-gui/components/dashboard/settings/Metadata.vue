@@ -177,7 +177,8 @@ const customRow = (record: Record<string, any>) => ({
               @click="syncMetaDiff"
             >
               <div class="flex items-center gap-2">
-                <component :is="iconMap.databaseSync" />
+                <component :is="iconMap.reload" v-if="isLoading" class="animate-infinite animate-spin" />
+                <component :is="iconMap.databaseSync" v-else />
                 {{ $t('activity.metaSync') }}
               </div>
             </a-button>

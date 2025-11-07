@@ -175,6 +175,8 @@ export class SyncModuleService implements OnModuleInit {
       const authWrapper =
         await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
+      await authWrapper.testConnection();
+
       const auth = await authWrapper.authenticate();
 
       const schema = await wrapper.getDestinationSchema(auth);
@@ -1060,6 +1062,8 @@ export class SyncModuleService implements OnModuleInit {
     const authWrapper =
       await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
+    await authWrapper.testConnection();
+
     const auth = await authWrapper.authenticate();
 
     const options = await tempIntegrationWrapper.fetchOptions(auth, key);
@@ -1096,6 +1100,8 @@ export class SyncModuleService implements OnModuleInit {
 
     const authWrapper =
       await authIntegration.getIntegrationWrapper<AuthIntegration>();
+
+    await authWrapper.testConnection();
 
     const auth = await authWrapper.authenticate();
 

@@ -429,6 +429,8 @@ export class SyncModuleSyncDataProcessor {
         const authWrapper =
           await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
+        await authWrapper.testConnection();
+
         const auth = await authWrapper.authenticate();
 
         const wrapper =

@@ -22,6 +22,21 @@ export const form: FormDefinition = [
     ],
   },
   {
+    type: FormBuilderInputType.Input,
+    label: 'GitLab Hostname',
+    width: 100,
+    model: 'config.hostname',
+    placeholder: 'https://gitlab.com',
+    category: 'General',
+    defaultValue: 'https://gitlab.com',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'GitLab hostname is required',
+      },
+    ],
+  },
+  {
     type: FormBuilderInputType.Select,
     label: 'Auth Type',
     width: 48,
@@ -49,6 +64,10 @@ export const form: FormDefinition = [
         message: 'Auth type is required',
       },
     ],
+    condition: {
+      model: 'config.hostname',
+      in: ['', 'https://gitlab.com'],
+    },
   },
   {
     type: FormBuilderInputType.Input,

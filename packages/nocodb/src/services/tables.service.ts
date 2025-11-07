@@ -560,6 +560,7 @@ export class TablesService {
       sourceId?: string;
       includeM2M?: boolean;
       roles: Record<string, boolean>;
+      allSources?: boolean;
     },
   ) {
     const viewList = await this.xcVisibilityMetaGet(context, param.baseId);
@@ -580,7 +581,7 @@ export class TablesService {
     const tableList = (
       await Model.list(context, {
         base_id: param.baseId,
-        source_id: param.sourceId,
+        source_id: param.allSources ? undefined : param.sourceId,
       })
     ).filter((t) => tableViewMapping[t.id]);
 

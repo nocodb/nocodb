@@ -736,117 +736,117 @@
       "all-templates": {
         "sidebarTitle": "All Templates",
         "title": "Popular templates",
-        "subtitle": "Browse the most popular bases among our users."
+        "subtitle": "Browse the most popular and commonly used templates across different business use cases."
       },
       "sales": {
         "sidebarTitle": "Sales",
-        "title": "Sales Templates",
-        "subtitle": "Streamline your sales process with these ready-to-use templates."
+        "title": "Sales & CRM Templates",
+        "subtitle": "Track leads, contacts, opportunities, and more with sales and CRM-focused templates."
       },
       "marketing": {
         "sidebarTitle": "Marketing",
         "title": "Marketing Templates",
-        "subtitle": "Boost your marketing efforts with these specialized templates."
+        "subtitle": "Use these templates to see how to connect campaigns, assets, and results can connect seamlessly in real time."
       },
       "human-resources": {
         "sidebarTitle": "Human Resources",
         "title": "Human Resources Templates",
-        "subtitle": "Simplify HR management with these comprehensive templates."
+        "subtitle": "Organize employee records, leave tracking, and HR policies in NocoDB."
       },
       "product-management": {
         "sidebarTitle": "Product Management",
         "title": "Product Management Templates",
-        "subtitle": "Organize your product development workflow with these templates."
+        "subtitle": "Plan features, manage backlogs, and organize product development with ready-to-use templates."
       },
       "operations": {
         "sidebarTitle": "Operations",
         "title": "Operations Templates",
-        "subtitle": "Optimize your business operations with these efficient templates."
+        "subtitle": "Improve operational visibility and streamline internal processes with pre-built business templates."
       },
       "project-management": {
         "sidebarTitle": "Project Management",
         "title": "Project Management Templates",
-        "subtitle": "Track and manage your projects effectively with these templates."
+        "subtitle": "Plan out project timelines, track tasks and resources, and define repeatable proccesses with pre-built project management templates."
       },
       "supply-chain-management": {
         "sidebarTitle": "Supply Chain Management",
         "title": "Supply Chain Management Templates",
-        "subtitle": "Optimize your supply chain management with these templates."
+        "subtitle": "Gain visibility into sourcing, stock movement, and vendor management with pre-built templates from NocoDB."
       },
       "it-and-operations": {
         "sidebarTitle": "IT & Operations",
         "title": "IT & Operations Templates",
-        "subtitle": "Streamline your IT and operations with these templates."
+        "subtitle": "Track bugs, work towards compliance standards, and run internal operations using pre-built templates from NocoDB."
       },
       "finance-and-legal": {
         "sidebarTitle": "Finance & Legal",
         "title": "Finance & Legal Templates",
-        "subtitle": "Manage your finance and legal processes with these templates."
+        "subtitle": "Track expenses, sort through legal requests, and more with templates from Airtable."
       },
       "hr-and-recruiting": {
         "sidebarTitle": "HR & Recruiting",
         "title": "HR & Recruiting Templates",
-        "subtitle": "Simplify HR and recruiting processes with these templates."
+        "subtitle": "Organize hiring pipelines and onboarding processes with customizable NocoDB templates."
       },
       "product": {
         "sidebarTitle": "Product",
         "title": "Product Templates",
-        "subtitle": "Optimize your product development with these templates."
+        "subtitle": "Use templates to align features, feedback, and development priorities in NocoDB."
       },
       "reusing": {
         "sidebarTitle": "Reusing",
         "title": "Reusing Templates",
-        "subtitle": "Reuse your templates with these templates."
+        "subtitle": "Quickly duplicate and adapt existing templates to accelerate workflow creation."
       },
       "healthcare": {
         "sidebarTitle": "Healthcare",
         "title": "Healthcare Templates",
-        "subtitle": "Specialized templates for healthcare organizations and professionals."
+        "subtitle": "Track patient records, manage appointments, and streamline healthcare operations with pre-built templates from NocoDB."
       },
       "finance": {
         "sidebarTitle": "Finance",
         "title": "Finance Templates",
-        "subtitle": "Manage financial data and processes with these tailored templates."
+        "subtitle": "Track expenses, sort through legal requests, and more with templates from NocoDB."
       },
       "education": {
         "sidebarTitle": "Education",
         "title": "Education Templates",
-        "subtitle": "Templates designed for educational institutions and learning management."
+        "subtitle": "Track grant applications, plan out your class schedule, manage fundraisers, and more with pre-built education templates from NocoDB."
       },
       "manufacturing": {
         "sidebarTitle": "Manufacturing",
         "title": "Manufacturing Templates",
-        "subtitle": "Streamline manufacturing processes with these industry-specific templates."
+        "subtitle": "Track production, inventory, and quality checks with templates built for manufacturing teams."
       },
       "real-estate": {
         "sidebarTitle": "Real Estate",
         "title": "Real Estate Templates",
-        "subtitle": "Templates for property management and real estate businesses."
+        "subtitle": "Manage your listings, keep a record of transactions, and more with NocoDB's real estate templates."
       },
       "retail": {
         "sidebarTitle": "Retail",
         "title": "Retail Templates",
-        "subtitle": "Optimize inventory and sales tracking with these retail-focused templates."
+        "subtitle": "Streamline inventory, products, and sales tracking with retail-focused templates."
       },
       "transportation": {
         "sidebarTitle": "Transportation",
         "title": "Transportation Templates",
-        "subtitle": "Optimize your transportation processes with these templates."
+        "subtitle": "Track routes, schedules, and logistics operations with transportation-ready templates."
       },
       "hospitality": {
         "sidebarTitle": "Hospitality",
         "title": "Hospitality Templates",
-        "subtitle": "Optimize your hospitality processes with these templates."
+        "subtitle": "Track bookings, manage reservations, and optimize hotel operations with pre-built templates from NocoDB."
       },
       "entertainment": {
         "sidebarTitle": "Entertainment",
         "title": "Entertainment Templates",
-        "subtitle": "Optimize your entertainment processes with these templates."
+        "subtitle": "Plan productions, events, and talent schedules with templates for entertainment workflows."
       },
       "technology": {
         "sidebarTitle": "Technology",
         "title": "Technology Templates",
-        "subtitle": "Optimize your technology processes with these templates."
+        "subtitle": "Track development tasks, releases, and support operations using templates for tech teams."
       },
       "departments": "Departments",
       "industries": "Industries",

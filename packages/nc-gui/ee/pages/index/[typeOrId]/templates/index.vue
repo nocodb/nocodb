@@ -14,10 +14,10 @@ onMounted(() => {
       <div class="marketplace-container">
         <MarketplaceHeader />
         <div class="main-container flex">
-          <MarketplaceSidebar v-model:active-category="activeCategory" />
-
           <div class="flex-1 nc-scrollbar-thin">
             <div class="container">
+              <MarketplaceSidebar v-model:active-category="activeCategory" />
+
               <NuxtPage />
             </div>
           </div>
@@ -37,7 +37,7 @@ onMounted(() => {
     }
 
     .container {
-      @apply flex gap-8 px-8 mx-auto 2xl:max-w-[1536px] 3xl:max-w-[1920px] 4xl:max-w-[2360px];
+      @apply flex-1 flex gap-8 px-8 mx-auto 2xl:max-w-[1536px] 3xl:max-w-[1720px];
     }
   }
 }

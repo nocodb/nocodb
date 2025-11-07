@@ -5,7 +5,7 @@ const props = defineProps<{
 
 const activeCategory = useVModel(props, 'activeCategory')
 
-const { query, categoryInfo, onInit } = useMarketplaceTemplates()
+const { query, categoryInfo, onInit, loadTemplates } = useMarketplaceTemplates()
 
 const route = useRoute()
 const router = useRouter()
@@ -71,68 +71,75 @@ onMounted(() => {
   activeCategory.value = (route.params.category as TemplateCategoryType) || 'all-templates'
   onInit()
 })
+
+const onSearchChange = useDebounceFn(() => {
+  loadTemplates(true)
+}, 500)
 </script>
 
 <template>
-  <aside class="nc-marketplace-sidebar flex flex-col gap-4 w-[266px] pt-6">
-    <Transition name="search-slide" appear>
-      <div class="relative px-3">
-        <a-input
-          v-model:value="query.search"
-          type="text"
-          allow-clear
-          :placeholder="$t('placeholder.searchTemplates')"
-          class="nc-input-sm nc-input-shadow transition-all duration-300"
-          @focus="isSearchFocused = true"
-          @blur="isSearchFocused = false"
-        >
-          <template #prefix>
-            <Transition name="search-icon" mode="out-in">
-              <GeneralIcon
-                :key="query.search?.length ? 'active' : 'inactive'"
-                class="nc-search-icon"
-                :class="{
-                  'text-nc-content-brand': query.search?.length || isSearchFocused,
-                  'text-nc-content-gray-disabled': !query.search?.length && !isSearchFocused,
-                }"
-                icon="search"
-              />
-            </Transition>
-          </template>
-        </a-input>
-      </div>
-    </Transition>
+  <aside class="nc-marketplace-sidebar">
+    <div class="sticky top-0 flex flex-col gap-4 w-[266px] h-[calc(100dvh_-_48px)]">
+      <Transition name="search-slide" appear>
+        <div class="relative px-3 pt-6">
+          <a-input
+            v-model:value="query.search"
+            @input="onSearchChange"
+            type="text"
+            allow-clear
+            :placeholder="$t('placeholder.searchTemplates')"
+            class="nc-input-sm nc-input-shadow transition-all duration-300"
+            @focus="isSearchFocused = true"
+            @blur="isSearchFocused = false"
+          >
+            <template #prefix>
+              <Transition name="search-icon" mode="out-in">
+                <GeneralIcon
+                  :key="query.search?.length ? 'active' : 'inactive'"
+                  class="nc-search-icon"
+                  :class="{
+                    'text-nc-content-brand': query.search?.length || isSearchFocused,
+                    'text-nc-content-gray-disabled': !query.search?.length && !isSearchFocused,
+                  }"
+                  icon="search"
+                />
+              </Transition>
+            </template>
+          </a-input>
+        </div>
+      </Transition>
 
-    <TransitionGroup name="stagger-items" tag="div" class="flex-1 flex flex-col gap-4 nc-scrollbar-thin px-3 relative pb-3">
-      <template v-for="item of sidebarItems" :key="item.key">
-        <MarketplaceSidebarItem
-          v-if="!item.isFolder"
-          :active="activeCategory === item.key"
-          class="my-[1px]"
-          @click="setActiveItem(item.key)"
-        >
-          <template v-if="item.sidebarImg || item.icon" #icon>
-            <img v-if="item.sidebarImg" :src="item.sidebarImg" :alt="item.sidebarTitle" class="w-5 h-5 object-contain" />
-            <div v-else class="flex items-center justify-center w-5 h-5">
-              <GeneralIcon :icon="item.icon" class="w-4 h-4 flex-none opacity-90" />
-            </div>
-          </template>
-          {{ item.sidebarTitle }}
-        </MarketplaceSidebarItem>
-        <MarketplaceSidebarFolder v-else :key="item.key" class="my-[1px]">
-          <template #title> {{ item.title }} </template>
+      <TransitionGroup name="stagger-items" tag="div" class="flex-1 flex flex-col gap-4 nc-scrollbar-thin px-3 relative pb-3">
+        <template v-for="item of sidebarItems" :key="item.key">
+          <MarketplaceSidebarItem
+            v-if="!item.isFolder"
+            :active="activeCategory === item.key"
+            class="my-[1px]"
+            @click="setActiveItem(item.key)"
+          >
+            <template v-if="item.sidebarImg || item.icon" #icon>
+              <img v-if="item.sidebarImg" :src="item.sidebarImg" :alt="item.sidebarTitle" class="w-5 h-5 object-contain" />
+              <div v-else class="flex items-center justify-center w-5 h-5">
+                <GeneralIcon :icon="item.icon" class="w-4 h-4 flex-none opacity-90" />
+              </div>
+            </template>
+            {{ item.sidebarTitle }}
+          </MarketplaceSidebarItem>
+          <MarketplaceSidebarFolder v-else :key="item.key" class="my-[1px]">
+            <template #title> {{ item.title }} </template>
 
-          <template v-for="child of item.childrens" :key="child.key">
-            <MarketplaceSidebarItem :active="activeCategory === child.key" class="my-[1px]" @click="setActiveItem(child.key)">
-              <template v-if="child.sidebarImg" #icon>
-                <img :src="child.sidebarImg" alt="" class="w-5 h-5" />
-              </template>
-              {{ child.sidebarTitle }}
-            </MarketplaceSidebarItem>
-          </template>
-        </MarketplaceSidebarFolder>
-      </template>
-    </TransitionGroup>
+            <template v-for="child of item.childrens" :key="child.key">
+              <MarketplaceSidebarItem :active="activeCategory === child.key" class="my-[1px]" @click="setActiveItem(child.key)">
+                <template v-if="child.sidebarImg" #icon>
+                  <img :src="child.sidebarImg" alt="" class="w-5 h-5" />
+                </template>
+                {{ child.sidebarTitle }}
+              </MarketplaceSidebarItem>
+            </template>
+          </MarketplaceSidebarFolder>
+        </template>
+      </TransitionGroup>
+    </div>
   </aside>
 </template>
 

@@ -13,7 +13,7 @@ watch(activeCategory, (newCategory) => {
 })
 
 onMounted(() => {
-  forcedNextTick(() => {
+  nextTick(() => {
     setupObserver()
   })
 })
@@ -31,7 +31,7 @@ onMounted(() => {
     <div class="pb-8">
       <div
         ref="templateContainer"
-        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-8 template-container"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-8 template-container"
       >
         <template v-if="templates.length">
           <MarketplaceCard
@@ -55,7 +55,6 @@ onMounted(() => {
 
         <MarketplaceEmpty v-else-if="!templates.length" />
       </div>
-
       <MarketplaceLoadMoreIndicator />
     </div>
   </div>

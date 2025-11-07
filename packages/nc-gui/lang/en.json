@@ -690,6 +690,158 @@
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
       "copyFromAView": "Copy from a view"
+    },
+    "teams": {
+      "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
+      "confirmLeaveTeamSubtitle": "You may lose access to bases unless you were explicitly invited or have a role at the workspace level.",
+      "confirmDeleteTeamTitle": "Are you sure you want to delete this team?",
+      "confirmDeleteTeamSubtitle": "Members may still have access to bases if they were explicitly invited or hold a role at the workspace level.",
+      "soleTeamOwnerTooltip": "You’re the sole owner of this team. Transfer ownership to another member before leaving.",
+      "thisIsTheOnlyTeamOwnerTooltip": "This is the only owner of this team. Transfer ownership to another member before removing it.",
+      "thisTeamHasOnlyOneOwnerTooltip": "This team has only one owner. Transfer ownership to another member before removing it.",
+      "removeFromTeamRestrictionTooltip": "You can’t remove all owners. Deselect at least one owner to proceed.",
+      "teamOwner": "Team owner",
+      "removeMemberFromTeam": "Remove member from team",
+      "removeMemberFromTeamPlural": "Remove members from team",
+      "addMembersToTeam": "Add members to Team",
+      "selectMembersToAddIntoTeam": "Select members to add into the {team} Team",
+      "alreadyPartOfTeam": "Already part of the team",
+      "nMembersHaveBeenAddedIntoTeam": "{n} members added to {team} team",
+      "nMemberHaveBeenAddedIntoTeam": "{n} member added to {team} team",
+      "unableToAddMembers": "Unable to add members",
+      "removeTeam": "Remove team",
+      "confirmRemoveTeamFromWorkspaceTitle": "Are you sure you want to remove team from workspace?",
+      "confirmRemoveTeamFromWorkspaceSubtitle": "If you remove, team members will lose access to all bases and data within this workspace",
+      "nMemberSelected": "{n} member selected",
+      "nMembersSelected": "{n} members selected",
+      "noMoreTeamsToAdd": "No more teams to add",
+      "alreadyAdded": "Already added",
+      "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
+    },
+    "templates": {
+      "all-templates": {
+        "sidebarTitle": "All Templates",
+        "title": "Popular templates",
+        "subtitle": "Browse the most popular and commonly used templates across different business use cases."
+      },
+      "sales": {
+        "sidebarTitle": "Sales",
+        "title": "Sales & CRM Templates",
+        "subtitle": "Track leads, contacts, opportunities, and more with sales and CRM-focused templates."
+      },
+      "marketing": {
+        "sidebarTitle": "Marketing",
+        "title": "Marketing Templates",
+        "subtitle": "Use these templates to see how to connect campaigns, assets, and results can connect seamlessly in real time."
+      },
+      "human-resources": {
+        "sidebarTitle": "Human Resources",
+        "title": "Human Resources Templates",
+        "subtitle": "Organize employee records, leave tracking, and HR policies in NocoDB."
+      },
+      "product-management": {
+        "sidebarTitle": "Product Management",
+        "title": "Product Management Templates",
+        "subtitle": "Plan features, manage backlogs, and organize product development with ready-to-use templates."
+      },
+      "operations": {
+        "sidebarTitle": "Operations",
+        "title": "Operations Templates",
+        "subtitle": "Improve operational visibility and streamline internal processes with pre-built business templates."
+      },
+      "project-management": {
+        "sidebarTitle": "Project Management",
+        "title": "Project Management Templates",
+        "subtitle": "Plan out project timelines, track tasks and resources, and define repeatable proccesses with pre-built project management templates."
+      },
+      "supply-chain-management": {
+        "sidebarTitle": "Supply Chain Management",
+        "title": "Supply Chain Management Templates",
+        "subtitle": "Gain visibility into sourcing, stock movement, and vendor management with pre-built templates from NocoDB."
+      },
+      "it-and-operations": {
+        "sidebarTitle": "IT & Operations",
+        "title": "IT & Operations Templates",
+        "subtitle": "Track bugs, work towards compliance standards, and run internal operations using pre-built templates from NocoDB."
+      },
+      "finance-and-legal": {
+        "sidebarTitle": "Finance & Legal",
+        "title": "Finance & Legal Templates",
+        "subtitle": "Track expenses, sort through legal requests, and more with templates from Airtable."
+      },
+      "hr-and-recruiting": {
+        "sidebarTitle": "HR & Recruiting",
+        "title": "HR & Recruiting Templates",
+        "subtitle": "Organize hiring pipelines and onboarding processes with customizable NocoDB templates."
+      },
+      "product": {
+        "sidebarTitle": "Product",
+        "title": "Product Templates",
+        "subtitle": "Use templates to align features, feedback, and development priorities in NocoDB."
+      },
+      "reusing": {
+        "sidebarTitle": "Reusing",
+        "title": "Reusing Templates",
+        "subtitle": "Quickly duplicate and adapt existing templates to accelerate workflow creation."
+      },
+      "healthcare": {
+        "sidebarTitle": "Healthcare",
+        "title": "Healthcare Templates",
+        "subtitle": "Track patient records, manage appointments, and streamline healthcare operations with pre-built templates from NocoDB."
+      },
+      "finance": {
+        "sidebarTitle": "Finance",
+        "title": "Finance Templates",
+        "subtitle": "Track expenses, sort through legal requests, and more with templates from NocoDB."
+      },
+      "education": {
+        "sidebarTitle": "Education",
+        "title": "Education Templates",
+        "subtitle": "Track grant applications, plan out your class schedule, manage fundraisers, and more with pre-built education templates from NocoDB."
+      },
+      "manufacturing": {
+        "sidebarTitle": "Manufacturing",
+        "title": "Manufacturing Templates",
+        "subtitle": "Track production, inventory, and quality checks with templates built for manufacturing teams."
+      },
+      "real-estate": {
+        "sidebarTitle": "Real Estate",
+        "title": "Real Estate Templates",
+        "subtitle": "Manage your listings, keep a record of transactions, and more with NocoDB's real estate templates."
+      },
+      "retail": {
+        "sidebarTitle": "Retail",
+        "title": "Retail Templates",
+        "subtitle": "Streamline inventory, products, and sales tracking with retail-focused templates."
+      },
+      "transportation": {
+        "sidebarTitle": "Transportation",
+        "title": "Transportation Templates",
+        "subtitle": "Track routes, schedules, and logistics operations with transportation-ready templates."
+      },
+      "hospitality": {
+        "sidebarTitle": "Hospitality",
+        "title": "Hospitality Templates",
+        "subtitle": "Track bookings, manage reservations, and optimize hotel operations with pre-built templates from NocoDB."
+      },
+      "entertainment": {
+        "sidebarTitle": "Entertainment",
+        "title": "Entertainment Templates",
+        "subtitle": "Plan productions, events, and talent schedules with templates for entertainment workflows."
+      },
+      "technology": {
+        "sidebarTitle": "Technology",
+        "title": "Technology Templates",
+        "subtitle": "Track development tasks, releases, and support operations using templates for tech teams."
+      },
+      "departments": "Departments",
+      "industries": "Industries",
+      "noTemplatesFound": "No templates found",
+      "tryCheckingBackLaterForNewTemplates": "Try checking back later for new templates",
+      "tryAdjustingYourSearchOrFilters": "Try adjusting your search or filters",
+      "loadingMoreTemplates": "Loading more templates",
+      "browseByCategory": "Browse by category",
+      "browseByCategorySubtitle": "Explore further to discover the base that fits you best"
     }
   },
   "datatype": {

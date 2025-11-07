@@ -5,12 +5,14 @@ export abstract class AuthIntegration<T = any> extends IntegrationWrapper<T> {
   protected tokenRefreshCallback?: (tokens: {
     oauth_token: string;
     refresh_token?: string;
+    expires_at?: string
   }) => Promise<void>;
 
   public setTokenRefreshCallback(
     callback: (tokens: {
       oauth_token: string;
       refresh_token?: string;
+      expires_at?: string
     }) => Promise<void>,
   ) {
     this.tokenRefreshCallback = callback;

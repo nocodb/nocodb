@@ -82,13 +82,6 @@ export default class Team {
       `${CacheScope.TEAM}:${id}`,
     );
 
-    // Invalidate list cache to ensure new team appears in subsequent list calls
-    await NocoCache.deepDel(
-      context,
-      CacheScope.TEAM,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
-
     await NocoCache.incrHashField(
       'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
@@ -282,16 +275,9 @@ export default class Team {
       { id: teamId },
     );
 
-    await NocoCache.del(context, `${CacheScope.TEAM}:${teamId}`);
-
-    // Invalidate both active and deleted cache lists
-    const baseCacheKey = context.workspace_id ?? context.org_id;
-    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}`);
-    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
-
     await NocoCache.deepDel(
       context,
-      CacheScope.TEAM,
+      `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 

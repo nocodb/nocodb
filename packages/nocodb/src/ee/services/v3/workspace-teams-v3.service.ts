@@ -355,13 +355,16 @@ export class WorkspaceTeamsV3Service {
       }
     }
 
-    // Emit workspace team update event
-    this.appHooksService.emit(AppEvents.WORKSPACE_TEAM_UPDATE, {
-      context,
-      req: param.req,
-      team: Array.isArray(param.team) ? results : results[0],
-      workspace,
-    } as WorkspaceTeamUpdateEvent);
+      // Emit workspace team update event
+      this.appHooksService.emit(AppEvents.WORKSPACE_TEAM_UPDATE, {
+        context,
+        req: param.req,
+        team: teamData,
+        oldRole: existingAssignment?.roles || '',
+        role: team.workspace_role,
+        workspace,
+      } as WorkspaceTeamUpdateEvent);
+    }
 
     // Recalculate seat count after updating team roles in workspace
     await this.paymentService.reseatSubscription(workspace.id);

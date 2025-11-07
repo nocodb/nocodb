@@ -81,6 +81,35 @@ export const isUnicodeEmoji = (emoji: string) => {
 }
 
 /**
+ * Get safe initials, emoji-safe & surrogate-safe.
+ */
+export const getSafeInitials = (title?: string, initialsLength: number = 2): string => {
+  if (!title?.trim()) return ''
+
+  const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' })
+  const splitGraphemes = (str: string) => [...segmenter.segment(str)].map((s) => s.segment)
+
+  const words = title.trim().split(/\s+/).filter(Boolean)
+  const initials: string[] = []
+
+  // First take initials from each word
+  for (const word of words) {
+    if (initials.length >= initialsLength) break
+    const g = splitGraphemes(word)
+    if (g.length > 0) initials.push(g[0]!)
+  }
+
+  // If only 1 word or initialsLength > words.length
+  if (initials.length < initialsLength && words.length > 0) {
+    const g = splitGraphemes(words[0] ?? '')
+    const remaining = initialsLength - initials.length
+    initials.push(...g.slice(1, 1 + remaining)) // continue slicing same word
+  }
+
+  return initials.slice(0, initialsLength).join('')
+}
+
+/**
  * Performs a case-insensitive search to check if the `query` exists within the `source`.
  *
  * - Handles strings, numbers, and arrays (including nested arrays) of strings/numbers.

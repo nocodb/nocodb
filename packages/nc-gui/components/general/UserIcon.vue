@@ -105,21 +105,7 @@ const usernameInitials = computed(() => {
     return ''
   }
 
-  const displayNameSplit = user.value.display_name?.split(' ').filter((name) => name) ?? []
-
-  if (displayNameSplit.length > 0) {
-    if (displayNameSplit.length > 1) {
-      if (props.initialsLength === 1) {
-        return displayNameSplit[0][0]
-      }
-
-      return displayNameSplit[0][0] + displayNameSplit[1][0]
-    } else {
-      return user.value.display_name.slice(0, props.initialsLength)
-    }
-  } else {
-    return user.value.email?.split('@')[0].slice(0, props.initialsLength)
-  }
+  return getSafeInitials(user.value.display_name?.trim() || user.value.email?.split('@')[0], props.initialsLength)
 })
 </script>
 

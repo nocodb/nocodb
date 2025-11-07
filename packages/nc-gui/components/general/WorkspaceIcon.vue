@@ -163,7 +163,7 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
             'text-sm': size === 'account-sidebar' || isMiniSidebarSize,
           }"
         >
-          {{ workspace?.title?.slice(0, size === 'account-sidebar' || isMiniSidebarSize ? 1 : 2) }}
+          {{ getSafeInitials(workspace?.title, size === 'account-sidebar' || isMiniSidebarSize ? 1 : 2) }}
         </div>
       </template>
     </template>

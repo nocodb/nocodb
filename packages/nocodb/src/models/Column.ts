@@ -976,7 +976,7 @@ export default class Column<T = any> implements ColumnType {
           );
 
         if (
-          !colOptions.fk_related_base_id ||
+          !colOptions?.fk_related_base_id ||
           colOptions.fk_related_base_id === col.base_id
         )
           continue;

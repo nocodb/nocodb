@@ -455,11 +455,13 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
 
     observer = new IntersectionObserver(
       useThrottleFn((entries) => {
-        if (entries[0].isIntersecting && !isLoading.value && hasMore.value) {
+        const isIntersecting = entries.some((entry: IntersectionObserverEntry) => entry.isIntersecting)
+
+        if (isIntersecting && !isLoading.value && hasMore.value) {
           loadTemplates()
         }
-      }, 1000),
-      { threshold: 0.1, rootMargin: '300px' },
+      }, 500),
+      { threshold: 0.1, rootMargin: '200px' },
     )
 
     if (loadingTrigger.value) {
@@ -469,11 +471,14 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
 
   watch(
     () => loadingTrigger.value,
-    (newVal) => {
-      if (newVal && observer) {
-        observer.disconnect()
-        observer.observe(newVal)
-      }
+    (newVal, oldVal) => {
+      if (!observer) return
+
+      if (oldVal) observer.unobserve(oldVal)
+      if (newVal) observer.observe(newVal)
+    },
+    {
+      immediate: true,
     },
   )
 
@@ -513,7 +518,7 @@ export const useMarketplaceTemplates = createSharedComposable((initialCategory: 
     applyCategoryFilters()
     loadTemplates(true)
 
-    forcedNextTick(() => {
+    nextTick(() => {
       setupObserver()
     })
   }

@@ -13,7 +13,7 @@ watch(activeCategory, (newCategory) => {
 })
 
 onMounted(() => {
-  forcedNextTick(() => {
+  nextTick(() => {
     setupObserver()
   })
 })

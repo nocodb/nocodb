@@ -312,7 +312,7 @@ const onIframeLoad = () => {
           <div class="text-body text-nc-content-gray">
             {{ currentCategoryInfo?.subtitle }}
           </div>
-          <div class="grid grid-cols-1 mt-8 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6 gap-6">
+          <div class="grid grid-cols-1 mt-8 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4 gap-6">
             <MarketplaceCard
               v-for="relatedTemplate of relatedTemplates"
               :key="relatedTemplate.Id"

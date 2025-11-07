@@ -690,6 +690,157 @@
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
       "copyFromAView": "Copy from a view"
+    },
+    "teams": {
+      "confirmLeaveTeamTitle": "Are you sure you want to leave this team?",
+      "confirmLeaveTeamSubtitle": "You may lose access to bases unless you were explicitly invited or have a role at the workspace level.",
+      "confirmDeleteTeamTitle": "Are you sure you want to delete this team?",
+      "confirmDeleteTeamSubtitle": "Members may still have access to bases if they were explicitly invited or hold a role at the workspace level.",
+      "soleTeamOwnerTooltip": "You’re the sole owner of this team. Transfer ownership to another member before leaving.",
+      "thisIsTheOnlyTeamOwnerTooltip": "This is the only owner of this team. Transfer ownership to another member before removing it.",
+      "thisTeamHasOnlyOneOwnerTooltip": "This team has only one owner. Transfer ownership to another member before removing it.",
+      "removeFromTeamRestrictionTooltip": "You can’t remove all owners. Deselect at least one owner to proceed.",
+      "teamOwner": "Team owner",
+      "removeMemberFromTeam": "Remove member from team",
+      "removeMemberFromTeamPlural": "Remove members from team",
+      "addMembersToTeam": "Add members to Team",
+      "selectMembersToAddIntoTeam": "Select members to add into the {team} Team",
+      "alreadyPartOfTeam": "Already part of the team",
+      "nMembersHaveBeenAddedIntoTeam": "{n} members added to {team} team",
+      "nMemberHaveBeenAddedIntoTeam": "{n} member added to {team} team",
+      "unableToAddMembers": "Unable to add members",
+      "removeTeam": "Remove team",
+      "confirmRemoveTeamFromWorkspaceTitle": "Are you sure you want to remove team from workspace?",
+      "confirmRemoveTeamFromWorkspaceSubtitle": "If you remove, team members will lose access to all bases and data within this workspace",
+      "nMemberSelected": "{n} member selected",
+      "nMembersSelected": "{n} members selected",
+      "noMoreTeamsToAdd": "No more teams to add",
+      "alreadyAdded": "Already added"
+    },
+    "templates": {
+      "all-templates": {
+        "sidebarTitle": "All Templates",
+        "title": "Popular templates",
+        "subtitle": "Browse the most popular bases among our users."
+      },
+      "sales": {
+        "sidebarTitle": "Sales",
+        "title": "Sales Templates",
+        "subtitle": "Streamline your sales process with these ready-to-use templates."
+      },
+      "marketing": {
+        "sidebarTitle": "Marketing",
+        "title": "Marketing Templates",
+        "subtitle": "Boost your marketing efforts with these specialized templates."
+      },
+      "human-resources": {
+        "sidebarTitle": "Human Resources",
+        "title": "Human Resources Templates",
+        "subtitle": "Simplify HR management with these comprehensive templates."
+      },
+      "product-management": {
+        "sidebarTitle": "Product Management",
+        "title": "Product Management Templates",
+        "subtitle": "Organize your product development workflow with these templates."
+      },
+      "operations": {
+        "sidebarTitle": "Operations",
+        "title": "Operations Templates",
+        "subtitle": "Optimize your business operations with these efficient templates."
+      },
+      "project-management": {
+        "sidebarTitle": "Project Management",
+        "title": "Project Management Templates",
+        "subtitle": "Track and manage your projects effectively with these templates."
+      },
+      "supply-chain-management": {
+        "sidebarTitle": "Supply Chain Management",
+        "title": "Supply Chain Management Templates",
+        "subtitle": "Optimize your supply chain management with these templates."
+      },
+      "it-and-operations": {
+        "sidebarTitle": "IT & Operations",
+        "title": "IT & Operations Templates",
+        "subtitle": "Streamline your IT and operations with these templates."
+      },
+      "finance-and-legal": {
+        "sidebarTitle": "Finance & Legal",
+        "title": "Finance & Legal Templates",
+        "subtitle": "Manage your finance and legal processes with these templates."
+      },
+      "hr-and-recruiting": {
+        "sidebarTitle": "HR & Recruiting",
+        "title": "HR & Recruiting Templates",
+        "subtitle": "Simplify HR and recruiting processes with these templates."
+      },
+      "product": {
+        "sidebarTitle": "Product",
+        "title": "Product Templates",
+        "subtitle": "Optimize your product development with these templates."
+      },
+      "reusing": {
+        "sidebarTitle": "Reusing",
+        "title": "Reusing Templates",
+        "subtitle": "Reuse your templates with these templates."
+      },
+      "healthcare": {
+        "sidebarTitle": "Healthcare",
+        "title": "Healthcare Templates",
+        "subtitle": "Specialized templates for healthcare organizations and professionals."
+      },
+      "finance": {
+        "sidebarTitle": "Finance",
+        "title": "Finance Templates",
+        "subtitle": "Manage financial data and processes with these tailored templates."
+      },
+      "education": {
+        "sidebarTitle": "Education",
+        "title": "Education Templates",
+        "subtitle": "Templates designed for educational institutions and learning management."
+      },
+      "manufacturing": {
+        "sidebarTitle": "Manufacturing",
+        "title": "Manufacturing Templates",
+        "subtitle": "Streamline manufacturing processes with these industry-specific templates."
+      },
+      "real-estate": {
+        "sidebarTitle": "Real Estate",
+        "title": "Real Estate Templates",
+        "subtitle": "Templates for property management and real estate businesses."
+      },
+      "retail": {
+        "sidebarTitle": "Retail",
+        "title": "Retail Templates",
+        "subtitle": "Optimize inventory and sales tracking with these retail-focused templates."
+      },
+      "transportation": {
+        "sidebarTitle": "Transportation",
+        "title": "Transportation Templates",
+        "subtitle": "Optimize your transportation processes with these templates."
+      },
+      "hospitality": {
+        "sidebarTitle": "Hospitality",
+        "title": "Hospitality Templates",
+        "subtitle": "Optimize your hospitality processes with these templates."
+      },
+      "entertainment": {
+        "sidebarTitle": "Entertainment",
+        "title": "Entertainment Templates",
+        "subtitle": "Optimize your entertainment processes with these templates."
+      },
+      "technology": {
+        "sidebarTitle": "Technology",
+        "title": "Technology Templates",
+        "subtitle": "Optimize your technology processes with these templates."
+      },
+      "departments": "Departments",
+      "industries": "Industries",
+      "noTemplatesFound": "No templates found",
+      "tryCheckingBackLaterForNewTemplates": "Try checking back later for new templates",
+      "tryAdjustingYourSearchOrFilters": "Try adjusting your search or filters",
+      "loadingMoreTemplates": "Loading more templates",
+      "browseByCategory": "Browse by category",
+      "browseByCategorySubtitle": "Explore further to discover the base that fits you best"
     }
   },
   "datatype": {

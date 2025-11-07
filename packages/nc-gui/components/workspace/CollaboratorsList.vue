@@ -35,6 +35,7 @@ const {
   isWsOwner,
   navigateToPricing,
   isTopBannerVisible,
+  showUpgradeToUseTeams,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -362,12 +363,43 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
             <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
           </template>
 
-          <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
-            <div class="flex items-center gap-2">
-              <component :is="iconMap.plus" class="!h-4 !w-4" />
-              {{ $t('labels.addMember') }}
-            </div>
-          </NcButton>
+          <div class="flex items-center gap-2">
+            <NcButton
+              size="small"
+              :type="isTeamsEnabled ? 'secondary' : 'primary'"
+              :disabled="isCollaboratorsLoading"
+              data-testid="nc-add-member-btn"
+              :text-color="isTeamsEnabled ? 'primary' : undefined"
+              @click="inviteDlg = true"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
+                {{ $t('activity.addMembers') }}
+              </div>
+            </NcButton>
+
+            <NcButton
+              v-if="isTeamsEnabled && !isAdminPanel"
+              size="small"
+              type="secondary"
+              :disabled="isCollaboratorsLoading"
+              data-testid="nc-add-teams-btn"
+              text-color="primary"
+              @click="
+                showUpgradeToUseTeams({
+                  successCallback: () => {
+                    isInviteTeamDlg = true
+                    inviteDlg = true
+                  },
+                })
+              "
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncBuilding" />
+                {{ $t('labels.addTeams') }}
+              </div>
+            </NcButton>
+          </div>
         </div>
       </div>
 

@@ -923,6 +923,7 @@
     "currencyLocale": "Currency Locale",
     "currencyCode": "Currency Code",
     "searchMembers": "Search members",
+    "searchForMembersOrTeams": "Search for members or teams",
     "noMembersFound": "No members found",
     "dateJoined": "Date Joined",
     "tokenName": "Token name",

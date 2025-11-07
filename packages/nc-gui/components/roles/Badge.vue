@@ -38,7 +38,7 @@ const roleProperties = computed(() => {
   const icon = RoleIcons[role]
   const label = RoleLabels[role]
   return {
-    color: props.disabled ? 'gray' : color,
+    color: props.disabled ? 'disabled' : color,
     icon,
     label,
   }
@@ -55,7 +55,13 @@ const roleProperties = computed(() => {
   >
     <template #title> {{ $t(`objects.roleType.${roleProperties.label}`) }}</template>
 
-    <NcBadge class="!px-2 w-full" :class="ncBadgeClass" :color="roleProperties.color" :border="borderRef" :size="sizeSelect">
+    <NcBadge
+      class="!px-2 w-full"
+      :class="ncBadgeClass"
+      :color="roleProperties.color === 'disabled' ? 'gray' : roleProperties.color"
+      :border="borderRef"
+      :size="sizeSelect"
+    >
       <div
         class="badge-text w-full flex items-center justify-between gap-2"
         :class="roleColorsMapping[roleProperties.color]?.content ?? 'text-gray-300'"

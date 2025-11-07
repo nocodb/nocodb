@@ -64,9 +64,14 @@ export const roleColorsMapping: Record<
     content: 'text-nc-content-maroon-dark',
     contentTooltip: 'text-nc-maroon-200',
   },
-  gray: {
+  disabled: {
     bg: 'bg-nc-bg-gray-light',
     content: 'text-nc-content-gray-disabled',
+    contentTooltip: 'text-nc-gray-200',
+  },
+  gray: {
+    bg: 'bg-nc-bg-gray-light',
+    content: 'text-nc-content-gray',
     contentTooltip: 'text-nc-gray-200',
   },
 }

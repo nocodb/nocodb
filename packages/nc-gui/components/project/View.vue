@@ -205,7 +205,7 @@ onMounted(() => {
             v-if="isPrivateBase"
             size="xs"
             class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
-            color="grey"
+            color="gray"
             :border="false"
           >
             <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />

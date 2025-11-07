@@ -715,7 +715,8 @@
       "nMemberSelected": "{n} member selected",
       "nMembersSelected": "{n} members selected",
       "noMoreTeamsToAdd": "No more teams to add",
-      "alreadyAdded": "Already added"
+      "alreadyAdded": "Already added",
+      "teamCantBeAssignedOwnerRole": "Team can't be assigned Owner role"
     },
     "templates": {
       "all-templates": {

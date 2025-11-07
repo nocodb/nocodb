@@ -25,6 +25,8 @@ const basesStore = useBases()
 
 const { appInfo } = useGlobal()
 
+const { t } = useI18n()
+
 const workspaceStore = useWorkspace()
 
 const { baseRoles, workspaceRoles } = useRoles()
@@ -70,6 +72,15 @@ const allowedRoles = ref<[]>([])
 
 const disabledRoles = ref<[]>([])
 
+const disabledRolesTooltip = computed<Record<keyof typeof RoleLabels, string>>(() => {
+  if (!props.isTeam) return {}
+
+  return {
+    [WorkspaceUserRoles.OWNER]: t('objects.teams.teamCantBeAssignedOwnerRole'),
+    [ProjectRoles.OWNER]: t('objects.teams.teamCantBeAssignedOwnerRole'),
+  } as Record<keyof typeof RoleLabels, string>
+})
+
 const isLoading = ref(false)
 
 const organizationStore = useOrganization()
@@ -96,8 +107,6 @@ const focusOnDiv = () => {
   focusRef.value?.focus()
   isDivFocused.value = true
 }
-
-const { t } = useI18n()
 
 watch(dialogShow, async (newVal) => {
   if (newVal) {
@@ -450,6 +459,7 @@ const removeEmail = (index: number) => {
                 :on-role-change="onRoleChange"
                 :role="inviteData.roles"
                 :disabled-roles="disabledRoles"
+                :disabled-roles-tooltip="disabledRolesTooltip"
                 :roles="allowedRoles"
                 class="!min-w-[152px] nc-invite-role-selector"
                 size="lg"

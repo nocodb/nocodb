@@ -235,11 +235,16 @@ async function processColumnToSwaggerField(
       break;
     }
     case UITypes.LastModifiedTime:
+      field.type = ['string', 'null'];
+      field.format = 'date-time';
+      break;
     case UITypes.CreatedTime:
       field.type = 'string';
       field.format = 'date-time';
       break;
     case UITypes.LastModifiedBy:
+      field.type = ['object', 'null'];
+      break;
     case UITypes.CreatedBy:
       field.type = 'object';
       break;

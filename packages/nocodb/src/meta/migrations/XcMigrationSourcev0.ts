@@ -14,7 +14,7 @@ export default class XcMigrationSourcev0 {
       'nc_001_init',
       'nc_002_teams',
       'nc_003_alter_row_color_condition_nc_order_col',
-      'nc_004_workflows'
+      'nc_004_workflows',
     ]);
   }
 

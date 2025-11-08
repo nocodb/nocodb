@@ -7,7 +7,7 @@ const { isLoadingWorkflow } = storeToRefs(workflowStore)
   <div style="height: calc(100svh)" class="nc-container flex flex-col h-full">
     <template v-if="!isLoadingWorkflow">
       <Suspense>
-        <div></div>
+        <SmartsheetWorkflowMain />
         <template #fallback>
           <div class="flex items-center justify-center h-full">
             <GeneralLoader size="xlarge" />

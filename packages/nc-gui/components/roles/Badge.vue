@@ -73,7 +73,9 @@ const roleProperties = computed(() => {
         <div class="flex items-center gap-2">
           <GeneralIcon v-if="showIcon" :icon="roleProperties.icon" />
           <span v-if="!iconOnly" class="flex whitespace-nowrap">
-            {{ $t(`objects.roleType.${roleProperties.label}`) }}
+            <slot name="label">
+              {{ $t(`objects.roleType.${roleProperties.label}`) }}
+            </slot>
           </span>
         </div>
         <GeneralIcon v-if="clickableRef" icon="arrowDown" class="flex-none" />

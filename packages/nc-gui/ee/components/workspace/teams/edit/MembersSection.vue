@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { RoleColors, TeamUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { TeamUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import type { TeamMemberV3ResponseV3Type, TeamV3V3Type, WorkspaceUserType } from 'nocodb-sdk'
 
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
@@ -379,15 +379,18 @@ onMounted(() => {
           <div class="w-full flex items-center gap-4 overflow-hidden">
             <NcUserInfo :user="record" class="min-w-20" :class="{ 'max-w-[calc(100%_-_100px)] !w-auto': isTeamOwner(record) }" />
 
-            <NcTooltip
+            <RolesBadge
               v-if="isTeamOwner(record)"
-              :title="$t('objects.teams.teamOwner')"
-              class="text-captionSm font-medium line-clamp-1"
-              :class="roleColorsMapping[RoleColors[WorkspaceUserRoles.OWNER]]?.content"
+              :border="false"
+              :role="WorkspaceUserRoles.OWNER"
+              class="cursor-default"
+              :show-icon="false"
+              show-tooltip
               show-on-truncate-only
             >
-              {{ $t('objects.teams.teamOwner') }}
-            </NcTooltip>
+              <template #tooltip> {{ $t('objects.teams.teamOwner') }} </template>
+              <template #label> {{ $t('objects.teams.teamOwner') }} </template>
+            </RolesBadge>
           </div>
         </template>
         <template v-else-if="column.key === 'action'">

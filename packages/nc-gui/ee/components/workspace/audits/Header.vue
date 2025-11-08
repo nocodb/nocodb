@@ -483,6 +483,7 @@ const showWorkspaceSelector = ref(false)
             search-input-placeholder="Search event"
             is-multi-select
             :close-on-select="false"
+            wrapper-class-name="!h-auto"
             :filter-option="handleFilterEvent"
             @update:value="handleUpdateEventQuery($event)"
           >

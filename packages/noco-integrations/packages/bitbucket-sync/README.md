@@ -68,6 +68,7 @@ Syncs to the **Ticketing** schema with the following tables:
 - `GET /repositories/{workspace}/{repo}/issues?q=...&sort=-updated_on` - List issues with filtering
 - `GET /repositories/{workspace}/{repo}/pullrequests?q=...&sort=-updated_on` - List pull requests with filtering
 - `GET /repositories/{workspace}/{repo}/issues/{issue_id}/comments?q=...&sort=-created_on` - List issue comments with filtering
+- `GET /repositories/{workspace}/{repo}/pullrequests/{pr_id}/comments?q=...&sort=-created_on` - List PR comments with filtering
 
 ### Query Language
 
@@ -94,9 +95,12 @@ Bitbucket API filters data on the server, so only items updated/created after th
 
 ## Limitations
 
+- **Issue Tracker Required**: Repositories must have the issue tracker feature enabled to sync issues
 - **Email Privacy**: User emails are not available via Bitbucket API
 - **Rate Limits**: Subject to Bitbucket API rate limits
 - **Pagination**: Fetches up to 50 items per page
+
+**Note**: If a repository doesn't have the issue tracker enabled, the integration will skip it with a warning message and continue syncing other repositories.
 
 ## Usage Example
 

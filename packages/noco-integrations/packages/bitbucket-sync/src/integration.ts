@@ -45,7 +45,7 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
     const stream = new DataObjectStream<SyncRecord>();
 
     const userMap = new Map<string, boolean>();
-    const issueMap = new Map<number, { id: number; number: number }>();
+    const issueMap = new Map<number, { id: number; number: number; type: 'issue' | 'pr' }>();
 
     (async () => {
       try {
@@ -98,12 +98,13 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
               );
 
               const issues = issuesResponse.values || [];
-              this.log(`[Bitbucket Sync] Fetched ${issues.length} issues (page ${page})`);
-
+              
               if (issues.length === 0) {
                 hasMore = false;
                 break;
               }
+
+              this.log(`[Bitbucket Sync] Fetched ${issues.length} issues (page ${page})`);
 
               for (const issue of issues) {
 
@@ -111,6 +112,7 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                 issueMap.set(issue.id, {
                   id: issue.id,
                   number: issue.id,
+                  type: 'issue',
                 });
 
                 stream.push({
@@ -149,11 +151,18 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
               } else {
                 page++;
               }
-            } catch (error) {
-              console.error(
-                `[Bitbucket Sync] Error fetching issues for ${workspace}/${repository}:`,
-                error,
-              );
+            } catch (error: any) {
+              // Handle 404 errors gracefully (issue tracker not enabled)
+              if (error?.response?.status === 404) {
+                this.log(
+                  `[Bitbucket Sync] Skipping repository ${workspace}/${repository}: Issue tracker not enabled (404)`,
+                );
+              } else {
+                console.error(
+                  `[Bitbucket Sync] Error fetching issues for ${workspace}/${repository}:`,
+                  error,
+                );
+              }
               hasMore = false;
             }
           }
@@ -213,10 +222,11 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                   issueMap.set(pr.id, {
                     id: pr.id,
                     number: pr.id,
+                    type: 'pr',
                   });
 
                   stream.push({
-                    recordId: `pr-${pr.id}`,
+                    recordId: `${pr.id}`,
                     targetTable: TARGET_TABLES.TICKETING_TICKET,
                     ...this.formatData(TARGET_TABLES.TICKETING_TICKET, pr, repo, true),
                   });
@@ -281,6 +291,11 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                 page = 1;
                 hasMore = true;
 
+                // Use correct endpoint based on type
+                const commentsEndpoint = issueInfo.type === 'pr'
+                  ? `/repositories/${workspace}/${repository}/pullrequests/${issueId}/comments`
+                  : `/repositories/${workspace}/${repository}/issues/${issueId}/comments`;
+
                 while (hasMore) {
                   const params: any = {
                     page,
@@ -295,7 +310,7 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                   }
 
                   const { data: commentsResponse } = await axiosInstance.get(
-                    `/repositories/${workspace}/${repository}/issues/${issueId}/comments`,
+                    commentsEndpoint,
                     { params },
                   );
 
@@ -320,6 +335,7 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                         TARGET_TABLES.TICKETING_COMMENT,
                         comment,
                         repo,
+                        issueInfo.type,
                       ),
                     });
 
@@ -379,18 +395,20 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
     targetTable: TARGET_TABLES,
     data: any,
     namespace?: string,
-    isPR = false,
+    typeOrIsPR: boolean | 'issue' | 'pr' = false,
   ): {
     data: SyncRecord;
     links?: Record<string, SyncLinkValue>;
   } {
     switch (targetTable) {
       case TARGET_TABLES.TICKETING_TICKET:
-        return this.formatTicket(data, namespace, isPR);
+        // For tickets, typeOrIsPR is a boolean (isPR)
+        return this.formatTicket(data, namespace, typeOrIsPR === true);
       case TARGET_TABLES.TICKETING_USER:
         return this.formatUser(data, namespace);
       case TARGET_TABLES.TICKETING_COMMENT:
-        return this.formatComment(data, namespace);
+        // For comments, typeOrIsPR is the type string ('issue' | 'pr')
+        return this.formatComment(data, namespace, typeOrIsPR as 'issue' | 'pr');
       default: {
         return {
           data: {
@@ -486,12 +504,14 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
   private formatComment(
     comment: any,
     namespace?: string,
+    type: 'issue' | 'pr' = 'issue',
   ): {
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
   } {
+    const itemType = type === 'pr' ? 'PR' : 'issue';
     const commentData: TicketingCommentRecord = {
-      Title: `${comment.user?.display_name || 'User'} commented on issue #${comment.issue.number}`,
+      Title: `${comment.user?.display_name || 'User'} commented on ${itemType} #${comment.issue.number}`,
       Body: comment.content?.raw || '',
       Url: comment.links?.html?.href || null,
       // System Fields

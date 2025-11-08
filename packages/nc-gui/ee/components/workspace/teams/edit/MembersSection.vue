@@ -377,7 +377,7 @@ onMounted(() => {
         </template>
         <template v-else-if="column.key === 'member_name'">
           <div class="w-full flex items-center gap-4 overflow-hidden">
-            <NcUserInfo :user="record" class="min-w-20" :class="{ 'w-[calc(100%_-_100px)]': isTeamOwner(record) }" />
+            <NcUserInfo :user="record" class="min-w-20" :class="{ 'max-w-[calc(100%_-_100px)] !w-auto': isTeamOwner(record) }" />
 
             <NcTooltip
               v-if="isTeamOwner(record)"

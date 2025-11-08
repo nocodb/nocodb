@@ -60,11 +60,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Base"
-                  },
-                  "description": "List of bases."
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Base"
+                      },
+                      "description": "List of bases."
+                    }
+                  }
                 },
                 "examples": {
                   "Example 1": {

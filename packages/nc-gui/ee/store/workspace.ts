@@ -3,7 +3,6 @@ import type {
   BaseType,
   IntegrationType,
   PlanFeatureTypes,
-  PlanLimitTypes,
   TeamDetailV3V3Type,
   TeamMemberV3ResponseV3Type,
   TeamMembersAddV3ReqV3Type,
@@ -14,7 +13,7 @@ import type {
   WorkspaceType,
   WorkspaceUserType,
 } from 'nocodb-sdk'
-import { TeamUserRoles, WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
+import { TeamUserRoles, WorkspaceStatus, WorkspaceUserRoles, PlanLimitTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 import { userLocalStorageInfoManager } from '#imports'
@@ -743,10 +742,30 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       if (!res) return
 
       teams.value.push(res)
+
+      if (activeWorkspace.value) {
+        const newStatsCount = Math.max(0, (activeWorkspace.value?.stats?.[PlanLimitTypes.LIMIT_TEAM_MANAGEMENT] ?? 0) + 1)
+
+        workspaces.value.set(activeWorkspace.value.id!, {
+          ...activeWorkspace.value,
+          stats: {
+            ...(activeWorkspace.value?.stats || {}),
+            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: newStatsCount,
+          },
+        })
+      }
+
       return team
     } catch (error: any) {
       console.error(error)
-      message.error('Error occured while creating new team')
+
+      const errorInfo = await extractSdkResponseErrorMsgv2(error)
+
+      if (errorInfo?.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
+        message.error(errorInfo.message)
+      } else {
+        message.error('Error occured while creating new team')
+      }
     }
   }
 
@@ -770,6 +789,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       if (!res) return
 
       teams.value = teams.value.filter((t) => t.id !== teamId)
+
+      if (activeWorkspace.value) {
+        const newStatsCount = Math.max(0, (activeWorkspace.value?.stats?.[PlanLimitTypes.LIMIT_TEAM_MANAGEMENT] ?? 0) - 1)
+
+        workspaces.value.set(activeWorkspace.value.id!, {
+          ...activeWorkspace.value,
+          stats: {
+            ...(activeWorkspace.value?.stats || {}),
+            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: newStatsCount,
+          },
+        })
+      }
 
       return res
     } catch (error: any) {

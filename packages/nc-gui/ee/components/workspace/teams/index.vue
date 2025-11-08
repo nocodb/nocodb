@@ -26,6 +26,8 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
+const { showUpgradeToAddMoreTeams } = useEeConfig()
+
 const hasEditPermission = computed(() => {
   return isUIAllowed('teamCreate')
 })
@@ -130,6 +132,8 @@ const customRow = (record: Record<string, any>) => ({
 })
 
 const handleCreateTeam = () => {
+  if (showUpgradeToAddMoreTeams()) return
+
   isCreateTeamModalVisible.value = true
 }
 

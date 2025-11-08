@@ -33,7 +33,11 @@ import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
-import { getFeature } from '~/helpers/paymentHelpers';
+import {
+  getFeature,
+  checkLimit,
+  PlanLimitTypes,
+} from '~/helpers/paymentHelpers';
 import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
@@ -292,6 +296,14 @@ export class TeamsV3Service {
     if (!workspace) {
       NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
     }
+
+    await checkLimit({
+      workspace: workspace,
+      delta: 1, // increase count by 1 for the new team
+      type: PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} teams for your plan.`,
+    });
 
     // Check for duplicate team name in the same workspace
     const existingTeams = await Team.list(context, {

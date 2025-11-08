@@ -491,7 +491,7 @@
       "grid": "กริด",
       "gallery": "แกลลอรี่",
       "form": "รูปร่าง",
-      "kanban": "ภาษาคณาตา",
+      "kanban": "มุมมอง Kanban",
       "calendar": "ปฏิทิน",
       "map": "แผนที่"
     },
@@ -1287,7 +1287,7 @@
     "duplicateKanbanView": "คัดลอกมุมมอง Kanban",
     "duplicateCalendarView": "คัดลอกมุมมองปฏิทิน",
     "createKanbanView": "สร้างมุมมอง Kanban",
-    "createKanbanViewPlural": "สร้างมุมมองคัมบัง",
+    "createKanbanViewPlural": "สร้างมุมมอง Kanban",
     "createCalendarView": "สร้างมุมมองปฏิทิน",
     "createCalendarViewPlural": "สร้างมุมมองปฏิทิน",
     "createViewUsingAi": "สร้างมุมมองด้วย NocoAI",
@@ -1804,7 +1804,7 @@
       "showJunctionTableNames": "แสดงตารางที่เชื่อมกัน 2 ตารางขึ้นไป"
     },
     "kanban": {
-      "collapseStack": "ยุบสแต็ก",
+      "collapseStack": "ยุบส่วนนี้",
       "collapseAll": "ยุบทั้งหมด",
       "expandAll": "ขยายทั้งหมด",
       "renameStack": "เปลี่ยนชื่อสแต็ก",

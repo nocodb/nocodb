@@ -2,18 +2,13 @@
 import { computed } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
-import { WorkflowCategory, useWorkflowStoreOrThrow } from '../useWorkflow'
+import { useWorkflowStoreOrThrow } from '../useWorkflow'
 import NodeTypeDropdown, { type NodeTypeOption } from './NodeTypeDropdown.vue'
 
 const props = defineProps<NodeProps>()
 
 const workflowStore = useWorkflowStoreOrThrow()
-const { getNodeType, updateNode, addPlusNode, triggerLayout } = workflowStore
-
-// Get metadata for this node using the type
-const nodeMeta = computed(() => {
-  return getNodeType(props.type)
-})
+const { updateNode, addPlusNode, triggerLayout } = workflowStore
 
 // Get available trigger options (trigger sub-types)
 const availableOptions = computed((): NodeTypeOption[] => {
@@ -24,20 +19,6 @@ const availableOptions = computed((): NodeTypeOption[] => {
     icon: nt.icon,
     description: nt.description,
   }))
-})
-
-// Current selected option - only if a specific trigger type is selected (not core.trigger)
-const selectedOption = computed((): NodeTypeOption | null => {
-  if (!nodeMeta.value || props.type === 'core.trigger') {
-    return null
-  }
-
-  return {
-    id: nodeMeta.value.type,
-    label: nodeMeta.value.label,
-    icon: nodeMeta.value.icon,
-    description: nodeMeta.value.description,
-  }
 })
 
 const selectTriggerType = async (option: NodeTypeOption) => {

@@ -42,23 +42,6 @@ const colorScheme = computed(() => {
   }
 })
 
-// Current selected option
-const selectedOption = computed((): NodeTypeOption | null => {
-  if (!nodeMeta.value) return null
-
-  // If it's core.plus (empty state), show nothing selected
-  if (props.type === 'core.plus') {
-    return null
-  }
-
-  return {
-    id: nodeMeta.value.type,
-    label: nodeMeta.value.label,
-    icon: nodeMeta.value.icon,
-    description: nodeMeta.value.description,
-  }
-})
-
 // Placeholder text based on category
 const placeholderText = computed(() => {
   if (!nodeMeta.value) return 'Select an option'

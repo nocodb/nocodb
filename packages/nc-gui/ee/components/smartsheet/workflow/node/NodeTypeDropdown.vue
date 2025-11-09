@@ -107,7 +107,7 @@ onClickOutside(
         <NcMenu>
           <NcMenuItem @click="openChangeDropdown">
             <div class="flex items-center gap-2">
-              <GeneralIcon icon="swap" />
+              <GeneralIcon icon="edit" />
               <span>Change</span>
             </div>
           </NcMenuItem>

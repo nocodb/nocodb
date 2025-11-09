@@ -506,6 +506,21 @@ onClickOutside(editorDom, (e) => {
     > * {
       @apply ml-1;
     }
+
+    img,
+    video,
+    audio,
+    iframe,
+    object {
+      @apply max-w-full my-2 rounded-lg;
+    }
+
+    video,
+    audio,
+    iframe,
+    object {
+      @apply w-full;
+    }
   }
   .ProseMirror-focused {
     // remove all border
@@ -517,5 +532,21 @@ onClickOutside(editorDom, (e) => {
   @apply absolute -bottom-9 left-1/2 z-50 rounded-lg;
   transform: translateX(-50%);
   box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1);
+}
+
+.nc-rich-text-media-block {
+  @apply my-2;
+}
+
+.nc-rich-text-media-label {
+  @apply text-xs text-gray-500 mt-1;
+}
+
+.nc-rich-text-video {
+  @apply w-full rounded-lg;
+}
+
+.nc-rich-text-pdf {
+  @apply w-full h-64 rounded-lg border border-gray-200;
 }
 </style>

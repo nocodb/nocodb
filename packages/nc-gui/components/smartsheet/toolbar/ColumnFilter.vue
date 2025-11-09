@@ -544,14 +544,14 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
   await saveOrUpdate(filter, index)
 }
 
-function onMoveCallback(event: any) {
+function _onMoveCallback(event: any) {
   // disable nested drag drop for now
   if (event.from !== event.to) {
     return false
   }
 }
 
-const onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: ColumnFilterType } }) => {
+const _onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: ColumnFilterType } }) => {
   // For now add reorder support only in view filter
   if (!isReorderEnabled.value) return
 

@@ -3,6 +3,7 @@ import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType 
 import { ProjectRoles, SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type Record from '~icons/*'
+import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 // todo: merge with base store
 export const useBases = defineStore('basesStore', () => {
@@ -365,6 +366,7 @@ export const useBases = defineStore('basesStore', () => {
     await api.base.delete(baseId)
     bases.value.delete(baseId)
     tableStore.baseTables.delete(baseId)
+    extensionUserPrefsManager.deleteBase(baseId)
     await workspaceStore.loadWorkspace(workspaceStore.activeWorkspaceId!)
 
     await loadProjects()

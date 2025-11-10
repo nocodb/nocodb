@@ -13,9 +13,8 @@ import {
 } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
-import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
-
 import ImportStatus from './ImportStatus.vue'
+import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 const { $api, $e } = useNuxtApp()
 
@@ -300,17 +299,27 @@ const updateHistory = async (updateImportVerified = false) => {
     isImportVerified.value = false
   }
 
-  extensionUserPrefsManager.set(user.value.id, extension.value.id, {
-    payloads: savedPayloads.value,
-    config: importConfig.value,
-  })
+  extensionUserPrefsManager.set(
+    user.value.id,
+    extension.value.id,
+    {
+      payloads: savedPayloads.value,
+      config: importConfig.value,
+    },
+    extension.value.baseId,
+  )
 }
 
 const updateImportConfig = async () => {
-  extensionUserPrefsManager.set(user.value.id, extension.value.id, {
-    payloads: savedPayloads.value,
-    config: importConfig.value,
-  })
+  extensionUserPrefsManager.set(
+    user.value.id,
+    extension.value.id,
+    {
+      payloads: savedPayloads.value,
+      config: importConfig.value,
+    },
+    extension.value.baseId,
+  )
 }
 
 function getNextOrder(data: ImportPayloadType[]) {

@@ -7,6 +7,7 @@ import {
   type WidgetPayload,
   isVirtualCol,
 } from 'nocodb-sdk'
+import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 export const useRealtime = createSharedComposable(() => {
   const { $ncSocket, $eventBus } = useNuxtApp()
@@ -238,6 +239,7 @@ export const useRealtime = createSharedComposable(() => {
       }
     } else if (event.action === 'extension_delete') {
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, -1)
+      extensionUserPrefsManager.deleteExtension(event.payload.id)
       const { payload } = event
       if (activeBaseId.value === payload.base_id && baseExtensions.value[activeBaseId.value]) {
         const index = baseExtensions.value[activeBaseId.value].extensions.findIndex((ext) => ext.id === payload.id)
@@ -535,6 +537,7 @@ export const useRealtime = createSharedComposable(() => {
           }
 
           bases.value.delete(baseId)
+          extensionUserPrefsManager.deleteBase(baseId)
           refreshCommandPalette()
         } else {
           const baseUsers = basesUser.value.get(baseId)

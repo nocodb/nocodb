@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { GaugeRange, GaugeWidgetType } from 'nocodb-sdk'
+import { defaultGaugeWidgetRange } from 'nocodb-sdk'
 
 interface Props {
   widget: GaugeWidgetType
@@ -17,13 +18,7 @@ const widgetData = ref<any>(null)
 const isLoading = ref(false)
 
 const gaugeRanges = computed<GaugeRange[]>(() => {
-  return (
-    widgetRef.value?.config?.appearance?.ranges || [
-      { color: '#FF6E76', min: 0, max: 33, label: 'Low' },
-      { color: '#FDDD60', min: 33, max: 67, label: 'Medium' },
-      { color: '#7CFFB2', min: 67, max: 100, label: 'High' },
-    ]
-  )
+  return widgetRef.value?.config?.appearance?.ranges || defaultGaugeWidgetRange
 })
 
 const minValue = computed(() => {

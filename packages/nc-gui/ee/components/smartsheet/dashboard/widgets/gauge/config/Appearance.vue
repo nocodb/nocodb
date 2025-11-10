@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { GaugeRange } from 'nocodb-sdk'
+import { defaultGaugeWidgetRange } from 'nocodb-sdk'
 import GroupedSettings from '../../common/GroupedSettings.vue'
 
 const emit = defineEmits<{
@@ -10,13 +11,7 @@ const { selectedWidget } = storeToRefs(useWidgetStore())
 
 const showValue = ref(selectedWidget.value?.config?.appearance?.showValue ?? true)
 
-const ranges = ref<GaugeRange[]>(
-  selectedWidget.value?.config?.appearance?.ranges || [
-    { color: '#FF6E76', min: 0, max: 33, label: 'Low' },
-    { color: '#FDDD60', min: 33, max: 67, label: 'Medium' },
-    { color: '#7CFFB2', min: 67, max: 100, label: 'High' },
-  ],
-)
+const ranges = ref<GaugeRange[]>(selectedWidget.value?.config?.appearance?.ranges || defaultGaugeWidgetRange)
 
 const onShowValueChange = () => {
   emit('update:appearance', {

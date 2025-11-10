@@ -191,7 +191,8 @@ export class MailService extends MailServiceCE {
         }
 
         case MailEvent.TEAM_ASSIGNED_TO_WORKSPACE: {
-          const { req, owner, team, workspace, workspaceRole } = payload as any;
+          const { req, owner, team, workspace, workspaceRole } =
+            params.payload as any;
           const inviter = req.user;
           await mailerAdapter.mailSend({
             to: owner.email,
@@ -211,7 +212,7 @@ export class MailService extends MailServiceCE {
           break;
         }
         case MailEvent.TEAM_ASSIGNED_TO_BASE: {
-          const { req, owner, team, base, baseRole } = payload as any;
+          const { req, owner, team, base, baseRole } = params.payload as any;
           const inviter = req.user;
           await mailerAdapter.mailSend({
             to: owner.email,
@@ -234,7 +235,8 @@ export class MailService extends MailServiceCE {
           break;
         }
         case MailEvent.TEAM_MEMBER_INVITE: {
-          const { req, user, team, workspace, teamRole } = payload as any;
+          const { req, user, team, workspace, teamRole } =
+            params.payload as any;
           const inviter = req.user;
           await mailerAdapter.mailSend({
             to: user.email,
@@ -255,7 +257,7 @@ export class MailService extends MailServiceCE {
         }
         case MailEvent.TEAM_MEMBER_ROLE_UPDATE: {
           const { req, user, team, workspace, oldTeamRole, teamRole } =
-            payload as any;
+            params.payload as any;
           const updater = req.user;
           await mailerAdapter.mailSend({
             to: user.email,
@@ -276,7 +278,8 @@ export class MailService extends MailServiceCE {
           break;
         }
         case MailEvent.TEAM_MEMBER_REMOVED: {
-          const { req, user, team, workspace, teamRole } = payload as any;
+          const { req, user, team, workspace, teamRole } =
+            params.payload as any;
           const remover = req.user;
           await mailerAdapter.mailSend({
             to: user.email,
@@ -296,7 +299,8 @@ export class MailService extends MailServiceCE {
           break;
         }
         case MailEvent.WORKSPACE_TEAM_REMOVED: {
-          const { req, owner, team, workspace, workspaceRole } = payload as any;
+          const { req, owner, team, workspace, workspaceRole } =
+            params.payload as any;
           const remover = req.user;
           await mailerAdapter.mailSend({
             to: owner.email,
@@ -323,7 +327,7 @@ export class MailService extends MailServiceCE {
             workspace,
             oldWorkspaceRole,
             workspaceRole,
-          } = payload as any;
+          } = params.payload as any;
           const updater = req.user;
           await mailerAdapter.mailSend({
             to: owner.email,
@@ -344,7 +348,7 @@ export class MailService extends MailServiceCE {
           break;
         }
         case MailEvent.BASE_TEAM_REMOVED: {
-          const { req, owner, team, base, baseRole } = payload as any;
+          const { req, owner, team, base, baseRole } = params.payload as any;
           const remover = req.user;
           await mailerAdapter.mailSend({
             to: owner.email,
@@ -368,7 +372,7 @@ export class MailService extends MailServiceCE {
         }
         case MailEvent.BASE_TEAM_ROLE_UPDATE: {
           const { req, owner, team, base, oldBaseRole, baseRole } =
-            payload as any;
+            params.payload as any;
           const updater = req.user;
           await mailerAdapter.mailSend({
             to: owner.email,

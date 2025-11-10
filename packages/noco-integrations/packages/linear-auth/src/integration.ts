@@ -1,14 +1,14 @@
 import axios from 'axios';
-import { LinearClient } from '@linear/sdk';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, redirectUri, tokenUri } from './config';
+import type { AxiosInstance } from 'axios';
 import type {
   AuthResponse,
   TestConnectionResponse,
 } from '@noco-integrations/core';
 
 export class LinearAuthIntegration extends AuthIntegration {
-  public client: LinearClient | null = null;
+  public client: AxiosInstance | null = null;
 
   private async handleTokenRefresh(): Promise<void> {
     if (!this.config.refresh_token) {
@@ -37,31 +37,34 @@ export class LinearAuthIntegration extends AuthIntegration {
     }
   }
 
-  public async authenticate(): Promise<AuthResponse<LinearClient>> {
+  public async authenticate(): Promise<AuthResponse<AxiosInstance>> {
+    let accessToken: string;
     switch (this.config.type) {
       case AuthType.ApiKey:
         if (!this.config.token) {
           throw new Error('Missing required Linear API token');
         }
-
-        this.client = new LinearClient({
-          apiKey: this.config.token,
-        });
-
-        return this.client;
+        accessToken = this.config.token;
+        break;
       case AuthType.OAuth:
         if (!this.config.oauth_token) {
           throw new Error('Missing required Linear OAuth token');
         }
-
-        this.client = new LinearClient({
-          accessToken: this.config.oauth_token,
-        });
-
-        return this.client;
+        accessToken = `Bearer ${this.config.oauth_token}`;
+        break;
       default:
         throw new Error('Not implemented');
     }
+
+    this.client = axios.create({
+      baseURL: 'https://api.linear.app/graphql',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': accessToken,
+      },
+    });
+
+    return this.client;
   }
 
   public async testConnection(): Promise<TestConnectionResponse> {
@@ -76,14 +79,21 @@ export class LinearAuthIntegration extends AuthIntegration {
       }
 
       try {
-        await client.viewer;
+        const response = await client.post('', {
+          query: '{ viewer { id name email } }',
+        });
+
+        if (response.data.errors) {
+          throw new Error(`Linear API errors: ${JSON.stringify(response.data.errors)}`);
+        }
+
         return {
           success: true,
         };
       } catch (error: any) {
         // Check for authentication errors and attempt token refresh
         if (
-          (error?.message?.includes('Authentication required')) &&
+          (error?.response?.status === 401 || error?.message?.includes('Authentication')) &&
           this.config.type === AuthType.OAuth &&
           this.config.refresh_token
         ) {
@@ -92,7 +102,14 @@ export class LinearAuthIntegration extends AuthIntegration {
 
             const newClient = await this.authenticate();
 
-            await newClient.viewer;
+            const response = await newClient.post('', {
+              query: '{ viewer { id name email } }',
+            });
+
+            if (response.data.errors) {
+              throw new Error(`Linear API errors: ${JSON.stringify(response.data.errors)}`);
+            }
+
             return {
               success: true,
             };

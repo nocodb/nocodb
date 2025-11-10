@@ -4,13 +4,13 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type {
-  Comment,
-  IssueLabel,
-  LinearClient,
-  Team,
-  User,
-} from '@linear/sdk';
+import { ncIsUUID } from 'nocodb-sdk';
+import {
+  ISSUES_WITH_RELATIONS_QUERY,
+  TEAM_WITH_MEMBERS_QUERY,
+  TEAMS_QUERY,
+} from './graphql';
+import type { AxiosInstance } from 'axios';
 import type {
   AuthResponse,
   SyncLinkValue,
@@ -21,37 +21,20 @@ import type {
   TicketingUserRecord,
 } from '@noco-integrations/core';
 
-export interface LinearSyncPayload {
-  teamKey: string;
-  includeCanceled: boolean;
-  includeCompleted: boolean;
-}
 
-interface ProcessedIssue {
-  id: string;
-  title: string;
-  identifier: string;
-  description: string | null;
-  dueDate: string | null;
-  priority: number | null;
-  stateName: string | null;
-  completedAt: string | null;
-  canceledAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { LinearComment, LinearIssue, LinearLabel, LinearSyncPayload , LinearTeam, LinearUser, ProcessedIssue} from './types';
 
 export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPayload> {
   public getTitle() {
     return `${this.config.teamKey}`;
   }
 
-  public async getDestinationSchema(_auth: AuthResponse<LinearClient>) {
+  public async getDestinationSchema(_auth: AuthResponse<AxiosInstance>) {
     return SCHEMA_TICKETING;
   }
 
   public async fetchData(
-    auth: AuthResponse<LinearClient>,
+    auth: AuthResponse<AxiosInstance>,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
@@ -64,7 +47,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
       | TicketingTeamRecord
     >
   > {
-    const linear = auth;
+    const axiosClient = auth;
     const { teamKey, includeCanceled, includeCompleted } = this.config;
     const { targetTableIncrementalValues } = args;
 
@@ -76,7 +59,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     >();
 
     const userMap = new Map<string, boolean>();
-    const issueIdentifierMap = new Map<string, string>();
 
     (async () => {
       try {
@@ -85,20 +67,50 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
 
         // Find the team by key or ID
         this.log(`[Linear Sync] Finding team with identifier: ${teamKey}`);
-        
-        // Check if teamKey looks like a UUID (team ID) or a short key
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(teamKey);
-        
-        let team;
-        if (isUUID) {
+
+        let team: LinearTeam;
+        if (ncIsUUID(teamKey)) {
           // It's a team ID, fetch directly
           this.log(`[Linear Sync] Detected UUID format, fetching team by ID`);
-          team = await linear.team(teamKey);
+          const response = await axiosClient.post('', {
+            query: TEAM_WITH_MEMBERS_QUERY,
+            variables: { id: teamKey },
+          });
+          
+          if (response.data.errors) {
+            throw new Error(`Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`);
+          }
+          
+          team = response.data.data.team;
         } else {
           // It's a team key, fetch all teams and find by key
           this.log(`[Linear Sync] Detected key format, searching teams by key`);
-          const teamsConnection = await linear.teams();
-          team = teamsConnection.nodes.find((t) => t.key === teamKey);
+          const response = await axiosClient.post('', {
+            query: TEAMS_QUERY,
+          });
+          
+          if (response.data.errors) {
+            throw new Error(`Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`);
+          }
+          
+          const teams: LinearTeam[] = response.data.data.teams.nodes;
+          const foundTeam = teams.find((t) => t.key === teamKey);
+          
+          if (!foundTeam) {
+            throw new Error(`Team with key ${teamKey} not found`);
+          }
+          
+          // Fetch full team with members
+          const teamResponse = await axiosClient.post('', {
+            query: TEAM_WITH_MEMBERS_QUERY,
+            variables: { id: foundTeam.id },
+          });
+          
+          if (teamResponse.data.errors) {
+            throw new Error(`Linear GraphQL errors: ${JSON.stringify(teamResponse.data.errors)}`);
+          }
+          
+          team = teamResponse.data.data.team;
         }
 
         if (!team) {
@@ -151,7 +163,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         this.log(`[Linear Sync] Fetching issues for team ${teamKey} (ID: ${team.id})`);
         this.log(`[Linear Sync] Include canceled: ${includeCanceled}, Include completed: ${includeCompleted}`);
 
-        // Use Linear SDK pagination
         let hasNextPage = true;
         let endCursor: string | null = null;
         let totalIssuesFetched = 0;
@@ -159,33 +170,32 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         while (hasNextPage) {
           this.log(`[Linear Sync] Fetching page with cursor: ${endCursor || 'initial'}`);
           
-          const issuesConnection = await linear.issues({
-            filter: issueFilter,
-            first: 100,
-            after: endCursor || undefined,
-            includeArchived: includeCanceled || includeCompleted,
-          });
+          // Single GraphQL query fetches issues with ALL relations (state, assignee, creator, labels, comments)
+          const response = (await axiosClient.post('', {
+            query: ISSUES_WITH_RELATIONS_QUERY,
+            variables: {
+              filter: issueFilter,
+              first: 100,
+              after: endCursor || undefined,
+              includeArchived: includeCanceled || includeCompleted,
+            },
+          })) as any;
 
-          const issues = issuesConnection.nodes;
+          if (response?.data?.errors) {
+            throw new Error(`Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`);
+          }
+
+          const issuesData = response.data.data.issues;
+          const issues: LinearIssue[] = issuesData.nodes;
           totalIssuesFetched += issues.length;
           
           this.log(`[Linear Sync] Fetched ${issues.length} issues (total: ${totalIssuesFetched})`);
-          this.log(`[Linear Sync] PageInfo - hasNextPage: ${issuesConnection.pageInfo.hasNextPage}, hasPreviousPage: ${issuesConnection.pageInfo.hasPreviousPage}`);
+          this.log(`[Linear Sync] PageInfo - hasNextPage: ${issuesData.pageInfo.hasNextPage}`);
 
-          const batchSize = 5;
-          for (let i = 0; i < issues.length; i += batchSize) {
-            const batch = issues.slice(i, i + batchSize);
-            
-            await Promise.all(batch.map(async (issue) => {
-              try {
-                const [state, assigneeUser, creatorUser, labelsConnection] = await Promise.all([
-                  issue.state ? issue.state : Promise.resolve(null),
-                  issue.assignee ? issue.assignee : Promise.resolve(null),
-                  issue.creator ? issue.creator : Promise.resolve(null),
-                  issue.labels ? issue.labels() : Promise.resolve({ nodes: [] }),
-                ]);
-
-                const stateName = state ? state.name : null;
+          // Process all issues
+          for (const issue of issues) {
+            try {
+              const stateName = issue.state ? issue.state.name : null;
 
               // Process issue
               const processedIssue: ProcessedIssue = {
@@ -196,48 +206,43 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
                 dueDate: issue.dueDate || null,
                 priority: issue.priority,
                 stateName,
-                completedAt: issue.completedAt
-                  ? issue.completedAt.toString()
-                  : null,
-                canceledAt: issue.canceledAt ? issue.canceledAt.toString() : null,
-                createdAt: issue.createdAt.toString(),
-                updatedAt: issue.updatedAt.toString(),
+                completedAt: issue.completedAt || null,
+                canceledAt: issue.canceledAt || null,
+                createdAt: issue.createdAt,
+                updatedAt: issue.updatedAt,
               };
 
-              // Store the issue identifier for use with comments
-              issueIdentifierMap.set(issue.id, issue.identifier);
-
               // Process assignee
-              if (assigneeUser && !userMap.has(assigneeUser.id)) {
-                userMap.set(assigneeUser.id, true);
-                const userData = this.formatUser(assigneeUser);
+              if (issue.assignee && !userMap.has(issue.assignee.id)) {
+                userMap.set(issue.assignee.id, true);
+                const userData = this.formatUser(issue.assignee);
                 stream.push({
-                  recordId: assigneeUser.id,
+                  recordId: issue.assignee.id,
                   targetTable: TARGET_TABLES.TICKETING_USER,
                   data: userData.data as TicketingUserRecord,
                 });
               }
 
               // Process creator
-              if (creatorUser && !userMap.has(creatorUser.id)) {
-                userMap.set(creatorUser.id, true);
-                const userData = this.formatUser(creatorUser);
+              if (issue.creator && !userMap.has(issue.creator.id)) {
+                userMap.set(issue.creator.id, true);
+                const userData = this.formatUser(issue.creator);
                 stream.push({
-                  recordId: creatorUser.id,
+                  recordId: issue.creator.id,
                   targetTable: TARGET_TABLES.TICKETING_USER,
                   data: userData.data as TicketingUserRecord,
                 });
               }
 
               // Get labels
-              const labelsList = labelsConnection.nodes;
+              const labelsList = issue.labels.nodes;
 
               // Create ticket data
               const ticketData = this.formatTicket(
                 processedIssue,
                 labelsList,
-                assigneeUser,
-                creatorUser,
+                issue.assignee,
+                issue.creator,
               );
               stream.push({
                 recordId: issue.id,
@@ -246,69 +251,57 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
                 links: ticketData.links,
               });
 
-              // Fetch comments if requested
+              // Process comments
               if (args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)) {
-                try {
-                  const commentsConnection = await issue.comments();
-                  const comments = commentsConnection.nodes;
+                const comments = issue.comments.nodes;
 
-                  // Process comments in parallel
-                  await Promise.all(comments.map(async (comment) => {
-                    // Get comment user
-                    const commentUser = comment.user ? await comment.user : null;
-                    
-                    if (commentUser && !userMap.has(commentUser.id)) {
-                      userMap.set(commentUser.id, true);
-                      const userData = this.formatUser(commentUser);
-                      stream.push({
-                        recordId: commentUser.id,
-                        targetTable: TARGET_TABLES.TICKETING_USER,
-                        data: userData.data as TicketingUserRecord,
-                      });
-                    }
-
-                    const commentData = this.formatComment(
-                      comment,
-                      issue.id,
-                      commentUser,
-                      issue.identifier,
-                    );
+                for (const comment of comments) {
+                  // Process comment user
+                  if (comment.user && !userMap.has(comment.user.id)) {
+                    userMap.set(comment.user.id, true);
+                    const userData = this.formatUser(comment.user);
                     stream.push({
-                      recordId: comment.id,
-                      targetTable: TARGET_TABLES.TICKETING_COMMENT,
-                      data: commentData.data as TicketingCommentRecord,
-                      links: commentData.links,
+                      recordId: comment.user.id,
+                      targetTable: TARGET_TABLES.TICKETING_USER,
+                      data: userData.data as TicketingUserRecord,
                     });
-                  }));
-                } catch (error) {
-                  this.log(
-                    `[Linear Sync] Error fetching comments for issue ${issue.identifier}: ${error}`,
+                  }
+
+                  const commentData = this.formatComment(
+                    comment,
+                    issue.id,
+                    comment.user,
+                    issue.identifier,
                   );
+                  stream.push({
+                    recordId: comment.id,
+                    targetTable: TARGET_TABLES.TICKETING_COMMENT,
+                    data: commentData.data as TicketingCommentRecord,
+                    links: commentData.links,
+                  });
                 }
               }
-              } catch (error) {
-                this.log(
-                  `[Linear Sync] Error processing issue ${issue.identifier}: ${error}`,
-                );
-              }
-            }));
+            } catch (error) {
+              this.log(
+                `[Linear Sync] Error processing issue ${issue.identifier}: ${error}`,
+              );
+            }
           }
 
-          hasNextPage = issuesConnection.pageInfo.hasNextPage;
-          endCursor = issuesConnection.pageInfo.endCursor ?? null;
+          hasNextPage = issuesData.pageInfo.hasNextPage;
+          endCursor = issuesData.pageInfo.endCursor ?? null;
           
           this.log(`[Linear Sync] Page complete. Has next: ${hasNextPage}, End cursor: ${endCursor}`);
         }
         
         this.log(`[Linear Sync] Completed fetching all issues. Total: ${totalIssuesFetched}`);
 
-        // Fetch team members if needed
-        if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM)) {
+        // Process team members
+        if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM) && team.members) {
           try {
-            const membersConnection = await team.members();
-            const members = membersConnection.nodes;
+            const members = team.members.nodes;
             this.log(
-              `[Linear Sync] Fetched ${members.length} members for team ${teamKey}`,
+              `[Linear Sync] Processing ${members.length} members for team ${teamKey}`,
             );
 
             for (const member of members) {
@@ -334,7 +327,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
             }
           } catch (error) {
             this.log(
-              `[Linear Sync] Error fetching members for team ${teamKey}: ${error}`,
+              `[Linear Sync] Error processing members for team ${teamKey}: ${error}`,
             );
           }
         }
@@ -353,13 +346,13 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     targetTable: TARGET_TABLES,
     data:
       | ProcessedIssue
-      | User
-      | Comment
-      | Team
+      | LinearUser
+      | LinearComment
+      | LinearTeam
       | {
           issue?: ProcessedIssue;
-          comment: Comment;
-          user?: User;
+          comment: LinearComment;
+          user?: LinearUser;
           issueIdentifier?: string;
         },
   ): {
@@ -368,22 +361,20 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
   } {
     switch (targetTable) {
       case TARGET_TABLES.TICKETING_TICKET:
-        // Check if we have a ProcessedIssue with labels, assignee, creator
         if ('issue' in data) {
           return this.formatTicket(
             data.issue as ProcessedIssue,
-            'labels' in data ? (data.labels as IssueLabel[]) : undefined,
-            'assignee' in data ? (data.assignee as User) : undefined,
-            'creator' in data ? (data.creator as User) : undefined,
+            'labels' in data ? (data.labels as LinearLabel[]) : undefined,
+            'assignee' in data ? (data.assignee as LinearUser) : undefined,
+            'creator' in data ? (data.creator as LinearUser) : undefined,
           );
         }
         return this.formatTicket(data as ProcessedIssue);
 
       case TARGET_TABLES.TICKETING_USER:
-        return this.formatUser(data as User);
+        return this.formatUser(data as LinearUser);
 
       case TARGET_TABLES.TICKETING_COMMENT:
-        // Handle the enhanced comment case
         if ('comment' in data) {
           return this.formatComment(
             data.comment,
@@ -392,11 +383,10 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
             data.issueIdentifier,
           );
         }
-        // Handle basic comment
-        return this.formatComment(data as Comment);
+        return this.formatComment(data as LinearComment);
 
       case TARGET_TABLES.TICKETING_TEAM:
-        return this.formatTeam(data as Team);
+        return this.formatTeam(data as LinearTeam);
 
       default:
         throw new Error(`Unsupported table: ${targetTable}`);
@@ -405,9 +395,9 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
 
   private formatTicket(
     issue: ProcessedIssue,
-    labels: IssueLabel[] = [],
-    assignee: User | null = null,
-    creator: User | null = null,
+    labels: LinearLabel[] = [],
+    assignee: LinearUser | null = null,
+    creator: LinearUser | null = null,
   ): {
     data: TicketingTicketRecord;
     links?: Record<string, SyncLinkValue>;
@@ -425,7 +415,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
       Priority: issue.priority ? this.getPriorityName(issue.priority) : null,
       Status: issue.stateName || null,
       Tags: tags,
-      'Ticket Type': null,
+      'Ticket Type': 'Issue',
       Url: null,
       'Is Active': !issue.completedAt && !issue.canceledAt,
       'Completed At': issue.completedAt
@@ -457,7 +447,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     };
   }
 
-  private formatUser(user: User): {
+  private formatUser(user: LinearUser): {
     data: TicketingUserRecord;
   } {
     const userData: TicketingUserRecord = {
@@ -479,9 +469,9 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
   }
 
   private formatComment(
-    comment: Comment,
+    comment: LinearComment,
     issueId?: string,
-    user: User | null = null,
+    user: LinearUser | null = null,
     issueIdentifier?: string,
   ): {
     data: TicketingCommentRecord;
@@ -518,7 +508,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     };
   }
 
-  private formatTeam(team: Team): {
+  private formatTeam(team: LinearTeam): {
     data: TicketingTeamRecord;
   } {
     const teamData: TicketingTeamRecord = {

@@ -29,6 +29,7 @@ import PostgresAuth from '@noco-local-integrations/postgres-auth';
 import PostgresSync from '@noco-local-integrations/postgres-sync';
 import ZendeskAuth from '@noco-local-integrations/zendesk-auth';
 import ZendeskSync from '@noco-local-integrations/zendesk-sync';
+import ZohoAuth from '@noco-local-integrations/zoho-auth';
 
 import type { IntegrationEntry } from '@noco-local-integrations/core';
 
@@ -59,4 +60,5 @@ export default [
   PostgresSync,
   ZendeskAuth,
   ZendeskSync,
+  ZohoAuth,
 ] as IntegrationEntry[];

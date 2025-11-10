@@ -6,10 +6,6 @@ import rehypeSanitize from 'rehype-sanitize'
 import rehypeStringify from 'rehype-stringify'
 import type { CarouselApi } from '~/components/nc/Carousel/interface'
 
-defineRouteRules({
-  prerender: true,
-})
-
 const route = useRoute()
 const router = useRouter()
 

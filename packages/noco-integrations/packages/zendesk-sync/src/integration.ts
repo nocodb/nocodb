@@ -130,9 +130,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
           }
 
           page++;
-
-          // Respect rate limits
-          await new Promise((resolve) => setTimeout(resolve, 200));
         }
 
         this.log(`[Zendesk Sync] Total tickets fetched: ${totalTickets}`);
@@ -165,11 +162,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
               }
             } catch (error) {
               this.log(`[Zendesk Sync] Error fetching users batch: ${error}`);
-            }
-
-            // Respect rate limits
-            if (i + batchSize < userIds.length) {
-              await new Promise((resolve) => setTimeout(resolve, 200));
             }
           }
         }
@@ -222,9 +214,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
                   }
                 }
               }
-
-              // Respect rate limits
-              await new Promise((resolve) => setTimeout(resolve, 200));
             } catch (error: any) {
               // Log but don't fail - comments might not be accessible
               if (error.response?.status === 401) {
@@ -263,10 +252,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
               }
 
               orgNextPage = data.next_page;
-
-              if (orgNextPage) {
-                await new Promise((resolve) => setTimeout(resolve, 200));
-              }
             }
           } catch (error) {
             this.log(`[Zendesk Sync] Error fetching organizations: ${error}`);

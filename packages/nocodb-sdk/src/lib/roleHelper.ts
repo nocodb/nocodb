@@ -160,12 +160,17 @@ export function extractBaseRoleFromWorkspaceRole(
   return baseRole || null;
 }
 
-export function getEffectiveBaseRole(
-  baseRole: ProjectRoles,
-  baseTeamRole?: ProjectRoles,
-  workspaceRole?: WorkspaceUserRoles,
-  orkspaceTeamRole?: WorkspaceUserRoles
-) {
+export function getEffectiveBaseRole({
+  baseRole,
+  baseTeamRole,
+  workspaceRole,
+  workspaceTeamRole,
+}: {
+  baseRole: ProjectRoles;
+  baseTeamRole?: ProjectRoles;
+  workspaceRole?: WorkspaceUserRoles;
+  workspaceTeamRole?: WorkspaceUserRoles;
+}) {
   // Apply role priority hierarchy for base roles:
   // 1. Direct base role (highest priority)
   // 2. Role inherited from base-team
@@ -178,9 +183,13 @@ export function getEffectiveBaseRole(
     if (baseTeamRole) {
       finalBaseRole = baseTeamRole;
     } else if (workspaceRole && workspaceRole !== WorkspaceUserRoles.INHERIT) {
-      finalBaseRole = extractBaseRoleFromWorkspaceRole(workspaceRole) as ProjectRoles;
-    } else if (orkspaceTeamRole) {
-      finalBaseRole = extractBaseRoleFromWorkspaceRole(orkspaceTeamRole) as ProjectRoles;
+      finalBaseRole = extractBaseRoleFromWorkspaceRole(
+        workspaceRole
+      ) as ProjectRoles;
+    } else if (workspaceTeamRole) {
+      finalBaseRole = extractBaseRoleFromWorkspaceRole(
+        workspaceTeamRole
+      ) as ProjectRoles;
     }
   }
 

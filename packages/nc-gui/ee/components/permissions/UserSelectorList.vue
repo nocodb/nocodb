@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { PermissionKey, WorkspaceUserRoles } from 'nocodb-sdk'
+import { type PermissionKey, type WorkspaceUserRoles, getEffectiveBaseRole } from 'nocodb-sdk'
 import { PermissionMeta, PermissionRoleMap, PermissionRolePower, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
 import type { NcListProps } from '#imports'
 
@@ -58,11 +58,12 @@ const showTeams = computed(() => {
 const baseUsers = computed(() => {
   return (basesUser.value.get(baseId) || []).map((user) => ({
     ...user,
-    roles:
-      user.roles ??
-      (user.workspace_roles
-        ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
-        : ProjectRoles.NO_ACCESS),
+    roles: getEffectiveBaseRole({
+      baseRole: user.roles as ProjectRoles,
+      baseTeamRole: (user as any).base_team_roles as ProjectRoles,
+      workspaceRole: user.workspace_roles as WorkspaceUserRoles,
+      workspaceTeamRole: (user as any).workspace_team_roles as WorkspaceUserRoles,
+    }),
     ncGroupHeaderLabel: showTeams.value ? t('labels.members') : undefined,
   }))
 })

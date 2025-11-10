@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
-import { useWorkflowStoreOrThrow } from '../useWorkflow'
+import { WorkflowCategory, useWorkflowStoreOrThrow } from '../useWorkflow'
 import NodeTypeDropdown, { type NodeTypeOption } from './NodeTypeDropdown.vue'
 
 const props = defineProps<NodeProps>()
@@ -12,7 +12,7 @@ const { updateNode, addPlusNode, triggerLayout } = workflowStore
 
 // Get available trigger options (trigger sub-types)
 const availableOptions = computed((): NodeTypeOption[] => {
-  const triggerTypes = workflowStore.getNodeTypes().filter((nt) => nt.type.startsWith('trigger.') && !nt.hidden)
+  const triggerTypes = workflowStore.getNodeTypesByCategory(WorkflowCategory.TRIGGER)
   return triggerTypes.map((nt) => ({
     id: nt.type,
     label: nt.label,
@@ -48,7 +48,7 @@ const selectTriggerType = async (option: NodeTypeOption) => {
   <div class="trigger-node-wrapper">
     <NodeTypeDropdown
       :options="availableOptions"
-      :selected-id="props.type === 'core.trigger' ? undefined : type"
+      :selected-id="props.type === 'core.trigger' ? undefined : props.type"
       placeholder="When this happens"
       title="Choose a trigger"
       overlay-class-name="nc-dropdown-trigger-selection"

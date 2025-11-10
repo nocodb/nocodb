@@ -12,7 +12,7 @@ import Topbar from './Topbar.vue'
 
 import { useLayout } from './useLayout'
 import { useWorkflowValidation } from './useWorkflowValidation'
-import { WORKFLOW_NODE_TYPES, WorkflowCategory, useProvideWorkflowStore } from './useWorkflow'
+import { WorkflowCategory, useProvideWorkflowStore } from './useWorkflow'
 
 const { layout } = useLayout()
 const { validateWorkflow } = useWorkflowValidation()
@@ -25,14 +25,27 @@ const { activeWorkflow } = storeToRefs(workflowStoreApi)
 const { updateWorkflow } = workflowStoreApi
 const { activeProjectId } = storeToRefs(useBases())
 
+// Get initial workflow data
+const initialWorkflow = computed(() => {
+  if (!activeWorkflow.value?.nodes || !activeWorkflow.value?.edges) return undefined
+
+  return {
+    nodes: activeWorkflow.value.nodes,
+    edges: activeWorkflow.value.edges,
+  }
+})
+
+// Provide workflow store to child components
+const workflowStore = useProvideWorkflowStore(initialWorkflow.value)
+const { nodes, edges, setLayoutCallback, saveWorkflow, isSaving, workflowNodeTypes } = workflowStore
+
 // Dynamically map node types to components based on their category
-// This is similar to n8n's approach - we have visual components that handle multiple node types
-// Special handling for core.plus (the "add step" button) to maintain linear workflow like Monday.com
-const nodeTypes = (() => {
+// This is reactive and updates when node types are loaded from backend
+const nodeTypes = computed(() => {
   const types: Record<string, any> = {}
 
-  // Get all available node types
-  WORKFLOW_NODE_TYPES.forEach((nodeType) => {
+  // Get all available node types from the workflow store
+  workflowNodeTypes.value.forEach((nodeType) => {
     // Special case: core.plus gets its own dedicated component for linear workflow
     if (nodeType.type === 'core.plus') {
       types[nodeType.type] = markRaw(PlusNode)
@@ -48,21 +61,7 @@ const nodeTypes = (() => {
   })
 
   return types
-})()
-
-// Get initial workflow data
-const initialWorkflow = computed(() => {
-  if (!activeWorkflow.value?.nodes || !activeWorkflow.value?.edges) return undefined
-
-  return {
-    nodes: activeWorkflow.value.nodes,
-    edges: activeWorkflow.value.edges,
-  }
 })
-
-// Provide workflow store to child components
-const workflowStore = useProvideWorkflowStore(initialWorkflow.value)
-const { nodes, edges, setLayoutCallback, saveWorkflow, isSaving } = workflowStore
 
 async function layoutGraph() {
   nodes.value = layout(nodes.value, edges.value, 'TB')
@@ -146,7 +145,6 @@ defineExpose({
 <template>
   <div class="workflow-container">
     <Topbar :title="workflowTitle" :is-saving="isSaving" @save="handleSave" />
-
     <VueFlow
       :nodes="nodes"
       :edges="edges"

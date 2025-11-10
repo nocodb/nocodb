@@ -20,10 +20,32 @@ export interface WorkflowNodeType {
   hidden?: boolean
 }
 
-// Define all available workflow action/node types
-// This can be extended with backend-provided actions later
-export const WORKFLOW_NODE_TYPES: WorkflowNodeType[] = [
-  // Plus Node (special case)
+// Map backend WorkflowNodeCategory to UI WorkflowCategory
+const categoryMapping: Record<string, WorkflowCategory> = {
+  Trigger: WorkflowCategory.TRIGGER,
+  Action: WorkflowCategory.ACTION,
+  Flow: WorkflowCategory.LOGIC,
+}
+
+// Convert backend WorkflowNodeDefinition to UI WorkflowNodeType
+function backendNodeToUI(backendNode: any): WorkflowNodeType {
+  const inputPorts = backendNode.ports.filter((p) => p.direction === 'input')
+  const outputPorts = backendNode.ports.filter((p) => p.direction === 'output')
+
+  return {
+    type: backendNode.key,
+    label: backendNode.title,
+    icon: (backendNode.ui?.icon || 'ncAutomation') as keyof typeof iconMap,
+    category: categoryMapping[backendNode.category] || WorkflowCategory.ACTION,
+    description: backendNode.description,
+    input: inputPorts.length > 0 ? inputPorts.length : undefined,
+    output: outputPorts.length > 0 ? outputPorts.length : undefined,
+  }
+}
+
+// Fallback hardcoded nodes for backward compatibility
+const FALLBACK_NODE_TYPES: WorkflowNodeType[] = [
+  // Plus Node (special case - not from backend)
   {
     type: 'core.plus',
     label: 'Add Action / Condition',
@@ -32,63 +54,51 @@ export const WORKFLOW_NODE_TYPES: WorkflowNodeType[] = [
     category: WorkflowCategory.LOGIC,
     hidden: true,
   },
-  // Triggers
+  // Fallback trigger node (for initial UI rendering)
   {
     type: 'core.trigger',
     label: 'Trigger',
     icon: 'ncAutomation',
     description: 'Start your workflow',
     category: WorkflowCategory.TRIGGER,
-  },
-  // Trigger types (sub-types of trigger)
-  {
-    type: 'trigger.manual',
-    label: 'Manual Trigger',
-    icon: 'ncAutomation',
-    description: 'Trigger when clicked manually',
-    category: WorkflowCategory.TRIGGER,
-  },
-  // Regular Actions
-  {
-    type: 'nocodb.create_record',
-    label: 'Create Record',
-    icon: 'plus',
-    description: 'Create a new record in a table',
-    category: WorkflowCategory.ACTION,
-  },
-  {
-    type: 'nocodb.update_record',
-    label: 'Update Record',
-    icon: 'edit',
-    description: 'Update an existing record',
-    category: WorkflowCategory.ACTION,
-  },
-  {
-    type: 'nocodb.send_email',
-    label: 'Send Email',
-    icon: 'email',
-    description: 'Send an email notification',
-    category: WorkflowCategory.ACTION,
-  },
-  // Logic/Conditional
-  {
-    type: 'core.if_condition',
-    label: 'If / Else',
-    icon: 'ncGitBranch',
-    description: 'Branch workflow based on condition',
-    category: WorkflowCategory.LOGIC,
-    output: 2,
+    hidden: true,
   },
 ]
 
-const getNodeMetaByType = (type?: string) => {
-  const node = WORKFLOW_NODE_TYPES.find((node) => node.type === type)
-  return node ? clone(node) : null
-}
-
 const [useProvideWorkflowStore, useWorkflowStore] = useInjectionState((initialWorkflow?: { nodes: Node[]; edges: Edge[] }) => {
+  // Load workflow nodes from backend
+  const { workflowNodes, loadWorkflowNodes } = useWorkflowNodes()
+
+  // Reactive workflow node types (backend nodes + special UI nodes)
+  const workflowNodeTypes = ref<WorkflowNodeType[]>([...FALLBACK_NODE_TYPES])
+
+  // Initialize workflow nodes
+  const initializeNodes = async () => {
+    await loadWorkflowNodes()
+
+    // Convert backend nodes to UI format
+    const backendUINodes = workflowNodes.value.map(backendNodeToUI)
+
+    // Keep essential fallback nodes that are UI-only (not from backend)
+    const plusNode = FALLBACK_NODE_TYPES.find((n) => n.type === 'core.plus')!
+    const coreTrigger = FALLBACK_NODE_TYPES.find((n) => n.type === 'core.trigger')!
+
+    workflowNodeTypes.value = [plusNode, coreTrigger, ...backendUINodes]
+  }
+
+  // Initialize on mount
+  onMounted(() => {
+    initializeNodes()
+  })
+
+  const getNodeMetaByType = (type?: string) => {
+    const node = workflowNodeTypes.value.find((node) => node.type === type)
+    return node ? clone(node) : null
+  }
+
   const initNodes = [
     // Trigger node - the first mandatory node in every workflow
+    // Start with generic 'core.trigger' so user can select the specific trigger type
     {
       id: self.crypto.randomUUID(),
       type: 'core.trigger',
@@ -278,13 +288,13 @@ const [useProvideWorkflowStore, useWorkflowStore] = useInjectionState((initialWo
   /**
    * Get all node types
    */
-  const getNodeTypes = () => WORKFLOW_NODE_TYPES
+  const getNodeTypes = () => workflowNodeTypes.value
 
   /**
    * Get node types by category
    */
   const getNodeTypesByCategory = (category: WorkflowCategory) => {
-    return WORKFLOW_NODE_TYPES.filter((node) => node.category === category && !node.hidden)
+    return workflowNodeTypes.value.filter((node) => node.category === category && !node.hidden)
   }
 
   /**
@@ -299,6 +309,7 @@ const [useProvideWorkflowStore, useWorkflowStore] = useInjectionState((initialWo
     nodes,
     edges,
     isSaving,
+    workflowNodeTypes: readonly(workflowNodeTypes),
 
     // Methods
     addPlusNode,
@@ -307,6 +318,7 @@ const [useProvideWorkflowStore, useWorkflowStore] = useInjectionState((initialWo
     serializeWorkflow,
     loadWorkflow,
     saveWorkflow,
+    initializeNodes,
 
     // Node utilities
     updateNode,

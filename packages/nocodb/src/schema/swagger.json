@@ -21551,7 +21551,8 @@
           "finance",
           "ticketing",
           "storage",
-          "others"
+          "others",
+          "workflow-node"
         ]
       },
       "IntegrationReq": {

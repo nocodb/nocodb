@@ -229,6 +229,32 @@ importers:
         specifier: ^3.1.3
         version: 3.1.3(@types/node@20.17.46)
 
+  packages/freshdesk-auth:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      axios:
+        specifier: ^1.7.9
+        version: 1.9.0
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.8.3
+
+  packages/freshdesk-sync:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      axios:
+        specifier: ^1.6.0
+        version: 1.9.0
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.8.3
+
   packages/github-auth:
     dependencies:
       '@noco-integrations/core':
@@ -607,6 +633,22 @@ importers:
         specifier: ^1.9.0
         version: 1.9.0
     devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/zoho-auth:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      axios:
+        specifier: ^1.9.0
+        version: 1.9.0
+    devDependencies:
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
       typescript:
         specifier: ^5.8.3
         version: 5.8.3

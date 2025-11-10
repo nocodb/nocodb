@@ -10,6 +10,8 @@ import BitbucketSync from '@noco-local-integrations/bitbucket-sync';
 import ClaudeAi from '@noco-local-integrations/claude-ai';
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
 import DeepseekAi from '@noco-local-integrations/deepseek-ai';
+import FreshdeskAuth from '@noco-local-integrations/freshdesk-auth';
+import FreshdeskSync from '@noco-local-integrations/freshdesk-sync';
 import GithubAuth from '@noco-local-integrations/github-auth';
 import GithubSync from '@noco-local-integrations/github-sync';
 import GitlabAuth from '@noco-local-integrations/gitlab-auth';
@@ -41,6 +43,8 @@ export default [
   ClaudeAi,
   ClickhouseAuth,
   DeepseekAi,
+  FreshdeskAuth,
+  FreshdeskSync,
   GithubAuth,
   GithubSync,
   GitlabAuth,

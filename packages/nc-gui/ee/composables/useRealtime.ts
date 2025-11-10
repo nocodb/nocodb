@@ -528,6 +528,8 @@ export const useRealtime = createSharedComposable(() => {
       case 'teamCreate': {
         if (payload) {
           teams.value.push(payload)
+
+          updateStatLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT, 1)
         }
         break
       }
@@ -539,6 +541,7 @@ export const useRealtime = createSharedComposable(() => {
       }
       case 'teamDelete': {
         teams.value = teams.value.filter((t) => t.id !== id)
+        updateStatLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT, -1)
         break
       }
       case 'teamMembersAdd': {

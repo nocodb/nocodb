@@ -745,6 +745,13 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
                   );
                 });
             }),
+          [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: ncMeta
+            .knexConnection(MetaTable.TEAMS)
+            .count('*')
+            .where('fk_workspace_id', id)
+            .andWhere(function () {
+              this.where('deleted', false).orWhereNull('deleted');
+            }),
         })
         .first();
 

@@ -236,7 +236,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockAddNewTeamToWs = computed(() => {
-    if (!isPaymentEnabled.value && !isOnPrem.value) return true
+    if (blockTeamsManagement.value) return true
 
     return (
       isPaymentEnabled.value &&
@@ -1178,8 +1178,13 @@ export const useEeConfig = createSharedComposable(() => {
   /**
    * Todo: @rameshmane7218, @pranav - use this when backend changes done for add team limit based on plan
    */
-  const showUpgradeToAddMoreTeams = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockAddNewTeamToWs.value) return
+  const showUpgradeToAddMoreTeams = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel', successCallback?: () => void) => void; successCallback?: () => void } = {}) => {
+    if (!blockAddNewTeamToWs.value) {
+      return successCallback?.()
+    }
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToAddMoreTeams'),

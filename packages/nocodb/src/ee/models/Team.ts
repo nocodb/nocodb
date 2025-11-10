@@ -11,6 +11,7 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { PlanLimitTypes } from 'nocodb-sdk';
 
 // Todo: handle cache key when adding support for org level teams
 export default class Team {
@@ -86,6 +87,13 @@ export default class Team {
       context,
       CacheScope.TEAM,
       CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    await NocoCache.incrHashField(
+      'root',
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+      1,
     );
 
     return this.castType(fullTeam);
@@ -286,6 +294,13 @@ export default class Team {
       CacheScope.TEAM,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    await NocoCache.incrHashField(
+      'root',
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+      -1,
+    );
   }
 
   public static async delete(
@@ -322,6 +337,13 @@ export default class Team {
       CacheScope.TEAM,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    await NocoCache.incrHashField(
+      'root',
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+      1,
+    );
   }
 
   public static async hardDelete(
@@ -344,6 +366,13 @@ export default class Team {
       context,
       CacheScope.TEAM,
       CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    await NocoCache.incrHashField(
+      'root',
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+      -1,
     );
   }
 }

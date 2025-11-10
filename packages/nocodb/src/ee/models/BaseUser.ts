@@ -1,4 +1,9 @@
-import { NOCO_SERVICE_USERS, ProjectRoles } from 'nocodb-sdk';
+import {
+  NOCO_SERVICE_USERS,
+  OrderedProjectRoles,
+  OrderedWorkspaceRoles,
+  ProjectRoles,
+} from 'nocodb-sdk';
 import { BaseUser as BaseUserCE } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceRolesV3Type } from 'nocodb-sdk';
@@ -21,6 +26,7 @@ import { extractProps } from '~/helpers/extractProps';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import { getArrayAggExpression } from '~/helpers/dbHelpers';
 
 const logger = new Logger('BaseUser');
 
@@ -266,9 +272,84 @@ export default class BaseUser extends BaseUserCE {
     ];
 
     if (strict_in_record || (!isNoneList && !baseUsers.length)) {
+      // Create subqueries for workspace and base team roles
+      const workspaceTeamRolesSubquery = ncMeta.knexConnection
+        .select('pa.principal_ref_id as user_id')
+        .select(
+          getArrayAggExpression(
+            ncMeta.knex,
+            ncMeta.knexConnection,
+            'wta.roles',
+            'workspace_team_roles',
+          ),
+        )
+        .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wta`, function () {
+          this.on('wta.principal_ref_id', '=', 'pa.resource_id')
+            .andOn('wta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+            .andOn(
+              'wta.resource_type',
+              '=',
+              ncMeta.knex.raw('?', ['workspace']),
+            )
+            .andOn(
+              'wta.resource_id',
+              '=',
+              ncMeta.knex.raw('?', [base.fk_workspace_id]),
+            )
+            .andOn(
+              ncMeta.knex.raw('COALESCE(wta.deleted, FALSE)'),
+              '=',
+              ncMeta.knex.raw('?', [false]),
+            );
+        })
+        .where('pa.principal_type', '=', 'user')
+        .where('pa.resource_type', '=', 'team')
+        .where(
+          ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
+        .groupBy('pa.principal_ref_id')
+        .as('wtr');
+
+      const baseTeamRolesSubquery = ncMeta.knexConnection
+        .select('pa.principal_ref_id as user_id')
+        .select(
+          getArrayAggExpression(
+            ncMeta.knex,
+            ncMeta.knexConnection,
+            'bta.roles',
+            'base_team_roles',
+          ),
+        )
+        .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as bta`, function () {
+          this.on('bta.principal_ref_id', '=', 'pa.resource_id')
+            .andOn('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+            .andOn('bta.resource_type', '=', ncMeta.knex.raw('?', ['base']))
+            .andOn('bta.resource_id', '=', ncMeta.knex.raw('?', [base_id]))
+            .andOn(
+              ncMeta.knex.raw('COALESCE(bta.deleted, FALSE)'),
+              '=',
+              ncMeta.knex.raw('?', [false]),
+            );
+        })
+        .where('pa.principal_type', '=', 'user')
+        .where('pa.resource_type', '=', 'team')
+        .where(
+          ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
+        .groupBy('pa.principal_ref_id')
+        .as('btr');
+
       const queryBuilder = ncMeta
         .knex(MetaTable.USERS)
-        .select(this.selectBaseUserProps(context, ncMeta));
+        .select(this.selectBaseUserProps(context, ncMeta))
+        .select('wtr.workspace_team_roles')
+        .select('btr.base_team_roles');
 
       const joinClause = strict_in_record ? 'innerJoin' : 'leftJoin';
       queryBuilder
@@ -293,13 +374,73 @@ export default class BaseUser extends BaseUserCE {
             '=',
             ncMeta.knex.raw('?', [base_id]),
           );
-        });
+        })
+        .leftJoin(
+          workspaceTeamRolesSubquery,
+          'wtr.user_id',
+          `${MetaTable.USERS}.id`,
+        )
+        .leftJoin(
+          baseTeamRolesSubquery,
+          'btr.user_id',
+          `${MetaTable.USERS}.id`,
+        );
 
       baseUsers = await queryBuilder;
 
       baseUsers = baseUsers.map((baseUser) => {
         baseUser.base_id = base_id;
         baseUser.meta = parseMetaProp(baseUser);
+
+        // Process team roles - convert to arrays if needed, then extract topmost role
+        const workspaceTeamRoles = baseUser.workspace_team_roles;
+        const baseTeamRoles = baseUser.base_team_roles;
+
+        // Handle different database return types
+        let workspaceTeamRolesArray: string[] = [];
+        if (workspaceTeamRoles) {
+          if (typeof workspaceTeamRoles === 'string') {
+            try {
+              workspaceTeamRolesArray = JSON.parse(workspaceTeamRoles);
+            } catch {
+              workspaceTeamRolesArray = [workspaceTeamRoles];
+            }
+          } else if (Array.isArray(workspaceTeamRoles)) {
+            workspaceTeamRolesArray = workspaceTeamRoles;
+          } else {
+            workspaceTeamRolesArray = [workspaceTeamRoles];
+          }
+        }
+
+        let baseTeamRolesArray: string[] = [];
+        if (baseTeamRoles) {
+          if (typeof baseTeamRoles === 'string') {
+            try {
+              baseTeamRolesArray = JSON.parse(baseTeamRoles);
+            } catch {
+              baseTeamRolesArray = [baseTeamRoles];
+            }
+          } else if (Array.isArray(baseTeamRoles)) {
+            baseTeamRolesArray = baseTeamRoles;
+          } else {
+            baseTeamRolesArray = [baseTeamRoles];
+          }
+        }
+
+        // Extract topmost role from arrays (keep only the highest priority role)
+        const topmostWorkspaceTeamRole = this.getTopmostRole(
+          workspaceTeamRolesArray,
+          true,
+        );
+        const topmostBaseTeamRole = this.getTopmostRole(
+          baseTeamRolesArray,
+          false,
+        );
+
+        // Add topmost team roles to user object (single value, not array)
+        (baseUser as any).workspace_team_roles = topmostWorkspaceTeamRole;
+        (baseUser as any).base_team_roles = topmostBaseTeamRole;
+
         return this.castType(baseUser);
       });
 
@@ -311,6 +452,67 @@ export default class BaseUser extends BaseUserCE {
           baseUsers,
           ['base_id', 'id'],
         );
+      }
+    } else {
+      // If using cached data, ensure team roles are included
+      // We need to fetch team roles separately for cached users
+      try {
+        const userIds = baseUsers.map((u) => u.id);
+        if (userIds.length > 0) {
+          const workspaceTeamRolesMap = await this.getTeamRolesMap(
+            context,
+            base.fk_workspace_id,
+            base_id,
+            userIds,
+            ncMeta,
+          );
+
+          // Add topmost team roles to cached users
+          for (const user of baseUsers) {
+            const teamRoles = workspaceTeamRolesMap.get(user.id) || {
+              workspace_team_roles: [],
+              base_team_roles: [],
+            };
+            // Extract topmost role from arrays
+            const topmostWorkspaceTeamRole = this.getTopmostRole(
+              teamRoles.workspace_team_roles,
+              true,
+            );
+            const topmostBaseTeamRole = this.getTopmostRole(
+              teamRoles.base_team_roles,
+              false,
+            );
+            (user as any).workspace_team_roles = topmostWorkspaceTeamRole;
+            (user as any).base_team_roles = topmostBaseTeamRole;
+          }
+        } else {
+          // Initialize null if no users (no team roles)
+          for (const user of baseUsers) {
+            (user as any).workspace_team_roles = null;
+            (user as any).base_team_roles = null;
+          }
+        }
+      } catch (error) {
+        // If PrincipalAssignment table doesn't exist yet, skip team roles
+        logger.warn(
+          'Team roles not available - PrincipalAssignment table may not exist yet:',
+          error.message,
+        );
+        // Set null for team roles (no roles available)
+        for (const user of baseUsers) {
+          (user as any).workspace_team_roles = null;
+          (user as any).base_team_roles = null;
+        }
+      }
+    }
+
+    // Ensure all users have team roles initialized (null if not set)
+    for (const user of baseUsers) {
+      if ((user as any).workspace_team_roles === undefined) {
+        (user as any).workspace_team_roles = null;
+      }
+      if ((user as any).base_team_roles === undefined) {
+        (user as any).base_team_roles = null;
       }
     }
 
@@ -334,6 +536,37 @@ export default class BaseUser extends BaseUserCE {
         const newTeamUsers = teamUsers.filter(
           (u) => !existingUserIds.has(u.id),
         );
+
+        // Fetch team roles for new team users
+        if (newTeamUsers.length > 0) {
+          const newTeamUserIds = newTeamUsers.map((u) => u.id);
+          const teamRolesMap = await this.getTeamRolesMap(
+            context,
+            base.fk_workspace_id,
+            base_id,
+            newTeamUserIds,
+            ncMeta,
+          );
+
+          // Add topmost team roles to new team users
+          for (const teamUser of newTeamUsers) {
+            const teamRoles = teamRolesMap.get(teamUser.id) || {
+              workspace_team_roles: [],
+              base_team_roles: [],
+            };
+            // Extract topmost role from arrays
+            const topmostWorkspaceTeamRole = this.getTopmostRole(
+              teamRoles.workspace_team_roles,
+              true,
+            );
+            const topmostBaseTeamRole = this.getTopmostRole(
+              teamRoles.base_team_roles,
+              false,
+            );
+            (teamUser as any).workspace_team_roles = topmostWorkspaceTeamRole;
+            (teamUser as any).base_team_roles = topmostBaseTeamRole;
+          }
+        }
 
         baseUsers.push(...newTeamUsers);
       } catch (error) {
@@ -469,6 +702,45 @@ export default class BaseUser extends BaseUserCE {
     }
   }
 
+
+  /**
+   * Extract the topmost (highest priority) role from an array of roles
+   * @param roles - Array of roles (workspace or base team roles)
+   * @param isWorkspaceRole - Whether these are workspace roles (true) or base roles (false)
+   * @returns The topmost role or null if no valid roles found
+   */
+  private static getTopmostRole(
+    roles: string[] | null | undefined,
+    isWorkspaceRole: boolean,
+  ): string | null {
+    if (!roles || !Array.isArray(roles) || roles.length === 0) {
+      return null;
+    }
+
+    // Find the role with the lowest index (highest priority)
+    let topmostRole: string | null = null;
+    let topmostIndex = Infinity;
+
+    for (const role of roles) {
+      if (!role) continue;
+
+      // Use the appropriate ordered roles array based on type
+      let index = -1;
+      if (isWorkspaceRole) {
+        index = OrderedWorkspaceRoles.indexOf(role as any);
+      } else {
+        index = OrderedProjectRoles.indexOf(role as any);
+      }
+
+      if (index !== -1 && index < topmostIndex) {
+        topmostIndex = index;
+        topmostRole = role;
+      }
+    }
+
+    return topmostRole;
+  }
+
   static selectBaseUserProps(context: NcContext, ncMeta = Noco.ncMeta) {
     return [
       `${MetaTable.USERS}.id`,
@@ -496,6 +768,122 @@ export default class BaseUser extends BaseUserCE {
           ]
         : []),
     ];
+  }
+
+  /**
+   * Get team roles map for a list of users
+   * @param context - NocoDB context
+   * @param workspaceId - Workspace ID
+   * @param baseId - Base ID
+   * @param userIds - Array of user IDs
+   * @param ncMeta - NocoDB meta instance
+   * @returns Map of user ID to team roles
+   */
+  private static async getTeamRolesMap(
+    context: NcContext,
+    workspaceId: string,
+    baseId: string,
+    userIds: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<
+    Map<string, { workspace_team_roles: string[]; base_team_roles: string[] }>
+  > {
+    const rolesMap = new Map<
+      string,
+      { workspace_team_roles: string[]; base_team_roles: string[] }
+    >();
+
+    if (userIds.length === 0) {
+      return rolesMap;
+    }
+
+    try {
+      // Get workspace team roles
+      const workspaceTeamRoles = await ncMeta.knexConnection
+        .select('pa.principal_ref_id as user_id', 'wta.roles')
+        .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wta`, function () {
+          this.on('wta.principal_ref_id', '=', 'pa.resource_id')
+            .andOn('wta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+            .andOn(
+              'wta.resource_type',
+              '=',
+              ncMeta.knex.raw('?', ['workspace']),
+            )
+            .andOn('wta.resource_id', '=', ncMeta.knex.raw('?', [workspaceId]))
+            .andOn(
+              ncMeta.knex.raw('COALESCE(wta.deleted, FALSE)'),
+              '=',
+              ncMeta.knex.raw('?', [false]),
+            );
+        })
+        .where('pa.principal_type', '=', 'user')
+        .where('pa.resource_type', '=', 'team')
+        .whereIn('pa.principal_ref_id', userIds)
+        .where(
+          ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        );
+
+      // Get base team roles
+      const baseTeamRoles = await ncMeta.knexConnection
+        .select('pa.principal_ref_id as user_id', 'bta.roles')
+        .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as bta`, function () {
+          this.on('bta.principal_ref_id', '=', 'pa.resource_id')
+            .andOn('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+            .andOn('bta.resource_type', '=', ncMeta.knex.raw('?', ['base']))
+            .andOn('bta.resource_id', '=', ncMeta.knex.raw('?', [baseId]))
+            .andOn(
+              ncMeta.knex.raw('COALESCE(bta.deleted, FALSE)'),
+              '=',
+              ncMeta.knex.raw('?', [false]),
+            );
+        })
+        .where('pa.principal_type', '=', 'user')
+        .where('pa.resource_type', '=', 'team')
+        .whereIn('pa.principal_ref_id', userIds)
+        .where(
+          ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        );
+
+      // Initialize map with empty arrays
+      for (const userId of userIds) {
+        rolesMap.set(userId, {
+          workspace_team_roles: [],
+          base_team_roles: [],
+        });
+      }
+
+      // Populate workspace team roles
+      for (const row of workspaceTeamRoles) {
+        const userId = row.user_id;
+        const roles = rolesMap.get(userId);
+        if (roles && row.roles) {
+          if (!roles.workspace_team_roles.includes(row.roles)) {
+            roles.workspace_team_roles.push(row.roles);
+          }
+        }
+      }
+
+      // Populate base team roles
+      for (const row of baseTeamRoles) {
+        const userId = row.user_id;
+        const roles = rolesMap.get(userId);
+        if (roles && row.roles) {
+          if (!roles.base_team_roles.includes(row.roles)) {
+            roles.base_team_roles.push(row.roles);
+          }
+        }
+      }
+    } catch (error) {
+      logger.warn('Error fetching team roles:', error.message);
+    }
+
+    return rolesMap;
   }
 
   /**

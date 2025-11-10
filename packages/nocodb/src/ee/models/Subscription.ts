@@ -10,6 +10,7 @@ import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { Base } from '~/models';
+import { getArrayAggExpression } from '~/helpers/dbHelpers';
 
 const NOCODB_SKIP_SEAT = process.env.NOCODB_SKIP_SEAT === 'true';
 
@@ -233,6 +234,7 @@ export default class Subscription {
    * @param ncMeta Database metadata instance
    * @returns Object containing seat count, non-seat count, and user maps
    */
+
   public static async calculateWorkspaceSeatCount(
     workspaceId: string,
     ncMeta = Noco.ncMeta,
@@ -241,13 +243,15 @@ export default class Subscription {
     const bases = await Base.list(workspaceId, ncMeta);
     const activeBaseIds = (bases ?? []).map((b) => b.id);
 
-    // Note: Query implementation specific to PostgreSQL due to ARRAY_AGG usage
     // Subquery for workspace team roles (teams → workspace roles per user)
     const workspaceTeamRolesSubquery = ncMeta.knexConnection
+      .select('pa.principal_ref_id as user_id')
       .select(
-        'pa.principal_ref_id as user_id',
-        ncMeta.knex.raw(
-          'ARRAY_AGG(DISTINCT wta.roles) as workspace_team_roles',
+        getArrayAggExpression(
+          ncMeta.knex,
+          ncMeta.knexConnection,
+          'wta.roles',
+          'workspace_team_roles',
         ),
       )
       .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
@@ -274,9 +278,14 @@ export default class Subscription {
 
     // Subquery for base team roles (teams → base roles per user)
     const baseTeamRolesSubquery = ncMeta.knexConnection
+      .select('pa.principal_ref_id as user_id')
       .select(
-        'pa.principal_ref_id as user_id',
-        ncMeta.knex.raw('ARRAY_AGG(DISTINCT bta.roles) as base_team_roles'),
+        getArrayAggExpression(
+          ncMeta.knex,
+          ncMeta.knexConnection,
+          'bta.roles',
+          'base_team_roles',
+        ),
       )
       .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
       .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as bta`, function () {
@@ -311,8 +320,8 @@ export default class Subscription {
         `${MetaTable.USERS}.id as user_id`,
         'wu.roles as workspace_role',
         'bu.roles as base_role',
-        'wtr.workspace_team_roles as workspace_team_role',
-        'btr.base_team_roles as base_team_role',
+        'wtr.workspace_team_roles as workspace_team_roles',
+        'btr.base_team_roles as base_team_roles',
       )
       .from(MetaTable.USERS)
       // Left join with direct workspace users
@@ -375,12 +384,22 @@ export default class Subscription {
       // Extract base level role
       if (userRole.base_role && userRole.base_role !== ProjectRoles.INHERIT) {
         effectiveRoles.push(userRole.base_role);
-      } // Extract base team roles (now an array)
-      else if (
-        userRole.base_team_role &&
-        Array.isArray(userRole.base_team_role)
-      ) {
-        effectiveRoles.push(...userRole.base_team_role);
+      } // Extract base team roles (now an array or JSON string)
+      else if (userRole.base_team_roles) {
+        let baseTeamRoles = userRole.base_team_roles;
+        // Handle different database return types
+        if (typeof baseTeamRoles === 'string') {
+          try {
+            baseTeamRoles = JSON.parse(baseTeamRoles);
+          } catch {
+            baseTeamRoles = [baseTeamRoles];
+          }
+        }
+        if (Array.isArray(baseTeamRoles)) {
+          effectiveRoles.push(...baseTeamRoles);
+        } else if (baseTeamRoles) {
+          effectiveRoles.push(baseTeamRoles);
+        }
       }
 
       // Extract workspace role
@@ -389,12 +408,22 @@ export default class Subscription {
         userRole.workspace_role !== WorkspaceUserRoles.INHERIT
       ) {
         effectiveRoles.push(userRole.workspace_role);
-      } // Extract workspace team roles (now an array)
-      else if (
-        userRole.workspace_team_role &&
-        Array.isArray(userRole.workspace_team_role)
-      ) {
-        effectiveRoles.push(...userRole.workspace_team_role);
+      } // Extract workspace team roles (now an array or JSON string)
+      else if (userRole.workspace_team_roles) {
+        let workspaceTeamRoles = userRole.workspace_team_roles;
+        // Handle different database return types
+        if (typeof workspaceTeamRoles === 'string') {
+          try {
+            workspaceTeamRoles = JSON.parse(workspaceTeamRoles);
+          } catch {
+            workspaceTeamRoles = [workspaceTeamRoles];
+          }
+        }
+        if (Array.isArray(workspaceTeamRoles)) {
+          effectiveRoles.push(...workspaceTeamRoles);
+        } else if (workspaceTeamRoles) {
+          effectiveRoles.push(workspaceTeamRoles);
+        }
       }
 
       // Check if user has any seat-consuming role among all their roles

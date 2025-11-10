@@ -1,4 +1,5 @@
 import { PlanLimitTypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import {
   CacheDelDirection,
@@ -14,10 +15,10 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-import { PlanLimitTypes } from 'nocodb-sdk';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import Base from '~/models/Base';
-import { Logger } from '@nestjs/common';
+
+const logger = new Logger('Team');
 
 // Todo: handle cache key when adding support for org level teams
 export default class Team {
@@ -259,12 +260,6 @@ export default class Team {
 
     await NocoCache.set(context, `${CacheScope.TEAM}:${teamId}`, fullTeam);
 
-    await NocoCache.deepDel(
-      context,
-      CacheScope.TEAM,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
-
     // Clear all dependent caches when team is updated
     await this.clearDependentCaches(context, teamId, ncMeta);
 
@@ -289,7 +284,6 @@ export default class Team {
       `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-
     // Clear all dependent caches when team is soft deleted
     await this.clearDependentCaches(context, teamId, ncMeta);
 
@@ -332,7 +326,7 @@ export default class Team {
 
     await NocoCache.deepDel(
       context,
-      CacheScope.TEAM,
+      `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
@@ -368,10 +362,9 @@ export default class Team {
 
     await NocoCache.deepDel(
       context,
-      CacheScope.TEAM,
+      `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-
     await NocoCache.incrHashField(
       'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
@@ -439,7 +432,6 @@ export default class Team {
       }
     } catch (error) {
       // Log error but don't throw - cache clearing should not break the operation
-      const logger = new Logger('Team');
       logger.warn(
         `Error clearing dependent caches for team ${teamId}:`,
         error.message,

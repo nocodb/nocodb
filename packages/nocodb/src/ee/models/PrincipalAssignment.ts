@@ -744,6 +744,21 @@ export default class PrincipalAssignment {
     // Invalidate count cache for this resource
     const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
     await NocoCache.del(context, countCacheKey);
+
+    // Create context with base_id when restoring base assignments
+    const cacheContext: NcContext =
+      resourceType === ResourceTypeEnum.BASE
+        ? { ...context, base_id: resourceId }
+        : context;
+
+    // Clear BASE_USER cache when team assignments to base or workspace are restored
+    await this.clearBaseUserCacheIfNeeded(
+      cacheContext,
+      resourceType,
+      resourceId,
+      principalType,
+      ncMeta,
+    );
   }
 
   /**
@@ -788,6 +803,21 @@ export default class PrincipalAssignment {
     // Invalidate count cache for this resource
     const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
     await NocoCache.del(context, countCacheKey);
+
+    // Create context with base_id when hard deleting base assignments
+    const cacheContext: NcContext =
+      resourceType === ResourceTypeEnum.BASE
+        ? { ...context, base_id: resourceId }
+        : context;
+
+    // Clear BASE_USER cache when team assignments to base or workspace are hard deleted
+    await this.clearBaseUserCacheIfNeeded(
+      cacheContext,
+      resourceType,
+      resourceId,
+      principalType,
+      ncMeta,
+    );
   }
 
   /**

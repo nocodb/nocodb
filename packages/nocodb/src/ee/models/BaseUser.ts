@@ -445,6 +445,7 @@ export default class BaseUser extends BaseUserCE {
       });
 
       if (!strict_in_record) {
+        // Cache users with team roles included
         await NocoCache.setList(
           context,
           CacheScope.BASE_USER,
@@ -454,59 +455,20 @@ export default class BaseUser extends BaseUserCE {
         );
       }
     } else {
-      // If using cached data, ensure team roles are included
-      // We need to fetch team roles separately for cached users
-      try {
-        const userIds = baseUsers.map((u) => u.id);
-        if (userIds.length > 0) {
-          const workspaceTeamRolesMap = await this.getTeamRolesMap(
-            context,
-            base.fk_workspace_id,
-            base_id,
-            userIds,
-            ncMeta,
-          );
-
-          // Add topmost team roles to cached users
-          for (const user of baseUsers) {
-            const teamRoles = workspaceTeamRolesMap.get(user.id) || {
-              workspace_team_roles: [],
-              base_team_roles: [],
-            };
-            // Extract topmost role from arrays
-            const topmostWorkspaceTeamRole = this.getTopmostRole(
-              teamRoles.workspace_team_roles,
-              true,
-            );
-            const topmostBaseTeamRole = this.getTopmostRole(
-              teamRoles.base_team_roles,
-              false,
-            );
-            (user as any).workspace_team_roles = topmostWorkspaceTeamRole;
-            (user as any).base_team_roles = topmostBaseTeamRole;
-          }
-        } else {
-          // Initialize null if no users (no team roles)
-          for (const user of baseUsers) {
-            (user as any).workspace_team_roles = null;
-            (user as any).base_team_roles = null;
-          }
-        }
-      } catch (error) {
-        // If PrincipalAssignment table doesn't exist yet, skip team roles
-        logger.warn(
-          'Team roles not available - PrincipalAssignment table may not exist yet:',
-          error.message,
-        );
-        // Set null for team roles (no roles available)
-        for (const user of baseUsers) {
+      // If using cached data, initialize missing team roles to null
+      // Missing team roles means the user doesn't have any team roles
+      for (const user of baseUsers) {
+        if ((user as any).workspace_team_roles === undefined) {
           (user as any).workspace_team_roles = null;
+        }
+        if ((user as any).base_team_roles === undefined) {
           (user as any).base_team_roles = null;
         }
       }
     }
 
     // Ensure all users have team roles initialized (null if not set)
+    // This handles both fresh and cached data
     for (const user of baseUsers) {
       if ((user as any).workspace_team_roles === undefined) {
         (user as any).workspace_team_roles = null;
@@ -537,35 +499,11 @@ export default class BaseUser extends BaseUserCE {
           (u) => !existingUserIds.has(u.id),
         );
 
-        // Fetch team roles for new team users
-        if (newTeamUsers.length > 0) {
-          const newTeamUserIds = newTeamUsers.map((u) => u.id);
-          const teamRolesMap = await this.getTeamRolesMap(
-            context,
-            base.fk_workspace_id,
-            base_id,
-            newTeamUserIds,
-            ncMeta,
-          );
-
-          // Add topmost team roles to new team users
-          for (const teamUser of newTeamUsers) {
-            const teamRoles = teamRolesMap.get(teamUser.id) || {
-              workspace_team_roles: [],
-              base_team_roles: [],
-            };
-            // Extract topmost role from arrays
-            const topmostWorkspaceTeamRole = this.getTopmostRole(
-              teamRoles.workspace_team_roles,
-              true,
-            );
-            const topmostBaseTeamRole = this.getTopmostRole(
-              teamRoles.base_team_roles,
-              false,
-            );
-            (teamUser as any).workspace_team_roles = topmostWorkspaceTeamRole;
-            (teamUser as any).base_team_roles = topmostBaseTeamRole;
-          }
+        // Initialize team roles to null for new team users
+        // Team users are already part of workspace, so team roles would be included in main query if they exist
+        for (const teamUser of newTeamUsers) {
+          (teamUser as any).workspace_team_roles = null;
+          (teamUser as any).base_team_roles = null;
         }
 
         baseUsers.push(...newTeamUsers);
@@ -701,7 +639,6 @@ export default class BaseUser extends BaseUserCE {
       return [];
     }
   }
-
 
   /**
    * Extract the topmost (highest priority) role from an array of roles

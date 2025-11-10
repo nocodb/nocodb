@@ -178,7 +178,7 @@ export class ZendeskAuthIntegration extends AuthIntegration {
       throw new Error('Missing required Zendesk subdomain');
     }
 
-    const [code, _codeVerifier] = payload.code.includes('|')
+    const [code, codeVerifier] = payload.code.includes('|')
       ? payload.code.split('|')
       : [payload.code, payload.code_verifier];
 
@@ -186,10 +186,10 @@ export class ZendeskAuthIntegration extends AuthIntegration {
     const requestBody = {
       grant_type: 'authorization_code',
       code,
+      code_verifier: codeVerifier,
       client_id: clientId,
       client_secret: clientSecret,
       redirect_uri: redirectUri,
-      scope: 'read write',
     };
 
     const response = await axios.post(
@@ -224,7 +224,6 @@ export class ZendeskAuthIntegration extends AuthIntegration {
       refresh_token: payload.refresh_token,
       client_id: clientId,
       client_secret: clientSecret,
-      scope: 'read write',
     };
 
     const response = await axios.post(

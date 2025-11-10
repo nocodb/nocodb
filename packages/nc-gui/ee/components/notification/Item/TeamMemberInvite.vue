@@ -21,7 +21,7 @@ const item = toRef(props, 'item')
     "
   >
     <div>
-      <span class="font-semibold">{{ item.body.user.displayName ?? item.body.user.email }}</span> has added you to the team
+      <span class="font-semibold">{{ extractUserDisplayNameOrEmail(item.body.user) }}</span> has added you to the team
       <span class="font-semibold">{{ item.body.team.title }}</span>
       <span v-if="item.body.workspace">
         in workspace <span class="font-semibold">{{ item.body.workspace.title }}</span></span

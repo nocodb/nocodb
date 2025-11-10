@@ -1,5 +1,7 @@
 import { MailEvent, RawMailParams } from 'src/interface/Mail';
-import type { MailParams as CEMailParams } from 'src/interface/Mail';
+import type {
+  MailParams as CEMailParams,
+} from 'src/interface/Mail';
 import type {
   ColumnType,
   NcRequest,
@@ -61,6 +63,99 @@ type MailParams =
   | {
       mailEvent: MailEvent.WORKSPACE_REQUEST_UPGRADE;
       payload: WorkspaceRequestUpgradePayload;
+    }
+  | {
+      mailEvent: MailEvent.TEAM_MEMBER_INVITE;
+      payload: {
+        req: NcRequest;
+        user: UserType;
+        team: any;
+        workspace: any;
+        teamRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.TEAM_MEMBER_ROLE_UPDATE;
+      payload: {
+        req: NcRequest;
+        user: UserType;
+        team: any;
+        workspace: any;
+        oldTeamRole: string;
+        teamRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.TEAM_MEMBER_REMOVED;
+      payload: {
+        req: NcRequest;
+        user: UserType;
+        team: any;
+        workspace: any;
+        teamRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.TEAM_ASSIGNED_TO_WORKSPACE;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        workspace: any;
+        workspaceRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.TEAM_ASSIGNED_TO_BASE;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        base: any;
+        baseRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.WORKSPACE_TEAM_REMOVED;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        workspace: any;
+        workspaceRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.WORKSPACE_TEAM_ROLE_UPDATE;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        workspace: any;
+        oldWorkspaceRole: string;
+        workspaceRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.BASE_TEAM_REMOVED;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        base: any;
+        baseRole: string;
+      };
+    }
+  | {
+      mailEvent: MailEvent.BASE_TEAM_ROLE_UPDATE;
+      payload: {
+        req: NcRequest;
+        owner: UserType;
+        team: any;
+        base: any;
+        oldBaseRole: string;
+        baseRole: string;
+      };
     };
 
 export { MailEvent, MailParams, RawMailParams };

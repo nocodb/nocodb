@@ -57,7 +57,7 @@ export interface FormBuilderElement {
   oauthMeta?: {
     // oauth provider
     provider: string;
-    // oauth auth uri
+    // oauth auth uri - supports template variables like {{config.subdomain}}
     authUri: string;
     // oauth redirect uri
     redirectUri: string;

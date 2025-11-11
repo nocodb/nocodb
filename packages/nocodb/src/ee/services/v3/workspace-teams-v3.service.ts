@@ -353,7 +353,6 @@ export class WorkspaceTeamsV3Service {
           );
         }
       }
-    }
 
       // Emit workspace team update event
       this.appHooksService.emit(AppEvents.WORKSPACE_TEAM_UPDATE, {

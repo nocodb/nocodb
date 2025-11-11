@@ -5,6 +5,9 @@ import {
   TARGET_TABLES,
 } from '@noco-integrations/core';
 import type {
+  ChatwootAuthIntegration
+} from '@noco-integrations/chatwoot-auth';
+import type {
   ChatwootAgent,
   ChatwootContact,
   ChatwootConversation,
@@ -13,7 +16,6 @@ import type {
   ChatwootTeam,
 } from './types'
 import type {
-  AuthResponse,
   SyncLinkValue,
   SyncRecord,
   TicketingCommentRecord,
@@ -21,7 +23,6 @@ import type {
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
-import type { AxiosInstance } from 'axios';
 
 export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyncPayload> {
   public getTitle() {
@@ -33,7 +34,7 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
    * Chatwoot returns timestamps in seconds, not milliseconds
    */
   private toISOString(timestamp: number | null | undefined): string | null {
-    if (!timestamp || typeof timestamp !== 'number' || isNaN(timestamp)) {
+    if (!timestamp || isNaN(timestamp)) {
       return null;
     }
     try {
@@ -50,12 +51,12 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
     }
   }
 
-  public async getDestinationSchema(_auth: AuthResponse<AxiosInstance>) {
+  public async getDestinationSchema(_auth: ChatwootAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
   public async fetchData(
-    auth: AuthResponse<AxiosInstance>,
+    auth: ChatwootAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
@@ -68,7 +69,6 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
       | TicketingTeamRecord
     >
   > {
-    const client = auth;
     const { includeResolved, inboxId } = this.config;
     const { targetTableIncrementalValues } = args;
 
@@ -82,7 +82,7 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
     const userMap = new Map<number, boolean>();
     const teamMap = new Map<number, boolean>();
 
-    (async () => {
+    void (async () => {
       try {
         const ticketIncrementalValue =
           targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
@@ -104,7 +104,9 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
         let totalFetched = 0;
 
         while (hasMore) {
-          const response = await client.get('/conversations', { params });
+          const response = await auth.use(async (client) => {
+            return await client.get('/conversations', { params })
+          })
           const conversations: ChatwootConversation[] =
             response.data?.data?.payload || [];
 
@@ -217,7 +219,9 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
         if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM)) {
           try {
             this.log('[Chatwoot Sync] Fetching teams');
-            const teamsResponse = await client.get('/teams');
+            const teamsResponse = await auth.use(async (client) => {
+              return await client.get('/teams')
+            })
             const teams: ChatwootTeam[] = teamsResponse.data || [];
 
             this.log(`[Chatwoot Sync] Fetched ${teams.length} teams`);
@@ -228,7 +232,9 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
                 // Fetch team members
                 const memberIds: string[] = [];
                 try {
-                  const membersResponse = await client.get(`/teams/${team.id}/team_members`);
+                  const membersResponse = await auth.use(async (client) => {
+                    return await client.get(`/teams/${team.id}/team_members`)
+                  })
                   const members: ChatwootAgent[] = membersResponse.data || [];
                   
                   this.log(`[Chatwoot Sync] Fetched ${members.length} members for team ${team.id}`);

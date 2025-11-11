@@ -9,7 +9,8 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
-    "@noco-integrations/core": "workspace:*"
+    "@noco-integrations/core": "workspace:*",
+    "@noco-integrations/chatwoot-auth": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.8.3"

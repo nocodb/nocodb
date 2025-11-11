@@ -3,19 +3,20 @@ import {
   SyncIntegration,
   UITypes,
 } from '@noco-integrations/core';
-import type { Knex } from 'knex';
 import type {
-  AuthResponse,
   CustomSyncPayload,
   CustomSyncRecord,
   CustomSyncSchema,
   SyncAbstractType,
   TARGET_TABLES,
 } from '@noco-integrations/core';
+import type {
+  MySQLAuthIntegration
+} from '@noco-integrations/mysql-auth';
 
 class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   public async getDestinationSchema(
-    auth: AuthResponse<Knex>,
+    auth: MySQLAuthIntegration,
   ): Promise<CustomSyncSchema> {
     if (
       this.config.custom_schema &&
@@ -29,8 +30,6 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
       return this.config.custom_schema;
     }
 
-    const knex = auth;
-
     const schema: CustomSyncSchema = {};
 
     for (const table of this.config.tables) {
@@ -41,13 +40,15 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
       }[] = [];
 
       // MySQL uses INFORMATION_SCHEMA.COLUMNS
-      const tableSchema = await knex
-        .select('*')
-        .from('information_schema.columns')
-        .where({
-          table_name: table,
-          table_schema: this.config.database,
-        });
+      const tableSchema = await auth.use(async (knex) => {
+        return knex
+          .select('*')
+          .from('information_schema.columns')
+          .where({
+            table_name: table,
+            table_schema: this.config.database,
+          })
+      })
 
       for (const column of tableSchema) {
         const { uidt, abstractType } = this.autoDetectType(column.DATA_TYPE);
@@ -60,14 +61,16 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
       }
 
       // Get primary keys for MySQL
-      const primaryKeys = await knex
-        .select('COLUMN_NAME')
-        .from('information_schema.key_column_usage')
-        .where({
-          TABLE_NAME: table,
-          TABLE_SCHEMA: this.config.database,
-          CONSTRAINT_NAME: 'PRIMARY',
-        });
+      const primaryKeys = await auth.use(async (knex) => {
+        return knex
+          .select('COLUMN_NAME')
+          .from('information_schema.key_column_usage')
+          .where({
+            TABLE_NAME: table,
+            TABLE_SCHEMA: this.config.database,
+            CONSTRAINT_NAME: 'PRIMARY',
+          });
+      })
 
       schema[table] = {
         title: table,
@@ -83,7 +86,7 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   }
 
   public async fetchData(
-    auth: AuthResponse<Knex>,
+    auth: MySQLAuthIntegration,
     args: {
       targetTables?: (TARGET_TABLES | string)[];
       targetTableIncrementalValues?: Record<
@@ -92,10 +95,9 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
       >;
     },
   ): Promise<DataObjectStream<CustomSyncRecord>> {
-    const knex = auth;
     const stream = new DataObjectStream<CustomSyncRecord>();
 
-    (async () => {
+    void (async () => {
       try {
         // Ensure we have schema information
         const schema =
@@ -123,36 +125,38 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
           while (hasMore) {
             // Build query with pagination
-            let query = knex
-              .select(columnNames)
-              .from(`${this.config.database}.${tableName}`)
-              .limit(pageSize)
-              .offset(offset);
+            const rows = await auth.use(async (knex) => {
+              let query = knex
+                .select(columnNames)
+                .from(`${this.config.database}.${tableName}`)
+                .limit(pageSize)
+                .offset(offset);
 
-            // Apply incremental filter if available
-            const incrementalKey = this.getIncrementalKey(tableName as string);
-            const incrementalValue = incrementalValues[tableName];
+              // Apply incremental filter if available
+              const incrementalKey = this.getIncrementalKey(tableName as string);
+              const incrementalValue = incrementalValues[tableName];
 
-            if (incrementalKey && incrementalValue) {
-              query = query.where(incrementalKey, '>', incrementalValue);
-            }
-
-            // Add ordering to ensure consistent pagination
-            const primaryKeys = tableSchema.systemFields?.primaryKey;
-            if (primaryKeys && primaryKeys.length > 0) {
-              // Order by primary key(s) for consistent pagination
-              primaryKeys.forEach((pk) => {
-                query = query.orderBy(pk, 'asc');
-              });
-            } else {
-              // Fallback: order by first column if no primary key
-              if (columnNames.length > 0) {
-                query = query.orderBy(columnNames[0], 'asc');
+              if (incrementalKey && incrementalValue) {
+                query = query.where(incrementalKey, '>', incrementalValue);
               }
-            }
 
-            // Execute query
-            const rows = await query;
+              // Add ordering to ensure consistent pagination
+              const primaryKeys = tableSchema.systemFields?.primaryKey;
+              if (primaryKeys && primaryKeys.length > 0) {
+                // Order by primary key(s) for consistent pagination
+                primaryKeys.forEach((pk) => {
+                  query = query.orderBy(pk, 'asc');
+                });
+              } else {
+                // Fallback: order by first column if no primary key
+                if (columnNames.length > 0) {
+                  query = query.orderBy(columnNames[0], 'asc');
+                }
+              }
+
+              // Execute query
+              return query;
+            })
 
             // Process rows
             for (const row of rows) {
@@ -275,21 +279,19 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     return null;
   }
 
-  public async fetchOptions(auth: AuthResponse<Knex>, key: string) {
-    const knex = auth;
-
+  public async fetchOptions(auth: MySQLAuthIntegration, key: string) {
     if (key === 'databases') {
-      const qb = knex
-        .select('SCHEMA_NAME as database_name')
-        .from('information_schema.schemata')
-        .whereNotIn('SCHEMA_NAME', [
-          'information_schema',
-          'performance_schema',
-          'mysql',
-          'sys',
-        ]);
-
-      const databases = await qb;
+      const databases = await auth.use(async (knex) => {
+        return knex
+          .select('SCHEMA_NAME as database_name')
+          .from('information_schema.schemata')
+          .whereNotIn('SCHEMA_NAME', [
+            'information_schema',
+            'performance_schema',
+            'mysql',
+            'sys',
+          ]);
+      });
 
       return databases.map((database: { database_name: string }) => ({
         label: database.database_name,
@@ -298,15 +300,16 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     }
 
     if (key === 'tables') {
-      const qb = knex
-        .select('TABLE_NAME as table_name')
-        .from('information_schema.tables')
-        .where({
-          TABLE_SCHEMA: this.config.database,
-          TABLE_TYPE: 'BASE TABLE',
-        });
 
-      const tables = await qb;
+      const tables = await auth.use(async (knex) => {
+        return knex
+          .select('TABLE_NAME as table_name')
+          .from('information_schema.tables')
+          .where({
+            TABLE_SCHEMA: this.config.database,
+            TABLE_TYPE: 'BASE TABLE',
+          });
+      })
 
       return tables.map((table: { table_name: string }) => ({
         label: table.table_name,

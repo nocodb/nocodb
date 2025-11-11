@@ -4,14 +4,13 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
+import type {GitlabAuthIntegration} from '@noco-integrations/gitlab-auth'
 import type {
-  AuthResponse,
   SyncLinkValue,
   TicketingCommentRecord,
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
-import type { Gitlab } from '@gitbeaker/rest';
 import type {
   IssueSchema,
   MemberSchema,
@@ -32,13 +31,13 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
   }
 
   public async getDestinationSchema(
-    _auth: AuthResponse<InstanceType<typeof Gitlab>>,
+    _auth: GitlabAuthIntegration,
   ) {
     return SCHEMA_TICKETING;
   }
 
   public async fetchData(
-    auth: AuthResponse<InstanceType<typeof Gitlab>>,
+    auth: GitlabAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
@@ -48,7 +47,6 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
       TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord
     >
   > {
-    const gitlab = auth;
     const { projectId, includeClosed, includeMRs = false } = this.config;
     const { targetTableIncrementalValues } = args;
 
@@ -58,7 +56,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
     const userMap = new Map<number, boolean>();
     const issueMap = new Map<number, { id: number; iid: number }>();
 
-    (async () => {
+    void (async () => {
       try {
 
         const ticketIncrementalValue =
@@ -83,16 +81,18 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
         // Fetch all issues with pagination
         while (hasMoreIssues) {
           try {
-            const issues = await gitlab.Issues.all({
-              projectId,
-              state,
-              updatedAfter,
-              perPage,
-              page,
-              orderBy: 'updated_at',
-              sort: 'asc',
-              pagination: 'offset',
-            });
+            const issues = await auth.use(async (gitlab) => {
+              return await gitlab.Issues.all({
+                projectId,
+                state,
+                updatedAfter,
+                perPage,
+                page,
+                orderBy: 'updated_at',
+                sort: 'asc',
+                pagination: 'offset',
+              });
+            })
 
             if (issues.length === 0) {
               hasMoreIssues = false;
@@ -183,16 +183,18 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
             while (hasMoreMRs) {
               try {
-                const mergeRequests = await gitlab.MergeRequests.all({
-                  projectId,
-                  state: mrState as 'opened' | 'closed' | 'merged',
-                  updatedAfter,
-                  perPage,
-                  page,
-                  orderBy: 'updated_at',
-                  sort: 'asc',
-                  pagination: 'offset',
-                });
+                const mergeRequests = await auth.use(async (gitlab) => {
+                  return await gitlab.MergeRequests.all({
+                    projectId,
+                    state: mrState as 'opened' | 'closed' | 'merged',
+                    updatedAfter,
+                    perPage,
+                    page,
+                    orderBy: 'updated_at',
+                    sort: 'asc',
+                    pagination: 'offset',
+                  });
+                })
 
                 if (mergeRequests.length === 0) {
                   hasMoreMRs = false;
@@ -297,9 +299,9 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
                   // Process all pages of comments for this issue or MR
                   while (hasMoreComments) {
-                    // Use different API endpoints for issues vs merge requests
-                    const comments = isMergeRequest
-                      ? await gitlab.MergeRequestNotes.all(
+
+                    const comments = await auth.use(async (gitlab) => {
+                      return isMergeRequest ? await gitlab.MergeRequestNotes.all(
                         projectId,
                         actualIid,
                         {
@@ -309,14 +311,14 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                           orderBy: 'created_at',
                           pagination: 'offset',
                         },
-                      )
-                      : await gitlab.IssueNotes.all(projectId, actualIid, {
+                      ) : await gitlab.IssueNotes.all(projectId, actualIid, {
                         perPage,
                         page,
                         sort: 'asc',
                         orderBy: 'created_at',
                         pagination: 'offset',
-                      });
+                      })
+                    })
 
                     if (comments.length === 0) {
                       hasMoreComments = false;

@@ -4,9 +4,8 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type  { ZendeskClient } from '@noco-integrations/zendesk-auth';
+import type { ZendeskAuthIntegration } from '@noco-integrations/zendesk-auth';
 import type {
-  AuthResponse,
   SyncLinkValue,
   SyncRecord,
   TicketingCommentRecord,
@@ -24,12 +23,12 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
     return 'Zendesk Tickets';
   }
 
-  public async getDestinationSchema(_auth: AuthResponse<ZendeskClient>) {
+  public async getDestinationSchema(_auth: ZendeskAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
   public async fetchData(
-    auth: AuthResponse<ZendeskClient>,
+    auth: ZendeskAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
@@ -42,7 +41,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
       | TicketingTeamRecord
     >
   > {
-    const client = auth;
     const { includeClosed } = this.config;
     const { targetTableIncrementalValues } = args;
 
@@ -56,7 +54,7 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
     const userMap = new Map<string, boolean>();
     const ticketMap = new Map<string, boolean>();
 
-    (async () => {
+    void (async () => {
       try {
         const ticketIncrementalValue =
           targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
@@ -84,8 +82,11 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
         while (hasMore) {
           queryParams.set('page', page.toString());
           this.log(`[Zendesk Sync] Fetching page ${page}`);
+
+          const response = await auth.use(async (client) => {
+            return await client.get(`/tickets.json?${queryParams.toString()}`)
+          })
           
-          const response: any = await client.axios.get(`/tickets.json?${queryParams.toString()}`);
           const data: any = response.data;
 
           this.log(`[Zendesk Sync] Fetched ${data.tickets.length} tickets`);
@@ -148,9 +149,9 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
             });
 
             try {
-              const response = await client.axios.get(
-                `/users/show_many.json?${userQueryParams.toString()}`,
-              );
+              const response = await auth.use(async (client) => {
+                return await client.get(`/users/show_many.json?${userQueryParams.toString()}`,)
+              })
 
               for (const user of response.data.users) {
                 const userData = this.formatUser(user);
@@ -172,9 +173,9 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
 
           for (const ticketId of ticketMap.keys()) {
             try {
-              const response = await client.axios.get(
-                `/tickets/${ticketId}/comments.json`,
-              );
+              const response = await auth.use(async (client) => {
+                return await client.get(`/tickets/${ticketId}/comments.json`)
+              })
 
               if (!response.data.comments) {
                 continue;
@@ -197,9 +198,9 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
                   userMap.set(comment.author_id.toString(), true);
 
                   try {
-                    const userResponse = await client.axios.get(
-                      `/users/${comment.author_id}.json`,
-                    );
+                    const userResponse = await auth.use(async (client) => {
+                      return await client.get(`/users/${comment.author_id}.json`,)
+                    });
 
                     const userData = this.formatUser(userResponse.data.user);
                     stream.push({
@@ -236,10 +237,12 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
           this.log('[Zendesk Sync] Fetching organizations');
 
           try {
-            let orgNextPage: string | null = '/organizations.json';
+            let orgNextPage: string = '/organizations.json';
 
             while (orgNextPage) {
-              const response: any = await client.axios.get(orgNextPage);
+              const response = await auth.use(async (client) => {
+                return await client.get(orgNextPage)
+              });
               const data: any = response.data;
 
               for (const org of data.organizations) {

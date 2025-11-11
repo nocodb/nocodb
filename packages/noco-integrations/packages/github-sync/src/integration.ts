@@ -4,8 +4,8 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
+import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
 import type {
-  AuthResponse,
   SyncLinkValue,
   SyncRecord,
   TicketingCommentRecord,
@@ -26,12 +26,12 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     return `${this.config.repos[0]}${this.config.repos.length > 1 ? ` + ${this.config.repos.length - 1} more` : ''}`;
   }
 
-  public async getDestinationSchema(_auth: AuthResponse<Octokit>) {
+  public async getDestinationSchema(_auth:GithubAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
   public async fetchData(
-    auth: AuthResponse<Octokit>,
+    auth:GithubAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: {
@@ -39,7 +39,6 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
       };
     },
   ): Promise<DataObjectStream<SyncRecord>> {
-    const octokit = auth;
     const { repos, includeClosed, includePRs = false } = this.config;
     const { targetTableIncrementalValues } = args;
 
@@ -49,7 +48,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     const issueMap = new Map<number, { id: number; number: number }>();
     const teamMap = new Map<number, boolean>();
 
-    (async () => {
+    void (async () => {
       try {
         for (const repo of repos) {
           const [owner, repository] = repo.split('/');
@@ -69,13 +68,16 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
 
             try {
               // Get all teams from the organization
-              const teamsIterator = octokit.paginate.iterator(
-                octokit.rest.teams.list,
-                {
-                  org: owner,
-                  per_page: 100,
-                },
-              );
+
+              const teamsIterator = await auth.use(async (client) => {
+                return client.paginate.iterator(
+                  client.rest.teams.list,
+                  {
+                    org: owner,
+                    per_page: 100,
+                  },
+                );
+              })
 
               for await (const { data: teams } of teamsIterator) {
                 this.log(`[GitHub Sync] Fetched ${teams.length} teams`);
@@ -97,14 +99,16 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
 
                     // Fetch team members and add them to users if not already added
                     try {
-                      const membersIterator = octokit.paginate.iterator(
-                        octokit.rest.teams.listMembersInOrg,
-                        {
-                          org: owner,
-                          team_slug: team.slug,
-                          per_page: 100,
-                        },
-                      );
+                      const membersIterator = await auth.use(async (client) => {
+                        return client.paginate.iterator(
+                          client.rest.teams.listMembersInOrg,
+                          {
+                            org: owner,
+                            team_slug: team.slug,
+                            per_page: 100,
+                          },
+                        );
+                      })
 
                       for await (const { data: members } of membersIterator) {
                         for (const member of members) {
@@ -153,16 +157,18 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
             `[GitHub Sync] Fetching issues for repository ${owner}/${repository}`,
           );
 
-          const iterator = octokit.paginate.iterator(
-            octokit.rest.issues.listForRepo,
-            {
-              owner,
-              repo: repository,
-              per_page: 100,
-              since: fetchAfter,
-              ...(!includeClosed ? {} : { state: 'all' }),
-            },
-          );
+          const iterator = await auth.use(async (octokit) => {
+            return octokit.paginate.iterator(
+              octokit.rest.issues.listForRepo,
+              {
+                owner,
+                repo: repository,
+                per_page: 100,
+                since: fetchAfter,
+                ...(!includeClosed ? {} : { state: 'all' }),
+              },
+            )
+          })
 
           for await (const { data } of iterator) {
             this.log(`[GitHub Sync] Fetched ${data.length} issues`);
@@ -244,15 +250,17 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
 
               try {
                 // Fetch issue comments for the repository
-                const commentsIterator = octokit.paginate.iterator(
-                  octokit.rest.issues.listCommentsForRepo,
-                  {
-                    owner,
-                    repo: repository,
-                    per_page: 100,
-                    since: fetchAfter,
-                  },
-                );
+                const commentsIterator = await auth.use(async (octokit) => {
+                  return octokit.paginate.iterator(
+                    octokit.rest.issues.listCommentsForRepo,
+                    {
+                      owner,
+                      repo: repository,
+                      per_page: 100,
+                      since: fetchAfter,
+                    },
+                  );
+                })
 
                 for await (const { data: comments } of commentsIterator) {
                   for (const comment of comments) {
@@ -486,22 +494,23 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     return this.config.repos;
   }
 
-  public async fetchOptions(auth: AuthResponse<Octokit>, key: string) {
-    const octokit = auth;
+  public async fetchOptions(auth:GithubAuthIntegration, key: string) {
 
     if (key === 'repos') {
       try {
         const options: { label: string; value: string }[] = [];
 
         // Fetch user's repositories
-        const reposIterator = octokit.paginate.iterator(
-          octokit.rest.repos.listForAuthenticatedUser,
-          {
-            per_page: 100,
-            sort: 'updated',
-            direction: 'desc',
-          },
-        );
+        const reposIterator = await auth.use(async (octokit) => {
+          return octokit.paginate.iterator(
+            octokit.rest.repos.listForAuthenticatedUser,
+            {
+              per_page: 100,
+              sort: 'updated',
+              direction: 'desc',
+            },
+          );
+        })
 
         for await (const { data: repos } of reposIterator) {
           for (const repo of repos) {

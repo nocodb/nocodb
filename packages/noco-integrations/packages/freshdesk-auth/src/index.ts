@@ -21,5 +21,8 @@ const integration: IntegrationEntry = {
   form,
   manifest,
 };
+
+export {FreshdeskAuthIntegration}
+
 export default integration;
 

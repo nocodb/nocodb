@@ -4,15 +4,14 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
+import type { FreshdeskAuthIntegration } from '@noco-integrations/freshdesk-auth'
 import type {
-  AuthResponse,
   SyncLinkValue,
   TicketingCommentRecord,
   TicketingTeamRecord,
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
-import type { AxiosInstance } from 'axios';
 
 /**
  * Freshdesk Sync Integration Configuration
@@ -33,7 +32,7 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
     return 'Freshdesk Tickets';
   }
 
-  public async getDestinationSchema(_auth: AuthResponse<AxiosInstance>) {
+  public async getDestinationSchema(_auth: FreshdeskAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
@@ -42,7 +41,7 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
    * Fetches tickets, contacts, agents, and groups from Freshdesk
    */
   public async fetchData(
-    auth: AuthResponse<AxiosInstance>,
+    auth: FreshdeskAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
@@ -55,7 +54,6 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
       | TicketingTeamRecord
     >
   > {
-    const client = auth;
     const { includeClosed } = this.config;
     const { targetTableIncrementalValues } = args;
 
@@ -70,14 +68,14 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
     const agentMap = new Map<string, boolean>();
     const ticketIds: string[] = [];
 
-    (async () => {
+    void (async () => {
       try {
         const ticketIncrementalValue =
           targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
 
         // Fetch tickets
         await this.fetchTickets(
-          client,
+          auth,
           stream,
           ticketIncrementalValue,
           includeClosed,
@@ -87,16 +85,16 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
         );
 
         // Fetch contacts (users)
-        await this.fetchContacts(client, stream, userMap);
+        await this.fetchContacts(auth, stream, userMap);
 
         // Fetch agents
-        await this.fetchAgents(client, stream, agentMap);
+        await this.fetchAgents(auth, stream, agentMap);
 
         // Fetch groups (teams)
-        await this.fetchGroups(client, stream);
+        await this.fetchGroups(auth, stream);
 
         // Fetch conversations (comments) for all tickets
-        await this.fetchConversations(client, stream, ticketIds, userMap, agentMap);
+        await this.fetchConversations(auth, stream, ticketIds, userMap, agentMap);
 
         stream.push(null);
       } catch (error) {
@@ -150,7 +148,7 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
    * Pagination: page parameter (starts at 1), per_page max 100
    */
   private async fetchTickets(
-    client: AxiosInstance,
+    auth: FreshdeskAuthIntegration,
     stream: DataObjectStream<any>,
     incrementalValue: string | undefined,
     includeClosed: boolean,
@@ -181,7 +179,10 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
 
         this.log(`[Freshdesk Sync] Fetching tickets page ${page}`);
 
-        const response = await client.get(`/tickets?${queryParams.toString()}`);
+        const response = await auth.use(async (client) => {
+          return await client.get(`/tickets?${queryParams.toString()}`);
+        })
+
         const tickets = response.data;
 
         if (!tickets || tickets.length === 0) {
@@ -235,7 +236,7 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
    * Fetch contacts (users/requesters) from Freshdesk
    */
   private async fetchContacts(
-    client: AxiosInstance,
+    auth: FreshdeskAuthIntegration,
     stream: DataObjectStream<any>,
     userMap: Map<string, boolean>,
   ): Promise<void> {
@@ -249,7 +250,9 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
 
     for (const userId of userIds) {
       try {
-        const response = await client.get(`/contacts/${userId}`);
+        const response = await auth.use(async (client) => {
+          return await client.get(`/contacts/${userId}`);
+        })
         const contact = response.data;
 
         const userData = this.formatData(TARGET_TABLES.TICKETING_USER, contact);
@@ -270,7 +273,7 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
    * Fetch agents from Freshdesk
    */
   private async fetchAgents(
-    client: AxiosInstance,
+    auth: FreshdeskAuthIntegration,
     stream: DataObjectStream<any>,
     agentMap: Map<string, boolean>,
   ): Promise<void> {
@@ -284,7 +287,9 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
 
     for (const agentId of agentIds) {
       try {
-        const response = await client.get(`/agents/${agentId}`);
+        const response = await auth.use(async (client) => {
+          return await client.get(`/agents/${agentId}`);
+        })
         const agent = response.data;
 
         const agentData = this.formatData(TARGET_TABLES.TICKETING_USER, agent);
@@ -307,13 +312,15 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
    * Groups are associated with agents, fetched from /api/v2/admin/groups
    */
   private async fetchGroups(
-    client: AxiosInstance,
+    auth: FreshdeskAuthIntegration,
     stream: DataObjectStream<any>,
   ): Promise<void> {
     this.log('[Freshdesk Sync] Fetching groups');
 
     try {
-      const response = await client.get('/admin/groups');
+      const response = await auth.use(async (client) => {
+        return await client.get(`/admin/groups`);
+      })
       const groups = response.data;
 
       if (!groups || groups.length === 0) {
@@ -341,7 +348,7 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
    * Fetch conversations (comments) for tickets from Freshdesk
    */
   private async fetchConversations(
-    client: AxiosInstance,
+    auth: FreshdeskAuthIntegration,
     stream: DataObjectStream<any>,
     ticketIds: string[],
     userMap: Map<string, boolean>,
@@ -367,7 +374,9 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
             page: page.toString(),
           });
 
-          const response = await client.get(`/tickets/${ticketId}/conversations?${queryParams.toString()}`);
+          const response = await auth.use(async (client) => {
+            return await client.get(`/tickets/${ticketId}/conversations?${queryParams.toString()}`);
+          })
           const conversations = response.data;
 
           if (!conversations || conversations.length === 0) {

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
+    "@noco-integrations/zendesk-auth": "workspace:*",
     "axios": "^1.9.0"
   },
   "devDependencies": {

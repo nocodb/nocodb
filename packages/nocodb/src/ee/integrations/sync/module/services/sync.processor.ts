@@ -958,10 +958,10 @@ export class SyncModuleSyncDataProcessor {
     const authWrapper =
       await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-    const auth = await authWrapper.authenticate();
+    await authWrapper.authenticate();
 
     // Get new schema from integration
-    const newSchema = await wrapper.getDestinationSchema(auth);
+    const newSchema = await wrapper.getDestinationSchema(authWrapper);
 
     // Get sync mappings for non-mm tables
     const syncMappings = await SyncMapping.list(context, {

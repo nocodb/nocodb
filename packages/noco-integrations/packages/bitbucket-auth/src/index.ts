@@ -14,4 +14,6 @@ const integration: IntegrationEntry = {
   manifest,
 };
 
+export { BitbucketAuthIntegration }
+
 export default integration;

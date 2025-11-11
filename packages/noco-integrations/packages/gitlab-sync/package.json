@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@gitbeaker/rest": "^43.8.0",
-    "@noco-integrations/core": "workspace:*"
+    "@noco-integrations/core": "workspace:*",
+    "@noco-integrations/gitlab-auth": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.17.46",

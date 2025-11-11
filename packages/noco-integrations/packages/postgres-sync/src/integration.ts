@@ -3,19 +3,20 @@ import {
   SyncIntegration,
   UITypes,
 } from '@noco-integrations/core';
-import type { Knex } from 'knex';
 import type {
-  AuthResponse,
   CustomSyncPayload,
   CustomSyncRecord,
   CustomSyncSchema,
   SyncAbstractType,
   TARGET_TABLES,
 } from '@noco-integrations/core';
+import type {
+  PostgresAuthIntegration
+} from '@noco-integrations/postgres-auth';
 
 class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   public async getDestinationSchema(
-    auth: AuthResponse<Knex>,
+    auth: PostgresAuthIntegration,
   ): Promise<CustomSyncSchema> {
     if (
       this.config.custom_schema &&
@@ -28,9 +29,6 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     ) {
       return this.config.custom_schema;
     }
-
-    const knex = auth;
-
     const schema: CustomSyncSchema = {};
 
     for (const table of this.config.tables) {
@@ -40,18 +38,20 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         abstractType: SyncAbstractType;
       }[] = [];
 
-      const tableSchema = await knex
-        .select('a.attname as column_name', 't.typname as data_type')
-        .from('pg_attribute as a')
-        .join('pg_class as c', 'a.attrelid', 'c.oid')
-        .join('pg_namespace as n', 'c.relnamespace', 'n.oid')
-        .join('pg_type as t', 'a.atttypid', 't.oid')
-        .where({
-          'c.relname': table,
-          'n.nspname': this.config.schema,
-        })
-        .andWhere('a.attnum', '>', 0) // exclude system columns
-        .andWhere('a.attisdropped', false); // exclude dropped columns
+      const tableSchema = await auth.use(async (knex) => {
+        return knex
+          .select('a.attname as column_name', 't.typname as data_type')
+          .from('pg_attribute as a')
+          .join('pg_class as c', 'a.attrelid', 'c.oid')
+          .join('pg_namespace as n', 'c.relnamespace', 'n.oid')
+          .join('pg_type as t', 'a.atttypid', 't.oid')
+          .where({
+            'c.relname': table,
+            'n.nspname': this.config.schema,
+          })
+          .andWhere('a.attnum', '>', 0) // exclude system columns
+          .andWhere('a.attisdropped', false); // exclude dropped columns
+      })
 
       for (const column of tableSchema) {
         const { uidt, abstractType } = this.autoDetectType(column.data_type);
@@ -63,20 +63,22 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
         });
       }
 
-      const primaryKeys = await knex
-        .select('kcu.column_name')
-        .from('information_schema.key_column_usage as kcu')
-        .join('information_schema.table_constraints as tc', function () {
-          this.on('kcu.constraint_name', '=', 'tc.constraint_name').andOn(
-            'kcu.table_name',
-            '=',
-            'tc.table_name',
-          );
-        })
-        .where({
-          'kcu.table_name': table,
-          'tc.constraint_type': 'PRIMARY KEY',
-        });
+      const primaryKeys = await auth.use(async (knex) => {
+        return knex
+          .select('kcu.column_name')
+          .from('information_schema.key_column_usage as kcu')
+          .join('information_schema.table_constraints as tc', function () {
+            this.on('kcu.constraint_name', '=', 'tc.constraint_name').andOn(
+              'kcu.table_name',
+              '=',
+              'tc.table_name',
+            );
+          })
+          .where({
+            'kcu.table_name': table,
+            'tc.constraint_type': 'PRIMARY KEY',
+          });
+      })
 
       schema[table] = {
         title: table,
@@ -92,7 +94,7 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   }
 
   public async fetchData(
-    auth: AuthResponse<Knex>,
+    auth: PostgresAuthIntegration,
     args: {
       targetTables?: (TARGET_TABLES | string)[];
       targetTableIncrementalValues?: Record<
@@ -101,10 +103,9 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
       >;
     },
   ): Promise<DataObjectStream<CustomSyncRecord>> {
-    const knex = auth;
     const stream = new DataObjectStream<CustomSyncRecord>();
 
-    (async () => {
+    void (async () => {
       try {
         // Ensure we have schema information
         const schema =
@@ -132,36 +133,38 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
           while (hasMore) {
             // Build query with pagination
-            let query = knex
-              .select(columnNames)
-              .from(`${this.config.schema}.${tableName}`)
-              .limit(pageSize)
-              .offset(offset);
+            const rows = await auth.use(async (knex) => {
+              let query = knex
+                .select(columnNames)
+                .from(`${this.config.schema}.${tableName}`)
+                .limit(pageSize)
+                .offset(offset);
 
-            // Apply incremental filter if available
-            const incrementalKey = this.getIncrementalKey(tableName as string);
-            const incrementalValue = incrementalValues[tableName];
+              // Apply incremental filter if available
+              const incrementalKey = this.getIncrementalKey(tableName as string);
+              const incrementalValue = incrementalValues[tableName];
 
-            if (incrementalKey && incrementalValue) {
-              query = query.where(incrementalKey, '>', incrementalValue);
-            }
-
-            // Add ordering to ensure consistent pagination
-            const primaryKeys = tableSchema.systemFields?.primaryKey;
-            if (primaryKeys && primaryKeys.length > 0) {
-              // Order by primary key(s) for consistent pagination
-              primaryKeys.forEach((pk) => {
-                query = query.orderBy(pk, 'asc');
-              });
-            } else {
-              // Fallback: order by first column if no primary key
-              if (columnNames.length > 0) {
-                query = query.orderBy(columnNames[0], 'asc');
+              if (incrementalKey && incrementalValue) {
+                query = query.where(incrementalKey, '>', incrementalValue);
               }
-            }
 
-            // Execute query
-            const rows = await query;
+              // Add ordering to ensure consistent pagination
+              const primaryKeys = tableSchema.systemFields?.primaryKey;
+              if (primaryKeys && primaryKeys.length > 0) {
+                // Order by primary key(s) for consistent pagination
+                primaryKeys.forEach((pk) => {
+                  query = query.orderBy(pk, 'asc');
+                });
+              } else {
+                // Fallback: order by first column if no primary key
+                if (columnNames.length > 0) {
+                  query = query.orderBy(columnNames[0], 'asc');
+                }
+              }
+
+              // Execute query
+              return  query;
+            })
 
             // Process rows
             for (const row of rows) {
@@ -284,13 +287,13 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     return null;
   }
 
-  public async fetchOptions(auth: AuthResponse<Knex>, key: string) {
-    const knex = auth;
+  public async fetchOptions(auth: PostgresAuthIntegration, key: string) {
 
     if (key === 'schemas') {
-      const qb = knex.select('schema_name').from('information_schema.schemata');
 
-      const schemas = await qb;
+      const schemas = await auth.use(async (knex) => {
+        return knex.select('schema_name').from('information_schema.schemata');
+      })
 
       return schemas.map((schema: { schema_name: string }) => ({
         label: schema.schema_name,
@@ -299,16 +302,19 @@ class PostgresSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     }
 
     if (key === 'tables') {
-      const tables = await knex
-        .select('table_name')
-        .from('information_schema.tables')
-        .where({ table_schema: this.config.schema })
-        .unionAll([
-          knex
-            .select('matviewname as table_name')
-            .from('pg_matviews')
-            .where({ schemaname: this.config.schema })
-        ]);
+
+      const tables = await auth.use(async (knex) => {
+        return knex
+          .select('table_name')
+          .from('information_schema.tables')
+          .where({ table_schema: this.config.schema })
+          .unionAll([
+            knex
+              .select('matviewname as table_name')
+              .from('pg_matviews')
+              .where({ schemaname: this.config.schema })
+          ]);
+      })
 
       return tables.map((table: { table_name: string }) => ({
         label: table.table_name,

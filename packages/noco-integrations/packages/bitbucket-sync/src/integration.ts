@@ -4,15 +4,14 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
+import type { BitbucketAuthIntegration } from '@noco-integrations/bitbucket-auth'
 import type {
-  AuthResponse,
   SyncLinkValue,
   SyncRecord,
   TicketingCommentRecord,
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
-import type { AxiosInstance } from 'axios';
 
 export interface BitbucketSyncPayload {
   repos: string[];
@@ -25,12 +24,12 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
     return `${this.config.repos[0]}${this.config.repos.length > 1 ? ` + ${this.config.repos.length - 1} more` : ''}`;
   }
 
-  public async getDestinationSchema(_auth: AuthResponse<AxiosInstance>) {
+  public async getDestinationSchema(_auth: BitbucketAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
   public async fetchData(
-    auth: AuthResponse<AxiosInstance>,
+    auth: BitbucketAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: {
@@ -38,7 +37,6 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
       };
     },
   ): Promise<DataObjectStream<SyncRecord>> {
-    const axiosInstance = auth;
     const { repos, includeClosed, includePRs = false } = this.config;
     const { targetTableIncrementalValues } = args;
 
@@ -47,7 +45,7 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
     const userMap = new Map<string, boolean>();
     const issueMap = new Map<number, { id: number; number: number; type: 'issue' | 'pr' }>();
 
-    (async () => {
+    void (async () => {
       try {
         for (const repo of repos) {
           const [workspace, repository] = repo.split('/');
@@ -92,10 +90,12 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                 params.q = queryParts.join(' AND ');
               }
 
-              const { data: issuesResponse } = await axiosInstance.get(
-                `/repositories/${workspace}/${repository}/issues`,
-                { params },
-              );
+              const { data: issuesResponse } = await auth.use(async (client) => {
+                return await client.get(
+                  `/repositories/${workspace}/${repository}/issues`,
+                  { params },
+                );
+              });
 
               const issues = issuesResponse.values || [];
               
@@ -203,10 +203,12 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                   params.q = queryParts.join(' AND ');
                 }
 
-                const { data: prsResponse } = await axiosInstance.get(
-                  `/repositories/${workspace}/${repository}/pullrequests`,
-                  { params },
-                );
+                const { data: prsResponse } = await auth.use(async (client) => {
+                  return await client.get(
+                    `/repositories/${workspace}/${repository}/pullrequests`,
+                    { params },
+                  );
+                });
 
                 const prs = prsResponse.values || [];
                 this.log(`[Bitbucket Sync] Fetched ${prs.length} pull requests (page ${page})`);
@@ -309,10 +311,12 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                     params.q = `created_on > ${incrementalDate}`;
                   }
 
-                  const { data: commentsResponse } = await axiosInstance.get(
-                    commentsEndpoint,
-                    { params },
-                  );
+                  const { data: commentsResponse } = await auth.use(async (client) => {
+                    return await client.get(
+                      commentsEndpoint,
+                      { params },
+                    );
+                  });
 
                   const comments = commentsResponse.values || [];
 
@@ -547,9 +551,7 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
     return this.config.repos;
   }
 
-  public async fetchOptions(auth: AuthResponse<AxiosInstance>, key: string) {
-    const axiosInstance = auth;
-
+  public async fetchOptions(auth: BitbucketAuthIntegration, key: string) {
     if (key === 'repos') {
       try {
         const options: { label: string; value: string }[] = [];
@@ -559,17 +561,20 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
         let hasMore = true;
 
         while (hasMore) {
-          const { data: reposResponse } = await axiosInstance.get(
-            '/repositories',
-            {
-              params: {
-                role: 'member',
-                page,
-                pagelen: 100,
-                sort: '-updated_on',
+
+          const { data: reposResponse } = await auth.use(async (client) => {
+            return await client.get(
+              '/repositories',
+              {
+                params: {
+                  role: 'member',
+                  page,
+                  pagelen: 100,
+                  sort: '-updated_on',
+                },
               },
-            },
-          );
+            );
+          });
 
           const repos = reposResponse.values || [];
 

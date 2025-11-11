@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
+    "@noco-integrations/freshdesk-auth": "workspace:*",
     "axios": "^1.6.0"
   },
   "devDependencies": {

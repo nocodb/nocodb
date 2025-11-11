@@ -10,9 +10,7 @@ import {
   TEAM_WITH_MEMBERS_QUERY,
   TEAMS_QUERY,
 } from './graphql';
-import type { AxiosInstance } from 'axios';
 import type {
-  AuthResponse,
   SyncLinkValue,
   SyncRecord,
   TicketingCommentRecord,
@@ -20,6 +18,9 @@ import type {
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
+import type {
+  LinearAuthIntegration
+} from '@noco-integrations/linear-auth';
 
 
 import type { LinearComment, LinearIssue, LinearLabel, LinearSyncPayload , LinearTeam, LinearUser, ProcessedIssue} from './types';
@@ -29,12 +30,12 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
     return `${this.config.teamKey}`;
   }
 
-  public async getDestinationSchema(_auth: AuthResponse<AxiosInstance>) {
+  public async getDestinationSchema(_auth: LinearAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
   public async fetchData(
-    auth: AuthResponse<AxiosInstance>,
+    auth: LinearAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
@@ -47,7 +48,6 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
       | TicketingTeamRecord
     >
   > {
-    const axiosClient = auth;
     const { teamKey, includeCanceled, includeCompleted } = this.config;
     const { targetTableIncrementalValues } = args;
 
@@ -60,7 +60,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
 
     const userMap = new Map<string, boolean>();
 
-    (async () => {
+    void (async () => {
       try {
         const ticketIncrementalValue =
           targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
@@ -72,10 +72,11 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         if (ncIsUUID(teamKey)) {
           // It's a team ID, fetch directly
           this.log(`[Linear Sync] Detected UUID format, fetching team by ID`);
-          const response = await axiosClient.post('', {
+
+          const response = await auth.use(async (client) => await client.post('', {
             query: TEAM_WITH_MEMBERS_QUERY,
             variables: { id: teamKey },
-          });
+          }));
           
           if (response.data.errors) {
             throw new Error(`Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`);
@@ -85,9 +86,10 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         } else {
           // It's a team key, fetch all teams and find by key
           this.log(`[Linear Sync] Detected key format, searching teams by key`);
-          const response = await axiosClient.post('', {
+
+          const response = await auth.use(async (client) => await client.post('', {
             query: TEAMS_QUERY,
-          });
+          }));
           
           if (response.data.errors) {
             throw new Error(`Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`);
@@ -101,10 +103,10 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
           }
           
           // Fetch full team with members
-          const teamResponse = await axiosClient.post('', {
+          const teamResponse = await auth.use(async (client) => await client.post('', {
             query: TEAM_WITH_MEMBERS_QUERY,
             variables: { id: foundTeam.id },
-          });
+          }));
           
           if (teamResponse.data.errors) {
             throw new Error(`Linear GraphQL errors: ${JSON.stringify(teamResponse.data.errors)}`);
@@ -171,7 +173,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
           this.log(`[Linear Sync] Fetching page with cursor: ${endCursor || 'initial'}`);
           
           // Single GraphQL query fetches issues with ALL relations (state, assignee, creator, labels, comments)
-          const response = (await axiosClient.post('', {
+          const response = await auth.use(async (client) => await client.post('', {
             query: ISSUES_WITH_RELATIONS_QUERY,
             variables: {
               filter: issueFilter,
@@ -179,7 +181,7 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
               after: endCursor || undefined,
               includeArchived: includeCanceled || includeCompleted,
             },
-          })) as any;
+          }));
 
           if (response?.data?.errors) {
             throw new Error(`Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`);

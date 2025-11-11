@@ -427,11 +427,9 @@ export class SyncModuleSyncDataProcessor {
         }
 
         const authWrapper =
-          await authIntegration.getIntegrationWrapper<AuthIntegration>();
+          authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-        await authWrapper.testConnection();
-
-        const auth = await authWrapper.authenticate();
+        await authWrapper.authenticate();
 
         const wrapper =
           await integration.getIntegrationWrapper<SyncIntegration>(logBasic);
@@ -532,7 +530,7 @@ export class SyncModuleSyncDataProcessor {
           }
         }
 
-        const dataStream = await wrapper.fetchData(auth, {
+        const dataStream = await wrapper.fetchData(authWrapper, {
           targetTables: syncMappings.map(
             (m) => m.target_table as TARGET_TABLES,
           ),

@@ -20,8 +20,6 @@ import GitlabAuth from '@noco-local-integrations/gitlab-auth';
 import GitlabSync from '@noco-local-integrations/gitlab-sync';
 import GoogleAi from '@noco-local-integrations/google-ai';
 import GroqAi from '@noco-local-integrations/groq-ai';
-import JiraAuth from '@noco-local-integrations/jira-auth';
-import JiraSync from '@noco-local-integrations/jira-sync';
 import LinearAuth from '@noco-local-integrations/linear-auth';
 import LinearSync from '@noco-local-integrations/linear-sync';
 import MysqlAuth from '@noco-local-integrations/mysql-auth';
@@ -55,8 +53,6 @@ export default [
   GitlabSync,
   GoogleAi,
   GroqAi,
-  JiraAuth,
-  JiraSync,
   LinearAuth,
   LinearSync,
   MysqlAuth,

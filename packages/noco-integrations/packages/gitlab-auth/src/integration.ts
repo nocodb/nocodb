@@ -2,41 +2,11 @@ import axios from 'axios';
 import { Gitlab } from '@gitbeaker/rest';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, redirectUri, tokenUri } from './config';
-import type {
-  AuthResponse,
-  TestConnectionResponse,
-} from '@noco-integrations/core';
+import type { GitlabAuthConfig } from './types'
+import type { TestConnectionResponse } from '@noco-integrations/core';
 
-export class GitlabAuthIntegration extends AuthIntegration {
-  public client: InstanceType<typeof Gitlab> | null = null;
-
-  private async handleTokenRefresh(): Promise<void> {
-    if (!this.config.refresh_token) {
-      throw new Error('No refresh token available');
-    }
-
-    try {
-      const tokens = await this.refreshToken({
-        refresh_token: this.config.refresh_token,
-      });
-
-      (this._config as any).oauth_token = tokens.oauth_token;
-      if (tokens.refresh_token) {
-        (this._config as any).refresh_token = tokens.refresh_token;
-      }
-
-      if (this.tokenRefreshCallback) {
-        await this.tokenRefreshCallback(tokens);
-      }
-    } catch (error) {
-      console.log('Failed to refresh token: ' + error);
-      throw error;
-    }
-  }
-
-  public async authenticate(): Promise<
-    AuthResponse<InstanceType<typeof Gitlab>>
-  > {
+export class GitlabAuthIntegration extends AuthIntegration <GitlabAuthConfig, InstanceType<typeof Gitlab>> {
+  public async authenticate(): Promise<InstanceType<typeof Gitlab>> {
     const hostname = this.config.hostname || 'https://gitlab.com';
 
     switch (this.config.type) {
@@ -45,65 +15,48 @@ export class GitlabAuthIntegration extends AuthIntegration {
           token: this.config.token,
           host: hostname,
         });
+        break;
 
-        return this.client;
       case AuthType.OAuth:
         this.client = new Gitlab({
           oauthToken: this.config.oauth_token,
           host: hostname,
         });
+        break;
 
-        return this.client;
       default:
-        throw new Error('Not implemented');
+        throw new Error(
+          `Unsupported authentication type: ${(this.config as any).type}`
+        );
     }
+
+    return this.client;
   }
 
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const gitlab = await this.authenticate();
+      await this.use(async (gitlab) => {
+        await gitlab.Users.showCurrentUser();
+      });
 
-      if (!gitlab) {
+      return {
+        success: true,
+      };
+    } catch (error: any) {
+      if (error?.cause?.description?.includes('401')) {
         return {
           success: false,
-          message: 'Missing GitLab client',
+          message: 'Invalid token or unauthorized access',
         };
       }
 
-      try {
-        await gitlab.Users.showCurrentUser();
+      if (error?.cause?.description?.includes('403')) {
         return {
-          success: true,
+          success: false,
+          message: 'Access forbidden - check token permissions',
         };
-      } catch (error: any) {
-        if (
-          error.cause?.description.includes('401') &&
-          this.config.type === AuthType.OAuth &&
-          this.config.refresh_token
-        ) {
-          try {
-            await this.handleTokenRefresh();
-
-            const newGitlab = await this.authenticate();
-
-            await newGitlab.Users.showCurrentUser();
-            return {
-              success: true,
-            };
-          } catch (refreshError) {
-            return {
-              success: false,
-              message:
-                refreshError instanceof Error
-                  ? `Token refresh failed: ${refreshError.message}`
-                  : 'Token refresh failed',
-            };
-          }
-        }
-
-        throw error;
       }
-    } catch (error) {
+
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -113,10 +66,9 @@ export class GitlabAuthIntegration extends AuthIntegration {
 
   public async exchangeToken(payload: {
     code: string;
-  }): Promise<{ oauth_token: string; refresh_token?: string }> {
-    const [code, codeVerifier] = payload.code.includes('|')
-      ? payload.code.split('|')
-      : [payload.code, undefined];
+    code_verifier?: string;
+  }): Promise<{ oauth_token: string; refresh_token: string }> {
+    const { code, code_verifier } = payload;
 
     const params = new URLSearchParams({
       client_id: clientId!,
@@ -126,32 +78,31 @@ export class GitlabAuthIntegration extends AuthIntegration {
       redirect_uri: redirectUri!,
     });
 
-    if (codeVerifier) {
-      params.append('code_verifier', codeVerifier);
+    if (code_verifier) {
+      params.append('code_verifier', code_verifier);
     }
 
-    let response;
     try {
-      response = await axios.post(tokenUri, params.toString(), {
+      const response = await axios.post(tokenUri, params.toString(), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           Accept: 'application/json',
         },
       });
-    } catch (e) {
-      console.log(e);
-      throw e;
-    }
 
-    return {
-      oauth_token: response.data.access_token,
-      refresh_token: response.data.refresh_token,
-    };
+      return {
+        oauth_token: response.data.access_token,
+        refresh_token: response.data.refresh_token,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to exchange GitLab token: ${message}`);
+    }
   }
 
   public async refreshToken(payload: {
     refresh_token: string;
-  }): Promise<{ oauth_token: string; refresh_token?: string }> {
+  }): Promise<{ oauth_token: string; refresh_token: string }> {
     const params = new URLSearchParams({
       client_id: clientId!,
       client_secret: clientSecret!,
@@ -160,22 +111,41 @@ export class GitlabAuthIntegration extends AuthIntegration {
       redirect_uri: redirectUri!,
     });
 
-    let response;
     try {
-      response = await axios.post(tokenUri, params.toString(), {
+      const response = await axios.post(tokenUri, params.toString(), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           Accept: 'application/json',
         },
       });
-    } catch (e) {
-      console.log(e);
-      throw e;
+
+      return {
+        oauth_token: response.data.access_token,
+        refresh_token: response.data.refresh_token,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to refresh GitLab token: ${message}`);
+    }
+  }
+
+  /**
+   * Override to detect GitLab-specific token expiration errors
+   */
+  protected shouldRefreshToken(err: any): boolean {
+    const config = this.config as any;
+
+    // Only refresh for OAuth configurations with refresh tokens
+    if (config.type !== AuthType.OAuth || !config.refresh_token) {
+      return false;
     }
 
-    return {
-      oauth_token: response.data.access_token,
-      refresh_token: response.data.refresh_token,
-    };
+    // GitLab returns 401 in the cause description
+    if (err?.cause?.description?.includes('401')) {
+      return true;
+    }
+
+    // Fall back to base class logic
+    return super.shouldRefreshToken(err);
   }
 }

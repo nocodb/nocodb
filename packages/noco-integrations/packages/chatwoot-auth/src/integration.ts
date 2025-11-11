@@ -1,27 +1,45 @@
-import axios, { type AxiosInstance } from 'axios';
-import { AuthIntegration } from '@noco-integrations/core';
+import { AuthIntegration, createAxiosInstance } from '@noco-integrations/core';
+import type { ChatwootAuthConfig } from './types'
+import type {  AxiosInstance } from 'axios';
 import type {
-  AuthResponse,
+  RateLimitOptions,
   TestConnectionResponse,
 } from '@noco-integrations/core';
 
-export class ChatwootAuthIntegration extends AuthIntegration {
+export class ChatwootAuthIntegration extends AuthIntegration<ChatwootAuthConfig, AxiosInstance> {
   public client: AxiosInstance | null = null;
 
-  public async authenticate(): Promise<AuthResponse<AxiosInstance>> {
+  /**
+   * Chatwoot rate limit: 100 requests per 15 seconds per account
+   * Using conservative limits to avoid hitting the cap
+   */
+  protected getRateLimitConfig(): RateLimitOptions | null {
+    return {
+      global: {
+        maxRequests: 90, // 90% of limit for safety
+        perMilliseconds: 15 * 1000, // 15 seconds
+      },
+      maxQueueSize: 50,
+    };
+  }
+
+  public async authenticate(): Promise<AxiosInstance> {
     if (!this.config.chatwoot_url || !this.config.account_id || !this.config.api_token) {
       throw new Error('Missing required Chatwoot configuration');
     }
 
     const baseURL = this.config.chatwoot_url.replace(/\/$/, '');
-
-    this.client = axios.create({
-      baseURL: `${baseURL}/api/v1/accounts/${this.config.account_id}`,
-      headers: {
-        'api_access_token': this.config.api_token,
-        'Content-Type': 'application/json',
+    
+    this.client = createAxiosInstance(
+      {
+        baseURL: `${baseURL}/api/v1/accounts/${this.config.account_id}`,
+        headers: {
+          'api_access_token': this.config.api_token,
+          'Content-Type': 'application/json',
+        },
       },
-    });
+      this.getRateLimitConfig(),
+    );
 
     return this.client;
   }
@@ -37,8 +55,9 @@ export class ChatwootAuthIntegration extends AuthIntegration {
         };
       }
 
-      // Test connection by fetching conversation counts
-      await client.get('/conversations/meta');
+      await this.use(async (client) => {
+        await client.get('/conversations/meta');
+      });
 
       return {
         success: true,

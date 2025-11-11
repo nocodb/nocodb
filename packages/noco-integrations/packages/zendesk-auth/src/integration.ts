@@ -1,43 +1,23 @@
-import axios from 'axios';
-import { AuthIntegration, AuthType } from '@noco-integrations/core';
+import axios from 'axios'
+import { AuthIntegration, AuthType, createAxiosInstance } from '@noco-integrations/core'
 import { clientId, clientSecret, getApiBaseUrl, getTokenUri, redirectUri } from './config';
-import type { ZendeskClient } from './config';
-import type {
-  AuthResponse,
-  TestConnectionResponse,
-} from '@noco-integrations/core';
+import type { AxiosInstance } from 'axios';
+import type { ZendeskAuthConfig } from './types'
+import type { RateLimitOptions, TestConnectionResponse } from '@noco-integrations/core';
 
-export class ZendeskAuthIntegration extends AuthIntegration {
-  public client: ZendeskClient | null = null;
+export class ZendeskAuthIntegration extends AuthIntegration<ZendeskAuthConfig, AxiosInstance> {
 
-  private async handleTokenRefresh(): Promise<void> {
-    if (!this.config.refresh_token) {
-      throw new Error('No refresh token available');
-    }
-
-    try {
-      const tokens = await this.refreshToken({
-        refresh_token: this.config.refresh_token,
-      });
-
-      (this._config as any).oauth_token = tokens.oauth_token;
-      if (tokens.refresh_token) {
-        (this._config as any).refresh_token = tokens.refresh_token;
-      }
-      if (tokens.expires_in) {
-        (this._config as any).expires_in = tokens.expires_in;
-      }
-
-      if (this.tokenRefreshCallback) {
-        await this.tokenRefreshCallback(tokens);
-      }
-    } catch (error) {
-      this.log('Failed to refresh token: ' + error);
-      throw error;
+  // https://developer.zendesk.com/api-reference/sales-crm/rate-limits/
+  protected getRateLimitConfig(): RateLimitOptions | null {
+    return {
+      global: {
+        maxRequests: 36000,
+        perMilliseconds: 3600000, // 1 hour in milliseconds
+      },
     }
   }
 
-  public async authenticate(): Promise<AuthResponse<ZendeskClient>> {
+  public async authenticate(): Promise<AxiosInstance> {
     if (!this.config.subdomain) {
       throw new Error('Missing required Zendesk subdomain');
     }
@@ -52,113 +32,92 @@ export class ZendeskAuthIntegration extends AuthIntegration {
 
         // For API Key auth, create a token from email/token combination
         const auth = Buffer.from(
-          `${this.config.email}/token:${this.config.token}`,
+          `${this.config.email}/token:${this.config.token}`
         ).toString('base64');
 
-        this.client = {
-          axios: axios.create({
-            baseURL: apiBaseUrl,
-            headers: {
-              'Authorization': `Basic ${auth}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-          }),
-          subdomain: this.config.subdomain,
-          apiBaseUrl,
-        };
 
-        return this.client;
+        this.client = createAxiosInstance({
+          baseURL: apiBaseUrl,
+          headers: {
+            'Authorization': `Basic ${auth}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        }, this.getRateLimitConfig())
+        break;
       }
 
-      case AuthType.OAuth:
+      case AuthType.OAuth: {
         if (!this.config.oauth_token) {
           throw new Error('Missing required Zendesk OAuth token');
         }
 
-        this.client = {
-          axios: axios.create({
-            baseURL: apiBaseUrl,
-            headers: {
-              'Authorization': `Bearer ${this.config.oauth_token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-          }),
-          subdomain: this.config.subdomain,
-          apiBaseUrl,
-        };
-
-        return this.client;
+        this.client = createAxiosInstance({
+          baseURL: apiBaseUrl,
+          headers: {
+            'Authorization': `Bearer ${this.config.oauth_token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        }, this.getRateLimitConfig())
+        break;
+      }
 
       default:
-        throw new Error('Unsupported authentication type for Zendesk');
+        throw new Error(
+          `Unsupported authentication type: ${(this.config as any).type}`
+        );
     }
+
+    return this.client;
   }
 
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const client = await this.authenticate();
+      const response = await this.use(async (client) => {
+        return await client.get('/users/me.json');
+      });
 
-      if (!client) {
+      if (response.data && response.data.user) {
         return {
-          success: false,
-          message: 'Missing Zendesk client',
+          success: true,
         };
       }
 
-      try {
-        // Test connection by fetching current user information
-        const response = await client.axios.get('/users/me.json');
-
-        if (response.data && response.data.user) {
-          return {
-            success: true,
-          };
-        }
-
+      return {
+        success: false,
+        message: 'Failed to verify Zendesk connection',
+      };
+    } catch (error: any) {
+      // Handle specific Zendesk API errors
+      if (error?.response?.status === 401) {
         return {
           success: false,
-          message: 'Failed to verify Zendesk connection',
+          message: 'Invalid credentials or unauthorized access',
         };
-      } catch (error: any) {
-        // Check for authentication errors and attempt token refresh
-        if (
-          (error?.response?.status === 401) &&
-          this.config.type === AuthType.OAuth &&
-          this.config.refresh_token
-        ) {
-          try {
-            await this.handleTokenRefresh();
-
-            const newClient = await this.authenticate();
-
-            const response = await newClient.axios.get('/users/me.json');
-
-            if (response.data && response.data.user) {
-              return {
-                success: true,
-              };
-            }
-
-            return {
-              success: false,
-              message: 'Failed to verify Zendesk connection after token refresh',
-            };
-          } catch (refreshError) {
-            return {
-              success: false,
-              message:
-                refreshError instanceof Error
-                  ? `Token refresh failed: ${refreshError.message}`
-                  : 'Token refresh failed',
-            };
-          }
-        }
-
-        throw error;
       }
-    } catch (error) {
+
+      if (error?.response?.status === 403) {
+        return {
+          success: false,
+          message: 'Access forbidden - check permissions',
+        };
+      }
+
+      if (error?.response?.status === 404) {
+        return {
+          success: false,
+          message: 'Invalid Zendesk subdomain',
+        };
+      }
+
+      if (error?.response?.status === 429) {
+        return {
+          success: false,
+          message: 'Rate limit exceeded - please try again later',
+        };
+      }
+
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -169,50 +128,55 @@ export class ZendeskAuthIntegration extends AuthIntegration {
   public async exchangeToken(payload: {
     code: string;
     code_verifier?: string;
-  }): Promise<{ 
+  }): Promise<{
     oauth_token: string;
-    refresh_token?: string;
+    refresh_token: string;
     expires_in?: number;
   }> {
     if (!this.config.subdomain) {
       throw new Error('Missing required Zendesk subdomain');
     }
 
-    const [code, codeVerifier] = payload.code.includes('|')
-      ? payload.code.split('|')
-      : [payload.code, payload.code_verifier];
+    const { code, code_verifier } = payload;
 
     // Zendesk OAuth token request - JSON format
     const requestBody = {
       grant_type: 'authorization_code',
       code,
-      code_verifier: codeVerifier,
+      code_verifier,
       client_id: clientId,
       client_secret: clientSecret,
       redirect_uri: redirectUri,
     };
 
-    const response = await axios.post(
-      getTokenUri(this.config.subdomain),
-      requestBody,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      },
-    );
+    try {
+      const response = await axios.post(
+        getTokenUri(this.config.subdomain),
+        requestBody,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        }
+      );
 
-    return {
-      oauth_token: response.data.access_token,
-      refresh_token: response.data.refresh_token,
-      expires_in: response.data.expires_in,
-    };
+      return {
+        oauth_token: response.data.access_token,
+        refresh_token: response.data.refresh_token,
+        expires_in: response.data.expires_in,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to exchange Zendesk token: ${message}`);
+    }
   }
 
-  public async refreshToken(payload: { refresh_token: string }): Promise<{
+  public async refreshToken(payload: {
+    refresh_token: string;
+  }): Promise<{
     oauth_token: string;
-    refresh_token?: string;
+    refresh_token: string;
     expires_in?: number;
   }> {
     if (!this.config.subdomain) {
@@ -226,22 +190,48 @@ export class ZendeskAuthIntegration extends AuthIntegration {
       client_secret: clientSecret,
     };
 
-    const response = await axios.post(
-      getTokenUri(this.config.subdomain),
-      requestBody,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      },
-    );
+    try {
+      const response = await axios.post(
+        getTokenUri(this.config.subdomain),
+        requestBody,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        }
+      );
 
-    return {
-      oauth_token: response.data.access_token,
-      refresh_token: response.data.refresh_token,
-      expires_in: response.data.expires_in,
-    };
+      return {
+        oauth_token: response.data.access_token,
+        refresh_token: response.data.refresh_token,
+        expires_in: response.data.expires_in,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to refresh Zendesk token: ${message}`);
+    }
+  }
+
+  /**
+   * Override to detect Zendesk-specific token expiration errors
+   */
+  protected shouldRefreshToken(err: any): boolean {
+    const config = this.config as any;
+
+    // Only refresh for OAuth configurations with refresh tokens
+    if (config.type !== AuthType.OAuth || !config.refresh_token) {
+      return false;
+    }
+
+    // Zendesk returns 401 for expired tokens
+    const status = err?.response?.status;
+    if (status === 401) {
+      return true;
+    }
+
+    // Fall back to base class logic
+    return super.shouldRefreshToken(err);
   }
 
   public async destroy(): Promise<void> {

@@ -1,7 +1,6 @@
 /**
  * Centralized configuration for Zendesk Auth Integration
  */
-import type { AxiosInstance } from 'axios'
 
 // Environment variables for Zendesk OAuth
 export const clientId = process.env.INTEGRATION_AUTH_ZENDESK_CLIENT_ID;
@@ -27,9 +26,3 @@ export const getTokenUri = (sub: string): string => {
 export const getApiBaseUrl = (sub: string): string => {
   return `https://${sub}.zendesk.com/api/v2`;
 };
-
-export interface ZendeskClient {
-  axios: AxiosInstance;
-  subdomain: string;
-  apiBaseUrl: string;
-}

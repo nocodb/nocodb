@@ -1,28 +1,8 @@
-import { IntegrationWrapper } from '../integration';
 
-export abstract class AuthIntegration<T = any> extends IntegrationWrapper<T> {
-  public client: any = null;
-  protected tokenRefreshCallback?: (tokens: {
-    oauth_token: string;
-    refresh_token?: string;
-    expires_at?: string
-  }) => Promise<void>;
-
-  public setTokenRefreshCallback(
-    callback: (tokens: {
-      oauth_token: string;
-      refresh_token?: string;
-      expires_at?: string
-    }) => Promise<void>,
-  ) {
-    this.tokenRefreshCallback = callback;
-  }
-
-  abstract authenticate(): Promise<AuthResponse<any>>;
-  abstract testConnection(): Promise<TestConnectionResponse>;
-  exchangeToken?(oauthPayload: any): Promise<Record<string, any>>;
-  refreshToken?(payload: { refresh_token: string }): Promise<Record<string, any>>;
-  destroy?(): Promise<void>;
+export interface TokenData {
+  oauth_token: string;
+  refresh_token?: string;
+  expires_at?: string;
 }
 
 export interface TestConnectionResponse {
@@ -38,4 +18,13 @@ export enum AuthType {
   Custom = 'custom',
 }
 
-export type AuthResponse<T = any> = T;
+export interface OAuthConfig {
+  type: AuthType.OAuth;
+  oauth_token: string;
+  refresh_token: string;
+  expires_at?: string;
+  client_id: string;
+  client_secret: string;
+}
+
+export type AuthResponse<TClient = any> = TClient;

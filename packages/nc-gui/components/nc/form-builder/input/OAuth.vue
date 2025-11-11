@@ -2,7 +2,10 @@
 import type { FormBuilderElement } from 'nocodb-sdk'
 
 const props = defineProps<{
-  value: string
+  value: {
+    code_verifier: string
+    code: string
+  }
   element: FormBuilderElement
   haveValue?: boolean
   formData?: Record<string, any>
@@ -156,7 +159,10 @@ const handleOAuth = async () => {
     return
   }
 
-  vModel.value = `${result.code}|${result.codeVerifier}`
+  vModel.value = {
+    code: result.code,
+    code_verifier: result.codeVerifier,
+  }
 }
 </script>
 

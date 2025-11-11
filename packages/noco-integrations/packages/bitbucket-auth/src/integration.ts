@@ -1,42 +1,27 @@
 import axios, { type AxiosInstance } from 'axios';
-import { AuthIntegration, AuthType } from '@noco-integrations/core';
+import { AuthIntegration, AuthType, createAxiosInstance } from '@noco-integrations/core'
 import { clientId, clientSecret, redirectUri, tokenUri } from './config';
+import type { RateLimitOptions } from '@noco-integrations/core'
+import type { BitBucketAuthConfig } from './types'
 import type {
-  AuthResponse,
   TestConnectionResponse,
 } from '@noco-integrations/core';
 
-export class BitbucketAuthIntegration extends AuthIntegration {
+export class BitbucketAuthIntegration extends AuthIntegration<BitBucketAuthConfig, AxiosInstance> {
   public client: AxiosInstance | null = null;
 
-  private async handleTokenRefresh(): Promise<void> {
-    if (!this.config.refresh_token) {
-      throw new Error('No refresh token available');
-    }
-
-    try {
-      const tokens = await this.refreshToken({
-        refresh_token: this.config.refresh_token,
-      });
-
-      (this._config as any).oauth_token = tokens.oauth_token;
-      if (tokens.refresh_token) {
-        (this._config as any).refresh_token = tokens.refresh_token;
-      }
-      if (tokens.expires_in) {
-        (this._config as any).expires_in = tokens.expires_in;
-      }
-
-      if (this.tokenRefreshCallback) {
-        await this.tokenRefreshCallback(tokens);
-      }
-    } catch (error) {
-      console.log('Failed to refresh token: ' + error);
-      throw error;
-    }
+  // RateLimit- https://support.atlassian.com/bitbucket-cloud/docs/api-request-limits/
+  protected getRateLimitConfig(): RateLimitOptions | null {
+    return {
+      global: {
+        maxRequests: 16,// ~960 requests/hour
+        perMilliseconds: 60 * 1000, // 1 minute window
+      },
+      maxQueueSize: 50,
+    };
   }
 
-  public async authenticate(): Promise<AuthResponse<AxiosInstance>> {
+  public async authenticate(): Promise<AxiosInstance> {
     let accessToken: string;
 
     switch (this.config.type) {
@@ -58,64 +43,26 @@ export class BitbucketAuthIntegration extends AuthIntegration {
         throw new Error('Not implemented');
     }
 
-    this.client = axios.create({
+    this.client= createAxiosInstance({
       baseURL: 'https://api.bitbucket.org/2.0',
       headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-    });
+    }, this.getRateLimitConfig())
 
     return this.client;
   }
 
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const client = await this.authenticate();
-
-      if (!client) {
-        return {
-          success: false,
-          message: 'Missing Bitbucket client',
-        };
-      }
-
-      try {
-        // Test connection by fetching current user
+      return await this.use(async (client) => {
         await client.get('/repositories');
         return {
           success: true,
         };
-      } catch (error: any) {
-        // Check for authentication errors and attempt token refresh
-        if (
-          (error?.response?.status === 401 || error?.response?.status === 403) &&
-          this.config.type === AuthType.OAuth &&
-          this.config.refresh_token
-        ) {
-          try {
-            await this.handleTokenRefresh();
-
-            const newClient = await this.authenticate();
-
-            await newClient.get('/user');
-            return {
-              success: true,
-            };
-          } catch (refreshError) {
-            return {
-              success: false,
-              message:
-                refreshError instanceof Error
-                  ? `Token refresh failed: ${refreshError.message}`
-                  : 'Token refresh failed',
-            };
-          }
-        }
-
-        throw error;
-      }
+      });
     } catch (error) {
       return {
         success: false,
@@ -124,17 +71,17 @@ export class BitbucketAuthIntegration extends AuthIntegration {
     }
   }
 
+  // https://developer.atlassian.com/cloud/bitbucket/oauth-2/
   public async exchangeToken(payload: {
     code: string;
     code_verifier?: string;
-  }): Promise<{ 
+  }): Promise<{
     oauth_token: string;
     refresh_token?: string;
     expires_in?: number;
   }> {
-    const [code, codeVerifier] = payload.code.includes('|')
-      ? payload.code.split('|')
-      : [payload.code, payload.code_verifier];
+    const code = payload.code;
+    const codeVerifier = payload.code_verifier;
 
     const params = new URLSearchParams();
     params.append('grant_type', 'authorization_code');

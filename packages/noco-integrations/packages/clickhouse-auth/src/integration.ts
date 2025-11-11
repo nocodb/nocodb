@@ -1,14 +1,10 @@
 import { type ClickHouseClient, createClient } from '@clickhouse/client';
 import { AuthIntegration } from '@noco-integrations/core';
-import type {
-  AuthResponse,
-  TestConnectionResponse,
-} from '@noco-integrations/core';
+import type { ClickhouseConfig } from './types'
+import type { TestConnectionResponse } from '@noco-integrations/core';
 
-export class ClickhouseAuthIntegration extends AuthIntegration {
-  public client: ClickHouseClient | null = null;
-
-  public async authenticate(): Promise<AuthResponse<ClickHouseClient>> {
+export class ClickhouseAuthIntegration extends AuthIntegration<ClickhouseConfig, ClickHouseClient> {
+  public async authenticate(): Promise<ClickHouseClient> {
     this.client = createClient({
       url: this.config.url,
       username: this.config.username,
@@ -22,6 +18,7 @@ export class ClickhouseAuthIntegration extends AuthIntegration {
     if (this.client) {
       try {
         await this.client.close();
+        this.client = null;
       } catch {
         // Ignore errors when closing connection
       }
@@ -31,7 +28,6 @@ export class ClickhouseAuthIntegration extends AuthIntegration {
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
       const client = await this.authenticate();
-
       if (!client) {
         return {
           success: false,
@@ -39,9 +35,10 @@ export class ClickhouseAuthIntegration extends AuthIntegration {
         };
       }
 
-      // Attempt to ping or execute a simple query
-      await client.query({
-        query: 'SELECT 1',
+      await this.use(async (client) => {
+        await client.query({
+          query: 'SELECT 1',
+        });
       });
 
       return {

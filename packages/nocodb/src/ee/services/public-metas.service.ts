@@ -126,6 +126,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
 
     return {
       base_id: base.id,
+      base_title: base.title,
       workspace,
     };
   }

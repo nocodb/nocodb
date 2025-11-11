@@ -57,8 +57,8 @@ const collaborators = computed(() => {
       base_roles: user.roles,
       roles: getEffectiveBaseRole({
         baseRole: user.roles as ProjectRoles,
-        baseTeamRole: user.workspace_roles as WorkspaceUserRoles,
-        workspaceRole: (user as any).base_team_roles as ProjectRoles,
+        baseTeamRole: (user as any).base_team_roles as ProjectRoles,
+        workspaceRole: user.workspace_roles as WorkspaceUserRoles,
         workspaceTeamRole: (user as any).workspace_team_roles as WorkspaceUserRoles,
       }),
     }
@@ -66,7 +66,8 @@ const collaborators = computed(() => {
 })
 
 const currentUserRole = computed(() => {
-  return collaborators.value.find((coll) => coll.id === user.value?.id)?.roles as keyof typeof RoleLabels
+  const currentUser = collaborators.value.find((coll) => coll.id === user.value?.id)
+  return currentUser?.roles as keyof typeof RoleLabels
 })
 
 const { loadProjectTables, openTableCreateDialog: _openTableCreateDialog } = useTablesStore()

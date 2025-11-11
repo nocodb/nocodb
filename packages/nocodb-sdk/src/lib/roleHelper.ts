@@ -1,9 +1,10 @@
 import {
   OrderedProjectRoles,
   OrderedWorkspaceRoles,
+  ProjectRoles,
   WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles,
 } from './enums';
-import { ProjectRoles, WorkspaceUserRoles } from './enums';
 import { extractRolesObj } from './helperFunctions';
 
 export function extractProjectRolePower(
@@ -193,5 +194,7 @@ export function getEffectiveBaseRole({
     }
   }
 
-  return finalBaseRole;
+  return finalBaseRole === ProjectRoles.INHERIT || !finalBaseRole
+    ? ProjectRoles.NO_ACCESS
+    : finalBaseRole;
 }

@@ -168,9 +168,102 @@ export default class BaseUser extends BaseUserCE {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!baseUser || !baseUser.roles) {
+      // Get base to access workspace_id for team roles
+      const base = await Base.get(context, baseId, ncMeta);
+      if (!base) {
+        return this.castType(null);
+      }
+
+      // Create subqueries for workspace and base team roles
+      const workspaceTeamRolesSubquery = ncMeta.knexConnection
+        .select('pa.principal_ref_id as user_id')
+        .select(
+          getArrayAggExpression(
+            ncMeta.knex,
+            ncMeta.knexConnection,
+            'wta.roles',
+            'workspace_team_roles',
+          ),
+        )
+        .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wta`, function () {
+          this.on('wta.principal_ref_id', '=', 'pa.resource_id')
+            .andOn(
+              'wta.principal_type',
+              '=',
+              ncMeta.knex.raw('?', [PrincipalType.TEAM]),
+            )
+            .andOn(
+              'wta.resource_type',
+              '=',
+              ncMeta.knex.raw('?', [ResourceType.WORKSPACE]),
+            )
+            .andOn(
+              'wta.resource_id',
+              '=',
+              ncMeta.knex.raw('?', [base.fk_workspace_id]),
+            )
+            .andOn(
+              ncMeta.knex.raw('COALESCE(wta.deleted, FALSE)'),
+              '=',
+              ncMeta.knex.raw('?', [false]),
+            );
+        })
+        .where(
+          'pa.principal_type',
+          '=',
+          ncMeta.knex.raw('?', [PrincipalType.USER]),
+        )
+        .where(
+          'pa.resource_type',
+          '=',
+          ncMeta.knex.raw('?', [ResourceType.TEAM]),
+        )
+        .where(
+          ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
+        .groupBy('pa.principal_ref_id')
+        .as('wtr');
+
+      const baseTeamRolesSubquery = ncMeta.knexConnection
+        .select('pa.principal_ref_id as user_id')
+        .select(
+          getArrayAggExpression(
+            ncMeta.knex,
+            ncMeta.knexConnection,
+            'bta.roles',
+            'base_team_roles',
+          ),
+        )
+        .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as bta`, function () {
+          this.on('bta.principal_ref_id', '=', 'pa.resource_id')
+            .andOn('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+            .andOn('bta.resource_type', '=', ncMeta.knex.raw('?', ['base']))
+            .andOn('bta.resource_id', '=', ncMeta.knex.raw('?', [baseId]))
+            .andOn(
+              ncMeta.knex.raw('COALESCE(bta.deleted, FALSE)'),
+              '=',
+              ncMeta.knex.raw('?', [false]),
+            );
+        })
+        .where('pa.principal_type', '=', 'user')
+        .where('pa.resource_type', '=', 'team')
+        .where(
+          ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
+        .groupBy('pa.principal_ref_id')
+        .as('btr');
+
       const queryBuilder = ncMeta
         .knex(MetaTable.USERS)
-        .select(this.selectBaseUserProps(context, ncMeta));
+        .select(this.selectBaseUserProps(context, ncMeta))
+        .select('wtr.workspace_team_roles')
+        .select('btr.base_team_roles');
 
       queryBuilder
         .innerJoin(MetaTable.WORKSPACE_USER, function () {
@@ -194,7 +287,17 @@ export default class BaseUser extends BaseUserCE {
             '=',
             ncMeta.knex.raw('?', [baseId]),
           );
-        });
+        })
+        .leftJoin(
+          workspaceTeamRolesSubquery,
+          'wtr.user_id',
+          `${MetaTable.USERS}.id`,
+        )
+        .leftJoin(
+          baseTeamRolesSubquery,
+          'btr.user_id',
+          `${MetaTable.USERS}.id`,
+        );
 
       queryBuilder.where(`${MetaTable.USERS}.id`, userId);
 
@@ -202,6 +305,55 @@ export default class BaseUser extends BaseUserCE {
 
       if (baseUser) {
         baseUser.meta = parseMetaProp(baseUser);
+
+        // Process team roles - convert to arrays if needed, then extract topmost role
+        const workspaceTeamRoles = baseUser.workspace_team_roles;
+        const baseTeamRoles = baseUser.base_team_roles;
+
+        // Handle different database return types
+        let workspaceTeamRolesArray: string[] = [];
+        if (workspaceTeamRoles) {
+          if (typeof workspaceTeamRoles === 'string') {
+            try {
+              workspaceTeamRolesArray = JSON.parse(workspaceTeamRoles);
+            } catch {
+              workspaceTeamRolesArray = [workspaceTeamRoles];
+            }
+          } else if (Array.isArray(workspaceTeamRoles)) {
+            workspaceTeamRolesArray = workspaceTeamRoles;
+          } else {
+            workspaceTeamRolesArray = [workspaceTeamRoles];
+          }
+        }
+
+        let baseTeamRolesArray: string[] = [];
+        if (baseTeamRoles) {
+          if (typeof baseTeamRoles === 'string') {
+            try {
+              baseTeamRolesArray = JSON.parse(baseTeamRoles);
+            } catch {
+              baseTeamRolesArray = [baseTeamRoles];
+            }
+          } else if (Array.isArray(baseTeamRoles)) {
+            baseTeamRolesArray = baseTeamRoles;
+          } else {
+            baseTeamRolesArray = [baseTeamRoles];
+          }
+        }
+
+        // Extract topmost role from arrays (keep only the highest priority role)
+        const topmostWorkspaceTeamRole = this.getTopmostRole(
+          workspaceTeamRolesArray,
+          true,
+        );
+        const topmostBaseTeamRole = this.getTopmostRole(
+          baseTeamRolesArray,
+          false,
+        );
+
+        // Add topmost team roles to user object (single value, not array)
+        (baseUser as any).workspace_team_roles = topmostWorkspaceTeamRole;
+        (baseUser as any).base_team_roles = topmostBaseTeamRole;
 
         await NocoCache.set(
           context,
@@ -286,11 +438,15 @@ export default class BaseUser extends BaseUserCE {
         .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
         .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wta`, function () {
           this.on('wta.principal_ref_id', '=', 'pa.resource_id')
-            .andOn('wta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+            .andOn(
+              'wta.principal_type',
+              '=',
+              ncMeta.knex.raw('?', [PrincipalType.TEAM]),
+            )
             .andOn(
               'wta.resource_type',
               '=',
-              ncMeta.knex.raw('?', ['workspace']),
+              ncMeta.knex.raw('?', [ResourceType.WORKSPACE]),
             )
             .andOn(
               'wta.resource_id',
@@ -303,8 +459,16 @@ export default class BaseUser extends BaseUserCE {
               ncMeta.knex.raw('?', [false]),
             );
         })
-        .where('pa.principal_type', '=', 'user')
-        .where('pa.resource_type', '=', 'team')
+        .where(
+          'pa.principal_type',
+          '=',
+          ncMeta.knex.raw('?', [PrincipalType.USER]),
+        )
+        .where(
+          'pa.resource_type',
+          '=',
+          ncMeta.knex.raw('?', [ResourceType.TEAM]),
+        )
         .where(
           ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
           '=',
@@ -453,28 +617,6 @@ export default class BaseUser extends BaseUserCE {
           baseUsers,
           ['base_id', 'id'],
         );
-      }
-    } else {
-      // If using cached data, initialize missing team roles to null
-      // Missing team roles means the user doesn't have any team roles
-      for (const user of baseUsers) {
-        if ((user as any).workspace_team_roles === undefined) {
-          (user as any).workspace_team_roles = null;
-        }
-        if ((user as any).base_team_roles === undefined) {
-          (user as any).base_team_roles = null;
-        }
-      }
-    }
-
-    // Ensure all users have team roles initialized (null if not set)
-    // This handles both fresh and cached data
-    for (const user of baseUsers) {
-      if ((user as any).workspace_team_roles === undefined) {
-        (user as any).workspace_team_roles = null;
-      }
-      if ((user as any).base_team_roles === undefined) {
-        (user as any).base_team_roles = null;
       }
     }
 

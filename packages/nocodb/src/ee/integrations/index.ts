@@ -7,6 +7,7 @@ import AmazonBedrockAi from '@noco-local-integrations/amazon-bedrock-ai';
 import AzureAi from '@noco-local-integrations/azure-ai';
 import BitbucketAuth from '@noco-local-integrations/bitbucket-auth';
 import BitbucketSync from '@noco-local-integrations/bitbucket-sync';
+import ChatwootAuth from '@noco-local-integrations/chatwoot-auth';
 import ClaudeAi from '@noco-local-integrations/claude-ai';
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
 import DeepseekAi from '@noco-local-integrations/deepseek-ai';
@@ -40,6 +41,7 @@ export default [
   AzureAi,
   BitbucketAuth,
   BitbucketSync,
+  ChatwootAuth,
   ClaudeAi,
   ClickhouseAuth,
   DeepseekAi,

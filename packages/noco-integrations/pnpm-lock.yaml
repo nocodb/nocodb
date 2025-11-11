@@ -157,6 +157,19 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/chatwoot-auth:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      axios:
+        specifier: ^1.7.9
+        version: 1.9.0
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/claude-ai:
     dependencies:
       '@ai-sdk/anthropic':

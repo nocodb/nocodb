@@ -60,11 +60,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Base"
-                  },
-                  "description": "List of bases."
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Base"
+                      },
+                      "description": "List of bases."
+                    }
+                  }
                 },
                 "examples": {
                   "Example 1": {
@@ -1595,6 +1600,15 @@
         ],
         "parameters": [
           {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
             "name": "tableId",
             "in": "path",
             "required": true,
@@ -2547,6 +2561,67 @@
           }
         }
       },
+      "put": {
+        "summary": "Replace filter",
+        "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.",
+        "operationId": "view-filter-replace",
+        "tags": [
+          "View Filters"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view. It overwrites all existing filters."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterCreateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Filter or group updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterCreateUpdate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Filter or group not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/filters/{filterId}": {
       "patch": {
         "summary": "Update filter",
         "description": "Update the details of an existing filter or group.",
@@ -2624,7 +2699,7 @@
             "description": "Unique identifier for the base."
           },
           {
-            "name": "viewId",
+            "name": "filterId",
             "in": "path",
             "required": true,
             "schema": {
@@ -2636,56 +2711,6 @@
         "responses": {
           "204": {
             "description": "Filter or group deleted successfully."
-          },
-          "404": {
-            "description": "Filter or group not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "put": {
-        "summary": "Replace filter",
-        "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.",
-        "operationId": "view-filter-replace",
-        "tags": [
-          "View Filters"
-        ],
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view. It overwrites all existing filters."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterCreateUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Filter or group updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterCreateUpdate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
           },
           "404": {
             "description": "Filter or group not found."
@@ -2824,7 +2849,9 @@
             "description": "Server error."
           }
         }
-      },
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/sorts/{sortId}": {
       "delete": {
         "summary": "Delete sort",
         "description": "Delete an existing sort.",

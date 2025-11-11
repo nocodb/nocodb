@@ -146,6 +146,13 @@ export class NcErrorBase {
     });
   }
 
+  extensionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_EXTENSION_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   invalidOffsetValue(offset: string | number, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.INVALID_OFFSET_VALUE, {
       params: `${offset}`,

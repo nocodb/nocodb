@@ -257,4 +257,104 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) => `Filter verification failed: ${message}`,
     code: 422,
   },
+  [NcErrorType.ERR_WEBHOOK_ERROR]: {
+    message: (message: string) => message,
+    code: 400,
+  },
+  [NcErrorType.ERR_DATA_SOURCES_NOT_FOUND]: {
+    message: (message: string) => message,
+    code: 400,
+  },
+  [NcErrorType.ERR_TEST_PLUGIN_FAILED]: {
+    message: (message: string) => message,
+    code: 400,
+  },
+  [NcErrorType.ERR_UNSUPPORTED_RELATION]: {
+    message: (message: string) => message,
+    code: 400,
+  },
+  [NcErrorType.ERR_IN_EXTERNAL_DATA_SOURCE]: {
+    message: (message: string) =>
+      message ||
+      'Error running query on external source. Confirm if source is accessible.',
+    code: 400,
+  },
+  [NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT]: {
+    message: (message: string) =>
+      message ||
+      'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
+    code: 504,
+  },
+  [NcErrorType.ERR_RELATION_FIELD_NOT_FOUND]: {
+    message: (id: string) => `Relation Field '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_EXTENSION_NOT_FOUND]: {
+    message: (id: string) => `Extension '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_STORAGE_FILE_CREATE]: {
+    message: (details: string) => `Failed to create file: ${details}`,
+    code: 500,
+  },
+  [NcErrorType.ERR_STORAGE_FILE_READ]: {
+    message: (details: string) => `Failed to read file: ${details}`,
+    code: 500,
+  },
+  [NcErrorType.ERR_STORAGE_FILE_DELETE]: {
+    message: (details: string) => `Failed to delete file: ${details}`,
+    code: 500,
+  },
+  [NcErrorType.ERR_STORAGE_FILE_STREAM]: {
+    message: (details: string) => `Failed to stream file: ${details}`,
+    code: 500,
+  },
+  [NcErrorType.ERR_SUBSCRIPTION_ALREADY_EXISTS]: {
+    message: (id: string) => `Subscription already exists for ${id}`,
+    code: 409,
+  },
+  [NcErrorType.ERR_SUBSCRIPTION_NOT_FOUND]: {
+    message: (id: string) => `Subscription not found for ${id}`,
+    code: 404,
+  },
+  [NcErrorType.ERR_PLAN_NOT_AVAILABLE]: {
+    message: () => 'This plan is not available',
+    code: 400,
+  },
+  [NcErrorType.ERR_SEAT_COUNT_MISMATCH]: {
+    message: (msg: string) => msg,
+    code: 400,
+  },
+  [NcErrorType.ERR_INVALID_PAYMENT_PAYLOAD]: {
+    message: (msg: string) => msg,
+    code: 400,
+  },
+  [NcErrorType.ERR_STRIPE_CUSTOMER_NOT_FOUND]: {
+    message: (id: string) => `Stripe customer '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_STRIPE_SUBSCRIPTION_NOT_FOUND]: {
+    message: (id: string) => `Stripe subscription '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_SUBSCRIPTION_OWNERSHIP_MISMATCH]: {
+    message: (msg: string) => msg,
+    code: 403,
+  },
+  [NcErrorType.ERR_INTERNAL_CUSTOMER_NOT_SUPPORTED]: {
+    message: (msg: string) => msg,
+    code: 501,
+  },
+  [NcErrorType.ERR_SUBSCRIPTION_CREATE_FAILED]: {
+    message: (msg: string) => msg,
+    code: 500,
+  },
+  [NcErrorType.ERR_STRIPE_WEBHOOK_VERIFICATION_FAILED]: {
+    message: (msg: string) => msg,
+    code: 400,
+  },
+  [NcErrorType.ERR_PLAN_ALREADY_EXISTS]: {
+    message: (id: string) => `Plan already exists with id ${id}`,
+    code: 409,
+  },
 };

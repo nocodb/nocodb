@@ -86,6 +86,9 @@ export const useCopySharedBase = createSharedComposable(() => {
               ncNavigateTo({
                 ...(isEeUI ? { workspaceId: jobData.fk_workspace_id } : {}),
                 baseId: jobData.base_id,
+                query: {
+                  openTable: 'true',
+                },
               })
               isLoading.value = false
               onComplete?.('success')

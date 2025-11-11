@@ -84,11 +84,11 @@ const onSearchChange = useDebounceFn(() => {
         <div class="relative px-3 pt-6">
           <a-input
             v-model:value="query.search"
-            @input="onSearchChange"
             type="text"
             allow-clear
             :placeholder="$t('placeholder.searchTemplates')"
             class="nc-input-sm nc-input-shadow transition-all duration-300"
+            @input="onSearchChange"
             @focus="isSearchFocused = true"
             @blur="isSearchFocused = false"
           >

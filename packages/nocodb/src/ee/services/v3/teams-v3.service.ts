@@ -25,6 +25,8 @@ import type {
   TeamUpdateEvent,
 } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/ee/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { PrincipalAssignment, Team } from '~/models';
@@ -47,6 +49,7 @@ export class TeamsV3Service {
   constructor(
     private readonly appHooksService: AppHooksService,
     private readonly paymentService: PaymentService,
+    private readonly mailService: MailService,
   ) {}
 
   /**
@@ -743,6 +746,21 @@ export class TeamsV3Service {
         teamRole: assignment.roles || '', // Include team role
       } as TeamMemberAddEvent);
 
+      // Send email notification to the added user
+      await this.mailService.sendMail(
+        {
+          mailEvent: MailEvent.TEAM_MEMBER_INVITE,
+          payload: {
+            req: param.req,
+            user,
+            team,
+            workspace,
+            teamRole: assignment.roles,
+          },
+        },
+        Noco.ncMeta,
+      );
+
       addedMembers.push(assignment);
     }
 
@@ -875,6 +893,21 @@ export class TeamsV3Service {
         user: user,
         teamRole: assignment.roles,
       } as TeamMemberDeleteEvent);
+
+      // Send email notification to the removed user
+      await this.mailService.sendMail(
+        {
+          mailEvent: MailEvent.TEAM_MEMBER_REMOVED,
+          payload: {
+            req: param.req,
+            user,
+            team,
+            workspace,
+            teamRole: assignment.roles,
+          },
+        },
+        Noco.ncMeta,
+      );
     }
 
     // Recalculate seat count after removing team members
@@ -984,6 +1017,22 @@ export class TeamsV3Service {
         oldTeamRole: assignment.roles, // Include old team role
         teamRole: member?.team_role || '', // Include new team role
       } as TeamMemberUpdateEvent);
+
+      // Send email notification about role update
+      await this.mailService.sendMail(
+        {
+          mailEvent: MailEvent.TEAM_MEMBER_ROLE_UPDATE,
+          payload: {
+            req: param.req,
+            user,
+            team,
+            workspace,
+            oldTeamRole: assignment.roles,
+            teamRole: member.team_role,
+          },
+        },
+        Noco.ncMeta,
+      );
     }
 
     // Recalculate seat count after updating team member roles

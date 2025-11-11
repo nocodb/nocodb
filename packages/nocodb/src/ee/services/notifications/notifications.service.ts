@@ -1,21 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { NotificationsService as NotificationsServiceCE } from 'src/services/notifications/notifications.service';
+import { TeamUserRoles } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
 import type {
   ProjectInviteEvent,
   RowCommentEvent,
   RowMentionEvent,
+  TeamMemberAddEvent,
   WelcomeEvent,
   WorkspaceRequestUpgradeEvent,
   WorkspaceUserInviteEvent,
 } from '~/services/app-hooks/interfaces';
+import type {
+  BaseTeamInviteEvent,
+  WorkspaceTeamInviteEvent,
+} from '~/services/app-hooks/interfaces';
 import { extractMentions } from '~/utils/richTextHelper';
 import { DatasService } from '~/services/datas.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { Base, BaseUser, Column, Workspace } from '~/models';
+import {
+  Base,
+  BaseUser,
+  Column,
+  PrincipalAssignment,
+  User,
+  Workspace,
+} from '~/models';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
+import { PrincipalType, ResourceType } from '~/utils/globals';
 
 @Injectable()
 export class NotificationsService extends NotificationsServiceCE {
@@ -29,6 +43,10 @@ export class NotificationsService extends NotificationsServiceCE {
 
   onModuleInit() {
     super.onModuleInit();
+    // Explicitly set up PROJECT_INVITE to ensure it uses EE's hookHandler
+    this.appHooks.on(AppEvents.PROJECT_INVITE, (data) =>
+      this.hookHandler({ event: AppEvents.PROJECT_INVITE, data }),
+    );
     this.appHooks.on(AppEvents.WORKSPACE_USER_INVITE, (data) =>
       this.hookHandler({ event: AppEvents.WORKSPACE_USER_INVITE, data }),
     );
@@ -64,6 +82,18 @@ export class NotificationsService extends NotificationsServiceCE {
         payload: data,
       });
     });
+
+    this.appHooks.on(AppEvents.WORKSPACE_TEAM_INVITE, (data) =>
+      this.hookHandler({ event: AppEvents.WORKSPACE_TEAM_INVITE, data }),
+    );
+
+    this.appHooks.on(AppEvents.PROJECT_TEAM_INVITE, (data) =>
+      this.hookHandler({ event: AppEvents.PROJECT_TEAM_INVITE, data }),
+    );
+
+    this.appHooks.on(AppEvents.TEAM_MEMBER_ADD, (data) =>
+      this.hookHandler({ event: AppEvents.TEAM_MEMBER_ADD, data }),
+    );
   }
 
   protected async hookHandler({
@@ -325,6 +355,149 @@ export class NotificationsService extends NotificationsServiceCE {
                 display_name: requester.display_name,
               },
               limitOrFeature,
+            },
+          },
+          req,
+        );
+        break;
+      }
+      case AppEvents.WORKSPACE_TEAM_INVITE: {
+        const { workspace, team, role, req, context } =
+          data as WorkspaceTeamInviteEvent;
+
+        // Get all team owners
+        const teamAssignments = await PrincipalAssignment.list(context, {
+          resource_type: ResourceType.TEAM,
+          resource_id: team.id,
+          principal_type: PrincipalType.USER,
+        });
+        const ownerAssignments = teamAssignments.filter(
+          (assignment) => assignment.roles === TeamUserRoles.OWNER,
+        );
+
+        const inviter = req.user;
+
+        // Create notifications for each team owner
+        for (const ownerAssignment of ownerAssignments) {
+          const owner = await User.get(ownerAssignment.principal_ref_id);
+          if (owner) {
+            await this.insertNotification(
+              {
+                fk_user_id: owner.id,
+                type: AppEvents.WORKSPACE_TEAM_INVITE,
+                body: {
+                  workspace: {
+                    id: workspace.id,
+                    title: workspace.title,
+                  },
+                  team: {
+                    id: team.id,
+                    title: team.title,
+                  },
+                  role,
+                  user: {
+                    id: inviter.id,
+                    email: inviter.email,
+                    displayName: inviter.display_name,
+                    meta: inviter.meta,
+                  },
+                },
+              },
+              req,
+            );
+          }
+        }
+        break;
+      }
+      case AppEvents.PROJECT_TEAM_INVITE: {
+        const { base, team, role, req, context } = data as BaseTeamInviteEvent;
+
+        // Get all team owners
+        const teamAssignments = await PrincipalAssignment.list(context, {
+          resource_type: ResourceType.TEAM,
+          resource_id: team.id,
+          principal_type: PrincipalType.USER,
+        });
+        const ownerAssignments = teamAssignments.filter(
+          (assignment) => assignment.roles === TeamUserRoles.OWNER,
+        );
+
+        const inviter = req.user;
+        const ws = await Workspace.get(base.fk_workspace_id);
+
+        // Create notifications for each team owner
+        for (const ownerAssignment of ownerAssignments) {
+          const owner = await User.get(ownerAssignment.principal_ref_id);
+          if (owner) {
+            await this.insertNotification(
+              {
+                fk_user_id: owner.id,
+                type: AppEvents.PROJECT_TEAM_INVITE,
+                body: {
+                  base: {
+                    id: base.id,
+                    title: base.title,
+                    type: base.type,
+                  },
+                  workspace: {
+                    id: ws.id,
+                    title: ws.title,
+                  },
+                  team: {
+                    id: team.id,
+                    title: team.title,
+                  },
+                  role,
+                  user: {
+                    id: inviter.id,
+                    email: inviter.email,
+                    displayName: inviter.display_name,
+                    meta: inviter.meta,
+                  },
+                },
+              },
+              req,
+            );
+          }
+        }
+        break;
+      }
+      case AppEvents.TEAM_MEMBER_ADD: {
+        const { team, user, teamRole, workspace, base, req } =
+          data as TeamMemberAddEvent;
+
+        const inviter = req.user;
+
+        // Create notification for the user who was added to the team
+        await this.insertNotification(
+          {
+            fk_user_id: user.id,
+            type: AppEvents.TEAM_MEMBER_ADD,
+            body: {
+              team: {
+                id: team.id,
+                title: team.title,
+              },
+              teamRole,
+              workspace: workspace
+                ? {
+                    id: workspace.id,
+                    title: workspace.title,
+                  }
+                : undefined,
+              base: base
+                ? {
+                    id: base.id,
+                    title: base.title,
+                    type: base.type,
+                  }
+                : undefined,
+              user: {
+                id: inviter.id,
+                email: inviter.email,
+                displayName: inviter.display_name,
+                meta: inviter.meta,
+              },
             },
           },
           req,

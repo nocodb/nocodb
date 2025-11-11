@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
+import { AppEvents, PlanFeatureTypes, TeamUserRoles } from 'nocodb-sdk';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
@@ -18,6 +18,8 @@ import type {
   WorkspaceTeamUpdateEvent,
 } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
 import { PaymentService } from '~/ee/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { Base, PrincipalAssignment, Team, User, Workspace } from '~/models';
@@ -26,6 +28,7 @@ import { parseMetaProp } from '~/utils/modelUtils';
 import { validatePayload } from '~/helpers';
 import { getFeature } from '~/helpers/paymentHelpers';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
+import Noco from '~/Noco';
 
 @Injectable()
 export class WorkspaceTeamsV3Service {
@@ -34,6 +37,7 @@ export class WorkspaceTeamsV3Service {
   constructor(
     private readonly appHooksService: AppHooksService,
     private readonly paymentService: PaymentService,
+    private readonly mailService: MailService,
   ) {}
 
   /**
@@ -196,6 +200,34 @@ export class WorkspaceTeamsV3Service {
     // Recalculate seat count after adding team to workspace
     await this.paymentService.reseatSubscription(workspace.id);
 
+    // Notify all team owners via email
+    const teamAssignments = await PrincipalAssignment.list(context, {
+      resource_type: ResourceType.TEAM,
+      resource_id: team.id,
+      principal_type: PrincipalType.USER,
+    });
+    const ownerAssignments = teamAssignments.filter(
+      (assignment) => assignment.roles === TeamUserRoles.OWNER,
+    );
+    for (const ownerAssignment of ownerAssignments) {
+      const owner = await User.get(ownerAssignment.principal_ref_id);
+      if (owner) {
+        await this.mailService.sendMail(
+          {
+            mailEvent: MailEvent.TEAM_ASSIGNED_TO_WORKSPACE,
+            payload: {
+              req: param.req,
+              owner,
+              team,
+              workspace,
+              workspaceRole: assignment.roles,
+            },
+          },
+          Noco.ncMeta,
+        );
+      }
+    }
+
     return response;
   }
 
@@ -292,6 +324,35 @@ export class WorkspaceTeamsV3Service {
         created_at: updatedAssignment.created_at!,
         updated_at: updatedAssignment.updated_at!,
       });
+
+      // Notify all team owners via email about role update
+      const teamAssignments = await PrincipalAssignment.list(context, {
+        resource_type: ResourceType.TEAM,
+        resource_id: teamData.id,
+        principal_type: PrincipalType.USER,
+      });
+      const ownerAssignments = teamAssignments.filter(
+        (assignment) => assignment.roles === TeamUserRoles.OWNER,
+      );
+      for (const ownerAssignment of ownerAssignments) {
+        const owner = await User.get(ownerAssignment.principal_ref_id);
+        if (owner) {
+          await this.mailService.sendMail(
+            {
+              mailEvent: MailEvent.WORKSPACE_TEAM_ROLE_UPDATE,
+              payload: {
+                req: param.req,
+                owner,
+                team: teamData,
+                workspace,
+                oldWorkspaceRole: existingAssignment.roles || '',
+                workspaceRole: updatedAssignment.roles || '',
+              },
+            },
+            Noco.ncMeta,
+          );
+        }
+      }
     }
 
     // Emit workspace team update event
@@ -409,6 +470,34 @@ export class WorkspaceTeamsV3Service {
       // Clear user cache for all users in the team
       for (const userAssignment of teamUsers) {
         await User.clearCache(userAssignment.principal_ref_id);
+      }
+
+      // Notify all team owners via email about removal
+      const teamAssignments = await PrincipalAssignment.list(context, {
+        resource_type: ResourceType.TEAM,
+        resource_id: teamObj.team_id,
+        principal_type: PrincipalType.USER,
+      });
+      const ownerAssignments = teamAssignments.filter(
+        (assignment) => assignment.roles === TeamUserRoles.OWNER,
+      );
+      for (const ownerAssignment of ownerAssignments) {
+        const owner = await User.get(ownerAssignment.principal_ref_id);
+        if (owner) {
+          await this.mailService.sendMail(
+            {
+              mailEvent: MailEvent.WORKSPACE_TEAM_REMOVED,
+              payload: {
+                req: param.req,
+                owner,
+                team,
+                workspace,
+                workspaceRole: existingAssignment.roles || '',
+              },
+            },
+            Noco.ncMeta,
+          );
+        }
       }
 
       // Emit workspace team delete event for each team

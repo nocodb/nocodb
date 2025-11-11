@@ -3,6 +3,7 @@ import type { ProjectRoles } from 'nocodb-sdk'
 import { PlanLimitTypes, getProjectRole, hasMinimumRoleAccess } from 'nocodb-sdk'
 import { usePlugin } from './usePlugin'
 import { ExtensionsEvents } from '#imports'
+import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
@@ -235,6 +236,7 @@ export const useExtensions = createSharedComposable(() => {
         (ext: any) => ext.id !== extensionId,
       )
 
+      extensionUserPrefsManager.deleteExtension(extensionId)
       $e('a:extension:delete', { extensionId: extensionToDelete.extensionId })
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -312,6 +314,11 @@ export const useExtensions = createSharedComposable(() => {
           extensions: extensions || [],
           expanded: false,
         }
+      }
+
+      if (user.value?.id && extensions) {
+        const validExtensionIds = extensions.map((ext: any) => ext.id)
+        extensionUserPrefsManager.verifyAndCleanup(user.value.id, validExtensionIds)
       }
     } catch (e) {
       baseExtensions.value[baseId] = {

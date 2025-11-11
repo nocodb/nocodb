@@ -110,7 +110,7 @@ const reloadViews = async () => {
 }
 
 const saveChanges = async () => {
-  extensionUserPrefsManager.set(user.value.id, extension.value.id, exportPayload.value)
+  extensionUserPrefsManager.set(user.value.id, extension.value.id, exportPayload.value, extension.value.baseId)
 }
 
 const onTableSelect = async (tableId?: string) => {

@@ -75,9 +75,6 @@ const openPopup = (url: string, name: string, state: string, codeVerifier: strin
         }
 
         const url = popup.location.href
-        console.log('url', url)
-        console.log('OAuthConfig.value.redirectUri', OAuthConfig.value.redirectUri)
-
         if (url.includes(OAuthConfig.value.redirectUri)) {
           const params = new URL(url).searchParams
           const code = params.get(OAuthConfig.value.codeKey || 'code')

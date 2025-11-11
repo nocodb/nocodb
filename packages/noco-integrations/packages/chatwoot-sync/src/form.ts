@@ -43,7 +43,7 @@ const form: FormDefinition = [
     model: 'config.includeResolved',
     category: 'Source',
     defaultValue: true,
-  }
+  },
 ];
 
 export default form;

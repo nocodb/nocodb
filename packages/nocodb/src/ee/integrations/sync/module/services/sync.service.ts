@@ -1099,7 +1099,9 @@ export class SyncModuleService implements OnModuleInit {
 
     await authWrapper.authenticate();
 
-    const schema = await tempIntegrationWrapper.getDestinationSchema(authWrapper);
+    const schema = await tempIntegrationWrapper.getDestinationSchema(
+      authWrapper,
+    );
 
     if (authWrapper?.destroy) {
       await authWrapper.destroy();

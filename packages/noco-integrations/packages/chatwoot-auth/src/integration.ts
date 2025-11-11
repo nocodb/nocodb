@@ -1,12 +1,15 @@
 import { AuthIntegration, createAxiosInstance } from '@noco-integrations/core';
-import type { ChatwootAuthConfig } from './types'
-import type {  AxiosInstance } from 'axios';
+import type { ChatwootAuthConfig } from './types';
+import type { AxiosInstance } from 'axios';
 import type {
   RateLimitOptions,
   TestConnectionResponse,
 } from '@noco-integrations/core';
 
-export class ChatwootAuthIntegration extends AuthIntegration<ChatwootAuthConfig, AxiosInstance> {
+export class ChatwootAuthIntegration extends AuthIntegration<
+  ChatwootAuthConfig,
+  AxiosInstance
+> {
   public client: AxiosInstance | null = null;
 
   /**
@@ -24,17 +27,21 @@ export class ChatwootAuthIntegration extends AuthIntegration<ChatwootAuthConfig,
   }
 
   public async authenticate(): Promise<AxiosInstance> {
-    if (!this.config.chatwoot_url || !this.config.account_id || !this.config.api_token) {
+    if (
+      !this.config.chatwoot_url ||
+      !this.config.account_id ||
+      !this.config.api_token
+    ) {
       throw new Error('Missing required Chatwoot configuration');
     }
 
     const baseURL = this.config.chatwoot_url.replace(/\/$/, '');
-    
+
     this.client = createAxiosInstance(
       {
         baseURL: `${baseURL}/api/v1/accounts/${this.config.account_id}`,
         headers: {
-          'api_access_token': this.config.api_token,
+          api_access_token: this.config.api_token,
           'Content-Type': 'application/json',
         },
       },

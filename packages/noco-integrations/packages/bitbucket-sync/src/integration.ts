@@ -4,7 +4,7 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type { BitbucketAuthIntegration } from '@noco-integrations/bitbucket-auth'
+import type { BitbucketAuthIntegration } from '@noco-integrations/bitbucket-auth';
 import type {
   SyncLinkValue,
   SyncRecord,
@@ -43,7 +43,10 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
     const stream = new DataObjectStream<SyncRecord>();
 
     const userMap = new Map<string, boolean>();
-    const issueMap = new Map<number, { id: number; number: number; type: 'issue' | 'pr' }>();
+    const issueMap = new Map<
+      number,
+      { id: number; number: number; type: 'issue' | 'pr' }
+    >();
 
     void (async () => {
       try {
@@ -81,7 +84,9 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
 
               // Add incremental sync filter (server-side)
               if (ticketIncrementalValue) {
-                const incrementalDate = new Date(ticketIncrementalValue).toISOString();
+                const incrementalDate = new Date(
+                  ticketIncrementalValue,
+                ).toISOString();
                 queryParts.push(`updated_on > ${incrementalDate}`);
               }
 
@@ -90,24 +95,27 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                 params.q = queryParts.join(' AND ');
               }
 
-              const { data: issuesResponse } = await auth.use(async (client) => {
-                return await client.get(
-                  `/repositories/${workspace}/${repository}/issues`,
-                  { params },
-                );
-              });
+              const { data: issuesResponse } = await auth.use(
+                async (client) => {
+                  return await client.get(
+                    `/repositories/${workspace}/${repository}/issues`,
+                    { params },
+                  );
+                },
+              );
 
               const issues = issuesResponse.values || [];
-              
+
               if (issues.length === 0) {
                 hasMore = false;
                 break;
               }
 
-              this.log(`[Bitbucket Sync] Fetched ${issues.length} issues (page ${page})`);
+              this.log(
+                `[Bitbucket Sync] Fetched ${issues.length} issues (page ${page})`,
+              );
 
               for (const issue of issues) {
-
                 // Store issue for later comment fetching
                 issueMap.set(issue.id, {
                   id: issue.id,
@@ -118,7 +126,11 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                 stream.push({
                   recordId: `${issue.id}`,
                   targetTable: TARGET_TABLES.TICKETING_TICKET,
-                  ...this.formatData(TARGET_TABLES.TICKETING_TICKET, issue, repo),
+                  ...this.formatData(
+                    TARGET_TABLES.TICKETING_TICKET,
+                    issue,
+                    repo,
+                  ),
                 });
 
                 // Extract users
@@ -194,7 +206,9 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
 
                 // Add incremental sync filter (server-side)
                 if (ticketIncrementalValue) {
-                  const incrementalDate = new Date(ticketIncrementalValue).toISOString();
+                  const incrementalDate = new Date(
+                    ticketIncrementalValue,
+                  ).toISOString();
                   queryParts.push(`updated_on > ${incrementalDate}`);
                 }
 
@@ -211,7 +225,9 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                 });
 
                 const prs = prsResponse.values || [];
-                this.log(`[Bitbucket Sync] Fetched ${prs.length} pull requests (page ${page})`);
+                this.log(
+                  `[Bitbucket Sync] Fetched ${prs.length} pull requests (page ${page})`,
+                );
 
                 if (prs.length === 0) {
                   hasMore = false;
@@ -219,7 +235,6 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                 }
 
                 for (const pr of prs) {
-
                   // Store PR for later comment fetching
                   issueMap.set(pr.id, {
                     id: pr.id,
@@ -230,7 +245,12 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                   stream.push({
                     recordId: `${pr.id}`,
                     targetTable: TARGET_TABLES.TICKETING_TICKET,
-                    ...this.formatData(TARGET_TABLES.TICKETING_TICKET, pr, repo, true),
+                    ...this.formatData(
+                      TARGET_TABLES.TICKETING_TICKET,
+                      pr,
+                      repo,
+                      true,
+                    ),
                   });
 
                   // Extract users
@@ -278,7 +298,10 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
           }
 
           // Fetch comments if needed
-          if (issueMap.size > 0 && args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)) {
+          if (
+            issueMap.size > 0 &&
+            args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)
+          ) {
             this.log(
               `[Bitbucket Sync] Fetching comments for repository ${workspace}/${repository}`,
             );
@@ -294,9 +317,10 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                 hasMore = true;
 
                 // Use correct endpoint based on type
-                const commentsEndpoint = issueInfo.type === 'pr'
-                  ? `/repositories/${workspace}/${repository}/pullrequests/${issueId}/comments`
-                  : `/repositories/${workspace}/${repository}/issues/${issueId}/comments`;
+                const commentsEndpoint =
+                  issueInfo.type === 'pr'
+                    ? `/repositories/${workspace}/${repository}/pullrequests/${issueId}/comments`
+                    : `/repositories/${workspace}/${repository}/issues/${issueId}/comments`;
 
                 while (hasMore) {
                   const params: any = {
@@ -307,16 +331,17 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
 
                   // Add incremental sync filter
                   if (commentIncrementalValue) {
-                    const incrementalDate = new Date(commentIncrementalValue).toISOString();
+                    const incrementalDate = new Date(
+                      commentIncrementalValue,
+                    ).toISOString();
                     params.q = `created_on > ${incrementalDate}`;
                   }
 
-                  const { data: commentsResponse } = await auth.use(async (client) => {
-                    return await client.get(
-                      commentsEndpoint,
-                      { params },
-                    );
-                  });
+                  const { data: commentsResponse } = await auth.use(
+                    async (client) => {
+                      return await client.get(commentsEndpoint, { params });
+                    },
+                  );
 
                   const comments = commentsResponse.values || [];
 
@@ -326,7 +351,6 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                   }
 
                   for (const comment of comments) {
-
                     // Add issue info to comment
                     Object.assign(comment, {
                       issue: issueInfo,
@@ -344,7 +368,11 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
                     });
 
                     // Add comment author to users
-                    if (comment.user && comment.user.uuid && !userMap.has(comment.user.uuid)) {
+                    if (
+                      comment.user &&
+                      comment.user.uuid &&
+                      !userMap.has(comment.user.uuid)
+                    ) {
                       userMap.set(comment.user.uuid, true);
 
                       stream.push({
@@ -412,7 +440,11 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
         return this.formatUser(data, namespace);
       case TARGET_TABLES.TICKETING_COMMENT:
         // For comments, typeOrIsPR is the type string ('issue' | 'pr')
-        return this.formatComment(data, namespace, typeOrIsPR as 'issue' | 'pr');
+        return this.formatComment(
+          data,
+          namespace,
+          typeOrIsPR as 'issue' | 'pr',
+        );
       default: {
         return {
           data: {
@@ -442,12 +474,16 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
       'Ticket Type': isPR ? 'Pull Request' : 'Issue',
       'Ticket Number': `${issue.id}`,
       Url: issue.links?.html?.href || null,
-      'Is Active': isPR 
-        ? issue.state === 'OPEN' 
-        : (issue.state === 'new' || issue.state === 'open'),
-      'Completed At': isPR 
-        ? (issue.state === 'MERGED' || issue.state === 'DECLINED' ? issue.updated_on : null)
-        : (issue.state === 'resolved' || issue.state === 'closed' ? issue.updated_on : null),
+      'Is Active': isPR
+        ? issue.state === 'OPEN'
+        : issue.state === 'new' || issue.state === 'open',
+      'Completed At': isPR
+        ? issue.state === 'MERGED' || issue.state === 'DECLINED'
+          ? issue.updated_on
+          : null
+        : issue.state === 'resolved' || issue.state === 'closed'
+          ? issue.updated_on
+          : null,
       // System Fields
       RemoteCreatedAt: issue.created_on,
       RemoteUpdatedAt: issue.updated_on,
@@ -561,19 +597,15 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
         let hasMore = true;
 
         while (hasMore) {
-
           const { data: reposResponse } = await auth.use(async (client) => {
-            return await client.get(
-              '/repositories',
-              {
-                params: {
-                  role: 'member',
-                  page,
-                  pagelen: 100,
-                  sort: '-updated_on',
-                },
+            return await client.get('/repositories', {
+              params: {
+                role: 'member',
+                page,
+                pagelen: 100,
+                sort: '-updated_on',
               },
-            );
+            });
           });
 
           const repos = reposResponse.values || [];

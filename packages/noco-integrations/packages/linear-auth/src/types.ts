@@ -1,4 +1,4 @@
-import type { AuthType } from '@noco-integrations/core'
+import type { AuthType } from '@noco-integrations/core';
 
 interface LinearApiKeyConfig {
   type: AuthType.ApiKey;
@@ -14,6 +14,4 @@ interface LinearOAuthConfig {
 
 type LinearAuthConfig = LinearApiKeyConfig | LinearOAuthConfig;
 
-export {
-  LinearAuthConfig
-}
+export { LinearAuthConfig };

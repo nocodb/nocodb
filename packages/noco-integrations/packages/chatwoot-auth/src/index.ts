@@ -14,6 +14,6 @@ const integration: IntegrationEntry = {
   manifest,
 };
 
-export { ChatwootAuthIntegration }
+export { ChatwootAuthIntegration };
 
 export default integration;

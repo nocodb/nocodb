@@ -4,7 +4,7 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type { FreshdeskAuthIntegration } from '@noco-integrations/freshdesk-auth'
+import type { FreshdeskAuthIntegration } from '@noco-integrations/freshdesk-auth';
 import type {
   SyncLinkValue,
   TicketingCommentRecord,
@@ -22,9 +22,9 @@ export interface FreshdeskSyncPayload {
 
 /**
  * Freshdesk Sync Integration
- * 
+ *
  * Syncs tickets, contacts (users), agents, and groups from Freshdesk.
- * 
+ *
  * @see https://developers.freshdesk.com/api/
  */
 export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskSyncPayload> {
@@ -94,7 +94,13 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
         await this.fetchGroups(auth, stream);
 
         // Fetch conversations (comments) for all tickets
-        await this.fetchConversations(auth, stream, ticketIds, userMap, agentMap);
+        await this.fetchConversations(
+          auth,
+          stream,
+          ticketIds,
+          userMap,
+          agentMap,
+        );
 
         stream.push(null);
       } catch (error) {
@@ -110,7 +116,11 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
     targetTable: TARGET_TABLES,
     data: any,
   ): {
-    data: TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord | TicketingTeamRecord;
+    data:
+      | TicketingTicketRecord
+      | TicketingUserRecord
+      | TicketingCommentRecord
+      | TicketingTeamRecord;
     links?: Record<string, SyncLinkValue>;
   } {
     switch (targetTable) {
@@ -121,7 +131,10 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
       case TARGET_TABLES.TICKETING_TEAM:
         return this.formatGroup(data);
       case TARGET_TABLES.TICKETING_COMMENT:
-        return this.formatConversation(data.conversation || data, data.ticketId);
+        return this.formatConversation(
+          data.conversation || data,
+          data.ticketId,
+        );
       default:
         return {
           data: {
@@ -181,7 +194,7 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
 
         const response = await auth.use(async (client) => {
           return await client.get(`/tickets?${queryParams.toString()}`);
-        })
+        });
 
         const tickets = response.data;
 
@@ -200,7 +213,10 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
           totalTickets++;
 
           // Process ticket
-          const ticketData = this.formatData(TARGET_TABLES.TICKETING_TICKET, ticket);
+          const ticketData = this.formatData(
+            TARGET_TABLES.TICKETING_TICKET,
+            ticket,
+          );
           stream.push({
             recordId: ticket.id.toString(),
             targetTable: TARGET_TABLES.TICKETING_TICKET,
@@ -252,7 +268,7 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
       try {
         const response = await auth.use(async (client) => {
           return await client.get(`/contacts/${userId}`);
-        })
+        });
         const contact = response.data;
 
         const userData = this.formatData(TARGET_TABLES.TICKETING_USER, contact);
@@ -263,7 +279,9 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
         });
       } catch (error: any) {
         if (error?.response?.status !== 404) {
-          this.log(`[Freshdesk Sync] Error fetching contact ${userId}: ${error.message}`);
+          this.log(
+            `[Freshdesk Sync] Error fetching contact ${userId}: ${error.message}`,
+          );
         }
       }
     }
@@ -289,7 +307,7 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
       try {
         const response = await auth.use(async (client) => {
           return await client.get(`/agents/${agentId}`);
-        })
+        });
         const agent = response.data;
 
         const agentData = this.formatData(TARGET_TABLES.TICKETING_USER, agent);
@@ -298,10 +316,11 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
           targetTable: TARGET_TABLES.TICKETING_USER,
           data: agentData.data as TicketingUserRecord,
         });
-
       } catch (error: any) {
         if (error?.response?.status !== 404) {
-          this.log(`[Freshdesk Sync] Error fetching agent ${agentId}: ${error.message}`);
+          this.log(
+            `[Freshdesk Sync] Error fetching agent ${agentId}: ${error.message}`,
+          );
         }
       }
     }
@@ -320,7 +339,7 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
     try {
       const response = await auth.use(async (client) => {
         return await client.get(`/admin/groups`);
-      })
+      });
       const groups = response.data;
 
       if (!groups || groups.length === 0) {
@@ -358,7 +377,9 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
       return;
     }
 
-    this.log(`[Freshdesk Sync] Fetching conversations for ${ticketIds.length} tickets`);
+    this.log(
+      `[Freshdesk Sync] Fetching conversations for ${ticketIds.length} tickets`,
+    );
 
     let totalConversations = 0;
 
@@ -375,8 +396,10 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
           });
 
           const response = await auth.use(async (client) => {
-            return await client.get(`/tickets/${ticketId}/conversations?${queryParams.toString()}`);
-          })
+            return await client.get(
+              `/tickets/${ticketId}/conversations?${queryParams.toString()}`,
+            );
+          });
           const conversations = response.data;
 
           if (!conversations || conversations.length === 0) {
@@ -385,10 +408,13 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
           }
 
           for (const conversation of conversations) {
-            const commentData = this.formatData(TARGET_TABLES.TICKETING_COMMENT, {
-              ...conversation,
-              ticketId,
-            });
+            const commentData = this.formatData(
+              TARGET_TABLES.TICKETING_COMMENT,
+              {
+                ...conversation,
+                ticketId,
+              },
+            );
             stream.push({
               recordId: conversation.id.toString(),
               targetTable: TARGET_TABLES.TICKETING_COMMENT,
@@ -408,16 +434,19 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
           }
 
           page++;
-
         }
       } catch (error: any) {
         if (error?.response?.status !== 404) {
-          this.log(`[Freshdesk Sync] Error fetching conversations for ticket ${ticketId}: ${error.message}`);
+          this.log(
+            `[Freshdesk Sync] Error fetching conversations for ticket ${ticketId}: ${error.message}`,
+          );
         }
       }
     }
 
-    this.log(`[Freshdesk Sync] Total conversations fetched: ${totalConversations}`);
+    this.log(
+      `[Freshdesk Sync] Total conversations fetched: ${totalConversations}`,
+    );
   }
 
   /**
@@ -465,7 +494,8 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
       'Ticket Type': ticket.type || null,
       Url: `https://${ticket.domain || 'domain'}.freshdesk.com/a/tickets/${ticket.id}`,
       'Is Active': ![4, 5].includes(ticket.status),
-      'Completed At': ticket.stats?.closed_at || ticket.stats?.resolved_at || null,
+      'Completed At':
+        ticket.stats?.closed_at || ticket.stats?.resolved_at || null,
       'Ticket Number': ticket.id?.toString() || null,
       RemoteCreatedAt: ticket.created_at || null,
       RemoteUpdatedAt: ticket.updated_at || null,
@@ -536,7 +566,11 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
     const links: Record<string, string[]> = {};
 
     // Link to agents in the group
-    if (group.agent_ids && Array.isArray(group.agent_ids) && group.agent_ids.length > 0) {
+    if (
+      group.agent_ids &&
+      Array.isArray(group.agent_ids) &&
+      group.agent_ids.length > 0
+    ) {
       links.Members = group.agent_ids.map((id: number) => id.toString());
     }
 
@@ -549,13 +583,16 @@ export default class FreshdeskSyncIntegration extends SyncIntegration<FreshdeskS
   /**
    * Format Freshdesk conversation to NocoDB comment schema
    */
-  private formatConversation(conversation: any, ticketId: string): {
+  private formatConversation(
+    conversation: any,
+    ticketId: string,
+  ): {
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
   } {
     const commentData: TicketingCommentRecord = {
-      Title: conversation.private 
-        ? `Private note on ticket #${ticketId}` 
+      Title: conversation.private
+        ? `Private note on ticket #${ticketId}`
         : `Comment on ticket #${ticketId}`,
       Body: conversation.body_text || conversation.body || null,
       Url: null,

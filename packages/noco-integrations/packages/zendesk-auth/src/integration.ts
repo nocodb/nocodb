@@ -1,12 +1,27 @@
-import axios from 'axios'
-import { AuthIntegration, AuthType, createAxiosInstance } from '@noco-integrations/core'
-import { clientId, clientSecret, getApiBaseUrl, getTokenUri, redirectUri } from './config';
+import axios from 'axios';
+import {
+  AuthIntegration,
+  AuthType,
+  createAxiosInstance,
+} from '@noco-integrations/core';
+import {
+  clientId,
+  clientSecret,
+  getApiBaseUrl,
+  getTokenUri,
+  redirectUri,
+} from './config';
 import type { AxiosInstance } from 'axios';
-import type { ZendeskAuthConfig } from './types'
-import type { RateLimitOptions, TestConnectionResponse } from '@noco-integrations/core';
+import type { ZendeskAuthConfig } from './types';
+import type {
+  RateLimitOptions,
+  TestConnectionResponse,
+} from '@noco-integrations/core';
 
-export class ZendeskAuthIntegration extends AuthIntegration<ZendeskAuthConfig, AxiosInstance> {
-
+export class ZendeskAuthIntegration extends AuthIntegration<
+  ZendeskAuthConfig,
+  AxiosInstance
+> {
   // https://developer.zendesk.com/api-reference/sales-crm/rate-limits/
   protected getRateLimitConfig(): RateLimitOptions | null {
     return {
@@ -14,7 +29,7 @@ export class ZendeskAuthIntegration extends AuthIntegration<ZendeskAuthConfig, A
         maxRequests: 36000,
         perMilliseconds: 3600000, // 1 hour in milliseconds
       },
-    }
+    };
   }
 
   public async authenticate(): Promise<AxiosInstance> {
@@ -32,18 +47,20 @@ export class ZendeskAuthIntegration extends AuthIntegration<ZendeskAuthConfig, A
 
         // For API Key auth, create a token from email/token combination
         const auth = Buffer.from(
-          `${this.config.email}/token:${this.config.token}`
+          `${this.config.email}/token:${this.config.token}`,
         ).toString('base64');
 
-
-        this.client = createAxiosInstance({
-          baseURL: apiBaseUrl,
-          headers: {
-            'Authorization': `Basic ${auth}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+        this.client = createAxiosInstance(
+          {
+            baseURL: apiBaseUrl,
+            headers: {
+              Authorization: `Basic ${auth}`,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
           },
-        }, this.getRateLimitConfig())
+          this.getRateLimitConfig(),
+        );
         break;
       }
 
@@ -52,20 +69,23 @@ export class ZendeskAuthIntegration extends AuthIntegration<ZendeskAuthConfig, A
           throw new Error('Missing required Zendesk OAuth token');
         }
 
-        this.client = createAxiosInstance({
-          baseURL: apiBaseUrl,
-          headers: {
-            'Authorization': `Bearer ${this.config.oauth_token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
+        this.client = createAxiosInstance(
+          {
+            baseURL: apiBaseUrl,
+            headers: {
+              Authorization: `Bearer ${this.config.oauth_token}`,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
           },
-        }, this.getRateLimitConfig())
+          this.getRateLimitConfig(),
+        );
         break;
       }
 
       default:
         throw new Error(
-          `Unsupported authentication type: ${(this.config as any).type}`
+          `Unsupported authentication type: ${(this.config as any).type}`,
         );
     }
 
@@ -156,9 +176,9 @@ export class ZendeskAuthIntegration extends AuthIntegration<ZendeskAuthConfig, A
         {
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
-        }
+        },
       );
 
       return {
@@ -172,9 +192,7 @@ export class ZendeskAuthIntegration extends AuthIntegration<ZendeskAuthConfig, A
     }
   }
 
-  public async refreshToken(payload: {
-    refresh_token: string;
-  }): Promise<{
+  public async refreshToken(payload: { refresh_token: string }): Promise<{
     oauth_token: string;
     refresh_token: string;
     expires_in?: number;
@@ -197,9 +215,9 @@ export class ZendeskAuthIntegration extends AuthIntegration<ZendeskAuthConfig, A
         {
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
-        }
+        },
       );
 
       return {

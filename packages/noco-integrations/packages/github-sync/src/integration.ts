@@ -26,12 +26,12 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     return `${this.config.repos[0]}${this.config.repos.length > 1 ? ` + ${this.config.repos.length - 1} more` : ''}`;
   }
 
-  public async getDestinationSchema(_auth:GithubAuthIntegration) {
+  public async getDestinationSchema(_auth: GithubAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
   public async fetchData(
-    auth:GithubAuthIntegration,
+    auth: GithubAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: {
@@ -70,14 +70,11 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
               // Get all teams from the organization
 
               const teamsIterator = await auth.use(async (client) => {
-                return client.paginate.iterator(
-                  client.rest.teams.list,
-                  {
-                    org: owner,
-                    per_page: 100,
-                  },
-                );
-              })
+                return client.paginate.iterator(client.rest.teams.list, {
+                  org: owner,
+                  per_page: 100,
+                });
+              });
 
               for await (const { data: teams } of teamsIterator) {
                 this.log(`[GitHub Sync] Fetched ${teams.length} teams`);
@@ -108,7 +105,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
                             per_page: 100,
                           },
                         );
-                      })
+                      });
 
                       for await (const { data: members } of membersIterator) {
                         for (const member of members) {
@@ -158,17 +155,14 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
           );
 
           const iterator = await auth.use(async (octokit) => {
-            return octokit.paginate.iterator(
-              octokit.rest.issues.listForRepo,
-              {
-                owner,
-                repo: repository,
-                per_page: 100,
-                since: fetchAfter,
-                ...(!includeClosed ? {} : { state: 'all' }),
-              },
-            )
-          })
+            return octokit.paginate.iterator(octokit.rest.issues.listForRepo, {
+              owner,
+              repo: repository,
+              per_page: 100,
+              since: fetchAfter,
+              ...(!includeClosed ? {} : { state: 'all' }),
+            });
+          });
 
           for await (const { data } of iterator) {
             this.log(`[GitHub Sync] Fetched ${data.length} issues`);
@@ -260,7 +254,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
                       since: fetchAfter,
                     },
                   );
-                })
+                });
 
                 for await (const { data: comments } of commentsIterator) {
                   for (const comment of comments) {
@@ -494,8 +488,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
     return this.config.repos;
   }
 
-  public async fetchOptions(auth:GithubAuthIntegration, key: string) {
-
+  public async fetchOptions(auth: GithubAuthIntegration, key: string) {
     if (key === 'repos') {
       try {
         const options: { label: string; value: string }[] = [];
@@ -510,7 +503,7 @@ export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPay
               direction: 'desc',
             },
           );
-        })
+        });
 
         for await (const { data: repos } of reposIterator) {
           for (const repo of repos) {

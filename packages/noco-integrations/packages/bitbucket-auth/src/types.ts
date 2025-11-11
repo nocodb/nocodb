@@ -1,4 +1,4 @@
-import type { AuthType } from '@noco-integrations/core'
+import type { AuthType } from '@noco-integrations/core';
 
 export interface BitBucketAuthConfig {
   type: AuthType;

@@ -8,6 +8,4 @@ interface MySQLAuthConfig {
   connectionLimit?: number;
 }
 
-export {
-  MySQLAuthConfig
-}
+export { MySQLAuthConfig };

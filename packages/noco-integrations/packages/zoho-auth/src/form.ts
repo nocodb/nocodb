@@ -60,8 +60,8 @@ export const form: FormDefinition = [
       },
       {
         label: 'SA (.sa)',
-        value: 'sa'
-      }
+        value: 'sa',
+      },
     ],
     validators: [
       {

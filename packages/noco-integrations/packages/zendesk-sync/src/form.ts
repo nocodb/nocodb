@@ -30,7 +30,7 @@ const form: FormDefinition = [
     model: 'config.includeClosed',
     category: 'Source',
     defaultValue: true,
-  }
+  },
 ];
 
 export default form;

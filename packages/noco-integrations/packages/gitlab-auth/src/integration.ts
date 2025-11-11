@@ -2,10 +2,13 @@ import axios from 'axios';
 import { Gitlab } from '@gitbeaker/rest';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, redirectUri, tokenUri } from './config';
-import type { GitlabAuthConfig } from './types'
+import type { GitlabAuthConfig } from './types';
 import type { TestConnectionResponse } from '@noco-integrations/core';
 
-export class GitlabAuthIntegration extends AuthIntegration <GitlabAuthConfig, InstanceType<typeof Gitlab>> {
+export class GitlabAuthIntegration extends AuthIntegration<
+  GitlabAuthConfig,
+  InstanceType<typeof Gitlab>
+> {
   public async authenticate(): Promise<InstanceType<typeof Gitlab>> {
     const hostname = this.config.hostname || 'https://gitlab.com';
 
@@ -26,7 +29,7 @@ export class GitlabAuthIntegration extends AuthIntegration <GitlabAuthConfig, In
 
       default:
         throw new Error(
-          `Unsupported authentication type: ${(this.config as any).type}`
+          `Unsupported authentication type: ${(this.config as any).type}`,
         );
     }
 

@@ -1,7 +1,10 @@
 import { generateObject, generateText, type LanguageModel } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { AiIntegration } from '@noco-integrations/core';
-import type { AiGenerateObjectArgs , AiGenerateTextArgs} from '@noco-integrations/core';
+import type {
+  AiGenerateObjectArgs,
+  AiGenerateTextArgs,
+} from '@noco-integrations/core';
 
 const modelMap: Record<string, string> = {
   high: 'gpt-4o',
@@ -54,9 +57,9 @@ export class NocodbAiIntegration extends AiIntegration {
       data: response.object as T,
     };
   }
-  
+
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, customModel, system  } = args;
+    const { prompt, messages, customModel, system } = args;
 
     if (!this.model || customModel) {
       const config = this.config;

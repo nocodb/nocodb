@@ -12,6 +12,6 @@ const entry: IntegrationEntry = {
   manifest,
 };
 
-export { PostgresAuthIntegration }
+export { PostgresAuthIntegration };
 
 export default entry;

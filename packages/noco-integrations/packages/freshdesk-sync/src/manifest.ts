@@ -1,9 +1,9 @@
-import { SyncCategory } from '@noco-integrations/core'
-import type { IntegrationManifest} from '@noco-integrations/core';
+import { SyncCategory } from '@noco-integrations/core';
+import type { IntegrationManifest } from '@noco-integrations/core';
 
 /**
  * Freshdesk Sync Integration Manifest
- * 
+ *
  * Provides metadata and configuration for the Freshdesk sync integration.
  */
 export const manifest: IntegrationManifest = {

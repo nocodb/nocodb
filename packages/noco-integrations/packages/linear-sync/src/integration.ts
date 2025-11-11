@@ -18,12 +18,17 @@ import type {
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
+import type { LinearAuthIntegration } from '@noco-integrations/linear-auth';
+
 import type {
-  LinearAuthIntegration
-} from '@noco-integrations/linear-auth';
-
-
-import type { LinearComment, LinearIssue, LinearLabel, LinearSyncPayload , LinearTeam, LinearUser, ProcessedIssue} from './types';
+  LinearComment,
+  LinearIssue,
+  LinearLabel,
+  LinearSyncPayload,
+  LinearTeam,
+  LinearUser,
+  ProcessedIssue,
+} from './types';
 
 export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPayload> {
   public getTitle() {
@@ -73,45 +78,60 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
           // It's a team ID, fetch directly
           this.log(`[Linear Sync] Detected UUID format, fetching team by ID`);
 
-          const response = await auth.use(async (client) => await client.post('', {
-            query: TEAM_WITH_MEMBERS_QUERY,
-            variables: { id: teamKey },
-          }));
-          
+          const response = await auth.use(
+            async (client) =>
+              await client.post('', {
+                query: TEAM_WITH_MEMBERS_QUERY,
+                variables: { id: teamKey },
+              }),
+          );
+
           if (response.data.errors) {
-            throw new Error(`Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`);
+            throw new Error(
+              `Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`,
+            );
           }
-          
+
           team = response.data.data.team;
         } else {
           // It's a team key, fetch all teams and find by key
           this.log(`[Linear Sync] Detected key format, searching teams by key`);
 
-          const response = await auth.use(async (client) => await client.post('', {
-            query: TEAMS_QUERY,
-          }));
-          
+          const response = await auth.use(
+            async (client) =>
+              await client.post('', {
+                query: TEAMS_QUERY,
+              }),
+          );
+
           if (response.data.errors) {
-            throw new Error(`Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`);
+            throw new Error(
+              `Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`,
+            );
           }
-          
+
           const teams: LinearTeam[] = response.data.data.teams.nodes;
           const foundTeam = teams.find((t) => t.key === teamKey);
-          
+
           if (!foundTeam) {
             throw new Error(`Team with key ${teamKey} not found`);
           }
-          
+
           // Fetch full team with members
-          const teamResponse = await auth.use(async (client) => await client.post('', {
-            query: TEAM_WITH_MEMBERS_QUERY,
-            variables: { id: foundTeam.id },
-          }));
-          
+          const teamResponse = await auth.use(
+            async (client) =>
+              await client.post('', {
+                query: TEAM_WITH_MEMBERS_QUERY,
+                variables: { id: foundTeam.id },
+              }),
+          );
+
           if (teamResponse.data.errors) {
-            throw new Error(`Linear GraphQL errors: ${JSON.stringify(teamResponse.data.errors)}`);
+            throw new Error(
+              `Linear GraphQL errors: ${JSON.stringify(teamResponse.data.errors)}`,
+            );
           }
-          
+
           team = teamResponse.data.data.team;
         }
 
@@ -119,7 +139,9 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
           throw new Error(`Team with identifier ${teamKey} not found`);
         }
 
-        this.log(`[Linear Sync] Found team: ${team.name} (ID: ${team.id}, Key: ${team.key})`);
+        this.log(
+          `[Linear Sync] Found team: ${team.name} (ID: ${team.id}, Key: ${team.key})`,
+        );
 
         // Add team to stream
         if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM)) {
@@ -140,59 +162,76 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
         if (ticketIncrementalValue) {
           const incrementalDate = new Date(ticketIncrementalValue);
           issueFilter.updatedAt = { gt: incrementalDate };
-          this.log(`[Linear Sync] Incremental sync from: ${incrementalDate.toISOString()}`);
+          this.log(
+            `[Linear Sync] Incremental sync from: ${incrementalDate.toISOString()}`,
+          );
         }
 
         // Handle state filter - exclude canceled and/or completed states
         if (!includeCanceled && !includeCompleted) {
           // Exclude both canceled and completed
           issueFilter.state = {
-            type: { nin: ['canceled', 'completed'] }
+            type: { nin: ['canceled', 'completed'] },
           };
         } else if (!includeCanceled) {
           // Exclude only canceled
           issueFilter.state = {
-            type: { neq: 'canceled' }
+            type: { neq: 'canceled' },
           };
         } else if (!includeCompleted) {
           // Exclude only completed
           issueFilter.state = {
-            type: { neq: 'completed' }
+            type: { neq: 'completed' },
           };
         }
 
         // Fetch issues
-        this.log(`[Linear Sync] Fetching issues for team ${teamKey} (ID: ${team.id})`);
-        this.log(`[Linear Sync] Include canceled: ${includeCanceled}, Include completed: ${includeCompleted}`);
+        this.log(
+          `[Linear Sync] Fetching issues for team ${teamKey} (ID: ${team.id})`,
+        );
+        this.log(
+          `[Linear Sync] Include canceled: ${includeCanceled}, Include completed: ${includeCompleted}`,
+        );
 
         let hasNextPage = true;
         let endCursor: string | null = null;
         let totalIssuesFetched = 0;
 
         while (hasNextPage) {
-          this.log(`[Linear Sync] Fetching page with cursor: ${endCursor || 'initial'}`);
-          
+          this.log(
+            `[Linear Sync] Fetching page with cursor: ${endCursor || 'initial'}`,
+          );
+
           // Single GraphQL query fetches issues with ALL relations (state, assignee, creator, labels, comments)
-          const response = await auth.use(async (client) => await client.post('', {
-            query: ISSUES_WITH_RELATIONS_QUERY,
-            variables: {
-              filter: issueFilter,
-              first: 100,
-              after: endCursor || undefined,
-              includeArchived: includeCanceled || includeCompleted,
-            },
-          }));
+          const response = await auth.use(
+            async (client) =>
+              await client.post('', {
+                query: ISSUES_WITH_RELATIONS_QUERY,
+                variables: {
+                  filter: issueFilter,
+                  first: 100,
+                  after: endCursor || undefined,
+                  includeArchived: includeCanceled || includeCompleted,
+                },
+              }),
+          );
 
           if (response?.data?.errors) {
-            throw new Error(`Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`);
+            throw new Error(
+              `Linear GraphQL errors: ${JSON.stringify(response.data.errors)}`,
+            );
           }
 
           const issuesData = response.data.data.issues;
           const issues: LinearIssue[] = issuesData.nodes;
           totalIssuesFetched += issues.length;
-          
-          this.log(`[Linear Sync] Fetched ${issues.length} issues (total: ${totalIssuesFetched})`);
-          this.log(`[Linear Sync] PageInfo - hasNextPage: ${issuesData.pageInfo.hasNextPage}`);
+
+          this.log(
+            `[Linear Sync] Fetched ${issues.length} issues (total: ${totalIssuesFetched})`,
+          );
+          this.log(
+            `[Linear Sync] PageInfo - hasNextPage: ${issuesData.pageInfo.hasNextPage}`,
+          );
 
           // Process all issues
           for (const issue of issues) {
@@ -254,7 +293,9 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
               });
 
               // Process comments
-              if (args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)) {
+              if (
+                args.targetTables?.includes(TARGET_TABLES.TICKETING_COMMENT)
+              ) {
                 const comments = issue.comments.nodes;
 
                 for (const comment of comments) {
@@ -292,14 +333,21 @@ export default class LinearSyncIntegration extends SyncIntegration<LinearSyncPay
 
           hasNextPage = issuesData.pageInfo.hasNextPage;
           endCursor = issuesData.pageInfo.endCursor ?? null;
-          
-          this.log(`[Linear Sync] Page complete. Has next: ${hasNextPage}, End cursor: ${endCursor}`);
+
+          this.log(
+            `[Linear Sync] Page complete. Has next: ${hasNextPage}, End cursor: ${endCursor}`,
+          );
         }
-        
-        this.log(`[Linear Sync] Completed fetching all issues. Total: ${totalIssuesFetched}`);
+
+        this.log(
+          `[Linear Sync] Completed fetching all issues. Total: ${totalIssuesFetched}`,
+        );
 
         // Process team members
-        if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM) && team.members) {
+        if (
+          args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM) &&
+          team.members
+        ) {
           try {
             const members = team.members.nodes;
             this.log(

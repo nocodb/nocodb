@@ -1,10 +1,13 @@
 import { knex } from 'knex';
 import { AuthIntegration } from '@noco-integrations/core';
-import type { MySQLAuthConfig } from './types'
+import type { MySQLAuthConfig } from './types';
 import type { Knex } from 'knex';
 import type { TestConnectionResponse } from '@noco-integrations/core';
 
-export class MySQLAuthIntegration extends AuthIntegration<MySQLAuthConfig, Knex> {
+export class MySQLAuthIntegration extends AuthIntegration<
+  MySQLAuthConfig,
+  Knex
+> {
   public async authenticate(): Promise<Knex> {
     const knexConfig: Knex.Config = {
       client: 'mysql2',

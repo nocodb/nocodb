@@ -1,4 +1,4 @@
-import type { AuthType } from '@noco-integrations/core'
+import type { AuthType } from '@noco-integrations/core';
 
 interface ZendeskApiKeyConfig {
   type: AuthType.ApiKey;
@@ -17,6 +17,4 @@ interface ZendeskOAuthConfig {
 
 type ZendeskAuthConfig = ZendeskApiKeyConfig | ZendeskOAuthConfig;
 
-export {
-  ZendeskAuthConfig
-}
+export { ZendeskAuthConfig };

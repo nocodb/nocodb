@@ -1,4 +1,4 @@
-import type { AuthType } from '@noco-integrations/core'
+import type { AuthType } from '@noco-integrations/core';
 
 interface GitlabApiKeyConfig {
   type: AuthType.ApiKey;
@@ -15,6 +15,4 @@ interface GitlabOAuthConfig {
 
 type GitlabAuthConfig = GitlabApiKeyConfig | GitlabOAuthConfig;
 
-export {
-  GitlabAuthConfig
-}
+export { GitlabAuthConfig };

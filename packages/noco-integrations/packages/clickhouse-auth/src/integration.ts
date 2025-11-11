@@ -1,9 +1,12 @@
 import { type ClickHouseClient, createClient } from '@clickhouse/client';
 import { AuthIntegration } from '@noco-integrations/core';
-import type { ClickhouseConfig } from './types'
+import type { ClickhouseConfig } from './types';
 import type { TestConnectionResponse } from '@noco-integrations/core';
 
-export class ClickhouseAuthIntegration extends AuthIntegration<ClickhouseConfig, ClickHouseClient> {
+export class ClickhouseAuthIntegration extends AuthIntegration<
+  ClickhouseConfig,
+  ClickHouseClient
+> {
   public async authenticate(): Promise<ClickHouseClient> {
     this.client = createClient({
       url: this.config.url,

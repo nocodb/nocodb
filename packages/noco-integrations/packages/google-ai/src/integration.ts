@@ -49,9 +49,9 @@ export class GeminiIntegration extends AiIntegration {
       data: response.object as T,
     };
   }
-  
+
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, customModel, system  } = args;
+    const { prompt, messages, customModel, system } = args;
 
     if (!this.model || customModel) {
       const config = this.config;

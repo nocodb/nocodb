@@ -7,7 +7,7 @@ import type { FormDefinition } from '@noco-integrations/core';
 
 /**
  * Form definition for Freshdesk Sync Integration
- * 
+ *
  * Allows users to configure:
  * - Integration name
  * - Auth integration (Freshdesk auth)

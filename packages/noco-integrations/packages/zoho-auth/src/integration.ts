@@ -1,20 +1,35 @@
 import axios from 'axios';
-import { AuthIntegration, AuthType, createAxiosInstance } from '@noco-integrations/core'
-import { clientId, clientSecret, getApiBaseUrl, getTokenUri, redirectUri } from './config';
-import type { ZohoAuthConfig } from './types'
+import {
+  AuthIntegration,
+  AuthType,
+  createAxiosInstance,
+} from '@noco-integrations/core';
+import {
+  clientId,
+  clientSecret,
+  getApiBaseUrl,
+  getTokenUri,
+  redirectUri,
+} from './config';
+import type { ZohoAuthConfig } from './types';
 import type { AxiosInstance } from 'axios';
-import type { RateLimitOptions , TestConnectionResponse } from '@noco-integrations/core';
+import type {
+  RateLimitOptions,
+  TestConnectionResponse,
+} from '@noco-integrations/core';
 
-export class ZohoAuthIntegration extends AuthIntegration<ZohoAuthConfig, AxiosInstance> {
-
+export class ZohoAuthIntegration extends AuthIntegration<
+  ZohoAuthConfig,
+  AxiosInstance
+> {
   // https://projects.zoho.com/api-docs#Errors
   protected getRateLimitConfig(): RateLimitOptions | null {
     return {
       global: {
-        maxRequests: 45,      // 45 per minute = 90 per 2 minutes (safe)
+        maxRequests: 45, // 45 per minute = 90 per 2 minutes (safe)
         perMilliseconds: 60000, // 1 minute
       },
-    }
+    };
   }
 
   public async authenticate(): Promise<AxiosInstance> {
@@ -42,17 +57,20 @@ export class ZohoAuthIntegration extends AuthIntegration<ZohoAuthConfig, AxiosIn
 
       default:
         throw new Error(
-          `Unsupported authentication type: ${(this.config as any).type}`
+          `Unsupported authentication type: ${(this.config as any).type}`,
         );
     }
 
-    this.client = createAxiosInstance({
-      baseURL: apiBaseUrl,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Zoho-oauthtoken ${accessToken}`,
+    this.client = createAxiosInstance(
+      {
+        baseURL: apiBaseUrl,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Zoho-oauthtoken ${accessToken}`,
+        },
       },
-    }, this.getRateLimitConfig());
+      this.getRateLimitConfig(),
+    );
 
     return this.client;
   }
@@ -156,7 +174,7 @@ export class ZohoAuthIntegration extends AuthIntegration<ZohoAuthConfig, AxiosIn
             'Content-Type': 'application/x-www-form-urlencoded',
             Accept: 'application/json',
           },
-        }
+        },
       );
 
       return {
@@ -170,9 +188,7 @@ export class ZohoAuthIntegration extends AuthIntegration<ZohoAuthConfig, AxiosIn
     }
   }
 
-  public async refreshToken(payload: {
-    refresh_token: string;
-  }): Promise<{
+  public async refreshToken(payload: { refresh_token: string }): Promise<{
     oauth_token: string;
     refresh_token: string;
     expires_in?: number;
@@ -197,7 +213,7 @@ export class ZohoAuthIntegration extends AuthIntegration<ZohoAuthConfig, AxiosIn
             'Content-Type': 'application/x-www-form-urlencoded',
             Accept: 'application/json',
           },
-        }
+        },
       );
 
       return {
@@ -230,7 +246,10 @@ export class ZohoAuthIntegration extends AuthIntegration<ZohoAuthConfig, AxiosIn
 
     // Check for Zoho-specific authentication errors
     const errorCode = err?.response?.data?.error?.code;
-    if (errorCode === 'INVALID_TOKEN' || errorCode === 'AUTHENTICATION_FAILURE') {
+    if (
+      errorCode === 'INVALID_TOKEN' ||
+      errorCode === 'AUTHENTICATION_FAILURE'
+    ) {
       return true;
     }
 

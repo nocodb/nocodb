@@ -4,9 +4,7 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type {
-  ChatwootAuthIntegration
-} from '@noco-integrations/chatwoot-auth';
+import type { ChatwootAuthIntegration } from '@noco-integrations/chatwoot-auth';
 import type {
   ChatwootAgent,
   ChatwootContact,
@@ -14,7 +12,7 @@ import type {
   ChatwootMessage,
   ChatwootSyncPayload,
   ChatwootTeam,
-} from './types'
+} from './types';
 import type {
   SyncLinkValue,
   SyncRecord,
@@ -46,7 +44,9 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
       }
       return date.toISOString();
     } catch (error) {
-      this.log(`[Chatwoot Sync] Error converting timestamp ${timestamp}: ${error}`);
+      this.log(
+        `[Chatwoot Sync] Error converting timestamp ${timestamp}: ${error}`,
+      );
       return null;
     }
   }
@@ -105,8 +105,8 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
 
         while (hasMore) {
           const response = await auth.use(async (client) => {
-            return await client.get('/conversations', { params })
-          })
+            return await client.get('/conversations', { params });
+          });
           const conversations: ChatwootConversation[] =
             response.data?.data?.payload || [];
 
@@ -133,7 +133,10 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
             }
 
             // Process conversation as ticket
-            const ticketData = this.formatData(TARGET_TABLES.TICKETING_TICKET, conversation);
+            const ticketData = this.formatData(
+              TARGET_TABLES.TICKETING_TICKET,
+              conversation,
+            );
             stream.push({
               recordId: conversation.id.toString(),
               targetTable: TARGET_TABLES.TICKETING_TICKET,
@@ -147,7 +150,10 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
               if (!userMap.has(contact.id)) {
                 userMap.set(contact.id, true);
 
-                const userData = this.formatData(TARGET_TABLES.TICKETING_USER, contact);
+                const userData = this.formatData(
+                  TARGET_TABLES.TICKETING_USER,
+                  contact,
+                );
                 stream.push({
                   recordId: `${contact.id}`,
                   targetTable: TARGET_TABLES.TICKETING_USER,
@@ -162,7 +168,10 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
               if (!userMap.has(assignee.id)) {
                 userMap.set(assignee.id, true);
 
-                const userData = this.formatData(TARGET_TABLES.TICKETING_USER, assignee);
+                const userData = this.formatData(
+                  TARGET_TABLES.TICKETING_USER,
+                  assignee,
+                );
                 stream.push({
                   recordId: `${assignee.id}`,
                   targetTable: TARGET_TABLES.TICKETING_USER,
@@ -177,7 +186,10 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
               conversation.messages
             ) {
               for (const message of conversation.messages) {
-                const commentData = this.formatData(TARGET_TABLES.TICKETING_COMMENT, { ...message, conversation_id: conversation.id } );
+                const commentData = this.formatData(
+                  TARGET_TABLES.TICKETING_COMMENT,
+                  { ...message, conversation_id: conversation.id },
+                );
                 stream.push({
                   recordId: message.id.toString(),
                   targetTable: TARGET_TABLES.TICKETING_COMMENT,
@@ -189,7 +201,8 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
                 if (message.sender && !userMap.has(message.sender_id)) {
                   userMap.set(message.sender_id, true);
 
-                  const userData = this.formatData(TARGET_TABLES.TICKETING_USER,
+                  const userData = this.formatData(
+                    TARGET_TABLES.TICKETING_USER,
                     message.sender,
                   );
                   stream.push({
@@ -213,15 +226,17 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
           }
         }
 
-        this.log(`[Chatwoot Sync] Total conversations fetched: ${totalFetched}`);
+        this.log(
+          `[Chatwoot Sync] Total conversations fetched: ${totalFetched}`,
+        );
 
         // Fetch teams if requested
         if (args.targetTables?.includes(TARGET_TABLES.TICKETING_TEAM)) {
           try {
             this.log('[Chatwoot Sync] Fetching teams');
             const teamsResponse = await auth.use(async (client) => {
-              return await client.get('/teams')
-            })
+              return await client.get('/teams');
+            });
             const teams: ChatwootTeam[] = teamsResponse.data || [];
 
             this.log(`[Chatwoot Sync] Fetched ${teams.length} teams`);
@@ -233,18 +248,23 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
                 const memberIds: string[] = [];
                 try {
                   const membersResponse = await auth.use(async (client) => {
-                    return await client.get(`/teams/${team.id}/team_members`)
-                  })
+                    return await client.get(`/teams/${team.id}/team_members`);
+                  });
                   const members: ChatwootAgent[] = membersResponse.data || [];
-                  
-                  this.log(`[Chatwoot Sync] Fetched ${members.length} members for team ${team.id}`);
+
+                  this.log(
+                    `[Chatwoot Sync] Fetched ${members.length} members for team ${team.id}`,
+                  );
 
                   // Add team members to user list and collect IDs
                   for (const member of members) {
                     if (!userMap.has(member.id)) {
                       userMap.set(member.id, true);
 
-                      const userData = this.formatData(TARGET_TABLES.TICKETING_USER, member);
+                      const userData = this.formatData(
+                        TARGET_TABLES.TICKETING_USER,
+                        member,
+                      );
                       stream.push({
                         recordId: `${member.id}`,
                         targetTable: TARGET_TABLES.TICKETING_USER,
@@ -254,17 +274,22 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
                     memberIds.push(member.id.toString());
                   }
                 } catch (memberError) {
-                  this.log(`[Chatwoot Sync] Error fetching members for team ${team.id}: ${memberError}`);
+                  this.log(
+                    `[Chatwoot Sync] Error fetching members for team ${team.id}: ${memberError}`,
+                  );
                 }
 
-                const teamData = this.formatData(TARGET_TABLES.TICKETING_TEAM, team);
+                const teamData = this.formatData(
+                  TARGET_TABLES.TICKETING_TEAM,
+                  team,
+                );
                 stream.push({
                   recordId: team.id.toString(),
                   targetTable: TARGET_TABLES.TICKETING_TEAM,
                   data: teamData.data as TicketingTeamRecord,
                   links: {
-                    Members: memberIds
-                  }
+                    Members: memberIds,
+                  },
                 });
               }
             }
@@ -314,7 +339,8 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
     links?: Record<string, SyncLinkValue>;
   } {
     // Get the last non-activity message for description
-    const lastMessage = conversation.messages?.[conversation.messages.length - 1];
+    const lastMessage =
+      conversation.messages?.[conversation.messages.length - 1];
     const contactName = conversation.meta?.sender?.name || 'Unknown';
 
     const ticket: TicketingTicketRecord = {
@@ -355,9 +381,7 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
     };
   }
 
-  private formatUser(
-    user: ChatwootAgent | ChatwootContact,
-  ): {
+  private formatUser(user: ChatwootAgent | ChatwootContact): {
     data: TicketingUserRecord;
   } {
     const userData: TicketingUserRecord = {
@@ -386,7 +410,9 @@ export default class ChatwootSyncIntegration extends SyncIntegration<ChatwootSyn
   } {
     const senderName =
       message.sender?.name ||
-      (message.sender && 'display_name' in message.sender ? message.sender.display_name : null) ||
+      (message.sender && 'display_name' in message.sender
+        ? message.sender.display_name
+        : null) ||
       'User';
     const preview = message.content?.substring(0, 50) || 'Message';
 

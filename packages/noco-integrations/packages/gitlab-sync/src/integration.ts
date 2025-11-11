@@ -4,7 +4,7 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type {GitlabAuthIntegration} from '@noco-integrations/gitlab-auth'
+import type { GitlabAuthIntegration } from '@noco-integrations/gitlab-auth';
 import type {
   SyncLinkValue,
   TicketingCommentRecord,
@@ -30,9 +30,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
     return `${this.config.projectId}`;
   }
 
-  public async getDestinationSchema(
-    _auth: GitlabAuthIntegration,
-  ) {
+  public async getDestinationSchema(_auth: GitlabAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
@@ -58,7 +56,6 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
     void (async () => {
       try {
-
         const ticketIncrementalValue =
           targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
 
@@ -92,7 +89,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                 sort: 'asc',
                 pagination: 'offset',
               });
-            })
+            });
 
             if (issues.length === 0) {
               hasMoreIssues = false;
@@ -194,7 +191,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                     sort: 'asc',
                     pagination: 'offset',
                   });
-                })
+                });
 
                 if (mergeRequests.length === 0) {
                   hasMoreMRs = false;
@@ -299,26 +296,27 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
 
                   // Process all pages of comments for this issue or MR
                   while (hasMoreComments) {
-
                     const comments = await auth.use(async (gitlab) => {
-                      return isMergeRequest ? await gitlab.MergeRequestNotes.all(
-                        projectId,
-                        actualIid,
-                        {
-                          perPage,
-                          page,
-                          sort: 'asc',
-                          orderBy: 'created_at',
-                          pagination: 'offset',
-                        },
-                      ) : await gitlab.IssueNotes.all(projectId, actualIid, {
-                        perPage,
-                        page,
-                        sort: 'asc',
-                        orderBy: 'created_at',
-                        pagination: 'offset',
-                      })
-                    })
+                      return isMergeRequest
+                        ? await gitlab.MergeRequestNotes.all(
+                            projectId,
+                            actualIid,
+                            {
+                              perPage,
+                              page,
+                              sort: 'asc',
+                              orderBy: 'created_at',
+                              pagination: 'offset',
+                            },
+                          )
+                        : await gitlab.IssueNotes.all(projectId, actualIid, {
+                            perPage,
+                            page,
+                            sort: 'asc',
+                            orderBy: 'created_at',
+                            pagination: 'offset',
+                          });
+                    });
 
                     if (comments.length === 0) {
                       hasMoreComments = false;
@@ -341,7 +339,7 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
                         commentIncrementalValue &&
                         comment.created_at &&
                         new Date(comment.created_at as string) <=
-                        new Date(commentIncrementalValue)
+                          new Date(commentIncrementalValue)
                       ) {
                         continue;
                       }
@@ -418,15 +416,16 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
     return stream;
   }
 
-
   public formatData(
     targetTable: TARGET_TABLES,
-    data: IssueSchema | MergeRequestSchema | UserSchema | MemberSchema | NoteSchema,
-  ): {
     data:
-      | TicketingTicketRecord
-      | TicketingUserRecord
-      | TicketingCommentRecord;
+      | IssueSchema
+      | MergeRequestSchema
+      | UserSchema
+      | MemberSchema
+      | NoteSchema,
+  ): {
+    data: TicketingTicketRecord | TicketingUserRecord | TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
   } {
     switch (targetTable) {
@@ -555,7 +554,6 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
       links: Object.keys(links).length > 0 ? links : undefined,
     };
   }
-
 
   private mapIssueState(state: string): string {
     switch (state.toLowerCase()) {

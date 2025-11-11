@@ -63,11 +63,11 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
         const queryParams = new URLSearchParams({
           per_page: '100',
         });
-        
+
         if (ticketIncrementalValue) {
           queryParams.set('updated_after', ticketIncrementalValue);
         }
-        
+
         if (!includeClosed) {
           queryParams.set('status', 'open');
         }
@@ -84,24 +84,27 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
           this.log(`[Zendesk Sync] Fetching page ${page}`);
 
           const response = await auth.use(async (client) => {
-            return await client.get(`/tickets.json?${queryParams.toString()}`)
-          })
-          
+            return await client.get(`/tickets.json?${queryParams.toString()}`);
+          });
+
           const data: any = response.data;
 
           this.log(`[Zendesk Sync] Fetched ${data.tickets.length} tickets`);
-          
+
           // Break if no tickets returned
           if (!data.tickets || data.tickets.length === 0) {
             hasMore = false;
             break;
           }
-          
+
           totalTickets += data.tickets.length;
 
           for (const ticket of data.tickets) {
             // Filter based on status
-            if (!includeClosed && ['closed', 'solved'].includes(ticket.status)) {
+            if (
+              !includeClosed &&
+              ['closed', 'solved'].includes(ticket.status)
+            ) {
               continue;
             }
 
@@ -150,8 +153,10 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
 
             try {
               const response = await auth.use(async (client) => {
-                return await client.get(`/users/show_many.json?${userQueryParams.toString()}`,)
-              })
+                return await client.get(
+                  `/users/show_many.json?${userQueryParams.toString()}`,
+                );
+              });
 
               for (const user of response.data.users) {
                 const userData = this.formatUser(user);
@@ -174,8 +179,8 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
           for (const ticketId of ticketMap.keys()) {
             try {
               const response = await auth.use(async (client) => {
-                return await client.get(`/tickets/${ticketId}/comments.json`)
-              })
+                return await client.get(`/tickets/${ticketId}/comments.json`);
+              });
 
               if (!response.data.comments) {
                 continue;
@@ -194,12 +199,17 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
                 });
 
                 // Add comment author to users if not already added
-                if (comment.author_id && !userMap.has(comment.author_id.toString())) {
+                if (
+                  comment.author_id &&
+                  !userMap.has(comment.author_id.toString())
+                ) {
                   userMap.set(comment.author_id.toString(), true);
 
                   try {
                     const userResponse = await auth.use(async (client) => {
-                      return await client.get(`/users/${comment.author_id}.json`,)
+                      return await client.get(
+                        `/users/${comment.author_id}.json`,
+                      );
                     });
 
                     const userData = this.formatUser(userResponse.data.user);
@@ -241,7 +251,7 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
 
             while (orgNextPage) {
               const response = await auth.use(async (client) => {
-                return await client.get(orgNextPage)
+                return await client.get(orgNextPage);
               });
               const data: any = response.data;
 
@@ -311,7 +321,9 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
       'Ticket Type': ticket.type || null,
       Url: ticket.url || null,
       'Is Active': !['closed', 'solved'].includes(ticket.status),
-      'Completed At': ['closed', 'solved'].includes(ticket.status) ? ticket.updated_at : null,
+      'Completed At': ['closed', 'solved'].includes(ticket.status)
+        ? ticket.updated_at
+        : null,
       'Ticket Number': ticket.id?.toString() || null,
       RemoteCreatedAt: ticket.created_at || null,
       RemoteUpdatedAt: ticket.updated_at || null,

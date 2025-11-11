@@ -1,4 +1,4 @@
-import type { AuthType } from '@noco-integrations/core'
+import type { AuthType } from '@noco-integrations/core';
 
 interface ZohoApiKeyConfig {
   type: AuthType.ApiKey;
@@ -16,6 +16,4 @@ interface ZohoOAuthConfig {
 
 type ZohoAuthConfig = ZohoApiKeyConfig | ZohoOAuthConfig;
 
-export {
-  ZohoAuthConfig
-}
+export { ZohoAuthConfig };

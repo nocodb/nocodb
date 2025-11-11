@@ -83,4 +83,4 @@ export {
   ProcessedIssue,
   LinearSyncPayload,
   LinearUser,
-}
+};

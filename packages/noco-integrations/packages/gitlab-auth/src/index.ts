@@ -14,6 +14,6 @@ const integration: IntegrationEntry = {
   manifest,
 };
 
-export { GitlabAuthIntegration }
+export { GitlabAuthIntegration };
 
 export default integration;

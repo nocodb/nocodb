@@ -1,11 +1,21 @@
 import axios from 'axios';
-import { AuthIntegration, AuthType, createAxiosInstance } from '@noco-integrations/core';
+import {
+  AuthIntegration,
+  AuthType,
+  createAxiosInstance,
+} from '@noco-integrations/core';
 import { clientId, clientSecret, redirectUri, tokenUri } from './config';
-import type { RateLimitOptions, TestConnectionResponse } from '@noco-integrations/core';
+import type {
+  RateLimitOptions,
+  TestConnectionResponse,
+} from '@noco-integrations/core';
 import type { AxiosInstance } from 'axios';
 import type { LinearAuthConfig } from './types';
 
-export class LinearAuthIntegration extends AuthIntegration<LinearAuthConfig, AxiosInstance> {
+export class LinearAuthIntegration extends AuthIntegration<
+  LinearAuthConfig,
+  AxiosInstance
+> {
   public async authenticate(): Promise<AxiosInstance> {
     let accessToken: string;
 
@@ -25,7 +35,9 @@ export class LinearAuthIntegration extends AuthIntegration<LinearAuthConfig, Axi
         break;
 
       default:
-        throw new Error(`Unsupported authentication type: ${(this.config as any).type}`);
+        throw new Error(
+          `Unsupported authentication type: ${(this.config as any).type}`,
+        );
     }
 
     this.client = createAxiosInstance(
@@ -36,7 +48,7 @@ export class LinearAuthIntegration extends AuthIntegration<LinearAuthConfig, Axi
           Authorization: accessToken,
         },
       },
-      this.getRateLimitConfig()
+      this.getRateLimitConfig(),
     );
 
     return this.client;
@@ -53,7 +65,7 @@ export class LinearAuthIntegration extends AuthIntegration<LinearAuthConfig, Axi
       if (response.data.errors) {
         // Check for rate limit errors
         const rateLimitError = response.data.errors.find(
-          (err: any) => err.extensions?.code === 'RATELIMITED'
+          (err: any) => err.extensions?.code === 'RATELIMITED',
         );
 
         if (rateLimitError) {
@@ -98,7 +110,7 @@ export class LinearAuthIntegration extends AuthIntegration<LinearAuthConfig, Axi
       // Check for Linear GraphQL errors
       if (error?.response?.data?.errors) {
         const rateLimitError = error.response.data.errors.find(
-          (err: any) => err.extensions?.code === 'RATELIMITED'
+          (err: any) => err.extensions?.code === 'RATELIMITED',
         );
 
         if (rateLimitError) {
@@ -165,9 +177,7 @@ export class LinearAuthIntegration extends AuthIntegration<LinearAuthConfig, Axi
     }
   }
 
-  public async refreshToken(payload: {
-    refresh_token: string;
-  }): Promise<{
+  public async refreshToken(payload: { refresh_token: string }): Promise<{
     oauth_token: string;
     refresh_token: string;
     expires_in?: number;
@@ -253,7 +263,8 @@ export class LinearAuthIntegration extends AuthIntegration<LinearAuthConfig, Axi
     const status = err?.response?.status;
     const isAuthError =
       status === 401 ||
-      err?.response?.data?.errors?.[0]?.extensions?.code === 'AUTHENTICATION_ERROR' ||
+      err?.response?.data?.errors?.[0]?.extensions?.code ===
+        'AUTHENTICATION_ERROR' ||
       err?.message?.toLowerCase().includes('authentication');
 
     if (isAuthError) {

@@ -13,5 +13,5 @@ const integration: IntegrationEntry = {
   form,
   manifest,
 };
-export { ZendeskAuthIntegration }
+export { ZendeskAuthIntegration };
 export default integration;

@@ -1,8 +1,8 @@
 /**
  * Freshdesk Sync Integration
- * 
+ *
  * Syncs tickets, contacts, agents, and groups from Freshdesk to NocoDB.
- * 
+ *
  * @packageDocumentation
  */
 
@@ -10,7 +10,7 @@ import {
   type IntegrationEntry,
   IntegrationType,
 } from '@noco-integrations/core';
-import FreshdeskSyncIntegration from './integration'
+import FreshdeskSyncIntegration from './integration';
 import { manifest } from './manifest';
 import { form } from './form';
 

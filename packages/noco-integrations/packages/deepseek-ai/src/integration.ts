@@ -3,7 +3,7 @@ import { createDeepSeek } from '@ai-sdk/deepseek';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
-  AiIntegration
+  AiIntegration,
 } from '@noco-integrations/core';
 
 export class DeepseekAiIntegration extends AiIntegration {
@@ -49,7 +49,7 @@ export class DeepseekAiIntegration extends AiIntegration {
       data: response.object as T,
     };
   }
-  
+
   public async generateText(args: AiGenerateTextArgs) {
     const { prompt, messages, customModel, system } = args;
 
@@ -67,7 +67,7 @@ export class DeepseekAiIntegration extends AiIntegration {
       if (!apiKey) {
         throw new Error('Integration not configured properly');
       }
-      
+
       const customDeepseek = createDeepSeek({
         apiKey,
       });

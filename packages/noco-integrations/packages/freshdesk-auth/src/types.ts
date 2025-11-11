@@ -3,6 +3,4 @@ interface FreshdeskConfig {
   api_key: string;
 }
 
-export {
-  FreshdeskConfig
-}
+export { FreshdeskConfig };

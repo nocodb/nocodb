@@ -1,7 +1,8 @@
 import { generateObject, generateText, type LanguageModel } from 'ai';
 import { createAzure } from '@ai-sdk/azure';
 import {
-  type AiGenerateObjectArgs, type AiGenerateTextArgs,
+  type AiGenerateObjectArgs,
+  type AiGenerateTextArgs,
   AiIntegration,
 } from '@noco-integrations/core';
 
@@ -52,7 +53,7 @@ export class AzureAiIntegration extends AiIntegration {
       data: response.object as T,
     };
   }
-  
+
   public async generateText(args: AiGenerateTextArgs) {
     const { prompt, messages, customModel, system } = args;
 

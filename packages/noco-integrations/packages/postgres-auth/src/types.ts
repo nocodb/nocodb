@@ -9,6 +9,4 @@ interface PostgresAuthConfig {
   schema?: string;
 }
 
-export {
-  PostgresAuthConfig
-}
+export { PostgresAuthConfig };

@@ -66,7 +66,6 @@ interface ChatwootTeam {
   is_member: boolean;
 }
 
-
 export {
   ChatwootAgent,
   ChatwootContact,
@@ -74,4 +73,4 @@ export {
   ChatwootMessage,
   ChatwootSyncPayload,
   ChatwootTeam,
-}
+};

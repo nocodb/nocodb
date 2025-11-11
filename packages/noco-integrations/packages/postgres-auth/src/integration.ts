@@ -1,12 +1,13 @@
 import { knex } from 'knex';
 import { AuthIntegration } from '@noco-integrations/core';
-import type { PostgresAuthConfig } from './types'
+import type { PostgresAuthConfig } from './types';
 import type { Knex } from 'knex';
 import type { TestConnectionResponse } from '@noco-integrations/core';
 
-
-
-export class PostgresAuthIntegration extends AuthIntegration<PostgresAuthConfig, Knex> {
+export class PostgresAuthIntegration extends AuthIntegration<
+  PostgresAuthConfig,
+  Knex
+> {
   public async authenticate(): Promise<Knex> {
     const knexConfig: Knex.Config = {
       client: 'pg',
@@ -101,7 +102,8 @@ export class PostgresAuthIntegration extends AuthIntegration<PostgresAuthConfig,
       if (error?.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
         return {
           success: false,
-          message: 'Self-signed certificate - set ssl to false or provide valid certificate',
+          message:
+            'Self-signed certificate - set ssl to false or provide valid certificate',
         };
       }
 

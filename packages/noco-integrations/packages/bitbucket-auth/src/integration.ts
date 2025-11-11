@@ -1,20 +1,25 @@
 import axios, { type AxiosInstance } from 'axios';
-import { AuthIntegration, AuthType, createAxiosInstance } from '@noco-integrations/core'
-import { clientId, clientSecret, redirectUri, tokenUri } from './config';
-import type { RateLimitOptions } from '@noco-integrations/core'
-import type { BitBucketAuthConfig } from './types'
-import type {
-  TestConnectionResponse,
+import {
+  AuthIntegration,
+  AuthType,
+  createAxiosInstance,
 } from '@noco-integrations/core';
+import { clientId, clientSecret, redirectUri, tokenUri } from './config';
+import type { RateLimitOptions } from '@noco-integrations/core';
+import type { BitBucketAuthConfig } from './types';
+import type { TestConnectionResponse } from '@noco-integrations/core';
 
-export class BitbucketAuthIntegration extends AuthIntegration<BitBucketAuthConfig, AxiosInstance> {
+export class BitbucketAuthIntegration extends AuthIntegration<
+  BitBucketAuthConfig,
+  AxiosInstance
+> {
   public client: AxiosInstance | null = null;
 
   // RateLimit- https://support.atlassian.com/bitbucket-cloud/docs/api-request-limits/
   protected getRateLimitConfig(): RateLimitOptions | null {
     return {
       global: {
-        maxRequests: 16,// ~960 requests/hour
+        maxRequests: 16, // ~960 requests/hour
         perMilliseconds: 60 * 1000, // 1 minute window
       },
       maxQueueSize: 50,
@@ -43,14 +48,17 @@ export class BitbucketAuthIntegration extends AuthIntegration<BitBucketAuthConfi
         throw new Error('Not implemented');
     }
 
-    this.client= createAxiosInstance({
-      baseURL: 'https://api.bitbucket.org/2.0',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+    this.client = createAxiosInstance(
+      {
+        baseURL: 'https://api.bitbucket.org/2.0',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
       },
-    }, this.getRateLimitConfig())
+      this.getRateLimitConfig(),
+    );
 
     return this.client;
   }
@@ -92,20 +100,16 @@ export class BitbucketAuthIntegration extends AuthIntegration<BitBucketAuthConfi
       params.append('code_verifier', codeVerifier);
     }
 
-    const response = await axios.post(
-      tokenUri,
-      params.toString(),
-      {
-        auth: {
-          username: clientId!,
-          password: clientSecret!,
-        },
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Accept: 'application/json',
-        },
+    const response = await axios.post(tokenUri, params.toString(), {
+      auth: {
+        username: clientId!,
+        password: clientSecret!,
       },
-    );
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
+      },
+    });
 
     return {
       oauth_token: response.data.access_token,
@@ -123,20 +127,16 @@ export class BitbucketAuthIntegration extends AuthIntegration<BitBucketAuthConfi
     params.append('grant_type', 'refresh_token');
     params.append('refresh_token', payload.refresh_token);
 
-    const response = await axios.post(
-      tokenUri,
-      params.toString(),
-      {
-        auth: {
-          username: clientId!,
-          password: clientSecret!,
-        },
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Accept: 'application/json',
-        },
+    const response = await axios.post(tokenUri, params.toString(), {
+      auth: {
+        username: clientId!,
+        password: clientSecret!,
       },
-    );
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
+      },
+    });
 
     return {
       oauth_token: response.data.access_token,

@@ -10,9 +10,7 @@ import type {
   SyncAbstractType,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type {
-  MySQLAuthIntegration
-} from '@noco-integrations/mysql-auth';
+import type { MySQLAuthIntegration } from '@noco-integrations/mysql-auth';
 
 class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
   public async getDestinationSchema(
@@ -41,14 +39,11 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
       // MySQL uses INFORMATION_SCHEMA.COLUMNS
       const tableSchema = await auth.use(async (knex) => {
-        return knex
-          .select('*')
-          .from('information_schema.columns')
-          .where({
-            table_name: table,
-            table_schema: this.config.database,
-          })
-      })
+        return knex.select('*').from('information_schema.columns').where({
+          table_name: table,
+          table_schema: this.config.database,
+        });
+      });
 
       for (const column of tableSchema) {
         const { uidt, abstractType } = this.autoDetectType(column.DATA_TYPE);
@@ -70,7 +65,7 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
             TABLE_SCHEMA: this.config.database,
             CONSTRAINT_NAME: 'PRIMARY',
           });
-      })
+      });
 
       schema[table] = {
         title: table,
@@ -133,7 +128,9 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
                 .offset(offset);
 
               // Apply incremental filter if available
-              const incrementalKey = this.getIncrementalKey(tableName as string);
+              const incrementalKey = this.getIncrementalKey(
+                tableName as string,
+              );
               const incrementalValue = incrementalValues[tableName];
 
               if (incrementalKey && incrementalValue) {
@@ -156,7 +153,7 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
 
               // Execute query
               return query;
-            })
+            });
 
             // Process rows
             for (const row of rows) {
@@ -300,7 +297,6 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
     }
 
     if (key === 'tables') {
-
       const tables = await auth.use(async (knex) => {
         return knex
           .select('TABLE_NAME as table_name')
@@ -309,7 +305,7 @@ class MySQLSyncIntegration extends SyncIntegration<CustomSyncPayload> {
             TABLE_SCHEMA: this.config.database,
             TABLE_TYPE: 'BASE TABLE',
           });
-      })
+      });
 
       return tables.map((table: { table_name: string }) => ({
         label: table.table_name,

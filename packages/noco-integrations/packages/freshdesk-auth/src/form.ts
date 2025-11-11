@@ -6,7 +6,7 @@ import type { FormDefinition } from '@noco-integrations/core';
 
 /**
  * Form definition for Freshdesk Auth Integration
- * 
+ *
  * Required fields:
  * - Integration name
  * - Freshdesk domain (e.g., yourcompany.freshdesk.com)

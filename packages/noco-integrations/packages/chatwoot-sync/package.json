@@ -1,0 +1,17 @@
+{
+  "name": "@noco-integrations/chatwoot-sync",
+  "version": "0.1.0",
+  "description": "Chatwoot sync integration for NocoDB",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@noco-integrations/core": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

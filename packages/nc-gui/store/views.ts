@@ -568,6 +568,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
             await getMeta(tableId, true)
           }
 
+          // Replace with the response from API
+          tableViews[viewIndex] = updatedView
+          viewsByTable.value.set(tableId, [...tableViews])
+
           // Update recent views if title changed
           if (updatedView.title) {
             allRecentViews.value = allRecentViews.value.map((rv) => {

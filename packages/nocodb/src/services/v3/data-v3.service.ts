@@ -76,10 +76,14 @@ export class DataV3Service {
     context: NcContext,
     column: Column,
   ): Promise<RelatedModelInfo> {
+    const { refContext } = (
+      column.colOptions as LinkToAnotherRecordColumn
+    ).getRelContext(context);
+
     const relatedModel = await (
       column.colOptions as LinkToAnotherRecordColumn
-    ).getRelatedTable(context);
-    await relatedModel.getColumns(context);
+    ).getRelatedTable(refContext);
+    await relatedModel.getColumns(refContext);
     const relatedPrimaryKey = relatedModel.primaryKey;
     const primaryKeys = relatedModel.primaryKeys;
 

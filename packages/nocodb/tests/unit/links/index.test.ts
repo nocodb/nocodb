@@ -1,5 +1,6 @@
 import 'mocha';
 import { runOnSet } from '../utils/runOnSet';
+import { isEE } from '../utils/helpers';
 import { linksGenerateLinkRequestTest } from './tests/generateLinkRequest.test';
 
 function _linksTests() {
@@ -7,5 +8,7 @@ function _linksTests() {
 }
 
 export const linksTests = runOnSet(2, function () {
-  describe('Links', _linksTests);
+  if (isEE()) {
+    describe('Links', _linksTests);
+  }
 });

@@ -13,8 +13,8 @@ import {
 } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
-
 import ImportStatus from './ImportStatus.vue'
+import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 const { $api, $e } = useNuxtApp()
 
@@ -108,6 +108,8 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
 
+const { user } = useGlobal()
+
 const EXTENSION_ID = extension.value.extensionId
 
 const fileList = ref<UploadFile[]>([])
@@ -198,7 +200,15 @@ const openImportDetailsItemIndex = ref<number | null>(0)
 
 const importPayload = computedAsync(async () => {
   if (!savedPayloads.value.length) {
-    let saved = await extension.value.kvStore.get('savedPayloads')
+    let saved: ImportPayloadType[] = []
+
+    const stored = extensionUserPrefsManager.get(user.value.id, extension.value.id)
+    if (stored) {
+      saved = stored.payloads || []
+      if (stored.config) {
+        importConfig.value = stored.config
+      }
+    }
 
     saved =
       (Array.isArray(saved) ? saved : [])
@@ -289,11 +299,27 @@ const updateHistory = async (updateImportVerified = false) => {
     isImportVerified.value = false
   }
 
-  await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
+  extensionUserPrefsManager.set(
+    user.value.id,
+    extension.value.id,
+    {
+      payloads: savedPayloads.value,
+      config: importConfig.value,
+    },
+    extension.value.baseId,
+  )
 }
 
 const updateImportConfig = async () => {
-  await extension.value.kvStore.set('importConfig', importConfig.value)
+  extensionUserPrefsManager.set(
+    user.value.id,
+    extension.value.id,
+    {
+      payloads: savedPayloads.value,
+      config: importConfig.value,
+    },
+    extension.value.baseId,
+  )
 }
 
 function getNextOrder(data: ImportPayloadType[]) {
@@ -1051,7 +1077,7 @@ watch(
 
 onMounted(async () => {
   isImportVerified.value = false
-  importConfig.value = (await extension.value.kvStore.get('importConfig')) || {}
+
   importConfig.value.delimiter = importConfig.value.delimiter || autoDetect
   importConfig.value.encoding = importConfig.value.encoding || SupportedExportCharset['utf-8']
 })

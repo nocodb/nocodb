@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import { SupportedExportCharset, type ViewType, ViewTypes, charsetOptions, csvColumnSeparatorOptions } from 'nocodb-sdk'
+import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 const jobStatusTooltip = {
   [JobStatus.COMPLETED]: 'Export successful',
@@ -9,7 +10,7 @@ const jobStatusTooltip = {
 
 const { $api, $poller, $e } = useNuxtApp()
 
-const { appInfo } = useGlobal()
+const { appInfo, user } = useGlobal()
 
 const router = useRouter()
 const route = router.currentRoute
@@ -109,7 +110,7 @@ const reloadViews = async () => {
 }
 
 const saveChanges = async () => {
-  await extension.value.kvStore.set('exportPayload', exportPayload.value)
+  extensionUserPrefsManager.set(user.value.id, extension.value.id, exportPayload.value, extension.value.baseId)
 }
 
 const onTableSelect = async (tableId?: string) => {
@@ -268,7 +269,11 @@ onBeforeUnmount(() => {
 })
 
 onMounted(async () => {
-  exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
+  const stored = extensionUserPrefsManager.get(user.value.id, extension.value.id)
+  if (stored) {
+    exportPayload.value = stored
+  }
+
   exportPayload.value.delimiter = exportPayload.value.delimiter || ','
   exportPayload.value.encoding = exportPayload.value.encoding || SupportedExportCharset['utf-8']
 

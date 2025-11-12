@@ -7,6 +7,7 @@ import {
   type WidgetPayload,
   isVirtualCol,
 } from 'nocodb-sdk'
+import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 export const useRealtime = createSharedComposable(() => {
   const { $ncSocket, $eventBus } = useNuxtApp()
@@ -42,6 +43,8 @@ export const useRealtime = createSharedComposable(() => {
 
   const { automations, activeAutomationId } = storeToRefs(useAutomationStore())
   const { widgets, selectedWidget } = storeToRefs(useWidgetStore())
+
+  const { baseExtensions, Extension } = useExtensions()
 
   const activeUserListener = ref<string | null>(null)
   const activeBaseMetaListener = ref<string | null>(null)
@@ -216,6 +219,34 @@ export const useRealtime = createSharedComposable(() => {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
     } else if (event.action === 'row_color_update') {
       $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE, { rowColorInfo: event.payload || {} })
+    } else if (event.action === 'extension_create') {
+      updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
+      const { payload } = event
+      if (activeBaseId.value === payload.base_id && baseExtensions.value[activeBaseId.value]) {
+        const newExtension = new Extension(payload)
+        baseExtensions.value[activeBaseId.value].extensions.push(newExtension)
+        baseExtensions.value[activeBaseId.value].extensions.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+      }
+    } else if (event.action === 'extension_update') {
+      const { payload } = event
+      if (activeBaseId.value === payload.base_id && baseExtensions.value[activeBaseId.value]) {
+        const extension = baseExtensions.value[activeBaseId.value].extensions.find((ext) => ext.id === payload.id)
+        if (extension) {
+          extension.is_last_update_from_realtime = true
+          extension.deserialize(payload)
+          extension.uiKey++
+        }
+      }
+    } else if (event.action === 'extension_delete') {
+      updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, -1)
+      extensionUserPrefsManager.deleteExtension(event.payload.id)
+      const { payload } = event
+      if (activeBaseId.value === payload.base_id && baseExtensions.value[activeBaseId.value]) {
+        const index = baseExtensions.value[activeBaseId.value].extensions.findIndex((ext) => ext.id === payload.id)
+        if (index !== -1) {
+          baseExtensions.value[activeBaseId.value].extensions.splice(index, 1)
+        }
+      }
     }
   }
 
@@ -506,6 +537,7 @@ export const useRealtime = createSharedComposable(() => {
           }
 
           bases.value.delete(baseId)
+          extensionUserPrefsManager.deleteBase(baseId)
           refreshCommandPalette()
         } else {
           const baseUsers = basesUser.value.get(baseId)

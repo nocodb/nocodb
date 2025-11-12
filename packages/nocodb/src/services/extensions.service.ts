@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, type ExtensionReqType } from 'nocodb-sdk';
+import { AppEvents, EventType, type ExtensionReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Extension } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
+import { NcError } from '~/helpers/ncError';
 
 @Injectable()
 export class ExtensionsService {
@@ -14,7 +16,13 @@ export class ExtensionsService {
   }
 
   async extensionRead(context: NcContext, param: { extensionId: string }) {
-    return await Extension.get(context, param.extensionId);
+    const extension = await Extension.get(context, param.extensionId);
+
+    if (!extension) {
+      NcError.get(context).extensionNotFound(param.extensionId);
+    }
+
+    return extension;
   }
 
   async extensionCreate(
@@ -40,6 +48,18 @@ export class ExtensionsService {
       req: param.req,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'extension_create',
+          payload: res,
+        },
+      },
+      context.socket_id,
+    );
+
     return res;
   }
 
@@ -56,6 +76,8 @@ export class ExtensionsService {
       param.extension,
     );
 
+    await this.extensionRead(context, param);
+
     const res = await Extension.update(
       context,
       param.extensionId,
@@ -68,6 +90,18 @@ export class ExtensionsService {
       req: param.req,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'extension_update',
+          payload: res,
+        },
+      },
+      context.socket_id,
+    );
+
     return res;
   }
 
@@ -78,12 +112,26 @@ export class ExtensionsService {
       req: NcRequest;
     },
   ) {
+    const extension = await this.extensionRead(context, param);
+
     const res = await Extension.delete(context, param.extensionId);
 
     this.appHooksService.emit(AppEvents.EXTENSION_DELETE, {
       extensionId: param.extensionId,
       req: param.req,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'extension_delete',
+          payload: extension,
+        },
+      },
+      context.socket_id,
+    );
 
     return res;
   }

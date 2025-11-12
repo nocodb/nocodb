@@ -64,10 +64,63 @@ export class LinksRequestHandler {
         },
         knex,
       );
-      for (const link of currentlyLinkedWithParent) {
+      const currentlyLinkedWithChild = await this.getMmLinkedWithChild(
+        context,
+        {
+          ...payload,
+          model,
+          colOptions,
+          column,
+          baseModel,
+        },
+        knex,
+      );
+      // we unify both first
+      const unionLinked: LinkRow[] = [];
+      for (const each of [
+        ...currentlyLinkedWithParent,
+        ...currentlyLinkedWithChild,
+      ]) {
+        const existingUnionLinked = unionLinked.find(
+          (link) => each.rowId === link.rowId,
+        );
+        if (!existingUnionLinked) {
+          unionLinked.push(each);
+        } else {
+          existingUnionLinked.linkIds = new Set([
+            ...existingUnionLinked.linkIds,
+            ...each.linkIds,
+          ]);
+        }
+      }
+      for (const link of unionLinked) {
         const linkRequest = result.links.find((l) => l.rowId === link.rowId);
+        let differenceOnLink = new Set<string>();
         if (linkRequest) {
+          differenceOnLink = link.linkIds.difference(linkRequest.linkIds);
           linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
+        } else {
+          differenceOnLink = link.linkIds;
+        }
+
+        if (payload.replaceMode) {
+          link.linkIds = differenceOnLink;
+          if (link.linkIds.size) {
+            if (!result.unlinks) {
+              result.unlinks = [];
+            }
+            const existingUnlink = result.unlinks.find(
+              (l) => l.rowId === link.rowId,
+            );
+            if (!existingUnlink) {
+              result.unlinks.push(link);
+            } else {
+              existingUnlink.linkIds = new Set([
+                ...existingUnlink.linkIds,
+                ...link.linkIds,
+              ]);
+            }
+          }
         }
       }
     }
@@ -309,14 +362,64 @@ export class LinksRequestHandler {
     const response = new Map<string, string[]>();
     const existingLinks = await knex(baseModel.getTnPath(mmModel))
       .select({
-        id: parentColumn.column_name,
-        fk_id: childColumn.column_name,
+        id: childColumn.column_name,
+        fk_id: parentColumn.column_name,
       })
       .whereIn(
         parentColumn.column_name,
         links.map((l) => l.rowId),
       );
 
+    for (const each of existingLinks) {
+      if (!response.has(`${each.fk_id}`)) {
+        response.set(`${each.fk_id}`, []);
+      }
+      response.get(`${each.fk_id}`).push(`${each.id}`);
+    }
+    return Array.from(response, ([key, value]) => {
+      return {
+        rowId: key,
+        linkIds: new Set<string>(value),
+      };
+    });
+  }
+  protected async getMmLinkedWithChild(
+    context: NcContext,
+    { baseModel, colOptions, links }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
+    knex: CustomKnex,
+  ) {
+    const {
+      fk_mm_base_id,
+      fk_mm_model_id,
+      fk_mm_child_column_id,
+      fk_mm_parent_column_id,
+    } = colOptions;
+
+    const mmContext = {
+      ...context,
+      base_id: fk_mm_base_id ?? context.base_id,
+    };
+    const mmModel = await Model.get(mmContext, fk_mm_model_id);
+    await mmModel.getColumns(mmContext);
+
+    // for M2M and Belongs to relation, the relation stored in column option is reversed
+    // parent become child, child become parent from the viewpoint of col options
+    const parentColumn = mmModel.columns.find(
+      (col) => col.id === fk_mm_child_column_id,
+    );
+    const childColumn = mmModel.columns.find(
+      (col) => col.id === fk_mm_parent_column_id,
+    );
+    const response = new Map<string, string[]>();
+    const existingLinks = await knex(baseModel.getTnPath(mmModel))
+      .select({
+        id: childColumn.column_name,
+        fk_id: parentColumn.column_name,
+      })
+      .whereIn(
+        childColumn.column_name,
+        arrFlatMap(links.map((link) => [...link.linkIds])),
+      );
     for (const each of existingLinks) {
       if (!response.has(`${each.fk_id}`)) {
         response.set(`${each.fk_id}`, []);
@@ -564,50 +667,57 @@ export class LinksRequestHandler {
         (col) => col.id === colOptions.fk_mm_child_column_id,
       );
       const toDelete = arrFlatMap(
-        payload.unlinks.map((linkObj) => {
-          return linkObj.linkIds.values().map((linkId) => {
+        payload.unlinks?.map((linkObj) => {
+          return Array.from(linkObj.linkIds, (v) => v).map((linkId) => {
             return {
               [childColumn.column_name]: linkObj.rowId,
               [parentColumn.column_name]: linkId,
             };
           });
-        }),
+        }) ?? [],
       );
       const toInsert = arrFlatMap(
-        payload.links.map((linkObj) => {
-          return linkObj.linkIds.values().map((linkId) => {
+        payload.links?.map((linkObj) => {
+          return Array.from(linkObj.linkIds, (v) => v).map((linkId) => {
             return {
               [childColumn.column_name]: linkObj.rowId,
               [parentColumn.column_name]: linkId,
             };
           });
-        }),
+        }) ?? [],
       );
-      await knex(baseModel.getTnPath(mmModel, '_tbl')).join(
-        knex.raw(
-          toDelete.map(
-            (row) =>
-              `SELECT '${row[childColumn.column_name]}' as child_id, '${
-                row[parentColumn.column_name]
-              }' as parent_id`,
-          ),
-        ),
-        (clause) => {
-          clause.on(
-            knex.raw('??::text = ??::text', [
-              `_tbl.${parentColumn.column_name}`,
-              `_rel_tbl.parent_id`,
+      if (toDelete.length) {
+        const toDeleteUnionTable = toDelete
+          .map((row) =>
+            knex.raw(`SELECT ? as child_id, ? as parent_id`, [
+              row[childColumn.column_name],
+              row[parentColumn.column_name],
             ]),
-          );
-          clause.andOn(
-            knex.raw('??::text = ??::text', [
-              `_tbl.${childColumn.column_name}`,
-              `_rel_tbl.child_id`,
-            ]),
-          );
-        },
-      );
-      await knex(baseModel.getTnPath(mmModel)).insert(toInsert);
+          )
+          .join(' UNION ALL ');
+        const toDeleteUnionTableWithAlias = knex.raw('(??) as _rel_tbl', [
+          knex.raw(toDeleteUnionTable),
+        ]);
+
+        const qb = knex(baseModel.getTnPath(mmModel, '_tbl'))
+          .whereExists(
+            knex(toDeleteUnionTableWithAlias)
+              .select(knex.raw('1'))
+              .where(
+                knex.raw(`??::text = ??::text AND ??::text = ??::text`, [
+                  `_tbl.${parentColumn.column_name}`,
+                  `_rel_tbl.parent_id`,
+                  `_tbl.${childColumn.column_name}`,
+                  `_rel_tbl.child_id`,
+                ]),
+              ),
+          )
+          .delete();
+        await qb;
+      }
+      if (toInsert.length) {
+        await knex(baseModel.getTnPath(mmModel)).insert(toInsert);
+      }
 
       await this.updateRelatedLastModified(
         context,
@@ -615,8 +725,8 @@ export class LinksRequestHandler {
           modelId: model.id,
           model,
           ids: new Set([
-            ...toInsert.map((row) => row[parentColumn.column_name]),
-            ...toDelete.map((row) => row[parentColumn.column_name]),
+            ...toInsert.map((row) => row[childColumn.column_name]),
+            ...toDelete.map((row) => row[childColumn.column_name]),
           ]),
           baseModel,
         },
@@ -627,8 +737,8 @@ export class LinksRequestHandler {
         {
           modelId: colOptions.fk_related_model_id,
           ids: new Set([
-            ...toInsert.map((row) => row[childColumn.column_name]),
-            ...toDelete.map((row) => row[childColumn.column_name]),
+            ...toInsert.map((row) => row[parentColumn.column_name]),
+            ...toDelete.map((row) => row[parentColumn.column_name]),
           ]),
           baseModel,
         },
@@ -695,18 +805,22 @@ export class LinksRequestHandler {
         registerLinkToUpdateObj(link, 'link', toLinkMap);
       }
 
-      await batchUpdate(
-        knex,
-        baseModel.getTnPath(relatedModel),
-        Array.from(toUnlinkMap, ([_key, value]) => value),
-        relatedModel.primaryKey.column_name,
-      );
-      await batchUpdate(
-        knex,
-        baseModel.getTnPath(relatedModel),
-        Array.from(toLinkMap, ([_key, value]) => value),
-        relatedModel.primaryKey.column_name,
-      );
+      if (toUnlinkMap.size) {
+        await batchUpdate(
+          knex,
+          baseModel.getTnPath(relatedModel),
+          Array.from(toUnlinkMap, ([_key, value]) => value),
+          relatedModel.primaryKey.column_name,
+        );
+      }
+      if (toLinkMap.size) {
+        await batchUpdate(
+          knex,
+          baseModel.getTnPath(relatedModel),
+          Array.from(toLinkMap, ([_key, value]) => value),
+          relatedModel.primaryKey.column_name,
+        );
+      }
 
       await this.updateRelatedLastModified(
         context,
@@ -774,18 +888,22 @@ export class LinksRequestHandler {
         registerLinkToUpdateObj(link, 'link', toLinkMap);
       }
 
-      await batchUpdate(
-        knex,
-        baseModel.getTnPath(model),
-        Array.from(toUnlinkMap, ([_key, value]) => value),
-        model.primaryKey.column_name,
-      );
-      await batchUpdate(
-        knex,
-        baseModel.getTnPath(model),
-        Array.from(toLinkMap, ([_key, value]) => value),
-        model.primaryKey.column_name,
-      );
+      if (toUnlinkMap.size) {
+        await batchUpdate(
+          knex,
+          baseModel.getTnPath(model),
+          Array.from(toUnlinkMap, ([_key, value]) => value),
+          model.primaryKey.column_name,
+        );
+      }
+      if (toLinkMap.size) {
+        await batchUpdate(
+          knex,
+          baseModel.getTnPath(model),
+          Array.from(toLinkMap, ([_key, value]) => value),
+          model.primaryKey.column_name,
+        );
+      }
 
       await this.updateRelatedLastModified(
         {

@@ -85,6 +85,9 @@ export const LTARColsUpdater = (param: {
 
     try {
       for (const col of linksOrLtarColumns) {
+        if (!linkDataPayloadMap.has(col.id)) {
+          continue;
+        }
         const requestHandler = new LinksRequestHandler();
         profiler.log(`generateLinkRequest for col ${col.id}`);
         const linkRequest = await requestHandler.generateLinkRequest(

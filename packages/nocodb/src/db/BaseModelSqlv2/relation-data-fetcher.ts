@@ -715,7 +715,7 @@ export const relationDataFetcher = (param: {
 
       const mmTable = await relColOptions.getMMModel(context);
 
-      const assocBaseModel = await Model.getBaseModelSQL(context, {
+      const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
         model: mmTable,
         dbDriver: baseModel.dbDriver,
       });

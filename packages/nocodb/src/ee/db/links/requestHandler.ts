@@ -841,10 +841,8 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     const { baseModel, model, colOptions, column } = payload;
 
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
-      const mmContext = {
-        ...context,
-        base_id: colOptions.fk_mm_base_id ?? context.base_id,
-      };
+      const { mmContext, parentContext, childContext } =
+        await colOptions.getParentChildContext(context);
       const mmBaseModel = await getBaseModelSqlFromModelId({
         modelId: colOptions.fk_mm_model_id,
         context: mmContext,
@@ -912,7 +910,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       }
 
       await this.updateRelatedLastModified(
-        context,
+        childContext,
         {
           modelId: model.id,
           model,
@@ -925,7 +923,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         knex,
       );
       await this.updateRelatedLastModified(
-        context,
+        parentContext,
         {
           modelId: colOptions.fk_related_model_id,
           ids: new Set([
@@ -1166,7 +1164,6 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     knex: CustomKnex,
   ) {
     const { baseModel, column, colOptions, cookie, logger } = payload;
-    console.log(payload.links, payload.unlinks)
     const sourceRowIds = new Set(
       [...payload.links, ...payload.unlinks].map((link) => link.rowId),
     );

@@ -1,5 +1,6 @@
 import { NcApiVersion, RelationTypes, UITypes } from 'nocodb-sdk';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { LTARColsUpdater } from 'src/db/BaseModelSqlv2/ltar-cols-updater';
 import type {
   DataDeleteParams,
   DataInsertParams,
@@ -14,7 +15,11 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
-import { dataWrapper, getCompositePkValue } from '~/helpers/dbHelpers';
+import {
+  dataWrapper,
+  getBaseModelSqlFromModelId,
+  getCompositePkValue,
+} from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
@@ -45,7 +50,7 @@ interface RelatedModelInfo {
 @Injectable()
 export class DataV3Service {
   constructor(protected dataTableService: DataTableService) {}
-
+  logger = new Logger(DataV3Service.name);
   /**
    * Get model information including primary key and columns
    */
@@ -1026,14 +1031,35 @@ export class DataV3Service {
     // Normalize the input to the expected format
     const normalizedRefRowIds = this.normalizeRefRowIds(param.refRowIds);
 
-    await this.dataTableService.nestedLink(context, {
+    const baseModel = await getBaseModelSqlFromModelId({
+      context,
       modelId: param.modelId,
-      rowId: param.rowId,
-      columnId: param.columnId,
-      refRowIds: normalizedRefRowIds,
-      query: param.query || {},
+      options: {
+        viewId: param.viewId,
+      },
+    });
+    await baseModel.model.getColumns(baseModel.context);
+    const column = baseModel.model.columns.find(
+      (col) => col.id === param.columnId,
+    );
+
+    await LTARColsUpdater({
+      baseModel,
+      logger: this.logger,
+    }).updateLTARCol({
+      linkDataPayload: {
+        data: [
+          {
+            rowId: param.rowId,
+            links: Array.isArray(normalizedRefRowIds)
+              ? normalizedRefRowIds
+              : [normalizedRefRowIds],
+          },
+        ],
+      },
+      col: column,
       cookie: param.cookie,
-      viewId: param.viewId,
+      trx: baseModel.dbDriver,
     });
 
     return { success: true };

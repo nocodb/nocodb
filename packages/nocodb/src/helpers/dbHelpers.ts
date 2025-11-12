@@ -198,6 +198,7 @@ export async function getBaseModelSqlFromModelId({
   modelId: string;
   options?: {
     transaction?: XKnex | Knex.Transaction;
+    viewId?: string;
   };
 }) {
   const model = await Model.get(context, modelId);
@@ -206,6 +207,7 @@ export async function getBaseModelSqlFromModelId({
     id: model.id,
     dbDriver: await NcConnectionMgrv2.get(source),
     transaction: options?.transaction,
+    viewId: options?.viewId,
     source,
   });
 }

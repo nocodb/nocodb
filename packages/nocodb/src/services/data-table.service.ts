@@ -595,15 +595,6 @@ export class DataTableService {
       trx: baseModel.dbDriver,
       cookie: param.cookie,
     });
-    // await baseModel.addLinks({
-    //   colId: column.id,
-    //   childIds: Array.isArray(param.refRowIds)
-    //     ? param.refRowIds
-    //     : [param.refRowIds],
-    //   rowId: param.rowId,
-    //   cookie: param.cookie,
-    // });
-
     return true;
   }
 

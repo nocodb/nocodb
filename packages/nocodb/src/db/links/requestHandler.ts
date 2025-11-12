@@ -550,25 +550,178 @@ export class LinksRequestHandler {
   ) {
     const { baseModel, model, colOptions, column } = payload;
 
-    const lastModifiedTimeColumn = model.columns.find(
-      (c) => c.uidt === UITypes.LastModifiedTime && c.system,
-    );
-
-    const lastModifiedByColumn = model.columns.find(
-      (c) => c.uidt === UITypes.LastModifiedBy && c.system,
-    );
-
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
-      // TODO: perform update for MM
+      const mmContext = {
+        ...context,
+        base_id: colOptions.fk_mm_base_id ?? context.base_id,
+      };
+      const mmModel = await Model.get(mmContext, colOptions.fk_mm_model_id);
+      await mmModel.getColumns(mmContext);
+      const parentColumn = mmModel.columns.find(
+        (col) => col.id === colOptions.fk_mm_parent_column_id,
+      );
+      const childColumn = mmModel.columns.find(
+        (col) => col.id === colOptions.fk_mm_child_column_id,
+      );
+      const toDelete = arrFlatMap(
+        payload.unlinks.map((linkObj) => {
+          return linkObj.linkIds.values().map((linkId) => {
+            return {
+              [childColumn.column_name]: linkObj.rowId,
+              [parentColumn.column_name]: linkId,
+            };
+          });
+        }),
+      );
+      const toInsert = arrFlatMap(
+        payload.links.map((linkObj) => {
+          return linkObj.linkIds.values().map((linkId) => {
+            return {
+              [childColumn.column_name]: linkObj.rowId,
+              [parentColumn.column_name]: linkId,
+            };
+          });
+        }),
+      );
+      await knex(baseModel.getTnPath(mmModel, '_tbl')).join(
+        knex.raw(
+          toDelete.map(
+            (row) =>
+              `SELECT '${row[childColumn.column_name]}' as child_id, '${
+                row[parentColumn.column_name]
+              }' as parent_id`,
+          ),
+        ),
+        (clause) => {
+          clause.on(
+            knex.raw('??::text = ??::text', [
+              `_tbl.${parentColumn.column_name}`,
+              `_rel_tbl.parent_id`,
+            ]),
+          );
+          clause.andOn(
+            knex.raw('??::text = ??::text', [
+              `_tbl.${childColumn.column_name}`,
+              `_rel_tbl.child_id`,
+            ]),
+          );
+        },
+      );
+      await knex(baseModel.getTnPath(mmModel)).insert(toInsert);
+
+      await this.updateRelatedLastModified(
+        context,
+        {
+          modelId: model.id,
+          model,
+          ids: new Set([
+            ...toInsert.map((row) => row[parentColumn.column_name]),
+            ...toDelete.map((row) => row[parentColumn.column_name]),
+          ]),
+          baseModel,
+        },
+        knex,
+      );
+      await this.updateRelatedLastModified(
+        context,
+        {
+          modelId: colOptions.fk_related_model_id,
+          ids: new Set([
+            ...toInsert.map((row) => row[childColumn.column_name]),
+            ...toDelete.map((row) => row[childColumn.column_name]),
+          ]),
+          baseModel,
+        },
+        knex,
+      );
     } else if (
       (colOptions.type === RelationTypes.ONE_TO_ONE ||
         colOptions.type === RelationTypes.HAS_MANY) &&
       !parseProp(column.meta).bt
     ) {
-      // TODO: perform update for OO and HM
+      const relatedContext = {
+        ...context,
+        base_id: colOptions.fk_related_base_id ?? context.base_id,
+      };
+      const relatedModel = await Model.get(
+        relatedContext,
+        colOptions.fk_related_model_id,
+      );
+      await relatedModel.getColumns(relatedContext);
+      const childColumn = relatedModel.columns.find(
+        (col) => col.id === colOptions.fk_child_column_id,
+      );
+
+      const lastModifiedTimeColumn = relatedModel.columns.find(
+        (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+      );
+
+      const lastModifiedByColumn = relatedModel.columns.find(
+        (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+      );
+
+      const toUpdateMap = new Map<string, any>();
+      const relatedModelModifiedIds = new Set<string>();
+      const registerLinkToUpdateObj = (
+        linkObj: LinkRow,
+        mode: 'link' | 'unlink',
+      ) => {
+        for (const linkId of linkObj.linkIds) {
+          if (!toUpdateMap.has(linkId)) {
+            toUpdateMap.set(linkId, {
+              [model.primaryKey.column_name]: linkId,
+            });
+          }
+          const toUpdateObj = toUpdateMap.get(linkId);
+          toUpdateObj[childColumn.column_name] =
+            mode === 'unlink' ? null : linkObj.rowId ?? null;
+          if (lastModifiedTimeColumn) {
+            toUpdateObj[lastModifiedTimeColumn.column_name] = baseModel.now();
+          }
+          if (lastModifiedByColumn) {
+            toUpdateObj[lastModifiedByColumn.column_name] = context.user.id;
+          }
+        }
+      };
+
+      for (const link of payload.unlinks ?? []) {
+        relatedModelModifiedIds.add(link.rowId);
+        registerLinkToUpdateObj(link, 'unlink');
+      }
+      for (const link of payload.links ?? []) {
+        relatedModelModifiedIds.add(link.rowId);
+        registerLinkToUpdateObj(link, 'link');
+      }
+
+      const batchUpdateData = Array.from(toUpdateMap, ([_key, value]) => value);
+      await batchUpdate(
+        knex,
+        baseModel.getTnPath(relatedModel),
+        batchUpdateData,
+        relatedModel.primaryKey.column_name,
+      );
+
+      await this.updateRelatedLastModified(
+        context,
+        {
+          modelId: model.id,
+          model,
+          ids: relatedModelModifiedIds,
+          baseModel,
+        },
+        knex,
+      );
     }
     // belongs to
     else {
+      const lastModifiedTimeColumn = model.columns.find(
+        (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+      );
+
+      const lastModifiedByColumn = model.columns.find(
+        (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+      );
+
       const childColumn = model.columns.find(
         (col) => col.id === colOptions.fk_child_column_id,
       );
@@ -639,14 +792,18 @@ export class LinksRequestHandler {
     payload: {
       ids: Set<string>;
       modelId: string;
+      model?: Model;
       baseModel: IBaseModelSqlV2;
     },
     knex: CustomKnex,
   ) {
     const { ids, modelId, baseModel } = payload;
+    let { model } = payload;
 
-    const relatedModel = await Model.get(context, modelId);
-    const columns = await relatedModel.getColumns(context);
+    if (!model) {
+      model = await Model.get(context, modelId);
+    }
+    const columns = await model.getColumns(context);
 
     const lastModifiedTimeColumn = columns.find(
       (c) => c.uidt === UITypes.LastModifiedTime && c.system,
@@ -657,7 +814,7 @@ export class LinksRequestHandler {
     );
 
     const dataToUpdate = [...ids].map((id) => ({
-      [relatedModel.primaryKey.column_name]: id,
+      [model.primaryKey.column_name]: id,
       ...(lastModifiedTimeColumn
         ? { [lastModifiedTimeColumn.column_name]: baseModel.now() }
         : {}),
@@ -667,9 +824,9 @@ export class LinksRequestHandler {
     }));
     await batchUpdate(
       knex,
-      baseModel.getTnPath(relatedModel),
+      baseModel.getTnPath(model),
       dataToUpdate,
-      relatedModel.primaryKey.column_name,
+      model.primaryKey.column_name,
     );
   }
 }

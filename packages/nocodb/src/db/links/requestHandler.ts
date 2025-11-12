@@ -486,10 +486,23 @@ export class LinksRequestHandler {
   }
 
   protected innerHandle(
-    _context: NcContext,
-    _payload: LinkUnlinkProcessRequest,
-    _knex: CustomKnex,
+    context: NcContext,
+    payload: LinkUnlinkProcessRequest,
+    knex: CustomKnex,
   ) {
+    // unlinking
+    const { baseModel, model, colOptions, column } = payload;
+
+    if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+    } else if (
+      (colOptions.type === RelationTypes.ONE_TO_ONE ||
+        colOptions.type === RelationTypes.HAS_MANY) &&
+      !parseProp(column.meta).bt
+    ) {
+      knex(baseModel.getTnPath(model)).update({});
+    } else {
+    }
+
     /** perform the unlinking first */
     /** perform the linking */
   }

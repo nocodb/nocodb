@@ -27,6 +27,7 @@ import {
   V3_INSERT_LIMIT,
 } from '~/constants';
 import { processConcurrently, reuseOrSave } from '~/utils';
+import { Profiler } from '~/helpers/profiler';
 
 interface ModelInfo {
   model: Model;
@@ -655,11 +656,12 @@ export class DataV3Service {
     context: NcContext,
     param: DataUpdateParams,
   ): Promise<{ records: DataRecord[] }> {
+    const profiler = Profiler.start(`data-v3/dataUpdate`);
     const { model, primaryKey, primaryKeys, columns } = await this.getModelInfo(
       context,
       param.modelId,
     );
-
+    profiler.log(`getModelInfo done`);
     const ltarColumns = columns.filter(
       (col) => col.uidt === UITypes.LinkToAnotherRecord,
     );
@@ -686,6 +688,7 @@ export class DataV3Service {
             )),
           },
         ];
+    profiler.log(`transformLTARFieldsToInternal done`);
 
     if (transformedBody.length > V3_INSERT_LIMIT) {
       NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
@@ -696,6 +699,7 @@ export class DataV3Service {
       body: transformedBody,
       apiVersion: NcApiVersion.V3,
     });
+    profiler.log(`dataTableService.dataUpdate done`);
 
     // Extract updated record IDs
     const updatedIds = Array.isArray(param.body)
@@ -703,6 +707,7 @@ export class DataV3Service {
       : [param.body.id];
 
     if (updatedIds.length === 0) {
+      profiler.end();
       return { records: [] };
     }
 
@@ -722,6 +727,7 @@ export class DataV3Service {
       pks: idsAsStrings,
       apiVersion: context.api_version,
     });
+    profiler.log(`baseModel.chunkList done`);
 
     // Create a map for quick lookup by ID
     const recordMap = new Map();
@@ -738,22 +744,24 @@ export class DataV3Service {
         orderedRecords.push(record);
       }
     }
+    const resultRecords = await this.transformRecordsToV3Format({
+      context: context,
+      records: orderedRecords,
+      primaryKey: primaryKey,
+      primaryKeys: primaryKeys,
+      requestedFields: undefined,
+      columns: columns,
+      nestedLimit: undefined,
+      skipSubstitutingColumnIds:
+        param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
+      reuse: {}, // Create reuse cache for this data update operation
+      depth: 0, // Start at depth 0 for main records
+    });
+    profiler.end();
 
     // Transform and return full records in V3 format
     return {
-      records: await this.transformRecordsToV3Format({
-        context: context,
-        records: orderedRecords,
-        primaryKey: primaryKey,
-        primaryKeys: primaryKeys,
-        requestedFields: undefined,
-        columns: columns,
-        nestedLimit: undefined,
-        skipSubstitutingColumnIds:
-          param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
-        reuse: {}, // Create reuse cache for this data update operation
-        depth: 0, // Start at depth 0 for main records
-      }),
+      records: resultRecords,
     };
   }
 

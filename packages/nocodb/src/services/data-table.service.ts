@@ -17,6 +17,7 @@ import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { dataWrapper } from '~/helpers/dbHelpers';
+import { Profiler } from '~/helpers/profiler';
 
 @Injectable()
 export class DataTableService {
@@ -210,9 +211,11 @@ export class DataTableService {
       };
     },
   ) {
+    const profiler = Profiler.start(`data-table/dataUpdate`);
     const { model, view } = await this.getModelAndView(context, param);
-
+    profiler.log('getModelAndView done');
     await this.checkForDuplicateRow(context, { rows: param.body, model });
+    profiler.log('checkForDuplicateRow done');
 
     const source = await Source.get(context, model.source_id);
 
@@ -234,7 +237,7 @@ export class DataTableService {
         skip_hooks: param.internalFlags?.skipHooks,
       },
     );
-
+    profiler.end();
     return this.extractIdObj(context, { body: param.body, model });
   }
 

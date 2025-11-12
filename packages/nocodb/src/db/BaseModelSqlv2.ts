@@ -135,6 +135,7 @@ import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
+import { Profiler } from '~/helpers/profiler';
 
 dayjs.extend(utc);
 
@@ -3215,6 +3216,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async updateLTARCols({ datas, cookie }: { datas: any[]; cookie: NcRequest }) {
+    const profiler = Profiler.start(`base-model/updateLTARCols`);
+
     const trx = await this.dbDriver.transaction();
 
     // Create a BaseModelSqlv2 instance that uses the transaction for operations
@@ -3239,6 +3242,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           // extract existing link values to current record
           let existingLinks = [];
 
+          profiler.log(`${col.colOptions.type} list start`);
           if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
             existingLinks = await trxBaseModel.mmList({
               colId: col.id,
@@ -3255,6 +3259,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               id: rowId,
             });
           }
+          profiler.log(`${col.colOptions.type} list done`);
 
           existingLinks = existingLinks || [];
 
@@ -3288,22 +3293,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           // check for missing links in new data and unlink them
           if (idsToUnlink?.length) {
+            profiler.log(`${col.colOptions.type} removeLinks start`);
             await trxBaseModel.removeLinks({
               colId: col.id,
               childIds: idsToUnlink,
               cookie,
               rowId,
             });
+            profiler.log(`${col.colOptions.type} removeLinks done`);
           }
 
           // check for new data and link them
           if (idsToLink?.length) {
+            profiler.log(`${col.colOptions.type} addLinks start`);
             await trxBaseModel.addLinks({
               colId: col.id,
               childIds: idsToLink,
               cookie,
               rowId,
             });
+            profiler.log(`${col.colOptions.type} addLinks done`);
           }
         }
       }
@@ -3313,6 +3322,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await trx.rollback();
       throw e;
     }
+    profiler.end();
   }
 
   async bulkUpdateAll(

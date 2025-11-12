@@ -12,6 +12,7 @@ import type {
   LinkUnlinkProcessRequest,
   LinkUnlinkRequest,
 } from '~/db/links/types';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { Column, Model } from '~/models';
 import { batchUpdate } from '~/utils';
 
@@ -573,6 +574,7 @@ export class LinksRequestHandler {
       );
 
       const toUpdateMap = new Map<string, any>();
+      const relatedModelModifiedIds = new Set<string>();
       const registerLinkToUpdateObj = (
         linkObj: LinkRow,
         mode: 'link' | 'unlink',
@@ -595,9 +597,17 @@ export class LinksRequestHandler {
         }
       };
       for (const link of payload.unlinks ?? []) {
+        link.linkIds.forEach(
+          relatedModelModifiedIds.add,
+          relatedModelModifiedIds,
+        );
         registerLinkToUpdateObj(link, 'unlink');
       }
       for (const link of payload.links ?? []) {
+        link.linkIds.forEach(
+          relatedModelModifiedIds.add,
+          relatedModelModifiedIds,
+        );
         registerLinkToUpdateObj(link, 'link');
       }
 
@@ -608,10 +618,58 @@ export class LinksRequestHandler {
         batchUpdateData,
         model.primaryKey.column_name,
       );
-      // TODO: update last modified of related table
-    }
 
-    /** perform the unlinking first */
-    /** perform the linking */
+      await this.updateRelatedLastModified(
+        {
+          ...context,
+          base_id: colOptions.fk_related_base_id ?? context.base_id,
+        },
+        {
+          modelId: colOptions.fk_related_model_id,
+          ids: relatedModelModifiedIds,
+          baseModel,
+        },
+        knex,
+      );
+    }
+  }
+
+  protected async updateRelatedLastModified(
+    context: NcContext,
+    payload: {
+      ids: Set<string>;
+      modelId: string;
+      baseModel: IBaseModelSqlV2;
+    },
+    knex: CustomKnex,
+  ) {
+    const { ids, modelId, baseModel } = payload;
+
+    const relatedModel = await Model.get(context, modelId);
+    const columns = await relatedModel.getColumns(context);
+
+    const lastModifiedTimeColumn = columns.find(
+      (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+    );
+
+    const lastModifiedByColumn = columns.find(
+      (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+    );
+
+    const dataToUpdate = [...ids].map((id) => ({
+      [relatedModel.primaryKey.column_name]: id,
+      ...(lastModifiedTimeColumn
+        ? { [lastModifiedTimeColumn.column_name]: baseModel.now() }
+        : {}),
+      ...(lastModifiedByColumn
+        ? { [lastModifiedByColumn.column_name]: context.user.id }
+        : {}),
+    }));
+    await batchUpdate(
+      knex,
+      baseModel.getTnPath(relatedModel),
+      dataToUpdate,
+      relatedModel.primaryKey.column_name,
+    );
   }
 }

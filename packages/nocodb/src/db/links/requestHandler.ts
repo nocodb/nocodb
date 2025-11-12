@@ -24,7 +24,7 @@ export class LinksRequestHandler {
 
   async generateLinkRequest(
     context: NcContext,
-    payload: Omit<LinkUnlinkRequest, 'unlinks'>,
+    payload: Omit<LinkUnlinkRequest, 'unlinks'> & { replaceMode?: boolean },
     knex?: CustomKnex,
   ) {
     const column =
@@ -107,15 +107,38 @@ export class LinksRequestHandler {
           link.linkIds = link.linkIds.difference(linkRequest.linkIds);
         }
       }
+      result.unlinks = currentlyLinkedWithChild;
+
       // skip existing links from being added
       for (const link of currentlyLinkedWithParent) {
         const linkRequest = result.links.find((l) => l.rowId === link.rowId);
+        let differenceOnLink: Set<string> = new Set();
         if (linkRequest) {
+          differenceOnLink = link.linkIds.difference(linkRequest.linkIds);
           linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
         }
-      }
 
-      result.unlinks = currentlyLinkedWithChild;
+        // if replace mode, the rest of existing links are removed
+        if (payload.replaceMode) {
+          link.linkIds = link.linkIds.difference(differenceOnLink);
+          if (link.linkIds.size) {
+            if (!result.unlinks) {
+              result.unlinks = [];
+            }
+            const existingUnlink = result.unlinks.find(
+              (l) => l.rowId === link.rowId,
+            );
+            if (!existingUnlink) {
+              result.unlinks.push(link);
+            } else {
+              existingUnlink.linkIds = new Set([
+                ...existingUnlink.linkIds,
+                ...link.linkIds,
+              ]);
+            }
+          }
+        }
+      }
     } else if (
       colOptions.type === RelationTypes.ONE_TO_ONE &&
       !parseProp(column.meta).bt
@@ -149,8 +172,9 @@ export class LinksRequestHandler {
         const linkRequest = result.links.find((l) => l.rowId === link.rowId);
         if (
           linkRequest &&
-          link.linkIds[0] &&
-          link.linkIds[0] !== linkRequest.linkIds[0]
+          link.linkIds.values().next().value &&
+          link.linkIds.values().next().value !==
+            linkRequest.linkIds.values().next().value
         ) {
           if (!result.unlinks) {
             result.unlinks = [];
@@ -165,11 +189,15 @@ export class LinksRequestHandler {
         const linkRequest = result.links.find((l) => l.rowId === link.rowId);
         // because one on one they will only have 1 linkIds
         // if it's same in request, do nothing
-        if (linkRequest && link.linkIds[0] === linkRequest.linkIds[0]) {
-          linkRequest.linkIds.delete(link.linkIds[0]);
+        if (
+          linkRequest &&
+          link.linkIds.values().next().value ===
+            linkRequest.linkIds.values().next().value
+        ) {
+          linkRequest.linkIds.delete(link.linkIds.values().next().value);
         }
         // else we put it as to be unlinked if link exists
-        else if (link.linkIds[0]) {
+        else if (link.linkIds.values().next().value) {
           if (!result.unlinks) {
             result.unlinks = [];
           }
@@ -212,8 +240,31 @@ export class LinksRequestHandler {
       // skip existing links from being added
       for (const link of currentlyLinkedWithParent) {
         const linkRequest = result.links.find((l) => l.rowId === link.rowId);
+        let differenceOnLink: Set<string> = new Set();
         if (linkRequest) {
+          differenceOnLink = link.linkIds.difference(linkRequest.linkIds);
           linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
+        }
+
+        // if replace mode, the rest of existing links are removed
+        if (payload.replaceMode) {
+          link.linkIds = link.linkIds.difference(differenceOnLink);
+          if (link.linkIds.size) {
+            if (!result.unlinks) {
+              result.unlinks = [];
+            }
+            const existingUnlink = result.unlinks.find(
+              (l) => l.rowId === link.rowId,
+            );
+            if (!existingUnlink) {
+              result.unlinks.push(link);
+            } else {
+              existingUnlink.linkIds = new Set([
+                ...existingUnlink.linkIds,
+                ...link.linkIds,
+              ]);
+            }
+          }
         }
       }
 
@@ -226,6 +277,7 @@ export class LinksRequestHandler {
     return result;
   }
 
+  // #region get related records
   protected async getMmLinkedWithParent(
     context: NcContext,
     { baseModel, colOptions, links }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
@@ -383,10 +435,11 @@ export class LinksRequestHandler {
     }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
     knex: CustomKnex,
   ) {
-    const { fk_parent_column_id } = colOptions;
+    const { fk_child_column_id } = colOptions;
 
-    const parentColumn = (await model.getColumns(context)).find(
-      (col) => col.id === fk_parent_column_id,
+    await model.getColumns(context);
+    const childColumn = model.columns.find(
+      (col) => col.id === fk_child_column_id,
     );
 
     const response = new Map<string, string[]>();
@@ -394,7 +447,7 @@ export class LinksRequestHandler {
     const existingLinks = await knex(baseModel.getTnPath(model, '_tbl'))
       .select({
         id: model.primaryKey.column_name,
-        fk_id: parentColumn.column_name,
+        fk_id: childColumn.column_name,
       })
       .whereIn(
         model.primaryKey.column_name,
@@ -424,10 +477,10 @@ export class LinksRequestHandler {
     }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
     knex: CustomKnex,
   ) {
-    const { fk_parent_column_id } = colOptions;
+    const { fk_child_column_id } = colOptions;
 
-    const parentColumn = (await model.getColumns(context)).find(
-      (col) => col.id === fk_parent_column_id,
+    const childColumn = (await model.getColumns(context)).find(
+      (col) => col.id === fk_child_column_id,
     );
 
     const response = new Map<string, string[]>();
@@ -435,10 +488,10 @@ export class LinksRequestHandler {
     const existingLinks = await knex(baseModel.getTnPath(model, '_tbl'))
       .select({
         id: model.primaryKey.column_name,
-        fk_id: parentColumn.column_name,
+        fk_id: childColumn.column_name,
       })
       .whereIn(
-        parentColumn.column_name,
+        childColumn.column_name,
         arrFlatMap(links.map((link) => [...link.linkIds])),
       );
     for (const each of existingLinks) {
@@ -454,6 +507,7 @@ export class LinksRequestHandler {
       };
     });
   }
+  // #endregion get related records
 
   async handle(
     context: NcContext,
@@ -494,7 +548,6 @@ export class LinksRequestHandler {
     knex: CustomKnex,
   ) {
     const { baseModel, model, colOptions, column } = payload;
-    const batchUpdatePkKey = '__id__';
 
     const lastModifiedTimeColumn = model.columns.find(
       (c) => c.uidt === UITypes.LastModifiedTime && c.system,
@@ -515,8 +568,8 @@ export class LinksRequestHandler {
     }
     // belongs to
     else {
-      const parentColumn = model.columns.find(
-        (col) => col.id === colOptions.fk_parent_column_id,
+      const childColumn = model.columns.find(
+        (col) => col.id === colOptions.fk_child_column_id,
       );
 
       const toUpdateMap = new Map<string, any>();
@@ -526,12 +579,14 @@ export class LinksRequestHandler {
       ) => {
         if (!toUpdateMap.has(linkObj.rowId)) {
           toUpdateMap.set(linkObj.rowId, {
-            [batchUpdatePkKey]: linkObj.rowId,
+            [model.primaryKey.column_name]: linkObj.rowId,
           });
         }
         const toUpdateObj = toUpdateMap.get(linkObj.rowId);
-        toUpdateObj[parentColumn.column_name] =
-          mode === 'unlink' ? null : linkObj.linkIds[0] ?? null;
+        toUpdateObj[childColumn.column_name] =
+          mode === 'unlink'
+            ? null
+            : linkObj.linkIds.values().next().value ?? null;
         if (lastModifiedTimeColumn) {
           toUpdateObj[lastModifiedTimeColumn.column_name] = baseModel.now();
         }
@@ -551,7 +606,7 @@ export class LinksRequestHandler {
         knex,
         baseModel.getTnPath(model),
         batchUpdateData,
-        batchUpdatePkKey,
+        model.primaryKey.column_name,
       );
       // TODO: update last modified of related table
     }

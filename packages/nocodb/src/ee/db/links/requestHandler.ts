@@ -841,11 +841,15 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     const { baseModel, model, colOptions, column } = payload;
 
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
-      const { mmContext, parentContext, childContext } =
-        await colOptions.getParentChildContext(context);
+      const { mmContext, refContext } = colOptions.getRelContext(context);
       const mmBaseModel = await getBaseModelSqlFromModelId({
         modelId: colOptions.fk_mm_model_id,
         context: mmContext,
+        options: { transaction: knex },
+      });
+      const parentBaseModel = await getBaseModelSqlFromModelId({
+        modelId: colOptions.fk_related_model_id,
+        context: refContext,
         options: { transaction: knex },
       });
       const mmModel = mmBaseModel.model;
@@ -910,7 +914,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       }
 
       await this.updateRelatedLastModified(
-        childContext,
+        context,
         {
           modelId: model.id,
           model,
@@ -923,14 +927,14 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         knex,
       );
       await this.updateRelatedLastModified(
-        parentContext,
+        refContext,
         {
           modelId: colOptions.fk_related_model_id,
           ids: new Set([
             ...toInsert.map((row) => row[parentColumn.column_name]),
             ...toDelete.map((row) => row[parentColumn.column_name]),
           ]),
-          baseModel,
+          baseModel: parentBaseModel,
         },
         knex,
       );
@@ -1015,18 +1019,24 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       }
 
       await this.updateRelatedLastModified(
-        context,
+        relatedContext,
         {
-          modelId: model.id,
-          model,
+          modelId: relatedModel.id,
+          model: relatedModel,
           ids: relatedModelModifiedIds,
-          baseModel,
+          baseModel: relatedBaseModel,
         },
         knex,
       );
     }
     // belongs to
     else {
+      const { refContext: relatedContext } = colOptions.getRelContext(context);
+      const relatedBaseModel = await getBaseModelSqlFromModelId({
+        modelId: colOptions.fk_related_model_id,
+        context: relatedContext,
+        options: { transaction: knex },
+      });
       const lastModifiedTimeColumn = model.columns.find(
         (c) => c.uidt === UITypes.LastModifiedTime && c.system,
       );
@@ -1098,14 +1108,11 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       }
 
       await this.updateRelatedLastModified(
-        {
-          ...context,
-          base_id: colOptions.fk_related_base_id ?? context.base_id,
-        },
+        relatedContext,
         {
           modelId: colOptions.fk_related_model_id,
           ids: relatedModelModifiedIds,
-          baseModel,
+          baseModel: relatedBaseModel,
         },
         knex,
       );

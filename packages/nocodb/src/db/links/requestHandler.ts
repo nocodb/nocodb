@@ -62,7 +62,9 @@ export class LinksRequestHandler {
       );
       for (const link of currentlyLinkedWithParent) {
         const linkRequest = result.links.find((l) => l.rowId === link.rowId);
-        linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
+        if (linkRequest) {
+          linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
+        }
       }
     }
     // HM not BT
@@ -70,7 +72,7 @@ export class LinksRequestHandler {
       colOptions.type === RelationTypes.HAS_MANY &&
       !parseProp(column.meta).bt
     ) {
-      const currentlyLinkedWithChild =
+      const currentlyLinkedWithParent =
         await this.getHmOrOoChildLinkedWithParent(
           context,
           {
@@ -82,7 +84,7 @@ export class LinksRequestHandler {
           },
           knex,
         );
-      const currentlyLinkedWithParent =
+      const currentlyLinkedWithChild =
         await this.getHmOrOoParentLinkedWithChild(
           context,
           {
@@ -94,15 +96,20 @@ export class LinksRequestHandler {
           },
           knex,
         );
-      // skip existing links from being added
-      for (const link of currentlyLinkedWithParent) {
-        const linkRequest = result.links.find((l) => l.rowId === link.rowId);
-        linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
-      }
+
       // skip existing links from being deleted when exists in request
       for (const link of currentlyLinkedWithChild) {
         const linkRequest = result.links.find((l) => l.rowId === link.rowId);
-        link.linkIds = link.linkIds.difference(linkRequest.linkIds);
+        if (linkRequest) {
+          link.linkIds = link.linkIds.difference(linkRequest.linkIds);
+        }
+      }
+      // skip existing links from being added
+      for (const link of currentlyLinkedWithParent) {
+        const linkRequest = result.links.find((l) => l.rowId === link.rowId);
+        if (linkRequest) {
+          linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
+        }
       }
 
       result.unlinks = currentlyLinkedWithChild;
@@ -110,7 +117,7 @@ export class LinksRequestHandler {
       colOptions.type === RelationTypes.ONE_TO_ONE &&
       !parseProp(column.meta).bt
     ) {
-      const currentlyLinkedWithChild =
+      const currentlyLinkedWithParent =
         await this.getHmOrOoChildLinkedWithParent(
           context,
           {
@@ -122,7 +129,7 @@ export class LinksRequestHandler {
           },
           knex,
         );
-      const currentlyLinkedWithParent =
+      const currentlyLinkedWithChild =
         await this.getHmOrOoParentLinkedWithChild(
           context,
           {
@@ -134,12 +141,28 @@ export class LinksRequestHandler {
           },
           knex,
         );
+      // delete existing links when different
+      for (const link of currentlyLinkedWithChild) {
+        const linkRequest = result.links.find((l) => l.rowId === link.rowId);
+        if (
+          linkRequest &&
+          link.linkIds[0] &&
+          link.linkIds[0] !== linkRequest.linkIds[0]
+        ) {
+          if (!result.unlinks) {
+            result.unlinks = [];
+          }
+          if (!result.unlinks.find((l) => l.rowId === link.rowId)) {
+            result.unlinks.push(link);
+          }
+        }
+      }
       // skip existing links from being added
       for (const link of currentlyLinkedWithParent) {
         const linkRequest = result.links.find((l) => l.rowId === link.rowId);
         // because one on one they will only have 1 linkIds
         // if it's same in request, do nothing
-        if (link.linkIds[0] === linkRequest.linkIds[0]) {
+        if (linkRequest && link.linkIds[0] === linkRequest.linkIds[0]) {
           linkRequest.linkIds.delete(link.linkIds[0]);
         }
         // else we put it as to be unlinked if link exists
@@ -148,18 +171,6 @@ export class LinksRequestHandler {
             result.unlinks = [];
           }
           result.unlinks.push(link);
-        }
-      }
-      // delete existing links when different
-      for (const link of currentlyLinkedWithChild) {
-        const linkRequest = result.links.find((l) => l.rowId === link.rowId);
-        if (link.linkIds[0] && link.linkIds[0] !== linkRequest.linkIds[0]) {
-          if (!result.unlinks) {
-            result.unlinks = [];
-          }
-          if (!result.unlinks.find((l) => l.rowId === link.rowId)) {
-            result.unlinks.push(link);
-          }
         }
       }
     }
@@ -187,16 +198,20 @@ export class LinksRequestHandler {
         },
         knex,
       );
-      // skip existing links from being added
-      for (const link of currentlyLinkedWithParent) {
-        const linkRequest = result.links.find((l) => l.rowId === link.rowId);
-        linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
-      }
-
       // skip existing links from being deleted when exists in request
       for (const link of currentlyLinkedWithChild) {
         const linkRequest = result.links.find((l) => l.rowId === link.rowId);
-        link.linkIds = link.linkIds.difference(linkRequest.linkIds);
+        if (linkRequest) {
+          link.linkIds = link.linkIds.difference(linkRequest.linkIds);
+        }
+      }
+
+      // skip existing links from being added
+      for (const link of currentlyLinkedWithParent) {
+        const linkRequest = result.links.find((l) => l.rowId === link.rowId);
+        if (linkRequest) {
+          linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
+        }
       }
 
       result.unlinks = currentlyLinkedWithChild;
@@ -222,7 +237,7 @@ export class LinksRequestHandler {
 
     const mmContext = {
       ...context,
-      base_id: fk_mm_base_id,
+      base_id: fk_mm_base_id ?? context.base_id,
     };
     const mmModel = await Model.get(mmContext, fk_mm_model_id);
     await mmModel.getColumns(mmContext);
@@ -247,10 +262,10 @@ export class LinksRequestHandler {
       );
 
     for (const each of existingLinks) {
-      if (!response.has(each.fk_id)) {
-        response.set(each.fk_id, []);
+      if (!response.has(`${each.fk_id}`)) {
+        response.set(`${each.fk_id}`, []);
       }
-      response.get(each.fk_id).push(each.id);
+      response.get(`${each.fk_id}`).push(`${each.id}`);
     }
     return Array.from(response, ([key, value]) => {
       return {
@@ -273,7 +288,7 @@ export class LinksRequestHandler {
 
     const childContext = {
       ...context,
-      base_id: fk_related_base_id,
+      base_id: fk_related_base_id ?? context.base_id,
     };
     const childModel = await Model.get(childContext, child_model_id);
     await childModel.getColumns(childContext);
@@ -282,8 +297,7 @@ export class LinksRequestHandler {
     );
 
     const response = new Map<string, string[]>();
-    // get id of child table by querying with foreign key column
-    const childLinks = await knex(baseModel.getTnPath(childModel, '_tbl'))
+    const query = knex(baseModel.getTnPath(childModel, '_tbl'))
       .select({
         id: childModel.primaryKey.column_name,
         fk_id: childColumn.column_name,
@@ -292,11 +306,13 @@ export class LinksRequestHandler {
         childColumn.column_name,
         links.map((link) => link.rowId),
       );
+    // get id of child table by querying with foreign key column
+    const childLinks = await query;
     for (const each of childLinks) {
-      if (!response.has(each.fk_id)) {
-        response.set(each.fk_id, []);
+      if (!response.has(`${each.fk_id}`)) {
+        response.set(`${each.fk_id}`, []);
       }
-      response.get(each.fk_id).push(each.id);
+      response.get(`${each.fk_id}`).push(`${each.id}`);
     }
     return Array.from(response, ([key, value]) => {
       return {
@@ -319,7 +335,7 @@ export class LinksRequestHandler {
 
     const childContext = {
       ...context,
-      base_id: fk_related_base_id,
+      base_id: fk_related_base_id ?? context.base_id,
     };
     const childModel = await Model.get(childContext, child_model_id);
     await childModel.getColumns(childContext);
@@ -336,13 +352,15 @@ export class LinksRequestHandler {
       })
       .whereIn(
         childModel.primaryKey.column_name,
-        arrFlatMap(links.map((link) => link.linkIds)),
+        arrFlatMap(links.map((link) => [...link.linkIds])),
       );
     for (const each of childLinks) {
-      if (!response.has(each.fk_id)) {
-        response.set(each.fk_id, []);
+      if (each.fk_id) {
+        if (!response.has(`${each.fk_id}`)) {
+          response.set(`${each.fk_id}`, []);
+        }
+        response.get(`${each.fk_id}`).push(`${each.id}`);
       }
-      response.get(each.fk_id).push(each.id);
     }
     return Array.from(response, ([key, value]) => {
       return {
@@ -380,10 +398,10 @@ export class LinksRequestHandler {
         links.map((link) => link.rowId),
       );
     for (const each of existingLinks) {
-      if (!response.has(each.id)) {
-        response.set(each.id, []);
+      if (!response.has(`${each.id}`)) {
+        response.set(`${each.id}`, []);
       }
-      response.get(each.id).push(each.fk_id);
+      response.get(`${each.id}`).push(`${each.fk_id}`);
     }
     return Array.from(response, ([key, value]) => {
       return {
@@ -418,13 +436,13 @@ export class LinksRequestHandler {
       })
       .whereIn(
         parentColumn.column_name,
-        arrFlatMap(links.map((link) => link.linkIds)),
+        arrFlatMap(links.map((link) => [...link.linkIds])),
       );
     for (const each of existingLinks) {
-      if (!response.has(each.id)) {
-        response.set(each.id, []);
+      if (!response.has(`${each.id}`)) {
+        response.set(`${each.id}`, []);
       }
-      response.get(each.id).push(each.fk_id);
+      response.get(`${each.id}`).push(`${each.fk_id}`);
     }
     return Array.from(response, ([key, value]) => {
       return {

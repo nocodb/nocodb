@@ -2,18 +2,14 @@ import { expect } from 'chai';
 import request from 'supertest';
 
 import { UITypes } from 'nocodb-sdk';
-import { Model } from '../../../src/models';
-import Base from '../../../src/models/Base';
 import { createProject } from '../factory/base';
-import {
-  createColumn,
-  createLookupColumn,
-  createLtarColumn2,
-  customColumns,
-} from '../factory/column';
+import { createLtarColumn2, customColumns } from '../factory/column';
 import { createBulkRows } from '../factory/row';
 import { createTable } from '../factory/table';
 import init from '../init';
+import type Base from '../../../src/models/Base';
+import type { Model } from '../../../src/models';
+import type { Column } from '../../../src/models';
 
 export interface ITestContext {
   context: Awaited<ReturnType<typeof init>>;
@@ -27,6 +23,15 @@ export interface ITestContext {
     table2: Model;
     table3: Model;
     table4: Model;
+  };
+  linkColumns: {
+    t3_HM_t2_Ltar: Column;
+    t3_HM_t4_Ltar: Column;
+    t2_HM_t1_Ltar: Column;
+    t1_HM_t1_Ltar: Column;
+    t1_MM_t2_Ltar: Column;
+    t1_OO_t3_Ltar: Column;
+    t4_BT_t3_Ltar: Column;
   };
 }
 async function ncAxiosLinkAdd({
@@ -47,7 +52,6 @@ async function ncAxiosLinkAdd({
     .post(url)
     .set('xc-auth', context.context.token)
     .send(body);
-
   expect(response.status).to.equal(status);
   if (msg) {
     expect(response.body.message || response.body.msg).to.equal(msg);
@@ -137,7 +141,6 @@ export async function initInitialModel() {
     table: table4,
     values: getDuplicatedRows('T4'),
   });
-
   // Create links
   const t3_HM_t2_Ltar = await createLtarColumn2(context, {
     title: 'T2s',
@@ -152,6 +155,7 @@ export async function initInitialModel() {
     childTable: table4,
     type: 'hm',
   });
+
   const t2_HM_t1_Ltar = await createLtarColumn2(context, {
     title: 'T1s',
     parentTable: table2,
@@ -166,58 +170,29 @@ export async function initInitialModel() {
     type: 'hm',
   });
 
-  const source = (await Base.getByTitleOrId(ctx, base.id)).getSources();
-  await createLookupColumn(context, {
-    base,
-    title: 'table1Name',
-    table: await Model.getByIdOrName(ctx, {
-      base_id: base.id,
-      source_id: source.id!,
-      id: table2.id,
-    }),
-    relatedTableName: table1.table_name,
-    relatedTableColumnTitle: 'Title',
-    relationColumnId: t2_HM_t1_Ltar.id,
-  });
-  await createLookupColumn(context, {
-    base,
-    title: 'table2Name',
-    table: await Model.getByIdOrName(ctx, {
-      base_id: base.id,
-      source_id: source.id!,
-      id: table3.id,
-    }),
-    relatedTableName: table2.table_name,
-    relatedTableColumnTitle: 'Title',
-    relationColumnId: t3_HM_t2_Ltar.id,
-  });
-  await createLookupColumn(context, {
-    base,
-    title: 'table2_table1s',
-    table: await Model.getByIdOrName(ctx, {
-      base_id: base.id,
-      source_id: source.id!,
-      id: table3.id,
-    }),
-    relatedTableName: table2.table_name,
-    relatedTableColumnTitle: 'T1s',
-    relationColumnId: t3_HM_t2_Ltar.id,
-  });
-  await createLookupColumn(context, {
-    base,
-    title: 'Table1SelfList_Titles',
-    table: await Model.getByIdOrName(ctx, {
-      base_id: base.id,
-      source_id: source.id!,
-      id: table1.id,
-    }),
-    relatedTableName: table1.table_name,
-    relatedTableColumnTitle: 'Title',
-    relationColumnId: t1_HM_t1_Ltar.id,
+  // Create MM link
+  const t1_MM_t2_Ltar = await createLtarColumn2(context, {
+    title: 'T2sMM',
+    parentTable: table1,
+    childTable: table2,
+    type: 'mm',
   });
 
+  // Create OO link
+  const t1_OO_t3_Ltar = await createLtarColumn2(context, {
+    title: 'T3sOO',
+    parentTable: table1,
+    childTable: table3,
+    type: 'oo',
+  });
+
+  // get BT link
+  const t4_BT_t3_Ltar = (await table3.getColumns(ctx)).find(
+    (col) => col.uidt == 'LinkToAnotherRecord',
+  );
+
   const linkTo_t2_HM_t1_Ltar = (rowId: string, body: any[]) => {
-    ncAxiosLinkAdd({
+    return ncAxiosLinkAdd({
       context: {
         context,
         base,
@@ -232,7 +207,7 @@ export async function initInitialModel() {
     });
   };
   const linkTo_t3_HM_t2_Ltar = (rowId: string, body: any[]) => {
-    ncAxiosLinkAdd({
+    return ncAxiosLinkAdd({
       context: {
         context,
         base,
@@ -247,7 +222,7 @@ export async function initInitialModel() {
     });
   };
   const linkTo_t3_HM_t4_Ltar = (rowId: string, body: any[]) => {
-    ncAxiosLinkAdd({
+    return ncAxiosLinkAdd({
       context: {
         context,
         base,
@@ -281,85 +256,14 @@ export async function initInitialModel() {
       table3,
       table4,
     },
-  } as ITestContext;
-}
-
-export async function initQrBarcodeColumns(context: ITestContext) {
-  const table1 = context.tables.table1;
-  const table2 = context.tables.table2;
-  await createColumn(context.context, table1, {
-    title: 'QRCode',
-    column_name: 'qrcode',
-    uidt: UITypes.QrCode,
-    fk_qr_value_column_id: (
-      await table1.getColumns(context.ctx)
-    ).find((k) => k.title === 'Title').id,
-  });
-  await createColumn(context.context, table1, {
-    title: 'Barcode',
-    column_name: 'barcode',
-    uidt: UITypes.Barcode,
-    fk_barcode_value_column_id: (
-      await table1.getColumns(context.ctx)
-    ).find((k) => k.title === 'Title').id,
-  });
-
-  const t2_HM_t1_Ltar = (await table2.getColumns(context.ctx)).find(
-    (col) => col.title === 'T1s',
-  );
-  const source = (await context.base.getSources())[0];
-  await createLookupColumn(context.context, {
-    base: context.base,
-    title: 'table1Qr',
-    table: await Model.getByIdOrName(context.ctx, {
-      base_id: context.base.id,
-      source_id: source.id!,
-      id: context.tables.table2.id,
-    }),
-    relatedTableName: table1.table_name,
-    relatedTableColumnTitle: 'QRCode',
-    relationColumnId: t2_HM_t1_Ltar.id,
-  });
-  await createLookupColumn(context.context, {
-    base: context.base,
-    title: 'table1Barcode',
-    table: await Model.getByIdOrName(context.ctx, {
-      base_id: context.base.id,
-      source_id: source.id!,
-      id: context.tables.table2.id,
-    }),
-    relatedTableName: table1.table_name,
-    relatedTableColumnTitle: 'Barcode',
-    relationColumnId: t2_HM_t1_Ltar.id,
-  });
-}
-
-export async function initFormulaLookupColumns(context: ITestContext) {
-  const formulaColumn = await createColumn(
-    context.context,
-    context.tables.table1,
-    {
-      title: 'FormulaTitle',
-      uidt: UITypes.Formula,
-      formula: '{Title}',
-      formula_raw: '{Title}',
+    linkColumns: {
+      t3_HM_t2_Ltar,
+      t3_HM_t4_Ltar,
+      t2_HM_t1_Ltar,
+      t1_HM_t1_Ltar,
+      t1_MM_t2_Ltar,
+      t1_OO_t3_Ltar,
+      t4_BT_t3_Ltar,
     },
-  );
-  const t2_HM_t1_Ltar = (
-    await context.tables.table2.getColumns(context.ctx)
-  ).find((col) => col.title === 'T1s');
-  const source = (await context.base.getSources())[0];
-
-  await createLookupColumn(context.context, {
-    base: context.base,
-    title: 'table1FormulaTitle',
-    table: await Model.getByIdOrName(context.ctx, {
-      base_id: context.base.id,
-      source_id: source.id!,
-      id: context.tables.table2.id,
-    }),
-    relatedTableName: context.tables.table1.table_name,
-    relatedTableColumnTitle: 'FormulaTitle',
-    relationColumnId: t2_HM_t1_Ltar.id,
-  });
+  } as ITestContext;
 }

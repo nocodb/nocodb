@@ -1,9 +1,10 @@
-import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import { extractFilterFromXwhere, NcApiVersion, UITypes } from 'nocodb-sdk';
 import groupBy from 'lodash/groupBy';
+import type CustomKnex from '~/db/CustomKnex';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
+import { _wherePk, applyPaginate, dataWrapper } from '~/helpers/dbHelpers';
 import { Filter, Model, View } from '~/models';
 import sortV2 from '~/db/sortV2';
 import conditionV2 from '~/db/conditionV2';
@@ -1617,6 +1618,92 @@ export const relationDataFetcher = (param: {
         c.__proto__ = proto;
         return c;
       });
+    },
+
+    async getBtExistingLinks({
+      linkDataPayload,
+      rowIds,
+      trx,
+    }: {
+      linkDataPayload: {
+        relatedModel: Model;
+        colOptions: LinkToAnotherRecordColumn;
+        data: {
+          rowId: string;
+          links: string[];
+        }[];
+      };
+      rowIds: string[];
+      trx: CustomKnex;
+    }) {
+      const existingLinksMap = new Map<string, { links: string[] }>();
+
+      const relIdColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find(
+        (rCol) =>
+          (rCol.uidt === UITypes.ForeignKey &&
+            rCol.id === linkDataPayload.colOptions.fk_child_column_id) ||
+          rCol.id === linkDataPayload.colOptions.fk_parent_column_id,
+      );
+      const pkTables = rowIds
+        .map((id) => {
+          return `SELECT ${Object.entries(
+            _wherePk(baseModel.model.primaryKeys, id),
+          )
+            .map(([key, value]) => {
+              return `${
+                typeof value === 'number' ? value : "'" + value + "'"
+              } as ${key}`;
+            })
+            .join(', ')}`;
+        })
+        .join(' UNION ALL ');
+      const existingLinks = await trx(
+        baseModel.getTnPath(baseModel.model, '_tbl'),
+      )
+        .select({
+          __fk_id: relIdColumn.column_name,
+          ...baseModel.model.primaryKeys.reduce((acc, cur) => {
+            acc[cur.title] = `_tbl.${cur.column_name}`;
+            return acc;
+          }, {}),
+        })
+        .join(trx.raw(`(${pkTables}) as _id_tbl`), (joinClause) => {
+          baseModel.model.primaryKeys.reduce((acc, cur) => {
+            if (!acc) {
+              joinClause.on(
+                trx.raw('??::text = ??::text', [
+                  `_tbl.${cur.column_name}`,
+                  `_id_tbl.${cur.column_name}`,
+                ]),
+              );
+            } else {
+              joinClause.andOn(
+                trx.raw('??::text = ??::text', [
+                  `_tbl.${cur.column_name}`,
+                  `_id_tbl.${cur.column_name}`,
+                ]),
+              );
+            }
+            return true;
+          }, false);
+        });
+      for (const existingLink of existingLinks) {
+        const existingLinkRowId = dataWrapper(existingLink).extractPksValue(
+          baseModel.model,
+          true,
+        );
+        if (!existingLinksMap.get(existingLinkRowId)) {
+          existingLinksMap.set(existingLinkRowId, { links: [] });
+        }
+        if (existingLink.__fk_id) {
+          existingLinksMap
+            .get(existingLinkRowId)
+            .links.push(existingLink.__fk_id);
+        }
+      }
+      return existingLinksMap;
     },
   };
 };

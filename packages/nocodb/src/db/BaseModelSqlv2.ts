@@ -29,6 +29,7 @@ import {
   ncIsNullOrUndefined,
   ncIsObject,
   ncIsUndefined,
+  parseProp,
   PermissionEntity,
   PermissionKey,
   RelationTypes,
@@ -3217,6 +3218,67 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async updateLTARCols({ datas, cookie }: { datas: any[]; cookie: NcRequest }) {
     const profiler = Profiler.start(`base-model/updateLTARCols`);
+    const linksOrLtarColumns = this.model.columns.filter((col) =>
+      isLinksOrLTAR(col),
+    );
+    if (!linksOrLtarColumns?.length) {
+      return;
+    }
+    const linkDataPayloadMap: Map<
+      string,
+      {
+        relatedModel: Model;
+        colOptions: LinkToAnotherRecordColumn;
+        data: {
+          rowId: string;
+          links: string[];
+        }[];
+      }
+    > = new Map();
+
+    for (const col of linksOrLtarColumns) {
+      const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
+        this.context,
+      );
+      const relatedModel = await colOptions.getRelatedTable({
+        workspace_id: this.context.workspace_id,
+        base_id: colOptions.fk_related_base_id ?? this.context.base_id,
+      });
+      await relatedModel.getColumns({
+        workspace_id: this.context.workspace_id,
+        base_id: relatedModel.base_id,
+      });
+      for (const d of datas) {
+        const colValue = dataWrapper(d).getByColumnNameTitleOrId(col);
+        if (colValue) {
+          const colValueAsPk = (Array.isArray(colValue) ? colValue : [colValue])
+            .map(
+              (cv) =>
+                dataWrapper(cv).extractPksValue(relatedModel, true) as string,
+            )
+            .filter((k) => k);
+          // either colValueAsPk is array with value, or colValue is empty array
+          if (colValueAsPk?.length || Array.isArray(colValue)) {
+            if (!linkDataPayloadMap.has(col.id)) {
+              linkDataPayloadMap.set(col.id, {
+                relatedModel,
+                colOptions,
+                data: [],
+              });
+            }
+            linkDataPayloadMap.get(col.id).data.push({
+              rowId: dataWrapper(d).extractPksValue(this.model, true),
+              links: colValueAsPk,
+            });
+          }
+        }
+      }
+    }
+
+    // if no payload, return
+    if (!linkDataPayloadMap.size) {
+      return;
+    }
 
     const trx = await this.dbDriver.transaction();
 
@@ -3229,7 +3291,48 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
 
     try {
-      for (const col of this.model.columns) {
+      for (const col of linksOrLtarColumns) {
+        const linkDataPayload = linkDataPayloadMap.get(col.id);
+
+        const rowIds = linkDataPayload.data.map((d) => d.rowId);
+        let existingLinksMap = new Map<string, { links: string[] }>();
+
+        if (linkDataPayload.colOptions.type === RelationTypes.MANY_TO_MANY) {
+        } else if (
+          linkDataPayload.colOptions.type === RelationTypes.ONE_TO_ONE &&
+          !parseProp(col.meta).bt
+        ) {
+          const primaryKeysSelect =
+            linkDataPayload.relatedModel.primaryKeys.map((k) => ({
+              [k.title]: k.column_name,
+            }));
+          const fkColumn = linkDataPayload.relatedModel.columns.find(
+            (rCol) =>
+              (rCol.uidt === UITypes.ForeignKey &&
+                rCol.id === linkDataPayload.colOptions.fk_child_column_id) ||
+              rCol.id === linkDataPayload.colOptions.fk_parent_column_id,
+          );
+          await trx(this.getTnPath(linkDataPayload.relatedModel))
+            .select({
+              ...primaryKeysSelect,
+              [fkColumn.title]: fkColumn.column_name,
+            })
+            .whereIn(fkColumn.column_name, rowIds);
+        } else if (
+          linkDataPayload.colOptions.type === RelationTypes.HAS_MANY &&
+          !parseProp(col.meta).bt
+        ) {
+        } else {
+          existingLinksMap = await relationDataFetcher({
+            baseModel: this,
+            logger,
+          }).getBtExistingLinks({
+            linkDataPayload,
+            rowIds,
+            trx,
+          });
+        }
+
         // skip if not LTAR or Links
         if (!isLinksOrLTAR(col)) continue;
 
@@ -3254,10 +3357,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               id: rowId,
             });
           } else {
-            existingLinks = await trxBaseModel.btRead({
-              colId: col.id,
-              id: rowId,
-            });
+            existingLinks = existingLinksMap.get(rowId).links;
           }
           profiler.log(`${col.colOptions.type} list done`);
 
@@ -3276,7 +3376,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           // check for any missing links then unlink
           const idsToUnlink = existingLinks
-            .map((link) => this.extractPksValues(link, true))
+            .map((link) => {
+              // TODO: backward compatibility with relation other than bt
+              return typeof link === 'string'
+                ? link
+                : this.extractPksValues(link, true);
+            })
             .filter((existingLinkPk) => {
               const index = idsToLink.findIndex((linkPk) => {
                 return existingLinkPk === linkPk;

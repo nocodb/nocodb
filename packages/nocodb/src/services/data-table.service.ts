@@ -237,8 +237,10 @@ export class DataTableService {
         skip_hooks: param.internalFlags?.skipHooks,
       },
     );
+    profiler.log('extractIdObj');
+    const result = this.extractIdObj(context, { body: param.body, model });
     profiler.end();
-    return this.extractIdObj(context, { body: param.body, model });
+    return result;
   }
 
   async dataDelete(

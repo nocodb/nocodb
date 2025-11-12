@@ -1,6 +1,8 @@
+import { nanoid } from 'nanoid';
 export class Profiler {
   protected constructor(protected info: { id: string }) {
     this.isEnabled = process.env.ENABLE_PROFILER === 'true';
+
     // TODO: add micromatch matching
     if (this.isEnabled) {
       console.time(info.id);
@@ -22,6 +24,6 @@ export class Profiler {
   }
 
   static start(id: string) {
-    return new Profiler({ id: id });
+    return new Profiler({ id: id + '_' + nanoid(3) });
   }
 }

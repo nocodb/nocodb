@@ -134,6 +134,7 @@ import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
+import { Profiler } from '~/helpers/profiler';
 
 dayjs.extend(utc);
 
@@ -3040,6 +3041,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     let transaction;
     const readChunkSize = 100;
+    const profiler = Profiler.start(`base-model/bulkUpdate`);
 
     try {
       const columns = await this.model.getColumns(this.context);
@@ -3160,12 +3162,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if (apiVersion === NcApiVersion.V3) {
+        profiler.log('updateLTARCols start');
         // remove LTAR/Links if part of the update request
         await this.updateLTARCols({
           datas,
           cookie,
         });
+        profiler.log('postUpdateOps start');
         await Promise.all(postUpdateOps.map((ops) => ops()));
+        profiler.log('postUpdateOps end');
       }
 
       if (!raw) {
@@ -3205,7 +3210,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
         }
       }
-
+      profiler.end();
       return newData;
     } catch (e) {
       if (transaction) await transaction.rollback();

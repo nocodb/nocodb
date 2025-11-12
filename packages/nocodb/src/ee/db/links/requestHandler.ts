@@ -1229,7 +1229,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       ) ?? relatedBaseModel.model.primaryKey;
 
     const relatedRowResult = (
-      (await singleQueryList(context, {
+      (await singleQueryList(relatedContext, {
         model: relatedBaseModel.model,
         source: await relatedBaseModel.getSource(),
         params: {

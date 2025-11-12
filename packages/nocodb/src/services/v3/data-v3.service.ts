@@ -14,7 +14,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
-import { getCompositePkValue } from '~/helpers/dbHelpers';
+import { dataWrapper, getCompositePkValue } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
@@ -397,18 +397,19 @@ export class DataV3Service {
     };
 
     for (const column of ltarColumns) {
-      if (fields[column.title]) {
+      const key = dataWrapper(fields).getColumnKeyName(column);
+      if (fields[key]) {
         const {
           primaryKey: relatedPrimaryKey,
           primaryKeys: relatedPrimaryKeys,
         } = await this.getRelatedModelInfo(context, column);
 
-        const fieldValue = fields[column.title];
+        const fieldValue = fields[key];
 
         // Handle v3 format consistently for all relation types
         if (Array.isArray(fieldValue)) {
           // Array of records - each should have id property
-          transformedFields[column.title] = fieldValue.map((nestedRecord) =>
+          transformedFields[key] = fieldValue.map((nestedRecord) =>
             this.convertRecordIdToInternal(
               nestedRecord,
               relatedPrimaryKey,
@@ -422,14 +423,15 @@ export class DataV3Service {
           fieldValue.id
         ) {
           // Single record with id property (v3 format)
-          transformedFields[column.title] = this.convertRecordIdToInternal(
+          transformedFields[key] = this.convertRecordIdToInternal(
+            context,
             fieldValue,
             relatedPrimaryKey,
             relatedPrimaryKeys,
             getPrimaryKey,
           );
         } else if (fieldValue === null) {
-          transformedFields[column.title] = null;
+          transformedFields[key] = null;
         }
       }
     }

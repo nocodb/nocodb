@@ -660,16 +660,16 @@ export class LinksRequestHandler {
         (c) => c.uidt === UITypes.LastModifiedBy && c.system,
       );
 
-      const toUpdateMap = new Map<string, any>();
       const relatedModelModifiedIds = new Set<string>();
       const registerLinkToUpdateObj = (
         linkObj: LinkRow,
         mode: 'link' | 'unlink',
+        toUpdateMap: Map<string, any>,
       ) => {
         for (const linkId of linkObj.linkIds) {
           if (!toUpdateMap.has(linkId)) {
             toUpdateMap.set(linkId, {
-              [model.primaryKey.column_name]: linkId,
+              [relatedModel.primaryKey.column_name]: linkId,
             });
           }
           const toUpdateObj = toUpdateMap.get(linkId);
@@ -684,20 +684,27 @@ export class LinksRequestHandler {
         }
       };
 
+      const toUnlinkMap = new Map<string, any>();
+      const toLinkMap = new Map<string, any>();
       for (const link of payload.unlinks ?? []) {
         relatedModelModifiedIds.add(link.rowId);
-        registerLinkToUpdateObj(link, 'unlink');
+        registerLinkToUpdateObj(link, 'unlink', toUnlinkMap);
       }
       for (const link of payload.links ?? []) {
         relatedModelModifiedIds.add(link.rowId);
-        registerLinkToUpdateObj(link, 'link');
+        registerLinkToUpdateObj(link, 'link', toLinkMap);
       }
 
-      const batchUpdateData = Array.from(toUpdateMap, ([_key, value]) => value);
       await batchUpdate(
         knex,
         baseModel.getTnPath(relatedModel),
-        batchUpdateData,
+        Array.from(toUnlinkMap, ([_key, value]) => value),
+        relatedModel.primaryKey.column_name,
+      );
+      await batchUpdate(
+        knex,
+        baseModel.getTnPath(relatedModel),
+        Array.from(toLinkMap, ([_key, value]) => value),
         relatedModel.primaryKey.column_name,
       );
 
@@ -726,11 +733,11 @@ export class LinksRequestHandler {
         (col) => col.id === colOptions.fk_child_column_id,
       );
 
-      const toUpdateMap = new Map<string, any>();
       const relatedModelModifiedIds = new Set<string>();
       const registerLinkToUpdateObj = (
         linkObj: LinkRow,
         mode: 'link' | 'unlink',
+        toUpdateMap: Map<string, any>,
       ) => {
         if (!toUpdateMap.has(linkObj.rowId)) {
           toUpdateMap.set(linkObj.rowId, {
@@ -749,26 +756,34 @@ export class LinksRequestHandler {
           toUpdateObj[lastModifiedByColumn.column_name] = context.user.id;
         }
       };
+
+      const toUnlinkMap = new Map<string, any>();
+      const toLinkMap = new Map<string, any>();
       for (const link of payload.unlinks ?? []) {
         link.linkIds.forEach(
           relatedModelModifiedIds.add,
           relatedModelModifiedIds,
         );
-        registerLinkToUpdateObj(link, 'unlink');
+        registerLinkToUpdateObj(link, 'unlink', toUnlinkMap);
       }
       for (const link of payload.links ?? []) {
         link.linkIds.forEach(
           relatedModelModifiedIds.add,
           relatedModelModifiedIds,
         );
-        registerLinkToUpdateObj(link, 'link');
+        registerLinkToUpdateObj(link, 'link', toLinkMap);
       }
 
-      const batchUpdateData = Array.from(toUpdateMap, ([_key, value]) => value);
       await batchUpdate(
         knex,
         baseModel.getTnPath(model),
-        batchUpdateData,
+        Array.from(toUnlinkMap, ([_key, value]) => value),
+        model.primaryKey.column_name,
+      );
+      await batchUpdate(
+        knex,
+        baseModel.getTnPath(model),
+        Array.from(toLinkMap, ([_key, value]) => value),
         model.primaryKey.column_name,
       );
 

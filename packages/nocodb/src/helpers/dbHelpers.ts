@@ -27,6 +27,7 @@ import type {
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { Filter, GridViewColumn } from '~/models';
+import type { XKnex } from '~/db/CustomKnex';
 import { NcError } from '~/helpers/catchError';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import {
@@ -191,15 +192,22 @@ export function getOppositeRelationType(
 export async function getBaseModelSqlFromModelId({
   modelId,
   context,
+  options = {},
 }: {
   context: NcContext;
   modelId: string;
+  options?: {
+    transaction?: XKnex | Knex.Transaction;
+    viewId?: string;
+  };
 }) {
   const model = await Model.get(context, modelId);
   const source = await Source.get(context, model.source_id);
   return await Model.getBaseModelSQL(context, {
     id: model.id,
     dbDriver: await NcConnectionMgrv2.get(source),
+    transaction: options?.transaction,
+    viewId: options?.viewId,
     source,
   });
 }

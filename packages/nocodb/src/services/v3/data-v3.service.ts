@@ -1,5 +1,6 @@
 import { NcApiVersion, RelationTypes, UITypes } from 'nocodb-sdk';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { LTARColsUpdater } from 'src/db/BaseModelSqlv2/ltar-cols-updater';
 import type {
   DataDeleteParams,
   DataInsertParams,
@@ -14,7 +15,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
-import { getCompositePkValue } from '~/helpers/dbHelpers';
+import { dataWrapper, getCompositePkValue } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
@@ -27,6 +28,7 @@ import {
   V3_INSERT_LIMIT,
 } from '~/constants';
 import { processConcurrently, reuseOrSave } from '~/utils';
+import { Profiler } from '~/helpers/profiler';
 
 interface ModelInfo {
   model: Model;
@@ -44,7 +46,7 @@ interface RelatedModelInfo {
 @Injectable()
 export class DataV3Service {
   constructor(protected dataTableService: DataTableService) {}
-
+  logger = new Logger(DataV3Service.name);
   /**
    * Get model information including primary key and columns
    */
@@ -396,18 +398,19 @@ export class DataV3Service {
     };
 
     for (const column of ltarColumns) {
-      if (fields[column.title]) {
+      const key = dataWrapper(fields).getColumnKeyName(column);
+      if (fields[key]) {
         const {
           primaryKey: relatedPrimaryKey,
           primaryKeys: relatedPrimaryKeys,
         } = await this.getRelatedModelInfo(context, column);
 
-        const fieldValue = fields[column.title];
+        const fieldValue = fields[key];
 
         // Handle v3 format consistently for all relation types
         if (Array.isArray(fieldValue)) {
           // Array of records - each should have id property
-          transformedFields[column.title] = fieldValue.map((nestedRecord) =>
+          transformedFields[key] = fieldValue.map((nestedRecord) =>
             this.convertRecordIdToInternal(
               context,
               nestedRecord,
@@ -422,7 +425,7 @@ export class DataV3Service {
           fieldValue.id
         ) {
           // Single record with id property (v3 format)
-          transformedFields[column.title] = this.convertRecordIdToInternal(
+          transformedFields[key] = this.convertRecordIdToInternal(
             context,
             fieldValue,
             relatedPrimaryKey,
@@ -430,7 +433,7 @@ export class DataV3Service {
             getPrimaryKey,
           );
         } else if (fieldValue === null) {
-          transformedFields[column.title] = null;
+          transformedFields[key] = null;
         }
       }
     }
@@ -660,11 +663,12 @@ export class DataV3Service {
     context: NcContext,
     param: DataUpdateParams,
   ): Promise<{ records: DataRecord[] }> {
+    const profiler = Profiler.start(`data-v3/dataUpdate`);
     const { model, primaryKey, primaryKeys, columns } = await this.getModelInfo(
       context,
       param.modelId,
     );
-
+    profiler.log(`getModelInfo done`);
     const ltarColumns = columns.filter(
       (col) => col.uidt === UITypes.LinkToAnotherRecord,
     );
@@ -691,6 +695,7 @@ export class DataV3Service {
             )),
           },
         ];
+    profiler.log(`transformLTARFieldsToInternal done`);
 
     if (transformedBody.length > V3_INSERT_LIMIT) {
       NcError.get(context).maxInsertLimitExceeded(V3_INSERT_LIMIT);
@@ -701,6 +706,7 @@ export class DataV3Service {
       body: transformedBody,
       apiVersion: NcApiVersion.V3,
     });
+    profiler.log(`dataTableService.dataUpdate done`);
 
     // Extract updated record IDs
     const updatedIds = Array.isArray(param.body)
@@ -708,6 +714,7 @@ export class DataV3Service {
       : [param.body.id];
 
     if (updatedIds.length === 0) {
+      profiler.end();
       return { records: [] };
     }
 
@@ -727,6 +734,7 @@ export class DataV3Service {
       pks: idsAsStrings,
       apiVersion: context.api_version,
     });
+    profiler.log(`baseModel.chunkList done`);
 
     // Create a map for quick lookup by ID
     const recordMap = new Map();
@@ -743,22 +751,24 @@ export class DataV3Service {
         orderedRecords.push(record);
       }
     }
+    const resultRecords = await this.transformRecordsToV3Format({
+      context: context,
+      records: orderedRecords,
+      primaryKey: primaryKey,
+      primaryKeys: primaryKeys,
+      requestedFields: undefined,
+      columns: columns,
+      nestedLimit: undefined,
+      skipSubstitutingColumnIds:
+        param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
+      reuse: {}, // Create reuse cache for this data update operation
+      depth: 0, // Start at depth 0 for main records
+    });
+    profiler.end();
 
     // Transform and return full records in V3 format
     return {
-      records: await this.transformRecordsToV3Format({
-        context: context,
-        records: orderedRecords,
-        primaryKey: primaryKey,
-        primaryKeys: primaryKeys,
-        requestedFields: undefined,
-        columns: columns,
-        nestedLimit: undefined,
-        skipSubstitutingColumnIds:
-          param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
-        reuse: {}, // Create reuse cache for this data update operation
-        depth: 0, // Start at depth 0 for main records
-      }),
+      records: resultRecords,
     };
   }
 
@@ -1021,14 +1031,40 @@ export class DataV3Service {
     // Normalize the input to the expected format
     const normalizedRefRowIds = this.normalizeRefRowIds(param.refRowIds);
 
-    await this.dataTableService.nestedLink(context, {
-      modelId: param.modelId,
-      rowId: param.rowId,
-      columnId: param.columnId,
-      refRowIds: normalizedRefRowIds,
-      query: param.query || {},
+    this.dataTableService.validateIds(context, param.refRowIds);
+    const { model, view } = await this.dataTableService.getModelAndView(
+      context,
+      param,
+    );
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const column = await this.dataTableService.getColumn(context, param);
+
+    await baseModel.model.getColumns(baseModel.context);
+
+    await LTARColsUpdater({
+      baseModel,
+      logger: this.logger,
+    }).updateLTARCol({
+      linkDataPayload: {
+        data: [
+          {
+            rowId: param.rowId,
+            links: Array.isArray(normalizedRefRowIds)
+              ? normalizedRefRowIds
+              : [normalizedRefRowIds],
+          },
+        ],
+      },
+      col: column,
       cookie: param.cookie,
-      viewId: param.viewId,
+      trx: baseModel.dbDriver,
     });
 
     return { success: true };

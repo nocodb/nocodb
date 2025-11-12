@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   isLinksOrLTAR,
   ncIsNumber,
@@ -17,10 +17,12 @@ import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { dataWrapper } from '~/helpers/dbHelpers';
+import { Profiler } from '~/helpers/profiler';
 
 @Injectable()
 export class DataTableService {
   constructor(protected datasService: DatasService) {}
+  logger = new Logger(DataTableService.name);
 
   async dataList(
     context: NcContext,
@@ -212,9 +214,11 @@ export class DataTableService {
       };
     },
   ) {
+    const profiler = Profiler.start(`data-table/dataUpdate`);
     const { model, view } = await this.getModelAndView(context, param);
-
+    profiler.log('getModelAndView done');
     await this.checkForDuplicateRow(context, { rows: param.body, model });
+    profiler.log('checkForDuplicateRow done');
 
     const source = await Source.get(context, model.source_id);
 
@@ -236,8 +240,10 @@ export class DataTableService {
         skip_hooks: param.internalFlags?.skipHooks,
       },
     );
-
-    return this.extractIdObj(context, { body: param.body, model });
+    profiler.log('extractIdObj');
+    const result = this.extractIdObj(context, { body: param.body, model });
+    profiler.end();
+    return result;
   }
 
   async dataDelete(
@@ -526,7 +532,7 @@ export class DataTableService {
     });
   }
 
-  private async getColumn(
+  async getColumn(
     context: NcContext,
     param: { modelId: string; columnId: string },
   ) {
@@ -582,7 +588,6 @@ export class DataTableService {
       rowId: param.rowId,
       cookie: param.cookie,
     });
-
     return true;
   }
 
@@ -819,7 +824,7 @@ export class DataTableService {
     }
   }
 
-  private validateIds(context: NcContext, rowIds: any[] | any) {
+  validateIds(context: NcContext, rowIds: any[] | any) {
     if (Array.isArray(rowIds)) {
       const map = new Map<string, boolean>();
       const set = new Set<string>();

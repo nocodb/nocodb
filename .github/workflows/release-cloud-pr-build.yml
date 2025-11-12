@@ -23,7 +23,7 @@ concurrency:
 jobs:
   cloud-docker-build:
     if: ${{ github.event.label.name == 'trigger-dev-env' || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'trigger-dev-env')) }}
-    runs-on: [k8s-builders]
+    runs-on: ubuntu-22.04-8core
     env:
       working-directory: ./packages/nocodb
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

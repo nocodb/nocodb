@@ -8,6 +8,7 @@ import { dataApiV3Test } from './rest/tests/dataApiV3/index.test';
 import { processorTests } from './processor/index.test';
 import { errorTests } from './error/index.test';
 import { rollupTests } from './rollup/index.test';
+import { linksTests } from './links/index.test';
 
 process.env.NODE_ENV = 'test';
 process.env.TEST = 'true';
@@ -24,6 +25,7 @@ dotenv.config({
 
   modelTests();
   formulaTests();
+  linksTests();
   rollupTests();
   errorTests();
   restTests();

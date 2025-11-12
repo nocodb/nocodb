@@ -69,6 +69,7 @@ import type {
   SelectOption,
   User,
 } from '~/models';
+import { LTARColsUpdater } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
@@ -138,6 +139,7 @@ import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
+import { Profiler } from '~/helpers/profiler';
 
 dayjs.extend(utc);
 
@@ -3043,6 +3045,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     let transaction;
     const readChunkSize = 100;
+    const profiler = Profiler.start(`base-model/bulkUpdate`);
 
     try {
       const columns = await this.model.getColumns(this.context);
@@ -3165,12 +3168,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if (apiVersion === NcApiVersion.V3) {
+        profiler.log('updateLTARCols start');
         // remove LTAR/Links if part of the update request
         await this.updateLTARCols({
           datas,
           cookie,
         });
+        profiler.log('postUpdateOps start');
         await Promise.all(postUpdateOps.map((ops) => ops()));
+        profiler.log('postUpdateOps end');
       }
 
       if (!raw) {
@@ -3210,7 +3216,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
         }
       }
-
+      profiler.end();
       return newData;
     } catch (e) {
       if (transaction) await transaction.rollback();
@@ -3219,104 +3225,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async updateLTARCols({ datas, cookie }: { datas: any[]; cookie: NcRequest }) {
-    const trx = await this.dbDriver.transaction();
-
-    // Create a BaseModelSqlv2 instance that uses the transaction for operations
-    // while preserving the original dbDriver reference for non-transactional operations
-    const trxBaseModel = await Model.getBaseModelSQL(this.context, {
-      model: this.model,
-      transaction: trx,
-      dbDriver: this.dbDriver,
+    return LTARColsUpdater({ baseModel: this, logger }).updateLTARCols({
+      datas,
+      cookie,
     });
-
-    try {
-      for (const col of this.model.columns) {
-        // skip if not LTAR or Links
-        if (!isLinksOrLTAR(col)) continue;
-
-        for (const d of datas) {
-          const rowId = this.extractPksValues(d, true);
-
-          // skip if value is not part of the update
-          if (!(col.title in d)) continue;
-
-          // extract existing link values to current record
-          let existingLinks = [];
-
-          if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
-            existingLinks = await trxBaseModel.mmList({
-              colId: col.id,
-              parentId: rowId,
-            });
-          } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
-            existingLinks = await trxBaseModel.hmList({
-              colId: col.id,
-              id: rowId,
-            });
-          } else {
-            existingLinks = await trxBaseModel.btRead({
-              colId: col.id,
-              id: rowId,
-            });
-          }
-
-          existingLinks = existingLinks || [];
-
-          if (!Array.isArray(existingLinks)) {
-            existingLinks = [existingLinks];
-          }
-
-          const idsToLink = [
-            ...(Array.isArray(d[col.title])
-              ? d[col.title]
-              : [d[col.title]]
-            ).map((rec) => this.extractPksValues(rec, true)),
-          ];
-
-          // check for any missing links then unlink
-          const idsToUnlink = existingLinks
-            .map((link) => this.extractPksValues(link, true))
-            .filter((existingLinkPk) => {
-              const index = idsToLink.findIndex((linkPk) => {
-                return existingLinkPk === linkPk;
-              });
-
-              // if found remove from both list
-              if (index > -1) {
-                idsToLink.splice(index, 1);
-                return false;
-              }
-
-              return true;
-            });
-
-          // check for missing links in new data and unlink them
-          if (idsToUnlink?.length) {
-            await trxBaseModel.removeLinks({
-              colId: col.id,
-              childIds: idsToUnlink,
-              cookie,
-              rowId,
-            });
-          }
-
-          // check for new data and link them
-          if (idsToLink?.length) {
-            await trxBaseModel.addLinks({
-              colId: col.id,
-              childIds: idsToLink,
-              cookie,
-              rowId,
-            });
-          }
-        }
-      }
-
-      await trx.commit();
-    } catch (e) {
-      await trx.rollback();
-      throw e;
-    }
   }
 
   async bulkUpdateAll(

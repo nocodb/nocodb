@@ -90,6 +90,7 @@ import { getProjectRole } from '~/utils/roleHelper';
 import NocoSocket from '~/socket/NocoSocket';
 import { chunkArray } from '~/utils/tsUtils';
 import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
+import { Profiler } from '~/helpers/profiler';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -2444,6 +2445,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } = {},
   ) {
     const queries: string[] = [];
+    const profiler = Profiler.start(`base-model/bulkUpdate`);
 
     try {
       const columns = await this.model.getColumns(this.context);
@@ -2600,12 +2602,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (apiVersion === NcApiVersion.V3) {
+        profiler.log('updateLTARCols start');
         // remove LTAR/Links if part of the update request
         await this.updateLTARCols({
           datas,
           cookie,
         });
+        profiler.log('postUpdateOps start');
         await Promise.all(postUpdateOps.map((ops) => ops()));
+        profiler.log('postUpdateOps done');
       }
 
       if (!raw) {
@@ -2640,6 +2645,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (!raw && !skip_hooks) {
+        profiler.log('after update start');
         if (isSingleRecordUpdation) {
           await this.afterUpdate(
             prevData[0],
@@ -2652,6 +2658,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
         }
       }
+      profiler.end();
       return newData;
     } catch (e) {
       throw e;

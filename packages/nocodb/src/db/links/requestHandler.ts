@@ -1,4 +1,3 @@
-import { getBaseModelSqlFromModelId } from 'src/helpers/dbHelpers';
 import {
   arrFlatMap,
   type NcContext,
@@ -6,15 +5,17 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
-import type CustomKnex from '../CustomKnex';
+import type CustomKnex from '~/db/CustomKnex';
 import type {
   LinkRow,
   LinkUnlinkProcessRequest,
   LinkUnlinkRequest,
 } from '~/db/links/types';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import { Column, Model } from '~/models';
 import { batchUpdate } from '~/utils';
+import { NcError } from '~/helpers/ncError';
 
 /**
  * Only works with single primary key table
@@ -22,6 +23,133 @@ import { batchUpdate } from '~/utils';
  */
 export class LinksRequestHandler {
   constructor() {}
+
+  // validate link & unlink request
+  // link ids should exists in record
+  // duplicated link ids should exists in links / unlinks
+  // same combination (row id & link ids) should not exists between links / unlinks
+  async validateLinkRequest(
+    context: NcContext,
+    payload: LinkUnlinkRequest,
+    knex: CustomKnex,
+  ) {
+    const { links, unlinks } = payload;
+    if (!links?.length && !unlinks?.length) {
+      return payload;
+    }
+
+    // duplicated link ids should exists in each links / unlinks
+    const keyValLinks = arrFlatMap(
+      links?.map((link) =>
+        [...link.linkIds].map((linkId) => {
+          return {
+            rowId: link.rowId,
+            linkId,
+          };
+        }),
+      ) ?? [],
+    ) as {
+      rowId: string;
+      linkId: string;
+    }[];
+    if (
+      keyValLinks.length &&
+      new Set(keyValLinks.map((kl) => kl.linkId)).size < keyValLinks.length
+    ) {
+      NcError.get(context).invalidRequestBody(
+        `Cannot link to same id on same request`,
+      );
+    }
+    const keyValUnlinks = arrFlatMap(
+      unlinks?.map((link) =>
+        [...link.linkIds].map((linkId) => {
+          return {
+            rowId: link.rowId,
+            linkId,
+          };
+        }),
+      ) ?? [],
+    ) as {
+      rowId: string;
+      linkId: string;
+    }[];
+
+    if (links?.length && unlinks?.length) {
+      const linksKeyValHash = new Set(
+        keyValLinks.map((k) => `${k.rowId}__${k.linkId}`),
+      );
+      const unlinksKeyValHash = new Set(
+        keyValUnlinks.map((k) => `${k.rowId}__${k.linkId}`),
+      );
+      const intersect = linksKeyValHash.intersection(unlinksKeyValHash);
+      if (intersect.size) {
+        NcError.get(context).invalidRequestBody(
+          `Cannot link and unlink same record at once`,
+        );
+      }
+    }
+    const column =
+      payload.column ??
+      (await Column.get(context, { colId: payload.columnId }));
+    const model = payload.model ?? (await Model.get(context, payload.modelId));
+    const colOptions =
+      payload.colOptions ?? (await column.getColOptions(context));
+
+    const baseModel =
+      payload.baseModel ??
+      (await getBaseModelSqlFromModelId({
+        modelId: payload.modelId,
+        context,
+      }));
+    knex = knex ?? baseModel.dbDriver;
+    const relatedLinkIds = new Set([
+      ...keyValLinks.map((k) => k.linkId),
+      ...keyValUnlinks.map((k) => k.linkId),
+    ]);
+
+    const relatedContext = {
+      ...context,
+      base_id: colOptions.fk_related_base_id ?? context.base_id,
+    } as NcContext;
+    const relatedModel = await Model.get(
+      relatedContext,
+      colOptions.fk_related_model_id,
+    );
+    await relatedModel.getColumns(relatedContext);
+    const notExistsQb = knex
+      .fromRaw(
+        knex.raw(`(??) as _tbl`, [
+          knex.raw(
+            [...relatedLinkIds]
+              .map((link) => knex.raw(`SELECT ? as _id`, link))
+              .join(' UNION ALL '),
+          ),
+        ]),
+      )
+      .whereNotExists(function () {
+        this.from(baseModel.getTnPath(relatedModel) as '_rel_tbl').whereRaw(
+          knex.raw(`??::text = ??::text`, [
+            relatedModel.primaryKey.column_name,
+            '_tbl._id',
+          ]),
+        );
+      });
+    const notExistsId = await notExistsQb;
+    if (notExistsId.length) {
+      NcError.get(context).invalidRequestBody(
+        `Link id ${notExistsId
+          .map((k) => `'${k._id}'`)
+          .join(', ')} not found in related table`,
+      );
+    }
+    return {
+      ...payload,
+      column,
+      model,
+      baseModel,
+      colOptions,
+    } as LinkUnlinkProcessRequest;
+  }
 
   async generateLinkRequest(
     context: NcContext,
@@ -292,7 +420,6 @@ export class LinksRequestHandler {
           link.linkIds = link.linkIds.difference(linkRequest.linkIds);
         }
       }
-
       // skip existing links from being added
       for (const link of currentlyLinkedWithParent) {
         const linkRequest = result.links.find((l) => l.rowId === link.rowId);
@@ -472,6 +599,9 @@ export class LinksRequestHandler {
     // get id of child table by querying with foreign key column
     const childLinks = await query;
     for (const each of childLinks) {
+      if (!each.id || !each.fk_id) {
+        continue;
+      }
       if (!response.has(`${each.fk_id}`)) {
         response.set(`${each.fk_id}`, []);
       }
@@ -518,12 +648,13 @@ export class LinksRequestHandler {
         arrFlatMap(links.map((link) => [...link.linkIds])),
       );
     for (const each of childLinks) {
-      if (each.fk_id) {
-        if (!response.has(`${each.fk_id}`)) {
-          response.set(`${each.fk_id}`, []);
-        }
-        response.get(`${each.fk_id}`).push(`${each.id}`);
+      if (!each.id || !each.fk_id) {
+        continue;
       }
+      if (!response.has(`${each.fk_id}`)) {
+        response.set(`${each.fk_id}`, []);
+      }
+      response.get(`${each.fk_id}`).push(`${each.id}`);
     }
     return Array.from(response, ([key, value]) => {
       return {
@@ -562,6 +693,9 @@ export class LinksRequestHandler {
         links.map((link) => link.rowId),
       );
     for (const each of existingLinks) {
+      if (!each.id || !each.fk_id) {
+        continue;
+      }
       if (!response.has(`${each.id}`)) {
         response.set(`${each.id}`, []);
       }
@@ -592,8 +726,8 @@ export class LinksRequestHandler {
     );
 
     const response = new Map<string, string[]>();
-    // get id of child table by querying with foreign key column
-    const existingLinks = await knex(baseModel.getTnPath(model, '_tbl'))
+
+    const existingLinksQb = knex(baseModel.getTnPath(model, '_tbl'))
       .select({
         id: model.primaryKey.column_name,
         fk_id: childColumn.column_name,
@@ -602,7 +736,12 @@ export class LinksRequestHandler {
         childColumn.column_name,
         arrFlatMap(links.map((link) => [...link.linkIds])),
       );
+    // get id of child table by querying with foreign key column
+    const existingLinks = await existingLinksQb;
     for (const each of existingLinks) {
+      if (!each.id || !each.fk_id) {
+        continue;
+      }
       if (!response.has(`${each.id}`)) {
         response.set(`${each.id}`, []);
       }

@@ -90,7 +90,7 @@ export const LTARColsUpdater = (param: {
         }
         const requestHandler = new LinksRequestHandler();
         profiler.log(`generateLinkRequest for col ${col.id}`);
-        const linkRequest = await requestHandler.generateLinkRequest(
+        const validatedRequest = await requestHandler.validateLinkRequest(
           baseModel.context,
           {
             columnId: col.id,
@@ -100,6 +100,13 @@ export const LTARColsUpdater = (param: {
               rowId: r.rowId,
               linkIds: new Set(r.links),
             })),
+          },
+          trx,
+        );
+        const linkRequest = await requestHandler.generateLinkRequest(
+          baseModel.context,
+          {
+            ...validatedRequest,
             replaceMode: true,
           },
           trx,

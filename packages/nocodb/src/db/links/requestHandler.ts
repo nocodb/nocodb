@@ -4,13 +4,16 @@ import {
   type NcContext,
   parseProp,
   RelationTypes,
+  UITypes,
 } from 'nocodb-sdk';
 import type CustomKnex from '../CustomKnex';
 import type {
+  LinkRow,
   LinkUnlinkProcessRequest,
   LinkUnlinkRequest,
 } from '~/db/links/types';
 import { Column, Model } from '~/models';
+import { batchUpdate } from '~/utils';
 
 /**
  * Only works with single primary key table
@@ -485,22 +488,72 @@ export class LinksRequestHandler {
     );
   }
 
-  protected innerHandle(
+  protected async innerHandle(
     context: NcContext,
     payload: LinkUnlinkProcessRequest,
     knex: CustomKnex,
   ) {
-    // unlinking
     const { baseModel, model, colOptions, column } = payload;
+    const batchUpdatePkKey = '__id__';
+
+    const lastModifiedTimeColumn = model.columns.find(
+      (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+    );
+
+    const lastModifiedByColumn = model.columns.find(
+      (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+    );
 
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+      // TODO: perform update for MM
     } else if (
       (colOptions.type === RelationTypes.ONE_TO_ONE ||
         colOptions.type === RelationTypes.HAS_MANY) &&
       !parseProp(column.meta).bt
     ) {
-      knex(baseModel.getTnPath(model)).update({});
-    } else {
+      // TODO: perform update for OO and HM
+    }
+    // belongs to
+    else {
+      const parentColumn = model.columns.find(
+        (col) => col.id === colOptions.fk_parent_column_id,
+      );
+
+      const toUpdateMap = new Map<string, any>();
+      const registerLinkToUpdateObj = (
+        linkObj: LinkRow,
+        mode: 'link' | 'unlink',
+      ) => {
+        if (!toUpdateMap.has(linkObj.rowId)) {
+          toUpdateMap.set(linkObj.rowId, {
+            [batchUpdatePkKey]: linkObj.rowId,
+          });
+        }
+        const toUpdateObj = toUpdateMap.get(linkObj.rowId);
+        toUpdateObj[parentColumn.column_name] =
+          mode === 'unlink' ? null : linkObj.linkIds[0] ?? null;
+        if (lastModifiedTimeColumn) {
+          toUpdateObj[lastModifiedTimeColumn.column_name] = baseModel.now();
+        }
+        if (lastModifiedByColumn) {
+          toUpdateObj[lastModifiedByColumn.column_name] = context.user.id;
+        }
+      };
+      for (const link of payload.unlinks ?? []) {
+        registerLinkToUpdateObj(link, 'unlink');
+      }
+      for (const link of payload.links ?? []) {
+        registerLinkToUpdateObj(link, 'link');
+      }
+
+      const batchUpdateData = Array.from(toUpdateMap, ([_key, value]) => value);
+      await batchUpdate(
+        knex,
+        baseModel.getTnPath(model),
+        batchUpdateData,
+        batchUpdatePkKey,
+      );
+      // TODO: update last modified of related table
     }
 
     /** perform the unlinking first */

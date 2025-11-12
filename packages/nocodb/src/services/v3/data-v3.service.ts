@@ -15,11 +15,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
-import {
-  dataWrapper,
-  getBaseModelSqlFromModelId,
-  getCompositePkValue,
-} from '~/helpers/dbHelpers';
+import { dataWrapper, getCompositePkValue } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
@@ -1031,17 +1027,22 @@ export class DataV3Service {
     // Normalize the input to the expected format
     const normalizedRefRowIds = this.normalizeRefRowIds(param.refRowIds);
 
-    const baseModel = await getBaseModelSqlFromModelId({
+    this.dataTableService.validateIds(context, param.refRowIds);
+    const { model, view } = await this.dataTableService.getModelAndView(
       context,
-      modelId: param.modelId,
-      options: {
-        viewId: param.viewId,
-      },
-    });
-    await baseModel.model.getColumns(baseModel.context);
-    const column = baseModel.model.columns.find(
-      (col) => col.id === param.columnId,
+      param,
     );
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const column = await this.dataTableService.getColumn(context, param);
+
+    await baseModel.model.getColumns(baseModel.context);
 
     await LTARColsUpdater({
       baseModel,

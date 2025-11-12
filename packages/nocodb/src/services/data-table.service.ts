@@ -528,7 +528,7 @@ export class DataTableService {
     });
   }
 
-  private async getColumn(
+  async getColumn(
     context: NcContext,
     param: { modelId: string; columnId: string },
   ) {
@@ -819,7 +819,7 @@ export class DataTableService {
     }
   }
 
-  private validateIds(rowIds: any[] | any) {
+  validateIds(context: NcContext, rowIds: any[] | any) {
     if (Array.isArray(rowIds)) {
       const map = new Map<string, boolean>();
       const set = new Set<string>();

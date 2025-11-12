@@ -170,11 +170,13 @@ export class LinksRequestHandler {
         if (linkRequest) {
           differenceOnLink = link.linkIds.difference(linkRequest.linkIds);
           linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
+        } else {
+          differenceOnLink = link.linkIds;
         }
 
         // if replace mode, the rest of existing links are removed
         if (payload.replaceMode) {
-          link.linkIds = link.linkIds.difference(differenceOnLink);
+          link.linkIds = differenceOnLink;
           if (link.linkIds.size) {
             if (!result.unlinks) {
               result.unlinks = [];
@@ -298,11 +300,13 @@ export class LinksRequestHandler {
         if (linkRequest) {
           differenceOnLink = link.linkIds.difference(linkRequest.linkIds);
           linkRequest.linkIds = linkRequest.linkIds.difference(link.linkIds);
+        } else {
+          differenceOnLink = link.linkIds;
         }
 
         // if replace mode, the rest of existing links are removed
         if (payload.replaceMode) {
-          link.linkIds = link.linkIds.difference(differenceOnLink);
+          link.linkIds = differenceOnLink;
           if (link.linkIds.size) {
             if (!result.unlinks) {
               result.unlinks = [];

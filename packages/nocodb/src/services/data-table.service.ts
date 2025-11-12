@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   isLinksOrLTAR,
   ncIsNumber,
@@ -18,10 +18,12 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { Profiler } from '~/helpers/profiler';
+import { LTARColsUpdater } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 
 @Injectable()
 export class DataTableService {
   constructor(protected datasService: DatasService) {}
+  logger = new Logger(DataTableService.name);
 
   async dataList(
     context: NcContext,
@@ -574,14 +576,33 @@ export class DataTableService {
 
     const column = await this.getColumn(context, param);
 
-    await baseModel.addLinks({
-      colId: column.id,
-      childIds: Array.isArray(param.refRowIds)
-        ? param.refRowIds
-        : [param.refRowIds],
-      rowId: param.rowId,
+    await baseModel.model.getColumns(context);
+    await LTARColsUpdater({
+      baseModel,
+      logger: this.logger,
+    }).updateLTARCol({
+      col: column,
+      linkDataPayload: {
+        data: [
+          {
+            rowId: param.rowId,
+            links: Array.isArray(param.refRowIds)
+              ? param.refRowIds
+              : [param.refRowIds],
+          },
+        ],
+      },
+      trx: baseModel.dbDriver,
       cookie: param.cookie,
     });
+    // await baseModel.addLinks({
+    //   colId: column.id,
+    //   childIds: Array.isArray(param.refRowIds)
+    //     ? param.refRowIds
+    //     : [param.refRowIds],
+    //   rowId: param.rowId,
+    //   cookie: param.cookie,
+    // });
 
     return true;
   }

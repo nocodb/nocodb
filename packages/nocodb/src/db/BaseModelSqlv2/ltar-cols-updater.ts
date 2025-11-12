@@ -2,6 +2,8 @@ import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { Column } from '~/models';
+import type CustomKnex from '~/db/CustomKnex';
 import { Profiler } from '~/helpers/profiler';
 import { Model } from '~/models';
 
@@ -126,7 +128,25 @@ export const LTARColsUpdater = (param: {
     }
     profiler.end();
   };
+
+  const updateForColumn: ({
+    linkDataPayload,
+    col,
+    trx,
+    cookie,
+  }: {
+    linkDataPayload: {
+      data: {
+        rowId: string;
+        links: string[];
+      }[];
+    };
+    col: Column;
+    trx: CustomKnex;
+    cookie: any;
+  }) => Promise<void> = async () => {};
   return {
     updateLTARCols: update,
+    updateLTARCol: updateForColumn,
   };
 };

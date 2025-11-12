@@ -6,6 +6,7 @@ import type { Column } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Profiler } from '~/helpers/profiler';
 import { Model } from '~/models';
+import { addOrRemoveLinks } from '~/db/BaseModelSqlv2/add-remove-links';
 
 // for v3 bulk update with ltar links
 export const LTARColsUpdater = (param: {
@@ -129,10 +130,9 @@ export const LTARColsUpdater = (param: {
     profiler.end();
   };
 
-  const updateForColumn: ({
+  const updateForColumn = async ({
     linkDataPayload,
     col,
-    trx,
     cookie,
   }: {
     linkDataPayload: {
@@ -144,7 +144,20 @@ export const LTARColsUpdater = (param: {
     col: Column;
     trx: CustomKnex;
     cookie: any;
-  }) => Promise<void> = async () => {};
+  }) => {
+    const promises: Promise<any>[] = [];
+    for (const each of linkDataPayload.data) {
+      promises.push(
+        addOrRemoveLinks(baseModel).addLinks({
+          cookie,
+          childIds: each.links,
+          colId: col.id,
+          rowId: each.rowId,
+        }),
+      );
+    }
+    return Promise.all(promises);
+  };
   return {
     updateLTARCols: update,
     updateLTARCol: updateForColumn,

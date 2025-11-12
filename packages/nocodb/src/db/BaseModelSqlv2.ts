@@ -3228,6 +3228,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       string,
       {
         relatedModel: Model;
+        column: Column;
         colOptions: LinkToAnotherRecordColumn;
         data: {
           rowId: string;
@@ -3262,6 +3263,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             if (!linkDataPayloadMap.has(col.id)) {
               linkDataPayloadMap.set(col.id, {
                 relatedModel,
+                column: col,
                 colOptions,
                 data: [],
               });
@@ -3298,30 +3300,47 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         let existingLinksMap = new Map<string, { links: string[] }>();
 
         if (linkDataPayload.colOptions.type === RelationTypes.MANY_TO_MANY) {
+          existingLinksMap = await relationDataFetcher({
+            baseModel: this,
+            logger,
+          }).getMmExistingLinks({
+            linkDataPayload,
+            rowIds,
+            trx,
+          });
         } else if (
           linkDataPayload.colOptions.type === RelationTypes.ONE_TO_ONE &&
           !parseProp(col.meta).bt
         ) {
-          const primaryKeysSelect =
-            linkDataPayload.relatedModel.primaryKeys.map((k) => ({
-              [k.title]: k.column_name,
-            }));
-          const fkColumn = linkDataPayload.relatedModel.columns.find(
-            (rCol) =>
-              (rCol.uidt === UITypes.ForeignKey &&
-                rCol.id === linkDataPayload.colOptions.fk_child_column_id) ||
-              rCol.id === linkDataPayload.colOptions.fk_parent_column_id,
-          );
-          await trx(this.getTnPath(linkDataPayload.relatedModel))
-            .select({
-              ...primaryKeysSelect,
-              [fkColumn.title]: fkColumn.column_name,
-            })
-            .whereIn(fkColumn.column_name, rowIds);
+          // TODO:
+          // const primaryKeysSelect =
+          //   linkDataPayload.relatedModel.primaryKeys.map((k) => ({
+          //     [k.title]: k.column_name,
+          //   }));
+          // const fkColumn = linkDataPayload.relatedModel.columns.find(
+          //   (rCol) =>
+          //     (rCol.uidt === UITypes.ForeignKey &&
+          //       rCol.id === linkDataPayload.colOptions.fk_child_column_id) ||
+          //     rCol.id === linkDataPayload.colOptions.fk_parent_column_id,
+          // );
+          // await trx(this.getTnPath(linkDataPayload.relatedModel))
+          //   .select({
+          //     ...primaryKeysSelect,
+          //     [fkColumn.title]: fkColumn.column_name,
+          //   })
+          //   .whereIn(fkColumn.column_name, rowIds);
         } else if (
           linkDataPayload.colOptions.type === RelationTypes.HAS_MANY &&
           !parseProp(col.meta).bt
         ) {
+          existingLinksMap = await relationDataFetcher({
+            baseModel: this,
+            logger,
+          }).getHmExistingLinks({
+            linkDataPayload,
+            rowIds,
+            trx,
+          });
         } else {
           existingLinksMap = await relationDataFetcher({
             baseModel: this,

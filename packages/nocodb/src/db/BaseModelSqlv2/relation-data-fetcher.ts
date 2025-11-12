@@ -3,7 +3,7 @@ import groupBy from 'lodash/groupBy';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { LinkToAnotherRecordColumn } from '~/models';
+import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import { _wherePk, applyPaginate, dataWrapper } from '~/helpers/dbHelpers';
 import { Filter, Model, View } from '~/models';
 import sortV2 from '~/db/sortV2';
@@ -1627,6 +1627,7 @@ export const relationDataFetcher = (param: {
     }: {
       linkDataPayload: {
         relatedModel: Model;
+        column: Column;
         colOptions: LinkToAnotherRecordColumn;
         data: {
           rowId: string;
@@ -1646,7 +1647,7 @@ export const relationDataFetcher = (param: {
             rCol.id === linkDataPayload.colOptions.fk_child_column_id) ||
           rCol.id === linkDataPayload.colOptions.fk_parent_column_id,
       );
-      const pkTables = rowIds
+      const pkTables = [...new Set(rowIds)]
         .map((id) => {
           return `SELECT ${Object.entries(
             _wherePk(baseModel.model.primaryKeys, id),
@@ -1694,6 +1695,135 @@ export const relationDataFetcher = (param: {
           baseModel.model,
           true,
         );
+        if (!existingLinksMap.get(existingLinkRowId)) {
+          existingLinksMap.set(existingLinkRowId, { links: [] });
+        }
+        if (existingLink.__fk_id) {
+          existingLinksMap
+            .get(existingLinkRowId)
+            .links.push(existingLink.__fk_id);
+        }
+      }
+      return existingLinksMap;
+    },
+
+    async getMmExistingLinks({
+      linkDataPayload,
+      rowIds,
+      trx,
+    }: {
+      linkDataPayload: {
+        relatedModel: Model;
+        column: Column;
+        colOptions: LinkToAnotherRecordColumn;
+        data: {
+          rowId: string;
+          links: string[];
+        }[];
+      };
+      trx: CustomKnex;
+      rowIds: string[];
+    }) {
+      const existingLinksMap = new Map<string, { links: string[] }>();
+
+      // skip duplicate id
+      const parentIds = [...new Set(rowIds)];
+      const relColOptions = linkDataPayload.colOptions;
+
+      // const tn = baseModel.model.tn;
+      // const cn = (await relColOptions.getChildColumn(baseModel.context)).title;
+      const mmTable = await relColOptions.getMMModel(baseModel.context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return;
+      }
+
+      const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
+        .column_name;
+      const vrcn = (await relColOptions.getMMParentColumn(baseModel.context))
+        .column_name;
+
+      const { mmContext } = relColOptions.getRelContext(baseModel.context);
+
+      const table = await (
+        await relColOptions.getChildColumn(baseModel.context)
+      ).getModel(baseModel.context);
+      await table.getColumns(baseModel.context);
+      const mmModel = await Model.getBaseModelSQL(mmContext, {
+        dbDriver: baseModel.dbDriver,
+        model: mmTable,
+      });
+
+      const vtn = mmModel.getTnPath(mmTable);
+
+      const qb = trx(vtn)
+        .select({ __fk_id: `${vtn}.${vrcn}`, __pk_id: `${vtn}.${vcn}` })
+        .whereIn(`${vtn}.${vcn}`, parentIds);
+
+      const existingLinks = await qb;
+      for (const existingLink of existingLinks) {
+        const existingLinkRowId = existingLink.__pk_id;
+        if (!existingLinksMap.get(existingLinkRowId)) {
+          existingLinksMap.set(existingLinkRowId, { links: [] });
+        }
+        if (existingLink.__fk_id) {
+          existingLinksMap
+            .get(existingLinkRowId)
+            .links.push(existingLink.__fk_id);
+        }
+      }
+      return existingLinksMap;
+    },
+
+    async getHmExistingLinks({
+      linkDataPayload,
+      rowIds,
+      trx,
+    }: {
+      linkDataPayload: {
+        relatedModel: Model;
+        column: Column;
+        colOptions: LinkToAnotherRecordColumn;
+        data: {
+          rowId: string;
+          links: string[];
+        }[];
+      };
+      trx: CustomKnex;
+      rowIds: string[];
+    }) {
+      const existingLinksMap = new Map<string, { links: string[] }>();
+
+      // skip duplicate id
+      const parentIds = [...new Set(rowIds)];
+      const relColOptions = linkDataPayload.colOptions;
+
+      const { refContext } = relColOptions.getRelContext(baseModel.context);
+
+      const childCol = await relColOptions.getChildColumn(baseModel.context);
+
+      const childTable = await childCol.getModel(refContext);
+
+      const parentCol = await relColOptions.getParentColumn(baseModel.context);
+      const parentTable = await parentCol.getModel(baseModel.context);
+      const childBaseModel = await Model.getBaseModelSQL(refContext, {
+        model: childTable,
+        dbDriver: baseModel.dbDriver,
+      });
+      await parentTable.getColumns(baseModel.context);
+
+      const childTn = childBaseModel.getTnPath(childTable, '_tbl');
+
+      const qb = trx(childTn);
+
+      await childTable.getViews(childBaseModel.context);
+
+      qb.whereIn(childCol.column_name, parentIds);
+
+      const existingLinks = await qb;
+      for (const existingLink of existingLinks) {
+        const existingLinkRowId = existingLink.__pk_id;
         if (!existingLinksMap.get(existingLinkRowId)) {
           existingLinksMap.set(existingLinkRowId, { links: [] });
         }

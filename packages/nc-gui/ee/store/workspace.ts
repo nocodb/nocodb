@@ -609,11 +609,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     workspaceId = workspaceId || activeWorkspaceId.value!
 
     if (cmdOrCtrl) {
-      await navigateTo(router.resolve({ name: 'index-typeOrId-templates', params: { typeOrId: workspaceId }, query }).href, {
-        open: navigateToBlankTargetOpenOption,
-      })
+      await navigateTo(
+        router.resolve({ name: 'index-typeOrId-templates-index', params: { typeOrId: workspaceId }, query }).href,
+        {
+          open: navigateToBlankTargetOpenOption,
+        },
+      )
     } else {
-      router.push({ name: 'index-typeOrId-templates', params: { typeOrId: workspaceId }, query })
+      router.push({ name: 'index-typeOrId-templates-index', params: { typeOrId: workspaceId }, query })
     }
   }
 

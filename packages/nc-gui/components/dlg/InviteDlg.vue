@@ -174,6 +174,7 @@ watch(dialogShow, async (newVal) => {
   } else {
     emailBadges.value = []
     inviteData.email = ''
+    inviteData.roles = orderedRoles.value.NO_ACCESS
     singleEmailValue.value = ''
     inviteData.selectedTeamIds = []
     warningMsg.value = ''

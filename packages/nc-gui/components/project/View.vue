@@ -51,24 +51,6 @@ const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
 
-const userCount = computed(() => {
-  // if private base and don't have owner permission then return
-  if (base.value?.default_role && !baseRoles.value?.[ProjectRoles.OWNER]) {
-    return
-  }
-
-  if (activeProjectId.value) {
-    const teamsCount = !isAdminPanel.value && isTeamsEnabled.value ? basesTeams.value.get(activeProjectId.value)?.length ?? 0 : 0
-    const usersCount = activeProjectId.value
-      ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length ?? 0
-      : 0
-
-    return teamsCount + usersCount
-  }
-
-  return 0
-})
-
 const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()

@@ -220,8 +220,8 @@ const handleClickDropdown = (e: MouseEvent) => {
           :permission="config.permission"
           :entity-title="config.entityTitle"
           :readonly="props.readonly"
-          @save="handleUserSelectorSave"
           :hint="$t('msg.permissionHintMsg')"
+          @save="handleUserSelectorSave"
         />
       </template>
       <template v-else-if="base.id">
@@ -234,8 +234,8 @@ const handleClickDropdown = (e: MouseEvent) => {
           :permission-description="permissionDescription"
           :permission="config.permission"
           :entity-title="config.entityTitle"
-          @save="handleUserSelectorSave"
           :hint="$t('msg.permissionHintMsg')"
+          @save="handleUserSelectorSave"
         />
       </template>
     </div>

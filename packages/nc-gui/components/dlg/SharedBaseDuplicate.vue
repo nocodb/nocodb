@@ -7,17 +7,9 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const { api } = useApi()
+const { workspacesList } = storeToRefs(useWorkspace())
 
-const { sharedBaseId } = useCopySharedBase()
-
-const workspaceStore = useWorkspace()
-
-const { populateWorkspace } = workspaceStore
-
-const { workspacesList } = storeToRefs(workspaceStore)
-
-const { ncNavigateTo } = useGlobal()
+const { duplicateSharedBase, isLoading, options, selectedWorkspace, isUseThisTemplate, templateName } = useCopySharedBase()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -111,7 +103,14 @@ const filteredWorkspaces = computed(() => {
       <template v-if="isEeUI">
         <div class="my-4">Select workspace to duplicate shared base to:</div>
 
-        <NcSelect v-model:value="selectedWorkspace" class="w-full" :options="filteredWorkspaces" placeholder="Select Workspace" />
+        <NcListWorkspaceSelector
+          v-model:value="selectedWorkspace"
+          placeholder="Select workspace"
+          force-layout="vertical"
+          disable-label
+          :workspace-list="workspacesList"
+          :filter-workspace="filterWorkspace"
+        />
       </template>
 
       <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>

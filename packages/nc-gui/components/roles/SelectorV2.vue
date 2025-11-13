@@ -126,7 +126,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
               :class="[
                 `nc-role-select-${option.value}`,
                 {
-                  '!bg-nc-bg-gray-200 dark:!bg-nc-bg-gray-800': option.value === ProjectRoles.INHERIT,
+                  '!bg-gray-200 dark:!bg-gray-600': option.value === ProjectRoles.INHERIT,
                 },
               ]"
             >
@@ -137,7 +137,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
                     class="flex-none h-4 w-4"
                     :class="
                       option.value === ProjectRoles.INHERIT
-                        ? '!text-nc-content-gray-muted dark:!text-nc-content-gray-light'
+                        ? 'text-nc-content-gray-muted dark:text-nc-content-gray-light'
                         : roleColorsMapping[option.color]?.content ?? 'text-gray-300'
                     "
                   />
@@ -145,7 +145,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
                     class="text-captionDropdownDefault"
                     :class="[
                       option.value === ProjectRoles.INHERIT
-                        ? '!text-nc-content-gray-muted dark:!text-nc-content-gray-light'
+                        ? 'text-nc-content-gray-muted dark:text-nc-content-gray-light'
                         : roleColorsMapping[option.color]?.content ?? 'text-gray-300',
                       {
                         '!font-semibold': !description,
@@ -163,7 +163,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
                 class="text-bodySm !font-light ml-6"
                 :class="
                   option.value === ProjectRoles.INHERIT
-                    ? '!text-nc-content-gray-muted dark:!text-nc-content-gray-light'
+                    ? 'text-nc-content-gray-muted dark:text-nc-content-gray-light'
                     : 'text-nc-content-gray-muted'
                 "
               >

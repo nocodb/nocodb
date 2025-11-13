@@ -72,7 +72,7 @@ const roleProperties = computed(() => {
       :class="[
         ncBadgeClass,
         {
-          '!bg-nc-bg-gray-200 dark:!bg-nc-bg-gray-800': isInheritRole,
+          '!bg-gray-200 !border-gray-200 dark:!bg-gray-600 dark:!border-gray-600': isInheritRole,
         },
       ]"
       :color="roleProperties.color === 'disabled' ? 'gray' : roleProperties.color"

@@ -108,6 +108,7 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
+import { normalizeValueForUniqueCheck } from '~/helpers/uniqueConstraintHelpers';
 import {
   Audit,
   BaseUser,
@@ -3955,6 +3956,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // Validates the constraints on the data based on the column definitions
       this.validateConstraints(column, data);
+      
+      // Validate unique constraints
+      await this.validateUniqueConstraints(column, data);
 
       // skip validation if `validate` is undefined or false
       if (!column?.meta?.validate || !column?.validate) continue;
@@ -3988,6 +3992,69 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     ) {
       NcError.get(this.context).badRequest(
         `Column "${column.title}" value exceeds the maximum length of ${column.dtxp}`,
+      );
+    }
+  }
+
+  /*
+   *  Utility method to validate unique constraints
+   */
+  protected async validateUniqueConstraints(
+    column: Column<any>,
+    data: Record<string, any>,
+  ) {
+    // Skip if column doesn't have unique constraint
+    if (!column.unique) {
+      return;
+    }
+
+    const value = data[column.title] ?? data[column.column_name] ?? data[column.id];
+    
+    // Allow empty values (null, undefined, empty string)
+    if (value === null || value === undefined || value === '') {
+      return;
+    }
+
+    // Get the primary key value for excluding current record (for updates)
+    const primaryKey = this.model.primaryKey;
+    const excludeRowId = primaryKey ? data[primaryKey.title] ?? data[primaryKey.column_name] : null;
+
+    // Build query to check for duplicates
+    const normalizedValue = normalizeValueForUniqueCheck(value, column.uidt);
+    
+    if (normalizedValue === null) {
+      return; // Skip validation for empty normalized values
+    }
+
+    let query = this.dbDriver(this.tnPath).count('* as count');
+
+    // Build query based on field type for case-insensitive comparison
+    if ([UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL].includes(column.uidt)) {
+      // Use database-specific case-insensitive comparison
+      const clientType = this.dbDriver.clientType();
+      if (clientType === 'pg') {
+        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [column.column_name, String(value)]);
+      } else if (clientType === 'mysql' || clientType === 'mysql2') {
+        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [column.column_name, String(value)]);
+      } else {
+        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [column.column_name, String(value)]);
+      }
+    } else {
+      // Exact comparison for other types
+      query = query.where(column.column_name, value);
+    }
+
+    // Exclude current record for updates
+    if (excludeRowId && primaryKey) {
+      query = query.where(primaryKey.column_name, '!=', excludeRowId);
+    }
+
+    const result = await query.first();
+    const count = parseInt(result?.count || '0');
+
+    if (count > 0) {
+      NcError.get(this.context).badRequest(
+        `Duplicate value '${value}' found in field '${column.title}'`
       );
     }
   }

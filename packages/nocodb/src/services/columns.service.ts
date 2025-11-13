@@ -95,7 +95,12 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
+import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import {
+  validateUniqueConstraint,
+  generateUniqueIndexName,
+} from '~/helpers/uniqueConstraintHelpers';
 import {
   convertAIRecordTypeToValue,
   convertValueToAIRecordType,
@@ -257,6 +262,7 @@ export class ColumnsService implements IColumnsService {
     protected readonly viewRowColorService: ViewRowColorService,
     protected readonly filtersService: FiltersService,
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+    protected readonly duplicateDetectionService: DuplicateDetectionService,
   ) {}
 
   async updateFormulas(
@@ -575,6 +581,21 @@ export class ColumnsService implements IColumnsService {
       ...extractProps(column, ['column_name', 'uidt', 'dt']),
       ...param.column,
     };
+
+    // Validate unique constraint for column updates
+    if ('unique' in param.column && param.column.unique) {
+      validateUniqueConstraint(context, param.column.uidt || column.uidt, param.column.meta || column.meta, param.column.unique);
+      
+      // Check for existing duplicates if enabling unique constraint
+      if (!column.unique && param.column.unique) {
+        const duplicateCheck = await this.duplicateDetectionService.checkForDuplicates(context, column);
+        if (duplicateCheck.hasDuplicates) {
+          NcError.get(context).badRequest(
+            `Found ${duplicateCheck.count} duplicate values in this field. Please edit or remove duplicates before enabling uniqueness.`
+          );
+        }
+      }
+    }
 
     let colBody = { ...param.column } as Column & {
       formula?: string;
@@ -2389,6 +2410,11 @@ export class ColumnsService implements IColumnsService {
     }
 
     let colBody: any = param.column;
+
+    // Validate unique constraint
+    if (colBody.unique) {
+      validateUniqueConstraint(context, colBody.uidt, colBody.meta, colBody.unique);
+    }
 
     const colExtra = {
       view_id: colBody.view_id,

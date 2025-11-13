@@ -78,6 +78,7 @@ import { CachesService } from '~/services/caches.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { ColumnsService } from '~/services/columns.service';
 import { CommandPaletteService } from '~/services/command-palette.service';
+import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import { CommentsService } from '~/services/comments.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { FiltersService } from '~/services/filters.service';
@@ -283,6 +284,7 @@ export const nocoModuleMetadata = {
     CachesService,
     CalendarsService,
     ColumnsService,
+    DuplicateDetectionService,
     CommentsService,
     FiltersService,
     FormColumnsService,
@@ -381,6 +383,7 @@ export const nocoModuleMetadata = {
     MetaService,
     TablesService,
     ColumnsService,
+    DuplicateDetectionService,
     FiltersService,
     SortsService,
     ViewsService,

@@ -643,7 +643,8 @@ onBeforeUnmount(() => {
                 v-if="
                   isDeleteOrUpdateAllowed(record) &&
                   isOwnerOrCreator &&
-                  getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles)
+                  (getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles) ||
+                    record.roles === ProjectRoles.INHERIT)
                 "
               >
                 <RolesSelectorV2

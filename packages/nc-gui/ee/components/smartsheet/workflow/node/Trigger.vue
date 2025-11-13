@@ -8,14 +8,14 @@ import NodeTypeDropdown, { type NodeTypeOption } from './NodeTypeDropdown.vue'
 const props = defineProps<NodeProps>()
 
 const workflowStore = useWorkflowStoreOrThrow()
-const { updateNode, addPlusNode, triggerLayout } = workflowStore
+const { updateNode, addPlusNode, triggerLayout, openConfigDrawer, getNodeType } = workflowStore
 
 // Get available trigger options (trigger sub-types)
 const availableOptions = computed((): NodeTypeOption[] => {
   const triggerTypes = workflowStore.getNodeTypesByCategory(WorkflowCategory.TRIGGER)
   return triggerTypes.map((nt) => ({
     id: nt.type,
-    label: nt.label,
+    title: nt.title,
     icon: nt.icon,
     description: nt.description,
   }))
@@ -42,6 +42,20 @@ const selectTriggerType = async (option: NodeTypeOption) => {
     }, 50)
   }
 }
+
+// Get node metadata
+const nodeMeta = computed(() => {
+  return getNodeType(props.type)
+})
+
+// Handle trigger node click to open configuration drawer
+const handleTriggerClick = (event: MouseEvent) => {
+  // Only open drawer if a specific trigger type is selected (not generic 'core.trigger')
+  if (props.type !== 'core.trigger' && nodeMeta.value) {
+    event.stopPropagation()
+    openConfigDrawer(props.id)
+  }
+}
 </script>
 
 <template>
@@ -61,7 +75,7 @@ const selectTriggerType = async (option: NodeTypeOption) => {
             'trigger-node-selected': selected,
             'trigger-node-empty': !selected,
           }"
-          @click="!selected && openDropdown()"
+          @click="selected ? handleTriggerClick($event) : openDropdown()"
         >
           <div class="trigger-content">
             <div v-if="!selected" class="trigger-placeholder">
@@ -74,7 +88,10 @@ const selectTriggerType = async (option: NodeTypeOption) => {
               <div class="trigger-selected-icon">
                 <GeneralIcon :icon="selected.icon" />
               </div>
-              <span class="trigger-selected-text">{{ selected.label }}</span>
+              <div class="trigger-text-container">
+                <span class="trigger-label">{{ selected.title }}</span>
+                <span class="trigger-instance-title">{{ data.title }}</span>
+              </div>
             </div>
           </div>
 
@@ -171,13 +188,33 @@ const selectTriggerType = async (option: NodeTypeOption) => {
   align-items: center;
   justify-content: center;
   color: #3b82f6;
+  flex-shrink: 0;
 }
 
-.trigger-selected-text {
+.trigger-text-container {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0; // Enable text truncation
+}
+
+.trigger-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trigger-instance-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
 

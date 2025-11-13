@@ -177,47 +177,6 @@ export class IntegrationsController {
       }));
   }
 
-  @Get(['/api/v2/workflow-nodes'])
-  async getWorkflowNodes() {
-    // Filter integrations by type WorkflowNode
-    const workflowNodeIntegrations = Integration.availableIntegrations.filter(
-      (i) => i && i.type === IntegrationsType.WorkflowNode,
-    );
-
-    // For each integration, get the node definition using the Integration helper
-    const nodes = [];
-    for (const integration of workflowNodeIntegrations) {
-      try {
-        // Use Integration.tempIntegrationWrapper to properly instantiate the node
-        const instance = Integration.tempIntegrationWrapper({
-          type: integration.type,
-          sub_type: integration.sub_type,
-          config: {},
-        });
-
-        // Check if it has a definition method (workflow nodes should)
-        if (typeof instance.definition === 'function') {
-          const definition = instance.definition();
-          nodes.push({
-            ...definition,
-            source: {
-              type: integration.type,
-              subType: integration.sub_type,
-            },
-          });
-        }
-      } catch (error) {
-        // Skip nodes that fail to instantiate
-        console.error(
-          `Failed to get definition for workflow node ${integration.sub_type}:`,
-          error,
-        );
-      }
-    }
-
-    return { nodes };
-  }
-
   @Get(['/api/v2/integrations/:type/:subType'])
   async getIntegrationMeta(
     @Param('type') type: IntegrationsType,

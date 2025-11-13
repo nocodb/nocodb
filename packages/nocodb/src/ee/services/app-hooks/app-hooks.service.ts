@@ -25,6 +25,7 @@ import type {
   WelcomeEvent,
   WorkflowCreateEvent,
   WorkflowDeleteEvent,
+  WorkflowExecuteEvent,
   WorkflowUpdateEvent,
   WorkspaceEvent,
   WorkspaceTeamDeleteEvent,
@@ -331,6 +332,10 @@ export class AppHooksService extends ApppHookServiceCE {
     event: AppEvents.WORKFLOW_DELETE,
     listener: (data: WorkflowDeleteEvent) => void,
   ): () => void;
+  on(
+    event: AppEvents.WORKFLOW_EXECUTE,
+    listener: (data: WorkflowExecuteEvent) => void,
+  ): () => void;
 
   on(
     event: AppEvents.DASHBOARD_CREATE,
@@ -631,6 +636,7 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.WORKFLOW_CREATE, data: WorkflowCreateEvent): void;
   emit(event: AppEvents.WORKFLOW_UPDATE, data: WorkflowUpdateEvent): void;
   emit(event: AppEvents.WORKFLOW_DELETE, data: WorkflowDeleteEvent): void;
+  emit(event: AppEvents.WORKFLOW_EXECUTE, data: WorkflowExecuteEvent): void;
 
   emit(event: AppEvents.DASHBOARD_CREATE, data: DashboardCreateEvent): void;
   emit(event: AppEvents.DASHBOARD_UPDATE, data: DashboardUpdateEvent): void;

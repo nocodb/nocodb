@@ -8,7 +8,8 @@ import NodeTypeDropdown, { type NodeTypeOption } from './NodeTypeDropdown.vue'
 const props = defineProps<NodeProps>()
 
 const workflowStore = useWorkflowStoreOrThrow()
-const { getNodeType, getNodeTypesByCategory, updateNode, addPlusNode, triggerLayout, deleteNode } = workflowStore
+const { getNodeType, getNodeTypesByCategory, updateNode, addPlusNode, triggerLayout, deleteNode, openConfigDrawer } =
+  workflowStore
 
 // Get metadata for this node using the type
 const nodeMeta = computed(() => {
@@ -22,7 +23,7 @@ const availableOptions = computed((): NodeTypeOption[] => {
   const nodeTypes = getNodeTypesByCategory(nodeMeta.value.category)
   return nodeTypes.map((nt) => ({
     id: nt.type, // Use the type as the id
-    label: nt.label,
+    title: nt.title,
     icon: nt.icon,
     description: nt.description,
   }))
@@ -127,6 +128,16 @@ const handleDelete = async () => {
     triggerLayout()
   }, 50)
 }
+
+// Handle node click to open configuration drawer
+const handleNodeClick = (event: MouseEvent) => {
+  // Only open drawer if a node type is selected (not core.plus)
+  if (props.type !== 'core.plus' && nodeMeta.value) {
+    // Prevent opening dropdown when clicking on the node
+    event.stopPropagation()
+    openConfigDrawer(props.id)
+  }
+}
 </script>
 
 <template>
@@ -154,6 +165,7 @@ const handleDelete = async () => {
           :style="{
             borderColor: selected ? colorScheme.border : '#d1d5db',
           }"
+          @click="handleNodeClick"
         >
           <div class="node-content">
             <div v-if="!selected" class="node-placeholder">
@@ -168,7 +180,10 @@ const handleDelete = async () => {
               <div class="node-icon" :style="{ background: colorScheme.bg, color: colorScheme.border }">
                 <GeneralIcon :icon="selected.icon" />
               </div>
-              <span class="node-label">{{ selected.label }}</span>
+              <div class="node-text-container">
+                <span class="node-label">{{ selected.title }}</span>
+                <span class="node-instance-title">{{ data.title }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -263,11 +278,30 @@ const handleDelete = async () => {
   flex-shrink: 0;
 }
 
-.node-label {
+.node-text-container {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0; // Enable text truncation
+}
+
+.node-label {
+  font-size: 14px;
+  font-weight: 400;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.node-instance-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>
 

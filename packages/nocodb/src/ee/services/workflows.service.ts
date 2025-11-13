@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, type WorkflowType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { Workflow } from '~/models';
 
 @Injectable()
 export class WorkflowsService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly workflowExecutionService: WorkflowExecutionService,
+  ) {}
 
   async list(context: NcContext) {
     return await Workflow.list(context, context.base_id);
@@ -96,5 +100,36 @@ export class WorkflowsService {
     });
 
     return { msg: 'Workflow deleted successfully' };
+  }
+
+  async execute(
+    context: NcContext,
+    workflowId: string,
+    payload?: { triggerData?: any; triggerNodeTitle?: string },
+    req?: NcRequest,
+  ) {
+    const workflow = await Workflow.get(context, workflowId);
+
+    if (!workflow) {
+      NcError.notFound('Workflow not found');
+    }
+
+    // Execute the workflow
+    const executionState = await this.workflowExecutionService.executeWorkflow(
+      context,
+      workflow,
+      payload?.triggerData,
+      payload?.triggerNodeTitle,
+    );
+
+    // Emit event
+    this.appHooksService.emit(AppEvents.WORKFLOW_EXECUTE, {
+      workflow,
+      context,
+      req,
+      user: req.user,
+    });
+
+    return executionState;
   }
 }

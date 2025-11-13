@@ -2,15 +2,15 @@ import {
   FormBuilderInputType,
   FormBuilderValidatorType,
   type FormDefinition,
-  type NocoSDK,
+  NocoSDK,
   WorkflowNodeCategory,
+  type WorkflowNodeConfig,
   type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
   type WorkflowNodeLog,
   type WorkflowNodeResult,
   type WorkflowNodeRunContext,
 } from '@noco-integrations/core';
-import type { IDataV3Service } from '../nocodb.interface';
 
 export enum NocoDBOperation {
   CREATE = 'create',
@@ -20,7 +20,7 @@ export enum NocoDBOperation {
   LIST = 'list',
 }
 
-interface NocoDBNodeConfig {
+interface NocoDBNodeConfig extends WorkflowNodeConfig {
   operation: NocoDBOperation;
   modelId: string;
   // For read, update, delete
@@ -35,7 +35,27 @@ interface NocoDBNodeConfig {
 }
 
 export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
-  public definition(): WorkflowNodeDefinition {
+  public async definition(): Promise<WorkflowNodeDefinition> {
+    // Fetch tables from services if available
+    let tableOptions: { label: string; value: string }[] = [];
+    if (this.nocodb.tablesService && this.nocodb.context) {
+      try {
+        const models = await this.nocodb.tablesService.getAccessibleTables(
+          this.nocodb.context,
+          {
+            baseId: this.nocodb.context.base_id,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          },
+        );
+        tableOptions = models.map((model: any) => ({
+          label: model.title || model.table_name,
+          value: model.id,
+        }));
+      } catch (error: any) {
+        console.error('Failed to fetch tables:', error);
+      }
+    }
+
     const form: FormDefinition = [
       {
         type: FormBuilderInputType.Select,
@@ -58,24 +78,30 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
         ],
       },
       {
-        type: FormBuilderInputType.Input,
-        label: 'Table (Model) ID',
+        type: FormBuilderInputType.Select,
+        label: 'Table',
         width: 100,
         model: 'config.modelId',
-        placeholder: 'Enter the model/table ID',
+        placeholder: 'Select a table',
+        options: tableOptions,
         validators: [
           {
             type: FormBuilderValidatorType.Required,
-            message: 'Model ID is required',
+            message: 'Table is required',
           },
         ],
       },
+      // Record ID - only for READ, UPDATE, DELETE operations
       {
         type: FormBuilderInputType.Input,
         label: 'Record ID',
         width: 100,
         model: 'config.rowId',
         placeholder: 'Enter the record ID',
+        condition: {
+          model: 'config.operation',
+          in: [NocoDBOperation.READ, NocoDBOperation.UPDATE, NocoDBOperation.DELETE],
+        },
         validators: [
           {
             type: FormBuilderValidatorType.Required,
@@ -83,12 +109,17 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
           },
         ],
       },
+      // Fields JSON - only for CREATE, UPDATE operations
       {
         type: FormBuilderInputType.Input,
         label: 'Fields JSON',
         width: 100,
         model: 'config.fieldsJson',
         placeholder: '{ "Title": "Hello", "Status": "Active" }',
+        condition: {
+          model: 'config.operation',
+          in: [NocoDBOperation.CREATE, NocoDBOperation.UPDATE],
+        },
         validators: [
           {
             type: FormBuilderValidatorType.Required,
@@ -96,38 +127,58 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
           },
         ],
       },
+      // Limit - only for LIST operation
       {
         type: FormBuilderInputType.Input,
         label: 'Limit',
         width: 50,
         model: 'config.limit',
         placeholder: '25',
+        condition: {
+          model: 'config.operation',
+          equal: NocoDBOperation.LIST,
+        },
       },
+      // Offset - only for LIST operation
       {
         type: FormBuilderInputType.Input,
         label: 'Offset',
         width: 50,
         model: 'config.offset',
         placeholder: '0',
+        condition: {
+          model: 'config.operation',
+          equal: NocoDBOperation.LIST,
+        },
       },
+      // Filter JSON - only for LIST operation
       {
         type: FormBuilderInputType.Input,
         label: 'Filter JSON',
         width: 100,
         model: 'config.filterJson',
         placeholder: '{ "where": "(Title,eq,Active)" }',
+        condition: {
+          model: 'config.operation',
+          equal: NocoDBOperation.LIST,
+        },
       },
+      // Sort JSON - only for LIST operation
       {
         type: FormBuilderInputType.Input,
         label: 'Sort JSON',
         width: 100,
         model: 'config.sortJson',
         placeholder: '{ "sort": "-CreatedAt" }',
+        condition: {
+          model: 'config.operation',
+          equal: NocoDBOperation.LIST,
+        },
       },
     ];
 
     return {
-      key: 'nocodb.action.database',
+      key: 'nocodb',
       title: 'NocoDB',
       description: 'Perform operations on NocoDB tables (CRUD)',
       category: WorkflowNodeCategory.ACTION,
@@ -224,7 +275,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   public async run(
-    ctx: WorkflowNodeRunContext<{ dataService: IDataV3Service }>,
+    ctx: WorkflowNodeRunContext,
   ): Promise<WorkflowNodeResult> {
     const { operation } = this.config;
 
@@ -251,7 +302,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   private async runCreate(
-    ctx: WorkflowNodeRunContext<{ dataService: IDataV3Service }>,
+    ctx: WorkflowNodeRunContext,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
@@ -272,7 +323,8 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
         base_id: ctx.baseId,
       } as NocoSDK.NcContext;
 
-      const result = await ctx.custom!.dataService.dataInsert(context, {
+      // Use dataService from config
+      const result = await this.nocodb.dataService.dataInsert(context, {
         modelId,
         body: { fields },
         cookie: undefined,
@@ -325,7 +377,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   private async runRead(
-    ctx: WorkflowNodeRunContext<{ dataService: IDataV3Service }>,
+    ctx: WorkflowNodeRunContext,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
@@ -344,7 +396,8 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
         base_id: ctx.baseId,
       } as NocoSDK.NcContext;
 
-      const result = await ctx.custom!.dataService.dataRead(context, {
+      // Use dataService from config
+      const result = await this.nocodb.dataService.dataRead(context, {
         modelId,
         rowId: rowId!,
         query: {},
@@ -397,7 +450,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   private async runUpdate(
-    ctx: WorkflowNodeRunContext<{ dataService: IDataV3Service }>,
+    ctx: WorkflowNodeRunContext,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
@@ -418,7 +471,8 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
         base_id: ctx.baseId,
       } as NocoSDK.NcContext;
 
-      const result = await ctx.custom!.dataService.dataUpdate(context, {
+      // Use dataService from config
+      const result = await this.nocodb.dataService.dataUpdate(context, {
         modelId,
         body: { id: rowId!, fields },
         cookie: undefined,
@@ -471,7 +525,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   private async runDelete(
-    ctx: WorkflowNodeRunContext<{ dataService: IDataV3Service }>,
+    ctx: WorkflowNodeRunContext,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
@@ -490,7 +544,8 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
         base_id: ctx.baseId,
       } as NocoSDK.NcContext;
 
-      const result = await ctx.custom!.dataService.dataDelete(context, {
+      // Use dataService from config
+      const result = await this.nocodb.dataService.dataDelete(context, {
         modelId,
         body: { id: rowId! },
         cookie: undefined,
@@ -543,7 +598,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   private async runList(
-    ctx: WorkflowNodeRunContext<{ dataService: IDataV3Service }>,
+    ctx: WorkflowNodeRunContext,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
@@ -577,7 +632,8 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
         Object.assign(query, sortObj);
       }
 
-      const result = await ctx.custom!.dataService.dataList(
+      // Use dataService from config
+      const result = await this.nocodb.dataService.dataList(
         context,
         {
           modelId,

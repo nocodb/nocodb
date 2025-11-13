@@ -1,5 +1,4 @@
-import type { NocoSDK } from '@noco-integrations/core';
-
+import type { NocoSDK } from '../sdk';
 
 export interface RecordField {
   [key: string]: any;
@@ -176,4 +175,69 @@ export interface IDataV3Service {
     context: NocoSDK.NcContext,
     param: NestedLinkParams,
   ): Promise<{ success: boolean }>;
+}
+
+export interface ITablesService {
+  list(
+    context: NocoSDK.NcContext,
+    param: { base_id: string },
+  ): Promise<Array<{ id: string; title: string; table_name: string }>>;
+
+  tableUpdate(
+    context: NocoSDK.NcContext,
+    param: {
+      tableId: any;
+      table: Partial<NocoSDK.TableReqType> & { base_id?: string };
+      baseId?: string;
+      user: NocoSDK.UserType;
+      req: NocoSDK.NcRequest;
+    },
+  ): Promise<boolean>;
+
+  reorderTable(
+    context: NocoSDK.NcContext,
+    param: { tableId: string; order: any; req: NocoSDK.NcRequest },
+  ): Promise<any>;
+
+  tableDelete(
+    context: NocoSDK.NcContext,
+    param: {
+      tableId: string;
+      user: NocoSDK.UserType;
+      forceDeleteRelations?: boolean;
+      forceDeleteSyncs?: boolean;
+      req?: any;
+    },
+  ): Promise<any>;
+
+  getTableWithAccessibleViews(
+    context: NocoSDK.NcContext,
+    param: {
+      tableId: string;
+      user: NocoSDK.UserType;
+    },
+  ): Promise<NocoSDK.TableType>;
+
+  getAccessibleTables(
+    context: NocoSDK.NcContext,
+    param: {
+      baseId: string;
+      sourceId?: string;
+      includeM2M?: boolean;
+      roles: Record<string, boolean>;
+    },
+  ): Promise<NocoSDK.TableType[]>;
+
+  tableCreate(
+    context: NocoSDK.NcContext,
+    param: {
+      baseId: string;
+      sourceId?: string;
+      table: NocoSDK.TableReqType;
+      user: NocoSDK.UserType;
+      req: NocoSDK.NcRequest;
+      synced?: boolean;
+      apiVersion?: NocoSDK.NcApiVersion;
+    },
+  ): Promise<NocoSDK.TableType>;
 }

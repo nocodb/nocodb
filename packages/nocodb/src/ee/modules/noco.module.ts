@@ -65,6 +65,7 @@ import { ScriptsService } from '~/services/scripts.service';
 
 /* Workflows */
 import { WorkflowsService } from '~/ee/services/workflows.service';
+import { WorkflowExecutionService } from '~/ee/services/workflow-execution.service';
 
 /* Dashboards */
 import { DashboardsService } from '~/services/dashboards.service';
@@ -119,6 +120,7 @@ export const nocoModuleEeMetadata = {
 
     /* Workflows */
     WorkflowsService,
+    WorkflowExecutionService,
 
     /* Dashboards */
     DashboardsService,

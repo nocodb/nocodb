@@ -227,6 +227,19 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/core-workflow-node:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+    devDependencies:
+      '@types/node':
+        specifier: ^20.17.46
+        version: 20.17.46
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/deepseek-ai:
     dependencies:
       '@ai-sdk/deepseek':

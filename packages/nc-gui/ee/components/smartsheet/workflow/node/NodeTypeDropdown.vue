@@ -4,7 +4,7 @@ import { onClickOutside } from '@vueuse/core'
 
 export interface NodeTypeOption {
   id: string
-  label: string
+  title: string // Display name for the node type
   icon: keyof typeof iconMap
   description?: string
 }
@@ -45,7 +45,7 @@ const selectedOption = computed(() => {
 
 const filteredOptions = computed(() => {
   if (!searchQuery.value) return props.options
-  return props.options.filter((option) => option.label.toLowerCase().includes(searchQuery.value.toLowerCase()))
+  return props.options.filter((option) => option.title.toLowerCase().includes(searchQuery.value.toLowerCase()))
 })
 
 const selectOption = (option: NodeTypeOption) => {
@@ -147,7 +147,7 @@ onClickOutside(
             <div class="node-type-selected-icon">
               <GeneralIcon :icon="selectedOption.icon" />
             </div>
-            <span class="node-type-selected-text">{{ selectedOption.label }}</span>
+            <span class="node-type-selected-text">{{ selectedOption.title }}</span>
           </div>
         </div>
       </slot>
@@ -178,7 +178,7 @@ onClickOutside(
                       <GeneralIcon :icon="option.icon" />
                     </div>
                     <div class="node-type-item-text">
-                      <span class="node-type-item-label">{{ option.label }}</span>
+                      <span class="node-type-item-label">{{ option.title }}</span>
                       <span v-if="option.description" class="node-type-item-description">{{ option.description }}</span>
                     </div>
                   </div>

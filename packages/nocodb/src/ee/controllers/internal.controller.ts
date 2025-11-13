@@ -47,6 +47,7 @@ import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.servic
 import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 import { UtilsService } from '~/services/utils.service';
 import { WorkflowsService } from '~/ee/services/workflows.service';
+import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -75,6 +76,7 @@ export class InternalController extends InternalControllerCE {
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
     private readonly baseTeamsV3Service: BaseTeamsV3Service,
     private readonly workflowsService: WorkflowsService,
+    private readonly workflowExecutionService: WorkflowExecutionService,
   ) {
     super(aclMiddleware, internalApiModules);
   }
@@ -217,6 +219,8 @@ export class InternalController extends InternalControllerCE {
           context,
           req.query.workflowId as string,
         );
+      case 'workflowNodes':
+        return await this.workflowExecutionService.getWorkflowNodes(context);
       default:
         return await super.internalAPI(
           context,
@@ -582,6 +586,16 @@ export class InternalController extends InternalControllerCE {
         return await this.workflowsService.delete(
           context,
           payload.workflowId,
+          req,
+        );
+      case 'workflowExecute':
+        return await this.workflowsService.execute(
+          context,
+          payload.workflowId,
+          {
+            triggerData: payload.triggerData,
+            triggerNodeTitle: payload.triggerNodeTitle,
+          },
           req,
         );
       default:

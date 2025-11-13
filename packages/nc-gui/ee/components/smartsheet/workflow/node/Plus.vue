@@ -19,7 +19,7 @@ const availableOptions = computed((): NodeTypeOption[] => {
 
   return allTypes.map((nt) => ({
     id: nt.type,
-    label: nt.label,
+    title: nt.title,
     icon: nt.icon,
     description: nt.description,
   }))

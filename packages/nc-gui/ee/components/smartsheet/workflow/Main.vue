@@ -9,13 +9,12 @@ import TriggerNode from './node/Trigger.vue'
 import WorkflowNode from './node/WorkflowNode.vue'
 import PlusNode from './node/Plus.vue'
 import Topbar from './Topbar.vue'
+import NodeConfigDrawer from './NodeConfigDrawer.vue'
 
 import { useLayout } from './useLayout'
-import { useWorkflowValidation } from './useWorkflowValidation'
 import { WorkflowCategory, useProvideWorkflowStore } from './useWorkflow'
 
 const { layout } = useLayout()
-const { validateWorkflow } = useWorkflowValidation()
 
 const { fitView, nodesDraggable, edgesUpdatable } = useVueFlow()
 
@@ -24,6 +23,7 @@ const workflowStoreApi = useWorkflowStore()
 const { activeWorkflow } = storeToRefs(workflowStoreApi)
 const { updateWorkflow } = workflowStoreApi
 const { activeProjectId } = storeToRefs(useBases())
+const { api } = useApi()
 
 // Get initial workflow data
 const initialWorkflow = computed(() => {
@@ -37,7 +37,10 @@ const initialWorkflow = computed(() => {
 
 // Provide workflow store to child components
 const workflowStore = useProvideWorkflowStore(initialWorkflow.value)
-const { nodes, edges, setLayoutCallback, saveWorkflow, isSaving, workflowNodeTypes } = workflowStore
+const { nodes, edges, setLayoutCallback, saveWorkflow, isSaving, workflowNodeTypes, workflowNodeTypesVersion } = workflowStore
+
+// Workflow execution state
+const isRunning = ref(false)
 
 // Dynamically map node types to components based on their category
 // This is reactive and updates when node types are loaded from backend
@@ -96,13 +99,59 @@ const handleSave = async () => {
 }
 
 /**
- * Check if workflow is valid for execution
+ * Handle run button click - execute workflow on backend
  */
-const isWorkflowValid = computed(() => {
-  return validateWorkflow(nodes.value).valid
-})
+const handleRun = async () => {
+  if (!activeProjectId.value || !activeWorkflow.value?.id) {
+    message.error('No active workflow found')
+    return
+  }
+
+  isRunning.value = true
+
+  try {
+    // Call backend to execute workflow
+    const response = await api.instance.post(
+      `/api/v2/internal/${activeProjectId.value}/${activeProjectId.value}?operation=workflowExecute`,
+      {
+        workflowId: activeWorkflow.value.id,
+        triggerData: {
+          // You can pass trigger data here if needed
+          timestamp: Date.now(),
+        },
+        // triggerNodeTitle: 'Trigger', // Optional: specify which trigger to start from
+      },
+    )
+
+    const executionState = response.data
+
+    if (executionState.status === 'completed') {
+      const duration = ((executionState.endTime - executionState.startTime) / 1000).toFixed(2)
+      const nodesCount = executionState.nodeResults.length
+      message.success(`Workflow executed successfully in ${duration}s (${nodesCount} nodes executed)`)
+
+      // Log results for debugging
+      console.log('[Workflow] Execution completed:', executionState)
+    } else if (executionState.status === 'error') {
+      const errorNode = executionState.nodeResults.find((r: any) => r.status === 'error')
+      const errorMessage = errorNode ? `Node "${errorNode.nodeTitle}" failed: ${errorNode.error}` : 'Workflow execution failed'
+      message.error(errorMessage)
+      console.error('[Workflow] Execution error:', executionState)
+    }
+  } catch (error: any) {
+    console.error('[Workflow] Execution failed:', error)
+    message.error(`Workflow execution failed: ${error.message || 'Unknown error'}`)
+  } finally {
+    isRunning.value = false
+  }
+}
 
 const workflowTitle = computed(() => activeWorkflow.value?.title || 'Untitled Workflow')
+
+// Check if workflow has a manual trigger node
+const hasManualTrigger = computed(() => {
+  return nodes.value.some((node) => node.type === 'core.trigger.manual')
+})
 
 onMounted(() => {
   nodesDraggable.value = false
@@ -134,18 +183,21 @@ watch(
     }
   },
 )
-
-// Expose methods for parent components
-defineExpose({
-  handleSave,
-  isWorkflowValid,
-})
 </script>
 
 <template>
   <div class="workflow-container">
-    <Topbar :title="workflowTitle" :is-saving="isSaving" @save="handleSave" />
+    <Topbar
+      :title="workflowTitle"
+      :is-saving="isSaving"
+      :is-running="isRunning"
+      :has-manual-trigger="hasManualTrigger"
+      @save="handleSave"
+      @run="handleRun"
+    />
+
     <VueFlow
+      :key="workflowNodeTypesVersion"
       :nodes="nodes"
       :edges="edges"
       :node-types="nodeTypes"
@@ -163,6 +215,9 @@ defineExpose({
       <Background pattern-color="#aaa" :gap="16" />
       <MiniMap />
     </VueFlow>
+
+    <!-- Node Configuration Drawer -->
+    <NodeConfigDrawer />
   </div>
 </template>
 

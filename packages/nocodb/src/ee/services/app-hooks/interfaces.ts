@@ -131,6 +131,11 @@ export interface WorkflowDeleteEvent extends NcBaseEvent {
   user: UserType;
 }
 
+export interface WorkflowExecuteEvent extends NcBaseEvent {
+  workflow: WorkflowType;
+  user?: UserType;
+}
+
 export interface DashboardCreateEvent extends NcBaseEvent {
   dashboard: DashboardType;
   user: UserType;

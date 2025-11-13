@@ -1,5 +1,7 @@
 import { IntegrationWrapper } from '../integration';
+import { NocoSDK } from '../sdk';
 import type { FormDefinition } from '../types';
+import { IDataV3Service, ITablesService } from './nocodb.interface';
 
 export enum WorkflowNodeCategory {
   ACTION = 'Action',
@@ -82,8 +84,22 @@ export interface WorkflowNodeValidationResult {
   warnings?: { path?: string; message: string }[];
 }
 
-export abstract class WorkflowNodeIntegration<TConfig = any> extends IntegrationWrapper<TConfig> {
-  public abstract definition(): WorkflowNodeDefinition;
+export interface NocoDBContext {
+  context: NocoSDK.NcContext;
+  dataService: IDataV3Service;
+  tablesService: ITablesService;
+}
+
+export interface WorkflowNodeConfig {
+  _nocodb: NocoDBContext;
+}
+
+export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig = WorkflowNodeConfig> extends IntegrationWrapper<TConfig> {
+  protected get nocodb(): NocoDBContext {
+    return this.config._nocodb;
+  }
+
+  public abstract definition(): Promise<WorkflowNodeDefinition>;
 
   public async validate(_config: TConfig): Promise<WorkflowNodeValidationResult> {
     return { valid: true };

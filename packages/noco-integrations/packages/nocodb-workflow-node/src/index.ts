@@ -9,7 +9,7 @@ export * from './nodes/nocodb';
 export const entries: IntegrationEntry[] = [
   {
     type: IntegrationType.WorkflowNode,
-    sub_type: 'nocodb.action.database',
+    sub_type: 'nocodb',
     wrapper: NocoDBNode,
     form: [],
     manifest: {

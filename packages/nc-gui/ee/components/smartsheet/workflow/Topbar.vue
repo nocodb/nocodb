@@ -2,14 +2,21 @@
 defineProps<{
   title: string
   isSaving?: boolean
+  isRunning?: boolean
+  hasManualTrigger?: boolean
 }>()
 
 const emit = defineEmits<{
   save: []
+  run: []
 }>()
 
 const handleSave = () => {
   emit('save')
+}
+
+const handleRun = () => {
+  emit('run')
 }
 </script>
 
@@ -19,7 +26,13 @@ const handleSave = () => {
       <h2 class="workflow-title">{{ title }}</h2>
     </div>
     <div class="workflow-topbar-right">
-      <NcButton type="primary" size="small" :loading="isSaving" :disabled="isSaving" @click="handleSave">
+      <NcButton v-if="hasManualTrigger" size="small" :loading="isRunning" :disabled="isRunning || isSaving" @click="handleRun">
+        <template #icon>
+          <GeneralIcon v-if="!isRunning" icon="play" />
+        </template>
+        {{ isRunning ? 'Running...' : 'Run' }}
+      </NcButton>
+      <NcButton type="primary" size="small" :loading="isSaving" :disabled="isSaving || isRunning" @click="handleSave">
         <template #icon>
           <GeneralIcon v-if="!isSaving" icon="save" />
         </template>

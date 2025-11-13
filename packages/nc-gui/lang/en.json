@@ -2196,6 +2196,7 @@
     "webhookBodyMsg1": "Use context variable",
     "webhookBodyMsg2": "body",
     "webhookBodyMsg3": "to refer the record under consideration",
+    "permissionHintMsg": "Only users and teams with Editor or higher access are shown here",
     "formula": {
       "hintStart": "Hint: Use {placeholder1} to reference fields, e.g: {placeholder2}. For more, please check out",
       "hintEnd": "Formulas.",

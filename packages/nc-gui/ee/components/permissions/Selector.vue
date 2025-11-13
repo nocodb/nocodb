@@ -134,7 +134,7 @@ const handleClickDropdown = (e: MouseEvent) => {
     <div
       class="flex w-full gap-3"
       :class="{
-        'items-center': !horizontal,
+        'items-start': !horizontal,
         'flex-col': horizontal,
       }"
     >
@@ -213,7 +213,7 @@ const handleClickDropdown = (e: MouseEvent) => {
         <PermissionsInlineUserSelector
           v-if="base.id && currentOption?.value === PermissionOptionValue.SPECIFIC_USERS"
           v-model:selected-users="userSelectorSelectedUsers"
-          class="flex-1"
+          class="flex-1 mb-3"
           :base-id="base.id"
           :permission-label="permissionLabel"
           :permission-description="permissionDescription"
@@ -221,6 +221,7 @@ const handleClickDropdown = (e: MouseEvent) => {
           :entity-title="config.entityTitle"
           :readonly="props.readonly"
           @save="handleUserSelectorSave"
+          :hint="$t('msg.permissionHintMsg')"
         />
       </template>
       <template v-else-if="base.id">
@@ -234,6 +235,7 @@ const handleClickDropdown = (e: MouseEvent) => {
           :permission="config.permission"
           :entity-title="config.entityTitle"
           @save="handleUserSelectorSave"
+          :hint="$t('msg.permissionHintMsg')"
         />
       </template>
     </div>

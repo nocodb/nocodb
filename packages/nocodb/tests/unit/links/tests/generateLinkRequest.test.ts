@@ -75,7 +75,8 @@ function linksGenerateLinkRequestTests() {
       expect(result.links[0].linkIds.size).to.equal(2);
       expect(result.links[1].rowId).to.equal('2');
       expect(result.links[1].linkIds.size).to.equal(1);
-      expect(result.unlinks).to.be.undefined;
+      expect(result.unlinks).to.not.undefined;
+      expect(result.unlinks.length).to.eq(0);
     });
 
     it('should generate link request for OO (One to One) relation', async () => {
@@ -96,7 +97,8 @@ function linksGenerateLinkRequestTests() {
       expect(result.links).to.have.lengthOf(1);
       expect(result.links[0].rowId).to.equal('1');
       expect(result.links[0].linkIds.size).to.equal(1);
-      expect(result.unlinks).to.be.undefined;
+      expect(result.unlinks).to.not.undefined;
+      expect(result.unlinks.length).to.eq(0);
     });
 
     it('should generate link request for BT (Belongs To) relation', async () => {

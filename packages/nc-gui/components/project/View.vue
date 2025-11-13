@@ -256,16 +256,6 @@ onMounted(() => {
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
               <GeneralIcon icon="users" />
               <div>{{ $t('labels.members') }}</div>
-              <div
-                v-if="userCount"
-                class="tab-info"
-                :class="{
-                  'bg-primary-selected': projectPageTab === 'collaborator',
-                  'bg-nc-bg-gray-extralight': projectPageTab !== 'collaborator',
-                }"
-              >
-                {{ userCount }}
-              </div>
             </div>
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />

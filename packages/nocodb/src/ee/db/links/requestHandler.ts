@@ -118,10 +118,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       ...keyValUnlinks.map((k) => k.linkId),
     ]);
 
-    const relatedContext = {
-      ...context,
-      base_id: colOptions.fk_related_base_id ?? context.base_id,
-    } as NcContext;
+    const relatedContext = colOptions.getRelContext(context).refContext;
     const relatedBaseModel = await getBaseModelSqlFromModelId({
       modelId: colOptions.fk_related_model_id,
       context: relatedContext,
@@ -488,17 +485,10 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     { colOptions, links }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
     knex: CustomKnex,
   ) {
-    const {
-      fk_mm_base_id,
-      fk_mm_model_id,
-      fk_mm_child_column_id,
-      fk_mm_parent_column_id,
-    } = colOptions;
+    const { fk_mm_model_id, fk_mm_child_column_id, fk_mm_parent_column_id } =
+      colOptions;
 
-    const mmContext = {
-      ...context,
-      base_id: fk_mm_base_id ?? context.base_id,
-    };
+    const mmContext = colOptions.getRelContext(context).mmContext;
     const mmBaseModel = await getBaseModelSqlFromModelId({
       modelId: fk_mm_model_id,
       context: mmContext,
@@ -544,17 +534,10 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     { colOptions, links }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
     knex: CustomKnex,
   ) {
-    const {
-      fk_mm_base_id,
-      fk_mm_model_id,
-      fk_mm_child_column_id,
-      fk_mm_parent_column_id,
-    } = colOptions;
+    const { fk_mm_model_id, fk_mm_child_column_id, fk_mm_parent_column_id } =
+      colOptions;
 
-    const mmContext = {
-      ...context,
-      base_id: fk_mm_base_id ?? context.base_id,
-    };
+    const mmContext = colOptions.getRelContext(context).mmContext;
     const mmBaseModel = await getBaseModelSqlFromModelId({
       modelId: fk_mm_model_id,
       context: mmContext,
@@ -600,16 +583,11 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     { colOptions, links }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
     knex: CustomKnex,
   ) {
-    const {
-      fk_related_model_id: child_model_id,
-      fk_child_column_id,
-      fk_related_base_id,
-    } = colOptions;
+    const { fk_related_model_id: child_model_id, fk_child_column_id } =
+      colOptions;
 
-    const childContext = {
-      ...context,
-      base_id: fk_related_base_id ?? context.base_id,
-    };
+    const childContext = (await colOptions.getParentChildContext(context))
+      .childContext;
     const childBaseModel = await getBaseModelSqlFromModelId({
       modelId: child_model_id,
       context: childContext,
@@ -655,16 +633,11 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     { colOptions, links }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
     knex: CustomKnex,
   ) {
-    const {
-      fk_related_model_id: child_model_id,
-      fk_child_column_id,
-      fk_related_base_id,
-    } = colOptions;
+    const { fk_related_model_id: child_model_id, fk_child_column_id } =
+      colOptions;
 
-    const childContext = {
-      ...context,
-      base_id: fk_related_base_id ?? context.base_id,
-    };
+    const childContext = (await colOptions.getParentChildContext(context))
+      .childContext;
     const childBaseModel = await getBaseModelSqlFromModelId({
       modelId: child_model_id,
       context: childContext,
@@ -943,10 +916,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         colOptions.type === RelationTypes.HAS_MANY) &&
       !parseProp(column.meta).bt
     ) {
-      const relatedContext = {
-        ...context,
-        base_id: colOptions.fk_related_base_id ?? context.base_id,
-      };
+      const relatedContext = colOptions.getRelContext(context).refContext;
       const relatedBaseModel = await getBaseModelSqlFromModelId({
         modelId: colOptions.fk_related_model_id,
         context: relatedContext,
@@ -1180,10 +1150,8 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       ) as string[],
     );
 
-    const relatedContext = {
-      ...context,
-      base_id: colOptions.fk_related_base_id ?? context.base_id,
-    };
+    const relatedContext = colOptions.getRelContext(context).refContext;
+
     const relatedBaseModel = await getBaseModelSqlFromModelId({
       modelId: colOptions.fk_related_model_id,
       context: relatedContext,

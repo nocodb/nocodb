@@ -87,6 +87,7 @@ export const LTARColsUpdater = (param: {
       isLinksOrLTAR(col),
     );
     if (!linksOrLtarColumns?.length) {
+      profiler.end();
       return;
     }
     const linkDataPayloadMap: Map<

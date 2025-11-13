@@ -3,6 +3,7 @@ import {
   FormBuilderValidatorType,
   type FormDefinition,
   WorkflowNodeCategory,
+  WorkflowNodeConfig,
   type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
   type WorkflowNodeLog,
@@ -25,7 +26,7 @@ export enum FilterOperation {
   IS_NOT_EMPTY = 'isNotEmpty',
 }
 
-interface FilterNodeConfig {
+interface FilterNodeConfig extends WorkflowNodeConfig {
   inputArrayPath: string;
   filterField: string;
   operation: FilterOperation;
@@ -33,7 +34,7 @@ interface FilterNodeConfig {
 }
 
 export class FilterNode extends WorkflowNodeIntegration<FilterNodeConfig> {
-  public definition(): WorkflowNodeDefinition {
+  public async definition(): Promise<WorkflowNodeDefinition> {
     const form: FormDefinition = [
       {
         type: FormBuilderInputType.Input,
@@ -171,7 +172,7 @@ export class FilterNode extends WorkflowNodeIntegration<FilterNodeConfig> {
 
     try {
       const { inputArrayPath, filterField, operation, filterValue } =
-        this.config;
+        ctx.inputs.config;
 
       logs.push({
         level: 'info',

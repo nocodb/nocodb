@@ -3,6 +3,7 @@ import {
   FormBuilderValidatorType,
   type FormDefinition,
   WorkflowNodeCategory,
+  WorkflowNodeConfig,
   type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
   type WorkflowNodeLog,
@@ -27,14 +28,14 @@ export enum ConditionOperation {
   IS_FALSE = 'isFalse',
 }
 
-interface IfNodeConfig {
+interface IfNodeConfig extends WorkflowNodeConfig {
   value1: string;
   operation: ConditionOperation;
   value2?: string;
 }
 
 export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
-  public definition(): WorkflowNodeDefinition {
+  public async definition(): Promise<WorkflowNodeDefinition> {
     const form: FormDefinition = [
       {
         type: FormBuilderInputType.Input,
@@ -153,7 +154,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     const startTime = Date.now();
 
     try {
-      const { value1, operation, value2 } = this.config;
+      const { value1, operation, value2 } = ctx.inputs.config;
 
       logs.push({
         level: 'info',

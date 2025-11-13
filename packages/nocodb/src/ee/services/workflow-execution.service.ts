@@ -201,6 +201,13 @@ export class WorkflowExecutionService {
       try {
         const evaluator = new Function('$', `return ${expression}`);
         const result = evaluator(context.$.bind(context));
+
+        // Properly stringify objects and arrays for interpolation
+        if (typeof result === 'object' && result !== null) {
+          // Use JSON.stringify and escape double quotes for nested JSON usage
+          return JSON.stringify(result).replace(/"/g, '\\"');
+        }
+
         return String(result);
       } catch (error) {
         this.logger.error(
@@ -323,9 +330,6 @@ export class WorkflowExecutionService {
         );
 
         if (matchingEdge) {
-          this.logger.log(
-            `Conditional branch: taking "${matchingEdge.label}" path`,
-          );
           return matchingEdge.target;
         }
       }
@@ -337,7 +341,6 @@ export class WorkflowExecutionService {
         );
 
         if (matchingEdge) {
-          this.logger.log(`Switch branch: taking "${matchingEdge.label}" path`);
           return matchingEdge.target;
         }
       }
@@ -350,7 +353,6 @@ export class WorkflowExecutionService {
       );
 
       if (defaultEdge) {
-        this.logger.log(`Taking default/false branch`);
         return defaultEdge.target;
       }
     }
@@ -408,9 +410,6 @@ export class WorkflowExecutionService {
         expressionContext,
       );
 
-      this.logger.log(
-        `Executing node: ${node.id} (${node.type}) - ${node.data?.title}`,
-      );
       this.logger.debug(`Node data:`, JSON.stringify(interpolatedData));
 
       // Prepare run context (no need to pass services here anymore)
@@ -435,10 +434,6 @@ export class WorkflowExecutionService {
         result.error = nodeResult.error.message;
         result.status = 'error';
       }
-
-      this.logger.log(
-        `Node completed: ${node.id} in ${result.endTime - result.startTime}ms`,
-      );
     } catch (error) {
       result.status = 'error';
       result.error = error.message || 'Unknown error';
@@ -491,7 +486,6 @@ export class WorkflowExecutionService {
         );
         if (triggerNode) {
           currentNodeId = triggerNode.id;
-          this.logger.log(`Starting from trigger: "${triggerNodeTitle}"`);
         } else {
           throw new Error(`Trigger node "${triggerNodeTitle}" not found`);
         }
@@ -499,14 +493,8 @@ export class WorkflowExecutionService {
         // Use first trigger node or first node in workflow
         if (triggerNodes.length > 0) {
           currentNodeId = triggerNodes[0].id;
-          this.logger.log(
-            `Starting from default trigger: "${
-              triggerNodes[0].data?.title || triggerNodes[0].id
-            }"`,
-          );
         } else {
           currentNodeId = nodes[0].id;
-          this.logger.log(`No trigger found, starting from first node`);
         }
       }
 
@@ -544,18 +532,79 @@ export class WorkflowExecutionService {
         executedNodes.add(currentNodeId);
         executionState.currentNodeId = currentNodeId;
 
-        this.logger.log(
-          `Executing node: ${node.data?.title || node.id} (${node.type})`,
-        );
-
         // Create expression context with current results
         const expressionContext = new ExpressionContext(
           executionState.nodeResults,
           nodes,
         );
 
-        // Handle trigger node with trigger data
-        if (node.type === 'core.trigger') {
+        // Handle trigger nodes with trigger data
+        if (
+          node.type === 'core.trigger' ||
+          node.type?.startsWith('nocodb.trigger.')
+        ) {
+          // For custom trigger nodes, execute them with trigger data as inputs
+          if (node.type?.startsWith('nocodb.trigger.')) {
+            const nodeWrapper = this.getNodeWrapper(
+              context,
+              node.type,
+              node.data?.config || {},
+            );
+
+            if (nodeWrapper) {
+              const runContext: WorkflowNodeRunContext = {
+                workspaceId: context.workspace_id,
+                baseId: context.base_id,
+                inputs: triggerData || {},
+                user: (triggerData as any)?.user,
+              };
+
+              try {
+                const nodeResult = await nodeWrapper.run(runContext);
+                const triggerResult: NodeExecutionResult = {
+                  nodeId: node.id,
+                  nodeTitle: node.data?.title || 'Trigger',
+                  status: nodeResult.status === 'error' ? 'error' : 'success',
+                  output: nodeResult.outputs || {},
+                  startTime: Date.now(),
+                  endTime: Date.now(),
+                  logs: nodeResult.logs,
+                  metrics: nodeResult.metrics,
+                };
+
+                executionState.nodeResults.push(triggerResult);
+
+                // Move to next node
+                currentNodeId = this.getNextNode(
+                  currentNodeId,
+                  triggerResult,
+                  graph,
+                  nodes,
+                );
+                continue;
+              } catch (error) {
+                this.logger.error(
+                  `Trigger node execution failed: ${node.id}`,
+                  error,
+                );
+                const triggerResult: NodeExecutionResult = {
+                  nodeId: node.id,
+                  nodeTitle: node.data?.title || 'Trigger',
+                  status: 'error',
+                  error: error.message || 'Trigger execution failed',
+                  output: {},
+                  startTime: Date.now(),
+                  endTime: Date.now(),
+                };
+                executionState.nodeResults.push(triggerResult);
+                executionState.status = 'error';
+                executionState.endTime = Date.now();
+                throw error;
+              }
+            }
+          }
+
+          // Default trigger handling (core.trigger)
           const triggerResult: NodeExecutionResult = {
             nodeId: node.id,
             nodeTitle: node.data?.title || 'Trigger',
@@ -591,7 +640,6 @@ export class WorkflowExecutionService {
         currentNodeId = this.getNextNode(currentNodeId, result, graph, nodes);
 
         if (!currentNodeId) {
-          this.logger.log('Reached end of workflow path');
           break;
         }
       }

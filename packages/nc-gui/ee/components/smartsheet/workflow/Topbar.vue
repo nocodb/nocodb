@@ -4,11 +4,13 @@ defineProps<{
   isSaving?: boolean
   isRunning?: boolean
   hasManualTrigger?: boolean
+  isActive?: boolean
 }>()
 
 const emit = defineEmits<{
   save: []
   run: []
+  active: [value: boolean]
 }>()
 
 const handleSave = () => {
@@ -26,6 +28,12 @@ const handleRun = () => {
       <h2 class="workflow-title">{{ title }}</h2>
     </div>
     <div class="workflow-topbar-right">
+      <div class="workflow-topbar-center">
+        <div class="workflow-status">
+          <span class="workflow-status-label">Active</span>
+          <NcSwitch :checked="isActive" @change="(checked: boolean) => emit('active', checked)" />
+        </div>
+      </div>
       <NcButton v-if="hasManualTrigger" size="small" :loading="isRunning" :disabled="isRunning || isSaving" @click="handleRun">
         <template #icon>
           <GeneralIcon v-if="!isRunning" icon="play" />
@@ -64,6 +72,25 @@ const handleRun = () => {
   font-weight: 600;
   color: #1f2937;
   margin: 0;
+}
+
+.workflow-topbar-center {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  justify-content: center;
+}
+
+.workflow-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workflow-status-label {
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 .workflow-topbar-right {

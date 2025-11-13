@@ -80,9 +80,6 @@ async function layoutGraph() {
   })
 }
 
-/**
- * Handle save button click - save workflow to backend
- */
 const handleSave = async () => {
   if (!activeProjectId.value || !activeWorkflow.value?.id) {
     message.error('No active workflow found')
@@ -91,16 +88,31 @@ const handleSave = async () => {
 
   await saveWorkflow(async (workflowData) => {
     // Save nodes and edges to backend
-    await updateWorkflow(activeProjectId.value!, activeWorkflow.value!.id, {
+    await updateWorkflow(activeProjectId.value!, activeWorkflow.value!.id!, {
       nodes: workflowData.nodes,
       edges: workflowData.edges,
     })
   })
 }
 
-/**
- * Handle run button click - execute workflow on backend
- */
+const handleActive = async (isActive: boolean) => {
+  if (!activeProjectId.value || !activeWorkflow.value?.id) {
+    message.error('No active workflow found')
+    return
+  }
+
+  try {
+    await updateWorkflow(activeProjectId.value, activeWorkflow.value.id, {
+      enabled: isActive,
+    })
+    activeWorkflow.value!.enabled = isActive
+    message.success(`Workflow ${isActive ? 'activated' : 'deactivated'} successfully`)
+  } catch (error: any) {
+    console.error('[Workflow] Update active state failed:', error)
+    message.error(`Failed to update workflow state: ${error.message || 'Unknown error'}`)
+  }
+}
+
 const handleRun = async () => {
   if (!activeProjectId.value || !activeWorkflow.value?.id) {
     message.error('No active workflow found')
@@ -192,8 +204,10 @@ watch(
       :is-saving="isSaving"
       :is-running="isRunning"
       :has-manual-trigger="hasManualTrigger"
+      :is-active="activeWorkflow?.enabled"
       @save="handleSave"
       @run="handleRun"
+      @active="handleActive"
     />
 
     <VueFlow

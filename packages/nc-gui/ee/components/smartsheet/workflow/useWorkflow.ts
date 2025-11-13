@@ -116,26 +116,26 @@ const [useProvideWorkflowStore, useWorkflowStore] = useInjectionState((initialWo
   // Ensure all loaded nodes have titles (migration for old workflows)
   const ensureNodeTitles = () => {
     const titleCounts: Record<string, number> = {}
-    
+
     nodes.value.forEach((node) => {
       // Skip if node already has a title
       if (node.data?.title) return
-      
+
       // Get node type metadata
       const nodeMeta = getNodeMetaByType(node.type)
       if (!nodeMeta) return
-      
+
       const baseTitle = nodeMeta.title
-      
+
       // Track how many of this type we've seen
       if (!titleCounts[baseTitle]) {
         titleCounts[baseTitle] = 0
       }
-      
+
       // Generate title
       const title = titleCounts[baseTitle] === 0 ? baseTitle : `${baseTitle}${titleCounts[baseTitle]}`
       titleCounts[baseTitle]++
-      
+
       // Update node with title
       node.data = {
         ...node.data,
@@ -238,7 +238,7 @@ const [useProvideWorkflowStore, useWorkflowStore] = useInjectionState((initialWo
       const isConvertingFromTriggerPlaceholder = existingNode.type === 'core.trigger'
       const hasPlusNodeTitle = updatedData.data?.title === 'Add Action / Condition'
       const hasTriggerPlaceholderTitle = updatedData.data?.title === 'Trigger'
-      
+
       // Generate a unique title if:
       // 1. No title is provided, OR
       // 2. Converting from a plus node, OR

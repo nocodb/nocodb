@@ -2,6 +2,7 @@ import {
   FormBuilderInputType,
   type FormDefinition,
   WorkflowNodeCategory,
+  WorkflowNodeConfig,
   type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
   type WorkflowNodeLog,
@@ -9,12 +10,12 @@ import {
   type WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
-interface ManualTriggerConfig {
+interface ManualTriggerConfig extends WorkflowNodeConfig {
   description?: string;
 }
 
 export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConfig> {
-  public definition(): WorkflowNodeDefinition {
+  public async definition(): Promise<WorkflowNodeDefinition> {
     const form: FormDefinition = [
       {
         type: FormBuilderInputType.Input,
@@ -42,9 +43,7 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
     return { valid: true };
   }
 
-  public async run(
-    ctx: WorkflowNodeRunContext,
-  ): Promise<WorkflowNodeResult> {
+  public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
 
@@ -65,7 +64,7 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
         outputs: {
           // Pass through any input data provided when manually triggering
           data: ctx.inputs || {},
-          timestamp: (ctx.now?.() || new Date()).toISOString(),
+          timestamp: new Date().toISOString(),
           triggeredBy: {
             userId: ctx.user?.id,
             email: ctx.user?.email,

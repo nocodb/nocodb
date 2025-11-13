@@ -15,6 +15,7 @@ import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stat
 import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
 import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.processor';
 import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscription.processor';
+import { ExecuteWorkflowProcessor } from '~/modules/jobs/jobs/execute-workflow/execute-workflow.processor';
 import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
 import { PaymentModule } from '~/modules/payment/payment.module';
 
@@ -42,6 +43,7 @@ import { PaymentModule } from '~/modules/payment/payment.module';
     CloudDbMigrateProcessor,
     ActionExecutionProcessor,
     ReseatSubscriptionProcessor,
+    ExecuteWorkflowProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

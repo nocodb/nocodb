@@ -214,4 +214,31 @@ export default class Workflow implements WorkflowType {
 
     return res;
   }
+
+  public static async findByTrigger(
+    context: NcContext,
+    triggerType: string,
+    modelId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Workflow[]> {
+    // Get all workflows for this base (TODO: use DependencyTracker)
+    const workflows = await this.list(context, context.base_id, ncMeta);
+
+    const matchingWorkflows = workflows.filter((workflow) => {
+      if (!workflow.enabled) return false;
+
+      const nodes = (workflow as any).nodes || [];
+
+      // Look for trigger nodes that match
+      const hasTrigger = nodes.some((node: any) => {
+        return (
+          node.type === triggerType && node.data?.config?.modelId === modelId
+        );
+      });
+
+      return hasTrigger;
+    });
+
+    return matchingWorkflows;
+  }
 }

@@ -70,6 +70,7 @@ export type InternalGETResponseType = Promise<
         google: boolean;
       };
     }
+  | { nodes: any[] }
 >;
 
 export type InternalPOSTResponseType = Promise<

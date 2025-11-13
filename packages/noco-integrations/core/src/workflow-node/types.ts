@@ -48,7 +48,7 @@ export interface WorkflowNodeLog {
   data?: any;
 }
 
-export interface WorkflowNodeRunContext<TCustom = Record<string, unknown>> {
+export interface WorkflowNodeRunContext<T = any> {
   workspaceId?: string;
   baseId?: string;
   user?: {
@@ -56,14 +56,7 @@ export interface WorkflowNodeRunContext<TCustom = Record<string, unknown>> {
     email?: string;
   };
 
-  inputs: Record<string, unknown>;
-
-  // Custom payload to pass from the main workflow engine
-  custom?: TCustom;
-
-  fetch?: typeof fetch;
-
-  now?: () => Date;
+  inputs: T;
 }
 
 export interface WorkflowNodeResult {

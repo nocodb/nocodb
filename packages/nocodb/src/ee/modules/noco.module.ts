@@ -170,6 +170,7 @@ export const nocoModuleEeMetadata = {
   exports: [
     ScriptsService,
     WorkflowsService,
+    WorkflowExecutionService,
     DashboardsService,
     PermissionsService,
     ActionsService,

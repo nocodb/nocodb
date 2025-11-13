@@ -34,6 +34,16 @@ interface NocoDBNodeConfig extends WorkflowNodeConfig {
   sortJson?: string;
 }
 
+function parseJson(jsonString: object | string | undefined) {
+  if (!jsonString) return undefined;
+  if (typeof jsonString === 'object') return jsonString;
+  try {
+    return JSON.parse(jsonString);
+  } catch {
+    return undefined;
+  }
+}
+
 export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
     // Fetch tables from services if available
@@ -100,7 +110,11 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
         placeholder: 'Enter the record ID',
         condition: {
           model: 'config.operation',
-          in: [NocoDBOperation.READ, NocoDBOperation.UPDATE, NocoDBOperation.DELETE],
+          in: [
+            NocoDBOperation.READ,
+            NocoDBOperation.UPDATE,
+            NocoDBOperation.DELETE,
+          ],
         },
         validators: [
           {
@@ -241,7 +255,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
         });
       } else {
         try {
-          const parsed = JSON.parse(config.fieldsJson);
+          const parsed = parseJson(config.fieldsJson);
           if (!parsed || typeof parsed !== 'object') {
             errors.push({
               path: 'config.fieldsJson',
@@ -257,7 +271,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
     // Validate filter and sort JSON if provided
     if (config.filterJson) {
       try {
-        JSON.parse(config.filterJson);
+        parseJson(config.filterJson);
       } catch {
         errors.push({ path: 'config.filterJson', message: 'Invalid JSON' });
       }
@@ -265,7 +279,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
 
     if (config.sortJson) {
       try {
-        JSON.parse(config.sortJson);
+        parseJson(config.sortJson);
       } catch {
         errors.push({ path: 'config.sortJson', message: 'Invalid JSON' });
       }
@@ -274,10 +288,8 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
     return { valid: errors.length === 0, errors };
   }
 
-  public async run(
-    ctx: WorkflowNodeRunContext,
-  ): Promise<WorkflowNodeResult> {
-    const { operation } = this.config;
+  public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {
+    const { operation } = ctx.inputs.config;
 
     switch (operation) {
       case NocoDBOperation.CREATE:
@@ -308,7 +320,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
     const startTime = Date.now();
 
     try {
-      const { modelId, fieldsJson } = this.config;
+      const { modelId, fieldsJson } = ctx.inputs.config;
 
       logs.push({
         level: 'info',
@@ -316,7 +328,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
         ts: Date.now(),
       });
 
-      const fields = JSON.parse(fieldsJson!);
+      const fields = parseJson(fieldsJson!);
 
       const context = {
         workspace_id: ctx.workspaceId,
@@ -327,7 +339,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
       const result = await this.nocodb.dataService.dataInsert(context, {
         modelId,
         body: { fields },
-        cookie: undefined,
+        cookie: {},
       });
 
       const executionTime = Date.now() - startTime;
@@ -383,7 +395,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
     const startTime = Date.now();
 
     try {
-      const { modelId, rowId } = this.config;
+      const { modelId, rowId } = ctx.inputs.config;
 
       logs.push({
         level: 'info',
@@ -456,7 +468,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
     const startTime = Date.now();
 
     try {
-      const { modelId, rowId, fieldsJson } = this.config;
+      const { modelId, rowId, fieldsJson } = ctx.inputs.config;
 
       logs.push({
         level: 'info',
@@ -464,7 +476,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
         ts: Date.now(),
       });
 
-      const fields = JSON.parse(fieldsJson!);
+      const fields = parseJson(fieldsJson!);
 
       const context = {
         workspace_id: ctx.workspaceId,
@@ -475,7 +487,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
       const result = await this.nocodb.dataService.dataUpdate(context, {
         modelId,
         body: { id: rowId!, fields },
-        cookie: undefined,
+        cookie: {},
       });
 
       const executionTime = Date.now() - startTime;
@@ -531,7 +543,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
     const startTime = Date.now();
 
     try {
-      const { modelId, rowId } = this.config;
+      const { modelId, rowId } = ctx.inputs.config;
 
       logs.push({
         level: 'info',
@@ -548,7 +560,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
       const result = await this.nocodb.dataService.dataDelete(context, {
         modelId,
         body: { id: rowId! },
-        cookie: undefined,
+        cookie: {},
       });
 
       const executionTime = Date.now() - startTime;
@@ -604,7 +616,8 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
     const startTime = Date.now();
 
     try {
-      const { modelId, limit, offset, filterJson, sortJson } = this.config;
+      const { modelId, limit, offset, filterJson, sortJson } =
+        ctx.inputs.config;
 
       logs.push({
         level: 'info',
@@ -624,11 +637,11 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
 
       // Merge filter and sort JSON if provided
       if (filterJson) {
-        const filterObj = JSON.parse(filterJson);
+        const filterObj = parseJson(filterJson);
         Object.assign(query, filterObj);
       }
       if (sortJson) {
-        const sortObj = JSON.parse(sortJson);
+        const sortObj = parseJson(sortJson);
         Object.assign(query, sortObj);
       }
 

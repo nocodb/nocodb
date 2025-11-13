@@ -30,7 +30,7 @@ enum SyncFormStep {
   Create = 3,
 }
 
-export interface IntegrationConfig {
+interface IntegrationConfig {
   id?: string
   title?: string
   type: IntegrationsType.Sync
@@ -55,4 +55,24 @@ const syncEntityToReadableMap = {
   [OnDeleteAction.MarkDeleted]: 'Mark as Delete',
 }
 
+interface CustomSyncSchema {
+  [key: string]: {
+    title: string
+    columns: {
+      title: string
+      uidt: string
+      abstractType: string
+      exclude?: boolean
+    }[]
+    relations: any[]
+    systemFields?: {
+      primaryKey: string[]
+      createdAt?: string
+      updatedAt?: string
+    }
+  }
+}
+
 export { getSyncFrequency, defaultSyncConfig, SyncFormStep, defaultIntegrationConfig, syncEntityToReadableMap }
+
+export type { IntegrationConfig, CustomSyncSchema }

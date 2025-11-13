@@ -7,7 +7,11 @@ const deepClone = rfdc()
 
 const [useProvideSyncForm, useSyncForm] = useInjectionState(
   (baseId: MaybeRef<string>, mode: 'create' | 'edit', syncId?: MaybeRef<string>) => {
+    const { $api } = useNuxtApp()
+
     const { integrationsRefreshKey, getIntegrationForm, integrations, getIntegration } = useIntegrationStore()
+
+    const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
     const syncStore = useSyncStore()
 
@@ -173,6 +177,22 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       }
     }
 
+    const integrationFetchDestinationSchema = async (integration: IntegrationConfig) => {
+      const wsId = activeWorkspaceId?.value
+      const bsId = unref(baseId)
+
+      if (!wsId || !bsId || !integration) {
+        return
+      }
+
+      return await $api.internal.postOperation(
+        wsId,
+        bsId,
+        { operation: 'syncIntegrationFetchDestinationSchema' },
+        { integration },
+      )
+    }
+
     onMounted(async () => {
       const _syncId = unref(syncId)
       if (mode === 'edit' && _syncId) {
@@ -230,6 +250,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       updateIntegrationConfig,
       availableIntegrations,
       integrationConfigValidationCallbacks,
+      integrationFetchDestinationSchema,
       validateIntegrationConfigs,
       saveSyncConfig,
       updateSyncConfig,

@@ -160,6 +160,9 @@ const supportedDocs = [
               <template v-else-if="step === SyncFormStep.Integration">
                 <ProjectSyncCommonSources />
               </template>
+              <template v-else-if="step === SyncFormStep.DestinationSchema">
+                <ProjectSyncCommonSchemaMapping />
+              </template>
               <template v-else-if="step === SyncFormStep.Create">
                 <ProjectSyncCreateReview />
               </template>

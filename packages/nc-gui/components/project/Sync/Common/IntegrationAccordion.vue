@@ -11,8 +11,13 @@ const { $api } = useNuxtApp()
 
 const { getIntegrationForm } = useIntegrationStore()
 
-const { integrationConfigs, availableIntegrations, updateIntegrationConfig, integrationConfigValidationCallbacks } =
-  useSyncFormOrThrow()
+const {
+  integrationConfigs,
+  availableIntegrations,
+  updateIntegrationConfig,
+  integrationConfigValidationCallbacks,
+  removeIntegrationConfig,
+} = useSyncFormOrThrow()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -92,6 +97,11 @@ onBeforeUnmount(() => {
           </template>
         </NcTooltip>
       </div>
+
+      <NcButton type="text" size="xxsmall" @click.stop="removeIntegrationConfig(index)">
+        <GeneralIcon icon="delete" />
+      </NcButton>
+
       <NcButton type="text" size="xxsmall">
         <GeneralIcon
           class="h-4 w-4 transition-all transform"

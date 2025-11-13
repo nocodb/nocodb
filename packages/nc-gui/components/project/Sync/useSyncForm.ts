@@ -11,11 +11,13 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
     const syncStore = useSyncStore()
 
-    const { createSync, readSync, updateSync: updateSyncStore } = syncStore
+    const { createSync, readSync, updateSync: updateSyncStore, deleteSync } = syncStore
 
     const syncConfigForm = ref<Partial<SyncConfig>>(defaultSyncConfig)
 
     const integrationConfigs = ref<IntegrationConfig[]>([])
+
+    const deletedSyncConfigIds = ref<string[]>([])
 
     const syncConfigEditFormChanged = ref(false)
 
@@ -57,6 +59,18 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
     const removeIntegrationConfig = (index: number) => {
       if (integrationConfigs.value.length === 1) return
+
+      const config = integrationConfigs.value[index]
+
+      if (!config) {
+        return
+      }
+
+      // If this is an existing child sync (has syncConfigId and is not the parent), track it for deletion
+      if (mode === 'edit' && config.syncConfigId && config.parentSyncConfigId) {
+        deletedSyncConfigIds.value.push(config.syncConfigId)
+      }
+
       integrationConfigs.value.splice(index, 1)
     }
 
@@ -113,8 +127,19 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
         throw new Error('Sync ID is required for update')
       }
 
+      const bsId = unref(baseId)
+      if (!bsId) {
+        throw new Error('Base ID is required for update')
+      }
+
       isUpdating.value = true
       try {
+        // First, delete any child syncs that were marked for deletion
+        if (deletedSyncConfigIds.value.length > 0) {
+          await Promise.all(deletedSyncConfigIds.value.map((syncConfigId) => deleteSync(bsId, syncConfigId)))
+          deletedSyncConfigIds.value = []
+        }
+
         const updateData = {
           syncConfigId: _syncId,
           title: syncConfigForm.value.title,
@@ -151,6 +176,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
     onMounted(async () => {
       const _syncId = unref(syncId)
       if (mode === 'edit' && _syncId) {
+        deletedSyncConfigIds.value = []
         const sync = await readSync(_syncId)
         if (!sync) return
         syncConfigForm.value = sync as SyncConfig

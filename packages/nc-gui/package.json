@@ -98,6 +98,7 @@
     "ant-design-vue": "^3.2.20",
     "aws-amplify": "^5.3.27",
     "company-email-validator": "^1.1.0",
+    "cronstrue": "^3.9.0",
     "crossoriginworker": "^1.1.0",
     "d3-scale": "^4.0.2",
     "dagre": "^0.8.5",

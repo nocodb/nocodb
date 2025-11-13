@@ -189,6 +189,7 @@
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace."
   },
   "general": {
+    "comingsoon": "Coming soon",
     "authorization": "Authorization",
     "revoke": "Revoke",
     "marketplace": "Marketplace",

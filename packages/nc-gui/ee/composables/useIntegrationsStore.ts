@@ -374,10 +374,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     if (!integration?.id) return
 
     try {
-      const integrationWithConfig = await api.integration.read(integration.id, {
+      return await api.integration.read(integration.id, {
         ...(options || {}),
       })
-      return integrationWithConfig
     } catch (e) {
       const error = await extractSdkResponseErrorMsgv2(e)
 

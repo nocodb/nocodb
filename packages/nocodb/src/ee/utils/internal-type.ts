@@ -85,7 +85,7 @@ export type InternalPOSTResponseType = Promise<
     }
   | {
       syncConfig: SyncConfig;
-      integration: Integration;
+      integrations: Integration[];
     }
   | TestConnectionResponse
   | {

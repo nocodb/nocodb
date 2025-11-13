@@ -7,11 +7,25 @@ import {
 
 const form: FormDefinition = [
   {
+    type: FormBuilderInputType.Input,
+    label: 'Integration name',
+    width: 100,
+    model: 'title',
+    placeholder: 'Integration name',
+    category: 'General',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'Integration name is required',
+      },
+    ],
+  },
+  {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Bitbucket Connection',
     width: 100,
     model: 'config.authIntegrationId',
-    category: 'Authentication',
+    category: 'General',
     integrationFilter: {
       type: IntegrationType.Auth,
       sub_type: 'bitbucket',
@@ -28,7 +42,7 @@ const form: FormDefinition = [
     label: 'Repositories',
     width: 100,
     model: 'config.repos',
-    category: 'Source',
+    category: 'General',
     placeholder: 'e.g., workspace/repository',
     options: [],
     fetchOptionsKey: 'repos',
@@ -51,7 +65,7 @@ const form: FormDefinition = [
     label: 'Include closed issues',
     width: 48,
     model: 'config.includeClosed',
-    category: 'Source',
+    category: 'Options',
     defaultValue: true,
     condition: [
       {
@@ -63,7 +77,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Space,
     width: 4,
-    category: 'Source',
+    category: 'Options',
     condition: [
       {
         model: 'config.authIntegrationId',
@@ -76,7 +90,7 @@ const form: FormDefinition = [
     label: 'Include Pull Requests',
     width: 48,
     model: 'config.includePRs',
-    category: 'Source',
+    category: 'Options',
     defaultValue: false,
     condition: [
       {

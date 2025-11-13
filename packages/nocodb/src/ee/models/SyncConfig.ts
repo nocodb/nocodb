@@ -75,9 +75,7 @@ export default class SyncConfig {
     if (!syncConfig.fk_parent_sync_config_id) {
       syncConfig = new SyncConfig(syncConfig);
 
-      const children = await syncConfig.listChildren(context, ncMeta);
-
-      syncConfig.children = children;
+      syncConfig.children = await syncConfig.listChildren(context, ncMeta);
     }
 
     return new SyncConfig(syncConfig);

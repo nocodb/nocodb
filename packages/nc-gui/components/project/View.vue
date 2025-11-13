@@ -311,7 +311,7 @@ onMounted(() => {
               <div>Syncs</div>
             </div>
           </template>
-          <DashboardSettingsSyncs v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
+          <ProjectSync :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
         <a-tab-pane v-if="!isSharedBase && !isMobileMode" key="base-settings">
           <template #tab>

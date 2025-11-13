@@ -21,6 +21,35 @@ export enum SyncCategory {
   CUSTOM = 'custom',
 }
 
+export interface SyncConfig {
+  id: string;
+  title: string;
+
+  fk_parent_sync_config_id: string | null;
+
+  fk_integration_id: string;
+
+  sync_category: SyncCategory;
+  sync_type: SyncType;
+  sync_trigger: SyncTrigger;
+  sync_trigger_cron?: string;
+  sync_trigger_secret: string | null;
+  sync_job_id: string;
+
+  last_sync_at: string | null;
+  next_sync_at: string | null;
+
+  on_delete_action: OnDeleteAction;
+
+  fk_workspace_id: string;
+  base_id: string;
+
+  created_at: string;
+  updated_at: string;
+
+  children?: SyncConfig[];
+}
+
 export const SyncTriggerMeta = {
   [SyncTrigger.Manual]: {
     value: SyncTrigger.Manual,
@@ -69,26 +98,29 @@ export const SyncCategoryMeta = {
   [SyncCategory.TICKETING]: {
     value: SyncCategory.TICKETING,
     label: 'Ticketing',
-    description: 'Sync data from a ticketing system',
-    icon: 'ncBookOpen',
+    description: 'Sync support tickets and updates.',
+    icon: 'ncClipboard',
   },
   [SyncCategory.CRM]: {
     value: SyncCategory.CRM,
     label: 'CRM',
-    description: 'Sync data from a CRM',
+    description: 'Sync your customer and lead data.',
     icon: 'ncUsers',
+    comingSoon: true,
   },
   [SyncCategory.FILE_STORAGE]: {
     value: SyncCategory.FILE_STORAGE,
     label: 'File Storage',
-    description: 'Sync data from a file storage system',
+    description: 'Sync all your files and folders.',
     icon: 'ncFolder',
+    comingSoon: true,
   },
   [SyncCategory.CUSTOM]: {
     value: SyncCategory.CUSTOM,
     label: 'Custom',
-    description: 'Sync data from a dynamic source',
+    description: 'Sync other services or apps.',
     icon: 'ncDatabase',
+    beta: true,
   },
 };
 
@@ -105,7 +137,8 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_TICKET,
     icon: 'ncBookOpen',
     label: 'Ticket',
-    description: 'Sync all ticket data from the source',
+    description:
+      'The Ticket object is used to represent a ticket, issue, task or case.',
     required: true,
   },
   [TARGET_TABLES.TICKETING_USER]: {
@@ -113,7 +146,8 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_USER,
     icon: 'ncUsers',
     label: 'User',
-    description: 'Sync all users on tickets from the source',
+    description:
+      'The User object is used to represent a user with a login to the ticketing system. Users are either assignees who are directly responsible or a viewer on a Ticket/ Collection.',
     required: true,
   },
   [TARGET_TABLES.TICKETING_COMMENT]: {
@@ -121,7 +155,8 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_COMMENT,
     icon: 'ncMessageCircle',
     label: 'Comment',
-    description: 'Sync all comments on tickets',
+    description:
+      'The Comment object is used to represent a comment on a ticket.',
     required: false,
   },
   [TARGET_TABLES.TICKETING_TEAM]: {
@@ -129,7 +164,8 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_TEAM,
     icon: 'ncUsers',
     label: 'Team',
-    description: 'Sync all teams from the source',
+    description:
+      'The Team object is used to represent one or more Users within the company receiving the ticket.',
     required: false,
   },
 };

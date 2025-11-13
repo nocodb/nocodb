@@ -256,12 +256,12 @@ export class InternalController extends InternalControllerCE {
       case 'createSync':
         return await this.syncService.createSync(context, payload, req);
       case 'triggerSync':
-        if (!payload.syncConfigId) {
-          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        if (!payload.id) {
+          NcError.genericNotFound('SyncConfig', payload.id);
         }
 
         return await this.syncService.triggerSync(context, {
-          syncConfigId: payload.syncConfigId,
+          syncConfigId: payload.id,
           bulk: payload.bulk,
           req,
         });
@@ -273,24 +273,16 @@ export class InternalController extends InternalControllerCE {
           req,
         );
       case 'deleteSync':
-        if (!payload.syncConfigId) {
-          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        if (!payload.id) {
+          NcError.genericNotFound('SyncConfig', payload.id);
         }
-        return await this.syncService.deleteSync(
-          context,
-          payload.syncConfigId,
-          req,
-        );
+        return await this.syncService.deleteSync(context, payload.id, req);
       case 'migrateSync':
-        if (!payload.syncConfigId) {
-          NcError.genericNotFound('SyncConfig', payload.syncConfigId);
+        if (!payload.id) {
+          NcError.genericNotFound('SyncConfig', payload.id);
         }
 
-        return await this.syncService.migrateSync(
-          context,
-          payload.syncConfigId,
-          req,
-        );
+        return await this.syncService.migrateSync(context, payload.id, req);
       case 'syncIntegrationFetchOptions':
         return await this.syncService.integrationFetchOptions(context, {
           integration: payload.integration,

@@ -90,6 +90,15 @@ const FEATURES = [
     isEE: true,
   },
   {
+    id: 'sync_beta_feature',
+    title: 'Advanced Sync Features',
+    description: 'Enable sync beta features like custom sync, multi source sync, etc.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
     id: 'geodata_column',
     title: 'Geodata column',
     description: 'Enable the geodata column.',

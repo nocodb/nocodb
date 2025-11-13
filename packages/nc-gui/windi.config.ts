@@ -171,6 +171,7 @@ export default defineConfig({
         'error': '0px 0px 0px 2px var(--ant-error-color-outline)',
         'focus': '0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe',
         'nc-sm': '0px 3px 1px -2px rgba(var(--rgb-base), 0.06), 0px 5px 3px -2px rgba(var(--rgb-base), 0.02)',
+        'disabled': '0 0 0 2px rgba(106, 113, 132, 0.24)',
       },
       colors: {
         ...windiColors,

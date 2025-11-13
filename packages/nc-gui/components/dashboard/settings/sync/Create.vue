@@ -251,7 +251,7 @@ const isModalClosable = computed(() => !syncState.value.creating)
           </div>
 
           <div class="flex w-full max-w-5xl mx-auto">
-            <a-form layout="vertical" no-style hide-required-mark class="flex flex-col w-full">
+            <a-form layout="vertical" no-style :hide-required-mark="true" class="flex flex-col w-full">
               <div class="flex flex-col gap-5">
                 <!-- Step 1: Category -->
                 <div v-if="step === Step.Category">

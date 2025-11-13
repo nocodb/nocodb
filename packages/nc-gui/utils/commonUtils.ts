@@ -1,9 +1,6 @@
 import type { DefaultOptionType } from 'ant-design-vue/lib/select'
 import type { SortableOptions } from 'sortablejs'
 import type { AutoScrollOptions } from 'sortablejs/plugins'
-import type { UserType } from 'nocodb-sdk'
-import { ncIsArray } from 'nocodb-sdk'
-import GraphemeSplitter from 'grapheme-splitter'
 
 export const modalSizes = {
   xs: {
@@ -81,48 +78,6 @@ export const ncArrayFrom = <T>(
  */
 export const isUnicodeEmoji = (emoji: string) => {
   return !!emoji?.match(/(\p{Emoji}|\p{Extended_Pictographic})/gu)
-}
-
-/**
- * Get safe initials, emoji-safe & surrogate-safe.
- *
- * Rules: if limitEmojiToOne is true, then:
- * - Emoji + Letter → keep both
- * - Emoji + Emoji → keep only first emoji
- */
-export const getSafeInitials = (title?: string, initialsLength: number = 2, limitEmojiToOne: boolean = false): string => {
-  if (!title?.trim()) return ''
-
-  const splitter = new GraphemeSplitter()
-  const splitGraphemes = (str: string) => splitter.splitGraphemes(str)
-
-  const words = title.trim().split(/\s+/).filter(Boolean)
-  const initials: string[] = []
-
-  // First take initials from each word
-  for (const word of words) {
-    if (initials.length >= initialsLength) break
-    const g = splitGraphemes(word)
-    if (g.length > 0) initials.push(g[0]!)
-  }
-
-  // If only 1 word or initialsLength > words.length
-  if (initials.length < initialsLength && words.length > 0) {
-    const g = splitGraphemes(words[0] ?? '')
-    const remaining = initialsLength - initials.length
-    initials.push(...g.slice(1, 1 + remaining)) // continue slicing same word
-  }
-
-  // Final slice by allowed length
-  const resultClusters = splitGraphemes(initials.join('')).slice(0, initialsLength)
-
-  // ✅ Smart emoji limit:
-  // If ALL characters are emoji & more than 1 → limit to 1
-  if (limitEmojiToOne && resultClusters.length > 1 && resultClusters.every((ch) => isUnicodeEmoji(ch))) {
-    return resultClusters[0] ?? '' // only first emoji
-  }
-
-  return resultClusters.join('')
 }
 
 /**

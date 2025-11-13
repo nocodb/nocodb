@@ -1,11 +1,25 @@
 <script lang="ts" setup>
 const route = useRoute()
 
-const { sharedBaseId, isUseThisTemplate, options } = useCopySharedBase()
+const { $api } = useNuxtApp()
+
+const { sharedBaseId, isUseThisTemplate, options, templateName } = useCopySharedBase()
 
 const { forcedProjectId } = storeToRefs(useBase())
 
-onMounted(() => {
+const getSharedBaseTitle = async () => {
+  if (!route.query.base) return
+
+  try {
+    const sharedBaseMeta = await $api.public.sharedBaseGet(route.query.base as string)
+
+    templateName.value = (sharedBaseMeta?.base_title as string) ?? ''
+  } catch (e: any) {
+    console.error(e)
+  }
+}
+
+onMounted(async () => {
   isUseThisTemplate.value = true
 
   options.value.includeData = true
@@ -14,6 +28,8 @@ onMounted(() => {
   sharedBaseId.value = route.query.base as string
 
   if (forcedProjectId?.value) forcedProjectId.value = undefined
+
+  await getSharedBaseTitle()
 
   navigateTo(`/`)
 })

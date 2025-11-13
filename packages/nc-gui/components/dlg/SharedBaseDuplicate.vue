@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
+const { workspacesList } = storeToRefs(useWorkspace())
+
 const { duplicateSharedBase, isLoading, options, selectedWorkspace, isUseThisTemplate, templateName } = useCopySharedBase()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
@@ -51,6 +53,7 @@ const filterWorkspace = (workspace: NcWorkspace) => {
           placeholder="Select workspace"
           force-layout="vertical"
           disable-label
+          :workspace-list="workspacesList"
           :filter-workspace="filterWorkspace"
         />
       </template>

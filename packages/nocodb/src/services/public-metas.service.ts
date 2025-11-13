@@ -280,7 +280,7 @@ export class PublicMetasService {
 
     this.checkBaseType(base);
 
-    return { base_id: base.id };
+    return { base_id: base.id, base_title: base.title };
   }
 
   public checkBaseType(_base: Base) {

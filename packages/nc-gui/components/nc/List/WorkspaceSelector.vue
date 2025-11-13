@@ -9,6 +9,7 @@ interface Props {
   autoSelect?: boolean
   disabled?: boolean
   placeholder?: string
+  workspaceList?: WorkspaceType[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -34,7 +35,7 @@ const handleValueUpdate = (value: any) => {
 }
 
 const workspaceList = computedAsync(async () => {
-  let wsList = (await workspaceStore.loadWorkspaces()) || []
+  let wsList = ncIsArray(props.workspaceList) ? props.workspaceList : (await workspaceStore.loadWorkspaces()) || []
 
   if (props.filterWorkspace) {
     wsList = wsList.filter(props.filterWorkspace)

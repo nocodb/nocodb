@@ -174,6 +174,9 @@ export class UtilsService extends UtilsServiceCE {
     result.marketingRootUrl =
       process.env.NC_MARKETING_ROOT_URL || 'https://nocodb.com';
 
+    result.templatesRootUrl =
+      process.env.NC_TEMPLATES_ROOT_URL || 'https://nocodb.com';
+
     return result;
   }
 

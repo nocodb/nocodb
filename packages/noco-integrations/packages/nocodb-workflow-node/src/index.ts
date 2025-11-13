@@ -1,4 +1,7 @@
-import { type IntegrationEntry, IntegrationType } from '@noco-integrations/core';
+import {
+  type IntegrationEntry,
+  IntegrationType,
+} from '@noco-integrations/core';
 import { manifest } from './manifest';
 import { NocoDBNode } from './nodes/nocodb';
 import { RecordCreatedTriggerNode } from './nodes/record-created-trigger';

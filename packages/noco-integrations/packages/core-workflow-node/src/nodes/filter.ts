@@ -164,9 +164,7 @@ export class FilterNode extends WorkflowNodeIntegration<FilterNodeConfig> {
     return { valid: errors.length === 0, errors };
   }
 
-  public async run(
-    ctx: WorkflowNodeRunContext,
-  ): Promise<WorkflowNodeResult> {
+  public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
 
@@ -301,10 +299,14 @@ export class FilterNode extends WorkflowNodeIntegration<FilterNodeConfig> {
         return isNumeric ? num1 <= num2 : strValue <= strFilter;
 
       case FilterOperation.IS_EMPTY:
-        return fieldValue === null || fieldValue === undefined || strValue === '';
+        return (
+          fieldValue === null || fieldValue === undefined || strValue === ''
+        );
 
       case FilterOperation.IS_NOT_EMPTY:
-        return fieldValue !== null && fieldValue !== undefined && strValue !== '';
+        return (
+          fieldValue !== null && fieldValue !== undefined && strValue !== ''
+        );
 
       default:
         throw new Error(`Unknown operation: ${operation}`);

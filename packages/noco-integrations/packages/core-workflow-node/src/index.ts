@@ -1,4 +1,7 @@
-import { IntegrationType, type IntegrationEntry } from '@noco-integrations/core';
+import {
+  IntegrationType,
+  type IntegrationEntry,
+} from '@noco-integrations/core';
 import { manifest } from './manifest';
 import { ManualTriggerNode } from './nodes/manual-trigger';
 import { IfNode } from './nodes/if';

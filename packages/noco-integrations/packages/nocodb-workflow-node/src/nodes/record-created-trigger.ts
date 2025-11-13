@@ -78,9 +78,7 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
     return { valid: errors.length === 0, errors };
   }
 
-  public async run(
-    ctx: WorkflowNodeRunContext,
-  ): Promise<WorkflowNodeResult> {
+  public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
 
@@ -105,7 +103,7 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
         outputs: {
           record: newData, // The newly created record
           user: user, // User who created the record
-          timestamp: timestamp || (new Date()).toISOString(),
+          timestamp: timestamp || new Date().toISOString(),
           modelId: this.config.modelId,
         },
         status: 'success',

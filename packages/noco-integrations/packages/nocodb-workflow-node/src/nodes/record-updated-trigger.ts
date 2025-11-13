@@ -86,9 +86,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
     return { valid: errors.length === 0, errors };
   }
 
-  public async run(
-    ctx: WorkflowNodeRunContext,
-  ): Promise<WorkflowNodeResult> {
+  public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
 
@@ -110,7 +108,8 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
         if (!hasMatch) {
           logs.push({
             level: 'info',
-            message: 'Record updated but no monitored columns changed, skipping',
+            message:
+              'Record updated but no monitored columns changed, skipping',
             ts: Date.now(),
             data: {
               affectedColumns,
@@ -147,7 +146,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
           previousRecord: prevData, // The record before update
           record: newData, // The record after update
           user: user, // User who updated the record
-          timestamp: timestamp || (new Date()).toISOString(),
+          timestamp: timestamp || new Date().toISOString(),
           modelId: this.config.modelId,
           affectedColumns: affectedColumns || [],
         },

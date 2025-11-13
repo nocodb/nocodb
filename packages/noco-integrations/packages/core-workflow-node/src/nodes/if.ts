@@ -147,9 +147,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     return { valid: errors.length === 0, errors };
   }
 
-  public async run(
-    ctx: WorkflowNodeRunContext,
-  ): Promise<WorkflowNodeResult> {
+  public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
 

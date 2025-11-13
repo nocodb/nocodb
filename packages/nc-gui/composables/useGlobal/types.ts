@@ -44,6 +44,7 @@ export interface AppInfo {
   isOnPrem: boolean
   stripePublishableKey?: string
   marketingRootUrl?: string
+  templatesRootUrl?: string
   openReplayKey?: string | null
   disableSupportChat: boolean
   disableOnboardingFlow: boolean

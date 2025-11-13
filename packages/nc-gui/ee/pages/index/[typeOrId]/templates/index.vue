@@ -11,7 +11,7 @@ const { appInfo } = useGlobal()
 const workspaceId = computed(() => route.value.params.typeOrId as string)
 
 const websiteUrl = computed(() => {
-  return appInfo.value.marketingRootUrl || 'https://nocodb.com'
+  return appInfo.value.templatesRootUrl || 'https://nocodb.com'
 })
 
 const frameLoaded = ref(false)

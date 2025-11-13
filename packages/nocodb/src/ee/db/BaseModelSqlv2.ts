@@ -2455,7 +2455,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           await this.validate(d, columns, { allowSystemColumn, typecast });
         }
       }
-
+      profiler.log('validate done');
       const updateDatas = raw
         ? datas
         : await Promise.all(
@@ -2469,6 +2469,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               ),
             ),
           );
+      profiler.log('mapAliasToColumn done');
 
       const prevData = [];
       const newData = [];
@@ -2553,6 +2554,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           );
         }
       }
+      profiler.log('prepareNocoData done');
 
       if (
         this.model.primaryKeys.length === 1 &&
@@ -2600,6 +2602,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           throw e;
         }
       }
+      profiler.log('execute done');
 
       if (apiVersion === NcApiVersion.V3) {
         profiler.log('updateLTARCols start');
@@ -2617,10 +2620,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         for (let i = 0; i < updatePkValues.length; i += READ_CHUNK_SIZE) {
           const pksChunk = updatePkValues.slice(i, i + READ_CHUNK_SIZE);
 
+          profiler.log('this.list start for chunk ' + i);
           const updatedRecords = await this.list(
             { pks: pksChunk.join(',') },
             { limitOverride: pksChunk.length },
           );
+          profiler.log('this.list done for chunk ' + i);
 
           const updatedRecordsMap = new Map(
             updatedRecords.map((record) => {
@@ -2643,6 +2648,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
         }
       }
+      profiler.log('Chunking to newData done');
 
       if (!raw && !skip_hooks) {
         profiler.log('after update start');

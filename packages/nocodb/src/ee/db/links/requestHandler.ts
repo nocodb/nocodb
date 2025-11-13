@@ -8,6 +8,8 @@ import {
 } from 'nocodb-sdk';
 import { LinksRequestHandler as LinksRequestHandlerCE } from 'src/db/links/requestHandler';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from 'src/constants';
+import { DBQueryClient } from 'src/dbQueryClient';
+import type { ClientType } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
   LinkRow,
@@ -118,10 +120,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       ...keyValUnlinks.map((k) => k.linkId),
     ]);
 
-    const relatedContext = {
-      ...context,
-      base_id: colOptions.fk_related_base_id ?? context.base_id,
-    } as NcContext;
+    const relatedContext = colOptions.getRelContext(context).refContext;
     const relatedBaseModel = await getBaseModelSqlFromModelId({
       modelId: colOptions.fk_related_model_id,
       context: relatedContext,
@@ -129,16 +128,19 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     });
     const relatedModel = relatedBaseModel.model;
     await relatedModel.getColumns(relatedContext);
-    const notExistsQb = knex
-      .fromRaw(
-        knex.raw(`(??) as _tbl`, [
-          knex.raw(
-            [...relatedLinkIds]
-              .map((link) => knex.raw(`SELECT ? as _id`, link))
-              .join(' UNION ALL '),
-          ),
-        ]),
-      )
+    const notExistsQb = DBQueryClient.get(
+      baseModel.dbDriver.clientType() as ClientType,
+    )
+      .temporaryTable({
+        knex,
+        data: [...relatedLinkIds].map((link) => {
+          return {
+            _id: link,
+          };
+        }),
+        fields: ['_id'],
+        alias: '_tbl',
+      })
       .whereNotExists(function () {
         this.from(
           relatedBaseModel.getTnPath(relatedModel) as '_rel_tbl',
@@ -488,17 +490,10 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     { colOptions, links }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
     knex: CustomKnex,
   ) {
-    const {
-      fk_mm_base_id,
-      fk_mm_model_id,
-      fk_mm_child_column_id,
-      fk_mm_parent_column_id,
-    } = colOptions;
+    const { fk_mm_model_id, fk_mm_child_column_id, fk_mm_parent_column_id } =
+      colOptions;
 
-    const mmContext = {
-      ...context,
-      base_id: fk_mm_base_id ?? context.base_id,
-    };
+    const mmContext = colOptions.getRelContext(context).mmContext;
     const mmBaseModel = await getBaseModelSqlFromModelId({
       modelId: fk_mm_model_id,
       context: mmContext,
@@ -544,17 +539,10 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     { colOptions, links }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
     knex: CustomKnex,
   ) {
-    const {
-      fk_mm_base_id,
-      fk_mm_model_id,
-      fk_mm_child_column_id,
-      fk_mm_parent_column_id,
-    } = colOptions;
+    const { fk_mm_model_id, fk_mm_child_column_id, fk_mm_parent_column_id } =
+      colOptions;
 
-    const mmContext = {
-      ...context,
-      base_id: fk_mm_base_id ?? context.base_id,
-    };
+    const mmContext = colOptions.getRelContext(context).mmContext;
     const mmBaseModel = await getBaseModelSqlFromModelId({
       modelId: fk_mm_model_id,
       context: mmContext,
@@ -600,16 +588,11 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     { colOptions, links }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
     knex: CustomKnex,
   ) {
-    const {
-      fk_related_model_id: child_model_id,
-      fk_child_column_id,
-      fk_related_base_id,
-    } = colOptions;
+    const { fk_related_model_id: child_model_id, fk_child_column_id } =
+      colOptions;
 
-    const childContext = {
-      ...context,
-      base_id: fk_related_base_id ?? context.base_id,
-    };
+    const childContext = (await colOptions.getParentChildContext(context))
+      .childContext;
     const childBaseModel = await getBaseModelSqlFromModelId({
       modelId: child_model_id,
       context: childContext,
@@ -655,16 +638,11 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     { colOptions, links }: Omit<LinkUnlinkProcessRequest, 'unlinks'>,
     knex: CustomKnex,
   ) {
-    const {
-      fk_related_model_id: child_model_id,
-      fk_child_column_id,
-      fk_related_base_id,
-    } = colOptions;
+    const { fk_related_model_id: child_model_id, fk_child_column_id } =
+      colOptions;
 
-    const childContext = {
-      ...context,
-      base_id: fk_related_base_id ?? context.base_id,
-    };
+    const childContext = (await colOptions.getParentChildContext(context))
+      .childContext;
     const childBaseModel = await getBaseModelSqlFromModelId({
       modelId: child_model_id,
       context: childContext,
@@ -881,17 +859,19 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         }) ?? [],
       );
       if (toDelete.length) {
-        const toDeleteUnionTable = toDelete
-          .map((row) =>
-            knex.raw(`SELECT ? as child_id, ? as parent_id`, [
-              row[childColumn.column_name],
-              row[parentColumn.column_name],
-            ]),
-          )
-          .join(' UNION ALL ');
-        const toDeleteUnionTableWithAlias = knex.raw('(??) as _rel_tbl', [
-          knex.raw(toDeleteUnionTable),
-        ]);
+        const toDeleteUnionTableWithAlias = DBQueryClient.get(
+          baseModel.dbDriver.clientType() as ClientType,
+        ).temporaryTable({
+          knex,
+          data: [...toDelete].map((row) => {
+            return {
+              child_id: row[childColumn.column_name],
+              parent_id: row[parentColumn.column_name],
+            };
+          }),
+          fields: ['child_id', 'parent_id'],
+          alias: '_rel_tbl',
+        });
 
         const qb = knex(mmBaseModel.getTnPath(mmModel, '_tbl'))
           .whereExists(
@@ -943,10 +923,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         colOptions.type === RelationTypes.HAS_MANY) &&
       !parseProp(column.meta).bt
     ) {
-      const relatedContext = {
-        ...context,
-        base_id: colOptions.fk_related_base_id ?? context.base_id,
-      };
+      const relatedContext = colOptions.getRelContext(context).refContext;
       const relatedBaseModel = await getBaseModelSqlFromModelId({
         modelId: colOptions.fk_related_model_id,
         context: relatedContext,
@@ -1180,10 +1157,8 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       ) as string[],
     );
 
-    const relatedContext = {
-      ...context,
-      base_id: colOptions.fk_related_base_id ?? context.base_id,
-    };
+    const relatedContext = colOptions.getRelContext(context).refContext;
+
     const relatedBaseModel = await getBaseModelSqlFromModelId({
       modelId: colOptions.fk_related_model_id,
       context: relatedContext,

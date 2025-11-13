@@ -8,6 +8,8 @@ import {
 } from 'nocodb-sdk';
 import { LinksRequestHandler as LinksRequestHandlerCE } from 'src/db/links/requestHandler';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from 'src/constants';
+import { DBQueryClient } from 'src/dbQueryClient';
+import type { ClientType } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
   LinkRow,
@@ -126,16 +128,19 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
     });
     const relatedModel = relatedBaseModel.model;
     await relatedModel.getColumns(relatedContext);
-    const notExistsQb = knex
-      .fromRaw(
-        knex.raw(`(??) as _tbl`, [
-          knex.raw(
-            [...relatedLinkIds]
-              .map((link) => knex.raw(`SELECT ? as _id`, link))
-              .join(' UNION ALL '),
-          ),
-        ]),
-      )
+    const notExistsQb = DBQueryClient.get(
+      baseModel.dbDriver.clientType() as ClientType,
+    )
+      .temporaryTable({
+        knex,
+        data: [...relatedLinkIds].map((link) => {
+          return {
+            _id: link,
+          };
+        }),
+        fields: ['_id'],
+        alias: '_tbl',
+      })
       .whereNotExists(function () {
         this.from(
           relatedBaseModel.getTnPath(relatedModel) as '_rel_tbl',
@@ -854,17 +859,19 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         }) ?? [],
       );
       if (toDelete.length) {
-        const toDeleteUnionTable = toDelete
-          .map((row) =>
-            knex.raw(`SELECT ? as child_id, ? as parent_id`, [
-              row[childColumn.column_name],
-              row[parentColumn.column_name],
-            ]),
-          )
-          .join(' UNION ALL ');
-        const toDeleteUnionTableWithAlias = knex.raw('(??) as _rel_tbl', [
-          knex.raw(toDeleteUnionTable),
-        ]);
+        const toDeleteUnionTableWithAlias = DBQueryClient.get(
+          baseModel.dbDriver.clientType() as ClientType,
+        ).temporaryTable({
+          knex,
+          data: [...toDelete].map((row) => {
+            return {
+              child_id: row[childColumn.column_name],
+              parent_id: row[parentColumn.column_name],
+            };
+          }),
+          fields: ['child_id', 'parent_id'],
+          alias: '_rel_tbl',
+        });
 
         const qb = knex(mmBaseModel.getTnPath(mmModel, '_tbl'))
           .whereExists(

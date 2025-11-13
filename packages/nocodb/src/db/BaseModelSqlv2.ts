@@ -64,8 +64,8 @@ import type {
   SelectOption,
   User,
 } from '~/models';
-import type LookupColumn from '~/models/LookupColumn';
-import type { ResolverObj } from '~/utils';
+import { baseModelList } from '~/db/BaseModelSqlv2/list';
+import { LTARColsUpdater } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
@@ -131,7 +131,6 @@ import {
   removeBlankPropsAndMask,
 } from '~/utils';
 import { MetaTable } from '~/utils/globals';
-import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
@@ -470,187 +469,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       skipSortBasedOnOrderCol?: boolean;
     } = {},
   ): Promise<any> {
-    const {
-      ignoreViewFilterAndSort = false,
-      ignorePagination = false,
-      validateFormula = false,
-      throwErrorIfInvalidParams = false,
-      limitOverride,
-      skipSortBasedOnOrderCol = false,
-    } = options;
-
-    const columns = await this.model.getColumns(this.context);
-
-    const { where, fields, ...rest } = this._getListArgs(args as any);
-
-    const qb = this.dbDriver(this.tnPath);
-
-    await this.selectObject({
-      qb,
-      fieldsSet: args.fieldsSet,
-      viewId: this.viewId,
-      validateFormula,
-      columns,
-    });
-    if (+rest?.shuffle) {
-      await this.shuffle({ qb });
-    }
-
-    const aliasColObjMap = await this.model.getAliasColObjMap(
-      this.context,
-      columns,
-    );
-    let sorts = extractSortsObject(
-      this.context,
-      rest?.sort,
-      aliasColObjMap,
-      throwErrorIfInvalidParams,
-      args?.apiVersion,
-    );
-    const { filters: filterObj } = extractFilterFromXwhere(
-      this.context,
-      where,
-      aliasColObjMap,
-      throwErrorIfInvalidParams,
-    );
-    // todo: replace with view id
-    if (!ignoreViewFilterAndSort && this.viewId) {
-      await conditionV2(
-        this,
-        [
-          ...(args.customConditions
-            ? [
-                new Filter({
-                  children: args.customConditions,
-                  is_group: true,
-                }),
-              ]
-            : []),
-          new Filter({
-            children:
-              (await Filter.rootFilterList(this.context, {
-                viewId: this.viewId,
-              })) || [],
-            is_group: true,
-          }),
-          new Filter({
-            children: args.filterArr || [],
-            is_group: true,
-            logical_op: 'and',
-          }),
-          new Filter({
-            children: filterObj,
-            is_group: true,
-            logical_op: 'and',
-          }),
-        ],
-        qb,
-        undefined,
-        throwErrorIfInvalidParams,
-      );
-
-      if (!sorts)
-        sorts = args.sortArr?.length
-          ? args.sortArr
-          : await Sort.list(this.context, { viewId: this.viewId });
-
-      await sortV2(this, sorts, qb, undefined, throwErrorIfInvalidParams);
-    } else {
-      await conditionV2(
-        this,
-        [
-          ...(args.customConditions
-            ? [
-                new Filter({
-                  children: args.customConditions,
-                  is_group: true,
-                }),
-              ]
-            : []),
-          new Filter({
-            children: args.filterArr || [],
-            is_group: true,
-            logical_op: 'and',
-          }),
-          new Filter({
-            children: filterObj,
-            is_group: true,
-            logical_op: 'and',
-          }),
-        ],
-        qb,
-        undefined,
-        throwErrorIfInvalidParams,
-      );
-
-      if (!sorts) sorts = args.sortArr;
-
-      await sortV2(this, sorts, qb, undefined, throwErrorIfInvalidParams);
-    }
-
-    // skip sorting based on order column if specified in options
-    if (!skipSortBasedOnOrderCol) {
-      const orderColumn = columns.find((c) => isOrderCol(c));
-
-      // sort by order column if present
-      if (orderColumn) {
-        qb.orderBy(orderColumn.column_name);
-      }
-    }
-
-    // Ensure stable ordering:
-    // - Use auto-increment PK if available
-    // - Otherwise, fallback to system CreatedTime
-    // This avoids issues when order column has duplicates
-    if (this.model.primaryKey && this.model.primaryKey.ai) {
-      qb.orderBy(this.model.primaryKey.column_name);
-    } else {
-      const createdCol = this.model.columns.find(
-        (c) => c.uidt === UITypes.CreatedTime && c.system,
-      );
-      if (createdCol) qb.orderBy(createdCol.column_name);
-    }
-
-    if (rest.pks) {
-      const pks = rest.pks.split(',');
-      qb.where((innerQb) => {
-        pks.forEach((pk) => {
-          innerQb.orWhere(_wherePk(this.model.primaryKeys, pk));
-        });
-        return innerQb;
-      });
-    }
-
-    // if limitOverride is provided, use it as limit for the query (for internal usage eg. calendar, export)
-    if (!ignorePagination) {
-      if (!limitOverride) {
-        applyPaginate(qb, rest);
-      } else {
-        applyPaginate(qb, { ...rest, limit: limitOverride });
-      }
-    }
-    const proto = await this.getProto();
-
-    let data;
-    try {
-      data = await this.execAndParse(qb, undefined, {
-        apiVersion: args.apiVersion ?? this.context.api_version,
-        skipSubstitutingColumnIds: options.skipSubstitutingColumnIds,
-      });
-    } catch (e) {
-      if (validateFormula || !haveFormulaColumn(columns)) throw e;
-      logger.log(e);
-      return this.list(args, {
-        ignoreViewFilterAndSort,
-        ignorePagination,
-        validateFormula: true,
-      });
-    }
-
-    return data?.map((d) => {
-      d.__proto__ = proto;
-      return d;
-    });
+    return baseModelList({ baseModel: this, logger }).list(args, options);
   }
 
   public async count(
@@ -2805,29 +2624,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     apiVersion?: NcApiVersion;
     args?: Record<string, any>;
   }) {
-    const { pks, chunkSize = 1000 } = args;
-
-    const data = [];
-
-    const chunkedPks = chunkArray(pks, chunkSize);
-
-    for (const chunk of chunkedPks) {
-      const chunkData = await this.list(
-        {
-          pks: chunk.join(','),
-          apiVersion: args.apiVersion,
-          ...(args.args || {}),
-        },
-        {
-          limitOverride: chunk.length,
-          ignoreViewFilterAndSort: true,
-        },
-      );
-
-      data.push(...chunkData);
-    }
-
-    return data;
+    return baseModelList({ baseModel: this, logger }).chunkList(args);
   }
 
   async handleValidateBulkInsert(

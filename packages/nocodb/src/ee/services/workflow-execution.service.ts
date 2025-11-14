@@ -284,84 +284,112 @@ export class WorkflowExecutionService {
     nodes: any[],
   ): string | null {
     const currentNode = nodes.find((n) => n.id === currentNodeId);
+    const outgoingEdges = graph.get(currentNodeId) || [];
 
-    // If node explicitly specified next node in result
+    // 1. Explicit routing: Node explicitly specifies next node by title
     if (currentResult.nextNode) {
-      // Find node by title
       const nextNode = nodes.find(
         (n) => n.data?.title === currentResult.nextNode,
       );
       if (nextNode) {
+        this.logger.debug(
+          `Routing to explicitly specified node: "${currentResult.nextNode}"`,
+        );
         return nextNode.id;
       }
       this.logger.warn(
-        `Next node "${currentResult.nextNode}" not found, falling back to default`,
+        `Next node "${currentResult.nextNode}" not found, falling back to edge-based routing`,
       );
     }
 
-    const outgoingEdges = graph.get(currentNodeId) || [];
-
-    // No outgoing edges - end of workflow
+    // 2. End of flow: No outgoing edges
     if (outgoingEdges.length === 0) {
+      this.logger.debug('No outgoing edges, ending workflow');
       return null;
     }
 
-    // Single outgoing edge - follow it
+    // 3. Linear flow: Single outgoing edge
     if (outgoingEdges.length === 1) {
       return outgoingEdges[0].target;
     }
 
-    // Multiple outgoing edges - conditional branching
-    // Check if this is a conditional node (If, Switch, etc.)
-    const isConditionalNode =
-      currentNode?.type?.includes('if') ||
-      currentNode?.type?.includes('switch') ||
-      currentNode?.type?.includes('condition');
+    // 4. Conditional flow: Multiple outgoing edges - use node-specific logic
+    return this.resolveConditionalBranch(
+      currentNode,
+      currentResult,
+      outgoingEdges,
+    );
+  }
 
-    if (isConditionalNode) {
-      // Look for boolean result
-      const conditionResult = currentResult.output?.result;
+  private resolveConditionalBranch(
+    currentNode: any,
+    currentResult: NodeExecutionResult,
+    outgoingEdges: any[],
+  ): string | null {
+    const nodeType = currentNode?.type;
 
-      if (typeof conditionResult === 'boolean') {
-        // Find edge with matching label
-        const matchingEdge = outgoingEdges.find(
-          (edge) =>
-            edge.label?.toLowerCase() === String(conditionResult).toLowerCase(),
-        );
-
-        if (matchingEdge) {
-          return matchingEdge.target;
-        }
-      }
-
-      // Check for string result (for switch statements)
-      if (typeof conditionResult === 'string') {
-        const matchingEdge = outgoingEdges.find(
-          (edge) => edge.label === conditionResult,
-        );
-
-        if (matchingEdge) {
-          return matchingEdge.target;
-        }
-      }
-
-      // Default fallback for conditional nodes
-      const defaultEdge = outgoingEdges.find(
-        (edge) =>
-          edge.label?.toLowerCase() === 'default' ||
-          edge.label?.toLowerCase() === 'false',
+    if (!nodeType) {
+      this.logger.warn(
+        `Node ${currentNode?.id} has no type, taking first edge`,
       );
-
-      if (defaultEdge) {
-        return defaultEdge.target;
-      }
+      return outgoingEdges[0].target;
     }
 
-    // Fallback: take first edge
+    if (nodeType === 'core.flow.if') {
+      return this.resolveIfNodeBranch(currentResult, outgoingEdges);
+    }
+
+    // Unknown branching node - log warning and take first edge
     this.logger.warn(
-      `Multiple edges found for non-conditional node, taking first edge`,
+      `Node type "${nodeType}" has multiple edges but no branching logic defined, taking first edge`,
     );
-    return outgoingEdges[0].target;
+    return outgoingEdges[0]?.target || null;
+  }
+
+  private resolveIfNodeBranch(
+    result: NodeExecutionResult,
+    outgoingEdges: any[],
+  ): string | null {
+    const conditionResult = result.output?.result;
+
+    // Handle boolean result
+    if (typeof conditionResult === 'boolean') {
+      const targetLabel = conditionResult ? 'true' : 'false';
+      const matchingEdge = outgoingEdges.find(
+        (edge) => edge.label?.toLowerCase() === targetLabel,
+      );
+
+      if (matchingEdge) {
+        this.logger.debug(
+          `If condition evaluated to ${conditionResult}, taking "${targetLabel}" branch`,
+        );
+        return matchingEdge.target;
+      }
+
+      this.logger.warn(
+        `No edge found with label "${targetLabel}", looking for default branch`,
+      );
+    } else {
+      this.logger.warn(
+        `If node result is not boolean (got ${typeof conditionResult}), looking for default branch`,
+      );
+    }
+
+    // Fallback: Try to find default or false edge
+    const fallbackEdge = outgoingEdges.find(
+      (edge) =>
+        edge.label?.toLowerCase() === 'default' ||
+        edge.label?.toLowerCase() === 'false',
+    );
+
+    if (fallbackEdge) {
+      this.logger.debug('Taking fallback branch: default/false');
+      return fallbackEdge.target;
+    }
+
+    // Last resort: take first edge
+    this.logger.warn('No matching branch found, taking first edge');
+    return outgoingEdges[0]?.target || null;
   }
 
   private async executeNode(

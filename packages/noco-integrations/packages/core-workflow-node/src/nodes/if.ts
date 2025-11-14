@@ -29,9 +29,9 @@ export enum ConditionOperation {
 }
 
 interface IfNodeConfig extends WorkflowNodeConfig {
-  value1: string;
+  value1: any;
   operation: ConditionOperation;
-  value2?: string;
+  value2?: any;
 }
 
 export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
@@ -172,12 +172,10 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
 
       return {
         outputs: {
-          [result ? 'true' : 'false']: {
-            result,
-            value1,
-            operation,
-            value2,
-          },
+          result,
+          value1,
+          operation,
+          value2,
         },
         status: 'success',
         logs,
@@ -212,67 +210,100 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
   }
 
   private evaluateCondition(
-    value1: string,
+    value1: any,
     operation: ConditionOperation,
-    value2?: string,
+    value2?: any,
   ): boolean {
+    // Convert values to strings for consistent handling
+    const str1 = value1 == null ? '' : String(value1);
+    const str2 = value2 == null ? '' : String(value2);
+
     // Try to parse as numbers for numeric comparisons
-    const num1 = parseFloat(value1);
-    const num2 = value2 ? parseFloat(value2) : undefined;
-    const isNumeric = !isNaN(num1) && (value2 ? !isNaN(num2!) : true);
+    const num1 = parseFloat(str1);
+    const num2 = parseFloat(str2);
+    const isNumeric = !isNaN(num1) && (str2 !== '' ? !isNaN(num2) : true);
 
     switch (operation) {
       case ConditionOperation.EQUALS:
-        return isNumeric ? num1 === num2 : value1 === value2;
+        // Use numeric comparison if both are valid numbers
+        if (isNumeric && str2 !== '') {
+          return num1 === num2;
+        }
+        // Otherwise use string comparison
+        return str1 === str2;
 
       case ConditionOperation.NOT_EQUALS:
-        return isNumeric ? num1 !== num2 : value1 !== value2;
+        if (isNumeric && str2 !== '') {
+          return num1 !== num2;
+        }
+        return str1 !== str2;
 
       case ConditionOperation.CONTAINS:
-        return value1.includes(value2 || '');
+        return str1.includes(str2);
 
       case ConditionOperation.NOT_CONTAINS:
-        return !value1.includes(value2 || '');
+        return !str1.includes(str2);
 
       case ConditionOperation.STARTS_WITH:
-        return value1.startsWith(value2 || '');
+        return str1.startsWith(str2);
 
       case ConditionOperation.ENDS_WITH:
-        return value1.endsWith(value2 || '');
+        return str1.endsWith(str2);
 
       case ConditionOperation.GREATER_THAN:
-        return isNumeric ? num1 > num2! : value1 > (value2 || '');
+        if (isNumeric && str2 !== '') {
+          return num1 > num2;
+        }
+        // Lexicographic comparison for strings
+        return str1 > str2;
 
       case ConditionOperation.GREATER_THAN_OR_EQUAL:
-        return isNumeric ? num1 >= num2! : value1 >= (value2 || '');
+        if (isNumeric && str2 !== '') {
+          return num1 >= num2;
+        }
+        return str1 >= str2;
 
       case ConditionOperation.LESS_THAN:
-        return isNumeric ? num1 < num2! : value1 < (value2 || '');
+        if (isNumeric && str2 !== '') {
+          return num1 < num2;
+        }
+        return str1 < str2;
 
       case ConditionOperation.LESS_THAN_OR_EQUAL:
-        return isNumeric ? num1 <= num2! : value1 <= (value2 || '');
+        if (isNumeric && str2 !== '') {
+          return num1 <= num2;
+        }
+        return str1 <= str2;
 
       case ConditionOperation.IS_EMPTY:
-        return !value1 || value1.trim() === '';
+        return str1.trim() === '';
 
       case ConditionOperation.IS_NOT_EMPTY:
-        return !!value1 && value1.trim() !== '';
+        return str1.trim() !== '';
 
       case ConditionOperation.IS_TRUE:
+        // Handle boolean, string, and number types
+        const lowerStr1 = str1.toLowerCase().trim();
         return (
-          value1 === 'true' ||
-          value1 === '1' ||
-          value1 === 'yes' ||
-          value1 === 'on'
+          lowerStr1 === 'true' ||
+          lowerStr1 === '1' ||
+          lowerStr1 === 'yes' ||
+          lowerStr1 === 'on' ||
+          value1 === true ||
+          value1 === 1
         );
 
       case ConditionOperation.IS_FALSE:
+        // Handle boolean, string, and number types
+        const lowerStr1False = str1.toLowerCase().trim();
         return (
-          value1 === 'false' ||
-          value1 === '0' ||
-          value1 === 'no' ||
-          value1 === 'off' ||
-          value1 === ''
+          lowerStr1False === 'false' ||
+          lowerStr1False === '0' ||
+          lowerStr1False === 'no' ||
+          lowerStr1False === 'off' ||
+          lowerStr1False === '' ||
+          value1 === false ||
+          value1 === 0
         );
 
       default:

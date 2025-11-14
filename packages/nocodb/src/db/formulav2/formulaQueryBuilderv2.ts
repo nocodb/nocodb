@@ -47,9 +47,11 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     _tree,
     model,
     aliasToColumn = {},
+    columnIdToUidt = {},
     tableAlias,
     parsedTree,
     column = null,
+    columns,
     getAliasCount,
   } = params;
 
@@ -59,7 +61,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
 
   const context = baseModelSqlv2.context;
 
-  const columns = await model.getColumns(context);
   let tree = parsedTree;
   if (!tree) {
     // formula may include double curly brackets in previous version
@@ -109,8 +110,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     }
   }
 
-  const columnIdToUidt: Record<string, UITypes> = {};
-
   // todo: improve - implement a common solution for filter, sort, formula, etc
   for (const col of columns) {
     columnIdToUidt[col.id] = col.uidt;
@@ -145,6 +144,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               parentColumns,
               getAliasCount,
               column: col,
+              columns,
             });
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -182,7 +182,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.LastModifiedTime:
       case UITypes.DateTime:
         {
-          const refCol = await getRefColumnIfAlias(context, col);
+          const refCol = await getRefColumnIfAlias(context, col, columns);
 
           if (refCol.id in aliasToColumn) {
             aliasToColumn[col.id] = aliasToColumn[refCol.id];
@@ -436,26 +436,32 @@ export default async function formulaQueryBuilderv2({
   model,
   column,
   aliasToColumn = {},
+  columnIdToUidt = {},
   tableAlias,
   validateFormula = false,
   parsedTree,
   baseUsers,
   parentColumns,
+  columns,
 }: {
   baseModel: IBaseModelSqlV2;
   tree;
   model: Model;
   column?: Column;
   aliasToColumn?: TAliasToColumn;
+  columnIdToUidt?: Record<string, UITypes>;
   tableAlias?: string;
   validateFormula?: boolean;
   parsedTree?: any;
   baseUsers?: (Partial<User> & BaseUser)[];
   parentColumns?: CircularRefContext;
+  columns?: Column[];
 }) {
   const knex = baseModelSqlv2.dbDriver;
 
   const context = baseModelSqlv2.context;
+
+  columns = columns ?? (await model.getColumns(context));
 
   // register jsep curly hook once only
   jsep.plugins.register(jsepCurlyHook);
@@ -484,6 +490,7 @@ export default async function formulaQueryBuilderv2({
       model,
       aliasToColumn,
       tableAlias,
+      columnIdToUidt,
       column,
       parsedTree:
         parsedTree ??
@@ -492,6 +499,7 @@ export default async function formulaQueryBuilderv2({
           .then((formula) => formula?.getParsedTree())),
       baseUsers,
       parentColumns,
+      columns,
       getAliasCount,
     });
 

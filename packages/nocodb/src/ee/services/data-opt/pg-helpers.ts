@@ -33,7 +33,7 @@ import type {
 } from '~/models';
 import type CustomKnex from 'src/db/CustomKnex';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
-import { Column, Filter, Model, Sort, View } from '~/models';
+import { BaseUser, Column, Filter, Model, Sort, View } from '~/models';
 import {
   _wherePk,
   extractSortsObject,
@@ -110,8 +110,49 @@ export async function extractColumns({
   validateFormula: boolean;
   apiVersion: NcApiVersion;
 }) {
-  const extractColumnPromises = [];
+  const extractPromises = [];
+
+  const baseUsers = await BaseUser.getUsersList(baseModel.context, {
+    base_id: baseModel.model.base_id,
+  });
+
+  const model: Model = baseModel.model;
+
+  await model.getColumns(baseModel.context);
+
+  const aliasToColumn = {};
+  const columnIdToUidt: Record<string, UITypes> = {};
+
+  const firstFormula = columns.find(
+    (col) =>
+      col.uidt === UITypes.Formula &&
+      (ast === true || ast === 1 || (ast?.[col.title] ?? ast?.[col.id])),
+  );
+
+  if (firstFormula) {
+    await extractColumn({
+      column: firstFormula,
+      knex,
+      rootAlias: alias,
+      qb,
+      getAlias,
+      params: params?.nested?.[firstFormula.title],
+      baseModel,
+      ast: ast?.[firstFormula.title] ?? ast?.[firstFormula.id],
+      throwErrorIfInvalidParams,
+      validateFormula,
+      columns,
+      apiVersion,
+      model,
+      aliasToColumn,
+      columnIdToUidt,
+      baseUsers,
+    });
+  }
+
   for (const column of columns) {
+    if (column.id === firstFormula?.id) continue;
+
     if (
       // if ast is `true` then extract primary key and primary value
       !((ast === true || ast === 1) && (column.pv || column.pk)) &&
@@ -119,7 +160,7 @@ export async function extractColumns({
     )
       continue;
 
-    extractColumnPromises.push(
+    extractPromises.push(
       extractColumn({
         column,
         knex,
@@ -133,10 +174,15 @@ export async function extractColumns({
         validateFormula,
         columns,
         apiVersion,
+        model,
+        aliasToColumn,
+        columnIdToUidt,
+        baseUsers,
       }),
     );
   }
-  await Promise.all(extractColumnPromises);
+
+  await Promise.all(extractPromises);
 }
 
 export async function extractColumn({
@@ -155,6 +201,10 @@ export async function extractColumn({
   validateFormula,
   columns,
   apiVersion = NcApiVersion.V2,
+  model,
+  aliasToColumn,
+  columnIdToUidt,
+  baseUsers,
 }: {
   column: Column;
   qb: Knex.QueryBuilder;
@@ -170,6 +220,10 @@ export async function extractColumn({
   validateFormula: boolean;
   columns?: Column[];
   apiVersion: NcApiVersion;
+  model: Model;
+  aliasToColumn: any;
+  columnIdToUidt: Record<string, UITypes>;
+  baseUsers: any;
 }) {
   const context = baseModel.context;
 
@@ -990,6 +1044,10 @@ export async function extractColumn({
           throwErrorIfInvalidParams,
           validateFormula,
           apiVersion,
+          model,
+          aliasToColumn,
+          columnIdToUidt,
+          baseUsers,
         });
 
         if (!result.isArray) {
@@ -1041,7 +1099,6 @@ export async function extractColumn({
       break;
     case UITypes.Formula:
       {
-        const model: Model = await column.getModel(context);
         const formula = await column.getColOptions<FormulaColumn>(context);
         if (formula.error) {
           qb.select(knex.raw(`'ERR' as ??`, [getAs(column)]));
@@ -1055,6 +1112,10 @@ export async function extractColumn({
             column,
             tableAlias: rootAlias,
             validateFormula,
+            columns: model.columns,
+            aliasToColumn,
+            columnIdToUidt,
+            baseUsers,
           });
           qb.select(knex.raw(`?? as ??`, [selectQb.builder, getAs(column)]));
         } catch (e) {
@@ -1065,7 +1126,6 @@ export async function extractColumn({
       break;
     case UITypes.Button:
       {
-        const model: Model = await column.getModel(context);
         const buttonColumn = await column.getColOptions<ButtonColumn>(context);
         if (buttonColumn.type === ButtonActionsType.Url) {
           if (buttonColumn.error) return result;
@@ -1076,6 +1136,10 @@ export async function extractColumn({
             column,
             tableAlias: rootAlias,
             validateFormula,
+            columns: model.columns,
+            aliasToColumn,
+            columnIdToUidt,
+            baseUsers,
           });
           qb.select(
             knex.raw(
@@ -1153,6 +1217,10 @@ export async function extractColumn({
           throwErrorIfInvalidParams,
           validateFormula,
           apiVersion,
+          model,
+          aliasToColumn,
+          columnIdToUidt,
+          baseUsers,
         });
       }
       break;
@@ -1184,6 +1252,10 @@ export async function extractColumn({
           throwErrorIfInvalidParams,
           validateFormula,
           apiVersion,
+          model,
+          aliasToColumn,
+          columnIdToUidt,
+          baseUsers,
         });
       }
       break;

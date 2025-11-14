@@ -1800,7 +1800,7 @@ const getHeaderTooltipRegions = (
         width: 14,
         type: 'synced',
         disableTooltip: false,
-        text: 'This field is synced',
+        text: 'This field is externally synced',
       })
     }
 

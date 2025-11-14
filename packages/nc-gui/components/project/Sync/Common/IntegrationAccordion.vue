@@ -31,6 +31,8 @@ const config = computed(() => {
   return integrationConfigs.value[index.value] || {}
 })
 
+const disableDeletion = computed(() => integrationConfigs.value?.length <= 1)
+
 const subType = computed({
   get() {
     return config.value.sub_type
@@ -98,9 +100,14 @@ onBeforeUnmount(() => {
         </NcTooltip>
       </div>
 
-      <NcButton type="text" size="xxsmall" @click.stop="removeIntegrationConfig(index)">
-        <GeneralIcon icon="delete" />
-      </NcButton>
+      <NcTooltip>
+        <NcButton :disabled="disableDeletion" type="text" size="xxsmall" @click.stop="removeIntegrationConfig(index)">
+          <GeneralIcon icon="delete" />
+        </NcButton>
+        <template #title>
+          {{ disableDeletion ? 'Cannot delete last sync source' : 'Delete source' }}
+        </template>
+      </NcTooltip>
 
       <NcButton type="text" size="xxsmall">
         <GeneralIcon

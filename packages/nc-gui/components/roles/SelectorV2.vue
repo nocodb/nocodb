@@ -78,7 +78,6 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
         :inherit="!!inherit && role === ProjectRoles.INHERIT"
         :role="role"
         :size="size"
-        :inherited-role-icon="inheritedRoleIcon"
         clickable
         data-testid="roles"
         class="flex-none"
@@ -99,7 +98,10 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
             </div>
           </div>
         </template>
-        {{ inheritSource === 'team' ? $t('objects.team') : $t('objects.workspace') }}
+        <div class="flex items-center gap-1">
+          <RolesBadge v-if="effectiveRole" :border="false" :role="effectiveRole" icon-only nc-badge-class="!px-1" />
+          <span>{{ inheritSource === 'team' ? $t('objects.team') : $t('objects.workspace') }}</span>
+        </div>
       </NcTooltip>
 
       <template #overlay="{ onEsc }">

@@ -723,7 +723,6 @@ onBeforeUnmount(() => {
                   :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
                   :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
                   :inherit="isEeUI && getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
-                  :inherited-role-icon="getInheritanceInfo(record)?.effectiveRoleIcon"
                   :inherit-source="getInheritanceInfo(record)?.source"
                   :effective-role="getInheritanceInfo(record)?.effectiveRole"
                   :show-inherit="!!getInheritanceInfo(record)"
@@ -736,7 +735,6 @@ onBeforeUnmount(() => {
                     :border="false"
                     :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
                     :inherit="!!getInheritanceInfo(record)"
-                    :inherited-role-icon="getInheritanceInfo(record)?.effectiveRoleIcon"
                   />
                   <NcTooltip
                     v-if="isEeUI && getInheritanceInfo(record)"
@@ -761,7 +759,18 @@ onBeforeUnmount(() => {
                         </div>
                       </div>
                     </template>
-                    {{ getInheritanceInfo(record)?.source === 'team' ? $t('objects.team') : $t('objects.workspace') }}
+                    <div class="flex items-center gap-1">
+                      <RolesBadge
+                        v-if="getInheritanceInfo(record)?.effectiveRole"
+                        :border="false"
+                        :role="getInheritanceInfo(record)?.effectiveRole"
+                        icon-only
+                        nc-badge-class="!px-1"
+                      />
+                      <span>{{
+                        getInheritanceInfo(record)?.source === 'team' ? $t('objects.team') : $t('objects.workspace')
+                      }}</span>
+                    </div>
                   </NcTooltip>
                 </div>
               </template>

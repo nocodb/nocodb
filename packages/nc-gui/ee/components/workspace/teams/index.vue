@@ -138,7 +138,7 @@ const handleCreateTeam = () => {
 }
 
 const hasSoleTeamOwner = (team: TeamV3V3Type) => {
-  return (team?.managers_count || 0) < 2
+  return (team?.managers_count || 0) < 2 && team?.managers?.includes(user.value?.id || '')
 }
 
 const handleConfirm = ({

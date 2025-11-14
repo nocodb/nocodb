@@ -508,6 +508,7 @@ export const lookupOrLtarBuilder =
             const formulaOption =
               await lookupColumn.getColOptions<FormulaColumn>(context);
             const lookupModel = await lookupColumn.getModel(context);
+            const columns = await lookupModel.getColumns(context);
             parentColumns = (
               parentColumns ?? CircularRefContext.make()
             ).cloneAndAdd({
@@ -523,6 +524,7 @@ export const lookupOrLtarBuilder =
               parentColumns,
               tableAlias: prevAlias,
               column: lookupColumn,
+              columns,
             });
             if (isArray) {
               const qb = selectQb;

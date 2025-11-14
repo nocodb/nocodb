@@ -3,6 +3,7 @@ import type { SortableOptions } from 'sortablejs'
 import type { AutoScrollOptions } from 'sortablejs/plugins'
 import type { UserType } from 'nocodb-sdk'
 import { ncIsArray } from 'nocodb-sdk'
+import GraphemeSplitter from 'grapheme-splitter'
 
 export const modalSizes = {
   xs: {
@@ -92,8 +93,8 @@ export const isUnicodeEmoji = (emoji: string) => {
 export const getSafeInitials = (title?: string, initialsLength: number = 2, limitEmojiToOne: boolean = false): string => {
   if (!title?.trim()) return ''
 
-  const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' })
-  const splitGraphemes = (str: string) => [...segmenter.segment(str)].map((s) => s.segment)
+  const splitter = new GraphemeSplitter()
+  const splitGraphemes = (str: string) => splitter.splitGraphemes(str)
 
   const words = title.trim().split(/\s+/).filter(Boolean)
   const initials: string[] = []

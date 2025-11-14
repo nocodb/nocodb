@@ -334,7 +334,7 @@ export default class Model implements TableType {
   ): Promise<Model[]> {
     const cachedList = await NocoCache.getList(context, CacheScope.MODEL, [
       base_id,
-      source_id,
+      ...(source_id ? [source_id] : []),
     ]);
     let { list: modelList } = cachedList;
     const { isNoneList } = cachedList;

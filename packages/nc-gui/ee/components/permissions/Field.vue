@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { PermissionKey, isSystemColumn } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
+import { PermissionKey, isSystemColumn } from 'nocodb-sdk'
 
 interface Props {
   tableData: TableType
@@ -23,8 +23,7 @@ const visibleFields = computed(() => {
 const customFieldPermissionsCount = computed(() => {
   return visibleFields.value.filter((field) => {
     const editPermissions = permissionsByEntity.value[`field_${field.id}`] || []
-    const hasEditPermissions = editPermissions.find((p) => p.permission === PermissionKey.RECORD_FIELD_EDIT)
-    return hasEditPermissions
+    return editPermissions.find((p) => p.permission === PermissionKey.RECORD_FIELD_EDIT)
   }).length
 })
 
@@ -59,8 +58,7 @@ const fieldPermissionsData = computed(() => {
 
 const isFieldModified = (fieldId: string) => {
   const editPermissions = permissionsByEntity.value[`field_${fieldId}`] || []
-  const hasEditPermissions = editPermissions.find((p) => p.permission === PermissionKey.RECORD_FIELD_EDIT)
-  return hasEditPermissions
+  return editPermissions.find((p) => p.permission === PermissionKey.RECORD_FIELD_EDIT)
 }
 
 const { $e } = useNuxtApp()
@@ -128,6 +126,8 @@ const handlePermissionSave = () => {
 
           <PermissionsInlineFieldSelector
             :base="base!"
+            :table="tableData"
+            :field="record.col"
             :field-id="record.field_id!"
             :field-title="record.field_title!"
             :permission-type="PermissionKey.RECORD_FIELD_EDIT"

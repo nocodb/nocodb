@@ -683,6 +683,8 @@ interface PermissionConfig {
   entityId: string
   entityTitle?: string
   permission: PermissionKey
+  disabled?: boolean
+  tooltip?: string
 }
 
 interface PermissionSelectorUser {

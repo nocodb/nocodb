@@ -13,10 +13,14 @@ const baseStore = useBase()
 const { navigateToProjectPage } = baseStore
 const { base } = storeToRefs(baseStore)
 
+const { activeTables } = storeToRefs(useTablesStore())
+
 const onNavigateToPermissionsOverview = () => {
   navigateToProjectPage({ page: 'permissions', action: `permissions-${props.tableId}` })
   visible.value = false
 }
+
+const table = computed(() => activeTables.value.find((table) => table.id === props.tableId))
 </script>
 
 <template>
@@ -27,7 +31,7 @@ const onNavigateToPermissionsOverview = () => {
     :show-separator="false"
     wrap-class-name="nc-modal-single-table-permissions"
   >
-    <PermissionsTable :table-id="tableId" :base="base" horizontal>
+    <PermissionsTable :table="table" :table-id="tableId" :base="base" horizontal>
       <template #title>
         <div class="flex-1 flex items-center gap-2 text-nc-content-gray-emphasis">
           <GeneralIcon icon="ncLock" class="w-5 h-5 flex-none" />

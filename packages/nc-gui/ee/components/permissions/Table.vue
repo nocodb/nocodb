@@ -1,15 +1,19 @@
 <script lang="ts" setup>
-import { type BaseType, PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import type { BaseType, TableType } from 'nocodb-sdk'
 import type { NcDropdownPlacement } from '#imports'
 
 const props = defineProps<{
   tableId: string
   base: BaseType
   horizontal?: boolean
+  table: TableType
   placement?: NcDropdownPlacement
 }>()
 
 const { $e } = useNuxtApp()
+
+const { t } = useI18n()
 
 const { permissionsByEntity } = usePermissions()
 
@@ -18,12 +22,16 @@ const createPermissionConfig: PermissionConfig = {
   entity: PermissionEntity.TABLE,
   entityId: props.tableId,
   permission: PermissionKey.TABLE_RECORD_ADD,
+  disabled: props.table.synced as boolean,
+  tooltip: props.table.synced ? t('msg.info.permissionsNotAvailableForSyncedTable') : undefined,
 }
 
 const deletePermissionConfig: PermissionConfig = {
   entity: PermissionEntity.TABLE,
   entityId: props.tableId,
   permission: PermissionKey.TABLE_RECORD_DELETE,
+  disabled: props.table.synced as boolean,
+  tooltip: props.table.synced ? t('msg.info.permissionsNotAvailableForSyncedTable') : undefined,
 }
 
 const handlePermissionSave = () => {

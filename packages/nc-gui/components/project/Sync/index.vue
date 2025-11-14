@@ -241,6 +241,17 @@ onMounted(async () => {
                 </NcButton>
                 <template #overlay>
                   <NcMenu variant="small">
+                    <NcMenuItemCopyId
+                      v-if="record"
+                      :id="record.id"
+                      :tooltip="$t('labels.clickToCopySyncID')"
+                      :label="
+                        $t('labels.syncIdColon', {
+                          syncId: record.id,
+                        })
+                      "
+                    />
+                    <NcDivider />
                     <NcMenuItem @click="handleEditSync(record.id)">
                       <GeneralIcon icon="edit" />
                       <span>{{ $t('general.edit') }}</span>
@@ -261,9 +272,17 @@ onMounted(async () => {
             <img
               src="../../ee/assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"
-              :alt="activeBaseSyncs.length === 0 ? 'No syncs found' : 'No search results found'"
+              :alt="
+                activeBaseSyncs.length === 0
+                  ? 'Create your first sync to start automatically syncing data from external sources.'
+                  : 'No search results found'
+              "
             />
-            {{ activeBaseSyncs.length === 0 ? 'No syncs found' : 'No results matched your search' }}
+            {{
+              activeBaseSyncs.length === 0
+                ? 'Create your first sync to start automatically syncing data from external sources.'
+                : 'No results matched your search'
+            }}
           </div>
         </template>
       </NcTable>

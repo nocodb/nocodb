@@ -78,6 +78,7 @@ defineExpose({
       <PermissionsTable
         :table-id="tableId"
         :base="base"
+        :table="tableData"
         class="!gap-4 min-w-[540px] mx-auto w-full mt-6"
         :class="permissionsTableWrapperClass"
         placement="bottomLeft"

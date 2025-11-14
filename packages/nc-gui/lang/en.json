@@ -246,6 +246,7 @@
     "import": "Import",
     "logout": "Log Out",
     "empty": "Empty",
+    "permissionsNotAvailable": "Permissions not available",
     "changeIcon": "Change Icon",
     "save": "Save",
     "available": "Available",
@@ -1292,6 +1293,7 @@
     "teamIdColon": "TEAM ID: {teamId}",
     "sourceIdColon": "SOURCE ID: {sourceId}",
     "tableIdColon": "TABLE ID: {tableId}",
+    "syncIdColon": "SYNC ID: {syncId}",
     "baseIdColon": "BASE ID: {baseId}",
     "scriptIdColon": "SCRIPT ID: {scriptId}",
     "dashboardIdColon": "DASHBOARD ID: {dashboardId}",
@@ -1341,6 +1343,7 @@
     "clickToCopyTeamID": "Click to copy Team ID",
     "clickToCopySourceID": "Click to copy Source ID",
     "clickToCopyTableID": "Click to copy Table ID",
+    "clickToCopySyncID": "Click to copy Sync ID",
     "clickToCopyBaseID": "Click to copy Base ID",
     "clickToCopyScriptID": "Click to copy Script ID",
     "clickToCopyWorkflowID": "Click to copy Workflow ID",
@@ -2355,6 +2358,7 @@
       "disabledAsViewLocked": "Disabled as View is locked",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Paste operation is not supported on the active cell",
+      "permissionsNotAvailableForSyncedTable": "Permissions not available for synced table",
       "roles": {
         "orgCreator": "Creator can create new bases and access any invited base.",
         "orgViewer": "Viewer is not allowed to create new bases but they can access any invited base."

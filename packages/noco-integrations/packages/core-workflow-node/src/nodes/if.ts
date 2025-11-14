@@ -3,7 +3,7 @@ import {
   FormBuilderValidatorType,
   type FormDefinition,
   WorkflowNodeCategory,
-  WorkflowNodeConfig,
+  type WorkflowNodeConfig,
   type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
   type WorkflowNodeLog,
@@ -281,8 +281,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
       case ConditionOperation.IS_NOT_EMPTY:
         return str1.trim() !== '';
 
-      case ConditionOperation.IS_TRUE:
-        // Handle boolean, string, and number types
+      case ConditionOperation.IS_TRUE: { // Handle boolean, string, and number types
         const lowerStr1 = str1.toLowerCase().trim();
         return (
           lowerStr1 === 'true' ||
@@ -292,9 +291,10 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
           value1 === true ||
           value1 === 1
         );
+      }
 
-      case ConditionOperation.IS_FALSE:
-        // Handle boolean, string, and number types
+      case ConditionOperation.IS_FALSE: // Handle boolean, string, and number types
+      {
         const lowerStr1False = str1.toLowerCase().trim();
         return (
           lowerStr1False === 'false' ||
@@ -305,6 +305,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
           value1 === false ||
           value1 === 0
         );
+      }
 
       default:
         throw new Error(`Unknown operation: ${operation}`);

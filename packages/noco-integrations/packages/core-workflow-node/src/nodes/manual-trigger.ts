@@ -2,7 +2,7 @@ import {
   FormBuilderInputType,
   type FormDefinition,
   WorkflowNodeCategory,
-  WorkflowNodeConfig,
+  type WorkflowNodeConfig,
   type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
   type WorkflowNodeLog,
@@ -38,7 +38,7 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
     };
   }
 
-  public async validate(config: ManualTriggerConfig) {
+  public async validate(_config: ManualTriggerConfig) {
     // Manual trigger has no required fields
     return { valid: true };
   }

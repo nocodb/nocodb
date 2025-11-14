@@ -691,7 +691,8 @@ export class WorkflowExecutionService {
     } catch (error) {
       executionState.status = 'error';
       executionState.endTime = Date.now();
-      this.logger.error('Workflow execution failed:', error);
+      this.logger.error('Workflow execution failed:');
+      this.logger.error(error);
 
       // If we don't have an error result yet, add one
       if (

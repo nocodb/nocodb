@@ -632,9 +632,7 @@ export class SyncModuleService implements OnModuleInit {
       NcError.genericNotFound('SyncConfig', syncConfigId);
     }
 
-    const configsToProcess = Array.isArray(payload.config)
-      ? payload.config
-      : [payload.config];
+    const configsToProcess = [payload.config].flat().filter(Boolean);
 
     const updatedIntegrations: Integration[] = [];
 

@@ -1,13 +1,30 @@
 <script setup lang="ts">
+import { SyncCategory } from 'nocodb-sdk'
 import { useSyncFormOrThrow } from '../useSyncForm'
 
 const { isSyncAdvancedFeaturesEnabled } = storeToRefs(useSyncStore())
 
-const { addIntegrationConfig, availableIntegrations } = useSyncFormOrThrow()
+const { addIntegrationConfig, availableIntegrations, syncConfigForm } = useSyncFormOrThrow()
 
 const isOpen = ref(false)
 
 const selectedValue = ref()
+
+const isDisabled = computed(() => {
+  // Disable for custom schema category
+  if (syncConfigForm.value.sync_category === SyncCategory.CUSTOM) {
+    return true
+  }
+  // Otherwise use feature flag
+  return !isSyncAdvancedFeaturesEnabled.value
+})
+
+const tooltipText = computed(() => {
+  if (syncConfigForm.value.sync_category === SyncCategory.CUSTOM) {
+    return 'Multiple sources are not supported for custom schema'
+  }
+  return 'Multiple sources are not supported yet'
+})
 
 const onSelect = (option: IntegrationItemType) => {
   addIntegrationConfig(option.sub_type)
@@ -19,9 +36,9 @@ const onSelect = (option: IntegrationItemType) => {
   <div class="w-[fit-content]">
     <NcListDropdown
       v-model:is-open="isOpen"
-      tooltip-on-disabled="Multiple sources are not supported yet"
+      :tooltip-on-disabled="tooltipText"
       tooltip-on-disabled-placement="top"
-      :disabled="!isSyncAdvancedFeaturesEnabled"
+      :disabled="isDisabled"
     >
       <div class="flex items-center gap-2">
         <GeneralIcon icon="ncPlus" />
@@ -35,7 +52,7 @@ const onSelect = (option: IntegrationItemType) => {
           option-label-key="title"
           option-value-key="sub_type"
           close-on-select
-          search-input-placeholder="Search integerations"
+          search-input-placeholder="Search integrations"
           @change="(option) => onSelect(option)"
         >
           <template #listItemContent="{ option: integration }">

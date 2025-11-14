@@ -4,26 +4,18 @@ import { useSyncFormOrThrow } from '../useSyncForm'
 
 const { integrationConfigs, integrationFetchDestinationSchema } = useSyncFormOrThrow()
 
-integrationConfigs.value.forEach((integration) => {
-  if (!integration.config) {
-    integration.config = {}
+const mainIntegration = computed(() => integrationConfigs.value[0])
+
+if (mainIntegration.value) {
+  if (!mainIntegration.value.config) {
+    mainIntegration.value.config = {}
   }
-  if (!integration.config.custom_schema) {
-    integration.config.custom_schema = {}
+  if (!mainIntegration.value.config.custom_schema) {
+    mainIntegration.value.config.custom_schema = {}
   }
-})
+}
 
-const destinationSchema = computed<CustomSyncSchema>(() => {
-  const mergedSchema: CustomSyncSchema = {}
-
-  integrationConfigs.value.forEach((integration) => {
-    if (integration.config?.custom_schema) {
-      Object.assign(mergedSchema, integration.config.custom_schema)
-    }
-  })
-
-  return mergedSchema
-})
+const destinationSchema = computed<CustomSyncSchema>(() => mainIntegration.value?.config?.custom_schema || {})
 
 const selectedTable = ref('')
 
@@ -134,15 +126,9 @@ const getUITypeOptions = (column: { abstractType: string }) => {
 }
 
 const updateSchema = (newSchema: CustomSyncSchema) => {
-  integrationConfigs.value.forEach((integration) => {
-    if (integration.config?.custom_schema) {
-      Object.keys(integration.config.custom_schema).forEach((tableName) => {
-        if (newSchema[tableName]) {
-          integration.config.custom_schema[tableName] = newSchema[tableName]
-        }
-      })
-    }
-  })
+  if (mainIntegration.value?.config) {
+    mainIntegration.value.config.custom_schema = newSchema
+  }
 }
 
 const toggleSelectAll = (checked: boolean) => {
@@ -259,54 +245,49 @@ watch(
 )
 
 onMounted(async () => {
-  for (const integration of integrationConfigs.value) {
-    if (!integration.config?.custom_schema || Object.keys(integration.config.custom_schema).length === 0) {
-      try {
-        const schema = await integrationFetchDestinationSchema(integration)
+  if (!mainIntegration.value) return
 
-        if (!integration.config) {
-          integration.config = {}
-        }
-        integration.config.custom_schema = schema
+  if (!mainIntegration.value.config?.custom_schema || Object.keys(mainIntegration.value.config.custom_schema).length === 0) {
+    try {
+      const schema = await integrationFetchDestinationSchema(mainIntegration.value)
 
-        Object.keys(schema).forEach((tableName) => {
-          const table = schema[tableName]
-          if (table && table.columns) {
-            // Ensure relations array exists
-            if (!table.relations) {
-              table.relations = []
-            }
-
-            // Ensure systemFields exists with primaryKey array
-            if (!table.systemFields) {
-              table.systemFields = { primaryKey: [] }
-            }
-
-            // Initialize column properties
-            table.columns.forEach((column) => {
-              column.exclude = !!column.exclude
-            })
-
-            // If no primary key is set, default to the first column
-            if (table.systemFields.primaryKey.length === 0 && table.columns.length > 0) {
-              const firstColumn = table.columns[0]
-              if (firstColumn) {
-                table.systemFields.primaryKey = [firstColumn.title]
-              }
-            }
-
-            // Ensure primary key columns are not excluded
-            table.systemFields.primaryKey.forEach((pkColumn) => {
-              const column = table.columns.find((col) => col.title === pkColumn)
-              if (column) {
-                column.exclude = false
-              }
-            })
-          }
-        })
-      } catch (error) {
-        console.error('Failed to fetch destination schema for integration:', integration.sub_type, error)
+      if (!mainIntegration.value.config) {
+        mainIntegration.value.config = {}
       }
+      mainIntegration.value.config.custom_schema = schema
+
+      Object.keys(schema).forEach((tableName) => {
+        const table = schema[tableName]
+        if (table && table.columns) {
+          if (!table.relations) {
+            table.relations = []
+          }
+
+          if (!table.systemFields) {
+            table.systemFields = { primaryKey: [] }
+          }
+
+          table.columns.forEach((column) => {
+            column.exclude = !!column.exclude
+          })
+
+          if (table.systemFields.primaryKey.length === 0 && table.columns.length > 0) {
+            const firstColumn = table.columns[0]
+            if (firstColumn) {
+              table.systemFields.primaryKey = [firstColumn.title]
+            }
+          }
+
+          table.systemFields.primaryKey.forEach((pkColumn) => {
+            const column = table.columns.find((col) => col.title === pkColumn)
+            if (column) {
+              column.exclude = false
+            }
+          })
+        }
+      })
+    } catch (error) {
+      console.error('Failed to fetch destination schema:', error)
     }
   }
 })
@@ -432,7 +413,7 @@ onMounted(async () => {
     <div v-else class="flex flex-col items-center justify-center py-12 px-4 bg-nc-bg-gray-extralight rounded-lg">
       <GeneralIcon icon="ncZap" class="w-12 h-12 text-nc-content-gray-subtle2 mb-5" />
       <div class="text-bodyDefaultSmBold text-nc-content-gray mb-1">No tables available</div>
-      <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">Please select atleast one table in your sync source</div>
+      <div class="text-bodyDefaultSm text-nc-content-gray-subtle2">Please select at least one table in your sync source</div>
     </div>
   </div>
 </template>

@@ -101,7 +101,7 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
         <div class="flex flex-col gap-1">
           <div class="text-nc-content-gray text-caption">Sync all tables</div>
           <div class="text-nc-content-gray-muted text-bodySm">
-            All tables will be synced. This may take longer and user more resources.
+            All tables will be synced. This may take longer and use more resources.
           </div>
         </div>
       </div>

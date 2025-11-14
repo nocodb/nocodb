@@ -126,6 +126,9 @@ const supportedDocs = [
               <div v-show="activeTab === 'sources'">
                 <ProjectSyncCommonSources />
               </div>
+              <div v-show="activeTab === 'schema'">
+                <ProjectSyncCommonSchemaMapping />
+              </div>
             </a-form>
           </div>
         </div>

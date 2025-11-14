@@ -1,20 +1,37 @@
 <script setup lang="ts">
+import { SyncCategory } from 'nocodb-sdk'
+import { useSyncFormOrThrow } from '../useSyncForm'
+
 const props = defineProps<{
   modelValue: string
 }>()
 
 const modelValue = useVModel(props, 'modelValue')
 
-const tabs = [
-  {
-    title: 'General',
-    value: 'general',
-  },
-  {
-    title: 'Sources',
-    value: 'sources',
-  },
-]
+const { syncConfigForm } = useSyncFormOrThrow()
+
+const tabs = computed(() => {
+  const baseTabs = [
+    {
+      title: 'General',
+      value: 'general',
+    },
+    {
+      title: 'Sources',
+      value: 'sources',
+    },
+  ]
+
+  // Only show Schema Mapping tab for CUSTOM category
+  if (syncConfigForm.value.sync_category === SyncCategory.CUSTOM) {
+    baseTabs.push({
+      title: 'Schema',
+      value: 'schema',
+    })
+  }
+
+  return baseTabs
+})
 </script>
 
 <template>

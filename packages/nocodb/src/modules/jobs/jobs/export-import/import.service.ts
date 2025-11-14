@@ -1518,19 +1518,22 @@ export class ImportService {
         col.uidt === UITypes.LastModifiedBy
       ) {
         if (col.system) continue;
-        const freshModelData = (await this.columnsService.columnAdd(context, {
-          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
-          column: withoutId({
-            ...flatCol,
-            // provide column_name to avoid ajv error
-            // it will be ignored by the service
-            column_name: 'system',
-            system: false,
-          }) as any,
-          req: param.req,
-          user: param.user,
-          columnWebhookManager: param.columnWebhookManager,
-        })) as Model;
+        const freshModelData = (await this.columnsService.columnAdd(
+          targetContext,
+          {
+            tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+            column: withoutId({
+              ...flatCol,
+              // provide column_name to avoid ajv error
+              // it will be ignored by the service
+              column_name: 'system',
+              system: false,
+            }) as any,
+            req: param.req,
+            user: param.user,
+            columnWebhookManager: param.columnWebhookManager,
+          },
+        )) as Model;
 
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {

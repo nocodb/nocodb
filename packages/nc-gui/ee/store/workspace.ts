@@ -98,7 +98,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
 
-  const isMarketplacePageOpened = computed(() => (route.value.name as string)?.startsWith('index-typeOrId-templates'))
+  const isTemplatesPageOpened = computed(() => (route.value.name as string)?.startsWith('index-typeOrId-templates'))
+
+  const isTemplatesFeatureEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.TEMPLATES))
 
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 
@@ -605,18 +607,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const navigateToMarketplace = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
+  const navigateToTemplates = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
     workspaceId = workspaceId || activeWorkspaceId.value!
 
     if (cmdOrCtrl) {
-      await navigateTo(
-        router.resolve({ name: 'index-typeOrId-templates-index', params: { typeOrId: workspaceId }, query }).href,
-        {
-          open: navigateToBlankTargetOpenOption,
-        },
-      )
+      await navigateTo(router.resolve({ name: 'index-typeOrId-templates', params: { typeOrId: workspaceId }, query }).href, {
+        open: navigateToBlankTargetOpenOption,
+      })
     } else {
-      router.push({ name: 'index-typeOrId-templates-index', params: { typeOrId: workspaceId }, query })
+      router.push({ name: 'index-typeOrId-templates', params: { typeOrId: workspaceId }, query })
     }
   }
 
@@ -1254,8 +1253,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isIntegrationsPageOpened,
     navigateToIntegrations,
     navigateToFeed,
-    navigateToMarketplace,
-    isMarketplacePageOpened,
+    navigateToTemplates,
+    isTemplatesPageOpened,
+    isTemplatesFeatureEnabled,
     isFeedPageOpened,
     deletingWorkspace,
     ssoLoginRequiredDlg,

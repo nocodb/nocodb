@@ -13,7 +13,7 @@ import type {
   WorkspaceType,
   WorkspaceUserType,
 } from 'nocodb-sdk'
-import { TeamUserRoles, WorkspaceStatus, WorkspaceUserRoles, PlanLimitTypes } from 'nocodb-sdk'
+import { PlanLimitTypes, TeamUserRoles, WorkspaceStatus, WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 import { userLocalStorageInfoManager } from '#imports'

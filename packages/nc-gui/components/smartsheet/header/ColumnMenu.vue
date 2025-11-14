@@ -621,18 +621,23 @@ const onDeleteColumn = () => {
         !isSqlView &&
         column.uidt !== UITypes.ForeignKey
       "
-      :disabled="showEditRestrictedColumnTooltip(column)"
+      :disabled="showEditRestrictedColumnTooltip(column) && !(column?.readonly && meta.synced)"
       placement="right"
       :arrow="false"
     >
       <template #title>
-        {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+        <template v-if="column?.readonly && meta?.synced">
+          {{ $t('tooltip.fieldPermissionsNotAvailableForSyncedColumns') }}
+        </template>
+        <template v-else>
+          {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+        </template>
       </template>
 
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
         <template #default="{ click }">
           <NcMenuItem
-            :disabled="!showEditRestrictedColumnTooltip(column)"
+            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta.synced)"
             @click="
               click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
                 onFieldPermissions()

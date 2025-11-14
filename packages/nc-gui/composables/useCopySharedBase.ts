@@ -102,9 +102,13 @@ export const useCopySharedBase = createSharedComposable(() => {
         },
       )
 
-      $e('a:base:duplicate-shared-base', {
-        isFromTemplates: isUseThisTemplate.value,
-      })
+      if (isUseThisTemplate.value) {
+        $e('a:templates:use-this-template', {
+          templateName: templateName.value,
+        })
+      } else {
+        $e('a:base:duplicate-shared-base')
+      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       isLoading.value = false

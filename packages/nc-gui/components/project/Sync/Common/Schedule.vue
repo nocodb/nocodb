@@ -45,7 +45,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-select v-model:value="selectedInterval" :options="intervalOptions" @change="onChange">
+  <a-select v-model:value="selectedInterval" class="nc-select-shadow" :options="intervalOptions" @change="onChange">
     <template #suffixIcon>
       <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
     </template>

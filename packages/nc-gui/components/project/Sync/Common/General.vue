@@ -80,10 +80,7 @@ watch(
       label="Sync Schedule"
       v-bind="validateInfosSyncConfig.sync_trigger_cron"
     >
-      <DashboardSettingsSyncSchedule
-        v-model:model-value="formModel.sync_trigger_cron"
-        @change="syncConfigEditFormChanged = true"
-      />
+      <ProjectSyncCommonSchedule v-model:model-value="formModel.sync_trigger_cron" @change="syncConfigEditFormChanged = true" />
     </a-form-item>
   </div>
 </template>

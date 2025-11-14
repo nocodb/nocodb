@@ -48,7 +48,7 @@ export interface WorkflowNodeLog {
   data?: any;
 }
 
-export interface WorkflowNodeRunContext<T = any> {
+export interface WorkflowNodeRunContext<TConfig = any> {
   workspaceId?: string;
   baseId?: string;
   user?: {
@@ -56,7 +56,10 @@ export interface WorkflowNodeRunContext<T = any> {
     email?: string;
   };
 
-  inputs: T;
+  inputs: {
+    config: TConfig;
+    title?: string;
+  };
 }
 
 export interface WorkflowNodeResult {

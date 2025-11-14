@@ -288,7 +288,9 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
     return { valid: errors.length === 0, errors };
   }
 
-  public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {
+  public async run(
+    ctx: WorkflowNodeRunContext<NocoDBNodeConfig>,
+  ): Promise<WorkflowNodeResult> {
     const { operation } = ctx.inputs.config;
 
     switch (operation) {
@@ -314,7 +316,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   private async runCreate(
-    ctx: WorkflowNodeRunContext,
+    ctx: WorkflowNodeRunContext<NocoDBNodeConfig>,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
@@ -389,7 +391,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   private async runRead(
-    ctx: WorkflowNodeRunContext,
+    ctx: WorkflowNodeRunContext<NocoDBNodeConfig>,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
@@ -462,7 +464,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   private async runUpdate(
-    ctx: WorkflowNodeRunContext,
+    ctx: WorkflowNodeRunContext<NocoDBNodeConfig>,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
@@ -537,7 +539,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   private async runDelete(
-    ctx: WorkflowNodeRunContext,
+    ctx: WorkflowNodeRunContext<NocoDBNodeConfig>,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
@@ -610,7 +612,7 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
   }
 
   private async runList(
-    ctx: WorkflowNodeRunContext,
+    ctx: WorkflowNodeRunContext<NocoDBNodeConfig>,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();

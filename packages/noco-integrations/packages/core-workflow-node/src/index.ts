@@ -5,12 +5,10 @@ import {
 import { manifest } from './manifest';
 import { ManualTriggerNode } from './nodes/manual-trigger';
 import { IfNode } from './nodes/if';
-import { FilterNode } from './nodes/filter';
 
 export * from './manifest';
 export * from './nodes/manual-trigger';
 export * from './nodes/if';
-export * from './nodes/filter';
 
 // Export each node as a separate integration entry
 export const entries: IntegrationEntry[] = [
@@ -32,16 +30,6 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'If Condition',
-    },
-  },
-  {
-    type: IntegrationType.WorkflowNode,
-    sub_type: 'core.flow.filter',
-    wrapper: FilterNode,
-    form: [],
-    manifest: {
-      ...manifest,
-      title: 'Filter',
     },
   },
 ];

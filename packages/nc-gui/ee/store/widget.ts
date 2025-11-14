@@ -3,6 +3,8 @@ import { type WidgetType, type WidgetTypes } from 'nocodb-sdk'
 export const useWidgetStore = defineStore('widget', () => {
   const { $api, $e } = useNuxtApp()
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const { activeDashboardId, activeDashboard, sharedDashboardState } = storeToRefs(useDashboardStore())
@@ -17,6 +19,8 @@ export const useWidgetStore = defineStore('widget', () => {
     if (!activeDashboardId.value) return []
     return widgets.value.get(activeDashboardId.value) || (activeDashboard.value as any)?.widgets || []
   })
+
+  const isGaugeWidgetEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.GAUGE_WIDGET))
 
   const selectedWidget = ref<WidgetType | null>(null)
 
@@ -260,6 +264,7 @@ export const useWidgetStore = defineStore('widget', () => {
     // Getters
     activeDashboardWidgets,
     selectedWidget,
+    isGaugeWidgetEnabled,
 
     // Actions
     loadWidgets,

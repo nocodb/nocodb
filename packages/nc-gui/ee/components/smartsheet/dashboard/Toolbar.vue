@@ -12,7 +12,7 @@ const { getMeta } = useMetas()
 
 const { activeDashboard } = storeToRefs(dashboardStore)
 
-const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
+const { activeDashboardWidgets, selectedWidget, isGaugeWidgetEnabled } = storeToRefs(widgetStore)
 
 const { activeTables } = storeToRefs(tableStore)
 
@@ -51,6 +51,12 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
       w: 2,
       h: 1,
     },
+    [WidgetTypes.GAUGE]: {
+      x: 0,
+      y: 0,
+      w: 2,
+      h: 3,
+    },
   }
 
   const position = calculateNextPosition(activeDashboardWidgets.value, positionMap[widgetType])
@@ -80,6 +86,7 @@ const addBarChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.BAR)
 const addLineChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.LINE)
 const addPieChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.PIE)
 const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DONUT)
+const addGaugeWidget = () => createWidget(WidgetTypes.GAUGE)
 /*
 const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SCATTER)
 */
@@ -125,6 +132,12 @@ const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SC
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartDonut" class="w-5 h-5" />
         Donut
+      </div>
+    </NcButton>
+    <NcButton v-if="isGaugeWidgetEnabled" size="small" type="text" @click="addGaugeWidget">
+      <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
+        <GeneralIcon icon="ncGaugeWidget" class="w-5 h-5" />
+        Gauge
       </div>
     </NcButton>
     <!--    <NcButton size="small" type="text" @click="addScatterPlotWidget">

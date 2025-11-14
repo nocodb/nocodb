@@ -8,6 +8,7 @@ import LineChartWidget from './widgets/linechart/index.vue'
 import ScatterChartWidget from './widgets/scatterchart/index.vue'
 import TextWidget from './widgets/text/index.vue'
 import IFrameWidget from './widgets/iframe/index.vue'
+import GaugeWidget from './widgets/gauge/index.vue'
 import PlaceholderImage from '~/assets/img/dashboards/placeholder.svg'
 
 const dashboardStore = useDashboardStore()
@@ -80,6 +81,8 @@ const getWidgetComponent = (widget: WidgetType) => {
       return TextWidget
     case WidgetTypes.IFRAME:
       return IFrameWidget
+    case WidgetTypes.GAUGE:
+      return GaugeWidget
     case WidgetTypes.CHART:
       switch ((widget.config as ChartWidgetConfig).chartType) {
         case ChartTypes.PIE:
@@ -214,6 +217,14 @@ const getWidgetPositionConfig = (item: string) => {
         minH: 5,
         maxW: 2,
         maxH: 6,
+      }
+    }
+    case WidgetTypes.GAUGE: {
+      return {
+        minW: 1,
+        minH: 3,
+        maxW: 2,
+        maxH: 4,
       }
     }
     case WidgetTypes.TEXT: {

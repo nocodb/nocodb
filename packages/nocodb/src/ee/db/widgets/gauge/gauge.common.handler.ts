@@ -1,12 +1,12 @@
 import { formatAggregation } from 'nocodb-sdk';
-import type { MetricWidgetType, NcContext, NcRequest } from 'nocodb-sdk';
+import type { GaugeWidgetType, NcContext, NcRequest } from 'nocodb-sdk';
 import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation, { validateAggregationColType } from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
 
-export class MetricCommonHandler extends BaseWidgetHandler<MetricWidgetType> {
-  async validateWidgetData(context: NcContext, widget: MetricWidgetType) {
+export class GaugeCommonHandler extends BaseWidgetHandler<GaugeWidgetType> {
+  async validateWidgetData(context: NcContext, widget: GaugeWidgetType) {
     const { dataSource, metric } = widget.config;
     const errors = [];
 
@@ -73,19 +73,20 @@ export class MetricCommonHandler extends BaseWidgetHandler<MetricWidgetType> {
       }
     }
 
-    return errors.length > 0 ? errors : undefined;
+    return errors.length > 0 ? errors : [];
   }
 
   async getWidgetData(
     context: NcContext,
     params: {
-      widget: MetricWidgetType;
+      widget: GaugeWidgetType;
       req: NcRequest;
     },
   ) {
     const { widget } = params;
-    const { config } = widget;
-    const { dataSource, metric } = config;
+    const {
+      config: { dataSource, metric },
+    } = widget;
 
     // Get model
     const model = await Model.getByIdOrName(context, {
@@ -150,21 +151,25 @@ export class MetricCommonHandler extends BaseWidgetHandler<MetricWidgetType> {
       first: true,
     });
 
+    let value = data.count;
     if (metric.type === 'summary') {
-      data.count = formatAggregation(
+      value = formatAggregation(
         metric.aggregation,
         data.count,
         aggregationColumn,
       );
     }
+
     return {
-      data: data.count,
+      data: {
+        value,
+      },
     };
   }
 
   async serializeOrDeserializeWidget(
     context: NcContext,
-    widget: MetricWidgetType,
+    widget: GaugeWidgetType,
     idMap: Map<string, string>,
     mode: 'serialize' | 'deserialize' = 'serialize',
   ) {
@@ -185,6 +190,6 @@ export class MetricCommonHandler extends BaseWidgetHandler<MetricWidgetType> {
             : null,
         },
       },
-    } as any;
+    };
   }
 }

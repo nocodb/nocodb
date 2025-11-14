@@ -13,8 +13,6 @@ import type {
   NcRequest,
   ScatterPlotConfig,
   Widget,
-  WidgetType,
-  WidgetTypes,
 } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from '~/db/CustomKnex';
@@ -26,7 +24,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
 import conditionV2 from '~/db/conditionV2';
 
-export class XyChartCommonHandler extends BaseWidgetHandler {
+export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
   protected readonly MIN_CATEGORY_LIMIT = 10;
   protected readonly MAX_CATEGORY_LIMIT = 50;
   protected readonly DEFAULT_CATEGORY_LIMIT = 10;
@@ -47,10 +45,7 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
     );
   }
 
-  async validateWidgetData(
-    context: NcContext,
-    widget: WidgetType<WidgetTypes.CHART>,
-  ) {
+  async validateWidgetData(context: NcContext, widget: ChartWidgetType) {
     const errors = [];
 
     const addError = (path: string, message: string) => {
@@ -461,7 +456,7 @@ export class XyChartCommonHandler extends BaseWidgetHandler {
 
   async serializeOrDeserializeWidget(
     context: NcContext,
-    widget: WidgetType<WidgetTypes.CHART>,
+    widget: ChartWidgetType,
     idMap: Map<string, string>,
     mode: 'serialize' | 'deserialize' = 'serialize',
   ) {

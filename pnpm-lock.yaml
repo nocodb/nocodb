@@ -1412,6 +1412,9 @@ importers:
 
   packages/nocodb-sdk:
     dependencies:
+      '@vue-flow/core':
+        specifier: ^1.47.0
+        version: 1.47.0(vue@3.5.14(typescript@5.8.3))
       acorn-loose:
         specifier: ^8.4.0
         version: 8.4.0

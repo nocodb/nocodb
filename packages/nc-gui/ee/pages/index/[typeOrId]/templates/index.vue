@@ -8,6 +8,8 @@ const { sharedBaseId, options, isUseThisTemplate, isDuplicateDlgOpen, selectedWo
 
 const { appInfo } = useGlobal()
 
+const { $e } = useNuxtApp()
+
 const workspaceId = computed(() => route.value.params.typeOrId as string)
 
 const websiteUrl = computed(() => {
@@ -30,7 +32,9 @@ useEventListener('message', (event) => {
   const { type, data } = event.data
 
   if (type === 'use-this-template' && data?.sharedBaseId) {
-    console.log('template', data)
+    $e('c:templates:use-this-template', {
+      templateName: data.templateName ?? data.sharedBaseId,
+    })
 
     options.value.includeData = true
     options.value.includeViews = true
@@ -44,6 +48,8 @@ useEventListener('message', (event) => {
     selectedWorkspace.value = workspaceId.value!
 
     isDuplicateDlgOpen.value = true
+  } else if (type === 'tele-event' && data?.event) {
+    $e(data.event, data.data)
   } else if (type === 'frameLoaded') {
     frameLoaded.value = true
   }

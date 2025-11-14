@@ -54,17 +54,18 @@ export const SyncTriggerMeta = {
   [SyncTrigger.Manual]: {
     value: SyncTrigger.Manual,
     label: 'Manual',
-    description: 'Sync data manually',
+    description: 'Sync changes only when explicitly requested.',
   },
   [SyncTrigger.Schedule]: {
     value: SyncTrigger.Schedule,
     label: 'Scheduled',
-    description: 'Sync data on a schedule',
+    description: 'Automatically sync data at predefined time intervals.',
   },
   [SyncTrigger.Webhook]: {
     value: SyncTrigger.Webhook,
     label: 'Webhook',
-    description: 'Sync data via a webhook',
+    description:
+      'Sync initiated instantly by external events or system notifications.',
   },
 };
 
@@ -72,12 +73,12 @@ export const OnDeleteActionMeta = {
   [OnDeleteAction.Delete]: {
     value: OnDeleteAction.Delete,
     label: 'Delete',
-    description: 'Delete data permanently in NocoDB',
+    description: 'Delete the records in this table.',
   },
   [OnDeleteAction.MarkDeleted]: {
     value: OnDeleteAction.MarkDeleted,
     label: 'Mark Deleted',
-    description: 'Mark data as deleted in NocoDB',
+    description: 'Mark the records as deleted in this table',
   },
 };
 
@@ -85,12 +86,14 @@ export const SyncTypeMeta = {
   [SyncType.Full]: {
     value: SyncType.Full,
     label: 'Full',
-    description: 'Sync all data',
+    description:
+      'Sync all records from the source every time; ensures complete accuracy but may take longer.',
   },
   [SyncType.Incremental]: {
     value: SyncType.Incremental,
     label: 'Incremental',
-    description: 'Sync only new and updated data',
+    description:
+      'Sync only new or updated records since the last run; faster and resource-efficient.',
   },
 };
 

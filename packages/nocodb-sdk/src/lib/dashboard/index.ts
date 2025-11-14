@@ -171,6 +171,7 @@ export interface CommonWidgetType {
 
 export interface ChartWidgetType<C extends ChartTypes = ChartTypes>
   extends CommonWidgetType {
+  type: WidgetTypes.CHART;
   config: ChartWidgetConfig<C>;
 }
 
@@ -213,6 +214,14 @@ export type WidgetType<T extends WidgetTypes = WidgetTypes> =
     : T extends WidgetTypes.IFRAME
     ? IframeWidgetType
     : never;
+
+export type AnyWidgetType =
+  | ChartWidgetType
+  | TableWidgetType
+  | MetricWidgetType
+  | GaugeWidgetType
+  | TextWidgetType
+  | IframeWidgetType;
 
 export type Widget<
   T extends WidgetType = WidgetType,

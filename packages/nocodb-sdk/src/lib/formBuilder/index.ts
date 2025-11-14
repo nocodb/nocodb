@@ -10,6 +10,7 @@ export enum FormBuilderInputType {
   SelectView = 'select-view',
   SelectField = 'select-field',
   OAuth = 'oauth',
+  Checkbox = 'checkbox',
 }
 
 /**
@@ -102,6 +103,8 @@ interface FormBuilderElementBase {
   placeholder?: string;
   /** Width as percentage (0-100) */
   width?: number;
+  // description for the element
+  description?: string;
   /** Category for grouping elements - same category elements are grouped together */
   category?: string;
   /** Condition(s) for the element to be visible */

@@ -38,8 +38,9 @@ const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Switch,
-    label: 'Include closed tickets',
+    type: FormBuilderInputType.Checkbox,
+    label: 'Include Closed Tickets',
+    description: 'Sync both open and closed tickets to maintain a complete record of project history and resolutions.',
     width: 100,
     model: 'config.includeClosed',
     category: 'Options',

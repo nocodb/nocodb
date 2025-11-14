@@ -39,7 +39,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Repositories',
+    label: 'Select one ore more repositories',
     width: 100,
     model: 'config.repos',
     category: 'General',
@@ -61,11 +61,12 @@ const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Switch,
-    label: 'Include closed issues',
+    type: FormBuilderInputType.Checkbox,
+    label: 'Include Closed Issues',
     width: 48,
     model: 'config.includeClosed',
     category: 'Options',
+    description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     defaultValue: true,
     condition: [
       {
@@ -75,21 +76,11 @@ const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Space,
-    width: 4,
-    category: 'Options',
-    condition: [
-      {
-        model: 'config.authIntegrationId',
-        notEmpty: true,
-      },
-    ],
-  },
-  {
-    type: FormBuilderInputType.Switch,
+    type: FormBuilderInputType.Checkbox,
     label: 'Include Pull Requests',
     width: 48,
     model: 'config.includePRs',
+    description: "Sync pull requests along with issues to track code changes, reviews, and merges within your workspace.",
     category: 'Options',
     defaultValue: false,
     condition: [

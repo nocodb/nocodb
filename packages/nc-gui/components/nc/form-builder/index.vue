@@ -135,7 +135,7 @@ watch(
                   :required="false"
                   :data-testid="`nc-form-input-${field.model}`"
                 >
-                  <template v-if="![FormBuilderInputType.Switch].includes(field.type)" #label>
+                  <template v-if="![FormBuilderInputType.Switch, FormBuilderInputType.Checkbox].includes(field.type)" #label>
                     <div class="flex items-center gap-1">
                       <span>{{ field.label }}</span>
                       <span v-if="field.required" class="text-red-500">*</span>
@@ -297,6 +297,22 @@ watch(
                       :form-data="formState"
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     />
+                  </template>
+                  <template v-else-if="field.type === FormBuilderInputType.Checkbox">
+                    <div
+                      class="px-3 py-2 border-1 cursor-pointer rounded-lg shadow-default transition-shadow border-nc-border-gray-medium"
+                      @click="setFormStateWithEmit(field.model, !deepReference(field.model))"
+                    >
+                      <div class="flex gap-3">
+                        <NcCheckbox :checked="deepReference(field.model)" />
+                        <div class="text-nc-content-gray text-caption">
+                          {{ field.label }}
+                        </div>
+                      </div>
+                      <div v-if="field.description" class="text-nc-content-gray-muted text-bodySm mt-1 pl-7.8">
+                        {{ field.description }}
+                      </div>
+                    </div>
                   </template>
                   <div
                     v-if="field.helpText && field.type !== FormBuilderInputType.Switch && !field.showHintAsTooltip"

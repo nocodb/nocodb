@@ -51,9 +51,10 @@ const form: FormDefinition = [
     category: 'Options',
   },
   {
-    type: FormBuilderInputType.Switch,
-    label: 'Include resolved conversations',
+    type: FormBuilderInputType.Checkbox,
+    label: 'Include Resolved Conversations',
     width: 50,
+    description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     model: 'config.includeResolved',
     category: 'Options',
     defaultValue: true,

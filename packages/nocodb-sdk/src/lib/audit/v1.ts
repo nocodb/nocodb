@@ -312,15 +312,8 @@ export const auditV1OperationsCategory: Record<
   DASHBOARD: {
     label: 'objects.dashboard',
     value: 'DASHBOARD',
-    types: Object.values(AuditV1OperationTypes).filter((key) =>
-      key.startsWith('DASHBOARD_')
-    ),
-  },
-  WIDGET: {
-    label: 'objects.widget',
-    value: 'WIDGET',
-    types: Object.values(AuditV1OperationTypes).filter((key) =>
-      key.startsWith('WIDGET_')
+    types: Object.values(AuditV1OperationTypes).filter(
+      (key) => key.startsWith('DASHBOARD_') || key.startsWith('WIDGET_')
     ),
   },
 };

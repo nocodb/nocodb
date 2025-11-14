@@ -2865,10 +2865,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const pkAndData: { pk: any; data: any }[] = [];
 
       for (const d of deleteIds) {
-        const pkValues = getCompositePkValue(
-          this.model.primaryKeys,
-          this.extractPksValues(d),
-        );
+        const pkValues = this.extractPksValues(d, true);
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
@@ -2894,7 +2891,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       for (const { pk, data } of pkAndData) {
         const oldRecord = oldRecordsMap.get(pk);
-
         if (!oldRecord) {
           // throw or skip if no record found
           if (throwExceptionIfNotExist) {

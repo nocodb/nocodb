@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { type ViewType, ViewTypes } from 'nocodb-sdk'
+import { type ViewType } from 'nocodb-sdk'
+import { ViewTypes, getFirstNonPersonalView } from 'nocodb-sdk'
 
 const { extension, tables, getViewsForTable, getData } = useExtensionHelperOrThrow()
 
@@ -23,10 +24,10 @@ const viewList = computed(() => {
   if (!exportPayload.value.tableId) return []
   return (
     views.value
-      .filter((view) => view.type === ViewTypes.GRID)
+      .filter((view) => view.type !== ViewTypes.FORM)
       .map((view) => {
         return {
-          label: view.is_default ? `Default` : view.title,
+          label: view.title,
           value: view.id,
         }
       }) || []
@@ -42,7 +43,9 @@ const reloadViews = async () => {
 const onTableSelect = async (tableId: string) => {
   exportPayload.value.tableId = tableId
   await reloadViews()
-  exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
+  exportPayload.value.viewId = getFirstNonPersonalView(views.value, {
+    excludeViewType: ViewTypes.FORM,
+  })?.id
   await extension.value.kvStore.set('exportPayload', exportPayload.value)
 }
 
@@ -72,7 +75,7 @@ const exportJson = async () => {
       const view = views.value.find((view) => view.id === exportPayload.value.viewId)
 
       if (table && view) {
-        a.download = `${table.title} - ${view.is_default ? 'Default' : view.title}.json`
+        a.download = `${table.title} - ${view.title}.json`
       } else {
         a.download = 'data.json'
       }

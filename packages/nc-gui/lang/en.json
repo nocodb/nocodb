@@ -2058,6 +2058,7 @@
     "goBackHome": "Go back home"
   },
   "tooltip": {
+    "cantAssignLastNonPersonalView": "Cannot assign last collaborative grid view as personal view",
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
     "crossBase": "Link records from a table in a different base",
     "leaveWorkspace": "Each workspace must have at least one owner. Please assign another user as the Owner before leaving the workspace. If you are the last member, consider deleting the workspace instead.",
@@ -2403,6 +2404,7 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
+      "cantDeleteLastGridView": "You can't delete a view when it's the only collaborative grid view in the table",
       "inviteSent": "Invitation sent successfully",
       "userRoleUpdated": "User role updated successfully",
       "teamRoleUpdated": "Team role updated successfully",
@@ -2764,6 +2766,7 @@
       "lockedView": "Successfully Switched to locked view",
       "futureRelease": "Coming soon!",
       "notAllowedToChangeDefaultView": "You are not allowed to change the default view",
+      "notAllowedToChangeGridView": "You are not allowed to change the view to personal when it's the last collaborative grid view",
       "nCellCopied": "{n} cell copied",
       "nCellsCopied": "{n} cells copied"
     },

@@ -28,7 +28,6 @@ export class CommandPaletteService {
           table_meta: string;
           view_id: string;
           view_title: string;
-          view_is_default: boolean;
           view_type: string;
           view_meta: string;
           script_id: string;
@@ -76,7 +75,6 @@ export class CommandPaletteService {
             workspace_id: string;
             base_id: string;
             table_id: string;
-            is_default: boolean;
             type: string;
             meta: any;
           }
@@ -143,7 +141,6 @@ export class CommandPaletteService {
               workspace_id: item.workspace_id,
               base_id: item.base_id,
               table_id: item.table_id,
-              is_default: item.view_is_default,
               type: item.view_type,
             });
           }
@@ -224,7 +221,6 @@ export class CommandPaletteService {
             icon: view?.meta?.icon || viewTypeAlias[view.type] || 'table',
             projectName: bases.get(view.base_id)?.title,
             section: 'Views',
-            is_default: view.is_default,
             handler: {
               type: 'navigate',
               payload: `/${view.workspace_id}/${view.base_id}/${

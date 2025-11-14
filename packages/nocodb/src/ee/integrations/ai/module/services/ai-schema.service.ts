@@ -17,6 +17,7 @@ import type Column from '~/models/Column';
 import type { NcContext } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
 import type { View } from '~/models';
+import { Integration } from '~/models';
 import Base from '~/models/Base';
 import Model from '~/models/Model';
 
@@ -32,7 +33,6 @@ import { CalendarsService } from '~/services/calendars.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { DataTableService } from '~/services/data-table.service';
-import { Integration } from '~/models';
 import {
   generateDummyDataPrompt,
   generateDummyDataSystemMessage,
@@ -1150,11 +1150,9 @@ export class AiSchemaService {
       const views = await table.getViews(context);
 
       for (const view of views.filter((v) => {
-        const filterByViewType = params.viewType
+        return params.viewType
           ? params.viewType === viewTypeToStringMap[v.type]
           : true;
-
-        return !v.is_default && filterByViewType;
       })) {
         const serializedView: SerializedAiViewType = {
           type: viewTypeToStringMap[view.type],

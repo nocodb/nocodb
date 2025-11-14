@@ -121,7 +121,6 @@ watch(
           :table-id="destView?.fk_model_id"
           :disabled="!destView?.fk_model_id"
           :filter-view="(view) => view.id !== destView.id"
-          label-default-view-as-default
           force-layout="vertical"
         >
           <template #label>

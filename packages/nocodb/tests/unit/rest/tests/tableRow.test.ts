@@ -1,7 +1,7 @@
 import 'mocha';
 // @ts-ignore
 import request from 'supertest';
-import { UITypes } from 'nocodb-sdk';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
@@ -69,7 +69,7 @@ function tableStaticTest() {
     });
 
     customerView = (await customerTable.getViews(sakilaCtx)).find(
-      (v) => v.is_default,
+      (v) => v.type === ViewTypes.GRID,
     )!;
 
     customerColumns = await customerTable.getColumns(sakilaCtx);
@@ -394,7 +394,7 @@ function tableStaticTest() {
 
       // Check file content
       expect(fileResponse.headers['content-disposition']).to.include(
-        `${customerTable.title} (Default View).csv`,
+        `${customerTable.title} (Customer).csv`,
       );
       expect(fileResponse.headers['content-type']).to.include('text/csv');
       expect(fileResponse.text).to.be.a('string').and.not.empty;

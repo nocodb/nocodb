@@ -29,14 +29,16 @@ async function onDelete() {
 <template>
   <GeneralDeleteModal v-model:visible="vModel" :entity-name="$t('objects.view')" :on-delete="onDelete">
     <template #entity-preview>
-      <div v-if="view" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700">
+      <div
+        v-if="view"
+        class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle"
+      >
         <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 min-h-4"></GeneralViewIcon>
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
-          <span v-if="view.is_default">{{ $t('labels.defaultView') }}</span>
-          <span v-else>
+          <span>
             {{ view.title }}
           </span>
         </div>

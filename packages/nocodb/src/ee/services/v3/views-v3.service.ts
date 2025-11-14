@@ -172,7 +172,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         'lock_type',
         'description',
         'fk_model_id',
-        'is_default',
         'locked_view_description',
         'locked_by_user_id',
         'created_by',
@@ -211,10 +210,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         if (formattedData.lock_type !== 'personal') {
           formattedData.owned_by = undefined;
         }
-
-        formattedData.is_default = !formattedData.is_default
-          ? undefined
-          : formattedData.is_default;
         return formattedData;
       },
     });
@@ -227,7 +222,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         'view_type',
         'lock_type',
         'description',
-        'is_default',
         'meta',
         'locked_view_description',
         'locked_by_user_id',
@@ -621,9 +615,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     formattedView.fields = viewColumnBuilder().build(
       viewColumnList.sort((a, b) => a.order - b.order),
     );
-    formattedView.is_default = !formattedView.is_default
-      ? undefined
-      : formattedView.is_default;
 
     // extract the view specific infos
     switch (view.type) {

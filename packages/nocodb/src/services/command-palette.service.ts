@@ -23,7 +23,6 @@ export class CommandPaletteService {
         table_meta: string;
         view_id: string;
         view_title: string;
-        view_is_default: boolean;
         view_type: string;
         view_meta: string;
       }[] = await getCommandPaletteForUserWorkspace(param.user?.id);
@@ -53,7 +52,6 @@ export class CommandPaletteService {
           title: string;
           base_id: string;
           table_id: string;
-          is_default: boolean;
           type: string;
           meta: any;
         }
@@ -85,7 +83,6 @@ export class CommandPaletteService {
             meta: deserializeJSON(item.view_meta),
             base_id: item.base_id,
             table_id: item.table_id,
-            is_default: item.view_is_default,
             type: item.view_type,
           });
         }
@@ -120,7 +117,6 @@ export class CommandPaletteService {
           icon: view?.meta?.icon || viewTypeAlias[view.type] || 'table',
           projectName: bases.get(view.base_id)?.title,
           section: 'Views',
-          is_default: view.is_default,
           handler: {
             type: 'navigate',
             payload: `/nc/${view.base_id}/${view.table_id}/${encodeURIComponent(

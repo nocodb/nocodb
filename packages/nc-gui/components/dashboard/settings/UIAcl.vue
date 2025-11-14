@@ -230,8 +230,8 @@ const columns = [
                 <GeneralViewIcon v-else :meta="record" class="text-gray-500"></GeneralViewIcon>
               </div>
               <NcTooltip class="truncate" show-on-truncate-only>
-                <template #title>{{ record.is_default ? $t('title.defaultView') : record.title }}</template>
-                {{ record.is_default ? $t('title.defaultView') : record.title }}
+                <template #title>{{ record.title }}</template>
+                {{ record.title }}
               </NcTooltip>
             </div>
           </template>

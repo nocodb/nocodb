@@ -2024,11 +2024,14 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
-    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+    const defaultView = await View.getFirstCollaborativeView(
+      context,
+      column.fk_model_id,
+      ncMeta,
+    );
 
-    // Pass defaultViewId so that default view column order and visibility get added to the column meta
     // Get all the columns in the table and return
-    await table.getColumns(context, undefined, defaultViewId);
+    await table.getColumns(context, undefined, defaultView?.id);
 
     // Handle filter transformation if this is a column type change
     if (column.uidt !== colBody.uidt) {
@@ -2905,10 +2908,13 @@ export class ColumnsService implements IColumnsService {
         break;
     }
 
-    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+    const defaultView = await View.getFirstCollaborativeView(
+      context,
+      table.id,
+      ncMeta,
+    );
 
-    // Pass defaultViewId so that default view column order and visibility get added to the column meta
-    await table.getColumns(context, undefined, defaultViewId);
+    await table.getColumns(context, undefined, defaultView?.id);
 
     const newColumn = table.columns.find((c) => c.title === param.column.title);
 
@@ -3571,11 +3577,14 @@ export class ColumnsService implements IColumnsService {
         );
       }
     }
-
-    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+    const defaultView = await View.getFirstCollaborativeView(
+      context,
+      table.id,
+      ncMeta,
+    );
 
     // Pass defaultViewId so that default view column order and visibility get added to the column meta
-    await table.getColumns(context, ncMeta, defaultViewId);
+    await table.getColumns(context, ncMeta, defaultView?.id);
 
     const displayValueColumn = mapDefaultDisplayValue(table.columns);
     if (displayValueColumn) {

@@ -9,7 +9,6 @@ interface Props {
   filterView?: (view: ViewType) => boolean
   ignoreLoading?: boolean
   forceFetchViews?: boolean
-  labelDefaultViewAsDefault?: boolean
   disableLabel?: boolean
   autoSelect?: boolean
   disabled?: boolean
@@ -18,7 +17,6 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   ignoreLoading: false,
   forceFetchViews: false,
-  labelDefaultViewAsDefault: false,
   disableLabel: false,
   autoSelect: false,
   disabled: false,
@@ -57,10 +55,6 @@ const viewList = computedAsync(async () => {
   }
 
   let viewsList: ViewType[] = viewsByTable.value.get(props.tableId) || []
-
-  if (props.labelDefaultViewAsDefault) {
-    viewsList = viewsList.map((v) => ({ ...v, title: v.is_default ? 'Default View' : v.title }))
-  }
 
   if (props.filterView) {
     viewsList = viewsList.filter(props.filterView)

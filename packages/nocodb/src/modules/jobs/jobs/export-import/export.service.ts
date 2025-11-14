@@ -2,6 +2,7 @@ import { Readable } from 'stream';
 import { Injectable } from '@nestjs/common';
 import debug from 'debug';
 import {
+  getFirstNonPersonalView,
   isCrossBaseLink,
   isLinksOrLTAR,
   isSystemColumn,
@@ -212,8 +213,23 @@ export class ExportService {
       await model.getViews(context);
 
       // if views are excluded, filter all views except default
+      const firstView = getFirstNonPersonalView(model.views, {
+        includeViewType: ViewTypes.GRID,
+      });
+
       if (excludeViews) {
-        model.views = model.views.filter((v) => v.is_default);
+        if (firstView) {
+          (firstView as any).is_default = true;
+        }
+
+        model.views = firstView ? [firstView as View] : [];
+      } else {
+        model.views = model.views.map((view) => {
+          if (view.id === firstView.id) {
+            (view as any).is_default = true;
+          }
+          return view;
+        });
       }
 
       for (const column of model.columns) {
@@ -668,12 +684,12 @@ export class ExportService {
         views: model.views.map((view) => ({
           description: view.description,
           id: idMap.get(view.id),
-          is_default: view.is_default,
           type: view.type,
           meta: RowColorViewHelpers.withContext(context).mapMetaColumn({
             meta: view.meta,
             idMap,
           }),
+          is_default: (view as any).is_default,
           order: view.order,
           title: view.title,
           show: view.show,
@@ -806,7 +822,8 @@ export class ExportService {
           .filter((c) => !isLinksOrLTAR(c) && !isVirtualCol(c))
           .map((c) => c.title);
 
-    const refView = view ?? (await View.getDefaultView(context, model.id));
+    const refView =
+      view ?? (await View.getFirstCollaborativeView(context, model.id));
 
     const viewCols = await refView.getColumns(context);
     if (dataExportMode) {

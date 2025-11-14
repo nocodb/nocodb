@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableType, ViewType } from 'nocodb-sdk'
+import { ViewTypes, getFirstNonPersonalView } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -105,7 +106,9 @@ const loadMetas = async () => {
     }
   } else {
     await loadViews({ tableId: props.tableId, force: true })
-    viewMeta.value = viewsByTable.value.get(props.tableId)?.find((v) => v.is_default)
+    viewMeta.value = getFirstNonPersonalView(viewsByTable.value.get(props.tableId) || [], {
+      includeViewType: ViewTypes.GRID,
+    })
   }
   isLoading.value = false
 }

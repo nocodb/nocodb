@@ -3,8 +3,6 @@ import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-
 
 const { isMobileMode } = useGlobal()
 
-const { t } = useI18n()
-
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
@@ -68,10 +66,6 @@ const handleNavigateToView = async (view: ViewType) => {
  * The matching is case-insensitive.
  */
 const filterOption = (input = '', view: ViewType) => {
-  if (view.is_default && t('title.defaultView').toLowerCase().includes(input)) {
-    return true
-  }
-
   return view.title?.toLowerCase()?.includes(input.toLowerCase())
 }
 
@@ -158,9 +152,9 @@ async function onOpenModal({
           </div>
           <NcTooltip class="truncate flex-1" show-on-truncate-only>
             <template #title>
-              {{ option?.is_default ? $t('title.defaultView') : option?.title }}
+              {{ option?.title }}
             </template>
-            {{ option?.is_default ? $t('title.defaultView') : option?.title }}
+            {{ option?.title }}
           </NcTooltip>
           <GeneralIcon
             v-if="option.id === activeView.id"

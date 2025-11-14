@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { type TableType } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 import type { EventHook } from '@vueuse/core'
+import { ViewTypes, getFirstNonPersonalView } from 'nocodb-sdk'
 import PageEditor from './components/PageEditor.vue'
 import { type PageDesignerPayload } from './lib/payload'
 import { PageDesignerLayout, PageOrientation, PageType } from './lib/layout'
@@ -155,7 +156,12 @@ async function tryInitializeTableAndView() {
 
   if (!savedPayload.value.selectedViewId) {
     const views = await getViewsForTable(savedPayload.value.selectedTableId)
-    savedPayload.value.selectedViewId = views.find((view) => view.is_default)?.id ?? activeViewId.value ?? ''
+    savedPayload.value.selectedViewId =
+      getFirstNonPersonalView(views, {
+        excludeViewType: ViewTypes.FORM,
+      })?.id ??
+      activeViewId.value ??
+      ''
   }
 }
 

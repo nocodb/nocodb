@@ -6,7 +6,9 @@ import {
   PlanTitles,
   RelationTypes,
   UITypes,
+  ViewTypes,
   columnTypeName,
+  getFirstNonPersonalView,
   isCrossBaseLink,
   isLinksOrLTAR,
   isSupportedDisplayValueColumn,
@@ -28,6 +30,10 @@ const column = toRef(props, 'column')
 provide(ColumnInj, column)
 
 const { eventBus, allFilters, isSqlView, sorts } = useSmartsheetStoreOrThrow()
+
+const viewStore = useViewsStore()
+
+const { views } = storeToRefs(viewStore)
 
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
@@ -253,17 +259,17 @@ const addColumn = async (before = false) => {
   })
 }
 
-const getViewId = () => {
-  if (meta.value?.id !== view.value?.fk_model_id) {
-    return meta.value?.views?.find((v) => v.is_default)?.id
-  }
-
-  return view.value?.id
-}
+const isDefaultView = computed(() => {
+  return (
+    getFirstNonPersonalView(views.value, {
+      includeViewType: ViewTypes.GRID,
+    })?.id === view.value?.id
+  )
+})
 
 const updateDefaultViewColVisibility = (columnId?: string, show = false) => {
   //  Don't update meta if it is not default view
-  if (!meta.value || !columnId || meta.value?.id !== view.value?.fk_model_id || !view.value?.is_default) return
+  if (!meta.value || !columnId || meta.value?.id !== view.value?.fk_model_id || !isDefaultView.value) return
 
   meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
     if (c.id !== columnId) return c
@@ -284,7 +290,7 @@ const updateDefaultViewColVisibility = (columnId?: string, show = false) => {
 const hideOrShowField = async () => {
   isLoading.value = 'hideOrShow'
 
-  const viewId = getViewId() as string
+  const viewId = view.value?.id
 
   const currentViewColumn = gridViewCols.value[column.value.id!] ? clone(gridViewCols.value[column.value.id!]) : null
 

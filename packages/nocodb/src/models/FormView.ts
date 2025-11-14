@@ -22,7 +22,6 @@ type FormViewType = Omit<FormType, 'banner_image_url' | 'logo_url'> & {
 
 export default class FormView implements FormViewType {
   show: BoolType;
-  is_default: BoolType;
   order: number;
   title?: string;
   heading?: string;

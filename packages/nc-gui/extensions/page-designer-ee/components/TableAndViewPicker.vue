@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { type ViewType, ViewTypes } from 'nocodb-sdk'
+import { getFirstNonPersonalView } from 'nocodb-sdk'
 import { PageDesignerPayloadInj } from '../lib/context'
 
 const savedPayloads = inject(PageDesignerPayloadInj)!
@@ -21,10 +22,10 @@ const viewList = computed(() => {
   if (!savedPayloads.value.selectedTableId) return []
   return (
     views.value
-      .filter((view) => view.type === ViewTypes.GRID)
+      .filter((view) => view.type !== ViewTypes.FORM)
       .map((view) => {
         return {
-          label: view.is_default ? `Default View` : view.title,
+          label: view.title,
           value: view.id,
           meta: view.meta,
           type: view.type,
@@ -49,7 +50,9 @@ async function onTableSelect(tableId?: string) {
 
   savedPayloads.value.selectedTableId = tableId
   await reloadViews()
-  savedPayloads.value.selectedViewId = views.value.find((view) => view.is_default)?.id
+  savedPayloads.value.selectedViewId = getFirstNonPersonalView(views.value, {
+    excludeViewType: ViewTypes.FORM,
+  })?.id
 }
 
 const onViewSelect = async (viewId: string) => {

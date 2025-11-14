@@ -12,7 +12,7 @@ import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 
 function getViewTitle(view: View) {
-  return view?.is_default ? 'Default View' : view?.title;
+  return view?.title;
 }
 
 @Injectable()

@@ -713,7 +713,6 @@ export default class Column<T = any> implements ColumnType {
             defaultViewColVisibility: defaultViewColumnMap[m.id]?.show,
           };
         }
-
         const column = new Column(m);
         await column.getColOptions(context, ncMeta);
         return column;

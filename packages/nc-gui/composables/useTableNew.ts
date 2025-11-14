@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, getFirstNonPersonalView, isSystemColumn } from 'nocodb-sdk'
 import type { SidebarTableNode } from '~/lib/types'
 import { generateUniqueTitle as generateTitle } from '#imports'
 
@@ -77,7 +77,7 @@ export function useTableNew(param: {
         if (!defaultView) {
           const views = viewsByTable.value.get(table.id as string) ?? []
 
-          defaultView = views.find((v) => v.is_default) || views[0]
+          defaultView = getFirstNonPersonalView(views)
         }
 
         const slug = defaultView ? getViewReadableUrlSlug({ tableTitle: table.title, viewOrViewTitle: defaultView }) : ''
@@ -102,7 +102,7 @@ export function useTableNew(param: {
         const views = viewsByTable.value.get(table.id as string) ?? []
         if (navigate && openedViewsTab.value !== 'view' && views.length && views[0].id) {
           // find the default view and navigate to it, if not found navigate to the first one
-          const defaultView = views.find((v) => v.is_default) || views[0]
+          const defaultView = getFirstNonPersonalView(views)
 
           await navigateTo(
             `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${

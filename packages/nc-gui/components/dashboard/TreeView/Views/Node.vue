@@ -30,9 +30,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'view', emits) as WritableComputedRef<
-  ViewType & { alias?: string; is_default: boolean; created_by?: string }
->
+const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { alias?: string; created_by?: string }>
 
 const { $e } = useNuxtApp()
 
@@ -286,10 +284,10 @@ watch(isDropdownOpen, async () => {
 </script>
 
 <template>
-  <a-menu-item
+  <div
     class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :class="{
-      '!pl-7.5 !xs:(pl-7.5)': isDefaultBaseLocal,
+      '!pl-7.5 !xs:(pl-6.5)': isDefaultBaseLocal,
       '!pl-14': !isDefaultBaseLocal,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
@@ -299,6 +297,7 @@ watch(isDropdownOpen, async () => {
       :tooltip-style="{ width: '240px', zIndex: '1049' }"
       :overlay-inner-style="{ width: '240px' }"
       :mouse-enter-delay="0.5"
+      class="w-full"
       trigger="hover"
       placement="right"
       :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip || isMobileMode"
@@ -338,7 +337,7 @@ watch(isDropdownOpen, async () => {
           @mouseleave="showViewNodeTooltip = true"
         >
           <LazyGeneralEmojiPicker
-            class="nc-table-icon"
+            class="nc-view-icon-parent"
             :emoji="props.view?.meta?.icon"
             size="small"
             :clearable="true"
@@ -464,5 +463,5 @@ watch(isDropdownOpen, async () => {
         </template>
       </div>
     </NcTooltip>
-  </a-menu-item>
+  </div>
 </template>

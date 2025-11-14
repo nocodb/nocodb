@@ -63,6 +63,7 @@ import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class ImportService {
@@ -1840,13 +1841,22 @@ export class ImportService {
     user: UserType,
     req: NcRequest,
   ): Promise<View> {
-    if (vw.is_default) {
-      const view = views.find((a) => a.is_default);
+    if ((vw as any)?.is_default) {
+      const view = views?.[0];
       if (view) {
         // update meta and coloring mode to default view
-        if (vw.row_coloring_mode || Object.keys(vw.meta ?? {}).length > 0) {
-          await View.update(context, view.id, vw);
-        }
+        await View.update(
+          context,
+          view.id,
+          extractProps(vw, [
+            'title',
+            'show_system_fields',
+            'meta',
+            'expanded_record_mode',
+            'row_coloring_mode',
+            'attachment_mode_column_id',
+          ]),
+        );
         const gridData = withoutNull(vw.view);
         if (gridData) {
           await this.gridsService.gridViewUpdate(context, {

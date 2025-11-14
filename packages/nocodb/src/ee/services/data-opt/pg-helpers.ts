@@ -1033,6 +1033,10 @@ export async function extractColumn({
           context: refBaseModel.context,
         });
 
+        if (!refBaseModel.model.columns?.length) {
+          await refBaseModel.model.getColumns(refBaseModel.context);
+        }
+
         const { isArray } = await extractColumn({
           qb: relQb,
           rootAlias: relTableAlias,
@@ -1044,7 +1048,7 @@ export async function extractColumn({
           throwErrorIfInvalidParams,
           validateFormula,
           apiVersion,
-          model,
+          model: refBaseModel.model,
           aliasToColumn,
           columnIdToUidt,
           baseUsers,

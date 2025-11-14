@@ -11,18 +11,14 @@ const { meta: metaKey, control } = useMagicKeys()
 
 const workspaceStore = useWorkspace()
 
-const {
-  activeWorkspaceId,
-  isWorkspaceSettingsPageOpened,
-  isIntegrationsPageOpened,
-  isWorkspacesLoading,
-  isMarketplacePageOpened,
-} = storeToRefs(workspaceStore)
+const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened, isWorkspacesLoading, isTemplatesPageOpened } =
+  storeToRefs(workspaceStore)
 
 const {
   navigateToWorkspaceSettings,
   navigateToIntegrations: _navigateToIntegrations,
-  navigateToMarketplace: _navigateToMarketplace,
+  navigateToTemplates: _navigateToTemplates,
+  isTemplatesFeatureEnabled,
 } = workspaceStore
 
 const { basesList, showProjectList } = storeToRefs(useBases())
@@ -34,8 +30,6 @@ const { isUIAllowed } = useRoles()
 const { setActiveCmdView } = useCommand()
 
 const { isChatWootEnabled } = useProvideChatwoot()
-
-const { isTemplatesFeatureEnabled } = useMarketplaceTemplates()
 
 const isProjectListOrHomePageOpen = computed(() => {
   return (
@@ -76,10 +70,10 @@ const navigateToSettings = () => {
   navigateToWorkspaceSettings('', cmdOrCtrl)
 }
 
-const navigateToMarketplace = () => {
+const navigateToTemplates = () => {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
-  _navigateToMarketplace('', cmdOrCtrl)
+  _navigateToTemplates('', cmdOrCtrl)
 }
 
 const navigateToIntegrations = () => {
@@ -272,12 +266,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             v-e="['c:templates']"
             class="nc-mini-sidebar-btn-full-width"
             data-testid="nc-sidebar-templates-btn"
-            @click="navigateToMarketplace"
+            @click="navigateToTemplates"
           >
             <div
               class="nc-mini-sidebar-btn"
               :class="{
-                active: isMarketplacePageOpened,
+                active: isTemplatesPageOpened,
               }"
             >
               <GeneralIcon icon="globe" class="h-4 w-4" />

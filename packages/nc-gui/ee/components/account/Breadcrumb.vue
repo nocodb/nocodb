@@ -9,8 +9,6 @@ interface BreadcrumbType {
 
 const { t } = useI18n()
 
-const { categoryInfo } = useMarketplaceTemplates()
-
 const breadcrumb = computed<BreadcrumbType[]>(() => {
   const payload: BreadcrumbType[] = [
     {
@@ -40,35 +38,6 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
         })
         break
       }
-    }
-
-    return payload
-  }
-
-  if (route.name?.toString().includes('index-typeOrId-templates')) {
-    payload.pop()
-
-    payload.push({
-      title: t('general.templates'),
-      active: (!route.params.category || route.params.category === 'all-templates') && !route.meta.templateName,
-      path: `/${route.params.typeOrId}/templates`,
-    })
-
-    if (route.params.category && route.params.category !== 'all-templates') {
-      payload.push({
-        title:
-          categoryInfo[route.params.category as TemplateCategoryType]?.sidebarTitle ||
-          (route.params.category as unknown as string),
-        active: !route.meta.templateName,
-        path: `/${route.params.typeOrId}/templates/${route.params.category}`,
-      })
-    }
-
-    if (route.meta.templateName) {
-      payload.push({
-        title: route.meta.templateName as string,
-        active: true,
-      })
     }
 
     return payload

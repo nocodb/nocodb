@@ -73,6 +73,13 @@ export interface MetricWidgetConfig {
   };
 }
 
+export interface GaugeRange {
+  color: string;
+  min: number;
+  max: number;
+  label?: string;
+}
+
 export interface GaugeWidgetConfig {
   dataSource?: WidgetDataSourceTypes;
   metric: {
@@ -80,24 +87,9 @@ export interface GaugeWidgetConfig {
     column_id?: string;
     aggregation: 'sum' | 'avg' | 'count' | 'min' | 'max';
   };
-  range: {
-    min: number;
-    max: number;
-  };
   appearance: {
-    type: 'default' | 'filled' | 'coloured';
-    theme:
-      | 'gray'
-      | 'red'
-      | 'green'
-      | 'yellow'
-      | 'pink'
-      | 'blue'
-      | 'orange'
-      | 'maroon'
-      | 'purple';
+    ranges?: GaugeRange[];
     showValue: boolean;
-    showPercentage: boolean;
   };
 }
 

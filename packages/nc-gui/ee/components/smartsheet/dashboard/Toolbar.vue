@@ -12,7 +12,7 @@ const { getMeta } = useMetas()
 
 const { activeDashboard } = storeToRefs(dashboardStore)
 
-const { activeDashboardWidgets, selectedWidget } = storeToRefs(widgetStore)
+const { activeDashboardWidgets, selectedWidget, isGaugeWidgetEnabled } = storeToRefs(widgetStore)
 
 const { activeTables } = storeToRefs(tableStore)
 
@@ -134,7 +134,7 @@ const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SC
         Donut
       </div>
     </NcButton>
-    <NcButton size="small" type="text" @click="addGaugeWidget">
+    <NcButton v-if="isGaugeWidgetEnabled" size="small" type="text" @click="addGaugeWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncGaugeWidget" class="w-5 h-5" />
         Gauge

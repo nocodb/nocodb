@@ -190,6 +190,14 @@ const FEATURES = [
     isEE: true,
     isOnPrem: false,
   },
+  {
+    id: 'gauge_widget',
+    title: 'Gauge Widget',
+    description: 'A visual indicator that displays real-time values, limits, and performance levels at a glance.',
+    isEngineering: true,
+    enabled: false,
+    version: 1,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

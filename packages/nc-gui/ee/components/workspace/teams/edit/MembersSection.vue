@@ -392,7 +392,7 @@ onMounted(() => {
                 {{ $t('objects.teams.teamOwner') }}
               </template>
               <template #label>
-                <span class="text-small">
+                <span class="text-bodySm">
                   {{ $t('objects.teams.teamOwner') }}
                 </span>
               </template>

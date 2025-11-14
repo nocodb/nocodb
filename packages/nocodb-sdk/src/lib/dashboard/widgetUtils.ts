@@ -80,6 +80,12 @@ export const calculateNextPosition = (
   return { x: 0, y: maxY };
 };
 
+const defaultGaugeWidgetRange = [
+  { color: '#FF6E76', min: 0, max: 33, label: 'Low' },
+  { color: '#FDDD60', min: 33, max: 67, label: 'Medium' },
+  { color: '#7CFFB2', min: 67, max: 100, label: 'High' },
+];
+
 const getDefaultConfig = (
   widgetType: WidgetTypes,
   chartType?: ChartTypes,
@@ -108,11 +114,7 @@ const getDefaultConfig = (
         },
         appearance: {
           showValue: true,
-          ranges: [
-            { color: '#FF6E76', min: 0, max: 33, label: 'Low' },
-            { color: '#FDDD60', min: 33, max: 67, label: 'Medium' },
-            { color: '#7CFFB2', min: 67, max: 100, label: 'High' },
-          ],
+          ranges: defaultGaugeWidgetRange,
         },
       };
 
@@ -306,4 +308,4 @@ const getDefaultChartConfig = (
   }
 };
 
-export { getDefaultConfig };
+export { getDefaultConfig, defaultGaugeWidgetRange };

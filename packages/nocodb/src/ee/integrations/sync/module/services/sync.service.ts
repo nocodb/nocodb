@@ -175,9 +175,9 @@ export class SyncModuleService implements OnModuleInit {
       const authWrapper =
         await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-      const auth = await authWrapper.authenticate();
+      await authWrapper.authenticate();
 
-      const schema = await wrapper.getDestinationSchema(auth);
+      const schema = await wrapper.getDestinationSchema(authWrapper);
 
       if (!schema || Object.keys(schema).length === 0) {
         NcError.badRequest('No tables found in the schema');
@@ -1066,9 +1066,9 @@ export class SyncModuleService implements OnModuleInit {
     const authWrapper =
       await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-    const auth = await authWrapper.authenticate();
+    await authWrapper.authenticate();
 
-    const options = await tempIntegrationWrapper.fetchOptions(auth, key);
+    const options = await tempIntegrationWrapper.fetchOptions(authWrapper, key);
 
     if (authWrapper?.destroy) {
       await authWrapper.destroy();
@@ -1103,9 +1103,11 @@ export class SyncModuleService implements OnModuleInit {
     const authWrapper =
       await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-    const auth = await authWrapper.authenticate();
+    await authWrapper.authenticate();
 
-    const schema = await tempIntegrationWrapper.getDestinationSchema(auth);
+    const schema = await tempIntegrationWrapper.getDestinationSchema(
+      authWrapper,
+    );
 
     if (authWrapper?.destroy) {
       await authWrapper.destroy();

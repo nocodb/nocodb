@@ -4,7 +4,7 @@ import {
   type AiGenerateObjectArgs,
   AiIntegration,
 } from '@noco-integrations/core';
-import type { AiGenerateTextArgs} from '@noco-integrations/core';
+import type { AiGenerateTextArgs } from '@noco-integrations/core';
 
 export class OpenAIIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
@@ -51,7 +51,7 @@ export class OpenAIIntegration extends AiIntegration {
     };
   }
 
-    public async generateText(args: AiGenerateTextArgs){
+  public async generateText(args: AiGenerateTextArgs) {
     const { prompt, messages, customModel } = args;
 
     if (!this.model || customModel) {

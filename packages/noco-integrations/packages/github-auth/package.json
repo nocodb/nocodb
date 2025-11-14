@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
+    "@octokit/plugin-throttling": "^11.0.3",
     "axios": "^1.9.0",
     "octokit": "3.2.2"
   },

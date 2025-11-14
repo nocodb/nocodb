@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "@linear/sdk": "^40.0.0"
+    "@noco-integrations/linear-auth": "workspace:*",
+    "axios": "^1.6.0",
+    "nocodb-sdk": "file:../../../nocodb-sdk"
   },
   "devDependencies": {
     "typescript": "^5.2.2"

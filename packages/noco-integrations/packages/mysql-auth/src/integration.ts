@@ -1,15 +1,14 @@
 import { knex } from 'knex';
 import { AuthIntegration } from '@noco-integrations/core';
+import type { MySQLAuthConfig } from './types';
 import type { Knex } from 'knex';
-import type {
-  AuthResponse,
-  TestConnectionResponse,
-} from '@noco-integrations/core';
+import type { TestConnectionResponse } from '@noco-integrations/core';
 
-export class MySQLAuthIntegration extends AuthIntegration {
-  public client: Knex | null = null;
-
-  public async authenticate(): Promise<AuthResponse<Knex>> {
+export class MySQLAuthIntegration extends AuthIntegration<
+  MySQLAuthConfig,
+  Knex
+> {
+  public async authenticate(): Promise<Knex> {
     const knexConfig: Knex.Config = {
       client: 'mysql2',
       connection: {
@@ -24,6 +23,7 @@ export class MySQLAuthIntegration extends AuthIntegration {
       },
     };
 
+    // Handle SSL configuration
     if (this.config.ssl) {
       (knexConfig.connection as any).ssl =
         this.config.ssl === 'true' ? true : { rejectUnauthorized: false };
@@ -34,47 +34,37 @@ export class MySQLAuthIntegration extends AuthIntegration {
     return this.client;
   }
 
-  public async destroy(): Promise<void> {
-    if (this.client) {
-      try {
-        await this.client.destroy();
-      } catch {
-        // Ignore errors when closing connection
-      }
-    }
-  }
-
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
-      const client = await this.authenticate();
-
-      if (!client) {
-        return {
-          success: false,
-          message: 'Missing MySQL client',
-        };
-      }
-
-      // Attempt to execute a simple query
-      await client.raw('SELECT 1');
+      await this.use(async (client) => {
+        await client.raw('SELECT 1');
+      });
 
       return {
         success: true,
       };
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.errno === 1045) {
+        return {
+          success: false,
+          message: 'Authentication failed - invalid credentials',
+        };
+      }
+
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Unknown error',
       };
-    } finally {
-      // Close the connection
+    }
+  }
+
+  public async destroy(): Promise<void> {
+    if (this.client) {
       try {
-        const client = await this.authenticate();
-        if (client) {
-          await client.destroy();
-        }
-      } catch {
-        // Ignore errors when closing connection
+        await this.client.destroy();
+        this.client = null;
+      } catch (error) {
+        console.warn('Error while destroying MySQL connection:', error);
       }
     }
   }

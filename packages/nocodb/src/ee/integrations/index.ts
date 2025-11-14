@@ -5,17 +5,21 @@
 
 import AmazonBedrockAi from '@noco-local-integrations/amazon-bedrock-ai';
 import AzureAi from '@noco-local-integrations/azure-ai';
+import BitbucketAuth from '@noco-local-integrations/bitbucket-auth';
+import BitbucketSync from '@noco-local-integrations/bitbucket-sync';
+import ChatwootAuth from '@noco-local-integrations/chatwoot-auth';
+import ChatwootSync from '@noco-local-integrations/chatwoot-sync';
 import ClaudeAi from '@noco-local-integrations/claude-ai';
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
 import DeepseekAi from '@noco-local-integrations/deepseek-ai';
+import FreshdeskAuth from '@noco-local-integrations/freshdesk-auth';
+import FreshdeskSync from '@noco-local-integrations/freshdesk-sync';
 import GithubAuth from '@noco-local-integrations/github-auth';
 import GithubSync from '@noco-local-integrations/github-sync';
 import GitlabAuth from '@noco-local-integrations/gitlab-auth';
 import GitlabSync from '@noco-local-integrations/gitlab-sync';
 import GoogleAi from '@noco-local-integrations/google-ai';
 import GroqAi from '@noco-local-integrations/groq-ai';
-import JiraAuth from '@noco-local-integrations/jira-auth';
-import JiraSync from '@noco-local-integrations/jira-sync';
 import LinearAuth from '@noco-local-integrations/linear-auth';
 import LinearSync from '@noco-local-integrations/linear-sync';
 import MysqlAuth from '@noco-local-integrations/mysql-auth';
@@ -27,23 +31,28 @@ import PostgresAuth from '@noco-local-integrations/postgres-auth';
 import PostgresSync from '@noco-local-integrations/postgres-sync';
 import ZendeskAuth from '@noco-local-integrations/zendesk-auth';
 import ZendeskSync from '@noco-local-integrations/zendesk-sync';
+import ZohoAuth from '@noco-local-integrations/zoho-auth';
 
 import type { IntegrationEntry } from '@noco-local-integrations/core';
 
 export default [
   AmazonBedrockAi,
   AzureAi,
+  BitbucketAuth,
+  BitbucketSync,
+  ChatwootAuth,
+  ChatwootSync,
   ClaudeAi,
   ClickhouseAuth,
   DeepseekAi,
+  FreshdeskAuth,
+  FreshdeskSync,
   GithubAuth,
   GithubSync,
   GitlabAuth,
   GitlabSync,
   GoogleAi,
   GroqAi,
-  JiraAuth,
-  JiraSync,
   LinearAuth,
   LinearSync,
   MysqlAuth,
@@ -55,4 +64,5 @@ export default [
   PostgresSync,
   ZendeskAuth,
   ZendeskSync,
+  ZohoAuth,
 ] as IntegrationEntry[];

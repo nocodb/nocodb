@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
+    "@noco-integrations/github-auth": "workspace:*",
     "octokit": "3.2.2"
   },
   "devDependencies": {

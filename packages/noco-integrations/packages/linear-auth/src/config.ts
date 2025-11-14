@@ -13,7 +13,7 @@ export const scopes = ['read', 'write'];
 // OAuth URIs for Linear
 export const authUri =
   clientId && redirectUri
-    ? `https://linear.app/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes.join(' '))}&response_type=code&prompt=consent`
+    ? `https://linear.app/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scopes.join(',')}&response_type=code&prompt=consent`
     : '';
 
 export const tokenUri = 'https://api.linear.app/oauth/token';

@@ -1,7 +1,8 @@
 import { generateObject, generateText, type LanguageModel } from 'ai';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import {
-  type AiGenerateObjectArgs, type AiGenerateTextArgs,
+  type AiGenerateObjectArgs,
+  type AiGenerateTextArgs,
   AiIntegration,
 } from '@noco-integrations/core';
 
@@ -52,8 +53,8 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
       data: response.object as T,
     };
   }
-  
-  public async generateText(args: AiGenerateTextArgs){
+
+  public async generateText(args: AiGenerateTextArgs) {
     const { prompt, messages, customModel } = args;
 
     if (!this.model || customModel) {

@@ -261,6 +261,7 @@ watch(
                       :value="deepReference(field.model)"
                       :element="field"
                       :have-value="!!deepReference(field.model)"
+                      :form-data="formState"
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>

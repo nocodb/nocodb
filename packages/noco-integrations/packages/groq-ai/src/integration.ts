@@ -4,7 +4,7 @@ import {
   type AiGenerateObjectArgs,
   AiIntegration,
 } from '@noco-integrations/core';
-import type { AiGenerateTextArgs} from '@noco-integrations/core';
+import type { AiGenerateTextArgs } from '@noco-integrations/core';
 
 export class GroqAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
@@ -58,9 +58,9 @@ export class GroqAiIntegration extends AiIntegration {
     };
     return aliases[model] || model;
   }
-  
-  public async generateText(args: AiGenerateTextArgs)  {
-    const { prompt, messages, system  } = args;
+
+  public async generateText(args: AiGenerateTextArgs) {
+    const { prompt, messages, system } = args;
 
     if (!this.model || args.customModel) {
       const model = args.customModel || this.config.models[0];
@@ -87,7 +87,7 @@ export class GroqAiIntegration extends AiIntegration {
       prompt,
       messages,
       temperature: 0.5,
-      system
+      system,
     });
 
     return {

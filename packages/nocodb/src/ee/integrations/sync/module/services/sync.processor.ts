@@ -427,9 +427,9 @@ export class SyncModuleSyncDataProcessor {
         }
 
         const authWrapper =
-          await authIntegration.getIntegrationWrapper<AuthIntegration>();
+          authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-        const auth = await authWrapper.authenticate();
+        await authWrapper.authenticate();
 
         const wrapper =
           await integration.getIntegrationWrapper<SyncIntegration>(logBasic);
@@ -530,7 +530,7 @@ export class SyncModuleSyncDataProcessor {
           }
         }
 
-        const dataStream = await wrapper.fetchData(auth, {
+        const dataStream = await wrapper.fetchData(authWrapper, {
           targetTables: syncMappings.map(
             (m) => m.target_table as TARGET_TABLES,
           ),
@@ -956,10 +956,10 @@ export class SyncModuleSyncDataProcessor {
     const authWrapper =
       await authIntegration.getIntegrationWrapper<AuthIntegration>();
 
-    const auth = await authWrapper.authenticate();
+    await authWrapper.authenticate();
 
     // Get new schema from integration
-    const newSchema = await wrapper.getDestinationSchema(auth);
+    const newSchema = await wrapper.getDestinationSchema(authWrapper);
 
     // Get sync mappings for non-mm tables
     const syncMappings = await SyncMapping.list(context, {

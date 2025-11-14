@@ -14,4 +14,6 @@ const integration: IntegrationEntry = {
   manifest,
 };
 
+export { GithubAuthIntegration };
+
 export default integration;

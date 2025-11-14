@@ -1,12 +1,11 @@
-import axios from 'axios';
 import {
   DataObjectStream,
   SCHEMA_TICKETING,
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
+import type { ZendeskAuthIntegration } from '@noco-integrations/zendesk-auth';
 import type {
-  AuthResponse,
   SyncLinkValue,
   SyncRecord,
   TicketingCommentRecord,
@@ -14,13 +13,6 @@ import type {
   TicketingTicketRecord,
   TicketingUserRecord,
 } from '@noco-integrations/core';
-
-interface ZendeskClient {
-  subdomain: string;
-  token: string;
-  email?: string;
-  apiVersion: string;
-}
 
 export interface ZendeskSyncPayload {
   includeClosed: boolean;
@@ -31,29 +23,12 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
     return 'Zendesk Tickets';
   }
 
-  public async getDestinationSchema(_auth: AuthResponse<ZendeskClient>) {
+  public async getDestinationSchema(_auth: ZendeskAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
-  private getAuthHeaders(client: ZendeskClient): Record<string, string> {
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-
-    if (client.email) {
-      const auth = Buffer.from(`${client.email}/token:${client.token}`).toString(
-        'base64',
-      );
-      headers['Authorization'] = `Basic ${auth}`;
-    } else {
-      headers['Authorization'] = `Bearer ${client.token}`;
-    }
-
-    return headers;
-  }
-
   public async fetchData(
-    auth: AuthResponse<ZendeskClient>,
+    auth: ZendeskAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
@@ -66,7 +41,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
       | TicketingTeamRecord
     >
   > {
-    const client = auth;
     const { includeClosed } = this.config;
     const { targetTableIncrementalValues } = args;
 
@@ -80,11 +54,8 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
     const userMap = new Map<string, boolean>();
     const ticketMap = new Map<string, boolean>();
 
-    (async () => {
+    void (async () => {
       try {
-        const headers = this.getAuthHeaders(client);
-        const baseUrl = `https://${client.subdomain}.zendesk.com/api/v2`;
-
         const ticketIncrementalValue =
           targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
 
@@ -92,11 +63,11 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
         const queryParams = new URLSearchParams({
           per_page: '100',
         });
-        
+
         if (ticketIncrementalValue) {
           queryParams.set('updated_after', ticketIncrementalValue);
         }
-        
+
         if (!includeClosed) {
           queryParams.set('status', 'open');
         }
@@ -110,25 +81,30 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
 
         while (hasMore) {
           queryParams.set('page', page.toString());
-          const url = `${baseUrl}/tickets.json?${queryParams.toString()}`;
           this.log(`[Zendesk Sync] Fetching page ${page}`);
-          
-          const response: any = await axios.get(url, { headers });
+
+          const response = await auth.use(async (client) => {
+            return await client.get(`/tickets.json?${queryParams.toString()}`);
+          });
+
           const data: any = response.data;
 
           this.log(`[Zendesk Sync] Fetched ${data.tickets.length} tickets`);
-          
+
           // Break if no tickets returned
           if (!data.tickets || data.tickets.length === 0) {
             hasMore = false;
             break;
           }
-          
+
           totalTickets += data.tickets.length;
 
           for (const ticket of data.tickets) {
             // Filter based on status
-            if (!includeClosed && ['closed', 'solved'].includes(ticket.status)) {
+            if (
+              !includeClosed &&
+              ['closed', 'solved'].includes(ticket.status)
+            ) {
               continue;
             }
 
@@ -158,9 +134,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
           }
 
           page++;
-
-          // Respect rate limits
-          await new Promise((resolve) => setTimeout(resolve, 200));
         }
 
         this.log(`[Zendesk Sync] Total tickets fetched: ${totalTickets}`);
@@ -179,10 +152,11 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
             });
 
             try {
-              const response = await axios.get(
-                `${baseUrl}/users/show_many.json?${userQueryParams.toString()}`,
-                { headers },
-              );
+              const response = await auth.use(async (client) => {
+                return await client.get(
+                  `/users/show_many.json?${userQueryParams.toString()}`,
+                );
+              });
 
               for (const user of response.data.users) {
                 const userData = this.formatUser(user);
@@ -195,11 +169,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
             } catch (error) {
               this.log(`[Zendesk Sync] Error fetching users batch: ${error}`);
             }
-
-            // Respect rate limits
-            if (i + batchSize < userIds.length) {
-              await new Promise((resolve) => setTimeout(resolve, 200));
-            }
           }
         }
 
@@ -209,10 +178,9 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
 
           for (const ticketId of ticketMap.keys()) {
             try {
-              const response = await axios.get(
-                `${baseUrl}/tickets/${ticketId}/comments.json`,
-                { headers },
-              );
+              const response = await auth.use(async (client) => {
+                return await client.get(`/tickets/${ticketId}/comments.json`);
+              });
 
               if (!response.data.comments) {
                 continue;
@@ -231,14 +199,18 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
                 });
 
                 // Add comment author to users if not already added
-                if (comment.author_id && !userMap.has(comment.author_id.toString())) {
+                if (
+                  comment.author_id &&
+                  !userMap.has(comment.author_id.toString())
+                ) {
                   userMap.set(comment.author_id.toString(), true);
 
                   try {
-                    const userResponse = await axios.get(
-                      `${baseUrl}/users/${comment.author_id}.json`,
-                      { headers },
-                    );
+                    const userResponse = await auth.use(async (client) => {
+                      return await client.get(
+                        `/users/${comment.author_id}.json`,
+                      );
+                    });
 
                     const userData = this.formatUser(userResponse.data.user);
                     stream.push({
@@ -253,9 +225,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
                   }
                 }
               }
-
-              // Respect rate limits
-              await new Promise((resolve) => setTimeout(resolve, 200));
             } catch (error: any) {
               // Log but don't fail - comments might not be accessible
               if (error.response?.status === 401) {
@@ -278,10 +247,12 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
           this.log('[Zendesk Sync] Fetching organizations');
 
           try {
-            let orgNextPage: string | null = `${baseUrl}/organizations.json`;
+            let orgNextPage: string = '/organizations.json';
 
             while (orgNextPage) {
-              const response: any = await axios.get(orgNextPage, { headers });
+              const response = await auth.use(async (client) => {
+                return await client.get(orgNextPage);
+              });
               const data: any = response.data;
 
               for (const org of data.organizations) {
@@ -294,10 +265,6 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
               }
 
               orgNextPage = data.next_page;
-
-              if (orgNextPage) {
-                await new Promise((resolve) => setTimeout(resolve, 200));
-              }
             }
           } catch (error) {
             this.log(`[Zendesk Sync] Error fetching organizations: ${error}`);
@@ -354,7 +321,9 @@ export default class ZendeskSyncIntegration extends SyncIntegration<ZendeskSyncP
       'Ticket Type': ticket.type || null,
       Url: ticket.url || null,
       'Is Active': !['closed', 'solved'].includes(ticket.status),
-      'Completed At': ticket.status === 'closed' || ticket.status === 'solved' ? ticket.updated_at : null,
+      'Completed At': ['closed', 'solved'].includes(ticket.status)
+        ? ticket.updated_at
+        : null,
       'Ticket Number': ticket.id?.toString() || null,
       RemoteCreatedAt: ticket.created_at || null,
       RemoteUpdatedAt: ticket.updated_at || null,

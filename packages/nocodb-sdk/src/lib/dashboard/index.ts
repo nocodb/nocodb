@@ -21,6 +21,7 @@ export interface DashboardType {
 export enum WidgetTypes {
   CHART = 'chart',
   METRIC = 'metric',
+  GAUGE = 'gauge',
   TEXT = 'text',
   TABLE = 'table',
   IFRAME = 'iframe',
@@ -34,6 +35,7 @@ export const WidgetChartLabelMap = {
   [ChartTypes.SCATTER]: 'Scatter Plot',
   [WidgetTypes.TABLE]: 'Table',
   [WidgetTypes.METRIC]: 'Metric',
+  [WidgetTypes.GAUGE]: 'Gauge',
   [WidgetTypes.TEXT]: 'Text',
   [WidgetTypes.IFRAME]: 'iFrame',
 };
@@ -68,6 +70,34 @@ export interface MetricWidgetConfig {
       | 'orange'
       | 'maroon'
       | 'purple';
+  };
+}
+
+export interface GaugeWidgetConfig {
+  dataSource?: WidgetDataSourceTypes;
+  metric: {
+    type: 'count' | 'summary';
+    column_id?: string;
+    aggregation: 'sum' | 'avg' | 'count' | 'min' | 'max';
+  };
+  range: {
+    min: number;
+    max: number;
+  };
+  appearance: {
+    type: 'default' | 'filled' | 'coloured';
+    theme:
+      | 'gray'
+      | 'red'
+      | 'green'
+      | 'yellow'
+      | 'pink'
+      | 'blue'
+      | 'orange'
+      | 'maroon'
+      | 'purple';
+    showValue: boolean;
+    showPercentage: boolean;
   };
 }
 
@@ -118,6 +148,7 @@ export type WidgetConfig =
   | ChartWidgetConfig
   | TableWidgetConfig
   | MetricWidgetConfig
+  | GaugeWidgetConfig
   | TextWidgetConfig
   | IframeWidgetConfig;
 
@@ -161,6 +192,11 @@ export interface MetricWidgetType extends CommonWidgetType {
   config: MetricWidgetConfig;
 }
 
+export interface GaugeWidgetType extends CommonWidgetType {
+  type: WidgetTypes.GAUGE;
+  config: GaugeWidgetConfig;
+}
+
 export interface TextWidgetType extends CommonWidgetType {
   type: WidgetTypes.TEXT;
   config: TextWidgetConfig;
@@ -178,6 +214,8 @@ export type WidgetType<T extends WidgetTypes = WidgetTypes> =
     ? TableWidgetType
     : T extends WidgetTypes.METRIC
     ? MetricWidgetType
+    : T extends WidgetTypes.GAUGE
+    ? GaugeWidgetType
     : T extends WidgetTypes.TEXT
     ? TextWidgetType
     : T extends WidgetTypes.IFRAME
@@ -193,6 +231,8 @@ export type Widget<
   ? TableWidgetType
   : T extends MetricWidgetType
   ? MetricWidgetType
+  : T extends GaugeWidgetType
+  ? GaugeWidgetType
   : T extends TextWidgetType
   ? TextWidgetType
   : T extends IframeWidgetType

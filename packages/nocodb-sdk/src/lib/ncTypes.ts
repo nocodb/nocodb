@@ -17,6 +17,7 @@ export interface NcContext {
   nc_site_url?: string;
   timezone?: string;
   suppressDependencyEvaluation?: boolean;
+  additionalContext?: Record<string, any>;
 }
 
 export interface NcRequest extends Partial<Request> {

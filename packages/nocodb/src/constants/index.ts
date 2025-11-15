@@ -39,3 +39,6 @@ export const NC_ATTACHMENT_URL_MAX_REDIRECT = 3;
 export const EMIT_EVENT = {
   HANDLE_ATTACHMENT_URL_UPLOAD: '__nc_handleAttachmentUrlUpload',
 };
+
+export const CONTEXT_INFO_EXTRACT_COLUMN_ALIAS = 'extractColumnAlias';
+export const CONTEXT_INFO_IS_CACHE_EXTRACT_COLUMN = 'isCacheExtractColumn';

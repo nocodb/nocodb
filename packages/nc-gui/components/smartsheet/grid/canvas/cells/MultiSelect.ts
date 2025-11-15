@@ -192,13 +192,13 @@ export const MultiSelectCellRenderer: CellRenderer = {
   },
 
   async handleClick({ row, column, makeCellEditable, selected }) {
-    if (column.columnObj?.readonly || !column?.isCellEditable || !selected) return false
+    if (column.columnObj?.readonly || !column?.isCellEditable || !selected || column.isSyncedColumn) return false
     makeCellEditable(row, column)
     return true
   },
 
   async handleKeyDown({ e, row, column, makeCellEditable }) {
-    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable) return false
+    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable || column.isSyncedColumn) return false
     if (e.key.length === 1 || e.key === 'Enter') {
       makeCellEditable(row, column)
       return true

@@ -40,6 +40,7 @@ const {
   sqlUi,
   isXcdbBase,
   updateFieldName,
+  isSyncedField,
 } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
@@ -296,12 +297,14 @@ const onCustomSwitchLabelClick = () => {
 }
 
 const onViewLabelClick = () => {
+  if (isSyncedField.value) return
   if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
 
   limitRecToView.value = !limitRecToView.value
   return onLimitRecToViewChange()
 }
 const onFilterLabelClick = () => {
+  if (isSyncedField.value) return
   if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
 
   limitRecToCond.value = !limitRecToCond.value
@@ -493,31 +496,35 @@ const handleScrollIntoView = () => {
     </template>
 
     <div class="flex flex-col gap-2">
-      <div class="flex gap-2 items-center">
-        <a-switch
-          v-model:checked="limitRecToView"
-          v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
-          size="small"
-          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
-          @change="onLimitRecToViewChange"
-        ></a-switch>
-        <span
-          v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
-          class="cursor-pointer inline-flex items-center gap-1"
-          data-testid="nc-limit-record-view"
-          @click="onViewLabelClick"
-        >
-          {{ $t('labels.limitRecordSelectionToView') }}
+      <NcTooltip :disabled="!isSyncedField" placement="right">
+        <div class="flex gap-2 items-center">
+          <a-switch
+            v-model:checked="limitRecToView"
+            v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
+            size="small"
+            :disabled="(!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) || isSyncedField"
+            @change="onLimitRecToViewChange"
+          ></a-switch>
 
-          <a
-            href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-view"
-            target="_blank"
-            class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
-            @click.stop
+          <span
+            v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
+            class="cursor-pointer inline-flex items-center gap-1"
+            data-testid="nc-limit-record-view"
+            @click="onViewLabelClick"
           >
-            <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" /> </a
-        ></span>
-      </div>
+            {{ $t('labels.limitRecordSelectionToView') }}
+
+            <a
+              href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-view"
+              target="_blank"
+              class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
+              @click.stop
+            >
+              <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" /> </a
+          ></span>
+        </div>
+        <template #title> This option is not available for synced fields </template>
+      </NcTooltip>
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
         <NcSelect
           v-model:value="vModel.childViewId"
@@ -545,47 +552,49 @@ const handleScrollIntoView = () => {
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
           <template #default="{ click }">
-            <div class="flex gap-2 items-center">
-              <a-switch
-                v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-                :checked="limitRecToCond"
-                :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
-                size="small"
-                @change="
-                  (value) => {
-                    if (value && click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER)) return
+            <NcTooltip :disabled="!isSyncedField" placement="right">
+              <div class="flex gap-2 items-center">
+                <a-switch
+                  v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                  :checked="limitRecToCond"
+                  :disabled="(!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) || isSyncedField"
+                  size="small"
+                  @change="
+                    (value) => {
+                      if (value && click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER)) return
 
-                    onFilterLabelClick()
-                  }
-                "
-              ></a-switch>
-              <span
-                v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-                data-testid="nc-limit-record-filters"
-                class="cursor-pointer inline-flex items-center gap-1"
-                @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
-              >
-                {{ $t('labels.limitRecordSelectionToFilters') }}
-
-                <a
-                  href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-filter-"
-                  target="_blank"
-                  class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
-                  @click.stop
+                      onFilterLabelClick()
+                    }
+                  "
+                ></a-switch>
+                <span
+                  v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+                  data-testid="nc-limit-record-filters"
+                  class="cursor-pointer inline-flex items-center gap-1"
+                  @click="click(PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER, () => onFilterLabelClick())"
                 >
-                  <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" />
-                </a>
-              </span>
-              <LazyPaymentUpgradeBadge
-                v-if="!limitRecToCond"
-                :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
-                :content="
-                  $t('upgrade.upgradeToAddLimitRecordSelection', {
-                    plan: getPlanTitle(PlanTitles.PLUS),
-                  })
-                "
-              />
-            </div>
+                  {{ $t('labels.limitRecordSelectionToFilters') }}
+
+                  <a
+                    href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/links#limit-by-filter-"
+                    target="_blank"
+                    class="flex text-nc-content-gray-disabled hover:text-nc-content-gray-subtle"
+                    @click.stop
+                  >
+                    <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" />
+                  </a>
+                </span>
+                <LazyPaymentUpgradeBadge
+                  v-if="!limitRecToCond"
+                  :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER"
+                  :content="
+                    $t('upgrade.upgradeToAddLimitRecordSelection', {
+                      plan: getPlanTitle(PlanTitles.PLUS),
+                    })
+                  "
+                />
+              </div>
+            </NcTooltip>
           </template>
         </PaymentUpgradeBadgeProvider>
         <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">

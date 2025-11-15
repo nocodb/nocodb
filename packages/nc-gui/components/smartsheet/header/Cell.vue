@@ -250,8 +250,12 @@ const onClick = (e: Event) => {
         }"
       />
       <div class="flex-1" />
-      <NcTooltip v-if="column.readonly && meta.synced && isExpandedForm" class="flex items-center" placement="bottom">
-        <template #title> This field is synced </template>
+      <NcTooltip
+        v-if="column.readonly && meta.synced && isExpandedForm && !isPublic"
+        class="flex items-center"
+        placement="bottom"
+      >
+        <template #title> This field is externally synced </template>
         <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-nc-content-gray-disabled" />
       </NcTooltip>
     </div>
@@ -269,7 +273,7 @@ const onClick = (e: Event) => {
 
       <div v-if="!isExpandedForm && meta?.synced && column.readonly">
         <NcTooltip class="flex items-center" placement="bottom">
-          <template #title> This field is synced </template>
+          <template #title> This field is externally synced </template>
           <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-nc-content-gray-disabled" />
         </NcTooltip>
       </div>

@@ -375,13 +375,7 @@ export class ColumnsService implements IColumnsService {
       }),
     );
 
-    if (table.synced && column.readonly && !param.forceUpdateSystem) {
-      NcError.get(context).invalidRequestBody(
-        `The column '${
-          column.title || column.column_name
-        }' is a synced column and cannot be updated.`,
-      );
-    }
+    const isSyncedColumn = table.synced && column.readonly;
 
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
@@ -408,11 +402,11 @@ export class ColumnsService implements IColumnsService {
     // These are the column types whose meta is allowed to be updated
     // It includes currency, date, datetime where formatting is allowed to update
     const isMetaOnlyUpdateAllowed =
-      source?.is_schema_readonly &&
+      (source?.is_schema_readonly || isSyncedColumn) &&
       partialUpdateAllowedTypes.includes(column.uidt);
     // check if source is readonly and column type is not allowed
     if (
-      source?.is_schema_readonly &&
+      (source?.is_schema_readonly || isSyncedColumn) &&
       (!readonlyMetaAllowedTypes.includes(column.uidt) ||
         (param.column.uidt &&
           !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes))) &&
@@ -893,6 +887,14 @@ export class ColumnsService implements IColumnsService {
         UITypes.LastModifiedBy,
       ].includes(colBody.uidt)
     ) {
+      if (isSyncedColumn) {
+        NcError.get(context).invalidRequestBody(
+          `The column '${
+            column.title || column.column_name
+          }' is a synced column and cannot be updated.`,
+        );
+      }
+
       // allow updating of title only
       await Column.update(context, param.columnId, {
         ...column,
@@ -901,6 +903,13 @@ export class ColumnsService implements IColumnsService {
     } else if (
       [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
     ) {
+      if (isSyncedColumn) {
+        NcError.get(context).invalidRequestBody(
+          `The column '${
+            column.title || column.column_name
+          }' is a synced column and cannot be updated.`,
+        );
+      }
       colBody = await getColumnPropsFromUIDT(colBody, source);
 
       const baseModel = await reuseOrSave('baseModel', reuse, async () =>
@@ -1620,6 +1629,13 @@ export class ColumnsService implements IColumnsService {
         }
       }
     } else if (colBody.uidt === UITypes.User) {
+      if (isSyncedColumn) {
+        NcError.get(context).invalidRequestBody(
+          `The column '${
+            column.title || column.column_name
+          }' is a synced column and cannot be updated.`,
+        );
+      }
       // handle default value for user column
       if (typeof colBody.cdf !== 'string') {
         colBody.cdf = '';
@@ -1654,6 +1670,14 @@ export class ColumnsService implements IColumnsService {
 
       if (column.uidt === UITypes.User) {
         // multi user to single user
+        if (isSyncedColumn) {
+          NcError.get(context).invalidRequestBody(
+            `The column '${
+              column.title || column.column_name
+            }' is a synced column and cannot be updated.`,
+          );
+        }
+
         if (
           colBody.meta?.is_multi === false &&
           column.meta?.is_multi === true
@@ -1719,6 +1743,14 @@ export class ColumnsService implements IColumnsService {
           },
         });
       } else {
+        if (isSyncedColumn) {
+          NcError.get(context).invalidRequestBody(
+            `The column '${
+              column.title || column.column_name
+            }' is a synced column and cannot be updated.`,
+          );
+        }
+
         // email/text to user
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {
@@ -1815,6 +1847,13 @@ export class ColumnsService implements IColumnsService {
         });
       }
     } else {
+      if (isSyncedColumn) {
+        NcError.get(context).invalidRequestBody(
+          `The column '${
+            column.title || column.column_name
+          }' is a synced column and cannot be updated.`,
+        );
+      }
       if (column.uidt === UITypes.User) {
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {

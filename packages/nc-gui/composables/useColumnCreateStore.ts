@@ -68,6 +68,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isSystem = computed(() => isSystemColumn(column.value))
 
+    const isSyncedField = computed(() => meta.value?.synced && column?.value?.readonly)
+
     const isXcdbBase = computed(() =>
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
     )
@@ -553,6 +555,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       defaultFormState,
       isScriptCreateModalOpen,
       isSaving,
+      isSyncedField,
     }
   },
 )

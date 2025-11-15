@@ -138,7 +138,18 @@ watch(
                   <template v-if="![FormBuilderInputType.Switch, FormBuilderInputType.Checkbox].includes(field.type)" #label>
                     <div class="flex items-center gap-1">
                       <span>{{ field.label }}</span>
-                      <span v-if="field.required" class="text-red-500">*</span>
+                      <span
+                        v-if="
+                          field.required &&
+                          ![
+                            FormBuilderInputType.Select,
+                            FormBuilderInputType.SelectIntegration,
+                            FormBuilderInputType.SelectBase,
+                          ].includes(field.type)
+                        "
+                        class="text-red-500"
+                        >*</span
+                      >
                       <NcTooltip v-if="field.helpText && field.showHintAsTooltip">
                         <template #title>
                           <div class="text-xs">

@@ -29,7 +29,7 @@ const availableFields = computed(() => {
   )
 })
 
-const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName } =
+const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName, isSyncedField } =
   useColumnCreateStoreOrThrow()
 
 const { isAiBetaFeaturesEnabled, aiIntegrationAvailable, generateRows } = useNocoAi()
@@ -220,10 +220,12 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
 
     <div v-if="isPromptEnabled" class="relative">
       <a-form-item class="flex items-center">
-        <NcTooltip :disabled="!(richMode || (isPvColumn && !isEnabledGenerateText))" class="flex items-center">
+        <NcTooltip :disabled="!(richMode || (isPvColumn && !isEnabledGenerateText) || isSyncedField)" class="flex items-center">
           <template #title>
             {{
-              isPvColumn && !isEnabledGenerateText
+              isSyncedField
+                ? 'You cannot generate content in an AI generated field'
+                : isPvColumn && !isEnabledGenerateText
                 ? `${UITypesName.AIPrompt} field cannot be used as display value field`
                 : 'Generate text using AI is not supported when rich text formatting is enabled'
             }}</template
@@ -231,7 +233,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
 
           <NcSwitch
             v-model:checked="isEnabledGenerateText"
-            :disabled="richMode || (isPvColumn && !isEnabledGenerateText)"
+            :disabled="richMode || (isPvColumn && !isEnabledGenerateText) || isSyncedField"
             class="nc-ai-field-generate-text nc-ai-input"
             @change="handleDisableSubmitBtn"
           >

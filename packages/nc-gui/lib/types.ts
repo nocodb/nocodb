@@ -599,6 +599,7 @@ interface CanvasGridColumn {
   }
   readonly: boolean
   isCellEditable?: boolean
+  isSyncedColumn?: boolean
   aggregation: string
   agg_fn: string
   agg_prefix: string

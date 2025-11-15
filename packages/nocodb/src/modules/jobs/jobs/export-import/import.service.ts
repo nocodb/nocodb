@@ -443,7 +443,8 @@ export class ImportService {
         if (col.colOptions) {
           if (
             isLinksOrLTAR(col) &&
-            new LinkToAnotherRecordColumn(col.colOptions).isCrossBaseLink()
+            (new LinkToAnotherRecordColumn(col.colOptions).isCrossBaseLink() ||
+              col?.meta?.custom)
           ) {
             continue;
           }

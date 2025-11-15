@@ -1719,7 +1719,7 @@ const getHeaderTooltipRegions = (
   const regions: {
     x: number
     width: number
-    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
+    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron' | 'synced'
     text: string
     tooltipText?: string
     height?: number
@@ -1869,7 +1869,7 @@ const handleMouseMove = (e: MouseEvent) => {
         (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
       )
 
-      if (['title', 'columnChevron'].includes(activeFixedRegion?.type) && isFieldEditAllowed.value) {
+      if (['title', 'columnChevron', 'synced'].includes(activeFixedRegion?.type) && isFieldEditAllowed.value) {
         cursor = 'pointer'
       }
       if (activeFixedRegion && !activeFixedRegion.disableTooltip) {
@@ -1903,7 +1903,7 @@ const handleMouseMove = (e: MouseEvent) => {
           (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
         )
 
-        if (['title', 'columnChevron'].includes(activeRegion?.type) && isFieldEditAllowed.value) {
+        if (['title', 'columnChevron', 'synced'].includes(activeRegion?.type) && isFieldEditAllowed.value) {
           cursor = 'pointer'
         }
 
@@ -2892,7 +2892,7 @@ watch(
               [`row-height-${rowHeightEnum ?? 1}`]: true,
               'on-stick ': isClamped.isStuck,
               'border-[#3366ff]': isClamped.isStuck && editEnabled.isCellEditable,
-              'border-[#9AA2AF]': isClamped.isStuck && !editEnabled.isCellEditable,
+              'border-[#9AA2AF]': isClamped.isStuck && (!editEnabled.isCellEditable || editEnabled.isSyncedColumn),
             }"
           >
             <div
@@ -2919,7 +2919,7 @@ watch(
                     :row="editEnabled.row"
                     :path="editEnabled.path"
                     active
-                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable || editEnabled.isSyncedColumn"
                     :is-allowed="editEnabled.isCellEditable"
                     @save="
                       updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)
@@ -2934,7 +2934,7 @@ watch(
                     :path="editEnabled.path"
                     active
                     edit-enabled
-                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable || editEnabled.isSyncedColumn"
                     :is-allowed="editEnabled.isCellEditable"
                     @update:model-value="updateValue"
                     @save="updateOrSaveRow?.(...$event)"

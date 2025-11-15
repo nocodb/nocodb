@@ -164,6 +164,15 @@ export function useCopyPaste({
 
     const restrictEditCell = col.id && !isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
 
+
+    if (col.readonly && meta.value?.synced) {
+      if (showInfo) {
+        message.toast(t('msg.info.pasteNotSupportedInSyncedCells'))
+      }
+      return false
+    }
+
+
     // skip pasting virtual columns (including LTAR columns for now) and system columns
     if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {
       if (!avoidLtarRestrictions || !isLinksOrLTAR(col)) {
@@ -924,7 +933,7 @@ export function useCopyPaste({
     const col = columns.value[ctx.col]
     const rowObj = cachedRows.value.get(ctx.row)
 
-    if (!col || !col?.columnObj || !rowObj || !col.isCellEditable) return
+    if (!col || !col?.columnObj || !rowObj || !col.isCellEditable || col.isSyncedColumn) return
     const columnObj = col.columnObj
 
     if (

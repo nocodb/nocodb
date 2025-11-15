@@ -1,5 +1,6 @@
 import { ncIsBoolean, PlanLimitTypes, PlanOrder, PlanTitles } from 'nocodb-sdk';
 import { PlanFeatureTypes } from 'nocodb-sdk';
+import type { OnPremPlanTitles } from 'nocodb-sdk';
 import type Stripe from 'stripe';
 import {
   CacheGetType,
@@ -18,7 +19,7 @@ const sortPlan = (a: Plan, b: Plan) => {
 
 export default class Plan {
   id: string;
-  title: PlanTitles;
+  title: PlanTitles | OnPremPlanTitles;
   description: string;
   stripe_product_id: string;
   is_active: boolean;

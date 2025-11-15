@@ -9,15 +9,19 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
   (baseId: MaybeRef<string>, mode: 'create' | 'edit', syncId?: MaybeRef<string>) => {
     const { $api } = useNuxtApp()
 
+    const { t } = useI18n()
+
     const { integrationsRefreshKey, getIntegrationForm, integrations, getIntegration } = useIntegrationStore()
 
     const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
     const syncStore = useSyncStore()
 
-    const { createSync, readSync, updateSync: updateSyncStore, deleteSync } = syncStore
+    const { createSync, readSync, updateSync: updateSyncStore, deleteSync, loadSyncs } = syncStore
 
-    const syncConfigForm = ref<Partial<SyncConfig>>(defaultSyncConfig)
+    const { activeBaseSyncs } = storeToRefs(useSyncStore())
+
+    const syncConfigForm = ref<Partial<SyncConfig>>(defaultSyncConfig(activeBaseSyncs.value || []))
 
     const integrationConfigs = ref<IntegrationConfig[]>([])
 
@@ -45,7 +49,23 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
     const { validate: validateSyncConfig, validateInfos: validateInfosSyncConfig } = Form.useForm(
       syncConfigForm,
       ref({
-        title: [fieldRequiredValidator()],
+        title: [
+          fieldRequiredValidator(),
+          {
+            validator: (_: unknown, value: string) => {
+              return new Promise((resolve, reject) => {
+                const currentSyncId = unref(syncId)
+                const duplicate = activeBaseSyncs.value.find((sync) => sync.title === value && sync.id !== currentSyncId)
+
+                if (duplicate) {
+                  return reject(new Error(t('msg.error.syncTitleAlreadyExists')))
+                }
+
+                resolve(true)
+              })
+            },
+          },
+        ],
         sync_type: [fieldRequiredValidator()],
         sync_trigger: [fieldRequiredValidator()],
       }),
@@ -194,6 +214,13 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
     }
 
     onMounted(async () => {
+      const bsId = unref(baseId)
+
+      // Load existing syncs for validation
+      if (bsId) {
+        await loadSyncs(bsId)
+      }
+
       const _syncId = unref(syncId)
       if (mode === 'edit' && _syncId) {
         deletedSyncConfigIds.value = []
@@ -245,6 +272,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       validateInfosSyncConfig,
       syncConfigEditFormChanged,
       integrationConfigs,
+      activeBaseSyncs,
       addIntegrationConfig,
       removeIntegrationConfig,
       updateIntegrationConfig,

@@ -43,7 +43,7 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
     </a-form-item>
   </div>
 
-  <div class="flex items-center gap-4">
+  <div class="flex items-center mt-1 gap-4">
     <a-form-item class="flex-1" :label="$t('labels.syncType')" v-bind="validateInfosSyncConfig.sync_type">
       <NcListDropdown v-model:is-open="isSyncTypeOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
         <div class="flex-1 flex items-center gap-2 justify-between">

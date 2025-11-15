@@ -1,5 +1,5 @@
 import type { SyncConfig } from 'nocodb-sdk'
-import { IntegrationsType, OnDeleteAction, SyncCategory, SyncTrigger, SyncType } from 'nocodb-sdk'
+import { IntegrationsType, OnDeleteAction, SyncCategory, SyncTrigger, SyncType, generateUniqueCopyName } from 'nocodb-sdk'
 
 const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   if (trigger === SyncTrigger.Manual) return 'Manual'
@@ -13,7 +13,7 @@ const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   return 'Unknown'
 }
 
-const defaultSyncConfig: Partial<SyncConfig> & Record<string, unknown> = {
+const _defaultSyncConfig: Partial<SyncConfig> & Record<string, unknown> = {
   title: 'New Source',
   sync_type: SyncType.Full,
   sync_trigger: SyncTrigger.Schedule,
@@ -21,6 +21,18 @@ const defaultSyncConfig: Partial<SyncConfig> & Record<string, unknown> = {
   exclude_models: [],
   on_delete_action: OnDeleteAction.MarkDeleted,
   sync_trigger_cron: '0 * * * *',
+}
+
+const defaultSyncConfig = (configs: SyncConfig[]) => {
+  const newTitle = generateUniqueCopyName('New Sync Source', configs, {
+    accessor: (c) => c.title,
+    prefix: null,
+  })
+
+  return {
+    ..._defaultSyncConfig,
+    title: newTitle,
+  }
 }
 
 enum SyncFormStep {

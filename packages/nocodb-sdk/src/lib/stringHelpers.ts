@@ -110,7 +110,7 @@ export function generateUniqueCopyName<T = string>(
     /** Property name or accessor function to get the name from objects */
     accessor?: keyof T | ((item: T) => string);
     /** Prefix to use (default: "Copy of") */
-    prefix?: string;
+    prefix?: string | null;
     /** Separator before counter (default: " ") */
     separator?: string;
     /** Format for counter, use {counter} placeholder (default: "({counter})") */
@@ -137,7 +137,7 @@ export function generateUniqueCopyName<T = string>(
   });
 
   const getPrefix = () => {
-    return prefix ? `${prefix} ` : (prefix ?? '');
+    return prefix ? `${prefix} ` : prefix ?? '';
   };
   let newName = `${getPrefix()}${originalName}`;
   let counter = 1;

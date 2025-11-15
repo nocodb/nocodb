@@ -36,8 +36,8 @@ import Noco from '~/Noco';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import {
-  getFeature,
   checkLimit,
+  getFeature,
   PlanLimitTypes,
 } from '~/helpers/paymentHelpers';
 import NocoSocket from '~/socket/NocoSocket';

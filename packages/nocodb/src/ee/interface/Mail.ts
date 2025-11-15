@@ -1,7 +1,5 @@
 import { MailEvent, RawMailParams } from 'src/interface/Mail';
-import type {
-  MailParams as CEMailParams,
-} from 'src/interface/Mail';
+import type { MailParams as CEMailParams } from 'src/interface/Mail';
 import type {
   ColumnType,
   NcRequest,

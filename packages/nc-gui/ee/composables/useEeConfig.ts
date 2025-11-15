@@ -1,10 +1,12 @@
-import { GRACE_PERIOD_DURATION, HigherPlan, LOYALTY_GRACE_PERIOD_END_DATE, NON_SEAT_ROLES, PlanTitles } from 'nocodb-sdk'
+import type { OnPremPlanTitles, type PlanLimitExceededDetailsType, type ProjectRoles, type WorkspaceUserRoles } from 'nocodb-sdk'
 import {
+  GRACE_PERIOD_DURATION,
+  HigherPlan,
+  LOYALTY_GRACE_PERIOD_END_DATE,
+  NON_SEAT_ROLES,
   PlanFeatureTypes,
-  type PlanLimitExceededDetailsType,
   PlanLimitTypes,
-  type ProjectRoles,
-  type WorkspaceUserRoles,
+  PlanTitles,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
@@ -515,10 +517,10 @@ export const useEeConfig = createSharedComposable(() => {
     requiredPlan,
   }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'focusBtn' | 'maskClosable' | 'keyboard'> & {
     title?: string
-    currentPlanTitle?: PlanTitles
-    newPlanTitle?: PlanTitles
+    currentPlanTitle?: PlanTitles | OnPremPlanTitles
+    newPlanTitle?: PlanTitles | OnPremPlanTitles
     workspaceId?: string
-    requiredPlan?: PlanTitles
+    requiredPlan?: PlanTitles | OnPremPlanTitles
     content?: string
     limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
   } = {}) => {
@@ -578,8 +580,8 @@ export const useEeConfig = createSharedComposable(() => {
     requiredPlan,
   }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'focusBtn' | 'maskClosable' | 'keyboard'> & {
     title?: string
-    currentPlanTitle?: PlanTitles
-    newPlanTitle?: PlanTitles
+    currentPlanTitle?: PlanTitles | OnPremPlanTitles
+    newPlanTitle?: PlanTitles | OnPremPlanTitles
     workspaceId?: string
     callback?: (type: 'ok' | 'cancel') => void
     redirectToWorkspace?: boolean

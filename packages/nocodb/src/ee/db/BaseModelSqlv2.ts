@@ -2492,18 +2492,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         pkAndData.push({ pk: pkValues, data: d });
       }
 
+      const allPksToRead = pkAndData.map((v) => v.pk);
+
+      profiler.log('this.chunkList start for old records');
+      const oldRecords = await this.chunkList({
+        pks: allPksToRead,
+        chunkSize: READ_CHUNK_SIZE,
+        apiVersion,
+        args: { ignoreViewFilterAndSort: true },
+      });
+      profiler.log('this.chunkList done for old records');
+
+      const oldRecordsMap = new Map<string, any>(
+        oldRecords.map((r) => [this.extractPksValues(r, true), r]),
+      );
+
       for (let i = 0; i < pkAndData.length; i += READ_CHUNK_SIZE) {
         const chunk = pkAndData.slice(i, i + READ_CHUNK_SIZE);
-        const pksToRead = chunk.map((v) => v.pk);
-
-        const oldRecords = await this.list(
-          { pks: pksToRead.join(',') },
-          { limitOverride: chunk.length, ignoreViewFilterAndSort: true },
-        );
-
-        const oldRecordsMap = new Map<string, any>(
-          oldRecords.map((r) => [this.extractPksValues(r, true), r]),
-        );
 
         for (const { pk, data } of chunk) {
           const oldRecord = oldRecordsMap.get(pk);
@@ -2617,34 +2622,31 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (!raw) {
-        for (let i = 0; i < updatePkValues.length; i += READ_CHUNK_SIZE) {
-          const pksChunk = updatePkValues.slice(i, i + READ_CHUNK_SIZE);
+        profiler.log('this.chunkList start');
+        const updatedRecords = await this.chunkList({
+          pks: updatePkValues,
+          chunkSize: READ_CHUNK_SIZE,
+          apiVersion,
+        });
+        profiler.log('this.chunkList done');
 
-          profiler.log('this.list start for chunk ' + i);
-          const updatedRecords = await this.list(
-            { pks: pksChunk.join(',') },
-            { limitOverride: pksChunk.length },
-          );
-          profiler.log('this.list done for chunk ' + i);
-
-          const updatedRecordsMap = new Map(
-            updatedRecords.map((record) => {
-              const compositePk = getCompositePkValue(
-                this.model.primaryKeys,
-                record,
-              );
-              return [
-                typeof compositePk === 'string'
-                  ? compositePk
-                  : compositePk.toString(),
-                record,
-              ];
-            }),
-          );
-          for (const pk of pksChunk) {
-            if (updatedRecordsMap.has(pk)) {
-              newData.push(updatedRecordsMap.get(pk));
-            }
+        const updatedRecordsMap = new Map(
+          updatedRecords.map((record) => {
+            const compositePk = getCompositePkValue(
+              this.model.primaryKeys,
+              record,
+            );
+            return [
+              typeof compositePk === 'string'
+                ? compositePk
+                : compositePk.toString(),
+              record,
+            ];
+          }),
+        );
+        for (const pk of updatePkValues) {
+          if (updatedRecordsMap.has(pk)) {
+            newData.push(updatedRecordsMap.get(pk));
           }
         }
       }
@@ -2862,11 +2864,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const res = [];
       const pkAndData: { pk: any; data: any }[] = [];
 
-      for (const [i, d] of deleteIds.entries()) {
-        const pkValues = getCompositePkValue(
-          this.model.primaryKeys,
-          this.extractPksValues(d),
-        );
+      for (const d of deleteIds) {
+        const pkValues = this.extractPksValues(d, true);
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
@@ -2876,41 +2875,32 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
 
         pkAndData.push({ pk: pkValues, data: d });
+      }
 
-        if (pkAndData.length >= READ_CHUNK_SIZE || i === deleteIds.length - 1) {
-          const tempToRead = pkAndData.splice(0, pkAndData.length);
-          const oldRecords = await this.list(
-            {
-              pks: tempToRead.map((v) => v.pk).join(','),
-            },
-            {
-              limitOverride: tempToRead.length,
-              ignoreViewFilterAndSort: true,
-            },
-          );
+      const allPksToRead = pkAndData.map((v) => v.pk);
 
-          if (oldRecords.length === tempToRead.length) {
-            deleted.push(...oldRecords);
-            res.push(...tempToRead.map((v) => v.data));
-          } else {
-            for (const { pk, data } of tempToRead) {
-              const oldRecord = oldRecords.find((r) =>
-                this.comparePks(this.extractPksValues(r), pk),
-              );
+      const oldRecords = await this.chunkList({
+        pks: allPksToRead,
+        chunkSize: READ_CHUNK_SIZE,
+        args: { ignoreViewFilterAndSort: true },
+      });
 
-              if (!oldRecord) {
-                // throw or skip if no record found
-                if (throwExceptionIfNotExist) {
-                  NcError.get(this.context).recordNotFound(pkValues);
-                }
-                continue;
-              }
+      const oldRecordsMap = new Map(
+        oldRecords.map((r) => [this.extractPksValues(r, true), r]),
+      );
 
-              deleted.push(oldRecord);
-              res.push(data);
-            }
+      for (const { pk, data } of pkAndData) {
+        const oldRecord = oldRecordsMap.get(pk);
+        if (!oldRecord) {
+          // throw or skip if no record found
+          if (throwExceptionIfNotExist) {
+            NcError.get(this.context).recordNotFound(pk);
           }
+          continue;
         }
+
+        deleted.push(oldRecord);
+        res.push(data);
       }
 
       await this.beforeBulkDelete(deleted, this.dbDriver, cookie);

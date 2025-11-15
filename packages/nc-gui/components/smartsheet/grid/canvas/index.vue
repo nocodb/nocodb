@@ -3026,8 +3026,22 @@ watch(
       </NcDropdown>
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
+      <NcTooltip v-if="meta.synced" placement="right" :disabled="!meta.synced">
+        <NcButton class="nc-grid-add-new-row" size="small" disabled type="secondary" :shadow="false">
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="plus" />
+            New Record
+          </div>
+        </NcButton>
+        <template #title>
+          <div class="flex flex-col gap-1">
+            <div class="text-captionBold">{{ $t('objects.permissions.addNewRecordTooltipTitle') }}</div>
+            <div class="text-captionSm">You cannot create records in synced table</div>
+          </div>
+        </template>
+      </NcTooltip>
       <PermissionsTooltip
-        v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
+        v-else-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
         :entity="PermissionEntity.TABLE"
         :entity-id="meta?.id"
         :permission="PermissionKey.TABLE_RECORD_ADD"

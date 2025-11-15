@@ -2359,6 +2359,12 @@
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Paste operation is not supported on the active cell",
       "permissionsNotAvailableForSyncedTable": "Permissions not available for synced table",
+      "duplicateNotAvailableForSyncedTable": "Cannot duplicate records in synced table",
+      "deleteNotAvailableForSyncedTable": "Cannot delete records from synced table",
+      "updateNotAvailableForSyncedTable": "Cannot update records in synced table",
+      "insertNotAvailableForSyncedTable": "Cannot insert records into synced table",
+      "pasteNotAvailableForSyncedTable": "Cannot paste into a cell in synced table",
+      "clearNotAvailableForSyncedTable": "Cannot clear a cell synced table",
       "roles": {
         "orgCreator": "Creator can create new bases and access any invited base.",
         "orgViewer": "Viewer is not allowed to create new bases but they can access any invited base."

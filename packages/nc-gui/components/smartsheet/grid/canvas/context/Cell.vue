@@ -92,9 +92,11 @@ const { aiIntegrations } = useNocoAi()
 const { isMobileMode } = useGlobal()
 const { paste } = usePaste()
 const { meta } = useSmartsheetStoreOrThrow()
+const metaInj = inject(MetaInj, ref())
 
 // Computed States
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
+const isSyncedTable = computed(() => metaInj?.value?.synced || false)
 
 const contextMenuRow = computed(() => (contextMenuTarget.value?.row !== -1 ? contextMenuTarget.value?.row : null))
 const contextMenuCol = computed(() => (contextMenuTarget.value?.col !== -1 ? contextMenuTarget.value?.col : null))
@@ -242,8 +244,26 @@ const execBulkAction = async (path: Array<number>) => {
 <template>
   <NcMenu class="!rounded !py-0" variant="small">
     <template v-if="!vSelectedAllRecords">
+      <NcTooltip
+        v-if="isEeUI && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length && isSyncedTable"
+        placement="left"
+      >
+        <template #title>
+          {{ $t('msg.info.updateNotAvailableForSyncedTable') }}
+        </template>
+        <NcMenuItem
+          key="update-selected-rows"
+          disabled
+          @click="emits('bulkUpdateDlg', contextMenuPath)"
+        >
+          <div class="flex gap-2 items-center">
+            <GeneralIcon icon="ncEdit" />
+            {{ $t('title.updateSelectedRows') }}
+          </div>
+        </NcMenuItem>
+      </NcTooltip>
       <NcMenuItem
-        v-if="isEeUI && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length"
+        v-else-if="isEeUI && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length"
         key="update-selected-rows"
         @click="emits('bulkUpdateDlg', contextMenuPath)"
       >
@@ -261,7 +281,30 @@ const execBulkAction = async (path: Array<number>) => {
         placement="right"
       >
         <template #default="{ isAllowed }">
+          <NcTooltip v-if="isSyncedTable" placement="left">
+            <template #title>
+              {{ $t('msg.info.deleteNotAvailableForSyncedTable') }}
+            </template>
+            <NcMenuItem
+              key="selete-selected-rows"
+              class="nc-base-menu-item"
+              danger
+              disabled
+              data-testid="nc-delete-row"
+              @click="deleteSelectedRows(contextMenuPath)"
+            >
+              <div v-if="selectedRows.length === 1" class="flex gap-2 items-center">
+                <GeneralIcon icon="delete" />
+                {{ $t('activity.deleteSelectedRow') }}
+              </div>
+              <div v-else class="flex gap-2 items-center">
+                <GeneralIcon icon="delete" />
+                {{ $t('activity.deleteSelectedRow') }}
+              </div>
+            </NcMenuItem>
+          </NcTooltip>
           <NcMenuItem
+            v-else
             key="selete-selected-rows"
             class="nc-base-menu-item"
             danger
@@ -289,7 +332,30 @@ const execBulkAction = async (path: Array<number>) => {
       placement="right"
     >
       <template #default="{ isAllowed }">
+        <NcTooltip v-if="isSyncedTable" placement="left">
+          <template #title>
+            {{ $t('msg.info.deleteNotAvailableForSyncedTable') }}
+          </template>
+          <NcMenuItem
+            key="delete-all-rows"
+            class="nc-base-menu-item"
+            danger
+            disabled
+            data-testid="nc-delete-all-row"
+            @click="deleteAllRecords(contextMenuPath)"
+          >
+            <div class="flex gap-2 items-center">
+              <GeneralIcon icon="delete" />
+              {{
+                ncIsEmptyObject(vSelectedAllRecordsSkipPks)
+                  ? $t('activity.deleteAllRecords')
+                  : $t('activity.deleteAllSelectedRecords')
+              }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
         <NcMenuItem
+          v-else
           key="delete-all-rows"
           class="nc-base-menu-item"
           danger
@@ -320,7 +386,25 @@ const execBulkAction = async (path: Array<number>) => {
         placement="right"
       >
         <template #default="{ isAllowed }">
+          <NcTooltip v-if="isSyncedTable" placement="left">
+            <template #title>
+              {{ $t('msg.info.insertNotAvailableForSyncedTable') }}
+            </template>
+            <NcMenuItem
+              key="insert-above"
+              class="nc-base-menu-item"
+              disabled
+              data-testid="context-menu-item-add-above"
+              @click="callAddNewRow(contextMenuTarget, 'above')"
+            >
+              <div class="flex gap-2 items-center">
+                <GeneralIcon icon="ncChevronUp" />
+                {{ $t('general.insertAbove') }}
+              </div>
+            </NcMenuItem>
+          </NcTooltip>
           <NcMenuItem
+            v-else
             key="insert-above"
             class="nc-base-menu-item"
             data-testid="context-menu-item-add-above"
@@ -342,7 +426,25 @@ const execBulkAction = async (path: Array<number>) => {
         placement="right"
       >
         <template #default="{ isAllowed }">
+          <NcTooltip v-if="isSyncedTable" placement="left">
+            <template #title>
+              {{ $t('msg.info.insertNotAvailableForSyncedTable') }}
+            </template>
+            <NcMenuItem
+              key="insert-below"
+              class="nc-base-menu-item"
+              disabled
+              data-testid="context-menu-item-add-below"
+              @click="callAddNewRow(contextMenuTarget, 'below')"
+            >
+              <div class="flex gap-2 items-center">
+                <GeneralIcon icon="ncChevronDown" />
+                {{ $t('general.insertBelow') }}
+              </div>
+            </NcMenuItem>
+          </NcTooltip>
           <NcMenuItem
+            v-else
             key="insert-below"
             class="nc-base-menu-item"
             data-testid="context-menu-item-add-below"
@@ -426,7 +528,25 @@ const execBulkAction = async (path: Array<number>) => {
       placement="right"
     >
       <template #default="{ isAllowed }">
+        <NcTooltip v-if="isSyncedTable" placement="left">
+          <template #title>
+            {{ $t('msg.info.pasteNotAvailableForSyncedTable') }}
+          </template>
+          <NcMenuItem
+            key="cell-paste"
+            class="nc-base-menu-item"
+            disabled
+            data-testid="context-menu-item-paste"
+            @click="paste"
+          >
+            <div class="flex gap-2 items-center">
+              <GeneralIcon icon="paste" />
+              {{ $t('general.paste') }} {{ $t('objects.cell').toLowerCase() }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
         <NcMenuItem
+          v-else
           key="cell-paste"
           class="nc-base-menu-item"
           data-testid="context-menu-item-paste"
@@ -443,41 +563,72 @@ const execBulkAction = async (path: Array<number>) => {
     </PermissionsTooltip>
 
     <PermissionsTooltip
-      v-if="
-        contextMenuCol !== null && contextMenuRow !== null && contextMenuPath !== null && hasEditPermission && !isDataReadOnly
-      "
+      v-if="contextMenuCol !== null && contextMenuRow !== null && contextMenuPath !== null && hasEditPermission && !isDataReadOnly"
       :entity="PermissionEntity.FIELD"
       :entity-id="columns[contextMenuCol]?.columnObj?.id"
       :permission="PermissionKey.RECORD_FIELD_EDIT"
       placement="right"
     >
       <template #default="{ isAllowed }">
-        <NcMenuItem
-          v-if="selection.isSingleCell() && ((columns[contextMenuCol]?.columnObj && isLinksOrLTAR(columns[contextMenuCol]?.columnObj!)) || !columns[contextMenuCol]?.virtual)"
-          key="cell-clear"
-          class="nc-base-menu-item"
-          :disabled="disableClearCell || !isAllowed"
-          data-testid="context-menu-item-clear"
-          @click="clearCell(contextMenuTarget)"
-        >
-          <div v-e="['a:row:clear']" class="flex gap-2 items-center">
-            <GeneralIcon icon="close" />
-            {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
-          </div>
-        </NcMenuItem>
-        <NcMenuItem
-          v-else
-          key="cells-clear"
-          class="nc-base-menu-item"
-          :disabled="isSelectionReadOnly || !isAllowed"
-          data-testid="context-menu-item-clear"
-          @click="clearSelectedRangeOfCells(contextMenuPath)"
-        >
-          <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
-            <GeneralIcon icon="closeBox" class="text-gray-500" />
-            {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
-          </div>
-        </NcMenuItem>
+        <NcTooltip v-if="isSyncedTable" placement="left">
+          <template #title>
+            {{ $t('msg.info.clearNotAvailableForSyncedTable') }}
+          </template>
+          <NcMenuItem
+            v-if="selection.isSingleCell() && ((columns[contextMenuCol]?.columnObj && isLinksOrLTAR(columns[contextMenuCol]?.columnObj!)) || !columns[contextMenuCol]?.virtual)"
+            key="cell-clear"
+            class="nc-base-menu-item"
+            disabled
+            data-testid="context-menu-item-clear"
+            @click="clearCell(contextMenuTarget)"
+          >
+            <div class="flex gap-2 items-center">
+              <GeneralIcon icon="close" />
+              {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
+            </div>
+          </NcMenuItem>
+          <NcMenuItem
+            v-else
+            key="cells-clear"
+            class="nc-base-menu-item"
+            disabled
+            data-testid="context-menu-item-clear"
+            @click="clearSelectedRangeOfCells(contextMenuPath)"
+          >
+            <div class="flex gap-2 items-center">
+              <GeneralIcon icon="closeBox" class="text-gray-500" />
+              {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
+        <template v-else>
+          <NcMenuItem
+            v-if="selection.isSingleCell() && ((columns[contextMenuCol]?.columnObj && isLinksOrLTAR(columns[contextMenuCol]?.columnObj!)) || !columns[contextMenuCol]?.virtual)"
+            key="cell-clear"
+            class="nc-base-menu-item"
+            :disabled="disableClearCell || !isAllowed"
+            data-testid="context-menu-item-clear"
+            @click="clearCell(contextMenuTarget)"
+          >
+            <div v-e="['a:row:clear']" class="flex gap-2 items-center">
+              <GeneralIcon icon="close" />
+              {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
+            </div>
+          </NcMenuItem>
+          <NcMenuItem
+            v-else
+            key="cells-clear"
+            class="nc-base-menu-item"
+            :disabled="isSelectionReadOnly || !isAllowed"
+            data-testid="context-menu-item-clear"
+            @click="clearSelectedRangeOfCells(contextMenuPath)"
+          >
+            <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
+              <GeneralIcon icon="closeBox" class="text-gray-500" />
+              {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
+            </div>
+          </NcMenuItem>
+        </template>
       </template>
     </PermissionsTooltip>
 
@@ -510,34 +661,67 @@ const execBulkAction = async (path: Array<number>) => {
         placement="right"
       >
         <template #default="{ isAllowed }">
-          <NcMenuItem
-            v-if="selection.isSingleCell() || selection.isSingleRow()"
-            key="delete-row"
-            class="nc-base-menu-item"
-            danger
-            :disabled="!isAllowed"
-            @click="confirmDeleteRow(contextMenuRow, contextMenuPath)"
-          >
-            <div v-e="['a:row:delete']" class="flex gap-2 items-center">
-              <GeneralIcon icon="delete" />
-              <!-- Delete Row -->
-              {{ $t('activity.deleteRow') }}
-            </div>
-          </NcMenuItem>
-          <NcMenuItem
-            v-else
-            key="delete-selected-row"
-            class="nc-base-menu-item"
-            danger
-            :disabled="!isAllowed"
-            @click="deleteSelectedRangeOfRows(contextMenuPath)"
-          >
-            <div v-e="['a:row:delete']" class="flex gap-2 items-center">
-              <GeneralIcon icon="delete" />
-              <!-- Delete Rows -->
-              {{ $t('activity.deleteRows') }}
-            </div>
-          </NcMenuItem>
+          <NcTooltip v-if="isSyncedTable" placement="left">
+            <template #title>
+              {{ $t('msg.info.deleteNotAvailableForSyncedTable') }}
+            </template>
+            <NcMenuItem
+              v-if="selection.isSingleCell() || selection.isSingleRow()"
+              key="delete-row"
+              class="nc-base-menu-item"
+              danger
+              disabled
+              @click="confirmDeleteRow(contextMenuRow, contextMenuPath)"
+            >
+              <div class="flex gap-2 items-center">
+                <GeneralIcon icon="delete" />
+                {{ $t('activity.deleteRow') }}
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              v-else
+              key="delete-selected-row"
+              class="nc-base-menu-item"
+              danger
+              disabled
+              @click="deleteSelectedRangeOfRows(contextMenuPath)"
+            >
+              <div class="flex gap-2 items-center">
+                <GeneralIcon icon="delete" />
+                {{ $t('activity.deleteRows') }}
+              </div>
+            </NcMenuItem>
+          </NcTooltip>
+          <template v-else>
+            <NcMenuItem
+              v-if="selection.isSingleCell() || selection.isSingleRow()"
+              key="delete-row"
+              class="nc-base-menu-item"
+              danger
+              :disabled="!isAllowed"
+              @click="confirmDeleteRow(contextMenuRow, contextMenuPath)"
+            >
+              <div v-e="['a:row:delete']" class="flex gap-2 items-center">
+                <GeneralIcon icon="delete" />
+                <!-- Delete Row -->
+                {{ $t('activity.deleteRow') }}
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              v-else
+              key="delete-selected-row"
+              class="nc-base-menu-item"
+              danger
+              :disabled="!isAllowed"
+              @click="deleteSelectedRangeOfRows(contextMenuPath)"
+            >
+              <div v-e="['a:row:delete']" class="flex gap-2 items-center">
+                <GeneralIcon icon="delete" />
+                <!-- Delete Rows -->
+                {{ $t('activity.deleteRows') }}
+              </div>
+            </NcMenuItem>
+          </template>
         </template>
       </PermissionsTooltip>
     </template>

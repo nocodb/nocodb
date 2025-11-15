@@ -172,7 +172,7 @@ const onClick = (e: Event) => {
     @click="onClick"
   >
     <div
-      class="nc-cell-name-wrapper flex-1 flex items-center"
+      class="nc-cell-name-wrapper w-full flex-1 flex items-center"
       :class="{
         'max-w-[calc(100%_-_23px)]': !isExpandedForm && !column.description?.length,
         'max-w-[calc(100%_-_44px)]': !isExpandedForm && column.description?.length,
@@ -249,6 +249,11 @@ const onClick = (e: Event) => {
           invisible: !(editColumnDropdown || isDropDownOpen),
         }"
       />
+      <div class="flex-1" />
+      <NcTooltip v-if="column.readonly && meta.synced && isExpandedForm" class="flex items-center" placement="bottom">
+        <template #title> This field is synced </template>
+        <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-nc-content-gray-disabled" />
+      </NcTooltip>
     </div>
     <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
       <template #title>
@@ -265,7 +270,7 @@ const onClick = (e: Event) => {
       <div v-if="!isExpandedForm && meta?.synced && column.readonly">
         <NcTooltip class="flex items-center" placement="bottom">
           <template #title> This field is synced </template>
-          <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-gray-500" />
+          <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-nc-content-gray-disabled" />
         </NcTooltip>
       </div>
       <LazySmartsheetHeaderMenu

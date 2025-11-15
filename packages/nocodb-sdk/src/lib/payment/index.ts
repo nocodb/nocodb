@@ -67,15 +67,16 @@ export enum PlanFeatureTypes {
   FEATURE_COPY_VIEW_SETTING_FROM_OTHER = 'feature_copy_view_setting_other',
 }
 
-// todo: separate as a new enum
 export enum PlanTitles {
   FREE = 'Free',
   PLUS = 'Plus',
   BUSINESS = 'Business',
   ENTERPRISE = 'Enterprise',
+}
 
-  // on-prem
+export enum OnPremPlanTitles {
   ENTERPRISE_STARTER = 'EnterpriseStarter',
+  ENTERPRISE = 'Enterprise',
 }
 
 export enum PlanPriceLookupKeys {
@@ -210,8 +211,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more scripts in a workspace.',
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
-  [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]:
-    'to add more teams in a workspace.',
+  [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {

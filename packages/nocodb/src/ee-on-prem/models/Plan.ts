@@ -1,11 +1,11 @@
-import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk';
+import { OnPremPlanTitles, PlanFeatureTypes, PlanTitles } from 'nocodb-sdk';
 import Plan from '~/ee/models/Plan';
 
 export * from '~/ee/models/Plan';
 export default Plan;
 
 export const EnterpriseStarterPlan = Plan.prepare({
-  title: PlanTitles.ENTERPRISE_STARTER,
+  title: OnPremPlanTitles.ENTERPRISE_STARTER,
   description: 'Enterprise starter plan',
   meta: {
     ...Plan.limitPairs(-1, false),

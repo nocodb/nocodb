@@ -164,14 +164,12 @@ export function useCopyPaste({
 
     const restrictEditCell = col.id && !isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
 
-
     if (col.readonly && meta.value?.synced) {
       if (showInfo) {
         message.toast(t('msg.info.pasteNotSupportedInSyncedCells'))
       }
       return false
     }
-
 
     // skip pasting virtual columns (including LTAR columns for now) and system columns
     if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {

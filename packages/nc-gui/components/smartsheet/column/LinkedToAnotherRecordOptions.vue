@@ -523,7 +523,7 @@ const handleScrollIntoView = () => {
               <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" /> </a
           ></span>
         </div>
-        <template #title> This option is not available for synced fields </template>
+        <template #title> {{ $t('tooltip.optionNotAvailableInSyncTable') }} </template>
       </NcTooltip>
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
         <NcSelect
@@ -594,7 +594,7 @@ const handleScrollIntoView = () => {
                   "
                 />
               </div>
-              <template #title> This option is not available for synced fields </template>
+              <template #title> {{ $t('tooltip.optionNotAvailableInSyncTable') }} </template>
             </NcTooltip>
           </template>
         </PaymentUpgradeBadgeProvider>

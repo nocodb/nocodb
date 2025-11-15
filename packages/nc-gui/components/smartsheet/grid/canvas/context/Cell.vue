@@ -245,17 +245,15 @@ const execBulkAction = async (path: Array<number>) => {
   <NcMenu class="!rounded !py-0" variant="small">
     <template v-if="!vSelectedAllRecords">
       <NcTooltip
-        v-if="isEeUI && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length && isSyncedTable"
+        v-if="
+          isEeUI && contextMenuCol == null && contextMenuPath !== null && !isDataReadOnly && selectedRows.length && isSyncedTable
+        "
         placement="left"
       >
         <template #title>
           {{ $t('msg.info.updateNotAvailableForSyncedTable') }}
         </template>
-        <NcMenuItem
-          key="update-selected-rows"
-          disabled
-          @click="emits('bulkUpdateDlg', contextMenuPath)"
-        >
+        <NcMenuItem key="update-selected-rows" disabled @click="emits('bulkUpdateDlg', contextMenuPath)">
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="ncEdit" />
             {{ $t('title.updateSelectedRows') }}
@@ -532,13 +530,7 @@ const execBulkAction = async (path: Array<number>) => {
           <template #title>
             {{ $t('msg.info.pasteNotAvailableForSyncedTable') }}
           </template>
-          <NcMenuItem
-            key="cell-paste"
-            class="nc-base-menu-item"
-            disabled
-            data-testid="context-menu-item-paste"
-            @click="paste"
-          >
+          <NcMenuItem key="cell-paste" class="nc-base-menu-item" disabled data-testid="context-menu-item-paste" @click="paste">
             <div class="flex gap-2 items-center">
               <GeneralIcon icon="paste" />
               {{ $t('general.paste') }} {{ $t('objects.cell').toLowerCase() }}
@@ -563,7 +555,9 @@ const execBulkAction = async (path: Array<number>) => {
     </PermissionsTooltip>
 
     <PermissionsTooltip
-      v-if="contextMenuCol !== null && contextMenuRow !== null && contextMenuPath !== null && hasEditPermission && !isDataReadOnly"
+      v-if="
+        contextMenuCol !== null && contextMenuRow !== null && contextMenuPath !== null && hasEditPermission && !isDataReadOnly
+      "
       :entity="PermissionEntity.FIELD"
       :entity-id="columns[contextMenuCol]?.columnObj?.id"
       :permission="PermissionKey.RECORD_FIELD_EDIT"

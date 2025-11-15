@@ -74,7 +74,8 @@ export const SingleSelectCellRenderer: CellRenderer = {
   },
 
   async handleClick({ row, column, makeCellEditable, selected }) {
-    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable || column.isSyncedColumn || !selected) return false
+    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable || column.isSyncedColumn || !selected)
+      return false
 
     makeCellEditable(row, column)
     return true

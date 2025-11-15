@@ -1800,7 +1800,7 @@ const getHeaderTooltipRegions = (
         width: 14,
         type: 'synced',
         disableTooltip: false,
-        text: 'This field is externally synced',
+        text: t('tooltip.fieldIsExternallySynced'),
       })
     }
 
@@ -3036,7 +3036,7 @@ watch(
         <template #title>
           <div class="flex flex-col gap-1">
             <div class="text-captionBold">{{ $t('objects.permissions.addNewRecordTooltipTitle') }}</div>
-            <div class="text-captionSm">You cannot create records in synced table</div>
+            <div class="text-captionSm">{{ $t('tooltip.cannotCreateRecordInSyncTable') }}</div>
           </div>
         </template>
       </NcTooltip>

@@ -1199,7 +1199,10 @@ export function useCanvasTable({
       }
     }
 
-    if (props.length === 0) return
+    if (props.length === 0) {
+      message.info(t('msg.info.noEditableCellsToClear'))
+      return
+    }
 
     await bulkUpdateRows(rows, props, undefined, false, path)
   }

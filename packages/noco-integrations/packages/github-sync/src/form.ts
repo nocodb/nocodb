@@ -39,7 +39,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Select one ore more repositories',
+    label: 'Select one or more repositories',
     width: 100,
     model: 'config.repos',
     category: 'General',

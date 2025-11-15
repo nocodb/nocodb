@@ -255,7 +255,7 @@ const onClick = (e: Event) => {
         class="flex items-center"
         placement="bottom"
       >
-        <template #title> This field is externally synced </template>
+        <template #title> {{ $t('tooltip.fieldIsExternallySynced') }} </template>
         <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-nc-content-gray-disabled" />
       </NcTooltip>
     </div>
@@ -273,7 +273,7 @@ const onClick = (e: Event) => {
 
       <div v-if="!isExpandedForm && meta?.synced && column.readonly">
         <NcTooltip class="flex items-center" placement="bottom">
-          <template #title> This field is externally synced </template>
+          <template #title> {{ $t('tooltip.fieldIsExternallySynced') }} </template>
           <GeneralIcon icon="ncZap" class="flex-none !w-4 !h-4 !text-nc-content-gray-disabled" />
         </NcTooltip>
       </div>

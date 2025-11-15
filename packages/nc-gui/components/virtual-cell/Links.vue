@@ -44,7 +44,7 @@ const { t } = useI18n()
 
 const { state, isNew } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, meta } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -60,7 +60,7 @@ loadRelatedTableMeta()
 const hasEditPermission = computed(() => {
   return (
     ((!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)) &&
-    !(column.value?.readonly && meta)
+    !(column.value?.readonly && meta.value?.synced)
   )
 })
 

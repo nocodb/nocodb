@@ -1989,6 +1989,9 @@
   },
   "tooltip": {
     "manualTriggerDisabled": "Only workflows with manual trigger can be triggered manually.",
+    "optionNotAvailableInSyncTable": "This option is not available for synced fields",
+    "cannotCreateRecordInSyncTable": "You cannot create records in synced table",
+    "fieldIsExternallySynced": "This field is externally synced",
     "cantAssignLastNonPersonalView": "Cannot assign last collaborative grid view as personal view",
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
     "crossBase": "Link records from a table in a different base",
@@ -2062,7 +2065,7 @@
     "youDontHaveAccessToCreateNewDashboard": "You don't have access to create new dashboard",
     "formViewCreationNotSupportedForSyncedTable": "Form view creation is not supported for synced table",
     "dataInThisFieldCantBeManuallyEdited": "Data in this field can't be manually edited",
-    "fieldPermissionsNotAvailableForSyncedColumns": "Field permissions are not available for synced column",
+    "fieldPermissionsNotAvailableForSyncedColumns": "Field permissions are not available for synced field",
     "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
     "addingEmptyRecordIsNotAllowedInThisTable": "Adding empty record is not allowed in this table",
     "addLookupFields": "Add Lookup Fields",
@@ -2339,6 +2342,7 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
+      "noEditableCellsToClear": "No editable cells to clear",
       "defaultValSyncedCol": "Default values cannot be set for fields synced from external sources",
       "updateTitleSyncedCol": "Field name cannot be changed for fields synced from external sources",
       "updateTypeSyncedCol": "Field type cannot be changed for fields synced from external sources",

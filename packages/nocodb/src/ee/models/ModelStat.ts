@@ -104,7 +104,10 @@ export default class ModelStat {
       { workspace_id: workspaceId, base_id: null },
       `${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`,
     );
-    await NocoCache.del(context, `${CacheScope.MODEL_STAT}:${workspaceId}:sum`);
+    await NocoCache.del(
+      { workspace_id: workspaceId, base_id: null },
+      `${CacheScope.MODEL_STAT}:${workspaceId}:sum`,
+    );
 
     return this.get(context, workspaceId, modelId, ncMeta);
   }

@@ -58,7 +58,10 @@ const relatedTableDisplayColumn = computed(
 loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
+  return (
+    ((!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)) &&
+    !(column.value?.readonly && meta)
+  )
 })
 
 const textVal = computed(() => {

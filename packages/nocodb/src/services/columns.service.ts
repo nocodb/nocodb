@@ -4361,7 +4361,10 @@ export class ColumnsService implements IColumnsService {
         null,
         param.column['meta'],
         isLinks,
-        param.colExtra,
+        {
+          ...param.colExtra,
+          readonly: (param.column as any).readonly || false,
+        },
         undefined,
         undefined,
         param.columnWebhookManager,
@@ -4465,7 +4468,10 @@ export class ColumnsService implements IColumnsService {
         (param.column as LinkToAnotherColumnReqType).virtual,
         null,
         param.column['meta'],
-        param.colExtra,
+        {
+          ...param.colExtra,
+          readonly: (param.column as any).readonly || false,
+        },
         undefined,
         undefined,
         param.columnWebhookManager,
@@ -4663,6 +4669,7 @@ export class ColumnsService implements IColumnsService {
         fk_mm_parent_column_id: childCol.id,
         fk_related_model_id: refTable.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        readonly: (param.column as any).readonly || false,
         meta: {
           ...(param.column['meta'] || {}),
           plural: param.column['meta']?.plural || pluralize(refTable.title),
@@ -4701,6 +4708,7 @@ export class ColumnsService implements IColumnsService {
         fk_mm_parent_column_id: parentCol.id,
         fk_related_model_id: table.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        readonly: (param.column as any).readonly || false,
         meta: {
           plural: pluralize(table.title),
           singular: singularize(table.title),

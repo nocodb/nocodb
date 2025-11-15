@@ -594,6 +594,7 @@ const handleScrollIntoView = () => {
                   "
                 />
               </div>
+              <template #title> This option is not available for synced fields </template>
             </NcTooltip>
           </template>
         </PaymentUpgradeBadgeProvider>

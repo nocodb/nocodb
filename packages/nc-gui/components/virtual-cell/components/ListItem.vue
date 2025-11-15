@@ -21,7 +21,7 @@ const props = withDefaults(
 
 defineEmits(['expand', 'linkOrUnlink'])
 
-const { showExtraFields, relatedTableMeta } = useLTARStoreOrThrow()!
+const { showExtraFields, relatedTableMeta, meta } = useLTARStoreOrThrow()!
 
 provide(IsExpandedFormOpenInj, ref(true))
 
@@ -32,6 +32,8 @@ provide(IsUnderLookupInj, ref(true))
 provide(IsLinkRecordDropdownInj, ref(true))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const column = inject(ColumnInj)!
 
 provide(IsFormInj, ref(false))
 
@@ -173,7 +175,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
             </button>
           </NcTooltip>
         </div>
-        <template v-if="(!isPublic && !readOnly) || (isForm && !readOnly)">
+        <template v-if="((!isPublic && !readOnly) || (isForm && !readOnly)) && !(meta?.synced && column?.readonly)">
           <PermissionsTooltip
             class="z-10 flex"
             :entity="PermissionEntity.FIELD"

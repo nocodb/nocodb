@@ -241,7 +241,7 @@ const onClick = (e: Event) => {
     @click="onClick"
   >
     <div
-      class="nc-virtual-cell-name-wrapper flex-1 flex items-center"
+      class="nc-virtual-cell-name-wrapper w-full flex-1 flex items-center"
       :class="{
         'max-w-[calc(100%_-_23px)]': !isExpandedForm && !column.description?.length,
         'max-w-[calc(100%_-_44px)]': !isExpandedForm && column.description?.length,
@@ -293,6 +293,13 @@ const onClick = (e: Event) => {
           visible: editColumnDropdown || isDropDownOpen,
           invisible: !(editColumnDropdown || isDropDownOpen),
         }"
+      />
+
+      <div class="flex-1" />
+      <GeneralIcon
+        v-if="meta?.synced && column?.readonly && isExpandedForm && !isPublic"
+        class="!text-nc-content-gray-disabled"
+        icon="ncZap"
       />
     </div>
 

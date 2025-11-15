@@ -21,9 +21,11 @@ const { activeDashboardId, activeBaseDashboards } = storeToRefs(dashboardStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
+const { includeM2M } = useGlobal()
+
 const base = inject(ProjectInj)!
 
-const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
+const tables = computed(() => (baseTables.value.get(base.value.id!) ?? []).filter((t) => includeM2M.value || !t.mm))
 
 const menuRef = useTemplateRef('menuRef')
 

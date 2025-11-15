@@ -77,8 +77,11 @@ const emitEdit = (...args: any[]) => {
           {{ $t(columnInvalid.tooltip) }}
         </template>
       </NcTooltip>
+      <template v-if="meta?.synced && column?.readonly && !isExpandedForm && !isPublic">
+        <GeneralIcon class="!text-nc-content-gray-disabled cursor-pointer" icon="ncZap" />
+      </template>
       <GeneralIcon
-        v-if="!isExpandedForm"
+        v-else-if="!isExpandedForm"
         icon="arrowDown"
         class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
       />

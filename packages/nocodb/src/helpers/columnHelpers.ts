@@ -94,6 +94,7 @@ export async function createHmAndBtColumn(
         ...crossBaseProps,
 
         virtual,
+        readonly: colExtra?.readonly || false,
         // if self referencing treat it as system field to hide from ui
         system: isSystemCol || parent.id === child.id,
         fk_col_name: fkColName,
@@ -155,6 +156,7 @@ export async function createHmAndBtColumn(
         fk_child_column_id: childColumn.id,
         fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
         fk_related_model_id: child.id,
+        readonly: colExtra?.readonly || false,
         virtual,
         system: isSystemCol,
         fk_col_name: fkColName,
@@ -256,6 +258,7 @@ export async function createOOColumn(
         fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
         fk_related_model_id: parent.id,
         virtual,
+        readonly: colExtra?.readonly || false,
         // if self referencing treat it as system field to hide from ui
         system: isSystemCol || parent.id === child.id,
         fk_col_name: fkColName,
@@ -330,8 +333,9 @@ export async function createOOColumn(
       fk_col_name: fkColName,
       fk_index_name: fkColName,
       meta,
-      ...(colExtra || {}),
+      readonly: colExtra?.readonly || false,
       ...crossBaseProps,
+      ...(colExtra || {}),
     });
 
     await columnWebhookManager?.addNewColumnById({

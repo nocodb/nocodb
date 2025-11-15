@@ -45,7 +45,7 @@ const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink, meta } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -55,7 +55,10 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, un
 await loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
+  return (
+    ((!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)) &&
+    !(meta.value?.synced && column.value?.readonly)
+  )
 })
 
 const localCellValue = computed<any[]>(() => {

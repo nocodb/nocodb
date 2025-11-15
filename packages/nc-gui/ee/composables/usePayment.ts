@@ -1,10 +1,11 @@
 import { type StripeCheckoutSession } from '@stripe/stripe-js'
 import type Stripe from 'stripe'
-import { LoyaltyPriceLookupKeyMap, type PaginatedType, PlanPriceLookupKeys, PlanTitles, ReturnToBillingPage } from 'nocodb-sdk'
+import { LoyaltyPriceLookupKeyMap, PlanPriceLookupKeys, PlanTitles, ReturnToBillingPage } from 'nocodb-sdk'
+import type { OnPremPlanTitles, type PaginatedType } from 'nocodb-sdk'
 
 export interface PaymentPlan {
   id: string
-  title: PlanTitles
+  title: PlanTitles | OnPremPlanTitles
   descriptions?: string[]
   stripe_product_id?: string
   prices?: any[]
@@ -148,7 +149,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
     }
   }
 
-  const getLookupKey = (planTitle: PlanTitles, mode: 'year' | 'month') => {
+  const getLookupKey = (planTitle: PlanTitles | OnPremPlanTitles, mode: 'year' | 'month') => {
     let lookupKey = null
 
     if (planTitle === PlanTitles.PLUS) {

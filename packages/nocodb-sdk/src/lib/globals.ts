@@ -1,6 +1,6 @@
 import { ColumnType, FilterType } from './Api';
 import { OrgUserRoles, ProjectRoles, WorkspaceUserRoles } from './enums';
-import { PlanTitles } from './payment';
+import { OnPremPlanTitles, PlanTitles } from './payment';
 
 export const enumColors = {
   light: [
@@ -312,10 +312,10 @@ type RolesObj = Partial<Record<Roles, boolean>>;
 type RolesType = RolesObj | string[] | string;
 
 interface PlanLimitExceededDetailsType {
-  plan?: PlanTitles;
+  plan?: PlanTitles | OnPremPlanTitles;
   limit?: number;
   current?: number;
-  higherPlan?: PlanTitles;
+  higherPlan?: PlanTitles | OnPremPlanTitles;
 }
 
 export { Roles, RolesObj, RolesType, PlanLimitExceededDetailsType };

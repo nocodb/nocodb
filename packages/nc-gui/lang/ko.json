@@ -1438,7 +1438,7 @@
     "includeData": "데이터 포함",
     "includeRecords": "항목 포함",
     "baseDuplicateMessage": "참고: 교차-베이스 링크, 감사 로그 및 통합은 복제되지 않습니다.",
-    "tableDuplicateMessage": "참고: 교차 베이스 링크는 중복되지 않습니다.",
+    "tableDuplicateMessage": "참고: 베이스 간 링크는 중복 생성되지 않습니다.",
     "includeView": "뷰 포함",
     "includeScripts": "스크립트 포함",
     "includeDashboards": "대시보드 포함",

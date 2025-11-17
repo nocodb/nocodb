@@ -21,6 +21,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activePlanTitle = computed(() => undefined)
 
+  const isHigherActivePlan = computed(() => false)
+
   const activeSubscription = computed(() => undefined)
 
   const isLoyaltyDiscountAvailable = computed(() => false)
@@ -216,5 +218,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseTeams,
     blockAddNewTeamToWs,
     showUpgradeToAddMoreTeams,
+    isHigherActivePlan,
   }
 })

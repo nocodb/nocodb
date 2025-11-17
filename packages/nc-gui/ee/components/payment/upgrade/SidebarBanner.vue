@@ -3,6 +3,8 @@ import { LOYALTY_GRACE_PERIOD_END_DATE, PlanLimitTypes, PlanTitles } from 'nocod
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const route = useRoute()
 
 const workspaceStore = useWorkspace()
@@ -25,6 +27,7 @@ const {
   getStatLimit,
   getLimit,
   getHigherPlan,
+  isHeigherActivePlan,
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
@@ -94,6 +97,49 @@ const showTimer = computed(() => {
 
 const timerDate = computed(() => {
   return isLimitReached.value ? gracePeriodEndDate.value : LOYALTY_GRACE_PERIOD_END_DATE
+})
+
+const bannerText = computed(() => {
+  const result = {
+    title: '',
+    description: '',
+    buttonText: '',
+  }
+
+  if (isHeigherActivePlan.value) {
+    if (isLimitReached.value) {
+      result.title = 'Plan Limit Reached'
+      result.description = `You have exceeded the ${isRecordLimitReached.value ? 'records' : 'storage'} limit allowed in your ${
+        activePlanTitle.value
+      } plan.`
+    } else {
+      result.title = 'Plan Limit Reaching'
+      result.description = `You are approaching the ${
+        showUpgradeToHigherPlanBanner.value.isRecordLimitReaching ? 'records' : 'storage'
+      } limit allowed in your ${activePlanTitle.value} plan.`
+    }
+
+    result.buttonText = isWsOwner.value ? t('labels.contactSales') : t('labels.requestToContactSales')
+
+    return result
+  }
+
+  if (isLimitReached.value) {
+    result.title = 'Plan Limit Reached'
+    result.description = `You have exceeded the ${isRecordLimitReached.value ? 'records' : 'storage'} limit allowed in the ${
+      activePlanTitle.value
+    } plan. Upgrade to increase your limit`
+  } else if (isLoyaltyDiscountAvailable.value) {
+    result.title = 'Discounted Deal is Ready! 🎊'
+    result.description = 'Thank you for being an early adopter. Upgrade now with loyalty discounts to continue'
+  } else {
+    result.title = `Upgrade to ${getHigherPlan()}`
+    result.description = 'Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!'
+  }
+
+  result.buttonText = isWsOwner.value ? t('general.upgradeNow') : t('general.requestUpgrade')
+
+  return result
 })
 
 const getLimitOrFeature = () => {
@@ -215,13 +261,7 @@ watch(
                     }"
                   />
                   <div class="text-sm font-700 text-nc-content-gray">
-                    {{
-                      isLimitReached
-                        ? 'Plan Limit Reached'
-                        : isLoyaltyDiscountAvailable
-                        ? 'Discounted Deal is Ready! 🎊'
-                        : `Upgrade to ${getHigherPlan()}`
-                    }}
+                    {{ bannerText.title }}
                   </div>
                 </div>
                 <NcButton
@@ -238,15 +278,7 @@ watch(
                 </NcButton>
               </div>
               <div v-if="isSideBannerExpanded" class="text-nc-content-gray-subtle2 text-small leading-[18px]">
-                {{
-                  isLimitReached
-                    ? `You have exceeded the ${
-                        isRecordLimitReached ? 'records' : 'storage'
-                      } limit allowed in the Free plan. Upgrade to increase your limit`
-                    : isLoyaltyDiscountAvailable
-                    ? 'Thank you for being an early adopter. Upgrade now with loyalty discounts to continue'
-                    : 'Unlock more seats, extra records, more storage, conditional webhooks, integrations, NocoAI, and more!'
-                }}
+                {{ bannerText.description }}
               </div>
             </div>
 
@@ -261,7 +293,7 @@ watch(
               </div>
 
               <NcButton size="small" class="w-full">
-                {{ isWsOwner ? 'Upgrade Now' : $t('general.requestUpgrade') }}
+                {{ bannerText.buttonText }}
               </NcButton>
             </div>
           </div>

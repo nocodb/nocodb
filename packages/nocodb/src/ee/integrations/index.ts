@@ -40,10 +40,16 @@ import type { IntegrationEntry } from '@noco-local-integrations/core';
 export default [
   ...(Array.isArray(AmazonBedrockAi) ? AmazonBedrockAi : [AmazonBedrockAi]),
   ...(Array.isArray(AzureAi) ? AzureAi : [AzureAi]),
+  ...(Array.isArray(BitbucketAuth) ? BitbucketAuth : [BitbucketAuth]),
+  ...(Array.isArray(BitbucketSync) ? BitbucketSync : [BitbucketSync]),
+  ...(Array.isArray(ChatwootAuth) ? ChatwootAuth : [ChatwootAuth]),
+  ...(Array.isArray(ChatwootSync) ? ChatwootSync : [ChatwootSync]),
   ...(Array.isArray(ClaudeAi) ? ClaudeAi : [ClaudeAi]),
   ...(Array.isArray(ClickhouseAuth) ? ClickhouseAuth : [ClickhouseAuth]),
   ...(Array.isArray(CoreWorkflowNode) ? CoreWorkflowNode : [CoreWorkflowNode]),
   ...(Array.isArray(DeepseekAi) ? DeepseekAi : [DeepseekAi]),
+  ...(Array.isArray(FreshdeskAuth) ? FreshdeskAuth : [FreshdeskAuth]),
+  ...(Array.isArray(FreshdeskSync) ? FreshdeskSync : [FreshdeskSync]),
   ...(Array.isArray(GithubAuth) ? GithubAuth : [GithubAuth]),
   ...(Array.isArray(GithubSync) ? GithubSync : [GithubSync]),
   ...(Array.isArray(GitlabAuth) ? GitlabAuth : [GitlabAuth]),
@@ -55,11 +61,16 @@ export default [
   ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),
   ...(Array.isArray(MysqlSync) ? MysqlSync : [MysqlSync]),
   ...(Array.isArray(NocodbAi) ? NocodbAi : [NocodbAi]),
-  ...(Array.isArray(NocodbWorkflowNode) ? NocodbWorkflowNode : [NocodbWorkflowNode]),
+  ...(Array.isArray(NocodbWorkflowNode)
+    ? NocodbWorkflowNode
+    : [NocodbWorkflowNode]),
   ...(Array.isArray(OpenaiAi) ? OpenaiAi : [OpenaiAi]),
-  ...(Array.isArray(OpenaiCompatibleAi) ? OpenaiCompatibleAi : [OpenaiCompatibleAi]),
+  ...(Array.isArray(OpenaiCompatibleAi)
+    ? OpenaiCompatibleAi
+    : [OpenaiCompatibleAi]),
   ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
   ...(Array.isArray(ZendeskAuth) ? ZendeskAuth : [ZendeskAuth]),
   ...(Array.isArray(ZendeskSync) ? ZendeskSync : [ZendeskSync]),
+  ...(Array.isArray(ZohoAuth) ? ZohoAuth : [ZohoAuth]),
 ] as IntegrationEntry[];

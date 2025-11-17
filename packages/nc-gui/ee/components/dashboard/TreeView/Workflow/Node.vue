@@ -264,7 +264,9 @@ const deleteWorkflow = () => {
       <template #title>
         <div class="flex flex-col gap-3">
           <div>
-            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.workflowName') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
+              {{ $t('labels.workflowName') }}
+            </div>
             <div class="text-small leading-[18px]">{{ vModel.title }}</div>
             <div class="mt-1 text-xs whitespace-pre-wrap break-words">{{ vModel.description }}</div>
           </div>

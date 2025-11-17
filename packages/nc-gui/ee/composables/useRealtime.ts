@@ -1,14 +1,5 @@
-import {
-  type DashboardPayload,
-  EventType,
-  type MetaPayload,
-  PlanLimitTypes,
-  type ScriptPayload,
-  ViewTypes,
-  type WidgetPayload,
-  getFirstNonPersonalView,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { EventType, PlanLimitTypes, ViewTypes, getFirstNonPersonalView, isVirtualCol } from 'nocodb-sdk'
+import type { DashboardPayload, MetaPayload, ScriptPayload, WidgetPayload, WorkflowPayload } from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 export const useRealtime = createSharedComposable(() => {
@@ -46,11 +37,14 @@ export const useRealtime = createSharedComposable(() => {
   const { automations, activeAutomationId } = storeToRefs(useAutomationStore())
   const { widgets, selectedWidget } = storeToRefs(useWidgetStore())
 
+  const { workflows, activeWorkflowId } = storeToRefs(useWorkflowStore())
+
   const { baseExtensions, Extension } = useExtensions()
 
   const activeUserListener = ref<string | null>(null)
   const activeBaseMetaListener = ref<string | null>(null)
   const activeAutomationListener = ref<string | null>(null)
+  const activeWorkflowListener = ref<string | null>(null)
   const activeDashboardListener = ref<string | null>(null)
   const activeWidgetListener = ref<string | null>(null)
   const activeTeamListener = ref<string | null>(null)
@@ -350,6 +344,62 @@ export const useRealtime = createSharedComposable(() => {
             showInfoModal({
               title: `Automation no longer available`,
               content: `${automation.title} may have been deleted or your access removed.`,
+            })
+          }
+        }
+        break
+      }
+    }
+  }
+
+  const handleWorkflowEvent = (payload: WorkflowPayload, baseId: string) => {
+    const { id, action, payload: workflow } = payload
+    const existingWorkflows = workflows.value.get(baseId) || []
+
+    switch (action) {
+      case 'create': {
+        const updatedWorkflows = [...existingWorkflows, workflow]
+        workflows.value.set(baseId, updatedWorkflows)
+        updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, 1)
+        refreshCommandPalette()
+
+        break
+      }
+      case 'update': {
+        const updatedWorkflows = existingWorkflows.map((d) => (d.id === id ? { ...d, ...workflow } : d))
+
+        updatedWorkflows.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+
+        workflows.value.set(baseId, updatedWorkflows)
+        break
+      }
+      case 'delete': {
+        const updatedWorkflows = existingWorkflows.filter((d) => d.id !== id)
+        workflows.value.set(baseId, updatedWorkflows)
+        updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, -1)
+        refreshCommandPalette()
+
+        if (activeWorkflowId.value === id) {
+          const nextWorkflow = updatedWorkflows[0]
+          if (nextWorkflow) {
+            ncNavigateTo({
+              workspaceId: activeWorkspaceId.value,
+              baseId,
+              automationId: nextWorkflow.id,
+              automationTitle: nextWorkflow.title,
+            })
+            showInfoModal({
+              title: `Workflow no longer available`,
+              content: `${workflow.title} may have been deleted or your access removed.`,
+            })
+          } else {
+            ncNavigateTo({
+              workspaceId: activeWorkspaceId.value,
+              baseId,
+            })
+            showInfoModal({
+              title: `Workflow no longer available`,
+              content: `${workflow.title} may have been deleted or your access removed.`,
             })
           }
         }
@@ -687,6 +737,18 @@ export const useRealtime = createSharedComposable(() => {
           `${EventType.SCRIPT_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
           (payload: ScriptPayload) => {
             handleScriptEvent(payload, activeBaseId.value)
+          },
+        )
+
+        // Handle workflows events
+        if (activeWorkflowListener.value) {
+          $ncSocket.offMessage(activeWorkflowListener.value)
+        }
+
+        activeWorkflowListener.value = $ncSocket.onMessage(
+          `${EventType.WORKFLOW_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
+          (payload: WorkflowPayload) => {
+            handleWorkflowEvent(payload, activeBaseId.value)
           },
         )
 

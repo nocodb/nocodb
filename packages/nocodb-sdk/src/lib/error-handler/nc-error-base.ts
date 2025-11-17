@@ -85,7 +85,7 @@ export class NcErrorBase {
   }
 
   workflowNotFound(id: string, args?: NcErrorArgs): never {
-    throw this.errorCodex.generateError(NcErrorType.ERR_DASHBOARD_NOT_FOUND, {
+    throw this.errorCodex.generateError(NcErrorType.ERR_WORKFLOW_NOT_FOUND, {
       params: id,
       ...args,
     });

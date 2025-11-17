@@ -77,7 +77,7 @@ export default class Workflow implements WorkflowType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.SCRIPTS, [
+    const cachedList = await NocoCache.getList(context, CacheScope.WORKFLOW, [
       baseId,
     ]);
 
@@ -159,7 +159,7 @@ export default class Workflow implements WorkflowType {
       await NocoCache.appendToList(
         context,
         CacheScope.WORKFLOW,
-        [workflow.base_id],
+        [context.base_id],
         `${CacheScope.WORKFLOW}:${id}`,
       );
       return res;

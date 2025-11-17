@@ -144,7 +144,7 @@ export class WorkflowsService {
     NocoSocket.broadcastEvent(
       context,
       {
-        event: EventType.SCRIPT_EVENT,
+        event: EventType.WORKFLOW_EVENT,
         payload: {
           id: workflowId,
           action: 'delete',

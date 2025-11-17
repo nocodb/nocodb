@@ -61,6 +61,9 @@ export class CacheExtractColumnHelper {
     ][modelId]?.[columnId] as any;
   }
   setCacheForColumn(modelId: string, columnId: string, value: any) {
+    if (!this.isEnabled()) {
+      return undefined;
+    }
     this.context.additionalContext[CONTEXT_INFO_EXTRACT_COLUMN_ALIAS][
       this.context.base_id
     ][modelId][columnId] = value;

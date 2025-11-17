@@ -7,8 +7,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { LinksRequestHandler as LinksRequestHandlerCE } from 'src/db/links/requestHandler';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from 'src/constants';
-import { DBQueryClient } from 'src/dbQueryClient';
+import { Logger } from '@nestjs/common';
 import type { ClientType } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
@@ -17,6 +16,8 @@ import type {
   LinkUnlinkRequest,
 } from '~/db/links/types';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import { DBQueryClient } from '~/dbQueryClient';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import {
   getBaseModelSqlFromModelId,
   getOppositeRelationType,
@@ -33,6 +34,7 @@ import { Profiler } from '~/helpers/profiler';
  */
 export class LinksRequestHandler extends LinksRequestHandlerCE {
   profiler: Profiler;
+  logger: Logger = new Logger(LinksRequestHandler.name);
 
   // validate link & unlink request
   // link ids should exists in record
@@ -1095,7 +1097,11 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       );
     }
     this.profiler.log('link/unlink done');
-    await this.auditLogAndBroadcast(context, payload, knex);
+    this.auditLogAndBroadcast(context, payload, knex).catch((err) => {
+      this.logger.error(
+        `Error when broadcast & audit: [${err.constructor?.name}] ${err.message}`,
+      );
+    });
     this.profiler.log('auditLogAndBroadcast done');
   }
 

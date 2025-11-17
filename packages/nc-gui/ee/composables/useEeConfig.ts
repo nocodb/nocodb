@@ -63,7 +63,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activePlanTitle = computed(() => (activePlan.value?.title as PlanTitles) ?? PlanTitles.FREE)
 
-  const isHeigherActivePlan = computed(() => {
+  const isHigherActivePlan = computed(() => {
     return activePlanTitle.value === PlanTitles.ENTERPRISE
   })
 
@@ -1278,6 +1278,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseTeams,
     blockAddNewTeamToWs,
     showUpgradeToAddMoreTeams,
-    isHeigherActivePlan,
+    isHigherActivePlan,
   }
 })

@@ -27,7 +27,7 @@ const {
   getStatLimit,
   getLimit,
   getHigherPlan,
-  isHeigherActivePlan,
+  isHigherActivePlan,
 } = useEeConfig()
 
 const isLimitReached = computed(() => {
@@ -106,7 +106,7 @@ const bannerText = computed(() => {
     buttonText: '',
   }
 
-  if (isHeigherActivePlan.value) {
+  if (isHigherActivePlan.value) {
     if (isLimitReached.value) {
       result.title = 'Plan Limit Reached'
       result.description = `You have exceeded the ${isRecordLimitReached.value ? 'records' : 'storage'} limit allowed in your ${

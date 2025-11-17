@@ -1278,17 +1278,24 @@ export async function extractColumn({
             columnIdToUidt,
             baseUsers,
           });
-          const selectQbBuilderSyntax = `${selectQb.builder}`
+          const { sql, bindings } = selectQb.builder.toSQL();
+          const selectQbBuilderSyntax = sql
             .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
             .replaceAll(aliasPlaceholder, ':alias:');
+
           return {
             ...result,
             handle: (qb, { alias }) => {
               qb.select(
-                knex.raw(`(${selectQbBuilderSyntax}) as :alias2:`, {
-                  alias: alias ?? rootAlias,
-                  alias2: getAs(column),
-                }),
+                knex.raw(
+                  knex
+                    .raw(`(${selectQbBuilderSyntax}) as :alias2:`, {
+                      alias: alias ?? rootAlias,
+                      alias2: getAs(column),
+                    })
+                    .toQuery(),
+                  bindings,
+                ),
               );
             },
           };

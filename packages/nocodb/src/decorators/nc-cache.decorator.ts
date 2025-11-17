@@ -22,6 +22,15 @@ export interface NcCacheOptions<TArgs extends any[] = any[]> {
    * Function receives typed arguments from the decorated method
    */
   contextExtraction?: (args: TArgs, thisArg: this) => NcContext | undefined;
+  /**
+   * Optional callback that runs only when the result is retrieved from cache
+   * Function receives typed arguments, the cached result, and the this context
+   */
+  onCacheHit?: (
+    args: TArgs,
+    result: any,
+    thisArg: this,
+  ) => void | Promise<void>;
 }
 
 /**
@@ -41,6 +50,11 @@ export interface NcCacheOptionsAny {
    * Function receives: (args: any[]) => NcContext | undefined
    */
   contextExtraction?: (args: any[]) => NcContext | undefined;
+  /**
+   * Optional callback that runs only when the result is retrieved from cache
+   * Function receives arguments, the cached result, and the this context
+   */
+  onCacheHit?: (args: any[], result: any, thisArg: any) => void | Promise<void>;
 }
 
 /**
@@ -67,6 +81,15 @@ export interface NcCacheOptionsAny {
  * @NcCache({
  *   key: (args) => `Model.get:${args[1]}`,
  *   contextExtraction: (args) => args[0],
+ * })
+ *
+ * 4. With cache hit callback:
+ * @NcCache<[NcContext, string, any?]>({
+ *   key: (args) => `Model.get:${args[1]}`,
+ *   contextExtraction: (args) => args[0],
+ *   onCacheHit: (args, result, thisArg) => {
+ *     console.log('Cache hit for args:', args, 'result:', result);
+ *   },
  * })
  */
 export function NcCache<TArgs extends any[] = any[]>(
@@ -104,7 +127,12 @@ export function NcCache<TArgs extends any[] = any[]>(
 
       // Check if value is cached
       if (context.cacheMap.has(cacheKey)) {
-        return context.cacheMap.get(cacheKey);
+        const cachedResult = context.cacheMap.get(cacheKey);
+        // Run cache hit callback if provided
+        if (options.onCacheHit) {
+          await options.onCacheHit(args as TArgs, cachedResult, this);
+        }
+        return cachedResult;
       }
 
       // Execute method and cache result

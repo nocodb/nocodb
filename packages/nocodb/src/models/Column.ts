@@ -10,7 +10,7 @@ import {
 import { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type { ColumnReqType, ColumnType, LookupType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import LookupColumn from '~/models/LookupColumn';
@@ -50,7 +50,7 @@ import {
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
-import {NcCache} from "~/decorators/nc-cache.decorator";
+import { NcCache } from '~/decorators/nc-cache.decorator';
 
 const selectColors = enumColors.light;
 
@@ -566,6 +566,9 @@ export default class Column<T = any> implements ColumnType {
   @NcCache({
     key: (args, thisArg) => `Column.getColOptions:${thisArg.id}`,
     contextExtraction: (args) => args[0],
+    onCacheHit: async (_args, result, thisArg) => {
+      thisArg.colOptions = result;
+    },
   })
   public async getColOptions<U = T>(
     context: NcContext,
@@ -651,7 +654,10 @@ export default class Column<T = any> implements ColumnType {
   }
 
   @NcCache({
-    key: (args) => `Column.list:${args[1].fk_model_id}:${args[1].fk_default_view_id ?? 'default'}`,
+    key: (args) =>
+      `Column.list:${args[1].fk_model_id}:${
+        args[1].fk_default_view_id ?? 'default'
+      }`,
     contextExtraction: (args) => args[0],
   })
   public static async list(
@@ -764,7 +770,6 @@ export default class Column<T = any> implements ColumnType {
 
     return columns.map(c => new Column(c));*/
   }
-
 
   @NcCache({
     key: (args) => `Column.get:${args[1].colId}`,

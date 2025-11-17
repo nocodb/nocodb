@@ -984,7 +984,7 @@ export default {
                   </NcMenuItem>
                 </NcTooltip>
                 <PermissionsTooltip
-                  v-else
+                  v-else-if="visibleMoreOptions.deleteRecord"
                   :entity="PermissionEntity.TABLE"
                   :entity-id="meta?.id"
                   :permission="PermissionKey.TABLE_RECORD_DELETE"

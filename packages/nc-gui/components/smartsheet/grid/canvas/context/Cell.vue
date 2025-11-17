@@ -303,7 +303,7 @@ const execBulkAction = async (path: Array<number>) => {
           </NcTooltip>
           <NcMenuItem
             v-else
-            key="selete-selected-rows"
+            key="delete-selected-rows"
             class="nc-base-menu-item"
             danger
             data-testid="nc-delete-row"

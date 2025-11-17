@@ -224,7 +224,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
           <template #title>
             {{
               isSyncedField
-                ? 'You cannot generate content in an synced field'
+                ? 'You cannot generate content in a synced field'
                 : isPvColumn && !isEnabledGenerateText
                 ? `${UITypesName.AIPrompt} field cannot be used as display value field`
                 : 'Generate text using AI is not supported when rich text formatting is enabled'

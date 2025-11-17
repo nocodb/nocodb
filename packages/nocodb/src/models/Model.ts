@@ -15,7 +15,7 @@ import type { Knex } from 'knex';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import Hook from '~/models/Hook';
 import View from '~/models/View';
 import Comment from '~/models/Comment';
@@ -43,6 +43,7 @@ import { Source } from '~/models';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { isEE } from '~/utils';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 
 const logger = new Logger('Model');
 
@@ -422,6 +423,10 @@ export default class Model implements TableType {
     return modelList.map((m) => this.castType(m));
   }
 
+  @NcCache<[NcContext, string, any?]>({
+    key: (args) => `Model.get:${args[1]}`,
+    contextExtraction: (args) => args[0],
+  })
   public static async get(
     context: NcContext,
     id: string,

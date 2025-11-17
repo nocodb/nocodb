@@ -20,20 +20,39 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const { loadProject } = baseStore
 
-  const { activeProjectId, bases } = storeToRefs(baseStore)
+  const { activeProjectId, bases, basesUser } = storeToRefs(baseStore)
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const isWorkflowsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.WORKFLOWS))
 
+  const baseUsers = computed(() => (activeProjectId.value ? basesUser.value.get(activeProjectId.value) || [] : []))
+
   // State
   const workflows = ref<Map<string, (WorkflowType & { _dirty?: string | number; ___is_new?: boolean })[]>>(new Map())
+
+  const workflowNodes = ref<Map<string, WorkflowNodeSchema[]>>(new Map())
 
   const isLoadingWorkflow = ref(false)
 
   const activeBaseWorkflows = computed(() => {
     if (!activeProjectId.value) return []
-    return workflows.value.get(activeProjectId.value) || []
+
+    return (workflows.value.get(activeProjectId.value) || []).map((wf) => {
+      const createdUser = baseUsers.value.find((u) => u.id === wf.created_by)
+      const updatedUser = wf.updated_by ? baseUsers.value.find((u) => u.id === wf.updated_by) : null
+
+      return {
+        ...wf,
+        created_by_user: createdUser || null,
+        updated_by_user: updatedUser || null,
+      }
+    })
+  })
+
+  const activeBaseNodeSchemas = computed<Array<WorkflowNodeSchema>>(() => {
+    if (!activeProjectId.value) return []
+    return workflowNodes.value.get(activeProjectId.value) || []
   })
 
   const activeWorkflowId = computed(() => route.params.workflowId as string)
@@ -200,11 +219,13 @@ export const useWorkflowStore = defineStore('workflow', () => {
       const index = baseWorkflows.findIndex((a) => a.id === workflowId)
 
       if (index !== -1) {
-        baseWorkflows[index] = {
+        // Create a new array to trigger reactivity
+        const updatedWorkflows = [...baseWorkflows]
+        updatedWorkflows[index] = {
           ...baseWorkflows[index],
           ...updated,
         } as unknown as WorkflowType
-        workflows.value.set(baseId, baseWorkflows)
+        workflows.value.set(baseId, updatedWorkflows)
       }
 
       await refreshCommandPalette()
@@ -347,6 +368,30 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
+  const loadWorkflowNodes = async () => {
+    if (!activeWorkspaceId.value || !activeProjectId.value) return
+    try {
+      const response = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+        operation: 'workflowNodes',
+      })
+
+      const nodes = ncIsArray(response?.nodes) ? response.nodes : []
+
+      workflowNodes.value.set(activeProjectId.value, nodes as any)
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+    }
+  }
+
+  const getWorkflowNodeByKey = (key: string) => {
+    return activeBaseNodeSchemas.value.find((n) => n.key === key)
+  }
+
+  const getWorkflowNodesByCategory = (category: string) => {
+    return activeBaseNodeSchemas.value.filter((n) => n.category === category)
+  }
+
   async function openNewWorkflowModal({
     baseId,
     e,
@@ -403,6 +448,16 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   })
 
+  watch(activeProjectId, async () => {
+    if (activeWorkspaceId.value && activeProjectId.value) {
+      await loadWorkflowNodes()
+    }
+  })
+
+  onMounted(() => {
+    loadWorkflowNodes()
+  })
+
   /**
    * Keeps the browser URL slug in sync with the workflow's readable slug.
    * Triggers only when:
@@ -443,11 +498,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
     workflows,
     activeWorkflow,
     isLoadingWorkflow,
-    isWorkflowsEnabled,
 
     // Getters
+    isWorkflowsEnabled,
     activeBaseWorkflows,
     activeWorkflowId,
+    activeBaseNodeSchemas,
 
     // Actions
     loadWorkflows,
@@ -458,6 +514,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
     openWorkflow,
     duplicateWorkflow,
     openNewWorkflowModal,
+
+    // Node Schemas
+
+    getWorkflowNodeByKey,
+    getWorkflowNodesByCategory,
   }
 })
 

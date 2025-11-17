@@ -1,11 +1,18 @@
 <script setup lang="ts">
+import { useProvideWorkflow } from '~/composables/useWorkflow'
+
 const workflowStore = useWorkflowStore()
 
 const { activeWorkflow } = storeToRefs(workflowStore)
 
-useProvideWorkflowStore(activeWorkflow)
+useProvideWorkflow(activeWorkflow)
 </script>
 
 <template>
-  <SmartsheetWorkflow />
+  <div class="flex flex-col h-full">
+    <SmartsheetTopbar />
+    <div style="height: calc(100dvh - var(--topbar-height))">
+      <SmartsheetWorkflow />
+    </div>
+  </div>
 </template>

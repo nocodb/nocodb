@@ -1,64 +1,30 @@
 <script setup lang="ts">
 import { computed, markRaw } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
-import { MiniMap } from '@vue-flow/minimap'
-import { Background } from '@vue-flow/background'
 
-// Node components
-import TriggerNode from './node/Trigger.vue'
-import WorkflowNode from './node/WorkflowNode.vue'
-import PlusNode from './node/Plus.vue'
-import Topbar from './Topbar.vue'
-import NodeConfigDrawer from './NodeConfigDrawer.vue'
+import TriggerNode from './Node/Trigger.vue'
+import WorkflowNode from './Node/WorkflowNode.vue'
+import PlusNode from './Node/Plus.vue'
 
 import { useLayout } from './useLayout'
-import { WorkflowCategory, useProvideWorkflowStore } from './useWorkflow'
+import Sidebar from '~/components/smartsheet/workflow/Sidebar/index.vue'
+import { useWorkflowOrThrow } from '~/composables/useWorkflow'
 
 const { layout } = useLayout()
 
 const { fitView, nodesDraggable, edgesUpdatable } = useVueFlow()
 
-// Get workflow data from store
-const workflowStoreApi = useWorkflowStore()
-const { activeWorkflow } = storeToRefs(workflowStoreApi)
-const { updateWorkflow } = workflowStoreApi
-const { activeProjectId } = storeToRefs(useBases())
-const { api } = useApi()
+const { nodes, edges, setLayoutCallback, nodeTypes: rawNodeTypes, workflow } = useWorkflowOrThrow()
 
-// Get initial workflow data
-const initialWorkflow = computed(() => {
-  if (!activeWorkflow.value?.nodes || !activeWorkflow.value?.edges) return undefined
-
-  return {
-    nodes: activeWorkflow.value.nodes,
-    edges: activeWorkflow.value.edges,
-  }
-})
-
-// Provide workflow store to child components
-const workflowStore = useProvideWorkflowStore(initialWorkflow.value)
-const { nodes, edges, setLayoutCallback, saveWorkflow, isSaving, workflowNodeTypes, workflowNodeTypesVersion } = workflowStore
-
-// Workflow execution state
-const isRunning = ref(false)
-
-// Dynamically map node types to components based on their category
-// This is reactive and updates when node types are loaded from backend
 const nodeTypes = computed(() => {
   const types: Record<string, any> = {}
 
-  // Get all available node types from the workflow store
-  workflowNodeTypes.value.forEach((nodeType) => {
-    // Special case: core.plus gets its own dedicated component for linear workflow
+  rawNodeTypes.value.forEach((nodeType) => {
     if (nodeType.type === 'core.plus') {
       types[nodeType.type] = markRaw(PlusNode)
-    }
-    // Map trigger types to TriggerNode component
-    else if (nodeType.category === WorkflowCategory.TRIGGER) {
+    } else if (nodeType.category === WorkflowCategory.TRIGGER) {
       types[nodeType.type] = markRaw(TriggerNode)
-    }
-    // All other categories (ACTION, LOGIC, etc.) use WorkflowNode
-    else {
+    } else {
       types[nodeType.type] = markRaw(WorkflowNode)
     }
   })
@@ -70,56 +36,16 @@ async function layoutGraph() {
   nodes.value = layout(nodes.value, edges.value, 'TB')
 
   nextTick(() => {
-    // Fit the view to show all nodes with padding
     fitView({
-      padding: 0.2, // 20% padding around the workflow
-      duration: 200, // Smooth animation
-      minZoom: 0.1, // Allow zooming out if needed to fit all nodes
-      maxZoom: 1, // Don't zoom in beyond 100%
+      padding: 0.2,
+      duration: 200,
+      minZoom: 0.1,
+      maxZoom: 1,
     })
   })
 }
 
-const handleSave = async () => {
-  if (!activeProjectId.value || !activeWorkflow.value?.id) {
-    message.error('No active workflow found')
-    return
-  }
-
-  await saveWorkflow(async (workflowData) => {
-    // Save nodes and edges to backend
-    await updateWorkflow(activeProjectId.value!, activeWorkflow.value!.id!, {
-      nodes: workflowData.nodes,
-      edges: workflowData.edges,
-    })
-  })
-}
-
-const handleActive = async (isActive: boolean) => {
-  if (!activeProjectId.value || !activeWorkflow.value?.id) {
-    message.error('No active workflow found')
-    return
-  }
-
-  try {
-    await updateWorkflow(activeProjectId.value, activeWorkflow.value.id, {
-      enabled: isActive,
-    })
-    activeWorkflow.value!.enabled = isActive
-    message.success(`Workflow ${isActive ? 'activated' : 'deactivated'} successfully`)
-  } catch (error: any) {
-    console.error('[Workflow] Update active state failed:', error)
-    message.error(`Failed to update workflow state: ${error.message || 'Unknown error'}`)
-  }
-}
-
-const handleRun = async () => {
-  if (!activeProjectId.value || !activeWorkflow.value?.id) {
-    message.error('No active workflow found')
-    return
-  }
-
-  isRunning.value = true
+/* const handleRun = async () => {
 
   try {
     // Call backend to execute workflow
@@ -156,37 +82,25 @@ const handleRun = async () => {
   } finally {
     isRunning.value = false
   }
-}
-
-const workflowTitle = computed(() => activeWorkflow.value?.title || 'Untitled Workflow')
-
-// Check if workflow has a manual trigger node
-const hasManualTrigger = computed(() => {
-  return nodes.value.some((node) => node.type === 'core.trigger.manual')
-})
+} */
 
 onMounted(() => {
   nodesDraggable.value = false
   edgesUpdatable.value = false
 
-  // Register layout callback for child components
   setLayoutCallback(layoutGraph)
 
-  // Wait for Vue Flow to fully initialize before running layout
   nextTick(() => {
-    // Additional delay to ensure all nodes are rendered with proper dimensions
     setTimeout(() => {
       layoutGraph()
     }, 100)
   })
 })
 
-// Watch for workflow changes and re-layout
 watch(
-  () => activeWorkflow.value?.id,
+  () => workflow.value?.id,
   (newId, oldId) => {
     if (newId && newId !== oldId) {
-      // Workflow changed, wait for nodes to update and then layout
       nextTick(() => {
         setTimeout(() => {
           layoutGraph()
@@ -198,20 +112,8 @@ watch(
 </script>
 
 <template>
-  <div class="workflow-container">
-    <Topbar
-      :title="workflowTitle"
-      :is-saving="isSaving"
-      :is-running="isRunning"
-      :has-manual-trigger="hasManualTrigger"
-      :is-active="activeWorkflow?.enabled"
-      @save="handleSave"
-      @run="handleRun"
-      @active="handleActive"
-    />
-
+  <div class="flex h-full w-full">
     <VueFlow
-      :key="workflowNodeTypesVersion"
       :nodes="nodes"
       :edges="edges"
       :node-types="nodeTypes"
@@ -226,24 +128,12 @@ watch(
       :delete-key-code="null"
       class="workflow-canvas"
     >
-      <Background pattern-color="#aaa" :gap="16" />
-      <MiniMap />
     </VueFlow>
-
-    <!-- Node Configuration Drawer -->
-    <NodeConfigDrawer />
+    <Sidebar />
   </div>
 </template>
 
 <style scoped>
-.workflow-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  background: #f9fafb;
-}
-
 .workflow-canvas {
   flex: 1;
   height: 100%;

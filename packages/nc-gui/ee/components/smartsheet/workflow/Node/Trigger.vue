@@ -2,15 +2,13 @@
 import { computed } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
-import { WorkflowCategory, useWorkflowStoreOrThrow } from '../useWorkflow'
 import NodeTypeDropdown, { type NodeTypeOption } from './NodeTypeDropdown.vue'
 
 const props = defineProps<NodeProps>()
 
-const workflowStore = useWorkflowStoreOrThrow()
-const { updateNode, addPlusNode, triggerLayout, openConfigDrawer, getNodeType } = workflowStore
+const workflowStore = useWorkflowOrThrow()
+const { updateNode, addPlusNode, triggerLayout, getNodeType, selectedNodeId } = workflowStore
 
-// Get available trigger options (trigger sub-types)
 const availableOptions = computed((): NodeTypeOption[] => {
   const triggerTypes = workflowStore.getNodeTypesByCategory(WorkflowCategory.TRIGGER)
   return triggerTypes.map((nt) => ({
@@ -22,7 +20,6 @@ const availableOptions = computed((): NodeTypeOption[] => {
 })
 
 const selectTriggerType = async (option: NodeTypeOption) => {
-  // Update the node type
   updateNode(props.id, {
     type: option.id,
     data: {
@@ -30,12 +27,10 @@ const selectTriggerType = async (option: NodeTypeOption) => {
     },
   })
 
-  // Check if plus node already exists after this trigger
   const hasPlusNode = workflowStore.edges.value.some((e) => e.source === props.id)
   if (!hasPlusNode) {
-    addPlusNode(props.id)
+    await addPlusNode(props.id)
 
-    // Wait for Vue Flow and layout to process
     await nextTick()
     setTimeout(() => {
       triggerLayout()
@@ -43,17 +38,14 @@ const selectTriggerType = async (option: NodeTypeOption) => {
   }
 }
 
-// Get node metadata
 const nodeMeta = computed(() => {
   return getNodeType(props.type)
 })
 
-// Handle trigger node click to open configuration drawer
 const handleTriggerClick = (event: MouseEvent) => {
-  // Only open drawer if a specific trigger type is selected (not generic 'core.trigger')
   if (props.type !== 'core.trigger' && nodeMeta.value) {
     event.stopPropagation()
-    openConfigDrawer(props.id)
+    selectedNodeId.value = props.id
   }
 }
 </script>

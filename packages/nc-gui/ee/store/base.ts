@@ -153,7 +153,7 @@ export const useBase = defineStore('baseStore', () => {
       await tablesStore.loadProjectTables(base.value.id, true)
       await loadAutomations({ baseId: base.value.id || baseId.value })
       await loadDashboards({ baseId: base.value.id || baseId.value })
-      await loadWorkflows({ baseId: base.value.id || baseId.value })
+      await loadWorkflows({ baseId: base.value.id || baseId.value, force: true })
 
       // tables.value = basesStore.baseTableList[base.value.id]
       //   await api.dbTable.list(base.value.id, {

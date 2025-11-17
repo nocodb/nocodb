@@ -2,14 +2,12 @@
 import { computed } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
-import { WorkflowCategory, useWorkflowStoreOrThrow } from '../useWorkflow'
 import NodeTypeDropdown, { type NodeTypeOption } from './NodeTypeDropdown.vue'
 
 const props = defineProps<NodeProps>()
 
-const workflowStore = useWorkflowStoreOrThrow()
-const { getNodeType, getNodeTypesByCategory, updateNode, addPlusNode, triggerLayout, deleteNode, openConfigDrawer } =
-  workflowStore
+const workflowStore = useWorkflowOrThrow()
+const { getNodeType, getNodeTypesByCategory, updateNode, addPlusNode, triggerLayout, deleteNode } = workflowStore
 
 // Get metadata for this node using the type
 const nodeMeta = computed(() => {
@@ -135,7 +133,7 @@ const handleNodeClick = (event: MouseEvent) => {
   if (props.type !== 'core.plus' && nodeMeta.value) {
     // Prevent opening dropdown when clicking on the node
     event.stopPropagation()
-    openConfigDrawer(props.id)
+    //  openConfigDrawer(props.id)
   }
 }
 </script>

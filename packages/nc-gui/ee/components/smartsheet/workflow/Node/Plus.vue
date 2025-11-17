@@ -2,15 +2,12 @@
 import { computed } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
-import { WorkflowCategory, useWorkflowStoreOrThrow } from '../useWorkflow'
 import NodeTypeDropdown, { type NodeTypeOption } from './NodeTypeDropdown.vue'
 
 const props = defineProps<NodeProps>()
 
-const workflowStore = useWorkflowStoreOrThrow()
-const { getNodeType, getNodeTypesByCategory, updateNode, addPlusNode, triggerLayout } = workflowStore
+const { getNodeType, getNodeTypesByCategory, updateNode, addPlusNode, triggerLayout, edges } = useWorkflowOrThrow()
 
-// Get available options (all non-trigger types: actions and logic)
 const availableOptions = computed((): NodeTypeOption[] => {
   const actionTypes = getNodeTypesByCategory(WorkflowCategory.ACTION)
   const logicTypes = getNodeTypesByCategory(WorkflowCategory.LOGIC)
@@ -26,7 +23,6 @@ const availableOptions = computed((): NodeTypeOption[] => {
 })
 
 const selectNodeType = async (option: NodeTypeOption) => {
-  // Update the node type from core.plus to the selected type
   updateNode(props.id, {
     type: option.id,
     data: {
@@ -38,7 +34,7 @@ const selectNodeType = async (option: NodeTypeOption) => {
   const selectedNodeMeta = getNodeType(option.id)
 
   // Check if this node already has connections
-  const hasOutputs = workflowStore.edges.value.some((e) => e.source === props.id)
+  const hasOutputs = edges.value.some((e) => e.source === props.id)
 
   if (!hasOutputs) {
     // If it's a branch node (multiple outputs), add multiple plus nodes
@@ -64,7 +60,6 @@ const selectNodeType = async (option: NodeTypeOption) => {
 
 <template>
   <div class="plus-node-wrapper">
-    <!-- Input handle -->
     <Handle type="target" :position="Position.Top" class="!w-3 !h-3 !bg-blue-500 !border-2 !border-white" />
 
     <NodeTypeDropdown

@@ -1,33 +1,350 @@
-import type { WorkflowType } from 'nocodb-sdk'
+import type { WorkflowCategory, WorkflowType } from 'nocodb-sdk'
+import type { Edge, Node } from '@vue-flow/core'
+import rfdc from 'rfdc'
 
-const [useProvideWorkflowStore, useWorkflowStore] = useInjectionState((_workflow: WorkflowType) => {
-  const automationStore = useAutomationStore()
-  const { updateAutomation } = automationStore
-  const { activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
-  const { activeProjectId } = storeToRefs(useBases())
-  // const { isUIAllowed } = useRoles()
-  // const { $e } = useNuxtApp()
+const clone = rfdc()
 
-  const debouncedSave = useDebounceFn(async () => {
-    if (!activeProjectId.value || !activeAutomation.value?.id) return
-    await updateWorkflow({
-      workflow: activeAutomation.value.workflow,
-    })
+const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedRef<WorkflowType>) => {
+  const { isUIAllowed } = useRoles()
+
+  const workflowStore = useWorkflowStore()
+
+  const baseStore = useBases()
+
+  const { activeBaseNodeSchemas } = storeToRefs(workflowStore)
+
+  const { activeProjectId } = storeToRefs(baseStore)
+
+  const { updateWorkflow } = workflowStore
+
+  const isSidebarOpen = ref(true)
+
+  const selectedNodeId = ref<string | null>(null)
+
+  const isSaving = ref(false)
+
+  const nodeTypes = computed(() => {
+    const backendNodes = activeBaseNodeSchemas.value.map(transformNode)
+
+    return [...FALLBACK_NODE_TYPES, ...backendNodes]
+  })
+
+  const nodes = ref<Array<Node>>((workflow.value?.nodes || initWorkflowNodes) as Array<Node>)
+
+  const edges = ref<Array<Edge>>((workflow.value?.edges as Array<Edge>) || [])
+
+  const getNodeMetaByType = (type?: string) => {
+    const node = nodeTypes.value.find((node) => node.type === type)
+    return node ? clone(node) : null
+  }
+
+  const updateWorkflowData = async (
+    { description, nodes, edges }: { description?: string; nodes?: Array<Node>; edges?: Array<Edge> },
+    skipNetworkCall: boolean = true,
+  ) => {
+    if (!activeProjectId.value || !workflow.value?.id) return
+
+    if (isUIAllowed('workflowCreateOrEdit')) {
+      isSaving.value = true
+      try {
+        await updateWorkflow(
+          activeProjectId.value,
+          workflow.value.id,
+          {
+            description,
+            nodes,
+            edges,
+          },
+          {
+            skipNetworkCall,
+          },
+        )
+      } finally {
+        isSaving.value = false
+      }
+    }
+  }
+
+  const debouncedWorkflowUpdate = useDebounceFn(async () => {
+    if (!activeProjectId.value || !workflow.value?.id) return
+    await updateWorkflowData(
+      {
+        description: workflow.value.description,
+        nodes: nodes.value,
+        edges: edges.value,
+      },
+      false,
+    )
   }, 500)
 
+  // Callback for layout - will be set by Main.vue
+  let layoutCallback: (() => Promise<void>) | null = null
+
+  const setLayoutCallback = (callback: () => Promise<void>) => {
+    layoutCallback = callback
+  }
+
+  const triggerLayout = async () => {
+    await nextTick()
+    if (layoutCallback) {
+      await layoutCallback()
+    }
+  }
+
+  /**
+   * Generate a unique node title based on the node type title
+   * E.g., 'NocoDB', 'NocoDB1', 'NocoDB2', etc.
+   */
+  const generateUniqueNodeTitle = (nodeType: string): string => {
+    const nodeTypeMeta = getNodeMetaByType(nodeType)
+    if (!nodeTypeMeta) return 'Untitled'
+
+    const baseTitle = nodeTypeMeta.title
+
+    // Get all existing node titles that start with this base title
+    const existingTitles = nodes.value.map((n) => n.data?.title).filter((title): title is string => typeof title === 'string')
+
+    // Check if base title is available (without number)
+    if (!existingTitles.includes(baseTitle)) {
+      return baseTitle
+    }
+
+    // Find the highest number used with this base title
+    let maxNumber = 0
+    const regex = new RegExp(`^${baseTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\d+)$`)
+
+    existingTitles.forEach((title) => {
+      const match = title.match(regex)
+      if (match && match[1]) {
+        const num = parseInt(match[1], 10)
+        if (num > maxNumber) {
+          maxNumber = num
+        }
+      }
+    })
+
+    // Return the next available number
+    return `${baseTitle}${maxNumber + 1}`
+  }
+
+  const addPlusNode = async (sourceNodeId: string, edgeLabel?: string) => {
+    const plusNode: Node = {
+      id: generateUniqueNodeId(nodes.value),
+      type: 'core.plus',
+      position: { x: 250, y: 200 },
+      data: {
+        title: 'Add Action / Condition', // Plus nodes have a fixed title
+      },
+    }
+
+    // Add edge connecting source to plus node
+    const edge: Edge = {
+      id: `e:${sourceNodeId}->${plusNode.id}`,
+      source: sourceNodeId,
+      target: plusNode.id,
+      animated: true,
+    }
+
+    // Add label for conditional branches
+    if (edgeLabel) {
+      edge.label = edgeLabel
+      edge.labelStyle = { fill: '#6b7280', fontWeight: 600, fontSize: 12 }
+      edge.labelBgStyle = { fill: 'white' }
+    }
+
+    // Create new arrays with added node and edge
+    nodes.value = [...nodes.value, plusNode]
+    edges.value = [...edges.value, edge]
+
+    debouncedWorkflowUpdate()
+
+    await triggerLayout()
+
+    return plusNode.id
+  }
+
+  const updateNode = async (nodeId: string, updatedData: Partial<Node>) => {
+    const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
+    if (nodeIndex === -1) return
+
+    const existingNode = nodes.value[nodeIndex]
+    if (!existingNode) return
+
+    // If the node type is changing, and it's not a core.plus node,
+    // generate a unique title for the new node type
+    if (updatedData.type && updatedData.type !== existingNode.type && updatedData.type !== 'core.plus') {
+      // Check if we're converting from a plus node or trigger placeholder
+      const isConvertingFromPlus = existingNode.type === 'core.plus'
+      const isConvertingFromTriggerPlaceholder = existingNode.type === 'core.trigger'
+      const hasPlusNodeTitle = updatedData.data?.title === 'Add Action / Condition'
+      const hasTriggerPlaceholderTitle = updatedData.data?.title === 'Trigger'
+
+      // Generate a unique title if:
+      // 1. No title is provided, OR
+      // 2. Converting from a plus node, OR
+      // 3. Converting from trigger placeholder, OR
+      // 4. The current title is a default/placeholder title
+      if (
+        !updatedData.data?.title ||
+        isConvertingFromPlus ||
+        isConvertingFromTriggerPlaceholder ||
+        hasPlusNodeTitle ||
+        hasTriggerPlaceholderTitle
+      ) {
+        const uniqueTitle = generateUniqueNodeTitle(updatedData.type)
+        updatedData.data = {
+          ...updatedData.data,
+          title: uniqueTitle,
+        }
+      }
+    }
+
+    // Create a new array to trigger reactivity properly
+    const updatedNodes = [...nodes.value]
+    updatedNodes[nodeIndex] = {
+      ...existingNode,
+      ...updatedData,
+    }
+
+    nodes.value = updatedNodes
+
+    debouncedWorkflowUpdate()
+
+    await triggerLayout()
+  }
+
+  const deleteNode = async (nodeId: string) => {
+    const nodeToDelete = nodes.value.find((n) => n.id === nodeId)
+    if (!nodeToDelete) return
+
+    const nodesToDelete = new Set<string>()
+    nodesToDelete.add(nodeId)
+
+    // If it's a branch node, find all child nodes recursively
+    const nodeTypeMeta = getNodeMetaByType(nodeToDelete.type)
+    let firstParentNode: Node | null = null
+    if (nodeTypeMeta && nodeTypeMeta.output && nodeTypeMeta.output > 1) {
+      const findChildNodes = (parentId: string) => {
+        edges.value.forEach((edge) => {
+          if (edge.source === parentId) {
+            nodesToDelete.add(edge.target)
+            findChildNodes(edge.target)
+          }
+        })
+      }
+      findChildNodes(nodeId)
+
+      // Also find the first parent node that is not being deleted
+      const findFirstParent = (childId: string): Node | null => {
+        for (const edge of edges.value) {
+          if (edge.target === childId) {
+            if (!nodesToDelete.has(edge.source)) {
+              return nodes.value.find((n) => n.id === edge.source) || null
+            } else {
+              return findFirstParent(edge.source)
+            }
+          }
+        }
+        return null
+      }
+      firstParentNode = findFirstParent(nodeId)
+    }
+
+    // Connect edges before and after deleted nodes
+    const incomingEdges = edges.value.filter((e) => nodesToDelete.has(e.target))
+    const outgoingEdges = edges.value.filter((e) => nodesToDelete.has(e.source))
+
+    const bridgingEdges: Array<Edge> = []
+
+    incomingEdges.forEach((inEdge) => {
+      outgoingEdges.forEach((outEdge) => {
+        // Only create bridging edge if the target node is NOT being deleted
+        // This prevents creating edges to nodes that will be removed
+        if (!nodesToDelete.has(outEdge.target)) {
+          const newEdge: Edge = {
+            id: `e:${inEdge.source}->${outEdge.target}`,
+            source: inEdge.source,
+            target: outEdge.target,
+            animated: true,
+          }
+          // Only preserve edge label if BOTH incoming and outgoing edges have labels
+          // This means we're bridging within a branch context (e.g., deleting a node in the middle of a branch)
+          // If only incoming has label (deleting the branch node itself), don't preserve it
+          if (inEdge.label && outEdge.label) {
+            newEdge.label = inEdge.label
+            newEdge.labelStyle = inEdge.labelStyle
+            newEdge.labelBgStyle = inEdge.labelBgStyle
+          }
+          bridgingEdges.push(newEdge)
+        }
+      })
+    })
+
+    nodes.value = nodes.value.filter((n) => !nodesToDelete.has(n.id))
+
+    // Keep edges that aren't connected to deleted nodes, and add bridging edges
+    edges.value = [
+      ...edges.value.filter((edge) => !nodesToDelete.has(edge.source) && !nodesToDelete.has(edge.target)),
+      ...bridgingEdges,
+    ]
+
+    debouncedWorkflowUpdate()
+
+    await triggerLayout()
+
+    await nextTick(() => {
+      // Create a new plus node at the position of the first parent node
+      if (firstParentNode) {
+        addPlusNode(firstParentNode.id)
+      }
+    })
+  }
+
+  const getNodeTypesByCategory = (category: WorkflowCategory) => {
+    return nodeTypes.value.filter((node) => node.category === category && !node.hidden)
+  }
+
+  const getNodeType = (type: string) => {
+    return getNodeMetaByType(type)
+  }
+
+  const getBackendNodeDef = (key: string) => {
+    return activeBaseNodeSchemas.value.find((n) => n.key === key)
+  }
+
   return {
-    activeAutomation,
-    debouncedSave,
+    // State
+    isSidebarOpen,
+    workflow,
+    nodes,
+    edges,
+    isSaving,
+    nodeTypes: readonly(nodeTypes),
+    selectedNodeId,
+
+    // Methods
+    updateWorkflowData,
+    debouncedWorkflowUpdate,
+    setLayoutCallback,
+    triggerLayout,
+
+    // Node utilities
+    addPlusNode,
+    updateNode,
+    deleteNode,
+    getNodeTypesByCategory,
+    getNodeType,
+    getBackendNodeDef,
   }
 })
 
-export { useProvideWorkflowStore }
+export { useProvideWorkflow }
 
-export function useWorkflowStoreOrThrow() {
-  const state = useWorkflowStore()
+export function useWorkflowOrThrow() {
+  const state = useWorkflow()
 
   if (!state) {
-    throw new Error('useWorkflowStoreOrThrow must be used within a WorkflowStoreProvider')
+    throw new Error('useWorkflowOrThrow must be used within a WorkflowStoreProvider')
   }
 
   return state

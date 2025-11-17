@@ -15,11 +15,15 @@ const up = async (knex: Knex) => {
     table.text('nodes');
     table.text('edges');
 
-    table.text('meta'); // JSON field for additional metadata like settings
+    table.text('meta');
 
     table.integer('trigger_count').defaultTo(0);
 
     table.float('order');
+
+    table.string('created_by', 20);
+
+    table.string('updated_by', 20);
 
     table.timestamps(true, true);
 

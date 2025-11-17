@@ -1,10 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, type WorkflowType } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  generateUniqueCopyName,
+  type WorkflowType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { Workflow } from '~/models';
+import { Workflow, Workspace } from '~/models';
+import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class WorkflowsService {
@@ -13,31 +20,41 @@ export class WorkflowsService {
     protected readonly workflowExecutionService: WorkflowExecutionService,
   ) {}
 
-  async list(context: NcContext) {
+  async listWorkflows(context: NcContext) {
     return await Workflow.list(context, context.base_id);
   }
 
-  async get(context: NcContext, workflowId: string) {
+  async getWorkflow(context: NcContext, workflowId: string) {
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {
-      NcError.notFound('Workflow not found');
+      NcError.get(context).workflowNotFound(workflowId);
     }
 
     return workflow;
   }
 
-  async create(
+  async createWorkflow(
     context: NcContext,
     workflowBody: Partial<WorkflowType>,
     req: NcRequest,
   ) {
+    const workspace = await Workspace.get(context.workspace_id);
+
+    await checkLimit({
+      workspace,
+      type: PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} workflows for your plan.`,
+    });
+
     workflowBody.title = workflowBody.title?.trim();
 
     const workflow = await Workflow.insert(context, {
       ...workflowBody,
       base_id: context.base_id,
       fk_workspace_id: context.workspace_id,
+      created_by: req.user.id,
     });
 
     this.appHooksService.emit(AppEvents.WORKFLOW_CREATE, {
@@ -47,10 +64,23 @@ export class WorkflowsService {
       user: req.user,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.WORKFLOW_EVENT,
+        payload: {
+          id: workflow.id,
+          action: 'create',
+          payload: workflow,
+        },
+      },
+      context.socket_id,
+    );
+
     return workflow;
   }
 
-  async update(
+  async updateWorkflow(
     context: NcContext,
     workflowId: string,
     workflowBody: Partial<WorkflowType>,
@@ -59,18 +89,17 @@ export class WorkflowsService {
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {
-      NcError.genericNotFound('Workflow', workflowId);
+      NcError.get(context).workflowNotFound(workflowId);
     }
 
     if (workflowBody.title) {
       workflowBody.title = workflowBody.title.trim();
     }
 
-    const updatedWorkflow = await Workflow.update(
-      context,
-      workflowId,
-      workflowBody,
-    );
+    const updatedWorkflow = await Workflow.update(context, workflowId, {
+      ...workflowBody,
+      updated_by: req.user.id,
+    });
 
     this.appHooksService.emit(AppEvents.WORKFLOW_UPDATE, {
       workflow: updatedWorkflow,
@@ -80,14 +109,27 @@ export class WorkflowsService {
       req,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.WORKFLOW_EVENT,
+        payload: {
+          id: workflowId,
+          action: 'update',
+          payload: updatedWorkflow,
+        },
+      },
+      context.socket_id,
+    );
+
     return updatedWorkflow;
   }
 
-  async delete(context: NcContext, workflowId: string, req: NcRequest) {
+  async deleteWorkflow(context: NcContext, workflowId: string, req: NcRequest) {
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {
-      NcError.notFound('Workflow not found');
+      NcError.get(context).workflowNotFound(workflowId);
     }
 
     await Workflow.delete(context, workflowId);
@@ -99,7 +141,77 @@ export class WorkflowsService {
       user: req.user,
     });
 
-    return { msg: 'Workflow deleted successfully' };
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.SCRIPT_EVENT,
+        payload: {
+          id: workflowId,
+          action: 'delete',
+          payload: workflow,
+        },
+      },
+      context.socket_id,
+    );
+
+    return true;
+  }
+
+  async duplicateWorkflow(
+    context: NcContext,
+    workflowId: string,
+    req: NcRequest,
+  ) {
+    const workflow = await Workflow.get(context, workflowId);
+
+    if (!workflow) {
+      NcError.get(context).workflowNotFound(workflowId);
+    }
+
+    await checkLimit({
+      workspaceId: context.workspace_id,
+      type: PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} workflows for your plan.`,
+    });
+
+    const existingWorkflow = await Workflow.list(context, workflow.base_id);
+
+    const newTitle = generateUniqueCopyName(workflow.title, existingWorkflow, {
+      accessor: (item) => item.title,
+    });
+
+    const newWorkflow = await Workflow.insert(context, {
+      title: newTitle,
+      meta: workflow.meta,
+      nodes: workflow.nodes,
+      edges: workflow.edges,
+      description: workflow.description,
+      created_by: req.user.id,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.WORKFLOW_EVENT,
+        payload: {
+          id: newWorkflow.id,
+          action: 'create',
+          payload: newWorkflow,
+        },
+      },
+      context.socket_id,
+    );
+
+    this.appHooksService.emit(AppEvents.WORKFLOW_DUPLICATE, {
+      sourceWorkflow: workflow,
+      destWorkflow: newWorkflow,
+      context,
+      req: req,
+      user: context.user,
+    });
+
+    return newWorkflow;
   }
 
   async execute(
@@ -111,7 +223,7 @@ export class WorkflowsService {
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {
-      NcError.notFound('Workflow not found');
+      NcError.get(context).workflowNotFound(workflowId);
     }
 
     // Execute the workflow

@@ -232,6 +232,7 @@ export enum AppEvents {
   WORKFLOW_CREATE = 'workflow.create',
   WORKFLOW_UPDATE = 'workflow.update',
   WORKFLOW_DELETE = 'workflow.delete',
+  WORKFLOW_DUPLICATE = 'workflow.duplicate',
   WORKFLOW_EXECUTE = 'workflow.execute',
 
   DASHBOARD_CREATE = 'dashboard.create',

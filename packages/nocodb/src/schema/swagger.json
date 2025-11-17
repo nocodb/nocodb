@@ -20641,6 +20641,15 @@
           "schema": {
             "type": "string"
           },
+          "name": "workflowId",
+          "in": "query",
+          "description": "Workflow ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "cursor",
           "in": "query",
           "description": "Cursor",
@@ -29672,6 +29681,14 @@
           "created_at": {
             "type": "string",
             "description": "Creation time"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "updated_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the last updated user"
           }
         }
       },

@@ -15,8 +15,13 @@ import {
 export default class Workflow implements WorkflowType {
   id?: string;
   title?: string;
+  description?: string;
   fk_workspace_id?: string;
   base_id?: string;
+  meta?: any;
+
+  nodes?: any;
+  edges?: any;
 
   enabled?: boolean;
 
@@ -26,6 +31,9 @@ export default class Workflow implements WorkflowType {
 
   created_at?: string;
   updated_at?: string;
+
+  created_by?: string;
+  updated_by?: string;
 
   constructor(workflow: Workflow) {
     Object.assign(this, workflow);
@@ -69,13 +77,14 @@ export default class Workflow implements WorkflowType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.WORKFLOW, [
+    const cachedList = await NocoCache.getList(context, CacheScope.SCRIPTS, [
       baseId,
     ]);
 
-    let { list: workflowList } = cachedList;
+    // eslint-disable-next-line prefer-const
+    let { list: workflowList, isNoneList } = cachedList;
 
-    if (!cachedList.isNoneList && !workflowList.length) {
+    if (!isNoneList && !workflowList.length) {
       workflowList = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
@@ -114,6 +123,7 @@ export default class Workflow implements WorkflowType {
   ) {
     const insertObj = extractProps(workflow, [
       'title',
+      'description',
       'base_id',
       'fk_workspace_id',
       'enabled',
@@ -121,6 +131,7 @@ export default class Workflow implements WorkflowType {
       'edges',
       'meta',
       'order',
+      'created_by',
     ]);
 
     if (!insertObj.order) {
@@ -163,11 +174,13 @@ export default class Workflow implements WorkflowType {
   ) {
     const updateObj = extractProps(workflow, [
       'title',
+      'description',
       'enabled',
       'nodes',
       'edges',
       'meta',
       'order',
+      'updated_by',
     ]);
 
     await ncMeta.metaUpdate(
@@ -224,21 +237,17 @@ export default class Workflow implements WorkflowType {
     // Get all workflows for this base (TODO: use DependencyTracker)
     const workflows = await this.list(context, context.base_id, ncMeta);
 
-    const matchingWorkflows = workflows.filter((workflow) => {
+    return workflows.filter((workflow) => {
       if (!workflow.enabled) return false;
 
       const nodes = (workflow as any).nodes || [];
 
       // Look for trigger nodes that match
-      const hasTrigger = nodes.some((node: any) => {
+      return nodes.some((node: any) => {
         return (
           node.type === triggerType && node.data?.config?.modelId === modelId
         );
       });
-
-      return hasTrigger;
     });
-
-    return matchingWorkflows;
   }
 }

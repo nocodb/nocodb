@@ -16,13 +16,10 @@ const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
-const isOptionsOpen = ref(false)
-
 const isExpanded = ref(true)
 
 const onExpand = async () => {
   loadAutomations({ baseId: baseId.value })
-  isOptionsOpen.value = !isOptionsOpen.value
   isExpanded.value = !isExpanded.value
 }
 

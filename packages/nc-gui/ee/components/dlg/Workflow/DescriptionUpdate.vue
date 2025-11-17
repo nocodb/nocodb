@@ -11,7 +11,7 @@ const { workflow, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
-const { loadWorkflows, updateWorkflow } = useWorkflowStore()
+const { updateWorkflow } = useWorkflowStore()
 
 const { $e } = useNuxtApp()
 
@@ -96,8 +96,6 @@ const updateDescription = async (undo = false) => {
       })
     }
 
-    await loadWorkflows({ baseId: workflow.base_id, force: true })
-
     $e('a:workflow:description:update')
 
     dialogShow.value = false
@@ -113,9 +111,9 @@ const updateDescription = async (undo = false) => {
   <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="workflow" class="mt-0.5 !text-2xl" />
+        <GeneralIcon icon="ncAutomation" class="mt-0.5 !text-2xl" />
 
-        <span class="text-gray-900 font-semibold">
+        <span class="text-nc-content-gray-emphasis font-semibold">
           {{ workflow?.title }}
         </span>
       </div>
@@ -126,7 +124,7 @@ const updateDescription = async (undo = false) => {
           <a-textarea
             ref="inputEl"
             v-model:value="formState.description"
-            class="nc-input-sm !py-2 nc-text-area !text-gray-800 nc-input-shadow"
+            class="nc-input-sm !py-2 nc-text-area !text-nc-content-gray nc-input-shadow"
             hide-details
             size="small"
             :placeholder="$t('msg.info.enterWorkflowDescription')"
@@ -160,7 +158,7 @@ const updateDescription = async (undo = false) => {
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !leading-[20px] font-base !text-md text-gray-800 flex;
+  @apply !leading-[20px] font-base !text-md text-nc-content-gray flex;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;

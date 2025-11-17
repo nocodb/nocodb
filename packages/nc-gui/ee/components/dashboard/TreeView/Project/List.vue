@@ -193,6 +193,27 @@ function openDashboardDescriptionDialog(dashboard: DashboardType) {
   }
 }
 
+function openWorkflowDescriptionDialog(workflow: WorkflowType) {
+  if (!workflow?.id) return
+
+  $e('c:workflow:description')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgWorkflowDescriptionUpdate'), {
+    'modelValue': isOpen,
+    'workflow': workflow,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+
 /**
  * tableRenameId is combination of tableId & sourceId
  * @example `${tableId}:${sourceId}`
@@ -398,6 +419,7 @@ provide(TreeViewInj, {
   openViewDescriptionDialog,
   openAutomationDescriptionDialog,
   openDashboardDescriptionDialog,
+  openWorkflowDescriptionDialog,
   openTableDescriptionDialog,
   handleTableRename,
   contextMenuTarget,

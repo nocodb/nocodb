@@ -65,7 +65,7 @@ watch(activeWorkflowId, () => {
 <template>
   <div class="nc-tree-item nc-workflow-node-wrapper nc-project-home-section text-sm select-none w-full nc-base-tree-workflow">
     <div v-e="['c:workflow:toggle-expand']" class="nc-project-home-section-header w-full cursor-pointer" @click.stop="onExpand">
-      <div>Workflows</div>
+      <div>{{ $t('general.workflows') }}</div>
       <div class="flex-1" />
       <GeneralIcon
         icon="chevronRight"

@@ -136,6 +136,13 @@ export interface WorkflowExecuteEvent extends NcBaseEvent {
   user?: UserType;
 }
 
+export interface WorkflowDuplicateEvent extends NcBaseEvent {
+  error?: string;
+  sourceWorkflow: WorkflowType;
+  destWorkflow: WorkflowType;
+  user: UserType;
+}
+
 export interface DashboardCreateEvent extends NcBaseEvent {
   dashboard: DashboardType;
   user: UserType;

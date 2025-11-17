@@ -213,9 +213,9 @@ export class InternalController extends InternalControllerCE {
         return await this.utilsService.template(req);
       }
       case 'workflowList':
-        return await this.workflowsService.list(context);
+        return await this.workflowsService.listWorkflows(context);
       case 'workflowGet':
-        return await this.workflowsService.get(
+        return await this.workflowsService.getWorkflow(
           context,
           req.query.workflowId as string,
         );
@@ -574,16 +574,27 @@ export class InternalController extends InternalControllerCE {
         }
       }
       case 'workflowCreate':
-        return await this.workflowsService.create(context, payload, req);
+        return await this.workflowsService.createWorkflow(
+          context,
+          payload,
+          req,
+        );
       case 'workflowUpdate':
-        return await this.workflowsService.update(
+        return await this.workflowsService.updateWorkflow(
           context,
           payload.workflowId,
           payload,
           req,
         );
       case 'workflowDelete':
-        return await this.workflowsService.delete(
+        return await this.workflowsService.deleteWorkflow(
+          context,
+          payload.workflowId,
+          req,
+        );
+
+      case 'workflowDuplicate':
+        return await this.workflowsService.duplicateWorkflow(
           context,
           payload.workflowId,
           req,

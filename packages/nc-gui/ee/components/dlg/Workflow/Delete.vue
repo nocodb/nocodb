@@ -8,7 +8,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:visible', 'deleted'])
+const emit = defineEmits(['update:visible'])
 
 const visible = useVModel(props, 'visible', emit)
 
@@ -20,30 +20,33 @@ const { deleteWorkflow } = workflowStore
 
 const { $e } = useNuxtApp()
 
+const isLoading = ref(false)
+
 const onDelete = async () => {
   if (!workflow.value) return
 
-  loading.value = true
+  isLoading.value = true
 
   try {
     await deleteWorkflow(workflow.value.base_id, workflow.value.id as string)
 
     $e('a:workflow:delete')
-
-    emit('deleted')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    loading.value = false
+    isLoading.value = false
   }
 }
-
-const loading = ref(false)
 </script>
 
 <template>
-  <GeneralDeleteModal v-model:visible="visible" entity-name="Workflow" :on-delete="onDelete">
+  <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.workflow')" :on-delete="onDelete">
     <template #entity-preview>
-      <div v-if="workflow" class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700">
-        <GeneralIcon class="nc-view-icon" icon="workflow" />
+      <div
+        v-if="workflow"
+        class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle2"
+      >
+        <GeneralIcon class="nc-view-icon" icon="ncAutomation" />
 
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"

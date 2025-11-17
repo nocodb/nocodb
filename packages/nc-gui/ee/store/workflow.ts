@@ -3,21 +3,32 @@ import { DlgWorkflowCreate } from '#components'
 
 export const useWorkflowStore = defineStore('workflow', () => {
   const { $api, $e } = useNuxtApp()
-  const router = useRouter()
-  const route = useRoute()
+
   const { ncNavigateTo } = useGlobal()
-  const bases = useBases()
-  const { activeProjectId } = storeToRefs(bases)
-  const workspaceStore = useWorkspace()
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const { showWorkflowPlanLimitExceededModal, updateStatLimit } = useEeConfig()
 
   const { refreshCommandPalette } = useCommandPalette()
 
+  const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const router = useRouter()
+
+  const route = useRoute()
+
+  const baseStore = useBases()
+
+  const { loadProject } = baseStore
+
+  const { activeProjectId, bases } = storeToRefs(baseStore)
+
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+  const isWorkflowsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.WORKFLOWS))
+
   // State
-  const workflows = ref<Map<string, (WorkflowType & { _dirty?: string | number })[]>>(new Map())
-  const isUpdatingWorkflow = ref(false)
+  const workflows = ref<Map<string, (WorkflowType & { _dirty?: string | number; ___is_new?: boolean })[]>>(new Map())
+
   const isLoadingWorkflow = ref(false)
 
   const activeBaseWorkflows = computed(() => {
@@ -44,7 +55,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   // Actions
   const loadWorkflows = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    if (!activeWorkspaceId.value) return []
+    if (!isWorkflowsEnabled.value || !activeWorkspaceId.value) return []
 
     const existingWorkflows = workflows.value.get(baseId)
     if (existingWorkflows && !force) {
@@ -58,8 +69,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
         operation: 'workflowList',
       })) as WorkflowType[]
 
-      workflows.value.set(baseId, response)
-      return response
+      if (ncIsArray(response)) {
+        workflows.value.set(baseId, response)
+        return response
+      } else {
+        return []
+      }
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
@@ -70,7 +85,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   }
 
   const loadWorkflow = async (workflowId: string, showLoader = true) => {
-    if (!activeProjectId.value || !activeWorkspaceId.value || !workflowId) {
+    if (!activeProjectId.value || !isWorkflowsEnabled.value || !activeWorkspaceId.value || !workflowId) {
       return null
     }
 
@@ -91,6 +106,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
           operation: 'workflowGet',
           workflowId,
         })) as unknown as WorkflowType)
+
+      const baseWorkflows = workflows.value.get(activeProjectId.value) || []
+      const filtered = baseWorkflows.filter((a) => a.id !== workflowId)
+      filtered.push(workflow)
+      filtered.sort((a, b) => (a?.order || 0) - (b?.order || 0))
+      workflows.value.set(activeProjectId.value, filtered)
 
       return workflow
     } catch (e) {
@@ -123,8 +144,14 @@ export const useWorkflowStore = defineStore('workflow', () => {
       updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, 1)
 
       const baseWorkflows = workflows.value.get(baseId) || []
-      baseWorkflows.push(created)
+      baseWorkflows.push({
+        ...created,
+        ___is_new: true,
+      })
+
       workflows.value.set(baseId, baseWorkflows)
+
+      await refreshCommandPalette()
 
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
@@ -132,8 +159,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
         workflowId: created.id,
         workflowTitle: created.title,
       })
-
-      await refreshCommandPalette()
 
       return created
     } catch (e) {
@@ -153,8 +178,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
   ) => {
     if (!activeWorkspaceId.value) return null
     try {
-      isUpdatingWorkflow.value = true
-
       const workflow = workflows.value.get(baseId)?.find((a) => a.id === workflowId)
       const updated = options?.skipNetworkCall
         ? {
@@ -173,14 +196,9 @@ export const useWorkflowStore = defineStore('workflow', () => {
             },
           )
 
-      await refreshCommandPalette()
-
-      if (!options?.skipNetworkCall) {
-        $e('a:workflow:update')
-      }
-
       const baseWorkflows = workflows.value.get(baseId) || []
       const index = baseWorkflows.findIndex((a) => a.id === workflowId)
+
       if (index !== -1) {
         baseWorkflows[index] = {
           ...baseWorkflows[index],
@@ -189,13 +207,17 @@ export const useWorkflowStore = defineStore('workflow', () => {
         workflows.value.set(baseId, baseWorkflows)
       }
 
+      await refreshCommandPalette()
+
+      if (!options?.skipNetworkCall) {
+        $e('a:workflow:update')
+      }
+
       return updated
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
-    } finally {
-      isUpdatingWorkflow.value = false
     }
   }
 
@@ -214,6 +236,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
       )
 
       updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, -1)
+
+      $e('a:workflow:delete')
 
       // Update local state
       const baseWorkflows = workflows.value.get(baseId) || []
@@ -234,8 +258,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
       await refreshCommandPalette()
 
-      $e('a:workflow:delete')
-
       if (!filtered.length) {
         ncNavigateTo({
           workspaceId: activeWorkspaceId.value,
@@ -254,17 +276,14 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const openWorkflow = async (workflow: WorkflowType) => {
     if (!workflow.base_id || !workflow.id) return
 
-    const basesS = bases.bases
-    const workspaceId = workspaceStore.activeWorkspaceId
-
-    let base = basesS.get(workflow.base_id)
+    let base = bases.value.get(workflow.base_id)
     if (!base) {
-      await bases.loadProject(workflow.base_id)
-      base = basesS.get(workflow.base_id)
+      await loadProject(workflow.base_id)
+      base = bases.value.get(workflow.base_id)
       if (!base) throw new Error('Base not found')
     }
 
-    let workspaceIdOrType = workspaceId
+    let workspaceIdOrType = activeWorkspaceId.value
     if (['nc', 'base'].includes(route.params.typeOrId as string)) {
       workspaceIdOrType = route.params.typeOrId as string
     }
@@ -273,6 +292,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
     if (['base'].includes(route.params.typeOrId as string)) {
       baseIdOrBaseId = route.params.baseId as string
     }
+
+    $e('c:workflow:open')
 
     ncNavigateTo({
       workspaceId: workspaceIdOrType,
@@ -290,20 +311,35 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
 
     try {
-      const workflow = await loadWorkflow(workflowId, false)
-      if (!workflow) return null
+      const created = await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        baseId,
+        {
+          operation: 'workflowDuplicate',
+        },
+        {
+          workflowId,
+        },
+      )
 
-      const duplicated = await createWorkflow(baseId, {
-        title: `${workflow.title} (copy)`,
-        description: workflow.description,
-        nodes: workflow.nodes,
-        edges: workflow.edges,
-        meta: workflow.meta,
+      updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, 1)
+
+      const baseWorkflows = workflows.value.get(baseId) || []
+      baseWorkflows.push(created)
+      workflows.value.set(baseId, baseWorkflows)
+
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        baseId: activeProjectId.value,
+        workflowId: created.id,
+        workflowTitle: created.title,
       })
+
+      await refreshCommandPalette()
 
       $e('a:workflow:duplicate')
 
-      return duplicated
+      return created
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
@@ -359,25 +395,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
-  const openWorkflowDescriptionDialog = (workflow: WorkflowType) => {
-    const isOpen = ref(true)
-
-    const { close } = useDialog(resolveComponent('DlgWorkflowWorkflowDescriptionUpdate'), {
-      'modelValue': isOpen,
-      'workflow': workflow,
-      'onUpdate:modelValue': () => {
-        isOpen.value = false
-        close(1000)
-      },
-    })
-  }
-
-  watch(activeProjectId, async () => {
-    if (activeWorkspaceId.value && activeProjectId.value) {
-      await loadWorkflows({ baseId: activeProjectId.value })
-    }
-  })
-
   // Watch for active workflow changes
   watch(activeWorkflowId, async (workflowId) => {
     if (!activeProjectId.value) return
@@ -425,8 +442,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
     // State
     workflows,
     activeWorkflow,
-    isUpdatingWorkflow,
     isLoadingWorkflow,
+    isWorkflowsEnabled,
 
     // Getters
     activeBaseWorkflows,
@@ -441,7 +458,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     openWorkflow,
     duplicateWorkflow,
     openNewWorkflowModal,
-    openWorkflowDescriptionDialog,
   }
 })
 

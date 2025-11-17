@@ -51,7 +51,7 @@ const { meta: metaKey, control } = useMagicKeys()
 
 const { showWorkflowPlanLimitExceededModal } = useEeConfig()
 
-const { openWorkflowDescriptionDialog: _openWorkflowDescriptionDialog } = workflowStore
+const { openWorkflowDescriptionDialog: _openWorkflowDescriptionDialog } = inject(TreeViewInj)!
 
 const base = inject(ProjectInj, ref())
 

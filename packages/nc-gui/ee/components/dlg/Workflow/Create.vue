@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { WorkflowType } from 'nocodb-sdk'
-import { validateScriptName } from '~/utils/validation'
+import { validateWorkflowName } from '~/utils/validation'
 
 const props = defineProps<{
   modelValue: boolean
@@ -52,7 +52,7 @@ const removeDescription = () => {
 const validators = computed(() => {
   return {
     title: [
-      validateScriptName,
+      validateWorkflowName,
       {
         validator: (_: any, value: any) => {
           // validate duplicate alias

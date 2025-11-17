@@ -60,6 +60,35 @@ export const validateScriptName = {
   },
 }
 
+export const validateWorkflowName = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
+      if (!value) {
+        // return 'Table name required'
+        return reject(new Error(t('msg.error.workflowNameRequired')))
+      }
+
+      if (value.length > 256) {
+        return reject(new Error(t('msg.error.workflowNameExceedsCharacters', { value: 256 })))
+      }
+
+      // exclude . / \
+      // rest all characters allowed
+      // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.
+      const m = value.match(/[./\\]/g)
+      if (m) {
+        // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
+        return reject(
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+        )
+      }
+      return resolve(true)
+    })
+  },
+}
+
 export const validateDashboardName = {
   validator: (_: unknown, value: string) => {
     return new Promise((resolve, reject) => {

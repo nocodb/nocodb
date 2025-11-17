@@ -10,9 +10,13 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
+const workflowStore = useWorkflowStore()
 
+const { isWorkflowsEnabled } = storeToRefs(workflowStore)
+
+const { openNewWorkflowModal } = workflowStore
 const { openNewScriptModal } = useAutomationStore()
-const { openNewWorkflowModal } = useWorkflowStore()
+const { openNewDashboardModal } = useDashboardStore()
 
 const base = inject(ProjectInj)!
 
@@ -136,6 +140,7 @@ const hasTableCreatePermission = computed(() => {
                 @new-table="addNewProjectChildEntity()"
                 @empty-script="openNewScriptModal({ baseId: base.id })"
                 @empty-workflow="openNewWorkflowModal({ baseId: base.id })"
+                @empty-dashboard="openNewDashboardModal({ baseId: base.id })"
               />
             </template>
           </NcDropdown>
@@ -171,7 +176,7 @@ const hasTableCreatePermission = computed(() => {
       <!-- Scripts section -->
       <Automation v-if="!isSharedBase && isUIAllowed('scriptList') && !isMobileMode" :base-id="base.id" />
       <!-- Workflows section -->
-      <Workflow v-if="!isSharedBase && isUIAllowed('workflowList') && !isMobileMode" :base-id="base.id" />
+      <Workflow v-if="!isSharedBase && isUIAllowed('workflowList') && !isMobileMode && isWorkflowsEnabled" :base-id="base.id" />
     </div>
 
     <slot name="footer"> </slot>

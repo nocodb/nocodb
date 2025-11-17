@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AppHooksService as ApppHookServiceCE } from 'src/services/app-hooks/app-hooks.service';
-import type { AppEvents } from 'nocodb-sdk';
 import type {
   BaseTeamDeleteEvent,
   BaseTeamInviteEvent,
@@ -25,6 +24,7 @@ import type {
   WelcomeEvent,
   WorkflowCreateEvent,
   WorkflowDeleteEvent,
+  WorkflowDuplicateEvent,
   WorkflowExecuteEvent,
   WorkflowUpdateEvent,
   WorkspaceEvent,
@@ -33,6 +33,7 @@ import type {
   WorkspaceTeamUpdateEvent,
   WorkspaceUserInviteEvent,
 } from './interfaces';
+import type { AppEvents } from 'nocodb-sdk';
 
 import type {
   ApiCreatedEvent,
@@ -323,6 +324,10 @@ export class AppHooksService extends ApppHookServiceCE {
   on(
     event: AppEvents.WORKFLOW_CREATE,
     listener: (data: WorkflowCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.WORKFLOW_DUPLICATE,
+    listener: (data: WorkflowDuplicateEvent) => void,
   ): () => void;
   on(
     event: AppEvents.WORKFLOW_UPDATE,
@@ -634,6 +639,7 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.SCRIPT_DUPLICATE, data: ScriptDuplicateEvent): void;
 
   emit(event: AppEvents.WORKFLOW_CREATE, data: WorkflowCreateEvent): void;
+  emit(event: AppEvents.WORKFLOW_DUPLICATE, data: WorkflowDuplicateEvent): void;
   emit(event: AppEvents.WORKFLOW_UPDATE, data: WorkflowUpdateEvent): void;
   emit(event: AppEvents.WORKFLOW_DELETE, data: WorkflowDeleteEvent): void;
   emit(event: AppEvents.WORKFLOW_EXECUTE, data: WorkflowExecuteEvent): void;

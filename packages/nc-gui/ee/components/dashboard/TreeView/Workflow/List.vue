@@ -96,7 +96,7 @@ async function onSortEnd(evt: SortableEvent, undo = false) {
 
   const itemId = (evt.item as HTMLElement).id || (evt.item as HTMLElement).dataset.id
   const currentItem = workflows.value.find((v) => v.id === itemId)
-  if (!currentItem) return
+  if (!currentItem || !currentItem.id) return
 
   const previousItem = previousEl ? workflows.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : { order: 0 }
 
@@ -162,7 +162,6 @@ async function onRename(workflow: WorkflowType, originalTitle?: string, undo = f
   try {
     await updateWorkflow(workflow.base_id, workflow.id as string, {
       title: workflow.title,
-      order: workflow.order,
     })
 
     if (!undo) {
@@ -289,7 +288,11 @@ const filteredWorkflows = computed(() => {
       v-if="!workflows?.length || !filteredWorkflows.length"
       class="nc-project-home-section-item text-nc-content-gray-muted font-normal"
     >
-      {{ workflows?.length && !filteredWorkflows.length ? $t('placeholder.noResultsFoundForYourSearch') : 'No workflows' }}
+      {{
+        workflows?.length && !filteredWorkflows.length
+          ? $t('placeholder.noResultsFoundForYourSearch')
+          : $t('placeholder.noWorkflows')
+      }}
     </div>
     <template v-if="filteredWorkflows?.length">
       <DashboardTreeViewWorkflowNode

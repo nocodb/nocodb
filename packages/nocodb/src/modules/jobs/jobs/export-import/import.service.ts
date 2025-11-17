@@ -1749,7 +1749,14 @@ export class ImportService {
             req: param.req,
           });
         }
+
+        elapsedTime(hrTime, 'view created for view: ' + vw.id, 'importModels');
       }
+      elapsedTime(
+        hrTime,
+        'view created for table: ' + modelData.id,
+        'importModels',
+      );
     }
 
     // create row color info

@@ -15,15 +15,9 @@ import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import { Profiler } from '~/helpers/profiler';
 
-export default async function genRollupSelectv2({
-  baseModelSqlv2,
-  knex,
-  alias,
-  columnOptions,
-  parentColumns,
-  nestedLevel = 0,
-}: {
+export default async function genRollupSelectv2(param: {
   baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
   alias?: string;
@@ -31,8 +25,14 @@ export default async function genRollupSelectv2({
   parentColumns?: CircularRefContext;
   nestedLevel?: number;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
+  const { baseModelSqlv2, knex, alias, columnOptions, nestedLevel = 0 } = param;
+  let { parentColumns } = param;
+
   const context = baseModelSqlv2.context;
   parentColumns = parentColumns ?? CircularRefContext.make();
+  const profiler = Profiler.start(
+    'DEBUG:/genRollupSelectv2/' + columnOptions.fk_column_id,
+  );
   const column = await Column.get(context, {
     colId: columnOptions.fk_column_id,
   });
@@ -47,6 +47,7 @@ export default async function genRollupSelectv2({
       table: model?.title,
     });
   }
+  profiler.log('cloneAndAdd done');
   let relationColumn: Column;
   if (!columnOptions.getRelationColumn) {
     relationColumn = await Column.get(context, {
@@ -55,6 +56,8 @@ export default async function genRollupSelectv2({
   } else {
     relationColumn = await columnOptions.getRelationColumn(context);
   }
+  profiler.log('getRelationColumn done');
+
   const relationColumnOption: LinkToAnotherRecordColumn =
     (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
   const { parentContext, childContext, mmContext, refContext } =
@@ -63,12 +66,15 @@ export default async function genRollupSelectv2({
   const rollupColumn = columnOptions.getRollupColumn
     ? await columnOptions.getRollupColumn(refContext)
     : await Column.get(context, { colId: columnOptions.fk_rollup_column_id });
+  profiler.log('get relation (parent/child) columns');
+
   const childCol = await relationColumnOption.getChildColumn(childContext);
   const childModel = await childCol?.getModel(childContext);
   const parentCol = await relationColumnOption.getParentColumn(parentContext);
   const parentModel = await parentCol?.getModel(parentContext);
   const refTableAlias =
     `__nc_rollup` + (nestedLevel > 0 ? `_${nestedLevel}` : ``);
+  profiler.log('get base model');
 
   const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
     model: parentModel,
@@ -85,6 +91,7 @@ export default async function genRollupSelectv2({
       : parentBaseModel;
 
   const applyFunction = async (qb: any) => {
+    profiler.log('applyFunction ' + rollupColumn.uidt);
     let selectColumnName = knex.raw('??.??', [
       refTableAlias,
       rollupColumn.column_name,
@@ -188,6 +195,7 @@ export default async function genRollupSelectv2({
       qb[columnOptions.rollup_function as string]?.(
         knex.raw('??::integer', [selectColumnName]),
       );
+      profiler.log('applyFunction done');
       return;
     }
 
@@ -204,10 +212,12 @@ export default async function genRollupSelectv2({
     } else {
       qb[columnOptions.rollup_function as string]?.(selectColumnName);
     }
+    profiler.log('applyFunction done');
   };
 
   switch (relationColumnOption.type) {
     case RelationTypes.HAS_MANY: {
+      profiler.log('Relation: ' + relationColumnOption.type);
       const queryBuilder: any = knex(
         knex.raw(`?? as ??`, [
           childBaseModel.getTnPath(childModel),
@@ -234,13 +244,14 @@ export default async function genRollupSelectv2({
           context: childBaseModel.context,
         });
       }
-
+      profiler.end();
       return {
         builder: queryBuilder,
       };
     }
 
     case RelationTypes.ONE_TO_ONE: {
+      profiler.log('Relation: ' + relationColumnOption.type);
       const qb = knex(
         knex.raw(`?? as ??`, [
           childBaseModel.getTnPath(childModel?.table_name),
@@ -266,12 +277,14 @@ export default async function genRollupSelectv2({
       });
 
       await applyFunction(qb);
+      profiler.end();
       return {
         builder: qb,
       };
     }
 
     case RelationTypes.MANY_TO_MANY: {
+      profiler.log('Relation: ' + relationColumnOption.type);
       const mmModel = await relationColumnOption.getMMModel(mmContext);
       const mmChildCol = await relationColumnOption.getMMChildColumn(mmContext);
       const mmParentCol = await relationColumnOption.getMMParentColumn(
@@ -327,7 +340,7 @@ export default async function genRollupSelectv2({
       });
 
       await applyFunction(qb);
-
+      profiler.end();
       return {
         builder: qb,
       };

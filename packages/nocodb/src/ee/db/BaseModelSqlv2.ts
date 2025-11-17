@@ -91,6 +91,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { chunkArray } from '~/utils/tsUtils';
 import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
 import { Profiler } from '~/helpers/profiler';
+import { CacheExtractColumnHelper } from '~/helpers/cacheExtractColumnHelpers';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -1577,8 +1578,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       undo?: boolean;
     } = {},
   ) {
+    new CacheExtractColumnHelper(this.context).setEnabled(true);
     const queries: string[] = [];
-
+    const profiler = Profiler.start('base-model/bulkInsert');
     try {
       // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
@@ -1598,7 +1600,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         await this.model.getColumns(this.context);
 
         const order = await this.getHighestOrderInTable();
-
+        profiler.log('getHighestOrderInTable done');
         for (const [index, d] of datas.entries()) {
           const insertObj = {};
 
@@ -1833,6 +1835,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           insertDatas.push(insertObj);
         }
+        profiler.log('validate & prepare noco data done');
 
         // used for post insert operations
         aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
@@ -1852,6 +1855,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               }),
           ),
         );
+        profiler.log('prepare noco data done on raw');
       }
 
       if ('beforeBulkInsert' in this) {
@@ -1859,8 +1863,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           allowSystemColumn,
         });
       }
+      profiler.log('beforeBulkInsert done');
 
       await this.runOps(preInsertOps.map((f) => f()));
+      profiler.log('preInsertOps done');
 
       // await this.beforeInsertb(insertDatas, null);
 
@@ -1986,8 +1992,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           this.sanitizeQuery(queries),
           (this.dbDriver as any).extDb,
         );
+        profiler.log('runExternal done');
+
         responses = Array.isArray(responses) ? responses : [responses];
         if (!raw) await postSingleRecordInsertionCbk(responses);
+        profiler.log('postSingleRecordInsertionCbk done');
       } else {
         const trx = await this.dbDriver.transaction();
         try {
@@ -2001,7 +2010,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               responses.push(...result);
             }
           }
+          profiler.log('execAndGetRows done');
+
           if (!raw) await postSingleRecordInsertionCbk(responses, trx);
+          profiler.log('postSingleRecordInsertionCbk done');
+
           await trx.commit();
         } catch (e) {
           await trx.rollback();
@@ -2034,18 +2047,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             req: cookie,
             insertData: datas?.[0],
           });
+          profiler.log('single afterInsert done');
         } else {
           const insertResponses = await this.chunkList({
             pks: responses.map((d) => this.extractPksValues(d)),
           });
+          profiler.log('chunkList done');
 
           await this.afterBulkInsert(insertResponses, this.dbDriver, cookie);
+          profiler.log('afterBulkInsert done');
         }
       }
 
       await this.statsUpdate({
         count: insertDatas.length,
       });
+      profiler.log('statsUpdate done');
+      profiler.end();
 
       return responses;
     } catch (e) {
@@ -2137,6 +2155,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       undo?: boolean;
     } = {},
   ) {
+    new CacheExtractColumnHelper(this.context).setEnabled(true);
     const insertQueries: string[] = [];
     const updateQueries: string[] = [];
 
@@ -2444,6 +2463,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       apiVersion?: NcApiVersion;
     } = {},
   ) {
+    new CacheExtractColumnHelper(this.context).setEnabled(true);
     const queries: string[] = [];
     const profiler = Profiler.start(`base-model/bulkUpdate`);
 
@@ -2844,6 +2864,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       isSingleRecordDeletion?: boolean;
     } = {},
   ) {
+    new CacheExtractColumnHelper(this.context).setEnabled(true);
     const queries: string[] = [];
     try {
       const columns = await this.model.getColumns(this.context);

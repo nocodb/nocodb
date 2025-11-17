@@ -26,6 +26,7 @@ import type {
 } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { Column, Filter, Model, Sort, Source, View } from '~/models';
 import {
   _wherePk,
@@ -101,7 +102,7 @@ export async function extractColumns({
   getAlias: () => string;
   params: any;
   alias?: string;
-  baseModel: BaseModelSqlv2;
+  baseModel: IBaseModelSqlV2;
   // dependencyFields: DependantFields;
   ast: Record<string, any> | boolean | 0 | 1;
   throwErrorIfInvalidParams: boolean;
@@ -161,7 +162,7 @@ export async function extractColumn({
   isLookup?: boolean;
   params?: any;
   getAlias: () => string;
-  baseModel: BaseModelSqlv2;
+  baseModel: IBaseModelSqlV2;
   // dependencyFields: DependantFields;
   ast: Record<string, any>;
   throwErrorIfInvalidParams: boolean;
@@ -1457,7 +1458,7 @@ export async function singleQueryList(
     validateFormula?: boolean;
     ignorePagination?: boolean;
     limitOverride?: number;
-    baseModel?: BaseModelSqlv2;
+    baseModel?: IBaseModelSqlV2;
     customConditions?: Filter[];
     getHiddenColumns?: boolean;
     apiVersion?: NcApiVersion;

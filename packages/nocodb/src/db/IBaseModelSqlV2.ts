@@ -350,6 +350,28 @@ export interface IBaseModelSqlV2 {
       skipSubstitutingColumnIds?: boolean;
     },
   ): Promise<any>;
+  selectObject(params: {
+    fieldsSet?: Set<string>;
+    qb: Knex.QueryBuilder & Knex.QueryInterface;
+    columns?: Column[];
+    fields?: string[] | string;
+    extractPkAndPv?: boolean;
+    viewId?: string;
+    alias?: string;
+    validateFormula?: boolean;
+    pkAndPvOnly?: boolean;
+  }): Promise<void>;
+  getProto(param?: { apiVersion?: NcApiVersion }): Promise<
+    {
+      __proto__?: {
+        __columnAliases?: {
+          [key: string]: any;
+        };
+      };
+    } & {
+      [key: string]: any;
+    }
+  >;
 
   broadcastLinkUpdates(ids: Array<string>): Promise<void>;
   getSource(): Promise<Source>;

@@ -50,6 +50,7 @@ import {
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import {NcCache} from "~/decorators/nc-cache.decorator";
 
 const selectColors = enumColors.light;
 
@@ -562,6 +563,10 @@ export default class Column<T = any> implements ColumnType {
     }
   }
 
+  @NcCache({
+    key: (args, thisArg) => `Column.getColOptions:${thisArg.id}`,
+    contextExtraction: (args) => args[0],
+  })
   public async getColOptions<U = T>(
     context: NcContext,
     ncMeta = Noco.ncMeta,
@@ -645,6 +650,10 @@ export default class Column<T = any> implements ColumnType {
     return this.model;
   }
 
+  @NcCache({
+    key: (args) => `Column.list:${args[1].fk_model_id}:${args[1].fk_default_view_id ?? 'default'}`,
+    contextExtraction: (args) => args[0],
+  })
   public static async list(
     context: NcContext,
     {
@@ -756,6 +765,11 @@ export default class Column<T = any> implements ColumnType {
     return columns.map(c => new Column(c));*/
   }
 
+
+  @NcCache({
+    key: (args) => `Column.get:${args[1].colId}`,
+    contextExtraction: (args) => args[0],
+  })
   public static async get<T = any>(
     context: NcContext,
     {

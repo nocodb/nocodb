@@ -104,6 +104,11 @@ export default class Model implements TableType {
     return data && new Model(data);
   }
 
+  // @NcCache({
+  //   key: (args, thisArg) =>
+  //     `Model.getColumns:${thisArg.id}:${args[2] || 'default'}`,
+  //   contextExtraction: (args) => args[0],
+  // })
   public async getColumns(
     context: NcContext,
     ncMeta = Noco.ncMeta,

@@ -21,7 +21,7 @@ export interface NcCacheOptions<TArgs extends any[] = any[]> {
    * If not provided, assumes first argument is the context
    * Function receives typed arguments from the decorated method
    */
-  contextExtraction?: (args: TArgs) => NcContext | undefined;
+  contextExtraction?: (args: TArgs, thisArg: this) => NcContext | undefined;
 }
 
 /**
@@ -82,7 +82,7 @@ export function NcCache<TArgs extends any[] = any[]>(
     descriptor.value = async function (...args: any[]) {
       // Extract context using provided function or default to first argument
       const context: NcContext | undefined = options.contextExtraction
-        ? options.contextExtraction(args as TArgs)
+        ? options.contextExtraction(args as TArgs, this)
         : args[0];
 
       // If no context or cache is not enabled, execute method normally

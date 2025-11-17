@@ -183,7 +183,7 @@ const handleNavigation = () => {
       limitOrFeature: getLimitOrFeature(),
     })
   } else {
-    navigateToPricing({ limitOrFeature: getLimitOrFeature(), triggerEvent: false })
+    navigateToPricing({ limitOrFeature: getLimitOrFeature(), triggerEvent: false, triggerContactSales: true })
   }
 }
 

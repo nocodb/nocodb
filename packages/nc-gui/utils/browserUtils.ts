@@ -216,3 +216,10 @@ export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
 
 // Feature detection.
 export const supportsKeyboardLock = 'keyboard' in navigator && navigator.keyboard && 'lock' in (navigator.keyboard as any)
+
+export const openContactSalesEmail = (email: string = 'support@nocodb.com') => {
+  const a = document.createElement('a')
+  a.href = `mailto:${email}`
+  a.target = '_blank'
+  a.click()
+}

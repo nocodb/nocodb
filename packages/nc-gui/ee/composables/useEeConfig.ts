@@ -426,6 +426,12 @@ export const useEeConfig = createSharedComposable(() => {
       })
     }
 
+    if (isHigherActivePlan.value) {
+      // Contact sales to upgrade limit
+      openContactSalesEmail()
+      return
+    }
+
     const planCtaBtnQuery = limitOrFeature === PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE ? `&activeBtn=${PlanTitles.BUSINESS}` : ''
 
     if (redirectToWorkspace) {
@@ -461,6 +467,7 @@ export const useEeConfig = createSharedComposable(() => {
     ctaPlan,
     isBackToPricing = false,
     triggerEvent = true,
+    triggerContactSales = false,
   }: {
     workspaceId?: string
     autoScroll?: 'compare' | 'faq'
@@ -469,6 +476,7 @@ export const useEeConfig = createSharedComposable(() => {
     ctaPlan?: PlanTitles
     isBackToPricing?: boolean
     triggerEvent?: boolean
+    triggerContactSales?: boolean
   } = {}) => {
     if (isBackToPricing) {
       triggerEvent = false
@@ -493,6 +501,12 @@ export const useEeConfig = createSharedComposable(() => {
         activePlan: activePlanTitle.value,
         limitOrFeature,
       })
+    }
+
+    if (triggerContactSales && isHigherActivePlan.value) {
+      // Contact sales to upgrade limit
+      openContactSalesEmail()
+      return
     }
 
     const paramsObj = {

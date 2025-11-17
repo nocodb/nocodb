@@ -213,7 +213,6 @@ function openWorkflowDescriptionDialog(workflow: WorkflowType) {
   }
 }
 
-
 /**
  * tableRenameId is combination of tableId & sourceId
  * @example `${tableId}:${sourceId}`

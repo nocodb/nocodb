@@ -32,7 +32,12 @@ const filterWorkspace = (workspace: NcWorkspace) => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="dialogShow" class="!w-[30rem]" wrap-class-name="nc-modal-project-duplicate">
+  <GeneralModal
+    v-model:visible="dialogShow"
+    :mask-closable="!isLoading"
+    class="!w-[30rem]"
+    wrap-class-name="nc-modal-project-duplicate"
+  >
     <div>
       <div class="prose-xl font-bold self-center">
         <template v-if="isUseThisTemplate">
@@ -76,7 +81,9 @@ const filterWorkspace = (workspace: NcWorkspace) => {
         'mt-4.5': isUseThisTemplate,
       }"
     >
-      <NcButton key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+      <NcButton key="back" type="secondary" :disabled="isLoading" @click="dialogShow = false">{{
+        $t('general.cancel')
+      }}</NcButton>
       <NcButton
         key="submit"
         v-e="['a:shared-base:duplicate']"

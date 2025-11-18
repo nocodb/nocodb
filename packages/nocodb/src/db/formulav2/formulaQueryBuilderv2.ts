@@ -503,6 +503,7 @@ export default async function formulaQueryBuilderv2({
       getAliasCount,
     });
 
+    // we limit the formula length to 500k to prevent server crashing
     if (qb.builder.toSQL().sql.length > 500 * 1000) {
       NcError.get(context).formulaError(
         `Formula length too long for column ${column.title}`,

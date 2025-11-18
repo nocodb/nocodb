@@ -6,7 +6,8 @@ import Dropdown from '~/components/smartsheet/workflow/Node/Dropdown.vue'
 
 const props = defineProps<NodeProps>()
 
-const { getNodeType, updateNode, addPlusNode, triggerLayout, deleteNode, selectedNodeId, edges } = useWorkflowOrThrow()
+const { getNodeType, updateNode, addPlusNode, triggerLayout, deleteNode, selectedNodeId, edges, updateSelectedNode } =
+  useWorkflowOrThrow()
 
 const nodeMeta = computed(() => {
   return getNodeType(props.type)
@@ -31,6 +32,8 @@ const selectNodeType = async (option: WorkflowNodeType) => {
       ...props.data,
     },
   })
+
+  updateSelectedNode(props.id)
 
   const selectedNodeMeta = getNodeType(option.type)
 

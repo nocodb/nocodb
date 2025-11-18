@@ -82,6 +82,11 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     )
   }, 500)
 
+  const updateSelectedNode = (nodeId: string, openSidebar = true) => {
+    selectedNodeId.value = nodeId
+    isSidebarOpen.value = openSidebar
+  }
+
   // Callback for layout - will be set by Main.vue
   let layoutCallback: (() => Promise<void>) | null = null
 
@@ -339,6 +344,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     debouncedWorkflowUpdate,
     setLayoutCallback,
     triggerLayout,
+    updateSelectedNode,
 
     // Node utilities
     addPlusNode,

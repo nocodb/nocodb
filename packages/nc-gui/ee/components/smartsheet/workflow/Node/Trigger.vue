@@ -5,7 +5,8 @@ import Dropdown from './Dropdown.vue'
 
 const props = defineProps<NodeProps>()
 
-const { updateNode, addPlusNode, triggerLayout, getNodeType, selectedNodeId, edges, deleteNode } = useWorkflowOrThrow()
+const { updateNode, addPlusNode, triggerLayout, getNodeType, selectedNodeId, edges, deleteNode, updateSelectedNode } =
+  useWorkflowOrThrow()
 
 const wrappperRef = ref()
 
@@ -20,12 +21,14 @@ const disableDropdown = computed(() => {
 })
 
 const selectTriggerType = async (option: WorkflowNodeType) => {
-  updateNode(props.id, {
+  await updateNode(props.id, {
     type: option.type,
     data: {
       ...props.data,
     },
   })
+
+  updateSelectedNode(props.id)
 
   const hasPlusNode = edges.value.some((e) => e.source === props.id)
   if (!hasPlusNode) {
@@ -62,7 +65,7 @@ onClickOutside(
     }
   },
   {
-    ignore: ['.node-sidebar'],
+    ignore: ['.node-sidebar', '.ant-select-dropdown', '.ant-picker-dropdown', '.ant-modal'],
   },
 )
 </script>

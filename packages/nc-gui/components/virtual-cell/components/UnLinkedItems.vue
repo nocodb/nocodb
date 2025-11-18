@@ -464,10 +464,37 @@ const handleKeyDown = (e: KeyboardEvent) => {
         <div v-else class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
           <InboxIcon class="w-16 h-16 mx-auto" />
 
-          <p v-if="childrenExcludedListPagination.query">{{ $t('msg.noRecordsMatchYourSearchQuery') }}</p>
-          <p v-else>
+          <p v-if="childrenExcludedListPagination.query" class="mb-0">{{ $t('msg.noRecordsMatchYourSearchQuery') }}</p>
+          <p v-else class="mb-0">
             {{ $t('msg.noRecordsAvailForLinking') }}
           </p>
+          <div class="flex">
+            <PermissionsTooltip
+              v-if="
+                !isPublic &&
+                !isDataReadOnly &&
+                isUIAllowed('dataEdit', externalBaseUserRoles) &&
+                !isForm &&
+                !relatedTableMeta?.synced
+              "
+              :entity="PermissionEntity.TABLE"
+              :entity-id="relatedTableMeta?.id"
+              :permission="PermissionKey.TABLE_RECORD_ADD"
+            >
+              <template #default="{ isAllowed }">
+                <NcButton
+                  v-e="['c:row-expand:open']"
+                  size="small"
+                  class="!hover:(bg-white text-brand-500) !h-7 !text-small"
+                  type="secondary"
+                  :disabled="!isAllowed"
+                  @click="addNewRecord"
+                >
+                  <div class="flex items-center gap-1"><MdiPlus v-if="!isMobileMode" /> {{ $t('activity.newRecord') }}</div>
+                </NcButton>
+              </template>
+            </PermissionsTooltip>
+          </div>
         </div>
       </div>
       <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-11">

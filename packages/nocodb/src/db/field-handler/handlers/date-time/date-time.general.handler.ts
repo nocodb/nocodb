@@ -154,7 +154,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     };
   }): Promise<{ value: any }> {
     return {
-      value: this.parseDateTime(params).value.format('YYYY-MM-DD HH:mm:ssZ'),
+      value: this.parseDateTime(params).value?.format('YYYY-MM-DD HH:mm:ssZ'),
     };
   }
 

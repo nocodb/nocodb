@@ -31,9 +31,11 @@ export class DateTimeMySQLHandler extends DateTimeGeneralHandler {
     // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-01 20:00:00
     // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
     // then we use CONVERT_TZ to convert that in the db timezone
-    const val = knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
-      dayjsUtcValue.format('YYYY-MM-DD HH:mm:ss'),
-    ]);
+    const val = dayjsUtcValue
+      ? knex.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+          dayjsUtcValue.format('YYYY-MM-DD HH:mm:ss'),
+        ])
+      : undefined;
     return { value: val };
   }
 }

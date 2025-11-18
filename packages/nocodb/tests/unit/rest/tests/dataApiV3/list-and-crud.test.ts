@@ -534,6 +534,7 @@ describe('dataApiV3', () => {
           delete r.CreatedBy;
           delete r.UpdatedBy;
         });
+        records[1]['DateTime'] = '';
         rsp = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}/records`,
           body: records.map((record) => ({ fields: record })),

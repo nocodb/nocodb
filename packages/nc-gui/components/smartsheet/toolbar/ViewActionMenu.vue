@@ -193,15 +193,15 @@ const onClickCopyViewConfig = () => {
   onOpenCopyViewConfigFromAnotherViewModal({ destView: view.value })
 }
 
-const isCellHeaderVisibilityOptionVisible = computed(() => {
+const isFieldHeaderVisibilityOptionVisible = computed(() => {
   return !props.inSidebar && isUIAllowed('viewCreateOrEdit') && [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type)
 })
 
-const isCellHeaderVisible = computed(() => {
-  return parseProp((view.value?.view as GalleryType | KanbanType)?.meta)?.is_cell_header_visible ?? true
+const isFieldHeaderVisible = computed(() => {
+  return parseProp((view.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
 })
 
-const onToggleColumnHeader = async () => {
+const onToggleFieldHeaderVisibility = async () => {
   if (!view.value) {
     emits('closeModal')
 
@@ -210,7 +210,7 @@ const onToggleColumnHeader = async () => {
 
   const payload = {
     ...parseProp((view.value?.view as GalleryType | KanbanType)?.meta),
-    is_cell_header_visible: !isCellHeaderVisible.value,
+    is_field_header_visible: !isFieldHeaderVisible.value,
   }
 
   view.value.meta = payload
@@ -225,11 +225,11 @@ const onToggleColumnHeader = async () => {
     // revert local changes on error
     view.value.meta = {
       ...payload,
-      is_cell_header_visible: !payload.is_cell_header_visible,
+      is_field_header_visible: !payload.is_field_header_visible,
     }
 
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
-    message.error('Error occurred while updating card header visibility', undefined, {
+    message.error('Error occurred while updating field header visibility', undefined, {
       copyText: errorInfo.message,
     })
   }
@@ -629,8 +629,8 @@ defineOptions({
             </PaymentUpgradeBadgeProvider>
           </SmartsheetToolbarNotAllowedTooltip>
         </template>
-        <NcMenuItem v-if="isCellHeaderVisibilityOptionVisible" @click="onToggleColumnHeader">
-          {{ isCellHeaderVisible ? 'Hide' : 'Show' }} column header
+        <NcMenuItem v-if="isFieldHeaderVisibilityOptionVisible" @click="onToggleFieldHeaderVisibility">
+          {{ isFieldHeaderVisible ? $t('labels.hideFieldHeader') : $t('labels.showFieldHeader') }}
         </NcMenuItem>
       </template>
 

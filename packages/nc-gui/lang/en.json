@@ -1625,7 +1625,9 @@
     "showEveryonesPersonalViews": "Show everyone's personal views",
     "selectOneOrMoreTeams": "Select one or more teams",
     "selectWorkspaceToDuplicateSharedBaseTo": "Select workspace to duplicate shared base to:",
-    "chooseWorkspaceToApplyTemplate": "Choose a workspace to apply this template"
+    "chooseWorkspaceToApplyTemplate": "Choose a workspace to apply this template",
+    "hideFieldHeader": "Hide field header",
+    "showFieldHeader": "Show field header"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

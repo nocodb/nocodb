@@ -14,7 +14,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
 const { user } = useGlobal()
-const { isViewDataLoading, isActiveViewCellHeaderVisible } = storeToRefs(useViewsStore())
+const { isViewDataLoading, isActiveViewFieldHeaderVisible } = storeToRefs(useViewsStore())
 const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus } =
   useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
@@ -540,7 +540,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                       :class="{
                         'w-[calc(100%_-_16px)]': isRowColouringEnabled,
                         'w-full': !isRowColouringEnabled,
-                        'gap-3': isActiveViewCellHeaderVisible,
+                        'gap-3': isActiveViewFieldHeaderVisible,
                       }"
                     >
                       <h2
@@ -586,10 +586,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                       >
                         <NcTooltip
                           hide-on-click
-                          :disabled="isActiveViewCellHeaderVisible"
+                          :disabled="isActiveViewFieldHeaderVisible"
                           class="w-full z-10 flex"
                           :class="{
-                            'pointer-events-auto': !isActiveViewCellHeaderVisible,
+                            'pointer-events-auto': !isActiveViewFieldHeaderVisible,
                           }"
                           placement="left"
                           :arrow="false"
@@ -617,7 +617,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             }"
                           >
                             <div class="flex flex-row w-full justify-start">
-                              <div v-if="isActiveViewCellHeaderVisible" class="nc-card-col-header w-full !children:text-gray-500">
+                              <div v-if="isActiveViewFieldHeaderVisible" class="nc-card-col-header w-full !children:text-gray-500">
                                 <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
                                 <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                               </div>

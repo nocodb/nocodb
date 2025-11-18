@@ -73,7 +73,7 @@ const {
   updateAllStacksProperty,
 } = useKanbanViewStoreOrThrow()
 
-const { isViewDataLoading, isActiveViewCellHeaderVisible } = storeToRefs(useViewsStore())
+const { isViewDataLoading, isActiveViewFieldHeaderVisible } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useRoles()
 
@@ -903,7 +903,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                       :class="{
                                         'w-[calc(100%_-_16px)]': isRowColouringEnabled,
                                         'w-full': !isRowColouringEnabled,
-                                        'gap-3': isActiveViewCellHeaderVisible,
+                                        'gap-3': isActiveViewFieldHeaderVisible,
                                       }"
                                     >
                                       <h2
@@ -947,10 +947,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                       >
                                         <NcTooltip
                                           hide-on-click
-                                          :disabled="isActiveViewCellHeaderVisible"
+                                          :disabled="isActiveViewFieldHeaderVisible"
                                           class="w-full z-10 flex"
                                           :class="{
-                                            'pointer-events-auto': !isActiveViewCellHeaderVisible,
+                                            'pointer-events-auto': !isActiveViewFieldHeaderVisible,
                                           }"
                                           placement="left"
                                           :arrow="false"
@@ -978,7 +978,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                               'pointer-events-none': !resetPointerEvent(record, col),
                                             }"
                                           >
-                                            <div v-if="isActiveViewCellHeaderVisible" class="flex flex-row w-full justify-start">
+                                            <div v-if="isActiveViewFieldHeaderVisible" class="flex flex-row w-full justify-start">
                                               <div class="nc-card-col-header w-full !children:text-gray-500">
                                                 <LazySmartsheetHeaderVirtualCell
                                                   v-if="isVirtualCol(col)"

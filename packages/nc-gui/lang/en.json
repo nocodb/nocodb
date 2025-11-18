@@ -1033,6 +1033,7 @@
     "changeWorkspaceRoleTo": "Change Workspace Role to"
   },
   "labels": {
+    "triggerWorkflow": "Trigger Workflow",
     "syncCompleted": "Sync Completed",
     "syncFailed": "Sync Failed",
     "triggerSync": "Trigger Sync",
@@ -1984,6 +1985,7 @@
     "goBackHome": "Go back home"
   },
   "tooltip": {
+    "manualTriggerDisabled": "Only workflows with manual trigger can be triggered manually.",
     "cantAssignLastNonPersonalView": "Cannot assign last collaborative grid view as personal view",
     "includeUserHint": "The user who triggered the webhook will be included in the payload as a 'user' object.",
     "crossBase": "Link records from a table in a different base",

@@ -44,45 +44,6 @@ async function layoutGraph() {
   })
 }
 
-/* const handleRun = async () => {
-
-  try {
-    // Call backend to execute workflow
-    const response = await api.instance.post(
-      `/api/v2/internal/${activeProjectId.value}/${activeProjectId.value}?operation=workflowExecute`,
-      {
-        workflowId: activeWorkflow.value.id,
-        triggerData: {
-          // You can pass trigger data here if needed
-          timestamp: Date.now(),
-        },
-        // triggerNodeTitle: 'Trigger', // Optional: specify which trigger to start from
-      },
-    )
-
-    const executionState = response.data
-
-    if (executionState.status === 'completed') {
-      const duration = ((executionState.endTime - executionState.startTime) / 1000).toFixed(2)
-      const nodesCount = executionState.nodeResults.length
-      message.success(`Workflow executed successfully in ${duration}s (${nodesCount} nodes executed)`)
-
-      // Log results for debugging
-      console.log('[Workflow] Execution completed:', executionState)
-    } else if (executionState.status === 'error') {
-      const errorNode = executionState.nodeResults.find((r: any) => r.status === 'error')
-      const errorMessage = errorNode ? `Node "${errorNode.nodeTitle}" failed: ${errorNode.error}` : 'Workflow execution failed'
-      message.error(errorMessage)
-      console.error('[Workflow] Execution error:', executionState)
-    }
-  } catch (error: any) {
-    console.error('[Workflow] Execution failed:', error)
-    message.error(`Workflow execution failed: ${error.message || 'Unknown error'}`)
-  } finally {
-    isRunning.value = false
-  }
-} */
-
 onMounted(() => {
   nodesDraggable.value = false
   edgesUpdatable.value = false

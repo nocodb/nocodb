@@ -7,9 +7,13 @@ const clone = rfdc()
 const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedRef<WorkflowType>) => {
   const { isUIAllowed } = useRoles()
 
+  const { api } = useApi()
+
   const workflowStore = useWorkflowStore()
 
   const baseStore = useBases()
+
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const { activeBaseNodeSchemas } = storeToRefs(workflowStore)
 
@@ -33,7 +37,11 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const edges = ref<Array<Edge>>((workflow.value?.edges as Array<Edge>) || [])
 
-  const selectedNode = computed(() => {
+  const hasManualTrigger = computed(() => {
+    return nodes.value.some((node) => node.type === 'core.trigger.manual')
+  })
+
+  const selectedNode = computed<Node | null>(() => {
     if (!selectedNodeId.value) return null
     return nodes.value.find((n) => n.id === selectedNodeId.value)
   })
@@ -328,6 +336,42 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     return activeBaseNodeSchemas.value.find((n) => n.key === key)
   }
 
+  const executeWorkflow = async () => {
+    if (!activeWorkspaceId.value || !activeProjectId.value || !workflow.value) return
+    try {
+      const executionState = await api.internal.postOperation(
+        activeWorkspaceId.value,
+        activeProjectId.value,
+        {
+          operation: 'workflowExecute',
+        },
+        {
+          workflowId: workflow.value.id,
+          triggerData: {
+            timestamp: Date.now(),
+          },
+        },
+      )
+
+      if (executionState.status === 'completed') {
+        const duration = ((executionState.endTime - executionState.startTime) / 1000).toFixed(2)
+        const nodesCount = executionState?.nodeResults?.length
+        message.success(`Workflow executed successfully in ${duration}s (${nodesCount} nodes executed)`)
+
+        // Log results for debugging
+        console.log('[Workflow] Execution completed:', executionState)
+      } else if (executionState.status === 'error') {
+        const errorNode = executionState?.nodeResults?.find((r: any) => r.status === 'error')
+        const errorMessage = errorNode ? `Node "${errorNode.nodeTitle}" failed: ${errorNode.error}` : 'Workflow execution failed'
+        message.error(errorMessage)
+        console.error('[Workflow] Execution error:', executionState)
+      }
+    } catch (e) {
+      message.error('Workflow execution failed')
+      console.error('[Workflow] Execution error:', e)
+    }
+  }
+
   return {
     // State
     isSidebarOpen,
@@ -338,6 +382,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     nodeTypes: readonly(nodeTypes),
     selectedNodeId,
     selectedNode,
+    hasManualTrigger,
 
     // Methods
     updateWorkflowData,
@@ -345,6 +390,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     setLayoutCallback,
     triggerLayout,
     updateSelectedNode,
+    executeWorkflow,
 
     // Node utilities
     addPlusNode,

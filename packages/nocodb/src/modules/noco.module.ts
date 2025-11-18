@@ -163,6 +163,7 @@ import {
   MetaDependencyModuleProvider,
   MetaDependencyServices,
 } from '~/services/meta-dependency/meta-dependency.provider';
+import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -263,6 +264,7 @@ export const nocoModuleMetadata = {
     AppHooksService,
     AppHooksListenerService,
     TelemetryService,
+    TelemetryHandlerService,
     HookHandlerService,
     MailService,
 

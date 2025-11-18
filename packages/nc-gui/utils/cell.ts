@@ -1,5 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, ncIsNaN, roundUpToPrecision } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import type { HTMLAttributes } from 'vue'
 
@@ -128,4 +128,10 @@ export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmod
   if (uidt === UITypes.URL) {
     return 'url'
   }
+}
+
+export const formatPercentage = (n: number, precision = 2) => {
+  if (ncIsNaN(n)) return '0%'
+
+  return n % 1 === 0 ? `${n}%` : `${roundUpToPrecision(n, precision)}%`
 }

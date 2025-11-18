@@ -1204,77 +1204,71 @@ export async function extractColumn({
         if (handle) {
           handle(relQb, { alias: relTableAlias });
         }
-        const { sql, bindings } = relQb.toSQL();
+        const sql = relQb.toQuery();
         const relQbBuilderSyntax = sql
           .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
-          .replaceAll(aliasPlaceholder, ':alias:');
+          .replaceAll(aliasPlaceholder, ':alias:')
+          .replaceAll('?', '\\?');
+        console.log('sql', relQbBuilderSyntax);
 
         const joinHandle = !result.isArray
           ? (qb, { alias }: { alias: string }) => {
               qb.joinRaw(
                 `LEFT OUTER JOIN LATERAL
-                   (${knex
-                     .fromRaw(
-                       knex.raw(
-                         knex
-                           .raw(`(${relQbBuilderSyntax}) as :alias2:`, {
-                             alias,
-                             alias2,
-                           })
-                           .toQuery(),
-                         bindings,
-                       ),
-                     )
-                     .select(
-                       knex.raw(`??.?? as ??`, [
-                         alias2,
-                         getAs(lookupColumn),
-                         getAs(column),
-                       ]),
-                     )
-                     .toQuery()}) as ?? ON true`,
-                [lookupTableAlias],
+                   (??) as ?? ON true`,
+                [
+                  knex
+                    .fromRaw(
+                      knex.raw(`(${relQbBuilderSyntax}) as :alias2:`, {
+                        alias,
+                        alias2,
+                      }),
+                    )
+                    .select(
+                      knex.raw(`??.?? as ??`, [
+                        alias2,
+                        getAs(lookupColumn),
+                        getAs(column),
+                      ]),
+                    ),
+                  lookupTableAlias,
+                ],
               );
             }
           : isArray
           ? (qb, { alias }: { alias: string }) => {
               const alias3 = getAlias();
               qb.joinRaw(
-                `LEFT OUTER JOIN LATERAL (${knex
-                  .fromRaw(
-                    knex.raw(
-                      knex
-                        .raw(`(${relQbBuilderSyntax}) as :alias2:`, {
-                          alias,
-                          alias2,
-                        })
-                        .toQuery(),
-                      bindings,
+                `LEFT OUTER JOIN LATERAL (?? ,json_array_elements(??.??) as ?? ) as ?? ON true`,
+                [
+                  knex
+                    .fromRaw(
+                      knex.raw(`(${relQbBuilderSyntax}) as :alias2:`, {
+                        alias,
+                        alias2,
+                      }),
+                    )
+                    .select(
+                      knex.raw(`coalesce(json_agg(??),'[]'::json) as ??`, [
+                        alias3,
+                        getAs(column),
+                      ]),
                     ),
-                  )
-                  .select(
-                    knex.raw(`coalesce(json_agg(??),'[]'::json) as ??`, [
-                      alias3,
-                      getAs(column),
-                    ]),
-                  )
-                  .toQuery()},json_array_elements(??.??) as ?? ) as ?? ON true`,
-                [alias2, getAs(lookupColumn), alias, lookupTableAlias],
+                  alias2,
+                  getAs(lookupColumn),
+                  alias,
+                  lookupTableAlias,
+                ],
               );
             }
           : (qb, { alias }: { alias: string }) => {
-              qb.joinRaw(
-                `LEFT OUTER JOIN LATERAL (${knex
+              qb.joinRaw(`LEFT OUTER JOIN LATERAL (??) as ?? ON true`, [
+                knex
                   .fromRaw(
-                    knex.raw(
-                      knex
-                        .raw(`(${relQbBuilderSyntax}) as :alias2:`, {
-                          alias,
-                          alias2,
-                        })
-                        .toQuery(),
-                      bindings,
-                    ),
+                    knex.raw(`(${relQbBuilderSyntax}) as :alias2:`, {
+                      alias,
+                      alias2,
+                    }),
                   )
                   .select(
                     knex.raw(`coalesce(json_agg(??.??),'[]'::json) as ??`, [
@@ -1282,10 +1276,9 @@ export async function extractColumn({
                       getAs(lookupColumn),
                       getAs(column),
                     ]),
-                  )
-                  .toQuery()}) as ?? ON true`,
-                [lookupTableAlias],
-              );
+                  ),
+                lookupTableAlias,
+              ]);
             };
 
         profiler.end();
@@ -2218,6 +2211,7 @@ export async function singleQueryList(
   const finalQb = qb;
   knex.applyCte(finalQb);
   let dataQuery = finalQb.toQuery();
+  console.log('dataQuery get');
   if (!skipCache) {
     const { sql, bindings } = finalQb.toSQL();
 

@@ -171,7 +171,7 @@ const saveSamlProvider = async () => {
               class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg"
             >
               <span
-                class="text-nc-content-gray text-nc-content-gray overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+                class="text-nc-content-gray overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
                 data-test-id="nc-saml-redirect-url"
               >
                 {{ getRedirectUrl(saml) }}
@@ -200,7 +200,7 @@ const saveSamlProvider = async () => {
               class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg"
             >
               <span
-                class="text-nc-content-gray text-nc-content-gray overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+                class="text-nc-content-gray overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
                 data-test-id="nc-saml-issuer-url"
               >
                 {{ getEntityId(saml) }}

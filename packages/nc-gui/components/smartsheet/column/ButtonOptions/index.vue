@@ -495,7 +495,7 @@ const handleUpdateActionType = () => {
                     v-for="({ icon, name }, i) in icons"
                     :key="i"
                     :icon="icon"
-                    class="w-6 hover:bg-nc-border-gray-light cursor-pointer rounded p-1 text-nc-content-gray-subtle h-6"
+                    class="w-6 hover:bg-nc-bg-gray-light cursor-pointer rounded p-1 text-nc-content-gray-subtle h-6"
                     @click="selectIcon(name)"
                   />
                 </div>

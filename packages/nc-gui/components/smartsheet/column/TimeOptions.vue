@@ -42,6 +42,9 @@ const { isSystem } = useColumnCreateStoreOrThrow()
 
   .ant-radio-wrapper {
     @apply transition-all;
+    span {
+      @apply text-nc-content-gray;
+    }
     &:not(.ant-radio-wrapper-disabled).ant-radio-wrapper-checked {
       @apply border-nc-border-brand;
     }

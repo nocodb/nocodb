@@ -1159,7 +1159,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                 isSystem ||
                 isSyncedField
               "
-              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
+              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg !border-nc-border-gray-medium"
               :filter-option="filterOption"
               @dropdown-visible-change="onDropdownChange"
               @change="onSelectType($event)"
@@ -1214,7 +1214,9 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                       </NcTooltip>
                     </div>
 
-                    <span v-if="opt.deprecated" class="!text-xs !text-nc-content-brand-hover">({{ $t('general.deprecated') }})</span>
+                    <span v-if="opt.deprecated" class="!text-xs !text-nc-content-brand-hover"
+                      >({{ $t('general.deprecated') }})</span
+                    >
                     <span
                       v-if="opt.isNew || (isAiButtonSelectOption(opt.name) && !isColumnTypeOpen)"
                       class="nc-new-field-badge text-sm text-nc-content-purple-dark bg-nc-bg-purple-light px-2 rounded-md font-normal"
@@ -1535,11 +1537,6 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
   &:not(:hover):not(:focus) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
-
-  &:hover:not(:focus) {
-    @apply border-gray-300;
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
-  }
 }
 
 :deep(.nc-color-picker-dropdown-trigger),
@@ -1583,11 +1580,11 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 :deep(.ant-select) {
   &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
   &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+    @apply !border-nc-border-gray-medium;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
 
   &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
-    @apply border-gray-300;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
 

@@ -25,7 +25,7 @@ const renderCmdOrCtrlKey = () => {
           class="text-small !leading-5 px-1 rounded-md border-1"
           :class="
             activeCmd === 'cmd-j'
-              ? 'bg-brand-500 border-nc-border-brand text-nc-content-inverted-primary'
+              ? 'bg-nc-fill-primary border-nc-border-brand text-nc-content-inverted-primary'
               : 'bg-nc-bg-gray-medium border-nc-border-gray-medium'
           "
         >
@@ -43,7 +43,7 @@ const renderCmdOrCtrlKey = () => {
           class="text-small !leading-5 px-1 rounded-md border-1"
           :class="
             activeCmd === 'cmd-k'
-              ? 'bg-brand-500 border-nc-border-brand text-nc-content-inverted-primary'
+              ? 'bg-nc-fill-primary border-nc-border-brand text-nc-content-inverted-primary'
               : 'bg-nc-bg-gray-medium border-nc-border-gray-medium'
           "
         >
@@ -61,7 +61,7 @@ const renderCmdOrCtrlKey = () => {
           class="text-small !leading-5 px-1 rounded-md border-1"
           :class="
             activeCmd === 'cmd-l'
-              ? 'bg-brand-500 border-nc-border-brand text-nc-content-inverted-primary'
+              ? 'bg-nc-fill-primary border-nc-border-brand text-nc-content-inverted-primary'
               : 'bg-nc-bg-gray-medium border-nc-border-gray-medium'
           "
         >

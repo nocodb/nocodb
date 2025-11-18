@@ -635,7 +635,7 @@ onMounted(async () => {
     }
 
     .column-type-bt {
-      @apply bg-nc-blue-400 text-nc-content-blue-medium;
+      @apply bg-nc-blue-400 text-nc-blue-400;
     }
 
     :deep(.ant-form-item-explain) {

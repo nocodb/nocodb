@@ -208,8 +208,8 @@ const onWorkspaceCreateClick = () => {
                   <template #title>
                     {{ $t('objects.roleType.owner') }}
                   </template>
-                  <div class="h-6.5 px-1 py-0.25 rounded-lg bg-purple-50">
-                    <GeneralIcon icon="role_owner" class="min-w-4.5 min-h-4.5 text-xl !text-purple-700 !hover:text-purple-700" />
+                  <div class="h-6.5 px-1 py-0.25 rounded-lg bg-nc-purple-50">
+                    <GeneralIcon icon="role_owner" class="min-w-4.5 min-h-4.5 text-xl !text-nc-content-purple-dark !hover:text-nc-content-purple-dark" />
                   </div>
                 </NcTooltip>
               </div>

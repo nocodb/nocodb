@@ -92,7 +92,7 @@ onMounted(() => {
             width: 'calc(\(100% - 358px - 24px\) / 2)',
           }"
         >
-          <GeneralIcon icon="ncScript" class="h-6 w-6 flex-none text-nc-content-gray" />
+          <GeneralIcon icon="ncScript" class="h-6 w-6 flex-none text-nc-content-gray-subtle" />
           <div class="flex-1 font-semibold text-xl">Scripts</div>
         </div>
         <div class="flex bg-nc-bg-gray-medium rounded-lg p-1">

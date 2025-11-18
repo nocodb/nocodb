@@ -105,7 +105,7 @@ const saveGoogleProvider = async () => {
             >
               <span
                 data-test-id="nc-google-redirect-url"
-                class="text-nc-content-gray text-nc-content-gray overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+                class="text-nc-content-gray overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
               >
                 <!-- Get Redirect URL from Authentication Composable -->
                 {{ getRedirectUrl(google) }}

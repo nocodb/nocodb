@@ -382,6 +382,8 @@ a {
     }
     &.ant-select-disabled .ant-select-selector {
       box-shadow: none;
+      background: var(--nc-bg-gray-medium) !important;
+      border: var(--nc-border-gray-medium);
     }
   }
 }

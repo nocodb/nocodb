@@ -116,7 +116,7 @@ const detailsBody = computed(() => {
         <img :src="getScriptAssetsURL(activeScript.iconUrl)" alt="icon" class="h-[42px] w-[42px] object-contain" />
         <div class="flex-1 flex flex-col">
           <div class="font-semibold text-xl truncate">{{ activeScript.title }}</div>
-          <div class="text-small leading-[18px] text-nc-content-gray truncate">{{ activeScript.subTitle }}</div>
+          <div class="text-small leading-[18px] text-nc-content-gray-muted truncate">{{ activeScript.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
           <NcButton size="small" class="w-full" @click="onAddScript(activeScript)">

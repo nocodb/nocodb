@@ -17,6 +17,14 @@ export interface NcCacheOptions<TArgs extends any[] = any[]> {
     | string
     | ((args: TArgs, target: any, propertyKey: string | symbol) => string);
   /**
+   * Optional key prefix. If not provided, will be auto-generated as:
+   * className + ':' + functionName + ':' + context.base_id + ':'
+   * For static methods, className is the constructor name.
+   * For instance methods, className is the instance's constructor name.
+   * If not within a class, uses 'root' as className.
+   */
+  keyPrefix?: string;
+  /**
    * Optional function to extract context from function arguments
    * If not provided, assumes first argument is the context
    * Function receives typed arguments from the decorated method
@@ -44,6 +52,14 @@ export interface NcCacheOptionsAny {
   key:
     | string
     | ((args: any[], target: any, propertyKey: string | symbol) => string);
+  /**
+   * Optional key prefix. If not provided, will be auto-generated as:
+   * className + ':' + functionName + ':' + context.base_id + ':'
+   * For static methods, className is the constructor name.
+   * For instance methods, className is the instance's constructor name.
+   * If not within a class, uses 'root' as className.
+   */
+  keyPrefix?: string;
   /**
    * Optional function to extract context from function arguments
    * If not provided, assumes first argument is the context

@@ -429,7 +429,7 @@ export default class Model implements TableType {
   }
 
   @NcCache({
-    key: (args) => `Model.get:${args[1]}`,
+    key: (args) => args[1],
     contextExtraction: (args) => args[0],
   })
   public static async get(
@@ -468,7 +468,7 @@ export default class Model implements TableType {
 
   @NcCache({
     key: (args) =>
-      `Model.getByIdOrName:${
+      `${
         args[1].id ||
         `${args[1].base_id}:${args[1].source_id}:${args[1].table_name}`
       }`,
@@ -1141,7 +1141,7 @@ export default class Model implements TableType {
 
   @NcCache({
     key: (args) =>
-      `Model.getByAliasOrId:${args[1].base_id}:${args[1].source_id}:${args[1].aliasOrId}`,
+      `${args[1].base_id}:${args[1].source_id}:${args[1].aliasOrId}`,
     contextExtraction: (args) => args[0],
   })
   static async getByAliasOrId(

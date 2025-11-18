@@ -47,7 +47,7 @@ export default class FormulaColumn {
   }
 
   @NcCache({
-    key: (args) => `FormulaColumn.read:${args[1]}`,
+    key: (args) => args[1],
     contextExtraction: (args) => args[0],
   })
   public static async read(

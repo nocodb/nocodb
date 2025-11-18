@@ -17,6 +17,14 @@ export interface NcCacheOptions<TArgs extends any[] = any[]> {
     | string
     | ((args: TArgs, target: any, propertyKey: string | symbol) => string);
   /**
+   * Optional key prefix. If not provided, will be auto-generated as:
+   * className + ':' + functionName + ':' + context.base_id + ':'
+   * For static methods, className is the constructor name.
+   * For instance methods, className is the instance's constructor name.
+   * If not within a class, uses 'root' as className.
+   */
+  keyPrefix?: string;
+  /**
    * Optional function to extract context from function arguments
    * If not provided, assumes first argument is the context
    * Function receives typed arguments from the decorated method
@@ -44,6 +52,14 @@ export interface NcCacheOptionsAny {
   key:
     | string
     | ((args: any[], target: any, propertyKey: string | symbol) => string);
+  /**
+   * Optional key prefix. If not provided, will be auto-generated as:
+   * className + ':' + functionName + ':' + context.base_id + ':'
+   * For static methods, className is the constructor name.
+   * For instance methods, className is the instance's constructor name.
+   * If not within a class, uses 'root' as className.
+   */
+  keyPrefix?: string;
   /**
    * Optional function to extract context from function arguments
    * If not provided, assumes first argument is the context
@@ -102,6 +118,32 @@ export function NcCache<TArgs extends any[] = any[]>(
   ) => {
     const originalMethod = descriptor.value;
 
+    // Generate static part of cache key prefix outside wrapper function
+    // (className:functionName:) - base_id will be appended at runtime
+    let defaultPrefixBase: string | null = null;
+    if (!options.keyPrefix) {
+      // Determine class name
+      let className: string;
+      // For static methods, 'target' is the constructor function
+      // For instance methods, 'target' is the prototype
+      if (typeof target === 'function') {
+        // Static method - target is the constructor
+        className = target.name || 'root';
+      } else if (
+        target &&
+        target.constructor &&
+        typeof target.constructor === 'function'
+      ) {
+        // Instance method - get constructor name from prototype's constructor
+        className = target.constructor.name || 'root';
+      } else {
+        // Fallback to 'root' if not within a class
+        className = 'root';
+      }
+      const functionName = String(propertyKey);
+      defaultPrefixBase = `${className}:${functionName}:`;
+    }
+
     descriptor.value = async function (...args: any[]) {
       // Extract context using provided function or default to first argument
       const context: NcContext | undefined = options.contextExtraction
@@ -125,12 +167,23 @@ export function NcCache<TArgs extends any[] = any[]>(
         context.cacheMap = new Map<string, any>();
       }
 
+      // Generate cache key prefix
+      let keyPrefix = options.keyPrefix;
+      if (!keyPrefix && defaultPrefixBase !== null) {
+        // Append base_id to the pre-computed prefix base
+        const baseId = context.base_id || '';
+        keyPrefix = `${defaultPrefixBase}${baseId}:`;
+      }
+
       // Generate cache key
       // For static methods, 'this' is the constructor; for instance methods, 'this' is the instance
-      const cacheKey =
+      const userKey =
         typeof options.key === 'function'
           ? options.key(args as TArgs, this, propertyKey)
           : options.key;
+
+      // Combine prefix with user key
+      const cacheKey = keyPrefix + userKey;
 
       // Check if value is cached
       if (context.cacheMap.has(cacheKey)) {

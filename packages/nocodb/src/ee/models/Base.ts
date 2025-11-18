@@ -334,8 +334,7 @@ export default class Base extends BaseCE {
   }
 
   @NcCache({
-    key: (args) =>
-      `Base.getWithInfo:${args[1]}:${args[2] ? 'inclConfig' : 'noConfig'}`,
+    key: (args) => `${args[1]}:${args[2] ? 'inclConfig' : 'noConfig'}`,
     contextExtraction: (args) => args[0],
   })
   static async getWithInfo(

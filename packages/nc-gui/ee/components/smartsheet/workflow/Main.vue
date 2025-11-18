@@ -2,11 +2,10 @@
 import { computed, markRaw } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 
-import TriggerNode from './Node/Trigger.vue'
-import WorkflowNode from './Node/WorkflowNode.vue'
-import PlusNode from './Node/Plus.vue'
-
 import { useLayout } from './useLayout'
+import TriggerNode from '~/components/smartsheet/workflow/Node/Trigger.vue'
+import WorkflowNode from '~/components/smartsheet/workflow/Node/WorkflowNode.vue'
+import PlusNode from '~/components/smartsheet/workflow/Node/Plus.vue'
 import Sidebar from '~/components/smartsheet/workflow/Sidebar/index.vue'
 import { useWorkflowOrThrow } from '~/composables/useWorkflow'
 

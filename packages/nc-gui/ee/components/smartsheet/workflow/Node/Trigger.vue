@@ -53,12 +53,18 @@ const handleDelete = async () => {
   }, 50)
 }
 
-onClickOutside(wrappperRef, () => {
-  showSubMenuDropdown.value = false
-  if (selectedNodeId.value === props.id) {
-    selectedNodeId.value = null
-  }
-})
+onClickOutside(
+  wrappperRef,
+  () => {
+    showSubMenuDropdown.value = false
+    if (selectedNodeId.value === props.id) {
+      selectedNodeId.value = null
+    }
+  },
+  {
+    ignore: ['.node-sidebar'],
+  },
+)
 </script>
 
 <template>

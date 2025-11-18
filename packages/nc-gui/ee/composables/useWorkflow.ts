@@ -33,6 +33,11 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const edges = ref<Array<Edge>>((workflow.value?.edges as Array<Edge>) || [])
 
+  const selectedNode = computed(() => {
+    if (!selectedNodeId.value) return null
+    return nodes.value.find((n) => n.id === selectedNodeId.value)
+  })
+
   const getNodeMetaByType = (type?: string) => {
     const node = nodeTypes.value.find((node) => node.type === type)
     return node ? clone(node) : null
@@ -327,6 +332,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     isSaving,
     nodeTypes: readonly(nodeTypes),
     selectedNodeId,
+    selectedNode,
 
     // Methods
     updateWorkflowData,

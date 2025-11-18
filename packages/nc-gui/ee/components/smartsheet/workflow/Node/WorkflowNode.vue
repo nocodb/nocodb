@@ -75,12 +75,18 @@ const handleNodeClick = () => {
   }
 }
 
-onClickOutside(wrappperRef, () => {
-  showSubMenuDropdown.value = false
-  if (selectedNodeId.value === props.id) {
-    selectedNodeId.value = null
-  }
-})
+onClickOutside(
+  wrappperRef,
+  () => {
+    showSubMenuDropdown.value = false
+    if (selectedNodeId.value === props.id) {
+      selectedNodeId.value = null
+    }
+  },
+  {
+    ignore: ['.node-sidebar', '.ant-select-dropdown', '.ant-picker-dropdown', '.ant-modal'],
+  },
+)
 </script>
 
 <template>

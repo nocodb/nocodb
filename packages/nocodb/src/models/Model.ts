@@ -107,7 +107,7 @@ export default class Model implements TableType {
   // @NcCache({
   //   key: (args, thisArg) =>
   //     `Model.getColumns:${thisArg.id}:${args[2] || 'default'}`,
-  //   contextExtraction: (args) => args[0],
+  //
   // })
   public async getColumns(
     context: NcContext,
@@ -430,7 +430,6 @@ export default class Model implements TableType {
 
   @NcCache({
     key: (args) => args[1],
-    contextExtraction: (args) => args[0],
   })
   public static async get(
     context: NcContext,
@@ -472,7 +471,6 @@ export default class Model implements TableType {
         args[1].id ||
         `${args[1].base_id}:${args[1].source_id}:${args[1].table_name}`
       }`,
-    contextExtraction: (args) => args[0],
   })
   public static async getByIdOrName(
     context: NcContext,
@@ -1142,7 +1140,6 @@ export default class Model implements TableType {
   @NcCache({
     key: (args) =>
       `${args[1].base_id}:${args[1].source_id}:${args[1].aliasOrId}`,
-    contextExtraction: (args) => args[0],
   })
   static async getByAliasOrId(
     context: NcContext,

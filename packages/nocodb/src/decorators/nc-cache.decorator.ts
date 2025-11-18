@@ -26,7 +26,8 @@ export interface NcCacheOptions<TArgs extends any[] = any[]> {
   keyPrefix?: string;
   /**
    * Optional function to extract context from function arguments
-   * If not provided, assumes first argument is the context
+   * If not provided, defaults to first argument if it looks like a valid NcContext
+   * (has base_id or workspace_id property)
    * Function receives typed arguments from the decorated method
    */
   contextExtraction?: (args: TArgs, thisArg: this) => NcContext | undefined;
@@ -62,7 +63,8 @@ export interface NcCacheOptionsAny {
   keyPrefix?: string;
   /**
    * Optional function to extract context from function arguments
-   * If not provided, assumes first argument is the context
+   * If not provided, defaults to first argument if it looks like a valid NcContext
+   * (has base_id or workspace_id property)
    * Function receives: (args: any[]) => NcContext | undefined
    */
   contextExtraction?: (args: any[]) => NcContext | undefined;

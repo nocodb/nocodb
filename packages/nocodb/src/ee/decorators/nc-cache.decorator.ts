@@ -26,7 +26,8 @@ export interface NcCacheOptions<TArgs extends any[] = any[]> {
   keyPrefix?: string;
   /**
    * Optional function to extract context from function arguments
-   * If not provided, assumes first argument is the context
+   * If not provided, defaults to first argument if it looks like a valid NcContext
+   * (has base_id or workspace_id property)
    * Function receives typed arguments from the decorated method
    */
   contextExtraction?: (args: TArgs, thisArg: this) => NcContext | undefined;
@@ -62,7 +63,8 @@ export interface NcCacheOptionsAny {
   keyPrefix?: string;
   /**
    * Optional function to extract context from function arguments
-   * If not provided, assumes first argument is the context
+   * If not provided, defaults to first argument if it looks like a valid NcContext
+   * (has base_id or workspace_id property)
    * Function receives: (args: any[]) => NcContext | undefined
    */
   contextExtraction?: (args: any[]) => NcContext | undefined;
@@ -146,9 +148,20 @@ export function NcCache<TArgs extends any[] = any[]>(
 
     descriptor.value = async function (...args: any[]) {
       // Extract context using provided function or default to first argument
-      const context: NcContext | undefined = options.contextExtraction
-        ? options.contextExtraction(args as TArgs, this)
-        : args[0];
+      let context: NcContext | undefined;
+      if (options.contextExtraction) {
+        context = options.contextExtraction(args as TArgs, this);
+      } else if (args.length > 0 && args[0]) {
+        // Check if first argument looks like a valid NcContext
+        const firstArg = args[0];
+        if (
+          typeof firstArg === 'object' &&
+          (firstArg.base_id !== undefined ||
+            firstArg.workspace_id !== undefined)
+        ) {
+          context = firstArg as NcContext;
+        }
+      }
 
       // If no context or cache is not enabled, execute method normally
       if (!context || context.cache !== true) {

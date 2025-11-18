@@ -565,7 +565,6 @@ export default class Column<T = any> implements ColumnType {
 
   @NcCache({
     key: (args, thisArg) => thisArg.id,
-    contextExtraction: (args) => args[0],
     onCacheHit: async (_args, result, thisArg) => {
       thisArg.colOptions = result;
     },
@@ -656,7 +655,6 @@ export default class Column<T = any> implements ColumnType {
   @NcCache({
     key: (args) =>
       `${args[1].fk_model_id}:${args[1].fk_default_view_id ?? 'default'}`,
-    contextExtraction: (args) => args[0],
   })
   public static async list(
     context: NcContext,
@@ -771,7 +769,6 @@ export default class Column<T = any> implements ColumnType {
 
   @NcCache({
     key: (args) => args[1].colId,
-    contextExtraction: (args) => args[0],
   })
   public static async get<T = any>(
     context: NcContext,

@@ -112,7 +112,6 @@ export default class SelectOption implements SelectOptionType {
 
   @NcCache({
     key: (args) => args[1],
-    contextExtraction: (args) => args[0],
   })
   public static async get(
     context: NcContext,
@@ -144,7 +143,6 @@ export default class SelectOption implements SelectOptionType {
 
   @NcCache({
     key: (args) => args[1],
-    contextExtraction: (args) => args[0],
   })
   public static async read(
     context: NcContext,

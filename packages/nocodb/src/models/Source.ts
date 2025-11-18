@@ -289,7 +289,6 @@ export default class Source implements SourceType {
 
   @NcCache({
     key: (args) => args[1],
-    contextExtraction: (args) => args[0],
   })
   static async get(
     context: NcContext,

@@ -1209,7 +1209,6 @@ export async function extractColumn({
           .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
           .replaceAll(aliasPlaceholder, ':alias:')
           .replaceAll('?', '\\?');
-        console.log('sql', relQbBuilderSyntax);
 
         const joinHandle = !result.isArray
           ? (qb, { alias }: { alias: string }) => {
@@ -2211,7 +2210,6 @@ export async function singleQueryList(
   const finalQb = qb;
   knex.applyCte(finalQb);
   let dataQuery = finalQb.toQuery();
-  console.log('dataQuery get');
   if (!skipCache) {
     const { sql, bindings } = finalQb.toSQL();
 

@@ -503,6 +503,11 @@ export default async function formulaQueryBuilderv2({
       getAliasCount,
     });
 
+    if (qb.builder.toSQL().sql.length > 500 * 1000) {
+      NcError.get(context).formulaError(
+        `Formula length too long for column ${column.title}`,
+      );
+    }
     if (!validateFormula) return qb;
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead

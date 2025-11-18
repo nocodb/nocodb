@@ -78,13 +78,11 @@ watch(
       :edges="edges"
       :node-types="nodeTypes"
       :zoom-on-scroll="false"
-      :zoom-on-pinch="false"
+      zoom-on-pinch
       :zoom-on-double-click="false"
       :pan-on-scroll="false"
       auto-pan-on-connect
       :default-zoom="1"
-      :min-zoom="1"
-      :max-zoom="1"
       fit-view-on-init
       :delete-key-code="null"
       class="workflow-canvas"

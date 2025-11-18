@@ -142,7 +142,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       id: `e:${sourceNodeId}->${plusNode.id}`,
       source: sourceNodeId,
       target: plusNode.id,
-      animated: true,
+      animated: false,
     }
 
     // Add label for conditional branches

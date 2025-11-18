@@ -121,10 +121,11 @@ watch(
       :zoom-on-pinch="false"
       :zoom-on-double-click="false"
       :pan-on-scroll="false"
+      auto-pan-on-connect
       :default-zoom="1"
       :min-zoom="1"
       :max-zoom="1"
-      :fit-view-on-init="true"
+      fit-view-on-init
       :delete-key-code="null"
       class="workflow-canvas"
     >

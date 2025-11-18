@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import type { TableType, ViewType, GalleryType, KanbanType } from 'nocodb-sdk'
-import { PlanFeatureTypes, PlanTitles, PermissionEntity, PermissionKey, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import type { GalleryType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, PlanFeatureTypes, PlanTitles, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = withDefaults(

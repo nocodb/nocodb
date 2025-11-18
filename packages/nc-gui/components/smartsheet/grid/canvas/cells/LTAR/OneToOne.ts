@@ -38,7 +38,7 @@ export const OneToOneCellRenderer: CellRenderer = {
     if (!ooColumn) return
     let returnData
     if (isValidValue(value)) {
-      const cellWidth = width - (isBoxHovered({ x, y, width, height }, mousePosition) ? 16 : 0)
+      const cellWidth = width - (!readonly && selected ? 34 : 0)
 
       const cellValue =
         value && !Array.isArray(value) && typeof value === 'object'
@@ -107,7 +107,12 @@ export const OneToOneCellRenderer: CellRenderer = {
           y: y + (rowHeightInPx['1'] === height ? 8 : 10),
           icon: 'ncXCircle',
           size: 14,
-          color: '#AFB3C2',
+          color: isBoxHovered(
+            { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 10), height: 14, width: 14 },
+            mousePosition,
+          )
+            ? themeV3Colors.gray['500']
+            : '#AFB3C2',
         })
 
         if (

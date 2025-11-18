@@ -428,7 +428,7 @@ export default class Model implements TableType {
     return modelList.map((m) => this.castType(m));
   }
 
-  @NcCache<[NcContext, string, any?]>({
+  @NcCache({
     key: (args) => `Model.get:${args[1]}`,
     contextExtraction: (args) => args[0],
   })
@@ -466,6 +466,14 @@ export default class Model implements TableType {
     return this.castType(modelData);
   }
 
+  @NcCache({
+    key: (args) =>
+      `Model.getByIdOrName:${
+        args[1].id ||
+        `${args[1].base_id}:${args[1].source_id}:${args[1].table_name}`
+      }`,
+    contextExtraction: (args) => args[0],
+  })
   public static async getByIdOrName(
     context: NcContext,
     args:
@@ -1131,6 +1139,11 @@ export default class Model implements TableType {
     });
   }
 
+  @NcCache({
+    key: (args) =>
+      `Model.getByAliasOrId:${args[1].base_id}:${args[1].source_id}:${args[1].aliasOrId}`,
+    contextExtraction: (args) => args[0],
+  })
   static async getByAliasOrId(
     context: NcContext,
     {

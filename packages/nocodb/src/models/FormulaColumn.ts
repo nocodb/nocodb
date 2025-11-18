@@ -1,9 +1,10 @@
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 
 export default class FormulaColumn {
   formula: string;
@@ -45,6 +46,10 @@ export default class FormulaColumn {
     return this.read(context, formulaColumn.fk_column_id, ncMeta);
   }
 
+  @NcCache({
+    key: (args) => `FormulaColumn.read:${args[1]}`,
+    contextExtraction: (args) => args[0],
+  })
   public static async read(
     context: NcContext,
     columnId: string,

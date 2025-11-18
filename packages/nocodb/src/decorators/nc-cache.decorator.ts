@@ -114,8 +114,14 @@ export function NcCache<TArgs extends any[] = any[]>(
       }
 
       // Initialize cache map on context if it doesn't exist
+      // Make it non-enumerable so it's excluded from JSON.stringify
       if (!context.cacheMap) {
-        context.cacheMap = new Map<string, any>();
+        Object.defineProperty(context, 'cacheMap', {
+          value: new Map<string, any>(),
+          enumerable: false,
+          writable: true,
+          configurable: true,
+        });
       }
 
       // Generate cache key
@@ -130,18 +136,18 @@ export function NcCache<TArgs extends any[] = any[]>(
         const cachedResult = context.cacheMap.get(cacheKey);
         // Run cache hit callback if provided
         if (options.onCacheHit) {
-          await options.onCacheHit(args as TArgs, cachedResult, this);
+          await options.onCacheHit(args as TArgs, await cachedResult, this);
         }
-        return cachedResult;
+        return await cachedResult;
       }
 
       // Execute method and cache result
-      const result = await originalMethod.apply(this, args);
+      const resultPromise = originalMethod.apply(this, args);
 
       // Store result in cache
-      context.cacheMap.set(cacheKey, result);
+      context.cacheMap.set(cacheKey, resultPromise);
 
-      return result;
+      return await resultPromise;
     };
 
     return descriptor;

@@ -3,7 +3,7 @@ import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -35,6 +35,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NcError } from '~/helpers/catchError';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 
 const logger = new Logger('Base');
 
@@ -332,6 +333,11 @@ export default class Base extends BaseCE {
     );
   }
 
+  @NcCache({
+    key: (args) =>
+      `Base.getWithInfo:${args[1]}:${args[2] ? 'inclConfig' : 'noConfig'}`,
+    contextExtraction: (args) => args[0],
+  })
   static async getWithInfo(
     context: NcContext,
     baseId: string,

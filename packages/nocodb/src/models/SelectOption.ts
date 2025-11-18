@@ -1,11 +1,12 @@
 import type { SelectOptionType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 
 export default class SelectOption implements SelectOptionType {
   id: string;
@@ -109,6 +110,10 @@ export default class SelectOption implements SelectOptionType {
     return true;
   }
 
+  @NcCache({
+    key: (args) => `SelectOption.get:${args[1]}`,
+    contextExtraction: (args) => args[0],
+  })
   public static async get(
     context: NcContext,
     selectOptionId: string,
@@ -137,6 +142,10 @@ export default class SelectOption implements SelectOptionType {
     return data && new SelectOption(data);
   }
 
+  @NcCache({
+    key: (args) => `SelectOption.read:${args[1]}`,
+    contextExtraction: (args) => args[0],
+  })
   public static async read(
     context: NcContext,
     fk_column_id: string,

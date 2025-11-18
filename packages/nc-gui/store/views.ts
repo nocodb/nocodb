@@ -165,6 +165,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const isActiveViewLocked = computed(() => activeView.value?.lock_type === 'locked')
   const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
 
+  const isActiveViewCellHeaderVisible = computed(() => {
+    return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_cell_header_visible ?? true
+  })
+
   const isCopyViewConfigFromAnotherViewFeatureEnabled = computed(() =>
     isFeatureEnabled(FEATURE_FLAG.COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW),
   )
@@ -1154,6 +1158,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     activeViewRowColorInfo,
     sharedView,
     isCopyViewConfigFromAnotherViewFeatureEnabled,
+    isActiveViewCellHeaderVisible,
 
     // Methods
     createView,

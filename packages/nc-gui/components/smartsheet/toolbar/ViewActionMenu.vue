@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, type TableType, type ViewType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import type { TableType, ViewType, GalleryType, KanbanType } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, PermissionEntity, PermissionKey, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = withDefaults(
@@ -35,6 +35,7 @@ const {
   navigateToView,
   duplicateView,
   updateView,
+  updateViewMeta,
   isUserViewOwner,
   onOpenCopyViewConfigFromAnotherViewModal,
   getCopyViewConfigBtnAccessStatus,
@@ -190,6 +191,44 @@ const onClickCopyViewConfig = () => {
   emits('closeModal')
 
   onOpenCopyViewConfigFromAnotherViewModal({ destView: view.value })
+}
+
+const isCellHeaderVisible = computed(() => {
+  return parseProp((view.value?.view as GalleryType | KanbanType)?.meta)?.is_cell_header_visible ?? true
+})
+
+const onToggleColumnHeader = async () => {
+  if (!view.value) {
+    emits('closeModal')
+
+    return
+  }
+
+  const payload = {
+    ...parseProp((view.value?.view as GalleryType | KanbanType)?.meta),
+    is_cell_header_visible: !isCellHeaderVisible.value,
+  }
+
+  view.value.meta = payload
+
+  emits('closeModal')
+
+  try {
+    await updateViewMeta(view.value.id!, view.value.type, {
+      meta: payload,
+    })
+  } catch (e: any) {
+    // revert local changes on error
+    view.value.meta = {
+      ...payload,
+      is_cell_header_visible: !payload.is_cell_header_visible,
+    }
+
+    const errorInfo = await extractSdkResponseErrorMsgv2(e)
+    message.error('Error occurred while updating card header visibility', undefined, {
+      copyText: errorInfo.message,
+    })
+  }
 }
 
 const isViewOwner = computed(() => {
@@ -587,6 +626,9 @@ defineOptions({
             </PaymentUpgradeBadgeProvider>
           </SmartsheetToolbarNotAllowedTooltip>
         </template>
+        <NcMenuItem v-if="!inSidebar" @click="onToggleColumnHeader">
+          {{ isCellHeaderVisible ? 'Hide' : 'Show' }} column header
+        </NcMenuItem>
       </template>
 
       <template v-if="isUIAllowed('viewCreateOrEdit')">

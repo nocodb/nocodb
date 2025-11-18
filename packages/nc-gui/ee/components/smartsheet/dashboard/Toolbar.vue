@@ -23,7 +23,7 @@ const createWidget = async (widgetType: WidgetTypes, type?: ChartTypes) => {
     if (widgetType === WidgetTypes.CHART && chartType) {
       return `${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart`
     }
-    return `${widgetType.charAt(0).toUpperCase() + widgetType.slice(1)}`
+    return `${capitalize(widgetType)}`
   }
 
   const positionMap = {

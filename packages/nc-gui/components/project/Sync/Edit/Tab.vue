@@ -8,16 +8,18 @@ const props = defineProps<{
 
 const modelValue = useVModel(props, 'modelValue')
 
+const { t } = useI18n()
+
 const { syncConfigForm } = useSyncFormOrThrow()
 
 const tabs = computed(() => {
   const baseTabs = [
     {
-      title: 'General',
+      title: t('general.general'),
       value: 'general',
     },
     {
-      title: 'Sources',
+      title: t('labels.sources'),
       value: 'sources',
     },
   ]
@@ -25,7 +27,7 @@ const tabs = computed(() => {
   // Only show Schema Mapping tab for CUSTOM category
   if (syncConfigForm.value.sync_category === SyncCategory.CUSTOM) {
     baseTabs.push({
-      title: 'Schema',
+      title: t('labels.schema'),
       value: 'schema',
     })
   }

@@ -106,13 +106,15 @@ const supportedDocs = [
       <div class="flex w-full items-center pl-4 pr-3 py-3 justify-between">
         <div class="flex items-center gap-3 flex-1">
           <GeneralIcon class="text-green-700 h-5 w-5" icon="sync" />
-          <div class="text-base font-weight-700">New Sync</div>
+          <div class="text-base font-weight-700">
+            {{ $t('labels.newSync') }}
+          </div>
         </div>
         <ProjectSyncCreateSteps :current="step" />
 
         <div class="flex justify-end items-center gap-3 flex-1">
           <NcButton :disabled="step === SyncFormStep.SyncSettings" type="secondary" size="small" @click="previousStep">
-            Back
+            {{ $t('labels.back') }}
           </NcButton>
 
           <NcTooltip :disabled="!saveError || step !== SyncFormStep.Create">
@@ -132,8 +134,12 @@ const supportedDocs = [
                 <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-4 h-4 flex-none" />
               </template>
               <span>
-                <template v-if="step === SyncFormStep.Create"> Create </template>
-                <template v-else> Next </template>
+                <template v-if="step === SyncFormStep.Create">
+                  {{ $t('general.create') }}
+                </template>
+                <template v-else>
+                  {{ $t('labels.next') }}
+                </template>
               </span>
             </NcButton>
           </NcTooltip>
@@ -172,7 +178,13 @@ const supportedDocs = [
       </div>
 
       <NcModalSupportedDocsSidebar>
-        <NcModalSupportedDocs :docs="supportedDocs" />
+        <NcModalSupportedDocs class="sync-modal-docs" :docs="supportedDocs">
+          <template #title>
+            <span class="text-nc-content-gray-emphasis text-captionBold">
+              {{ $t('labels.supportDocs') }}
+            </span>
+          </template>
+        </NcModalSupportedDocs>
       </NcModalSupportedDocsSidebar>
     </div>
   </NcModal>
@@ -188,6 +200,13 @@ const supportedDocs = [
 
   .nc-modal-header {
     @apply !mb-0 !pb-0;
+  }
+
+  .sync-modal-docs {
+    .nc-modal-docs-icon,
+    .nc-modal-docs-link {
+      @apply !text-nc-content-gray text-caption;
+    }
   }
 }
 </style>

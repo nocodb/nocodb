@@ -105,7 +105,7 @@ onBeforeUnmount(() => {
           <GeneralIcon icon="delete" />
         </NcButton>
         <template #title>
-          {{ disableDeletion ? 'Cannot delete last sync source' : 'Delete source' }}
+          {{ disableDeletion ? $t('msg.info.cantDeleteLastSyncSource') : $t('labels.deleteSource') }}
         </template>
       </NcTooltip>
 

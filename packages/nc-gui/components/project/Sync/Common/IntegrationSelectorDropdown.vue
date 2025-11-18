@@ -2,6 +2,8 @@
 import { SyncCategory } from 'nocodb-sdk'
 import { useSyncFormOrThrow } from '../useSyncForm'
 
+const { t } = useI18n()
+
 const { isSyncAdvancedFeaturesEnabled } = storeToRefs(useSyncStore())
 
 const { addIntegrationConfig, availableIntegrations, syncConfigForm } = useSyncFormOrThrow()
@@ -21,9 +23,9 @@ const isDisabled = computed(() => {
 
 const tooltipText = computed(() => {
   if (syncConfigForm.value.sync_category === SyncCategory.CUSTOM) {
-    return 'Multiple sources are not supported for custom schema'
+    return t('msg.info.multipleSourcesNotSupportedForCustomSchema')
   }
-  return 'Multiple sources are not supported yet'
+  return t('msg.info.multipleSourcesNotSupported')
 })
 
 const onSelect = (option: IntegrationItemType) => {
@@ -34,17 +36,16 @@ const onSelect = (option: IntegrationItemType) => {
 
 <template>
   <div class="w-[fit-content]">
-    <NcListDropdown
-      v-model:is-open="isOpen"
-      :tooltip-on-disabled="tooltipText"
-      tooltip-on-disabled-placement="top"
-      :disabled="isDisabled"
-    >
-      <div class="flex items-center gap-2">
-        <GeneralIcon icon="ncPlus" />
-        New Source
-      </div>
-
+    <NcListDropdown v-model:is-open="isOpen" :disabled="isDisabled">
+      <NcTooltip placement="top" :disabled="!isDisabled">
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="ncPlus" />
+          {{ $t('labels.newSource') }}
+        </div>
+        <template #title>
+          {{ tooltipText }}
+        </template>
+      </NcTooltip>
       <template #overlay>
         <NcList
           :value="selectedValue"
@@ -52,7 +53,7 @@ const onSelect = (option: IntegrationItemType) => {
           option-label-key="title"
           option-value-key="sub_type"
           close-on-select
-          search-input-placeholder="Search integrations"
+          :search-input-placeholder="$t('labels.searchIntegrations')"
           @change="(option) => onSelect(option)"
         >
           <template #listItemContent="{ option: integration }">
@@ -74,5 +75,3 @@ const onSelect = (option: IntegrationItemType) => {
     </NcListDropdown>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

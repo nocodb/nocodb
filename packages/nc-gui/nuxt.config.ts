@@ -311,6 +311,7 @@ export default defineNuxtConfig({
         'typesense',
         'vue3-moveable',
         'vue-fullscreen',
+        'cronstrue',
       ],
       esbuildOptions: {
         define: {

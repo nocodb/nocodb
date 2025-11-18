@@ -18,7 +18,9 @@ const availableIntegrations = computed(() => {
 
 <template>
   <div>
-    <div class="text-bodyLgBold text-nc-content-gray mb-4">Select a source</div>
+    <div class="text-bodyLgBold text-nc-content-gray mb-4">
+      {{ $t('labels.selectASource') }}
+    </div>
 
     <div class="flex flex-col rounded-lg border-1 border-nc-border-gray-medium">
       <div
@@ -40,5 +42,3 @@ const availableIntegrations = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

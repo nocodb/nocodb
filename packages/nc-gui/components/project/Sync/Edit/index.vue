@@ -101,7 +101,7 @@ const supportedDocs = [
               <template v-if="updateError" #icon>
                 <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-4 h-4 flex-none" />
               </template>
-              <span>Update Sync</span>
+              <span>{{ $t('labels.updateSync') }}</span>
             </NcButton>
           </NcTooltip>
           <NcButton type="text" size="small" data-testid="nc-close-sync-modal" @click.stop="closeModal">
@@ -135,7 +135,13 @@ const supportedDocs = [
       </div>
 
       <NcModalSupportedDocsSidebar>
-        <NcModalSupportedDocs :docs="supportedDocs" />
+        <NcModalSupportedDocs class="sync-modal-docs" :docs="supportedDocs">
+          <template #title>
+            <span class="text-nc-content-gray-emphasis text-captionBold">
+              {{ $t('labels.supportDocs') }}
+            </span>
+          </template>
+        </NcModalSupportedDocs>
         <NcDivider class="!my-5" />
         <ProjectSyncEditMetaInfo />
       </NcModalSupportedDocsSidebar>
@@ -153,6 +159,13 @@ const supportedDocs = [
 
   .nc-modal-header {
     @apply !mb-0 !pb-0;
+  }
+
+  .sync-modal-docs {
+    .nc-modal-docs-icon,
+    .nc-modal-docs-link {
+      @apply !text-nc-content-gray text-caption;
+    }
   }
 }
 </style>

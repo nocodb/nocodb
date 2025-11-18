@@ -41,7 +41,9 @@ const getReadableCategory = (category: SyncCategory) => {
   <div>
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-2.5">
-        <div class="text-bodyLgBold text-nc-content-gray flex-1">General</div>
+        <div class="text-bodyLgBold text-nc-content-gray flex-1">
+          {{ $t('general.general') }}
+        </div>
         <NcButton type="text" size="small" @click="switchToStep(SyncFormStep.SyncSettings)">
           <div class="flex gap-2 text-nc-content-brand items-center">
             <GeneralIcon icon="ncEdit2" />
@@ -51,31 +53,41 @@ const getReadableCategory = (category: SyncCategory) => {
       </div>
 
       <div class="flex items-center gap-2">
-        <div class="flex-1 text-caption">Sync name</div>
+        <div class="flex-1 text-caption">
+          {{ $t('labels.syncName') }}
+        </div>
         <div class="flex-1 text-caption">
           {{ syncConfigForm.title }}
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <div class="flex-1 text-caption">Sync Type</div>
+        <div class="flex-1 text-caption">
+          {{ $t('labels.syncType') }}
+        </div>
         <div class="flex-1 text-caption capitalize">
           {{ syncConfigForm.sync_type }}
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <div class="flex-1 text-caption">On Delete Action</div>
+        <div class="flex-1 text-caption">
+          {{ $t('labels.onDeleteAction') }}
+        </div>
         <div class="flex-1 text-caption">
           {{ syncEntityToReadableMap[syncConfigForm.on_delete_action] }}
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <div class="flex-1 text-caption">Sync Trigger</div>
+        <div class="flex-1 text-caption">
+          {{ $t('labels.syncTrigger') }}
+        </div>
         <div class="flex-1 text-caption">
           {{ getReadableTrigger(syncConfigForm.sync_trigger) }}
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <div class="flex-1 text-caption">Category</div>
+        <div class="flex-1 text-caption">
+          {{ $t('labels.category') }}
+        </div>
         <div class="flex-1 text-caption">
           {{ getReadableCategory(syncConfigForm.sync_category) }}
         </div>
@@ -85,11 +97,13 @@ const getReadableCategory = (category: SyncCategory) => {
     <NcDivider class="!my-8" />
 
     <div class="flex items-center gap-2.5">
-      <div class="text-bodyLgBold text-nc-content-gray flex-1">Sources</div>
+      <div class="text-bodyLgBold text-nc-content-gray flex-1">
+        {{ $t('labels.sources') }}
+      </div>
       <NcButton type="text" size="small" @click="switchToStep(SyncFormStep.Integration)">
         <div class="flex gap-2 text-nc-content-brand items-center">
           <GeneralIcon icon="ncEdit2" />
-          Edit
+          {{ $t('general.edit') }}
         </div>
       </NcButton>
     </div>
@@ -110,4 +124,3 @@ const getReadableCategory = (category: SyncCategory) => {
     </div>
   </div>
 </template>
-

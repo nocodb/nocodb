@@ -97,7 +97,7 @@ watch(
   (title) => {
     if (!title) return
 
-    const capitalizedTitle = `${title.charAt(0).toUpperCase()}${title.slice(1)} | ${openedProject.value?.title}`
+    const capitalizedTitle = `${capitalize(title)} | ${openedProject.value?.title}`
 
     useTitle(capitalizedTitle)
   },

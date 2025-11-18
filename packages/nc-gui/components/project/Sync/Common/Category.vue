@@ -55,8 +55,12 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
 
 <template>
   <div>
-    <div class="text-bodyLgBold text-nc-content-gray mb-4">Category</div>
-    <div class="text-caption text-nc-content-gray mb-2">Select a category</div>
+    <div class="text-bodyLgBold text-nc-content-gray mb-4">
+      {{ $t('labels.category') }}
+    </div>
+    <div class="text-caption text-nc-content-gray mb-2">
+      {{ $t('labels.selectACategory') }}
+    </div>
     <div class="grid grid-cols-4 gap-2.5">
       <div
         v-for="category in categories"
@@ -70,11 +74,13 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
         class="p-3 border-1 flex flex-col gap-2 rounded-lg transition-shadow border-nc-border-gray-medium"
         @click="selectCategory(category)"
       >
-        <GeneralIcon
+        <div
           v-if="!category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true)"
-          :icon="category.icon"
-          class="w-4 h-4 text-nc-content-gray-subtle"
-        />
+          class="max-h-5 h-5 flex items-center"
+        >
+          <GeneralIcon :icon="category.icon" class="w-4 h-4 text-nc-content-gray-subtle" />
+        </div>
+
         <NcBadgeComingSoon v-else class="bg-nc-bg-gray-medium !w-[fit-content] text-nc-content-gray-subtle2" />
         <div class="text-captionBold text-nc-content-gray">
           {{ category.label }}
@@ -92,21 +98,24 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
           'border-nc-border-gray-extradark !shadow-disabled': syncAllModels && mode === 'edit',
           'cursor-pointer': mode === 'create',
         }"
-        class="flex p-3 border-1 rounded-lg gap-3"
+        class="flex flex-col p-3 border-1 rounded-lg gap-1"
         @click="selectSyncAllModels(true)"
       >
-        <div class="nc-radio" :data-checked="syncAllModels">
-          <div class="nc-radio-dot"></div>
-        </div>
-        <div class="flex flex-col gap-1">
-          <div class="text-nc-content-gray text-caption">Sync all tables</div>
-          <div class="text-nc-content-gray-muted text-bodySm">
-            All tables will be synced. This may take longer and use more resources.
+        <div class="flex items-center gap-3">
+          <div class="nc-radio" :data-checked="syncAllModels">
+            <div class="nc-radio-dot"></div>
           </div>
+          <div class="text-nc-content-gray text-caption">
+            {{ $t('labels.syncAllTables') }}
+          </div>
+        </div>
+
+        <div class="text-nc-content-gray-muted text-bodySm pl-7">
+          {{ $t('labels.syncAllTablesDescription') }}
         </div>
       </div>
       <div
-        class="flex p-3 border-1 rounded-lg gap-3"
+        class="flex flex-col p-3 border-1 rounded-lg gap-1"
         :class="{
           'border-nc-border-brand !shadow-selected': !syncAllModels && mode === 'create',
           'border-nc-border-gray-extradark !shadow-disabled': !syncAllModels && mode === 'edit',
@@ -114,27 +123,33 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
         }"
         @click="selectSyncAllModels(false)"
       >
-        <div class="nc-radio" :data-checked="!syncAllModels">
-          <div class="nc-radio-dot"></div>
+        <div class="flex items-center gap-3">
+          <div class="nc-radio" :data-checked="!syncAllModels">
+            <div class="nc-radio-dot"></div>
+          </div>
+          <div class="text-nc-content-gray text-caption">
+            {{ $t('labels.syncSpecificTables') }}
+          </div>
         </div>
         <div class="flex flex-col gap-1">
-          <div class="text-nc-content-gray text-caption">Sync specific tables</div>
-          <div class="text-nc-content-gray-muted text-bodySm">
-            Select specific tables to sync. This will use lesser resources.
+          <div class="text-nc-content-gray-muted text-bodySm pl-7">
+            {{ $t('labels.syncSpecificTablesDescription') }}
           </div>
         </div>
       </div>
     </div>
 
     <div v-if="syncConfigForm.sync_category !== SyncCategory.CUSTOM && !syncAllModels">
-      <div class="text-caption text-nc-content-gray">Select tables to sync</div>
+      <div class="text-caption text-nc-content-gray">
+        {{ $t('labels.selectTablesToSync') }}
+      </div>
 
       <div class="flex flex-col border-1 border-nc-border-gray-medium rounded-lg">
         <div
           v-for="model in availableModels"
           :key="model.value"
           :class="{
-            'cursor-pointer': mode === 'create',
+            'cursor-pointer': mode === 'create' && !model.required,
           }"
           class="flex flex-col px-3 gap-1 py-2 border-b-1 last:border-b-0"
           @click="onModelChanged(model)"

@@ -78,6 +78,7 @@ const columns = [
     width: 220,
     minWidth: 100,
     padding: '0px 24px',
+    justify: 'justify-end',
   },
 ] as NcTableColumnProps[]
 
@@ -161,7 +162,7 @@ onMounted(async () => {
         </a-input>
         <NcButton type="text" size="small" class="!px-2 !w-22">
           <div class="flex gap-2 items-center">
-            Docs
+            {{ $t('title.docs') }}
             <GeneralIcon icon="ncExternalLink" />
           </div>
         </NcButton>
@@ -170,7 +171,9 @@ onMounted(async () => {
       <NcButton v-if="isUIAllowed('sourceCreate')" size="small" class="z-10 !px-2" type="primary" @click="handleCreateSync">
         <div class="flex flex-row items-center w-full gap-x-1">
           <GeneralIcon icon="plus" />
-          <div class="flex">New Sync</div>
+          <div class="flex">
+            {{ $t('labels.newSync') }}
+          </div>
         </div>
       </NcButton>
     </div>
@@ -215,14 +218,19 @@ onMounted(async () => {
             </div>
           </template>
           <template v-else-if="column.key === 'last_sync'">
-            <div class="text-nc-content-gray-subtle2 text-bodyDefaultSm">
-              {{ dayjs(record.last_sync_at).isValid() ? dayjs(record.last_sync_at).format('DD MMM YYYY HH:mm') : 'Never' }}
-            </div>
+            <NcTooltip>
+              <template #title>
+                {{ dayjs(record.last_sync_at).isValid() ? dayjs(record.last_sync_at).format('DD MMM YYYY HH:mm Z') : 'Never' }}
+              </template>
+              <div class="text-nc-content-gray-subtle2 text-bodyDefaultSm">
+                {{ dayjs(record.last_sync_at).isValid() ? timeAgo(record.last_sync_at) : 'Never' }}
+              </div>
+            </NcTooltip>
           </template>
           <template v-else-if="column.key === 'actions'">
             <div class="flex justify-end">
               <NcButton type="secondary" size="small" class="!border-r-0 !rounded-r-none" @click.stop="triggerSync(record.id)">
-                Trigger Sync
+                {{ $t('labels.triggerSync') }}
               </NcButton>
               <NcDropdown placement="bottomRight" @click.stop>
                 <NcButton type="secondary" size="small" class="!rounded-l-none">
@@ -232,12 +240,12 @@ onMounted(async () => {
                   <NcMenu variant="small">
                     <NcMenuItem @click="handleEditSync(record.id)">
                       <GeneralIcon icon="edit" />
-                      <span>Edit</span>
+                      <span>{{ $t('general.edit') }}</span>
                     </NcMenuItem>
                     <NcDivider />
                     <NcMenuItem danger @click="handleDeleteSync(record.id)">
                       <GeneralIcon icon="delete" />
-                      <span>Delete</span>
+                      <span>{{ $t('general.delete') }}</span>
                     </NcMenuItem>
                   </NcMenu>
                 </template>
@@ -280,5 +288,3 @@ onMounted(async () => {
     <ProjectSyncProgressModal v-if="syncJobId" v-model="showProgressModal" :job-id="syncJobId" :base-id="currentBase?.id!" />
   </div>
 </template>
-
-<style scoped></style>

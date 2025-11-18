@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<NcBadgeProps>(), {
 <template>
   <NcBadge v-bind="props" class="text-bodyDefaultSm">
     <slot>
-      {{ $t('general.comingsoon') }}
+      {{ $t('title.comingSoon') }}
     </slot>
   </NcBadge>
 </template>

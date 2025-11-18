@@ -144,8 +144,12 @@ onBeforeUnmount(() => {
         <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-nc-content-gray">
           <GeneralIcon icon="sync" class="!text-green-700 w-5 h-5" />
           <span v-if="isInProgress">{{ title }}...</span>
-          <span v-else-if="lastProgress?.status === JobStatus.COMPLETED">Sync Completed</span>
-          <span v-else-if="lastProgress?.status === JobStatus.FAILED">Sync Failed</span>
+          <span v-else-if="lastProgress?.status === JobStatus.COMPLETED">
+            {{ $t('labels.syncCompleted') }}
+          </span>
+          <span v-else-if="lastProgress?.status === JobStatus.FAILED">
+            {{ $t('labels.syncFailed') }}
+          </span>
         </div>
       </div>
 
@@ -153,7 +157,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div class="flex justify-end gap-2 mt-5">
-      <NcButton v-if="isInProgress" type="secondary" size="small" @click="handleCancel"> Cancel </NcButton>
+      <NcButton v-if="isInProgress" type="secondary" size="small" @click="handleCancel"> {{ $t('labels.cancel') }} </NcButton>
 
       <NcButton
         v-if="!isInProgress && lastProgress?.status === JobStatus.FAILED"
@@ -161,7 +165,7 @@ onBeforeUnmount(() => {
         size="small"
         @click="dialogShow = false"
       >
-        Close
+        {{ $t('general.close') }}
       </NcButton>
 
       <NcButton
@@ -170,10 +174,8 @@ onBeforeUnmount(() => {
         size="small"
         @click="dialogShow = false"
       >
-        Done
+        {{ $t('general.done') }}
       </NcButton>
     </div>
   </NcModal>
 </template>
-
-<style scoped lang="scss"></style>

@@ -6,19 +6,21 @@ defineProps<{
   current: number
 }>()
 
+const { t } = useI18n()
+
 const { syncConfigForm } = useSyncFormOrThrow()
 
 const steps = computed(() => {
   const baseSteps = [
-    { title: 'Category', index: 0 },
-    { title: 'Sources', index: 1 },
+    { title: t('labels.category'), index: 0 },
+    { title: t('labels.sources'), index: 1 },
   ]
 
   if (syncConfigForm.value.sync_category === SyncCategory.CUSTOM) {
-    baseSteps.push({ title: 'Schema', index: 2 })
+    baseSteps.push({ title: t('labels.schema'), index: 2 })
   }
 
-  baseSteps.push({ title: 'Review', index: baseSteps.length })
+  baseSteps.push({ title: t('labels.review'), index: baseSteps.length })
 
   return baseSteps
 })

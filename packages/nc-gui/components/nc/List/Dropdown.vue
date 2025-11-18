@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
-
 interface Props {
   isOpen?: boolean
   /**
@@ -15,8 +13,6 @@ interface Props {
   showAsDisabled?: boolean
   borderOnHover?: boolean
   hasError?: boolean
-  tooltipOnDisabled?: string
-  tooltipOnDisabledPlacement?: TooltipPlacement | undefined
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -27,7 +23,6 @@ const props = withDefaults(defineProps<Props>(), {
   showAsDisabled: true,
   borderOnHover: false,
   hasError: false,
-  tooltipOnDisabled: undefined,
 })
 
 const emits = defineEmits(['update:isOpen'])
@@ -105,19 +100,14 @@ watch(vModelIsOpen, (newVal) => {
       ]"
       @keydown.enter.exact="onEnter"
     >
-      <NcTooltip :placement="tooltipOnDisabledPlacement" :disabled="!(disabled && tooltipOnDisabled)">
-        <button
-          ref="triggerRef"
-          type="button"
-          tabindex="-1"
-          class="sr-only outline-none ring-0 shadow-none focus:(outline-none shadow-none)"
-        ></button>
-        <slot name="default" :is-open="vModelIsOpen"> </slot>
+      <button
+        ref="triggerRef"
+        type="button"
+        tabindex="-1"
+        class="sr-only outline-none ring-0 shadow-none focus:(outline-none shadow-none)"
+      ></button>
 
-        <template #title>
-          {{ tooltipOnDisabled }}
-        </template>
-      </NcTooltip>
+      <slot name="default" :is-open="vModelIsOpen"> </slot>
     </div>
     <div v-else :class="defaultSlotWrapperClass">
       <button

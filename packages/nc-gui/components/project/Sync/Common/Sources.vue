@@ -12,5 +12,3 @@ const { integrationConfigs } = useSyncFormOrThrow()
     <ProjectSyncCommonSourceConfig />
   </template>
 </template>
-
-<style scoped lang="scss"></style>

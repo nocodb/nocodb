@@ -13,4 +13,7 @@ export const truncateText = (text: string, maxLength = 50) => {
   return `${text.substring(0, maxLength - 3)}...`
 }
 
-export const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1)
+export const capitalize = (str?: string | null): string => {
+  if (!str) return ''
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}

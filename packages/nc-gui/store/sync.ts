@@ -28,6 +28,8 @@ export const useSyncStore = defineStore('sync', () => {
 
   const { activeProjectId } = storeToRefs(bases)
 
+  const { loadProjectTables } = useTablesStore()
+
   // State
   const baseSyncs = ref<Map<string, SyncConfig[]>>(new Map())
 
@@ -119,6 +121,8 @@ export const useSyncStore = defineStore('sync', () => {
       baseSyncs.value.set(baseId, curentBaseSyncs)
 
       await loadIntegrations()
+
+      await loadProjectTables(baseId, true)
 
       return created as { job: { id: string } }
     } catch (error) {

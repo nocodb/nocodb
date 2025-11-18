@@ -385,8 +385,8 @@ export const useRealtime = createSharedComposable(() => {
             ncNavigateTo({
               workspaceId: activeWorkspaceId.value,
               baseId,
-              automationId: nextWorkflow.id,
-              automationTitle: nextWorkflow.title,
+              workflowId: nextWorkflow.id,
+              workflowTitle: nextWorkflow.title,
             })
             showInfoModal({
               title: `Workflow no longer available`,

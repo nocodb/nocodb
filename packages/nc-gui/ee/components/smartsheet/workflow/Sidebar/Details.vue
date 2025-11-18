@@ -94,7 +94,7 @@ const saveDescription = () => {
         {{ $t('labels.createdOn') }}
       </div>
       <div class="text-bodySm text-nc-content-gray-subtle2">
-        {{ dayjs(workflow.updated_at).format('DD MMM YYYY, h:mm A') }}
+        {{ dayjs(workflow.created_at).format('DD MMM YYYY, h:mm A') }}
       </div>
     </div>
   </NcGroupedSettings>

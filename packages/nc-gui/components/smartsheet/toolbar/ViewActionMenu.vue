@@ -193,6 +193,10 @@ const onClickCopyViewConfig = () => {
   onOpenCopyViewConfigFromAnotherViewModal({ destView: view.value })
 }
 
+const isCellHeaderVisibilityOptionVisible = computed(() => {
+  return !props.inSidebar && isUIAllowed('viewCreateOrEdit') && [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type)
+})
+
 const isCellHeaderVisible = computed(() => {
   return parseProp((view.value?.view as GalleryType | KanbanType)?.meta)?.is_cell_header_visible ?? true
 })
@@ -625,7 +629,7 @@ defineOptions({
             </PaymentUpgradeBadgeProvider>
           </SmartsheetToolbarNotAllowedTooltip>
         </template>
-        <NcMenuItem v-if="!inSidebar" @click="onToggleColumnHeader">
+        <NcMenuItem v-if="isCellHeaderVisibilityOptionVisible" @click="onToggleColumnHeader">
           {{ isCellHeaderVisible ? 'Hide' : 'Show' }} column header
         </NcMenuItem>
       </template>

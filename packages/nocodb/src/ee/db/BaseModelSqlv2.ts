@@ -91,7 +91,6 @@ import NocoSocket from '~/socket/NocoSocket';
 import { chunkArray } from '~/utils/tsUtils';
 import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
 import { Profiler } from '~/helpers/profiler';
-import { CacheExtractColumnHelper } from '~/helpers/cacheExtractColumnHelpers';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -1578,7 +1577,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       undo?: boolean;
     } = {},
   ) {
-    new CacheExtractColumnHelper(this.context).setEnabled(true);
     const queries: string[] = [];
     const profiler = Profiler.start('base-model/bulkInsert');
     try {
@@ -2155,7 +2153,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       undo?: boolean;
     } = {},
   ) {
-    new CacheExtractColumnHelper(this.context).setEnabled(true);
     const insertQueries: string[] = [];
     const updateQueries: string[] = [];
 
@@ -2463,7 +2460,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       apiVersion?: NcApiVersion;
     } = {},
   ) {
-    new CacheExtractColumnHelper(this.context).setEnabled(true);
     const queries: string[] = [];
     const profiler = Profiler.start(`base-model/bulkUpdate`);
 
@@ -2864,7 +2860,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       isSingleRecordDeletion?: boolean;
     } = {},
   ) {
-    new CacheExtractColumnHelper(this.context).setEnabled(true);
     const queries: string[] = [];
     try {
       const columns = await this.model.getColumns(this.context);

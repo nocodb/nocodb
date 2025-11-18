@@ -55,7 +55,6 @@ import NocoCache from '~/cache/NocoCache';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { singleQueryRead as mysqlSingleQueryRead } from '~/services/data-opt/mysql-helpers';
 import { Profiler } from '~/helpers/profiler';
-import { CacheExtractColumnHelper } from '~/helpers/cacheExtractColumnHelpers';
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -117,7 +116,7 @@ export async function extractColumns({
   const baseUsers = await BaseUser.getUsersList(baseModel.context, {
     base_id: baseModel.model.base_id,
   });
-  const cacheExtractColumn = new CacheExtractColumnHelper(baseModel.context);
+
   const model: Model = baseModel.model;
 
   await model.getColumns(baseModel.context);
@@ -125,17 +124,14 @@ export async function extractColumns({
   const aliasToColumn = {};
   const columnIdToUidt: Record<string, UITypes> = {};
 
-  // if we already have extract column we don't need first formula extract again
-  const firstFormula = cacheExtractColumn.isCacheGeneratedForModel(model.id)
-    ? undefined
-    : columns.find(
-        (col) =>
-          col.uidt === UITypes.Formula &&
-          (ast === true || ast === 1 || (ast?.[col.title] ?? ast?.[col.id])),
-      );
+  const firstFormula = columns.find(
+    (col) =>
+      col.uidt === UITypes.Formula &&
+      (ast === true || ast === 1 || (ast?.[col.title] ?? ast?.[col.id])),
+  );
 
   if (firstFormula) {
-    const firstFormulaResult = await extractColumn({
+    await extractColumn({
       column: firstFormula,
       knex,
       rootAlias: alias,
@@ -153,7 +149,6 @@ export async function extractColumns({
       columnIdToUidt,
       baseUsers,
     });
-    firstFormulaResult?.handle?.(qb, { alias });
   }
 
   for (const column of columns) {
@@ -165,15 +160,6 @@ export async function extractColumns({
       !(ast?.[column.title] ?? ast?.[column.id])
     )
       continue;
-
-    const cacheForColumn = cacheExtractColumn.getCacheForColumn(
-      model.id,
-      column.id,
-    );
-    if (cacheForColumn) {
-      cacheForColumn(qb, { alias });
-      continue;
-    }
 
     extractPromises.push(
       extractColumn({
@@ -193,16 +179,6 @@ export async function extractColumns({
         aliasToColumn,
         columnIdToUidt,
         baseUsers,
-      }).then((result) => {
-        if (result?.handle) {
-          result.handle(qb, { alias });
-          cacheExtractColumn.setCacheForColumn(
-            model.id,
-            column.id,
-            result.handle,
-          );
-        }
-        return result;
       }),
     );
   }
@@ -249,14 +225,8 @@ export async function extractColumn({
   aliasToColumn: any;
   columnIdToUidt: Record<string, UITypes>;
   baseUsers: any;
-}): Promise<{
-  isArray: boolean;
-  handle?: (qb: Knex.QueryInterface, opt?: { alias?: string }) => void;
-}> {
+}) {
   const context = baseModel.context;
-  const profiler = Profiler.start(
-    `DEBUG:pg_helpers/extract_column/${column.id}/${column.uidt}`,
-  );
 
   const result = { isArray: false };
   // todo: check system field enabled / not
@@ -268,7 +238,6 @@ export async function extractColumn({
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
       {
-        const aliasPlaceholder = '__ALIAS__';
         const relatedModel = await (
           column.colOptions as LinkToAnotherRecordColumn
         ).getRelatedTable(context);
@@ -375,16 +344,12 @@ export async function extractColumn({
 
               // if mm table is not present then return
               if (!assocModel) {
-                return {
-                  ...result,
-                  handle: (qb) =>
-                    qb.select(
-                      knex.raw('? as ??', [
-                        NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-                        getAs(column),
-                      ]),
-                    ),
-                };
+                return qb.select(
+                  knex.raw('? as ??', [
+                    NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
+                    getAs(column),
+                  ]),
+                );
               }
 
               const assocQb = knex(
@@ -395,7 +360,7 @@ export async function extractColumn({
               ).whereRaw(`??.?? = ??.??`, [
                 alias1,
                 sanitize(mmChildColumn.column_name),
-                aliasPlaceholder,
+                rootAlias,
                 sanitize(childColumn.column_name),
               ]);
 
@@ -449,43 +414,24 @@ export async function extractColumn({
                 validateFormula,
                 apiVersion,
               });
-              profiler.end();
 
-              const sql = mmAggQb.toQuery();
-              const queryBuilderSyntax = sql
-                .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
-                .replaceAll(aliasPlaceholder, ':alias:')
-                .replaceAll('?', '\\?');
+              qb.joinRaw(
+                `LEFT OUTER JOIN LATERAL
+                     (${knex
+                       .from(mmAggQb.as(alias3))
+                       .select(
+                         generateNestedRowSelectQuery({
+                           knex,
+                           alias: alias3,
+                           columns: fields,
+                           title: getAs(column),
+                         }),
+                       )
+                       .toQuery()}) as ?? ON true`,
+                [alias1],
+              );
 
-              return {
-                ...result,
-                handle: (qb, { alias }) => {
-                  const query1 = knex
-                    .fromRaw(
-                      knex.raw(`(${queryBuilderSyntax}) as :alias3:`, {
-                        alias: alias ?? rootAlias,
-                        alias3,
-                      }),
-                    )
-                    .select(
-                      generateNestedRowSelectQuery({
-                        knex,
-                        alias: alias3,
-                        columns: fields,
-                        title: getAs(column),
-                      }),
-                    )
-                    .toQuery()
-                    .replaceAll('?', '\\?');
-                  qb.joinRaw(
-                    `LEFT OUTER JOIN LATERAL
-                         (${query1}) as ?? ON true`,
-                    [alias1],
-                  );
-
-                  qb.select(knex.raw('??.??', [alias1, getAs(column)]));
-                },
-              };
+              qb.select(knex.raw('??.??', [alias1, getAs(column)]));
             }
             break;
           case RelationTypes.BELONGS_TO:
@@ -521,7 +467,7 @@ export async function extractColumn({
                 .where(
                   parentColumn.column_name,
                   knex.raw('??.??', [
-                    aliasPlaceholder,
+                    rootAlias,
                     sanitize(childColumn.column_name),
                   ]),
                 )
@@ -544,42 +490,24 @@ export async function extractColumn({
                 validateFormula,
                 apiVersion: apiVersion,
               });
-              const sql = btAggQb.toQuery();
-              const queryBuilderSyntax = sql
-                .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
-                .replaceAll(aliasPlaceholder, ':alias:')
-                .replaceAll('?', '\\?');
 
-              profiler.end();
-              return {
-                ...result,
-                handle: (qb, { alias }) => {
-                  const query1 = knex
-                    .fromRaw(
-                      knex.raw(`(${queryBuilderSyntax}) as :alias2:`, {
-                        alias: alias ?? rootAlias,
-                        alias2,
-                      }),
-                    )
-                    .select(
-                      generateNestedRowSelectQuery({
-                        knex,
-                        alias: alias2,
-                        columns: fields,
-                        title: getAs(column),
-                        isBtOrOo: true,
-                      }),
-                    )
-                    .toQuery()
-                    .replaceAll('?', '\\?');
-                  qb.joinRaw(
-                    `LEFT OUTER JOIN LATERAL (${query1}) as ?? ON true`,
-                    [alias1],
-                  );
+              qb.joinRaw(
+                `LEFT OUTER JOIN LATERAL (${knex
+                  .from(btAggQb.as(alias2))
+                  .select(
+                    generateNestedRowSelectQuery({
+                      knex,
+                      alias: alias2,
+                      columns: fields,
+                      title: getAs(column),
+                      isBtOrOo: true,
+                    }),
+                  )
+                  .toQuery()}) as ?? ON true`,
+                [alias1],
+              );
 
-                  qb.select(knex.raw('??.??', [alias1, getAs(column)]));
-                },
-              };
+              qb.select(knex.raw('??.??', [alias1, getAs(column)]));
             }
             break;
           case RelationTypes.ONE_TO_ONE:
@@ -616,7 +544,7 @@ export async function extractColumn({
                   .where(
                     parentColumn.column_name,
                     knex.raw('??.??', [
-                      aliasPlaceholder,
+                      rootAlias,
                       sanitize(childColumn.column_name),
                     ]),
                   )
@@ -641,50 +569,29 @@ export async function extractColumn({
                   apiVersion,
                 });
 
-                const sql = btAggQb.toQuery();
-                const queryBuilderSyntax = sql
-                  .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
-                  .replaceAll(aliasPlaceholder, ':alias:')
-                  .replaceAll('?', '\\?');
-                profiler.end();
-                return {
-                  ...result,
-                  handle: (qb, { alias }) => {
-                    const query1 = knex
-                      .fromRaw(
-                        knex.raw(`(${queryBuilderSyntax}) as :alias2:`, {
-                          alias: alias ?? rootAlias,
-                          alias2,
-                        }),
-                      )
-                      .select(
-                        generateNestedRowSelectQuery({
-                          knex,
-                          alias: alias2,
-                          columns: fields,
-                          title: getAs(column),
-                          isBtOrOo: true,
-                        }),
-                      )
-                      .toQuery()
-                      .replaceAll('?', '\\?');
-                    qb.joinRaw(
-                      `LEFT OUTER JOIN LATERAL (${query1}) as ?? ON true`,
-                      [alias1],
-                    );
+                qb.joinRaw(
+                  `LEFT OUTER JOIN LATERAL (${knex
+                    .from(btAggQb.as(alias2))
+                    .select(
+                      generateNestedRowSelectQuery({
+                        knex,
+                        alias: alias2,
+                        columns: fields,
+                        title: getAs(column),
+                        isBtOrOo: true,
+                      }),
+                    )
+                    .toQuery()}) as ?? ON true`,
+                  [alias1],
+                );
 
-                    qb.select(knex.raw('??.??', [alias1, getAs(column)]));
-                  },
-                };
+                qb.select(knex.raw('??.??', [alias1, getAs(column)]));
               } else {
                 const hmQb = knex(refBaseModel.getTnPath(refModel))
                   .select('*')
                   .where(
                     childColumn.column_name,
-                    knex.raw('??.??', [
-                      aliasPlaceholder,
-                      parentColumn.column_name,
-                    ]),
+                    knex.raw('??.??', [rootAlias, parentColumn.column_name]),
                   )
                   .first();
 
@@ -710,37 +617,22 @@ export async function extractColumn({
                   apiVersion,
                 });
 
-                const sql = hmAggQb.toQuery();
-                const queryBuilderSyntax = sql
-                  .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
-                  .replaceAll(aliasPlaceholder, ':alias:')
-                  .replaceAll('?', '\\?');
-                profiler.end();
-                return {
-                  ...result,
-                  handle: (qb, { alias }) => {
-                    qb.joinRaw(`LEFT OUTER JOIN LATERAL (??) as ?? ON true`, [
-                      knex
-                        .fromRaw(
-                          knex.raw(`(${queryBuilderSyntax}) as :alias2:`, {
-                            alias: alias ?? rootAlias,
-                            alias2,
-                          }),
-                        )
-                        .select(
-                          generateNestedRowSelectQuery({
-                            knex,
-                            alias: alias2,
-                            columns: fields,
-                            title: getAs(column),
-                            isBtOrOo: true,
-                          }),
-                        ),
-                      alias1,
-                    ]);
-                    qb.select(knex.raw('??.??', [alias1, getAs(column)]));
-                  },
-                };
+                qb.joinRaw(
+                  `LEFT OUTER JOIN LATERAL (${knex
+                    .from(hmAggQb.as(alias2))
+                    .select(
+                      generateNestedRowSelectQuery({
+                        knex,
+                        alias: alias2,
+                        columns: fields,
+                        title: getAs(column),
+                        isBtOrOo: true,
+                      }),
+                    )
+                    .toQuery()}) as ?? ON true`,
+                  [alias1],
+                );
+                qb.select(knex.raw('??.??', [alias1, getAs(column)]));
               }
             }
             break;
@@ -775,10 +667,7 @@ export async function extractColumn({
                 .select('*')
                 .where(
                   childColumn.column_name,
-                  knex.raw('??.??', [
-                    aliasPlaceholder,
-                    parentColumn.column_name,
-                  ]),
+                  knex.raw('??.??', [rootAlias, parentColumn.column_name]),
                 )
 
                 .limit(+listArgs.limit + 1)
@@ -820,39 +709,21 @@ export async function extractColumn({
                 apiVersion,
               });
 
-              const sql = hmAggQb.toQuery();
-              const queryBuilderSyntax = sql
-                .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
-                .replaceAll(aliasPlaceholder, ':alias:')
-                .replaceAll('?', '\\?');
-              profiler.end();
-              return {
-                ...result,
-                handle: (qb, { alias }) => {
-                  const query1 = knex
-                    .from(
-                      knex.raw(`(${queryBuilderSyntax}) as :alias2:`, {
-                        alias: alias ?? rootAlias,
-                        alias2,
-                      }),
-                    )
-                    .select(
-                      generateNestedRowSelectQuery({
-                        knex,
-                        alias: alias2,
-                        columns: fields,
-                        title: getAs(column),
-                      }),
-                    )
-                    .toQuery()
-                    .replaceAll('?', '\\?');
-                  qb.joinRaw(
-                    `LEFT OUTER JOIN LATERAL (${query1}) as ?? ON true`,
-                    [alias1],
-                  );
-                  qb.select(knex.raw('??.??', [alias1, getAs(column)]));
-                },
-              };
+              qb.joinRaw(
+                `LEFT OUTER JOIN LATERAL (${knex
+                  .from(hmAggQb.as(alias2))
+                  .select(
+                    generateNestedRowSelectQuery({
+                      knex,
+                      alias: alias2,
+                      columns: fields,
+                      title: getAs(column),
+                    }),
+                  )
+                  .toQuery()}) as ?? ON true`,
+                [alias1],
+              );
+              qb.select(knex.raw('??.??', [alias1, getAs(column)]));
             }
             break;
         }
@@ -860,7 +731,6 @@ export async function extractColumn({
       break;
     case UITypes.Lookup:
       {
-        const aliasPlaceholder = '__ALIAS__';
         const alias2 = getAlias();
         const lookupTableAlias = getAlias();
 
@@ -880,6 +750,7 @@ export async function extractColumn({
         let relQb;
         const relTableAlias = getAlias();
         let refBaseModel: BaseModelSqlv2;
+
         switch (relationColOpts.type) {
           case RelationTypes.MANY_TO_MANY:
             {
@@ -920,18 +791,12 @@ export async function extractColumn({
 
               // if mm table is not present then return
               if (!assocModel) {
-                return {
-                  ...result,
-                  handle: (qb) => {
-                    qb.select(
-                      knex.raw('? as ??', [
-                        NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-                        getAs(column),
-                      ]),
-                    );
-                  },
-                };
-                return;
+                return qb.select(
+                  knex.raw('? as ??', [
+                    NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
+                    getAs(column),
+                  ]),
+                );
               }
 
               const assocQb = knex(
@@ -942,7 +807,7 @@ export async function extractColumn({
               ).whereRaw(`??.?? = ??.??`, [
                 alias1,
                 sanitize(mmChildColumn.column_name),
-                aliasPlaceholder,
+                rootAlias,
                 sanitize(childColumn.column_name),
               ]);
 
@@ -1005,7 +870,7 @@ export async function extractColumn({
                   .andWhere(
                     `${relTableAlias}.root_id`,
                     knex.raw('??.??', [
-                      aliasPlaceholder,
+                      rootAlias,
                       sanitize(parentColumn.column_name),
                     ]),
                   );
@@ -1018,7 +883,7 @@ export async function extractColumn({
                 ).where(
                   parentColumn.column_name,
                   knex.raw('??.??', [
-                    aliasPlaceholder,
+                    rootAlias,
                     sanitize(childColumn.column_name),
                   ]),
                 );
@@ -1055,7 +920,7 @@ export async function extractColumn({
                 ).where(
                   parentColumn.column_name,
                   knex.raw('??.??', [
-                    aliasPlaceholder,
+                    rootAlias,
                     sanitize(childColumn.column_name),
                   ]),
                 );
@@ -1086,7 +951,7 @@ export async function extractColumn({
                 ).where(
                   childColumn.column_name,
                   knex.raw('??.??', [
-                    aliasPlaceholder,
+                    rootAlias,
                     sanitize(parentColumn.column_name),
                   ]),
                 );
@@ -1136,7 +1001,7 @@ export async function extractColumn({
                   .andWhere(
                     `${relTableAlias}.root_id`,
                     knex.raw('??.??', [
-                      aliasPlaceholder,
+                      rootAlias,
                       sanitize(parentColumn.column_name),
                     ]),
                   );
@@ -1150,7 +1015,7 @@ export async function extractColumn({
                 ).where(
                   childColumn.column_name,
                   knex.raw('??.??', [
-                    aliasPlaceholder,
+                    rootAlias,
                     sanitize(parentColumn.column_name),
                   ]),
                 );
@@ -1173,7 +1038,7 @@ export async function extractColumn({
           await refBaseModel.model.getColumns(refBaseModel.context);
         }
 
-        const { isArray, handle } = await extractColumn({
+        const { isArray } = await extractColumn({
           qb: relQb,
           rootAlias: relTableAlias,
           knex,
@@ -1189,107 +1054,60 @@ export async function extractColumn({
           columnIdToUidt,
           baseUsers,
         });
-        if (handle) {
-          handle(relQb, { alias: relTableAlias });
-        }
-        const sql = relQb.toQuery();
-        const relQbBuilderSyntax = sql
-          .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
-          .replaceAll(aliasPlaceholder, ':alias:')
-          .replaceAll('?', '\\?');
 
-        const joinHandle = !result.isArray
-          ? (qb, { alias }: { alias: string }) => {
-              qb.joinRaw(
-                `LEFT OUTER JOIN LATERAL
-                   (??) as ?? ON true`,
-                [
-                  knex
-                    .fromRaw(
-                      knex.raw(`(${relQbBuilderSyntax}) as :alias2:`, {
-                        alias,
-                        alias2,
-                      }),
-                    )
-                    .select(
-                      knex.raw(`??.?? as ??`, [
-                        alias2,
-                        getAs(lookupColumn),
-                        getAs(column),
-                      ]),
-                    ),
-                  lookupTableAlias,
-                ],
-              );
-            }
-          : isArray
-          ? (qb, { alias }: { alias: string }) => {
-              const alias3 = getAlias();
-              qb.joinRaw(
-                `LEFT OUTER JOIN LATERAL (?? ,json_array_elements(??.??) as ?? ) as ?? ON true`,
-                [
-                  knex
-                    .fromRaw(
-                      knex.raw(`(${relQbBuilderSyntax}) as :alias2:`, {
-                        alias,
-                        alias2,
-                      }),
-                    )
-                    .select(
-                      knex.raw(`coalesce(json_agg(??),'[]'::json) as ??`, [
-                        alias3,
-                        getAs(column),
-                      ]),
-                    ),
+        if (!result.isArray) {
+          qb.joinRaw(
+            `LEFT OUTER JOIN LATERAL
+               (${knex
+                 .from(relQb.as(alias2))
+                 .select(
+                   knex.raw(`??.?? as ??`, [
+                     alias2,
+                     getAs(lookupColumn),
+                     getAs(column),
+                   ]),
+                 )
+                 .toQuery()}) as ?? ON true`,
+            [lookupTableAlias],
+          );
+        } else if (isArray) {
+          const alias = getAlias();
+          qb.joinRaw(
+            `LEFT OUTER JOIN LATERAL (${knex
+              .from(relQb.as(alias2))
+              .select(
+                knex.raw(`coalesce(json_agg(??),'[]'::json) as ??`, [
+                  alias,
+                  getAs(column),
+                ]),
+              )
+              .toQuery()},json_array_elements(??.??) as ?? ) as ?? ON true`,
+            [alias2, getAs(lookupColumn), alias, lookupTableAlias],
+          );
+        } else {
+          qb.joinRaw(
+            `LEFT OUTER JOIN LATERAL (${knex
+              .from(relQb.as(alias2))
+              .select(
+                knex.raw(`coalesce(json_agg(??.??),'[]'::json) as ??`, [
                   alias2,
                   getAs(lookupColumn),
-                  alias,
-                  lookupTableAlias,
-                ],
-              );
-            }
-          : (qb, { alias }: { alias: string }) => {
-              qb.joinRaw(`LEFT OUTER JOIN LATERAL (??) as ?? ON true`, [
-                knex
-                  .fromRaw(
-                    knex.raw(`(${relQbBuilderSyntax}) as :alias2:`, {
-                      alias,
-                      alias2,
-                    }),
-                  )
-                  .select(
-                    knex.raw(`coalesce(json_agg(??.??),'[]'::json) as ??`, [
-                      alias2,
-                      getAs(lookupColumn),
-                      getAs(column),
-                    ]),
-                  ),
-                lookupTableAlias,
-              ]);
-            };
-
-        profiler.end();
-        return {
-          ...result,
-          handle: (qb, { alias }) => {
-            joinHandle(qb, { alias: alias ?? rootAlias });
-            qb.select(knex.raw('??.??', [lookupTableAlias, getAs(column)]));
-          },
-        };
+                  getAs(column),
+                ]),
+              )
+              .toQuery()}) as ?? ON true`,
+            [lookupTableAlias],
+          );
+        }
+        qb.select(knex.raw('??.??', [lookupTableAlias, getAs(column)]));
       }
       break;
     case UITypes.Formula:
       {
-        const aliasPlaceholder = '__ALIAS__';
         const formula = await column.getColOptions<FormulaColumn>(context);
         if (formula.error) {
-          profiler.end();
-          return {
-            ...result,
-            handle: (qb) => {
-              qb.select(knex.raw(`'ERR' as ??`, [getAs(column)]));
-            },
-          };
+          qb.select(knex.raw(`'ERR' as ??`, [getAs(column)]));
+          return result;
         }
         try {
           const selectQb = await formulaQueryBuilderv2({
@@ -1297,40 +1115,17 @@ export async function extractColumn({
             tree: formula.formula,
             model,
             column,
-            tableAlias: aliasPlaceholder,
+            tableAlias: rootAlias,
             validateFormula,
             columns: model.columns,
             aliasToColumn,
             columnIdToUidt,
             baseUsers,
           });
-          const sql = selectQb.builder.toQuery();
-          const selectQbBuilderSyntax = sql
-            .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
-            .replaceAll(aliasPlaceholder, ':alias:')
-            .replaceAll('?', '\\?');
-
-          return {
-            ...result,
-            handle: (qb, { alias }) => {
-              qb.select(
-                knex.raw(`(${selectQbBuilderSyntax}) as :alias2:`, {
-                  alias: alias ?? rootAlias,
-                  alias2: getAs(column),
-                }),
-              );
-            },
-          };
+          qb.select(knex.raw(`?? as ??`, [selectQb.builder, getAs(column)]));
         } catch (e) {
           logger.log(e);
-
-          profiler.end();
-          return {
-            ...result,
-            handle: (qb) => {
-              qb.select(knex.raw(`'ERR' as ??`, [getAs(column)]));
-            },
-          };
+          qb.select(knex.raw(`'ERR' as ??`, [getAs(column)]));
         }
       }
       break;
@@ -1339,44 +1134,29 @@ export async function extractColumn({
         const buttonColumn = await column.getColOptions<ButtonColumn>(context);
         if (buttonColumn.type === ButtonActionsType.Url) {
           if (buttonColumn.error) return result;
-          const aliasPlaceholder = '__ALIAS__';
           const selectQb = await formulaQueryBuilderv2({
             baseModel: baseModel,
             tree: buttonColumn.formula,
             model,
             column,
-            tableAlias: aliasPlaceholder,
+            tableAlias: rootAlias,
             validateFormula,
             columns: model.columns,
             aliasToColumn,
             columnIdToUidt,
             baseUsers,
           });
-          const sql = selectQb.builder.toQuery();
-          const selectQbBuilderSyntax = sql
-            .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
-            .replaceAll(aliasPlaceholder, ':alias:')
-            .replaceAll('?', '\\?');
-
-          profiler.end();
-          return {
-            ...result,
-            handle: (qb, { alias }) => {
-              qb.select(
-                knex.raw(
-                  `json_build_object('type', ?, 'label', ?, 'url', ??) as ??`,
-                  [
-                    buttonColumn.type,
-                    `${buttonColumn.label}`,
-                    knex.raw(`${selectQbBuilderSyntax}`, {
-                      alias: alias ?? rootAlias,
-                    }),
-                    getAs(column),
-                  ],
-                ),
-              );
-            },
-          };
+          qb.select(
+            knex.raw(
+              `json_build_object('type', ?, 'label', ?, 'url', ??) as ??`,
+              [
+                buttonColumn.type,
+                `${buttonColumn.label}`,
+                selectQb.builder,
+                getAs(column),
+              ],
+            ),
+          );
         } else if (
           [ButtonActionsType.Webhook, ButtonActionsType.Script].includes(
             buttonColumn.type,
@@ -1387,75 +1167,44 @@ export async function extractColumn({
               ? 'fk_webhook_id'
               : 'fk_script_id';
 
-          profiler.end();
-          return {
-            ...result,
-            handle: (qb) => {
-              qb.select(
-                knex.raw(
-                  `json_build_object('type', ?, 'label', ?, '${key}', ?) as ??`,
-                  [
-                    buttonColumn.type,
-                    `${buttonColumn.label}`,
-                    buttonColumn[key],
-                    getAs(column),
-                  ],
-                ),
-              );
-            },
-          };
+          qb.select(
+            knex.raw(
+              `json_build_object('type', ?, 'label', ?, '${key}', ?) as ??`,
+              [
+                buttonColumn.type,
+                `${buttonColumn.label}`,
+                buttonColumn[key],
+                getAs(column),
+              ],
+            ),
+          );
         }
       }
       break;
     case UITypes.Rollup:
     case UITypes.Links:
-      {
-        const aliasPlaceholder = '__ALIAS__';
-        const builder = (
+      qb.select(
+        (
           await genRollupSelectv2({
             baseModelSqlv2: baseModel,
             knex,
             columnOptions: await column.getColOptions(context),
-            alias: aliasPlaceholder,
+            alias: rootAlias,
           })
-        ).builder.as(getAs(column));
-        const sql = builder.toQuery();
-        const builderSyntax = sql
-          .replaceAll(`"${aliasPlaceholder}"`, aliasPlaceholder)
-          .replaceAll(aliasPlaceholder, ':alias:')
-          .replaceAll('?', '\\?');
-
-        profiler.end();
-        return {
-          ...result,
-          handle: (qb, { alias }) => {
-            qb.select(
-              knex.raw(`(${builderSyntax}) as :select_as:`, {
-                alias: alias ?? rootAlias,
-                select_as: getAs(column),
-              }),
-            );
-          },
-        };
-      }
+        ).builder.as(getAs(column)),
+      );
       break;
     case UITypes.Barcode:
       {
         const barcodeCol = await column.getColOptions<BarcodeColumn>(context);
 
         if (!barcodeCol.fk_barcode_value_column_id) {
-          return {
-            ...result,
-            handle: (qb) => {
-              qb.select(knex.raw(`? as ??`, ['ERR!', getAs(column)]));
-            },
-          };
+          qb.select(knex.raw(`? as ??`, ['ERR!', getAs(column)]));
           break;
         }
 
         const barcodeValCol = await barcodeCol.getValueColumn(context);
 
-        profiler.end();
         return extractColumn({
           column: new Column({
             ...barcodeValCol,
@@ -1485,18 +1234,12 @@ export async function extractColumn({
         const qrCol = await column.getColOptions<QrCodeColumn>(context);
 
         if (!qrCol.fk_qr_value_column_id) {
-          return {
-            ...result,
-            handle: (qb) => {
-              qb.select(knex.raw(`? as ??`, ['ERR!', getAs(column)]));
-            },
-          };
+          qb.select(knex.raw(`? as ??`, ['ERR!', getAs(column)]));
           break;
         }
 
         const qrValCol = await qrCol.getValueColumn(context);
 
-        profiler.end();
         return extractColumn({
           column: new Column({
             ...qrValCol,
@@ -1524,19 +1267,13 @@ export async function extractColumn({
 
     case UITypes.Attachment:
       {
-        profiler.end();
-        return {
-          ...result,
-          handle: (qb, { alias }) => {
-            qb.select(
-              knex.raw(`to_json(??.??) as ??`, [
-                alias ?? rootAlias,
-                sanitize(column.column_name),
-                getAs(column),
-              ]),
-            );
-          },
-        };
+        qb.select(
+          knex.raw(`to_json(??.??) as ??`, [
+            rootAlias,
+            sanitize(column.column_name),
+            getAs(column),
+          ]),
+        );
       }
       break;
     case UITypes.CreatedTime:
@@ -1551,32 +1288,20 @@ export async function extractColumn({
         column.dt !== 'timestamp with time zone' &&
         column.dt !== 'timestamptz'
       ) {
-        profiler.end();
-        return {
-          ...result,
-          handle: (qb, { alias }) => {
-            qb.select(
-              knex.raw(
-                `TO_CHAR((??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'), 'YYYY-MM-DD HH24:MI:SSTZH:TZM') as ??`,
-                [alias ?? rootAlias, sanitize(columnName), getAs(column)],
-              ),
-            );
-          },
-        };
+        qb.select(
+          knex.raw(
+            `TO_CHAR((??.?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'), 'YYYY-MM-DD HH24:MI:SSTZH:TZM') as ??`,
+            [rootAlias, sanitize(columnName), getAs(column)],
+          ),
+        );
       } else {
-        profiler.end();
-        return {
-          ...result,
-          handle: (qb, { alias }) => {
-            qb.select(
-              knex.raw(`??.?? as ??`, [
-                alias ?? rootAlias,
-                sanitize(column.column_name),
-                getAs(column),
-              ]),
-            );
-          },
-        };
+        qb.select(
+          knex.raw(`??.?? as ??`, [
+            rootAlias,
+            sanitize(column.column_name),
+            getAs(column),
+          ]),
+        );
       }
       break;
     }
@@ -1584,19 +1309,13 @@ export async function extractColumn({
     case UITypes.LastModifiedBy: {
       const columnName = await getColumnName(context, column, columns);
 
-      profiler.end();
-      return {
-        ...result,
-        handle: (qb, { alias }) => {
-          qb.select(
-            knex.raw(`??.?? as ??`, [
-              alias ?? rootAlias,
-              sanitize(columnName),
-              getAs(column),
-            ]),
-          );
-        },
-      };
+      qb.select(
+        knex.raw(`??.?? as ??`, [
+          rootAlias,
+          sanitize(columnName),
+          getAs(column),
+        ]),
+      );
       break;
     }
     default:
@@ -1608,57 +1327,34 @@ export async function extractColumn({
         ) {
           const columnName = await getColumnName(context, column, columns);
 
-          profiler.end();
-          return {
-            ...result,
-            handle: (qb, { alias }) => {
-              qb.select(
-                knex.raw(`string_to_array(??.??, ',') as ??`, [
-                  alias ?? rootAlias,
-                  sanitize(columnName),
-                  getAs(column),
-                ]),
-              );
-            },
-          };
+          qb.select(
+            knex.raw(`string_to_array(??.??, ',') as ??`, [
+              rootAlias,
+              sanitize(columnName),
+              getAs(column),
+            ]),
+          );
         } else if (column.dt === 'bytea') {
-          profiler.end();
-          return {
-            ...result,
-            handle: (qb, { alias }) => {
-              qb.select(
-                knex.raw(
-                  `encode(??.??, '${
-                    column.meta?.format === 'hex' ? 'hex' : 'escape'
-                  }') as ??`,
-                  [
-                    alias ?? rootAlias,
-                    sanitize(column.column_name),
-                    getAs(column),
-                  ],
-                ),
-              );
-            },
-          };
+          qb.select(
+            knex.raw(
+              `encode(??.??, '${
+                column.meta?.format === 'hex' ? 'hex' : 'escape'
+              }') as ??`,
+              [rootAlias, sanitize(column.column_name), getAs(column)],
+            ),
+          );
         } else {
-          profiler.end();
-          return {
-            ...result,
-            handle: (qb, { alias }) => {
-              qb.select(
-                knex.raw(`??.?? as ??`, [
-                  alias ?? rootAlias,
-                  sanitize(column.column_name),
-                  getAs(column),
-                ]),
-              );
-            },
-          };
+          qb.select(
+            knex.raw(`??.?? as ??`, [
+              rootAlias,
+              sanitize(column.column_name),
+              getAs(column),
+            ]),
+          );
         }
       }
       break;
   }
-  profiler.end();
   return result;
 }
 
@@ -1881,7 +1577,7 @@ export async function singleQueryList(
     validateFormula?: boolean;
     ignorePagination?: boolean;
     limitOverride?: number;
-    baseModel?: IBaseModelSqlV2;
+    baseModel?: BaseModelSqlv2;
     customConditions?: Filter[];
     getHiddenColumns?: boolean;
     apiVersion?: NcApiVersion;

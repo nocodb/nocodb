@@ -104,11 +104,6 @@ export default class Model implements TableType {
     return data && new Model(data);
   }
 
-  // @NcCache({
-  //   key: (args, thisArg) =>
-  //     `Model.getColumns:${thisArg.id}:${args[2] || 'default'}`,
-  //
-  // })
   public async getColumns(
     context: NcContext,
     ncMeta = Noco.ncMeta,
@@ -485,6 +480,10 @@ export default class Model implements TableType {
         },
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
+    if ('id' in args && args?.id) {
+      return this.get(context, args.id, ncMeta);
+    }
+
     const k = 'id' in args ? args?.id : args;
     let modelData =
       k &&

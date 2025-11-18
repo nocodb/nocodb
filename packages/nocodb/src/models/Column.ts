@@ -132,13 +132,7 @@ export default class Column<T = any> implements ColumnType {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
-    return Model.getByIdOrName(
-      context,
-      {
-        id: this.fk_model_id,
-      },
-      ncMeta,
-    );
+    return Model.get(context, this.fk_model_id, ncMeta);
   }
 
   public static async insert<T>(
@@ -808,6 +802,7 @@ export default class Column<T = any> implements ColumnType {
       const column = new Column(colData);
       await column.getColOptions(
         {
+          ...context,
           workspace_id: column.fk_workspace_id,
           base_id: column.base_id,
         },

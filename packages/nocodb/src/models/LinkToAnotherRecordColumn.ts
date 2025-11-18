@@ -1,7 +1,7 @@
 import { RelationTypes } from 'nocodb-sdk';
 import type { BoolType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
 import type Filter from '~/models/Filter';
+import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
 import Noco from '~/Noco';
@@ -9,6 +9,7 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { View } from '~/models/index';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 
 export default class LinkToAnotherRecordColumn {
   protected _context: {

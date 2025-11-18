@@ -1,4 +1,4 @@
-import { NcContext } from '~/interface/config';
+import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
@@ -46,9 +46,6 @@ export default class FormulaColumn {
     return this.read(context, formulaColumn.fk_column_id, ncMeta);
   }
 
-  @NcCache({
-    key: (args) => args[1],
-  })
   public static async read(
     context: NcContext,
     columnId: string,

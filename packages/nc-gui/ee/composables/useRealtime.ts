@@ -361,7 +361,6 @@ export const useRealtime = createSharedComposable(() => {
         const updatedWorkflows = [...existingWorkflows, workflow]
         workflows.value.set(baseId, updatedWorkflows)
         updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, 1)
-        refreshCommandPalette()
 
         break
       }
@@ -377,7 +376,6 @@ export const useRealtime = createSharedComposable(() => {
         const updatedWorkflows = existingWorkflows.filter((d) => d.id !== id)
         workflows.value.set(baseId, updatedWorkflows)
         updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, -1)
-        refreshCommandPalette()
 
         if (activeWorkflowId.value === id) {
           const nextWorkflow = updatedWorkflows[0]

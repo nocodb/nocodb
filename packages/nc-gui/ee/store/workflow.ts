@@ -8,8 +8,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const { showWorkflowPlanLimitExceededModal, updateStatLimit } = useEeConfig()
 
-  const { refreshCommandPalette } = useCommandPalette()
-
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
   const router = useRouter()
@@ -170,8 +168,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
       workflows.value.set(baseId, baseWorkflows)
 
-      await refreshCommandPalette()
-
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
         baseId: activeProjectId.value,
@@ -219,7 +215,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
       const index = baseWorkflows.findIndex((a) => a.id === workflowId)
 
       if (index !== -1) {
-        // Create a new array to trigger reactivity
         const updatedWorkflows = [...baseWorkflows]
         updatedWorkflows[index] = {
           ...baseWorkflows[index],
@@ -227,8 +222,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
         } as unknown as WorkflowType
         workflows.value.set(baseId, updatedWorkflows)
       }
-
-      await refreshCommandPalette()
 
       if (!options?.skipNetworkCall) {
         $e('a:workflow:update')
@@ -276,8 +269,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
           })
         }
       }
-
-      await refreshCommandPalette()
 
       if (!filtered.length) {
         ncNavigateTo({
@@ -355,8 +346,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
         workflowId: created.id,
         workflowTitle: created.title,
       })
-
-      await refreshCommandPalette()
 
       $e('a:workflow:duplicate')
 

@@ -645,6 +645,11 @@ import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
 import NcWebhook from '~icons/nc-icons-v2/webhook'
 
+import NcFormResponse from '~icons/nc-icons-v2/new-form-responce'
+import NcRecordCreate from '~icons/nc-icons-v2/record-create'
+import NcRecordUpdate from '~icons/nc-icons-v2/record-update'
+import NcIfElse from '~icons/nc-icons-v2/if-else'
+
 import NcLogoAsanaColored from '~icons/nc-icons-v2/asana-colored.svg'
 import NcLogoAsana from '~icons/nc-icons-v2/asana.svg'
 import NcLogoBitbucketColored from '~icons/nc-icons-v2/bitbucket-colored.svg'
@@ -1812,6 +1817,10 @@ export const iconMap = {
   'ncGraduationCap': NcGraduationCap,
   'ncSupportAgent': h(NcSupportAgent, { stroke: 'transparent' }),
   'ncBuilding': NcBuilding,
+  'ncRecordCreate': NcRecordCreate,
+  'ncRecordUpdate': NcRecordUpdate,
+  'ncFormResponse': NcFormResponse,
+  'ncIfElse': NcIfElse,
 }
 
 export const getMdiIcon = (type: string): any => {

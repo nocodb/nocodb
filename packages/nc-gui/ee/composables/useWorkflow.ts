@@ -292,6 +292,12 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
     await triggerLayout()
 
+    if (nodes.value?.length === 1 && nodes.value[0]?.type === 'core.plus') {
+      nodes.value = initWorkflowNodes
+      edges.value = []
+      firstParentNode = null
+    }
+
     await nextTick(() => {
       // Create a new plus node at the position of the first parent node
       if (firstParentNode) {

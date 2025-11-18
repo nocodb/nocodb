@@ -5,7 +5,7 @@ const { updateWorkflow } = workflowStore
 
 const { activeWorkflow } = storeToRefs(workflowStore)
 
-const toggleWorkfow = async () => {
+const toggleWorkflow = async () => {
   if (!activeWorkflow.value || !activeWorkflow.value.base_id || !activeWorkflow.value.id) {
     return
   }
@@ -24,7 +24,7 @@ const toggleWorkfow = async () => {
         'bg-nc-bg-gray-medium  text-caption text-nc-content-gray-muted': !activeWorkflow?.enabled,
       }"
       class="ml-2 uppercase cursor-pointer rounded-lg px-2 py-1"
-      @click="toggleWorkfow"
+      @click="toggleWorkflow"
     >
       {{ activeWorkflow?.enabled ? $t('general.on') : $t('general.off') }}
     </div>

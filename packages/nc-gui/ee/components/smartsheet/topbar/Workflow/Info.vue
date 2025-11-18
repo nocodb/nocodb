@@ -10,7 +10,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 <template>
   <div
-    class="flex flex-row items-center border-nc-border-gray-extra-light transition-all duration-100 select-none"
+    class="flex flex-row items-center border-nc-border-gray-extralight transition-all duration-100 select-none"
     :class="{
       'text-base w-[calc(100%_-_52px)]': isMobileMode,
       'w-[calc(100%_-_44px)]': !isMobileMode && !isLeftSidebarOpen,

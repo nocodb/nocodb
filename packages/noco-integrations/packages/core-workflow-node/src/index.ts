@@ -1,6 +1,6 @@
 import {
-  IntegrationType,
   type IntegrationEntry,
+  IntegrationType,
 } from '@noco-integrations/core';
 import { manifest } from './manifest';
 import { ManualTriggerNode } from './nodes/manual-trigger';
@@ -19,7 +19,8 @@ export const entries: IntegrationEntry[] = [
     form: [],
     manifest: {
       ...manifest,
-      title: 'Manual Trigger',
+      title: 'When manually triggered',
+      icon: 'ncPlay'
     },
   },
   {
@@ -30,6 +31,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'If Condition',
+      icon: 'ncIfElse'
     },
   },
 ];

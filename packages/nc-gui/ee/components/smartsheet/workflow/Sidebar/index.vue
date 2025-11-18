@@ -7,7 +7,7 @@ const { isSidebarOpen } = useWorkflowOrThrow()
 <template>
   <div
     :class="{
-      'w-0': !isSidebarOpen,
+      'w-0 opacity-0': !isSidebarOpen,
       'w-100': isSidebarOpen,
     }"
     class="border-l-1 border-nc-border-gray-medium h-full bg-nc-bg-default"

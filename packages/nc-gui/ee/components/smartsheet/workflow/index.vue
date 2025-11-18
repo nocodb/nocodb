@@ -23,9 +23,9 @@ watchEffect(async () => {
       return
     }
 
-    nodes.value = workflow.nodes as any
+    nodes.value = (workflow.nodes || []) as any
 
-    edges.value = workflow.edges as any
+    edges.value = (workflow.edges || []) as any
 
     isLoading.value = false
   } else {

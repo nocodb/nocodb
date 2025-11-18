@@ -7,6 +7,7 @@ interface WorkflowNodeSchema {
     icon?: keyof typeof iconMap
     color?: string
   }
+  description?: string
   keywords: Array<string>
   category: WorkflowCategory
   ports: Array<{
@@ -77,7 +78,7 @@ const FALLBACK_NODE_TYPES: WorkflowNodeType[] = [
 // Start with generic 'core.trigger' so user can select the specific trigger type
 const initWorkflowNodes = [
   {
-    id: self.crypto.randomUUID(),
+    id: crypto.randomUUID(),
     type: 'core.trigger',
     position: { x: 250, y: 50 },
     data: {
@@ -87,16 +88,31 @@ const initWorkflowNodes = [
 ]
 
 const generateUniqueNodeId = (nodes: Node[]): string => {
-  let candidateId = self.crypto.randomUUID()
+  let candidateId = crypto.randomUUID()
 
   // Keep incrementing until we find an ID that doesn't exist
   while (nodes.some((n) => n.id === candidateId)) {
-    candidateId = self.crypto.randomUUID()
+    candidateId = crypto.randomUUID()
   }
 
   return candidateId
 }
 
+const colorMappingByCategory = {
+  [WorkflowCategory.TRIGGER]: themeV4Colors.brand['500'],
+  [WorkflowCategory.LOGIC]: themeV4Colors.maroon['500'],
+  [WorkflowCategory.CONTROL]: themeV4Colors.brand['500'],
+  [WorkflowCategory.ACTION]: themeV4Colors.brand['500'],
+}
+
 export type { WorkflowNodeType, WorkflowNodeSchema }
 
-export { WorkflowCategory, categoryMapping, transformNode, FALLBACK_NODE_TYPES, initWorkflowNodes, generateUniqueNodeId }
+export {
+  WorkflowCategory,
+  categoryMapping,
+  transformNode,
+  FALLBACK_NODE_TYPES,
+  initWorkflowNodes,
+  generateUniqueNodeId,
+  colorMappingByCategory,
+}

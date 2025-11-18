@@ -1,33 +1,33 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
-import NodeTypeDropdown, { type NodeTypeOption } from './NodeTypeDropdown.vue'
+import { Handle, Position } from '@vue-flow/core'
+import Dropdown from './Dropdown.vue'
 
 const props = defineProps<NodeProps>()
 
-const workflowStore = useWorkflowOrThrow()
-const { updateNode, addPlusNode, triggerLayout, getNodeType, selectedNodeId } = workflowStore
+const { updateNode, addPlusNode, triggerLayout, getNodeType, selectedNodeId, edges, deleteNode } = useWorkflowOrThrow()
 
-const availableOptions = computed((): NodeTypeOption[] => {
-  const triggerTypes = workflowStore.getNodeTypesByCategory(WorkflowCategory.TRIGGER)
-  return triggerTypes.map((nt) => ({
-    id: nt.type,
-    title: nt.title,
-    icon: nt.icon,
-    description: nt.description,
-  }))
+const wrappperRef = ref()
+
+const showSubMenuDropdown = ref()
+
+const nodeMeta = computed(() => {
+  return getNodeType(props.type)
 })
 
-const selectTriggerType = async (option: NodeTypeOption) => {
+const disableDropdown = computed(() => {
+  return !!(props.type !== 'core.trigger' && nodeMeta.value)
+})
+
+const selectTriggerType = async (option: WorkflowNodeType) => {
   updateNode(props.id, {
-    type: option.id,
+    type: option.type,
     data: {
       ...props.data,
     },
   })
 
-  const hasPlusNode = workflowStore.edges.value.some((e) => e.source === props.id)
+  const hasPlusNode = edges.value.some((e) => e.source === props.id)
   if (!hasPlusNode) {
     await addPlusNode(props.id)
 
@@ -38,184 +38,107 @@ const selectTriggerType = async (option: NodeTypeOption) => {
   }
 }
 
-const nodeMeta = computed(() => {
-  return getNodeType(props.type)
-})
-
-const handleTriggerClick = (event: MouseEvent) => {
+const handleTriggerClick = () => {
   if (props.type !== 'core.trigger' && nodeMeta.value) {
-    event.stopPropagation()
     selectedNodeId.value = props.id
   }
 }
+
+const handleDelete = async () => {
+  await deleteNode(props.id)
+
+  await nextTick()
+  setTimeout(() => {
+    triggerLayout()
+  }, 50)
+}
+
+onClickOutside(wrappperRef, () => {
+  showSubMenuDropdown.value = false
+  if (selectedNodeId.value === props.id) {
+    selectedNodeId.value = null
+  }
+})
 </script>
 
 <template>
-  <div class="trigger-node-wrapper">
-    <NodeTypeDropdown
-      :options="availableOptions"
+  <div ref="wrappperRef" class="trigger-node-wrapper">
+    <Dropdown
+      :disabled="disableDropdown"
       :selected-id="props.type === 'core.trigger' ? undefined : props.type"
-      placeholder="When this happens"
-      title="Choose a trigger"
-      overlay-class-name="nc-dropdown-trigger-selection"
+      :category="[WorkflowCategory.TRIGGER]"
       @select="selectTriggerType"
     >
-      <template #default="{ selectedOption: selected, openDropdown }">
+      <template #default="{ selectedNode, openDropdown, showDropdown }">
         <div
-          class="trigger-node"
+          v-if="!selectedNode"
           :class="{
-            'trigger-node-selected': selected,
-            'trigger-node-empty': !selected,
+            'ring ring-nc-brand-500 ring-offset-2': showDropdown,
           }"
-          @click="selected ? handleTriggerClick($event) : openDropdown()"
+          class="flex border-1 rounded-lg w-77 justify-center border-dashed cursor-pointer border-nc-border-gray-dark px-2 py-4 !bg-nc-bg-gray-extralight"
+          @click="openDropdown"
         >
-          <div class="trigger-content">
-            <div v-if="!selected" class="trigger-placeholder">
-              <div class="trigger-placeholder-icon">
-                <GeneralIcon icon="plus" class="text-neutral-400" />
-              </div>
-              <span class="trigger-placeholder-text">When this happens</span>
-            </div>
-            <div v-else class="trigger-selected">
-              <div class="trigger-selected-icon">
-                <GeneralIcon :icon="selected.icon" />
-              </div>
-              <div class="trigger-text-container">
-                <span class="trigger-label">{{ selected.title }}</span>
-                <span class="trigger-instance-title">{{ data.title }}</span>
-              </div>
-            </div>
+          <div class="flex text-nc-content-brand items-center gap-2">
+            <GeneralIcon icon="ncPlus" class="w-4 h-4" />
+            <span class="text-captionBold">
+              {{ $t('labels.addTrigger') }}
+            </span>
           </div>
+        </div>
+        <div
+          v-else
+          class="flex border-1 w-77 rounded-lg cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default"
+          :class="{
+            'ring ring-nc-brand-500 ring-offset-2': selectedNodeId === props.id || showDropdown,
+          }"
+          @click.stop="handleTriggerClick"
+        >
+          <div class="flex gap-2.5 w-full items-center">
+            <div
+              :class="{
+                'bg-nc-bg-brand !text-nc-content-brand-disabled': [
+                  WorkflowCategory.TRIGGER,
+                  WorkflowCategory.CONTROL,
+                  WorkflowCategory.ACTION,
+                ].includes(selectedNode.category),
+                'bg-nc-bg-maroon ': selectedNode.category === WorkflowCategory.LOGIC,
+              }"
+              class="w-5 h-5 flex items-center justify-center rounded-md p-1"
+            >
+              <GeneralIcon :icon="selectedNode.icon" class="!w-4 !h-4 !stroke-2" />
+            </div>
 
-          <!-- Handle for connecting to next node -->
-          <Handle type="source" :position="Position.Bottom" class="!w-3 !h-3 !bg-blue-500 !border-2 !border-white" />
+            <div class="text-nc-content-gray truncate flex-1 w-full text-bodyBold">
+              {{ selectedNode.title }}
+            </div>
+
+            <NcDropdown v-model:visible="showSubMenuDropdown">
+              <NcButton type="text" size="xxsmall" @click.stop>
+                <GeneralIcon icon="threeDotHorizontal" />
+              </NcButton>
+
+              <template #overlay>
+                <NcMenu variant="small">
+                  <NcMenuItem @click="openDropdown">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="ncEdit" />
+                      Edit
+                    </div>
+                  </NcMenuItem>
+                  <NcDivider />
+                  <NcMenuItem danger @click="handleDelete">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="delete" />
+                      Delete
+                    </div>
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
+          </div>
         </div>
       </template>
-    </NodeTypeDropdown>
+    </Dropdown>
+    <Handle type="source" :position="Position.Bottom" class="!w-3 !h-3 !border-none !bg-transparent" />
   </div>
 </template>
-
-<style scoped lang="scss">
-.trigger-node-wrapper {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.trigger-node {
-  width: 400px;
-  min-height: 80px;
-  background: white;
-  border: 2px solid #3b82f6;
-  border-radius: 12px;
-  padding: 24px 20px 16px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  transition: all 0.2s ease;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.trigger-node-empty {
-  border-style: dashed;
-  border-color: #d1d5db;
-  cursor: pointer;
-}
-
-.trigger-node-selected {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-}
-
-.trigger-node:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.05), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-}
-
-.trigger-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  width: 100%;
-}
-
-.trigger-placeholder {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.trigger-placeholder-icon {
-  width: 48px;
-  height: 48px;
-  background: #f3f4f6;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.trigger-placeholder-text {
-  font-size: 18px;
-  font-weight: 500;
-  color: #3b82f6;
-}
-
-.trigger-selected {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-}
-
-.trigger-selected-icon {
-  width: 40px;
-  height: 40px;
-  background: rgba(59, 130, 246, 0.1);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #3b82f6;
-  flex-shrink: 0;
-}
-
-.trigger-text-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0; // Enable text truncation
-}
-
-.trigger-label {
-  font-size: 14px;
-  font-weight: 400;
-  color: #6b7280;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.trigger-instance-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-</style>
-
-<style lang="scss">
-:deep(.nc-dropdown-trigger-selection) {
-  .ant-dropdown-menu {
-    padding: 0;
-    border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  }
-}
-</style>

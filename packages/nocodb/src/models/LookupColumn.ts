@@ -5,7 +5,6 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import { NcCache } from '~/decorators/nc-cache.decorator';
 
 export default class LookupColumn implements LookupType {
   fk_relation_column_id: string;

@@ -6,7 +6,6 @@ import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { NcCache } from '~/decorators/nc-cache.decorator';
 
 export default class SelectOption implements SelectOptionType {
   id: string;

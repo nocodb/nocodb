@@ -9,7 +9,6 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { View } from '~/models/index';
-import { NcCache } from '~/decorators/nc-cache.decorator';
 
 export default class LinkToAnotherRecordColumn {
   protected _context: {

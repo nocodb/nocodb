@@ -4,7 +4,6 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
-import { NcCache } from '~/decorators/nc-cache.decorator';
 
 export default class FormulaColumn {
   formula: string;

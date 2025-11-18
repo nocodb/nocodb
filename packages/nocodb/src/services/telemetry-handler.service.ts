@@ -8,8 +8,8 @@ import { TelemetryService } from '~/services/telemetry.service';
 export const HANDLE_PRIORITY_ERROR = '__nc_handlePriorityError';
 
 @Injectable()
-export class TelemetrykHandlerService implements OnModuleInit, OnModuleDestroy {
-  protected logger = new Logger(TelemetrykHandlerService.name);
+export class TelemetryHandlerService implements OnModuleInit, OnModuleDestroy {
+  protected logger = new Logger(TelemetryHandlerService.name);
   protected unsubscribe: () => void;
 
   static sendPriorityError(

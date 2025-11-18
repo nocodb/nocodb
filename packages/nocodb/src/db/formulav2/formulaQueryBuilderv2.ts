@@ -38,7 +38,7 @@ import { BaseUser, ButtonColumn } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
 import Model from '~/models/Model';
 import { CacheScope } from '~/utils/globals';
-import { TelemetrykHandlerService } from '~/services/telemetry-handler.service';
+import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -511,7 +511,7 @@ export default async function formulaQueryBuilderv2({
 
     // we limit the formula length to 500k to prevent server crashing
     if (sqlLength > 500 * 1000) {
-      TelemetrykHandlerService.sendPriorityError(context, {
+      TelemetryHandlerService.sendPriorityError(context, {
         trigger: 'formulaQueryBuilder',
         error_type: 'FORMULA_TOO_LONG_ERROR',
         message: `Formula length too long for column ${column.title} (${column.id})`,

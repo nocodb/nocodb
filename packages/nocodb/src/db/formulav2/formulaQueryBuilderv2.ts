@@ -505,6 +505,19 @@ export default async function formulaQueryBuilderv2({
 
     // we limit the formula length to 500k to prevent server crashing
     if (qb.builder.toSQL().sql.length > 500 * 1000) {
+      // TODO: replace with telemetry service
+      console.log({
+        event_type: 'priority_error',
+        error_trigger: 'duplicateBase',
+        error_type: 'FORMULA_TOO_LONG_ERROR',
+        message: `Formula length too long for column ${column.title} (${column.id})`,
+        affected_resources: [
+          context?.user?.email,
+          context?.user?.id,
+          context.base_id,
+          context.workspace_id,
+        ],
+      });
       NcError.get(context).formulaError(
         `Formula length too long for column ${column.title}`,
       );

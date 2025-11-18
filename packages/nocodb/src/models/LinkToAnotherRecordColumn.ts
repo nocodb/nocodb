@@ -277,6 +277,12 @@ export default class LinkToAnotherRecordColumn {
       };
     }
 
+    // propagate cache map
+    if (context.cacheMap) {
+      refContext.cacheMap = context.cacheMap;
+      if (mmContext) mmContext.cacheMap = context.cacheMap;
+    }
+
     return (this._context = {
       refContext,
       mmContext,
@@ -296,6 +302,7 @@ export default class LinkToAnotherRecordColumn {
       ...context,
       base_id: this.base_id,
     });
+
     let childContext = context;
     let parentContext = context;
 
@@ -329,6 +336,14 @@ export default class LinkToAnotherRecordColumn {
           )?.meta?.bt))
     ) {
       parentContext = refContext;
+    }
+
+    // propagate cache map
+    if (context.cacheMap) {
+      refContext.cacheMap = context.cacheMap;
+      if (mmContext) mmContext.cacheMap = context.cacheMap;
+      childContext.cacheMap = context.cacheMap;
+      parentContext.cacheMap = context.cacheMap;
     }
 
     return (this._parentChildContext = {

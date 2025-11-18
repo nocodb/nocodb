@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
-import { PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, isVirtualCol, type ColumnType } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 interface Attachment {
@@ -73,7 +73,7 @@ const {
   updateAllStacksProperty,
 } = useKanbanViewStoreOrThrow()
 
-const { isViewDataLoading } = storeToRefs(useViewsStore())
+const { isViewDataLoading, isActiveViewCellHeaderVisible } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useRoles()
 
@@ -503,6 +503,10 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
 
   openNewRecordFormHook.trigger()
 }
+
+const resetPointerEvent = (record: RowType, col: ColumnType) => {
+  return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col))
+}
 </script>
 
 <template>
@@ -895,19 +899,18 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                       :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
                                     ></div>
                                     <div
-                                      class="flex-1 flex flex-col gap-3 !children:pointer-events-none"
+                                      class="flex-1 flex flex-col !children:pointer-events-none"
                                       :class="{
                                         'w-[calc(100%_-_16px)]': isRowColouringEnabled,
                                         'w-full': !isRowColouringEnabled,
+                                        'gap-3': isActiveViewCellHeaderVisible,
                                       }"
                                     >
                                       <h2
                                         v-if="displayField"
                                         class="nc-card-display-value-wrapper"
                                         :class="{
-                                          '!children:pointer-events-auto':
-                                            isButton(displayField) ||
-                                            (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
+                                          '!children:pointer-events-auto': resetPointerEvent(record, displayField),
                                         }"
                                       >
                                         <template
@@ -938,47 +941,81 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                         :key="`record-${record.row.id}-${col.id}`"
                                         class="nc-card-col-wrapper"
                                         :class="{
-                                          '!children:pointer-events-auto':
-                                            isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
+                                          '!children:pointer-events-auto': resetPointerEvent(record, col),
                                         }"
                                         @click="handleCellClick(col, $event)"
                                       >
-                                        <div class="flex flex-col rounded-lg w-full">
-                                          <div class="flex flex-row w-full justify-start">
-                                            <div class="nc-card-col-header w-full !children:text-gray-500">
-                                              <LazySmartsheetHeaderVirtualCell
-                                                v-if="isVirtualCol(col)"
-                                                :column="col"
-                                                :hide-menu="true"
-                                              />
-
-                                              <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
-                                            </div>
-                                          </div>
+                                        <NcTooltip
+                                          hide-on-click
+                                          :disabled="isActiveViewCellHeaderVisible"
+                                          class="w-full z-10 flex"
+                                          :class="{
+                                            'pointer-events-auto': !isActiveViewCellHeaderVisible,
+                                          }"
+                                          placement="left"
+                                          :arrow="false"
+                                        >
+                                          <template #title>
+                                            <LazySmartsheetHeaderVirtualCell
+                                              v-if="isVirtualCol(col)"
+                                              :column="col"
+                                              :hide-menu="true"
+                                              hide-icon-tooltip
+                                              class="!text-gray-100 nc-record-cell-tooltip"
+                                            />
+                                            <LazySmartsheetHeaderCell
+                                              v-else
+                                              :column="col"
+                                              :hide-menu="true"
+                                              hide-icon-tooltip
+                                              class="!text-gray-100 nc-record-cell-tooltip"
+                                            />
+                                          </template>
 
                                           <div
-                                            v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)"
-                                            class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                            class="flex flex-col rounded-lg w-full"
+                                            :class="{
+                                              'pointer-events-none': !resetPointerEvent(record, col),
+                                            }"
                                           >
-                                            <LazySmartsheetVirtualCell
-                                              v-if="isVirtualCol(col)"
-                                              v-model="record.row[col.title]"
-                                              :column="col"
-                                              :row="record"
-                                              class="!text-gray-800"
-                                            />
+                                            <div v-if="isActiveViewCellHeaderVisible" class="flex flex-row w-full justify-start">
+                                              <div class="nc-card-col-header w-full !children:text-gray-500">
+                                                <LazySmartsheetHeaderVirtualCell
+                                                  v-if="isVirtualCol(col)"
+                                                  :column="col"
+                                                  :hide-menu="true"
+                                                />
 
-                                            <LazySmartsheetCell
-                                              v-else
-                                              v-model="record.row[col.title]"
-                                              :column="col"
-                                              :edit-enabled="false"
-                                              :read-only="true"
-                                              class="!text-gray-800"
-                                            />
+                                                <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                              </div>
+                                            </div>
+
+                                            <div
+                                              v-if="
+                                                !isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)
+                                              "
+                                              class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                            >
+                                              <LazySmartsheetVirtualCell
+                                                v-if="isVirtualCol(col)"
+                                                v-model="record.row[col.title]"
+                                                :column="col"
+                                                :row="record"
+                                                class="!text-gray-800"
+                                              />
+
+                                              <LazySmartsheetCell
+                                                v-else
+                                                v-model="record.row[col.title]"
+                                                :column="col"
+                                                :edit-enabled="false"
+                                                :read-only="true"
+                                                class="!text-gray-800"
+                                              />
+                                            </div>
+                                            <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
                                           </div>
-                                          <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
-                                        </div>
+                                        </NcTooltip>
                                       </div>
                                     </div>
                                   </div>
@@ -1527,6 +1564,19 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
   &.nc-virtual-cell-qrcode,
   &.nc-virtual-cell-barcode {
     @apply children:justify-start;
+  }
+}
+.nc-record-cell-tooltip {
+  @apply !bg-transparent !hover:bg-transparent;
+  :deep(.nc-cell-icon) {
+    @apply !ml-0 h-3.5 w-3.5;
+  }
+  :deep(.name) {
+    @apply text-captionSm;
+  }
+  :deep(.nc-cell-name-wrapper),
+  :deep(.nc-virtual-cell-name-wrapper) {
+    @apply !max-w-full;
   }
 }
 </style>

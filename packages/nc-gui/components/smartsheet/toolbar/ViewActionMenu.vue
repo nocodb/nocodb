@@ -339,7 +339,6 @@ defineOptions({
         </NcMenuItem>
       </template>
 
-      <NcDivider v-if="copyViewConfigMenuItemStatus.isVisible" />
       <SmartsheetToolbarNotAllowedTooltip
         v-if="copyViewConfigMenuItemStatus.isVisible"
         :enabled="copyViewConfigMenuItemStatus.isDisabled"

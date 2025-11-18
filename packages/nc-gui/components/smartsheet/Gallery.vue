@@ -592,6 +592,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             'pointer-events-auto': !isActiveViewCellHeaderVisible,
                           }"
                           placement="left"
+                          :arrow="false"
                         >
                           <template #title>
                             <LazySmartsheetHeaderVirtualCell
@@ -900,10 +901,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
   @apply !bg-transparent !hover:bg-transparent;
 
   :deep(.nc-cell-icon) {
-    @apply !ml-0;
+    @apply !ml-0 h-3.5 w-3.5;
   }
   :deep(.name) {
-    @apply !max-w-max;
+    @apply text-captionSm;
   }
 
   :deep(.nc-cell-name-wrapper),

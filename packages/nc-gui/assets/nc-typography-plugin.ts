@@ -20,9 +20,9 @@ const fontStyleMap: Record<string, [string, { lineHeight: string; letterSpacing?
   captionSmBold: ['12px', { lineHeight: '14px', fontWeight: 700 }],
   captionXs: ['10px', { lineHeight: '14px', fontWeight: 500 }],
   captionXsBold: ['10px', { lineHeight: '14px', fontWeight: 700 }],
-  captionDropdownDefault: ['13px', { lineHeight: '20px', fontWeight: 650 }],
-  sidebarDefault: ['14px', { lineHeight: '20px', fontWeight: 650 }],
-  sidebarSelected: ['14px', { lineHeight: '20px', fontWeight: 650 }],
+  captionDropdownDefault: ['13px', { lineHeight: '20px', fontWeight: 550 }],
+  sidebarDefault: ['14px', { lineHeight: '20px', fontWeight: 550 }],
+  sidebarSelected: ['14px', { lineHeight: '20px', fontWeight: 550 }],
 }
 
 export default plugin(({ addUtilities }) => {

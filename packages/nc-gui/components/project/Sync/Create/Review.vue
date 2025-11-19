@@ -41,13 +41,12 @@ const getReadableCategory = (category: SyncCategory) => {
   <div>
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-2.5">
-        <div class="text-bodyLgBold text-nc-content-gray flex-1">
+        <div class="text-bodyLgBold text-nc-content-gray">
           {{ $t('general.general') }}
         </div>
         <NcButton type="text" size="small" @click="switchToStep(SyncFormStep.SyncSettings)">
           <div class="flex gap-2 text-nc-content-brand items-center">
             <GeneralIcon icon="ncEdit2" />
-            Edit
           </div>
         </NcButton>
       </div>
@@ -97,13 +96,12 @@ const getReadableCategory = (category: SyncCategory) => {
     <NcDivider class="!my-8" />
 
     <div class="flex items-center gap-2.5">
-      <div class="text-bodyLgBold text-nc-content-gray flex-1">
+      <div class="text-bodyLgBold text-nc-content-gray">
         {{ $t('labels.sources') }}
       </div>
       <NcButton type="text" size="small" @click="switchToStep(SyncFormStep.Integration)">
         <div class="flex gap-2 text-nc-content-brand items-center">
           <GeneralIcon icon="ncEdit2" />
-          {{ $t('general.edit') }}
         </div>
       </NcButton>
     </div>

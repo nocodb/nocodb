@@ -296,11 +296,14 @@ const onClick = (e: Event) => {
       />
 
       <div class="flex-1" />
-      <GeneralIcon
+      <NcTooltip
         v-if="meta?.synced && column?.readonly && isExpandedForm && !isPublic"
-        class="!text-nc-content-gray-disabled"
-        icon="ncZap"
-      />
+        class="flex items-center"
+        placement="bottom"
+      >
+        <template #title> {{ $t('tooltip.fieldIsExternallySynced') }} </template>
+        <GeneralIcon icon="ncZap" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-disabled" />
+      </NcTooltip>
     </div>
 
     <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">

@@ -22,7 +22,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.SelectIntegration,
-    label: 'GitHub Connection',
+    label: 'GitHub connection',
     width: 100,
     model: 'config.authIntegrationId',
     category: 'General',

@@ -22,7 +22,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.SelectIntegration,
-    label: 'Bitbucket Connection',
+    label: 'Bitbucket connection',
     width: 100,
     model: 'config.authIntegrationId',
     category: 'General',
@@ -62,7 +62,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Checkbox,
-    label: 'Include Closed Issues',
+    label: 'Include closed issues',
     width: 48,
     model: 'config.includeClosed',
     category: 'Options',
@@ -77,7 +77,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Checkbox,
-    label: 'Include Pull Requests',
+    label: 'Include pull requests',
     width: 48,
     model: 'config.includePRs',
     description: "Sync pull requests along with issues to track code changes, reviews, and merges within your workspace.",

@@ -22,7 +22,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.SelectIntegration,
-    label: 'GitLab Connection',
+    label: 'GitLab connection',
     width: 100,
     model: 'config.authIntegrationId',
     category: 'General',
@@ -53,7 +53,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Checkbox,
-    label: 'Include Closed Issues',
+    label: 'Include closed issues',
     description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     width: 48,
     model: 'config.includeClosed',
@@ -62,7 +62,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Checkbox,
-    label: 'Include Merge Requests',
+    label: 'Include merge requests',
     description: "Sync merge requests along with issues to track code changes, reviews, and merges within your workspace.",
     width: 48,
     model: 'config.includeMRs',

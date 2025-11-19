@@ -13,7 +13,7 @@ const form: FormDefinition = [
   // Authentication integration selection
   {
     type: FormBuilderInputType.SelectIntegration,
-    label: 'Provider Connection',
+    label: 'Provider connection',
     width: 100,
     model: 'config.authIntegrationId',
     category: 'Authentication',

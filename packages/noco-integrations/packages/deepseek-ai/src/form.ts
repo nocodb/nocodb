@@ -21,10 +21,10 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Key',
+    label: 'API key',
     width: 100,
     model: 'config.apiKey',
-    placeholder: 'API Key',
+    placeholder: 'API key',
     category: 'Credentials',
     validators: [
       {

@@ -23,7 +23,7 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'GitLab Hostname',
+    label: 'GitLab hostname',
     width: 100,
     model: 'config.hostname',
     placeholder: 'https://gitlab.com',
@@ -38,7 +38,7 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Auth Type',
+    label: 'Auth type',
     width: 48,
     model: 'config.type',
     category: 'Authentication',
@@ -46,7 +46,7 @@ export const form: FormDefinition = [
     defaultValue: AuthType.ApiKey,
     options: [
       {
-        label: 'API Key',
+        label: 'API key',
         value: AuthType.ApiKey,
       },
       ...(redirectUri && clientId
@@ -71,15 +71,15 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Token',
+    label: 'API token',
     width: 100,
     model: 'config.token',
     category: 'Authentication',
-    placeholder: 'Enter your GitLab API Token',
+    placeholder: 'Enter your GitLab API token',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'API Token is required',
+        message: 'API token is required',
       },
     ],
     condition: {
@@ -91,7 +91,7 @@ export const form: FormDefinition = [
     ? [
         {
           type: FormBuilderInputType.OAuth,
-          label: 'OAuth Configuration',
+          label: 'OAuth configuration',
           width: 100,
           model: 'config.oauth.code',
           category: 'Authentication',

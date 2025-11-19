@@ -21,15 +21,15 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Clickhouse Instance URL',
+    label: 'Clickhouse instance URL',
     width: 100,
     model: 'config.url',
     category: 'Authentication',
-    placeholder: 'Enter your Clickhouse Instance URL',
+    placeholder: 'Enter your Clickhouse instance URL',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'Clickhouse Instance URL is required',
+        message: 'Clickhouse instance URL is required',
       },
     ],
   },

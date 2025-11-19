@@ -23,7 +23,7 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Auth Type',
+    label: 'Auth type',
     width: 48,
     model: 'config.type',
     category: 'Authentication',
@@ -31,7 +31,7 @@ export const form: FormDefinition = [
     defaultValue: AuthType.ApiKey,
     options: [
       {
-        label: 'Access Token',
+        label: 'Access token',
         value: AuthType.ApiKey,
       },
       ...(redirectUri && clientId
@@ -52,15 +52,15 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Access Token',
+    label: 'Access token',
     width: 100,
     model: 'config.token',
     category: 'Authentication',
-    placeholder: 'Enter your Bitbucket Access Token',
+    placeholder: 'Enter your Bitbucket access token',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'Access Token is required',
+        message: 'Access token is required',
       },
     ],
     condition: {
@@ -72,14 +72,14 @@ export const form: FormDefinition = [
     ? [
         {
           type: FormBuilderInputType.OAuth,
-          label: 'OAuth Configuration',
+          label: 'OAuth configuration',
           width: 100,
           model: 'config.oauth.code',
           category: 'Authentication',
           validators: [
             {
               type: FormBuilderValidatorType.Required,
-              message: 'OAuth Configuration is required',
+              message: 'OAuth configuration is required',
             },
           ],
           condition: {

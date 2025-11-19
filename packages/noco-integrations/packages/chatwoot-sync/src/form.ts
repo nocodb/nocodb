@@ -22,7 +22,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.SelectIntegration,
-    label: 'Chatwoot Connection',
+    label: 'Chatwoot connection',
     width: 100,
     model: 'config.authIntegrationId',
     category: 'General',
@@ -52,7 +52,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Checkbox,
-    label: 'Include Resolved Conversations',
+    label: 'Include resolved conversations',
     width: 50,
     description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     model: 'config.includeResolved',

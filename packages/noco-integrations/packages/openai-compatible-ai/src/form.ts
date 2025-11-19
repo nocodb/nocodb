@@ -21,7 +21,7 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Base URL',
+    label: 'API base URL',
     width: 100,
     model: 'config.baseURL',
     placeholder: 'http://localhost:8080/v1',
@@ -29,16 +29,16 @@ export const form: FormDefinition = [
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'API Base URL is required',
+        message: 'API base URL is required',
       },
     ],
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Key',
+    label: 'API key',
     width: 100,
     model: 'config.apiKey',
-    placeholder: 'API Key (optional for some services)',
+    placeholder: 'API key (optional for some services)',
     category: 'Credentials',
   },
   {

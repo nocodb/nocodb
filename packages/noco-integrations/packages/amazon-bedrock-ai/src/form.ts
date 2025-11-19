@@ -21,15 +21,15 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'AWS Access Key ID',
+    label: 'AWS access key ID',
     width: 48,
     model: 'config.accessKeyId',
-    placeholder: 'Access Key ID',
+    placeholder: 'Access key ID',
     category: 'Credentials',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'Access Key ID is required',
+        message: 'Access key ID is required',
       },
     ],
   },
@@ -40,21 +40,21 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'AWS Secret Access Key',
+    label: 'AWS secret access key',
     width: 48,
     model: 'config.secretAccessKey',
-    placeholder: 'Secret Access Key',
+    placeholder: 'Secret access key',
     category: 'Credentials',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'Secret Access Key is required',
+        message: 'Secret access key is required',
       },
     ],
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'AWS Region',
+    label: 'AWS region',
     width: 100,
     model: 'config.region',
     placeholder: 'us-east-1',
@@ -62,7 +62,7 @@ export const form: FormDefinition = [
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'AWS Region is required',
+        message: 'AWS region is required',
       },
     ],
   },

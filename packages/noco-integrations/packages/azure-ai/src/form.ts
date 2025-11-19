@@ -21,21 +21,21 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Azure OpenAI API Key',
+    label: 'Azure OpenAI API key',
     width: 100,
     model: 'config.apiKey',
-    placeholder: 'API Key',
+    placeholder: 'API key',
     category: 'Credentials',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'API Key is required',
+        message: 'API key is required',
       },
     ],
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Azure Resource Name',
+    label: 'Azure resource name',
     width: 100,
     model: 'config.resourceName',
     placeholder: 'your-resource-name',
@@ -43,13 +43,13 @@ export const form: FormDefinition = [
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'Resource Name is required',
+        message: 'Resource name is required',
       },
     ],
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Version',
+    label: 'API version',
     width: 100,
     model: 'config.apiVersion',
     placeholder: '2024-05-01-preview',
@@ -57,13 +57,13 @@ export const form: FormDefinition = [
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'API Version is required',
+        message: 'API version is required',
       },
     ],
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Models (Deployment Names)',
+    label: 'Models (deployment names)',
     width: 100,
     model: 'config.models',
     placeholder: 'Allowed models (deployment names)',

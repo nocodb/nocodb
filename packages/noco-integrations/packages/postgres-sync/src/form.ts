@@ -22,7 +22,7 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.SelectIntegration,
-    label: 'PostgreSQL Connection',
+    label: 'PostgreSQL connection',
     width: 100,
     model: 'config.authIntegrationId',
     category: 'General',

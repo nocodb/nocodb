@@ -29,7 +29,7 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Freshdesk Domain',
+    label: 'Freshdesk domain',
     width: 100,
     model: 'config.domain',
     category: 'General',
@@ -43,15 +43,15 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Key',
+    label: 'API key',
     width: 100,
     model: 'config.api_key',
     category: 'Authentication',
-    placeholder: 'Enter your Freshdesk API Key',
+    placeholder: 'Enter your Freshdesk API key',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'API Key is required',
+        message: 'API key is required',
       },
     ],
   },

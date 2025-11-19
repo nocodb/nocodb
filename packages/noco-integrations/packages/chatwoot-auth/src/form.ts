@@ -50,15 +50,15 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Access Token',
+    label: 'API access token',
     width: 100,
     model: 'config.api_token',
     category: 'Authentication',
-    placeholder: 'Enter your API Access Token',
+    placeholder: 'Enter your API access token',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'API Access Token is required',
+        message: 'API access token is required',
       },
     ],
   },

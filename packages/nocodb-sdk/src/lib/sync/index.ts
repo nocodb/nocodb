@@ -138,8 +138,7 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_TICKET,
     icon: 'ncBookOpen',
     label: 'Ticket',
-    description:
-      'The Ticket object is used to represent a ticket, issue, task or case.',
+    description: 'Represents a ticket, issue, task, or case.',
     required: true,
   },
   [TARGET_TABLES.TICKETING_USER]: {
@@ -147,8 +146,7 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_USER,
     icon: 'ncUsers',
     label: 'User',
-    description:
-      'The User object is used to represent a user with a login to the ticketing system. Users are either assignees who are directly responsible or a viewer on a Ticket/ Collection.',
+    description: 'Represents users in the source app.',
     required: true,
   },
   [TARGET_TABLES.TICKETING_COMMENT]: {
@@ -156,8 +154,7 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_COMMENT,
     icon: 'ncMessageCircle',
     label: 'Comment',
-    description:
-      'The Comment object is used to represent a comment on a ticket.',
+    description: 'Represents comments added to a ticket.',
     required: false,
   },
   [TARGET_TABLES.TICKETING_TEAM]: {
@@ -165,8 +162,7 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_TEAM,
     icon: 'ncUsers',
     label: 'Team',
-    description:
-      'The Team object is used to represent one or more Users within the company receiving the ticket.',
+    description: 'Represents teams or groups in the source system.',
     required: false,
   },
 };

@@ -220,8 +220,8 @@ function formulaErrorTests() {
         {
           title: 'longFormulaColumn',
           uidt: UITypes.Formula,
-          formula: 'CONCAT("A", "1")',
-          formula_raw: 'CONCAT("A", "1")',
+          formula: 'CONCAT("A", "1A")',
+          formula_raw: 'CONCAT("A", "1A")',
         },
         {
           throwError: true,

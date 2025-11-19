@@ -161,7 +161,7 @@ const previousStep = () => {
           class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-12 mx-auto"
         >
           <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 my-6 flex flex-col">
-            <a-form layout="vertical" no-style :hide-required-mark="true" class="flex flex-col w-full">
+            <a-form layout="vertical" no-style :hide-required-mark="true" class="flex flex-col gap-8 w-full">
               <template v-if="step === SyncFormStep.SyncSettings">
                 <ProjectSyncCommonGeneral />
                 <ProjectSyncCommonCategory />

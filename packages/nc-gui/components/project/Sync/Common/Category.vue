@@ -54,44 +54,47 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
 </script>
 
 <template>
-  <div>
-    <div class="text-bodyLgBold text-nc-content-gray mb-4">
+  <div class="nc-form-section">
+    <div class="nc-form-section-title">
       {{ $t('labels.category') }}
     </div>
-    <div class="text-caption text-nc-content-gray mb-2">
-      {{ $t('labels.selectACategory') }}
-    </div>
-    <div class="grid grid-cols-4 gap-2.5">
-      <div
-        v-for="category in categories"
-        :key="category.value"
-        :class="{
-          'border-nc-border-brand !shadow-selected': syncConfigForm.sync_category === category.value && mode === 'create',
-          'border-nc-border-gray-extradark !shadow-disabled': syncConfigForm.sync_category === category.value && mode === 'edit',
-          'hover:shadow-hover cursor-pointer':
-            !category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true) && mode === 'create',
-        }"
-        class="p-3 border-1 flex flex-col gap-2 rounded-lg transition-shadow border-nc-border-gray-medium"
-        @click="selectCategory(category)"
-      >
+    <div>
+      <div class="nc-form-section-input-label">
+        {{ $t('labels.selectACategory') }}
+      </div>
+      <div class="grid grid-cols-4 gap-2.5">
         <div
-          v-if="!category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true)"
-          class="max-h-5 h-5 flex items-center"
+          v-for="category in categories"
+          :key="category.value"
+          :class="{
+            'border-nc-border-brand !shadow-selected': syncConfigForm.sync_category === category.value && mode === 'create',
+            'border-nc-border-gray-extradark !shadow-disabled':
+              syncConfigForm.sync_category === category.value && mode === 'edit',
+            'hover:shadow-hover cursor-pointer':
+              !category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true) && mode === 'create',
+          }"
+          class="p-3 border-1 flex flex-col gap-2 rounded-lg transition-shadow border-nc-border-gray-medium"
+          @click="selectCategory(category)"
         >
-          <GeneralIcon :icon="category.icon" class="w-4 h-4 text-nc-content-gray-subtle" />
-        </div>
+          <div
+            v-if="!category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true)"
+            class="max-h-5 h-5 flex items-center"
+          >
+            <GeneralIcon :icon="category.icon" class="w-4 h-4 text-nc-content-gray-subtle" />
+          </div>
 
-        <NcBadgeComingSoon v-else class="bg-nc-bg-gray-medium !w-[fit-content] text-nc-content-gray-subtle2" />
-        <div class="text-captionBold text-nc-content-gray">
-          {{ category.label }}
-        </div>
-        <div class="text-bodyDefaultSm text-nc-content-gray-muted">
-          {{ category.description }}
+          <NcBadgeComingSoon v-else class="bg-nc-bg-gray-medium !w-[fit-content] text-nc-content-gray-subtle2" />
+          <div class="text-captionBold text-nc-content-gray">
+            {{ category.label }}
+          </div>
+          <div class="text-bodyDefaultSm text-nc-content-gray-muted">
+            {{ category.description }}
+          </div>
         </div>
       </div>
     </div>
 
-    <div v-if="syncConfigForm.sync_category !== SyncCategory.CUSTOM" class="grid grid-cols-2 gap-2.5 my-4">
+    <div v-if="syncConfigForm.sync_category !== SyncCategory.CUSTOM" class="grid grid-cols-2 gap-2.5 my-1">
       <div
         :class="{
           'border-nc-border-brand !shadow-selected': syncAllModels && mode === 'create',
@@ -140,7 +143,7 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
     </div>
 
     <div v-if="syncConfigForm.sync_category !== SyncCategory.CUSTOM && !syncAllModels">
-      <div class="text-caption text-nc-content-gray">
+      <div class="nc-form-section-input-label">
         {{ $t('labels.selectTablesToSync') }}
       </div>
 

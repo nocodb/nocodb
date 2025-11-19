@@ -1433,10 +1433,10 @@ svg.nc-virtual-cell-icon {
     @apply flex flex-col gap-1.5;
   }
 
-  .nc-settings-item-action{
+  .nc-settings-item-action {
     @apply self-end md:self-start;
   }
-  
+
   .nc-settings-item-title {
     @apply text-bodyBold font-700;
   }
@@ -1446,16 +1446,25 @@ svg.nc-virtual-cell-icon {
   }
 }
 
-
-
-
-// Form builder section 
+// Form builder section
 .nc-form-section {
   @apply flex flex-col gap-3;
+
+  .ant-row:not(.ant-form-item) {
+    @apply !-mx-1.5;
+    & > .ant-col {
+      @apply !px-1.5;
+    }
+  }
 }
 
 .nc-form-section-title {
   @apply text-bodyBold text-nc-content-gray;
+}
+
+
+.nc-form-section-input-label {
+  @apply text-caption text-nc-content-gray pb-2;
 }
 
 .nc-form-section-body {

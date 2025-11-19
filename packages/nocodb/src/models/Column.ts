@@ -10,7 +10,7 @@ import {
 import { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type { ColumnReqType, ColumnType, LookupType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import LookupColumn from '~/models/LookupColumn';
@@ -50,6 +50,7 @@ import {
 } from '~/utils/modelUtils';
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 
 const selectColors = enumColors.light;
 
@@ -131,13 +132,7 @@ export default class Column<T = any> implements ColumnType {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
-    return Model.getByIdOrName(
-      context,
-      {
-        id: this.fk_model_id,
-      },
-      ncMeta,
-    );
+    return Model.get(context, this.fk_model_id, ncMeta);
   }
 
   public static async insert<T>(
@@ -562,6 +557,12 @@ export default class Column<T = any> implements ColumnType {
     }
   }
 
+  @NcCache({
+    key: (args, thisArg) => thisArg.id,
+    onCacheHit: async (_args, result, thisArg) => {
+      thisArg.colOptions = result;
+    },
+  })
   public async getColOptions<U = T>(
     context: NcContext,
     ncMeta = Noco.ncMeta,
@@ -645,6 +646,10 @@ export default class Column<T = any> implements ColumnType {
     return this.model;
   }
 
+  @NcCache({
+    key: (args) =>
+      `${args[1].fk_model_id}:${args[1].fk_default_view_id ?? 'default'}`,
+  })
   public static async list(
     context: NcContext,
     {
@@ -756,6 +761,9 @@ export default class Column<T = any> implements ColumnType {
     return columns.map(c => new Column(c));*/
   }
 
+  @NcCache({
+    key: (args) => args[1].colId,
+  })
   public static async get<T = any>(
     context: NcContext,
     {
@@ -794,6 +802,7 @@ export default class Column<T = any> implements ColumnType {
       const column = new Column(colData);
       await column.getColOptions(
         {
+          ...context,
           workspace_id: column.fk_workspace_id,
           base_id: column.base_id,
         },

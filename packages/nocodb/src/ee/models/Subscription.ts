@@ -576,11 +576,9 @@ export default class Subscription {
       CacheGetType.TYPE_STRING,
     );
 
-    let subscription = await NocoCache.get(
-      'root',
-      cacheKey,
-      CacheGetType.TYPE_OBJECT,
-    );
+    let subscription =
+      cacheKey &&
+      (await NocoCache.get('root', cacheKey, CacheGetType.TYPE_OBJECT));
     if (!subscription) {
       subscription = await ncMeta.metaGet2(
         RootScopes.ROOT,

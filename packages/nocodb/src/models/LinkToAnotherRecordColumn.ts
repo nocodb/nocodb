@@ -1,7 +1,7 @@
 import { RelationTypes } from 'nocodb-sdk';
 import type { BoolType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
 import type Filter from '~/models/Filter';
+import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
 import Noco from '~/Noco';
@@ -277,6 +277,12 @@ export default class LinkToAnotherRecordColumn {
       };
     }
 
+    // propagate cache map
+    if (context.cacheMap) {
+      refContext.cacheMap = context.cacheMap;
+      if (mmContext) mmContext.cacheMap = context.cacheMap;
+    }
+
     return (this._context = {
       refContext,
       mmContext,
@@ -296,6 +302,7 @@ export default class LinkToAnotherRecordColumn {
       ...context,
       base_id: this.base_id,
     });
+
     let childContext = context;
     let parentContext = context;
 
@@ -329,6 +336,14 @@ export default class LinkToAnotherRecordColumn {
           )?.meta?.bt))
     ) {
       parentContext = refContext;
+    }
+
+    // propagate cache map
+    if (context.cacheMap) {
+      refContext.cacheMap = context.cacheMap;
+      if (mmContext) mmContext.cacheMap = context.cacheMap;
+      childContext.cacheMap = context.cacheMap;
+      parentContext.cacheMap = context.cacheMap;
     }
 
     return (this._parentChildContext = {

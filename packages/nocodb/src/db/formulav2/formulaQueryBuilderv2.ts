@@ -539,15 +539,17 @@ export default async function formulaQueryBuilderv2({
       // clean the previous formula error if the formula works this time
       if (formula.error) {
         if (formula.constructor.name === 'ButtonColumn') {
-          await ButtonColumn.update(context, column.id, {
+          await ButtonColumn.update({ ...context, cache: false }, column.id, {
             error: null,
           });
         } else {
-          await FormulaColumn.update(context, column.id, {
+          await FormulaColumn.update({ ...context, cache: false }, column.id, {
             error: null,
           });
         }
       }
+      // clear context cache if present since metadata has changed
+      context.cacheMap?.clear();
     }
   } catch (e) {
     // Mark formula error if formula validation is invoked

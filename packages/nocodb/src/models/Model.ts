@@ -15,7 +15,7 @@ import type { Knex } from 'knex';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import Hook from '~/models/Hook';
 import View from '~/models/View';
 import Comment from '~/models/Comment';
@@ -43,6 +43,7 @@ import { Source } from '~/models';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { isEE } from '~/utils';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 
 const logger = new Logger('Model');
 
@@ -422,6 +423,9 @@ export default class Model implements TableType {
     return modelList.map((m) => this.castType(m));
   }
 
+  @NcCache({
+    key: (args) => args[1],
+  })
   public static async get(
     context: NcContext,
     id: string,
@@ -456,6 +460,13 @@ export default class Model implements TableType {
     return this.castType(modelData);
   }
 
+  @NcCache({
+    key: (args) =>
+      `${
+        args[1].id ||
+        `${args[1].base_id}:${args[1].source_id}:${args[1].table_name}`
+      }`,
+  })
   public static async getByIdOrName(
     context: NcContext,
     args:
@@ -469,6 +480,10 @@ export default class Model implements TableType {
         },
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
+    if ('id' in args && args?.id) {
+      return this.get(context, args.id, ncMeta);
+    }
+
     const k = 'id' in args ? args?.id : args;
     let modelData =
       k &&
@@ -1121,6 +1136,10 @@ export default class Model implements TableType {
     });
   }
 
+  @NcCache({
+    key: (args) =>
+      `${args[1].base_id}:${args[1].source_id}:${args[1].aliasOrId}`,
+  })
   static async getByAliasOrId(
     context: NcContext,
     {

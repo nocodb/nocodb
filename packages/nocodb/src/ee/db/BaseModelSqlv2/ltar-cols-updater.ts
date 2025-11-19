@@ -108,14 +108,9 @@ export const LTARColsUpdater = (param: {
       const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
         baseModel.context,
       );
-      const relatedModel = await colOptions.getRelatedTable({
-        workspace_id: baseModel.context.workspace_id,
-        base_id: colOptions.fk_related_base_id ?? baseModel.context.base_id,
-      });
-      await relatedModel.getColumns({
-        workspace_id: baseModel.context.workspace_id,
-        base_id: relatedModel.base_id,
-      });
+      const { refContext } = colOptions.getRelContext(baseModel.context);
+      const relatedModel = await colOptions.getRelatedTable(refContext);
+      await relatedModel.getColumns(refContext);
       for (const d of datas) {
         const colValue = dataWrapper(d).getByColumnNameTitleOrId(col);
         if (colValue) {

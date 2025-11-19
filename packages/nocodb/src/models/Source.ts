@@ -2,7 +2,7 @@ import { UITypes } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, SourceType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { Base, Model, SyncSource } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -31,6 +31,7 @@ import {
   isEncryptionRequired,
   partialExtract,
 } from '~/utils';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 
 export default class Source implements SourceType {
   id?: string;
@@ -286,6 +287,9 @@ export default class Source implements SourceType {
     });
   }
 
+  @NcCache({
+    key: (args) => args[1],
+  })
   static async get(
     context: NcContext,
     id: string,
@@ -347,6 +351,7 @@ export default class Source implements SourceType {
 
     return config;
   }
+
   public getConfig(skipIntegrationConfig = false): any {
     if (this.is_meta) {
       const metaConfig = Noco.getConfig()?.meta?.db;

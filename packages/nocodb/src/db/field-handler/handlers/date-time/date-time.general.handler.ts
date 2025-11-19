@@ -192,7 +192,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
   protected getNow(
     _knex: CustomKnex,
-    filter: Filter,
+    filter: Filter & { groupby?: boolean },
     column: Column,
     options: FilterOptions,
   ) {
@@ -200,6 +200,9 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       new Date(),
       this.getTimezone(_knex, filter, column, options),
     );
+    if (filter.groupby) {
+      return now.startOf('minute');
+    }
     // the val will be start of day in timezone
     return now.startOf('day');
   }
@@ -254,7 +257,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
   override async filter(
     knex: CustomKnex,
-    filter: Filter,
+    filter: Filter & { groupby?: boolean },
     column: Column,
     options: FilterOptions,
   ) {
@@ -306,7 +309,8 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
           filter,
           column,
           options,
-        ).startOf('day');
+        );
+        anchorDate = filter.groupby ? anchorDate : anchorDate.startOf('day');
         break;
       // sub-ops for `isWithin` comparison
       case 'pastWeek':
@@ -344,7 +348,8 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
         filter,
         column,
         options,
-      ).startOf('day');
+      );
+      anchorDate = filter.groupby ? anchorDate : anchorDate.startOf('day');
       if (!anchorDate.isValid()) {
         return emptyResult;
       }
@@ -369,7 +374,11 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: any;
     },
-    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter & { groupby?: boolean };
+      column: Column;
+    },
     _options: FilterOptions,
   ) {
     const { knex, filter, column } = rootArgs;
@@ -377,7 +386,9 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       args.val,
       this.getTimezone(knex, filter, column, _options),
     );
-    const rangeDate = anchorDate.add(24, 'hours').add(-1, 'milliseconds');
+    const rangeDate = filter.groupby
+      ? anchorDate.add(1, 'minute').add(-1, 'milliseconds')
+      : anchorDate.add(24, 'hours').add(-1, 'milliseconds');
 
     return {
       rootApply: undefined,

@@ -42,6 +42,8 @@ const {
   hasOnlyOneGridViewInTable,
 } = viewsStore
 
+const { isCardFieldHeaderVisibilityEnabled } = storeToRefs(viewsStore)
+
 const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -194,7 +196,12 @@ const onClickCopyViewConfig = () => {
 }
 
 const isFieldHeaderVisibilityOptionVisible = computed(() => {
-  return !props.inSidebar && isUIAllowed('viewCreateOrEdit') && [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type)
+  return (
+    !props.inSidebar &&
+    isUIAllowed('viewCreateOrEdit') &&
+    [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type) &&
+    isCardFieldHeaderVisibilityEnabled.value
+  )
 })
 
 const isFieldHeaderVisible = computed(() => {
@@ -629,9 +636,31 @@ defineOptions({
             </PaymentUpgradeBadgeProvider>
           </SmartsheetToolbarNotAllowedTooltip>
         </template>
-        <NcMenuItem v-if="isFieldHeaderVisibilityOptionVisible" @click="onToggleFieldHeaderVisibility">
-          {{ isFieldHeaderVisible ? $t('labels.hideFieldHeader') : $t('labels.showFieldHeader') }}
-        </NcMenuItem>
+        <PaymentUpgradeBadgeProvider
+          v-if="isFieldHeaderVisibilityOptionVisible"
+          :feature="PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY"
+        >
+          <template #default="{ click }">
+            <NcMenuItem
+              inner-class="w-full"
+              @click="click(PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY, () => onToggleFieldHeaderVisibility())"
+            >
+              {{ isFieldHeaderVisible ? $t('labels.hideFieldHeader') : $t('labels.showFieldHeader') }}
+
+              <div class="flex-1 w-full" />
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY"
+                :limit-or-feature="'to access card field header visibility feature.' as PlanFeatureTypes"
+                :content="
+                  $t('upgrade.upgradeToAccessCardFieldHeaderVisibilitySubtitle', {
+                    plan: getPlanTitle(PlanTitles.PLUS),
+                  })
+                "
+                :on-click-callback="() => emits('closeModal')"
+              />
+            </NcMenuItem>
+          </template>
+        </PaymentUpgradeBadgeProvider>
       </template>
 
       <template v-if="isUIAllowed('viewCreateOrEdit')">

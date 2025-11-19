@@ -198,6 +198,15 @@ const FEATURES = [
     enabled: false,
     version: 1,
   },
+  {
+    id: 'card_field_header_visibility',
+    title: 'Card Field Header Visibility',
+    description: 'Enable field header visibility in Gallery and Kanban views.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  }
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

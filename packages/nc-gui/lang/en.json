@@ -186,7 +186,8 @@
     "upgradeToUseTeams": "Upgrade to use teams",
     "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
-    "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace."
+    "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
+    "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views."
   },
   "general": {
     "authorization": "Authorization",

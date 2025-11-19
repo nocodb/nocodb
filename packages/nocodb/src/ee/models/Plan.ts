@@ -256,6 +256,7 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]: false,
   [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 0,
+  [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]: true,
 };
 
 export const FreePlan = Plan.prepare({

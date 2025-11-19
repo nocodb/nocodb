@@ -82,6 +82,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAddNewTeamToWs = computed(() => true)
 
+  const blockCardFieldHeaderVisibility = computed(() => true)
+
   const calculatePrice = (..._args: any[]) => {}
 
   const getLimit = (..._args: any[]) => {}
@@ -219,5 +221,6 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewTeamToWs,
     showUpgradeToAddMoreTeams,
     isHigherActivePlan,
+    blockCardFieldHeaderVisibility,
   }
 })

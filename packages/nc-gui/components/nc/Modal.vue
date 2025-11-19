@@ -158,7 +158,7 @@ if (stopEventPropogation.value) {
       <div
         v-if="slots.header"
         :class="{
-          'border-b-1 border-gray-200': showSeparator,
+          'border-b-1 border-nc-border-gray-medium': showSeparator,
         }"
         class="flex pb-2 mb-2 nc-modal-header text-lg font-medium"
       >

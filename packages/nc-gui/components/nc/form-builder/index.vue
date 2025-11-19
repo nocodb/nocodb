@@ -202,7 +202,7 @@ watch(
                     </div>
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.SelectIntegration">
-                    <NcSelect
+                    <a-select
                       :value="deepReference(field.model)"
                       :options="integrationOptions[field.model]"
                       dropdown-match-select-width
@@ -212,6 +212,9 @@ watch(
                       show-search
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     >
+                      <template #suffixIcon>
+                        <GeneralIcon icon="ncChevronDown" class="text-nc-content-gray-muted" />
+                      </template>
                       <a-select-option
                         v-for="integration in filteredIntegrations[field.model]"
                         :key="integration.id"
@@ -248,7 +251,7 @@ watch(
                           </div>
                         </div>
                       </template>
-                    </NcSelect>
+                    </a-select>
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.SelectBase">
                     <NcFormBuilderInputSelectBase

@@ -20686,6 +20686,15 @@
           "schema": {
             "type": "string"
           },
+          "name": "id",
+          "in": "query",
+          "description": "Entity ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "teamId",
           "in": "query",
           "description": "Team ID",

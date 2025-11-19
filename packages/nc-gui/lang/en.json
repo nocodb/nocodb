@@ -189,6 +189,7 @@
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace."
   },
   "general": {
+    "done": "Done",
     "authorization": "Authorization",
     "revoke": "Revoke",
     "marketplace": "Marketplace",
@@ -1018,6 +1019,31 @@
     "changeWorkspaceRoleTo": "Change Workspace Role to"
   },
   "labels": {
+    "syncCompleted": "Sync Completed",
+    "syncFailed": "Sync Failed",
+    "triggerSync": "Trigger Sync",
+    "lastModified": "Last Modified",
+    "updateSync": "Update Sync",
+    "sources": "Sources",
+    "schema": "Schema",
+    "review": "Review",
+    "newSync": "New Sync",
+    "searchIntegrations": "Search integrations",
+    "newSource": "New Source",
+    "deleteSource": "Delete source",
+    "syncSchedule": "Sync Schedule",
+    "syncTrigger": "Sync Trigger",
+    "onDeleteAction": "On Delete Action",
+    "syncType": "Sync type",
+    "syncName": "Sync name",
+    "selectTablesToSync": "Select tables to sync",
+    "syncAllTables": "Sync all tables",
+    "syncAllTablesDescription": "All tables will be synced. This may take longer and use more resources.",
+    "syncSpecificTablesDescription": "Select specific tables to sync. This will use lesser resources.",
+    "syncSpecificTables": "Sync specific tables",
+    "selectACategory": "Select a category",
+    "selectASource": "Select a source",
+    "category": "Category",
     "generatePDF": "Generate PDF",
     "orientation": "Orientation",
     "pageSize": "Page Size",
@@ -2038,6 +2064,7 @@
     "missingSharedBaseUrl": "Missing shared base URL"
   },
   "placeholder": {
+    "enterSyncName": "Enter sync name",
     "searchIcons": "Search icons",
     "selectSlackChannels": "Select Slack channels",
     "selectTeamsChannels": "Select Microsoft Teams channels",
@@ -2281,6 +2308,9 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
+      "multipleSourcesNotSupported": "Multiple sources are not supported yet",
+      "multipleSourcesNotSupportedForCustomSchema": "Multiple sources are not supported for custom schema",
+      "cantDeleteLastSyncSource": "Cannot delete last sync source",
       "cantDeleteLastGridView": "You can't delete a view when it's the only collaborative grid view in the table",
       "inviteSent": "Invitation sent successfully",
       "userRoleUpdated": "User role updated successfully",

@@ -7,11 +7,25 @@ import {
 
 const form: FormDefinition = [
   {
+    type: FormBuilderInputType.Input,
+    label: 'Integration name',
+    width: 100,
+    model: 'title',
+    placeholder: 'Integration name',
+    category: 'General',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'Integration name is required',
+      },
+    ],
+  },
+  {
     type: FormBuilderInputType.SelectIntegration,
     label: 'MySQL Connection',
     width: 100,
     model: 'config.authIntegrationId',
-    category: 'Authentication',
+    category: 'General',
     integrationFilter: {
       type: IntegrationType.Auth,
       sub_type: 'mysql',
@@ -28,7 +42,7 @@ const form: FormDefinition = [
     label: 'Database',
     width: 100,
     model: 'config.database',
-    category: 'Sync Settings',
+    category: 'General',
     placeholder: 'Select database to sync',
     options: [],
     fetchOptionsKey: 'databases',
@@ -44,7 +58,7 @@ const form: FormDefinition = [
     label: 'Tables',
     width: 100,
     model: 'config.tables',
-    category: 'Sync Settings',
+    category: 'General',
     placeholder: 'Select tables to sync',
     selectMode: 'multiple',
     options: [],

@@ -7,11 +7,25 @@ import {
 
 const form: FormDefinition = [
   {
+    type: FormBuilderInputType.Input,
+    label: 'Integration name',
+    width: 100,
+    model: 'title',
+    placeholder: 'Integration name',
+    category: 'General',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'Integration name is required',
+      },
+    ],
+  },
+  {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Linear Connection',
     width: 100,
     model: 'config.authIntegrationId',
-    category: 'Authentication',
+    category: 'General',
     integrationFilter: {
       type: IntegrationType.Auth,
       sub_type: 'linear',
@@ -26,10 +40,10 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Team Key',
-    width: 48,
+    width: 100,
     model: 'config.teamKey',
     placeholder: 'e.g., ENG',
-    category: 'Source',
+    category: 'General',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
@@ -38,24 +52,24 @@ const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Space,
-    width: 4,
-    category: 'Source',
-  },
-  {
     type: FormBuilderInputType.Switch,
     label: 'Include canceled issues',
     width: 48,
     model: 'config.includeCanceled',
-    category: 'Source',
+    category: 'Options',
     defaultValue: false,
+  },
+  {
+    type: FormBuilderInputType.Space,
+    width: 4,
+    category: 'Options',
   },
   {
     type: FormBuilderInputType.Switch,
     label: 'Include completed issues',
     width: 48,
     model: 'config.includeCompleted',
-    category: 'Source',
+    category: 'Options',
     defaultValue: true,
   },
 ];

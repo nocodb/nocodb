@@ -23,7 +23,7 @@ export interface GithubSyncPayload {
 
 export default class GithubSyncIntegration extends SyncIntegration<GithubSyncPayload> {
   public getTitle() {
-    return `${this.config.repos[0]}${this.config.repos.length > 1 ? ` + ${this.config.repos.length - 1} more` : ''}`;
+    return `Github Sync`;
   }
 
   public async getDestinationSchema(_auth: GithubAuthIntegration) {

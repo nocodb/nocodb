@@ -12,7 +12,7 @@ const intervalOptions = ref([
   { value: 'daily', label: 'Daily' },
 ])
 
-const selectedInterval = ref('hourly')
+const selectedInterval = ref()
 
 const onChange = (value: string) => {
   // derive cron expression based on selected value
@@ -45,9 +45,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col">
-    <div class="w-full items-center">
-      <NcSelect v-model:value="selectedInterval" :options="intervalOptions" @change="onChange" />
-    </div>
-  </div>
+  <a-select v-model:value="selectedInterval" class="nc-select-shadow" :options="intervalOptions" @change="onChange">
+    <template #suffixIcon>
+      <GeneralIcon icon="ncChevronDown" class="text-nc-content-gray" />
+    </template>
+  </a-select>
 </template>

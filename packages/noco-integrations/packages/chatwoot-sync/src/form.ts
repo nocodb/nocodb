@@ -7,11 +7,25 @@ import {
 
 const form: FormDefinition = [
   {
+    type: FormBuilderInputType.Input,
+    label: 'Integration name',
+    width: 100,
+    model: 'title',
+    placeholder: 'Integration name',
+    category: 'General',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'Integration name is required',
+      },
+    ],
+  },
+  {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Chatwoot Connection',
     width: 100,
     model: 'config.authIntegrationId',
-    category: 'Authentication',
+    category: 'General',
     integrationFilter: {
       type: IntegrationType.Auth,
       sub_type: 'chatwoot',
@@ -29,19 +43,19 @@ const form: FormDefinition = [
     width: 50,
     model: 'config.inboxId',
     placeholder: 'e.g., 123',
-    category: 'Source',
+    category: 'Options',
   },
   {
     type: FormBuilderInputType.Space,
     width: 50,
-    category: 'Source',
+    category: 'Options',
   },
   {
     type: FormBuilderInputType.Switch,
     label: 'Include resolved conversations',
     width: 50,
     model: 'config.includeResolved',
-    category: 'Source',
+    category: 'Options',
     defaultValue: true,
   },
 ];

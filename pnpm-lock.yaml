@@ -237,6 +237,9 @@ importers:
       company-email-validator:
         specifier: ^1.1.0
         version: 1.1.0
+      cronstrue:
+        specifier: ^3.9.0
+        version: 3.9.0
       crossoriginworker:
         specifier: ^1.1.0
         version: 1.1.0
@@ -895,6 +898,9 @@ importers:
       '@node-saml/passport-saml':
         specifier: ^5.0.1
         version: 5.0.1
+      '@octokit/plugin-throttling':
+        specifier: ^11.0.3
+        version: 11.0.3(@octokit/core@5.2.0)
       '@react-email/components':
         specifier: 0.0.41
         version: 0.0.41(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -5829,6 +5835,9 @@ packages:
   '@octokit/openapi-types@23.0.1':
     resolution: {integrity: sha512-izFjMJ1sir0jn0ldEKhZ7xegCTj/ObmEDlEfpFrx4k/JyZSMRHbO3/rBwgE7f3m2DHt+RrNGIVw4wSmwnm3t/g==}
 
+  '@octokit/openapi-types@27.0.0':
+    resolution: {integrity: sha512-whrdktVs1h6gtR+09+QsNk2+FO+49j6ga1c55YZudfEG+oKJVvJLQi3zkOm5JjiUXAagWK2tI2kTGKJ2Ys7MGA==}
+
   '@octokit/plugin-enterprise-rest@6.0.1':
     resolution: {integrity: sha512-93uGjlhUD+iNg1iWhUENAtJata6w5nE+V4urXOAlIXdco6xNZtUSfYY8dzp3Udy74aqO/B5UZL80x/YMa5PKRw==}
 
@@ -5868,6 +5877,12 @@ packages:
     peerDependencies:
       '@octokit/core': '5'
 
+  '@octokit/plugin-throttling@11.0.3':
+    resolution: {integrity: sha512-34eE0RkFCKycLl2D2kq7W+LovheM/ex3AwZCYN8udpi6bxsyjZidb2McXs69hZhLmJlDqTSP8cH+jSRpiaijBg==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      '@octokit/core': ^7.0.0
+
   '@octokit/plugin-throttling@8.2.0':
     resolution: {integrity: sha512-nOpWtLayKFpgqmgD0y3GqXafMFuKcA4tRPZIfu7BArd2lEZeb1988nhWhwx4aZWmjDmUfdgVf7W+Tt4AmvRmMQ==}
     engines: {node: '>= 18'}
@@ -5891,6 +5906,9 @@ packages:
 
   '@octokit/types@13.8.0':
     resolution: {integrity: sha512-x7DjTIbEpEWXK99DMd01QfWy0hd5h4EN+Q7shkdKds3otGQP+oWE/y0A76i1OvH9fygo4ddvNf7ZvF0t78P98A==}
+
+  '@octokit/types@16.0.0':
+    resolution: {integrity: sha512-sKq+9r1Mm4efXW1FCk7hFSeJo4QKreL/tTbR0rz/qx/r1Oa2VV83LTA/H/MuCOX7uCIJmQVRKBcbmWoySjAnSg==}
 
   '@octokit/webhooks-methods@4.1.0':
     resolution: {integrity: sha512-zoQyKw8h9STNPqtm28UGOYFE7O6D4Il8VJwhAtMHFt2C4L0VQT1qGKLeefUOqHNs1mNRYSadVv7x0z8U2yyeWQ==}
@@ -10434,6 +10452,10 @@ packages:
     resolution: {integrity: sha512-onMB0OkDjkXunhdW9htFjEhqrD54+M94i6ackoUkjHKbRnXdyEyKRelp4nJ1kAz32+s27jP1FsebpJCVl0BsvA==}
     engines: {node: '>=18.0'}
 
+  cronstrue@3.9.0:
+    resolution: {integrity: sha512-T3S35zmD0Ai2B4ko6+mEM+k9C6tipe2nB9RLiGT6QL2Wn0Vsn2cCZAC8Oeuf4CaE00GZWVdpYitbpWCNlIWqdA==}
+    hasBin: true
+
   cross-env@7.0.3:
     resolution: {integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==}
     engines: {node: '>=10.14', npm: '>=6', yarn: '>=1'}
@@ -11461,6 +11483,7 @@ packages:
   eslint-plugin-markdown@3.0.1:
     resolution: {integrity: sha512-8rqoc148DWdGdmYF6WSQFT3uQ6PO7zXYgeBpHAOAakX/zpq+NvFYbDA/H7PYzHajwtmaOzAwfxyl++x0g1/N9A==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    deprecated: Please use @eslint/markdown instead
     peerDependencies:
       eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
 
@@ -16849,6 +16872,7 @@ packages:
 
   request-filtering-agent@1.1.2:
     resolution: {integrity: sha512-v6uYIoey6rhe+nQXB5rlYEWJI+5SrnvM72XGeLUsykzu2omOEPoW4QmzEH+8/sheK4M/hwQ85L7aPj1cTJfPLg==}
+    deprecated: This version is not maintain. Please upgrade to the latest version.
 
   request-ip@3.3.0:
     resolution: {integrity: sha512-cA6Xh6e0fDBBBwH77SLJaJPBmD3nWVAcF9/XAcsrIHdjhFzFiB5aNQFytdjCGPezU3ROwrR11IddKAM08vohxA==}
@@ -26844,6 +26868,8 @@ snapshots:
 
   '@octokit/openapi-types@23.0.1': {}
 
+  '@octokit/openapi-types@27.0.0': {}
+
   '@octokit/plugin-enterprise-rest@6.0.1': {}
 
   '@octokit/plugin-paginate-graphql@4.0.1(@octokit/core@5.2.0)':
@@ -26874,6 +26900,12 @@ snapshots:
       '@octokit/core': 5.2.0
       '@octokit/request-error': 5.1.1
       '@octokit/types': 13.8.0
+      bottleneck: 2.19.5
+
+  '@octokit/plugin-throttling@11.0.3(@octokit/core@5.2.0)':
+    dependencies:
+      '@octokit/core': 5.2.0
+      '@octokit/types': 16.0.0
       bottleneck: 2.19.5
 
   '@octokit/plugin-throttling@8.2.0(@octokit/core@5.2.0)':
@@ -26909,6 +26941,10 @@ snapshots:
   '@octokit/types@13.8.0':
     dependencies:
       '@octokit/openapi-types': 23.0.1
+
+  '@octokit/types@16.0.0':
+    dependencies:
+      '@octokit/openapi-types': 27.0.0
 
   '@octokit/webhooks-methods@4.1.0': {}
 
@@ -32496,6 +32532,8 @@ snapshots:
       luxon: 3.6.1
 
   croner@9.0.0: {}
+
+  cronstrue@3.9.0: {}
 
   cross-env@7.0.3:
     dependencies:

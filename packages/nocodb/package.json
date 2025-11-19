@@ -96,6 +96,7 @@
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^10.4.19",
     "@node-saml/passport-saml": "^5.0.1",
+    "@octokit/plugin-throttling": "^11.0.3",
     "@react-email/components": "0.0.41",
     "@react-email/render": "^1.1.2",
     "@sentry/nestjs": "^9.27.0",

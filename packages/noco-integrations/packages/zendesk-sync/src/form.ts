@@ -7,11 +7,25 @@ import {
 
 const form: FormDefinition = [
   {
+    type: FormBuilderInputType.Input,
+    label: 'Integration name',
+    width: 100,
+    model: 'title',
+    placeholder: 'Integration name',
+    category: 'General',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'Integration name is required',
+      },
+    ],
+  },
+  {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Zendesk Connection',
     width: 100,
     model: 'config.authIntegrationId',
-    category: 'Authentication',
+    category: 'General',
     integrationFilter: {
       type: IntegrationType.Auth,
       sub_type: 'zendesk',
@@ -26,9 +40,9 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Switch,
     label: 'Include closed tickets',
-    width: 48,
+    width: 100,
     model: 'config.includeClosed',
-    category: 'Source',
+    category: 'Options',
     defaultValue: true,
   },
 ];

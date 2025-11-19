@@ -29,7 +29,7 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col">
     <div class="text-bodyLgBold text-nc-content-gray mb-4">
       {{ $t('general.general') }}
     </div>
@@ -41,130 +41,136 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
         @change="syncConfigEditFormChanged = true"
       />
     </a-form-item>
-  </div>
 
-  <div class="flex items-center mt-1 gap-4">
-    <a-form-item class="flex-1" :label="$t('labels.syncType')" v-bind="validateInfosSyncConfig.sync_type">
-      <NcListDropdown v-model:is-open="isSyncTypeOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
-        <div class="flex-1 flex items-center gap-2 justify-between">
-          <span class="font-medium flex-1 whitespace-nowrap">{{ currentSyncType?.label || 'Select sync type' }}</span>
-          <GeneralIcon
-            icon="chevronDown"
-            class="flex-none h-4 w-4 transition-transform text-nc-content-gray-subtle"
-            :class="{ 'transform rotate-180': isSyncTypeOpen }"
-          />
-        </div>
-        <template #overlay="{ onEsc }">
-          <NcList
-            v-model:open="isSyncTypeOpen"
-            v-model:value="formModel.sync_type"
-            :list="syncTypeOptions"
-            option-label-key="value"
-            option-value-key="value"
-            close-on-select
-            class="!w-auto"
-            variant="medium"
-            wrapper-class-name="!h-auto"
-            @escape="onEsc"
-          >
-            <template #listItem="{ option }">
-              <div class="!w-80">
-                <div class="w-full flex items-center justify-between">
-                  <span class="text-captionDropdownDefault">{{ option.label }}</span>
-                  <GeneralIcon v-if="option.value === formModel.sync_type" icon="check" class="text-primary h-4 w-4" />
+    <div class="flex items-center gap-4">
+      <a-form-item class="flex-1" :label="$t('labels.syncType')" v-bind="validateInfosSyncConfig.sync_type">
+        <NcListDropdown v-model:is-open="isSyncTypeOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
+          <div class="flex-1 flex items-center gap-2 justify-between">
+            <span class="font-medium flex-1 whitespace-nowrap">{{ currentSyncType?.label || 'Select sync type' }}</span>
+            <GeneralIcon
+              icon="chevronDown"
+              class="flex-none h-4 w-4 transition-transform text-nc-content-gray-subtle"
+              :class="{ 'transform rotate-180': isSyncTypeOpen }"
+            />
+          </div>
+          <template #overlay="{ onEsc }">
+            <NcList
+              v-model:open="isSyncTypeOpen"
+              v-model:value="formModel.sync_type"
+              :list="syncTypeOptions"
+              option-label-key="value"
+              option-value-key="value"
+              close-on-select
+              class="!w-auto"
+              variant="medium"
+              wrapper-class-name="!h-auto"
+              @escape="onEsc"
+            >
+              <template #listItem="{ option }">
+                <div class="!w-80">
+                  <div class="w-full flex items-center justify-between">
+                    <span class="text-captionDropdownDefault">{{ option.label }}</span>
+                    <GeneralIcon v-if="option.value === formModel.sync_type" icon="check" class="text-primary h-4 w-4" />
+                  </div>
+                  <div class="text-bodySm text-nc-content-gray-muted">{{ option.description }}</div>
                 </div>
-                <div class="text-bodySm text-nc-content-gray-muted">{{ option.description }}</div>
-              </div>
-            </template>
-          </NcList>
-        </template>
-      </NcListDropdown>
-    </a-form-item>
+              </template>
+            </NcList>
+          </template>
+        </NcListDropdown>
+      </a-form-item>
 
-    <a-form-item class="flex-1" :label="$t('labels.onDelete')" v-bind="validateInfosSyncConfig.on_delete_action">
-      <NcListDropdown v-model:is-open="isOnDeleteActionOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
-        <div class="flex-1 flex items-center gap-2 justify-between">
-          <span class="font-medium flex-1 whitespace-nowrap">{{ currentOnDeleteAction?.label || 'Select action' }}</span>
-          <GeneralIcon
-            icon="chevronDown"
-            class="flex-none h-4 w-4 transition-transform text-nc-content-gray-subtle"
-            :class="{ 'transform rotate-180': isOnDeleteActionOpen }"
-          />
-        </div>
-        <template #overlay="{ onEsc }">
-          <NcList
-            v-model:open="isOnDeleteActionOpen"
-            v-model:value="formModel.on_delete_action"
-            :list="onDeleteActionOptions"
-            option-label-key="value"
-            option-value-key="value"
-            close-on-select
-            :item-height="48"
-            class="!w-auto"
-            variant="medium"
-            @escape="onEsc"
-          >
-            <template #listItem="{ option }">
-              <div class="!w-70">
-                <div class="w-full flex items-center justify-between">
-                  <span class="text-captionDropdownDefault">{{ option.label }}</span>
-                  <GeneralIcon v-if="option.value === formModel.on_delete_action" icon="check" class="text-primary h-4 w-4" />
+      <a-form-item class="flex-1" :label="$t('labels.onDelete')" v-bind="validateInfosSyncConfig.on_delete_action">
+        <NcListDropdown v-model:is-open="isOnDeleteActionOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
+          <div class="flex-1 flex items-center gap-2 justify-between">
+            <span class="font-medium flex-1 whitespace-nowrap">{{ currentOnDeleteAction?.label || 'Select action' }}</span>
+            <GeneralIcon
+              icon="chevronDown"
+              class="flex-none h-4 w-4 transition-transform text-nc-content-gray-subtle"
+              :class="{ 'transform rotate-180': isOnDeleteActionOpen }"
+            />
+          </div>
+          <template #overlay="{ onEsc }">
+            <NcList
+              v-model:open="isOnDeleteActionOpen"
+              v-model:value="formModel.on_delete_action"
+              :list="onDeleteActionOptions"
+              option-label-key="value"
+              option-value-key="value"
+              close-on-select
+              :item-height="48"
+              class="!w-auto"
+              variant="medium"
+              @escape="onEsc"
+            >
+              <template #listItem="{ option }">
+                <div class="!w-70">
+                  <div class="w-full flex items-center justify-between">
+                    <span class="text-captionDropdownDefault">{{ option.label }}</span>
+                    <GeneralIcon v-if="option.value === formModel.on_delete_action" icon="check" class="text-primary h-4 w-4" />
+                  </div>
+                  <div class="text-bodySm text-nc-content-gray-muted">{{ option.description }}</div>
                 </div>
-                <div class="text-bodySm text-nc-content-gray-muted">{{ option.description }}</div>
-              </div>
-            </template>
-          </NcList>
-        </template>
-      </NcListDropdown>
-    </a-form-item>
-  </div>
+              </template>
+            </NcList>
+          </template>
+        </NcListDropdown>
+      </a-form-item>
+    </div>
 
-  <div class="flex items-center gap-4">
-    <a-form-item class="flex-1" :label="$t('labels.syncTrigger')" v-bind="validateInfosSyncConfig.sync_trigger">
-      <NcListDropdown v-model:is-open="isSyncTriggerOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
-        <div class="flex-1 flex items-center w-full gap-2 justify-between">
-          <span class="font-medium flex-1 whitespace-nowrap">{{ currentSyncTrigger?.label || 'Select trigger' }}</span>
-          <GeneralIcon
-            icon="chevronDown"
-            class="flex-none h-4 w-4 transition-transform text-nc-content-gray-subtle"
-            :class="{ 'transform rotate-180': isSyncTriggerOpen }"
-          />
-        </div>
-        <template #overlay="{ onEsc }">
-          <NcList
-            v-model:open="isSyncTriggerOpen"
-            v-model:value="formModel.sync_trigger"
-            :list="syncTriggerOptions"
-            option-label-key="value"
-            option-value-key="value"
-            close-on-select
-            :item-height="48"
-            class="!w-auto"
-            variant="medium"
-            @escape="onEsc"
-          >
-            <template #listItem="{ option }">
-              <div class="!w-80">
-                <div class="w-full flex items-center justify-between">
-                  <span class="text-captionDropdownDefault">{{ option.label }}</span>
-                  <GeneralIcon v-if="option.value === formModel.sync_trigger" icon="check" class="text-primary h-4 w-4" />
+    <div class="flex items-center gap-4">
+      <a-form-item class="flex-1" :label="$t('labels.syncTrigger')" v-bind="validateInfosSyncConfig.sync_trigger">
+        <NcListDropdown v-model:is-open="isSyncTriggerOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
+          <div class="flex-1 flex items-center w-full gap-2 justify-between">
+            <span class="font-medium flex-1 whitespace-nowrap">{{ currentSyncTrigger?.label || 'Select trigger' }}</span>
+            <GeneralIcon
+              icon="chevronDown"
+              class="flex-none h-4 w-4 transition-transform text-nc-content-gray-subtle"
+              :class="{ 'transform rotate-180': isSyncTriggerOpen }"
+            />
+          </div>
+          <template #overlay="{ onEsc }">
+            <NcList
+              v-model:open="isSyncTriggerOpen"
+              v-model:value="formModel.sync_trigger"
+              :list="syncTriggerOptions"
+              option-label-key="value"
+              option-value-key="value"
+              close-on-select
+              :item-height="48"
+              class="!w-auto"
+              variant="medium"
+              @escape="onEsc"
+            >
+              <template #listItem="{ option }">
+                <div class="!w-80">
+                  <div class="w-full flex items-center justify-between">
+                    <span class="text-captionDropdownDefault">{{ option.label }}</span>
+                    <GeneralIcon v-if="option.value === formModel.sync_trigger" icon="check" class="text-primary h-4 w-4" />
+                  </div>
+                  <div class="text-bodySm text-nc-content-gray-muted">{{ option.description }}</div>
                 </div>
-                <div class="text-bodySm text-nc-content-gray-muted">{{ option.description }}</div>
-              </div>
-            </template>
-          </NcList>
-        </template>
-      </NcListDropdown>
-    </a-form-item>
-    <a-form-item
-      v-if="formModel.sync_trigger === SyncTrigger.Schedule"
-      class="flex-1"
-      :label="$t('labels.syncSchedule')"
-      v-bind="validateInfosSyncConfig.sync_trigger_cron"
-    >
-      <ProjectSyncCommonSchedule v-model:model-value="formModel.sync_trigger_cron" @change="syncConfigEditFormChanged = true" />
-    </a-form-item>
+              </template>
+            </NcList>
+          </template>
+        </NcListDropdown>
+      </a-form-item>
+      <a-form-item
+        v-if="formModel.sync_trigger === SyncTrigger.Schedule"
+        class="flex-1"
+        :label="$t('labels.syncSchedule')"
+        v-bind="validateInfosSyncConfig.sync_trigger_cron"
+      >
+        <ProjectSyncCommonSchedule v-model:model-value="formModel.sync_trigger_cron" @change="syncConfigEditFormChanged = true" />
+      </a-form-item>
 
-    <div v-else class="flex-1"></div>
+      <div v-else class="flex-1"></div>
+    </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+:deep(.ant-form-item) {
+  @apply !mb-4;
+}
+</style>

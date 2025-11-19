@@ -1447,3 +1447,17 @@ svg.nc-virtual-cell-icon {
 .template-card-skeleton {
   @extend .template-card;
 }
+
+
+// Form builder section 
+.nc-form-section {
+  @apply flex flex-col gap-3;
+}
+
+.nc-form-section-title {
+  @apply text-bodyBold text-nc-content-gray;
+}
+
+.nc-form-section-body {
+  @apply flex flex-col gap-3;
+}

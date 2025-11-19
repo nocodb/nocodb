@@ -401,18 +401,6 @@ watch(
     }
   }
 
-  .nc-form-section {
-    @apply flex flex-col gap-3;
-  }
-
-  .nc-form-section-title {
-    @apply text-sm font-bold text-gray-800;
-  }
-
-  .nc-form-section-body {
-    @apply flex flex-col gap-3;
-  }
-
   :deep(.ant-form-item-label > label.ant-form-item-required:after) {
     @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
   }

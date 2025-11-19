@@ -1445,3 +1445,19 @@ svg.nc-virtual-cell-icon {
     @apply text-body font-500 text-nc-content-gray-subtle;
   }
 }
+
+
+
+
+// Form builder section 
+.nc-form-section {
+  @apply flex flex-col gap-3;
+}
+
+.nc-form-section-title {
+  @apply text-bodyBold text-nc-content-gray;
+}
+
+.nc-form-section-body {
+  @apply flex flex-col gap-3;
+}

@@ -923,7 +923,7 @@ EOF
 
 	cat >>"$compose_file" <<EOF
   traefik:
-    image: traefik:v3.1
+    image: traefik:latest
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"

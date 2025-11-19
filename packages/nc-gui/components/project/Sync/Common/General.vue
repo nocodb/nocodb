@@ -50,7 +50,7 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
           <a-form-item class="flex-1" :label="$t('labels.syncType')" v-bind="validateInfosSyncConfig.sync_type">
             <NcListDropdown v-model:is-open="isSyncTypeOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
               <div class="flex-1 flex items-center gap-2 justify-between">
-                <span class="font-medium flex-1 whitespace-nowrap">{{ currentSyncType?.label || 'Select sync type' }}</span>
+                <span class="flex-1 whitespace-nowrap">{{ currentSyncType?.label || 'Select sync type' }}</span>
                 <GeneralIcon
                   icon="chevronDown"
                   class="flex-none h-4 w-4 transition-transform text-nc-content-gray-subtle"
@@ -89,7 +89,7 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
           <a-form-item class="flex-1" :label="$t('labels.onDelete')" v-bind="validateInfosSyncConfig.on_delete_action">
             <NcListDropdown v-model:is-open="isOnDeleteActionOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
               <div class="flex-1 flex items-center gap-2 justify-between">
-                <span class="font-medium flex-1 whitespace-nowrap">{{ currentOnDeleteAction?.label || 'Select action' }}</span>
+                <span class="flex-1 whitespace-nowrap">{{ currentOnDeleteAction?.label || 'Select action' }}</span>
                 <GeneralIcon
                   icon="chevronDown"
                   class="flex-none h-4 w-4 transition-transform text-nc-content-gray-subtle"
@@ -136,7 +136,7 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
           <a-form-item class="flex-1" :label="$t('labels.syncTrigger')" v-bind="validateInfosSyncConfig.sync_trigger">
             <NcListDropdown v-model:is-open="isSyncTriggerOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
               <div class="flex-1 flex items-center w-full gap-2 justify-between">
-                <span class="font-medium flex-1 whitespace-nowrap">{{ currentSyncTrigger?.label || 'Select trigger' }}</span>
+                <span class="flex-1 whitespace-nowrap">{{ currentSyncTrigger?.label || 'Select trigger' }}</span>
                 <GeneralIcon
                   icon="chevronDown"
                   class="flex-none h-4 w-4 transition-transform text-nc-content-gray-subtle"

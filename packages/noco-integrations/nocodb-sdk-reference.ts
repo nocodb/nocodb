@@ -36,33 +36,33 @@ export const SyncTriggerMeta = {
     label: 'Webhook',
     description: 'Sync data via a webhook',
   },
-}
+};
 
 export const OnDeleteActionMeta = {
+  [OnDeleteAction.MarkDeleted]: {
+    value: OnDeleteAction.MarkDeleted,
+    label: 'Ignore',
+    description: 'Keep records even if the source deletes them.',
+  },
   [OnDeleteAction.Delete]: {
     value: OnDeleteAction.Delete,
     label: 'Delete',
-    description: 'Delete data permanently in NocoDB',
+    description: 'Remove records when they are deleted at the source.',
   },
-  [OnDeleteAction.MarkDeleted]: {
-    value: OnDeleteAction.MarkDeleted,
-    label: 'Mark Deleted',
-    description: 'Mark data as deleted in NocoDB',
-  },
-}
+};
 
 export const SyncTypeMeta = {
-  [SyncType.Full]: {
-    value: SyncType.Full,
-    label: 'Full',
-    description: 'Sync all data',
-  },
   [SyncType.Incremental]: {
     value: SyncType.Incremental,
     label: 'Incremental',
-    description: 'Sync only new and updated data',
+    description: 'Syncs only new or changed records.',
   },
-}
+  [SyncType.Full]: {
+    value: SyncType.Full,
+    label: 'Full',
+    description: 'Syncs all records every run.',
+  },
+};
 
 export const SyncCategoryMeta = {
   [SyncCategory.TICKETING]: {
@@ -83,7 +83,7 @@ export const SyncCategoryMeta = {
     description: 'Sync data from a file storage system',
     icon: 'ncFolder',
   },
-}
+};
 
 export enum TARGET_TABLES {
   TICKETING_TICKET = 'ticketing_ticket',
@@ -125,7 +125,7 @@ export const TARGET_TABLES_META = {
     description: 'Sync all teams from the source',
     required: false,
   },
-}
+};
 
 export enum FormBuilderInputType {
   Input = 'input',
@@ -212,4 +212,3 @@ export interface FormBuilderElement {
 export type FormDefinition = FormBuilderElement[];
 
 export const FORM_BUILDER_NON_CATEGORIZED = 'form-builder-non-categorized';
-

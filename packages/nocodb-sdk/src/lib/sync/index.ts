@@ -70,30 +70,28 @@ export const SyncTriggerMeta = {
 };
 
 export const OnDeleteActionMeta = {
+  [OnDeleteAction.MarkDeleted]: {
+    value: OnDeleteAction.MarkDeleted,
+    label: 'Ignore',
+    description: 'Keep records even if the source deletes them.',
+  },
   [OnDeleteAction.Delete]: {
     value: OnDeleteAction.Delete,
     label: 'Delete',
-    description: 'Delete the records in this table.',
-  },
-  [OnDeleteAction.MarkDeleted]: {
-    value: OnDeleteAction.MarkDeleted,
-    label: 'Mark Deleted',
-    description: 'Mark the records as deleted in this table',
+    description: 'Remove records when they are deleted at the source.',
   },
 };
 
 export const SyncTypeMeta = {
-  [SyncType.Full]: {
-    value: SyncType.Full,
-    label: 'Full',
-    description:
-      'Sync all records from the source every time; ensures complete accuracy but may take longer.',
-  },
   [SyncType.Incremental]: {
     value: SyncType.Incremental,
     label: 'Incremental',
-    description:
-      'Sync only new or updated records since the last run; faster and resource-efficient.',
+    description: 'Syncs only new or changed records.',
+  },
+  [SyncType.Full]: {
+    value: SyncType.Full,
+    label: 'Full',
+    description: 'Syncs all records every run.',
   },
 };
 

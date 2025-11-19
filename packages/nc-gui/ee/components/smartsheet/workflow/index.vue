@@ -11,7 +11,7 @@ const { activeWorkflow } = storeToRefs(workflowStore)
 
 const isLoading = ref(true)
 
-watchEffect(async () => {
+onMounted(async () => {
   const workflowId = route.params.workflowId as string
   if (workflowId && !activeWorkflow.value?.id) {
     isLoading.value = true

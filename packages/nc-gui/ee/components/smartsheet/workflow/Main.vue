@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, markRaw } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
+import type { WorkflowNodeDefinition } from 'nocodb-sdk'
+import { GeneralNodeID, WorkflowNodeCategory } from 'nocodb-sdk'
 
 import { useLayout } from './useLayout'
 import TriggerNode from '~/components/smartsheet/workflow/Node/Trigger.vue'
@@ -18,13 +20,13 @@ const { nodes, edges, setLayoutCallback, nodeTypes: rawNodeTypes, workflow } = u
 const nodeTypes = computed(() => {
   const types: Record<string, any> = {}
 
-  rawNodeTypes.value.forEach((nodeType) => {
-    if (nodeType.type === 'core.plus') {
-      types[nodeType.type] = markRaw(PlusNode)
-    } else if (nodeType.category === WorkflowCategory.TRIGGER) {
-      types[nodeType.type] = markRaw(TriggerNode)
+  rawNodeTypes.value.forEach((nodeType: WorkflowNodeDefinition) => {
+    if (nodeType.id === GeneralNodeID.PLUS) {
+      types[nodeType.id] = markRaw(PlusNode)
+    } else if (nodeType.category === WorkflowNodeCategory.TRIGGER) {
+      types[nodeType.id] = markRaw(TriggerNode)
     } else {
-      types[nodeType.type] = markRaw(WorkflowNode)
+      types[nodeType.id] = markRaw(WorkflowNode)
     }
   })
 

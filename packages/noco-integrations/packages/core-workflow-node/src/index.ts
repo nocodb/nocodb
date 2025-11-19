@@ -10,7 +10,6 @@ export * from './manifest';
 export * from './nodes/manual-trigger';
 export * from './nodes/if';
 
-// Export each node as a separate integration entry
 export const entries: IntegrationEntry[] = [
   {
     type: IntegrationType.WorkflowNode,

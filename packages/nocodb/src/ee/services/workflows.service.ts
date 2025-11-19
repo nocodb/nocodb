@@ -1,10 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  AppEvents,
-  EventType,
-  generateUniqueCopyName,
-  type WorkflowType,
-} from 'nocodb-sdk';
+import { AppEvents, EventType, generateUniqueCopyName } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
@@ -36,7 +31,7 @@ export class WorkflowsService {
 
   async createWorkflow(
     context: NcContext,
-    workflowBody: Partial<WorkflowType>,
+    workflowBody: Partial<Workflow>,
     req: NcRequest,
   ) {
     const workspace = await Workspace.get(context.workspace_id);
@@ -83,7 +78,7 @@ export class WorkflowsService {
   async updateWorkflow(
     context: NcContext,
     workflowId: string,
-    workflowBody: Partial<WorkflowType>,
+    workflowBody: Partial<Workflow>,
     req: NcRequest,
   ) {
     const workflow = await Workflow.get(context, workflowId);

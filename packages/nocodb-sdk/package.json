@@ -43,6 +43,9 @@
     "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
+    "@jsep-plugin/object": "^1.2.2",
+    "@jsep-plugin/template": "^1.0.5",
+    "@jsep-plugin/ternary": "^1.1.4",
     "@vue-flow/core": "^1.47.0",
     "acorn-loose": "^8.4.0",
     "acorn-walk": "^8.3.4",

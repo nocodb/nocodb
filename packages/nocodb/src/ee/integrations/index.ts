@@ -61,13 +61,9 @@ export default [
   ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),
   ...(Array.isArray(MysqlSync) ? MysqlSync : [MysqlSync]),
   ...(Array.isArray(NocodbAi) ? NocodbAi : [NocodbAi]),
-  ...(Array.isArray(NocodbWorkflowNode)
-    ? NocodbWorkflowNode
-    : [NocodbWorkflowNode]),
+  ...(Array.isArray(NocodbWorkflowNode) ? NocodbWorkflowNode : [NocodbWorkflowNode]),
   ...(Array.isArray(OpenaiAi) ? OpenaiAi : [OpenaiAi]),
-  ...(Array.isArray(OpenaiCompatibleAi)
-    ? OpenaiCompatibleAi
-    : [OpenaiCompatibleAi]),
+  ...(Array.isArray(OpenaiCompatibleAi) ? OpenaiCompatibleAi : [OpenaiCompatibleAi]),
   ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
   ...(Array.isArray(ZendeskAuth) ? ZendeskAuth : [ZendeskAuth]),

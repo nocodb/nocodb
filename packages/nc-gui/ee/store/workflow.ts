@@ -1,4 +1,5 @@
-import { PlanLimitTypes, type WorkflowType } from 'nocodb-sdk'
+import { PlanLimitTypes } from 'nocodb-sdk'
+import type { WorkflowNodeDefinition, type WorkflowType } from 'nocodb-sdk'
 import { DlgWorkflowCreate } from '#components'
 
 export const useWorkflowStore = defineStore('workflow', () => {
@@ -29,7 +30,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   // State
   const workflows = ref<Map<string, (WorkflowType & { _dirty?: string | number; ___is_new?: boolean })[]>>(new Map())
 
-  const workflowNodes = ref<Map<string, WorkflowNodeSchema[]>>(new Map())
+  const workflowNodes = ref<Map<string, WorkflowNodeDefinition[]>>(new Map())
 
   const isLoadingWorkflow = ref(false)
 
@@ -48,7 +49,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     })
   })
 
-  const activeBaseNodeSchemas = computed<Array<WorkflowNodeSchema>>(() => {
+  const activeBaseNodeSchemas = computed<Array<WorkflowNodeDefinition>>(() => {
     if (!activeProjectId.value) return []
     return workflowNodes.value.get(activeProjectId.value) || []
   })

@@ -337,8 +337,8 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
    * Fetches available options for a configuration field.
    * Used to populate dropdowns and selection fields in the UI.
    *
-   * @param auth - The authenticated integration instance
-   * @param key - The configuration field key to fetch options for
+   * @param _auth - The authenticated integration instance
+   * @param _key - The configuration field key to fetch options for
    * @returns Array of label-value pairs for the dropdown options
    *
    * @example

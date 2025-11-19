@@ -192,13 +192,13 @@ export class NocoDBNode extends WorkflowNodeIntegration<NocoDBNodeConfig> {
     ];
 
     return {
-      key: 'nocodb',
+      id: 'nocodb',
       title: 'NocoDB',
       description: 'Perform operations on NocoDB tables (CRUD)',
+      icon: 'nocodb',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
-      ui: { icon: 'nocodb', color: '#598eff' },
       keywords: [
         'nocodb',
         'database',

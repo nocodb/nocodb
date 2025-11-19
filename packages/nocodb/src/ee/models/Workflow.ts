@@ -1,5 +1,9 @@
 import { PlanLimitTypes } from 'nocodb-sdk';
-import type { WorkflowType } from 'nocodb-sdk';
+import type {
+  WorkflowGeneralEdge,
+  WorkflowGeneralNode,
+  WorkflowType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
@@ -20,8 +24,8 @@ export default class Workflow implements WorkflowType {
   base_id?: string;
   meta?: any;
 
-  nodes?: any;
-  edges?: any;
+  nodes?: WorkflowGeneralNode[];
+  edges?: WorkflowGeneralEdge[];
 
   enabled?: boolean;
 

@@ -1085,6 +1085,24 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
+  '@jsep-plugin/object@1.2.2':
+    resolution: {integrity: sha512-GZsC7gI5oBR+mfDFJqULf5a76FRVKednNCdSco96HM1NUbZSdDT7t/fkClUf6In64L5JORCIyhOhE6wJA6AZYg==}
+    engines: {node: '>= 10.16.0'}
+    peerDependencies:
+      jsep: ^0.4.0||^1.0.0
+
+  '@jsep-plugin/template@1.0.5':
+    resolution: {integrity: sha512-xw6/dcc8Kr/nxmEIi74HxzMCkUd5mIWEaDG55pPiTSmGJzyeAfCedbKFGeH1GKNMytxi9fhc2d1/fVtJ5QHljQ==}
+    engines: {node: '>= 10.16.0'}
+    peerDependencies:
+      jsep: ^0.4.0||^1.0.0
+
+  '@jsep-plugin/ternary@1.1.4':
+    resolution: {integrity: sha512-ck5wiqIbqdMX6WRQztBL7ASDty9YLgJ3sSAK5ZpBzXeySvFGCzIvM6UiAI4hTZ22fEcYQVV/zhUbNscggW+Ukg==}
+    engines: {node: '>= 10.16.0'}
+    peerDependencies:
+      jsep: ^0.4.0||^1.0.0
+
   '@modelcontextprotocol/sdk@1.11.1':
     resolution: {integrity: sha512-9LfmxKTb1v+vUS1/emSk1f5ePmTLkb9Le9AxOB5T0XM59EUumwcS45z05h7aiZx3GI0Bl7mjb3FMEglYj+acuQ==}
     engines: {node: '>=18'}
@@ -3849,6 +3867,18 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
+  '@jsep-plugin/object@1.2.2(jsep@1.4.0)':
+    dependencies:
+      jsep: 1.4.0
+
+  '@jsep-plugin/template@1.0.5(jsep@1.4.0)':
+    dependencies:
+      jsep: 1.4.0
+
+  '@jsep-plugin/ternary@1.1.4(jsep@1.4.0)':
+    dependencies:
+      jsep: 1.4.0
+
   '@modelcontextprotocol/sdk@1.11.1':
     dependencies:
       content-type: 1.0.5
@@ -5732,6 +5762,9 @@ snapshots:
 
   nocodb-sdk@file:../nocodb-sdk(vue@3.5.24(typescript@5.8.3)):
     dependencies:
+      '@jsep-plugin/object': 1.2.2(jsep@1.4.0)
+      '@jsep-plugin/template': 1.0.5(jsep@1.4.0)
+      '@jsep-plugin/ternary': 1.1.4(jsep@1.4.0)
       '@vue-flow/core': 1.47.0(vue@3.5.24(typescript@5.8.3))
       acorn-loose: 8.5.2
       acorn-walk: 8.3.4

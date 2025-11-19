@@ -1412,6 +1412,15 @@ importers:
 
   packages/nocodb-sdk:
     dependencies:
+      '@jsep-plugin/object':
+        specifier: ^1.2.2
+        version: 1.2.2(jsep@1.4.0)
+      '@jsep-plugin/template':
+        specifier: ^1.0.5
+        version: 1.0.5(jsep@1.4.0)
+      '@jsep-plugin/ternary':
+        specifier: ^1.1.4
+        version: 1.1.4(jsep@1.4.0)
       '@vue-flow/core':
         specifier: ^1.47.0
         version: 1.47.0(vue@3.5.14(typescript@5.8.3))
@@ -5155,6 +5164,24 @@ packages:
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
+  '@jsep-plugin/object@1.2.2':
+    resolution: {integrity: sha512-GZsC7gI5oBR+mfDFJqULf5a76FRVKednNCdSco96HM1NUbZSdDT7t/fkClUf6In64L5JORCIyhOhE6wJA6AZYg==}
+    engines: {node: '>= 10.16.0'}
+    peerDependencies:
+      jsep: ^0.4.0||^1.0.0
+
+  '@jsep-plugin/template@1.0.5':
+    resolution: {integrity: sha512-xw6/dcc8Kr/nxmEIi74HxzMCkUd5mIWEaDG55pPiTSmGJzyeAfCedbKFGeH1GKNMytxi9fhc2d1/fVtJ5QHljQ==}
+    engines: {node: '>= 10.16.0'}
+    peerDependencies:
+      jsep: ^0.4.0||^1.0.0
+
+  '@jsep-plugin/ternary@1.1.4':
+    resolution: {integrity: sha512-ck5wiqIbqdMX6WRQztBL7ASDty9YLgJ3sSAK5ZpBzXeySvFGCzIvM6UiAI4hTZ22fEcYQVV/zhUbNscggW+Ukg==}
+    engines: {node: '>= 10.16.0'}
+    peerDependencies:
+      jsep: ^0.4.0||^1.0.0
+
   '@jsonjoy.com/base64@1.1.2':
     resolution: {integrity: sha512-q6XAnWQDIMA3+FTiOYajoYqySkO+JSat0ytXGSuRdq9uXE7o92gzuQwQM14xaCRlBLGq3v5miDGC4vkVTn54xA==}
     engines: {node: '>=10.0'}
@@ -8173,6 +8200,9 @@ packages:
 
   '@types/node@14.18.56':
     resolution: {integrity: sha512-+k+57NVS9opgrEn5l9c0gvD1r6C+PtyhVE4BTnMMRwiEA8ZO8uFcs6Yy2sXIy0eC95ZurBtRSvhZiHXBysbl6w==}
+
+  '@types/node@20.19.25':
+    resolution: {integrity: sha512-ZsJzA5thDQMSQO788d7IocwwQbI8B5OPzmqNvpf3NY/+MHDAS759Wo0gd2WQeXYt5AAAQjzcrTVC6SKCuYgoCQ==}
 
   '@types/node@20.3.0':
     resolution: {integrity: sha512-cumHmIAf6On83X7yP+LrsEyUOf/YlociZelmpRYaGFydoaPdxdt80MAbu6vWerQT2COCp2nPvHdsbD7tHn/YlQ==}
@@ -25513,14 +25543,14 @@ snapshots:
       '@jest/test-result': 29.7.0
       '@jest/transform': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 22.15.21
+      '@types/node': 20.19.25
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       ci-info: 3.8.0
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@22.15.21)(ts-node@10.9.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(@types/node@22.15.21)(typescript@5.8.3))
+      jest-config: 29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.15.21)(typescript@5.8.3))
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -25719,6 +25749,18 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@jsep-plugin/object@1.2.2(jsep@1.4.0)':
+    dependencies:
+      jsep: 1.4.0
+
+  '@jsep-plugin/template@1.0.5(jsep@1.4.0)':
+    dependencies:
+      jsep: 1.4.0
+
+  '@jsep-plugin/ternary@1.1.4(jsep@1.4.0)':
+    dependencies:
+      jsep: 1.4.0
 
   '@jsonjoy.com/base64@1.1.2(tslib@2.8.1)':
     dependencies:
@@ -29642,6 +29684,10 @@ snapshots:
       '@types/node': 22.15.21
 
   '@types/node@14.18.56': {}
+
+  '@types/node@20.19.25':
+    dependencies:
+      undici-types: 6.21.0
 
   '@types/node@20.3.0': {}
 
@@ -36177,6 +36223,37 @@ snapshots:
       - supports-color
       - ts-node
 
+  jest-config@29.7.0(@types/node@20.19.25)(ts-node@10.9.2(@swc/core@1.10.0)(@types/node@22.15.21)(typescript@5.8.3)):
+    dependencies:
+      '@babel/core': 7.26.7
+      '@jest/test-sequencer': 29.7.0
+      '@jest/types': 29.6.3
+      babel-jest: 29.7.0(@babel/core@7.26.7)
+      chalk: 4.1.2
+      ci-info: 3.8.0
+      deepmerge: 4.3.1
+      glob: 7.2.3
+      graceful-fs: 4.2.11
+      jest-circus: 29.7.0
+      jest-environment-node: 29.7.0
+      jest-get-type: 29.6.3
+      jest-regex-util: 29.6.3
+      jest-resolve: 29.7.0
+      jest-runner: 29.7.0
+      jest-util: 29.7.0
+      jest-validate: 29.7.0
+      micromatch: 4.0.8
+      parse-json: 5.2.0
+      pretty-format: 29.7.0
+      slash: 3.0.0
+      strip-json-comments: 3.1.1
+    optionalDependencies:
+      '@types/node': 20.19.25
+      ts-node: 10.9.2(@swc/core@1.10.0)(@types/node@22.15.21)(typescript@5.8.3)
+    transitivePeerDependencies:
+      - babel-plugin-macros
+      - supports-color
+
   jest-config@29.7.0(@types/node@22.15.21)(ts-node@10.9.2(@swc/core@1.10.0(@swc/helpers@0.5.17))(@types/node@22.15.21)(typescript@5.8.3)):
     dependencies:
       '@babel/core': 7.26.7
@@ -36232,7 +36309,7 @@ snapshots:
       '@jest/environment': 29.7.0
       '@jest/fake-timers': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 22.15.21
+      '@types/node': 20.19.25
       jest-mock: 29.7.0
       jest-util: 29.7.0
 

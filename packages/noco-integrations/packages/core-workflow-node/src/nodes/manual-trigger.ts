@@ -27,13 +27,13 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
     ];
 
     return {
-      key: 'core.trigger.manual',
+      id: 'core.trigger.manual',
       title: 'When manually triggered',
       description: 'Manually start a workflow execution',
+      icon: 'ncPlay',
       category: WorkflowNodeCategory.TRIGGER,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
-      ui: { icon: 'ncPlay', color: '#374151' },
       keywords: ['manual', 'trigger', 'start', 'run'],
     };
   }

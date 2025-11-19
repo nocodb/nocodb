@@ -65,13 +65,13 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
     ];
 
     return {
-      key: 'nocodb.trigger.after_update',
+      id: 'nocodb.trigger.after_update',
       title: 'When record updated',
       description: 'Triggers when a record is updated in a table',
+      icon: 'ncRecordUpdate',
       category: WorkflowNodeCategory.TRIGGER,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
-      ui: { icon: 'ncRecordUpdate', color: '#f59e0b' },
       keywords: ['trigger', 'update', 'edit', 'modify', 'record', 'webhook'],
     };
   }

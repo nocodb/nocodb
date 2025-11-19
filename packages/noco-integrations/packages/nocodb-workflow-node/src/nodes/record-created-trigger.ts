@@ -57,13 +57,13 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
     ];
 
     return {
-      key: 'nocodb.trigger.after_insert',
+      id: 'nocodb.trigger.after_insert',
       title: 'When record created',
       description: 'Triggers when a new record is created in a table',
+      icon: 'ncRecordCreate',
       category: WorkflowNodeCategory.TRIGGER,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
-      ui: { icon: 'ncRecordCreate', color: '#10b981' },
       keywords: ['trigger', 'create', 'insert', 'new', 'record', 'webhook'],
     };
   }

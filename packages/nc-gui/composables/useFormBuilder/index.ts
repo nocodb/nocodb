@@ -208,11 +208,17 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       return true
     }
 
+    // Flag to prevent onChange during programmatic updates
+    const isUpdatingProgrammatically = ref(false)
+
     // reset test status on config change
     watch(
       formState,
       () => {
-        onChange?.()
+        // Don't trigger onChange during programmatic updates (e.g., formSchema changes)
+        if (!isUpdatingProgrammatically.value) {
+          onChange?.()
+        }
 
         changeKey.value++
 
@@ -229,6 +235,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       () => unref(formSchema),
       async () => {
         isLoading.value = true
+        isUpdatingProgrammatically.value = true
 
         formState.value = {
           ...formState.value,
@@ -239,6 +246,10 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
         nextTick(clearValidate)
 
         isLoading.value = false
+
+        // Allow onChange to fire again after next tick
+        await nextTick()
+        isUpdatingProgrammatically.value = false
       },
       { immediate: true },
     )

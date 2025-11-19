@@ -1,17 +1,15 @@
 <script setup lang="ts">
-const { selectedNodeId, updateNode, getBackendNodeDef, selectedNode } = useWorkflowOrThrow()
-
-const formData = ref<Record<string, any>>(selectedNode.value?.data || {})
+const { selectedNodeId, updateNode, getNodeMetaById, selectedNode } = useWorkflowOrThrow()
 
 const formSchema = computed(() => {
   if (!selectedNode.value || !selectedNode.value.type) return []
-  const backendNodeDef = getBackendNodeDef(selectedNode.value.type)
-  return backendNodeDef?.form || []
+  const nodeMeta = getNodeMetaById(selectedNode.value.type)
+  return nodeMeta?.form || []
 })
 
 const { formState } = useProvideFormBuilderHelper({
   formSchema,
-  initialState: formData,
+  initialState: computed(() => selectedNode.value?.data || {}),
   onChange: () => {
     if (!selectedNodeId.value) return
     updateNode(selectedNodeId.value, {
@@ -19,15 +17,6 @@ const { formState } = useProvideFormBuilderHelper({
     })
   },
 })
-
-// Watch for changes to selectedNode and update formData
-watch(
-  () => selectedNode.value?.data,
-  (newData) => {
-    formData.value = newData || {}
-  },
-  { immediate: true, deep: true },
-)
 </script>
 
 <template>

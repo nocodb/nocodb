@@ -1,6 +1,8 @@
-import type { WorkflowCategory, WorkflowType } from 'nocodb-sdk'
+import type { WorkflowNodeCategoryType, WorkflowType } from 'nocodb-sdk'
+import { GENERAL_DEFAULT_NODES, GeneralNodeID, INIT_WORKFLOW_NODES } from 'nocodb-sdk'
 import type { Edge, Node } from '@vue-flow/core'
 import rfdc from 'rfdc'
+import { transformNode } from '~/utils/workflowUtils'
 
 const clone = rfdc()
 
@@ -28,12 +30,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
   const isSaving = ref(false)
 
   const nodeTypes = computed(() => {
-    const backendNodes = activeBaseNodeSchemas.value.map(transformNode)
-
-    return [...FALLBACK_NODE_TYPES, ...backendNodes]
+    return [...GENERAL_DEFAULT_NODES, ...activeBaseNodeSchemas.value.map(transformNode)]
   })
 
-  const nodes = ref<Array<Node>>((workflow.value?.nodes || initWorkflowNodes) as Array<Node>)
+  const nodes = ref<Array<Node>>((workflow.value?.nodes || INIT_WORKFLOW_NODES) as Array<Node>)
 
   const edges = ref<Array<Edge>>((workflow.value?.edges as Array<Edge>) || [])
 
@@ -41,13 +41,13 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     return nodes.value.some((node) => node.type === 'core.trigger.manual')
   })
 
-  const selectedNode = computed<Node | null>(() => {
+  const selectedNode = computed(() => {
     if (!selectedNodeId.value) return null
     return nodes.value.find((n) => n.id === selectedNodeId.value)
   })
 
-  const getNodeMetaByType = (type?: string) => {
-    const node = nodeTypes.value.find((node) => node.type === type)
+  const getNodeMetaById = (id?: string) => {
+    const node = nodeTypes.value.find((node) => node.id === id)
     return node ? clone(node) : null
   }
 
@@ -113,8 +113,8 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
    * Generate a unique node title based on the node type title
    * E.g., 'NocoDB', 'NocoDB1', 'NocoDB2', etc.
    */
-  const generateUniqueNodeTitle = (nodeType: string): string => {
-    const nodeTypeMeta = getNodeMetaByType(nodeType)
+  const generateUniqueNodeTitle = (nodeId: string): string => {
+    const nodeTypeMeta = getNodeMetaById(nodeId)
     if (!nodeTypeMeta) return 'Untitled'
 
     const baseTitle = nodeTypeMeta.title
@@ -148,7 +148,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
   const addPlusNode = async (sourceNodeId: string, edgeLabel?: string) => {
     const plusNode: Node = {
       id: generateUniqueNodeId(nodes.value),
-      type: 'core.plus',
+      type: GeneralNodeID.PLUS,
       position: { x: 250, y: 200 },
       data: {
         title: 'Add Action / Condition', // Plus nodes have a fixed title
@@ -190,10 +190,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
     // If the node type is changing, and it's not a core.plus node,
     // generate a unique title for the new node type
-    if (updatedData.type && updatedData.type !== existingNode.type && updatedData.type !== 'core.plus') {
+    if (updatedData.type && updatedData.type !== existingNode.type && updatedData.type !== GeneralNodeID.PLUS) {
       // Check if we're converting from a plus node or trigger placeholder
-      const isConvertingFromPlus = existingNode.type === 'core.plus'
-      const isConvertingFromTriggerPlaceholder = existingNode.type === 'core.trigger'
+      const isConvertingFromPlus = existingNode.type === GeneralNodeID.PLUS
+      const isConvertingFromTriggerPlaceholder = existingNode.type === GeneralNodeID.TRIGGER
       const hasPlusNodeTitle = updatedData.data?.title === 'Add Action / Condition'
       const hasTriggerPlaceholderTitle = updatedData.data?.title === 'Trigger'
 
@@ -239,7 +239,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     nodesToDelete.add(nodeId)
 
     // If it's a branch node, find all child nodes recursively
-    const nodeTypeMeta = getNodeMetaByType(nodeToDelete.type)
+    const nodeTypeMeta = getNodeMetaById(nodeToDelete.type)
     let firstParentNode: Node | null = null
     if (nodeTypeMeta && nodeTypeMeta.output && nodeTypeMeta.output > 1) {
       const findChildNodes = (parentId: string) => {
@@ -310,8 +310,8 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
     await triggerLayout()
 
-    if (nodes.value?.length === 1 && nodes.value[0]?.type === 'core.plus') {
-      nodes.value = initWorkflowNodes
+    if (nodes.value?.length === 1 && nodes.value[0]?.type === GeneralNodeID.PLUS) {
+      nodes.value = INIT_WORKFLOW_NODES
       edges.value = []
       firstParentNode = null
     }
@@ -324,16 +324,8 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     })
   }
 
-  const getNodeTypesByCategory = (category: WorkflowCategory) => {
+  const getNodeTypesByCategory = (category: WorkflowNodeCategoryType) => {
     return nodeTypes.value.filter((node) => node.category === category && !node.hidden)
-  }
-
-  const getNodeType = (type: string) => {
-    return getNodeMetaByType(type)
-  }
-
-  const getBackendNodeDef = (key: string) => {
-    return activeBaseNodeSchemas.value.find((n) => n.key === key)
   }
 
   const executeWorkflow = async () => {
@@ -357,9 +349,6 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
         const duration = ((executionState.endTime - executionState.startTime) / 1000).toFixed(2)
         const nodesCount = executionState?.nodeResults?.length
         message.success(`Workflow executed successfully in ${duration}s (${nodesCount} nodes executed)`)
-
-        // Log results for debugging
-        console.log('[Workflow] Execution completed:', executionState)
       } else if (executionState.status === 'error') {
         const errorNode = executionState?.nodeResults?.find((r: any) => r.status === 'error')
         const errorMessage = errorNode ? `Node "${errorNode.nodeTitle}" failed: ${errorNode.error}` : 'Workflow execution failed'
@@ -397,8 +386,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     updateNode,
     deleteNode,
     getNodeTypesByCategory,
-    getNodeType,
-    getBackendNodeDef,
+    getNodeMetaById,
   }
 })
 

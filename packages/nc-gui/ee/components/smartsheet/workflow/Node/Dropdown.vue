@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { WorkflowCategory } from 'nocodb-sdk'
-import { onClickOutside } from '@vueuse/core/index'
+import type { WorkflowNodeCategoryType, WorkflowNodeDefinition } from 'nocodb-sdk'
+import { WorkflowNodeCategory } from 'nocodb-sdk'
+import { onClickOutside } from '@vueuse/core'
 import { computed } from 'vue'
 
 interface Props {
-  category: Array<WorkflowCategory>
+  category: Array<WorkflowNodeCategoryType>
   selectedId?: string
   disabled?: boolean
 }
@@ -12,7 +13,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  select: [option: WorkflowNodeType]
+  select: [option: WorkflowNodeDefinition]
 }>()
 
 const { getNodeTypesByCategory } = useWorkflowOrThrow()
@@ -21,7 +22,7 @@ const showDropdown = ref(false)
 
 const dropdownRef = ref()
 
-const selectNodeOption = (option: WorkflowNodeType) => {
+const selectNodeOption = (option: WorkflowNodeDefinition) => {
   emit('select', option)
   showDropdown.value = false
 }
@@ -33,14 +34,14 @@ const nodeByCategory = computed(() => {
       acc[cate] = nodes
     }
     return acc
-  }, {} as Record<WorkflowCategory, WorkflowNodeType[]>)
+  }, {} as Record<WorkflowNodeCategoryType, WorkflowNodeDefinition[]>)
 })
 
 const selectedNode = computed(() => {
   if (props.selectedId) {
     for (const category in nodeByCategory.value) {
-      const nodes = nodeByCategory.value[category as WorkflowCategory]
-      const found = nodes.find((node) => node.type === props.selectedId)
+      const nodes = nodeByCategory.value[category as WorkflowNodeCategoryType]
+      const found = nodes.find((node) => node.id === props.selectedId)
       if (found) return found
     }
   }
@@ -82,11 +83,10 @@ onClickOutside(
               <div
                 :class="{
                   'bg-nc-bg-brand !text-nc-content-brand-disabled': [
-                    WorkflowCategory.TRIGGER,
-                    WorkflowCategory.CONTROL,
-                    WorkflowCategory.ACTION,
+                    WorkflowNodeCategory.TRIGGER,
+                    WorkflowNodeCategory.ACTION,
                   ].includes(node.category),
-                  'bg-nc-bg-maroon ': node.category === WorkflowCategory.LOGIC,
+                  'bg-nc-bg-maroon ': node.category === WorkflowNodeCategory.FLOW,
                 }"
                 class="w-5 h-5 flex items-center justify-center rounded-md p-1"
               >

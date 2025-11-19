@@ -1,45 +1,8 @@
 import { IntegrationWrapper } from '../integration';
 import { NocoSDK } from '../sdk';
-import type { FormDefinition } from '../types';
 import { IDataV3Service, ITablesService } from './nocodb.interface';
+import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType } from 'nocodb-sdk'
 
-export enum WorkflowNodeCategory {
-  ACTION = 'Action',
-  TRIGGER = 'Trigger',
-  FLOW = 'Flow',
-}
-
-export type WorkflowPortDirection = 'input' | 'output';
-
-export interface WorkflowNodePort {
-  id: string; // must be unique per node
-  label?: string;
-  direction: WorkflowPortDirection;
-  order?: number;
-}
-
-export interface WorkflowNodeUI {
-  icon?: string;
-  color?: string;
-}
-
-export interface WorkflowNodeDefinition {
-  key: string;
-
-  title: string;
-
-  description?: string;
-
-  category: WorkflowNodeCategory;
-
-  ports: WorkflowNodePort[];
-
-  form?: FormDefinition;
-
-  ui?: WorkflowNodeUI;
-
-  keywords?: string[];
-}
 
 export interface WorkflowNodeLog {
   level: 'info' | 'warn' | 'error';
@@ -49,8 +12,8 @@ export interface WorkflowNodeLog {
 }
 
 export interface WorkflowNodeRunContext<TConfig = any> {
-  workspaceId?: string;
-  baseId?: string;
+  workspaceId: string;
+  baseId: string;
   user?: {
     id: string;
     email?: string;
@@ -88,6 +51,12 @@ export interface NocoDBContext {
 
 export interface WorkflowNodeConfig {
   _nocodb: NocoDBContext;
+}
+
+export {
+  WorkflowNodeCategory,
+  WorkflowNodeCategoryType,
+  WorkflowNodeDefinition
 }
 
 export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig = WorkflowNodeConfig> extends IntegrationWrapper<TConfig> {

@@ -95,8 +95,9 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     ];
 
     return {
-      key: 'core.flow.if',
+      id: 'core.flow.if',
       title: 'If/Else',
+      icon: 'ncIfElse',
       description: 'Route execution based on a condition',
       category: WorkflowNodeCategory.FLOW,
       ports: [
@@ -104,7 +105,6 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
         { id: 'false', direction: 'output', order: 1, label: 'False' },
       ],
       form,
-      ui: { icon: 'ncIfElse', color: '#F59E0B' },
       keywords: ['if', 'condition', 'branch', 'decision', 'flow'],
     };
   }

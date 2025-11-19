@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { NodeProps } from '@vue-flow/core'
 import { Handle, Position } from '@vue-flow/core'
+import type { WorkflowNodeDefinition } from 'nocodb-sdk'
+import { GeneralNodeID, WorkflowNodeCategory } from 'nocodb-sdk'
 import Dropdown from './Dropdown.vue'
 
 const props = defineProps<NodeProps>()
 
-const { updateNode, addPlusNode, triggerLayout, getNodeType, selectedNodeId, edges, deleteNode, updateSelectedNode } =
+const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, deleteNode, updateSelectedNode } =
   useWorkflowOrThrow()
 
 const wrappperRef = ref()
@@ -13,16 +15,16 @@ const wrappperRef = ref()
 const showSubMenuDropdown = ref()
 
 const nodeMeta = computed(() => {
-  return getNodeType(props.type)
+  return getNodeMetaById(props.type)
 })
 
 const disableDropdown = computed(() => {
-  return !!(props.type !== 'core.trigger' && nodeMeta.value)
+  return !!(props.type !== GeneralNodeID.TRIGGER && nodeMeta.value)
 })
 
-const selectTriggerType = async (option: WorkflowNodeType) => {
+const selectTriggerType = async (option: WorkflowNodeDefinition) => {
   await updateNode(props.id, {
-    type: option.type,
+    type: option.id,
     data: {
       ...props.data,
     },
@@ -42,7 +44,7 @@ const selectTriggerType = async (option: WorkflowNodeType) => {
 }
 
 const handleTriggerClick = () => {
-  if (props.type !== 'core.trigger' && nodeMeta.value) {
+  if (props.type !== GeneralNodeID.TRIGGER && nodeMeta.value) {
     selectedNodeId.value = props.id
   }
 }
@@ -75,7 +77,7 @@ onClickOutside(
     <Dropdown
       :disabled="disableDropdown"
       :selected-id="props.type === 'core.trigger' ? undefined : props.type"
-      :category="[WorkflowCategory.TRIGGER]"
+      :category="[WorkflowNodeCategory.TRIGGER]"
       @select="selectTriggerType"
     >
       <template #default="{ selectedNode, openDropdown, showDropdown }">
@@ -106,11 +108,10 @@ onClickOutside(
             <div
               :class="{
                 'bg-nc-bg-brand !text-nc-content-brand-disabled': [
-                  WorkflowCategory.TRIGGER,
-                  WorkflowCategory.CONTROL,
-                  WorkflowCategory.ACTION,
+                  WorkflowNodeCategory.TRIGGER,
+                  WorkflowNodeCategory.ACTION,
                 ].includes(selectedNode.category),
-                'bg-nc-bg-maroon ': selectedNode.category === WorkflowCategory.LOGIC,
+                'bg-nc-bg-maroon ': selectedNode.category === WorkflowNodeCategory.FLOW,
               }"
               class="w-5 h-5 flex items-center justify-center rounded-md p-1"
             >

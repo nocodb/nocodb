@@ -334,6 +334,7 @@ function formulaLookupLtarTests() {
     expect(rowsTable3.length).to.be.greaterThan(0);
     expect(rowsTable3[0]).to.have.property('FormulaDisplayValueTable3');
     expect(rowsTable3[0].FormulaDisplayValueTable3).to.exist;
+    expect(rowsTable3[0].FormulaDisplayValueTable3).to.eq('A?');
 
     // Get the data for table 2 to verify the formula is working correctly
     const rowsTable2 = await chunkListRow({

@@ -145,7 +145,6 @@ export async function initInitialModel() {
     childTable: table2,
     type: 'hm',
   });
-  // Create links
   const t3_HM_t4_Ltar = await createLtarColumn2(context, {
     title: 'T4s',
     parentTable: table3,
@@ -159,11 +158,25 @@ export async function initInitialModel() {
     type: 'hm',
   });
 
+  // self link
   const t1_HM_t1_Ltar = await createLtarColumn2(context, {
     title: 'Table1SelfList',
     parentTable: table1,
     childTable: table1,
     type: 'hm',
+  });
+  // oo
+  const t3_OO_t1_Ltar = await createLtarColumn2(context, {
+    title: 'T1_OO',
+    parentTable: table3,
+    childTable: table1,
+    type: 'oo',
+  });
+  const t2_MM_t1_Ltar = await createLtarColumn2(context, {
+    title: 'T1_MMs',
+    parentTable: table2,
+    childTable: table1,
+    type: 'mm',
   });
 
   const source = (await Base.getByTitleOrId(ctx, base.id)).getSources();
@@ -261,6 +274,37 @@ export async function initInitialModel() {
       status: 200,
     });
   };
+  const linkTo_t3_OO_t1_Ltar = (rowId: string, body: any[]) => {
+    ncAxiosLinkAdd({
+      context: {
+        context,
+        base,
+      },
+      urlParams: {
+        tableId: table3.id,
+        linkId: t3_OO_t1_Ltar.id,
+        rowId: rowId,
+      },
+      body: body,
+      status: 200,
+    });
+  };
+  const linkTo_t2_MM_t1_Ltar = (rowId: string, body: any[]) => {
+    ncAxiosLinkAdd({
+      context: {
+        context,
+        base,
+      },
+      urlParams: {
+        tableId: table2.id,
+        linkId: t2_MM_t1_Ltar.id,
+        rowId: rowId,
+      },
+      body: body,
+      status: 200,
+    });
+  };
+
   await linkTo_t2_HM_t1_Ltar('1', [{ id: 1 }, { id: 2 }, { id: 3 }]);
   await linkTo_t2_HM_t1_Ltar('2', [{ id: 4 }, { id: 5 }, { id: 6 }]);
   await linkTo_t2_HM_t1_Ltar('3', [{ id: 7 }]);
@@ -270,6 +314,9 @@ export async function initInitialModel() {
     '1',
     Array.from({ length: 20 }).map((v, i) => ({ id: i + 1 })),
   );
+  await linkTo_t3_OO_t1_Ltar('1', ['1']);
+  await linkTo_t3_OO_t1_Ltar('2', ['2']);
+  await linkTo_t2_HM_t1_Ltar('1', ['1', '2']);
 
   return {
     context,

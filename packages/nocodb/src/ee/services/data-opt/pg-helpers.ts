@@ -427,7 +427,8 @@ export async function extractColumn({
                            title: getAs(column),
                          }),
                        )
-                       .toQuery()}) as ?? ON true`,
+                       .toQuery()
+                       .replaceAll('?', '\\?')}) as ?? ON true`,
                 [alias1],
               );
 
@@ -503,7 +504,8 @@ export async function extractColumn({
                       isBtOrOo: true,
                     }),
                   )
-                  .toQuery()}) as ?? ON true`,
+                  .toQuery()
+                  .replaceAll('?', '\\?')}) as ?? ON true`,
                 [alias1],
               );
 
@@ -581,7 +583,8 @@ export async function extractColumn({
                         isBtOrOo: true,
                       }),
                     )
-                    .toQuery()}) as ?? ON true`,
+                    .toQuery()
+                    .replaceAll('?', '\\?')}) as ?? ON true`,
                   [alias1],
                 );
 
@@ -629,7 +632,8 @@ export async function extractColumn({
                         isBtOrOo: true,
                       }),
                     )
-                    .toQuery()}) as ?? ON true`,
+                    .toQuery()
+                    .replaceAll('?', '\\?')}) as ?? ON true`,
                   [alias1],
                 );
                 qb.select(knex.raw('??.??', [alias1, getAs(column)]));
@@ -720,7 +724,8 @@ export async function extractColumn({
                       title: getAs(column),
                     }),
                   )
-                  .toQuery()}) as ?? ON true`,
+                  .toQuery()
+                  .replaceAll('?', '\\?')}) as ?? ON true`,
                 [alias1],
               );
               qb.select(knex.raw('??.??', [alias1, getAs(column)]));

@@ -341,8 +341,8 @@ export async function initFormulaLookupColumns(context: ITestContext) {
     {
       title: 'FormulaTitle',
       uidt: UITypes.Formula,
-      formula: '{Title}',
-      formula_raw: '{Title}',
+      formula: 'CONCAT({Title}, "?")',
+      formula_raw: 'CONCAT({Title}, "?")',
     },
   );
   const t2_HM_t1_Ltar = (

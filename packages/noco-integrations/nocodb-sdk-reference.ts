@@ -18,6 +18,7 @@ export enum SyncCategory {
   TICKETING = 'ticketing',
   CRM = 'crm',
   FILE_STORAGE = 'file_storage',
+  CUSTOM = 'custom',
 }
 
 export const SyncTriggerMeta = {
@@ -68,20 +69,29 @@ export const SyncCategoryMeta = {
   [SyncCategory.TICKETING]: {
     value: SyncCategory.TICKETING,
     label: 'Ticketing',
-    description: 'Sync data from a ticketing system',
-    icon: 'ncBookOpen',
+    description: 'Sync issues, tickets, and related activity.',
+    icon: 'ncClipboard',
   },
   [SyncCategory.CRM]: {
     value: SyncCategory.CRM,
     label: 'CRM',
-    description: 'Sync data from a CRM',
+    description: 'Sync customer and lead data.',
     icon: 'ncUsers',
+    comingSoon: true,
   },
   [SyncCategory.FILE_STORAGE]: {
     value: SyncCategory.FILE_STORAGE,
     label: 'File Storage',
-    description: 'Sync data from a file storage system',
+    description: 'Sync files, folders, and metadata.',
     icon: 'ncFolder',
+    comingSoon: true,
+  },
+  [SyncCategory.CUSTOM]: {
+    value: SyncCategory.CUSTOM,
+    label: 'Custom',
+    description: 'Build a sync for another service or app.',
+    icon: 'ncDatabase',
+    beta: true,
   },
 };
 

@@ -1057,6 +1057,7 @@
     "syncSpecificTablesDescription": "Select specific tables to sync. This will use lesser resources.",
     "syncSpecificTables": "Sync specific tables",
     "selectACategory": "Select a category",
+    "syncScope": "Sync scope",
     "selectASource": "Select a source",
     "category": "Category",
     "addTrigger": "Add Trigger",

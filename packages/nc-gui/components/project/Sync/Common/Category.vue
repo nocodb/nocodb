@@ -94,49 +94,55 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
       </div>
     </div>
 
-    <div v-if="syncConfigForm.sync_category !== SyncCategory.CUSTOM" class="grid grid-cols-2 gap-2.5 my-1">
-      <div
-        :class="{
-          'border-nc-border-brand !shadow-selected': syncAllModels && mode === 'create',
-          'border-nc-border-gray-extradark !shadow-disabled': syncAllModels && mode === 'edit',
-          'cursor-pointer': mode === 'create',
-        }"
-        class="flex flex-col p-3 border-1 rounded-lg gap-1"
-        @click="selectSyncAllModels(true)"
-      >
-        <div class="flex items-center gap-3">
-          <div class="nc-radio" :data-checked="syncAllModels">
-            <div class="nc-radio-dot"></div>
-          </div>
-          <div class="text-nc-content-gray text-caption">
-            {{ $t('labels.syncAllTables') }}
-          </div>
-        </div>
-
-        <div class="text-nc-content-gray-muted text-bodySm pl-7">
-          {{ $t('labels.syncAllTablesDescription') }}
-        </div>
+    <div v-if="syncConfigForm.sync_category !== SyncCategory.CUSTOM">
+      <div class="nc-form-section-input-label">
+        {{ $t('labels.syncScope') }}
       </div>
-      <div
-        class="flex flex-col p-3 border-1 rounded-lg gap-1"
-        :class="{
-          'border-nc-border-brand !shadow-selected': !syncAllModels && mode === 'create',
-          'border-nc-border-gray-extradark !shadow-disabled': !syncAllModels && mode === 'edit',
-          'cursor-pointer': mode === 'create',
-        }"
-        @click="selectSyncAllModels(false)"
-      >
-        <div class="flex items-center gap-3">
-          <div class="nc-radio" :data-checked="!syncAllModels">
-            <div class="nc-radio-dot"></div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div
+          :class="{
+            'border-nc-border-brand !shadow-selected': syncAllModels && mode === 'create',
+            'border-nc-border-gray-extradark !shadow-disabled': syncAllModels && mode === 'edit',
+            'cursor-pointer': mode === 'create',
+          }"
+          class="flex flex-col p-3 border-1 rounded-lg gap-1"
+          @click="selectSyncAllModels(true)"
+        >
+          <div class="flex items-center gap-3">
+            <div class="nc-radio" :data-checked="syncAllModels">
+              <div class="nc-radio-dot"></div>
+            </div>
+            <div class="text-nc-content-gray text-caption">
+              {{ $t('labels.syncAllTables') }}
+            </div>
           </div>
-          <div class="text-nc-content-gray text-caption">
-            {{ $t('labels.syncSpecificTables') }}
+
+          <div class="text-nc-content-gray-muted text-bodySm pl-7">
+            {{ $t('labels.syncAllTablesDescription') }}
           </div>
         </div>
-        <div class="flex flex-col gap-1">
-          <div class="text-nc-content-gray-muted text-bodySm pl-7">
-            {{ $t('labels.syncSpecificTablesDescription') }}
+        <div
+          class="flex flex-col p-3 border-1 rounded-lg gap-1"
+          :class="{
+            'border-nc-border-brand !shadow-selected': !syncAllModels && mode === 'create',
+            'border-nc-border-gray-extradark !shadow-disabled': !syncAllModels && mode === 'edit',
+            'cursor-pointer': mode === 'create',
+          }"
+          @click="selectSyncAllModels(false)"
+        >
+          <div class="flex items-center gap-3">
+            <div class="nc-radio" :data-checked="!syncAllModels">
+              <div class="nc-radio-dot"></div>
+            </div>
+            <div class="text-nc-content-gray text-caption">
+              {{ $t('labels.syncSpecificTables') }}
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <div class="text-nc-content-gray-muted text-bodySm pl-7">
+              {{ $t('labels.syncSpecificTablesDescription') }}
+            </div>
           </div>
         </div>
       </div>

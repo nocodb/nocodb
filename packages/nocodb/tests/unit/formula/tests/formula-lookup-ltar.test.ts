@@ -289,7 +289,7 @@ function formulaLookupLtarTests() {
     // Get the data to verify the formula is working correctly
     const rows = await listRow({ base: _base, table: _tables.table2 });
     expect(rows[0].table1FormulaTitleConcat).to.eq(
-      'T1_001,T1_002,T1_003.T1_001,T1_002,T1_003',
+      'T1_001?,T1_002?,T1_003?.T1_001?,T1_002?,T1_003?',
     );
   });
 }

@@ -15,6 +15,7 @@ import {
 import type { SwaggerColumn } from '../getSwaggerColumnMetasV3';
 import type { SwaggerView } from '~/services/api-docs/shared/swaggerUtils';
 import { isRelationExist } from '~/services/api-docs/swagger/templates/paths';
+import { swaggerSanitizeSchemaName } from '~/helpers/stringHelpers';
 
 export const getModelPaths = async (
   _context: any,
@@ -71,7 +72,9 @@ export const getModelPaths = async (
                         records: {
                           type: 'array',
                           items: {
-                            $ref: `#/components/schemas/${ctx.tableName}Response`,
+                            $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
+                              ctx.tableName,
+                            )}Response`,
                           },
                         },
                       },
@@ -91,12 +94,16 @@ export const getModelPaths = async (
                   schema: {
                     oneOf: [
                       {
-                        $ref: `#/components/schemas/${ctx.tableName}Request`,
+                        $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
+                          ctx.tableName,
+                        )}Request`,
                       },
                       {
                         type: 'array',
                         items: {
-                          $ref: `#/components/schemas/${ctx.tableName}Request`,
+                          $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
+                            ctx.tableName,
+                          )}Request`,
                         },
                       },
                     ],
@@ -121,7 +128,9 @@ export const getModelPaths = async (
                         records: {
                           type: 'array',
                           items: {
-                            $ref: `#/components/schemas/${ctx.tableName}Response`,
+                            $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
+                              ctx.tableName,
+                            )}Response`,
                           },
                         },
                       },
@@ -141,12 +150,16 @@ export const getModelPaths = async (
                   schema: {
                     oneOf: [
                       {
-                        $ref: `#/components/schemas/${ctx.tableName}UpdateRequest`,
+                        $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
+                          ctx.tableName,
+                        )}UpdateRequest`,
                       },
                       {
                         type: 'array',
                         items: {
-                          $ref: `#/components/schemas/${ctx.tableName}UpdateRequest`,
+                          $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
+                            ctx.tableName,
+                          )}UpdateRequest`,
                         },
                       },
                     ],
@@ -172,12 +185,16 @@ export const getModelPaths = async (
                   schema: {
                     oneOf: [
                       {
-                        $ref: `#/components/schemas/${ctx.tableName}IdRequest`,
+                        $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
+                          ctx.tableName,
+                        )}IdRequest`,
                       },
                       {
                         type: 'array',
                         items: {
-                          $ref: `#/components/schemas/${ctx.tableName}IdRequest`,
+                          $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
+                            ctx.tableName,
+                          )}IdRequest`,
                         },
                       },
                     ],
@@ -202,7 +219,9 @@ export const getModelPaths = async (
           content: {
             'application/json': {
               schema: {
-                $ref: `#/components/schemas/${ctx.tableName}Response`,
+                $ref: `#/components/schemas/${swaggerSanitizeSchemaName(
+                  ctx.tableName,
+                )}Response`,
               },
             },
           },
@@ -576,7 +595,7 @@ function getPaginatedResponseTypeV3(type: string) {
       records: {
         type: 'array',
         items: {
-          $ref: `#/components/schemas/${type}`,
+          $ref: `#/components/schemas/${swaggerSanitizeSchemaName(type)}`,
         },
       },
       next: {

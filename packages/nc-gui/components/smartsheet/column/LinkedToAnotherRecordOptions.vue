@@ -636,7 +636,7 @@ const handleScrollIntoView = () => {
         <LazySmartsheetColumnLinkOptions v-if="isLinks" v-model:value="vModel" />
         <template v-if="!isXcdbBase && !isEdit">
           <div class="flex flex-row space-x-2">
-            <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
+            <a-form-item class="flex w-1/2">
               <a-select
                 v-model:value="vModel.onUpdate"
                 :disabled="vModel.virtual"
@@ -644,6 +644,9 @@ const handleScrollIntoView = () => {
                 dropdown-class-name="nc-dropdown-on-update"
                 @change="onDataTypeChange"
               >
+                <template #label>
+                  <span class="capitalize">{{ $t('labels.onUpdate') }}</span>
+                </template>
                 <template #suffixIcon>
                   <GeneralIcon icon="arrowDown" class="text-gray-700" />
                 </template>
@@ -660,7 +663,11 @@ const handleScrollIntoView = () => {
               </a-select>
             </a-form-item>
 
-            <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
+            <a-form-item class="flex w-1/2">
+              <template #label>
+                <span class="capitalize">{{ $t('labels.onDelete') }}</span>
+              </template>
+
               <a-select
                 v-model:value="vModel.onDelete"
                 :disabled="vModel.virtual"

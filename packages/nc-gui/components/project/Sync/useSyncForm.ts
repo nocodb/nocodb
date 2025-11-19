@@ -213,6 +213,28 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       )
     }
 
+    /**
+     * Todo: @anbu , @ramesh update docs links
+     */
+    const supportedDocs = [
+      {
+        title: 'How syncs work',
+        href: 'https://nocodb.com/docs/product-docs',
+      },
+      {
+        title: 'Choosing a sync type',
+        href: 'https://nocodb.com/docs/product-docs',
+      },
+      {
+        title: 'Configure sync triggers',
+        href: 'https://nocodb.com/docs/product-docs',
+      },
+      {
+        title: 'Select tables to sync',
+        href: 'https://nocodb.com/docs/product-docs',
+      },
+    ]
+
     onMounted(async () => {
       const bsId = unref(baseId)
 
@@ -284,6 +306,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       updateSyncConfig,
       isSaving,
       isUpdating,
+      supportedDocs,
     }
   },
 )

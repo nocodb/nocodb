@@ -81,7 +81,7 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
       </NcListDropdown>
     </a-form-item>
 
-    <a-form-item class="flex-1" :label="$t('labels.onDeleteAction')" v-bind="validateInfosSyncConfig.on_delete_action">
+    <a-form-item class="flex-1" :label="$t('labels.onDelete')" v-bind="validateInfosSyncConfig.on_delete_action">
       <NcListDropdown v-model:is-open="isOnDeleteActionOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
         <div class="flex-1 flex items-center gap-2 justify-between">
           <span class="font-medium flex-1 whitespace-nowrap">{{ currentOnDeleteAction?.label || 'Select action' }}</span>

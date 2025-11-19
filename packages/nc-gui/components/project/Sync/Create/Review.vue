@@ -70,7 +70,7 @@ const getReadableCategory = (category: SyncCategory) => {
       </div>
       <div class="flex items-center gap-2">
         <div class="flex-1 text-caption">
-          {{ $t('labels.onDeleteAction') }}
+          {{ $t('labels.onDelete') }}
         </div>
         <div class="flex-1 text-caption">
           {{ syncEntityToReadableMap[syncConfigForm.on_delete_action] }}

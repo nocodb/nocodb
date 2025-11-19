@@ -20,11 +20,8 @@ const vOpen = useVModel(props, 'value', emits)
 
 const activeTab = ref('general')
 
-const { validateSyncConfig, syncConfigForm, validateIntegrationConfigs, updateSyncConfig, isUpdating } = useProvideSyncForm(
-  props.baseId,
-  'edit',
-  props.syncId,
-)
+const { validateSyncConfig, syncConfigForm, validateIntegrationConfigs, updateSyncConfig, isUpdating, supportedDocs } =
+  useProvideSyncForm(props.baseId, 'edit', props.syncId)
 
 const updateError = ref<string | null>(null)
 
@@ -53,25 +50,6 @@ const handleUpdate = async () => {
     updateError.value = error?.message || 'Failed to update sync'
   }
 }
-
-const supportedDocs = [
-  {
-    title: 'Getting started',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
-  },
-  {
-    title: 'Create webhook',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook',
-  },
-  {
-    title: 'Custom payload',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-custom-payload-',
-  },
-  {
-    title: 'Trigger on condition',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-conditions',
-  },
-]
 </script>
 
 <template>
@@ -135,13 +113,7 @@ const supportedDocs = [
       </div>
 
       <NcModalSupportedDocsSidebar>
-        <NcModalSupportedDocs class="sync-modal-docs" :docs="supportedDocs">
-          <template #title>
-            <span class="text-nc-content-gray-emphasis text-captionBold">
-              {{ $t('labels.supportDocs') }}
-            </span>
-          </template>
-        </NcModalSupportedDocs>
+        <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
         <NcDivider class="!my-5" />
         <ProjectSyncEditMetaInfo />
       </NcModalSupportedDocsSidebar>
@@ -159,13 +131,6 @@ const supportedDocs = [
 
   .nc-modal-header {
     @apply !mb-0 !pb-0;
-  }
-
-  .sync-modal-docs {
-    .nc-modal-docs-icon,
-    .nc-modal-docs-link {
-      @apply !text-nc-content-gray text-caption;
-    }
   }
 }
 </style>

@@ -278,11 +278,21 @@ onMounted(async () => {
                   : 'No search results found'
               "
             />
-            {{
-              activeBaseSyncs.length === 0
-                ? 'Create your first sync to start automatically syncing data from external sources.'
-                : 'No results matched your search'
-            }}
+            <div class="max-w-md">
+              {{
+                activeBaseSyncs.length === 0
+                  ? 'Create your first sync to start automatically syncing data from external sources.'
+                  : 'No results matched your search'
+              }}
+            </div>
+            <NcButton v-if="isUIAllowed('sourceCreate')" size="small" class="z-10 !px-2" type="primary" @click="handleCreateSync">
+              <div class="flex flex-row items-center w-full gap-x-1">
+                <GeneralIcon icon="plus" />
+                <div class="flex">
+                  {{ $t('labels.newSync') }}
+                </div>
+              </div>
+            </NcButton>
           </div>
         </template>
       </NcTable>

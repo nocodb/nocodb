@@ -1211,7 +1211,9 @@ export const useEeConfig = createSharedComposable(() => {
     successCallback,
   }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
     if (!blockTeamsManagement.value) {
-      return successCallback?.()
+      successCallback?.()
+
+      return
     }
 
     handleUpgradePlan({
@@ -1232,7 +1234,9 @@ export const useEeConfig = createSharedComposable(() => {
     successCallback,
   }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
     if (!blockAddNewTeamToWs.value) {
-      return successCallback?.()
+      successCallback?.()
+
+      return
     }
 
     handleUpgradePlan({
@@ -1252,7 +1256,9 @@ export const useEeConfig = createSharedComposable(() => {
     successCallback,
   }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
     if (!blockSync.value) {
-      return successCallback?.()
+      successCallback?.()
+
+      return
     }
 
     handleUpgradePlan({

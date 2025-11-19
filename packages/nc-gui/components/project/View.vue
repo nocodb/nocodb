@@ -22,7 +22,7 @@ const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, blockSync, showUpgradeToUseSync } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -84,6 +84,10 @@ const projectPageTab = computed({
       return
     }
 
+    if (value === 'syncs' && showUpgradeToUseSync()) {
+      return
+    }
+
     _projectPageTab.value = value
   },
 })
@@ -110,7 +114,7 @@ watch(
     }
 
     if (newVal && newVal !== oldVal) {
-      if (newVal === 'syncs') {
+      if (isEeUI && newVal === 'syncs' && !blockSync.value) {
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
@@ -311,7 +315,7 @@ onMounted(() => {
               <div>Syncs</div>
             </div>
           </template>
-          <ProjectSync :base-id="base.id" class="max-h-full" />
+          <ProjectSync v-if="!blockSync" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
         <a-tab-pane v-if="!isSharedBase && !isMobileMode" key="base-settings">
           <template #tab>

@@ -193,7 +193,7 @@
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseSync": "Upgrade to use sync",
-    "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync external data sources to your workspace."
+    "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources."
   },
   "general": {
     "done": "Done",

@@ -19,6 +19,8 @@ const { loadSyncs, triggerSync: _triggerSync } = syncStore
 
 const { isSyncFeatureEnabled } = storeToRefs(syncStore)
 
+const { blockSync, showUpgradeToUseSync } = useEeConfig()
+
 const isCreateSyncModalOpen = ref(false)
 
 const showProgressModal = ref(false)
@@ -48,28 +50,15 @@ const currentBase = computedAsync(async () => {
 })
 
 const onCreateSyncClick = () => {
+  if (showUpgradeToUseSync()) return
+
   isCreateSyncModalOpen.value = true
 }
 
-watchEffect(() => {
-  console.log('isCreateSyncModalOpen', isCreateSyncModalOpen.value)
-})
-
-onMounted(async () => {
-  await Promise.all([loadDynamicIntegrations(), loadIntegrations()])
-
-  await waitForValueExists(
-    () => currentBase.value?.id,
-    (id) => !!id,
-  )
-  if (!currentBase.value?.id) return
-  await loadSyncs(currentBase.value?.id)
-})
-
 watch(
-  isSyncOptionVisible,
-  async (newVal) => {
-    if (!newVal) return
+  [isSyncOptionVisible, blockSync],
+  async ([newVal, newBlockSync]) => {
+    if (!newVal || newBlockSync) return
 
     await Promise.all([loadDynamicIntegrations(), loadIntegrations()])
 

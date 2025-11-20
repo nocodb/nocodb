@@ -2095,7 +2095,8 @@
     "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action",
     "basePermissionRole": "Base permission - {role}",
     "workspacePermissionRole": "Workspace permission - {role}",
-    "missingSharedBaseUrl": "Missing shared base URL"
+    "missingSharedBaseUrl": "Missing shared base URL",
+    "requiredTablesCannotBeExcluded": "Required tables cannot be excluded"
   },
   "placeholder": {
     "enterSyncName": "Enter sync name",

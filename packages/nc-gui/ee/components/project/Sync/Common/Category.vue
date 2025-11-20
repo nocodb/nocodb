@@ -87,9 +87,14 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
           <div class="text-captionBold text-nc-content-gray">
             {{ category.label }}
           </div>
-          <div class="text-bodyDefaultSm text-nc-content-gray-muted">
+
+          <NcTooltip show-on-truncate-only :line-clamp="2" class="min-w-0 text-bodyDefaultSm text-nc-content-gray-muted">
+            <template #title>
+              {{ category.description }}
+            </template>
+
             {{ category.description }}
-          </div>
+          </NcTooltip>
         </div>
       </div>
     </div>
@@ -154,25 +159,28 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
       </div>
 
       <div class="flex flex-col border-1 border-nc-border-gray-medium rounded-lg">
-        <div
-          v-for="model in availableModels"
-          :key="model.value"
-          :class="{
-            'cursor-pointer': mode === 'create' && !model.required,
-          }"
-          class="flex flex-col px-3 gap-1 py-2 border-b-1 last:border-b-0"
-          @click="onModelChanged(model)"
-        >
-          <div class="flex gap-3 items-center">
-            <NcCheckbox :disabled="model.required" :checked="!syncConfigForm.exclude_models?.includes(model.value)" />
-            <div class="text-caption text-nc-content-gray">
-              {{ model.label }}
+        <NcTooltip v-for="model in availableModels" :key="model.value" :disabled="!model.required">
+          <template #title> {{ $t('tooltip.requiredTablesCannotBeExcluded') }} </template>
+
+          <div
+            :class="{
+              'cursor-pointer': mode === 'create' && !model.required,
+              'cursor-not-allowed opacity-80': model.required,
+            }"
+            class="flex flex-col px-3 gap-1 py-2 border-b-1 last:border-b-0"
+            @click="onModelChanged(model)"
+          >
+            <div class="flex gap-3 items-center">
+              <NcCheckbox :readonly="model.required" :checked="!syncConfigForm.exclude_models?.includes(model.value)" />
+              <div class="text-caption text-nc-content-gray">
+                {{ model.label }}
+              </div>
+            </div>
+            <div class="text-bodyDefaultSm pl-7.7 text-nc-content-gray-muted">
+              {{ model.description }}
             </div>
           </div>
-          <div class="text-bodyDefaultSm pl-7.7 text-nc-content-gray-muted">
-            {{ model.description }}
-          </div>
-        </div>
+        </NcTooltip>
       </div>
     </div>
   </div>

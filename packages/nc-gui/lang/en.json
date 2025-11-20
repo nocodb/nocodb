@@ -1033,7 +1033,9 @@
     "confirmLeaveWorkspaceSubtile": "If you leave this workspace, you will lose access to all the bases and data within this workspace. You’ll need an invitation to rejoin.",
     "confirmRemoveMemberFromWorkspaceTitle": "Are you sure you want to remove member from workspace?",
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin.",
-    "changeWorkspaceRoleTo": "Change Workspace Role to"
+    "changeWorkspaceRoleTo": "Change Workspace Role to",
+    "deleteSyncConfirmTitle": "Are you sure you want to delete this sync?",
+    "deleteSyncConfirmSubtitle": "This will delete related sync table and this action cannot be undone."
   },
   "labels": {
     "triggerWorkflow": "Trigger Workflow",

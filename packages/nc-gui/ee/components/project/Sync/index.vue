@@ -8,6 +8,8 @@ const props = defineProps<{
 
 const { $api } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { isUIAllowed, loadRoles } = useRoles()
 
 const { loadDynamicIntegrations, loadIntegrations, integrations } = useIntegrationStore()
@@ -17,6 +19,8 @@ const baseStore = useBase()
 const basesStore = useBases()
 
 const syncStore = useSyncStore()
+
+const { showInfoModal } = useNcConfirmModal()
 
 const { loadTables } = baseStore
 
@@ -116,8 +120,20 @@ const handleEditSync = (syncId: string) => {
 const handleDeleteSync = async (syncId: string) => {
   if (!currentBase.value?.id) return
 
-  await syncStore.deleteSync(currentBase.value?.id, syncId)
-  await loadTables()
+  showInfoModal({
+    title: t('title.deleteSyncConfirmTitle'),
+    content: t('title.deleteSyncConfirmSubtitle'),
+    showCancelBtn: true,
+    showIcon: false,
+    okProps: {
+      type: 'danger',
+    },
+    okText: t('general.delete'),
+    okCallback: async () => {
+      await syncStore.deleteSync(currentBase.value.id!, syncId)
+      await loadTables()
+    },
+  })
 }
 
 const triggerSync = async (syncId: string) => {

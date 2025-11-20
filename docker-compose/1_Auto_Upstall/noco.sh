@@ -1028,7 +1028,7 @@ EOF
 	if [ "${CONFIG_WATCHTOWER_ENABLED}" = "Y" ]; then
 		cat >>"$compose_file" <<EOF
   watchtower:
-    image: containrrr/watchtower
+    image: containrrr/watchtower:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --schedule "0 2 * * 6" --cleanup

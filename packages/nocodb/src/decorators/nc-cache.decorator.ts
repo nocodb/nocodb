@@ -1,11 +1,6 @@
 import type { NcContext } from 'nocodb-sdk';
 
 /**
- * Helper type to extract parameter types from a function
- */
-export type ExtractArgs<T> = T extends (...args: infer P) => any ? P : never;
-
-/**
  * Type-safe cache options that can infer function parameter types
  */
 export interface NcCacheOptions<TArgs extends any[] = any[]> {
@@ -40,6 +35,15 @@ export interface NcCacheOptions<TArgs extends any[] = any[]> {
     result: any,
     thisArg: this,
   ) => void | Promise<void>;
+  /**
+   * Optional condition to skip caching. If the condition is true, the method will execute without caching.
+   * Can be:
+   * - A function: receives typed arguments and this context, returns boolean or Promise<boolean>
+   * - A RegExp: if the generated cache key matches the regex, skip caching
+   */
+  skipIf?:
+    | ((args: TArgs, thisArg: this) => boolean | Promise<boolean>)
+    | RegExp;
 }
 
 /**
@@ -73,6 +77,13 @@ export interface NcCacheOptionsAny {
    * Function receives arguments, the cached result, and the this context
    */
   onCacheHit?: (args: any[], result: any, thisArg: any) => void | Promise<void>;
+  /**
+   * Optional condition to skip caching. If the condition is true, the method will execute without caching.
+   * Can be:
+   * - A function: receives arguments and this context, returns boolean or Promise<boolean>
+   * - A RegExp: if the generated cache key matches the regex, skip caching
+   */
+  skipIf?: ((args: any[], thisArg: any) => boolean | Promise<boolean>) | RegExp;
 }
 
 /**

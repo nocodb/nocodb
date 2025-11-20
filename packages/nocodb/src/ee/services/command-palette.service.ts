@@ -26,6 +26,7 @@ export class CommandPaletteService {
           table_title: string;
           table_type: string;
           table_meta: string;
+          table_synced?: boolean;
           view_id: string;
           view_title: string;
           view_type: string;
@@ -65,6 +66,7 @@ export class CommandPaletteService {
             base_id: string;
             type: string;
             meta: any;
+            synced?: boolean;
           }
         >();
         const views = new Map<
@@ -130,6 +132,7 @@ export class CommandPaletteService {
               workspace_id: item.workspace_id,
               base_id: item.base_id,
               type: item.table_type,
+              synced: item.table_synced,
             });
           }
 
@@ -210,6 +213,7 @@ export class CommandPaletteService {
             icon: table?.meta?.icon || table.type,
             projectName: bases.get(table.base_id)?.title,
             section: 'Tables',
+            synced: table?.synced,
           });
         }
 

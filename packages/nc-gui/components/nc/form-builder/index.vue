@@ -61,16 +61,24 @@ const integrationOptions = computed(() => {
 
 const activeModel = ref<string | null>(null)
 
-const handleAddNewConnection = (model: string) => {
-  if (filteredIntegrations.value[model]?.length === 1) {
-    const integrationInfo = filteredIntegrations.value[model][0]!
+const handleAddNewConnection = (field: FormBuilderElement) => {
+  const model = field.model!
 
-    const actualIntegration = allIntegrations.find(
-      (i) => i.type === integrationInfo.type && i.sub_type === integrationInfo.sub_type,
-    )
+  if (field.integrationFilter) {
+    const filteredIntegtegrations = allIntegrations.filter((i) => {
+      if (field.integrationFilter) {
+        return (
+          (!field.integrationFilter.type || field.integrationFilter.type === i.type) &&
+          (!field.integrationFilter.sub_type || field.integrationFilter.sub_type === i.sub_type)
+        )
+      }
+      return true
+    })
 
-    if (actualIntegration) {
-      addIntegration(actualIntegration, false)
+    if (filteredIntegtegrations?.length === 1) {
+      addIntegration(filteredIntegtegrations[0]!, false)
+
+      activeModel.value = null
 
       nextTick(() => {
         activeModel.value = model
@@ -78,8 +86,6 @@ const handleAddNewConnection = (model: string) => {
 
       return
     }
-
-    activeModel.value = null
   }
 
   activeModel.value = null
@@ -121,10 +127,6 @@ eventBus.on(integegrationEventHandler)
 
 onBeforeUnmount(() => {
   eventBus.off(integegrationEventHandler)
-})
-
-watchEffect(() => {
-  console.log('filteredIntegrations', filteredIntegrations.value)
 })
 
 watch(
@@ -280,7 +282,7 @@ watch(
                         <div
                           class="px-1.5 flex items-center text-brand-500 text-sm cursor-pointer"
                           @mousedown.prevent
-                          @click="handleAddNewConnection(field.model)"
+                          @click="handleAddNewConnection(field)"
                         >
                           <div class="w-full flex items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
                             <GeneralIcon icon="plus" class="flex-none" />

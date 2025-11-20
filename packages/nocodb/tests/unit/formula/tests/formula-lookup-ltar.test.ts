@@ -288,9 +288,14 @@ function formulaLookupLtarTests() {
 
     // Get the data to verify the formula is working correctly
     const rows = await listRow({ base: _base, table: _tables.table2 });
-    expect(rows[0].table1FormulaTitleConcat).to.eq(
-      'T1_001?,T1_002?,T1_003?.T1_001?,T1_002?,T1_003?',
-    );
+    const table1FormulaTitleConcatVal = rows[0].table1FormulaTitleConcat;
+    // expect 'T1_001?,T1_002?,T1_003?.T1_001?,T1_002?,T1_003?' (unordered)
+    const parts = table1FormulaTitleConcatVal.split('.');
+    expect(parts.length).to.eq(2);
+    for (const token of ['T1_001?', 'T1_002?', 'T1_003?']) {
+      expect(parts[0]).to.contain(token);
+      expect(parts[1]).to.contain(token);
+    }
   });
 
   it('will create a formula column assigned as display value accessed through ltar field', async () => {

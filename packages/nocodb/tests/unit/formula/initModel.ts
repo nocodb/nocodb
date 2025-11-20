@@ -316,7 +316,8 @@ export async function initInitialModel() {
   );
   await linkTo_t3_OO_t1_Ltar('1', ['1']);
   await linkTo_t3_OO_t1_Ltar('2', ['2']);
-  await linkTo_t2_HM_t1_Ltar('1', ['1', '2']);
+  await linkTo_t3_OO_t1_Ltar('3', ['3']);
+  await linkTo_t2_MM_t1_Ltar('1', ['1', '2']);
 
   return {
     context,

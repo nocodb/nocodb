@@ -85,7 +85,6 @@ const columns = [
 const currentBase = computedAsync(async () => {
   let base
   if (props.baseId) {
-    await loadRoles(props.baseId)
     base = bases.value.get(props.baseId)
     if (!base) {
       base = await $api.base.read(props.baseId!)
@@ -145,6 +144,12 @@ onMounted(async () => {
   )
   if (!currentBase.value?.id) return
   await loadSyncs(currentBase.value?.id)
+})
+
+onMounted(async () => {
+  if (props.baseId) {
+    await loadRoles(props.baseId)
+  }
 })
 </script>
 

@@ -35,8 +35,6 @@ const currentBase = computedAsync(async () => {
   let base
 
   if (props.baseId) {
-    await loadRoles(props.baseId)
-
     base = bases.value.get(props.baseId)
 
     if (!base) {
@@ -73,6 +71,12 @@ watch(
     immediate: true,
   },
 )
+
+onMounted(async () => {
+  if (props.baseId) {
+    await loadRoles(props.baseId)
+  }
+})
 </script>
 
 <template>

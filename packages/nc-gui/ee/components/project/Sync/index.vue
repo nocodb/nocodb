@@ -56,7 +56,8 @@ const columns = [
     title: 'Sources',
     name: 'Sources',
     dataIndex: 'sources',
-    minWidth: 150,
+    minWidth: 120,
+    width: 120,
     padding: '0px 24px',
   },
   {
@@ -65,6 +66,7 @@ const columns = [
     name: 'Type',
     dataIndex: 'sync_type',
     minWidth: 150,
+    width: 150,
     padding: '0px 24px',
   },
   {
@@ -72,7 +74,8 @@ const columns = [
     title: 'Last trigger',
     name: 'Last trigger',
     dataIndex: 'last_sync_at',
-    minWidth: 240,
+    minWidth: 150,
+    width: 150,
     padding: '0px 24px',
   },
   {
@@ -215,9 +218,13 @@ onMounted(async () => {
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'name'">
-            <div class="flex items-center gap-2 text-captionBold text-nc-content-gray">
+            <NcTooltip
+              :title="record.title || 'Untitled Sync'"
+              show-on-truncate-only
+              class="text-captionBold text-nc-content-gray truncate w-full"
+            >
               {{ record.title || 'Untitled Sync' }}
-            </div>
+            </NcTooltip>
           </template>
 
           <template v-else-if="column.key === 'sources'">

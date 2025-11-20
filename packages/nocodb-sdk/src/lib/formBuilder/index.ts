@@ -103,6 +103,20 @@ interface FormBuilderElementBase {
   placeholder?: string;
   /** Width as percentage (0-100) */
   width?: number;
+  /**
+   * Number of grid columns this field should span.
+   *
+   * Uses a 24-column layout system:
+   * - span: 24 → full width
+   * - span: 12 → half width
+   * - span: 8  → one-third width
+   * - span: 6  → one-quarter width
+   *
+   * If not specified, defaults to full width (24).
+   *
+   * This allows consistent responsive layout instead of relying on `width` percentages.
+   */
+  spacing?: number;
   // description for the element
   description?: string;
   /** Category for grouping elements - same category elements are grouped together */

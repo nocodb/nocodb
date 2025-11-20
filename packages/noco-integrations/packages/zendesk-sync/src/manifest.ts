@@ -9,6 +9,7 @@ const manifest: IntegrationManifest = {
   version: '0.1.0',
   description: 'Sync Zendesk tickets and users',
   sync_category: SyncCategory.TICKETING,
+  order: 3, // order in the sync integration list
 };
 
 export default manifest;

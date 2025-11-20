@@ -9,6 +9,7 @@ const manifest: IntegrationManifest = {
   version: '0.1.0',
   description: 'Sync Linear issues and projects',
   sync_category: SyncCategory.TICKETING,
+  order: 4, // order in the sync integration list
 };
 
 export default manifest;

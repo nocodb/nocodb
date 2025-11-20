@@ -275,7 +275,7 @@ onMounted(async () => {
         <template #emptyText>
           <div class="px-2 py-6 text-nc-content-gray-muted flex flex-col items-center gap-6 text-center">
             <img
-              src="../../ee/assets/img/placeholder/no-search-result-found.png"
+              src="~assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"
               :alt="
                 activeBaseSyncs.length === 0

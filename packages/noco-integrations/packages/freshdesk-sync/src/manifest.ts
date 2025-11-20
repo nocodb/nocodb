@@ -14,5 +14,5 @@ export const manifest: IntegrationManifest = {
   version: '1.0.0',
   author: 'NocoDB',
   website: 'https://www.freshdesk.com',
-  order: 11,
+  order: 5, // order in the sync integration list
 };

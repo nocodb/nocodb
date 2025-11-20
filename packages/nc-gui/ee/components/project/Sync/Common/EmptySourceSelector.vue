@@ -1,19 +1,7 @@
 <script setup lang="ts">
-import { IntegrationCategoryType } from 'nocodb-sdk'
 import { useSyncFormOrThrow } from '../useSyncForm'
 
-const { syncConfigForm, addIntegrationConfig } = useSyncFormOrThrow()
-
-const { integrationsRefreshKey } = useIntegrationStore()
-
-const availableIntegrations = computed(() => {
-  // eslint-disable-next-line no-unused-expressions
-  integrationsRefreshKey.value
-
-  return allIntegrations.filter((i) => {
-    return i.type === IntegrationCategoryType.SYNC && i.sync_category === syncConfigForm.value.sync_category
-  })
-})
+const { addIntegrationConfig, availableIntegrations } = useSyncFormOrThrow()
 </script>
 
 <template>

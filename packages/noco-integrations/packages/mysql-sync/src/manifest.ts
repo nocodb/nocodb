@@ -10,6 +10,7 @@ const manifest: IntegrationManifest = {
   description: 'Sync data with MySQL database',
   author: 'NocoDB',
   sync_category: SyncCategory.CUSTOM,
+  order: 9, // order in the sync integration list
 };
 
 export default manifest;

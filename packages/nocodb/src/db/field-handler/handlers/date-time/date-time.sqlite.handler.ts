@@ -20,7 +20,7 @@ export class DateTimeSQLiteHandler extends DateTimeGeneralHandler {
 
     // convert to UTC
     // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
-    const val = dayjsUtcValue.format('YYYY-MM-DD HH:mm:ssZ');
+    const val = dayjsUtcValue?.format('YYYY-MM-DD HH:mm:ssZ');
     return { value: val };
   }
 }

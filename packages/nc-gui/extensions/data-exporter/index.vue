@@ -90,6 +90,7 @@ const tableList = computed(() => {
       label: table.title,
       value: table.id,
       meta: table.meta,
+      synced: table.synced,
     }
   })
 })
@@ -355,7 +356,7 @@ onMounted(async () => {
                 <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
                   <div class="w-full flex items-center gap-2">
                     <div class="min-w-5 flex items-center justify-center">
-                      <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+                      <GeneralTableIcon size="xsmall" :meta="{ meta: table.meta, synced: table.synced }" class="text-gray-500" />
                     </div>
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>{{ table.label }}</template>
@@ -447,7 +448,7 @@ onMounted(async () => {
                 <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
                   <div class="w-full flex items-center gap-2">
                     <div class="min-w-5 flex items-center justify-center">
-                      <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+                      <GeneralTableIcon size="xsmall" :meta="{ meta: table.meta, synced: table.synced }" class="text-gray-500" />
                     </div>
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>{{ table.label }}</template>

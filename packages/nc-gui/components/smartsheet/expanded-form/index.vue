@@ -818,7 +818,8 @@ export default {
               v-if="!props.showNextPrevIcons"
               class="hidden md:flex items-center rounded-lg bg-nc-bg-gray-light px-2 py-1 gap-2"
             >
-              <GeneralIcon icon="table" class="text-nc-content-inverted-secondary flex-none" />
+              <GeneralTableIcon size="xsmall" :meta="meta" class="!mx-0 !text-nc-content-inverted-secondary" />
+
               <span class="nc-expanded-form-table-name whitespace-nowrap">
                 {{ tableTitle }}
               </span>

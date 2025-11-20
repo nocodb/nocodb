@@ -40,7 +40,8 @@ const table = computed(() => activeTables.value.find((table) => table.id === pro
             v-if="title"
             class="flex items-center bg-nc-bg-gray-medium px-1 gap-1 rounded-md text-caption text-nc-content-gray-subtle"
           >
-            <GeneralIcon icon="table" class="w-4 h-4 flex-none" />
+            <GeneralTableIcon size="xsmall" :meta="table" class="!mx-0 !text-current" />
+
             <div>{{ title }}</div>
           </div>
         </div>

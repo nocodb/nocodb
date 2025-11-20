@@ -68,7 +68,11 @@ function openTableCreateDialog() {
           <div>
             <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
               <template #default>
-                <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
+                <GeneralTableIcon
+                  size="xsmall"
+                  :meta="{ meta: {}, synced: option?.synced }"
+                  class="!mx-0 min-w-4 !text-gray-500"
+                />
               </template>
             </LazyGeneralEmojiPicker>
           </div>

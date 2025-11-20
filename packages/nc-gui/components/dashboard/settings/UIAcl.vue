@@ -210,7 +210,11 @@ const columns = [
           <template v-if="column.name === 'Table Name'">
             <div class="flex items-center gap-2 max-w-full">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon :meta="{ meta: record.table_meta, type: record.ptype }" class="text-gray-500" />
+                <GeneralTableIcon
+                  size="xsmall"
+                  :meta="{ meta: record.table_meta, type: record.ptype, synced: record.synced }"
+                  class="text-gray-500"
+                />
               </div>
 
               <NcTooltip class="truncate" show-on-truncate-only>

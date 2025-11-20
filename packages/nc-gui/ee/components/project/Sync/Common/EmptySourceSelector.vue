@@ -10,14 +10,14 @@ const { addIntegrationConfig, availableIntegrations } = useSyncFormOrThrow()
       {{ $t('labels.selectASource') }}
     </div>
 
-    <div class="flex flex-col rounded-lg border-1 border-nc-border-gray-medium">
+    <div class="grid grid-cols-2 gap-4">
       <div
-        v-for="integration in availableIntegrations"
+        v-for="(integration, i) of availableIntegrations"
         :key="integration.title"
-        class="border-b-1 last:border-b-0 flex items-center cursor-pointer first:rounded-t-lg last:rounded-b-lg hover:bg-nc-bg-gray-extralight gap-2 border-nc-border-gray-medium px-3 py-2"
+        class="border-1 border-nc-border-gray-medium rounded-lg flex items-center cursor-pointer transition-all hover:(bg-nc-bg-gray-extralight shadow-sm) gap-3 px-3 py-2"
         @click="addIntegrationConfig(integration.sub_type)"
       >
-        <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
+        <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" size="lg" />
         <NcTooltip show-on-truncate-only class="flex-1 truncate">
           <template #title>
             {{ integration.title }}

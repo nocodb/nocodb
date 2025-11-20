@@ -8,6 +8,17 @@ import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
 
+const setAsAnyType = (field: SwaggerColumn) => {
+  const result = field as any;
+  result.anyOf = [
+    { type: 'string' },
+    { type: 'number' },
+    { type: 'integer' },
+    { type: 'boolean' },
+    { type: 'object' },
+  ];
+};
+
 // TODO: refactor and avoid duplication
 // Helper function to process a single column and return its swagger field definition
 async function processColumnToSwaggerField(
@@ -72,12 +83,13 @@ async function processColumnToSwaggerField(
           case FormulaDataTypes.NULL:
           case FormulaDataTypes.UNKNOWN:
           default:
-            field.type = 'string';
+            // Fallback to any if type not handled
+            setAsAnyType(field);
             break;
         }
       } else {
-        // Fallback to string if no parsed tree available
-        field.type = 'string';
+        // Fallback to any if no parsed tree available
+        setAsAnyType(field);
       }
       break;
     case UITypes.Lookup:
@@ -157,12 +169,21 @@ async function processColumnToSwaggerField(
           }
         } else {
           // Fallback to object if we can't determine the type
-          field.type = 'object';
+          setAsAnyType(field);
         }
       }
       break;
-    case UITypes.Rollup:
-      field.type = 'number';
+    case UITypes.Rollup: {
+      const colOptions = await column.getColOptions<RollupColumn>(
+        context,
+        ncMeta,
+      );
+      if (!['max', 'min'].includes(colOptions.rollup_function.toLowerCase())) {
+        field.type = 'number';
+      } else {
+        // if min or max, let it be any
+        setAsAnyType(field);
+      }
       break;
     case UITypes.Links:
       field.type = 'integer';
@@ -197,6 +218,12 @@ async function processColumnToSwaggerField(
       break;
     case UITypes.CreatedBy:
       field.type = 'object';
+      break;
+    case UITypes.QrCode:
+    case UITypes.Barcode:
+      // both set to any for now
+      // not worth to handle atm
+      setAsAnyType(field);
       break;
     default:
       field.virtual = false;

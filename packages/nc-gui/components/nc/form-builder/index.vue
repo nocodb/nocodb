@@ -150,7 +150,10 @@ watch(
           <div v-if="category !== FORM_BUILDER_NON_CATEGORIZED" class="nc-form-section-title">{{ category }}</div>
           <div class="nc-form-section-body-grid">
             <template v-for="field in formElementsCategorized[category]" :key="field.model">
+              <template v-if="field.type === FormBuilderInputType.Space"></template>
+
               <a-form-item
+                v-else
                 v-bind="validateInfos[field.model]"
                 class="nc-form-item"
                 :style="{

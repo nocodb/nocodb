@@ -15,8 +15,8 @@ const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
 
 const _defaultSyncConfig: Partial<SyncConfig> & Record<string, unknown> = {
   title: 'New Source',
-  sync_type: SyncType.Full,
-  sync_trigger: SyncTrigger.Schedule,
+  sync_type: SyncType.Incremental,
+  sync_trigger: SyncTrigger.Manual,
   sync_category: SyncCategory.TICKETING,
   exclude_models: [],
   on_delete_action: OnDeleteAction.MarkDeleted,

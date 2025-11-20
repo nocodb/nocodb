@@ -14,6 +14,7 @@ export class DataTableController extends DataTableControllerCE {
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
+    context.cache = true;
     return await this.dataTableService.bulkAggregate(context, {
       query: req.query,
       modelId,

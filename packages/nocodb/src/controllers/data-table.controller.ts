@@ -38,6 +38,7 @@ export class DataTableController {
     @Query('includeSortAndFilterColumns')
     includeSortAndFilterColumns: string,
   ) {
+    context.cache = true;
     const startTime = process.hrtime();
     const responseData = await this.dataTableService.dataList(context, {
       query: req.query,
@@ -59,6 +60,7 @@ export class DataTableController {
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
+    context.cache = true;
     const countResult = await this.dataTableService.dataCount(context, {
       query: req.query,
       modelId,
@@ -130,6 +132,7 @@ export class DataTableController {
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
+    context.cache = true;
     return await this.dataTableService.dataAggregate(context, {
       query: req.query,
       modelId,
@@ -178,6 +181,7 @@ export class DataTableController {
     @Query('viewId') viewId: string,
     @Param('rowId') rowId: string,
   ) {
+    context.cache = true;
     return await this.dataTableService.dataRead(context, {
       modelId,
       rowId: rowId,
@@ -213,6 +217,7 @@ export class DataTableController {
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
   ) {
+    context.cache = true;
     return await this.dataTableService.nestedDataList(context, {
       modelId,
       rowId: rowId,

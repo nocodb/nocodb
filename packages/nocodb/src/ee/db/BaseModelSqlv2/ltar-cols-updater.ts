@@ -74,7 +74,7 @@ export const LTARColsUpdater = (param: {
     // if external, fallback to CE version
     if (!(await baseModel.getSource()).isMeta()) {
       return await LTARColsUpdaterCE({
-        baseModel: this,
+        baseModel: param.baseModel,
         logger,
       }).updateLTARCols({
         datas,

@@ -12,7 +12,7 @@ const { addIntegrationConfig, availableIntegrations } = useSyncFormOrThrow()
 
     <div class="grid grid-cols-2 gap-4">
       <div
-        v-for="(integration, i) of availableIntegrations"
+        v-for="integration of availableIntegrations"
         :key="integration.title"
         class="border-1 border-nc-border-gray-medium rounded-lg flex items-center cursor-pointer transition-all hover:(bg-nc-bg-gray-extralight shadow-sm) gap-3 px-3 py-2"
         @click="addIntegrationConfig(integration.sub_type)"

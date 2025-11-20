@@ -63,7 +63,8 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include closed issues',
-    description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
+    description:
+      'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     width: 48,
     model: 'config.includeClosed',
     category: 'Options',
@@ -78,7 +79,8 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Pull requests',
-    description: 'Sync pull requests along with issues to track code changes, reviews, and merges within your workspace.',
+    description:
+      'Sync pull requests along with issues to track code changes, reviews, and merges within your workspace.',
     width: 48,
     model: 'config.includePRs',
     category: 'Options',

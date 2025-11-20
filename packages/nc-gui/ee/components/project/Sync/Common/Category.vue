@@ -6,7 +6,7 @@ const categories = Object.values(SyncCategoryMeta)
 
 const { isSyncAdvancedFeaturesEnabled } = storeToRefs(useSyncStore())
 
-const { syncConfigForm, mode } = useSyncFormOrThrow()
+const { syncConfigForm, mode, syncCategoryIntegrationMap } = useSyncFormOrThrow()
 
 const syncAllModels = ref(true)
 
@@ -78,9 +78,17 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
         >
           <div
             v-if="!category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true)"
-            class="max-h-5 h-5 flex items-center"
+            class="max-h-5 h-5 flex items-center gap-2"
           >
-            <GeneralIcon :icon="category.icon" class="w-4 h-4 text-nc-content-gray-subtle" />
+            <template v-for="integration of syncCategoryIntegrationMap[category.value]?.slice(0, 3)" :key="integration.sub_type">
+              <NcTooltip v-if="integration?.sub_type" :title="integration.title">
+                <GeneralIntegrationIcon :type="integration.sub_type" size="md" />
+              </NcTooltip>
+            </template>
+            <!-- Show +N if more than 4 -->
+            <div v-if="syncCategoryIntegrationMap[category.value].length > 3" class="text-body text-nc-content-gray-subtle">
+              +{{ syncCategoryIntegrationMap[category.value].length - 3 }}
+            </div>
           </div>
 
           <NcBadgeComingSoon v-else class="bg-nc-bg-gray-medium !w-[fit-content] text-nc-content-gray-subtle2" />
@@ -88,13 +96,20 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
             {{ category.label }}
           </div>
 
-          <NcTooltip show-on-truncate-only :line-clamp="2" class="min-w-0 text-bodyDefaultSm text-nc-content-gray-muted">
-            <template #title>
-              {{ category.description }}
-            </template>
+          <div>
+            <NcTooltip
+              show-on-truncate-only
+              :line-clamp="2"
+              placement="bottom"
+              class="min-w-0 text-bodyDefaultSm text-nc-content-gray-muted !line-clamp-2"
+            >
+              <template #title>
+                {{ category.description }}
+              </template>
 
-            {{ category.description }}
-          </NcTooltip>
+              {{ category.description }}
+            </NcTooltip>
+          </div>
         </div>
       </div>
     </div>

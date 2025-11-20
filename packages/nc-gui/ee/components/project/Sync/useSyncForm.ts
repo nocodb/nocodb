@@ -1,5 +1,5 @@
 import type { SyncConfig } from 'nocodb-sdk'
-import { IntegrationCategoryType } from 'nocodb-sdk'
+import { IntegrationCategoryType, SyncCategory } from 'nocodb-sdk'
 import { Form } from 'ant-design-vue'
 import rfdc from 'rfdc'
 
@@ -42,6 +42,13 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       return allIntegrations.filter((i) => {
         return i.type === IntegrationCategoryType.SYNC && i.sync_category === syncConfigForm.value.sync_category
       })
+    })
+
+    const syncCategoryIntegrationMap = computed(() => {
+      return Object.values(SyncCategory).reduce((acc, category) => {
+        acc[category] = allIntegrations.filter((i) => i.type === IntegrationCategoryType.SYNC && i.sync_category === category)
+        return acc
+      }, {} as Record<SyncCategory, IntegrationItemType[]>)
     })
 
     const integrationConfigValidationCallbacks = ref<Record<number, () => void>>({})
@@ -299,6 +306,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       removeIntegrationConfig,
       updateIntegrationConfig,
       availableIntegrations,
+      syncCategoryIntegrationMap,
       integrationConfigValidationCallbacks,
       integrationFetchDestinationSchema,
       validateIntegrationConfigs,

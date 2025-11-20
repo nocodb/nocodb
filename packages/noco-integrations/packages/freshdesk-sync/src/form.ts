@@ -17,7 +17,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -31,7 +31,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Freshdesk connection',
-    width: 100,
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'General',
     integrationFilter: {
@@ -49,7 +49,7 @@ export const form: FormDefinition = [
     type: FormBuilderInputType.Checkbox,
     label: 'Include closed tickets',
     description: 'Sync both open and closed tickets to maintain a complete record of project history and resolutions.',
-    width: 100,
+    span: 24,
     model: 'config.includeClosed',
     category: 'Sync Options',
     defaultValue: false,

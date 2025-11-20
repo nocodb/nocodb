@@ -8,7 +8,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -22,7 +22,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Azure OpenAI API key',
-    width: 100,
+    span: 24,
     model: 'config.apiKey',
     placeholder: 'API key',
     category: 'Credentials',
@@ -36,7 +36,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Azure resource name',
-    width: 100,
+    span: 24,
     model: 'config.resourceName',
     placeholder: 'your-resource-name',
     category: 'Credentials',
@@ -50,7 +50,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'API version',
-    width: 100,
+    span: 24,
     model: 'config.apiVersion',
     placeholder: '2024-05-01-preview',
     category: 'Credentials',
@@ -64,7 +64,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Models (deployment names)',
-    width: 100,
+    span: 24,
     model: 'config.models',
     placeholder: 'Allowed models (deployment names)',
     category: 'Settings',

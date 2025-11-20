@@ -9,7 +9,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -23,7 +23,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Bitbucket connection',
-    width: 100,
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'General',
     integrationFilter: {
@@ -40,7 +40,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Select one or more repositories',
-    width: 100,
+    span: 24,
     model: 'config.repos',
     category: 'General',
     placeholder: 'e.g., workspace/repository',
@@ -63,7 +63,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include closed issues',
-    width: 48,
+    span: 12,
     model: 'config.includeClosed',
     category: 'Options',
     description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
@@ -78,7 +78,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include pull requests',
-    width: 48,
+    span: 12,
     model: 'config.includePRs',
     description: "Sync pull requests along with issues to track code changes, reviews, and merges within your workspace.",
     category: 'Options',

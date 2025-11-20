@@ -16,7 +16,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -30,7 +30,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Freshdesk domain',
-    width: 100,
+    span: 24,
     model: 'config.domain',
     category: 'General',
     placeholder: 'e.g., yourcompany.freshdesk.com',
@@ -44,7 +44,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'API key',
-    width: 100,
+    span: 24,
     model: 'config.api_key',
     category: 'Authentication',
     placeholder: 'Enter your Freshdesk API key',

@@ -10,7 +10,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -24,7 +24,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'GitLab hostname',
-    width: 100,
+    span: 24,
     model: 'config.hostname',
     placeholder: 'https://gitlab.com',
     category: 'General',
@@ -39,7 +39,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Auth type',
-    width: 48,
+    span: 12,
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',
@@ -72,7 +72,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'API token',
-    width: 100,
+    span: 24,
     model: 'config.token',
     category: 'Authentication',
     placeholder: 'Enter your GitLab API token',
@@ -92,7 +92,7 @@ export const form: FormDefinition = [
         {
           type: FormBuilderInputType.OAuth,
           label: 'OAuth configuration',
-          width: 100,
+          span: 24,
           model: 'config.oauth.code',
           category: 'Authentication',
           validators: [

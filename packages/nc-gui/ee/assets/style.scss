@@ -1470,3 +1470,8 @@ svg.nc-virtual-cell-icon {
 .nc-form-section-body {
   @apply flex flex-col gap-3;
 }
+
+.nc-form-section-body-grid {
+  @apply grid gap-3;
+  grid-template-columns: repeat(24, minmax(0, 1fr))
+}

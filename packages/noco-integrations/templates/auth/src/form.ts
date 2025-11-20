@@ -1,4 +1,7 @@
-import { FormBuilderInputType, FormBuilderValidatorType } from '@noco-integrations/core';
+import {
+  FormBuilderInputType,
+  FormBuilderValidatorType,
+} from '@noco-integrations/core';
 import { AuthType } from '@noco-integrations/core';
 import { authUri, clientId, redirectUri, scopes } from './config';
 import type { FormDefinition } from '@noco-integrations/core';
@@ -7,7 +10,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -21,7 +24,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Auth type',
-    width: 48,
+    span: 12,
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',
@@ -50,7 +53,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'API token', // Adjust label based on provider (e.g., 'Personal Access Token', 'API Key')
-    width: 100,
+    span: 24,
     model: 'config.token',
     category: 'Authentication',
     placeholder: 'Enter your API token',
@@ -70,7 +73,7 @@ export const form: FormDefinition = [
         {
           type: FormBuilderInputType.OAuth,
           label: 'OAuth configuration',
-          width: 100,
+          span: 24,
           model: 'config.oauth.code',
           category: 'Authentication',
           validators: [
@@ -93,4 +96,4 @@ export const form: FormDefinition = [
         },
       ]
     : []),
-]; 
+];

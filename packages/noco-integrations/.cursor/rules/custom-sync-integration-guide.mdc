@@ -339,7 +339,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Database Connection',
-    width: 100,
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'Authentication',
     integrationFilter: {
@@ -356,7 +356,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Schema/Database',
-    width: 100,
+    span: 24,
     model: 'config.schema',
     category: 'Sync Settings',
     options: [],
@@ -371,7 +371,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Tables',
-    width: 100,
+    span: 24,
     model: 'config.tables',
     category: 'Sync Settings',
     selectMode: 'multiple',

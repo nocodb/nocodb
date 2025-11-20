@@ -9,7 +9,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -23,7 +23,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Chatwoot connection',
-    width: 100,
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'General',
     integrationFilter: {
@@ -40,20 +40,15 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Inbox ID (optional)',
-    width: 50,
+    span: 12,
     model: 'config.inboxId',
     placeholder: 'e.g., 123',
     category: 'Options',
   },
   {
-    type: FormBuilderInputType.Space,
-    width: 50,
-    category: 'Options',
-  },
-  {
     type: FormBuilderInputType.Checkbox,
     label: 'Include resolved conversations',
-    width: 50,
+    span: 12,
     description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     model: 'config.includeResolved',
     category: 'Options',

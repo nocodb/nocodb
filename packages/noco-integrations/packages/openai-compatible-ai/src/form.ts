@@ -8,7 +8,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -22,7 +22,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'API base URL',
-    width: 100,
+    span: 24,
     model: 'config.baseURL',
     placeholder: 'http://localhost:8080/v1',
     category: 'Credentials',
@@ -36,7 +36,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'API key',
-    width: 100,
+    span: 24,
     model: 'config.apiKey',
     placeholder: 'API key (optional for some services)',
     category: 'Credentials',
@@ -44,7 +44,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Models',
-    width: 100,
+    span: 24,
     model: 'config.models',
     placeholder: 'Allowed models',
     category: 'Settings',

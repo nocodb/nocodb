@@ -8,7 +8,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -22,7 +22,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'AWS access key ID',
-    width: 48,
+    span: 12,
     model: 'config.accessKeyId',
     placeholder: 'Access key ID',
     category: 'Credentials',
@@ -34,14 +34,9 @@ export const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Space,
-    width: 4,
-    category: 'Credentials',
-  },
-  {
     type: FormBuilderInputType.Input,
     label: 'AWS secret access key',
-    width: 48,
+    span: 12,
     model: 'config.secretAccessKey',
     placeholder: 'Secret access key',
     category: 'Credentials',
@@ -55,7 +50,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'AWS region',
-    width: 100,
+    span: 24,
     model: 'config.region',
     placeholder: 'us-east-1',
     category: 'Credentials',
@@ -69,7 +64,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Models',
-    width: 100,
+    span: 24,
     model: 'config.models',
     placeholder: 'Allowed models',
     category: 'Settings',

@@ -8,7 +8,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -22,7 +22,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Host',
-    width: 100,
+    span: 24,
     model: 'config.host',
     category: 'Authentication',
     placeholder: 'Enter your PostgreSQL host',
@@ -36,7 +36,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Port',
-    width: 100,
+    span: 24,
     model: 'config.port',
     category: 'Authentication',
     placeholder: '5432',
@@ -45,7 +45,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Username',
-    width: 100,
+    span: 24,
     model: 'config.username',
     category: 'Authentication',
     placeholder: 'Enter your username',
@@ -59,7 +59,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Password,
     label: 'Password',
-    width: 100,
+    span: 24,
     model: 'config.password',
     category: 'Authentication',
     placeholder: 'Enter your password',
@@ -73,7 +73,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Database',
-    width: 100,
+    span: 24,
     model: 'config.database',
     category: 'Authentication',
     placeholder: 'Enter your database name',

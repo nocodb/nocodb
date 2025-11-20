@@ -259,7 +259,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Your Service Connection',
-    width: 100,
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'Authentication',
     integrationFilter: {
@@ -284,7 +284,7 @@ const form: FormDefinition = [
 {
   type: FormBuilderInputType.Input,
   label: 'Project Key',
-  width: 48,
+  span: 12,
   model: 'config.projectKey',
   placeholder: 'e.g., PROJ',
   category: 'Source',
@@ -295,7 +295,7 @@ const form: FormDefinition = [
 {
   type: FormBuilderInputType.Switch,
   label: 'Include closed items',
-  width: 48,
+  span: 12,
   model: 'config.includeClosed',
   category: 'Source',
   defaultValue: true,
@@ -305,7 +305,7 @@ const form: FormDefinition = [
 {
   type: FormBuilderInputType.Input,
   label: 'Custom Filter',
-  width: 100,
+  span: 24,
   model: 'config.customQuery',
   placeholder: 'e.g., priority = "High"',
   category: 'Source',

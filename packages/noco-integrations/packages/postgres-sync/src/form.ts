@@ -9,7 +9,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -23,7 +23,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.SelectIntegration,
     label: 'PostgreSQL connection',
-    width: 100,
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'General',
     integrationFilter: {
@@ -40,7 +40,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Schema',
-    width: 100,
+    span: 24,
     model: 'config.schema',
     category: 'General',
     placeholder: 'Select schema to sync',
@@ -56,7 +56,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Tables',
-    width: 100,
+    span: 24,
     model: 'config.tables',
     category: 'General',
     placeholder: 'Select tables to sync',

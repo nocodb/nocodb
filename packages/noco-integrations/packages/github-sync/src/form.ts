@@ -9,7 +9,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -23,7 +23,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.SelectIntegration,
     label: 'GitHub connection',
-    width: 100,
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'General',
     integrationFilter: {
@@ -40,7 +40,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Select one or more repositories',
-    width: 100,
+    span: 24,
     model: 'config.repos',
     category: 'General',
     placeholder: 'e.g., nocodb/nocodb',
@@ -65,7 +65,7 @@ const form: FormDefinition = [
     label: 'Include closed issues',
     description:
       'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
-    width: 48,
+    span: 12,
     model: 'config.includeClosed',
     category: 'Options',
     defaultValue: true,
@@ -81,7 +81,7 @@ const form: FormDefinition = [
     label: 'Pull requests',
     description:
       'Sync pull requests along with issues to track code changes, reviews, and merges within your workspace.',
-    width: 48,
+    span: 12,
     model: 'config.includePRs',
     category: 'Options',
     defaultValue: false,

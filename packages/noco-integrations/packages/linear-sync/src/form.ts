@@ -9,7 +9,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -23,7 +23,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Linear connection',
-    width: 100,
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'General',
     integrationFilter: {
@@ -40,7 +40,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Team key',
-    width: 100,
+    span: 24,
     model: 'config.teamKey',
     placeholder: 'e.g., ENG',
     category: 'General',
@@ -55,7 +55,7 @@ const form: FormDefinition = [
     type: FormBuilderInputType.Checkbox,
     label: 'Include canceled issues',
     description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
-    width: 48,
+    span: 12,
     model: 'config.includeCanceled',
     category: 'Options',
     defaultValue: false,
@@ -64,7 +64,7 @@ const form: FormDefinition = [
     type: FormBuilderInputType.Checkbox,
     label: 'Include completed issues',
     description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
-    width: 48,
+    span: 12,
     model: 'config.includeCompleted',
     category: 'Options',
     defaultValue: true,

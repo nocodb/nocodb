@@ -116,7 +116,7 @@ interface FormBuilderElementBase {
    *
    * This allows consistent responsive layout instead of relying on `width` percentages.
    */
-  spacing?: number;
+  span?: number;
   // description for the element
   description?: string;
   /** Category for grouping elements - same category elements are grouped together */

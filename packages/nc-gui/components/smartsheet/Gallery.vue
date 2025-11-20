@@ -617,7 +617,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             }"
                           >
                             <div class="flex flex-row w-full justify-start">
-                              <div v-if="isActiveViewFieldHeaderVisible" class="nc-card-col-header w-full !children:text-gray-500">
+                              <div
+                                v-if="isActiveViewFieldHeaderVisible"
+                                class="nc-card-col-header w-full !children:text-gray-500"
+                              >
                                 <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
                                 <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                               </div>

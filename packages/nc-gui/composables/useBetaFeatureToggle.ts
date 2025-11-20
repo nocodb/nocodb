@@ -215,7 +215,7 @@ const FEATURES = [
     version: 1,
     isEngineering: true,
     isEE: true,
-  }
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

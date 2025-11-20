@@ -15,6 +15,7 @@ const {
   setFormState,
   loadOptions,
   getFieldOptions,
+  isOptionsLoaded,
 } = useFormBuilderHelperOrThrow()
 
 const { loadIntegrations, addIntegration, integrations, eventBus, pageMode, IntegrationsPageMode } =
@@ -207,8 +208,9 @@ watch(
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Select">
-                    <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
+                    <NcFormBuilderInputMountedWrapper :key="field?.fieldKey" @mounted="loadOptions(field)">
                       <NcSelect
+                        :key="`${isOptionsLoaded}`"
                         :value="deepReference(field.model)"
                         :options="field.fetchOptionsKey ? getFieldOptions(field.model) : field.options"
                         :mode="selectMode(field)"

@@ -157,6 +157,24 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       return checkConditionItem(condition)
     }
 
+    const getFieldKeyFromCondition = (field: FormBuilderElement) => {
+      if (!field.condition) return ''
+
+      if (ncIsArray(field.condition)) {
+        return field.condition
+          .map((c, index) => {
+            const value = deepReference(c.model)
+
+            return (value?.toString() ?? '') + '-' + index
+          })
+          .join('-')
+      }
+
+      const value = deepReference(field.condition.model)
+
+      return value?.toString() ?? ''
+    }
+
     const formElementsCategorized = computed(() => {
       const categorizedItems: Record<string, any> = {}
 
@@ -167,6 +185,10 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
       for (const item of filteredFormSchema || []) {
         item.category = item.category || FORM_BUILDER_NON_CATEGORIZED
+
+        // fieldKey will be used to reload element on dependency change
+        // e.g. select element with dependency condition will be re-rendered when dependency changes
+        ;(item as any).fieldKey = getFieldKeyFromCondition(item)
 
         if (!categorizedItems[item.category]) {
           categorizedItems[item.category] = []
@@ -313,6 +335,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       loadOptions,
       getFieldOptions,
       isOptionsLoaded,
+      getFieldKeyFromCondition,
     }
   },
   'form-builder-helper',

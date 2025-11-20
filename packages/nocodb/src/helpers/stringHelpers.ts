@@ -7,3 +7,7 @@ export function randomTokenString(): string {
 export function utf8ify(str: string): string {
   return Buffer.from(str, 'latin1').toString('utf8');
 }
+
+export function swaggerSanitizeSchemaName(name: string) {
+  return name.replace(/\W/g, '_');
+}

@@ -8,6 +8,17 @@ import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
 
+const setAsAnyType = (field: SwaggerColumn) => {
+  const result = field as any;
+  result.anyOf = [
+    { type: 'string' },
+    { type: 'number' },
+    { type: 'integer' },
+    { type: 'boolean' },
+    { type: 'object' },
+  ];
+};
+
 // TODO: refactor and avoid duplication
 // Helper function to process a single column and return its swagger field definition
 async function processColumnToSwaggerField(
@@ -86,12 +97,12 @@ async function processColumnToSwaggerField(
           case FormulaDataTypes.UNKNOWN:
           default:
             // Fallback to any if type not handled
-            field.type = '{}';
+            setAsAnyType(field);
             break;
         }
       } else {
         // Fallback to any if no parsed tree available
-        field.type = '{}';
+        setAsAnyType(field);
       }
       break;
     case UITypes.Lookup:
@@ -171,7 +182,7 @@ async function processColumnToSwaggerField(
           }
         } else {
           // Fallback to object if we can't determine the type
-          field.type = 'object';
+          setAsAnyType(field);
         }
       }
       break;
@@ -184,7 +195,7 @@ async function processColumnToSwaggerField(
         field.type = 'number';
       } else {
         // if min or max, let it be any
-        field.type = '{}';
+        setAsAnyType(field);
       }
       break;
     }
@@ -252,7 +263,7 @@ async function processColumnToSwaggerField(
     case UITypes.Barcode:
       // both set to any for now
       // not worth to handle atm
-      field.type = '{}';
+      setAsAnyType(field);
       break;
     default:
       field.virtual = false;

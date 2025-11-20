@@ -9,5 +9,5 @@ export function utf8ify(str: string): string {
 }
 
 export function swaggerSanitizeSchemaName(name: string) {
-  return name.replaceAll(' ', '_').replaceAll('?', '_').replace(/\W/g, '_');
+  return name.replace(/\W/g, '_');
 }

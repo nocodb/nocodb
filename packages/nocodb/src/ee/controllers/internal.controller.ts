@@ -609,6 +609,11 @@ export class InternalController extends InternalControllerCE {
           },
           req,
         );
+      case 'workflowNodeIntegrationFetchOptions':
+        return await this.workflowsService.integrationFetchOptions(context, {
+          integration: payload.integration,
+          key: payload.key,
+        });
       default:
         return await super.internalAPIPost(
           context,

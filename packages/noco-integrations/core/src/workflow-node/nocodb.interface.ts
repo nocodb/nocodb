@@ -216,7 +216,10 @@ export interface ITablesService {
       tableId: string;
       user: NocoSDK.UserType;
     },
-  ): Promise<NocoSDK.TableType>;
+  ): Promise<NocoSDK.TableType & {
+    views: Array<NocoSDK.ViewType>
+    columns: Array<NocoSDK.ColumnType>
+  }>;
 
   getAccessibleTables(
     context: NocoSDK.NcContext,

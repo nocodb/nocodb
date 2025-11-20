@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, generateUniqueCopyName } from 'nocodb-sdk';
+import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { WorkflowNodeIntegration } from '@noco-local-integrations/core';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { Workflow, Workspace } from '~/models';
+import { Integration, Workflow, Workspace } from '~/models';
 import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -238,5 +240,27 @@ export class WorkflowsService {
     });
 
     return executionState;
+  }
+
+  async integrationFetchOptions(
+    context: NcContext,
+    param: {
+      integration: IntegrationReqType;
+      key: string;
+    },
+  ) {
+    const { integration, key } = param;
+
+    const wfNodeWrapper = this.workflowExecutionService.getNodeWrapper(
+      context,
+      integration.sub_type,
+      integration.config,
+    );
+
+    if (!wfNodeWrapper) {
+      NcError.get(context).workflowNodeNotFound(integration.sub_type);
+    }
+
+    return await wfNodeWrapper.fetchOptions(key);
   }
 }

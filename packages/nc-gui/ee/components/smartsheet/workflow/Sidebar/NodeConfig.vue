@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const { selectedNodeId, updateNode, getNodeMetaById, selectedNode } = useWorkflowOrThrow()
+import { IntegrationsType } from 'nocodb-sdk'
+const { selectedNodeId, updateNode, getNodeMetaById, selectedNode, fetchNodeIntegrationOptions } = useWorkflowOrThrow()
 
 const formSchema = computed(() => {
   if (!selectedNode.value || !selectedNode.value.type) return []
@@ -15,6 +16,16 @@ const { formState } = useProvideFormBuilderHelper({
     updateNode(selectedNodeId.value, {
       data: formState.value,
     })
+  },
+  fetchOptions: async (key: string) => {
+    return fetchNodeIntegrationOptions(
+      {
+        ...formState.value,
+        type: IntegrationsType.WorkflowNode,
+        sub_type: selectedNode.value.type,
+      },
+      key,
+    )
   },
 })
 </script>

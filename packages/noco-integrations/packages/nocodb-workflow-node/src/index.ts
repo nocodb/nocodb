@@ -11,16 +11,6 @@ import { FindRecordNode } from './nodes/find-record';
 import { ListRecordsNode } from './nodes/list-records';
 import { DeleteRecordNode } from './nodes/delete-record';
 
-export * from './manifest';
-export * from './nodes/record-created-trigger';
-export * from './nodes/record-updated-trigger';
-export * from './nodes/create-record';
-export * from './nodes/update-record';
-export * from './nodes/find-record';
-export * from './nodes/list-records';
-export * from './nodes/delete-record';
-
-// Export NocoDB node as an integration entry
 export const entries: IntegrationEntry[] = [
   {
     type: IntegrationType.WorkflowNode,

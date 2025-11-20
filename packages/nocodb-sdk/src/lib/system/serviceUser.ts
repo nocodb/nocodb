@@ -1,6 +1,7 @@
 const ServiceUserType = {
   AUTOMATION_USER: 'AUTOMATION_USER',
   SYNC_USER: 'SYNC_USER',
+  WORKFLOW_USER: 'WORKFLOW_USER',
 } as const;
 
 const NOCO_SERVICE_USERS = {
@@ -14,6 +15,12 @@ const NOCO_SERVICE_USERS = {
     id: 'usrsync',
     email: 'sync-service@nocodb.com',
     display_name: 'NocoDB Sync',
+    email_verified: true,
+  },
+  [ServiceUserType.WORKFLOW_USER]: {
+    id: 'usrworkflow',
+    email: 'workflow-service@nocodb.com',
+    display_name: 'NocoDB Workflow',
     email_verified: true,
   },
 } as const;

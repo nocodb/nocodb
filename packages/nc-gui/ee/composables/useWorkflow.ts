@@ -361,6 +361,27 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     }
   }
 
+  const fetchNodeIntegrationOptions = async (formState: any, key: string) => {
+    if (!activeWorkspaceId.value || !activeProjectId.value) return
+    try {
+      return await api.internal.postOperation(
+        activeWorkspaceId.value,
+        activeProjectId.value,
+        {
+          operation: 'workflowNodeIntegrationFetchOptions',
+        },
+        {
+          integration: formState,
+          key,
+        },
+      )
+    } catch (e) {
+      message.error('Failed to fetch node integration options')
+      console.error('[Workflow] Fetch node integration options error:', e)
+      return []
+    }
+  }
+
   return {
     // State
     isSidebarOpen,
@@ -387,6 +408,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     deleteNode,
     getNodeTypesByCategory,
     getNodeMetaById,
+    fetchNodeIntegrationOptions,
   }
 })
 

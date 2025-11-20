@@ -1,5 +1,6 @@
-import type { NcContext } from 'nocodb-sdk';
+import { GeneralNodeID } from 'nocodb-sdk';
 import type {
+  NcContext,
   NodeExecutionResult,
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
@@ -86,7 +87,8 @@ function determineStartNode(
 ): string {
   if (triggerNodeTitle) {
     const triggerNode = nodes.find(
-      (n) => n.data?.title === triggerNodeTitle || n.type === 'core.trigger',
+      (n) =>
+        n.data?.title === triggerNodeTitle || n.type === GeneralNodeID.TRIGGER,
     );
     if (!triggerNode) {
       NcError.get(context).workflowTriggerNodeNotFound();

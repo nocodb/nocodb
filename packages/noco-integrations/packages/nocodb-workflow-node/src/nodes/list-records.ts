@@ -1,71 +1,60 @@
 import {
   FormBuilderInputType,
   FormBuilderValidatorType,
-  type FormDefinition,
   NocoSDK,
   WorkflowNodeCategory,
-  type WorkflowNodeConfig,
-  type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
-  type WorkflowNodeLog,
-  type WorkflowNodeResult,
-  type WorkflowNodeRunContext,
+} from '@noco-integrations/core';
+import { parseJson } from '../utils/parseJson'
+import type {
+  FormDefinition,
+  WorkflowNodeConfig,
+  WorkflowNodeDefinition,
+  WorkflowNodeLog,
+  WorkflowNodeResult,
+  WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
 interface ListRecordsNodeConfig extends WorkflowNodeConfig {
   modelId: string;
+  viewId?: string
   limit?: number;
   offset?: number;
   filterJson?: string;
   sortJson?: string;
 }
 
-function parseJson(jsonString: object | string | undefined) {
-  if (!jsonString) return undefined;
-  if (typeof jsonString === 'object') return jsonString;
-  try {
-    return JSON.parse(jsonString);
-  } catch {
-    return undefined;
-  }
-}
-
 export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
-    // Fetch tables from services if available
-    let tableOptions: { label: string; value: string }[] = [];
-    if (this.nocodb.tablesService && this.nocodb.context) {
-      try {
-        const models = await this.nocodb.tablesService.getAccessibleTables(
-          this.nocodb.context,
-          {
-            baseId: this.nocodb.context.base_id,
-            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
-          },
-        );
-        tableOptions = models.map((model: any) => ({
-          label: model.title || model.table_name,
-          value: model.id,
-        }));
-      } catch (error: any) {
-        console.error('Failed to fetch tables:', error);
-      }
-    }
-
     const form: FormDefinition = [
       {
-        type: FormBuilderInputType.Select,
+        type: FormBuilderInputType.SelectTable,
         label: 'Table',
         width: 100,
         model: 'config.modelId',
         placeholder: 'Select a table',
-        options: tableOptions,
+        fetchOptionsKey: 'tables',
         validators: [
           {
             type: FormBuilderValidatorType.Required,
             message: 'Table is required',
           },
         ],
+      },
+      {
+        type: FormBuilderInputType.SelectView,
+        label: 'View',
+        width: 100,
+        model: 'config.viewId',
+        placeholder: 'Select a view',
+        fetchOptionsKey: 'views',
+        dependsOn: 'config.modelId',
+        condition: [
+          {
+            model: 'config.modelId',
+            notEmpty: true
+          }
+        ]
       },
       {
         type: FormBuilderInputType.Input,
@@ -109,6 +98,41 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
     };
   }
 
+  public async fetchOptions(key: 'tables' | 'views') {
+    switch (key) {
+      case 'tables':
+      {
+        const tables = await this.nocodb.tablesService.getAccessibleTables(this.nocodb.context, {
+          baseId: this.nocodb.context.base_id,
+          roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+        })
+
+        return tables.map((table: any) => ({
+          label: table.title || table.table_name,
+          value: table.id,
+          table: table
+        }))
+      }
+      case 'views': {
+        if (!this.config.modelId) {
+          return []
+        }
+        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
+          tableId: this.config.modelId,
+          user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
+        })
+
+        return table.views.map((view: any) => ({
+          label: view.title || table.table_name,
+          value: view.id,
+          view: view
+        }))
+      }
+      default:
+        return [];
+    }
+  }
+
   public async validate(config: ListRecordsNodeConfig) {
     const errors: { path?: string; message: string }[] = [];
 
@@ -116,7 +140,29 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
       errors.push({ path: 'config.modelId', message: 'Table is required' });
     }
 
-    // Validate filter and sort JSON if provided
+    let table
+
+    if (config.modelId) {
+      table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
+        tableId: config.modelId,
+        user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
+      });
+      if (!table) {
+        errors.push({ path: 'config.modelId', message: 'Table is not accessible' });
+      }
+    }
+
+    if(config.modelId && config.viewId) {
+      const view = table?.views?.find((v) => v.id === config.viewId)
+
+      if (!view) {
+        errors.push({
+          path: 'config.viewId',
+          message: 'Selected view is invalid'
+        })
+      }
+    }
+
     if (config.filterJson) {
       try {
         parseJson(config.filterJson);
@@ -143,7 +189,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
     const startTime = Date.now();
 
     try {
-      const { modelId, limit, offset, filterJson, sortJson } =
+      const { modelId, limit, offset, filterJson, sortJson, viewId } =
         ctx.inputs.config;
 
       logs.push({
@@ -177,8 +223,11 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         {
           modelId,
           query,
+          viewId,
           ignorePagination: false,
-          req: {} as NocoSDK.NcRequest,
+          req: {
+            user: this.nocodb.user
+          } as NocoSDK.NcRequest,
         },
         true,
       );

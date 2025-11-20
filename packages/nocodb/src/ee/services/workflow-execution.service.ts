@@ -1,14 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  GeneralNodeID,
   IntegrationsType,
+  NOCO_SERVICE_USERS,
+  ServiceUserType,
   WorkflowExpressionParser,
-  type WorkflowType,
 } from 'nocodb-sdk';
 import type {
   NodeExecutionResult,
   WorkflowExecutionState,
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
+  WorkflowType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type {
@@ -90,9 +93,13 @@ export class WorkflowExecutionService {
       return new integration.wrapper({
         ...nodeConfig,
         _nocodb: {
-          context,
+          context: {
+            ...context,
+            user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+          },
           dataService: this.dataV3Service,
           tablesService: this.tablesService,
+          user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
         },
       }) as WorkflowNodeIntegration;
     } catch (error) {
@@ -165,14 +172,14 @@ export class WorkflowExecutionService {
     };
 
     try {
-      if (node.type === 'core.trigger') {
+      if (node.type === GeneralNodeID.TRIGGER) {
         result.status = 'success';
         result.output = { triggered: true };
         result.endTime = Date.now();
         return result;
       }
 
-      if (node.type === 'core.plus') {
+      if (node.type === GeneralNodeID.PLUS) {
         result.status = 'success';
         result.output = {};
         result.endTime = Date.now();
@@ -284,7 +291,7 @@ export class WorkflowExecutionService {
         }
 
         // Handle plus nodes
-        if (node.type === 'core.plus') {
+        if (node.type === GeneralNodeID.PLUS) {
           const outgoingEdges = graph.get(currentNodeId) || [];
           currentNodeId =
             outgoingEdges.length > 0 ? outgoingEdges[0].target : null;
@@ -397,7 +404,7 @@ export class WorkflowExecutionService {
 
     // Handle trigger nodes
     if (
-      node.type === 'core.trigger' ||
+      node.type === GeneralNodeID.TRIGGER ||
       node.type?.startsWith('nocodb.trigger.')
     ) {
       return this.executeTriggerNode(context, node, triggerData, startTime);

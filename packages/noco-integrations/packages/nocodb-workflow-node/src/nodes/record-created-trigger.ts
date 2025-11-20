@@ -1,52 +1,34 @@
 import {
   FormBuilderInputType,
   FormBuilderValidatorType,
-  type FormDefinition,
   NocoSDK,
   WorkflowNodeCategory,
-  type WorkflowNodeConfig,
-  type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
-  type WorkflowNodeLog,
-  type WorkflowNodeResult,
-  type WorkflowNodeRunContext,
+} from '@noco-integrations/core';
+import type {
+  FormDefinition,
+  WorkflowNodeConfig,
+  WorkflowNodeDefinition,
+  WorkflowNodeLog,
+  WorkflowNodeResult,
+  WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
+
 interface RecordCreatedTriggerConfig extends WorkflowNodeConfig {
-  modelId: string; // Table to listen to
-  viewId?: string; // Optional: specific view filter
+  modelId: string;
 }
 
 export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCreatedTriggerConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
-    // Fetch tables from services if available
-    let tableOptions: { label: string; value: string }[] = [];
-    if (this.nocodb.tablesService && this.nocodb.context) {
-      try {
-        const models = await this.nocodb.tablesService.getAccessibleTables(
-          this.nocodb.context,
-          {
-            baseId: this.nocodb.context.base_id,
-            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
-          },
-        );
-        tableOptions = models.map((model: any) => ({
-          label: model.title || model.table_name,
-          value: model.id,
-        }));
-      } catch (error: any) {
-        console.error('Failed to fetch tables:', error);
-      }
-    }
-
     const form: FormDefinition = [
       {
-        type: FormBuilderInputType.Select,
+        type: FormBuilderInputType.SelectTable,
         label: 'Table',
         width: 100,
         model: 'config.modelId',
-        placeholder: 'Select a table to monitor',
-        options: tableOptions,
+        placeholder: 'Select a table',
+        fetchOptionsKey: 'tables',
         validators: [
           {
             type: FormBuilderValidatorType.Required,
@@ -68,11 +50,42 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
     };
   }
 
+  public async fetchOptions(key: 'tables') {
+    switch (key) {
+      case 'tables':
+      {
+        const tables = await this.nocodb.tablesService.getAccessibleTables(this.nocodb.context, {
+          baseId: this.nocodb.context.base_id,
+          roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+        })
+
+        return tables.map((table: any) => ({
+          label: table.title || table.table_name,
+          value: table.id,
+          ncItemDisabled: table.synced,
+          table
+        }))
+      }
+      default:
+        return [];
+    }
+  }
+
   public async validate(config: RecordCreatedTriggerConfig) {
     const errors: { path?: string; message: string }[] = [];
 
     if (!config.modelId) {
       errors.push({ path: 'config.modelId', message: 'Table is required' });
+    }
+
+    if (config.modelId) {
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
+        tableId: config.modelId,
+        user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
+      });
+      if (!table) {
+        errors.push({ path: 'config.modelId', message: 'Table is not accessible' });
+      }
     }
 
     return { valid: errors.length === 0, errors };
@@ -83,8 +96,6 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
     const startTime = Date.now();
 
     try {
-      // This will be called by the workflow execution engine
-      // when a webhook event triggers the workflow
       const { newData, user, timestamp } = ctx.inputs as any;
 
       logs.push({
@@ -101,8 +112,8 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
 
       return {
         outputs: {
-          record: newData, // The newly created record
-          user: user, // User who created the record
+          record: newData,
+          user: user,
           timestamp: timestamp || new Date().toISOString(),
           modelId: this.config.modelId,
         },

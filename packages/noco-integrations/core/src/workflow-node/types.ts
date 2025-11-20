@@ -47,6 +47,7 @@ export interface NocoDBContext {
   context: NocoSDK.NcContext;
   dataService: IDataV3Service;
   tablesService: ITablesService;
+  user: NocoSDK.UserType;
 }
 
 export interface WorkflowNodeConfig {
@@ -71,4 +72,10 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
   }
 
   public abstract run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult>;
+
+  public async fetchOptions(
+    _key: string,
+  ): Promise<unknown> {
+    return []
+  }
 }

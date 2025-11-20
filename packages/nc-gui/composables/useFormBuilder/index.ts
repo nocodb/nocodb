@@ -20,7 +20,9 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
     const isChanged = ref(false)
 
-    const changeKey = ref(0)
+    const fieldOptions = ref<Record<string, any[]>>({})
+
+    const dependencyWatcherCleanups: Array<() => void> = []
 
     const setNestedProp = (obj: any, path: string, value: any) => {
       const keys = path.split('.')
@@ -67,11 +69,42 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     }
 
     const loadOptions = async (field: FormBuilderElement) => {
-      if (!fetchOptions || !field.fetchOptionsKey) return []
+      if (!fetchOptions || !field.fetchOptionsKey || !field.model) return []
 
-      const options = await fetchOptions(field.fetchOptionsKey)
+      fieldOptions.value[field.model] = await fetchOptions(field.fetchOptionsKey)
+    }
 
-      field.options = options
+    const getFieldOptions = (model: string) => {
+      return fieldOptions.value[model] || []
+    }
+
+    const setupDependencyWatchers = () => {
+      dependencyWatcherCleanups.forEach((cleanup) => cleanup())
+      dependencyWatcherCleanups.length = 0
+
+      const fieldsWithDependencies = (unref(formSchema) || []).filter(
+        (field) => field.fetchOptionsKey && field.dependsOn && field.model,
+      )
+
+      fieldsWithDependencies.forEach((field) => {
+        const dependencies = Array.isArray(field.dependsOn) ? field.dependsOn : [field.dependsOn!]
+
+        dependencies.forEach((depPath) => {
+          const stopWatch = watch(
+            () => deepReference(depPath),
+            async (newValue, oldValue) => {
+              if (newValue !== oldValue && oldValue !== undefined) {
+                if (field.model) {
+                  setFormState(field.model, field.selectMode === 'multiple' ? [] : null)
+                }
+                await loadOptions(field)
+              }
+            },
+          )
+
+          dependencyWatcherCleanups.push(stopWatch)
+        })
+      })
     }
 
     const checkCondition = (field: FormBuilderElement) => {
@@ -220,13 +253,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
           onChange?.()
         }
 
-        changeKey.value++
-
-        if (checkDifference()) {
-          isChanged.value = true
-        } else {
-          isChanged.value = false
-        }
+        isChanged.value = checkDifference()
       },
       { deep: true },
     )
@@ -247,12 +274,19 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
         isLoading.value = false
 
+        setupDependencyWatchers()
+
         // Allow onChange to fire again after next tick
         await nextTick()
         isUpdatingProgrammatically.value = false
       },
       { immediate: true },
     )
+
+    onBeforeUnmount(() => {
+      dependencyWatcherCleanups.forEach((cleanup) => cleanup())
+      dependencyWatcherCleanups.length = 0
+    })
 
     return {
       form,
@@ -270,7 +304,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       deepReference,
       setFormState,
       loadOptions,
-      changeKey,
+      getFieldOptions,
     }
   },
   'form-builder-helper',

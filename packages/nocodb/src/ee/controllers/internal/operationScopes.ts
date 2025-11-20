@@ -80,4 +80,5 @@ export const OPERATION_SCOPES = {
   workflowDuplicate: 'base',
   workflowUpdate: 'base',
   workflowDelete: 'base',
+  workflowNodeIntegrationFetchOptions: 'workspace',
 } as const;

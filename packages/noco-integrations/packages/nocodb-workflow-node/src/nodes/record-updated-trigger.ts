@@ -1,53 +1,34 @@
 import {
   FormBuilderInputType,
   FormBuilderValidatorType,
-  type FormDefinition,
   NocoSDK,
   WorkflowNodeCategory,
-  type WorkflowNodeConfig,
-  type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
-  type WorkflowNodeLog,
-  type WorkflowNodeResult,
-  type WorkflowNodeRunContext,
 } from '@noco-integrations/core';
+import type {
+  FormDefinition,
+  WorkflowNodeConfig,
+  WorkflowNodeDefinition,
+  WorkflowNodeLog,
+  WorkflowNodeResult,
+
+  WorkflowNodeRunContext} from '@noco-integrations/core';
 
 interface RecordUpdatedTriggerConfig extends WorkflowNodeConfig {
-  modelId: string; // Table to listen to
-  viewId?: string; // Optional: specific view filter
-  columnFilter?: string; // Optional: comma-separated column IDs to monitor
+  modelId: string;
+  columnFilter?: Array<string>;
 }
 
 export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpdatedTriggerConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
-    // Fetch tables from services if available
-    let tableOptions: { label: string; value: string }[] = [];
-    if (this.nocodb.tablesService && this.nocodb.context) {
-      try {
-        const models = await this.nocodb.tablesService.getAccessibleTables(
-          this.nocodb.context,
-          {
-            baseId: this.nocodb.context.base_id,
-            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
-          },
-        );
-        tableOptions = models.map((model: any) => ({
-          label: model.title || model.table_name,
-          value: model.id,
-        }));
-      } catch (error: any) {
-        console.error('Failed to fetch tables:', error);
-      }
-    }
-
     const form: FormDefinition = [
       {
-        type: FormBuilderInputType.Select,
+        type: FormBuilderInputType.SelectTable,
         label: 'Table',
         width: 100,
         model: 'config.modelId',
-        placeholder: 'Select a table to monitor',
-        options: tableOptions,
+        placeholder: 'Select a table',
+        fetchOptionsKey: 'tables',
         validators: [
           {
             type: FormBuilderValidatorType.Required,
@@ -56,11 +37,20 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
         ],
       },
       {
-        type: FormBuilderInputType.Input,
-        label: 'Column Filter (Optional)',
+        type: FormBuilderInputType.SelectField,
+        label: 'Fields to monitor',
         width: 100,
         model: 'config.columnFilter',
-        placeholder: 'Leave empty to monitor all columns',
+        placeholder: 'Select fields to monitor',
+        fetchOptionsKey: 'fields',
+        selectMode: 'multiple',
+        dependsOn: 'config.modelId',
+        validators: [
+          {
+            type: FormBuilderValidatorType.Required,
+            message: 'Fields to monitor is required',
+          },
+        ],
       },
     ];
 
@@ -83,7 +73,69 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
       errors.push({ path: 'config.modelId', message: 'Table is required' });
     }
 
+    let table: NocoSDK.TableType & {
+      views: Array<NocoSDK.ViewType>
+      columns: Array<NocoSDK.ColumnType>
+    } | null = null;
+
+    if (config.modelId) {
+      table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
+        tableId: config.modelId,
+        user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
+      });
+      if (!table) {
+        errors.push({ path: 'config.modelId', message: 'Table is not accessible' });
+      }
+    }
+
+    if (config.modelId && table && config.columnFilter) {
+      const invalidColumns = config.columnFilter.filter(
+        (col) => !table.columns.some((c) => c.id === col),
+      );
+      if (invalidColumns.length > 0) {
+        errors.push({
+          path: 'config.columnFilter',
+          message: `Invalid columns: ${invalidColumns.join(', ')}`,
+        });
+      }
+    }
+
     return { valid: errors.length === 0, errors };
+  }
+
+  public async fetchOptions(key: 'tables' | 'fields') {
+    switch (key) {
+      case 'tables':
+      {
+        const tables = await this.nocodb.tablesService.getAccessibleTables(this.nocodb.context, {
+          baseId: this.nocodb.context.base_id,
+          roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+        })
+
+        return tables.map((table: any) => ({
+          label: table.title || table.table_name,
+          value: table.id,
+          table: table
+        }))
+      }
+      case 'fields':
+      {
+        if (!this.config.modelId) {
+          return []
+        }
+        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
+          tableId: this.config.modelId,
+          user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
+        })
+        return table?.columns?.filter((f) => !NocoSDK.isSystemColumn(f)).map((column: any) => ({
+          label: column.title || column.column_name,
+          value: column.id,
+          column: column
+        }))
+      }
+      default:
+        return [];
+    }
   }
 
   public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {
@@ -91,16 +143,11 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
     const startTime = Date.now();
 
     try {
-      // This will be called by the workflow execution engine
-      // when a webhook event triggers the workflow
       const { prevData, newData, user, timestamp, affectedColumns } =
         ctx.inputs as any;
 
-      // Check if we should filter by specific columns
       if (this.config.columnFilter && affectedColumns) {
         const targetColumns = this.config.columnFilter
-          .split(',')
-          .map((col) => col.trim());
         const hasMatch = targetColumns.some((col: string) =>
           affectedColumns.includes(col),
         );
@@ -143,9 +190,9 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
 
       return {
         outputs: {
-          previousRecord: prevData, // The record before update
-          record: newData, // The record after update
-          user: user, // User who updated the record
+          previousRecord: prevData,
+          record: newData,
+          user: user,
           timestamp: timestamp || new Date().toISOString(),
           modelId: this.config.modelId,
           affectedColumns: affectedColumns || [],

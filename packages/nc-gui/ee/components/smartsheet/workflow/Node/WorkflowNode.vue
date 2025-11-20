@@ -89,7 +89,7 @@ onClickOutside(
     }
   },
   {
-    ignore: ['.node-sidebar', '.ant-select-dropdown', '.ant-picker-dropdown', '.ant-modal'],
+    ignore: ['.node-sidebar', '.ant-select-dropdown', '.ant-picker-dropdown', '.ant-modal', '.nc-dropdown'],
   },
 )
 </script>

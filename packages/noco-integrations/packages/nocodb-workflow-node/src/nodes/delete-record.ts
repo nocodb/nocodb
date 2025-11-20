@@ -1,16 +1,12 @@
 import {
   FormBuilderInputType,
   FormBuilderValidatorType,
-  type FormDefinition,
   NocoSDK,
   WorkflowNodeCategory,
-  type WorkflowNodeConfig,
-  type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
-  type WorkflowNodeLog,
-  type WorkflowNodeResult,
-  type WorkflowNodeRunContext,
-} from '@noco-integrations/core';
+} from '@noco-integrations/core'
+import type {
+  FormDefinition, WorkflowNodeConfig, WorkflowNodeDefinition, WorkflowNodeLog, WorkflowNodeResult, WorkflowNodeRunContext} from '@noco-integrations/core';
 
 interface DeleteRecordNodeConfig extends WorkflowNodeConfig {
   modelId: string;
@@ -19,34 +15,14 @@ interface DeleteRecordNodeConfig extends WorkflowNodeConfig {
 
 export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
-    // Fetch tables from services if available
-    let tableOptions: { label: string; value: string }[] = [];
-    if (this.nocodb.tablesService && this.nocodb.context) {
-      try {
-        const models = await this.nocodb.tablesService.getAccessibleTables(
-          this.nocodb.context,
-          {
-            baseId: this.nocodb.context.base_id,
-            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
-          },
-        );
-        tableOptions = models.map((model: any) => ({
-          label: model.title || model.table_name,
-          value: model.id,
-        }));
-      } catch (error: any) {
-        console.error('Failed to fetch tables:', error);
-      }
-    }
-
     const form: FormDefinition = [
       {
-        type: FormBuilderInputType.Select,
+        type: FormBuilderInputType.SelectTable,
         label: 'Table',
         width: 100,
         model: 'config.modelId',
         placeholder: 'Select a table',
-        options: tableOptions,
+        fetchOptionsKey: 'tables',
         validators: [
           {
             type: FormBuilderValidatorType.Required,
@@ -81,12 +57,45 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
     };
   }
 
+  public async fetchOptions(key: 'tables') {
+    switch (key) {
+      case 'tables':
+      {
+        const tables = await this.nocodb.tablesService.getAccessibleTables(this.nocodb.context, {
+          baseId: this.nocodb.context.base_id,
+          roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+        })
+
+        return tables.map((table: any) => ({
+          label: table.title || table.table_name,
+          value: table.id,
+          ncItemDisabled: table.synced,
+          ncItemTooltip: table.synced? 'Records cannot be deleted in synced tables': null,
+          table: table
+        }))
+      }
+      default:
+        return [];
+    }
+  }
+
   public async validate(config: DeleteRecordNodeConfig) {
     const errors: { path?: string; message: string }[] = [];
 
     if (!config.modelId) {
       errors.push({ path: 'config.modelId', message: 'Table is required' });
     }
+
+    if (config.modelId) {
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
+        tableId: config.modelId,
+        user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
+      });
+      if (!table) {
+        errors.push({ path: 'config.modelId', message: 'Table is not accessible' });
+      }
+    }
+
 
     if (!config.rowId) {
       errors.push({
@@ -121,7 +130,9 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
       const result = await this.nocodb.dataService.dataDelete(context, {
         modelId,
         body: { id: rowId },
-        cookie: {},
+        cookie: {
+          user: this.nocodb.user
+        },
       });
 
       const executionTime = Date.now() - startTime;

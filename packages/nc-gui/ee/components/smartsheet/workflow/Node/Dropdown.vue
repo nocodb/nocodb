@@ -58,7 +58,7 @@ onClickOutside(
       showDropdown.value = false
     }
   },
-  { ignore: ['.ant-dropdown', '.node-sidebar'] },
+  { ignore: ['.ant-dropdown', '.node-sidebar', '.nc-dropdown'] },
 )
 </script>
 

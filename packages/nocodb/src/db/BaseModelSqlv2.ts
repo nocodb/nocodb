@@ -5634,7 +5634,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const colOptions = await column.getColOptions<LookupColumn>(context);
     const relationColOpt = await colOptions
       .getRelationColumn(context)
-      .then((col) => col?.getColOptions<LinkToAnotherRecordColumn>(context));
+      .then((col) => {
+        return col?.colOptions ?? col?.getColOptions<LinkToAnotherRecordColumn>(context)
+      });
 
     const { refContext } = relationColOpt.getRelContext(context);
     return this.getNestedColumn(

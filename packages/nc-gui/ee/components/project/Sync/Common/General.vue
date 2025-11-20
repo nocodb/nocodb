@@ -66,7 +66,6 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
                   option-value-key="value"
                   close-on-select
                   class="!w-auto"
-                  variant="medium"
                   wrapper-class-name="!h-auto"
                   @escape="onEsc"
                 >
@@ -106,8 +105,8 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
                   close-on-select
                   :item-height="48"
                   class="!w-auto"
-                  variant="medium"
                   @escape="onEsc"
+                  wrapper-class-name="!h-auto"
                 >
                   <template #listItem="{ option }">
                     <div class="!w-70">
@@ -153,8 +152,8 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
                   close-on-select
                   :item-height="48"
                   class="!w-auto"
-                  variant="medium"
                   @escape="onEsc"
+                  wrapper-class-name="!h-auto"
                 >
                   <template #listItem="{ option }">
                     <div class="!w-80">

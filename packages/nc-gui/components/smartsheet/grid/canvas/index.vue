@@ -3026,7 +3026,7 @@ watch(
       </NcDropdown>
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
-      <NcTooltip v-if="meta.synced" placement="right" :disabled="!meta.synced">
+      <NcTooltip v-if="meta?.synced" placement="right" :disabled="!meta?.synced">
         <NcButton class="nc-grid-add-new-row" size="small" disabled type="secondary" :shadow="false">
           <div class="flex items-center gap-2">
             <GeneralIcon icon="plus" />

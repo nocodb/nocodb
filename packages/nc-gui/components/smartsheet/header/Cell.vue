@@ -251,7 +251,7 @@ const onClick = (e: Event) => {
       />
       <div class="flex-1" />
       <NcTooltip
-        v-if="column.readonly && meta.synced && isExpandedForm && !isPublic"
+        v-if="column.readonly && meta?.synced && isExpandedForm && !isPublic"
         class="flex items-center"
         placement="bottom"
       >

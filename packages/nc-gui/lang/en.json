@@ -2048,6 +2048,7 @@
     "generateFieldDataUsingAiButtonOption": "Generate value for multiple fields in this table using record information and NocoAI",
     "sourceDataIsReadonly": "Source data is readonly",
     "schemaChangeDisabledFormSqlView": "Schema editing is disabled for this SQL View.",
+    "schemaChangeDisabledFormSyncedTableField": "Schema editing is disabled for synced table field.",
     "shiftSpace": "Shift + Space",
     "expandShiftSpace": "Expand 'Shift + Space'",
     "selectAllMappedFields": "Select all mapped fields",

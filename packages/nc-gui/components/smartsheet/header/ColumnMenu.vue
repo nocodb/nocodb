@@ -550,6 +550,12 @@ const onDeleteColumn = () => {
       :enabled="!isColumnEditAllowed"
       :is-sql-view="isSqlView"
     >
+      <template v-if="column?.readonly && meta?.synced" #title>
+        <div class="max-w-50">
+          {{ $t('tooltip.schemaChangeDisabledFormSyncedTableField') }}
+        </div>
+      </template>
+
       <NcMenuItem
         :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated?.length"
         :title="linksAssociated?.length ? 'Field is associated with a link column' : undefined"
@@ -621,7 +627,7 @@ const onDeleteColumn = () => {
         !isSqlView &&
         column.uidt !== UITypes.ForeignKey
       "
-      :disabled="showEditRestrictedColumnTooltip(column) && !(column?.readonly && meta.synced)"
+      :disabled="showEditRestrictedColumnTooltip(column) && !(column?.readonly && meta?.synced)"
       placement="right"
       :arrow="false"
     >
@@ -637,7 +643,7 @@ const onDeleteColumn = () => {
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
         <template #default="{ click }">
           <NcMenuItem
-            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta.synced)"
+            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced)"
             @click="
               click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
                 onFieldPermissions()

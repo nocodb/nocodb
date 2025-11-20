@@ -97,7 +97,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
       id: 'nocodb.update_record',
       title: 'Update Record',
       description: 'Update an existing record in a NocoDB table',
-      icon: 'nocodb',
+      icon: 'ncRecordUpdate',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,

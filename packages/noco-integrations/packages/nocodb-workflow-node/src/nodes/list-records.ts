@@ -101,7 +101,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
       id: 'nocodb.list_records',
       title: 'List Records',
       description: 'List records from a NocoDB table with optional filtering and sorting',
-      icon: 'nocodb',
+      icon: 'ncRecordFind',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,

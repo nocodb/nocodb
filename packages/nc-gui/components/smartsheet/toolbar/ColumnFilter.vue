@@ -1232,7 +1232,7 @@ defineExpose({
             </NcButton>
 
             <LazyGeneralCopyFromAnotherViewActionBtn
-              v-if="activeView"
+              v-if="activeView && isViewFilter"
               :view="activeView"
               :default-options="[ViewSettingOverrideOptions.FILTER_CONDITION]"
               @open="isOpen = false"

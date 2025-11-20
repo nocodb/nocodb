@@ -116,12 +116,15 @@ const handleEditSync = (syncId: string) => {
 
 const handleDeleteSync = async (syncId: string) => {
   if (!currentBase.value?.id) return
-  await syncStore.deleteSync(currentBase.value?.id, syncId)
+
+  await syncStore.deleteSync(currentBase.value.id, syncId)
   await loadTables()
 }
 
 const triggerSync = async (syncId: string) => {
-  const job = await _triggerSync(currentBase.value?.id!, syncId)
+  if (!currentBase.value?.id) return
+
+  const job = await _triggerSync(currentBase.value.id, syncId)
 
   if (job?.id) {
     syncJobId.value = job?.id

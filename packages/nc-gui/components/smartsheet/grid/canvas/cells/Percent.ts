@@ -1,3 +1,4 @@
+import { ncIsNaN } from 'nocodb-sdk'
 import { renderSingleLineText, roundedRect } from '../utils/canvas'
 
 export const PercentCellRenderer: CellRenderer = {
@@ -15,16 +16,42 @@ export const PercentCellRenderer: CellRenderer = {
       const percent = Math.min(100, Math.max(0, value))
       const barHeight = 4
       const barY = y + 14
-      const barWidth = (width - padding * 2) * (percent / 100)
 
-      roundedRect(ctx, x + padding, barY, width - padding * 2, barHeight, barHeight / 2, {
+      const { width: labelWidth } = renderSingleLineText(ctx, {
+        x: x + width - padding,
+        y,
+        text: !ncIsNaN(value) ? formatPercentage(value) : '',
+        textAlign: 'right',
+        maxWidth: width - padding * 2,
+        fontFamily: `${pv ? 600 : 500} 13px Inter`,
+        fillStyle: pv ? '#3366FF' : '#4a5268',
+        height,
+        render: false,
+      })
+
+      const barWidth = (width - padding * 2 - labelWidth - 4) * (percent / 100)
+
+      roundedRect(ctx, x + padding, barY, width - padding * 2 - labelWidth - 4, barHeight, barHeight / 2, {
         backgroundColor: '#E5E5E5',
       })
-      if (percent === 0) return
 
-      roundedRect(ctx, x + padding, barY, barWidth, barHeight, barHeight / 2, {
-        backgroundColor: '#3366FF',
+      if (percent !== 0) {
+        roundedRect(ctx, x + padding, barY, barWidth, barHeight, barHeight / 2, {
+          backgroundColor: '#3366FF',
+        })
+      }
+
+      renderSingleLineText(ctx, {
+        x: x + width - padding,
+        y,
+        text: !ncIsNaN(value) ? formatPercentage(value) : '',
+        textAlign: 'right',
+        maxWidth: labelWidth,
+        fontFamily: `${pv ? 600 : 500} 12px Inter`,
+        fillStyle: pv ? '#3366FF' : '#4a5268',
+        height,
       })
+
       return
     }
 

@@ -155,7 +155,7 @@ const previousStep = () => {
 
     <div class="h-[calc(100%_-_50px)] flex">
       <!-- Content -->
-      <div class="flex-1 nc-modal-teams-edit-content">
+      <div class="flex-1 nc-modal-sync-edit-content h-full">
         <div
           ref="containerElem"
           class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-12 mx-auto"

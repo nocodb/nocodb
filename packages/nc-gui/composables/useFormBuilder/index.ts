@@ -68,6 +68,11 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       setFormStateHelper(formState, path, value)
     }
 
+    /**
+     * This ref is used to re-render select item on load option to reflect changes
+     */
+    const isOptionsLoaded = ref(false)
+
     const loadOptions = async (field: FormBuilderElement) => {
       if (!fetchOptions || !field.fetchOptionsKey || !field.model) return []
 
@@ -105,6 +110,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
           dependencyWatcherCleanups.push(stopWatch)
         })
       })
+
+      isOptionsLoaded.value = !isOptionsLoaded.value
     }
 
     const checkCondition = (field: FormBuilderElement) => {
@@ -305,6 +312,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       setFormState,
       loadOptions,
       getFieldOptions,
+      isOptionsLoaded,
     }
   },
   'form-builder-helper',

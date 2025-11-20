@@ -458,7 +458,14 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
 }
 
 const isColumnUpdateAllowed = computed(() => {
-  if ((isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) || isSqlView.value) return false
+  if (
+    (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) ||
+    isSqlView.value ||
+    (meta.value?.synced && column.value?.readonly)
+  ) {
+    return false
+  }
+
   return true
 })
 
@@ -853,6 +860,11 @@ const onDeleteColumn = () => {
       :enabled="!isColumnUpdateAllowed"
       :is-sql-view="isSqlView"
     >
+      <template v-if="column?.readonly && meta?.synced" #title>
+        <div class="max-w-50">
+          {{ $t('tooltip.deleteFieldIsRestrictedForSyncedTableField') }}
+        </div>
+      </template>
       <NcMenuItem
         :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"
         :title="linksAssociated ? 'Field is associated with a link column' : undefined"

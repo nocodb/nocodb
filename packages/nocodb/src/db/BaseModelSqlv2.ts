@@ -5159,9 +5159,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // Build initial maps and collect missing column IDs
     for (let col of modelColumns) {
       if (aliasColumns && col.id in aliasColumns) {
-        aliasColumns[col.id].id = col.id;
-        aliasColumns[col.id].title = col.title;
-        col = aliasColumns[col.id];
+        aliasColumns[col.id] = col
       }
 
       idToAliasMap[col.id] = col.title;
@@ -5634,7 +5632,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const colOptions = await column.getColOptions<LookupColumn>(context);
     const relationColOpt = await colOptions
       .getRelationColumn(context)
-      .then((col) => col?.getColOptions<LinkToAnotherRecordColumn>(context));
+      .then((col) => {
+        return col?.colOptions ?? col?.getColOptions<LinkToAnotherRecordColumn>(context)
+      });
 
     const { refContext } = relationColOpt.getRelContext(context);
     return this.getNestedColumn(

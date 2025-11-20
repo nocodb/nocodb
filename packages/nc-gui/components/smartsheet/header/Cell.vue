@@ -106,7 +106,12 @@ const isColumnEditAllowed = computed(() => {
 })
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
-  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value || isSqlView.value) {
+  if (
+    (isExpandedForm.value && e?.type === 'dblclick') ||
+    isExpandedBulkUpdateForm.value ||
+    isSqlView.value ||
+    props.hideIconTooltip
+  ) {
     return
   }
 
@@ -119,7 +124,7 @@ const openHeaderMenu = (e?: MouseEvent, description = false) => {
 }
 
 const openDropDown = (e: Event) => {
-  if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
+  if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value) || props.hideIconTooltip) return
 
   e.preventDefault()
   e.stopPropagation()
@@ -136,7 +141,7 @@ const onVisibleChange = () => {
 }
 
 const onClick = (e: Event) => {
-  if (isMobileMode.value || !isUIAllowed('fieldEdit')) return
+  if (isMobileMode.value || !isUIAllowed('fieldEdit') || props.hideIconTooltip) return
 
   if (isDropDownOpen.value) {
     e.preventDefault()

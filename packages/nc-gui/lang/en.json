@@ -186,7 +186,8 @@
     "upgradeToUseTeams": "Upgrade to use teams",
     "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
     "upgradeToAddMoreTeams": "Upgrade to add more teams",
-    "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace."
+    "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
+    "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views."
   },
   "general": {
     "done": "Done",
@@ -1651,7 +1652,9 @@
     "showEveryonesPersonalViews": "Show everyone's personal views",
     "selectOneOrMoreTeams": "Select one or more teams",
     "selectWorkspaceToDuplicateSharedBaseTo": "Select workspace to duplicate shared base to:",
-    "chooseWorkspaceToApplyTemplate": "Choose a workspace to apply this template"
+    "chooseWorkspaceToApplyTemplate": "Choose a workspace to apply this template",
+    "hideFieldHeader": "Hide field header",
+    "showFieldHeader": "Show field header"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

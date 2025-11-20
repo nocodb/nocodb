@@ -65,6 +65,7 @@ export enum PlanFeatureTypes {
   FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
   FEATURE_COPY_VIEW_SETTING_FROM_OTHER = 'feature_copy_view_setting_other',
+  FEATURE_CARD_FIELD_HEADER_VISIBILITY = 'feature_card_field_header_visibility',
 }
 
 export enum PlanTitles {
@@ -266,6 +267,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to target different workspace when duplicate table.',
   [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]:
     'to copy view configuration from another view.',
+  [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]:
+    'to hide field headers in Gallery and Kanban views.',
 };
 
 export const getUpgradeMessage = (

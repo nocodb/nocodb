@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, type TableType, type ViewType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import type { GalleryType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, PlanFeatureTypes, PlanTitles, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = withDefaults(
@@ -35,11 +35,14 @@ const {
   navigateToView,
   duplicateView,
   updateView,
+  updateViewMeta,
   isUserViewOwner,
   onOpenCopyViewConfigFromAnotherViewModal,
   getCopyViewConfigBtnAccessStatus,
   hasOnlyOneGridViewInTable,
 } = viewsStore
+
+const { isCardFieldHeaderVisibilityEnabled } = storeToRefs(viewsStore)
 
 const { base } = storeToRefs(useBase())
 
@@ -192,6 +195,53 @@ const onClickCopyViewConfig = () => {
   onOpenCopyViewConfigFromAnotherViewModal({ destView: view.value })
 }
 
+const isFieldHeaderVisibilityOptionVisible = computed(() => {
+  return (
+    !props.inSidebar &&
+    isUIAllowed('viewCreateOrEdit') &&
+    [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type) &&
+    isCardFieldHeaderVisibilityEnabled.value
+  )
+})
+
+const isFieldHeaderVisible = computed(() => {
+  return parseProp((view.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
+})
+
+const onToggleFieldHeaderVisibility = async () => {
+  if (!view.value) {
+    emits('closeModal')
+
+    return
+  }
+
+  const payload = {
+    ...parseProp((view.value?.view as GalleryType | KanbanType)?.meta),
+    is_field_header_visible: !isFieldHeaderVisible.value,
+  }
+
+  view.value.meta = payload
+
+  emits('closeModal')
+
+  try {
+    await updateViewMeta(view.value.id!, view.value.type, {
+      meta: payload,
+    })
+  } catch (e: any) {
+    // revert local changes on error
+    view.value.meta = {
+      ...payload,
+      is_field_header_visible: !payload.is_field_header_visible,
+    }
+
+    const errorInfo = await extractSdkResponseErrorMsgv2(e)
+    message.error('Error occurred while updating field header visibility', undefined, {
+      copyText: errorInfo.message,
+    })
+  }
+}
+
 const isViewOwner = computed(() => {
   return isUserViewOwner(view.value)
 })
@@ -300,7 +350,6 @@ defineOptions({
         </NcMenuItem>
       </template>
 
-      <NcDivider v-if="copyViewConfigMenuItemStatus.isVisible" />
       <SmartsheetToolbarNotAllowedTooltip
         v-if="copyViewConfigMenuItemStatus.isVisible"
         :enabled="copyViewConfigMenuItemStatus.isDisabled"
@@ -587,6 +636,31 @@ defineOptions({
             </PaymentUpgradeBadgeProvider>
           </SmartsheetToolbarNotAllowedTooltip>
         </template>
+        <PaymentUpgradeBadgeProvider
+          v-if="isFieldHeaderVisibilityOptionVisible"
+          :feature="PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY"
+        >
+          <template #default="{ click }">
+            <NcMenuItem
+              inner-class="w-full"
+              @click="click(PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY, () => onToggleFieldHeaderVisibility())"
+            >
+              {{ isFieldHeaderVisible ? $t('labels.hideFieldHeader') : $t('labels.showFieldHeader') }}
+
+              <div class="flex-1 w-full" />
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY"
+                :limit-or-feature="'to access card field header visibility feature.' as PlanFeatureTypes"
+                :content="
+                  $t('upgrade.upgradeToAccessCardFieldHeaderVisibilitySubtitle', {
+                    plan: getPlanTitle(PlanTitles.PLUS),
+                  })
+                "
+                :on-click-callback="() => emits('closeModal')"
+              />
+            </NcMenuItem>
+          </template>
+        </PaymentUpgradeBadgeProvider>
       </template>
 
       <template v-if="isUIAllowed('viewCreateOrEdit')">

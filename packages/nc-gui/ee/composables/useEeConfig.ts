@@ -250,6 +250,10 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
+  const blockCardFieldHeaderVisibility = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY)
+  })
+
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
@@ -1293,5 +1297,6 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewTeamToWs,
     showUpgradeToAddMoreTeams,
     isHigherActivePlan,
+    blockCardFieldHeaderVisibility,
   }
 })

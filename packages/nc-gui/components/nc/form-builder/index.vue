@@ -17,7 +17,8 @@ const {
   getFieldOptions,
 } = useFormBuilderHelperOrThrow()
 
-const { loadIntegrations, integrations, eventBus, pageMode, IntegrationsPageMode } = useProvideIntegrationViewStore()
+const { loadIntegrations, addIntegration, integrations, eventBus, pageMode, IntegrationsPageMode } =
+  useProvideIntegrationViewStore()
 
 const selectMode = (field: FormBuilderElement) => {
   return field.selectMode === 'multipleWithInput' ? 'tags' : field.selectMode === 'multiple' ? 'multiple' : undefined
@@ -61,7 +62,28 @@ const integrationOptions = computed(() => {
 const activeModel = ref<string | null>(null)
 
 const handleAddNewConnection = (model: string) => {
+  if (filteredIntegrations.value[model]?.length === 1) {
+    const integrationInfo = filteredIntegrations.value[model][0]!
+
+    const actualIntegration = allIntegrations.find(
+      (i) => i.type === integrationInfo.type && i.sub_type === integrationInfo.sub_type,
+    )
+
+    if (actualIntegration) {
+      addIntegration(actualIntegration, false)
+
+      nextTick(() => {
+        activeModel.value = model
+      })
+
+      return
+    }
+
+    activeModel.value = null
+  }
+
   activeModel.value = null
+
   nextTick(() => {
     pageMode.value = IntegrationsPageMode.LIST
     activeModel.value = model
@@ -99,6 +121,10 @@ eventBus.on(integegrationEventHandler)
 
 onBeforeUnmount(() => {
   eventBus.off(integegrationEventHandler)
+})
+
+watchEffect(() => {
+  console.log('filteredIntegrations', filteredIntegrations.value)
 })
 
 watch(

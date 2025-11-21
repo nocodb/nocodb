@@ -1837,7 +1837,6 @@ export class AtImportProcessor {
             f.id,
             vData,
             aTblSchema[idx].name,
-            viewName,
             'form',
           );
         }
@@ -1922,7 +1921,6 @@ export class AtImportProcessor {
             ncViewId,
             vData,
             aTblSchema[idx].name,
-            viewName,
             'grid',
           );
 
@@ -2405,10 +2403,9 @@ export class AtImportProcessor {
     };
 
     const nc_configureFields = async (
-      _viewId,
+      viewId,
       _c,
       tblName,
-      viewName,
       viewType?,
     ) => {
       // force hide PK column
@@ -2418,8 +2415,7 @@ export class AtImportProcessor {
       // column order corrections
       // retrieve table schema
       const ncTbl = await nc_getTableSchema(tblName);
-      // retrieve view ID
-      const viewId = ncTbl.views.find((x) => x.title === viewName).id;
+
       let viewDetails;
 
       const _perfStart = recordPerfStart();

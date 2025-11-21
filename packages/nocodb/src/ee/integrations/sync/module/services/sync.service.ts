@@ -755,10 +755,10 @@ export class SyncModuleService implements OnModuleInit {
               req,
             });
 
-          const defaultView = await View.getFirstCollaborativeView(
-            context,
-            model.id,
-          );
+            const defaultView = await View.getFirstCollaborativeView(
+              context,
+              model.id,
+            );
 
             await this.viewColumnsService.columnsUpdate(context, {
               viewId: defaultView.id,

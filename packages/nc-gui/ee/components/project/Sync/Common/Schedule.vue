@@ -38,7 +38,7 @@ onMounted(() => {
     } else if (props.modelValue.match(/^\d+ \d+ \* \* \*$/)) {
       selectedInterval.value = 'daily'
     } else {
-      selectedInterval.value = 'daily'
+      selectedInterval.value = 'hourly'
     }
   } else {
     selectedInterval.value = 'daily'

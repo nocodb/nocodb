@@ -1,5 +1,15 @@
 import type { SyncConfig } from 'nocodb-sdk'
-import { IntegrationsType, OnDeleteAction, SyncCategory, SyncTrigger, SyncType, generateUniqueCopyName } from 'nocodb-sdk'
+import {
+  IntegrationsType,
+  OnDeleteAction,
+  SyncCategory,
+  SyncTrigger,
+  SyncType,
+  generateUniqueCopyName,
+  SyncTypeMeta,
+  OnDeleteActionMeta,
+  SyncTriggerMeta,
+} from 'nocodb-sdk'
 
 const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   if (trigger === SyncTrigger.Manual) return 'Manual'
@@ -58,13 +68,13 @@ const defaultIntegrationConfig: Partial<IntegrationConfig> = {
 }
 
 const syncEntityToReadableMap = {
-  [SyncType.Full]: 'Full',
-  [SyncType.Incremental]: 'Incremental',
-  [SyncTrigger.Manual]: 'Manual ',
-  [SyncTrigger.Schedule]: 'Scheduled',
-  [SyncTrigger.Webhook]: 'Webhook',
-  [OnDeleteAction.Delete]: 'Delete',
-  [OnDeleteAction.MarkDeleted]: 'Mark as Delete',
+  [SyncType.Full]: SyncTypeMeta[SyncType.Full].label,
+  [SyncType.Incremental]: SyncTypeMeta[SyncType.Incremental].label,
+  [SyncTrigger.Manual]: SyncTriggerMeta[SyncTrigger.Manual].label,
+  [SyncTrigger.Schedule]: SyncTriggerMeta[SyncTrigger.Schedule].label,
+  [SyncTrigger.Webhook]: SyncTriggerMeta[SyncTrigger.Webhook].label,
+  [OnDeleteAction.Delete]: OnDeleteActionMeta[OnDeleteAction.Delete].label,
+  [OnDeleteAction.MarkDeleted]: OnDeleteActionMeta[OnDeleteAction.MarkDeleted].label,
 }
 
 interface CustomSyncSchema {

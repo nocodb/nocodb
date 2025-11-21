@@ -12,17 +12,9 @@ const formModel = computed(() => {
   return mode === 'create' ? syncConfigForm.value : syncConfigForm.value
 })
 
-watch(
-  () => formModel.value.sync_trigger,
-  () => {
-    formModel.value.sync_trigger_cron = undefined
-  },
-)
-
 const isSyncTypeOpen = ref(false)
 const isOnDeleteActionOpen = ref(false)
 const isSyncTriggerOpen = ref(false)
-const isSyncScheduleOpen = ref(false)
 
 const currentSyncType = computed(() => syncTypeOptions.find((opt) => opt.value === formModel.value.sync_type))
 const currentOnDeleteAction = computed(() => onDeleteActionOptions.find((opt) => opt.value === formModel.value.on_delete_action))
@@ -155,6 +147,7 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
                   class="!w-auto"
                   wrapper-class-name="!h-auto"
                   @escape="onEsc"
+                  @change="formModel.sync_trigger_cron = undefined"
                 >
                   <template #listItem="{ option }">
                     <div class="!w-80">

@@ -67,19 +67,19 @@ const data = computed(() => {
     },
     {
       title: t('labels.syncType'),
-      value: syncConfigForm.value.sync_type,
+      value: syncEntityToReadableMap[syncConfigForm.value.sync_type!],
     },
     {
       title: t('labels.onDelete'),
-      value: syncEntityToReadableMap[syncConfigForm.value.on_delete_action],
+      value: syncEntityToReadableMap[syncConfigForm.value.on_delete_action!],
     },
     {
       title: t('labels.syncTrigger'),
-      value: getReadableTrigger(syncConfigForm.value.sync_trigger),
+      value: getReadableTrigger(syncConfigForm.value.sync_trigger!),
     },
     {
       title: t('labels.category'),
-      value: getReadableCategory(syncConfigForm.value.sync_category),
+      value: getReadableCategory(syncConfigForm.value.sync_category!),
     },
   ]
 })

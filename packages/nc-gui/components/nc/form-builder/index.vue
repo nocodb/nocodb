@@ -298,36 +298,36 @@ watch(
                     @update:value="setFormStateWithEmit(field.model, $event)"
                   />
                 </template>
-                  <template v-else-if="field.type === FormBuilderInputType.SelectTable">
-                    <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
-                      <NcFormBuilderInputSelectTable
-                        :multiple="field?.selectMode === 'multiple'"
-                        :value="deepReference(field.model)"
-                        :options="getFieldOptions(field.model)"
-                        @update:value="setFormStateWithEmit(field.model, $event)"
-                      />
-                    </NcFormBuilderInputMountedWrapper>
-                  </template>
-                  <template v-else-if="field.type === FormBuilderInputType.SelectView">
-                    <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
-                      <NcFormBuilderInputSelectView
-                        :multiple="field?.selectMode === 'multiple'"
-                        :value="deepReference(field.model)"
-                        :options="getFieldOptions(field.model)"
-                        @update:value="setFormStateWithEmit(field.model, $event)"
-                      />
-                    </NcFormBuilderInputMountedWrapper>
-                  </template>
-                  <template v-else-if="field.type === FormBuilderInputType.SelectField">
-                    <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
-                      <NcFormBuilderInputSelectField
-                        :multiple="field?.selectMode === 'multiple'"
-                        :value="deepReference(field.model)"
-                        :options="getFieldOptions(field.model)"
-                        @update:value="setFormStateWithEmit(field.model, $event)"
-                      />
-                    </NcFormBuilderInputMountedWrapper>
-                  </template>
+                <template v-else-if="field.type === FormBuilderInputType.SelectTable">
+                  <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
+                    <NcFormBuilderInputSelectTable
+                      :multiple="field?.selectMode === 'multiple'"
+                      :value="deepReference(field.model)"
+                      :options="getFieldOptions(field.model)"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
+                    />
+                  </NcFormBuilderInputMountedWrapper>
+                </template>
+                <template v-else-if="field.type === FormBuilderInputType.SelectView">
+                  <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
+                    <NcFormBuilderInputSelectView
+                      :multiple="field?.selectMode === 'multiple'"
+                      :value="deepReference(field.model)"
+                      :options="getFieldOptions(field.model)"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
+                    />
+                  </NcFormBuilderInputMountedWrapper>
+                </template>
+                <template v-else-if="field.type === FormBuilderInputType.SelectField">
+                  <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
+                    <NcFormBuilderInputSelectField
+                      :multiple="field?.selectMode === 'multiple'"
+                      :value="deepReference(field.model)"
+                      :options="getFieldOptions(field.model)"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
+                    />
+                  </NcFormBuilderInputMountedWrapper>
+                </template>
                 <template v-else-if="field.type === FormBuilderInputType.OAuth">
                   <NcFormBuilderInputOAuth
                     :value="deepReference(field.model)"

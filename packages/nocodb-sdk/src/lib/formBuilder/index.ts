@@ -173,6 +173,14 @@ export interface FormBuilderSwitchElement extends FormBuilderElementBase {
 }
 
 /**
+ * Checkbox element (checkbox input)
+ */
+export interface FormBuilderCheckboxElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Checkbox;
+  defaultValue?: boolean;
+}
+
+/**
  * Space element (visual separator)
  */
 export interface FormBuilderSpaceElement
@@ -262,6 +270,7 @@ export type FormBuilderElement =
   | FormBuilderPasswordElement
   | FormBuilderSelectElement
   | FormBuilderSwitchElement
+  | FormBuilderCheckboxElement
   | FormBuilderSpaceElement
   | FormBuilderSelectIntegrationElement
   | FormBuilderSelectBaseElement

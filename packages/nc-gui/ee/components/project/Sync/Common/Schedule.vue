@@ -7,9 +7,11 @@ const emit = defineEmits(['change'])
 
 const vModel = useVModel(props, 'modelValue')
 
+const isSyncScheduleOpen = ref(false)
+
 const intervalOptions = ref([
-  { value: 'hourly', label: 'Hourly' },
-  { value: 'daily', label: 'Daily' },
+  { value: 'daily', label: 'Daily', description: 'Syncs once a day' },
+  { value: 'hourly', label: 'Hourly', description: 'Syncs every hour' },
 ])
 
 const selectedInterval = ref()
@@ -36,18 +38,48 @@ onMounted(() => {
     } else if (props.modelValue.match(/^\d+ \d+ \* \* \*$/)) {
       selectedInterval.value = 'daily'
     } else {
-      selectedInterval.value = 'hourly'
+      selectedInterval.value = 'daily'
     }
   } else {
-    selectedInterval.value = 'hourly'
+    selectedInterval.value = 'daily'
   }
 })
 </script>
 
 <template>
-  <a-select v-model:value="selectedInterval" class="nc-select-shadow" :options="intervalOptions" @change="onChange">
-    <template #suffixIcon>
-      <GeneralIcon icon="ncChevronDown" class="text-nc-content-gray" />
+  <NcListDropdown v-model:is-open="isSyncScheduleOpen" tooltip-wrapper-class="w-full" placement="bottomLeft">
+    <div class="flex-1 flex items-center w-full gap-2 justify-between">
+      <span class="flex-1 whitespace-nowrap capitalize">{{ selectedInterval || 'Select schedule' }}</span>
+      <GeneralIcon
+        icon="chevronDown"
+        class="flex-none h-4 w-4 transition-transform text-nc-content-gray-subtle"
+        :class="{ 'transform rotate-180': isSyncScheduleOpen }"
+      />
+    </div>
+    <template #overlay="{ onEsc }">
+      <NcList
+        v-model:open="isSyncScheduleOpen"
+        v-model:value="selectedInterval"
+        :list="intervalOptions"
+        option-label-key="value"
+        option-value-key="value"
+        close-on-select
+        :item-height="48"
+        class="!w-auto"
+        wrapper-class-name="!h-auto"
+        @escape="onEsc"
+        @update:value="onChange"
+      >
+        <template #listItem="{ option }">
+          <div class="!w-80">
+            <div class="w-full flex items-center justify-between">
+              <span class="text-captionDropdownDefault">{{ option.label }}</span>
+              <GeneralIcon v-if="option.value === selectedInterval" icon="check" class="text-primary h-4 w-4" />
+            </div>
+            <div class="text-bodySm text-nc-content-gray-muted">{{ option.description }}</div>
+          </div>
+        </template>
+      </NcList>
     </template>
-  </a-select>
+  </NcListDropdown>
 </template>

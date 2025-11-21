@@ -10,6 +10,8 @@ const { syncConfigForm, mode, syncCategoryIntegrationMap } = useSyncFormOrThrow(
 
 const syncAllModels = ref(true)
 
+const isChildTooltipHovering = ref(false)
+
 const availableModels = computed(() => {
   return Object.values(TARGET_TABLES_META).filter(
     (model) => model.category === syncConfigForm.value.sync_category || !syncConfigForm.value.sync_category,
@@ -51,6 +53,17 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
     syncConfigForm.value.exclude_models.push(model.value)
   }
 }
+
+const splitIntegrations = (integrations: IntegrationItemType[] = []) => {
+  return {
+    visible: integrations.slice(0, 3),
+    hidden: integrations
+      .slice(3)
+      .map((i) => i.title)
+      .join(', '),
+    hiddenCount: integrations.length - 3,
+  }
+}
 </script>
 
 <template>
@@ -66,7 +79,7 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
         <NcTooltip
           v-for="category in categories"
           :key="category.value"
-          :disabled="!(syncConfigForm.sync_category === category.value && mode === 'edit')"
+          :disabled="!(syncConfigForm.sync_category === category.value && mode === 'edit') || isChildTooltipHovering"
           :class="{
             'border-nc-border-brand !shadow-selected': syncConfigForm.sync_category === category.value && mode === 'create',
             'border-nc-border-gray-extradark !shadow-disabled':
@@ -80,15 +93,29 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
           <template #title> Category not editable in edit mode </template>
           <div
             v-if="!category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true)"
-            class="max-h-5 h-5 flex items-center gap-2"
+            class="max-h-5 h-5 flex items-center gap-1.5"
+            @mouseenter.stop="isChildTooltipHovering = true"
+            @mouseleave.stop="isChildTooltipHovering = false"
           >
-            <template v-for="integration of syncCategoryIntegrationMap[category.value]?.slice(0, 3)" :key="integration.sub_type">
-              <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" size="md" />
-            </template>
+            <NcTooltip
+              v-for="integration of splitIntegrations(syncCategoryIntegrationMap[category.value]).visible"
+              :title="integration.title"
+              :key="integration.sub_type"
+              class="h-6 w-6 flex-none rounded-md bg-nc-bg-gray-light flex items-center justify-center"
+            >
+              <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" size="sx" />
+            </NcTooltip>
             <!-- Show +N if more than 4 -->
-            <div v-if="syncCategoryIntegrationMap[category.value].length > 3" class="text-body text-nc-content-gray-subtle">
-              +{{ syncCategoryIntegrationMap[category.value].length - 3 }}
-            </div>
+
+            <NcTooltip
+              v-if="splitIntegrations(syncCategoryIntegrationMap[category.value]).hiddenCount > 0"
+              class="h-6 w-6 flex-none rounded-md bg-nc-bg-gray-light flex items-center justify-center text-bodySm text-nc-content-gray-subtle"
+            >
+              <template #title>
+                <div class="max-w-60">{{ splitIntegrations(syncCategoryIntegrationMap[category.value]).hidden }}</div>
+              </template>
+              +{{ splitIntegrations(syncCategoryIntegrationMap[category.value]).hiddenCount }}
+            </NcTooltip>
           </div>
 
           <NcBadgeComingSoon v-else class="bg-nc-bg-gray-medium !w-[fit-content] text-nc-content-gray-subtle2" />

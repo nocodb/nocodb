@@ -49,7 +49,7 @@ const columns = [
     name: 'Name',
     dataIndex: 'title',
     minWidth: 150,
-    basis: '40%',
+    basis: '35%',
     padding: '0px 24px',
   },
   {

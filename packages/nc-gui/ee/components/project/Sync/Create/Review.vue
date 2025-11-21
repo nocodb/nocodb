@@ -86,7 +86,7 @@ const data = computed(() => {
 </script>
 
 <template>
-  <div>
+  <div class="flex flex-col gap-8">
     <div class="flex flex-col gap-4">
       <div class="flex items-center gap-2.5">
         <div class="text-bodyLgBold text-nc-content-gray">
@@ -101,12 +101,11 @@ const data = computed(() => {
 
       <div class="flex-1 overflow-auto">
         <NcTable
-          :bordered="false"
           :columns="columns"
           :data="data"
           row-height="44px"
           header-row-height="44px"
-          body-row-class-name="!cursor-default"
+          body-row-class-name="!cursor-default no-border-last"
           class="h-full w-full"
         >
           <template #bodyCell="{ column, record }">
@@ -128,29 +127,29 @@ const data = computed(() => {
       </div>
     </div>
 
-    <NcDivider class="!my-8" />
-
-    <div class="flex items-center gap-2.5">
-      <div class="text-bodyLgBold text-nc-content-gray">
-        {{ $t('labels.sources') }}
-      </div>
-      <NcButton type="text" size="xsmall" @click="switchToStep(SyncFormStep.Integration)">
-        <div class="flex gap-2 text-nc-content-brand items-center">
-          <GeneralIcon icon="ncEdit2" />
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center gap-2.5">
+        <div class="text-bodyLgBold text-nc-content-gray">
+          {{ $t('labels.sources') }}
         </div>
-      </NcButton>
-    </div>
+        <NcButton type="text" size="xsmall" @click="switchToStep(SyncFormStep.Integration)">
+          <div class="flex gap-2 text-nc-content-brand items-center">
+            <GeneralIcon icon="ncEdit2" />
+          </div>
+        </NcButton>
+      </div>
 
-    <div class="flex flex-col rounded-lg mt-4 border-1 border-nc-border-gray-medium">
-      <div
-        v-for="integration in integrationConfigs"
-        :key="integration.id"
-        class="py-2 px-3 border-b-1 border-nc-border-gray-medium last:border-b-0"
-      >
-        <div class="flex items-center gap-2">
-          <GeneralIntegrationIcon v-if="integration.sub_type" :type="integration.sub_type" />
-          <div class="text-nc-content-gray text-captionBold">
-            {{ integration.title }}
+      <div class="flex flex-col rounded-lg border-1 border-nc-border-gray-medium">
+        <div
+          v-for="integration in integrationConfigs"
+          :key="integration.id"
+          class="py-2 px-3 border-b-1 border-nc-border-gray-medium last:border-b-0"
+        >
+          <div class="flex items-center gap-2">
+            <GeneralIntegrationIcon v-if="integration.sub_type" :type="integration.sub_type" />
+            <div class="text-nc-content-gray text-captionBold">
+              {{ integration.title }}
+            </div>
           </div>
         </div>
       </div>

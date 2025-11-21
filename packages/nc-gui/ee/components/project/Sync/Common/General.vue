@@ -22,6 +22,7 @@ watch(
 const isSyncTypeOpen = ref(false)
 const isOnDeleteActionOpen = ref(false)
 const isSyncTriggerOpen = ref(false)
+const isSyncScheduleOpen = ref(false)
 
 const currentSyncType = computed(() => syncTypeOptions.find((opt) => opt.value === formModel.value.sync_type))
 const currentOnDeleteAction = computed(() => onDeleteActionOptions.find((opt) => opt.value === formModel.value.on_delete_action))

@@ -128,6 +128,14 @@ export function NcCache<TArgs extends any[] = any[]>(
         // });
         context.cacheMap = new Map<string, any>();
       }
+      // check if context.cacheMap is a Map, if not then log and reinitialize with a Map
+      else if (!(context.cacheMap instanceof Map)) {
+        console.warn(
+          'NcCache decorator: context.cacheMap is not a Map. Reinitializing cacheMap.',
+          defaultPrefixBase,
+        );
+        context.cacheMap = new Map<string, any>();
+      }
 
       // Generate cache key prefix
       let keyPrefix = options.keyPrefix;

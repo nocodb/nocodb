@@ -41,7 +41,7 @@ export class GenericSqliteFieldHandler
           sourceField,
           `%, ${items[i]},%`,
         ];
-        const sql = "(',' || ?? || ',') like ? OR (',' || ?? || ',') like ?";
+        const sql = "((',' || ?? || ',') like ? OR (',' || ?? || ',') like ?)";
         if (i === 0) {
           builder = builder.where(knex.raw(sql, bindings));
         } else {

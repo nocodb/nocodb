@@ -888,13 +888,13 @@ const parseConditionV2 = async (
                     ];
                     if (knex.clientType() === 'pg') {
                       sql =
-                        "(',' || ??::text || ',') ilike ? OR (',' || ??::text || ',') ilike ?";
+                        "((',' || ??::text || ',') ilike ? OR (',' || ??::text || ',') ilike ?)";
                     } else if (knex.clientType() === 'sqlite3') {
                       sql =
-                        "(',' || ?? || ',') like ? OR (',' || ?? || ',') like ?";
+                        "((',' || ?? || ',') like ? OR (',' || ?? || ',') like ?)";
                     } else {
                       sql =
-                        "CONCAT(',', ??, ',') like ? OR CONCAT(',', ??, ',') like ?";
+                        "(CONCAT(',', ??, ',') like ? OR CONCAT(',', ??, ',') like ?)";
                     }
                     if (i === 0) {
                       builder = builder.where(knex.raw(sql, bindings));

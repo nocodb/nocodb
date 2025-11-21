@@ -2795,7 +2795,7 @@ watch(
   <div ref="wrapperRef" class="w-full h-full">
     <div
       v-if="isBulkOperationInProgress"
-      class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-white/30"
+      class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-white/30 dark:bg-black/30"
     >
       <a-spin size="large" />
     </div>

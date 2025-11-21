@@ -28,12 +28,16 @@ const {
   saveSyncConfig,
   isSaving,
   supportedDocs,
+  isSyncCategoryAlreadyAddedOrBlank,
 } = useProvideSyncForm(props.baseId, 'create')
 
 const saveError = ref<string | null>(null)
 
 const isContinueDisabled = computed(() => {
-  return step.value === SyncFormStep.Integration && integrationConfigs.value?.length === 0
+  return (
+    (step.value === SyncFormStep.Integration && integrationConfigs.value?.length === 0) ||
+    isSyncCategoryAlreadyAddedOrBlank.value.value
+  )
 })
 
 const closeModal = () => {
@@ -116,9 +120,9 @@ const previousStep = () => {
             </template>
           </NcButton>
 
-          <NcTooltip :disabled="!saveError || step !== SyncFormStep.Create">
+          <NcTooltip :disabled="(!saveError || step !== SyncFormStep.Create) && !isSyncCategoryAlreadyAddedOrBlank.value">
             <template #title>
-              {{ saveError }}
+              {{ isSyncCategoryAlreadyAddedOrBlank.value ? isSyncCategoryAlreadyAddedOrBlank.tooltip : saveError }}
             </template>
             <NcButton
               type="primary"

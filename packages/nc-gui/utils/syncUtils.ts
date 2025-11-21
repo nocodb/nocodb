@@ -39,9 +39,12 @@ const defaultSyncConfig = (configs: SyncConfig[]) => {
     prefix: null,
   })
 
+  const isDefaultSyncCategoryAlreadyAdded = configs.some((config) => config.sync_category === _defaultSyncConfig.sync_category)
+
   return {
     ..._defaultSyncConfig,
     title: newTitle,
+    sync_category: isDefaultSyncCategoryAlreadyAdded ? undefined : _defaultSyncConfig.sync_category,
   }
 }
 

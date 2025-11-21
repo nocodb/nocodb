@@ -6,7 +6,7 @@ const categories = Object.values(SyncCategoryMeta)
 
 const { isSyncAdvancedFeaturesEnabled } = storeToRefs(useSyncStore())
 
-const { syncConfigForm, mode, syncCategoryIntegrationMap } = useSyncFormOrThrow()
+const { syncConfigForm, mode, syncCategoryIntegrationMap, activeBaseSyncs } = useSyncFormOrThrow()
 
 const syncAllModels = ref(true)
 
@@ -37,6 +37,11 @@ const selectCategory = (category: (typeof SyncCategoryMeta)[keyof typeof SyncCat
   if (category.beta && !isSyncAdvancedFeaturesEnabled.value) {
     return
   }
+
+  if (isCategoryAlreadyAdded(category.value)) {
+    return
+  }
+
   syncConfigForm.value.sync_category = category.value
 }
 
@@ -64,6 +69,16 @@ const splitIntegrations = (integrations: IntegrationItemType[] = []) => {
     hiddenCount: integrations.length - 3,
   }
 }
+
+const isCategoryAlreadyAdded = (category: SyncCategory) => {
+  return activeBaseSyncs.value.some((sync) => sync.sync_category === category)
+}
+
+onMounted(() => {
+  if (syncConfigForm.value.exclude_models?.length) {
+    syncAllModels.value = false
+  }
+})
 </script>
 
 <template>
@@ -79,18 +94,31 @@ const splitIntegrations = (integrations: IntegrationItemType[] = []) => {
         <NcTooltip
           v-for="category in categories"
           :key="category.value"
-          :disabled="!(syncConfigForm.sync_category === category.value && mode === 'edit') || isChildTooltipHovering"
+          :disabled="
+            (!(syncConfigForm.sync_category === category.value && mode === 'edit') && !isCategoryAlreadyAdded(category.value)) ||
+            isChildTooltipHovering
+          "
           :class="{
             'border-nc-border-brand !shadow-selected': syncConfigForm.sync_category === category.value && mode === 'create',
             'border-nc-border-gray-extradark !shadow-disabled':
               syncConfigForm.sync_category === category.value && mode === 'edit',
             'hover:shadow-hover cursor-pointer':
-              !category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true) && mode === 'create',
+              !category.comingSoon &&
+              (category.beta ? isSyncAdvancedFeaturesEnabled : true) &&
+              mode === 'create' &&
+              !isCategoryAlreadyAdded(category.value),
+            'cursor-not-allowed bg-nc-bg-gray-extralight': isCategoryAlreadyAdded(category.value),
           }"
           class="p-3 border-1 flex flex-col gap-2 rounded-lg transition-shadow border-nc-border-gray-medium"
           @click="selectCategory(category)"
         >
-          <template #title> Category not editable in edit mode </template>
+          <template #title>
+            {{
+              isCategoryAlreadyAdded(category.value)
+                ? $t('tooltip.syncForThisCategoryAlreadyAdded')
+                : $t('tooltip.categoryNotEditableInEditMode')
+            }}
+          </template>
           <div
             v-if="!category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true)"
             class="max-h-5 h-5 flex items-center gap-1.5"
@@ -157,7 +185,7 @@ const splitIntegrations = (integrations: IntegrationItemType[] = []) => {
           class="flex flex-col p-3 border-1 rounded-lg gap-1"
           @click="selectSyncAllModels(true)"
         >
-          <template #title> Sync scope not editable in edit mode </template>
+          <template #title> {{ $t('tooltip.syncScopeNotEditableInEditMode') }} </template>
           <div class="flex items-center gap-3">
             <div class="nc-radio" :data-checked="syncAllModels">
               <div class="nc-radio-dot"></div>

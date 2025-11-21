@@ -23,6 +23,23 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
     const syncConfigForm = ref<Partial<SyncConfig>>(defaultSyncConfig(activeBaseSyncs.value || []))
 
+    const isSyncCategoryAlreadyAddedOrBlank = computed(() => {
+      if (mode === 'edit') {
+        return {
+          value: false,
+          tooltip: '',
+        }
+      }
+
+      const isSyncCategoryAlreadySelected = activeBaseSyncs.value.some(
+        (sync) => syncConfigForm.value.sync_category && sync.sync_category === syncConfigForm.value.sync_category,
+      )
+      return {
+        value: !syncConfigForm.value.sync_category || isSyncCategoryAlreadySelected,
+        tooltip: isSyncCategoryAlreadySelected ? t('tooltip.syncForThisCategoryAlreadyAdded') : t('tooltip.selectSyncCategory'),
+      }
+    })
+
     const integrationConfigs = ref<IntegrationConfig[]>([])
 
     const deletedSyncConfigIds = ref<string[]>([])
@@ -315,6 +332,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       isSaving,
       isUpdating,
       supportedDocs,
+      isSyncCategoryAlreadyAddedOrBlank,
     }
   },
 )

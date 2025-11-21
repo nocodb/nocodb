@@ -100,7 +100,7 @@ export const TreeViewInj: InjectionKey<{
   openViewDescriptionDialog: (view: ViewType) => void
   openAutomationDescriptionDialog?: (automation: any) => void
   openDashboardDescriptionDialog?: (dashboard: any) => void
-  openWorkflowDescriptionDialog?: (dashboard: any) => void
+  openWorkflowDescriptionDialog?: (workflow: any) => void
   openTableDescriptionDialog: (table: TableType) => void
   contextMenuTarget: { type?: 'base' | 'table' | 'main' | 'layout'; value?: any }
   tableRenameId: Ref<string>

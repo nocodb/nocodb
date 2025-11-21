@@ -110,7 +110,7 @@ export interface Actions {
   setIsMobileMode: (isMobileMode: boolean) => void
   navigateToProject: (params: { workspaceId?: string; baseId?: string; query?: any }) => void
   /**
-   * params `tableTitle, viewTitle, automationTitle,dashboardTitle` will be used for readable url slug
+   * params `tableTitle, viewTitle, automationTitle,dashboardTitle,workflowTitle` will be used for readable url slug
    */
   ncNavigateTo: (params: {
     workspaceId?: string
@@ -127,8 +127,6 @@ export interface Actions {
     workflowId?: string
     workflowTitle?: string
     replace?: boolean
-    dashboardId?: string
-    dashboardTitle?: string
     newTab?: boolean
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined

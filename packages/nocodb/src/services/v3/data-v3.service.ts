@@ -498,6 +498,12 @@ export class DataV3Service {
     context: NcContext,
     param: DataInsertParams,
   ): Promise<{ records: DataRecord[] }> {
+    // validate insert
+    this.validateRequestFormat(context, {
+      body: param.body,
+      validateAdditionalProp: true,
+    });
+
     const { model, primaryKey, primaryKeys, columns } = await this.getModelInfo(
       context,
       param.modelId,
@@ -613,6 +619,12 @@ export class DataV3Service {
     context: NcContext,
     param: DataDeleteParams,
   ): Promise<{ records: DataRecordWithDeleted[] }> {
+    // validate update
+    this.validateRequestFormat(context, {
+      body: param.body,
+      validateId: true,
+    });
+
     // Merge the request body with the records in query params
     param.body = [
       ...(Array.isArray(param.body)
@@ -655,6 +667,14 @@ export class DataV3Service {
     context: NcContext,
     param: DataUpdateParams,
   ): Promise<{ records: DataRecord[] }> {
+    // validate update
+    this.validateRequestFormat(context, {
+      body: param.body,
+      validateAdditionalProp: true,
+      validateId: true,
+    });
+
+    const profiler = Profiler.start(`data-v3/dataUpdate`);
     const { model, primaryKey, primaryKeys, columns } = await this.getModelInfo(
       context,
       param.modelId,
@@ -755,6 +775,42 @@ export class DataV3Service {
         depth: 0, // Start at depth 0 for main records
       }),
     };
+  }
+
+  validateRequestFormat(
+    context: NcContext,
+    param: {
+      body: any;
+      validateAdditionalProp?: boolean;
+      validateId?: boolean;
+    },
+  ) {
+    for (const [index, row] of (Array.isArray(param.body)
+      ? param.body
+      : [param.body]
+    ).entries()) {
+      if (param.validateId) {
+        if (!row.id) {
+          NcError.get(context).invalidRequestBody(
+            `Property 'id' is required on index ${index}`,
+          );
+        }
+      }
+      if (param.validateAdditionalProp) {
+        const otherProps = Object.keys(row).filter(
+          (prop) => !['id', 'fields'].includes(prop),
+        );
+        if (otherProps.length) {
+          NcError.get(context).invalidRequestBody(
+            `Properties ${otherProps
+              .map((field) => `'${field}'`)
+              .join(
+                ',',
+              )} on index ${index} is not allowed. All record parameters need to be put inside 'fields' property`,
+          );
+        }
+      }
+    }
   }
 
   async nestedDataList(

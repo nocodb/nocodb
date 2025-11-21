@@ -99,6 +99,9 @@ export enum MetaTable {
   ORG_USERS = 'nc_org_users',
   PLANS = 'nc_plans',
   SUBSCRIPTIONS = 'nc_subscriptions',
+  WORKFLOWS = 'nc_workflows',
+  WORKFLOW_EXECUTIONS = 'nc_workflow_executions',
+  DEPENDENCY_TRACKER = 'nc_dependency_tracker',
 }
 
 export const BaseRelatedMetaTables = [
@@ -149,6 +152,9 @@ export const BaseRelatedMetaTables = [
   MetaTable.VIEWS,
   MetaTable.WIDGETS,
   MetaTable.MODEL_STAT,
+  MetaTable.WORKFLOWS,
+  MetaTable.WORKFLOW_EXECUTIONS,
+  MetaTable.DEPENDENCY_TRACKER,
 ];
 
 export enum MetaTableOldV2 {
@@ -309,6 +315,9 @@ export enum CacheScope {
   OAUTH_AUTH_CODE = 'oAuthAuthCode',
   OAUTH_TOKEN = 'oAuthToken',
   TEMPLATES = 'templates',
+  WORKFLOW = 'nc_workflow',
+  WORKFLOW_EXECUTION = 'nc_workflow_execution',
+  DEPENDENCY_TRACKER = 'nc_dependency_tracker',
 }
 
 export enum CacheGetType {

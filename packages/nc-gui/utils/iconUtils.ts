@@ -207,6 +207,7 @@ import NcSettings from '~icons/nc-icons/settings'
 import NcHelp from '~icons/nc-icons/help'
 import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
 import NcAudit from '~icons/nc-icons/audit'
+import NcAuditNew from '~icons/nc-icons-v2/audit-new'
 import NcMessageCircle from '~icons/nc-icons/message-circle'
 import NcKey from '~icons/nc-icons/key'
 
@@ -644,6 +645,12 @@ import NcErd from '~icons/nc-icons/erd'
 import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
 import NcWebhook from '~icons/nc-icons-v2/webhook'
+
+import NcFormResponse from '~icons/nc-icons-v2/new-form-responce'
+import NcRecordCreate from '~icons/nc-icons-v2/record-create'
+import NcRecordUpdate from '~icons/nc-icons-v2/record-update'
+import NcRecordDelete from '~icons/nc-icons-v2/record-delete'
+import NcIfElse from '~icons/nc-icons-v2/if-else'
 
 import NcLogoAsanaColored from '~icons/nc-icons-v2/asana-colored.svg'
 import NcLogoAsana from '~icons/nc-icons-v2/asana.svg'
@@ -1812,6 +1819,12 @@ export const iconMap = {
   'ncGraduationCap': NcGraduationCap,
   'ncSupportAgent': h(NcSupportAgent, { stroke: 'transparent' }),
   'ncBuilding': NcBuilding,
+  'ncRecordCreate': NcRecordCreate,
+  'ncRecordUpdate': NcRecordUpdate,
+  'ncRecordDelete': NcRecordDelete,
+  'ncRecordFind': NcAuditNew,
+  'ncFormResponse': NcFormResponse,
+  'ncIfElse': NcIfElse,
 }
 
 export const getMdiIcon = (type: string): any => {

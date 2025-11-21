@@ -43,12 +43,16 @@
     "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
+    "nc-jsep-plugin-object": "^1.7.5",
+    "nc-jsep-plugin-template": "^1.7.5",
+    "nc-jsep-plugin-ternary": "^1.7.5",
+    "@vue-flow/core": "^1.47.0",
     "acorn-loose": "^8.4.0",
     "acorn-walk": "^8.3.4",
     "axios": "^1.9.0",
     "chevrotain": "^10.5.0",
     "dayjs": "^1.11.13",
-    "jsep": "^1.4.0",
+    "nc-jsep": "^1.7.5",
     "validator": "^13.12.0"
   },
   "devDependencies": {

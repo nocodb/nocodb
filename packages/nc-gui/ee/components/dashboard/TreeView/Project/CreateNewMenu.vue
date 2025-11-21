@@ -7,7 +7,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['update:visible', 'newTable', 'emptyScript'])
+const emits = defineEmits(['update:visible', 'newTable', 'emptyScript', 'emptyWorkflow', 'emptyDashboard'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
@@ -21,11 +21,9 @@ const { isUIAllowed } = useRoles()
 
 const { isMarketVisible } = storeToRefs(useAutomationStore())
 
-const dashboardStore = useDashboardStore()
+const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
 
-const { openNewDashboardModal } = dashboardStore
-
-const { isDashboardEnabled } = storeToRefs(dashboardStore)
+const { isDashboardEnabled } = storeToRefs(useDashboardStore())
 
 const showBaseOption = (source: SourceType) => {
   return (
@@ -82,7 +80,7 @@ const openMarketPlace = () => {
       v-if="isDashboardEnabled"
       inner-class="w-full"
       data-testid="create-new-dashboard"
-      @click="openNewDashboardModal({ baseId: base.id })"
+      @click="emits('emptyDashboard')"
     >
       <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
@@ -132,11 +130,12 @@ const openMarketPlace = () => {
         </NcSubMenu>
       </div>
     </NcMenuItem>
-    <NcMenuItem inner-class="w-full" data-testid="create-new-automation" disabled>
+
+    <NcMenuItem v-if="isWorkflowsEnabled" inner-class="w-full" data-testid="create-new-workflow" @click="emits('emptyWorkflow')">
       <GeneralIcon icon="ncAutomation" />
-      {{ $t('general.automation') }}
+      {{ $t('general.workflow') }}
       <div class="flex-1 w-full" />
-      <NcBadge :border="false" size="xs" class="!text-nc-content-brand-disabled !bg-nc-bg-brand"> Soon </NcBadge>
+      <NcBadge :border="false" size="xs" class="!text-nc-content-brand-disabled !bg-nc-bg-brand"> Beta </NcBadge>
     </NcMenuItem>
   </NcMenu>
 </template>

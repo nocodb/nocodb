@@ -8,6 +8,8 @@ const { base } = storeToRefs(baseStore)
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
+
 const isNewBaseModalOpen = ref(false)
 
 const isNewSyncModalOpen = ref(false)
@@ -154,6 +156,7 @@ const onCreateSyncClick = () => {
         <ProjectActionCreateEmptyScript />
         <ProjectActionScriptsByNocoDB />
         <ProjectActionCreateEmptyDashboard />
+        <ProjectActionCreateEmptyWorkflow v-if="isWorkflowsEnabled" />
       </template>
     </div>
 

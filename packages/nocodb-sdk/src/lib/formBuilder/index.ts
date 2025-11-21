@@ -6,80 +6,259 @@ export enum FormBuilderInputType {
   Password = 'password',
   SelectIntegration = 'integration',
   SelectBase = 'select-base',
+  SelectTable = 'select-table',
+  SelectView = 'select-view',
+  SelectField = 'select-field',
   OAuth = 'oauth',
 }
 
+/**
+ * Condition configuration for conditional field visibility
+ * Only one condition type should be specified per condition object
+ */
 export interface FormBuilderCondition {
-  // model path to check for condition
+  /** Model path to check for condition (e.g., 'config.type') */
   model: string;
-  // value to check for condition
+  /** Check if the model value equals this specific value */
   value?: string;
-  // check if the value is equal to the model value
+  /** Alias for value - check if the model value equals this value */
   equal?: string;
-  // check if the value is in the array
+  /** Check if the model value is in this array of values */
   in?: string[];
-  // check if the value is empty
+  /** Check if the model value is empty (empty string, empty array, null, undefined) */
   empty?: boolean;
-  // check if the value is not empty
+  /** Check if the model value is not empty */
   notEmpty?: boolean;
 }
 
+/**
+ * Enum defining all available validator types
+ */
 export enum FormBuilderValidatorType {
   Required = 'required',
 }
 
-export interface FormBuilderElement {
-  // element type
-  type: FormBuilderInputType;
-  // property path in the form JSON
-  model?: string;
-  // default value
-  defaultValue?: string[] | string | boolean | number | null;
-  // label for the element
-  label?: string;
-  // placeholder for the element (if applicable)
-  placeholder?: string;
-  // percentage width of the element
-  width?: number;
-  // category of the element - same category elements are grouped together
-  category?: string;
-  // help text for the element
-  // options for select element
-  options?: { value: string; label: string }[];
-  // select mode for the element (if applicable) - default is single
-  selectMode?: 'single' | 'multiple' | 'multipleWithInput';
-  // integration type filter for integration element
-  integrationFilter?: {
-    type?: string;
-    sub_type?: string;
-  };
-  // oauth meta
-  oauthMeta?: {
-    // oauth provider
-    provider: string;
-    // oauth auth uri - supports template variables like {{config.subdomain}}
-    authUri: string;
-    // oauth redirect uri
-    redirectUri: string;
-    // client id
-    clientId: string;
-    // code key (code by default)
-    codeKey?: string;
-    // oauth scopes
-    scopes?: string[];
-  };
-  // condition for the element to be visible
-  condition?: FormBuilderCondition | FormBuilderCondition[];
-  // border for the element (if applicable) - default is false
-  border?: boolean;
-  // show hint as tooltip for the element (if applicable) - default is false
-  showHintAsTooltip?: boolean;
-  // validators for the element
-  validators?: { type: FormBuilderValidatorType; message?: string }[];
-  // fetch options for the element using key
-  fetchOptionsKey?: string;
+/**
+ * Validator configuration for form field validation
+ */
+export interface FormBuilderValidator {
+  /** Type of validation to apply */
+  type: FormBuilderValidatorType;
+  /** Custom error message to display when validation fails */
+  message?: string;
 }
 
+/**
+ * Option configuration for select elements
+ */
+export interface FormBuilderSelectOption {
+  /** Display label for the option */
+  label: string;
+  /** Value to be stored when option is selected */
+  value: string;
+  /** Whether the option is disabled **/
+  ncItemDisabled?: boolean;
+  /** Reason for the disabled state **/
+  ncItemTooltip?: string;
+}
+
+/**
+ * Integration filter configuration for SelectIntegration elements
+ */
+export interface FormBuilderIntegrationFilter {
+  /** Integration type to filter by (e.g., 'Auth', 'Communication') */
+  type?: string;
+  /** Integration sub-type to filter by (e.g., 'gmail,outlook,smtp') */
+  sub_type?: string;
+}
+
+/**
+ * OAuth metadata configuration for OAuth elements
+ */
+export interface FormBuilderOAuthMeta {
+  /** OAuth provider name (e.g., 'GitHub', 'Google') */
+  provider: string;
+  /** OAuth authorization URI - supports template variables like {{config.subdomain}} */
+  authUri: string;
+  /** OAuth redirect URI for callback */
+  redirectUri: string;
+  /** OAuth client ID */
+  clientId: string;
+  /** OAuth scopes to request */
+  scopes?: string[];
+  /** Key name for authorization code in callback (default: 'code') */
+  codeKey?: string;
+}
+
+/**
+ * Base interface for all form builder elements
+ */
+interface FormBuilderElementBase {
+  /** Property path in the form JSON (e.g., 'config.apiKey', 'title') */
+  model?: string;
+  /** Display label for the element */
+  label?: string;
+  /** Placeholder text (for input elements) */
+  placeholder?: string;
+  /** Width as percentage (0-100) */
+  width?: number;
+  /** Category for grouping elements - same category elements are grouped together */
+  category?: string;
+  /** Condition(s) for the element to be visible */
+  condition?: FormBuilderCondition | FormBuilderCondition[];
+  /** Show border around the element */
+  border?: boolean;
+  /** Show hint as tooltip instead of inline text */
+  showHintAsTooltip?: boolean;
+  /** Validators for field validation */
+  validators?: FormBuilderValidator[];
+  /** Model path(s) this field depends on - when dependency changes, options are reloaded */
+  dependsOn?: string | string[];
+}
+
+/**
+ * Input element (text input)
+ */
+export interface FormBuilderInputElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Input;
+  defaultValue?: string | null;
+}
+
+/**
+ * Password element (password input)
+ */
+export interface FormBuilderPasswordElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Password;
+  defaultValue?: string | null;
+}
+
+/**
+ * Select element (dropdown)
+ */
+export interface FormBuilderSelectElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Select;
+  /** Options for the select dropdown */
+  options?: FormBuilderSelectOption[];
+  /** Select mode - single, multiple, or multiple with custom input */
+  selectMode?: 'single' | 'multiple' | 'multipleWithInput';
+  /** Key to fetch options dynamically */
+  fetchOptionsKey?: string;
+  /** Default value - string for single, array for multiple */
+  defaultValue?: string | string[] | null;
+}
+
+/**
+ * Switch element (toggle)
+ */
+export interface FormBuilderSwitchElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Switch;
+  defaultValue?: boolean;
+}
+
+/**
+ * Space element (visual separator)
+ */
+export interface FormBuilderSpaceElement
+  extends Omit<FormBuilderElementBase, 'model' | 'validators'> {
+  type: FormBuilderInputType.Space;
+}
+
+/**
+ * SelectIntegration element (integration picker)
+ */
+export interface FormBuilderSelectIntegrationElement
+  extends FormBuilderElementBase {
+  type: FormBuilderInputType.SelectIntegration;
+  /** Filter integrations by type and sub-type */
+  integrationFilter?: FormBuilderIntegrationFilter;
+  defaultValue?: string | null;
+}
+
+/**
+ * SelectBase element (base/project picker)
+ */
+export interface FormBuilderSelectBaseElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.SelectBase;
+  defaultValue?: string | null;
+}
+
+/**
+ * SelectTable element (table picker)
+ */
+export interface FormBuilderSelectTableElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.SelectTable;
+  /** Options for the table dropdown */
+  options?: FormBuilderSelectOption[];
+  /** Key to fetch table options dynamically */
+  fetchOptionsKey?: string;
+  /** Select mode - single, multiple */
+  selectMode?: 'single' | 'multiple';
+  /** Default value - string for single, array for multiple */
+  defaultValue?: string | string[] | null;
+}
+
+/**
+ * SelectView element (view picker)
+ */
+export interface FormBuilderSelectViewElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.SelectView;
+  /** Options for the view dropdown */
+  options?: FormBuilderSelectOption[];
+  /** Key to fetch view options dynamically */
+  fetchOptionsKey?: string;
+  /** Select mode - single, multiple */
+  selectMode?: 'single' | 'multiple';
+  /** Default value - string for single, array for multiple */
+  defaultValue?: string | string[] | null;
+}
+
+/**
+ * SelectField element (field/column picker)
+ */
+export interface FormBuilderSelectFieldElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.SelectField;
+  /** Options for the field dropdown */
+  options?: FormBuilderSelectOption[];
+  /** Key to fetch field options dynamically */
+  fetchOptionsKey?: string;
+  /** Select mode - single, multiple */
+  selectMode?: 'single' | 'multiple';
+  /** Default value - string for single, array for multiple */
+  defaultValue?: string | string[] | null;
+}
+
+/**
+ * OAuth element (OAuth authentication)
+ */
+export interface FormBuilderOAuthElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.OAuth;
+  /** OAuth configuration metadata */
+  oauthMeta?: FormBuilderOAuthMeta;
+  defaultValue?: string | null;
+}
+
+/**
+ * Union type of all possible form builder elements
+ */
+export type FormBuilderElement =
+  | FormBuilderInputElement
+  | FormBuilderPasswordElement
+  | FormBuilderSelectElement
+  | FormBuilderSwitchElement
+  | FormBuilderSpaceElement
+  | FormBuilderSelectIntegrationElement
+  | FormBuilderSelectBaseElement
+  | FormBuilderSelectTableElement
+  | FormBuilderSelectViewElement
+  | FormBuilderSelectFieldElement
+  | FormBuilderOAuthElement;
+
+/**
+ * Complete form definition - array of form elements
+ */
 export type FormDefinition = FormBuilderElement[];
 
+/**
+ * Default category name for elements without a specified category
+ */
 export const FORM_BUILDER_NON_CATEGORIZED = 'form-builder-non-categorized';

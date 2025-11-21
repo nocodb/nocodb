@@ -84,6 +84,13 @@ export class NcErrorBase {
     });
   }
 
+  workflowNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_WORKFLOW_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   widgetNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_WIDGET_NOT_FOUND, {
       params: id,
@@ -841,5 +848,53 @@ export class NcErrorBase {
       params: id,
       ...args,
     });
+  }
+
+  workflowEmptyNode(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_WORKFLOW_EMPTY_NODE, {
+      ...args,
+    });
+  }
+
+  workflowTriggerNodeNotFound(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_WORKFLOW_TRIGGER_NODE_NOT_FOUND,
+      {
+        ...args,
+      }
+    );
+  }
+
+  workflowNodeExecutionFailed(
+    nodeTitle: string,
+    error: string,
+    args?: NcErrorArgs
+  ): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_WORKFLOW_NODE_EXECUTION_FAILED,
+      {
+        params: `Node "${nodeTitle}" failed: ${error}`,
+        ...args,
+      }
+    );
+  }
+
+  workflowMaxIterationsExceeded(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_WORKFLOW_MAX_ITERATIONS_EXCEEDED,
+      {
+        ...args,
+      }
+    );
+  }
+
+  workflowNodeNotFound(nodeTitle: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_WORKFLOW_NODE_NOT_FOUND,
+      {
+        params: `Node "${nodeTitle}" not found`,
+        ...args,
+      }
+    );
   }
 }

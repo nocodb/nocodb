@@ -254,6 +254,7 @@ export default defineNuxtConfig({
         '@tiptap/vue-3',
         '@vue-flow/additional-components',
         '@vue-flow/core',
+        '@vue-flow/minimap',
         '@vuelidate/core',
         '@vuelidate/validators',
         '@vueuse/integrations/useQRCode',

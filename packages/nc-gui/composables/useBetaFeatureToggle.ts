@@ -3,6 +3,14 @@ import rfdc from 'rfdc'
 const deepClone = rfdc()
 const FEATURES = [
   {
+    id: 'workflows',
+    title: 'Workflows',
+    description: 'Automate tasks with visual workflows - connect triggers, actions, and data transformations without code.',
+    enabled: false,
+    isEngineering: true,
+    version: 1,
+  },
+  {
     id: 'infinite_scrolling',
     title: 'Infinite scrolling',
     description: 'Effortlessly browse large datasets with infinite scrolling.',

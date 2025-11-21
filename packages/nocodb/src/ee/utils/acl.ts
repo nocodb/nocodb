@@ -333,6 +333,14 @@ const permissionScopes = {
     'baseTeamGet',
     'baseTeamUpdate',
     'baseTeamDelete',
+
+    // Workflows
+    'workflowList',
+    'workflowGet',
+    'workflowCreate',
+    'workflowDuplicate',
+    'workflowUpdate',
+    'workflowDelete',
   ],
 };
 

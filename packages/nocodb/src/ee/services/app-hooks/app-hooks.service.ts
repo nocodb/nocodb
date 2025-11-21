@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AppHooksService as ApppHookServiceCE } from 'src/services/app-hooks/app-hooks.service';
-import type { AppEvents } from 'nocodb-sdk';
 import type {
   BaseTeamDeleteEvent,
   BaseTeamInviteEvent,
@@ -23,12 +22,18 @@ import type {
   UserSignupEvent,
   ViewEvent,
   WelcomeEvent,
+  WorkflowCreateEvent,
+  WorkflowDeleteEvent,
+  WorkflowDuplicateEvent,
+  WorkflowExecuteEvent,
+  WorkflowUpdateEvent,
   WorkspaceEvent,
   WorkspaceTeamDeleteEvent,
   WorkspaceTeamInviteEvent,
   WorkspaceTeamUpdateEvent,
   WorkspaceUserInviteEvent,
 } from './interfaces';
+import type { AppEvents } from 'nocodb-sdk';
 
 import type {
   ApiCreatedEvent,
@@ -314,6 +319,27 @@ export class AppHooksService extends ApppHookServiceCE {
   on(
     event: AppEvents.SCRIPT_DUPLICATE,
     listener: (data: ScriptDuplicateEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.WORKFLOW_CREATE,
+    listener: (data: WorkflowCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.WORKFLOW_DUPLICATE,
+    listener: (data: WorkflowDuplicateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.WORKFLOW_UPDATE,
+    listener: (data: WorkflowUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.WORKFLOW_DELETE,
+    listener: (data: WorkflowDeleteEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.WORKFLOW_EXECUTE,
+    listener: (data: WorkflowExecuteEvent) => void,
   ): () => void;
 
   on(
@@ -611,6 +637,12 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.SCRIPT_UPDATE, data: ScriptUpdateEvent): void;
   emit(event: AppEvents.SCRIPT_DELETE, data: ScriptDeleteEvent): void;
   emit(event: AppEvents.SCRIPT_DUPLICATE, data: ScriptDuplicateEvent): void;
+
+  emit(event: AppEvents.WORKFLOW_CREATE, data: WorkflowCreateEvent): void;
+  emit(event: AppEvents.WORKFLOW_DUPLICATE, data: WorkflowDuplicateEvent): void;
+  emit(event: AppEvents.WORKFLOW_UPDATE, data: WorkflowUpdateEvent): void;
+  emit(event: AppEvents.WORKFLOW_DELETE, data: WorkflowDeleteEvent): void;
+  emit(event: AppEvents.WORKFLOW_EXECUTE, data: WorkflowExecuteEvent): void;
 
   emit(event: AppEvents.DASHBOARD_CREATE, data: DashboardCreateEvent): void;
   emit(event: AppEvents.DASHBOARD_UPDATE, data: DashboardUpdateEvent): void;

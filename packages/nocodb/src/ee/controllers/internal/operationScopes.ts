@@ -72,4 +72,13 @@ export const OPERATION_SCOPES = {
   // Templates
   templates: 'ncSkipAcl',
   template: 'ncSkipAcl',
+
+  // Workflow operations
+  workflowList: 'base',
+  workflowGet: 'base',
+  workflowCreate: 'base',
+  workflowDuplicate: 'base',
+  workflowUpdate: 'base',
+  workflowDelete: 'base',
+  workflowNodeIntegrationFetchOptions: 'workspace',
 } as const;

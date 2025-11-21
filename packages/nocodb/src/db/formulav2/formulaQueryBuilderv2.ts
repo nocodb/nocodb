@@ -1,9 +1,7 @@
 import { Logger } from '@nestjs/common';
-import jsep from 'jsep';
 import {
   CircularRefContext,
   FormulaDataTypes,
-  jsepCurlyHook,
   JSEPNode,
   LongTextAiMetaProp,
   NcErrorType,
@@ -464,8 +462,6 @@ export default async function formulaQueryBuilderv2({
 
   columns = columns ?? (await model.getColumns(context));
 
-  // register jsep curly hook once only
-  jsep.plugins.register(jsepCurlyHook);
   const formulaContext = {
     count: 0,
   };

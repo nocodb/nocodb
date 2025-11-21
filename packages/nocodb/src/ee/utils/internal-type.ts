@@ -8,6 +8,7 @@ import type {
   OAuthClient,
   Script,
   SyncConfig,
+  Workflow,
 } from '~/models';
 import type Dashboard from '~/models/Dashboard';
 import type Widget from '~/models/Widget';
@@ -46,6 +47,8 @@ export type InternalGETResponseType = Promise<
   | OAuthClient
   | OAuthClient[]
   | Widget[]
+  | Workflow
+  | Workflow[]
   | { list: TeamV3ResponseType[] }
   | TeamDetailV3Type
   | BaseTeamListV3Type
@@ -67,6 +70,7 @@ export type InternalGETResponseType = Promise<
         google: boolean;
       };
     }
+  | { nodes: any[] }
 >;
 
 export type InternalPOSTResponseType = Promise<
@@ -77,6 +81,7 @@ export type InternalPOSTResponseType = Promise<
   | Dashboard
   | Widget
   | OAuthClient
+  | Workflow
   | { id: JobId; secret?: string }
   | {
       integration: Integration;

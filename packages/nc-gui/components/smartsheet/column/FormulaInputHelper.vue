@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, isHiddenCol, jsepCurlyHook } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isHiddenCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import {
@@ -11,7 +11,6 @@ import {
   languages,
   editor as monacoEditor,
 } from 'monaco-editor'
-import jsep from 'jsep'
 import formulaLanguage from '../../monaco/formula'
 import { isCursorInsideString } from '../../../utils/formulaUtils'
 
@@ -585,8 +584,6 @@ const suggestionPreviewPostion = ref({
 })
 
 onMounted(() => {
-  jsep.plugins.register(jsepCurlyHook)
-
   until(() => monacoRoot.value as HTMLDivElement)
     .toBeTruthy()
     .then(() => {

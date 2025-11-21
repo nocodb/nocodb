@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import Automation from '../Automation/index.vue'
 import Data from '../Data/index.vue'
+import Workflow from '../Workflow/index.vue'
 
 const router = useRouter()
 const route = router.currentRoute
@@ -9,8 +10,13 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
+const workflowStore = useWorkflowStore()
 
+const { isWorkflowsEnabled } = storeToRefs(workflowStore)
+
+const { openNewWorkflowModal } = workflowStore
 const { openNewScriptModal } = useAutomationStore()
+const { openNewDashboardModal } = useDashboardStore()
 
 const base = inject(ProjectInj)!
 
@@ -133,6 +139,8 @@ const hasTableCreatePermission = computed(() => {
                 v-model:visible="isVisibleCreateNew"
                 @new-table="addNewProjectChildEntity()"
                 @empty-script="openNewScriptModal({ baseId: base.id })"
+                @empty-workflow="openNewWorkflowModal({ baseId: base.id })"
+                @empty-dashboard="openNewDashboardModal({ baseId: base.id })"
               />
             </template>
           </NcDropdown>
@@ -165,8 +173,10 @@ const hasTableCreatePermission = computed(() => {
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <Data :base-id="base.id" />
-      <!-- Hide automation in mobile mode as we don't support to edit it -->
+      <!-- Scripts section -->
       <Automation v-if="!isSharedBase && isUIAllowed('scriptList') && !isMobileMode" :base-id="base.id" />
+      <!-- Workflows section -->
+      <Workflow v-if="!isSharedBase && isUIAllowed('workflowList') && !isMobileMode && isWorkflowsEnabled" :base-id="base.id" />
     </div>
 
     <slot name="footer"> </slot>

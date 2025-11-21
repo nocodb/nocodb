@@ -255,6 +255,7 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         '@ckpack/vue-color',
+        '@dagrejs/dagre',
         '@tiptap/core',
         '@tiptap/extension-code',
         '@tiptap/extension-code-block',
@@ -282,7 +283,9 @@ export default defineNuxtConfig({
         '@tiptap/starter-kit',
         '@tiptap/vue-3',
         '@vue-flow/additional-components',
+        '@vue-flow/background',
         '@vue-flow/core',
+        '@vue-flow/minimap',
         '@vuelidate/core',
         '@vuelidate/validators',
         '@vueuse/integrations/useQRCode',

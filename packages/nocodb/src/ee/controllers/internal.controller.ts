@@ -46,6 +46,8 @@ import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
 import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 import { UtilsService } from '~/services/utils.service';
+import { WorkflowsService } from '~/ee/services/workflows.service';
+import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -73,6 +75,8 @@ export class InternalController extends InternalControllerCE {
     private readonly usersService: UsersService,
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
     private readonly baseTeamsV3Service: BaseTeamsV3Service,
+    private readonly workflowsService: WorkflowsService,
+    private readonly workflowExecutionService: WorkflowExecutionService,
   ) {
     super(aclMiddleware, internalApiModules);
   }
@@ -208,6 +212,15 @@ export class InternalController extends InternalControllerCE {
       case 'template': {
         return await this.utilsService.template(req);
       }
+      case 'workflowList':
+        return await this.workflowsService.listWorkflows(context);
+      case 'workflowGet':
+        return await this.workflowsService.getWorkflow(
+          context,
+          req.query.workflowId as string,
+        );
+      case 'workflowNodes':
+        return await this.workflowExecutionService.getWorkflowNodes(context);
       default:
         return await super.internalAPI(
           context,
@@ -560,6 +573,47 @@ export class InternalController extends InternalControllerCE {
           });
         }
       }
+      case 'workflowCreate':
+        return await this.workflowsService.createWorkflow(
+          context,
+          payload,
+          req,
+        );
+      case 'workflowUpdate':
+        return await this.workflowsService.updateWorkflow(
+          context,
+          payload.workflowId,
+          payload,
+          req,
+        );
+      case 'workflowDelete':
+        return await this.workflowsService.deleteWorkflow(
+          context,
+          payload.workflowId,
+          req,
+        );
+
+      case 'workflowDuplicate':
+        return await this.workflowsService.duplicateWorkflow(
+          context,
+          payload.workflowId,
+          req,
+        );
+      case 'workflowExecute':
+        return await this.workflowsService.execute(
+          context,
+          payload.workflowId,
+          {
+            triggerData: payload.triggerData,
+            triggerNodeTitle: payload.triggerNodeTitle,
+          },
+          req,
+        );
+      case 'workflowNodeIntegrationFetchOptions':
+        return await this.workflowsService.integrationFetchOptions(context, {
+          integration: payload.integration,
+          key: payload.key,
+        });
       default:
         return await super.internalAPIPost(
           context,

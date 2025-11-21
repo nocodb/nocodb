@@ -56,6 +56,7 @@ export enum JobTypes {
   AttachmentUrlUpload = 'attachment-url-upload',
   ExecuteAction = 'execute-action',
   ReseatSubscription = 'reseat-subscription',
+  ExecuteWorkflow = 'execute-workflow',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -63,6 +64,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.ThumbnailGenerator,
   JobTypes.UseWorker,
   JobTypes.HandleWebhook,
+  JobTypes.ExecuteWorkflow,
   JobTypes.InitMigrationJobs,
   JobTypes.UpdateModelStat,
   JobTypes.UpdateWsStat,
@@ -258,4 +260,10 @@ export interface ReseatSubscriptionJobData extends JobData {
   workspaceOrOrgId: string;
   initiator?: string;
   timestamp: number;
+}
+
+export interface ExecuteWorkflowJobData extends JobData {
+  workflowId: string;
+  triggerNodeId?: string; // Optional: specific trigger node to start from
+  triggerInputs: any; // Data passed to the trigger node
 }

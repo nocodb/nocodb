@@ -229,6 +229,12 @@ export enum AppEvents {
   SCRIPT_UPDATE = 'script.update',
   SCRIPT_DUPLICATE = 'script.duplicate',
 
+  WORKFLOW_CREATE = 'workflow.create',
+  WORKFLOW_UPDATE = 'workflow.update',
+  WORKFLOW_DELETE = 'workflow.delete',
+  WORKFLOW_DUPLICATE = 'workflow.duplicate',
+  WORKFLOW_EXECUTE = 'workflow.execute',
+
   DASHBOARD_CREATE = 'dashboard.create',
   DASHBOARD_UPDATE = 'dashboard.update',
   DASHBOARD_DELETE = 'dashboard.delete',

@@ -99,6 +99,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_WORKFLOW_NOT_FOUND]: {
+    message: (id: string) => `Workflow '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_REQUIRED_FIELD_MISSING]: {
     message: (field: string) => `Field '${field}' is required`,
     code: 422,

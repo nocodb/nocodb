@@ -19,6 +19,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       socket = io(url.href, {
         path: socketPath,
         transports: ['websocket'],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: Infinity,
       })
 
       const handshake = (backoff = 0) => {
@@ -32,6 +36,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
               socket.disconnect()
             }
           } else {
+            // Resubscribe to all channels after successful handshake
             subscribedChannels.forEach((channel) => {
               socket.emit('event:subscribe', channel)
             })
@@ -44,10 +49,36 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         handshake()
       })
 
-      socket.on('connect_error', () => {
-        socket.disconnect()
+      socket.on('reconnect', (attemptNumber) => {
+        console.log('Socket reconnected after', attemptNumber, 'attempts')
+        // Handshake will resubscribe to all channels
+        handshake()
       })
-    } catch {}
+
+      socket.on('reconnect_attempt', (attemptNumber) => {
+        console.log('Attempting to reconnect...', attemptNumber)
+      })
+
+      socket.on('reconnect_error', (error) => {
+        console.error('Reconnection error:', error)
+      })
+
+      socket.on('reconnect_failed', () => {
+        console.error('Failed to reconnect')
+      })
+
+      socket.on('connect_error', (error) => {
+        console.error('Connection error:', error)
+      })
+
+      socket.on('disconnect', (reason) => {
+        if (reason === 'io server disconnect') {
+          socket.connect()
+        }
+      })
+    } catch (e) {
+      console.error('Socket initialization error:', e)
+    }
   }
 
   const ncSocket = {

@@ -20641,6 +20641,15 @@
           "schema": {
             "type": "string"
           },
+          "name": "workflowId",
+          "in": "query",
+          "description": "Workflow ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "cursor",
           "in": "query",
           "description": "Cursor",
@@ -21551,7 +21560,8 @@
           "finance",
           "ticketing",
           "storage",
-          "others"
+          "others",
+          "workflow-node"
         ]
       },
       "IntegrationReq": {
@@ -29613,6 +29623,73 @@
         },
         "x-stoplight": {
           "id": "4zvzrppfjxrqb"
+        }
+      },
+      "Workflow": {
+        "description": "Model for Workflow",
+        "title": "Workflow Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the Workflow"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the Workflow"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the workflow is enabled"
+          },
+          "nodes": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Nodes configuration for the workflow workflow"
+          },
+          "edges": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Edges configuration for the workflow workflow"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for the Workflow"
+          },
+          "trigger_count": {
+            "type": "number",
+            "description": "Number of times the workflow has been triggered"
+          },
+          "order": {
+            "description": "The order of the workflow in the list",
+            "type": "number"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last updated time"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation time"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "updated_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the last updated user"
+          }
         }
       },
       "ExtensionReq": {

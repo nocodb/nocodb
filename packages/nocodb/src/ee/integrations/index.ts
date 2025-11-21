@@ -11,6 +11,7 @@ import ChatwootAuth from '@noco-local-integrations/chatwoot-auth';
 import ChatwootSync from '@noco-local-integrations/chatwoot-sync';
 import ClaudeAi from '@noco-local-integrations/claude-ai';
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
+import CoreWorkflowNode from '@noco-local-integrations/core-workflow-node';
 import DeepseekAi from '@noco-local-integrations/deepseek-ai';
 import FreshdeskAuth from '@noco-local-integrations/freshdesk-auth';
 import FreshdeskSync from '@noco-local-integrations/freshdesk-sync';
@@ -25,6 +26,7 @@ import LinearSync from '@noco-local-integrations/linear-sync';
 import MysqlAuth from '@noco-local-integrations/mysql-auth';
 import MysqlSync from '@noco-local-integrations/mysql-sync';
 import NocodbAi from '@noco-local-integrations/nocodb-ai';
+import NocodbWorkflowNode from '@noco-local-integrations/nocodb-workflow-node';
 import OpenaiAi from '@noco-local-integrations/openai-ai';
 import OpenaiCompatibleAi from '@noco-local-integrations/openai-compatible-ai';
 import PostgresAuth from '@noco-local-integrations/postgres-auth';
@@ -36,33 +38,35 @@ import ZohoAuth from '@noco-local-integrations/zoho-auth';
 import type { IntegrationEntry } from '@noco-local-integrations/core';
 
 export default [
-  AmazonBedrockAi,
-  AzureAi,
-  BitbucketAuth,
-  BitbucketSync,
-  ChatwootAuth,
-  ChatwootSync,
-  ClaudeAi,
-  ClickhouseAuth,
-  DeepseekAi,
-  FreshdeskAuth,
-  FreshdeskSync,
-  GithubAuth,
-  GithubSync,
-  GitlabAuth,
-  GitlabSync,
-  GoogleAi,
-  GroqAi,
-  LinearAuth,
-  LinearSync,
-  MysqlAuth,
-  MysqlSync,
-  NocodbAi,
-  OpenaiAi,
-  OpenaiCompatibleAi,
-  PostgresAuth,
-  PostgresSync,
-  ZendeskAuth,
-  ZendeskSync,
-  ZohoAuth,
+  ...(Array.isArray(AmazonBedrockAi) ? AmazonBedrockAi : [AmazonBedrockAi]),
+  ...(Array.isArray(AzureAi) ? AzureAi : [AzureAi]),
+  ...(Array.isArray(BitbucketAuth) ? BitbucketAuth : [BitbucketAuth]),
+  ...(Array.isArray(BitbucketSync) ? BitbucketSync : [BitbucketSync]),
+  ...(Array.isArray(ChatwootAuth) ? ChatwootAuth : [ChatwootAuth]),
+  ...(Array.isArray(ChatwootSync) ? ChatwootSync : [ChatwootSync]),
+  ...(Array.isArray(ClaudeAi) ? ClaudeAi : [ClaudeAi]),
+  ...(Array.isArray(ClickhouseAuth) ? ClickhouseAuth : [ClickhouseAuth]),
+  ...(Array.isArray(CoreWorkflowNode) ? CoreWorkflowNode : [CoreWorkflowNode]),
+  ...(Array.isArray(DeepseekAi) ? DeepseekAi : [DeepseekAi]),
+  ...(Array.isArray(FreshdeskAuth) ? FreshdeskAuth : [FreshdeskAuth]),
+  ...(Array.isArray(FreshdeskSync) ? FreshdeskSync : [FreshdeskSync]),
+  ...(Array.isArray(GithubAuth) ? GithubAuth : [GithubAuth]),
+  ...(Array.isArray(GithubSync) ? GithubSync : [GithubSync]),
+  ...(Array.isArray(GitlabAuth) ? GitlabAuth : [GitlabAuth]),
+  ...(Array.isArray(GitlabSync) ? GitlabSync : [GitlabSync]),
+  ...(Array.isArray(GoogleAi) ? GoogleAi : [GoogleAi]),
+  ...(Array.isArray(GroqAi) ? GroqAi : [GroqAi]),
+  ...(Array.isArray(LinearAuth) ? LinearAuth : [LinearAuth]),
+  ...(Array.isArray(LinearSync) ? LinearSync : [LinearSync]),
+  ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),
+  ...(Array.isArray(MysqlSync) ? MysqlSync : [MysqlSync]),
+  ...(Array.isArray(NocodbAi) ? NocodbAi : [NocodbAi]),
+  ...(Array.isArray(NocodbWorkflowNode) ? NocodbWorkflowNode : [NocodbWorkflowNode]),
+  ...(Array.isArray(OpenaiAi) ? OpenaiAi : [OpenaiAi]),
+  ...(Array.isArray(OpenaiCompatibleAi) ? OpenaiCompatibleAi : [OpenaiCompatibleAi]),
+  ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
+  ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
+  ...(Array.isArray(ZendeskAuth) ? ZendeskAuth : [ZendeskAuth]),
+  ...(Array.isArray(ZendeskSync) ? ZendeskSync : [ZendeskSync]),
+  ...(Array.isArray(ZohoAuth) ? ZohoAuth : [ZohoAuth]),
 ] as IntegrationEntry[];

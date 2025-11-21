@@ -12,6 +12,7 @@ import type {
   ScriptType,
   UserType,
   WidgetType,
+  WorkflowType,
   WorkspaceType,
 } from 'nocodb-sdk';
 import type Snapshot from '~/models/Snapshot';
@@ -111,6 +112,34 @@ export interface ScriptDuplicateEvent extends NcBaseEvent {
   error?: string;
   sourceScript: ScriptType;
   destScript: ScriptType;
+  user: UserType;
+}
+
+export interface WorkflowCreateEvent extends NcBaseEvent {
+  workflow: WorkflowType;
+  user: UserType;
+}
+
+export interface WorkflowUpdateEvent extends NcBaseEvent {
+  workflow: WorkflowType;
+  user: UserType;
+  oldWorkflow: WorkflowType;
+}
+
+export interface WorkflowDeleteEvent extends NcBaseEvent {
+  workflow: WorkflowType;
+  user: UserType;
+}
+
+export interface WorkflowExecuteEvent extends NcBaseEvent {
+  workflow: WorkflowType;
+  user?: UserType;
+}
+
+export interface WorkflowDuplicateEvent extends NcBaseEvent {
+  error?: string;
+  sourceWorkflow: WorkflowType;
+  destWorkflow: WorkflowType;
   user: UserType;
 }
 

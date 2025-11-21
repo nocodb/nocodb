@@ -105,7 +105,7 @@ export class ViewWebhookManager extends ViewWebhookManagerCE {
         return;
       }
       Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
-        context: this.context,
+        context: { ...this.context, cache: false, cacheMap: undefined },
         hookName: `${WebhookEvents.VIEW}.${this.params.action}`,
         prevData: this.params.oldView,
         newData: this.params.newView,

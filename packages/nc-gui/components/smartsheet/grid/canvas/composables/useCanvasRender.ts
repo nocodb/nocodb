@@ -1548,7 +1548,7 @@ export function useCanvasRender({
           ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
           ctx.rect(xOffset, yOffset, 4, rowHeight.value)
           ctx.fill()
-          ctx.strokeStyle = '#D5D5D9'
+          ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
           ctx.beginPath()
           ctx.moveTo(xOffset, yOffset)
           ctx.lineTo(xOffset, yOffset + rowHeight.value)
@@ -2402,7 +2402,7 @@ export function useCanvasRender({
 
     ctx.restore()
 
-    ctx.strokeStyle = '#D5D5D9'
+    ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
     ctx.lineWidth = 1
     ctx.stroke()
 

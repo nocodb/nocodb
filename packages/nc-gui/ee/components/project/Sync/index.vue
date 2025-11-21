@@ -134,8 +134,12 @@ const handleDeleteSync = async (syncId: string) => {
     },
     okText: t('general.delete'),
     okCallback: async () => {
-      await syncStore.deleteSync(currentBase.value.id!, syncId)
-      await loadTables()
+      try {
+        await syncStore.deleteSync(currentBase.value.id!, syncId)
+        await loadTables()
+      } catch (e: any) {
+        console.log('something went wrong while deleting sync', e)
+      }
     },
   })
 }

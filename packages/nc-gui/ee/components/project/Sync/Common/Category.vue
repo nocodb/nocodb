@@ -119,7 +119,7 @@ const splitIntegrations = (integrations: IntegrationItemType[] = []) => {
           </div>
 
           <NcBadgeComingSoon v-else class="bg-nc-bg-gray-medium !w-[fit-content] text-nc-content-gray-subtle2" />
-          <div class="text-captionBold text-nc-content-gray">
+          <div class="text-captionBold text-nc-content-gray mt-1">
             {{ category.label }}
           </div>
 

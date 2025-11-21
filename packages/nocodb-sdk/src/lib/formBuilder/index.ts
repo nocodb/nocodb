@@ -131,6 +131,8 @@ interface FormBuilderElementBase {
   validators?: FormBuilderValidator[];
   /** Model path(s) this field depends on - when dependency changes, options are reloaded */
   dependsOn?: string | string[];
+  /** Help text for the element */
+  helpText?: string;
 }
 
 /**

@@ -880,13 +880,21 @@ const parseConditionV2 = async (
                   }
                   for (let i = 0; i < items?.length; i++) {
                     let sql;
-                    const bindings = [field, `%,${items[i]},%`];
+                    const bindings = [
+                      field,
+                      `%,${items[i]},%`,
+                      field,
+                      `%, ${items[i]},%`,
+                    ];
                     if (knex.clientType() === 'pg') {
-                      sql = "(',' || ??::text || ',') ilike ?";
+                      sql =
+                        "(',' || ??::text || ',') ilike ? OR (',' || ??::text || ',') ilike ?";
                     } else if (knex.clientType() === 'sqlite3') {
-                      sql = "(',' || ?? || ',') like ?";
+                      sql =
+                        "(',' || ?? || ',') like ? OR (',' || ?? || ',') like ?";
                     } else {
-                      sql = "CONCAT(',', ??, ',') like ?";
+                      sql =
+                        "CONCAT(',', ??, ',') like ? OR CONCAT(',', ??, ',') like ?";
                     }
                     if (i === 0) {
                       builder = builder.where(knex.raw(sql, bindings));

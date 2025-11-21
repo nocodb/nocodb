@@ -99,8 +99,8 @@ const splitIntegrations = (integrations: IntegrationItemType[] = []) => {
           >
             <NcTooltip
               v-for="integration of splitIntegrations(syncCategoryIntegrationMap[category.value]).visible"
-              :title="integration.title"
               :key="integration.sub_type"
+              :title="integration.title"
               class="h-6 w-6 flex-none rounded-md bg-nc-bg-gray-light flex items-center justify-center"
             >
               <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" size="sx" />

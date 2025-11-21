@@ -110,11 +110,7 @@ const data = computed(() => {
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'name'">
-              <NcTooltip
-                :title="record.title || 'Untitled Sync'"
-                show-on-truncate-only
-                class="text-captionBold text-nc-content-gray truncate w-full"
-              >
+              <NcTooltip :title="record.title" show-on-truncate-only class="text-nc-content-gray font-semibold truncate w-full">
                 {{ record.title || 'Untitled Sync' }}
               </NcTooltip>
             </template>

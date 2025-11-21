@@ -2,13 +2,13 @@ import type { SyncConfig } from 'nocodb-sdk'
 import {
   IntegrationsType,
   OnDeleteAction,
+  OnDeleteActionMeta,
   SyncCategory,
   SyncTrigger,
-  SyncType,
-  generateUniqueCopyName,
-  SyncTypeMeta,
-  OnDeleteActionMeta,
   SyncTriggerMeta,
+  SyncType,
+  SyncTypeMeta,
+  generateUniqueCopyName,
 } from 'nocodb-sdk'
 
 const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {

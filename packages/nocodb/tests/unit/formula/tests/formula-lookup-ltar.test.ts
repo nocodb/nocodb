@@ -296,6 +296,25 @@ function formulaLookupLtarTests() {
       expect(parts[0]).to.contain(token);
       expect(parts[1]).to.contain(token);
     }
+
+    const t1Rows = await chunkListRow({
+      base: _base,
+      table: _tables.table1,
+      pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
+    });
+    const t2Rows = await chunkListRow({
+      base: _base,
+      table: _tables.table2,
+      pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
+    });
+    const t3Rows = await chunkListRow({
+      base: _base,
+      table: _tables.table3,
+      pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
+    });
+    expect(t1Rows[0].table2FormulaTitle).to.eq('T2_001?');
+    expect(t2Rows[0].table1FormulaTitleConcat).to.contain('T1_001?');
+    expect(t3Rows[0].table1FormulaTitle).to.eq('T1_001?');
   });
 
   it('will create a formula column assigned as display value accessed through ltar field', async () => {

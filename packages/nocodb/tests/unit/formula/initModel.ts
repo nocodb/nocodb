@@ -9,6 +9,7 @@ import {
   createColumn,
   createLookupColumn,
   createLtarColumn2,
+  createRollupColumn,
   customColumns,
 } from '../factory/column';
 import { createBulkRows } from '../factory/row';
@@ -409,5 +410,81 @@ export async function initFormulaLookupColumns(context: ITestContext) {
     relatedTableName: context.tables.table1.table_name,
     relatedTableColumnTitle: 'FormulaTitle',
     relationColumnId: t2_HM_t1_Ltar.id,
+  });
+
+  const t2FformulaColumn = await createColumn(
+    context.context,
+    context.tables.table2,
+    {
+      title: 'T2FormulaTitle',
+      uidt: UITypes.Formula,
+      formula: 'CONCAT({Title}, "?")',
+      formula_raw: 'CONCAT({Title}, "?")',
+    },
+  );
+  const t1_BT_t2_Ltar = (
+    await context.tables.table1.getColumns(context.ctx)
+  ).find((col) => col.title === 'Table2');
+
+  await createLookupColumn(context.context, {
+    base: context.base,
+    title: 'table2FormulaTitle',
+    table: await Model.getByIdOrName(context.ctx, {
+      base_id: context.base.id,
+      source_id: source.id!,
+      id: context.tables.table1.id,
+    }),
+    relatedTableName: context.tables.table2.table_name,
+    relatedTableColumnTitle: 'T2FormulaTitle',
+    relationColumnId: t1_BT_t2_Ltar.id,
+  });
+
+  // oo
+  const t3_OO_t1_Ltar = (
+    await context.tables.table3.getColumns(context.ctx)
+  ).find((col) => col.title === 'T1_OO');
+
+  await createLookupColumn(context.context, {
+    base: context.base,
+    title: 'table1FormulaTitle',
+    table: await Model.getByIdOrName(context.ctx, {
+      base_id: context.base.id,
+      source_id: source.id!,
+      id: context.tables.table3.id,
+    }),
+    relatedTableName: context.tables.table1.table_name,
+    relatedTableColumnTitle: 'FormulaTitle',
+    relationColumnId: t3_OO_t1_Ltar.id,
+  });
+}
+
+export async function initFormulaRollupColumns(context: ITestContext) {
+  const formulaColumn = await createColumn(
+    context.context,
+    context.tables.table1,
+    {
+      title: 'FormulaTitle',
+      uidt: UITypes.Formula,
+      formula: 'CONCAT({Title}, "?")',
+      formula_raw: 'CONCAT({Title}, "?")',
+    },
+  );
+  const t2_HM_t1_Ltar = (
+    await context.tables.table2.getColumns(context.ctx)
+  ).find((col) => col.title === 'T1s');
+  const source = (await context.base.getSources())[0];
+
+  await createRollupColumn(context.context, {
+    base: context.base,
+    title: 'table1FormulaTitle',
+    rollupFunction: 'countDistinct',
+    table: await Model.getByIdOrName(context.ctx, {
+      base_id: context.base.id,
+      source_id: source.id!,
+      id: context.tables.table2.id,
+    }),
+    relatedTableName: context.tables.table1.table_name,
+    relatedTableColumnTitle: 'FormulaTitle',
+    ltarColumnId: t2_HM_t1_Ltar.id,
   });
 }

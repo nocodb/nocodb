@@ -123,7 +123,6 @@ export default async function genRollupSelectv2(param: {
         baseUsers: undefined,
         parentColumns,
       });
-
       selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
     } else if ([UITypes.Rollup].includes(rollupColumn.uidt)) {
       const knex = refBaseModel.dbDriver;

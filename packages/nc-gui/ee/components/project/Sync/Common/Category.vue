@@ -18,6 +18,10 @@ const availableModels = computed(() => {
   )
 })
 
+const isCategoryAlreadyAdded = (category: SyncCategory) => {
+  return activeBaseSyncs.value.some((sync) => sync.sync_category === category)
+}
+
 const selectSyncAllModels = (value: boolean) => {
   if (mode === 'edit') {
     return
@@ -68,10 +72,6 @@ const splitIntegrations = (integrations: IntegrationItemType[] = []) => {
       .join(', '),
     hiddenCount: integrations.length - 3,
   }
-}
-
-const isCategoryAlreadyAdded = (category: SyncCategory) => {
-  return activeBaseSyncs.value.some((sync) => sync.sync_category === category)
 }
 
 onMounted(() => {

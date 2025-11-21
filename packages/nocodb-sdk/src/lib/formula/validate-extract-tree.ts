@@ -1,5 +1,3 @@
-import jsep from 'jsep';
-
 import {
   ColumnType,
   FormulaType,
@@ -18,7 +16,7 @@ import {
 } from './types';
 import { handleFormulaError } from './handle-formula-error';
 import { formulas } from './formulas';
-import { jsepCurlyHook, jsepIndexHook } from './hooks';
+import { formulaJsep, formulaJsepWithIndex } from './jsepInstances';
 import { ClientTypeOrSqlUI } from './types';
 import { SqlUiFactory } from '~/lib/sqlUi';
 import {
@@ -1131,12 +1129,8 @@ export async function validateFormulaAndExtractTreeWithType({
   };
 
   try {
-    // register jsep curly hook
-    jsep.plugins.register(jsepCurlyHook);
-    if (trackPosition) {
-      jsep.plugins.register(jsepIndexHook);
-    }
-    const parsedFormula = jsep(formula);
+    const jsepInstance = trackPosition ? formulaJsepWithIndex : formulaJsep;
+    const parsedFormula = jsepInstance(formula);
     // TODO: better jsep expression handling
     const result = await validateAndExtract(
       parsedFormula as unknown as ParsedFormulaNode

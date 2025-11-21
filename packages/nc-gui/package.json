@@ -122,7 +122,7 @@
     "inflection": "^1.13.4",
     "isomorphic-dompurify": "^2.25.0",
     "jsbarcode": "^3.11.6",
-    "jsep": "^1.4.0",
+    "nc-jsep": "^1.7.5",
     "jwt-decode": "^3.1.2",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",

@@ -1,9 +1,4 @@
-import jsep from 'jsep';
-import template from '@jsep-plugin/template';
-import object from '@jsep-plugin/object';
-import ternary from '@jsep-plugin/ternary';
-
-jsep.plugins.register(template, object, ternary);
+import { workflowJsep } from '../../formula/jsepInstances';
 
 /**
  * Security Error for workflow expression parser
@@ -200,7 +195,7 @@ export class WorkflowExpressionParser {
     this.iterationCount = 0;
 
     try {
-      const ast = jsep(expression);
+      const ast = workflowJsep(expression);
       return this.evaluateNode(ast);
     } catch (error) {
       if (

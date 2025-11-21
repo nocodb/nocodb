@@ -1,5 +1,4 @@
-import jsep from 'jsep';
-import { UITypes } from 'nocodb-sdk';
+import { formulaJsep, UITypes } from 'nocodb-sdk';
 import type FormulaColumn from '../models/FormulaColumn';
 import type { NcContext } from '~/interface/config';
 import type { ButtonColumn, Column } from '~/models';
@@ -39,7 +38,7 @@ export async function getFormulasReferredTheColumn(
     if (UITypes.Button === c.uidt && (formula as ButtonColumn)?.type !== 'url')
       return columns;
 
-    if (fn(jsep(formula.formula))) {
+    if (fn(formulaJsep(formula.formula))) {
       columns.push(c);
     }
     return columns;

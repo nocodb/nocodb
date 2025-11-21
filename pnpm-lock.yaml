@@ -309,9 +309,6 @@ importers:
       jsbarcode:
         specifier: ^3.11.6
         version: 3.11.6
-      jsep:
-        specifier: ^1.4.0
-        version: 1.4.0
       jwt-decode:
         specifier: ^3.1.2
         version: 3.1.2
@@ -354,6 +351,9 @@ importers:
       nc-analytics:
         specifier: ^0.0.6
         version: 0.0.6
+      nc-jsep:
+        specifier: ^1.7.5
+        version: 1.7.5
       nocodb-sdk:
         specifier: workspace:^
         version: link:../nocodb-sdk
@@ -1063,9 +1063,6 @@ importers:
       jira-client:
         specifier: ^8.2.2
         version: 8.2.2
-      jsep:
-        specifier: ^1.4.0
-        version: 1.4.0
       json5:
         specifier: ^2.2.3
         version: 2.2.3
@@ -1117,6 +1114,9 @@ importers:
       nanoid:
         specifier: ^3.3.8
         version: 3.3.8
+      nc-jsep:
+        specifier: ^1.7.5
+        version: 1.7.5
       nc-lib-gui:
         specifier: 0.263.4
         version: 0.263.4
@@ -1412,15 +1412,6 @@ importers:
 
   packages/nocodb-sdk:
     dependencies:
-      '@jsep-plugin/object':
-        specifier: ^1.2.2
-        version: 1.2.2(jsep@1.4.0)
-      '@jsep-plugin/template':
-        specifier: ^1.0.5
-        version: 1.0.5(jsep@1.4.0)
-      '@jsep-plugin/ternary':
-        specifier: ^1.1.4
-        version: 1.1.4(jsep@1.4.0)
       '@vue-flow/core':
         specifier: ^1.47.0
         version: 1.47.0(vue@3.5.14(typescript@5.8.3))
@@ -1439,9 +1430,18 @@ importers:
       dayjs:
         specifier: ^1.11.13
         version: 1.11.13
-      jsep:
-        specifier: ^1.4.0
-        version: 1.4.0
+      nc-jsep:
+        specifier: ^1.7.5
+        version: 1.7.5
+      nc-jsep-plugin-object:
+        specifier: ^1.7.5
+        version: 1.7.5(nc-jsep@1.7.5)
+      nc-jsep-plugin-template:
+        specifier: ^1.7.5
+        version: 1.7.5(nc-jsep@1.7.5)
+      nc-jsep-plugin-ternary:
+        specifier: ^1.7.5
+        version: 1.7.5(nc-jsep@1.7.5)
       validator:
         specifier: ^13.12.0
         version: 13.12.0
@@ -5163,24 +5163,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
-
-  '@jsep-plugin/object@1.2.2':
-    resolution: {integrity: sha512-GZsC7gI5oBR+mfDFJqULf5a76FRVKednNCdSco96HM1NUbZSdDT7t/fkClUf6In64L5JORCIyhOhE6wJA6AZYg==}
-    engines: {node: '>= 10.16.0'}
-    peerDependencies:
-      jsep: ^0.4.0||^1.0.0
-
-  '@jsep-plugin/template@1.0.5':
-    resolution: {integrity: sha512-xw6/dcc8Kr/nxmEIi74HxzMCkUd5mIWEaDG55pPiTSmGJzyeAfCedbKFGeH1GKNMytxi9fhc2d1/fVtJ5QHljQ==}
-    engines: {node: '>= 10.16.0'}
-    peerDependencies:
-      jsep: ^0.4.0||^1.0.0
-
-  '@jsep-plugin/ternary@1.1.4':
-    resolution: {integrity: sha512-ck5wiqIbqdMX6WRQztBL7ASDty9YLgJ3sSAK5ZpBzXeySvFGCzIvM6UiAI4hTZ22fEcYQVV/zhUbNscggW+Ukg==}
-    engines: {node: '>= 10.16.0'}
-    peerDependencies:
-      jsep: ^0.4.0||^1.0.0
 
   '@jsonjoy.com/base64@1.1.2':
     resolution: {integrity: sha512-q6XAnWQDIMA3+FTiOYajoYqySkO+JSat0ytXGSuRdq9uXE7o92gzuQwQM14xaCRlBLGq3v5miDGC4vkVTn54xA==}
@@ -13715,10 +13697,6 @@ packages:
       canvas:
         optional: true
 
-  jsep@1.4.0:
-    resolution: {integrity: sha512-B7qPcEVE3NVkmSJbaYxvv4cHkVW7DQsZz13pUMrfS8z8Q/BuShN+gcTXrUlPiGqM2/t/EEaI030bpxMqY8gMlw==}
-    engines: {node: '>= 10.16.0'}
-
   jsesc@3.0.2:
     resolution: {integrity: sha512-xKqzzWXDttJuOcawBt4KnKHHIf5oQ/Cxax+0PWFG+DFDgHNAdi+TXECADI+RYiFUMmx8792xsMbbgXj4CwnP4g==}
     engines: {node: '>=6'}
@@ -14892,6 +14870,28 @@ packages:
 
   nc-analytics@0.0.6:
     resolution: {integrity: sha512-YMNRCs8KVnK5CADBAmrfznN589zMzYmzVVkr0coPw8nq0NMcNYft0lONeGs8g/urvZuw/GHfMoVbgbhch0/OxA==}
+
+  nc-jsep-plugin-object@1.7.5:
+    resolution: {integrity: sha512-NCEDhcmE/Tc1IROg3zlnbo8YzhIJn2zcwI7py5fLTAPWqofZq5KrvNVWm6vn1a/nym05vwhj1iqK7SdDTANXtQ==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      nc-jsep: 1.7.5
+
+  nc-jsep-plugin-template@1.7.5:
+    resolution: {integrity: sha512-E7T1xEuylE2ax96NFXVYF58GpIwmFmRwLHzrKz21fBDz1/IYLdXOmDrdUAzeKA4bdKXEw6BI2pZOX54P4HqhYg==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      nc-jsep: 1.7.5
+
+  nc-jsep-plugin-ternary@1.7.5:
+    resolution: {integrity: sha512-JxZHfJ7O0SZMs4LLVFbKdBh060V+s4rSNX4Mv1AXiL+VeGXnHoUGxMOtZ3ZHTNQQhLAO3hwathhTpKVLU2rZRQ==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      nc-jsep: 1.7.5
+
+  nc-jsep@1.7.5:
+    resolution: {integrity: sha512-2EfjyM8ITPNdumJvd2CFamPO4dvQdrMAPmw9sK0Ex4mMJ/NagdQTnvm/GVaSVshchISx38D0LG+Xqhl3mPKO2w==}
+    engines: {node: '>= 20'}
 
   nc-lib-gui@0.263.4:
     resolution: {integrity: sha512-z6/Zuk5SejrAOJPd3mr7m/Dn2sqWMFgAmMuo8CGGMRQ2H2WwgTVT5ZjGGD240yQ5PGJFTQN/nzG35C+6tAh2uw==}
@@ -25749,18 +25749,6 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
-
-  '@jsep-plugin/object@1.2.2(jsep@1.4.0)':
-    dependencies:
-      jsep: 1.4.0
-
-  '@jsep-plugin/template@1.0.5(jsep@1.4.0)':
-    dependencies:
-      jsep: 1.4.0
-
-  '@jsep-plugin/ternary@1.1.4(jsep@1.4.0)':
-    dependencies:
-      jsep: 1.4.0
 
   '@jsonjoy.com/base64@1.1.2(tslib@2.8.1)':
     dependencies:
@@ -36634,8 +36622,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  jsep@1.4.0: {}
-
   jsesc@3.0.2: {}
 
   jsesc@3.1.0: {}
@@ -38243,6 +38229,22 @@ snapshots:
   natural-compare@1.4.0: {}
 
   nc-analytics@0.0.6: {}
+
+  nc-jsep-plugin-object@1.7.5(nc-jsep@1.7.5):
+    dependencies:
+      nc-jsep: 1.7.5
+
+  nc-jsep-plugin-template@1.7.5(nc-jsep@1.7.5):
+    dependencies:
+      nc-jsep: 1.7.5
+
+  nc-jsep-plugin-ternary@1.7.5(nc-jsep@1.7.5):
+    dependencies:
+      nc-jsep: 1.7.5
+
+  nc-jsep@1.7.5:
+    dependencies:
+      nc-jsep-plugin-ternary: 1.7.5(nc-jsep@1.7.5)
 
   nc-lib-gui@0.263.4:
     dependencies:

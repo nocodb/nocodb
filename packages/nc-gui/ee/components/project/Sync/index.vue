@@ -49,6 +49,7 @@ const columns = [
     name: 'Name',
     dataIndex: 'title',
     minWidth: 150,
+    basis: '40%',
     padding: '0px 24px',
   },
   {
@@ -57,7 +58,7 @@ const columns = [
     name: 'Sources',
     dataIndex: 'sources',
     minWidth: 120,
-    width: 120,
+    basis: '20%',
     padding: '0px 24px',
   },
   {
@@ -66,7 +67,7 @@ const columns = [
     name: 'Type',
     dataIndex: 'sync_type',
     minWidth: 150,
-    width: 150,
+    basis: '20%',
     padding: '0px 24px',
   },
   {
@@ -75,7 +76,7 @@ const columns = [
     name: 'Last trigger',
     dataIndex: 'last_sync_at',
     minWidth: 150,
-    width: 150,
+    basis: '20%',
     padding: '0px 24px',
   },
   {

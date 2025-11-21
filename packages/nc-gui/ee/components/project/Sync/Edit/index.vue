@@ -91,10 +91,7 @@ const handleUpdate = async () => {
 
     <div class="h-[calc(100%_-_50px)] flex">
       <div class="flex-1 nc-modal-sync-edit-content h-full">
-        <div
-          ref="containerElem"
-          class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-12 mx-auto"
-        >
+        <div ref="containerElem" class="h-full flex-1 flex flex-col overflow-auto nc-scrollbar-thin px-6 md:px-12 mx-auto">
           <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 my-6 flex flex-col">
             <a-form layout="vertical" no-style :hide-required-mark="true" class="flex flex-col gap-8 w-full">
               <div v-show="activeTab === 'general'" class="flex flex-col gap-8">

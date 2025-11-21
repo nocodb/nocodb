@@ -8,6 +8,8 @@ import { SyncFormStep } from '#imports'
 
 const { syncConfigForm, integrationConfigs, step } = useSyncFormOrThrow()
 
+const { t } = useI18n()
+
 const switchToStep = (selectedStep: SyncFormStep) => {
   step.value = selectedStep
 }
@@ -35,6 +37,52 @@ const getReadableCategory = (category: SyncCategory) => {
       : '')
   )
 }
+
+const columns = [
+  {
+    key: 'name',
+    title: 'Config name',
+    name: 'Name',
+    dataIndex: 'name',
+    minWidth: 150,
+    basis: '50%',
+    padding: '0px 24px',
+  },
+  {
+    key: 'value',
+    title: 'Selected value',
+    name: 'Value',
+    dataIndex: 'value',
+    minWidth: 120,
+    basis: '50%',
+    padding: '0px 24px',
+  },
+] as NcTableColumnProps[]
+
+const data = computed(() => {
+  return [
+    {
+      title: t('labels.syncName'),
+      value: syncConfigForm.value.title,
+    },
+    {
+      title: t('labels.syncType'),
+      value: syncConfigForm.value.sync_type,
+    },
+    {
+      title: t('labels.onDelete'),
+      value: syncEntityToReadableMap[syncConfigForm.value.on_delete_action],
+    },
+    {
+      title: t('labels.syncTrigger'),
+      value: getReadableTrigger(syncConfigForm.value.sync_trigger),
+    },
+    {
+      title: t('labels.category'),
+      value: getReadableCategory(syncConfigForm.value.sync_category),
+    },
+  ]
+})
 </script>
 
 <template>
@@ -44,52 +92,39 @@ const getReadableCategory = (category: SyncCategory) => {
         <div class="text-bodyLgBold text-nc-content-gray">
           {{ $t('general.general') }}
         </div>
-        <NcButton type="text" size="small" @click="switchToStep(SyncFormStep.SyncSettings)">
+        <NcButton type="text" size="xsmall" @click="switchToStep(SyncFormStep.SyncSettings)">
           <div class="flex gap-2 text-nc-content-brand items-center">
             <GeneralIcon icon="ncEdit2" />
           </div>
         </NcButton>
       </div>
 
-      <div class="flex items-center gap-2">
-        <div class="flex-1 text-caption">
-          {{ $t('labels.syncName') }}
-        </div>
-        <div class="flex-1 text-caption">
-          {{ syncConfigForm.title }}
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="flex-1 text-caption">
-          {{ $t('labels.syncType') }}
-        </div>
-        <div class="flex-1 text-caption capitalize">
-          {{ syncConfigForm.sync_type }}
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="flex-1 text-caption">
-          {{ $t('labels.onDelete') }}
-        </div>
-        <div class="flex-1 text-caption">
-          {{ syncEntityToReadableMap[syncConfigForm.on_delete_action] }}
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="flex-1 text-caption">
-          {{ $t('labels.syncTrigger') }}
-        </div>
-        <div class="flex-1 text-caption">
-          {{ getReadableTrigger(syncConfigForm.sync_trigger) }}
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <div class="flex-1 text-caption">
-          {{ $t('labels.category') }}
-        </div>
-        <div class="flex-1 text-caption">
-          {{ getReadableCategory(syncConfigForm.sync_category) }}
-        </div>
+      <div class="flex-1 overflow-auto">
+        <NcTable
+          :bordered="false"
+          :columns="columns"
+          :data="data"
+          row-height="44px"
+          header-row-height="44px"
+          body-row-class-name="!cursor-default"
+          class="h-full w-full"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'name'">
+              <NcTooltip
+                :title="record.title || 'Untitled Sync'"
+                show-on-truncate-only
+                class="text-captionBold text-nc-content-gray truncate w-full"
+              >
+                {{ record.title || 'Untitled Sync' }}
+              </NcTooltip>
+            </template>
+
+            <template v-else-if="column.key === 'value'">
+              {{ record.value }}
+            </template>
+          </template>
+        </NcTable>
       </div>
     </div>
 
@@ -99,7 +134,7 @@ const getReadableCategory = (category: SyncCategory) => {
       <div class="text-bodyLgBold text-nc-content-gray">
         {{ $t('labels.sources') }}
       </div>
-      <NcButton type="text" size="small" @click="switchToStep(SyncFormStep.Integration)">
+      <NcButton type="text" size="xsmall" @click="switchToStep(SyncFormStep.Integration)">
         <div class="flex gap-2 text-nc-content-brand items-center">
           <GeneralIcon icon="ncEdit2" />
         </div>

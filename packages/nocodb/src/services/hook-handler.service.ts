@@ -182,7 +182,10 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
     this.unsubscribe = this.eventEmitter.on(HANDLE_WEBHOOK, async (arg) => {
       try {
         const { context, ...rest } = arg;
-        return this.handleHooks(context, rest);
+        return this.handleHooks(
+          { ...context, cache: false, cacheMap: undefined },
+          rest,
+        );
       } catch (e) {
         this.logger.error({
           error: e,

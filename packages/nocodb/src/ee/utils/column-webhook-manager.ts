@@ -469,7 +469,7 @@ export class ColumnWebhookManager extends ColumnWebhookManagerCE {
       }
 
       Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
-        context: this.context,
+        context: { ...this.context, cache: false, cacheMap: undefined },
         hookName: `${WebhookEvents.FIELD}.${this.params.action}`,
         ...emitData,
         user: this.context.user,

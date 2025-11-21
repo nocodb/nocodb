@@ -25,7 +25,8 @@ body {
 
 // Drawer & Modal
 .ant-drawer-content,
-.ant-modal-content {
+.ant-modal-content,
+.ant-modal-header {
   @apply !bg-nc-bg-default;
 }
 

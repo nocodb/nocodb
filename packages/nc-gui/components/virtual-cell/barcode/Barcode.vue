@@ -97,7 +97,7 @@ onMounted(() => {
         </div>
         <div class="flex-1"></div>
         <NcButton class="nc-barcode-close !px-1" type="text" size="xs" @click="modalVisible = false">
-          <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
+          <GeneralIcon class="text-md text-nc-content-gray-subtle h-4 w-4" icon="close" />
         </NcButton>
       </div>
     </template>
@@ -175,11 +175,11 @@ onMounted(() => {
 .barcode-modal .ant-modal-content {
   padding: 0 !important;
   .ant-modal-header {
+    @apply border-b-nc-border-gray-medium;
     position: relative;
     padding: 8px 16px;
     border-top-left-radius: 1em;
     border-top-right-radius: 1em;
-    border-bottom: 1px solid #e7e7e9;
     .ant-modal-title {
       height: 30px;
       display: flex;

@@ -25,7 +25,8 @@ body {
 
 // Drawer & Modal
 .ant-drawer-content,
-.ant-modal-content {
+.ant-modal-content,
+.ant-modal-header {
   @apply !bg-nc-bg-default;
 }
 
@@ -88,6 +89,15 @@ body {
 
     * {
       --tw-ring-offset-color: var(--nc-bg-default);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: rgba(var(--rgb-base), 0.85);
     }
   }
 }

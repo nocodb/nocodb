@@ -63,9 +63,10 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
         {{ $t('labels.selectACategory') }}
       </div>
       <div class="grid grid-cols-4 gap-2.5">
-        <div
+        <NcTooltip
           v-for="category in categories"
           :key="category.value"
+          :disabled="!(syncConfigForm.sync_category === category.value && mode === 'edit')"
           :class="{
             'border-nc-border-brand !shadow-selected': syncConfigForm.sync_category === category.value && mode === 'create',
             'border-nc-border-gray-extradark !shadow-disabled':
@@ -76,14 +77,13 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
           class="p-3 border-1 flex flex-col gap-2 rounded-lg transition-shadow border-nc-border-gray-medium"
           @click="selectCategory(category)"
         >
+          <template #title> Category not editable in edit mode </template>
           <div
             v-if="!category.comingSoon && (category.beta ? isSyncAdvancedFeaturesEnabled : true)"
             class="max-h-5 h-5 flex items-center gap-2"
           >
             <template v-for="integration of syncCategoryIntegrationMap[category.value]?.slice(0, 3)" :key="integration.sub_type">
-              <NcTooltip v-if="integration?.sub_type" :title="integration.title">
-                <GeneralIntegrationIcon :type="integration.sub_type" size="md" />
-              </NcTooltip>
+              <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" size="md" />
             </template>
             <!-- Show +N if more than 4 -->
             <div v-if="syncCategoryIntegrationMap[category.value].length > 3" class="text-body text-nc-content-gray-subtle">
@@ -110,7 +110,7 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
               {{ category.description }}
             </NcTooltip>
           </div>
-        </div>
+        </NcTooltip>
       </div>
     </div>
 
@@ -120,7 +120,8 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
       </div>
 
       <div class="grid grid-cols-2 gap-3">
-        <div
+        <NcTooltip
+          :disabled="!(syncAllModels && mode === 'edit')"
           :class="{
             'border-nc-border-brand !shadow-selected': syncAllModels && mode === 'create',
             'border-nc-border-gray-extradark !shadow-disabled': syncAllModels && mode === 'edit',
@@ -129,6 +130,7 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
           class="flex flex-col p-3 border-1 rounded-lg gap-1"
           @click="selectSyncAllModels(true)"
         >
+          <template #title> Sync scope not editable in edit mode </template>
           <div class="flex items-center gap-3">
             <div class="nc-radio" :data-checked="syncAllModels">
               <div class="nc-radio-dot"></div>
@@ -141,8 +143,9 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
           <div class="text-nc-content-gray-muted text-bodySm pl-7">
             {{ $t('labels.syncAllTablesDescription') }}
           </div>
-        </div>
-        <div
+        </NcTooltip>
+        <NcTooltip
+          :disabled="!(syncAllModels && mode === 'edit')"
           class="flex flex-col p-3 border-1 rounded-lg gap-1"
           :class="{
             'border-nc-border-brand !shadow-selected': !syncAllModels && mode === 'create',
@@ -151,6 +154,7 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
           }"
           @click="selectSyncAllModels(false)"
         >
+          <template #title> Sync scope not editable in edit mode </template>
           <div class="flex items-center gap-3">
             <div class="nc-radio" :data-checked="!syncAllModels">
               <div class="nc-radio-dot"></div>
@@ -164,7 +168,7 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
               {{ $t('labels.syncSpecificTablesDescription') }}
             </div>
           </div>
-        </div>
+        </NcTooltip>
       </div>
     </div>
 

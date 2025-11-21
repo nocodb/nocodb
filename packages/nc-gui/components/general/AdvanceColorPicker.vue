@@ -26,9 +26,26 @@ const vModel = computed({
 
 const showActiveColorTab = ref<boolean>(false)
 
+const { colorblindMode } = useGlobal()
+
 const picked = ref<string>(props.modelValue || enumColor.light[0])
 
 const defaultColors = computed<string[][]>(() => {
+  // Use colorblind-friendly palette when colorblind mode is enabled
+  if (colorblindMode.value) {
+    // Split the colorblind palette into rows for better visual organization
+    const colorblindColors = enumColorsColorblind.light
+    const colorsPerRow = 5
+    const rows: string[][] = []
+
+    for (let i = 0; i < colorblindColors.length; i += colorsPerRow) {
+      rows.push(colorblindColors.slice(i, i + colorsPerRow))
+    }
+
+    return rows
+  }
+
+  // Default theme colors
   const colors = [
     'gray',
     'red',
@@ -112,6 +129,15 @@ watch(
 
 <template>
   <div class="nc-advance-color-picker w-[336px] pt-2" click.stop>
+    <div class="px-3 pb-2 flex items-center justify-between border-b-1 border-gray-100">
+      <span class="text-xs text-gray-600">{{ $t('labels.colorblindFriendly') }}</span>
+      <a-switch
+        v-model:checked="colorblindMode"
+        size="small"
+        class="nc-colorblind-mode-toggle"
+        data-testid="nc-colorblind-mode-toggle"
+      />
+    </div>
     <NcTabs v-model:active-key="isDefaultColorTab" class="nc-advance-color-picker-tab w-full">
       <a-tab-pane key="true">
         <template #tab>

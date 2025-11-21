@@ -1539,6 +1539,7 @@
     "addColour": "Add Colour",
     "defaultColours": "Default colours",
     "customColours": "Custom colours",
+    "colorblindFriendly": "Colorblind-friendly",
     "sendAllEvents": "Send all events",
     "useNocoAI": "Use NocoAI",
     "disableNocoAI": "Disable NocoAI",

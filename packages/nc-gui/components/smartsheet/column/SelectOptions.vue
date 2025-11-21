@@ -56,7 +56,9 @@ const savedDefaultOption = ref<Option[]>([])
 
 const colorMenus = ref<any>({})
 
-const colors = ref(enumColor.light)
+const { colorblindMode } = useGlobal()
+
+const colors = computed(() => getColorPalette(colorblindMode.value, 'light'))
 
 const defaultOption = ref<Option[]>([])
 

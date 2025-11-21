@@ -515,6 +515,74 @@ describe('dataApiV3', () => {
           `Invalid value '++notanemail321' for type 'Email' on column 'Email'`,
         );
       });
+
+      it('will handle invalid additional parameter on insert', async () => {
+        const insertResponse = await ncAxiosPost({
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
+          body: [
+            {
+              NotAllowedField: 'Hello',
+              fields: {
+                Email: '++notanemail321',
+              },
+            },
+          ],
+          status: 400,
+        });
+        expect(insertResponse.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
+        expect(insertResponse.body.message).to.eq(
+          `Properties 'NotAllowedField' on index 0 is not allowed. All record parameters need to be put inside 'fields' property`,
+        );
+        const updateResponse = await ncAxiosPatch({
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
+          body: [
+            {
+              id: 1,
+              NotAllowedField: 'Hello',
+              fields: {
+                Email: '++notanemail321',
+              },
+            },
+          ],
+          status: 400,
+        });
+        expect(updateResponse.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
+        expect(updateResponse.body.message).to.eq(
+          `Properties 'NotAllowedField' on index 0 is not allowed. All record parameters need to be put inside 'fields' property`,
+        );
+      });
+      it('will handle id property is required', async () => {
+        const updateResponse = await ncAxiosPatch({
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
+          body: [
+            {
+              fields: {
+                Email: '++notanemail321',
+              },
+            },
+          ],
+          status: 400,
+        });
+        expect(updateResponse.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
+        expect(updateResponse.body.message).to.eq(
+          `Property 'id' is required on index 0`,
+        );
+        const deleteResponse = await ncAxiosDelete({
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
+          body: [
+            {
+              fields: {
+                Email: '++notanemail321',
+              },
+            },
+          ],
+          status: 400,
+        });
+        expect(deleteResponse.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
+        expect(deleteResponse.body.message).to.eq(
+          `Property 'id' is required on index 0`,
+        );
+      });
     });
 
     describe('number-based', () => {

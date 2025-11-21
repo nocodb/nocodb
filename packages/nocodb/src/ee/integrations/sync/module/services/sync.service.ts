@@ -195,6 +195,7 @@ export class SyncModuleService implements OnModuleInit {
         sync_trigger_cron,
         sync_category,
         on_delete_action,
+        created_by: req.user.id,
       });
 
       syncConfigsToDelete.push(syncConfig);
@@ -222,6 +223,7 @@ export class SyncModuleService implements OnModuleInit {
         const childSyncConfig = await SyncConfig.insert(context, {
           fk_integration_id: childIntegration.id,
           fk_parent_sync_config_id: syncConfig.id,
+          created_by: req.user.id,
         });
 
         syncConfigsToDelete.push(childSyncConfig);
@@ -675,6 +677,7 @@ export class SyncModuleService implements OnModuleInit {
           sync_trigger: payload.sync_trigger,
           sync_trigger_cron: payload.sync_trigger_cron,
           on_delete_action: payload.on_delete_action,
+          updated_by: req.user.id,
         });
       }
     }
@@ -1039,6 +1042,7 @@ export class SyncModuleService implements OnModuleInit {
         const newSyncConfig = await SyncConfig.insert(context, {
           fk_integration_id: newIntegration.id,
           fk_parent_sync_config_id: syncConfig.id,
+          created_by: req.user.id,
         });
 
         // Store the syncConfigId in the integration for response

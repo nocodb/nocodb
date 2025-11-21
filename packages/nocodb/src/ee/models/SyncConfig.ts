@@ -40,6 +40,8 @@ export default class SyncConfig {
 
   created_at: string;
   updated_at: string;
+  created_by: string;
+  updated_by: string;
 
   children?: SyncConfig[];
 
@@ -98,6 +100,7 @@ export default class SyncConfig {
       'next_sync_at',
       'sync_job_id',
       'on_delete_action',
+      'created_by',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
@@ -125,6 +128,7 @@ export default class SyncConfig {
       'next_sync_at',
       'sync_job_id',
       'on_delete_action',
+      'updated_by',
     ]);
 
     await ncMeta.metaUpdate(

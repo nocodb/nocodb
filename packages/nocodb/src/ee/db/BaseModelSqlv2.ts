@@ -2625,13 +2625,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
       profiler.log('execute done');
 
-      if (apiVersion === NcApiVersion.V3) {
+      if (apiVersion === NcApiVersion.V3 && this.source.isMeta()) {
         profiler.log('updateLTARCols start');
         // remove LTAR/Links if part of the update request
         await this.updateLTARCols({
           datas,
           cookie,
         });
+      }
+      if (apiVersion === NcApiVersion.V3) {
         profiler.log('postUpdateOps start');
         await Promise.all(postUpdateOps.map((ops) => ops()));
         profiler.log('postUpdateOps done');

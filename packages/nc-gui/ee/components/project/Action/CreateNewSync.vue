@@ -27,10 +27,6 @@ const showProgressModal = ref(false)
 
 const syncJobId = ref<string | null>(null)
 
-const isSyncOptionVisible = computed(() => {
-  return isSyncFeatureEnabled.value && isUIAllowed('tableCreate', { source: currentBase.value?.sources?.[0] })
-})
-
 const currentBase = computedAsync(async () => {
   let base
 
@@ -45,6 +41,10 @@ const currentBase = computedAsync(async () => {
   }
 
   return base
+})
+
+const isSyncOptionVisible = computed(() => {
+  return isSyncFeatureEnabled.value && isUIAllowed('tableCreate', { source: currentBase.value?.sources?.[0] })
 })
 
 const onCreateSyncClick = () => {

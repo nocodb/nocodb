@@ -105,8 +105,8 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
                   close-on-select
                   :item-height="48"
                   class="!w-auto"
-                  @escape="onEsc"
                   wrapper-class-name="!h-auto"
+                  @escape="onEsc"
                 >
                   <template #listItem="{ option }">
                     <div class="!w-70">
@@ -152,8 +152,8 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
                   close-on-select
                   :item-height="48"
                   class="!w-auto"
-                  @escape="onEsc"
                   wrapper-class-name="!h-auto"
+                  @escape="onEsc"
                 >
                   <template #listItem="{ option }">
                     <div class="!w-80">

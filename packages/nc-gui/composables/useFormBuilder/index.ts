@@ -165,7 +165,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
           .map((c, index) => {
             const value = deepReference(c.model)
 
-            return (value?.toString() ?? '') + '-' + index
+            return `${value?.toString() ?? ''}-${index}`
           })
           .join('-')
       }

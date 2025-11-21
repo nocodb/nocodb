@@ -985,7 +985,11 @@ watch(
                   <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
                     <div class="w-full flex items-center gap-2">
                       <div class="min-w-5 flex items-center justify-center">
-                        <GeneralTableIcon size="xsmall" :meta="{ meta: table.meta, synced: table.synced }" class="text-nc-content-gray-muted" />
+                        <GeneralTableIcon
+                          size="xsmall"
+                          :meta="{ meta: table.meta, synced: table.synced }"
+                          class="text-nc-content-gray-muted"
+                        />
                       </div>
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ table.label }}</template>

@@ -554,7 +554,7 @@ export function useCanvasRender({
               x: xOffset,
               y: 0,
               radius: 0,
-              fillStyle: getColor(themeV4Colors.base.white, 0.533),
+              fillStyle: getColor(themeV4Colors.base.white, undefined, 0.533),
             })
 
             renderTag(ctx, {
@@ -938,7 +938,7 @@ export function useCanvasRender({
     } else {
       ctx.fillStyle = isHover || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
 
-      if (isChecked) ctx.fillStyle = '#F6F7FE'
+      if (isChecked) ctx.fillStyle = getColor('#F6F7FE', themeV4Colors.brand['50'])
     }
 
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
@@ -1367,7 +1367,7 @@ export function useCanvasRender({
           recordSelected ||
           (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup)
         ) {
-          ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
+          ctx.fillStyle = rowColor ? '#3366ff0d' : getColor('#F6F7FE', themeV4Colors.brand['50'])
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         } else if (isRowCellSelected) {
           ctx.fillStyle = 'red'
@@ -1458,7 +1458,7 @@ export function useCanvasRender({
             isActiveCellInCurrentGroup
 
           if (recordSelected || (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)) {
-            ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
+            ctx.fillStyle = rowColor ? '#3366ff0d' : getColor('#F6F7FE', themeV4Colors.brand['50'])
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
             ctx.fillStyle =

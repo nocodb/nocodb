@@ -46,6 +46,7 @@ const form: FormDefinition = [
     placeholder: 'e.g., nocodb/nocodb',
     options: [],
     fetchOptionsKey: 'repos',
+    dependsOn: 'config.authIntegrationId',
     selectMode: 'multiple',
     condition: [
       {

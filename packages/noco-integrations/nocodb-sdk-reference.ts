@@ -217,6 +217,8 @@ export interface FormBuilderElement {
   validators?: { type: FormBuilderValidatorType; message?: string }[];
   // fetch options for the element using key
   fetchOptionsKey?: string;
+  // model path(s) this field depends on - when dependency changes, options are reloaded
+  dependsOn?: string | string[];
 }
 
 export type FormDefinition = FormBuilderElement[];

@@ -46,6 +46,7 @@ const form: FormDefinition = [
     placeholder: 'Select schema to sync',
     options: [],
     fetchOptionsKey: 'schemas',
+    dependsOn: 'config.authIntegrationId',
     condition: [
       {
         model: 'config.authIntegrationId',
@@ -63,6 +64,7 @@ const form: FormDefinition = [
     selectMode: 'multiple',
     options: [],
     fetchOptionsKey: 'tables',
+    dependsOn: ['config.authIntegrationId', 'config.schema'],
     condition: [
       {
         model: 'config.authIntegrationId',

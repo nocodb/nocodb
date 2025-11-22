@@ -15,7 +15,6 @@ const {
   setFormState,
   loadOptions,
   getFieldOptions,
-  isOptionsLoaded,
 } = useFormBuilderHelperOrThrow()
 
 const { loadIntegrations, addIntegration, integrations, eventBus, pageMode, IntegrationsPageMode } =
@@ -150,7 +149,12 @@ watch(
           <div v-if="category !== FORM_BUILDER_NON_CATEGORIZED" class="nc-form-section-title">{{ category }}</div>
           <div class="nc-form-section-body-grid">
             <template v-for="field in formElementsCategorized[category]" :key="field.model">
-              <template v-if="field.type === FormBuilderInputType.Space"></template>
+              <div
+                v-if="field.type === FormBuilderInputType.Space"
+                :style="{
+                  gridColumn: `span ${field.span || 24}`,
+                }"
+              ></div>
 
               <a-form-item
                 v-else
@@ -206,9 +210,8 @@ watch(
                   />
                 </template>
                 <template v-else-if="field.type === FormBuilderInputType.Select">
-                  <NcFormBuilderInputMountedWrapper :key="field?.fieldKey" @mounted="loadOptions(field)">
+                  <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
                     <NcSelect
-                      :key="`${isOptionsLoaded}`"
                       :value="deepReference(field.model)"
                       :options="field.fetchOptionsKey ? getFieldOptions(field.model) : field.options"
                       :mode="selectMode(field)"

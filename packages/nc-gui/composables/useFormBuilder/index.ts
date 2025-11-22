@@ -68,13 +68,11 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       setFormStateHelper(formState, path, value)
     }
 
-    /**
-     * This ref is used to re-render select item on load option to reflect changes
-     */
-    const isOptionsLoaded = ref(false)
-
     const loadOptions = async (field: FormBuilderElement) => {
-      if (!fetchOptions || !field.fetchOptionsKey || !field.model) return []
+      /**
+       * If the field is not visible, don't load options
+       */
+      if (!fetchOptions || !field.fetchOptionsKey || !field.model || !checkCondition(field)) return []
 
       fieldOptions.value[field.model] = await fetchOptions(field.fetchOptionsKey)
     }
@@ -102,6 +100,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
                 if (field.model) {
                   setFormState(field.model, field.selectMode === 'multiple' ? [] : null)
                 }
+
                 await loadOptions(field)
               }
             },
@@ -110,8 +109,6 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
           dependencyWatcherCleanups.push(stopWatch)
         })
       })
-
-      isOptionsLoaded.value = !isOptionsLoaded.value
     }
 
     const checkCondition = (field: FormBuilderElement) => {
@@ -157,24 +154,6 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       return checkConditionItem(condition)
     }
 
-    const getFieldKeyFromCondition = (field: FormBuilderElement) => {
-      if (!field.condition) return ''
-
-      if (ncIsArray(field.condition)) {
-        return field.condition
-          .map((c, index) => {
-            const value = deepReference(c.model)
-
-            return `${value?.toString() ?? ''}-${index}`
-          })
-          .join('-')
-      }
-
-      const value = deepReference(field.condition.model)
-
-      return value?.toString() ?? ''
-    }
-
     const formElementsCategorized = computed(() => {
       const categorizedItems: Record<string, any> = {}
 
@@ -185,10 +164,6 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
       for (const item of filteredFormSchema || []) {
         item.category = item.category || FORM_BUILDER_NON_CATEGORIZED
-
-        // fieldKey will be used to reload element on dependency change
-        // e.g. select element with dependency condition will be re-rendered when dependency changes
-        ;(item as any).fieldKey = getFieldKeyFromCondition(item)
 
         if (!categorizedItems[item.category]) {
           categorizedItems[item.category] = []
@@ -334,8 +309,6 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       setFormState,
       loadOptions,
       getFieldOptions,
-      isOptionsLoaded,
-      getFieldKeyFromCondition,
     }
   },
   'form-builder-helper',

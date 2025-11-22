@@ -111,7 +111,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       })
     }
 
-    const checkCondition = (field: FormBuilderElement) => {
+    function checkCondition(field: FormBuilderElement) {
       if (!field.condition) return true
 
       const condition = field.condition

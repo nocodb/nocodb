@@ -74,7 +74,11 @@ export default class SyncConfig {
 
       if (!syncConfig) return null;
 
-      await NocoCache.set(context, key, prepareForResponse(syncConfig));
+      await NocoCache.set(
+        context,
+        key,
+        prepareForResponse(syncConfig, ['config', 'meta']),
+      );
     }
 
     if (!syncConfig.fk_parent_sync_config_id) {
@@ -111,7 +115,7 @@ export default class SyncConfig {
       context.workspace_id,
       context.base_id,
       MetaTable.SYNC_CONFIGS,
-      prepareForDb(insertObj),
+      prepareForDb(insertObj, ['config', 'meta']),
     );
 
     return this.get(context, id, ncMeta);
@@ -139,7 +143,7 @@ export default class SyncConfig {
       context.workspace_id,
       context.base_id,
       MetaTable.SYNC_CONFIGS,
-      prepareForDb(updateObj, 'config'),
+      prepareForDb(updateObj, ['config', 'meta']),
       id,
     );
 
@@ -234,7 +238,7 @@ export default class SyncConfig {
     );
 
     return rootSyncConfigs.map((syncConfig) => {
-      return new SyncConfig(prepareForResponse(syncConfig));
+      return new SyncConfig(prepareForResponse(syncConfig, ['config', 'meta']));
     });
   }
 
@@ -255,7 +259,7 @@ export default class SyncConfig {
     );
 
     return syncConfigs.map((syncConfig) => {
-      return new SyncConfig(prepareForResponse(syncConfig));
+      return new SyncConfig(prepareForResponse(syncConfig, ['config', 'meta']));
     });
   }
 

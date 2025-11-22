@@ -108,6 +108,7 @@ export default class SyncConfig {
       'sync_job_id',
       'on_delete_action',
       'created_by',
+      'updated_by',
       'meta',
     ]);
 

@@ -198,6 +198,7 @@ export class SyncModuleService implements OnModuleInit {
         sync_category,
         on_delete_action,
         created_by: req.user.id,
+        updated_by: req.user.id,
         meta,
       });
 
@@ -227,6 +228,7 @@ export class SyncModuleService implements OnModuleInit {
           fk_integration_id: childIntegration.id,
           fk_parent_sync_config_id: syncConfig.id,
           created_by: req.user.id,
+          updated_by: req.user.id,
         });
 
         syncConfigsToDelete.push(childSyncConfig);
@@ -1049,6 +1051,7 @@ export class SyncModuleService implements OnModuleInit {
           fk_integration_id: newIntegration.id,
           fk_parent_sync_config_id: syncConfig.id,
           created_by: req.user.id,
+          updated_by: req.user.id,
         });
 
         // Store the syncConfigId in the integration for response

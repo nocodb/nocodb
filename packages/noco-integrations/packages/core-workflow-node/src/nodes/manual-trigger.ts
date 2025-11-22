@@ -20,7 +20,7 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
       {
         type: FormBuilderInputType.Input,
         label: 'Description',
-        width: 100,
+        span: 24,
         model: 'config.description',
         placeholder: 'Optional description for this trigger',
       },

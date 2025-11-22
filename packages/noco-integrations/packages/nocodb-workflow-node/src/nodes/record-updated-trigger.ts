@@ -25,7 +25,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
       {
         type: FormBuilderInputType.SelectTable,
         label: 'Table',
-        width: 100,
+        span: 24,
         model: 'config.modelId',
         placeholder: 'Select a table',
         fetchOptionsKey: 'tables',
@@ -39,7 +39,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
       {
         type: FormBuilderInputType.SelectField,
         label: 'Fields to monitor',
-        width: 100,
+        span: 24,
         model: 'config.columnFilter',
         placeholder: 'Select fields to monitor',
         fetchOptionsKey: 'fields',

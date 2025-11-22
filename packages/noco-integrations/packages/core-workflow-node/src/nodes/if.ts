@@ -40,7 +40,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
       {
         type: FormBuilderInputType.Input,
         label: 'Value 1',
-        width: 100,
+        span: 24,
         model: 'config.value1',
         placeholder: 'First value to compare',
         validators: [
@@ -53,7 +53,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
       {
         type: FormBuilderInputType.Select,
         label: 'Operation',
-        width: 100,
+        span: 24,
         model: 'config.operation',
         placeholder: 'Select condition',
         options: [
@@ -88,7 +88,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
       {
         type: FormBuilderInputType.Input,
         label: 'Value 2',
-        width: 100,
+        span: 24,
         model: 'config.value2',
         placeholder: 'Second value to compare',
       },

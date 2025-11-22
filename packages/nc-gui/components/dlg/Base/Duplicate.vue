@@ -342,7 +342,11 @@ onKeyStroke('Enter', () => {
                         <div v-if="activeWorkspace?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
                           {{ $t('labels.currentWorkspace') }}
                         </div>
-                        <GeneralIcon v-if="option.id === targetWorkspace?.id" class="text-nc-content-brand w-4 h-4" icon="ncCheck" />
+                        <GeneralIcon
+                          v-if="option.id === targetWorkspace?.id"
+                          class="text-nc-content-brand w-4 h-4"
+                          icon="ncCheck"
+                        />
                       </div>
                     </div>
                   </template>

@@ -726,7 +726,9 @@ const validationErrorDisplay = computed(() => {
       <div class="flex mt-3 text-[13px] text-nc-content-gray-subtle2 leading-6">{{ suggestionPreviewed.description }}</div>
 
       <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">Syntax</div>
-      <div class="bg-nc-bg-default rounded-md py-1 text-[13px] text-nc-content-gray-subtle2 mono-font leading-6 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
+      <div class="bg-nc-bg-default rounded-md py-1 text-[13px] text-nc-content-gray-subtle2 mono-font leading-6 px-2 border-1">
+        {{ suggestionPreviewed.syntax }}
+      </div>
       <div class="text-nc-content-gray-muted uppercase text-[11px] mt-3 mb-2">Examples</div>
       <div
         v-for="(example, index) of suggestionPreviewed.examples"
@@ -896,9 +898,13 @@ const validationErrorDisplay = computed(() => {
 
                   <component :is="item.icon" v-if="item.type === 'column'" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
 
-                  <span class="text-small leading-[18px]" :class="{ 'text-nc-content-gray': !item.unsupported }">{{ item.text }}</span>
+                  <span class="text-small leading-[18px]" :class="{ 'text-nc-content-gray': !item.unsupported }">{{
+                    item.text
+                  }}</span>
                 </div>
-                <div v-if="item.unsupported" class="ml-5 text-nc-content-gray-disabled text-xs">{{ $t('msg.formulaNotSupported') }}</div>
+                <div v-if="item.unsupported" class="ml-5 text-nc-content-gray-disabled text-xs">
+                  {{ $t('msg.formulaNotSupported') }}
+                </div>
               </template>
             </a-list-item-meta>
           </a-list-item>

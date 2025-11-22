@@ -189,7 +189,9 @@ onMounted(async () => {
     <div class="nc-content-max-w p-6 flex flex-col gap-6">
       <div class="max-w-280 mx-auto w-full flex flex-col" style="height: calc(100vh - 200px)">
         <div class="flex gap-4 items-baseline justify-between">
-          <h6 class="text-xl text-left text-nc-content-gray font-bold my-0" data-rec="true">{{ t('title.externalIntegrations') }}</h6>
+          <h6 class="text-xl text-left text-nc-content-gray font-bold my-0" data-rec="true">
+            {{ t('title.externalIntegrations') }}
+          </h6>
         </div>
 
         <div class="text-nc-content-gray-subtle2 leading-5 mt-2">

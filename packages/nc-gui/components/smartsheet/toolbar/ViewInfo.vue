@@ -190,14 +190,18 @@ const viewModeInfo = computed(() => {
           <template #title>
             <div class="flex flex-col gap-3">
               <div>
-                <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.viewName') }}</div>
+                <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
+                  {{ $t('labels.viewName') }}
+                </div>
                 <div class="text-small leading-[18px]">
                   {{ activeView?.title }}
                 </div>
               </div>
 
               <div v-if="activeView?.created_by && idUserMap[activeView?.created_by]">
-                <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.createdBy') }}</div>
+                <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
+                  {{ $t('labels.createdBy') }}
+                </div>
                 <div class="text-xs">
                   {{
                     idUserMap[activeView?.created_by]?.id === user?.id
@@ -207,7 +211,9 @@ const viewModeInfo = computed(() => {
                 </div>
               </div>
               <div>
-                <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.viewMode') }}</div>
+                <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
+                  {{ $t('labels.viewMode') }}
+                </div>
                 <div class="text-xs flex items-start gap-2">
                   {{ viewModeInfo }}
                 </div>

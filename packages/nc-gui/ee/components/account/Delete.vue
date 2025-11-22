@@ -214,7 +214,9 @@ const onDeleteConfirm = async () => {
           </div>
           <div class="flex flex-col gap-2">
             <span class="self-start mb-2 mt-3">
-              Enter your email to delete your account <span class="text-nc-content-red-medium">permanently</span>&nbsp;<b class="select-none">
+              Enter your email to delete your account <span class="text-nc-content-red-medium">permanently</span>&nbsp;<b
+                class="select-none"
+              >
                 ‘{{ user?.email }}’
               </b>
             </span>

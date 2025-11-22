@@ -181,7 +181,10 @@ async function onOpenModal({
                         }}
                       </div>
                     </div>
-                    <GeneralIcon icon="arrowRight" class="text-base text-nc-content-gray-subtle2 group-hover:text-nc-content-gray" />
+                    <GeneralIcon
+                      icon="arrowRight"
+                      class="text-base text-nc-content-gray-subtle2 group-hover:text-nc-content-gray"
+                    />
                   </div>
                 </template>
 

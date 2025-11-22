@@ -228,7 +228,9 @@ function copyToClipboard(text: string, label: string) {
           <a-form :model="clientRef" name="create-oauth-client" layout="vertical" class="flex flex-col gap-6">
             <a-form-item v-bind="validateInfos.client_name" class="!mb-0 flex-1">
               <template #label>
-                <span class="text-nc-content-gray-subtle font-medium">Application Name <span class="text-nc-content-red-medium">*</span></span>
+                <span class="text-nc-content-gray-subtle font-medium"
+                  >Application Name <span class="text-nc-content-red-medium">*</span></span
+                >
               </template>
               <template #extra>
                 <span class="text-xs text-nc-content-gray-muted">Shown to users during authorization</span>

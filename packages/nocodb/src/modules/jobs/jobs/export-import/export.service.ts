@@ -772,6 +772,8 @@ export class ExportService {
       excludeUsers?: boolean;
     },
   ) {
+    context = { ...context, cache: true };
+
     const { dataStream, linkStream, handledMmList } = param;
 
     const dataExportMode = !linkStream;

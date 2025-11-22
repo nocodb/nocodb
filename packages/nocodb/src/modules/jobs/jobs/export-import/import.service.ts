@@ -1674,6 +1674,8 @@ export class ImportService {
           },
         );
 
+        const vwColumnPayloads: Map<string, any> = new Map();
+
         for (const cl of vwColumns) {
           const fcl = view.columns.find(
             (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
@@ -1687,16 +1689,13 @@ export class ImportService {
                   underline: fcl.underline,
                 }
               : {};
-          await this.viewColumnsService.columnUpdate(targetContext, {
-            viewId: vw.id,
-            columnId: cl.id,
-            column: {
-              show: fcl.show,
-              order: fcl.order,
-              ...calendarColProperties,
-            },
-            internal: true,
-            req: param.req,
+
+
+          vwColumnPayloads.set(cl.fk_column_id, {
+            id: cl.fk_column_id,
+            show: fcl.show,
+            order: fcl.order,
+            ...calendarColProperties,
           });
         }
 
@@ -1708,12 +1707,9 @@ export class ImportService {
               );
               if (!fcl) continue;
               const { fk_column_id, ...rest } = fcl;
-              await this.gridColumnsService.gridColumnUpdate(targetContext, {
-                gridViewColumnId: cl.id,
-                grid: {
-                  ...withoutNull(rest),
-                },
-                req: param.req,
+              vwColumnPayloads.set(cl.fk_column_id, {
+                ...vwColumnPayloads.get(cl.fk_column_id),
+                ...withoutNull(rest),
               });
             }
             break;
@@ -1724,12 +1720,9 @@ export class ImportService {
               );
               if (!fcl) continue;
               const { fk_column_id, ...rest } = fcl;
-              await this.formColumnsService.columnUpdate(targetContext, {
-                formViewColumnId: cl.id,
-                formViewColumn: {
-                  ...withoutNull(rest),
-                },
-                req: param.req,
+              vwColumnPayloads.set(cl.fk_column_id, {
+                ...vwColumnPayloads.get(cl.fk_column_id),
+                ...withoutNull(rest),
               });
             }
             break;
@@ -1738,6 +1731,12 @@ export class ImportService {
           case ViewTypes.CALENDAR:
             break;
         }
+
+        await this.viewColumnsService.columnsUpdate(targetContext, {
+          viewId: vw.id,
+          columns: Array.from(vwColumnPayloads.values()),
+          req: param.req,
+        })
 
         // fix view order (view insert will always put it at the end)
         if (view.order !== vw.order) {

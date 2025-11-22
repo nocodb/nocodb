@@ -28,9 +28,12 @@ const _defaultSyncConfig: Partial<SyncConfig> & Record<string, unknown> = {
   sync_type: SyncType.Incremental,
   sync_trigger: SyncTrigger.Manual,
   sync_category: SyncCategory.TICKETING,
-  exclude_models: [],
   on_delete_action: OnDeleteAction.MarkDeleted,
   sync_trigger_cron: '0 * * * *',
+  meta: {
+    sync_all_models: true,
+    sync_excluded_models: [],
+  },
 }
 
 const defaultSyncConfig = (configs: SyncConfig[]) => {
@@ -98,6 +101,13 @@ interface CustomSyncSchema {
   }
 }
 
-export { getSyncFrequency, defaultSyncConfig, SyncFormStep, defaultIntegrationConfig, syncEntityToReadableMap }
+export {
+  getSyncFrequency,
+  defaultSyncConfig,
+  SyncFormStep,
+  defaultIntegrationConfig,
+  syncEntityToReadableMap,
+  _defaultSyncConfig,
+}
 
 export type { IntegrationConfig, CustomSyncSchema }

@@ -32,8 +32,8 @@ const getReadableTrigger = (trigger: SyncTrigger) => {
 const getReadableCategory = (category: SyncCategory) => {
   return (
     capitalize(category) +
-    (syncConfigForm.value?.exclude_models?.length > 0
-      ? `, ${availableModels.value?.length - syncConfigForm.value?.exclude_models?.length} specific tables`
+    (syncConfigForm.value.meta?.sync_excluded_models?.length > 0
+      ? `, ${availableModels.value?.length - syncConfigForm.value.meta.sync_excluded_models?.length} specific tables`
       : '')
   )
 }

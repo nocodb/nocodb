@@ -8,7 +8,7 @@ const { isSyncAdvancedFeaturesEnabled } = storeToRefs(useSyncStore())
 
 const { syncConfigForm, mode, syncCategoryIntegrationMap, activeBaseSyncs } = useSyncFormOrThrow()
 
-const syncAllModels = ref(true)
+const syncAllModels = computed(() => !!parseProp(syncConfigForm.value.meta).sync_all_models)
 
 const isChildTooltipHovering = ref(false)
 
@@ -26,8 +26,9 @@ const selectSyncAllModels = (value: boolean) => {
   if (mode === 'edit') {
     return
   }
-  syncAllModels.value = value
-  syncConfigForm.value.exclude_models = []
+
+  syncConfigForm.value.meta.sync_all_models = value
+  syncConfigForm.value.meta.sync_excluded_models = []
 }
 
 const selectCategory = (category: (typeof SyncCategoryMeta)[keyof typeof SyncCategoryMeta]) => {
@@ -56,10 +57,12 @@ const onModelChanged = (model: (typeof TARGET_TABLES_META)[keyof typeof TARGET_T
   if (model.required) {
     return
   }
-  if (syncConfigForm.value.exclude_models.includes(model.value)) {
-    syncConfigForm.value.exclude_models = syncConfigForm.value.exclude_models.filter((m) => m !== model.value)
+  if (syncConfigForm.value.meta.sync_excluded_models.includes(model.value)) {
+    syncConfigForm.value.meta.sync_excluded_models = syncConfigForm.value.meta.sync_excluded_models.filter(
+      (m) => m !== model.value,
+    )
   } else {
-    syncConfigForm.value.exclude_models.push(model.value)
+    syncConfigForm.value.meta.sync_excluded_models.push(model.value)
   }
 }
 
@@ -75,8 +78,8 @@ const splitIntegrations = (integrations: IntegrationItemType[] = []) => {
 }
 
 onMounted(() => {
-  if (syncConfigForm.value.exclude_models?.length) {
-    syncAllModels.value = false
+  if (syncConfigForm.value.meta.sync_excluded_models?.length && syncAllModels.value) {
+    syncConfigForm.value.meta.sync_all_models = false
   }
 })
 </script>
@@ -114,7 +117,7 @@ onMounted(() => {
         >
           <template #title>
             {{
-              isCategoryAlreadyAdded(category.value)
+              isCategoryAlreadyAdded(category.value) && mode === 'create'
                 ? $t('tooltip.syncForThisCategoryAlreadyAdded')
                 : $t('tooltip.categoryNotEditableInEditMode')
             }}
@@ -169,94 +172,99 @@ onMounted(() => {
       </div>
     </div>
 
-    <div v-if="syncConfigForm.sync_category !== SyncCategory.CUSTOM">
-      <div class="nc-form-section-input-label">
-        {{ $t('labels.syncScope') }}
-      </div>
+    <template v-if="syncConfigForm.sync_category !== SyncCategory.CUSTOM">
+      <div>
+        <div class="nc-form-section-input-label">
+          {{ $t('labels.syncScope') }}
+        </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <NcTooltip
-          :disabled="!(syncAllModels && mode === 'edit')"
-          :class="{
-            'border-nc-border-brand !shadow-selected': syncAllModels && mode === 'create',
-            'border-nc-border-gray-extradark !shadow-disabled': syncAllModels && mode === 'edit',
-            'cursor-pointer': mode === 'create',
-          }"
-          class="flex flex-col p-3 border-1 rounded-lg gap-1"
-          @click="selectSyncAllModels(true)"
-        >
-          <template #title> {{ $t('tooltip.syncScopeNotEditableInEditMode') }} </template>
-          <div class="flex items-center gap-3">
-            <div class="nc-radio" :data-checked="syncAllModels">
-              <div class="nc-radio-dot"></div>
-            </div>
-            <div class="text-nc-content-gray text-caption">
-              {{ $t('labels.syncAllTables') }}
-            </div>
-          </div>
-
-          <div class="text-nc-content-gray-muted text-bodySm pl-7">
-            {{ $t('labels.syncAllTablesDescription') }}
-          </div>
-        </NcTooltip>
-        <NcTooltip
-          :disabled="!(syncAllModels && mode === 'edit')"
-          class="flex flex-col p-3 border-1 rounded-lg gap-1"
-          :class="{
-            'border-nc-border-brand !shadow-selected': !syncAllModels && mode === 'create',
-            'border-nc-border-gray-extradark !shadow-disabled': !syncAllModels && mode === 'edit',
-            'cursor-pointer': mode === 'create',
-          }"
-          @click="selectSyncAllModels(false)"
-        >
-          <template #title> Sync scope not editable in edit mode </template>
-          <div class="flex items-center gap-3">
-            <div class="nc-radio" :data-checked="!syncAllModels">
-              <div class="nc-radio-dot"></div>
-            </div>
-            <div class="text-nc-content-gray text-caption">
-              {{ $t('labels.syncSpecificTables') }}
-            </div>
-          </div>
-          <div class="flex flex-col gap-1">
-            <div class="text-nc-content-gray-muted text-bodySm pl-7">
-              {{ $t('labels.syncSpecificTablesDescription') }}
-            </div>
-          </div>
-        </NcTooltip>
-      </div>
-    </div>
-
-    <div v-if="syncConfigForm.sync_category !== SyncCategory.CUSTOM && !syncAllModels">
-      <div class="nc-form-section-input-label">
-        {{ $t('labels.selectTablesToSync') }}
-      </div>
-
-      <div class="flex flex-col border-1 border-nc-border-gray-medium rounded-lg">
-        <NcTooltip v-for="model in availableModels" :key="model.value" :disabled="!model.required">
-          <template #title> {{ $t('tooltip.requiredTablesCannotBeExcluded') }} </template>
-
-          <div
+        <div class="grid grid-cols-2 gap-3">
+          <NcTooltip
+            :disabled="!(syncAllModels && mode === 'edit')"
             :class="{
-              'cursor-pointer': mode === 'create' && !model.required,
-              'cursor-not-allowed opacity-80': model.required,
+              'border-nc-border-brand !shadow-selected': syncAllModels && mode === 'create',
+              'border-nc-border-gray-extradark !shadow-disabled': syncAllModels && mode === 'edit',
+              'cursor-pointer': mode === 'create',
             }"
-            class="flex flex-col px-3 gap-1 py-2 border-b-1 last:border-b-0"
-            @click="onModelChanged(model)"
+            class="flex flex-col p-3 border-1 rounded-lg gap-1"
+            @click="selectSyncAllModels(true)"
           >
-            <div class="flex gap-3 items-center">
-              <NcCheckbox :readonly="model.required" :checked="!syncConfigForm.exclude_models?.includes(model.value)" />
-              <div class="text-caption text-nc-content-gray">
-                {{ model.label }}
+            <template #title> {{ $t('tooltip.syncScopeNotEditableInEditMode') }} </template>
+            <div class="flex items-center gap-3">
+              <div class="nc-radio" :data-checked="syncAllModels">
+                <div class="nc-radio-dot"></div>
+              </div>
+              <div class="text-nc-content-gray text-caption">
+                {{ $t('labels.syncAllTables') }}
               </div>
             </div>
-            <div class="text-bodyDefaultSm pl-7.7 text-nc-content-gray-muted">
-              {{ model.description }}
+
+            <div class="text-nc-content-gray-muted text-bodySm pl-7">
+              {{ $t('labels.syncAllTablesDescription') }}
             </div>
-          </div>
-        </NcTooltip>
+          </NcTooltip>
+          <NcTooltip
+            :disabled="!(!syncAllModels && mode === 'edit')"
+            class="flex flex-col p-3 border-1 rounded-lg gap-1"
+            :class="{
+              'border-nc-border-brand !shadow-selected': !syncAllModels && mode === 'create',
+              'border-nc-border-gray-extradark !shadow-disabled': !syncAllModels && mode === 'edit',
+              'cursor-pointer': mode === 'create',
+            }"
+            @click="selectSyncAllModels(false)"
+          >
+            <template #title> {{ $t('tooltip.syncScopeNotEditableInEditMode') }}</template>
+            <div class="flex items-center gap-3">
+              <div class="nc-radio" :data-checked="!syncAllModels">
+                <div class="nc-radio-dot"></div>
+              </div>
+              <div class="text-nc-content-gray text-caption">
+                {{ $t('labels.syncSpecificTables') }}
+              </div>
+            </div>
+            <div class="flex flex-col gap-1">
+              <div class="text-nc-content-gray-muted text-bodySm pl-7">
+                {{ $t('labels.syncSpecificTablesDescription') }}
+              </div>
+            </div>
+          </NcTooltip>
+        </div>
       </div>
-    </div>
+
+      <div v-if="!syncAllModels">
+        <div class="nc-form-section-input-label">
+          {{ $t('labels.selectTablesToSync') }}
+        </div>
+
+        <div class="flex flex-col border-1 border-nc-border-gray-medium rounded-lg">
+          <NcTooltip v-for="model in availableModels" :key="model.value" :disabled="!model.required">
+            <template #title> {{ $t('tooltip.requiredTablesCannotBeExcluded') }} </template>
+
+            <div
+              :class="{
+                'cursor-pointer': mode === 'create' && !model.required,
+                'cursor-not-allowed opacity-80': model.required,
+              }"
+              class="flex flex-col px-3 gap-1 py-2 border-b-1 last:border-b-0"
+              @click="onModelChanged(model)"
+            >
+              <div class="flex gap-3 items-center">
+                <NcCheckbox
+                  :readonly="model.required || mode === 'edit'"
+                  :checked="!parseProp(syncConfigForm.meta).sync_excluded_models?.includes(model.value)"
+                />
+                <div class="text-caption text-nc-content-gray">
+                  {{ model.label }}
+                </div>
+              </div>
+              <div class="text-bodyDefaultSm pl-7.7 text-nc-content-gray-muted">
+                {{ model.description }}
+              </div>
+            </div>
+          </NcTooltip>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 

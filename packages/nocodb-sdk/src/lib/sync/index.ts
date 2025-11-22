@@ -1,3 +1,5 @@
+import { MetaType } from '../Api';
+
 export enum SyncType {
   Full = 'full',
   Incremental = 'incremental',
@@ -48,6 +50,10 @@ export interface SyncConfig {
   updated_at: string;
 
   children?: SyncConfig[];
+  /**
+   * JSON meta information for the sync config
+   */
+  meta?: MetaType;
 }
 
 export const SyncTriggerMeta = {

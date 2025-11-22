@@ -135,7 +135,6 @@ export const useSyncStore = defineStore('sync', () => {
   const updateSync = async (
     id: string,
     data: Partial<SyncConfig> & {
-      exclude_models?: string[]
       config?: SyncIntegrationConfig[]
     },
   ) => {

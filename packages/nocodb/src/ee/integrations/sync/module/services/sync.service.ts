@@ -10,6 +10,8 @@ import {
   SyncTrigger,
   TARGET_TABLES_META,
   UITypes,
+  type MetaType,
+  parseProp,
 } from 'nocodb-sdk';
 import {
   syncSystemFields,
@@ -78,8 +80,8 @@ export class SyncModuleService implements OnModuleInit {
       sync_trigger_cron?: string;
       on_delete_action: OnDeleteAction;
       sync_category: SyncCategory;
-      exclude_models: string[];
       configs: IntegrationReqType[];
+      meta: MetaType;
     },
     req: NcRequest,
   ) {
@@ -90,8 +92,8 @@ export class SyncModuleService implements OnModuleInit {
       sync_category,
       sync_trigger_cron,
       on_delete_action,
-      exclude_models,
       configs,
+      meta,
     } = payload;
 
     if (!title || !sync_type || !sync_trigger || !sync_category) {
@@ -196,6 +198,7 @@ export class SyncModuleService implements OnModuleInit {
         sync_category,
         on_delete_action,
         created_by: req.user.id,
+        meta,
       });
 
       syncConfigsToDelete.push(syncConfig);
@@ -236,7 +239,10 @@ export class SyncModuleService implements OnModuleInit {
         for (const [tableKey, tableSchema] of Object.entries(schema)) {
           const tableMeta = TARGET_TABLES_META[tableKey];
 
-          if (exclude_models.includes(tableKey) && !tableMeta.required) {
+          if (
+            parseProp(meta).sync_excluded_models?.includes(tableKey) &&
+            !tableMeta.required
+          ) {
             continue;
           }
 

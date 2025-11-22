@@ -165,7 +165,7 @@ const onWorkspaceCreateClick = () => {
       </div>
 
       <template #overlay>
-        <NcMenu class="nc-workspace-dropdown-inner min-w-[332px] max-w-[360px]" @click="isWorkspaceDropdownOpen = false">
+        <NcMenu class="nc-workspace-dropdown-inner w-[348px]" @click="isWorkspaceDropdownOpen = false">
           <a-menu-item-group class="!border-t-0 w-full">
             <div class="pl-4 pr-3 min-w-0 w-full py-1">
               <div class="flex gap-x-3 w-full items-center">

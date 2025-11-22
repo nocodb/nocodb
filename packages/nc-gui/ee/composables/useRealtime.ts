@@ -134,24 +134,26 @@ export const useRealtime = createSharedComposable(() => {
       if (tables) {
         const updatedTables = tables.filter((t) => t.id !== deletedTableId)
         baseTables.value.set(activeBaseId.value, updatedTables)
-        if (activeTableId.value === deletedTableId && updatedTables.length > 0 && updatedTables[0]?.id) {
-          navigateToTable({
-            tableId: updatedTables[0].id,
-          })
-          showInfoModal({
-            title: `Table no longer available`,
-            content: `${event.payload.title} may have been deleted or your access removed.`,
-          })
-        } else {
-          ncNavigateTo({
-            workspaceId: activeWorkspaceId.value,
-            baseId: activeBaseId.value,
-            tableId: undefined,
-          })
-          showInfoModal({
-            title: `Table no longer available`,
-            content: `${event.payload.title} may have been deleted or your access removed.`,
-          })
+        if (activeTableId.value === deletedTableId) {
+          if (updatedTables.length > 0 && updatedTables[0]?.id) {
+            navigateToTable({
+              tableId: updatedTables[0].id,
+            })
+            showInfoModal({
+              title: `Table no longer available`,
+              content: `${event.payload.title} may have been deleted or your access removed.`,
+            })
+          } else {
+            ncNavigateTo({
+              workspaceId: activeWorkspaceId.value,
+              baseId: activeBaseId.value,
+              tableId: undefined,
+            })
+            showInfoModal({
+              title: `Table no longer available`,
+              content: `${event.payload.title} may have been deleted or your access removed.`,
+            })
+          }
         }
       } else {
         loadProjectTables(activeBaseId.value, true)

@@ -151,6 +151,8 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
           errors.push(e)
         }
       }
+
+      console.error('errors', errors)
       return errors?.length === 0
     }
 
@@ -217,7 +219,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
           syncConfigForm.value = {
             ...(result.syncConfig as SyncConfig),
             meta: {
-              ...(_defaultSyncConfig.meta as Record<string, any>),
+              ...(getDefaultSyncConfig().meta as Record<string, any>),
               ...parseProp(result.syncConfig.meta),
             },
           }
@@ -285,7 +287,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
         syncConfigForm.value = {
           ...(sync as SyncConfig),
           meta: {
-            ...(_defaultSyncConfig.meta as Record<string, any>),
+            ...(getDefaultSyncConfig().meta as Record<string, any>),
             ...parseProp(sync.meta),
           },
         }

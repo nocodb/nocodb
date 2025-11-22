@@ -42,6 +42,7 @@ onMounted(() => {
     }
   } else {
     selectedInterval.value = 'daily'
+    onChange(selectedInterval.value)
   }
 })
 </script>

@@ -23,17 +23,19 @@ const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   return 'Unknown'
 }
 
-const _defaultSyncConfig: Partial<SyncConfig> & Record<string, unknown> = {
-  title: 'New Source',
-  sync_type: SyncType.Incremental,
-  sync_trigger: SyncTrigger.Manual,
-  sync_category: SyncCategory.TICKETING,
-  on_delete_action: OnDeleteAction.MarkDeleted,
-  sync_trigger_cron: '0 * * * *',
-  meta: {
-    sync_all_models: true,
-    sync_excluded_models: [],
-  },
+const getDefaultSyncConfig = () => {
+  return {
+    title: 'New Source',
+    sync_type: SyncType.Incremental,
+    sync_trigger: SyncTrigger.Manual,
+    sync_category: SyncCategory.TICKETING,
+    on_delete_action: OnDeleteAction.MarkDeleted,
+    sync_trigger_cron: '0 * * * *',
+    meta: {
+      sync_all_models: true,
+      sync_excluded_models: [],
+    },
+  } as Partial<SyncConfig> & Record<string, unknown>
 }
 
 const defaultSyncConfig = (configs: SyncConfig[]) => {
@@ -42,12 +44,14 @@ const defaultSyncConfig = (configs: SyncConfig[]) => {
     prefix: null,
   })
 
-  const isDefaultSyncCategoryAlreadyAdded = configs.some((config) => config.sync_category === _defaultSyncConfig.sync_category)
+  const isDefaultSyncCategoryAlreadyAdded = configs.some(
+    (config) => config.sync_category === getDefaultSyncConfig().sync_category,
+  )
 
   return {
-    ..._defaultSyncConfig,
+    ...getDefaultSyncConfig(),
     title: newTitle,
-    sync_category: isDefaultSyncCategoryAlreadyAdded ? undefined : _defaultSyncConfig.sync_category,
+    sync_category: isDefaultSyncCategoryAlreadyAdded ? undefined : getDefaultSyncConfig().sync_category,
   }
 }
 
@@ -107,7 +111,7 @@ export {
   SyncFormStep,
   defaultIntegrationConfig,
   syncEntityToReadableMap,
-  _defaultSyncConfig,
+  getDefaultSyncConfig,
 }
 
 export type { IntegrationConfig, CustomSyncSchema }

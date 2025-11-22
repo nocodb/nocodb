@@ -35,7 +35,7 @@ onMounted(async () => {
     <div v-if="org" class="mx-auto h-full">
       <div class="h-full flex">
         <!-- Side tabs -->
-        <div class="h-full bg-white nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
+        <div class="h-full bg-nc-bg-default nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
           <NcMenu
             v-model:open-keys="openKeys"
             v-model:selected-keys="selectedKeys"
@@ -211,25 +211,25 @@ onMounted(async () => {
 
 .tabs-menu {
   :deep(.item) {
-    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-gray-700 !hover:(bg-gray-200 text-gray-700) font-medium;
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
     width: calc(100% - 1rem);
   }
 
   :deep(.active) {
-    @apply !bg-brand-50 !text-brand-500 !hover:(bg-brand-50 text-brand-500) font-semibold;
+    @apply !bg-nc-bg-brand !text-nc-content-brand !hover:(bg-nc-bg-brand text-nc-content-brand) font-semibold;
   }
 }
 
 :deep(.ant-menu-submenu-title) {
-  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-nc-bg-brand text-nc-content-brand);
   width: calc(100% - 1rem);
 }
 
 :deep(.ant-menu) {
-  @apply !pt-0 !rounded-none !border-gray-200;
+  @apply !pt-0 !rounded-none !border-nc-border-gray-medium;
 }
 
 .nc-account-dropdown-item {
-  @apply flex flex-row px-4 items-center py-2 gap-x-2 hover:bg-gray-100 cursor-pointer;
+  @apply flex flex-row px-4 items-center py-2 gap-x-2 hover:bg-nc-bg-gray-light cursor-pointer;
 }
 </style>

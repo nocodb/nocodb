@@ -98,7 +98,7 @@ const toggleFullScreen = () => {
       class="nc-extension-drag-handler !px-1"
       @click.stop
     >
-      <GeneralIcon icon="ncDrag" class="flex-none text-gray-500" />
+      <GeneralIcon icon="ncDrag" class="flex-none text-nc-content-gray-muted" />
     </NcButton>
 
     <img

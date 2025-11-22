@@ -86,7 +86,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           type="secondary"
           size="small"
           class="nc-topbar-extension-btn"
-          :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isPanelExpanded }"
+          :class="{ '!bg-nc-bg-brand !hover:bg-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
           data-testid="nc-topbar-extension-btn"
           @click="toggleExtensionPanel"
         >

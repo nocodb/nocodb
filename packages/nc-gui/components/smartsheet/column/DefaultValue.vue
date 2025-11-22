@@ -93,6 +93,7 @@ const handleShowInput = () => {
       <NcButton
         size="small"
         type="text"
+        class="!text-nc-content-gray-subtle"
         data-testid="nc-show-default-value-btn"
         :disabled="isSystem || isSyncedField"
         @click.stop="handleShowInput"
@@ -111,11 +112,11 @@ const handleShowInput = () => {
 
   <div v-else>
     <div class="w-full flex items-center gap-2 mb-2">
-      <div class="text-small leading-[18px] flex-1 text-gray-700">{{ $t('placeholder.defaultValue') }}</div>
+      <div class="text-small leading-[18px] flex-1 text-nc-content-gray-subtle">{{ $t('placeholder.defaultValue') }}</div>
     </div>
     <div class="flex flex-row gap-2 relative">
       <div
-        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-gray-300 rounded-lg sm:min-h-[32px] xs:min-h-13 focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
+        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-nc-border-gray-dark rounded-lg sm:min-h-[32px] xs:min-h-13 focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
         :class="{
           'bg-white': isAiModeFieldModal,
         }"
@@ -147,7 +148,7 @@ const handleShowInput = () => {
                 vModel.uidt,
               ) || isCurrentDate
             "
-            class="w-4 h-4 cursor-pointer rounded-full z-3 !text-black-500 text-gray-500 hover:bg-gray-50 default-value-clear"
+            class="w-4 h-4 cursor-pointer rounded-full z-3 text-nc-content-gray-muted hover:bg-nc-bg-gray-extralight default-value-clear"
             @click.stop="updateCdfValue(null)"
           />
         </NcTooltip>

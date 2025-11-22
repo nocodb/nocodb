@@ -89,13 +89,15 @@ const columnsToRender = computed(() => {
 </script>
 
 <template>
-  <div class="nc-list-item-wrapper group px-[1px] hover:bg-gray-50 border-y-1 border-gray-200 border-t-transparent w-full">
+  <div
+    class="nc-list-item-wrapper group px-[1px] hover:bg-nc-bg-gray-extralight border-y-1 border-nc-border-gray-medium border-t-transparent w-full"
+  >
     <a-card
       tabindex="0"
-      class="nc-list-item !outline-none transition-all relative group-hover:bg-gray-50 cursor-auto"
+      class="nc-list-item !outline-none transition-all relative group-hover:bg-nc-bg-gray-extralight cursor-auto"
       :class="{
-        '!bg-white': isLoading,
-        '!hover:bg-white': readOnly,
+        '!bg-nc-bg-default': isLoading,
+        '!hover:bg-nc-bg-default': readOnly,
       }"
       :body-style="{ padding: '6px 10px !important', borderRadius: 0 }"
       :hoverable="false"
@@ -126,7 +128,7 @@ const columnsToRender = computed(() => {
         <div class="flex-1 flex flex-col gap-1 justify-center overflow-hidden">
           <div
             v-if="displayValueColumn && displayValue"
-            class="flex justify-start font-semibold text-brand-500 nc-display-value"
+            class="flex justify-start font-semibold text-nc-content-brand nc-display-value"
             :class="displayValueClassName"
           >
             <NcTooltip class="truncate leading-[20px]" show-on-truncate-only>
@@ -210,7 +212,7 @@ const columnsToRender = computed(() => {
 .nc-link-record-cell {
   :deep(.nc-cell),
   :deep(.nc-virtual-cell) {
-    @apply !text-small !text-gray-600 ml-1;
+    @apply !text-small !text-nc-content-gray-subtle2 ml-1;
 
     .nc-cell-field,
     .nc-cell-field-link,
@@ -220,13 +222,13 @@ const columnsToRender = computed(() => {
     }
 
     &:not(.nc-display-value-cell) {
-      @apply text-gray-600;
+      @apply text-nc-content-gray-subtle2;
       font-weight: 500;
 
       .nc-cell-field,
       input,
       textarea {
-        @apply text-gray-600;
+        @apply text-nc-content-gray-subtle2;
         font-weight: 500;
       }
     }
@@ -292,7 +294,7 @@ const columnsToRender = computed(() => {
   @apply border-1 border-transparent;
 
   &:focus-visible {
-    @apply border-brand-500;
+    @apply border-nc-border-brand;
     box-shadow: 0 0 0 1px #3366ff;
   }
   &:hover {

@@ -733,12 +733,12 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
     ref="editOrAddRef"
     class="overflow-auto nc-scrollbar-md"
     :class="{
-      'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
+      'bg-nc-bg-default max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[416px]': !props.embedMode,
       '!w-[600px]': isLinksOrLTAR(formState.uidt),
       '!min-w-[560px]': lookupRollupFilterEnabled,
       'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
-      'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-2xl p-5': !embedMode,
+      'shadow-lg shadow-gray-300 border-1 border-nc-border-gray-medium rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
       'h-full': props.fromTableExplorer,
       '!bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt && !props.fromTableExplorer,
@@ -761,7 +761,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
         <div
           class="flex flex-col gap-4"
           :class="{
-            'bg-white -mx-5 -mt-5 px-5 pt-5': aiAutoSuggestMode,
+            'bg-nc-bg-default -mx-5 -mt-5 px-5 pt-5': aiAutoSuggestMode,
           }"
         >
           <div class="flex items-center gap-3">
@@ -935,7 +935,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                       @click="predictFromPrompt(onSelectedTagClick)"
                     >
                       <template #loadingIcon>
-                        <GeneralLoader class="!text-purple-700" size="medium" />
+                        <GeneralLoader class="!text-nc-content-pink-dark" size="medium" />
                       </template>
                       <template #icon>
                         <GeneralIcon icon="send" class="flex-none h-4 w-4" />
@@ -1021,14 +1021,14 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                 </div>
               </div>
               <NcButton size="xsmall" type="text" class="!px-1" @click.stop="failedToSaveFields = false">
-                <GeneralIcon icon="close" class="text-gray-600" />
+                <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
               </NcButton>
             </div>
           </template>
         </div>
         <div
           v-if="aiAutoSuggestMode"
-          class="sticky -top-5 z-100 bg-white -mx-5 -mt-5 pt-5 px-5"
+          class="sticky -top-5 z-100 bg-nc-bg-default -mx-5 -mt-5 pt-5 px-5"
           :class="{
             'pb-5 border-b-1 border-b-nc-border-gray-medium': formState.uidt,
           }"
@@ -1074,7 +1074,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
           :class="{
             '!bg-nc-bg-gray-light text-nc-content-gray-disabled': isSyncedField,
           }"
-          class="flex flex-grow px-2 py-1 items-center rounded-md bg-gray-100 focus:bg-gray-100 outline-none"
+          class="flex flex-grow px-2 py-1 items-center rounded-md bg-nc-bg-gray-light focus:bg-nc-bg-gray-light outline-none"
           style="outline-style: solid; outline-width: thin"
         >
           <input
@@ -1159,14 +1159,14 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                 isSystem ||
                 isSyncedField
               "
-              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
+              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg !border-nc-border-gray-medium"
               :filter-option="filterOption"
               @dropdown-visible-change="onDropdownChange"
               @change="onSelectType($event)"
               @dblclick="showDeprecated = !showDeprecated"
             >
               <template #suffixIcon>
-                <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
               </template>
               <a-select-option
                 v-for="opt of uiTypesOptions"
@@ -1214,10 +1214,12 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                       </NcTooltip>
                     </div>
 
-                    <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+                    <span v-if="opt.deprecated" class="!text-xs !text-nc-content-brand-hover"
+                      >({{ $t('general.deprecated') }})</span
+                    >
                     <span
                       v-if="opt.isNew || (isAiButtonSelectOption(opt.name) && !isColumnTypeOpen)"
-                      class="nc-new-field-badge text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md font-normal"
+                      class="nc-new-field-badge text-sm text-nc-content-purple-dark bg-nc-bg-purple-light px-2 rounded-md font-normal"
                       >{{ $t('general.new') }}</span
                     >
                   </div>
@@ -1238,13 +1240,13 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
         </a-form-item>
       </div>
       <a-form-item v-if="enableDescription && aiAutoSuggestMode">
-        <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
+        <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center justify-between">
           <span class="text-[13px]">
             {{ $t('labels.description') }}
           </span>
 
           <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
-            <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
+            <GeneralIcon icon="delete" class="text-nc-content-gray-subtle w-3.5 h-3.5" />
           </NcButton>
         </div>
 
@@ -1256,7 +1258,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
             'h-[150px] !min-h-[100px]': !props.fromTableExplorer,
             'nc-ai-input': isAiMode,
           }"
-          class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 !max-h-[300px]"
+          class="nc-input-sm nc-input-text-area nc-input-shadow !text-nc-content-gray px-3 !max-h-[300px]"
           hide-details
           data-testid="create-field-description-input"
           :placeholder="$t('msg.info.enterFieldDescription')"
@@ -1318,7 +1320,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
       <template v-if="formState.uidt">
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
           <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
-            <div class="text-sm text-gray-800">
+            <div class="text-sm text-nc-content-gray">
               {{
                 `${$t('msg.acceptOnlyValid', {
                   type:
@@ -1357,7 +1359,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
               class="flex gap-1"
             >
               <NcSwitch v-model:checked="formState.unique" size="small" class="nc-switch">
-                <div class="text-sm text-gray-800">Set as Unique</div>
+                <div class="text-sm text-nc-content-gray">Set as Unique</div>
               </NcSwitch>
             </div>
           </div>
@@ -1365,7 +1367,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
             <!-- TODO: Refactor the if condition and verify AttachmentOption -->
             <div
               v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
-              class="text-xs text-gray-400 flex items-center justify-end"
+              class="text-xs text-nc-content-gray-disabled flex items-center justify-end"
             >
               <div
                 class="nc-more-options flex items-center gap-1 cursor-pointer select-none"
@@ -1396,13 +1398,13 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
             '!pb-4': embedMode,
           }"
         >
-          <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
+          <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center justify-between">
             <span class="text-[13px]">
               {{ $t('labels.description') }}
             </span>
 
             <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
-              <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
+              <GeneralIcon icon="delete" class="text-nc-content-gray-subtle w-3.5 h-3.5" />
             </NcButton>
           </div>
 
@@ -1414,7 +1416,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
               'h-[150px] !min-h-[100px]': !props.fromTableExplorer,
               'nc-ai-input': isAiMode,
             }"
-            class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 !max-h-[300px]"
+            class="nc-input-sm nc-input-text-area nc-input-shadow !text-nc-content-gray px-3 !max-h-[300px]"
             hide-details
             data-testid="create-field-description-input"
             :placeholder="$t('msg.info.enterFieldDescription')"
@@ -1429,7 +1431,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
             }"
           >
             <NcButton v-if="!isSystem" size="small" type="text" @click.stop="triggerDescriptionEnable">
-              <div class="flex !text-gray-700 items-center gap-2">
+              <div class="flex !text-nc-content-gray-subtle items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 
                 <span class="first-letter:capitalize">
@@ -1442,13 +1444,13 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 
         <template v-else>
           <div
-            class="flex items-center justify-between gap-2 empty:hidden sticky bottom-0 z-10 bg-white px-5 pb-5 -mx-5"
+            class="flex items-center justify-between gap-2 empty:hidden sticky bottom-0 z-10 bg-nc-bg-default px-5 pb-5 -mx-5"
             :class="{
               'border-t-1 border-nc-border-gray-medium pt-3': isScrollEnabled,
             }"
           >
             <NcButton v-if="!enableDescription && !isSystem" size="small" type="text" @click.stop="triggerDescriptionEnable">
-              <div class="flex !text-gray-700 items-center gap-2">
+              <div class="flex !text-nc-content-gray-subtle items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 
                 <span class="first-letter:capitalize">
@@ -1500,7 +1502,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 <style lang="scss">
 .nc-dropdown-column-type {
   .ant-select-item-option-active-selected {
-    @apply !bg-gray-100;
+    @apply !bg-nc-bg-gray-light;
   }
 }
 
@@ -1513,7 +1515,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 
 <style lang="scss" scoped>
 .nc-input-text-area {
-  @apply !text-gray-800;
+  @apply !text-nc-content-gray;
   padding-block: 8px !important;
 }
 
@@ -1534,11 +1536,6 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 :deep(.ant-form-item-control-input-content > input.ant-input) {
   &:not(:hover):not(:focus) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
-  }
-
-  &:hover:not(:focus) {
-    @apply border-gray-300;
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
 }
 
@@ -1583,11 +1580,11 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 :deep(.ant-select) {
   &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
   &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+    @apply !border-nc-border-gray-medium;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
 
   &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
-    @apply border-gray-300;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
   }
 
@@ -1597,7 +1594,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-small !leading-[18px] mb-2 text-gray-700 flex;
+  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray-subtle flex;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;
@@ -1605,7 +1602,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 }
 
 :deep(.ant-form-item-label) {
-  @apply !pb-0 text-small leading-[18px] text-gray-700;
+  @apply !pb-0 text-small leading-[18px] text-nc-content-gray-subtle;
 }
 
 :deep(.ant-form-item-control-input) {
@@ -1636,11 +1633,11 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
   @apply !rounded-lg !bg-transparent !border-none !p-0;
 
   .ant-alert-message {
-    @apply text-sm text-gray-800 font-weight-600;
+    @apply text-sm text-nc-content-gray font-weight-600;
   }
 
   .ant-alert-description {
-    @apply text-small text-gray-500 font-weight-500;
+    @apply text-small text-nc-content-gray-muted font-weight-500;
   }
 }
 
@@ -1652,7 +1649,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 
 :deep(input::placeholder),
 :deep(textarea::placeholder) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .nc-column-options-wrapper {
@@ -1665,7 +1662,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
   @apply rounded-l-none -ml-[1px] border-transparent;
 
   &.nc-ai-mode {
-    @apply bg-purple-600 hover:bg-purple-500;
+    @apply bg-nc-purple-600 hover:bg-nc-purple-500;
   }
   &:not(.nc-ai-mode) {
     @apply !border-purple-100;

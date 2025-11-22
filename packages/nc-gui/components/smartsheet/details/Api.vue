@@ -216,7 +216,7 @@ const supportedDocs = [
 
         <div class="flex flex-col gap-1">
           <div
-            class="p-2 text-xs text-gray-500 uppercase font-semibold"
+            class="p-2 text-xs text-nc-content-gray-muted uppercase font-semibold"
             :style="{
               letterSpacing: '0.3px',
             }"
@@ -225,7 +225,7 @@ const supportedDocs = [
           </div>
 
           <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-2 px-2 h-7">
-            <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
+            <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-subtle2" />
 
             <a
               :href="doc.href"
@@ -322,10 +322,10 @@ const supportedDocs = [
               />
             </template>
             <template #fallback>
-              <div class="h-[calc(100%_-_36px)] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+              <div class="h-[calc(100%_-_36px)] w-full flex items-center justify-center bg-nc-bg-gray-extralight">
                 <div class="text-center">
                   <a-spin size="large" />
-                  <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                  <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
                 </div>
               </div>
             </template>
@@ -351,9 +351,9 @@ const supportedDocs = [
     }
 
     &.active-menu {
-      @apply bg-brand-50;
+      @apply bg-nc-bg-brand;
       .nc-menu-item-inner {
-        @apply text-brand-600 font-semibold;
+        @apply text-nc-content-brand-disabled font-semibold;
       }
     }
   }

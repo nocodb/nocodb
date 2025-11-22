@@ -189,17 +189,17 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
     >
       <template #bodyCell="{ column, record: token }">
         <template v-if="column.key === 'name'">
-          <NcTooltip v-if="!token.isNew" class="truncate text-gray-800 font-semibold text-sm">
+          <NcTooltip v-if="!token.isNew" class="truncate text-nc-content-gray font-semibold text-sm">
             {{ token.title }}
 
             <template #title>
-              <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-gray-300">
+              <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-nc-content-brand-hover">
                 {{ $t('labels.createdOn') }}
               </div>
               <div class="mt-1 text-[13px]">
                 {{ dayjs(token.created_at).format('D MMMM YYYY, hh:mm A') }}
               </div>
-              <div class="text-[10px] leading-[14px] uppercase font-semibold mt-2 text-gray-300">
+              <div class="text-[10px] leading-[14px] uppercase font-semibold mt-2 text-nc-content-brand-hover">
                 {{ $t('labels.createdBy') }}
               </div>
               <div class="mt-1 pb-1 text-[13px]">
@@ -270,6 +270,6 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
 
 <style scoped lang="scss">
 .ant-input {
-  @apply rounded-lg py-1 px-3 w-398 h-8 border-1 focus:border-brand-500 border-gray-200;
+  @apply rounded-lg py-1 px-3 w-398 h-8 border-1 focus:border-nc-border-brand border-nc-border-gray-medium;
 }
 </style>

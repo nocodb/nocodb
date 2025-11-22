@@ -233,7 +233,7 @@ const handleScrollIntoView = () => {
           @change="onRelationColChange"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex gap-2 w-full justify-between truncate items-center">
@@ -246,7 +246,7 @@ const handleScrollIntoView = () => {
                 </NcTooltip>
               </div>
               <div class="inline-flex items-center truncate gap-2">
-                <div class="text-[0.65rem] leading-4 flex-1 truncate text-gray-600 nc-relation-details">
+                <div class="text-[0.65rem] leading-4 flex-1 truncate text-nc-content-gray-subtle2 nc-relation-details">
                   <NcTooltip class="truncate" show-on-truncate-only>
                     <template #title>{{ table.title || table.table_name }}</template>
                     {{ table.title || table.table_name }}
@@ -280,7 +280,7 @@ const handleScrollIntoView = () => {
           @change="onDataTypeChange"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
           <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
             <div class="w-full flex gap-2 truncate items-center justify-between">
@@ -310,7 +310,7 @@ const handleScrollIntoView = () => {
                 {{ $t('msg.evaluateRecursivelyTooltip') }}
               </template>
               {{ $t('msg.evaluateRecursively') }}
-              <GeneralIcon icon="info" class="h-4 w-4 text-gray-400" />
+              <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-gray-disabled" />
             </NcTooltip>
           </NcSwitch>
         </div>

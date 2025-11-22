@@ -50,12 +50,12 @@ watch(
       <a-form-item :label="$t('labels.icon')">
         <a-select v-model:value="vModel.meta.iconIdx" class="w-52" dropdown-class-name="nc-dropdown-checkbox-icon">
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
 
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <div class="flex gap-2 w-full truncate items-center">
-              <div class="flex-1 flex items-center text-gray-700 gap-2 children:(h-4 w-4)">
+              <div class="flex-1 flex items-center text-nc-content-gray-subtle gap-2 children:(h-4 w-4)">
                 <component :is="getMdiIcon(icon.checked)" />
                 <component :is="getMdiIcon(icon.unchecked)" />
               </div>
@@ -80,9 +80,9 @@ watch(
           class="nc-color-picker-dropdown-trigger"
         >
           <div
-            class="flex-1 border-1 border-gray-300 rounded-lg h-8 px-[11px] flex items-center justify-between transition-all cursor-pointer"
+            class="flex-1 border-1 border-nc-border-gray-dark rounded-lg h-8 px-[11px] flex items-center justify-between transition-all cursor-pointer"
             :class="{
-              'border-brand-500 shadow-selected': isOpenColorPicker,
+              'border-nc-border-brand shadow-selected': isOpenColorPicker,
             }"
           >
             <div class="flex-1 flex items-center gap-2 children:(h-4 w-4)">
@@ -100,7 +100,7 @@ watch(
               />
             </div>
 
-            <GeneralIcon icon="arrowDown" class="text-gray-700 h-4 w-4" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle h-4 w-4" />
           </div>
           <template #overlay>
             <div>

@@ -127,7 +127,7 @@ const updateDescription = async (undo = false) => {
     <template #header>
       <div class="flex flex-row items-center gap-x-2 text-base">
         <GeneralTableIcon :meta="tableMeta" class="!mx-0 !w-5 !h-5 !text-nc-content-subtle2" />
-        <span class="text-base font-semibold text-gray-800">
+        <span class="text-base font-semibold text-nc-content-gray">
           {{ tableMeta?.title ?? tableMeta?.table_name }}
         </span>
       </div>
@@ -172,7 +172,7 @@ const updateDescription = async (undo = false) => {
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-md font-base  !leading-[20px] text-gray-800 flex;
+  @apply !text-md font-base  !leading-[20px] text-nc-content-gray flex;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;

@@ -185,7 +185,7 @@ watch(isOpened, async (val) => {
                   placeholder="Search field to add as lookup"
                 >
                   <template #prefix>
-                    <component :is="iconMap.search" class="w-3.5 text-gray-500 h-3.5 mr-1 ml-1" />
+                    <GeneralIcon icon="search" class="w-3.5 text-nc-content-gray-muted h-3.5 mr-1 ml-1" />
                   </template>
                 </a-input>
               </template>
@@ -196,18 +196,18 @@ watch(isOpened, async (val) => {
                 >
                   <div class="font-weight-600">{{ t('general.add') }} {{ t('datatype.Lookup') }} {{ t('objects.fields') }}</div>
                   <NcButton type="text" size="small" @click="switchToSearchMode()">
-                    <component :is="iconMap.search" class="w-4 h-4" />
+                    <GeneralIcon icon="search" class="w-4 h-4" />
                   </NcButton>
                 </div>
               </template>
             </transition>
           </div>
-          <div class="border-y-1 h-[310px] border-gray-200 py-1 nc-scrollbar-thin" style="scrollbar-gutter: stable">
+          <div class="border-y-1 h-[310px] border-nc-border-gray-medium py-1 nc-scrollbar-thin" style="scrollbar-gutter: stable">
             <div v-for="field of filteredColumns" :key="field.id">
               <div
                 :key="field.id"
                 :data-testid="`nc-lookup-add-menu-${field.title}`"
-                class="px-1 py-0.75 mx-1 flex flex-row items-center rounded-md hover:bg-gray-100"
+                class="px-1 py-0.75 mx-1 flex flex-row items-center rounded-md hover:bg-nc-bg-gray-light"
                 @click.stop="selectedFields[field.id] = !selectedFields[field.id]"
               >
                 <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[2px] pr-2">

@@ -39,7 +39,10 @@ const onDelete = async () => {
 <template>
   <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('labels.dashboard')" :on-delete="onDelete">
     <template #entity-preview>
-      <div v-if="dashboard" class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700">
+      <div
+        v-if="dashboard"
+        class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle"
+      >
         <GeneralIcon class="nc-view-icon" icon="dashboards" />
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"

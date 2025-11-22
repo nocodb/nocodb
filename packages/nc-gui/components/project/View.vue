@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -14,9 +13,9 @@ const { integrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
 
-const { openedProject, activeProjectId, basesUser, bases, basesTeams } = storeToRefs(basesStore)
+const { openedProject, bases } = storeToRefs(basesStore)
 const { activeTable } = storeToRefs(useTablesStore())
-const { activeWorkspace, isTeamsEnabled } = storeToRefs(useWorkspace())
+const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 

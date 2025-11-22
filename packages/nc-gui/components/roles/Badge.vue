@@ -84,7 +84,7 @@ const roleProperties = computed(() => {
         :class="
           isInheritRole
             ? '!text-nc-content-gray-muted dark:!text-nc-content-gray-light'
-            : roleColorsMapping[roleProperties.color]?.content ?? 'text-gray-300'
+            : roleColorsMapping[roleProperties.color]?.content ?? 'text-nc-content-brand-hover'
         "
       >
         <div class="flex items-center gap-2">

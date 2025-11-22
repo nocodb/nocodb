@@ -169,7 +169,7 @@ const handleOAuth = async () => {
       <div class="flex items-center gap-2">
         <div class="font-bold">Authenticate With {{ OAuthConfig.provider }}</div>
         <template v-if="haveValue">
-          <GeneralIcon icon="circleCheckSolid" class="text-success w-6 h-6 bg-white-500" />
+          <GeneralIcon icon="circleCheckSolid" class="text-success w-6 h-6 bg-nc-bg-default" />
         </template>
       </div>
     </NcButton>

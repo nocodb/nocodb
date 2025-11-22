@@ -37,16 +37,16 @@ const onCopyToClipboard = async () => {
 
 <template>
   <div class="nc-mcp-code-tab-wrapper h-80 flex flex-col mt-2">
-    <div class="flex h-9 bg-gray-50 border-b-1 border-nc-border-gray-medium rounded-t-lg items-center px-3">
+    <div class="flex h-9 bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-medium rounded-t-lg items-center px-3">
       <div class="flex-1 text-nc-content-gray leading-5">MCP Configuration</div>
-      <NcButton type="text" size="small" class="!hover:bg-gray-200" @click="onCopyToClipboard">
+      <NcButton type="text" size="small" class="!hover:bg-nc-bg-gray-medium" @click="onCopyToClipboard">
         <div class="flex items-center gap-2 text-small leading-[18px] min-w-80px justify-center">
           <GeneralIcon
             :icon="isCopied ? 'circleCheck' : 'copy'"
             class="h-4 w-4"
             :class="{
-              'text-gray-700': !isCopied,
-              'text-green-700': isCopied,
+              'text-nc-content-gray-subtle': !isCopied,
+              'text-nc-content-green-dark': isCopied,
             }"
           />
           {{ isCopied ? $t('general.copied') : $t('general.copy') }}
@@ -56,7 +56,7 @@ const onCopyToClipboard = async () => {
     <Suspense>
       <template #default>
         <MonacoEditor
-          class="h-72 !rounded-b-lg overflow-hidden !bg-gray-50"
+          class="h-72 !rounded-b-lg overflow-hidden !bg-nc-bg-gray-extralight"
           :model-value="code"
           :read-only="true"
           lang="json"
@@ -125,8 +125,8 @@ const onCopyToClipboard = async () => {
   .monaco-editor,
   .monaco-diff-editor,
   .monaco-component {
-    --vscode-editor-background: #f9f9fa;
-    --vscode-editorGutter-background: #f9f9fa;
+    --vscode-editor-background: var(--nc-bg-gray-extra-light);
+    --vscode-editorGutter-background: var(--nc-bg-gray-extra-light);
   }
 }
 </style>

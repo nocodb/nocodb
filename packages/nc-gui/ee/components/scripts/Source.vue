@@ -23,7 +23,7 @@ const showCode = ref(true)
     class="nc-script-code-tab-wrapper mt-2"
   >
     <div
-      class="flex h-9 bg-gray-50 border-b-1 border-nc-border-gray-medium rounded-t-lg transition-all items-center px-3"
+      class="flex h-9 bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-medium rounded-t-lg transition-all items-center px-3"
       :class="{
         'rounded-b-lg': !showCode,
       }"
@@ -36,7 +36,7 @@ const showCode = ref(true)
       <Suspense v-if="showCode">
         <template #default>
           <MonacoEditor
-            class="h-[402px] !rounded-b-lg overflow-hidden !bg-gray-50"
+            class="h-[402px] !rounded-b-lg overflow-hidden !nc-bg-gray-extralight"
             :model-value="code"
             :read-only="true"
             lang="javascript"
@@ -81,10 +81,10 @@ const showCode = ref(true)
           />
         </template>
         <template #fallback>
-          <div class="h-[402px] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div class="h-[402px] w-full flex items-center justify-center bg-nc-bg-gray-extralight">
             <div class="text-center">
               <a-spin size="large" />
-              <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+              <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
             </div>
           </div>
         </template>
@@ -105,8 +105,8 @@ const showCode = ref(true)
   .monaco-editor,
   .monaco-diff-editor,
   .monaco-component {
-    --vscode-editor-background: #f9f9fa;
-    --vscode-editorGutter-background: #f9f9fa;
+    --vscode-editor-background: var(--nc-bg-gray-extra-light);
+    --vscode-editorGutter-background: var(--nc-bg-gray-extra-light);
   }
 }
 </style>

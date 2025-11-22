@@ -173,7 +173,7 @@ onBeforeMount(async () => {
     @apply font-bold mb-2;
   }
   .nc-hook-pre {
-    @apply bg-gray-100;
+    @apply bg-nc-bg-gray-light;
     padding: 10px;
   }
 }

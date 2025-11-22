@@ -949,8 +949,8 @@ const webhookV2AndV3Diff = computed(() => {
     <template #header>
       <div class="flex w-full items-center pl-4 pr-3 py-3 justify-between">
         <div class="flex items-center gap-3 flex-1">
-          <GeneralIcon class="text-gray-900 h-5 w-5" icon="ncWebhook" />
-          <span class="text-gray-900 font-semibold text-xl">
+          <GeneralIcon class="text-nc-content-gray-emphasis h-5 w-5" icon="ncWebhook" />
+          <span class="text-nc-content-gray-emphasis font-semibold text-xl">
             <template v-if="activeTab === HookTab.Configuration">
               {{ showUpgradeModal ? hookRef.title : !hook ? $t('activity.newWebhook') : 'Webhook Settings' }}
             </template>
@@ -962,7 +962,7 @@ const webhookV2AndV3Diff = computed(() => {
 
         <div
           v-if="hook && isEeUI && !showUpgradeModal"
-          class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab"
+          class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 nc-view-sidebar-tab"
         >
           <div
             v-e="['c:webhook:edit']"
@@ -1002,11 +1002,11 @@ const webhookV2AndV3Diff = computed(() => {
                 @click="testWebhook"
               >
                 <template #icon>
-                  <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4 flex-none" />
+                  <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-nc-content-green-dark w-4 h-4 flex-none" />
                   <GeneralIcon
                     v-else-if="testConnectionError"
                     icon="alertTriangleSolid"
-                    class="!text-red-700 w-4 h-4 flex-none"
+                    class="!text-nc-content-red-dark w-4 h-4 flex-none"
                   />
                 </template>
                 <span>
@@ -1041,7 +1041,7 @@ const webhookV2AndV3Diff = computed(() => {
         </div>
       </div>
     </template>
-    <div v-if="activeTab === HookTab.Configuration" class="flex bg-white rounded-b-2xl h-[calc(100%_-_56px)]">
+    <div v-if="activeTab === HookTab.Configuration" class="flex bg-nc-bg-default rounded-b-2xl h-[calc(100%_-_56px)]">
       <div v-if="showUpgradeModal" class="h-full w-full overflow-auto nc-scrollbar-thin">
         <div class="h-full w-full max-w-[1040] min-w-[640px] px-6 md:px-12 py-6 flex flex-col">
           <div class="flex flex-col gap-2 mb-8">
@@ -1095,10 +1095,10 @@ const webhookV2AndV3Diff = computed(() => {
                     />
                   </template>
                   <template #fallback>
-                    <div class="min-h-50 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                    <div class="min-h-50 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
                       <div class="text-center">
                         <a-spin size="large" />
-                        <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                        <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
                       </div>
                     </div>
                   </template>
@@ -1120,7 +1120,7 @@ const webhookV2AndV3Diff = computed(() => {
           <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 flex flex-col">
             <a-form-item v-bind="validateInfos.title">
               <div
-                class="flex flex-grow px-2 py-1 title-input items-center border-b-1 rounded-t-md border-gray-200 bg-gray-100"
+                class="flex flex-grow px-2 py-1 title-input items-center border-b-1 rounded-t-md border-nc-border-gray-medium bg-nc-bg-gray-light"
                 @click.prevent="titleDomRef?.focus()"
               >
                 <input
@@ -1164,7 +1164,7 @@ const webhookV2AndV3Diff = computed(() => {
                         class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-4 py-2 h-[36px] shadow-default"
                         data-testid="nc-dropdown-hook-operation"
                         :class="{
-                          '!border-brand-500 !shadow-selected': isDropdownOpen,
+                          '!border-nc-border-brand !shadow-selected': isDropdownOpen,
                           '!hover:shadow-hover': !isDropdownOpen,
                         }"
                       >
@@ -1228,7 +1228,7 @@ const webhookV2AndV3Diff = computed(() => {
                   <div class="w-full flex items-center justify-between h-[28px]">
                     <label class="cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                       <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
-                        <span class="!text-gray-700 font-semibold"> Trigger only when conditions match </span>
+                        <span class="!text-nc-content-gray-subtle font-semibold"> Trigger only when conditions match </span>
                       </NcSwitch>
                     </label>
 
@@ -1325,7 +1325,7 @@ const webhookV2AndV3Diff = computed(() => {
                       >
                         <a-select-option v-for="type in notificationTypes" :key="type.type" :value="type.type">
                           <div class="flex items-center">
-                            <component :is="iconMap[type.type]" class="text-gray-700 mr-2" />
+                            <component :is="iconMap[type.type]" class="text-nc-content-gray-subtle mr-2" />
                             {{ type.label }}
                           </div>
                         </a-select-option>
@@ -1359,7 +1359,7 @@ const webhookV2AndV3Diff = computed(() => {
                           :filter-option="(input, option) => antSelectFilterOption(input, option, ['value'])"
                         >
                           <template #suffixIcon>
-                            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
                           </template>
 
                           <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
@@ -1456,10 +1456,10 @@ const webhookV2AndV3Diff = computed(() => {
                             />
                           </template>
                           <template #fallback>
-                            <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                            <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
                               <div class="text-center">
                                 <a-spin size="large" />
-                                <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                                <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
                               </div>
                             </div>
                           </template>
@@ -1523,13 +1523,13 @@ const webhookV2AndV3Diff = computed(() => {
                 <div>
                   <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
                     <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
-                      <span class="!text-gray-700 font-semibold">{{ $t('labels.includeUser') }}</span>
+                      <span class="!text-nc-content-gray-subtle font-semibold">{{ $t('labels.includeUser') }}</span>
                     </NcSwitch>
                     <NcTooltip class="flex">
                       <template #title>
                         {{ $t('tooltip.includeUserHint') }}
                       </template>
-                      <GeneralIcon icon="info" class="text-gray-400 ml-1" />
+                      <GeneralIcon icon="info" class="text-nc-content-gray-disabled ml-1" />
                     </NcTooltip>
                   </div>
                 </div>
@@ -1626,10 +1626,10 @@ const webhookV2AndV3Diff = computed(() => {
                       />
                     </template>
                     <template #fallback>
-                      <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                      <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
                         <div class="text-center">
                           <a-spin size="large" />
-                          <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                          <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
                         </div>
                       </div>
                     </template>
@@ -1640,19 +1640,19 @@ const webhookV2AndV3Diff = computed(() => {
           </div>
         </div>
 
-        <div class="h-full bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
+        <div class="h-full bg-nc-bg-gray-extralight border-l-1 w-80 p-5 rounded-br-2xl border-nc-border-gray-medium">
           <div class="w-full flex flex-col gap-3">
-            <h2 class="text-sm text-gray-700 font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
+            <h2 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
             <div>
               <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">
                 <div class="h-7 w-7 flex items-center justify-center">
-                  <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-500" />
+                  <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
                 </div>
                 <NuxtLink
                   :href="doc.href"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="!text-gray-500 text-sm !no-underline !hover:underline"
+                  class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"
                 >
                   {{ doc.title }}
                 </NuxtLink>
@@ -1672,7 +1672,7 @@ const webhookV2AndV3Diff = computed(() => {
 .nc-modal-webhook-create-edit {
   z-index: 1050;
   a:not(.nc-link) {
-    @apply !no-underline !text-gray-700 !hover:text-primary;
+    @apply !no-underline !text-nc-content-gray-subtle !hover:text-primary;
   }
   .nc-modal {
     @apply !p-0;
@@ -1701,8 +1701,8 @@ const webhookV2AndV3Diff = computed(() => {
     .monaco-editor,
     .monaco-diff-editor,
     .monaco-component {
-      --vscode-editor-background: #f9f9fa;
-      --vscode-editorGutter-background: #f9f9fa;
+      --vscode-editor-background: var(--color-gray-50);
+      --vscode-editorGutter-background: var(--color-gray-50);
     }
   }
 }
@@ -1721,7 +1721,7 @@ const webhookV2AndV3Diff = computed(() => {
 
 .title-input {
   &:focus-within {
-    @apply transition-all duration-0.3s border-b-brand-500;
+    @apply transition-all duration-0.3s border-b-nc-border-brand;
     box-shadow: 0px 2px 0px 0px rgba(51, 102, 255, 0.24);
   }
 }
@@ -1771,7 +1771,7 @@ const webhookV2AndV3Diff = computed(() => {
     }
 
     &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
-      @apply border-gray-300;
+      @apply border-nc-border-gray-dark;
       box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
     }
 
@@ -1782,7 +1782,7 @@ const webhookV2AndV3Diff = computed(() => {
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-small !leading-[18px] mb-2 text-gray-700 flex;
+  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray-subtle flex;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;
@@ -1790,7 +1790,7 @@ const webhookV2AndV3Diff = computed(() => {
 }
 
 :deep(.ant-form-item-label) {
-  @apply !pb-0 text-small leading-[18px] text-gray-700;
+  @apply !pb-0 text-small leading-[18px] text-nc-content-gray-subtle;
 }
 
 :deep(.ant-form-item-control-input) {
@@ -1821,11 +1821,11 @@ const webhookV2AndV3Diff = computed(() => {
   @apply !rounded-lg !bg-transparent !border-none !p-0;
 
   .ant-alert-message {
-    @apply text-sm text-gray-800 font-weight-600;
+    @apply text-sm text-nc-content-gray font-weight-600;
   }
 
   .ant-alert-description {
-    @apply text-small text-gray-500 font-weight-500;
+    @apply text-small text-nc-content-gray-muted font-weight-500;
   }
 }
 
@@ -1837,7 +1837,7 @@ const webhookV2AndV3Diff = computed(() => {
 
 :deep(input::placeholder),
 :deep(textarea::placeholder) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 :deep(.nc-tabs .ant-tabs-nav) {
   @apply pl-0;
@@ -1854,7 +1854,7 @@ const webhookV2AndV3Diff = computed(() => {
 }
 
 .tab {
-  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-nc-content-gray-subtle2 hover:text-nc-content-gray-extreme cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab-icon {
@@ -1870,7 +1870,7 @@ const webhookV2AndV3Diff = computed(() => {
 }
 
 .active {
-  @apply bg-white text-brand-600 hover:text-brand-600;
+  @apply bg-nc-bg-default text-nc-content-brand-disabled hover:text-nc-content-brand-disabled;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }

@@ -205,30 +205,32 @@ const saveOIDCProvider = async () => {
 
           <div class="flex flex-col gap-2">
             <div class="flex w-full flex-row items-center">
-              <span class="text-gray-800">{{ $t('labels.redirectUrl') }}</span>
+              <span class="text-nc-content-gray">{{ $t('labels.redirectUrl') }}</span>
               <NcTooltip>
                 <template #title>
                   This is the URL where authentication responses will be sent after successful login. Also referred to as
                   'Callback URL' or 'Reply URL'.
                 </template>
                 <div class="h-full flex align-center">
-                  <component :is="iconMap.info" class="ml-2 text-gray-800" />
+                  <component :is="iconMap.info" class="ml-2 text-nc-content-gray" />
                 </div>
               </NcTooltip>
             </div>
-            <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
+            <div
+              class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg"
+            >
               <span
-                class="text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+                class="text-nc-content-gray overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
                 data-test-id="nc-openid-redirect-url"
               >
                 {{ getRedirectUrl(oidc) }}
               </span>
               <NcButton size="xsmall" type="text" @click="copyRedirectUrl(getRedirectUrl(oidc))">
                 <MdiCheck v-if="isCopied.redirectUrl" class="h-3.5" />
-                <component :is="iconMap.copy" v-else class="text-gray-800" />
+                <component :is="iconMap.copy" v-else class="text-nc-content-gray" />
               </NcButton>
             </div>
-            <span class="text-xs text-gray-500">{{ $t('msg.info.idpPaste') }}</span>
+            <span class="text-xs text-nc-content-gray-muted">{{ $t('msg.info.idpPaste') }}</span>
           </div>
 
           <a-form-item :rules="formRules.issuer" name="issuer">
@@ -313,14 +315,14 @@ const saveOIDCProvider = async () => {
 
           <!-- Disable since SSO only option is implemented at the moment -->
           <!-- <div
-            class="flex rounded-lg mt-4 border-1 border-gray-200 bg-orange-50 p-4 justify-between"
+            class="flex rounded-lg mt-4 border-1 border-nc-border-gray-medium bg-nc-bg-orange-light p-4 justify-between"
             data-test-id="nc-oidc-sso-only"
           >
             <div class="flex gap-4">
-              <component :is="iconMap.info" class="text-yellow-500 h-6 w-6" />
+              <component :is="iconMap.info" class="text-nc-content-yellow-medium h-6 w-6" />
               <div>
-                <div class="text-gray-800 mb-1 font-bold">Allow SSO Login only</div>
-                <div class="text-gray-500">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
+                <div class="text-nc-content-gray mb-1 font-bold">Allow SSO Login only</div>
+                <div class="text-nc-content-gray-muted">Enable SSO Logins only after testing metadata, by signing in using SSO.</div>
               </div>
             </div>
 
@@ -358,11 +360,11 @@ const saveOIDCProvider = async () => {
     @apply !h-[45px];
   }
   .ant-input {
-    @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
+    @apply px-4 rounded-lg py-2 w-full border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
   }
 
   .ant-input::placeholder {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
   }
 }
 </style>

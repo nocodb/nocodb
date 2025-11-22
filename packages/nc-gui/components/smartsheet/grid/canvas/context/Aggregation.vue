@@ -26,9 +26,9 @@ const onClick = (agg) => {
 <template>
   <NcMenu v-if="column?.uidt" :disabled="isLocked" class="!max-h-55 overflow-auto" variant="small">
     <NcMenuItem v-for="(agg, index) in aggregations" :key="index" @click="onClick(agg)">
-      <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
+      <div class="flex !w-full text-[13px] text-nc-content-gray items-center justify-between">
         {{ $t(`aggregation_type.${agg}`) }}
-        <GeneralIcon v-if="gridCol?.aggregation === agg" class="text-brand-500" icon="check" />
+        <GeneralIcon v-if="gridCol?.aggregation === agg" class="text-nc-content-brand" icon="check" />
       </div>
     </NcMenuItem>
   </NcMenu>

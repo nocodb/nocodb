@@ -820,7 +820,7 @@ defineExpose({
       :list="filters"
       :disabled="!isReorderEnabled"
       group="nc-column-filters"
-      ghost-class="bg-gray-50"
+      ghost-class="bg-nc-bg-gray-extralight"
       draggable=".nc-column-filter-item"
       handle=".nc-column-filter-drag-handler"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
@@ -969,7 +969,7 @@ defineExpose({
 
             <NcTooltip
               v-if="isForm && !webHook && !fieldsToFilter.find((c) => c?.id === filter.fk_column_id)"
-              class="flex-1 flex items-center gap-2 px-2 !text-red-500 cursor-pointer"
+              class="flex-1 flex items-center gap-2 px-2 !text-nc-content-red-medium cursor-pointer"
               :disabled="!filter.fk_column_id || !visibilityError[filter.fk_column_id]"
             >
               <template #title> {{ visibilityError[filter.fk_column_id!] ?? '' }}</template>
@@ -1118,11 +1118,11 @@ defineExpose({
                     <template #overlay>
                       <div class="relative overflow-visible min-h-17 w-10">
                         <div
-                          class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
+                          class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
                           style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                         >
                           <div
-                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
+                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
                             @click="resetDynamicField(filter, i)"
                           >
                             <div class="flex flex-row items-center justify-between w-full">
@@ -1133,11 +1133,11 @@ defineExpose({
                                 class="w-4 h-4 text-primary"
                               />
                             </div>
-                            <div class="flex flex-row text-xs text-gray-400">Filter based on static value</div>
+                            <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
                           </div>
                           <div
                             v-e="['c:filter:dynamic-filter']"
-                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
+                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
                             :class="
                               isDynamicFilterAllowed(filter) && showFilterInput(filter) ? 'cursor-pointer' : 'cursor-not-allowed'
                             "
@@ -1151,7 +1151,7 @@ defineExpose({
                                 class="w-4 h-4 text-primary"
                               />
                             </div>
-                            <div class="flex flex-row text-xs text-gray-400">Filter based on dynamic value</div>
+                            <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
                           </div>
                         </div>
                       </div>
@@ -1284,7 +1284,7 @@ defineExpose({
     </template>
     <div
       v-if="!visibleFilters || !visibleFilters.length"
-      class="flex flex-row text-gray-400 mt-2"
+      class="flex flex-row text-nc-content-gray-disabled mt-2"
       :class="{
         'ml-1': nested,
         'ml-0.5': !nested,
@@ -1309,7 +1309,7 @@ defineExpose({
 <style scoped lang="scss">
 .nc-filter-item-remove-btn,
 .nc-filter-item-reorder-btn {
-  @apply text-gray-600 hover:text-gray-800;
+  @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 
 .nc-filter-grid {
@@ -1329,7 +1329,7 @@ defineExpose({
 }
 
 .nc-filter-wrapper {
-  @apply bg-white !rounded-lg border-1px border-[#E7E7E9];
+  @apply bg-nc-bg-default !rounded-lg border-1px border-nc-border-gray-medium;
 
   & > *,
   .nc-filter-value-select {
@@ -1343,13 +1343,13 @@ defineExpose({
   }
 
   & > :not(:last-child):not(:empty) {
-    border-right: 1px solid #eee !important;
+    border-right: 1px solid var(--nc-border-gray-medium) !important;
     border-bottom-right-radius: 0 !important;
     border-top-right-radius: 0 !important;
   }
 
   .nc-settings-dropdown {
-    border-left: 1px solid #eee !important;
+    border-left: 1px solid var(--nc-border-gray-medium) !important;
     border-radius: 0 !important;
   }
 
@@ -1362,7 +1362,7 @@ defineExpose({
     @apply relative;
     &::after {
       content: '';
-      @apply absolute h-full w-1px bg-[#eee] -left-1px top-0;
+      @apply absolute h-full w-1px bg-[var(--nc-bg-gray-medium)] -left-1px top-0;
     }
   }
 
@@ -1381,22 +1381,22 @@ defineExpose({
   :deep(.nc-select:not(.nc-disabled-logical-op):not(.ant-select-disabled):hover) {
     &,
     .ant-select-selector {
-      @apply bg-gray-50;
+      @apply bg-nc-bg-gray-extralight;
     }
   }
 }
 .nc-filter-nested-level-0 {
-  @apply bg-[#f9f9fa];
+  @apply bg-nc-bg-gray-extralight;
 }
 
 .nc-filter-nested-level-1,
 .nc-filter-nested-level-3 {
-  @apply bg-gray-[#f4f4f5];
+  @apply bg-nc-bg-gray-light;
 }
 
 .nc-filter-nested-level-2,
 .nc-filter-nested-level-4 {
-  @apply bg-gray-[#e7e7e9];
+  @apply bg-nc-bg-gray-medium;
 }
 
 .nc-filter-logical-op-level-3,
@@ -1407,11 +1407,11 @@ defineExpose({
 }
 
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 :deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
-  @apply bg-transparent text-gray-400;
+  @apply bg-transparent text-nc-content-gray-disabled;
 }
 
 :deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector) {
@@ -1419,14 +1419,14 @@ defineExpose({
 }
 
 :deep(.nc-select-expand-btn) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .menu-filter-dropdown {
   input:not(:disabled),
   select:not(:disabled),
   .ant-select:not(.ant-select-disabled) {
-    @apply text-[#4A5268];
+    @apply text-nc-content-gray-subtle2;
   }
 }
 
@@ -1437,7 +1437,7 @@ defineExpose({
 }
 
 .nc-btn-focus:focus {
-  @apply !text-brand-500 !shadow-none;
+  @apply !text-nc-content-brand !shadow-none;
 }
 </style>
 

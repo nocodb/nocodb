@@ -116,7 +116,7 @@ watch(
 </script>
 
 <template>
-  <div v-if="isForm" class="nc-unlock-view-wrapper rounded-2xl bg-white p-6 w-full max-w-[384px] flex flex-col gap-5">
+  <div v-if="isForm" class="nc-unlock-view-wrapper rounded-2xl bg-nc-bg-default p-6 w-full max-w-[384px] flex flex-col gap-5">
     <div class="flex flex-col gap-2">
       <div class="text-base font-bold text-nc-content-gray-emphasis">
         {{ $t('title.thisFormIsLocked') }}

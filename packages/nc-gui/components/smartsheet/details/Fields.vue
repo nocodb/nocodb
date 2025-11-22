@@ -1392,13 +1392,16 @@ onBeforeRouteUpdate((_to, from, next) => {
               :placeholder="$t('placeholder.searchFields')"
             >
               <template #prefix>
-                <GeneralIcon icon="search" class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black" />
+                <GeneralIcon
+                  icon="search"
+                  class="mx-1 h-3.5 w-3.5 text-nc-content-inverted-secondary-disabled group-hover:text-nc-content-gray-extreme"
+                />
               </template>
               <template #suffix>
                 <GeneralIcon
                   v-if="searchQuery.length > 0"
                   icon="close"
-                  class="mx-1 h-3.5 w-3.5 text-gray-500 group-hover:text-black"
+                  class="mx-1 h-3.5 w-3.5 text-nc-content-inverted-secondary-disabled group-hover:text-nc-content-gray-extreme"
                   data-testid="nc-field-clear-search"
                   @click="searchQuery = ''"
                 />
@@ -1444,7 +1447,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                   </NcButton>
                 </NcTooltip>
                 <NcTooltip :title="aiMode ? $t('labels.disableNocoAI') : ''" :disabled="!aiMode">
-                  <NcDropdown :trigger="['hover']" placement="bottomRight" overlay-class-name="!border-purple-200">
+                  <NcDropdown :trigger="['hover']" placement="bottomRight" overlay-class-name="!border-nc-purple-200">
                     <NcButton
                       size="small"
                       :type="aiMode ? 'primary' : 'secondary'"
@@ -1538,7 +1541,7 @@ onBeforeRouteUpdate((_to, from, next) => {
         </div>
         <!-- Ai field wizard  -->
         <div
-          class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200"
+          class="flex flex-row rounded-lg border-1 overflow-clip border-nc-border-gray-medium"
           :style="{
             height: `calc(100vh - (var(--topbar-height) * 3.6) - 24px)`,
           }"
@@ -1741,7 +1744,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           @click="predictFromPrompt"
                         >
                           <template #loadingIcon>
-                            <GeneralLoader class="!text-purple-700" size="medium" />
+                            <GeneralLoader class="!text-nc-content-purple-dark" size="medium" />
                           </template>
                           <template #icon>
                             <GeneralIcon icon="send" class="flex-none h-4 w-4" />
@@ -1826,11 +1829,11 @@ onBeforeRouteUpdate((_to, from, next) => {
                 <template #item="{ element: field }">
                   <div
                     v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
-                    class="flex px-2 border-b-1 border-gray-200 pl-5 group"
+                    class="flex px-2 border-b-1 border-nc-border-gray-medium pl-5 group"
                     :class="{
                       'selected': compareCols(field, activeField),
                       'cursor-not-allowed': !isColumnUpdateAllowed(field),
-                      'hover:bg-gray-100': !isSystemColumn(field),
+                      'hover:bg-nc-bg-gray-light': !isSystemColumn(field),
                     }"
                     :data-testid="`nc-field-item-${fieldState(field)?.title || field.title}`"
                     @click="changeField(field, $event)"
@@ -1838,7 +1841,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                     <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
                       <component
                         :is="iconMap.drag"
-                        class="cursor-move !h-3.75 text-gray-600 mr-1"
+                        class="cursor-move !h-3.75 text-nc-content-gray-subtle2 mr-1"
                         :class="{
                           'opacity-0 !cursor-default': isLocked,
                         }"
@@ -1863,12 +1866,12 @@ onBeforeRouteUpdate((_to, from, next) => {
 
                       <SmartsheetHeaderIcon
                         :column="fieldState(field) || field"
-                        :color="compareCols(field, activeField) ? 'text-brand-500' : 'text-nc-content-gray-subtle2'"
+                        :color="compareCols(field, activeField) ? 'text-nc-content-brand' : 'text-nc-content-gray-subtle2'"
                       />
 
                       <NcTooltip
                         :class="{
-                          'text-brand-500': compareCols(field, activeField),
+                          'text-nc-content-brand': compareCols(field, activeField),
                         }"
                         class="truncate flex-1"
                         show-on-truncate-only
@@ -1885,7 +1888,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           v-if="fieldStatus(field) === 'delete'"
                           color="red"
                           :border="false"
-                          class="bg-red-50 text-red-700 text-small leading-[18px]"
+                          class="bg-nc-bg-red-light text-nc-content-red-dark text-small leading-[18px]"
                           data-testid="nc-field-status-deleted-field"
                         >
                           {{ $t('labels.multiField.deletedField') }}
@@ -1896,8 +1899,8 @@ onBeforeRouteUpdate((_to, from, next) => {
                           :border="!!field?.is_ai_field"
                           class="text-small leading-[18px]"
                           :class="{
-                            '!bg-purple-50 text-purple-700 !border-purple-100': field?.is_ai_field,
-                            'bg-green-50 text-green-700': !field?.is_ai_field,
+                            '!bg-nc-bg-purple-light text-nc-content-purple-dark !border-nc-purple-100': field?.is_ai_field,
+                            'bg-nc-bg-green-light text-nc-content-green-dark': !field?.is_ai_field,
                           }"
                           data-testid="nc-field-status-new-field"
                         >
@@ -1909,7 +1912,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           v-else-if="fieldStatus(field) === 'update'"
                           color="orange"
                           :border="false"
-                          class="bg-orange-50 text-orange-700 text-small leading-[18px]"
+                          class="bg-nc-bg-orange-light text-nc-content-orange-dark text-small leading-[18px]"
                           data-testid="nc-field-status-updated-field"
                         >
                           {{ $t('labels.multiField.updatedField') }}
@@ -1918,7 +1921,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           v-if="!isColumnValid(field)"
                           color="yellow"
                           :border="false"
-                          class="ml-1 bg-yellow-50 text-yellow-700 text-small leading-[18px]"
+                          class="ml-1 bg-nc-bg-yellow-light text-nc-content-yellow-dark text-small leading-[18px]"
                           data-testid="nc-field-status-incomplete-configuration"
                         >
                           {{ $t('labels.multiField.incompleteConfiguration') }}
@@ -1931,7 +1934,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           <NcBadge
                             color="red"
                             :border="false"
-                            class="ml-1 bg-red-50 text-red-700 text-small leading-[18px]"
+                            class="ml-1 bg-nc-bg-red-light text-nc-content-red-dark text-small leading-[18px]"
                             data-testid="nc-field-status-error-configuration"
                           >
                             <GeneralIcon icon="info" class="!text-current" />
@@ -1963,8 +1966,12 @@ onBeforeRouteUpdate((_to, from, next) => {
                           type="text"
                           class="!opacity-0 !group-hover:(opacity-100)"
                           :class="{
-                            '!hover:(text-brand-700 bg-brand-100) !group-hover:(text-brand-500)': compareCols(field, activeField),
-                            '!hover:(text-gray-700 bg-gray-200) !group-hover:(text-gray-500)': !compareCols(field, activeField),
+                            '!hover:(text-nc-brand-700 bg-nc-brand-100) !group-hover:(text-nc-content-brand)': compareCols(
+                              field,
+                              activeField,
+                            ),
+                            '!hover:(text-nc-content-inverted-secondary bg-nc-bg-gray-medium) !group-hover:(text-nc-content-inverted-secondary-disabled)':
+                              !compareCols(field, activeField),
                           }"
                           data-testid="nc-field-item-action-button"
                         >
@@ -2029,7 +2036,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                         </template>
                       </NcDropdown>
                       <MdiChevronRight
-                        class="text-brand-500 opacity-0"
+                        class="text-nc-content-brand opacity-0"
                         :class="{
                           'opacity-100': compareCols(field, activeField),
                         }"
@@ -2044,7 +2051,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                   #header
                 >
                   <div
-                    class="flex px-2 bg-white hover:bg-gray-100 border-b-1 border-gray-200 last:border-b-1 pl-5 group"
+                    class="flex px-2 bg-nc-bg-default hover:bg-nc-bg-gray-light border-b-1 border-nc-border-gray-medium last:border-b-1 pl-5 group"
                     :class="{
                       'selected': compareCols(displayColumn, activeField),
                       'first:rounded-tl-lg': !aiMode,
@@ -2055,7 +2062,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                     <div class="flex items-center flex-1 py-2.5 gap-1 w-2/6">
                       <component
                         :is="iconMap.drag"
-                        class="cursor-move !h-3.75 text-gray-200 mr-1"
+                        class="cursor-move !h-3.75 text-nc-gray-200 mr-1"
                         :class="{
                           'opacity-0 !cursor-default': isLocked,
                         }"
@@ -2064,13 +2071,15 @@ onBeforeRouteUpdate((_to, from, next) => {
 
                       <SmartsheetHeaderIcon
                         :column="fieldState(displayColumn) || displayColumn"
-                        :color="compareCols(displayColumn, activeField) ? 'text-brand-500' : 'text-nc-content-gray-subtle2'"
+                        :color="
+                          compareCols(displayColumn, activeField) ? 'text-nc-content-brand' : 'text-nc-content-gray-subtle2'
+                        "
                       />
 
                       <NcTooltip
                         class="truncate flex-1"
                         :class="{
-                          'text-brand-500': compareCols(displayColumn, activeField),
+                          'text-nc-content-brand': compareCols(displayColumn, activeField),
                         }"
                         show-on-truncate-only
                       >
@@ -2086,7 +2095,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           v-if="fieldStatus(displayColumn) === 'delete'"
                           color="red"
                           :border="false"
-                          class="bg-red-50 text-red-700 text-small leading-[18px]"
+                          class="bg-nc-bg-red-light text-nc-content-red-dark text-small leading-[18px]"
                           data-testid="nc-field-status-deleted-field"
                         >
                           {{ $t('labels.multiField.deletedField') }}
@@ -2096,7 +2105,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           v-else-if="fieldStatus(displayColumn) === 'update'"
                           color="orange"
                           :border="false"
-                          class="bg-orange-50 text-orange-700 text-small leading-[18px]"
+                          class="bg-nc-bg-orange-light text-nc-content-orange-dark text-small leading-[18px]"
                           data-testid="nc-field-status-updated-field"
                         >
                           {{ $t('labels.multiField.updatedField') }}
@@ -2127,14 +2136,12 @@ onBeforeRouteUpdate((_to, from, next) => {
                           type="text"
                           class="!opacity-0 !group-hover:(opacity-100)"
                           :class="{
-                            '!hover:(text-brand-700 bg-brand-100) !group-hover:(text-brand-500)': compareCols(
+                            '!hover:(text-nc-brand-700 bg-nc-brand-100) !group-hover:(text-nc-content-brand)': compareCols(
                               displayColumn,
                               activeField,
                             ),
-                            '!hover:(text-gray-700 bg-gray-200) !group-hover:(text-gray-500)': !compareCols(
-                              displayColumn,
-                              activeField,
-                            ),
+                            '!hover:(text-nc-content-inverted-secondary bg-nc-bg-gray-medium) !group-hover:(text-nc-content-inverted-secondary-disabled)':
+                              !compareCols(displayColumn, activeField),
                           }"
                           data-testid="nc-field-item-action-button"
                         >
@@ -2157,7 +2164,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                         </template>
                       </NcDropdown>
                       <MdiChevronRight
-                        class="text-brand-500 opacity-0"
+                        class="text-nc-content-brand opacity-0"
                         :class="{
                           'opacity-100': compareCols(displayColumn, activeField),
                         }"
@@ -2172,7 +2179,7 @@ onBeforeRouteUpdate((_to, from, next) => {
             <div
               v-if="!changingField"
               ref="rightPanelRef"
-              class="flex-none border-gray-200 border-l-1 nc-scrollbar-md h-full !overflow-y-auto"
+              class="flex-none border-nc-border-gray-medium border-l-1 nc-scrollbar-md h-full !overflow-y-auto"
               @keydown.up.stop
               @keydown.down.stop
             >
@@ -2191,8 +2198,10 @@ onBeforeRouteUpdate((_to, from, next) => {
               />
               <div v-else class="w-[25rem] flex flex-col justify-center p-4 items-center">
                 <img src="~assets/img/placeholder/multi-field-editor.png" class="!w-[18rem]" />
-                <div class="text-2xl text-gray-600 font-bold text-center pt-6">{{ $t('labels.multiField.selectField') }}</div>
-                <div class="text-center text-sm px-2 text-gray-500 pt-6">
+                <div class="text-2xl text-nc-content-gray-subtle2 font-bold text-center pt-6">
+                  {{ $t('labels.multiField.selectField') }}
+                </div>
+                <div class="text-center text-sm px-2 text-nc-content-inverted-secondary-disabled pt-6">
                   {{ $t('labels.multiField.selectFieldLabel') }}
                 </div>
               </div>
@@ -2223,23 +2232,8 @@ onBeforeRouteUpdate((_to, from, next) => {
   @apply !pt-0;
 }
 
-.add {
-  background-color: #e6ffed !important;
-  border-color: #b7eb8f;
-}
-
-.update {
-  background-color: #fffbe6 !important;
-  border-color: #ffe58f;
-}
-
-.delete {
-  background-color: #fff1f0 !important;
-  border-color: #ffa39e;
-}
-
 .selected {
-  @apply bg-brand-50;
+  @apply bg-nc-bg-brand;
 }
 
 .slide-fade-enter-active {
@@ -2280,10 +2274,10 @@ onBeforeRouteUpdate((_to, from, next) => {
     @apply rounded-l-none -ml-[1px];
 
     &.nc-ai-mode {
-      @apply bg-purple-600 hover:bg-purple-500;
+      @apply bg-nc-purple-600 hover:bg-nc-purple-500;
     }
     &:not(.nc-ai-mode) {
-      @apply !border-purple-100;
+      @apply !border-nc-purple-100;
     }
   }
 }

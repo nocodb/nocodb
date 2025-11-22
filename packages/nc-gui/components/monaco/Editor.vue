@@ -31,6 +31,8 @@ const { modelValue, readOnly } = toRefs(props)
 
 const { hideMinimap, lang, validate, disableDeepCompare, autoFocus, monacoConfig, monacoCustomTheme, placeholder } = props
 
+const { isDark } = useTheme()
+
 let isInitialLoad = false
 
 const vModel = computed({
@@ -171,7 +173,7 @@ onMounted(async () => {
       editor = monacoEditor.create(root.value, {
         model,
         contextmenu: false,
-        theme: isCustomTheme ? 'custom' : 'vs',
+        theme: isCustomTheme ? 'custom' : isDark.value ? 'vs-dark' : 'vs-light',
         foldingStrategy: 'indentation',
         selectOnLineNumbers: true,
         language: props.lang,
@@ -268,22 +270,32 @@ watch(readOnly, (v) => {
 
   editor.updateOptions({ readOnly: v })
 })
+
+watch(isDark, async () => {
+  if (Object.keys(monacoCustomTheme).length) return
+  const monaco = await import('monaco-editor')
+  if (isDark.value) {
+    monaco.editor.setTheme('vs-dark')
+  } else {
+    monaco.editor.setTheme('vs-light')
+  }
+})
 </script>
 
 <template>
   <div class="relative h-full w-full flex flex-col">
     <!-- Loading State -->
-    <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+    <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-nc-bg-gray-extralight">
       <div class="text-center">
         <a-spin size="large" />
-        <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+        <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
       </div>
     </div>
 
     <!-- Error State -->
-    <div v-else-if="loadError" class="absolute inset-0 flex items-center justify-center bg-red-50 dark:bg-red-900">
+    <div v-else-if="loadError" class="absolute inset-0 flex items-center justify-center bg-nc-red-50">
       <div class="text-center">
-        <div class="text-red-600 dark:text-red-400 mb-2">Failed to load Monaco Editor</div>
+        <div class="text-nc-content-red-dark mb-2">Failed to load Monaco Editor</div>
         <NcButton @click="retryLoad"> Retry </NcButton>
       </div>
     </div>

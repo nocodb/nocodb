@@ -287,7 +287,7 @@ const handleScrollIntoView = () => {
           @change="onRelationColChange"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex gap-2 w-full justify-between truncate items-center">
@@ -300,7 +300,7 @@ const handleScrollIntoView = () => {
                 </NcTooltip>
               </div>
               <div class="inline-flex items-center truncate gap-2">
-                <div class="text-[0.65rem] leading-4 flex-1 truncate text-gray-600 nc-relation-details">
+                <div class="text-[0.65rem] leading-4 flex-1 truncate text-nc-content-gray-subtle2 nc-relation-details">
                   <NcTooltip class="truncate" show-on-truncate-only>
                     <template #title>{{ table.title || table.table_name }}</template>
                     {{ table.title || table.table_name }}
@@ -335,7 +335,7 @@ const handleScrollIntoView = () => {
           @change="onDataTypeChange"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
           <a-select-option v-for="column of filteredColumns" :key="column.title" :value="column.id">
             <div class="w-full flex gap-2 truncate items-center justify-between">
@@ -369,7 +369,7 @@ const handleScrollIntoView = () => {
         @change="onRollupFunctionChange"
       >
         <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
         </template>
         <a-select-option v-for="(func, index) of aggFunctionsList" :key="index" :value="func.value">
           <div class="flex gap-2 justify-between items-center">
@@ -393,7 +393,7 @@ const handleScrollIntoView = () => {
         @change="onPrecisionChange"
       >
         <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
         </template>
         <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
           <div class="flex gap-2 w-full justify-between items-center">
@@ -411,7 +411,7 @@ const handleScrollIntoView = () => {
     <a-form-item v-if="enableFormattingOptions">
       <div class="flex items-center gap-1">
         <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
-          <div class="text-sm text-gray-800 select-none">{{ $t('labels.showThousandsSeparator') }}</div>
+          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showThousandsSeparator') }}</div>
         </NcSwitch>
       </div>
     </a-form-item>

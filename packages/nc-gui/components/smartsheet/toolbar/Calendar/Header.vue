@@ -110,6 +110,6 @@ const headerText = computed(() => {
 }
 
 .prev-next-btn {
-  @apply !hover:bg-gray-200;
+  @apply !hover:bg-nc-bg-gray-medium;
 }
 </style>

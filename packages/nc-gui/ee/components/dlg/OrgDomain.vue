@@ -88,22 +88,24 @@ const saveDomain = async () => {
             <div class="nc-form-step-content-wrapper">
               <div class="flex flex-col gap-2">
                 <div class="flex flex-row items-center">
-                  <span class="text-gray-800">{{ $t('labels.txt') }}</span>
+                  <span class="text-nc-content-gray">{{ $t('labels.txt') }}</span>
                   <NcTooltip>
                     <template #title> This is the value you have to set it in your DNS TXT record for verification. </template>
-                    <component :is="iconMap.info" class="ml-1 text-gray-800" />
+                    <component :is="iconMap.info" class="ml-1 text-nc-content-gray" />
                   </NcTooltip>
                 </div>
-                <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
+                <div
+                  class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg"
+                >
                   <span
-                    class="text-gray-800 text-gray-800 overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
+                    class="text-nc-content-gray overflow-hidden overflow-ellipsis whitespace-nowrap mr-2 flex-grow"
                     data-test-id="nc-org-domain-txt-value"
                   >
                     {{ domain && domain.txt_value }}
                   </span>
                   <GeneralCopyButton :content="domain && domain.txt_value" />
                 </div>
-                <span class="text-xs text-gray-500">
+                <span class="text-xs text-nc-content-gray-muted">
                   To confirm ownership, please create a new TXT record in your DNS settings and paste the provided code into the
                   designated "Value" field.
                 </span>
@@ -135,11 +137,11 @@ const saveDomain = async () => {
 
 <style lang="scss" scoped>
 .ant-input::placeholder {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .ant-input {
-  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
 }
 
 :deep(.ant-form-item) {
@@ -149,7 +151,7 @@ const saveDomain = async () => {
 .nc-form-step-container {
   @apply border-1 border-nc-border-gray-medium mt-3 mb-2 rounded-lg overflow-hidden;
   .nc-form-step-title {
-    @apply bg-gray-50 p-2 border-b-1 border-nc-border-gray-medium font-weight-medium;
+    @apply bg-nc-bg-gray-extralight p-2 border-b-1 border-nc-border-gray-medium font-weight-medium;
   }
 
   .nc-form-step-content-wrapper {

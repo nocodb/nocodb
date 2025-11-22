@@ -100,9 +100,9 @@ onMounted(() => {
       <div
         v-for="time of timeOptions"
         :key="time.format('HH:mm')"
-        class="hover:bg-gray-100 py-1 px-3 text-sm text-gray-600 font-weight-500 text-center cursor-pointer"
+        class="hover:bg-nc-bg-gray-light py-1 px-3 text-sm text-nc-content-gray-subtle2 font-weight-500 text-center cursor-pointer"
         :class="{
-          'nc-selected bg-gray-100': selectedDate && compareTime(time, selectedDate),
+          'nc-selected bg-nc-bg-gray-light': selectedDate && compareTime(time, selectedDate),
         }"
         :data-testid="`time-option-${time.format('HH:mm')}`"
         @click="handleSelectTime(time)"

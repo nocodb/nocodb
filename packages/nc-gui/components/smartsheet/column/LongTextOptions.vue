@@ -210,7 +210,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
         </template>
         <div class="flex items-center gap-1">
           <NcSwitch v-model:checked="richMode" :disabled="isEnabledGenerateText || (isPvColumn && !richMode)">
-            <div class="text-sm text-gray-800 select-none font-semibold">
+            <div class="text-sm text-nc-content-gray select-none font-semibold">
               {{ $t('labels.enableRichText') }}
             </div>
           </NcSwitch>

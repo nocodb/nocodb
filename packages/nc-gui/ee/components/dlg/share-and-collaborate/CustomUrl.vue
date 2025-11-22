@@ -268,11 +268,11 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
+  <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-nc-border-gray-extralight rounded-md">
     <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_CUSTOM_URL">
       <template #default="{ click }">
         <div class="flex flex-row items-center justify-between">
-          <div class="flex text-black items-center gap-1">
+          <div class="flex text-nc-content-gray-extreme items-center gap-1">
             {{ $t('title.customUrl') }}
 
             <LazyPaymentUpgradeBadge
@@ -290,7 +290,7 @@ watch(
                   {{ tooltip }}
                 </div>
               </template>
-              <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
+              <GeneralIcon icon="info" class="flex-none text-nc-content-gray-disabled cursor-pointer"></GeneralIcon>
             </NcTooltip>
           </div>
           <a-switch
@@ -398,6 +398,6 @@ watch(
 
 <style lang="scss" scoped>
 .nc-copy-custom-url {
-  @apply flex flex-row py-1.5 px-1.5 bg-white hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-100 gap-x-1 items-center shadow-sm text-nc-content-gray-subtle2;
+  @apply flex flex-row py-1.5 px-1.5 bg-nc-bg-default hover:bg-nc-bg-gray-light cursor-pointer rounded-md border-1 border-nc-border-gray-light gap-x-1 items-center shadow-sm text-nc-content-gray-subtle2;
 }
 </style>

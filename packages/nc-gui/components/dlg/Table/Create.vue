@@ -652,7 +652,7 @@ watch(_baseId, () => {
                       "
                     >
                       <template #loadingIcon>
-                        <GeneralLoader class="!text-purple-700" size="medium" />
+                        <GeneralLoader class="!text-nc-content-purple-dark" size="medium" />
                       </template>
                       <template #icon>
                         <GeneralIcon icon="send" class="flex-none h-4 w-4" />
@@ -874,7 +874,7 @@ watch(_baseId, () => {
 :deep(.ant-form-item.nc-table-input-wrapper) {
   &.nc-ai-mode {
     .nc-ai-mode-table-input-wrapper {
-      @apply shadow-default hover:shadow-hover focus-within:(!shadow-selected border-brand-500);
+      @apply shadow-default hover:shadow-hover focus-within:(!shadow-selected border-nc-border-brand);
     }
   }
 }

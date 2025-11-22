@@ -63,7 +63,7 @@ const deleteProject = (base: BaseType) => {
           <v-menu class="select-none">
             <template #activator="{ props }">
               <div
-                class="color-transition hover:(bg-gray-100) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
+                class="color-transition hover:(bg-nc-bg-gray-light) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-nc-border-gray-dark px-5 py-2 shadow prose-lg font-semibold"
                 @click="props.onClick"
               >
                 <component :is="iconMap.plus" class="text-primary text-2xl" />
@@ -71,19 +71,21 @@ const deleteProject = (base: BaseType) => {
               </div>
             </template>
 
-            <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
+            <v-list
+              class="!py-0 flex flex-col bg-nc-bg-default rounded-lg shadow-md border-1 border-nc-border-gray-dark mt-2 ml-2"
+            >
               <div
-                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                class="grid grid-cols-12 cursor-pointer hover:bg-nc-bg-gray-medium flex items-center p-2"
                 @click="navigateTo('/base/create')"
               >
                 <component :is="iconMap.plus" class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
                 <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
               </div>
               <div
-                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                class="grid grid-cols-12 cursor-pointer hover:bg-nc-bg-gray-medium flex items-center p-2"
                 @click="navigateTo('/base/create-external')"
               >
-                <component :is="iconMap.database" class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
+                <component :is="iconMap.database" class="col-span-2 mr-1 mt-[1px] text-nc-content-green-medium text-lg" />
                 <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
               </div>
             </v-list>

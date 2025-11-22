@@ -207,7 +207,7 @@ onMounted(() => {
               <div v-e="['c:row-expand:delete']" class="py-2 flex gap-2 items-center">
                 <component
                   :is="iconMap.closeCircle"
-                  class="nc-icon-transition cursor-pointer select-none nc-delete-row text-gray-500 mx-1 min-w-4"
+                  class="nc-icon-transition cursor-pointer select-none nc-delete-row text-nc-content-gray-muted mx-1 min-w-4"
                 />
                 {{ $t('general.close') }}
               </div>
@@ -217,7 +217,7 @@ onMounted(() => {
       </a-dropdown>
     </div>
 
-    <div class="flex w-full !bg-gray-100 flex-1">
+    <div class="flex w-full !bg-nc-bg-gray-light flex-1">
       <div class="form w-2/3 p-4">
         <Draggable
           ref="draggableRef"
@@ -239,7 +239,7 @@ onMounted(() => {
               <div class="text-gray group absolute top-4 right-12">
                 <component
                   :is="iconMap.eyeSlash"
-                  class="opacity-0 nc-field-remove-icon group-hover:text-red-500 cursor-pointer !text-xl"
+                  class="opacity-0 nc-field-remove-icon group-hover:text-nc-content-red-medium cursor-pointer !text-xl"
                   data-testid="nc-bulk-update-fields-remove-icon"
                   @click="handleRemove(element)"
                 />
@@ -294,7 +294,7 @@ onMounted(() => {
                   },
                 ]"
               >
-                <LazySmartsheetDivDataCell class="!bg-white rounded px-1 min-h-[35px] flex items-center mt-2 relative">
+                <LazySmartsheetDivDataCell class="!bg-nc-bg-default rounded px-1 min-h-[35px] flex items-center mt-2 relative">
                   <LazySmartsheetCell
                     v-model="formState[element.title]"
                     :data-testid="`nc-bulk-update-input-${element.title.replaceAll(' ', '')}`"
@@ -305,14 +305,20 @@ onMounted(() => {
                 </LazySmartsheetDivDataCell>
               </a-form-item>
 
-              <div class="nc-bulk-update-help-text text-gray-500 text-xs" data-testid="nc-bulk-update-input-help-text-label">
+              <div
+                class="nc-bulk-update-help-text text-nc-content-gray-muted text-xs"
+                data-testid="nc-bulk-update-input-help-text-label"
+              >
                 {{ element.description }}
               </div>
             </div>
           </template>
 
           <template #footer>
-            <div v-if="!editColumns.length" class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
+            <div
+              v-if="!editColumns.length"
+              class="mt-4 border-dashed border-2 border-nc-border-gray-extradark py-3 text-nc-content-gray-disabled text-center"
+            >
               <!-- TODO i18n -->
               Drag and drop fields here to edit
             </div>
@@ -320,7 +326,7 @@ onMounted(() => {
         </Draggable>
       </div>
       <div class="nc-columns-drawer w-1/3 p-3 flex flex-col bg-[#eceff1]" :class="{ active: columnsDrawer }">
-        <div class="text-bold uppercase text-gray-500 font-weight-bold !mb-2">
+        <div class="text-bold uppercase text-nc-content-gray-muted font-weight-bold !mb-2">
           <!-- TODO i18n -->
           Select columns to Edit
         </div>
@@ -405,7 +411,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 :deep(input, select, textarea) {
-  @apply !bg-white;
+  @apply !bg-nc-bg-default;
 }
 
 .nc-bulk-update-wrapper {
@@ -420,7 +426,7 @@ onMounted(() => {
 }
 
 .nc-input {
-  @apply appearance-none w-full !bg-white rounded px-2 py-2 my-2 border-solid border-1 border-primary border-opacity-50;
+  @apply appearance-none w-full !bg-nc-bg-default rounded px-2 py-2 my-2 border-solid border-1 border-primary border-opacity-50;
 
   :deep(input) {
     &:not(.ant-select-selection-search-input) {
@@ -440,7 +446,7 @@ onMounted(() => {
 .nc-bulk-update-input-label,
 .nc-bulk-update-input-help-text {
   &::placeholder {
-    @apply !text-gray-500 !text-xs;
+    @apply !text-nc-content-gray-muted !text-xs;
   }
 }
 

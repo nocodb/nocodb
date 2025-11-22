@@ -85,7 +85,7 @@ watch(
           :class="{
             'active-menu': activeMenu === 'baseType',
           }"
-          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           @click="selectMenu('baseType')"
         >
           <GeneralIcon icon="ncUsers" />
@@ -100,7 +100,7 @@ watch(
           :class="{
             'active-menu': activeMenu === 'snapshots',
           }"
-          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           @click="selectMenu('snapshots')"
         >
           <GeneralIcon icon="camera" />
@@ -115,7 +115,7 @@ watch(
           :class="{
             'active-menu': activeMenu === 'visibility',
           }"
-          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           data-testid="visibility-tab"
           @click="selectMenu('visibility')"
         >
@@ -129,7 +129,7 @@ watch(
           :class="{
             'active-menu': activeMenu === 'mcp',
           }"
-          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           data-testid="mcp-tab"
           @click="selectMenu('mcp')"
         >
@@ -144,7 +144,7 @@ watch(
           :class="{
             'active-menu': activeMenu === 'migrate',
           }"
-          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           data-testid="migrate-tab"
           @click="selectMenu('migrate')"
         >
@@ -167,6 +167,6 @@ watch(
 
 <style lang="scss" scoped>
 .active-menu {
-  @apply !bg-brand-50 font-semibold !text-nc-content-brand-disabled;
+  @apply !bg-nc-bg-brand font-semibold !text-nc-content-brand-disabled;
 }
 </style>

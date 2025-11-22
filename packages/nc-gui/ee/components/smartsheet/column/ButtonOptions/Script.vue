@@ -60,7 +60,7 @@ watch(isScriptModal, (newVal) => {
 
 <template>
   <a-form-item>
-    <div class="mb-2 text-gray-800 text-[13px] flex justify-between">
+    <div class="mb-2 text-nc-content-gray text-[13px] flex justify-between">
       {{ $t('objects.script') }}
       <a
         class="font-medium"
@@ -92,16 +92,16 @@ watch(isScriptModal, (newVal) => {
           :class="{
             'nc-button-style-dropdown shadow-dropdown-open remove-right-shadow': isScriptSelectionDropdownOpen,
           }"
-          class="nc-button-script-select border-r-0 flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-l-lg"
+          class="nc-button-script-select border-r-0 flex items-center justify-center border-1 h-8 px-[8px] border-nc-border-gray-dark !w-full transition-all cursor-pointer !rounded-l-lg"
         >
           <div class="flex w-full items-center gap-2">
             <div
               :key="selectedScript?.id"
-              class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
+              class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-nc-content-gray"
             >
               <NcTooltip
                 :class="{
-                  'text-gray-500': !selectedScript?.title,
+                  'text-nc-content-gray-muted': !selectedScript?.title,
                 }"
                 class="truncate max-w-full"
                 show-on-truncate-only
@@ -117,7 +117,7 @@ watch(isScriptModal, (newVal) => {
               :class="{
                 'transform rotate-180': isScriptSelectionDropdownOpen,
               }"
-              class="text-gray-500 transition-all transition-transform"
+              class="text-nc-content-gray-muted transition-all transition-transform"
             />
           </div>
         </div>
@@ -125,7 +125,7 @@ watch(isScriptModal, (newVal) => {
       <NcButton
         size="small"
         type="secondary"
-        class="!rounded-l-none border-l-[#d9d9d9] !hover:bg-white nc-button-style-dropdown"
+        class="!rounded-l-none border-l-[#d9d9d9] !hover:bg-nc-bg-default nc-button-style-dropdown"
         :class="{
           'nc-button-style-dropdown shadow-dropdown-open remove-left-shadow': isScriptSelectionDropdownOpen,
         }"
@@ -133,8 +133,8 @@ watch(isScriptModal, (newVal) => {
       >
         <GeneralIcon
           :class="{
-            'text-gray-400': !selectedScript,
-            'text-gray-700': selectedScript,
+            'text-nc-content-gray-disabled': !selectedScript,
+            'text-nc-content-gray-subtle': selectedScript,
           }"
           icon="ncEdit"
         />

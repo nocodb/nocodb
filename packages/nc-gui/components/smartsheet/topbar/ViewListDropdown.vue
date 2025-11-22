@@ -170,7 +170,7 @@ async function onOpenModal({
             <a-menu class="nc-viewlist-menu">
               <a-sub-menu popup-class-name="nc-viewlist-submenu-popup" :popup-offset="[8, -2]">
                 <template #title>
-                  <div class="flex items-center justify-between gap-2 text-sm font-weight-500 !text-brand-500">
+                  <div class="flex items-center justify-between gap-2 text-sm font-weight-500 !text-nc-content-brand">
                     <div class="flex items-center gap-2">
                       <GeneralIcon icon="plus" />
                       <div>
@@ -181,7 +181,10 @@ async function onOpenModal({
                         }}
                       </div>
                     </div>
-                    <GeneralIcon icon="arrowRight" class="text-base text-gray-600 group-hover:text-gray-800" />
+                    <GeneralIcon
+                      icon="arrowRight"
+                      class="text-base text-nc-content-gray-subtle2 group-hover:text-nc-content-gray"
+                    />
                   </div>
                 </template>
 
@@ -264,7 +267,7 @@ async function onOpenModal({
     @apply !mx-2;
 
     .ant-menu-submenu-title {
-      @apply flex items-center gap-2 py-1.5 px-2 my-0 h-auto hover:bg-gray-100 cursor-pointer rounded-md;
+      @apply flex items-center gap-2 py-1.5 px-2 my-0 h-auto hover:bg-nc-bg-gray-light cursor-pointer rounded-md;
 
       .ant-menu-title-content {
         @apply w-full;
@@ -281,14 +284,14 @@ async function onOpenModal({
   }
 
   .ant-menu-item {
-    @apply h-auto min-h-8 !my-0 text-sm !leading-5 py-1.5 px-2 hover:!bg-gray-100 cursor-pointer rounded-md;
+    @apply h-auto min-h-8 !my-0 text-sm !leading-5 py-1.5 px-2 hover:!bg-nc-bg-gray-light cursor-pointer rounded-md;
 
     .ant-menu-title-content {
       @apply w-full px-0;
     }
 
     .nc-viewlist-submenu-popup-item {
-      @apply flex items-center gap-2 !text-gray-800;
+      @apply flex items-center gap-2 !text-nc-content-gray;
     }
 
     &.ant-menu-item-selected {

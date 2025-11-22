@@ -562,9 +562,9 @@ const onTeamChange = async (_teamIds: RawValueType) => {
           </div>
         </div>
         <!-- show warning if validation fails and warningMsg defined -->
-        <span v-if="warningMsg" class="ml-2 text-red-500 -mt-2">{{ warningMsg }}</span>
+        <span v-if="warningMsg" class="ml-2 text-nc-content-red-medium -mt-2">{{ warningMsg }}</span>
 
-        <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500 -mt-2">{{
+        <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-nc-content-red-medium -mt-2">{{
           emailValidation.message
         }}</span>
 
@@ -573,9 +573,9 @@ const onTeamChange = async (_teamIds: RawValueType) => {
             <NcButton class="!justify-between" full-width size="medium" type="secondary">
               <div
                 :class="{
-                  '!text-gray-600': selectedWorkspaces.length > 0,
+                  '!text-nc-content-gray-subtle2': selectedWorkspaces.length > 0,
                 }"
-                class="flex text-gray-500 justify-between items-center w-full"
+                class="flex text-nc-content-gray-muted justify-between items-center w-full"
               >
                 <NcTooltip class="!max-w-130 truncate" show-on-truncate-only>
                   <span class="">
@@ -603,14 +603,14 @@ const onTeamChange = async (_teamIds: RawValueType) => {
                   <a-input
                     v-model:value="searchQuery"
                     :class="{
-                      '!border-brand-500': searchQuery.length > 0,
+                      '!border-nc-border-brand': searchQuery.length > 0,
                     }"
-                    class="!rounded-lg !h-8 !ring-0 !placeholder:text-gray-500 !border-gray-200 !px-4"
+                    class="!rounded-lg !h-8 !ring-0 !placeholder:text-nc-content-gray-muted !border-nc-border-gray-medium !px-4"
                     data-testid="nc-ws-search"
                     placeholder="Search workspace"
                   >
                     <template #prefix>
-                      <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
+                      <component :is="iconMap.search" class="h-4 w-4 mr-1 text-nc-content-gray-muted" />
                     </template>
                   </a-input>
                 </div>
@@ -619,7 +619,7 @@ const onTeamChange = async (_teamIds: RawValueType) => {
                   <div
                     v-for="ws in workSpaceSelectList"
                     :key="ws.id"
-                    class="px-2 cursor-pointer hover:bg-gray-100 rounded-lg h-9.5 py-2 w-full flex gap-2"
+                    class="px-2 cursor-pointer hover:bg-nc-bg-gray-light rounded-lg h-9.5 py-2 w-full flex gap-2"
                     @click="checked[ws.id!] = !checked[ws.id!]"
                   >
                     <div class="flex gap-2 capitalize items-center">

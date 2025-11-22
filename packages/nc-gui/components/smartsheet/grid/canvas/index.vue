@@ -2897,7 +2897,7 @@ watch(
           >
             <div
               ref="activeCellElement"
-              class="relative w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
+              class="relative w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-nc-bg-default"
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
@@ -3114,7 +3114,7 @@ watch(
   @apply sticky !text-small !leading-[18px] overflow-hidden;
 
   &.on-stick {
-    @apply bg-white border-2 !rounded;
+    @apply bg-nc-bg-default border-2 !rounded;
   }
 
   &.row-height-1 {

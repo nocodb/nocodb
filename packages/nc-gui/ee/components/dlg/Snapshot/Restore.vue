@@ -101,7 +101,7 @@ const selectWorkspace = (workspace: WorkspaceType) => {
           class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
           style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
           :class="{
-            '!border-brand-500 !shadow-selected': isDropdownActive,
+            '!border-nc-border-brand !shadow-selected': isDropdownActive,
           }"
         >
           <GeneralWorkspaceIcon size="small" :workspace="selectedWorkspace" />
@@ -155,7 +155,7 @@ const selectWorkspace = (workspace: WorkspaceType) => {
                   <div v-if="activeWorkspace?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
                     {{ $t('labels.currentWorkspace') }}
                   </div>
-                  <GeneralIcon v-if="option.id === selectedWorkspace?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
+                  <GeneralIcon v-if="option.id === selectedWorkspace?.id" class="text-nc-content-brand w-4 h-4" icon="ncCheck" />
                 </div>
               </div>
             </template>

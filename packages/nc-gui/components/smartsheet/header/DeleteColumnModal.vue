@@ -103,7 +103,10 @@ const onDelete = async () => {
 <template>
   <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.column')" :on-delete="onDelete">
     <template #entity-preview>
-      <div v-if="column" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
+      <div
+        v-if="column"
+        class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle2 mb-4"
+      >
         <SmartsheetHeaderIcon :column="column" class="nc-view-icon" />
 
         <div

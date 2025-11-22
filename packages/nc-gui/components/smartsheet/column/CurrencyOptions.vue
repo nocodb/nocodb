@@ -96,7 +96,7 @@ const onPrecisionChange = (value: number) => {
           :disabled="isMoney && isPg"
           dropdown-class-name="nc-dropdown-currency-cell-locale"
         >
-          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
+          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /> </template>
 
           <a-select-option v-for="currencyLocale of currencyLocaleList" :key="currencyLocale.text" :value="currencyLocale.value">
             <div class="flex gap-2 w-full truncate items-center">
@@ -127,7 +127,7 @@ const onPrecisionChange = (value: number) => {
           :disabled="isMoney && isPg"
           dropdown-class-name="nc-dropdown-currency-cell-code"
         >
-          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
+          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /> </template>
 
           <a-select-option v-for="(currencyCode, i) of currencyList" :key="i" :value="currencyCode">
             <div class="flex gap-2 w-full justify-between items-center">
@@ -154,7 +154,7 @@ const onPrecisionChange = (value: number) => {
           @change="onPrecisionChange"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
           <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
             <div class="flex gap-2 w-full justify-between items-center">

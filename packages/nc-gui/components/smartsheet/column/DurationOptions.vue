@@ -28,7 +28,7 @@ vModel.value.meta = {
     <a-col :span="24">
       <a-form-item :label="$t('general.format')">
         <a-select v-model:value="vModel.meta.duration" class="w-52" dropdown-class-name="nc-dropdown-duration-option">
-          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
+          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /> </template>
 
           <a-select-option v-for="(duration, i) of durationOptionList" :key="i" :value="duration.id">
             <div class="flex gap-2 w-full truncate items-center" :data-testid="duration.title">

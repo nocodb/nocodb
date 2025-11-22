@@ -4,7 +4,7 @@ const buttonClass = 'flex-grow !inline-flex !border-none !shadow-none !rounded-[
 
 <template>
   <div
-    class="bg-white w-[320px] h-[132px] flex flex-col rounded-[8px] overflow-hidden py-2 animate-animated animate-fadeIn"
+    class="bg-nc-bg-default w-[320px] h-[132px] flex flex-col rounded-[8px] overflow-hidden py-2 animate-animated animate-fadeIn"
     style="animation-duration: 0.3s"
   >
     <a-button :class="[buttonClass]" type="text">

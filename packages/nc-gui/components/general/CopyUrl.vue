@@ -37,10 +37,10 @@ const copyUrl = async () => {
 
 <template>
   <div
-    class="flex flex-row items-center justify-end text-gray-600 gap-x-1.5 py-1.5 px-1.5 bg-gray-50 rounded-md border-1 border-gray-200"
+    class="flex flex-row items-center justify-end text-nc-content-gray-subtle2 gap-x-1.5 py-1.5 px-1.5 bg-nc-bg-gray-extralight rounded-md border-1 border-nc-border-gray-medium"
   >
     <div class="flex flex-row block flex-1 overflow-hidden pl-3 cursor-pointer" @click="copyUrl">
-      <div class="overflow-hidden whitespace-nowrap text-gray-500">{{ url }}</div>
+      <div class="overflow-hidden whitespace-nowrap text-nc-content-gray-muted">{{ url }}</div>
     </div>
     <div class="flex flex-row gap-x-1">
       <NcTooltip>
@@ -59,7 +59,7 @@ const copyUrl = async () => {
         <div
           class="button"
           :class="{
-            '!text-gray-300 !border-gray-200 !cursor-not-allowed': isCopied.embed,
+            '!text-nc-content-brand-hover !border-nc-border-gray-medium !cursor-not-allowed': isCopied.embed,
           }"
           @click="embedHtml"
         >
@@ -80,6 +80,6 @@ const copyUrl = async () => {
 
 <style lang="scss" scoped>
 .button {
-  @apply flex flex-row py-1.5 px-1.5 bg-white hover:bg-gray-100 cursor-pointer rounded-md border-1 border-gray-100 gap-x-1 items-center shadow-sm;
+  @apply flex flex-row py-1.5 px-1.5 bg-nc-bg-default hover:bg-nc-bg-gray-light cursor-pointer rounded-md border-1 border-nc-border-gray-light gap-x-1 items-center shadow-sm;
 }
 </style>

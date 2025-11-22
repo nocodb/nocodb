@@ -76,7 +76,7 @@ const detailsBody = computed(() => {
 <template>
   <NcModal v-model:visible="vModel" :footer="null" size="lg" wrap-class-name="nc-modal-extension-details">
     <div v-if="activeExtension" class="flex flex-col w-full h-full">
-      <div class="flex items-center gap-3 px-4 py-3 border-b-1 border-gray-200">
+      <div class="flex items-center gap-3 px-4 py-3 border-b-1 border-nc-border-gray-medium">
         <NcButton v-if="from === 'market'" size="small" type="text" @click="onBack">
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
@@ -87,7 +87,7 @@ const detailsBody = computed(() => {
             <div class="font-semibold text-xl truncate">{{ activeExtension.title }}</div>
             <NcBadgeBeta v-if="activeExtension.showAsBeta" />
           </div>
-          <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeExtension.subTitle }}</div>
+          <div class="text-small leading-[18px] text-nc-content-gray-muted truncate">{{ activeExtension.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
           <NcTooltip v-if="!blockAddNewExtension" :disabled="extensionAccess.create">
@@ -117,7 +117,7 @@ const detailsBody = computed(() => {
             </NcButton>
           </NcTooltip>
           <NcButton size="small" type="text" @click="vModel = false">
-            <GeneralIcon icon="close" class="text-gray-600" />
+            <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
           </NcButton>
         </div>
       </div>
@@ -178,13 +178,13 @@ const detailsBody = computed(() => {
               <div>
                 <div v-for="(doc, idx) of activeExtension.links" :key="idx" class="flex items-center gap-1">
                   <div class="h-7 w-7 flex items-center justify-center">
-                    <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
+                    <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-subtle2" />
                   </div>
                   <a
                     :href="doc.href"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="!text-gray-700 text-sm !no-underline !hover:underline"
+                    class="!text-nc-content-gray-subtle text-sm !no-underline !hover:underline"
                   >
                     {{ doc.title }}
                   </a>
@@ -207,17 +207,17 @@ const detailsBody = computed(() => {
   }
 
   .extension-details-right {
-    @apply p-5 w-[320px] flex flex-col space-y-4 border-l-1 border-gray-200 bg-gray-50 nc-scrollbar-thin;
+    @apply p-5 w-[320px] flex flex-col space-y-4 border-l-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight nc-scrollbar-thin;
 
     .extension-details-right-section {
       @apply flex flex-col gap-3;
     }
 
     .extension-details-right-title {
-      @apply text-sm font-semibold text-gray-800;
+      @apply text-sm font-semibold text-nc-content-gray;
     }
     .extension-details-right-subtitle {
-      @apply text-sm font-weight-500 text-gray-600;
+      @apply text-sm font-weight-500 text-nc-content-gray-subtle2;
     }
   }
 }
@@ -236,7 +236,7 @@ const detailsBody = computed(() => {
     @apply max-w-[768px] mx-auto;
 
     p {
-      @apply !m-0 !leading-5;
+      @apply !m-0 !leading-5 text-nc-content-gray;
     }
 
     ul {
@@ -264,7 +264,7 @@ const detailsBody = computed(() => {
 
       border-color: #d0d5dd;
       border: 1px;
-      color: black;
+      color: var(--nc-content-gray-extreme);
       font-family: 'JetBrainsMono', monospace;
       padding: 1rem;
       border-radius: 0.5rem;
@@ -291,14 +291,12 @@ const detailsBody = computed(() => {
     }
 
     hr {
-      @apply !border-gray-300;
-
-      border: 0;
-      border-top: 1px solid #ccc;
+      @apply !border-nc-gray-300 !border-t-1;
       margin: 1.5em 0;
     }
 
     h1 {
+      @apply text-nc-content-gray;
       font-weight: 700;
       font-size: 1.85rem;
       margin-bottom: 0.1rem;
@@ -306,6 +304,7 @@ const detailsBody = computed(() => {
     }
 
     h2 {
+      @apply text-nc-content-gray;
       font-weight: 600;
       font-size: 1.55rem;
       margin-bottom: 0.1em;
@@ -313,6 +312,7 @@ const detailsBody = computed(() => {
     }
 
     h3 {
+      @apply text-nc-content-gray;
       font-weight: 600;
       font-size: 1.15rem;
       margin-bottom: 0.1em;

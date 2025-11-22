@@ -378,10 +378,12 @@ a {
     }
 
     &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
-      @apply border-gray-300 shadow-hover;
+      @apply border-nc-border-gray-dark shadow-hover;
     }
     &.ant-select-disabled .ant-select-selector {
       box-shadow: none;
+      background: var(--nc-bg-gray-medium) !important;
+      border: var(--nc-border-gray-medium);
     }
   }
 }
@@ -407,26 +409,34 @@ a {
   @apply !shadow-error;
 }
 
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  @apply bg-nc-bg-default text-nc-content-gray;
+}
+
 // select dropdown border style
 .ant-select-dropdown {
-  @apply border-1 border-gray-200 rounded-lg;
+  @apply border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-default;
 
   .rc-virtual-list-scrollbar {
     @apply !w-1;
   }
 
+  .ant-select-item-option-content {
+    @apply text-nc-content-gray;
+  }
+
   .rc-virtual-list-scrollbar-thumb {
-    @apply !bg-gray-200;
+    @apply !bg-nc-bg-gray-medium;
 
     &:hover {
-      @apply !bg-gray-300;
+      @apply !bg-nc-bg-gray-dark;
     }
   }
 }
 
 // menu item styling
 .nc-menu-item {
-  @apply cursor-pointer text-xs flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100 pointer-events-none) hover:(after:(opacity-5));
+  @apply cursor-pointer text-sm flex items-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100 pointer-events-none) hover:(after:(opacity-5));
 
   &.disabled {
     @apply text-black text-opacity-25 bg-[#f5f5f5] cursor-not-allowed text-shadow-none box-shadow-none border-[#d9d9d9];
@@ -706,14 +716,18 @@ a {
 }
 
 .ant-select-item-option:hover {
-  @apply !bg-gray-100;
+  @apply !bg-nc-bg-gray-light;
+}
+
+.ant-select-item-option-active {
+  @apply !bg-nc-bg-gray-light;
 }
 
 .ant-select-item-option-selected {
-  @apply !bg-white;
+  @apply !bg-nc-bg-default;
 
   &.ant-select-item-option-active {
-    @apply !bg-gray-100;
+    @apply !bg-nc-bg-gray-light;
   }
 }
 

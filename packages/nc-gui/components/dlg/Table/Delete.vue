@@ -109,8 +109,11 @@ const onDelete = async () => {
 <template>
   <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.table')" :on-delete="onDelete">
     <template #entity-preview>
-      <div v-if="table" class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700">
-        <GeneralTableIcon :meta="table" class="nc-view-icon" />
+      <div
+        v-if="table"
+        class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle"
+      >
+        <GeneralTableIcon :meta="table" class="nc-view-icon text-nc-content-gray-subtle" />
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

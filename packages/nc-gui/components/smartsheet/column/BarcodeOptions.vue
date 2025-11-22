@@ -75,7 +75,7 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
           :not-found-content="$t('placeholder.notFoundContent')"
           @click.stop
         >
-          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
+          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /> </template>
 
           <a-select-option v-for="(option, index) of columnsAllowedAsBarcodeValue" :key="index" :value="option.id">
             <div class="w-full flex gap-2 truncate items-center justify-between" :data-testid="`nc-barcode-${option.title}`">
@@ -113,7 +113,7 @@ const showBarcodeValueColumnInfoIcon = computed(() => !columnsAllowedAsBarcodeVa
         :placeholder="$t('placeholder.selectBarcodeFormat')"
         @click.stop
       >
-        <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template
+        <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /> </template
       ></a-select>
     </a-form-item>
   </div>

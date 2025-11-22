@@ -62,7 +62,7 @@ const onChange = (value: string) => {
   >
     <template #suffixIcon>
       <GeneralLoader v-if="loading" />
-      <GeneralIcon v-else class="text-gray-800 nc-select-expand-btn" :icon="suffixIcon" />
+      <GeneralIcon v-else class="text-nc-content-gray nc-select-expand-btn" :icon="suffixIcon" />
     </template>
 
     <template v-if="$slots.dropdownRender" #dropdownRender="{ menuNode }">

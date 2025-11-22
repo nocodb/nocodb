@@ -106,8 +106,14 @@ export class GenericPgFieldHandler
         items = items.map((item) => item.trimEnd());
       }
       for (let i = 0; i < items?.length; i++) {
-        const bindings = [sourceField, `%,${items[i]},%`];
-        const sql = "(',' || ??::text || ',') ilike ?";
+        const bindings = [
+          sourceField,
+          `%,${items[i]},%`,
+          sourceField,
+          `%, ${items[i]},%`,
+        ];
+        const sql =
+          "((',' || ??::text || ',') ilike ? OR (',' || ??::text || ',') ilike ?)";
         if (i === 0) {
           builder = builder.where(knex.raw(sql, bindings));
         } else {

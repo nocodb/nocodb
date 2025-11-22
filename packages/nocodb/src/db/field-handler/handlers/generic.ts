@@ -534,8 +534,14 @@ export class GenericFieldHandler
     const condition = (builder: Knex.QueryBuilder) => {
       const items = val?.split(',');
       for (let i = 0; i < items?.length; i++) {
-        const bindings = [sourceField, `%,${items[i]},%`];
-        const sql = "CONCAT(',', ??, ',') like ?";
+        const bindings = [
+          sourceField,
+          `%,${items[i]},%`,
+          sourceField,
+          `%, ${items[i]},%`,
+        ];
+        const sql =
+          "(CONCAT(',', ??, ',') like ? OR CONCAT(',', ??, ',') like ?)";
         if (i === 0) {
           builder = builder.where(knex.raw(sql, bindings));
         } else {

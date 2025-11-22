@@ -241,7 +241,7 @@ const onClick = (e: Event) => {
     @click="onClick"
   >
     <div
-      class="nc-virtual-cell-name-wrapper flex-1 flex items-center"
+      class="nc-virtual-cell-name-wrapper w-full flex-1 flex items-center"
       :class="{
         'max-w-[calc(100%_-_23px)]': !isExpandedForm && !column.description?.length,
         'max-w-[calc(100%_-_44px)]': !isExpandedForm && column.description?.length,
@@ -294,6 +294,16 @@ const onClick = (e: Event) => {
           invisible: !(editColumnDropdown || isDropDownOpen),
         }"
       />
+
+      <div class="flex-1" />
+      <NcTooltip
+        v-if="meta?.synced && column?.readonly && isExpandedForm && !isPublic"
+        class="flex items-center"
+        placement="bottom"
+      >
+        <template #title> {{ $t('tooltip.fieldIsExternallySynced') }} </template>
+        <GeneralIcon icon="ncZap" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-disabled" />
+      </NcTooltip>
     </div>
 
     <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">

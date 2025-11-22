@@ -120,7 +120,7 @@ onBeforeUnmount(() => {
       </NcButton>
     </div>
     <div v-show="isExpanded" class="px-3 my-4">
-      <a-form-item label="Sync Source" class="w-full">
+      <a-form-item label="Sync source" class="w-full">
         <a-select v-model:value="subType" class="nc-select-shadow">
           <template #suffixIcon>
             <GeneralIcon class="text-nc-content-gray-muted" icon="ncChevronDown" />

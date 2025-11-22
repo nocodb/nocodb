@@ -5,11 +5,11 @@ const { integrationConfigs } = useSyncFormOrThrow()
 </script>
 
 <template>
-  <div>
+  <div class="h-full">
     <div class="text-bodyLgBold text-nc-content-gray mb-4">Configure Sources</div>
 
-    <div v-for="(config, index) in integrationConfigs" :key="String(config.id)">
-      <ProjectSyncCommonIntegrationAccordion :key="config.sub_type" :index="index" />
+    <div v-for="(_config, index) in integrationConfigs" :key="index">
+      <ProjectSyncCommonIntegrationAccordion :index="index" />
       <NcDivider class="!my-6" />
     </div>
 

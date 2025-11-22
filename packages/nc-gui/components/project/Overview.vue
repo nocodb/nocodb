@@ -6,13 +6,9 @@ const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
 
 const isNewBaseModalOpen = ref(false)
-
-const isNewSyncModalOpen = ref(false)
 
 const { isUIAllowed } = useRoles()
 
@@ -66,10 +62,6 @@ const onCreateBaseClick = () => {
   if (showExternalSourcePlanLimitExceededModal() || isDataSourceLimitReached.value) return
 
   isNewBaseModalOpen.value = true
-}
-
-const onCreateSyncClick = () => {
-  isNewSyncModalOpen.value = true
 }
 </script>
 
@@ -141,18 +133,7 @@ const onCreateSyncClick = () => {
           </ProjectActionItem>
         </NcTooltip>
 
-        <ProjectActionItem
-          v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-          v-e="['c:table:create-sync']"
-          data-testid="proj-view-btn__create-sync"
-          :label="$t('labels.syncData')"
-          :subtext="$t('msg.subText.syncData')"
-          @click="onCreateSyncClick"
-        >
-          <template #icon>
-            <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-nc-content-green-dark" />
-          </template>
-        </ProjectActionItem>
+        <ProjectActionCreateNewSync :base-id="base?.id" />
         <ProjectActionCreateEmptyScript />
         <ProjectActionScriptsByNocoDB />
         <ProjectActionCreateEmptyDashboard />
@@ -162,10 +143,5 @@ const onCreateSyncClick = () => {
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
     <LazyDashboardSettingsDataSourcesCreateBase v-if="isNewBaseModalOpen" v-model:open="isNewBaseModalOpen" is-modal />
-    <LazyDashboardSettingsSyncCreate
-      v-if="isNewSyncModalOpen && base?.id"
-      v-model:open="isNewSyncModalOpen"
-      :base-id="base?.id"
-    />
   </div>
 </template>

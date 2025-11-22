@@ -19,7 +19,7 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
       {
         type: FormBuilderInputType.SelectTable,
         label: 'Table',
-        width: 100,
+        span: 24,
         model: 'config.modelId',
         placeholder: 'Select a table',
         fetchOptionsKey: 'tables',
@@ -33,7 +33,7 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
       {
         type: FormBuilderInputType.Input,
         label: 'Record ID',
-        width: 100,
+        span: 24,
         model: 'config.rowId',
         placeholder: 'Enter the record ID',
         validators: [

@@ -374,6 +374,10 @@ export class ExportService {
           ) {
             continue;
           }
+          // skip custom link columns
+          if (column?.meta?.custom) {
+            continue;
+          }
 
           colOptions.filter = (await Filter.getFilterObject(context, {
             linkColId: column.id,

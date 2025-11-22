@@ -19,13 +19,25 @@ const emits = defineEmits<Emits>()
 
 const vOpen = useVModel(props, 'value', emits)
 
-const { validateSyncConfig, syncConfigForm, validateIntegrationConfigs, integrationConfigs, step, saveSyncConfig, isSaving } =
-  useProvideSyncForm(props.baseId, 'create')
+const {
+  validateSyncConfig,
+  syncConfigForm,
+  validateIntegrationConfigs,
+  integrationConfigs,
+  step,
+  saveSyncConfig,
+  isSaving,
+  supportedDocs,
+  isSyncCategoryAlreadyAddedOrBlank,
+} = useProvideSyncForm(props.baseId, 'create')
 
 const saveError = ref<string | null>(null)
 
 const isContinueDisabled = computed(() => {
-  return step.value === SyncFormStep.Integration && integrationConfigs.value?.length === 0
+  return (
+    (step.value === SyncFormStep.Integration && integrationConfigs.value?.length === 0) ||
+    isSyncCategoryAlreadyAddedOrBlank.value.value
+  )
 })
 
 const closeModal = () => {
@@ -79,25 +91,6 @@ const previousStep = () => {
       break
   }
 }
-
-const supportedDocs = [
-  {
-    title: 'Getting started',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
-  },
-  {
-    title: 'Create webhook',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook',
-  },
-  {
-    title: 'Custom payload',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-custom-payload-',
-  },
-  {
-    title: 'Trigger on condition',
-    href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook#webhook-with-conditions',
-  },
-]
 </script>
 
 <template>
@@ -113,13 +106,23 @@ const supportedDocs = [
         <ProjectSyncCreateSteps :current="step" />
 
         <div class="flex justify-end items-center gap-3 flex-1">
-          <NcButton :disabled="step === SyncFormStep.SyncSettings" type="secondary" size="small" @click="previousStep">
+          <NcButton
+            :disabled="step === SyncFormStep.SyncSettings"
+            type="secondary"
+            size="small"
+            inner-class="!gap-2"
+            @click="previousStep"
+          >
             {{ $t('labels.back') }}
+
+            <template #icon>
+              <GeneralIcon icon="chevronDown" class="transform rotate-90" />
+            </template>
           </NcButton>
 
-          <NcTooltip :disabled="!saveError || step !== SyncFormStep.Create">
+          <NcTooltip :disabled="(!saveError || step !== SyncFormStep.Create) && !isSyncCategoryAlreadyAddedOrBlank.value">
             <template #title>
-              {{ saveError }}
+              {{ isSyncCategoryAlreadyAddedOrBlank.value ? isSyncCategoryAlreadyAddedOrBlank.tooltip : saveError }}
             </template>
             <NcButton
               type="primary"
@@ -128,10 +131,14 @@ const supportedDocs = [
               :disabled="isContinueDisabled"
               :loading="step === SyncFormStep.Create && isSaving"
               icon-position="right"
+              inner-class="!gap-2"
               @click="nextStep"
             >
               <template v-if="step === SyncFormStep.Create && saveError" #icon>
                 <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-4 h-4 flex-none" />
+              </template>
+              <template v-else-if="step !== SyncFormStep.Create" #icon>
+                <GeneralIcon icon="chevronDown" class="transform rotate-270" />
               </template>
               <span>
                 <template v-if="step === SyncFormStep.Create">
@@ -152,13 +159,10 @@ const supportedDocs = [
 
     <div class="h-[calc(100%_-_50px)] flex">
       <!-- Content -->
-      <div class="flex-1 nc-modal-teams-edit-content">
-        <div
-          ref="containerElem"
-          class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-12 mx-auto"
-        >
+      <div class="flex-1 nc-modal-sync-edit-content h-full">
+        <div ref="containerElem" class="h-full flex-1 flex flex-col overflow-auto nc-scrollbar-thin px-6 md:px-12 mx-auto">
           <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 my-6 flex flex-col">
-            <a-form layout="vertical" no-style :hide-required-mark="true" class="flex flex-col w-full">
+            <a-form layout="vertical" no-style :hide-required-mark="true" class="flex flex-col gap-8 w-full">
               <template v-if="step === SyncFormStep.SyncSettings">
                 <ProjectSyncCommonGeneral />
                 <ProjectSyncCommonCategory />
@@ -178,13 +182,7 @@ const supportedDocs = [
       </div>
 
       <NcModalSupportedDocsSidebar>
-        <NcModalSupportedDocs class="sync-modal-docs" :docs="supportedDocs">
-          <template #title>
-            <span class="text-nc-content-gray-emphasis text-captionBold">
-              {{ $t('labels.supportDocs') }}
-            </span>
-          </template>
-        </NcModalSupportedDocs>
+        <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
       </NcModalSupportedDocsSidebar>
     </div>
   </NcModal>
@@ -200,13 +198,6 @@ const supportedDocs = [
 
   .nc-modal-header {
     @apply !mb-0 !pb-0;
-  }
-
-  .sync-modal-docs {
-    .nc-modal-docs-icon,
-    .nc-modal-docs-link {
-      @apply !text-nc-content-gray text-caption;
-    }
   }
 }
 </style>

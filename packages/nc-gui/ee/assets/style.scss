@@ -39,7 +39,7 @@ body {
     @supports (min-height: 100dvh) {
       min-height: 100dvh !important;
     }
-    
+
     @supports (min-height: 100svh) {
       min-height: 100svh !important;
     }
@@ -1421,7 +1421,7 @@ svg.nc-virtual-cell-icon {
     @apply flex flex-col gap-1.5;
   }
 
-  .nc-settings-item-action{
+  .nc-settings-item-action {
     @apply self-end md:self-start;
   }
 
@@ -1434,7 +1434,6 @@ svg.nc-virtual-cell-icon {
   }
 }
 
-
 .template-card {
   transition: transform 0.2s ease-in-out;
   will-change: transform;
@@ -1446,4 +1445,33 @@ svg.nc-virtual-cell-icon {
 
 .template-card-skeleton {
   @extend .template-card;
+}
+
+// Form builder section
+.nc-form-section {
+  @apply flex flex-col gap-3;
+
+  .ant-row:not(.ant-form-item) {
+    @apply !-mx-1.5;
+    & > .ant-col {
+      @apply !px-1.5;
+    }
+  }
+}
+
+.nc-form-section-title {
+  @apply text-bodyBold text-nc-content-gray;
+}
+
+.nc-form-section-input-label {
+  @apply text-caption text-nc-content-gray pb-2;
+}
+
+.nc-form-section-body {
+  @apply flex flex-col gap-3;
+}
+
+.nc-form-section-body-grid {
+  @apply grid gap-3;
+  grid-template-columns: repeat(24, minmax(0, 1fr))
 }

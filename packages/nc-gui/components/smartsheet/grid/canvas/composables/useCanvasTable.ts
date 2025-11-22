@@ -409,6 +409,8 @@ export function useCanvasTable({
           !showEditRestrictedColumnTooltip(f) ||
           isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
 
+        const isSyncedCol = meta.value?.synced && f.readonly
+
         const aggregation = getFormattedAggrationValue(gridViewCol.aggregation, aggregations.value[f.title!], f, [], {
           col: f,
           meta: meta.value as TableType,
@@ -431,7 +433,13 @@ export function useCanvasTable({
               : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
               ? false
               : !!f.pv,
-          readonly: f.readonly || isDataReadOnly.value || !isDataEditAllowed.value || isPublicView.value || !isCellEditable,
+          readonly:
+            f.readonly ||
+            isDataReadOnly.value ||
+            !isDataEditAllowed.value ||
+            isPublicView.value ||
+            !isCellEditable ||
+            isSyncedCol,
           isCellEditable,
           pv: !!f.pv,
           virtual: isVirtualCol(f),
@@ -441,6 +449,7 @@ export function useCanvasTable({
           columnObj: f,
           relatedColObj,
           relatedTableMeta,
+          isSyncedColumn: isSyncedCol,
           isInvalidColumn: {
             ...isInvalid,
             tooltip: isInvalid.ignoreTooltip ? null : isInvalid.tooltip && t(isInvalid.tooltip),
@@ -524,7 +533,9 @@ export function useCanvasTable({
       (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
       (!selection.value.isEmpty() &&
         Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
-          (_, i) => !columns.value[selection.value.start.col + i]?.isCellEditable,
+          (_, i) =>
+            !columns.value[selection.value.start.col + i]?.isCellEditable ||
+            columns.value[selection.value.start.col + i]?.isSyncedColumn,
         ))
     )
   })
@@ -1168,7 +1179,7 @@ export function useCanvasTable({
     for (const row of rows) {
       for (const col of cols) {
         const colObj = col.columnObj
-        if (!row || !colObj || !colObj.title || !col.isCellEditable) continue
+        if (!row || !colObj || !colObj.title || !col.isCellEditable || col.isSyncedColumn) continue
 
         if (isVirtualCol(colObj)) {
           if ((isBt(colObj) || isOo(colObj) || isMm(colObj)) && !isInfoShown) {
@@ -1186,6 +1197,11 @@ export function useCanvasTable({
         row.row[colObj.title] = null
         props.push(colObj.title)
       }
+    }
+
+    if (props.length === 0) {
+      message.info(t('msg.info.noEditableCellsToClear'))
+      return
     }
 
     await bulkUpdateRows(rows, props, undefined, false, path)
@@ -1278,6 +1294,7 @@ export function useCanvasTable({
       fixed: clickedColumn.fixed,
       path,
       isCellEditable: clickedColumn.isCellEditable,
+      isSyncedColumn: clickedColumn.isSyncedColumn,
     }
     hideTooltip()
     return true
@@ -1316,6 +1333,11 @@ export function useCanvasTable({
     const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
 
     if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol) {
+      return null
+    }
+
+    if (clickedColumn.isSyncedColumn) {
+      message.toast(t('msg.info.syncedFieldsAreNotEditable'))
       return null
     }
 

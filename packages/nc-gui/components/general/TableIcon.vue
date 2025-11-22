@@ -16,6 +16,7 @@ const { meta: tableMeta } = defineProps<{
     readonly
   />
 
-  <component :is="iconMap.eye" v-else-if="tableMeta?.type === 'view'" class="w-4 mx-0.75" />
-  <component :is="iconMap.table" v-else class="w-4 mx-0.5 text-gray-600/80" />
+  <component :is="iconMap.ncZap" v-else-if="tableMeta?.synced" class="w-4 mx-0.5 text-sm !text-gray-600/75 flex-none" />
+  <component :is="iconMap.eye" v-else-if="tableMeta?.type === 'view'" class="w-4 mx-0.75 flex-none" />
+  <component :is="iconMap.table" v-else class="w-4 mx-0.5 text-gray-600/80 flex-none" />
 </template>

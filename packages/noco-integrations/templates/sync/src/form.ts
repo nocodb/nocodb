@@ -13,8 +13,8 @@ const form: FormDefinition = [
   // Authentication integration selection
   {
     type: FormBuilderInputType.SelectIntegration,
-    label: 'Provider Connection',
-    width: 100,
+    label: 'Provider connection',
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'Authentication',
     integrationFilter: {
@@ -28,12 +28,12 @@ const form: FormDefinition = [
       },
     ],
   },
-  
+
   // Project/resource identifier
   {
     type: FormBuilderInputType.Input,
     label: 'Project ID',
-    width: 100,
+    span: 24,
     model: 'config.projectId',
     placeholder: 'e.g., project-123',
     category: 'Source',
@@ -44,18 +44,18 @@ const form: FormDefinition = [
       },
     ],
   },
-  
+
   // Optional: Include closed items
   {
     type: FormBuilderInputType.Switch,
     label: 'Include closed items',
-    width: 100,
+    span: 24,
     model: 'config.includeClosed',
     category: 'Source',
     defaultValue: false,
   },
-  
+
   // Optional: Add any other provider-specific configuration options here
 ];
 
-export default form; 
+export default form;

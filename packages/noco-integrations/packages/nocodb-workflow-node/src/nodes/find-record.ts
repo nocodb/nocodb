@@ -26,7 +26,7 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
       {
         type: FormBuilderInputType.SelectTable,
         label: 'Table',
-        width: 100,
+        span: 24,
         model: 'config.modelId',
         placeholder: 'Select a table',
         fetchOptionsKey: 'tables',
@@ -40,7 +40,7 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
       {
         type: FormBuilderInputType.SelectView,
         label: 'View',
-        width: 100,
+        span: 24,
         model: 'config.viewId',
         placeholder: 'Select a view',
         fetchOptionsKey: 'views',
@@ -55,7 +55,7 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
       {
         type: FormBuilderInputType.Input,
         label: 'Record ID',
-        width: 100,
+        span: 24,
         model: 'config.rowId',
         placeholder: 'Enter the record ID',
         validators: [

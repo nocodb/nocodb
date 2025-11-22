@@ -95,6 +95,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const isFromIntegrationPage = ref(false)
 
+  const showBackButton = ref(true)
+
   const integrationsRefreshKey = ref(0)
 
   const requestIntegration = ref({
@@ -181,13 +183,15 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     return null
   }
 
-  const addIntegration = async (integration: IntegrationItemType) => {
+  const addIntegration = async (integration: IntegrationItemType, showBackBtn = true) => {
     activeIntegration.value = integration.dynamic ? integration : getStaticInitializor(integration.sub_type)
     activeIntegrationItem.value = integration
 
     if (integration.dynamic === true) {
       activeIntegrationItem.value.form = await getIntegrationForm(integration.type, integration.sub_type)
     }
+
+    showBackButton.value = showBackBtn
 
     pageMode.value = IntegrationsPageMode.ADD
     $e('c:integration:add')
@@ -390,8 +394,10 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
-  const editIntegration = async (integration: IntegrationType) => {
+  const editIntegration = async (integration: IntegrationType, showBackBtn = true) => {
     if (!integration?.id) return
+
+    showBackButton.value = showBackBtn
 
     try {
       if (integration.sub_type === SyncDataType.NOCODB) {
@@ -603,6 +609,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     loadDynamicIntegrations,
     getIntegrationForm,
     testConnection,
+    showBackButton,
   }
 }, 'integrations-store')
 

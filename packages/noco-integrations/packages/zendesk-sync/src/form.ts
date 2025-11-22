@@ -9,7 +9,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -22,8 +22,8 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.SelectIntegration,
-    label: 'Zendesk Connection',
-    width: 100,
+    label: 'Zendesk connection',
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'General',
     integrationFilter: {
@@ -38,9 +38,10 @@ const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Switch,
+    type: FormBuilderInputType.Checkbox,
     label: 'Include closed tickets',
-    width: 100,
+    description: 'Sync both open and closed tickets to maintain a complete record of project history and resolutions.',
+    span: 24,
     model: 'config.includeClosed',
     category: 'Options',
     defaultValue: true,

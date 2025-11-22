@@ -229,26 +229,40 @@ watch(
 
           <!-- Create Records Column -->
           <template v-if="column.key === 'create_records'">
-            <div v-if="record.type === 'table'" class="w-full flex justify-center gap-2">
-              <PermissionsInlineTableSelector
-                :base="base!"
-                :table-id="record.id"
-                :permission-type="PermissionKey.TABLE_RECORD_ADD"
-                :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_RECORD_ADD)"
-              />
-            </div>
+            <NcTooltip v-if="record.synced">
+              <template #title>
+                {{ $t('msg.info.permissionsNotAvailableForSyncedTable') }}
+              </template>
+              <NcBadge color="gray" :border="false" class="!px-2">
+                <span class="text-xs">{{ $t('general.permissionsNotAvailable') }}</span>
+              </NcBadge>
+            </NcTooltip>
+            <PermissionsInlineTableSelector
+              v-else
+              :base="base!"
+              :table-id="record.id"
+              :permission-type="PermissionKey.TABLE_RECORD_ADD"
+              :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_RECORD_ADD)"
+            />
           </template>
 
           <!-- Delete Records Column -->
           <template v-if="column.key === 'delete_records'">
-            <div v-if="record.type === 'table'" class="w-full flex justify-center gap-2">
-              <PermissionsInlineTableSelector
-                :base="base!"
-                :table-id="record.id"
-                :permission-type="PermissionKey.TABLE_RECORD_DELETE"
-                :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_RECORD_DELETE)"
-              />
-            </div>
+            <NcTooltip v-if="record.synced">
+              <template #title>
+                {{ $t('msg.info.permissionsNotAvailableForSyncedTable') }}
+              </template>
+              <NcBadge color="gray" :border="false" class="!px-2">
+                <span class="text-xs">{{ $t('general.permissionsNotAvailable') }}</span>
+              </NcBadge>
+            </NcTooltip>
+            <PermissionsInlineTableSelector
+              v-else
+              :base="base!"
+              :table-id="record.id"
+              :permission-type="PermissionKey.TABLE_RECORD_DELETE"
+              :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_RECORD_DELETE)"
+            />
           </template>
 
           <template v-if="column.key === 'context_actions'">

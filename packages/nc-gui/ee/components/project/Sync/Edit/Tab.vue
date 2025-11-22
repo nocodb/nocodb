@@ -42,10 +42,10 @@ const tabs = computed(() => {
       v-for="item in tabs"
       :key="item.value"
       :class="{
-        'bg-nc-bg-default text-captionSmBold text-nc-content-gray-emphasis': modelValue === item.value,
-        'text-nc-content-gray-subtle2 text-captionSm': modelValue !== item.value,
+        'bg-nc-bg-default text-captionBold font-semibold text-nc-content-gray-emphasis': modelValue === item.value,
+        'text-nc-content-gray-subtle2 text-caption': modelValue !== item.value,
       }"
-      class="px-2 py-1 cursor-pointer rounded-[6px]"
+      class="px-2 py-1 cursor-pointer rounded-[6px] cursor-pointer"
       @click="modelValue = item.value"
     >
       {{ item.title }}

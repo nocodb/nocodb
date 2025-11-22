@@ -458,7 +458,14 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
 }
 
 const isColumnUpdateAllowed = computed(() => {
-  if ((isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) || isSqlView.value) return false
+  if (
+    (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) ||
+    isSqlView.value ||
+    (meta.value?.synced && column.value?.readonly)
+  ) {
+    return false
+  }
+
   return true
 })
 
@@ -550,6 +557,12 @@ const onDeleteColumn = () => {
       :enabled="!isColumnEditAllowed"
       :is-sql-view="isSqlView"
     >
+      <template v-if="column?.readonly && meta?.synced" #title>
+        <div class="max-w-50">
+          {{ $t('tooltip.schemaChangeDisabledFormSyncedTableField') }}
+        </div>
+      </template>
+
       <NcMenuItem
         :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated?.length"
         :title="linksAssociated?.length ? 'Field is associated with a link column' : undefined"
@@ -621,18 +634,23 @@ const onDeleteColumn = () => {
         !isSqlView &&
         column.uidt !== UITypes.ForeignKey
       "
-      :disabled="showEditRestrictedColumnTooltip(column)"
+      :disabled="showEditRestrictedColumnTooltip(column) && !(column?.readonly && meta?.synced)"
       placement="right"
       :arrow="false"
     >
       <template #title>
-        {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+        <template v-if="column?.readonly && meta?.synced">
+          {{ $t('tooltip.fieldPermissionsNotAvailableForSyncedColumns') }}
+        </template>
+        <template v-else>
+          {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+        </template>
       </template>
 
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
         <template #default="{ click }">
           <NcMenuItem
-            :disabled="!showEditRestrictedColumnTooltip(column)"
+            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced)"
             @click="
               click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
                 onFieldPermissions()
@@ -842,6 +860,11 @@ const onDeleteColumn = () => {
       :enabled="!isColumnUpdateAllowed"
       :is-sql-view="isSqlView"
     >
+      <template v-if="column?.readonly && meta?.synced" #title>
+        <div class="max-w-50">
+          {{ $t('tooltip.deleteFieldIsRestrictedForSyncedTableField') }}
+        </div>
+      </template>
       <NcMenuItem
         :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"
         :title="linksAssociated ? 'Field is associated with a link column' : undefined"

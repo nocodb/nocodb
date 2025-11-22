@@ -9,7 +9,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.SelectIntegration,
     label: 'ClickHouse Connection',
-    width: 100,
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'Authentication',
     integrationFilter: {
@@ -26,12 +26,13 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Database',
-    width: 100,
+    span: 24,
     model: 'config.database',
     category: 'Sync Settings',
     placeholder: 'Select database to sync',
     options: [],
     fetchOptionsKey: 'databases',
+    dependsOn: 'config.authIntegrationId',
     condition: [
       {
         model: 'config.authIntegrationId',
@@ -42,13 +43,14 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Tables',
-    width: 100,
+    span: 24,
     model: 'config.tables',
     category: 'Sync Settings',
     placeholder: 'Select tables to sync',
     selectMode: 'multiple',
     options: [],
     fetchOptionsKey: 'tables',
+    dependsOn: ['config.authIntegrationId', 'config.database'],
     condition: [
       {
         model: 'config.authIntegrationId',
@@ -62,4 +64,4 @@ const form: FormDefinition = [
   },
 ];
 
-export default form; 
+export default form;

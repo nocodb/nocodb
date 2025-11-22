@@ -15,6 +15,8 @@ const { isSqlView } = useSmartsheetStoreOrThrow()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const meta = inject(MetaInj, ref())
+
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
@@ -32,6 +34,8 @@ const revertLocalOnlyChanges = (col: string) => {
     delete localOnlyChanges.value[col]
   }
 }
+
+const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.readonly
 </script>
 
 <template>
@@ -112,14 +116,14 @@ const revertLocalOnlyChanges = (col: string) => {
                 'w-full': props.forceVerticalMode,
                 '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
                   showReadonlyColumnTooltip(col),
-                '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed,
+                '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed || isSyncedColumn(col),
               }"
             >
               <LazySmartsheetVirtualCell
                 v-if="isVirtualCol(col)"
                 v-model="_row.row[col.title]"
                 :column="col"
-                :read-only="readOnly || !isAllowed"
+                :read-only="readOnly || !isAllowed || isSyncedColumn(col)"
                 :row="_row"
                 :is-allowed="isAllowed"
               />
@@ -130,7 +134,11 @@ const revertLocalOnlyChanges = (col: string) => {
                 :active="true"
                 :column="col"
                 :edit-enabled="true"
-                :read-only="ncIsPlaywright() ? readOnly || !isAllowed : readOnly || !isAllowed || showReadonlyColumnTooltip(col)"
+                :read-only="
+                  ncIsPlaywright()
+                    ? readOnly || !isAllowed || isSyncedColumn(col)
+                    : readOnly || !isAllowed || showReadonlyColumnTooltip(col) || isSyncedColumn(col)
+                "
                 :is-allowed="isAllowed"
                 @update:model-value="changedColumns.add(col.title)"
               />

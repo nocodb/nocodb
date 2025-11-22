@@ -418,7 +418,8 @@ onBeforeUnmount(() => {
                 >
                   <a-select-option v-for="table of tables || []" :key="table.title" :value="table.id">
                     <div class="w-full flex items-center gap-2">
-                      <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
+                      <GeneralTableIcon size="xsmall" :meta="table" class="!mx-0 !text-nc-content-gray-muted" />
+
                       <NcTooltip show-on-truncate-only class="flex-1 truncate">
                         <template #title>
                           {{ table.title }}

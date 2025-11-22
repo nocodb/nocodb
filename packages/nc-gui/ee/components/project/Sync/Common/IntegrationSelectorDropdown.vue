@@ -35,7 +35,7 @@ const onSelect = (option: IntegrationItemType) => {
 </script>
 
 <template>
-  <div class="w-[fit-content]">
+  <div class="w-[fit-content] relative">
     <NcListDropdown v-model:is-open="isOpen" :disabled="isDisabled">
       <NcTooltip placement="top" :disabled="!isDisabled">
         <div class="flex items-center gap-2">

@@ -1,5 +1,5 @@
 import type { SyncConfig } from 'nocodb-sdk'
-import { IntegrationCategoryType } from 'nocodb-sdk'
+import { IntegrationCategoryType, SyncCategory } from 'nocodb-sdk'
 import { Form } from 'ant-design-vue'
 import rfdc from 'rfdc'
 
@@ -9,15 +9,36 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
   (baseId: MaybeRef<string>, mode: 'create' | 'edit', syncId?: MaybeRef<string>) => {
     const { $api } = useNuxtApp()
 
+    const { t } = useI18n()
+
     const { integrationsRefreshKey, getIntegrationForm, integrations, getIntegration } = useIntegrationStore()
 
     const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
     const syncStore = useSyncStore()
 
-    const { createSync, readSync, updateSync: updateSyncStore, deleteSync } = syncStore
+    const { createSync, readSync, updateSync: updateSyncStore, deleteSync, loadSyncs } = syncStore
 
-    const syncConfigForm = ref<Partial<SyncConfig>>(defaultSyncConfig)
+    const { activeBaseSyncs } = storeToRefs(useSyncStore())
+
+    const syncConfigForm = ref<Partial<SyncConfig>>(defaultSyncConfig(activeBaseSyncs.value || []))
+
+    const isSyncCategoryAlreadyAddedOrBlank = computed(() => {
+      if (mode === 'edit') {
+        return {
+          value: false,
+          tooltip: '',
+        }
+      }
+
+      const isSyncCategoryAlreadySelected = activeBaseSyncs.value.some(
+        (sync) => syncConfigForm.value.sync_category && sync.sync_category === syncConfigForm.value.sync_category,
+      )
+      return {
+        value: !syncConfigForm.value.sync_category || isSyncCategoryAlreadySelected,
+        tooltip: isSyncCategoryAlreadySelected ? t('tooltip.syncForThisCategoryAlreadyAdded') : t('tooltip.selectSyncCategory'),
+      }
+    })
 
     const integrationConfigs = ref<IntegrationConfig[]>([])
 
@@ -40,12 +61,35 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       })
     })
 
+    const syncCategoryIntegrationMap = computed(() => {
+      return Object.values(SyncCategory).reduce((acc, category) => {
+        acc[category] = allIntegrations.filter((i) => i.type === IntegrationCategoryType.SYNC && i.sync_category === category)
+        return acc
+      }, {} as Record<SyncCategory, IntegrationItemType[]>)
+    })
+
     const integrationConfigValidationCallbacks = ref<Record<number, () => void>>({})
 
     const { validate: validateSyncConfig, validateInfos: validateInfosSyncConfig } = Form.useForm(
       syncConfigForm,
       ref({
-        title: [fieldRequiredValidator()],
+        title: [
+          fieldRequiredValidator(),
+          {
+            validator: (_: unknown, value: string) => {
+              return new Promise((resolve, reject) => {
+                const currentSyncId = unref(syncId)
+                const duplicate = activeBaseSyncs.value.find((sync) => sync.title === value && sync.id !== currentSyncId)
+
+                if (duplicate) {
+                  return reject(new Error(t('msg.error.syncTitleAlreadyExists')))
+                }
+
+                resolve(true)
+              })
+            },
+          },
+        ],
         sync_type: [fieldRequiredValidator()],
         sync_trigger: [fieldRequiredValidator()],
       }),
@@ -193,7 +237,36 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       )
     }
 
+    /**
+     * Todo: @anbu , @ramesh update docs links
+     */
+    const supportedDocs = [
+      {
+        title: 'How syncs work',
+        href: 'https://nocodb.com/docs/product-docs',
+      },
+      {
+        title: 'Choosing a sync type',
+        href: 'https://nocodb.com/docs/product-docs',
+      },
+      {
+        title: 'Configure sync triggers',
+        href: 'https://nocodb.com/docs/product-docs',
+      },
+      {
+        title: 'Select tables to sync',
+        href: 'https://nocodb.com/docs/product-docs',
+      },
+    ]
+
     onMounted(async () => {
+      const bsId = unref(baseId)
+
+      // Load existing syncs for validation
+      if (bsId) {
+        await loadSyncs(bsId)
+      }
+
       const _syncId = unref(syncId)
       if (mode === 'edit' && _syncId) {
         deletedSyncConfigIds.value = []
@@ -245,10 +318,12 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       validateInfosSyncConfig,
       syncConfigEditFormChanged,
       integrationConfigs,
+      activeBaseSyncs,
       addIntegrationConfig,
       removeIntegrationConfig,
       updateIntegrationConfig,
       availableIntegrations,
+      syncCategoryIntegrationMap,
       integrationConfigValidationCallbacks,
       integrationFetchDestinationSchema,
       validateIntegrationConfigs,
@@ -256,6 +331,8 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       updateSyncConfig,
       isSaving,
       isUpdating,
+      supportedDocs,
+      isSyncCategoryAlreadyAddedOrBlank,
     }
   },
 )

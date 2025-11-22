@@ -13,6 +13,8 @@ const isVisibleDefaultValueInput = useVModel(props, 'isVisibleDefaultValueInput'
 
 const { isAiModeFieldModal } = usePredictFields()
 
+const { isSyncedField } = useColumnCreateStoreOrThrow()
+
 const defaultValueWrapperRef = ref<HTMLDivElement>()
 
 const cdfValue = computed({
@@ -48,6 +50,7 @@ const handleShowInput = () => {
     <NcButton
       size="small"
       type="text"
+      :disabled="isSyncedField"
       class="text-gray-700"
       data-testid="nc-show-default-value-btn"
       @click.stop="handleShowInput"

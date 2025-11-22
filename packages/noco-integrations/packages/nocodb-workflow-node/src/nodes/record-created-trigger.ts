@@ -25,7 +25,7 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
       {
         type: FormBuilderInputType.SelectTable,
         label: 'Table',
-        width: 100,
+        span: 24,
         model: 'config.modelId',
         placeholder: 'Select a table',
         fetchOptionsKey: 'tables',

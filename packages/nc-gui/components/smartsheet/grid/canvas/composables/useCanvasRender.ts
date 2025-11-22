@@ -190,6 +190,7 @@ export function useCanvasRender({
   const { isWsOwner } = useEeConfig()
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
+  const isPublic = inject(IsPublicInj, ref(false))
 
   const { isRowColouringEnabled } = useViewRowColorRender()
 
@@ -364,7 +365,7 @@ export function useCanvasRender({
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
-      } else if (meta.value?.synced && colObj?.readonly) {
+      } else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'ncZap',
@@ -635,7 +636,7 @@ export function useCanvasRender({
             x: rightOffset,
             y: y - 7,
           })
-        } else if (meta.value?.synced && colObj?.readonly) {
+        } else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
             icon: 'ncZap',
@@ -745,6 +746,31 @@ export function useCanvasRender({
     const isInFixedArea = activeState.x <= fixedWidth
 
     let borderColor = '#3366ff'
+
+    if (activeState.col.isSyncedColumn && !isPublic.value) {
+      borderColor = '#9AA2AF'
+
+      const boxRect = {
+        x: activeState.x,
+        y: activeState.y,
+        height: activeState.height,
+        width: activeState.width,
+      }
+
+      const isHovered = isBoxHovered(boxRect, mousePosition)
+
+      if (isHovered && activeState.col.id !== editEnabled.value?.column?.id) {
+        tryShowTooltip({
+          mousePosition,
+          text: t('objects.permissions.editFieldTooltipTitle'),
+          description: t('msg.info.syncedFieldsAreNotEditable'),
+          rect: {
+            ...boxRect,
+          },
+          placement: 'bottom',
+        })
+      }
+    }
 
     if (!activeState.col.isCellEditable) {
       borderColor = '#9AA2AF'

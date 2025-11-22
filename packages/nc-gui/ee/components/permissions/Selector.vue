@@ -147,24 +147,34 @@ const handleClickDropdown = (e: MouseEvent) => {
           v-model:is-open="isOpenPermissionDropdown"
           :default-slot-wrapper-class="`${!readonly ? 'w-[165px]' : removeReadonlyPadding ? '!px-0 !border-0' : '!border-0'}`"
           :placement="placement"
-          :disabled="readonly"
+          :disabled="readonly || config.disabled"
           :show-as-disabled="false"
           :border-on-hover="borderOnHover"
           @click="handleClickDropdown"
         >
-          <div
-            class="flex-1 flex items-center gap-1.5"
-            :class="[getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)]"
-          >
-            <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-4 w-4" />
-            <span class="font-medium flex-1 whitespace-nowrap">{{ currentOption?.label || 'Editors & up' }}</span>
-            <GeneralIcon
-              v-if="!readonly"
-              icon="chevronDown"
-              class="flex-none h-4 w-4 transition-transform"
-              :class="{ 'transform rotate-180': isOpenPermissionDropdown }"
-            />
-          </div>
+          <NcTooltip :disabled="!config.disabled || !config.tooltip">
+            <template #title>
+              {{ config.tooltip }}
+            </template>
+            <div
+              class="flex-1 flex items-center gap-1.5"
+              :class="{
+                [getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)]:
+                  !config.disabled || readonly,
+                'text-nc-content-gray-disabled': config.disabled,
+              }"
+            >
+              <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-4 w-4" />
+              <span class="font-medium flex-1 whitespace-nowrap">{{ currentOption?.label || 'Editors & up' }}</span>
+              <GeneralIcon
+                v-if="!readonly"
+                icon="chevronDown"
+                class="flex-none h-4 w-4 transition-transform"
+                :class="{ 'transform rotate-180': isOpenPermissionDropdown }"
+              />
+            </div>
+          </NcTooltip>
+
           <template #overlay="{ onEsc }">
             <NcList
               v-model:open="isOpenPermissionDropdown"

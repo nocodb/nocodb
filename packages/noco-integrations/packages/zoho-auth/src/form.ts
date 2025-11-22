@@ -10,7 +10,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -23,8 +23,8 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Zoho Region',
-    width: 100,
+    label: 'Zoho region',
+    span: 24,
     model: 'config.region',
     category: 'General',
     placeholder: 'Select your Zoho data center region',
@@ -72,8 +72,8 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Auth Type',
-    width: 48,
+    label: 'Auth type',
+    span: 12,
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',
@@ -99,14 +99,14 @@ export const form: FormDefinition = [
     ? [
         {
           type: FormBuilderInputType.OAuth,
-          label: 'OAuth Configuration',
-          width: 100,
+          label: 'OAuth configuration',
+          span: 24,
           model: 'config.oauth.code',
           category: 'Authentication',
           validators: [
             {
               type: FormBuilderValidatorType.Required,
-              message: 'OAuth Configuration is required',
+              message: 'OAuth configuration is required',
             },
           ],
           condition: {

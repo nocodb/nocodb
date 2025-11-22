@@ -23,7 +23,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
       {
         type: FormBuilderInputType.SelectTable,
         label: 'Table',
-        width: 100,
+        span: 24,
         model: 'config.modelId',
         placeholder: 'Select a table',
         fetchOptionsKey: 'tables',
@@ -37,7 +37,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
       {
         type: FormBuilderInputType.Input,
         label: 'Fields JSON',
-        width: 100,
+        span: 24,
         model: 'config.fieldsJson',
         placeholder: '{ "Title": "Hello", "Status": "Active" }',
         validators: [

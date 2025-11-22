@@ -11,7 +11,8 @@ const emit = defineEmits(['update:open'])
 
 const vOpen = useVModel(props, 'open', emit)
 
-const { isFromIntegrationPage, pageMode, IntegrationsPageMode, activeIntegration, activeIntegrationItem } = useIntegrationStore()
+const { isFromIntegrationPage, showBackButton, pageMode, IntegrationsPageMode, activeIntegration, activeIntegrationItem } =
+  useIntegrationStore()
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 </script>
@@ -21,7 +22,7 @@ const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
     <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
       <div class="flex-1 flex items-center gap-3">
         <NcButton
-          v-if="!isEditMode && !isFromIntegrationPage"
+          v-if="!isEditMode && !isFromIntegrationPage && showBackButton"
           type="text"
           size="small"
           @click="pageMode = IntegrationsPageMode.LIST"

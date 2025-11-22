@@ -9,6 +9,7 @@ interface Props {
    * Class to be applied to the default slot wrapper.
    */
   defaultSlotWrapperClass?: string
+  tooltipWrapperClass?: string
   disabled?: boolean
   showAsDisabled?: boolean
   borderOnHover?: boolean
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   isOpen: undefined,
   defaultSlotWrapper: true,
   defaultSlotWrapperClass: '',
+  tooltipWrapperClass: '',
   disabled: false,
   showAsDisabled: true,
   borderOnHover: false,

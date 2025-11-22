@@ -9,7 +9,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -22,8 +22,8 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.SelectIntegration,
-    label: 'GitHub Connection',
-    width: 100,
+    label: 'GitHub connection',
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'General',
     integrationFilter: {
@@ -39,13 +39,14 @@ const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Repositories',
-    width: 100,
+    label: 'Select one or more repositories',
+    span: 24,
     model: 'config.repos',
     category: 'General',
     placeholder: 'e.g., nocodb/nocodb',
     options: [],
     fetchOptionsKey: 'repos',
+    dependsOn: 'config.authIntegrationId',
     selectMode: 'multiple',
     condition: [
       {
@@ -61,9 +62,11 @@ const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Switch,
+    type: FormBuilderInputType.Checkbox,
     label: 'Include closed issues',
-    width: 48,
+    description:
+      'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
+    span: 12,
     model: 'config.includeClosed',
     category: 'Options',
     defaultValue: true,
@@ -75,20 +78,11 @@ const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Space,
-    width: 4,
-    category: 'Options',
-    condition: [
-      {
-        model: 'config.authIntegrationId',
-        notEmpty: true,
-      },
-    ],
-  },
-  {
-    type: FormBuilderInputType.Switch,
-    label: 'Include Pull Requests',
-    width: 48,
+    type: FormBuilderInputType.Checkbox,
+    label: 'Pull requests',
+    description:
+      'Sync pull requests along with issues to track code changes, reviews, and merges within your workspace.',
+    span: 12,
     model: 'config.includePRs',
     category: 'Options',
     defaultValue: false,

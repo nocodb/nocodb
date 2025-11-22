@@ -10,7 +10,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -23,15 +23,15 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Auth Type',
-    width: 48,
+    label: 'Auth type',
+    span: 12,
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',
     defaultValue: AuthType.ApiKey,
     options: [
       {
-        label: 'API Key',
+        label: 'API key',
         value: AuthType.ApiKey,
       },
       ...(redirectUri && clientId
@@ -52,15 +52,15 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Token',
-    width: 100,
+    label: 'API token',
+    span: 24,
     model: 'config.token',
     category: 'Authentication',
-    placeholder: 'Enter your API Token',
+    placeholder: 'Enter your API token',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'API Token is required',
+        message: 'API token is required',
       },
     ],
     condition: {
@@ -72,14 +72,14 @@ export const form: FormDefinition = [
     ? [
         {
           type: FormBuilderInputType.OAuth,
-          label: 'OAuth Configuration',
-          width: 100,
+          label: 'OAuth configuration',
+          span: 24,
           model: 'config.oauth.code',
           category: 'Authentication',
           validators: [
             {
               type: FormBuilderValidatorType.Required,
-              message: 'OAuth Configuration is required',
+              message: 'OAuth configuration is required',
             },
           ],
           condition: {

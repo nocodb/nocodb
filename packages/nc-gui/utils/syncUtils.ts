@@ -1,5 +1,15 @@
 import type { SyncConfig } from 'nocodb-sdk'
-import { IntegrationsType, OnDeleteAction, SyncCategory, SyncTrigger, SyncType } from 'nocodb-sdk'
+import {
+  IntegrationsType,
+  OnDeleteAction,
+  OnDeleteActionMeta,
+  SyncCategory,
+  SyncTrigger,
+  SyncTriggerMeta,
+  SyncType,
+  SyncTypeMeta,
+  generateUniqueCopyName,
+} from 'nocodb-sdk'
 
 const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   if (trigger === SyncTrigger.Manual) return 'Manual'
@@ -13,14 +23,29 @@ const getSyncFrequency = (trigger: SyncTrigger, cron?: string) => {
   return 'Unknown'
 }
 
-const defaultSyncConfig: Partial<SyncConfig> & Record<string, unknown> = {
+const _defaultSyncConfig: Partial<SyncConfig> & Record<string, unknown> = {
   title: 'New Source',
-  sync_type: SyncType.Full,
-  sync_trigger: SyncTrigger.Schedule,
+  sync_type: SyncType.Incremental,
+  sync_trigger: SyncTrigger.Manual,
   sync_category: SyncCategory.TICKETING,
   exclude_models: [],
   on_delete_action: OnDeleteAction.MarkDeleted,
   sync_trigger_cron: '0 * * * *',
+}
+
+const defaultSyncConfig = (configs: SyncConfig[]) => {
+  const newTitle = generateUniqueCopyName('New Sync Source', configs, {
+    accessor: (c) => c.title,
+    prefix: null,
+  })
+
+  const isDefaultSyncCategoryAlreadyAdded = configs.some((config) => config.sync_category === _defaultSyncConfig.sync_category)
+
+  return {
+    ..._defaultSyncConfig,
+    title: newTitle,
+    sync_category: isDefaultSyncCategoryAlreadyAdded ? undefined : _defaultSyncConfig.sync_category,
+  }
 }
 
 enum SyncFormStep {
@@ -46,13 +71,13 @@ const defaultIntegrationConfig: Partial<IntegrationConfig> = {
 }
 
 const syncEntityToReadableMap = {
-  [SyncType.Full]: 'Full',
-  [SyncType.Incremental]: 'Incremental',
-  [SyncTrigger.Manual]: 'Manual ',
-  [SyncTrigger.Schedule]: 'Scheduled',
-  [SyncTrigger.Webhook]: 'Webhook',
-  [OnDeleteAction.Delete]: 'Delete',
-  [OnDeleteAction.MarkDeleted]: 'Mark as Delete',
+  [SyncType.Full]: SyncTypeMeta[SyncType.Full].label,
+  [SyncType.Incremental]: SyncTypeMeta[SyncType.Incremental].label,
+  [SyncTrigger.Manual]: SyncTriggerMeta[SyncTrigger.Manual].label,
+  [SyncTrigger.Schedule]: SyncTriggerMeta[SyncTrigger.Schedule].label,
+  [SyncTrigger.Webhook]: SyncTriggerMeta[SyncTrigger.Webhook].label,
+  [OnDeleteAction.Delete]: OnDeleteActionMeta[OnDeleteAction.Delete].label,
+  [OnDeleteAction.MarkDeleted]: OnDeleteActionMeta[OnDeleteAction.MarkDeleted].label,
 }
 
 interface CustomSyncSchema {

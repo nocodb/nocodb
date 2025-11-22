@@ -69,7 +69,10 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     }
 
     const loadOptions = async (field: FormBuilderElement) => {
-      if (!fetchOptions || !field.fetchOptionsKey || !field.model) return []
+      /**
+       * If the field is not visible, don't load options
+       */
+      if (!fetchOptions || !field.fetchOptionsKey || !field.model || !checkCondition(field)) return []
 
       fieldOptions.value[field.model] = await fetchOptions(field.fetchOptionsKey)
     }
@@ -97,6 +100,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
                 if (field.model) {
                   setFormState(field.model, field.selectMode === 'multiple' ? [] : null)
                 }
+
                 await loadOptions(field)
               }
             },
@@ -107,7 +111,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       })
     }
 
-    const checkCondition = (field: FormBuilderElement) => {
+    function checkCondition(field: FormBuilderElement) {
       if (!field.condition) return true
 
       const condition = field.condition

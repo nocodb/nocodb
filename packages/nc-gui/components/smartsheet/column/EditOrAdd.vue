@@ -49,6 +49,7 @@ const {
   disableSubmitBtn,
   column,
   isAiMode,
+  isSyncedField,
   defaultFormState,
 } = useColumnCreateStoreOrThrow()
 
@@ -152,6 +153,10 @@ const columnUidt = computed({
 
 const isVisibleDefaultValueInput = computed({
   get: () => {
+    if (column.value?.uidt === UITypes.Checkbox && isSyncedField.value) {
+      return false
+    }
+
     if (isValidValue(formState.value.cdf) && !showDefaultValueInput.value) {
       showDefaultValueInput.value = true
     }
@@ -1066,13 +1071,16 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
       </template>
       <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex">
         <div
+          :class="{
+            '!bg-nc-bg-gray-light text-nc-content-gray-disabled': isSyncedField,
+          }"
           class="flex flex-grow px-2 py-1 items-center rounded-md bg-gray-100 focus:bg-gray-100 outline-none"
           style="outline-style: solid; outline-width: thin"
         >
           <input
             ref="antInput"
             v-model="formState.title"
-            :disabled="readOnly || !isFullUpdateAllowed || isSystem"
+            :disabled="readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
             :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
             class="flex flex-grow nc-fields-input nc-input-shadow text-sm font-semibold outline-none bg-inherit min-h-6"
             :class="{
@@ -1090,18 +1098,23 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
         :required="false"
         class="!mb-0"
       >
-        <a-input
-          ref="antInput"
-          v-model:value="formState.title"
-          class="nc-column-name-input nc-input-shadow !rounded-lg"
-          :class="{
-            'nc-ai-input': isAiMode,
-          }"
-          :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
-          :disabled="isKanban || readOnly || !isFullUpdateAllowed"
-          @change="debouncedOnPredictFieldType"
-          @input="onAlter(8)"
-        />
+        <NcTooltip :disabled="!isSyncedField" placement="right">
+          <template #title>
+            {{ $t('msg.info.updateTitleSyncedCol') }}
+          </template>
+          <a-input
+            ref="antInput"
+            v-model:value="formState.title"
+            class="nc-column-name-input nc-input-shadow !rounded-lg"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
+            :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
+            :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSyncedField"
+            @change="debouncedOnPredictFieldType"
+            @input="onAlter(8)"
+          />
+        </NcTooltip>
       </a-form-item>
 
       <div class="flex items-center gap-1 empty:hidden">
@@ -1120,10 +1133,14 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
           @keydown.up.stop="handleResetHoverEffect"
           @keydown.down.stop="handleResetHoverEffect"
         >
-          <NcTooltip :disabled="!(!isEdit && formState.uidt && !!formState?.ai_temp_id)">
+          <NcTooltip placement="right" :disabled="!isSyncedField && !(!isEdit && formState.uidt && !!formState?.ai_temp_id)">
             <template #title>
-              You cannot edit field types of AI-generated fields. Edits can be made after the field is created.</template
-            >
+              {{
+                isSyncedField
+                  ? $t('msg.info.updateTypeSyncedCol')
+                  : 'You cannot edit field types of AI-generated fields. Edits can be made after the field is created.'
+              }}
+            </template>
             <a-select
               v-model:open="isColumnTypeOpen"
               v-model:value="columnUidt"
@@ -1139,7 +1156,8 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                 readOnly ||
                 (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt)) ||
                 (isEdit && !isFullUpdateAllowed) ||
-                isSystem
+                isSystem ||
+                isSyncedField
               "
               dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
               :filter-option="filterOption"

@@ -84,6 +84,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockCardFieldHeaderVisibility = computed(() => true)
 
+  const blockSync = computed(() => true)
+
   const calculatePrice = (..._args: any[]) => {}
 
   const getLimit = (..._args: any[]) => {}
@@ -151,6 +153,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseTeams = (..._args: any[]) => {}
 
   const showUpgradeToAddMoreTeams = (..._args: any[]) => {}
+
+  const showUpgradeToUseSync = (..._args: any[]) => {}
 
   return {
     calculatePrice,
@@ -222,5 +226,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToAddMoreTeams,
     isHigherActivePlan,
     blockCardFieldHeaderVisibility,
+    blockSync,
+    showUpgradeToUseSync,
   }
 })

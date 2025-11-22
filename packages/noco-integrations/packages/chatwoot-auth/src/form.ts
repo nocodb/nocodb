@@ -8,7 +8,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -22,7 +22,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Chatwoot URL',
-    width: 100,
+    span: 24,
     model: 'config.chatwoot_url',
     defaultValue: 'https://app.chatwoot.com',
     category: 'Authentication',
@@ -37,7 +37,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Account ID',
-    width: 100,
+    span: 24,
     model: 'config.account_id',
     category: 'Authentication',
     placeholder: 'Enter your Chatwoot Account ID',
@@ -50,15 +50,15 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Access Token',
-    width: 100,
+    label: 'API access token',
+    span: 24,
     model: 'config.api_token',
     category: 'Authentication',
-    placeholder: 'Enter your API Access Token',
+    placeholder: 'Enter your API access token',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'API Access Token is required',
+        message: 'API access token is required',
       },
     ],
   },

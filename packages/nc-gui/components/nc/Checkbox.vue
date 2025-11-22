@@ -4,12 +4,14 @@ interface Props {
   size?: 'small' | 'default' | 'large'
   disabled?: boolean
   theme?: 'default' | 'ai'
+  readonly?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 'default',
   disabled: false,
   theme: 'default',
+  readonly: false,
 })
 
 const emit = defineEmits(['change', 'update:checked'])
@@ -27,6 +29,7 @@ const onChange = (e: Event) => {
     class="nc-checkbox"
     :class="`theme-${props.theme}`"
     :disabled="props.disabled"
+    :readonly="props.readonly"
     @change="onChange"
   >
     <slot />
@@ -49,6 +52,10 @@ const onChange = (e: Event) => {
         @apply bg-purple-500 border-purple-500;
       }
     }
+  }
+
+  input[readonly] {
+    @apply cursor-not-allowed;
   }
 }
 .nc-checkbox > .ant-checkbox {

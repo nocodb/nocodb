@@ -267,26 +267,32 @@ export class SyncModuleService implements OnModuleInit {
             }
           }
 
-          const model = await this.tablesService.tableCreate(context, {
-            baseId: base.id,
-            table: {
-              title: tableTitle,
-              columns: columns
-                .filter((column) => !column.exclude)
-                .map((column) => ({
-                  title: column.title,
-                  column_name: column.column_name || column.title,
-                  uidt: column.uidt as UITypes,
-                  readonly: true,
-                  pv: column.pv,
-                  meta: column.meta,
-                })),
+          const model = await this.tablesService.tableCreate(
+            {
+              ...context,
+              socket_id: null,
             },
-            apiVersion: NcApiVersion.V3,
-            synced: true,
-            user: req.user,
-            req,
-          });
+            {
+              baseId: base.id,
+              table: {
+                title: tableTitle,
+                columns: columns
+                  .filter((column) => !column.exclude)
+                  .map((column) => ({
+                    title: column.title,
+                    column_name: column.column_name || column.title,
+                    uidt: column.uidt as UITypes,
+                    readonly: true,
+                    pv: column.pv,
+                    meta: column.meta,
+                  })),
+              },
+              apiVersion: NcApiVersion.V3,
+              synced: true,
+              user: req.user,
+              req,
+            },
+          );
 
           // Hide syncSystemFields from default view
           const defaultView = await View.getFirstCollaborativeView(
@@ -402,33 +408,40 @@ export class SyncModuleService implements OnModuleInit {
               (c) => c.column_name === childCn,
             );
 
-            const column = await this.columnsService.columnAdd(context, {
-              tableId: table.id,
-              column: {
-                title: relation.columnTitle,
-                column_name: relation.columnTitle
-                  .replace(/\W/g, '_')
-                  .toLowerCase(),
-                uidt: UITypes.LinkToAnotherRecord,
-                type: RelationTypes.MANY_TO_MANY,
-                ...{
-                  is_custom_link: true,
-                  custom: {
-                    base_id: base.id,
-                    column_id: remoteIdParentColumn.id,
-                    junc_base_id: base.id,
-                    junc_model_id: junctionTable.id,
-                    junc_column_id: parentColumn.id,
-                    junc_ref_column_id: childColumn.id,
-                    ref_model_id: relatedTable.id,
-                    ref_column_id: remoteIdChildColumn.id,
-                  },
-                },
+            const column = await this.columnsService.columnAdd(
+              {
+                ...context,
+                socket_id: null,
               },
-              user: req.user,
-              req,
-              apiVersion: NcApiVersion.V3,
-            });
+              {
+                tableId: table.id,
+                column: {
+                  title: relation.columnTitle,
+                  column_name: relation.columnTitle
+                    .replace(/\W/g, '_')
+                    .toLowerCase(),
+                  uidt: UITypes.LinkToAnotherRecord,
+                  type: RelationTypes.MANY_TO_MANY,
+                  readonly: true,
+                  ...{
+                    is_custom_link: true,
+                    custom: {
+                      base_id: base.id,
+                      column_id: remoteIdParentColumn.id,
+                      junc_base_id: base.id,
+                      junc_model_id: junctionTable.id,
+                      junc_column_id: parentColumn.id,
+                      junc_ref_column_id: childColumn.id,
+                      ref_model_id: relatedTable.id,
+                      ref_column_id: remoteIdChildColumn.id,
+                    },
+                  },
+                } as any,
+                user: req.user,
+                req,
+                apiVersion: NcApiVersion.V3,
+              },
+            );
 
             // rename the column of the related table
             await relatedTable.getColumns(context);
@@ -440,16 +453,22 @@ export class SyncModuleService implements OnModuleInit {
             );
 
             if (relatedTableColumn) {
-              await this.columnsService.columnUpdate(context, {
-                columnId: relatedTableColumn.id,
-                column: {
-                  ...relatedTableColumn,
-                  title: relation.relatedTableColumnTitle,
+              await this.columnsService.columnUpdate(
+                {
+                  ...context,
+                  socket_id: null,
                 },
-                user: req.user,
-                req,
-                apiVersion: NcApiVersion.V3,
-              });
+                {
+                  columnId: relatedTableColumn.id,
+                  column: {
+                    ...relatedTableColumn,
+                    title: relation.relatedTableColumnTitle,
+                  },
+                  user: req.user,
+                  req,
+                  apiVersion: NcApiVersion.V3,
+                },
+              );
             }
           }
         }
@@ -459,12 +478,18 @@ export class SyncModuleService implements OnModuleInit {
             await Model.markAsMmTable(context, table.id, false);
           }
 
-          await this.tablesService.tableDelete(context, {
-            tableId: table.id,
-            forceDeleteSyncs: true,
-            user: req.user,
-            req,
-          });
+          await this.tablesService.tableDelete(
+            {
+              ...context,
+              socket_id: null,
+            },
+            {
+              tableId: table.id,
+              forceDeleteSyncs: true,
+              user: req.user,
+              req,
+            },
+          );
         }
 
         for (const syncMapping of syncMappings) {
@@ -734,42 +759,54 @@ export class SyncModuleService implements OnModuleInit {
               }
             }
 
-            const model = await this.tablesService.tableCreate(context, {
-              baseId: context.base_id,
-              table: {
-                title: table.title,
-                columns: columns
-                  .filter((column) => !column.exclude)
-                  .map((column) => ({
-                    title: column.title,
-                    column_name: column.column_name || column.title,
-                    uidt: column.uidt as UITypes,
-                    readonly: true,
-                    pv: column.pv,
-                    meta: column.meta,
-                  })),
+            const model = await this.tablesService.tableCreate(
+              {
+                ...context,
+                socket_id: null,
               },
-              apiVersion: NcApiVersion.V3,
-              synced: true,
-              user: req.user,
-              req,
-            });
+              {
+                baseId: context.base_id,
+                table: {
+                  title: table.title,
+                  columns: columns
+                    .filter((column) => !column.exclude)
+                    .map((column) => ({
+                      title: column.title,
+                      column_name: column.column_name || column.title,
+                      uidt: column.uidt as UITypes,
+                      readonly: true,
+                      pv: column.pv,
+                      meta: column.meta,
+                    })),
+                },
+                apiVersion: NcApiVersion.V3,
+                synced: true,
+                user: req.user,
+                req,
+              },
+            );
 
             const defaultView = await View.getFirstCollaborativeView(
               context,
               model.id,
             );
 
-            await this.viewColumnsService.columnsUpdate(context, {
-              viewId: defaultView.id,
-              columns: model.columns
-                .filter((column) => !!syncSystemFieldsMap[column.title])
-                .map((column) => ({
-                  id: column.id,
-                  show: false,
-                })),
-              req,
-            });
+            await this.viewColumnsService.columnsUpdate(
+              {
+                ...context,
+                socket_id: null,
+              },
+              {
+                viewId: defaultView.id,
+                columns: model.columns
+                  .filter((column) => !!syncSystemFieldsMap[column.title])
+                  .map((column) => ({
+                    id: column.id,
+                    show: false,
+                  })),
+                req,
+              },
+            );
 
             const syncMapping = await SyncMapping.insert(context, {
               fk_sync_config_id: syncConfig.id,
@@ -830,32 +867,44 @@ export class SyncModuleService implements OnModuleInit {
                 if (existingColumn) {
                   if (existingColumn.uidt === column.uidt) continue; // no change needed
 
-                  await this.columnsService.columnUpdate(context, {
-                    columnId: existingColumn.id,
-                    column: {
-                      title: column.title,
-                      column_name: column.column_name || column.title,
-                      uidt: column.uidt,
-                      readonly: true,
+                  await this.columnsService.columnUpdate(
+                    {
+                      ...context,
+                      socket_id: null,
                     },
-                    forceUpdateSystem: true,
-                    user: req.user,
-                    req,
-                  });
+                    {
+                      columnId: existingColumn.id,
+                      column: {
+                        title: column.title,
+                        column_name: column.column_name || column.title,
+                        uidt: column.uidt,
+                        readonly: true,
+                      },
+                      forceUpdateSystem: true,
+                      user: req.user,
+                      req,
+                    },
+                  );
                 } else {
                   if (column.exclude) continue;
 
-                  await this.columnsService.columnAdd(context, {
-                    tableId: model.id,
-                    column: {
-                      title: column.title,
-                      column_name: column.column_name || column.title,
-                      uidt: column.uidt,
-                      readonly: true,
+                  await this.columnsService.columnAdd(
+                    {
+                      ...context,
+                      socket_id: null,
                     },
-                    user: req.user,
-                    req,
-                  });
+                    {
+                      tableId: model.id,
+                      column: {
+                        title: column.title,
+                        column_name: column.column_name || column.title,
+                        uidt: column.uidt,
+                        readonly: true,
+                      },
+                      user: req.user,
+                      req,
+                    },
+                  );
                 }
               }
 
@@ -865,12 +914,18 @@ export class SyncModuleService implements OnModuleInit {
                 );
 
                 if (!column || column.exclude) {
-                  await this.columnsService.columnDelete(context, {
-                    columnId: existingColumn.id,
-                    forceDeleteSystem: true,
-                    user: req.user,
-                    req,
-                  });
+                  await this.columnsService.columnDelete(
+                    {
+                      ...context,
+                      socket_id: null,
+                    },
+                    {
+                      columnId: existingColumn.id,
+                      forceDeleteSystem: true,
+                      user: req.user,
+                      req,
+                    },
+                  );
                 }
               }
             }
@@ -929,26 +984,32 @@ export class SyncModuleService implements OnModuleInit {
 
             await model.getColumns(context);
 
-            await this.bulkDataAliasService.bulkDataDeleteAll(context, {
-              baseName: model.base_id,
-              tableName: model.id,
-              req,
-              query: {
-                internalFlags: {
-                  skipHooks: true,
-                },
-                filterArr: [
-                  {
-                    comparison_op: 'in',
-                    value: namespacesToDelete,
-                    logical_op: 'and',
-                    fk_column_id: model.columns.find(
-                      (c) => c.title === 'RemoteNamespace',
-                    )?.id,
-                  },
-                ],
+            await this.bulkDataAliasService.bulkDataDeleteAll(
+              {
+                ...context,
+                socket_id: null,
               },
-            });
+              {
+                baseName: model.base_id,
+                tableName: model.id,
+                req,
+                query: {
+                  internalFlags: {
+                    skipHooks: true,
+                  },
+                  filterArr: [
+                    {
+                      comparison_op: 'in',
+                      value: namespacesToDelete,
+                      logical_op: 'and',
+                      fk_column_id: model.columns.find(
+                        (c) => c.title === 'RemoteNamespace',
+                      )?.id,
+                    },
+                  ],
+                },
+              },
+            );
           }
         }
       } else {
@@ -964,7 +1025,10 @@ export class SyncModuleService implements OnModuleInit {
         }
 
         const newIntegration = await this.integrationsService.integrationCreate(
-          context,
+          {
+            ...context,
+            socket_id: null,
+          },
           {
             workspaceId: context.workspace_id,
             integration: integrationPayload,
@@ -1019,26 +1083,32 @@ export class SyncModuleService implements OnModuleInit {
 
           await model.getColumns(context);
 
-          await this.bulkDataAliasService.bulkDataDeleteAll(context, {
-            baseName: model.base_id,
-            tableName: model.id,
-            req,
-            query: {
-              internalFlags: {
-                skipHooks: true,
-              },
-              filterArr: [
-                {
-                  comparison_op: 'eq',
-                  value: syncConfig.id,
-                  logical_op: 'and',
-                  fk_column_id: model.columns.find(
-                    (c) => c.title === 'SyncConfigId',
-                  )?.id,
-                },
-              ],
+          await this.bulkDataAliasService.bulkDataDeleteAll(
+            {
+              ...context,
+              socket_id: null,
             },
-          });
+            {
+              baseName: model.base_id,
+              tableName: model.id,
+              req,
+              query: {
+                internalFlags: {
+                  skipHooks: true,
+                },
+                filterArr: [
+                  {
+                    comparison_op: 'eq',
+                    value: syncConfig.id,
+                    logical_op: 'and',
+                    fk_column_id: model.columns.find(
+                      (c) => c.title === 'SyncConfigId',
+                    )?.id,
+                  },
+                ],
+              },
+            },
+          );
         }
       } else {
         const syncMappings = await SyncMapping.list(context, {
@@ -1054,13 +1124,19 @@ export class SyncModuleService implements OnModuleInit {
               await Model.markAsMmTable(context, table.id, false);
             }
 
-            await this.tablesService.tableDelete(context, {
-              tableId: syncMapping.fk_model_id,
-              forceDeleteSyncs: true,
-              forceDeleteRelations: true,
-              user: req.user,
-              req,
-            });
+            await this.tablesService.tableDelete(
+              {
+                ...context,
+                socket_id: null,
+              },
+              {
+                tableId: syncMapping.fk_model_id,
+                forceDeleteSyncs: true,
+                forceDeleteRelations: true,
+                user: req.user,
+                req,
+              },
+            );
           }
 
           await SyncMapping.delete(context, syncMapping.id);

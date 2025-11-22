@@ -18,6 +18,7 @@ export enum SyncCategory {
   TICKETING = 'ticketing',
   CRM = 'crm',
   FILE_STORAGE = 'file_storage',
+  CUSTOM = 'custom',
 }
 
 export const SyncTriggerMeta = {
@@ -36,54 +37,63 @@ export const SyncTriggerMeta = {
     label: 'Webhook',
     description: 'Sync data via a webhook',
   },
-}
+};
 
 export const OnDeleteActionMeta = {
+  [OnDeleteAction.MarkDeleted]: {
+    value: OnDeleteAction.MarkDeleted,
+    label: 'Ignore',
+    description: 'Keep records even if the source deletes them.',
+  },
   [OnDeleteAction.Delete]: {
     value: OnDeleteAction.Delete,
     label: 'Delete',
-    description: 'Delete data permanently in NocoDB',
+    description: 'Remove records when they are deleted at the source.',
   },
-  [OnDeleteAction.MarkDeleted]: {
-    value: OnDeleteAction.MarkDeleted,
-    label: 'Mark Deleted',
-    description: 'Mark data as deleted in NocoDB',
-  },
-}
+};
 
 export const SyncTypeMeta = {
-  [SyncType.Full]: {
-    value: SyncType.Full,
-    label: 'Full',
-    description: 'Sync all data',
-  },
   [SyncType.Incremental]: {
     value: SyncType.Incremental,
     label: 'Incremental',
-    description: 'Sync only new and updated data',
+    description: 'Syncs only new or changed records.',
   },
-}
+  [SyncType.Full]: {
+    value: SyncType.Full,
+    label: 'Full',
+    description: 'Syncs all records every run.',
+  },
+};
 
 export const SyncCategoryMeta = {
   [SyncCategory.TICKETING]: {
     value: SyncCategory.TICKETING,
     label: 'Ticketing',
-    description: 'Sync data from a ticketing system',
-    icon: 'ncBookOpen',
+    description: 'Sync issues, tickets, and related activity.',
+    icon: 'ncClipboard',
   },
   [SyncCategory.CRM]: {
     value: SyncCategory.CRM,
     label: 'CRM',
-    description: 'Sync data from a CRM',
+    description: 'Sync customer and lead data.',
     icon: 'ncUsers',
+    comingSoon: true,
   },
   [SyncCategory.FILE_STORAGE]: {
     value: SyncCategory.FILE_STORAGE,
     label: 'File Storage',
-    description: 'Sync data from a file storage system',
+    description: 'Sync files, folders, and metadata.',
     icon: 'ncFolder',
+    comingSoon: true,
   },
-}
+  [SyncCategory.CUSTOM]: {
+    value: SyncCategory.CUSTOM,
+    label: 'Custom',
+    description: 'Build a sync for another service or app.',
+    icon: 'ncDatabase',
+    beta: true,
+  },
+};
 
 export enum TARGET_TABLES {
   TICKETING_TICKET = 'ticketing_ticket',
@@ -125,7 +135,7 @@ export const TARGET_TABLES_META = {
     description: 'Sync all teams from the source',
     required: false,
   },
-}
+};
 
 export enum FormBuilderInputType {
   Input = 'input',
@@ -207,9 +217,10 @@ export interface FormBuilderElement {
   validators?: { type: FormBuilderValidatorType; message?: string }[];
   // fetch options for the element using key
   fetchOptionsKey?: string;
+  // model path(s) this field depends on - when dependency changes, options are reloaded
+  dependsOn?: string | string[];
 }
 
 export type FormDefinition = FormBuilderElement[];
 
 export const FORM_BUILDER_NON_CATEGORIZED = 'form-builder-non-categorized';
-

@@ -8,7 +8,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -21,22 +21,22 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Key',
-    width: 48,
+    label: 'API key',
+    span: 12,
     model: 'config.apiKey',
-    placeholder: 'API Key',
+    placeholder: 'API key',
     category: 'Credentials',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'API Key is required',
+        message: 'API key is required',
       },
     ],
   },
   {
     type: FormBuilderInputType.Select,
     label: 'Models',
-    width: 100,
+    span: 24,
     model: 'config.models',
     placeholder: 'Allowed models',
     category: 'Settings',

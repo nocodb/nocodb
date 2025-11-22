@@ -261,6 +261,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY)
   })
 
+  const blockSync = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SYNC)
+  })
+
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
@@ -1205,9 +1209,11 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseTeams = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel', successCallback?: () => void) => void; successCallback?: () => void } = {}) => {
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
     if (!blockTeamsManagement.value) {
-      return successCallback?.()
+      successCallback?.()
+
+      return
     }
 
     handleUpgradePlan({
@@ -1223,15 +1229,14 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  /**
-   * Todo: @rameshmane7218, @pranav - use this when backend changes done for add team limit based on plan
-   */
   const showUpgradeToAddMoreTeams = ({
     callback,
     successCallback,
-  }: { callback?: (type: 'ok' | 'cancel', successCallback?: () => void) => void; successCallback?: () => void } = {}) => {
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
     if (!blockAddNewTeamToWs.value) {
-      return successCallback?.()
+      successCallback?.()
+
+      return
     }
 
     handleUpgradePlan({
@@ -1241,6 +1246,29 @@ export const useEeConfig = createSharedComposable(() => {
       }),
       callback,
       limitOrFeature: PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseSync = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockSync.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseSync'),
+      content: t('upgrade.upgradeToUseSyncSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_SYNC,
+      requiredPlan: PlanTitles.BUSINESS,
     })
 
     return true
@@ -1324,5 +1352,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToAddMoreTeams,
     isHigherActivePlan,
     blockCardFieldHeaderVisibility,
+    blockSync,
+    showUpgradeToUseSync,
   }
 })

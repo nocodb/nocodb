@@ -10,6 +10,7 @@ export enum FormBuilderInputType {
   SelectView = 'select-view',
   SelectField = 'select-field',
   OAuth = 'oauth',
+  Checkbox = 'checkbox',
 }
 
 /**
@@ -102,6 +103,22 @@ interface FormBuilderElementBase {
   placeholder?: string;
   /** Width as percentage (0-100) */
   width?: number;
+  /**
+   * Number of grid columns this field should span.
+   *
+   * Uses a 24-column layout system:
+   * - span: 24 → full width
+   * - span: 12 → half width
+   * - span: 8  → one-third width
+   * - span: 6  → one-quarter width
+   *
+   * If not specified, defaults to full width (24).
+   *
+   * This allows consistent responsive layout instead of relying on `width` percentages.
+   */
+  span?: number;
+  // description for the element
+  description?: string;
   /** Category for grouping elements - same category elements are grouped together */
   category?: string;
   /** Condition(s) for the element to be visible */
@@ -114,6 +131,8 @@ interface FormBuilderElementBase {
   validators?: FormBuilderValidator[];
   /** Model path(s) this field depends on - when dependency changes, options are reloaded */
   dependsOn?: string | string[];
+  /** Help text for the element */
+  helpText?: string;
 }
 
 /**
@@ -152,6 +171,14 @@ export interface FormBuilderSelectElement extends FormBuilderElementBase {
  */
 export interface FormBuilderSwitchElement extends FormBuilderElementBase {
   type: FormBuilderInputType.Switch;
+  defaultValue?: boolean;
+}
+
+/**
+ * Checkbox element (checkbox input)
+ */
+export interface FormBuilderCheckboxElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Checkbox;
   defaultValue?: boolean;
 }
 
@@ -245,6 +272,7 @@ export type FormBuilderElement =
   | FormBuilderPasswordElement
   | FormBuilderSelectElement
   | FormBuilderSwitchElement
+  | FormBuilderCheckboxElement
   | FormBuilderSpaceElement
   | FormBuilderSelectIntegrationElement
   | FormBuilderSelectBaseElement

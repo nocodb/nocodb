@@ -284,7 +284,10 @@ export class ColumnsService extends ColumnsServiceCE {
           null,
           param.column['meta'],
           param.column.uidt === UITypes.Links,
-          param.colExtra,
+          {
+            ...param.colExtra,
+            readonly: (param.column as any).readonly || false,
+          },
           parentColumn,
           true,
         );
@@ -302,7 +305,10 @@ export class ColumnsService extends ColumnsServiceCE {
           (param.column as LinkToAnotherColumnReqType).virtual,
           null,
           param.column['meta'],
-          param.colExtra,
+          {
+            ...param.colExtra,
+            readonly: (param.column as any).readonly || false,
+          },
           parentColumn,
           true,
         );
@@ -330,6 +336,7 @@ export class ColumnsService extends ColumnsServiceCE {
           fk_mm_parent_column_id: ltarCustomProps.junc_column_id,
           fk_related_model_id: parent.id,
           virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+          readonly: (param.column as any).readonly || false,
           meta: {
             plural: pluralize(parent.title),
             singular: singularize(parent.title),
@@ -358,6 +365,7 @@ export class ColumnsService extends ColumnsServiceCE {
 
           fk_related_model_id: child.id,
           virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+          readonly: (param.column as any).readonly || false,
           meta: {
             plural: param.column['meta']?.plural || pluralize(child.title),
             singular:

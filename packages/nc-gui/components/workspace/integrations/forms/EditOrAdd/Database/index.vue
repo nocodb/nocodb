@@ -1279,16 +1279,6 @@ watch(
     }
   }
 
-  .nc-form-section {
-    @apply flex flex-col gap-3;
-  }
-  .nc-form-section-title {
-    @apply text-sm font-bold text-gray-800;
-  }
-  .nc-form-section-body {
-    @apply flex flex-col gap-3;
-  }
-
   .nc-connection-json-editor {
     @apply min-h-[300px] max-h-[600px];
     resize: vertical;

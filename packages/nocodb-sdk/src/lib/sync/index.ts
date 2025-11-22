@@ -54,43 +54,44 @@ export const SyncTriggerMeta = {
   [SyncTrigger.Manual]: {
     value: SyncTrigger.Manual,
     label: 'Manual',
-    description: 'Sync data manually',
+    description: 'Sync changes only when explicitly requested.',
   },
   [SyncTrigger.Schedule]: {
     value: SyncTrigger.Schedule,
     label: 'Scheduled',
-    description: 'Sync data on a schedule',
+    description: 'Automatically sync data at predefined time intervals.',
   },
   [SyncTrigger.Webhook]: {
     value: SyncTrigger.Webhook,
     label: 'Webhook',
-    description: 'Sync data via a webhook',
+    description:
+      'Sync initiated instantly by external events or system notifications.',
   },
 };
 
 export const OnDeleteActionMeta = {
+  [OnDeleteAction.MarkDeleted]: {
+    value: OnDeleteAction.MarkDeleted,
+    label: 'Ignore',
+    description: 'Keep records even if the source deletes them.',
+  },
   [OnDeleteAction.Delete]: {
     value: OnDeleteAction.Delete,
     label: 'Delete',
-    description: 'Delete data permanently in NocoDB',
-  },
-  [OnDeleteAction.MarkDeleted]: {
-    value: OnDeleteAction.MarkDeleted,
-    label: 'Mark Deleted',
-    description: 'Mark data as deleted in NocoDB',
+    description: 'Remove records when they are deleted at the source.',
   },
 };
 
 export const SyncTypeMeta = {
-  [SyncType.Full]: {
-    value: SyncType.Full,
-    label: 'Full',
-    description: 'Sync all data',
-  },
   [SyncType.Incremental]: {
     value: SyncType.Incremental,
     label: 'Incremental',
-    description: 'Sync only new and updated data',
+    description: 'Syncs only new or changed records.',
+  },
+  [SyncType.Full]: {
+    value: SyncType.Full,
+    label: 'Full',
+    description: 'Syncs all records every run.',
   },
 };
 
@@ -98,27 +99,27 @@ export const SyncCategoryMeta = {
   [SyncCategory.TICKETING]: {
     value: SyncCategory.TICKETING,
     label: 'Ticketing',
-    description: 'Sync support tickets and updates.',
+    description: 'Sync issues, tickets, and related activity.',
     icon: 'ncClipboard',
   },
   [SyncCategory.CRM]: {
     value: SyncCategory.CRM,
     label: 'CRM',
-    description: 'Sync your customer and lead data.',
+    description: 'Sync customer and lead data.',
     icon: 'ncUsers',
     comingSoon: true,
   },
   [SyncCategory.FILE_STORAGE]: {
     value: SyncCategory.FILE_STORAGE,
     label: 'File Storage',
-    description: 'Sync all your files and folders.',
+    description: 'Sync files, folders, and metadata.',
     icon: 'ncFolder',
     comingSoon: true,
   },
   [SyncCategory.CUSTOM]: {
     value: SyncCategory.CUSTOM,
     label: 'Custom',
-    description: 'Sync other services or apps.',
+    description: 'Build a sync for another service or app.',
     icon: 'ncDatabase',
     beta: true,
   },
@@ -137,8 +138,7 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_TICKET,
     icon: 'ncBookOpen',
     label: 'Ticket',
-    description:
-      'The Ticket object is used to represent a ticket, issue, task or case.',
+    description: 'Represents a ticket, issue, task, or case.',
     required: true,
   },
   [TARGET_TABLES.TICKETING_USER]: {
@@ -146,8 +146,7 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_USER,
     icon: 'ncUsers',
     label: 'User',
-    description:
-      'The User object is used to represent a user with a login to the ticketing system. Users are either assignees who are directly responsible or a viewer on a Ticket/ Collection.',
+    description: 'Represents users in the source app.',
     required: true,
   },
   [TARGET_TABLES.TICKETING_COMMENT]: {
@@ -155,8 +154,7 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_COMMENT,
     icon: 'ncMessageCircle',
     label: 'Comment',
-    description:
-      'The Comment object is used to represent a comment on a ticket.',
+    description: 'Represents comments added to a ticket.',
     required: false,
   },
   [TARGET_TABLES.TICKETING_TEAM]: {
@@ -164,8 +162,7 @@ export const TARGET_TABLES_META = {
     value: TARGET_TABLES.TICKETING_TEAM,
     icon: 'ncUsers',
     label: 'Team',
-    description:
-      'The Team object is used to represent one or more Users within the company receiving the ticket.',
+    description: 'Represents teams or groups in the source system.',
     required: false,
   },
 };

@@ -8,7 +8,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -21,22 +21,22 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Clickhouse Instance URL',
-    width: 100,
+    label: 'Clickhouse instance URL',
+    span: 24,
     model: 'config.url',
     category: 'Authentication',
-    placeholder: 'Enter your Clickhouse Instance URL',
+    placeholder: 'Enter your Clickhouse instance URL',
     validators: [
       {
         type: FormBuilderValidatorType.Required,
-        message: 'Clickhouse Instance URL is required',
+        message: 'Clickhouse instance URL is required',
       },
     ],
   },
   {
     type: FormBuilderInputType.Input,
     label: 'Username',
-    width: 100,
+    span: 24,
     model: 'config.username',
     category: 'Authentication',
     placeholder: 'Enter your username',
@@ -50,7 +50,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Password,
     label: 'Password',
-    width: 100,
+    span: 24,
     model: 'config.password',
     category: 'Authentication',
     placeholder: 'Enter your password',

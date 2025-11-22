@@ -599,6 +599,7 @@ interface CanvasGridColumn {
   }
   readonly: boolean
   isCellEditable?: boolean
+  isSyncedColumn?: boolean
   aggregation: string
   agg_fn: string
   agg_prefix: string
@@ -683,6 +684,8 @@ interface PermissionConfig {
   entityId: string
   entityTitle?: string
   permission: PermissionKey
+  disabled?: boolean
+  tooltip?: string
 }
 
 interface PermissionSelectorUser {

@@ -9,6 +9,7 @@ const manifest: IntegrationManifest = {
   version: '0.1.0',
   description: 'Sync Chatwoot conversations and messages',
   sync_category: SyncCategory.TICKETING,
+  order: 7, // order in the sync integration list
 };
 
 export default manifest;

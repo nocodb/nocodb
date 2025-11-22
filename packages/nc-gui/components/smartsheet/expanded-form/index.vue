@@ -818,7 +818,8 @@ export default {
               v-if="!props.showNextPrevIcons"
               class="hidden md:flex items-center rounded-lg bg-nc-bg-gray-light px-2 py-1 gap-2"
             >
-              <GeneralIcon icon="table" class="text-nc-content-inverted-secondary flex-none" />
+              <GeneralTableIcon size="xsmall" :meta="meta" class="!mx-0 !text-nc-content-inverted-secondary" />
+
               <span class="nc-expanded-form-table-name whitespace-nowrap">
                 {{ tableTitle }}
               </span>
@@ -930,8 +931,21 @@ export default {
                     {{ $t('labels.copyRecordURL') }}
                   </div>
                 </NcMenuItem>
+                <NcTooltip v-if="visibleMoreOptions.duplicateRecord && meta?.synced" placement="left">
+                  <template #title>
+                    {{ $t('msg.info.duplicateNotAvailableForSyncedTable') }}
+                  </template>
+                  <NcMenuItem disabled>
+                    <div class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
+                      <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
+                      <span class="-ml-0.25">
+                        {{ $t('labels.duplicateRecord') }}
+                      </span>
+                    </div>
+                  </NcMenuItem>
+                </NcTooltip>
                 <PermissionsTooltip
-                  v-if="visibleMoreOptions.duplicateRecord"
+                  v-else-if="visibleMoreOptions.duplicateRecord"
                   :entity="PermissionEntity.TABLE"
                   :entity-id="meta?.id"
                   :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -953,8 +967,25 @@ export default {
                   </template>
                 </PermissionsTooltip>
                 <NcDivider v-if="visibleMoreOptions.deleteRecord" />
+                <NcTooltip v-if="meta?.synced" placement="left">
+                  <template #title>
+                    {{ $t('msg.info.deleteNotAvailableForSyncedTable') }}
+                  </template>
+                  <NcMenuItem danger disabled>
+                    <div class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
+                      <GeneralIcon icon="delete" class="cursor-pointer nc-delete-row" />
+                      <span class="-ml-0.25">
+                        {{
+                          $t('general.deleteEntity', {
+                            entity: $t('objects.record').toLowerCase(),
+                          })
+                        }}
+                      </span>
+                    </div>
+                  </NcMenuItem>
+                </NcTooltip>
                 <PermissionsTooltip
-                  v-if="visibleMoreOptions.deleteRecord"
+                  v-else-if="visibleMoreOptions.deleteRecord"
                   :entity="PermissionEntity.TABLE"
                   :entity-id="meta?.id"
                   :permission="PermissionKey.TABLE_RECORD_DELETE"

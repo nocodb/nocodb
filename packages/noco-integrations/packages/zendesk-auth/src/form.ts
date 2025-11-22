@@ -10,7 +10,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -23,8 +23,8 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Zendesk Subdomain',
-    width: 100,
+    label: 'Zendesk subdomain',
+    span: 24,
     model: 'config.subdomain',
     category: 'General',
     placeholder: 'e.g., yourcompany (from yourcompany.zendesk.com)',
@@ -37,15 +37,15 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Auth Type',
-    width: 48,
+    label: 'Auth type',
+    span: 12,
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',
     defaultValue: AuthType.ApiKey,
     options: [
       {
-        label: 'API Key',
+        label: 'API key',
         value: AuthType.ApiKey,
       },
       ...(redirectUri && clientId
@@ -66,8 +66,8 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'Email Address',
-    width: 100,
+    label: 'Email address',
+    span: 24,
     model: 'config.email',
     category: 'Authentication',
     placeholder: 'Enter your Zendesk email address',
@@ -84,8 +84,8 @@ export const form: FormDefinition = [
   },
   {
     type: FormBuilderInputType.Input,
-    label: 'API Token',
-    width: 100,
+    label: 'API token',
+    span: 24,
     model: 'config.token',
     category: 'Authentication',
     placeholder: 'Enter your API Token',
@@ -104,14 +104,14 @@ export const form: FormDefinition = [
     ? [
         {
           type: FormBuilderInputType.OAuth,
-          label: 'OAuth Configuration',
-          width: 100,
+          label: 'OAuth configuration',
+          span: 24,
           model: 'config.oauth.code',
           category: 'Authentication',
           validators: [
             {
               type: FormBuilderValidatorType.Required,
-              message: 'OAuth Configuration is required',
+              message: 'OAuth configuration is required',
             },
           ],
           condition: {

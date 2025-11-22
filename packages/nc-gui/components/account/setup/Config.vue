@@ -31,7 +31,7 @@ const pluginTypeMap = {
 
 const { formState, validate, validateInfos } = useProvideFormBuilderHelper({
   formSchema: [
-    ...plugin.value.formDetails.items.flatMap((item, i) => [
+    ...plugin.value.formDetails.items.flatMap((item) => [
       {
         type: pluginTypeMap[item.type] || FormBuilderInputType.Input,
         label: item.label,
@@ -39,18 +39,10 @@ const { formState, validate, validateInfos } = useProvideFormBuilderHelper({
         model: item.key,
         required: item.required,
         helpText: item.help_text,
-        width: '48',
+        span: 12,
         border: false,
         showHintAsTooltip: true,
       },
-      ...(i % 2
-        ? []
-        : [
-            {
-              type: FormBuilderInputType.Space,
-              width: '4',
-            },
-          ]),
     ]),
   ],
   initialState: pluginFormData,

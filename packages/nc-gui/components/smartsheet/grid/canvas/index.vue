@@ -1719,7 +1719,7 @@ const getHeaderTooltipRegions = (
   const regions: {
     x: number
     width: number
-    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
+    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron' | 'synced'
     text: string
     tooltipText?: string
     height?: number
@@ -1800,7 +1800,7 @@ const getHeaderTooltipRegions = (
         width: 14,
         type: 'synced',
         disableTooltip: false,
-        text: 'This field is synced',
+        text: t('tooltip.fieldIsExternallySynced'),
       })
     }
 
@@ -1869,7 +1869,7 @@ const handleMouseMove = (e: MouseEvent) => {
         (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
       )
 
-      if (['title', 'columnChevron'].includes(activeFixedRegion?.type) && isFieldEditAllowed.value) {
+      if (['title', 'columnChevron', 'synced'].includes(activeFixedRegion?.type) && isFieldEditAllowed.value) {
         cursor = 'pointer'
       }
       if (activeFixedRegion && !activeFixedRegion.disableTooltip) {
@@ -1903,7 +1903,7 @@ const handleMouseMove = (e: MouseEvent) => {
           (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
         )
 
-        if (['title', 'columnChevron'].includes(activeRegion?.type) && isFieldEditAllowed.value) {
+        if (['title', 'columnChevron', 'synced'].includes(activeRegion?.type) && isFieldEditAllowed.value) {
           cursor = 'pointer'
         }
 
@@ -2892,7 +2892,7 @@ watch(
               [`row-height-${rowHeightEnum ?? 1}`]: true,
               'on-stick ': isClamped.isStuck,
               'border-[#3366ff]': isClamped.isStuck && editEnabled.isCellEditable,
-              'border-[#9AA2AF]': isClamped.isStuck && !editEnabled.isCellEditable,
+              'border-[#9AA2AF]': isClamped.isStuck && (!editEnabled.isCellEditable || editEnabled.isSyncedColumn),
             }"
           >
             <div
@@ -2919,7 +2919,7 @@ watch(
                     :row="editEnabled.row"
                     :path="editEnabled.path"
                     active
-                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable || editEnabled.isSyncedColumn"
                     :is-allowed="editEnabled.isCellEditable"
                     @save="
                       updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)
@@ -2934,7 +2934,7 @@ watch(
                     :path="editEnabled.path"
                     active
                     edit-enabled
-                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable || editEnabled.isSyncedColumn"
                     :is-allowed="editEnabled.isCellEditable"
                     @update:model-value="updateValue"
                     @save="updateOrSaveRow?.(...$event)"
@@ -3026,8 +3026,22 @@ watch(
       </NcDropdown>
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
+      <NcTooltip v-if="meta?.synced" placement="right" :disabled="!meta?.synced">
+        <NcButton class="nc-grid-add-new-row" size="small" disabled type="secondary" :shadow="false">
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="plus" />
+            New Record
+          </div>
+        </NcButton>
+        <template #title>
+          <div class="flex flex-col gap-1">
+            <div class="text-captionBold">{{ $t('objects.permissions.addNewRecordTooltipTitle') }}</div>
+            <div class="text-captionSm">{{ $t('tooltip.cannotCreateRecordInSyncTable') }}</div>
+          </div>
+        </template>
+      </NcTooltip>
       <PermissionsTooltip
-        v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
+        v-else-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
         :entity="PermissionEntity.TABLE"
         :entity-id="meta?.id"
         :permission="PermissionKey.TABLE_RECORD_ADD"

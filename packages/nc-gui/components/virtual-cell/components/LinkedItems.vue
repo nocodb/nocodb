@@ -523,7 +523,11 @@ const handleKeyDown = (e: KeyboardEvent) => {
             </template>
           </PermissionsTooltip>
           <NcButton
-            v-if="!readOnly && (childrenListCount > 0 || (childrenList?.list ?? state?.[colTitle] ?? []).length > 0)"
+            v-if="
+              !readOnly &&
+              (childrenListCount > 0 || (childrenList?.list ?? state?.[colTitle] ?? []).length > 0) &&
+              !(meta?.synced && column?.readonly)
+            "
             v-e="['c:links:link']"
             data-testid="nc-child-list-button-link-to"
             class="!hover:(bg-white text-brand-500) !h-7 !text-small"

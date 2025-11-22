@@ -12,6 +12,7 @@ interface CmdAction {
   scopePayload?: any
   icon?: VNode | string | Record<string, any>
   iconType?: string
+  synced?: boolean
   keywords?: string[]
   section?: string
   iconColor?: string
@@ -67,6 +68,7 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
       ...el,
       title: el.title,
       icon: el.icon,
+      synced: el.synced,
       parent: el.parent || 'root',
       weight: commandScore(`${el.section}${el.title}${el.keywords?.join()}`, debouncedCmdInput.value),
     })
@@ -84,6 +86,8 @@ const nestedScope = computed(() => {
       id: parent,
       label: parentEl?.title,
       icon: parentEl?.icon,
+      synced: parentEl?.synced,
+      section: parentEl?.section,
       iconType: parentEl?.iconType,
       iconColor: parent.startsWith('ws-') ? parentEl?.iconColor : null,
     })
@@ -422,6 +426,30 @@ defineExpose({
                   size="medium"
                 />
 
+                <template v-else-if="el.section === 'Bases' || el.icon === 'project'">
+                  <GeneralBaseIconColorPicker
+                    :key="el.iconColor"
+                    :model-value="el.iconColor"
+                    type="database"
+                    readonly
+                    class="cmdk-action-icon !w-5"
+                  >
+                  </GeneralBaseIconColorPicker>
+                </template>
+
+                <template v-else-if="el.section === 'Tables' || el.icon === 'table'">
+                  <GeneralTableIcon
+                    size="xsmall"
+                    :meta="{
+                      meta: {
+                        icon: el.icon !== 'table' ? el.icon : '',
+                      },
+                      synced: el.synced,
+                    }"
+                    class="cmdk-action-icon !h-4 !w-4"
+                  />
+                </template>
+
                 <component
                   :is="(iconMap as any)[el.icon]"
                   v-else-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
@@ -519,6 +547,18 @@ defineExpose({
                               readonly
                             >
                             </GeneralBaseIconColorPicker>
+                          </template>
+                          <template v-else-if="item.data.section === 'Tables' || item.data.icon === 'table'">
+                            <GeneralTableIcon
+                              size="xsmall"
+                              :meta="{
+                                meta: {
+                                  icon: item.data.icon !== 'table' ? item.data.icon : '',
+                                },
+                                synced: item.data.synced,
+                              }"
+                              class="cmdk-action-icon !h-4 !w-4"
+                            />
                           </template>
                           <template v-else>
                             <component

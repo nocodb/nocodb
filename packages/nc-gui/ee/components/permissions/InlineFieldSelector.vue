@@ -1,8 +1,11 @@
 <script lang="ts" setup>
-import { type BaseType, PermissionEntity, type PermissionKey } from 'nocodb-sdk'
+import { PermissionEntity } from 'nocodb-sdk'
+import type { BaseType, ColumnType, PermissionKey, TableType } from 'nocodb-sdk'
 
 const props = defineProps<{
   base: BaseType
+  field: ColumnType
+  table: TableType
   fieldId: string
   fieldTitle: string
   permissionType: PermissionKey
@@ -10,11 +13,15 @@ const props = defineProps<{
   borderOnHover?: boolean
 }>()
 
+const { t } = useI18n()
+
 const permissionConfig = computed<PermissionConfig>(() => ({
   entity: PermissionEntity.FIELD,
   entityId: props.fieldId,
   entityTitle: props.fieldTitle,
   permission: props.permissionType,
+  disabled: (props.field?.readonly && props.table.synced) as boolean,
+  tooltip: t('tooltip.fieldPermissionsNotAvailableForSyncedColumns'),
 }))
 </script>
 

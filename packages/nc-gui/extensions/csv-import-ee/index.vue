@@ -1367,11 +1367,12 @@ const errorMsgsTableColumns = [
                   >
                     <a-select-option v-for="table of tables || []" :key="table.title" :value="table.id">
                       <div class="w-full flex items-center gap-2">
-                        <LazyGeneralEmojiPicker :emoji="table?.meta?.icon" readonly size="xsmall">
-                          <template #default>
-                            <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
-                          </template>
-                        </LazyGeneralEmojiPicker>
+                        <GeneralTableIcon
+                          size="xsmall"
+                          :meta="{ meta: table.meta, synced: table.synced }"
+                          class="!mx-0 !text-gray-500 !text-small"
+                        />
+
                         <NcTooltip show-on-truncate-only class="flex-1 truncate">
                           <template #title>
                             {{ table.title }}
@@ -1567,8 +1568,8 @@ const errorMsgsTableColumns = [
               <div class="flex items-center justify-between gap-3">
                 <div class="text-sm font-weight-700 text-nc-content-gray">Match CSV columns to NocoDB fields</div>
                 <div>
-                  <NcBadge class="!text-sm !h-5 bg-nc-bg-brand truncate text-primary" :border="false"
-                    >{{ selectedFieldDetails.selected }}/{{ selectedFieldDetails.total }} selected
+                  <NcBadge class="!text-sm !h-5 bg-nc-bg-brand truncate text-primary" :border="false">
+                    {{ selectedFieldDetails.selected }}/{{ selectedFieldDetails.total }} selected
                   </NcBadge>
                 </div>
               </div>
@@ -1599,15 +1600,16 @@ const errorMsgsTableColumns = [
                       class="!text-sm !h-5 bg-nc-bg-gray-medium truncate font-normal"
                       :border="false"
                     >
-                      <LazyGeneralEmojiPicker
-                        :emoji="importPayload.tableIcon || selectedTable?.meta?.icon"
-                        readonly
+                      <GeneralTableIcon
                         size="xsmall"
-                      >
-                        <template #default>
-                          <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
-                        </template>
-                      </LazyGeneralEmojiPicker>
+                        :meta="{
+                          meta: {
+                            icon: importPayload.tableIcon || selectedTable?.meta?.icon,
+                          },
+                          synced: selectedTable?.synced,
+                        }"
+                        class="!mx-0 !text-gray-500 !text-small"
+                      />
                       <NcTooltip class="max-w-[80px] ml-1 text-nc-content-gray-subtle2 truncate" show-on-truncate-only>
                         <template #title>
                           {{ importPayload.tableName || selectedTable.title }}

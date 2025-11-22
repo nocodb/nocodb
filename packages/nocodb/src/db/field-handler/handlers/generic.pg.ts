@@ -113,7 +113,7 @@ export class GenericPgFieldHandler
           `%, ${items[i]},%`,
         ];
         const sql =
-          "(',' || ??::text || ',') ilike ? OR (',' || ??::text || ',') ilike ?";
+          "((',' || ??::text || ',') ilike ? OR (',' || ??::text || ',') ilike ?)";
         if (i === 0) {
           builder = builder.where(knex.raw(sql, bindings));
         } else {

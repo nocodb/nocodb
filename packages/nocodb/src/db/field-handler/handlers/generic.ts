@@ -541,7 +541,7 @@ export class GenericFieldHandler
           `%, ${items[i]},%`,
         ];
         const sql =
-          "CONCAT(',', ??, ',') like ? OR CONCAT(',', ??, ',') like ?";
+          "(CONCAT(',', ??, ',') like ? OR CONCAT(',', ??, ',') like ?)";
         if (i === 0) {
           builder = builder.where(knex.raw(sql, bindings));
         } else {

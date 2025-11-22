@@ -1,3 +1,11 @@
+/* Disable ALL transitions & animations while theme switching */
+html.theme-transition-off *,
+html.theme-transition-off *::before,
+html.theme-transition-off *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
 body {
   @apply bg-nc-bg-default text-[var(--color-text)];
 }

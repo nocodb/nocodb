@@ -24,6 +24,8 @@ export const useTheme = createSharedComposable(() => {
 
   const applyTheme = (dark: boolean) => {
     if (typeof document !== 'undefined') {
+      document.documentElement.classList.add('theme-transition-off')
+
       if (dark) {
         document.documentElement.setAttribute('theme', 'dark')
 
@@ -46,6 +48,10 @@ export const useTheme = createSharedComposable(() => {
         document.documentElement.removeAttribute('theme')
         document.documentElement.classList.remove('dark')
       }
+
+      forcedNextTick(() => {
+        document.documentElement.classList.remove('theme-transition-off')
+      })
     }
   }
 

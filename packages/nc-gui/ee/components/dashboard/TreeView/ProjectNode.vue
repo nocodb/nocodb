@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { nextTick } from '@vue/runtime-core'
-import { ProjectRoles, ProjectTypes, RoleColors, RoleIcons, RoleLabels, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
-import type { BaseType, SourceType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { ProjectTypes, RoleColors, RoleIcons, RoleLabels, getEffectiveBaseRole } from 'nocodb-sdk'
+import type { BaseType, ProjectRoles, SourceType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
 interface Props {
@@ -55,17 +55,19 @@ const collaborators = computed(() => {
     return {
       ...user,
       base_roles: user.roles,
-      roles:
-        user.roles ??
-        (user.workspace_roles
-          ? WorkspaceRolesToProjectRoles[user.workspace_roles as WorkspaceUserRoles] ?? ProjectRoles.NO_ACCESS
-          : ProjectRoles.NO_ACCESS),
+      roles: getEffectiveBaseRole({
+        baseRole: user.roles as ProjectRoles,
+        baseTeamRole: (user as any).base_team_roles as ProjectRoles,
+        workspaceRole: user.workspace_roles as WorkspaceUserRoles,
+        workspaceTeamRole: (user as any).workspace_team_roles as WorkspaceUserRoles,
+      }),
     }
   })
 })
 
 const currentUserRole = computed(() => {
-  return collaborators.value.find((coll) => coll.id === user.value?.id)?.roles as keyof typeof RoleLabels
+  const currentUser = collaborators.value.find((coll) => coll.id === user.value?.id)
+  return currentUser?.roles as keyof typeof RoleLabels
 })
 
 const { loadProjectTables, openTableCreateDialog: _openTableCreateDialog } = useTablesStore()

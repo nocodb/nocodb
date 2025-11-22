@@ -353,15 +353,17 @@ export class WorkspaceTeamsV3Service {
           );
         }
       }
-    }
 
-    // Emit workspace team update event
-    this.appHooksService.emit(AppEvents.WORKSPACE_TEAM_UPDATE, {
-      context,
-      req: param.req,
-      team: Array.isArray(param.team) ? results : results[0],
-      workspace,
-    } as WorkspaceTeamUpdateEvent);
+      // Emit workspace team update event
+      this.appHooksService.emit(AppEvents.WORKSPACE_TEAM_UPDATE, {
+        context,
+        req: param.req,
+        team: teamData,
+        oldRole: existingAssignment?.roles || '',
+        role: team.workspace_role,
+        workspace,
+      } as WorkspaceTeamUpdateEvent);
+    }
 
     // Recalculate seat count after updating team roles in workspace
     await this.paymentService.reseatSubscription(workspace.id);
@@ -438,7 +440,9 @@ export class WorkspaceTeamsV3Service {
       // Get base details to filter by workspace
       const baseIds = [...new Set(baseAssignments.map((a) => a.resource_id))];
       const bases = await Promise.all(
-        baseIds.map((baseId) => Base.get(context, baseId)),
+        baseIds.map((baseId) =>
+          Base.get({ ...context, base_id: baseId }, baseId),
+        ),
       );
 
       // Filter assignments for bases that belong to this workspace

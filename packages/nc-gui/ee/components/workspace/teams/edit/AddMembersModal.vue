@@ -144,7 +144,9 @@ watch(
       </div>
 
       <div class="text-body text-nc-content-gray-subtle mb-5">
-        {{ $t('objects.teams.selectMembersToAddIntoTeam', { team: team.title }) }}
+        <span
+          v-dompurify-html="$t('objects.teams.selectMembersToAddIntoTeam', { team: `<strong>${team.title}</strong>` })"
+        ></span>
       </div>
 
       <NcList

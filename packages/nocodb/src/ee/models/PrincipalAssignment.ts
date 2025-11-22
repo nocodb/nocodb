@@ -8,8 +8,11 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  PrincipalType as PrincipalTypeEnum,
+  ResourceType as ResourceTypeEnum,
   RootScopes,
 } from '~/utils/globals';
+import Base from '~/models/Base';
 
 /**
  * PrincipalAssignment model for managing role-based access control
@@ -122,6 +125,15 @@ export default class PrincipalAssignment {
       const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${assignment.resource_type}:${assignment.resource_id}`;
       await NocoCache.del(context, countCacheKey);
 
+      // Clear BASE_USER cache when team assignments to base or workspace are restored
+      await this.clearBaseUserCacheIfNeeded(
+        context,
+        assignment.resource_type,
+        assignment.resource_id,
+        assignment.principal_type,
+        ncMeta,
+      );
+
       return this.castType(restoredAssignment);
     }
 
@@ -177,16 +189,31 @@ export default class PrincipalAssignment {
       throw new Error('Failed to retrieve created assignment');
     }
 
+    // Create context with base_id when inserting base assignments
+    const cacheContext: NcContext =
+      insertObj.resource_type === ResourceTypeEnum.BASE
+        ? { ...context, base_id: insertObj.resource_id }
+        : context;
+
     // Cache the assignment
     await NocoCache.set(
-      context,
+      cacheContext,
       `${CacheScope.PRINCIPAL_ASSIGNMENT}:${insertObj.resource_type}:${insertObj.resource_id}:${insertObj.principal_type}:${insertObj.principal_ref_id}`,
       assignmentData[0],
     );
 
     // Invalidate count cache for this resource
     const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${insertObj.resource_type}:${insertObj.resource_id}`;
-    await NocoCache.del(context, countCacheKey);
+    await NocoCache.del(cacheContext, countCacheKey);
+
+    // Clear BASE_USER cache when team assignments to base or workspace are created
+    await this.clearBaseUserCacheIfNeeded(
+      cacheContext,
+      insertObj.resource_type,
+      insertObj.resource_id,
+      insertObj.principal_type,
+      ncMeta,
+    );
 
     return this.castType(assignmentData);
   }
@@ -500,8 +527,14 @@ export default class PrincipalAssignment {
       },
     );
 
+    // Create context with base_id when updating base assignments
+    const cacheContext: NcContext =
+      resourceType === ResourceTypeEnum.BASE
+        ? { ...context, base_id: resourceId }
+        : context;
+
     const updatedAssignment = await this.get(
-      context,
+      cacheContext,
       resourceType,
       resourceId,
       principalType,
@@ -511,7 +544,7 @@ export default class PrincipalAssignment {
 
     if (updatedAssignment) {
       await NocoCache.set(
-        context,
+        cacheContext,
         `${CacheScope.PRINCIPAL_ASSIGNMENT}:${resourceType}:${resourceId}:${principalType}:${principalRefId}`,
         updatedAssignment,
       );
@@ -519,9 +552,68 @@ export default class PrincipalAssignment {
 
     // Invalidate count cache for this resource
     const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
-    await NocoCache.del(context, countCacheKey);
+    await NocoCache.del(cacheContext, countCacheKey);
+
+    // Clear BASE_USER cache when team assignments to base or workspace are updated
+    await this.clearBaseUserCacheIfNeeded(
+      cacheContext,
+      resourceType,
+      resourceId,
+      principalType,
+      ncMeta,
+    );
 
     return updatedAssignment!;
+  }
+
+  /**
+   * Helper method to clear BASE_USER cache when team assignments change
+   * @param context - NocoDB context
+   * @param resourceType - Type of resource
+   * @param resourceId - ID of the resource
+   * @param principalType - Type of principal
+   * @param ncMeta - NocoDB meta instance
+   */
+  private static async clearBaseUserCacheIfNeeded(
+    context: NcContext,
+    resourceType: ResourceType,
+    resourceId: string,
+    principalType: PrincipalType,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    // Clear BASE_USER cache when team assignments to base or workspace are changed
+    if (
+      principalType === PrincipalTypeEnum.TEAM &&
+      (resourceType === ResourceTypeEnum.BASE ||
+        resourceType === ResourceTypeEnum.WORKSPACE)
+    ) {
+      if (resourceType === ResourceTypeEnum.BASE) {
+        // Clear BASE_USER cache for this base
+        await NocoCache.deepDel(
+          context,
+          `${CacheScope.BASE_USER}:${resourceId}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      } else if (resourceType === ResourceTypeEnum.WORKSPACE) {
+        // Clear BASE_USER cache for all bases in this workspace
+        try {
+          const bases = await Base.list(resourceId, ncMeta);
+          for (const base of bases) {
+            const baseContext: NcContext = {
+              ...context,
+              base_id: base.id,
+            };
+            await NocoCache.deepDel(
+              baseContext,
+              `${CacheScope.BASE_USER}:${base.id}`,
+              CacheDelDirection.CHILD_TO_PARENT,
+            );
+          }
+        } catch (error) {
+          // If Base.list fails, continue without clearing cache
+        }
+      }
+    }
   }
 
   /**
@@ -555,16 +647,31 @@ export default class PrincipalAssignment {
       },
     );
 
+    // Create context with base_id when deleting base assignments
+    const cacheContext: NcContext =
+      resourceType === ResourceTypeEnum.BASE
+        ? { ...context, base_id: resourceId }
+        : context;
+
     // Clear cache
     await NocoCache.deepDel(
-      context,
+      cacheContext,
       `${CacheScope.PRINCIPAL_ASSIGNMENT}:${resourceType}:${resourceId}:${principalType}:${principalRefId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
     // Invalidate count cache for this resource
     const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
-    await NocoCache.del(context, countCacheKey);
+    await NocoCache.del(cacheContext, countCacheKey);
+
+    // Clear BASE_USER cache when team assignments to base or workspace are deleted
+    await this.clearBaseUserCacheIfNeeded(
+      cacheContext,
+      resourceType,
+      resourceId,
+      principalType,
+      ncMeta,
+    );
   }
 
   /**
@@ -637,6 +744,21 @@ export default class PrincipalAssignment {
     // Invalidate count cache for this resource
     const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
     await NocoCache.del(context, countCacheKey);
+
+    // Create context with base_id when restoring base assignments
+    const cacheContext: NcContext =
+      resourceType === ResourceTypeEnum.BASE
+        ? { ...context, base_id: resourceId }
+        : context;
+
+    // Clear BASE_USER cache when team assignments to base or workspace are restored
+    await this.clearBaseUserCacheIfNeeded(
+      cacheContext,
+      resourceType,
+      resourceId,
+      principalType,
+      ncMeta,
+    );
   }
 
   /**
@@ -681,6 +803,21 @@ export default class PrincipalAssignment {
     // Invalidate count cache for this resource
     const countCacheKey = `${CacheScope.PRINCIPAL_ASSIGNMENT}:count:${resourceType}:${resourceId}`;
     await NocoCache.del(context, countCacheKey);
+
+    // Create context with base_id when hard deleting base assignments
+    const cacheContext: NcContext =
+      resourceType === ResourceTypeEnum.BASE
+        ? { ...context, base_id: resourceId }
+        : context;
+
+    // Clear BASE_USER cache when team assignments to base or workspace are hard deleted
+    await this.clearBaseUserCacheIfNeeded(
+      cacheContext,
+      resourceType,
+      resourceId,
+      principalType,
+      ncMeta,
+    );
   }
 
   /**

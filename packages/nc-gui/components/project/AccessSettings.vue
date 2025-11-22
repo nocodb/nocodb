@@ -1,6 +1,15 @@
 <script lang="ts" setup>
 import type { MetaType, PlanLimitExceededDetailsType, Roles, WorkspaceUserRoles } from 'nocodb-sdk'
-import { OrderedProjectRoles, OrgUserRoles, ProjectRoles, WorkspaceRolesToProjectRoles } from 'nocodb-sdk'
+import {
+  OrderedProjectRoles,
+  OrgUserRoles,
+  ProjectRoles,
+  RoleIcons,
+  WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles as WorkspaceUserRolesEnum,
+  extractBaseRoleFromWorkspaceRole,
+  getEffectiveBaseRole,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -17,7 +26,8 @@ const { isTeamsEnabled, activeWorkspaceId, teamsMap } = storeToRefs(useWorkspace
 const { isPrivateBase, base } = storeToRefs(useBase())
 
 const basesStore = useBases()
-const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser, baseTeamUpdate } = basesStore
+const { getBaseUsers, getBaseTeams, createProjectUser, updateProjectUser, removeProjectUser, baseTeamUpdate, baseTeamRemove } =
+  basesStore
 const { activeProjectId, bases, basesUser, basesTeams } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles, loadRoles, isUIAllowed } = useRoles()
@@ -79,9 +89,23 @@ const isLoading = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
-  if (!record?.isTeam || !isEeUI) return roles.filter((r) => r !== ProjectRoles.INHERIT || isTeamsEnabled.value)
+  let filteredRoles = roles
 
-  return roles.filter((r) => r !== ProjectRoles.OWNER && r !== ProjectRoles.INHERIT)
+  if (!record?.isTeam || !isEeUI) {
+    filteredRoles = roles.filter((r) => r !== ProjectRoles.INHERIT || isTeamsEnabled.value)
+  } else {
+    // Allow INHERIT for teams at base level, but filter out OWNER
+    filteredRoles = roles.filter((r) => r !== ProjectRoles.OWNER)
+  }
+
+  // Show INHERIT only if current base-level role is not INHERIT or null/undefined
+  // base_roles is the explicit base-level role (not inherited from workspace)
+  const currentBaseRole = record?.base_roles
+  if (!currentBaseRole || currentBaseRole === ProjectRoles.INHERIT) {
+    filteredRoles = filteredRoles.filter((r) => r !== ProjectRoles.INHERIT)
+  }
+
+  return filteredRoles
 }
 
 const baseTeamsToCollaborators = computed(() => {
@@ -165,18 +189,38 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
 
   try {
     if (collab?.isTeam) {
-      // INHERIT role can only be assigned to individual users, not teams
+      // When role is INHERIT, delete the base team assignment
       if (roles === ProjectRoles.INHERIT) {
-        message.error(t('msg.error.inheritRoleOnlyForUsers'))
-        return
+        await baseTeamRemove(currentBase.value.id!, [collab.id])
+        // Update local state
+        const currentBaseTeams = basesTeams.value.get(currentBase.value.id)
+        if (currentBaseTeams?.length) {
+          basesTeams.value.set(
+            currentBase.value.id,
+            currentBaseTeams.filter((team) => team.team_id !== collab.id),
+          )
+        }
+      } else {
+        await baseTeamUpdate(currentBase.value.id!, {
+          team_id: collab.id,
+          base_role: roles,
+        })
       }
-
-      await baseTeamUpdate(currentBase.value.id!, {
-        team_id: collab.id,
-        base_role: roles,
-      })
     } else {
-      if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
+      // When role is INHERIT, delete the base user entry
+      if (roles === ProjectRoles.INHERIT) {
+        await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        if (
+          currentCollaborator.workspace_roles &&
+          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] &&
+          isEeUI
+        ) {
+          currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
+        } else {
+          currentCollaborator.roles = ProjectRoles.NO_ACCESS
+        }
+        currentCollaborator.base_roles = null
+      } else if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
         await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
         if (
           currentCollaborator.workspace_roles &&
@@ -288,6 +332,69 @@ function moveInheritRole() {
   const inheritIndex = accessibleRoles.value.indexOf(ProjectRoles.INHERIT)
   if (inheritIndex !== -1) {
     accessibleRoles.value.push(...accessibleRoles.value.splice(inheritIndex, 1))
+  }
+}
+
+// Helper function to determine inheritance source and effective role
+const getInheritanceInfo = (record: any) => {
+  const baseRole = record.base_roles as ProjectRoles | null
+  if (baseRole && baseRole !== ProjectRoles.INHERIT) {
+    return null
+  }
+
+  const workspaceRole = (record.workspace_roles as WorkspaceUserRoles | null) || null
+  let baseTeamRole: ProjectRoles | undefined
+  let workspaceTeamRole: WorkspaceUserRoles | undefined
+  let workspaceUserRole: WorkspaceUserRoles | undefined
+
+  if (record.isTeam) {
+    baseTeamRole = (record.base_role as ProjectRoles | null) || undefined
+    workspaceTeamRole = workspaceRole && workspaceRole !== WorkspaceUserRolesEnum.INHERIT ? workspaceRole : undefined
+  } else {
+    // Backend already processes team roles to single string values
+    // base_team_roles is already a ProjectRole string, workspace_team_roles is already a WorkspaceUserRole string
+    baseTeamRole = (record.base_team_roles as ProjectRoles | null) || undefined
+    workspaceTeamRole = (record.workspace_team_roles as WorkspaceUserRoles | null) || undefined
+    workspaceUserRole = workspaceRole && workspaceRole !== WorkspaceUserRolesEnum.INHERIT ? workspaceRole : undefined
+  }
+
+  // If no inheritance sources available, return null
+  if (!baseTeamRole && !workspaceUserRole && !workspaceTeamRole) {
+    return null
+  }
+
+  const effectiveRole = getEffectiveBaseRole({
+    baseRole: baseRole || ProjectRoles.INHERIT,
+    baseTeamRole,
+    workspaceRole: workspaceUserRole,
+    workspaceTeamRole,
+  })
+
+  if (!effectiveRole || effectiveRole === ProjectRoles.INHERIT || effectiveRole === ProjectRoles.NO_ACCESS) {
+    return null
+  }
+
+  // Determine source based on which role was actually used (following getEffectiveBaseRole priority)
+  let source: 'workspace' | 'team'
+  if (record.isTeam) {
+    source = baseTeamRole && baseTeamRole === effectiveRole ? 'team' : 'workspace'
+  } else {
+    // Priority: baseTeamRole > workspaceUserRole > workspaceTeamRole
+    if (baseTeamRole && baseTeamRole === effectiveRole) {
+      source = 'team'
+    } else if (workspaceUserRole && extractBaseRoleFromWorkspaceRole(workspaceUserRole) === effectiveRole) {
+      source = 'workspace'
+    } else if (workspaceTeamRole && extractBaseRoleFromWorkspaceRole(workspaceTeamRole) === effectiveRole) {
+      source = 'team'
+    } else {
+      source = 'workspace'
+    }
+  }
+
+  return {
+    source,
+    effectiveRole,
+    effectiveRoleIcon: RoleIcons[effectiveRole as keyof typeof RoleIcons],
   }
 }
 
@@ -608,23 +715,64 @@ onBeforeUnmount(() => {
                 v-if="
                   isDeleteOrUpdateAllowed(record) &&
                   isOwnerOrCreator &&
-                  getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles)
+                  (getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles) ||
+                    record.roles === ProjectRoles.INHERIT)
                 "
               >
                 <RolesSelectorV2
-                  :role="record.roles"
+                  :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
                   :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
-                  :inherit="
-                    isEeUI && !record.base_roles && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
-                      ? WorkspaceRolesToProjectRoles[record.workspace_roles]
-                      : null
-                  "
-                  show-inherit
+                  :inherit="isEeUI && getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
+                  :inherit-source="getInheritanceInfo(record)?.source"
+                  :effective-role="getInheritanceInfo(record)?.effectiveRole"
+                  :show-inherit="!!getInheritanceInfo(record)"
                   :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
                 />
               </template>
               <template v-else>
-                <RolesBadge :border="false" :role="record.roles" />
+                <div class="flex items-center gap-2">
+                  <RolesBadge
+                    :border="false"
+                    :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
+                    :inherit="!!getInheritanceInfo(record)"
+                  />
+                  <NcTooltip
+                    v-if="isEeUI && getInheritanceInfo(record)"
+                    class="uppercase text-[10px] leading-4 text-nc-content-gray-muted"
+                    placement="bottom"
+                  >
+                    <template #title>
+                      <div class="flex flex-col gap-1">
+                        <div>
+                          {{
+                            getInheritanceInfo(record)?.source === 'team'
+                              ? $t('tooltip.roleInheritedFromTeam')
+                              : $t('tooltip.roleInheritedFromWorkspace')
+                          }}
+                        </div>
+                        <div v-if="getInheritanceInfo(record)?.effectiveRole" class="text-xs font-normal">
+                          {{
+                            $t('tooltip.effectiveRole', {
+                              role: $t(`objects.roleType.${getInheritanceInfo(record)?.effectiveRole}`),
+                            })
+                          }}
+                        </div>
+                      </div>
+                    </template>
+                    <div class="flex items-center gap-1">
+                      <RolesBadge
+                        v-if="getInheritanceInfo(record)?.effectiveRole"
+                        :border="false"
+                        :role="getInheritanceInfo(record)?.effectiveRole"
+                        icon-only
+                        nc-badge-class="!px-1"
+                      />
+                      <span>{{
+                        getInheritanceInfo(record)?.source === 'team' ? $t('objects.team') : $t('objects.workspace')
+                      }}</span>
+                    </div>
+                  </NcTooltip>
+                </div>
               </template>
             </div>
             <div v-if="column.key === 'created_at'">

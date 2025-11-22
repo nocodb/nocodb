@@ -10,6 +10,7 @@ const props = defineProps<{
   permissionDescription?: string
   permission?: PermissionKey
   entityTitle?: string
+  hint?: string
 }>()
 
 const emits = defineEmits(['update:visible', 'save'])
@@ -171,6 +172,9 @@ const selectedBelowMinimumRoleUsers = computed(() => {
         :disabled-users="selectedBelowMinimumRoleUsers"
       >
       </PermissionsUserSelectorList>
+      <div v-if="hint" class="my-2 mx-1 text-xs text-gray-400">
+        {{ hint }}
+      </div>
 
       <div class="flex items-center justify-between pt-4 border-t border-nc-border-gray-light">
         <div class="flex gap-4">

@@ -618,11 +618,21 @@ export class TeamsV3Service {
       ResourceType.TEAM,
       param.teamId,
     );
-    for (const assignment of teamAssignments) {
+
+    // Delete all team principal assignments
+    const teamPrincipalAssignments = await PrincipalAssignment.listByPrincipal(
+      context,
+      PrincipalType.TEAM,
+      param.teamId,
+    );
+    for (const assignment of [
+      ...teamAssignments,
+      ...teamPrincipalAssignments,
+    ]) {
       await PrincipalAssignment.delete(
         context,
-        ResourceType.TEAM,
-        param.teamId,
+        assignment.resource_type,
+        assignment.resource_id,
         assignment.principal_type,
         assignment.principal_ref_id,
       );

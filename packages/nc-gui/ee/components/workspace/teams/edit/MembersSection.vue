@@ -388,8 +388,14 @@ onMounted(() => {
               show-tooltip
               show-on-truncate-only
             >
-              <template #tooltip> {{ $t('objects.teams.teamOwner') }} </template>
-              <template #label> {{ $t('objects.teams.teamOwner') }} </template>
+              <template #tooltip>
+                {{ $t('objects.teams.teamOwner') }}
+              </template>
+              <template #label>
+                <span class="text-bodySm">
+                  {{ $t('objects.teams.teamOwner') }}
+                </span>
+              </template>
             </RolesBadge>
           </div>
         </template>

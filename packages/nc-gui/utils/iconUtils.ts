@@ -1224,7 +1224,7 @@ export const iconMap = {
   'role_editor': Editor,
   'role_commenter': Commentor,
   'role_viewer': Viewer,
-  'role_inherit': NcUserIcon,
+  'role_inherit': NcLayers,
   'role_super': SuperAdmin,
   'role_no_access': NoAccess,
   'commentHere': NcCommentHere,

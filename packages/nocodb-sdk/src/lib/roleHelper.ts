@@ -1,9 +1,10 @@
 import {
   OrderedProjectRoles,
   OrderedWorkspaceRoles,
+  ProjectRoles,
   WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles,
 } from './enums';
-import type { ProjectRoles, WorkspaceUserRoles } from './enums';
 import { extractRolesObj } from './helperFunctions';
 
 export function extractProjectRolePower(
@@ -158,4 +159,42 @@ export function extractBaseRoleFromWorkspaceRole(
       workspaceRoleStr as keyof typeof WorkspaceRolesToProjectRoles
     ];
   return baseRole || null;
+}
+
+export function getEffectiveBaseRole({
+  baseRole,
+  baseTeamRole,
+  workspaceRole,
+  workspaceTeamRole,
+}: {
+  baseRole: ProjectRoles;
+  baseTeamRole?: ProjectRoles;
+  workspaceRole?: WorkspaceUserRoles;
+  workspaceTeamRole?: WorkspaceUserRoles;
+}) {
+  // Apply role priority hierarchy for base roles:
+  // 1. Direct base role (highest priority)
+  // 2. Role inherited from base-team
+  // 3. Role inherited from workspace role
+  // 4. Role inherited from workspace team role (lowest priority)
+
+  let finalBaseRole = baseRole;
+
+  if (!finalBaseRole || finalBaseRole === ProjectRoles.INHERIT) {
+    if (baseTeamRole) {
+      finalBaseRole = baseTeamRole;
+    } else if (workspaceRole && workspaceRole !== WorkspaceUserRoles.INHERIT) {
+      finalBaseRole = extractBaseRoleFromWorkspaceRole(
+        workspaceRole
+      ) as ProjectRoles;
+    } else if (workspaceTeamRole) {
+      finalBaseRole = extractBaseRoleFromWorkspaceRole(
+        workspaceTeamRole
+      ) as ProjectRoles;
+    }
+  }
+
+  return finalBaseRole === ProjectRoles.INHERIT || !finalBaseRole
+    ? ProjectRoles.NO_ACCESS
+    : finalBaseRole;
 }

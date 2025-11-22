@@ -821,3 +821,33 @@ export function transformObjectKeys(
   });
   return result;
 }
+
+/**
+ * Get database-specific array aggregation expression for team roles or similar use cases
+ * Returns a Knex raw expression that aggregates distinct values into an array/JSON array
+ * based on the database client (PostgreSQL, MySQL, SQLite)
+ *
+ * @param knex - Knex instance
+ * @param knexConnection - Knex connection instance (to get client type)
+ * @param columnName - Column name to aggregate (e.g., 'wta.roles')
+ * @param alias - Alias for the aggregated column
+ * @returns Knex raw expression for array aggregation
+ */
+export function getArrayAggExpression(
+  knex: CustomKnex,
+  knexConnection: any,
+  columnName: string,
+  alias: string,
+): Knex.Raw {
+  const client = knexConnection.client.config.client;
+
+  // Note: columnName and alias are controlled by our code, so it's safe to use directly
+  const exprMap: Record<string, string> = {
+    pg: `ARRAY_AGG(DISTINCT ${columnName}) FILTER (WHERE ${columnName} IS NOT NULL) AS ${alias}`,
+    mysql2: `JSON_ARRAYAGG(DISTINCT ${columnName}) AS ${alias}`,
+    sqlite3: `json_group_array(DISTINCT ${columnName}) AS ${alias}`,
+  };
+
+  // fallback to mysql2 query
+  return knex.raw(exprMap[client] || exprMap.mysql2);
+}

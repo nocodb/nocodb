@@ -9,6 +9,7 @@ const props = defineProps<{
   permissionDescription?: string
   permission?: PermissionKey
   readonly?: boolean
+  hint?: string
 }>()
 
 const emits = defineEmits(['update:selectedUsers', 'save'])
@@ -261,6 +262,9 @@ watch(selectedUsersList, () => {
         </PermissionsUserSelectorList>
       </template>
     </NcListDropdown>
+    <div v-if="hint" class="absolute top-full mt-1 ml-1 text-xs text-gray-400">
+      {{ hint }}
+    </div>
   </div>
 </template>
 

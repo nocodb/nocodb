@@ -1,10 +1,13 @@
 import { PlanLimitTypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
+  PrincipalType,
+  ResourceType,
   RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -12,6 +15,10 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
+import Base from '~/models/Base';
+
+const logger = new Logger('Team');
 
 // Todo: handle cache key when adding support for org level teams
 export default class Team {
@@ -80,13 +87,6 @@ export default class Team {
       CacheScope.TEAM,
       [cacheKey],
       `${CacheScope.TEAM}:${id}`,
-    );
-
-    // Invalidate list cache to ensure new team appears in subsequent list calls
-    await NocoCache.deepDel(
-      context,
-      CacheScope.TEAM,
-      CacheDelDirection.CHILD_TO_PARENT,
     );
 
     await NocoCache.incrHashField(
@@ -260,11 +260,8 @@ export default class Team {
 
     await NocoCache.set(context, `${CacheScope.TEAM}:${teamId}`, fullTeam);
 
-    await NocoCache.deepDel(
-      context,
-      CacheScope.TEAM,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
+    // Clear all dependent caches when team is updated
+    await this.clearDependentCaches(context, teamId, ncMeta);
 
     return this.castType(fullTeam);
   }
@@ -282,18 +279,13 @@ export default class Team {
       { id: teamId },
     );
 
-    await NocoCache.del(context, `${CacheScope.TEAM}:${teamId}`);
-
-    // Invalidate both active and deleted cache lists
-    const baseCacheKey = context.workspace_id ?? context.org_id;
-    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}`);
-    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
-
     await NocoCache.deepDel(
       context,
-      CacheScope.TEAM,
+      `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+    // Clear all dependent caches when team is soft deleted
+    await this.clearDependentCaches(context, teamId, ncMeta);
 
     await NocoCache.incrHashField(
       'root',
@@ -334,9 +326,12 @@ export default class Team {
 
     await NocoCache.deepDel(
       context,
-      CacheScope.TEAM,
+      `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    // Clear all dependent caches when team is restored
+    await this.clearDependentCaches(context, teamId, ncMeta);
 
     await NocoCache.incrHashField(
       'root',
@@ -351,6 +346,9 @@ export default class Team {
     teamId: string,
     ncMeta = Noco.ncMeta,
   ) {
+    // Clear all dependent caches before hard deleting (since assignments will be deleted too)
+    await this.clearDependentCaches(context, teamId, ncMeta);
+
     await ncMeta.metaDelete(RootScopes.ROOT, RootScopes.ROOT, MetaTable.TEAMS, {
       id: teamId,
     });
@@ -364,15 +362,80 @@ export default class Team {
 
     await NocoCache.deepDel(
       context,
-      CacheScope.TEAM,
+      `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-
     await NocoCache.incrHashField(
       'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_TEAM_MANAGEMENT,
       -1,
     );
+  }
+
+  /**
+   * Clears all dependent caches when team-related changes occur
+   * Mainly focuses on clearing BASE_USER list cache for bases where the team is assigned
+   *
+   * @param context - NocoDB context
+   * @param teamId - Team ID
+   * @param ncMeta - NocoDB meta instance
+   */
+  public static async clearDependentCaches(
+    context: NcContext,
+    teamId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    try {
+      // Get all assignments where the team is the principal (team assigned to workspace/base)
+      const teamPrincipalAssignments = await PrincipalAssignment.list(
+        context,
+        {
+          principal_type: PrincipalType.TEAM,
+          principal_ref_id: teamId,
+        },
+        ncMeta,
+      );
+
+      // Clear BASE_USER list cache for all affected bases
+      for (const assignment of teamPrincipalAssignments) {
+        if (assignment.resource_type === ResourceType.BASE) {
+          // Clear BASE_USER cache for this specific base
+          const baseContext: NcContext = {
+            ...context,
+            base_id: assignment.resource_id,
+          };
+          await NocoCache.deepDel(
+            baseContext,
+            `${CacheScope.BASE_USER}:${assignment.resource_id}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+        } else if (assignment.resource_type === ResourceType.WORKSPACE) {
+          // Clear BASE_USER cache for all bases in this workspace
+          try {
+            const bases = await Base.list(assignment.resource_id, ncMeta);
+            for (const base of bases) {
+              const baseContext: NcContext = {
+                ...context,
+                base_id: base.id,
+              };
+              await NocoCache.deepDel(
+                baseContext,
+                `${CacheScope.BASE_USER}:${base.id}`,
+                CacheDelDirection.CHILD_TO_PARENT,
+              );
+            }
+          } catch (error) {
+            // If Base.list fails, continue without clearing cache
+          }
+        }
+      }
+    } catch (error) {
+      // Log error but don't throw - cache clearing should not break the operation
+      logger.warn(
+        `Error clearing dependent caches for team ${teamId}:`,
+        error.message,
+      );
+    }
   }
 }

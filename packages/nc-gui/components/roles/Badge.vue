@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { RoleColors, RoleIcons, RoleLabels } from 'nocodb-sdk'
+import { ProjectRoles, RoleColors, RoleIcons, RoleLabels, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -13,6 +13,7 @@ const props = withDefaults(
     disabled?: boolean
     ncBadgeClass?: string
     showTooltip?: boolean
+    inheritedRoleIcon?: string
   }>(),
   {
     clickable: false,
@@ -23,6 +24,7 @@ const props = withDefaults(
     showIcon: true,
     ncBadgeClass: '',
     showTooltip: false,
+    inheritedRoleIcon: undefined,
   },
 )
 
@@ -32,10 +34,16 @@ const borderRef = toRef(props, 'border')
 
 const sizeSelect = computed(() => props.size)
 
+const isInheritRole = computed(() => {
+  const role = roleRef.value
+  return role === 'inherit' || role === ProjectRoles.INHERIT || role === WorkspaceUserRoles.INHERIT
+})
+
 const roleProperties = computed(() => {
   const role = roleRef.value
   const color = RoleColors[role]
-  const icon = RoleIcons[role]
+  // Use inherited role icon if role is INHERIT and inheritedRoleIcon is provided
+  const icon = isInheritRole.value && props.inheritedRoleIcon ? props.inheritedRoleIcon : RoleIcons[role]
   const label = RoleLabels[role]
   return {
     color: props.disabled ? 'disabled' : color,
@@ -61,17 +69,30 @@ const roleProperties = computed(() => {
 
     <NcBadge
       class="!px-2 w-full"
-      :class="ncBadgeClass"
+      :class="[
+        ncBadgeClass,
+        {
+          '!bg-gray-200 !border-gray-200 dark:!bg-gray-600 dark:!border-gray-600': isInheritRole,
+        },
+      ]"
       :color="roleProperties.color === 'disabled' ? 'gray' : roleProperties.color"
       :border="borderRef"
       :size="sizeSelect"
     >
       <div
         class="badge-text w-full flex items-center justify-between gap-2"
-        :class="roleColorsMapping[roleProperties.color]?.content ?? 'text-gray-300'"
+        :class="
+          isInheritRole
+            ? '!text-nc-content-gray-muted dark:!text-nc-content-gray-light'
+            : roleColorsMapping[roleProperties.color]?.content ?? 'text-gray-300'
+        "
       >
         <div class="flex items-center gap-2">
-          <GeneralIcon v-if="showIcon" :icon="roleProperties.icon" />
+          <GeneralIcon
+            v-if="showIcon"
+            :icon="roleProperties.icon"
+            :class="isInheritRole ? '!text-nc-content-gray-muted dark:!text-nc-content-gray-light' : ''"
+          />
           <span v-if="!iconOnly" class="flex whitespace-nowrap">
             <slot name="label">
               {{ $t(`objects.roleType.${roleProperties.label}`) }}

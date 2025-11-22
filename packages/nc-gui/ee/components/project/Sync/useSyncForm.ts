@@ -151,6 +151,8 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
           errors.push(e)
         }
       }
+
+      console.error('errors', errors)
       return errors?.length === 0
     }
 
@@ -196,7 +198,6 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
           sync_trigger_cron: syncConfigForm.value.sync_trigger_cron,
           on_delete_action: syncConfigForm.value.on_delete_action,
           sync_category: syncConfigForm.value.sync_category,
-          exclude_models: (syncConfigForm.value as any).exclude_models,
           config: integrationConfigs.value.map((config) => ({
             id: config.id, // Integration ID (if existing, for updates)
             type: config.type,
@@ -205,12 +206,23 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
             title: config.title,
             syncConfigId: config.syncConfigId,
           })),
+          meta: {
+            sync_all_models: true,
+            sync_excluded_models: [],
+            ...parseProp(syncConfigForm.value.meta),
+          },
         }
 
         const result = await updateSyncStore(_syncId, updateData)
 
         if (result?.syncConfig) {
-          syncConfigForm.value = result.syncConfig
+          syncConfigForm.value = {
+            ...(result.syncConfig as SyncConfig),
+            meta: {
+              ...(getDefaultSyncConfig().meta as Record<string, any>),
+              ...parseProp(result.syncConfig.meta),
+            },
+          }
         }
 
         message.success('Sync updated successfully')
@@ -272,7 +284,13 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
         deletedSyncConfigIds.value = []
         const sync = await readSync(_syncId)
         if (!sync) return
-        syncConfigForm.value = sync as SyncConfig
+        syncConfigForm.value = {
+          ...(sync as SyncConfig),
+          meta: {
+            ...(getDefaultSyncConfig().meta as Record<string, any>),
+            ...parseProp(sync.meta),
+          },
+        }
 
         const existingIntegrationConfigs = [sync, ...(sync?.children || [])]
 

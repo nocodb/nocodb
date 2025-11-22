@@ -2,6 +2,7 @@ import * as nc_001_init from './v0/nc_001_init';
 import * as nc_002_teams from './v0/nc_002_teams';
 import * as nc_003_alter_row_color_condition_nc_order_col from './v0/nc_003_alter_row_color_condition_nc_order_col';
 import * as nc_004_workflows from './v0/nc_004_workflows';
+import * as nc_005_add_user_specific_and_meta_column_in_sync_configs from './v0/nc_005_add_user_specific_and_meta_column_in_sync_configs';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -15,6 +16,7 @@ export default class XcMigrationSourcev0 {
       'nc_002_teams',
       'nc_003_alter_row_color_condition_nc_order_col',
       'nc_004_workflows',
+      'nc_005_add_user_specific_and_meta_column_in_sync_configs',
     ]);
   }
 
@@ -32,6 +34,8 @@ export default class XcMigrationSourcev0 {
         return nc_003_alter_row_color_condition_nc_order_col;
       case 'nc_004_workflows':
         return nc_004_workflows;
+      case 'nc_005_add_user_specific_and_meta_column_in_sync_configs':
+        return nc_005_add_user_specific_and_meta_column_in_sync_configs;
     }
   }
 }

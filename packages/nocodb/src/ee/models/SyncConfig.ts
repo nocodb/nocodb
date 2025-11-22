@@ -5,6 +5,7 @@ import {
   type SyncCategory,
   SyncTrigger,
   type SyncType,
+  type MetaType,
 } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -40,8 +41,12 @@ export default class SyncConfig {
 
   created_at: string;
   updated_at: string;
+  created_by: string;
+  updated_by: string;
 
   children?: SyncConfig[];
+
+  meta?: MetaType;
 
   constructor(syncConfig: Partial<SyncConfig>) {
     Object.assign(this, syncConfig);
@@ -69,7 +74,11 @@ export default class SyncConfig {
 
       if (!syncConfig) return null;
 
-      await NocoCache.set(context, key, syncConfig);
+      await NocoCache.set(
+        context,
+        key,
+        prepareForResponse(syncConfig, ['config', 'meta']),
+      );
     }
 
     if (!syncConfig.fk_parent_sync_config_id) {
@@ -98,13 +107,16 @@ export default class SyncConfig {
       'next_sync_at',
       'sync_job_id',
       'on_delete_action',
+      'created_by',
+      'updated_by',
+      'meta',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
       MetaTable.SYNC_CONFIGS,
-      insertObj,
+      prepareForDb(insertObj, ['config', 'meta']),
     );
 
     return this.get(context, id, ncMeta);
@@ -125,20 +137,22 @@ export default class SyncConfig {
       'next_sync_at',
       'sync_job_id',
       'on_delete_action',
+      'updated_by',
+      'meta',
     ]);
 
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.SYNC_CONFIGS,
-      prepareForDb(updateObj, 'config'),
+      prepareForDb(updateObj, ['config', 'meta']),
       id,
     );
 
     await NocoCache.update(
       context,
       `${CacheScope.SYNC_CONFIGS}:${id}`,
-      prepareForResponse(updateObj, 'config'),
+      prepareForResponse(updateObj, ['config', 'meta']),
     );
 
     return this.get(context, id, ncMeta);
@@ -226,7 +240,7 @@ export default class SyncConfig {
     );
 
     return rootSyncConfigs.map((syncConfig) => {
-      return new SyncConfig(syncConfig);
+      return new SyncConfig(prepareForResponse(syncConfig, ['config', 'meta']));
     });
   }
 
@@ -247,7 +261,7 @@ export default class SyncConfig {
     );
 
     return syncConfigs.map((syncConfig) => {
-      return new SyncConfig(syncConfig);
+      return new SyncConfig(prepareForResponse(syncConfig, ['config', 'meta']));
     });
   }
 

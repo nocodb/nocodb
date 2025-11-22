@@ -698,7 +698,7 @@ export async function validateFormulaAndExtractTreeWithType({
   // extract column list from meta since columns array might not have all columns(system columns)
   const meta = await getMeta(
     unifiedMeta.getContextFromObject(
-      (column.base_id && column) ?? columns?.[0] ?? ({} as any)
+      (column?.base_id && column) ?? columns?.[0] ?? ({} as any)
     ),
     { id: column?.fk_model_id || columns?.[0]?.fk_model_id || '' }
   );

@@ -253,7 +253,7 @@ watch(
 }
 
 .extension-modal {
-  @apply absolute top-0 left-0 z-1000 w-full h-full bg-white bg-opacity-50 flex items-center justify-center;
+  @apply absolute top-0 left-0 z-1000 w-full h-full bg-black/50 flex items-center justify-center;
 
   .extension-modal-content {
     @apply bg-nc-bg-default rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col overflow-hidden;

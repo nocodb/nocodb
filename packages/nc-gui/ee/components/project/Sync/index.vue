@@ -129,6 +129,7 @@ const handleDeleteSync = async (syncId: string) => {
     content: t('title.deleteSyncConfirmSubtitle'),
     showCancelBtn: true,
     showIcon: false,
+    showOkLoading: true,
     okProps: {
       type: 'danger',
     },

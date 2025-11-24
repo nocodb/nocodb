@@ -175,7 +175,7 @@ onMounted(() => {
 .barcode-modal .ant-modal-content {
   padding: 0 !important;
   .ant-modal-header {
-    @apply border-b-nc-border-gray-medium;
+    @apply border-b-1 border-b-nc-border-gray-medium;
     position: relative;
     padding: 8px 16px;
     border-top-left-radius: 1em;

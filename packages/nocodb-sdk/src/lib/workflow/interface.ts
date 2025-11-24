@@ -1,8 +1,63 @@
+enum VariableType {
+  String = 'string',
+  Number = 'number',
+  Integer = 'integer',
+  Boolean = 'boolean',
+  Object = 'object',
+  Array = 'array',
+  DateTime = 'datetime',
+}
+
+enum VariableGroupKey {
+  Meta = 'meta', // System fields (id, createdAt, etc.)
+  Fields = 'fields', // User data fields
+}
+
+interface VariableDefinition {
+  // Expression reference (e.g., "fields.Title" for use in {{ $("Node").fields.Title }})
+  key: string;
+
+  // Human-readable name for UI (e.g., "Title")
+  name: string;
+
+  // Variable type
+  type: VariableType;
+
+  // UI grouping
+  groupKey?: VariableGroupKey;
+
+  // Is this variable an array?
+  isArray?: boolean;
+
+  // Additional metadata for UI
+  extra?: {
+    // Column ID for fields
+    columnId?: string;
+
+    // icon for the variable
+    icon?: string;
+
+    // UIType for fields
+    uiType?: string;
+
+    // Table/View names for display
+    tableName?: string;
+    viewName?: string;
+
+    // Description for tooltips
+    description?: string;
+  };
+
+  // Nested variables for objects/arrays
+  children?: VariableDefinition[];
+}
+
 interface NodeExecutionResult {
   nodeId: string;
   nodeTitle: string;
   status: 'pending' | 'running' | 'success' | 'error';
   output?: any;
+  input?: any;
   error?: string;
   startTime: number;
   endTime?: number;
@@ -14,6 +69,9 @@ interface NodeExecutionResult {
     data?: any;
   }>;
   metrics?: Record<string, number>;
+  isStale?: boolean;
+  inputVariables?: VariableDefinition[];
+  outputVariables?: VariableDefinition[];
 }
 
 interface WorkflowExecutionState {
@@ -42,6 +100,9 @@ interface WorkflowGeneralNode {
   data: {
     config: NodeConfig;
     title: string;
+    testResult?: NodeExecutionResult;
+    inputVariables?: VariableDefinition[];
+    outputVariables?: VariableDefinition[];
   };
   targetPosition: 'top' | 'bottom' | 'left' | 'right';
   sourcePosition: 'top' | 'bottom' | 'left' | 'right';
@@ -56,6 +117,9 @@ interface WorkflowGeneralEdge {
 }
 
 export {
+  VariableType,
+  VariableGroupKey,
+  VariableDefinition,
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
   NodeExecutionResult,

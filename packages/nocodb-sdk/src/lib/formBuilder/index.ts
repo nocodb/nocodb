@@ -11,6 +11,7 @@ export enum FormBuilderInputType {
   SelectField = 'select-field',
   OAuth = 'oauth',
   Checkbox = 'checkbox',
+  WorkflowInput = 'workflow-input',
 }
 
 /**
@@ -265,6 +266,15 @@ export interface FormBuilderOAuthElement extends FormBuilderElementBase {
 }
 
 /**
+ * WorkflowInput element (TipTap editor with expression support for workflow variables)
+ */
+export interface FormBuilderWorkflowInputElement
+  extends FormBuilderElementBase {
+  type: FormBuilderInputType.WorkflowInput;
+  defaultValue?: string | null;
+}
+
+/**
  * Union type of all possible form builder elements
  */
 export type FormBuilderElement =
@@ -279,7 +289,8 @@ export type FormBuilderElement =
   | FormBuilderSelectTableElement
   | FormBuilderSelectViewElement
   | FormBuilderSelectFieldElement
-  | FormBuilderOAuthElement;
+  | FormBuilderOAuthElement
+  | FormBuilderWorkflowInputElement;
 
 /**
  * Complete form definition - array of form elements

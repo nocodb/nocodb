@@ -71,14 +71,14 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         placeholder: '0',
       },
       {
-        type: FormBuilderInputType.Input,
+        type: FormBuilderInputType.WorkflowInput,
         label: 'Filter JSON',
         span: 24,
         model: 'config.filterJson',
         placeholder: '{ "where": "(Title,eq,Active)" }',
       },
       {
-        type: FormBuilderInputType.Input,
+        type: FormBuilderInputType.WorkflowInput,
         label: 'Sort JSON',
         span: 24,
         model: 'config.sortJson',
@@ -203,12 +203,10 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         base_id: ctx.baseId,
       } as NocoSDK.NcContext;
 
-      // Build query object
       const query: any = {};
       if (limit !== undefined) query.limit = limit;
       if (offset !== undefined) query.offset = offset;
 
-      // Merge filter and sort JSON if provided
       if (filterJson) {
         const filterObj = parseJson(filterJson);
         Object.assign(query, filterObj);
@@ -229,14 +227,12 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
             user: this.nocodb.user
           } as NocoSDK.NcRequest,
         },
-        true,
+        false,
       );
 
       const executionTime = Date.now() - startTime;
 
-      const recordCount = Array.isArray(result)
-        ? result.length
-        : result.records?.length || 0;
+      const recordCount = result.length
 
       logs.push({
         level: 'info',
@@ -246,13 +242,11 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
 
       return {
         outputs: {
-          records: Array.isArray(result) ? result : result.records || [],
-          pagination: Array.isArray(result)
-            ? undefined
-            : {
-                next: result.next,
-                prev: result.prev,
-              },
+          records: result || [],
+          pagination: {
+            limit,
+            offset,
+          }
         },
         status: 'success',
         logs,
@@ -284,6 +278,151 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
           executionTimeMs: executionTime,
         },
       };
+    }
+  }
+
+  public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    const variables: NocoSDK.VariableDefinition[] = [];
+    const { modelId, viewId } = this.config;
+
+    if (!modelId) return [];
+
+    try {
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: modelId,
+          user: this.nocodb.user as any,
+        }
+      );
+
+      if (!table) return [];
+
+      variables.push({
+        key: 'config.modelId',
+        name: 'Table',
+        type: NocoSDK.VariableType.String,
+        groupKey: NocoSDK.VariableGroupKey.Fields,
+        extra: {
+          tableName: table.title,
+          description: 'Selected table for listing records',
+        },
+      });
+
+      if (viewId) {
+        const view = table.views?.find((v) => v.id === viewId);
+        variables.push({
+          key: 'config.viewId',
+          name: 'View',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            viewName: view?.title,
+            description: 'Selected view for filtering',
+          },
+        });
+      }
+
+      variables.push({
+        key: 'config.limit',
+        name: 'Limit',
+        type: NocoSDK.VariableType.Number,
+        groupKey: NocoSDK.VariableGroupKey.Fields,
+        extra: {
+          description: 'Maximum number of records to retrieve',
+        },
+      });
+
+      variables.push({
+        key: 'config.offset',
+        name: 'Offset',
+        type: NocoSDK.VariableType.Number,
+        groupKey: NocoSDK.VariableGroupKey.Fields,
+        extra: {
+          description: 'Number of records to skip',
+        },
+      });
+
+      variables.push({
+        key: 'config.filterJson',
+        name: 'Filter JSON',
+        type: NocoSDK.VariableType.String,
+        groupKey: NocoSDK.VariableGroupKey.Fields,
+        extra: {
+          description: 'JSON filter criteria',
+        },
+      });
+
+      variables.push({
+        key: 'config.sortJson',
+        name: 'Sort JSON',
+        type: NocoSDK.VariableType.String,
+        groupKey: NocoSDK.VariableGroupKey.Fields,
+        extra: {
+          description: 'JSON sort criteria',
+        },
+      });
+
+      return variables;
+    } catch {
+      return [];
+    }
+  }
+
+  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    const { modelId } = this.config;
+
+    if (!modelId) return [];
+
+    try {
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: modelId,
+          user: this.nocodb.user as any,
+        }
+      );
+
+      if (!table) return [];
+
+      const recordVariables = NocoSDK.genRecordVariables(table.columns, true, 'records');
+
+      const paginationVariable: NocoSDK.VariableDefinition = {
+        key: 'pagination',
+        name: 'Pagination',
+        type: NocoSDK.VariableType.Object,
+        groupKey: NocoSDK.VariableGroupKey.Meta,
+        extra: {
+          description: 'Pagination information',
+          icon: 'cellJson',
+        },
+        children: [
+          {
+            key: 'pagination.limit',
+            name: 'Limit',
+            type: NocoSDK.VariableType.Number,
+            groupKey: NocoSDK.VariableGroupKey.Meta,
+            extra: {
+              description: 'Max number of records to retrieve',
+              icon: 'cellNumber',
+            },
+          },
+          {
+            key: 'pagination.offset',
+            name: 'Offset',
+            type: NocoSDK.VariableType.Number,
+            groupKey: NocoSDK.VariableGroupKey.Meta,
+            extra: {
+              description: 'Number of records skipped',
+              icon: 'cellNumber',
+            },
+          },
+        ],
+      };
+
+      return [...recordVariables, paginationVariable];
+    } catch {
+      return [];
     }
   }
 }

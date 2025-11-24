@@ -223,4 +223,47 @@ function resolveIfNodeBranch(
   return outgoingEdges[0]?.target || null;
 }
 
-export { buildWorkflowGraph, determineStartNode, getNextNode };
+function findParentNodes(
+  nodeId: string,
+  reverseGraph: Map<
+    string,
+    Array<{ source?: string; label?: string; edgeId: string }>
+  >,
+  allNodes: WorkflowGeneralNode[],
+): WorkflowGeneralNode[] {
+  const visited = new Set<string>();
+  const orderedParents: WorkflowGeneralNode[] = [];
+  const nodeMap = new Map(allNodes.map((n) => [n.id, n]));
+
+  const dfs = (currentId: string) => {
+    if (visited.has(currentId)) return;
+    visited.add(currentId);
+
+    const parents = reverseGraph.get(currentId) || [];
+
+    // Visit parents first (DFS)
+    for (const parent of parents) {
+      if (parent.source) {
+        dfs(parent.source);
+      }
+    }
+
+    // Add current node after visiting parents
+    const node = nodeMap.get(currentId);
+    if (node) {
+      orderedParents.push(node);
+    }
+  };
+
+  // Start DFS from target node's parents
+  const directParents = reverseGraph.get(nodeId) || [];
+  for (const parent of directParents) {
+    if (parent.source) {
+      dfs(parent.source);
+    }
+  }
+
+  return orderedParents;
+}
+
+export { buildWorkflowGraph, determineStartNode, getNextNode, findParentNodes };

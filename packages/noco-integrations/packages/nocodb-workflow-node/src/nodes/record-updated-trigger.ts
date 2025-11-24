@@ -11,8 +11,8 @@ import type {
   WorkflowNodeDefinition,
   WorkflowNodeLog,
   WorkflowNodeResult,
-
-  WorkflowNodeRunContext} from '@noco-integrations/core';
+  WorkflowNodeRunContext
+} from '@noco-integrations/core';
 
 interface RecordUpdatedTriggerConfig extends WorkflowNodeConfig {
   modelId: string;
@@ -138,13 +138,85 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
     }
   }
 
+  private async fetchSampleRecord() {
+    if (!this.config.modelId) {
+      return {};
+    }
+    try {
+      const result = await this.nocodb.dataService.dataList(
+        this.nocodb.context,
+        {
+          modelId: this.config.modelId,
+          query: {
+            limit: 1,
+            offset: 0,
+          },
+          req: {
+            user: this.nocodb.user
+          } as any,
+        },
+        false
+      );
+
+      if (result?.length > 0) {
+        return result[0];
+      }
+
+      // No records in table, return empty object
+      return {};
+    } catch (error) {
+      console.error('Failed to fetch sample record:', error);
+      return {};
+    }
+  }
+
   public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
 
     try {
-      const { prevData, newData, user, timestamp, affectedColumns } =
+      let { prevData, newData, user, timestamp, affectedColumns } =
         ctx.inputs as any;
+
+      if (ctx.testMode) {
+        user = this.nocodb.user;
+        timestamp = timestamp || new Date().toISOString();
+        const baseData = (await this.fetchSampleRecord()) as {
+          fields: Record<string, any>;
+          id: string;
+        };
+
+        if (Object.keys(baseData).length === 0) {
+          prevData = { fields: {} };
+          newData = { fields: {} };
+          affectedColumns = this.config.columnFilter || [];
+
+          logs.push({
+            level: 'info',
+            message: 'No records found in table, using empty object for testing',
+            ts: Date.now(),
+          });
+        } else {
+          prevData = { ...baseData, fields: { ...(baseData?.fields || {}) } };
+          newData = { ...baseData, fields: { ...(baseData?.fields || {}) } };
+
+          const firstUserField = Object.keys(newData.fields)[0];
+          if (firstUserField && typeof newData.fields[firstUserField] === 'string') {
+            newData.fields[firstUserField] = `${newData.fields[firstUserField]} (updated)`;
+          } else if (firstUserField && typeof newData.fields[firstUserField] === 'number') {
+            newData.fields[firstUserField] = newData.fields[firstUserField] + 1;
+          }
+
+          affectedColumns = this.config.columnFilter || (firstUserField ? [firstUserField] : []);
+
+          logs.push({
+            level: 'info',
+            message: 'Fetched sample record from database for testing',
+            ts: Date.now(),
+            data: { recordId: baseData?.id, affectedColumns },
+          });
+        }
+      }
 
       if (this.config.columnFilter && affectedColumns) {
         const targetColumns = this.config.columnFilter
@@ -175,6 +247,22 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
         }
       }
 
+      let tableName = '';
+
+      try {
+        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+          this.nocodb.context,
+          {
+            tableId: this.config.modelId,
+            user: this.nocodb.user as any,
+          }
+        );
+        tableName = table?.title || '';
+      } catch {
+        // empty
+      }
+
+
       logs.push({
         level: 'info',
         message: 'Record updated trigger activated',
@@ -192,10 +280,20 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
         outputs: {
           previousRecord: prevData,
           record: newData,
-          user: user,
-          timestamp: timestamp || new Date().toISOString(),
-          modelId: this.config.modelId,
-          affectedColumns: affectedColumns || [],
+          table: {
+            id: this.config.modelId,
+            name: tableName,
+          },
+          user: {
+            id: user?.id,
+            name: user?.display_name,
+            email: user?.email,
+          },
+          trigger: {
+            type: 'record-updated',
+            timestamp: timestamp,
+            affectedColumns,
+          },
         },
         status: 'success',
         logs,
@@ -225,6 +323,216 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
           executionTimeMs: executionTime,
         },
       };
+    }
+  }
+
+  public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    const { modelId, columnFilter } = this.config;
+
+    if (!modelId) return [];
+
+    try {
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: modelId,
+          user: this.nocodb.user as any,
+        }
+      );
+
+      if (!table) return [];
+
+      const variables: NocoSDK.VariableDefinition[] = [
+        {
+          key: 'config.modelId',
+          name: 'Table',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            tableName: table.title,
+            description: 'Table to monitor for updates',
+          },
+        },
+      ];
+
+      if (columnFilter && columnFilter.length > 0) {
+        const monitoredColumns = table.columns
+          .filter((col: any) => columnFilter.includes(col.id))
+          .map((col: any) => col.title)
+          .join(', ');
+
+        variables.push({
+          key: 'config.columnFilter',
+          name: 'Monitored Fields',
+          type: NocoSDK.VariableType.Array,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          isArray: true,
+          extra: {
+            description: `Fields being monitored: ${monitoredColumns}`,
+          },
+        });
+      }
+
+      return variables;
+    } catch {
+      return [];
+    }
+  }
+
+  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    const { modelId } = this.config;
+
+    if (!modelId) return [];
+
+    try {
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: modelId,
+          user: this.nocodb.user as any,
+        }
+      );
+
+      if (!table) return [];
+
+      const recordVariables = NocoSDK.genRecordVariables(table.columns, false, 'record');
+      const previousRecordVariables = NocoSDK.genRecordVariables(table.columns, false, 'previousRecord');
+
+      const additionalVariables: NocoSDK.VariableDefinition[] = [
+        {
+          key: 'table',
+          name: 'Table',
+          type: NocoSDK.VariableType.Object,
+          groupKey: NocoSDK.VariableGroupKey.Meta,
+          extra: {
+            description: 'Table information',
+            icon: 'cellJson',
+          },
+          children: [
+            {
+              key: 'table.id',
+              name: 'ID',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Meta,
+              extra: {
+                description: 'Table ID',
+                icon: 'cellSystemKey',
+              },
+            },
+            {
+              key: 'table.name',
+              name: 'Name',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Meta,
+              extra: {
+                description: 'Table name',
+                icon: 'cellText',
+              },
+            },
+          ],
+        },
+        {
+          key: 'user',
+          name: 'User',
+          type: NocoSDK.VariableType.Object,
+          groupKey: NocoSDK.VariableGroupKey.Meta,
+          extra: {
+            description: 'User who updated the record',
+            icon: 'cellSystemUser',
+          },
+          children: [
+            {
+              key: 'user.id',
+              name: 'ID',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Meta,
+              extra: {
+                description: 'User ID',
+                icon: 'cellSystemKey',
+              },
+            },
+            {
+              key: 'user.email',
+              name: 'Email',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Meta,
+              extra: {
+                description: 'User email',
+                icon: 'cellEmail',
+              },
+            },
+            {
+              key: 'user.name',
+              name: 'Name',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Meta,
+              extra: {
+                description: 'User name',
+                icon: 'cellText',
+              },
+            },
+          ],
+        },
+        {
+          key: 'trigger',
+          name: 'Trigger',
+          type: NocoSDK.VariableType.Object,
+          groupKey: NocoSDK.VariableGroupKey.Meta,
+          extra: {
+            description: 'Trigger information',
+            icon: 'cellJson',
+          },
+          children: [
+            {
+              key: 'trigger.type',
+              name: 'Type',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Meta,
+              extra: {
+                description: 'Trigger type',
+                icon: 'cellText',
+              },
+            },
+            {
+              key: 'trigger.timestamp',
+              name: 'Timestamp',
+              type: NocoSDK.VariableType.DateTime,
+              groupKey: NocoSDK.VariableGroupKey.Meta,
+              extra: {
+                description: 'When the trigger was activated',
+                icon: 'cellSystemDate',
+              },
+            },
+            {
+              key: 'affectedColumns',
+              name: 'Affected Columns',
+              type: NocoSDK.VariableType.Array,
+              groupKey: NocoSDK.VariableGroupKey.Meta,
+              isArray: true,
+              extra: {
+                description: 'List of column IDs that were changed',
+                icon: 'cellJson',
+              },
+              children: [
+                {
+                  key: 'affectedColumns.length',
+                  name: 'Count',
+                  type: NocoSDK.VariableType.Number,
+                  groupKey: NocoSDK.VariableGroupKey.Meta,
+                  extra: {
+                    description: 'Number of columns changed',
+                    icon: 'cellNumber',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ];
+
+      return [...recordVariables, ...previousRecordVariables, ...additionalVariables];
+    } catch {
+      return [];
     }
   }
 }

@@ -1,4 +1,6 @@
-import { FormBuilderInputType,   FormBuilderValidatorType,
+import {
+  FormBuilderInputType,
+  FormBuilderValidatorType,
   NocoSDK,
   WorkflowNodeCategory,
   WorkflowNodeIntegration, } from '@noco-integrations/core';
@@ -35,7 +37,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
         ],
       },
       {
-        type: FormBuilderInputType.Input,
+        type: FormBuilderInputType.WorkflowInput,
         label: 'Fields JSON',
         span: 24,
         model: 'config.fieldsJson',
@@ -195,6 +197,72 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
           executionTimeMs: executionTime,
         },
       };
+    }
+  }
+
+  public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    const variables: NocoSDK.VariableDefinition[] = [];
+    const { modelId } = this.config;
+
+    if (!modelId) return [];
+
+    try {
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: modelId,
+          user: this.nocodb.user as any,
+        }
+      );
+
+      if (!table) return [];
+
+      variables.push({
+        key: 'config.modelId',
+        name: 'Table',
+        type: NocoSDK.VariableType.String,
+        groupKey: NocoSDK.VariableGroupKey.Fields,
+        extra: {
+          tableName: table.title,
+          description: 'Selected table for record creation',
+        },
+      });
+
+      variables.push({
+        key: 'config.fieldsJson',
+        name: 'Fields',
+        type: NocoSDK.VariableType.String,
+        groupKey: NocoSDK.VariableGroupKey.Fields,
+        extra: {
+          description: 'JSON containing field values',
+        },
+      });
+
+      return variables;
+    } catch {
+      return [];
+    }
+  }
+
+  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    const { modelId } = this.config;
+
+    if (!modelId) return [];
+
+    try {
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: modelId,
+          user: this.nocodb.user as any,
+        }
+      );
+
+      if (!table) return [];
+
+      return NocoSDK.genRecordVariables(table.columns, false, 'record');
+    } catch {
+      return [];
     }
   }
 }

@@ -906,8 +906,8 @@ export const useEeConfig = createSharedComposable(() => {
     if (!blockAddNewWorkflow.value) return
 
     handleUpgradePlan({
-      title: t('upgrade.upgradeToAddMoreScripts'),
-      content: t('upgrade.upgradeToAddMoreScriptsSubtitle', {
+      title: t('upgrade.upgradeToAddMoreWorkflows'),
+      content: t('upgrade.upgradeToAddMoreWorkflowsSubtitle', {
         activePlan: activePlanTitle.value,
         limit: getLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE),
         plan: HigherPlan[activePlanTitle.value],

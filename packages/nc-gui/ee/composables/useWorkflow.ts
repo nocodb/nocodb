@@ -145,6 +145,47 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     return `${baseTitle}${maxNumber + 1}`
   }
 
+  const findAllChildNodes = (nodeId: string): Set<string> => {
+    const children = new Set<string>()
+    const visited = new Set<string>()
+
+    const traverse = (currentId: string) => {
+      if (visited.has(currentId)) return
+      visited.add(currentId)
+
+      const childEdges = edges.value.filter((edge) => edge.source === currentId)
+
+      for (const edge of childEdges) {
+        if (edge.target) {
+          children.add(edge.target)
+          traverse(edge.target)
+        }
+      }
+    }
+
+    traverse(nodeId)
+    return children
+  }
+
+  const clearChildNodesTestResults = (nodeId: string) => {
+    const childNodeIds = findAllChildNodes(nodeId)
+    if (childNodeIds.size === 0) return
+
+    const updatedNodes = nodes.value.map((node) => {
+      if (childNodeIds.has(node.id) && node.data?.testResult) {
+        const { testResult: _testResult, ...dataWithoutTestResult } = node.data
+        return {
+          ...node,
+          data: dataWithoutTestResult,
+        }
+      }
+      return node
+    })
+
+    nodes.value = updatedNodes
+    debouncedWorkflowUpdate()
+  }
+
   const addPlusNode = async (sourceNodeId: string, edgeLabel?: string) => {
     const plusNode: Node = {
       id: generateUniqueNodeId(nodes.value),
@@ -382,6 +423,151 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     }
   }
 
+  const testExecuteNode = async (nodeId: string, testTriggerData?: any) => {
+    if (!activeWorkspaceId.value || !activeProjectId.value || !workflow.value) return
+
+    try {
+      const result = await api.internal.postOperation(
+        activeWorkspaceId.value,
+        activeProjectId.value,
+        {
+          operation: 'workflowTestNode',
+        },
+        {
+          workflowId: workflow.value.id,
+          nodeId,
+          testTriggerData,
+        },
+      )
+
+      // Store test result in the node's data
+      const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
+      if (nodeIndex !== -1) {
+        const updatedNodes = [...nodes.value]
+        updatedNodes[nodeIndex] = {
+          ...updatedNodes[nodeIndex],
+          data: {
+            ...updatedNodes[nodeIndex].data,
+            testResult: result,
+          },
+        }
+        nodes.value = updatedNodes
+
+        // Save to backend
+        debouncedWorkflowUpdate()
+      }
+
+      message.success(`Test executed successfully for "${result.nodeTitle}"`)
+
+      return result
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      console.error('[Workflow] Test execution error:', e)
+    }
+  }
+
+  /**
+   * Find all parent nodes (upstream nodes) for a given node
+   * @param nodeId - The node ID to find parents for
+   * @returns Set of parent node IDs in execution order
+   */
+  const findAllParentNodes = (nodeId: string): string[] => {
+    const parents: string[] = []
+    const visited = new Set<string>()
+
+    const traverse = (currentId: string) => {
+      if (visited.has(currentId)) return
+      visited.add(currentId)
+
+      // Find edges that point to this node
+      const parentEdges = edges.value.filter((edge) => edge.target === currentId)
+
+      for (const edge of parentEdges) {
+        if (edge.source && edge.source !== currentId) {
+          // First traverse to parents of this parent (to maintain execution order)
+          traverse(edge.source)
+          // Then add this parent
+          if (!parents.includes(edge.source)) {
+            parents.push(edge.source)
+          }
+        }
+      }
+    }
+
+    traverse(nodeId)
+    return parents
+  }
+
+  /**
+   * Recursively prefix all variable keys (including children) with the node reference
+   */
+  const prefixVariableKeysRecursive = (variable: any, prefix: string): any => {
+    return {
+      ...variable,
+      key: `${prefix}.${variable.key}`,
+      children: variable.children?.map((child: any) => prefixVariableKeysRecursive(child, prefix)),
+    }
+  }
+
+  /**
+   * Get available variables from all upstream nodes for a given node
+   * These are the output variables from nodes that have been tested and come before this node
+   * @param nodeId - The node ID to get available variables for
+   * @returns Array of variable definitions with node context
+   */
+  const getAvailableVariables = (nodeId: string) => {
+    const parentNodeIds = findAllParentNodes(nodeId)
+    const variables: Array<{
+      nodeId: string
+      nodeTitle: string
+      nodeIcon?: string
+      variables: any[]
+    }> = []
+
+    for (const parentId of parentNodeIds) {
+      const parentNode = nodes.value.find((n) => n.id === parentId)
+      if (!parentNode) continue
+
+      // Skip nodes without test results or output variables
+      const testResult = parentNode.data?.testResult
+      if (!testResult?.outputVariables || testResult.outputVariables.length === 0) continue
+
+      // Get node definition to access the icon
+      const nodeMeta = getNodeMetaById(parentNode.type)
+      const nodeIcon = nodeMeta?.icon
+
+      const nodePrefix = `$('${parentNode.data?.title || parentId}')`
+
+      // Add the node's variables with node context, recursively prefixing all keys
+      variables.push({
+        nodeId: parentId,
+        nodeTitle: parentNode.data?.title || parentId,
+        nodeIcon,
+        variables: testResult.outputVariables.map((v: any) => ({
+          ...prefixVariableKeysRecursive(v, nodePrefix),
+          extra: {
+            ...v.extra,
+            sourceNodeId: parentId,
+            sourceNodeTitle: parentNode.data?.title || parentId,
+            nodeIcon,
+          },
+        })),
+      })
+    }
+
+    return variables
+  }
+
+  /**
+   * Get a flat list of all available variables for a node
+   * @param nodeId - The node ID to get available variables for
+   * @returns Flat array of variable definitions
+   */
+  const getAvailableVariablesFlat = (nodeId: string) => {
+    const groupedVariables = getAvailableVariables(nodeId)
+    return groupedVariables.flatMap((group) => group.variables)
+  }
+
   return {
     // State
     isSidebarOpen,
@@ -409,6 +595,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     getNodeTypesByCategory,
     getNodeMetaById,
     fetchNodeIntegrationOptions,
+    testExecuteNode,
+    clearChildNodesTestResults,
+    getAvailableVariables,
+    getAvailableVariablesFlat,
   }
 })
 

@@ -614,6 +614,15 @@ export class InternalController extends InternalControllerCE {
           integration: payload.integration,
           key: payload.key,
         });
+      case 'workflowTestNode':
+        return await this.workflowsService.testExecuteNode(
+          context,
+          payload.workflowId,
+          {
+            nodeId: payload.nodeId,
+            testTriggerData: payload.testTriggerData,
+          },
+        );
       default:
         return await super.internalAPIPost(
           context,

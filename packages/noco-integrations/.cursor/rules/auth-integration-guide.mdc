@@ -191,7 +191,7 @@ packages/provider-auth/
        model: 'config.type',
        category: 'Authentication',
        placeholder: 'Select auth type',
-       defaultValue: AuthType.ApiKey,
+       defaultValue: redirectUri && clientId ? AuthType.OAuth: AuthType.ApiKey,
        options: [
          {
            label: 'API Key', // Or 'Personal Access Token' for some providers
@@ -237,7 +237,7 @@ packages/provider-auth/
              type: FormBuilderInputType.OAuth,
              label: 'OAuth Configuration',
              span: 24,
-             model: 'config.oauth.code',
+             model: 'config.oauth',
              category: 'Authentication',
              validators: [
                {

@@ -430,7 +430,28 @@ export async function initFormulaLookupColumns(context: ITestContext) {
       uidt: UITypes.LastModifiedBy,
     },
   ];
+  const t3SupportingLookupColumns = [
+    {
+      title: 'T1CreatedTime',
+      uidt: UITypes.CreatedTime,
+    },
+    {
+      title: 'T1CreatedBy',
+      uidt: UITypes.CreatedBy,
+    },
+    {
+      title: 'T1LastModifiedTime',
+      uidt: UITypes.LastModifiedTime,
+    },
+    {
+      title: 'T1LastModifiedBy',
+      uidt: UITypes.LastModifiedBy,
+    },
+  ];
   for (const colAttr of t1SupportingLookupColumns) {
+    await createColumn(context.context, context.tables.table1, colAttr);
+  }
+  for (const colAttr of t3SupportingLookupColumns) {
     await createColumn(context.context, context.tables.table1, colAttr);
   }
   for (const colAttr of t2SupportingLookupColumns) {
@@ -443,9 +464,11 @@ export async function initFormulaLookupColumns(context: ITestContext) {
 
   const t1_BT_t2_Ltar = (
     await context.tables.table1.getColumns(context.ctx)
-  ).find(
-    (col) => parseProp(col.meta).bt && col.uidt === UITypes.LinkToAnotherRecord,
-  );
+  ).find((col) => col.title === 'Table2');
+  const t1_OO_t3_Ltar = (
+    await context.tables.table1.getColumns(context.ctx)
+  ).find((col) => col.title === 'Table3');
+
   const source = (await context.base.getSources())[0];
 
   await createLookupColumn(context.context, {
@@ -490,6 +513,21 @@ export async function initFormulaLookupColumns(context: ITestContext) {
       relationColumnId: t1_BT_t2_Ltar.id,
     });
   }
+  for (const attr of t3SupportingLookupColumns) {
+    await createLookupColumn(context.context, {
+      base: context.base,
+      title: attr.title,
+      table: await Model.getByIdOrName(context.ctx, {
+        base_id: context.base.id,
+        source_id: source.id!,
+        id: context.tables.table1.id,
+      }),
+      relatedTableName: context.tables.table2.table_name,
+      relatedTableColumnTitle: attr.title,
+      relationColumnId: t1_OO_t3_Ltar.id,
+    });
+  }
+
   const t2Fields = t1SupportingLookupColumns
     .map((col) => `{${col.title}}`)
     .join(',');

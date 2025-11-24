@@ -90,20 +90,29 @@ const handleShowInput = () => {
 <template>
   <div v-if="!isVisibleDefaultValueInput">
     <NcTooltip :disabled="!isSyncedField" placement="right">
-      <NcButton
-        size="small"
-        type="text"
-        class="!text-nc-content-gray-subtle"
-        data-testid="nc-show-default-value-btn"
-        :disabled="isSystem || isSyncedField"
-        @click.stop="handleShowInput"
+      <NcTooltip
+        :disabled="!vModel.unique"
+        placement="right"
       >
-        <div class="flex items-center gap-2">
-          <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
-          <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue').toLowerCase() }}</span>
-        </div>
-      </NcButton>
-
+        <template #title>
+          <div class="max-w-xs">
+            {{ $t('msg.info.defaultValueNotAllowedForUniqueFields') }}
+          </div>
+        </template>
+        <NcButton
+          size="small"
+          type="text"
+          class="!text-nc-content-gray-subtle"
+          data-testid="nc-show-default-value-btn"
+          :disabled="isSystem || isSyncedField || vModel.unique"
+          @click.stop="handleShowInput"
+        >
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
+            <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue').toLowerCase() }}</span>
+          </div>
+        </NcButton>
+      </NcTooltip>
       <template #title>
         {{ $t('msg.info.defaultValSyncedCol') }}
       </template>

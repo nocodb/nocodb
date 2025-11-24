@@ -34,6 +34,10 @@ export class SqliteDBErrorExtractor implements IClientDbErrorExtractor {
           _extra = {
             constraint,
           };
+          // Set type if it's a unique constraint violation
+          if (/UNIQUE/i.test(error.message)) {
+            _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
+          }
         }
         break;
       case 'SQLITE_CORRUPT':

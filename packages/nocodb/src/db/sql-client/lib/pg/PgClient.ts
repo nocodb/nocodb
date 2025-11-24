@@ -3105,6 +3105,29 @@ class PGClient extends KnexClient {
         );
         query += n.cdf ? ` SET DEFAULT ${defaultValue};\n` : ` DROP DEFAULT;\n`;
       }
+
+      // Handle unique constraint changes
+      // Use ADD CONSTRAINT / DROP CONSTRAINT instead of manually creating indexes
+      // PostgreSQL will automatically create a unique index when a UNIQUE constraint is added
+      if (n.unique !== o.unique) {
+        if (n.unique) {
+          // Add unique constraint - PostgreSQL will create the index automatically
+          const constraintName = `uk_${t}_${n.cn}`.replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 63);
+          query += this.genQuery(
+            `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,
+            [t, constraintName, n.cn],
+            shouldSanitize,
+          );
+        } else {
+          // Drop unique constraint - this will also drop the associated index
+          const constraintName = `uk_${t}_${n.cn}`.replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 63);
+          query += this.genQuery(
+            `\nALTER TABLE ?? DROP CONSTRAINT IF EXISTS ??;\n`,
+            [t, constraintName],
+            shouldSanitize,
+          );
+        }
+      }
     }
     return query;
   }

@@ -64,19 +64,38 @@ export function isUniqueConstraintSupportedType(uidt: UITypes, meta?: any): bool
  * @param uidt - UI data type
  * @param meta - Column metadata
  * @param unique - Unique constraint value
+ * @param source - Source object to check if it's NC-DB
+ * @param cdf - Column default value (to check mutual exclusivity)
  */
 export function validateUniqueConstraint(
   context: NcContext,
   uidt: UITypes,
   meta?: any,
   unique?: boolean,
+  source?: { is_meta?: boolean; is_local?: boolean },
+  cdf?: string,
 ): void {
   if (!unique) return; // No validation needed if not setting unique
 
+  // Check if source is NC-DB (meta or local)
+  if (source && !source.is_meta && !source.is_local) {
+    NcError.get(context).badRequest(
+      'Unique constraint is only supported for NC-DB (not external databases)'
+    );
+  }
+
+  // Check if field type supports unique constraint
   if (!isUniqueConstraintSupportedType(uidt, meta)) {
     const fieldTypeName = UITypes[uidt] || uidt;
     NcError.get(context).badRequest(
       `Unique constraint is not supported for field type '${fieldTypeName}'`
+    );
+  }
+
+  // Check if default value is set (mutually exclusive with unique constraint)
+  if (cdf !== null && cdf !== undefined && cdf !== '') {
+    NcError.get(context).badRequest(
+      'Cannot enable unique constraint because a default value is set. Please remove the default value first.'
     );
   }
 }

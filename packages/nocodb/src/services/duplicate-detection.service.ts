@@ -27,12 +27,35 @@ export class DuplicateDetectionService {
     const source = await Source.get(context, model.source_id);
     const knex: CustomKnex = await NcConnectionMgrv2.get(source);
     
-    const tableName = model.table_name;
+    // Get schema-qualified table name
+    let tableName = model.table_name;
+    if (source.type === 'pg') {
+      // For PostgreSQL, include schema if available
+      let schema: string;
+      if (source?.isMeta?.(true, 1)) {
+        schema = source.getConfig()?.schema;
+      } else {
+        schema = source.getConfig()?.searchPath?.[0];
+      }
+      if (schema) {
+        tableName = `${schema}.${tableName}`;
+      }
+    } else if (source.type === 'snowflake') {
+      // For Snowflake, include database and schema
+      const config = source.getConfig()?.connection || source.getConfig();
+      if (config?.database && config?.schema) {
+        tableName = `${config.database}.${config.schema}.${tableName}`;
+      }
+    }
+    
     const columnName = column.column_name;
     const primaryKey = model.primaryKey;
     
-    if (!primaryKey) {
-      throw NcError.get(context).internalServerError('Primary key not found');
+    // If excludeRowId is provided but no primary key exists, we can't exclude a specific row
+    if (excludeRowId && !primaryKey) {
+      throw NcError.get(context).internalServerError(
+        'Cannot exclude row: Primary key not found. Tables without primary keys cannot use row exclusion in duplicate checks.'
+      );
     }
 
     let query = knex(tableName)
@@ -43,16 +66,17 @@ export class DuplicateDetectionService {
     // For text fields, we need to check for case-insensitive and trimmed duplicates
     if ([UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL].includes(column.uidt)) {
       // Use database-specific case-insensitive comparison
+      // Since we're already querying from the table, we can reference the column directly
       if (source.type === 'pg') {
-        query = query.whereRaw(`LOWER(TRIM(??.??)) IS NOT NULL`, [tableName, columnName]);
+        query = query.whereRaw(`LOWER(TRIM(??)) IS NOT NULL`, [columnName]);
       } else if (source.type === 'mysql2' || source.type === 'mysql') {
-        query = query.whereRaw(`TRIM(??.??) IS NOT NULL`, [tableName, columnName]);
+        query = query.whereRaw(`TRIM(??) IS NOT NULL`, [columnName]);
       } else {
-        query = query.whereRaw(`LOWER(TRIM(??.??)) IS NOT NULL`, [tableName, columnName]);
+        query = query.whereRaw(`LOWER(TRIM(??)) IS NOT NULL`, [columnName]);
       }
     }
 
-    if (excludeRowId) {
+    if (excludeRowId && primaryKey) {
       query = query.where(primaryKey.column_name, '!=', excludeRowId);
     }
 
@@ -108,12 +132,35 @@ export class DuplicateDetectionService {
     const source = await Source.get(context, model.source_id);
     const knex: CustomKnex = await NcConnectionMgrv2.get(source);
     
-    const tableName = model.table_name;
+    // Get schema-qualified table name
+    let tableName = model.table_name;
+    if (source.type === 'pg') {
+      // For PostgreSQL, include schema if available
+      let schema: string;
+      if (source?.isMeta?.(true, 1)) {
+        schema = source.getConfig()?.schema;
+      } else {
+        schema = source.getConfig()?.searchPath?.[0];
+      }
+      if (schema) {
+        tableName = `${schema}.${tableName}`;
+      }
+    } else if (source.type === 'snowflake') {
+      // For Snowflake, include database and schema
+      const config = source.getConfig()?.connection || source.getConfig();
+      if (config?.database && config?.schema) {
+        tableName = `${config.database}.${config.schema}.${tableName}`;
+      }
+    }
+    
     const columnName = column.column_name;
     const primaryKey = model.primaryKey;
     
-    if (!primaryKey) {
-      throw NcError.get(context).internalServerError('Primary key not found');
+    // If excludeRowId is provided but no primary key exists, we can't exclude a specific row
+    if (excludeRowId && !primaryKey) {
+      throw NcError.get(context).internalServerError(
+        'Cannot exclude row: Primary key not found. Tables without primary keys cannot use row exclusion in unique value validation.'
+      );
     }
 
     const normalizedValue = normalizeValueForUniqueCheck(value, column.uidt);
@@ -127,19 +174,20 @@ export class DuplicateDetectionService {
     // Build query based on field type
     if ([UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL].includes(column.uidt)) {
       // Case-insensitive, trimmed comparison for text fields
+      // Since we're already querying from the table, we can reference the column directly
       if (source.type === 'pg') {
-        query = query.whereRaw(`LOWER(TRIM(??.??)) = LOWER(TRIM(?))`, [tableName, columnName, String(value)]);
+        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [columnName, String(value)]);
       } else if (source.type === 'mysql2' || source.type === 'mysql') {
-        query = query.whereRaw(`LOWER(TRIM(??.??)) = LOWER(TRIM(?))`, [tableName, columnName, String(value)]);
+        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [columnName, String(value)]);
       } else {
-        query = query.whereRaw(`LOWER(TRIM(??.??)) = LOWER(TRIM(?))`, [tableName, columnName, String(value)]);
+        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [columnName, String(value)]);
       }
     } else {
       // Exact comparison for other types
       query = query.where(columnName, value);
     }
 
-    if (excludeRowId) {
+    if (excludeRowId && primaryKey) {
       query = query.where(primaryKey.column_name, '!=', excludeRowId);
     }
 
@@ -165,7 +213,27 @@ export class DuplicateDetectionService {
     const source = await Source.get(context, model.source_id);
     const knex: CustomKnex = await NcConnectionMgrv2.get(source);
     
-    const tableName = model.table_name;
+    // Get schema-qualified table name
+    let tableName = model.table_name;
+    if (source.type === 'pg') {
+      // For PostgreSQL, include schema if available
+      let schema: string;
+      if (source?.isMeta?.(true, 1)) {
+        schema = source.getConfig()?.schema;
+      } else {
+        schema = source.getConfig()?.searchPath?.[0];
+      }
+      if (schema) {
+        tableName = `${schema}.${tableName}`;
+      }
+    } else if (source.type === 'snowflake') {
+      // For Snowflake, include database and schema
+      const config = source.getConfig()?.connection || source.getConfig();
+      if (config?.database && config?.schema) {
+        tableName = `${config.database}.${config.schema}.${tableName}`;
+      }
+    }
+    
     const columnName = column.column_name;
 
     let query = knex(tableName)

@@ -6,6 +6,7 @@ export {
   NcBaseErrorv2,
   NcErrorArgs,
   OptionsNotExistsError,
+  UniqueConstraintViolationError,
   BadRequestV2 as BadRequest,
   MetaError,
   SsoError,

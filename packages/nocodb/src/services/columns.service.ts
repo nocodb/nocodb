@@ -328,6 +328,8 @@ export class ColumnsService implements IColumnsService {
               cn: column.column_name,
               cno: c.column_name,
               altered: Altered.UPDATE_COLUMN,
+              // Map unique to ck (column_key) for database operations
+              ck: column.unique ? 1 : (column.unique === false ? 0 : c.ck),
             };
 
             if (args.processColumn) {
@@ -583,17 +585,40 @@ export class ColumnsService implements IColumnsService {
     };
 
     // Validate unique constraint for column updates
-    if ('unique' in param.column && param.column.unique) {
-      validateUniqueConstraint(context, param.column.uidt || column.uidt, param.column.meta || column.meta, param.column.unique);
-      
-      // Check for existing duplicates if enabling unique constraint
-      if (!column.unique && param.column.unique) {
-        const duplicateCheck = await this.duplicateDetectionService.checkForDuplicates(context, column);
-        if (duplicateCheck.hasDuplicates) {
-          NcError.get(context).badRequest(
-            `Found ${duplicateCheck.count} duplicate values in this field. Please edit or remove duplicates before enabling uniqueness.`
-          );
+    if ('unique' in param.column) {
+      // Check if disabling unique constraint (always allowed)
+      if (!param.column.unique && column.unique) {
+        // Disabling is allowed, no validation needed
+      } else if (param.column.unique) {
+        // Enabling or keeping unique constraint enabled
+        validateUniqueConstraint(
+          context,
+          param.column.uidt || column.uidt,
+          param.column.meta || column.meta,
+          param.column.unique,
+          source,
+          param.column.cdf !== undefined ? param.column.cdf : column.cdf,
+        );
+        
+        // Check for existing duplicates if enabling unique constraint
+        if (!column.unique && param.column.unique) {
+          const duplicateCheck = await this.duplicateDetectionService.checkForDuplicates(context, column);
+          if (duplicateCheck.hasDuplicates) {
+            NcError.get(context).badRequest(
+              `Found ${duplicateCheck.count} duplicate values in this field. Please edit or remove duplicates before enabling uniqueness.`
+            );
+          }
         }
+      }
+    }
+
+    // Check if default value is being set when unique constraint is enabled
+    if ('cdf' in param.column && param.column.cdf !== null && param.column.cdf !== undefined && param.column.cdf !== '') {
+      const currentUnique = param.column.unique !== undefined ? param.column.unique : column.unique;
+      if (currentUnique) {
+        NcError.get(context).badRequest(
+          'Default values are not allowed for unique fields. Please disable the unique constraint first.'
+        );
       }
     }
 
@@ -2413,7 +2438,21 @@ export class ColumnsService implements IColumnsService {
 
     // Validate unique constraint
     if (colBody.unique) {
-      validateUniqueConstraint(context, colBody.uidt, colBody.meta, colBody.unique);
+      validateUniqueConstraint(
+        context,
+        colBody.uidt,
+        colBody.meta,
+        colBody.unique,
+        source,
+        colBody.cdf,
+      );
+    }
+
+    // Check if default value is being set when unique constraint is enabled
+    if (colBody.cdf !== null && colBody.cdf !== undefined && colBody.cdf !== '' && colBody.unique) {
+      NcError.get(context).badRequest(
+        'Default values are not allowed for unique fields. Please disable the unique constraint first.'
+      );
     }
 
     const colExtra = {

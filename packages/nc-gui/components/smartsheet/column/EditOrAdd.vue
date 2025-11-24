@@ -126,6 +126,8 @@ const readOnly = computed(() => props.readonly)
 
 const { isMysql, isDatabricks, isXcdbBase } = useBase()
 
+const { canEnableUniqueConstraint, isUniqueConstraintSupportedType } = useUniqueConstraintHelpers()
+
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
@@ -503,6 +505,28 @@ onMounted(() => {
         emit('add', formState.value)
       }
     }
+
+    // Watch for mutual exclusivity between unique constraint and default value
+    watch(
+      () => formState.value.unique,
+      (newUnique) => {
+        if (newUnique && formState.value.cdf) {
+          // If enabling unique constraint, clear default value
+          formState.value.cdf = null
+          isVisibleDefaultValueInput.value = false
+        }
+      },
+    )
+
+    watch(
+      () => formState.value.cdf,
+      (newCdf) => {
+        if (newCdf && formState.value.unique) {
+          // If setting default value, disable unique constraint
+          formState.value.unique = false
+        }
+      },
+    )
 
     if (isForm.value && !props.fromTableExplorer && !enableDescription.value) {
       setTimeout(() => {
@@ -1347,20 +1371,51 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
           !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
-          !(isDatabricks(meta!.source_id) && formState.unique) &&
+          !isDatabricks(meta!.source_id) &&
+          !formState.unique &&
           !isAI(formState)
           "
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
             />
 
+            <!-- Unique Constraint Toggle -->
             <div
-              v-if="isDatabricks(meta!.source_id) && !formState.cdf && ![UITypes.MultiSelect, UITypes.Checkbox, UITypes.Rating, UITypes.Attachment, UITypes.Lookup, UITypes.Rollup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(formState.uidt)"
+              v-if="
+                isXcdbBase(meta!.source_id) &&
+                !isVirtualCol(formState) &&
+                isUniqueConstraintSupportedType(formState.uidt, formState.meta)
+              "
               class="flex gap-1"
             >
-              <NcSwitch v-model:checked="formState.unique" size="small" class="nc-switch">
-                <div class="text-sm text-nc-content-gray">Set as Unique</div>
-              </NcSwitch>
+              <NcTooltip
+                :disabled="canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
+                placement="right"
+              >
+                <template #title>
+                  <div class="max-w-xs">
+                    {{ canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).reason }}
+                  </div>
+                </template>
+                <NcSwitch
+                  v-model:checked="formState.unique"
+                  size="small"
+                  class="nc-switch"
+                  :disabled="!canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
+                >
+                  <div class="text-sm text-nc-content-gray flex items-center gap-1">
+                    <span>{{ $t('labels.uniqueValuesOnly') }}</span>
+                    <NcTooltip placement="right">
+                      <template #title>
+                        <div class="max-w-xs">
+                          {{ $t('msg.info.uniqueConstraintTooltip') }}
+                        </div>
+                      </template>
+                      <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+                    </NcTooltip>
+                  </div>
+                </NcSwitch>
+              </NcTooltip>
             </div>
           </div>
           <template v-if="easterEgg || (appInfo.ee && isAttachment(formState))">

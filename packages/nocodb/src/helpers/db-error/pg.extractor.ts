@@ -35,6 +35,11 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
       }
       case '23505':
         message = 'This record already exists.';
+        _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
+        // Note: This is a fallback message. If handleUniqueConstraintError is called
+        // before this extractor, it will throw UniqueConstraintViolationError with
+        // proper field name. This extractor only processes errors that weren't
+        // handled by handleUniqueConstraintError.
         break;
       case '42601':
         message = 'There was a syntax error in your SQL query.';

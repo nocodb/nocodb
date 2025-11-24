@@ -35,6 +35,7 @@ import {
   PermissionKey,
   RelationTypes,
   UITypes,
+  UniqueConstraintViolationError,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { Knex } from 'knex';
@@ -108,7 +109,7 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
-import { normalizeValueForUniqueCheck } from '~/helpers/uniqueConstraintHelpers';
+import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import {
   Audit,
   BaseUser,
@@ -2012,7 +2013,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         .update(updateObj)
         .where(await this._wherePk(id, true));
 
-      await this.execAndParse(query, null, { raw: true });
+      try {
+        await this.execAndParse(query, null, { raw: true });
+      } catch (e: any) {
+        // Handle unique constraint violations (throws if it's a unique constraint error)
+        const columns = await this.model.getColumns(this.context);
+        handleUniqueConstraintError(
+          e,
+          this.context,
+          columns,
+          this.dbDriver.clientType(),
+          updateObj, // Pass update data to help identify which column caused the violation
+        );
+        // If not a unique constraint error, re-throw the original error
+        throw e;
+      }
 
       const newId = this.extractPksValues(
         {
@@ -2474,7 +2489,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const pkValues = this.extractPksValues(data);
           updatedPks.push(pkValues);
           const wherePk = await this._wherePk(pkValues, true);
-          await trx(this.tnPath).update(data).where(wherePk);
+          try {
+            await trx(this.tnPath).update(data).where(wherePk);
+          } catch (e: any) {
+            // Handle unique constraint violations (throws if it's a unique constraint error)
+            handleUniqueConstraintError(
+              e,
+              this.context,
+              columns,
+              this.dbDriver.clientType(),
+              data, // Pass update data to help identify which column caused the violation
+            );
+            // If not a unique constraint error, re-throw the original error
+            throw e;
+          }
         }
       }
 
@@ -2945,15 +2973,44 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           this.model.primaryKeys.length === 1 &&
           (this.isPg || this.isMySQL || this.isSqlite)
         ) {
-          await batchUpdate(
-            transaction,
-            this.tnPath,
-            toBeUpdated.map((o) => o.d),
-            this.model.primaryKey.column_name,
-          );
+          try {
+            await batchUpdate(
+              transaction,
+              this.tnPath,
+              toBeUpdated.map((o) => o.d),
+              this.model.primaryKey.column_name,
+            );
+          } catch (e: any) {
+            // Handle unique constraint violations (throws if it's a unique constraint error)
+            const columns = await this.model.getColumns(this.context);
+            // For bulk update, we can't determine which specific row/column, so pass undefined
+            handleUniqueConstraintError(
+              e,
+              this.context,
+              columns,
+              this.dbDriver.clientType(),
+              undefined, // Bulk update - can't determine specific column from data
+            );
+            // If not a unique constraint error, re-throw the original error
+            throw e;
+          }
         } else {
           for (const o of toBeUpdated) {
-            await transaction(this.tnPath).update(o.d).where(o.wherePk);
+            try {
+              await transaction(this.tnPath).update(o.d).where(o.wherePk);
+            } catch (e: any) {
+              // Handle unique constraint violations (throws if it's a unique constraint error)
+              const columns = await this.model.getColumns(this.context);
+              handleUniqueConstraintError(
+                e,
+                this.context,
+                columns,
+                this.dbDriver.clientType(),
+                o.d, // Pass update data to help identify which column caused the violation
+              );
+              // If not a unique constraint error, re-throw the original error
+              throw e;
+            }
           }
         }
 
@@ -3956,9 +4013,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // Validates the constraints on the data based on the column definitions
       this.validateConstraints(column, data);
-      
-      // Validate unique constraints
-      await this.validateUniqueConstraints(column, data);
 
       // skip validation if `validate` is undefined or false
       if (!column?.meta?.validate || !column?.validate) continue;
@@ -3996,68 +4050,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  /*
-   *  Utility method to validate unique constraints
-   */
-  protected async validateUniqueConstraints(
-    column: Column<any>,
-    data: Record<string, any>,
-  ) {
-    // Skip if column doesn't have unique constraint
-    if (!column.unique) {
-      return;
-    }
-
-    const value = data[column.title] ?? data[column.column_name] ?? data[column.id];
-    
-    // Allow empty values (null, undefined, empty string)
-    if (value === null || value === undefined || value === '') {
-      return;
-    }
-
-    // Get the primary key value for excluding current record (for updates)
-    const primaryKey = this.model.primaryKey;
-    const excludeRowId = primaryKey ? data[primaryKey.title] ?? data[primaryKey.column_name] : null;
-
-    // Build query to check for duplicates
-    const normalizedValue = normalizeValueForUniqueCheck(value, column.uidt);
-    
-    if (normalizedValue === null) {
-      return; // Skip validation for empty normalized values
-    }
-
-    let query = this.dbDriver(this.tnPath).count('* as count');
-
-    // Build query based on field type for case-insensitive comparison
-    if ([UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL].includes(column.uidt)) {
-      // Use database-specific case-insensitive comparison
-      const clientType = this.dbDriver.clientType();
-      if (clientType === 'pg') {
-        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [column.column_name, String(value)]);
-      } else if (clientType === 'mysql' || clientType === 'mysql2') {
-        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [column.column_name, String(value)]);
-      } else {
-        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [column.column_name, String(value)]);
-      }
-    } else {
-      // Exact comparison for other types
-      query = query.where(column.column_name, value);
-    }
-
-    // Exclude current record for updates
-    if (excludeRowId && primaryKey) {
-      query = query.where(primaryKey.column_name, '!=', excludeRowId);
-    }
-
-    const result = await query.first();
-    const count = parseInt(result?.count || '0');
-
-    if (count > 0) {
-      NcError.get(this.context).badRequest(
-        `Duplicate value '${value}' found in field '${column.title}'`
-      );
-    }
-  }
 
   public async getHighestOrderInTable(): Promise<BigNumber> {
     const orderColumn = this.model.columns.find(
@@ -4899,18 +4891,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     query = this.sanitizeQuery(query);
 
-    if (this.isPg || this.isSnowflake) {
-      return (await trx.raw(query))?.rows;
-    } else if (SELECT_REGEX.test(query)) {
-      return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
-    } else if (this.isMySQL && INSERT_REGEX.test(query)) {
-      const res = await trx.raw(query);
-      if (res && res[0] && res[0].insertId) {
-        return res[0].insertId;
+    try {
+      if (this.isPg || this.isSnowflake) {
+        return (await trx.raw(query))?.rows;
+      } else if (SELECT_REGEX.test(query)) {
+        return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
+      } else if (this.isMySQL && INSERT_REGEX.test(query)) {
+        const res = await trx.raw(query);
+        if (res && res[0] && res[0].insertId) {
+          return res[0].insertId;
+        }
+        return res;
+      } else {
+        return await trx.raw(query);
       }
-      return res;
-    } else {
-      return await trx.raw(query);
+    } catch (e: any) {
+      // For insert/update operations, unique constraint errors should be handled
+      // by the calling code (insert.ts, update methods). We just re-throw here.
+      throw e;
     }
   }
 

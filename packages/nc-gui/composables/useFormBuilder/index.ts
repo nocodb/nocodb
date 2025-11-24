@@ -22,6 +22,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
     const fieldOptions = ref<Record<string, any[]>>({})
 
+    const isLoadingFieldOptions = ref<Record<string, boolean>>({})
+
     const dependencyWatcherCleanups: Array<() => void> = []
 
     const setNestedProp = (obj: any, path: string, value: any) => {
@@ -74,11 +76,21 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
        */
       if (!fetchOptions || !field.fetchOptionsKey || !field.model || !checkCondition(field)) return []
 
-      fieldOptions.value[field.model] = await fetchOptions(field.fetchOptionsKey)
+      isLoadingFieldOptions.value[field.model] = true
+
+      try {
+        fieldOptions.value[field.model] = await fetchOptions(field.fetchOptionsKey)
+      } finally {
+        isLoadingFieldOptions.value[field.model] = false
+      }
     }
 
     const getFieldOptions = (model: string) => {
       return fieldOptions.value[model] || []
+    }
+
+    const getIsLoadingFieldOptions = (model: string) => {
+      return ncIsUndefined(fieldOptions.value[model]) || !!isLoadingFieldOptions.value[model]
     }
 
     const setupDependencyWatchers = () => {
@@ -309,6 +321,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       setFormState,
       loadOptions,
       getFieldOptions,
+      getIsLoadingFieldOptions,
     }
   },
   'form-builder-helper',

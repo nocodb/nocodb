@@ -152,7 +152,10 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
         }
       }
 
-      console.error('errors', errors)
+      if (errors?.length) {
+        console.error('errors', errors)
+      }
+
       return errors?.length === 0
     }
 

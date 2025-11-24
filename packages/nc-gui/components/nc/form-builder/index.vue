@@ -17,6 +17,7 @@ const {
   setFormState,
   loadOptions,
   getFieldOptions,
+  getIsLoadingFieldOptions,
 } = useFormBuilderHelperOrThrow()
 
 const { loadIntegrations, addIntegration, integrations, eventBus, pageMode, IntegrationsPageMode } =
@@ -232,7 +233,7 @@ watch(
                       :options="field.fetchOptionsKey ? getFieldOptions(field.model) : field.options"
                       :mode="selectMode(field)"
                       show-search
-                      :loading="field.fetchOptionsKey && getFieldOptions(field.model)?.length === 0"
+                      :loading="field.fetchOptionsKey && getIsLoadingFieldOptions(field.model)"
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </NcFormBuilderInputMountedWrapper>

@@ -47,6 +47,7 @@ export class DataExportController {
       context,
       options: {
         ...(options ?? {}),
+        // includeByteOrderMark when export is triggered from controller
         includeByteOrderMark: true,
       },
       modelId: view.fk_model_id,

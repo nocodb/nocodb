@@ -3112,7 +3112,9 @@ class PGClient extends KnexClient {
       if (n.unique !== o.unique) {
         if (n.unique) {
           // Add unique constraint - PostgreSQL will create the index automatically
-          const constraintName = `uk_${t}_${n.cn}`.replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 63);
+          const constraintName = `uk_${t}_${n.cn}`
+            .replace(/[^a-zA-Z0-9_]/g, '_')
+            .slice(0, 63);
           query += this.genQuery(
             `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,
             [t, constraintName, n.cn],
@@ -3120,7 +3122,9 @@ class PGClient extends KnexClient {
           );
         } else {
           // Drop unique constraint - this will also drop the associated index
-          const constraintName = `uk_${t}_${n.cn}`.replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 63);
+          const constraintName = `uk_${t}_${n.cn}`
+            .replace(/[^a-zA-Z0-9_]/g, '_')
+            .slice(0, 63);
           query += this.genQuery(
             `\nALTER TABLE ?? DROP CONSTRAINT IF EXISTS ??;\n`,
             [t, constraintName],

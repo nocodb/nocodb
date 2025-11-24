@@ -2018,12 +2018,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } catch (e: any) {
         // Handle unique constraint violations (throws if it's a unique constraint error)
         const columns = await this.model.getColumns(this.context);
-        handleUniqueConstraintError(
+        await handleUniqueConstraintError(
           e,
           this.context,
           columns,
           this.dbDriver.clientType(),
           updateObj, // Pass update data to help identify which column caused the violation
+          this.dbDriver, // Pass dbDriver for querying duplicates
+          this.tnPath, // Pass table name for querying duplicates
         );
         // If not a unique constraint error, re-throw the original error
         throw e;
@@ -2493,12 +2495,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             await trx(this.tnPath).update(data).where(wherePk);
           } catch (e: any) {
             // Handle unique constraint violations (throws if it's a unique constraint error)
-            handleUniqueConstraintError(
+            await handleUniqueConstraintError(
               e,
               this.context,
               columns,
               this.dbDriver.clientType(),
               data, // Pass update data to help identify which column caused the violation
+              trx, // Pass transaction as dbDriver for querying duplicates
+              this.tnPath, // Pass table name for querying duplicates
             );
             // If not a unique constraint error, re-throw the original error
             throw e;
@@ -2984,11 +2988,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             // Handle unique constraint violations (throws if it's a unique constraint error)
             const columns = await this.model.getColumns(this.context);
             // For bulk update, we can't determine which specific row/column, so pass undefined
-            handleUniqueConstraintError(
+            await handleUniqueConstraintError(
               e,
               this.context,
               columns,
               this.dbDriver.clientType(),
+              undefined, // Bulk update - can't determine specific row data
+              transaction, // Pass transaction as dbDriver for querying duplicates
+              this.tnPath, // Pass table name for querying duplicates
               undefined, // Bulk update - can't determine specific column from data
             );
             // If not a unique constraint error, re-throw the original error
@@ -3001,12 +3008,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             } catch (e: any) {
               // Handle unique constraint violations (throws if it's a unique constraint error)
               const columns = await this.model.getColumns(this.context);
-              handleUniqueConstraintError(
+              await handleUniqueConstraintError(
                 e,
                 this.context,
                 columns,
                 this.dbDriver.clientType(),
                 o.d, // Pass update data to help identify which column caused the violation
+                transaction, // Pass transaction as dbDriver for querying duplicates
+                this.tnPath, // Pass table name for querying duplicates
               );
               // If not a unique constraint error, re-throw the original error
               throw e;
@@ -4049,7 +4058,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
   }
-
 
   public async getHighestOrderInTable(): Promise<BigNumber> {
     const orderColumn = this.model.columns.find(

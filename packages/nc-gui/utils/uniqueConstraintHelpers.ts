@@ -1,4 +1,4 @@
-import { UITypes, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, UITypes } from 'nocodb-sdk'
 
 /**
  * Field types that support unique constraints
@@ -56,7 +56,7 @@ export function isUniqueConstraintSupportedType(uidt: UITypes, meta?: any): bool
   if (uidt === UITypes.LongText && meta?.richMode) {
     return false
   }
-  
+
   return UNIQUE_CONSTRAINT_SUPPORTED_TYPES.includes(uidt)
 }
 
@@ -66,10 +66,7 @@ export function isUniqueConstraintSupportedType(uidt: UITypes, meta?: any): bool
  * @param isXcdbBase - Whether the source is NC-DB
  * @returns object with canEnable flag and reason if cannot enable
  */
-export function canEnableUniqueConstraint(
-  column: ColumnType,
-  isXcdbBase: boolean,
-): { canEnable: boolean; reason?: string } {
+export function canEnableUniqueConstraint(column: ColumnType, isXcdbBase: boolean): { canEnable: boolean; reason?: string } {
   // Check if source is NC-DB
   if (!isXcdbBase) {
     return {
@@ -97,5 +94,3 @@ export function canEnableUniqueConstraint(
 
   return { canEnable: true }
 }
-
-

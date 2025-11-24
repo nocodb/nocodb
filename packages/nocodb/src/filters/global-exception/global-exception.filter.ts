@@ -25,10 +25,10 @@ import {
   NcError,
   NotFound,
   OptionsNotExistsError,
-  UniqueConstraintViolationError,
   SsoError,
   TestConnectionError,
   Unauthorized,
+  UniqueConstraintViolationError,
   UnprocessableEntity,
 } from '~/helpers/catchError';
 
@@ -195,9 +195,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         )}" provided for column "${exception.columnTitle}"`,
         error: 'ERR_INVALID_VALUE_FOR_FIELD',
       });
-    } else if (
-      exception instanceof UniqueConstraintViolationError
-    ) {
+    } else if (exception instanceof UniqueConstraintViolationError) {
       const httpStatus = apiVersion === NcApiVersion.V3 ? 409 : 400;
       return response.status(httpStatus).json({
         error: 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',

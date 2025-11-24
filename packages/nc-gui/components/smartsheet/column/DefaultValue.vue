@@ -90,10 +90,7 @@ const handleShowInput = () => {
 <template>
   <div v-if="!isVisibleDefaultValueInput">
     <NcTooltip :disabled="!isSyncedField" placement="right">
-      <NcTooltip
-        :disabled="!vModel.unique"
-        placement="right"
-      >
+      <NcTooltip :disabled="!vModel.unique" placement="right">
         <template #title>
           <div class="max-w-xs">
             {{ $t('msg.info.defaultValueNotAllowedForUniqueFields') }}

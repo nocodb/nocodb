@@ -1,12 +1,12 @@
-import { UITypes, type ColumnType } from 'nocodb-sdk'
-import { isUniqueConstraintSupportedType, canEnableUniqueConstraint as checkCanEnableUniqueConstraint } from '~/utils/uniqueConstraintHelpers'
+import { type ColumnType, UITypes } from 'nocodb-sdk'
+import {
+  canEnableUniqueConstraint as checkCanEnableUniqueConstraint,
+  isUniqueConstraintSupportedType,
+} from '~/utils/uniqueConstraintHelpers'
 
 export function useUniqueConstraintHelpers() {
   return {
     isUniqueConstraintSupportedType,
-    canEnableUniqueConstraint: (column: ColumnType, isXcdbBase: boolean) =>
-      checkCanEnableUniqueConstraint(column, isXcdbBase),
+    canEnableUniqueConstraint: (column: ColumnType, isXcdbBase: boolean) => checkCanEnableUniqueConstraint(column, isXcdbBase),
   }
 }
-
-

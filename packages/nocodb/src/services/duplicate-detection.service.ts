@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { UITypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type CustomKnex from '~/db/CustomKnex';
-import { Column, Model, Source } from '~/models';
+import type { Column } from '~/models';
+import { Model, Source } from '~/models';
 import { normalizeValueForUniqueCheck } from '~/helpers/uniqueConstraintHelpers';
 import { NcError } from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
@@ -10,7 +11,6 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class DuplicateDetectionService {
-  
   /**
    * Checks for duplicate non-empty values in a column
    * @param context - NocoDB context
@@ -21,12 +21,12 @@ export class DuplicateDetectionService {
   async checkForDuplicates(
     context: NcContext,
     column: Column,
-    excludeRowId?: string | number
+    excludeRowId?: string | number,
   ): Promise<{ hasDuplicates: boolean; count: number }> {
     const model = await column.getModel(context);
     const source = await Source.get(context, model.source_id);
     const knex: CustomKnex = await NcConnectionMgrv2.get(source);
-    
+
     // Get schema-qualified table name
     let tableName = model.table_name;
     if (source.type === 'pg') {
@@ -47,14 +47,14 @@ export class DuplicateDetectionService {
         tableName = `${config.database}.${config.schema}.${tableName}`;
       }
     }
-    
+
     const columnName = column.column_name;
     const primaryKey = model.primaryKey;
-    
+
     // If excludeRowId is provided but no primary key exists, we can't exclude a specific row
     if (excludeRowId && !primaryKey) {
       throw NcError.get(context).internalServerError(
-        'Cannot exclude row: Primary key not found. Tables without primary keys cannot use row exclusion in duplicate checks.'
+        'Cannot exclude row: Primary key not found. Tables without primary keys cannot use row exclusion in duplicate checks.',
       );
     }
 
@@ -64,7 +64,15 @@ export class DuplicateDetectionService {
       .where(columnName, '!=', '');
 
     // For text fields, we need to check for case-insensitive and trimmed duplicates
-    if ([UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL].includes(column.uidt)) {
+    if (
+      [
+        UITypes.SingleLineText,
+        UITypes.LongText,
+        UITypes.Email,
+        UITypes.PhoneNumber,
+        UITypes.URL,
+      ].includes(column.uidt)
+    ) {
       // Use database-specific case-insensitive comparison
       // Since we're already querying from the table, we can reference the column directly
       if (source.type === 'pg') {
@@ -81,20 +89,20 @@ export class DuplicateDetectionService {
     }
 
     const results = await query;
-    
+
     // Group by normalized values to detect duplicates
     const valueGroups = new Map<string, number>();
-    
+
     for (const row of results) {
       const value = row[columnName];
       const normalizedValue = normalizeValueForUniqueCheck(value, column.uidt);
-      
+
       if (normalizedValue !== null) {
         const key = String(normalizedValue);
         valueGroups.set(key, (valueGroups.get(key) || 0) + 1);
       }
     }
-    
+
     // Count duplicates
     let duplicateCount = 0;
     for (const [, count] of valueGroups) {
@@ -102,10 +110,10 @@ export class DuplicateDetectionService {
         duplicateCount += count;
       }
     }
-    
+
     return {
       hasDuplicates: duplicateCount > 0,
-      count: duplicateCount
+      count: duplicateCount,
     };
   }
 
@@ -121,7 +129,7 @@ export class DuplicateDetectionService {
     context: NcContext,
     column: Column,
     value: any,
-    excludeRowId?: string | number
+    excludeRowId?: string | number,
   ): Promise<boolean> {
     // Allow empty values (null, undefined, empty string)
     if (value === null || value === undefined || value === '') {
@@ -131,7 +139,7 @@ export class DuplicateDetectionService {
     const model = await column.getModel(context);
     const source = await Source.get(context, model.source_id);
     const knex: CustomKnex = await NcConnectionMgrv2.get(source);
-    
+
     // Get schema-qualified table name
     let tableName = model.table_name;
     if (source.type === 'pg') {
@@ -152,19 +160,19 @@ export class DuplicateDetectionService {
         tableName = `${config.database}.${config.schema}.${tableName}`;
       }
     }
-    
+
     const columnName = column.column_name;
     const primaryKey = model.primaryKey;
-    
+
     // If excludeRowId is provided but no primary key exists, we can't exclude a specific row
     if (excludeRowId && !primaryKey) {
       throw NcError.get(context).internalServerError(
-        'Cannot exclude row: Primary key not found. Tables without primary keys cannot use row exclusion in unique value validation.'
+        'Cannot exclude row: Primary key not found. Tables without primary keys cannot use row exclusion in unique value validation.',
       );
     }
 
     const normalizedValue = normalizeValueForUniqueCheck(value, column.uidt);
-    
+
     if (normalizedValue === null) {
       return true; // Empty values are always allowed
     }
@@ -172,15 +180,32 @@ export class DuplicateDetectionService {
     let query = knex(tableName).count('* as count');
 
     // Build query based on field type
-    if ([UITypes.SingleLineText, UITypes.LongText, UITypes.Email, UITypes.PhoneNumber, UITypes.URL].includes(column.uidt)) {
+    if (
+      [
+        UITypes.SingleLineText,
+        UITypes.LongText,
+        UITypes.Email,
+        UITypes.PhoneNumber,
+        UITypes.URL,
+      ].includes(column.uidt)
+    ) {
       // Case-insensitive, trimmed comparison for text fields
       // Since we're already querying from the table, we can reference the column directly
       if (source.type === 'pg') {
-        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [columnName, String(value)]);
+        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [
+          columnName,
+          String(value),
+        ]);
       } else if (source.type === 'mysql2' || source.type === 'mysql') {
-        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [columnName, String(value)]);
+        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [
+          columnName,
+          String(value),
+        ]);
       } else {
-        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [columnName, String(value)]);
+        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [
+          columnName,
+          String(value),
+        ]);
       }
     } else {
       // Exact comparison for other types
@@ -192,8 +217,8 @@ export class DuplicateDetectionService {
     }
 
     const result = await query.first();
-    const count = parseInt(result?.count || '0');
-    
+    const count = parseInt(String(result?.count || '0'), 10);
+
     return count === 0;
   }
 
@@ -207,12 +232,12 @@ export class DuplicateDetectionService {
   async getDuplicateValues(
     context: NcContext,
     column: Column,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<Array<{ value: any; count: number }>> {
     const model = await column.getModel(context);
     const source = await Source.get(context, model.source_id);
     const knex: CustomKnex = await NcConnectionMgrv2.get(source);
-    
+
     // Get schema-qualified table name
     let tableName = model.table_name;
     if (source.type === 'pg') {
@@ -233,10 +258,10 @@ export class DuplicateDetectionService {
         tableName = `${config.database}.${config.schema}.${tableName}`;
       }
     }
-    
+
     const columnName = column.column_name;
 
-    let query = knex(tableName)
+    const query = knex(tableName)
       .select(columnName)
       .count('* as count')
       .whereNotNull(columnName)
@@ -247,10 +272,10 @@ export class DuplicateDetectionService {
       .limit(limit);
 
     const results = await query;
-    
-    return results.map(row => ({
+
+    return results.map((row) => ({
       value: row[columnName],
-      count: parseInt(row.count)
+      count: parseInt(row.count),
     }));
   }
 }

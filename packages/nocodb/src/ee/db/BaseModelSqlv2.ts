@@ -51,6 +51,7 @@ import type { NcContext } from '~/interface/config';
 import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 // import type { SelectOption } from '~/models';
 import { Source, View } from '~/models';
+import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import {
   batchUpdate,

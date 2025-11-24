@@ -75,13 +75,15 @@ export async function extractSdkResponseErrorMsgv2(e: Error & { response: any })
  */
 export function isUniqueConstraintViolationError(e: Error & { response?: any }): boolean {
   if (!e?.response?.data) return false
-  
+
   const errorData = e.response.data
   // Check for FIELD_UNIQUE_CONSTRAINT_VIOLATION error code
-  return errorData.error === 'FIELD_UNIQUE_CONSTRAINT_VIOLATION' || 
-         errorData.error === NcErrorType.FIELD_UNIQUE_CONSTRAINT_VIOLATION ||
-         errorData.message?.includes('Duplicate value') ||
-         errorData.msg?.includes('Duplicate value')
+  return (
+    errorData.error === 'FIELD_UNIQUE_CONSTRAINT_VIOLATION' ||
+    errorData.error === NcErrorType.FIELD_UNIQUE_CONSTRAINT_VIOLATION ||
+    errorData.message?.includes('Duplicate value') ||
+    errorData.msg?.includes('Duplicate value')
+  )
 }
 
 export { NcErrorType }

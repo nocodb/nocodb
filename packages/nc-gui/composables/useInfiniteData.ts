@@ -1678,13 +1678,13 @@ export function useInfiniteData(args: {
         if (errorData?.fieldName) {
           errorMessage = `Field "${errorData.fieldName}": ${errorData.message || t('msg.error.uniqueConstraintViolation')}`
         } else {
-          errorMessage = await extractSdkResponseErrorMsg(e) || t('msg.error.uniqueConstraintViolation')
+          errorMessage = (await extractSdkResponseErrorMsg(e)) || t('msg.error.uniqueConstraintViolation')
         }
         message.error(errorMessage)
         // Add visual cue (red border) - will be handled by cell component
         return undefined
       }
-      
+
       toUpdate.row[property] = toUpdate.oldRow[property]
       const errorMessage = await extractSdkResponseErrorMsg(e)
       message.error(`${t('msg.error.rowUpdateFailed')}: ${errorMessage}`)

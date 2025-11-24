@@ -427,7 +427,8 @@ export async function extractColumn({
                            title: getAs(column),
                          }),
                        )
-                       .toQuery()}) as ?? ON true`,
+                       .toQuery()
+                       .replaceAll('?', '\\?')}) as ?? ON true`,
                 [alias1],
               );
 
@@ -503,7 +504,8 @@ export async function extractColumn({
                       isBtOrOo: true,
                     }),
                   )
-                  .toQuery()}) as ?? ON true`,
+                  .toQuery()
+                  .replaceAll('?', '\\?')}) as ?? ON true`,
                 [alias1],
               );
 
@@ -581,7 +583,8 @@ export async function extractColumn({
                         isBtOrOo: true,
                       }),
                     )
-                    .toQuery()}) as ?? ON true`,
+                    .toQuery()
+                    .replaceAll('?', '\\?')}) as ?? ON true`,
                   [alias1],
                 );
 
@@ -629,7 +632,8 @@ export async function extractColumn({
                         isBtOrOo: true,
                       }),
                     )
-                    .toQuery()}) as ?? ON true`,
+                    .toQuery()
+                    .replaceAll('?', '\\?')}) as ?? ON true`,
                   [alias1],
                 );
                 qb.select(knex.raw('??.??', [alias1, getAs(column)]));
@@ -720,7 +724,8 @@ export async function extractColumn({
                       title: getAs(column),
                     }),
                   )
-                  .toQuery()}) as ?? ON true`,
+                  .toQuery()
+                  .replaceAll('?', '\\?')}) as ?? ON true`,
                 [alias1],
               );
               qb.select(knex.raw('??.??', [alias1, getAs(column)]));
@@ -1067,7 +1072,8 @@ export async function extractColumn({
                      getAs(column),
                    ]),
                  )
-                 .toQuery()}) as ?? ON true`,
+                 .toQuery()
+                 .replaceAll('?', '\\?')}) as ?? ON true`,
             [lookupTableAlias],
           );
         } else if (isArray) {
@@ -1081,7 +1087,11 @@ export async function extractColumn({
                   getAs(column),
                 ]),
               )
-              .toQuery()},json_array_elements(??.??) as ?? ) as ?? ON true`,
+              .toQuery()
+              .replaceAll(
+                '?',
+                '\\?',
+              )},json_array_elements(??.??) as ?? ) as ?? ON true`,
             [alias2, getAs(lookupColumn), alias, lookupTableAlias],
           );
         } else {
@@ -1095,7 +1105,8 @@ export async function extractColumn({
                   getAs(column),
                 ]),
               )
-              .toQuery()}) as ?? ON true`,
+              .toQuery()
+              .replaceAll('?', '\\?')}) as ?? ON true`,
             [lookupTableAlias],
           );
         }
@@ -1184,14 +1195,19 @@ export async function extractColumn({
     case UITypes.Rollup:
     case UITypes.Links:
       qb.select(
-        (
-          await genRollupSelectv2({
-            baseModelSqlv2: baseModel,
-            knex,
-            columnOptions: await column.getColOptions(context),
-            alias: rootAlias,
-          })
-        ).builder.as(getAs(column)),
+        knex.raw(
+          `(${(
+            await genRollupSelectv2({
+              baseModelSqlv2: baseModel,
+              knex,
+              columnOptions: await column.getColOptions(context),
+              alias: rootAlias,
+            })
+          ).builder
+            .toQuery()
+            .replaceAll('?', '\\?')}) as ??`,
+          [getAs(column)],
+        ),
       );
       break;
     case UITypes.Barcode:

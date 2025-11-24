@@ -184,6 +184,72 @@ function formulaErrorTests() {
       msg.startsWith(`Detected circular ref for column `),
     );
   });
+
+  it(`will create a formula longer than 500k characters`, async () => {
+    const longFormula = 'CONCAT("' + 'A'.repeat(500 * 1000) + '", "A")';
+    try {
+      await createColumn(
+        _context,
+        _tables.table1,
+        {
+          title: 'longFormulaColumn',
+          uidt: UITypes.Formula,
+          formula: longFormula,
+          formula_raw: longFormula,
+        },
+        {
+          throwError: true,
+          responseAsError: true,
+        },
+      );
+      // If no error is thrown, fail the test
+      expect.fail('Expected formula creation to fail due to length limit');
+    } catch (ex) {
+      expect(ex.body.message).to.satisfy((msg) =>
+        msg.startsWith('Formula length too long for '),
+      );
+    }
+  });
+
+  it(`will update a formula longer than 500k characters`, async () => {
+    const longFormula = 'CONCAT("' + 'A'.repeat(500 * 1000) + '", "A")';
+    try {
+      const createdFormulaColumn = await createColumn(
+        _context,
+        _tables.table1,
+        {
+          title: 'longFormulaColumn',
+          uidt: UITypes.Formula,
+          formula: 'CONCAT("A", "1A")',
+          formula_raw: 'CONCAT("A", "1A")',
+        },
+        {
+          throwError: true,
+          responseAsError: true,
+        },
+      );
+
+      const updateResponse = await updateColumn2(_context, {
+        columnId: createdFormulaColumn.id,
+        baseId: _ctx.base_id,
+        attr: {
+          title: 'longFormulaColumn',
+          options: {
+            formula: longFormula,
+          },
+        },
+      });
+      if (updateResponse.statusCode >= 400) {
+        throw updateResponse;
+      }
+      // If no error is thrown, fail the test
+      expect.fail('Expected formula creation to fail due to length limit');
+    } catch (ex) {
+      expect(ex.body.message).to.satisfy((msg) =>
+        msg.startsWith('Formula length too long for '),
+      );
+    }
+  });
 }
 
 export function formulaErrorTest() {

@@ -4,7 +4,10 @@ import { AppModule } from '~/app.module';
 
 export default async function (app) {
   if (!app) app = express();
-  const nestApp = await NestFactory.create(AppModule);
+  const nestApp = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+    bodyParser: false,
+  });
   await nestApp.init();
 
   const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';

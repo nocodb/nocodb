@@ -6,9 +6,10 @@ import {
 } from 'nocodb-sdk';
 import request from 'supertest';
 import { expect } from 'chai';
+import { NcApiVersion } from 'nocodb-sdk';
 import Model from '../../../src/models/Model';
 import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
-import type { ColumnType, NcApiVersion } from 'nocodb-sdk';
+import type { ColumnType } from 'nocodb-sdk';
 import type Column from '../../../src/models/Column';
 import type Filter from '../../../src/models/Filter';
 import type { Base, Sort, View } from '../../../src/models';
@@ -293,6 +294,33 @@ const listRow = async ({
   return await baseModel.list(options, { ignorePagination });
 };
 
+const chunkListRow = async ({
+  base,
+  table,
+  pks,
+}: {
+  base: Base;
+  table: Model;
+  pks: string[];
+}) => {
+  const ctx = {
+    workspace_id: base.fk_workspace_id,
+    base_id: base.id,
+  };
+
+  const sources = await base.getSources();
+  const baseModel = await Model.getBaseModelSQL(ctx, {
+    id: table.id,
+    dbDriver: await NcConnectionMgrv2.get(sources[0]!),
+  });
+
+  return await baseModel.chunkList({
+    pks,
+    chunkSize: 25,
+    apiVersion: NcApiVersion.V3,
+  });
+};
+
 const countRows = async ({
   base,
   table,
@@ -433,7 +461,7 @@ const createBulkRowsV3 = async (
       .post(`/api/v3/data/${base.id}/${table.id}/records`)
       .set('xc-auth', context.token)
       .send(chunk);
-    
+
     expect(res.status).to.equal(200);
   }
 };
@@ -508,6 +536,7 @@ export {
   createChildRow,
   getOneRow,
   listRow,
+  chunkListRow,
   generateDefaultRowAttributes,
   generateMixedRowAttributes,
   createBulkRows,

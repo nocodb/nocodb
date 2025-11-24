@@ -174,6 +174,7 @@ export function useCanvasTable({
   const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
   const { isAllowed } = usePermissions()
+  const { getColor } = useTheme()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{
@@ -575,13 +576,13 @@ export function useCanvasTable({
   const baseColor = computed(() => {
     switch (groupByColumns.value.length) {
       case 1:
-        return '#F9F9FA'
+        return getColor(themeV4Colors.gray['50'])
       case 2:
-        return '#F4F4F5'
+        return getColor(themeV4Colors.gray['100'])
       case 3:
-        return '#E7E7E9'
+        return getColor(themeV4Colors.gray['200'])
       default:
-        return '#F9F9FA'
+        return getColor(themeV4Colors.gray['50'])
     }
   })
 

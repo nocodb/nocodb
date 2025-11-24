@@ -383,7 +383,7 @@ export function useCanvasRender({
         spriteLoader.renderIcon(ctx, {
           icon: 'alertTriangle',
           size: 14,
-          color: getColor(themeV4Colors.orange['500']),
+          color: getColor(themeV4Colors.red['300']),
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7 + 1,
         })
@@ -655,7 +655,7 @@ export function useCanvasRender({
           spriteLoader.renderIcon(ctx, {
             icon: 'alertTriangle',
             size: 14,
-            color: getColor(themeV4Colors.orange['500']),
+            color: getColor(themeV4Colors.red['300']),
             x: rightOffset,
             y: y - 7,
           })
@@ -707,7 +707,7 @@ export function useCanvasRender({
       })
 
       if (scrollLeft.value) {
-        ctx.strokeStyle = getColor(themeV4Colors.gray['400'])
+        ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
         ctx.beginPath()
         ctx.lineWidth = 1
         ctx.moveTo(xOffset, 0)
@@ -988,7 +988,7 @@ export function useCanvasRender({
 
       if (isHovered && !selectedRows.value.length && !vSelectedAllRecords.value) {
         roundedRect(ctx, currentX, yOffset + (rowHeight.value - 24) / 2, 24, 24, 4, {
-          backgroundColor: isHovered ? getColor(themeV4Colors.gray['100']) : 'transparent',
+          backgroundColor: isHovered ? getColor(themeV4Colors.gray['200']) : 'transparent',
         })
       } else if (isHovered) {
         // For now we support on single row reorder if rows are not selected so we have to set cursor
@@ -1381,8 +1381,8 @@ export function useCanvasRender({
         // Vertical cell lines
         ctx.strokeStyle =
           isHovered || recordSelected || isColumnInSelection || isRowCellSelected || columnState || prevColumnState
-            ? getColor(themeV4Colors.gray['300'])
-            : getColor(themeV4Colors.gray['200'])
+            ? getColor(themeV4Colors.gray['200'])
+            : getColor(themeV4Colors.gray['100'])
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, yOffset)
         ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
@@ -3406,7 +3406,7 @@ export function useCanvasRender({
     ctx.scale(dpr, dpr)
 
     ctx.clearRect(0, 0, width.value, canvas.height)
-    ctx.fillStyle = getColor(themeV4Colors.gray['100'])
+    ctx.fillStyle = getColor(themeV4Colors.gray['50'])
     ctx.fillRect(0, 0, width.value, canvas.height)
 
     let activeState

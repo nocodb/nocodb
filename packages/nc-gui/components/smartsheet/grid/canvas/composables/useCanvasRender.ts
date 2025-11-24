@@ -750,7 +750,7 @@ export function useCanvasRender({
     let borderColor = getColor(themeV4Colors.brand['500'])
 
     if (activeState.col.isSyncedColumn && !isPublic.value) {
-      borderColor = '#9AA2AF'
+      borderColor = getColor(themeV4Colors.gray['400'])
 
       const boxRect = {
         x: activeState.x,
@@ -2801,7 +2801,7 @@ export function useCanvasRender({
         background: groupBackgroundColor,
         border: groupBorderColor,
         aggregation: { hover: aggregationHoverBg, default: aggregationDefaultBg, border: aggregationBorderColor },
-      } = getGroupColors(level, groupByColumns.value.length)
+      } = getGroupColors(level, groupByColumns.value.length, getColor)
 
       if (groupHeaderY + groupHeight >= 0 && groupHeaderY < height.value) {
         let tempCurrentOffset = currentOffset + GROUP_HEADER_HEIGHT
@@ -3096,7 +3096,7 @@ export function useCanvasRender({
         spriteLoader.renderIcon(ctx, {
           icon: group?.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
           size: 16,
-          color: '#374150',
+          color: getColor(themeV4Colors.gray['700']),
           x: xOffset + 12,
           y: groupHeaderY + (GROUP_HEADER_HEIGHT - 16) / 2,
         })

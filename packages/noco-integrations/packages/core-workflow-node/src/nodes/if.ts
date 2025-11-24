@@ -145,7 +145,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
         return this.evaluateConditionItem(item, ctx, logs);
       });
 
-      const finalResult = results.every((r: boolean) => r)
+      const finalResult = results.every((r: boolean) => r);
       const executionTime = Date.now() - startTime;
 
       logs.push({

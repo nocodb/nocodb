@@ -150,10 +150,8 @@ export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | Comp
 
 export const IsOrgBillingInj: InjectionKey<Ref<boolean>> = Symbol('is-org-billing-injection')
 
-export const WorkflowVariableInj: InjectionKey<
-  Ref<{
-    selectedNodeId: Ref<string | null>
-    getAvailableVariablesFlat: (nodeId: string) => any[]
-    getAvailableVariables: (nodeId: string) => Array<{ nodeId: string; nodeTitle: string; variables: any[] }>
-  }>
-> = Symbol('workflow-variable-injection')
+export const WorkflowVariableInj: InjectionKey<{
+  selectedNodeId: Ref<string | null>
+  getAvailableVariablesFlat: (nodeId: string) => any[]
+  getAvailableVariables: (nodeId: string) => Array<{ nodeId: string; nodeTitle: string; variables: any[] }>
+}> = Symbol('workflow-variable-injection')

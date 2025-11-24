@@ -354,9 +354,9 @@ export class WorkflowExpressionParser {
       const left = this.evaluateNode(node.left);
 
       if (node.operator === '&&') {
-        return left ? this.evaluateNode(node.right) : left;
+        return left ? !!this.evaluateNode(node.right) : !!left;
       } else {
-        return left ? left : this.evaluateNode(node.right);
+        return left ? !!left : !!this.evaluateNode(node.right);
       }
     }
 

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import request from 'supertest';
 
-import { UITypes } from 'nocodb-sdk';
+import { parseProp, UITypes } from 'nocodb-sdk';
 import { Model } from '../../../src/models';
 import Base from '../../../src/models/Base';
 import { createProject } from '../factory/base';
@@ -77,7 +77,6 @@ const getDuplicatedRows = (tableName: string) => {
  * Used by: tests/unit/formula/tests/formula-lookup-ltar.test.ts
  */
 export async function initInitialModel() {
-  console.time('#### formulaLookupLtarTests');
   const context = await init();
   const base = await createProject(context);
 
@@ -394,9 +393,59 @@ export async function initFormulaLookupColumns(context: ITestContext) {
       formula_raw: 'CONCAT({Title}, "?")',
     },
   );
+  const t2SupportingLookupColumns = [
+    {
+      title: 'T2CreatedTime',
+      uidt: UITypes.CreatedTime,
+    },
+    {
+      title: 'T2CreatedBy',
+      uidt: UITypes.CreatedBy,
+    },
+    {
+      title: 'T2LastModifiedTime',
+      uidt: UITypes.LastModifiedTime,
+    },
+    {
+      title: 'T2LastModifiedBy',
+      uidt: UITypes.LastModifiedBy,
+    },
+  ];
+
+  const t1SupportingLookupColumns = [
+    {
+      title: 'T1CreatedTime',
+      uidt: UITypes.CreatedTime,
+    },
+    {
+      title: 'T1CreatedBy',
+      uidt: UITypes.CreatedBy,
+    },
+    {
+      title: 'T1LastModifiedTime',
+      uidt: UITypes.LastModifiedTime,
+    },
+    {
+      title: 'T1LastModifiedBy',
+      uidt: UITypes.LastModifiedBy,
+    },
+  ];
+  for (const colAttr of t1SupportingLookupColumns) {
+    await createColumn(context.context, context.tables.table1, colAttr);
+  }
+  for (const colAttr of t2SupportingLookupColumns) {
+    await createColumn(context.context, context.tables.table2, colAttr);
+  }
+
   const t2_HM_t1_Ltar = (
     await context.tables.table2.getColumns(context.ctx)
   ).find((col) => col.title === 'T1s');
+
+  const t1_BT_t2_Ltar = (
+    await context.tables.table1.getColumns(context.ctx)
+  ).find(
+    (col) => parseProp(col.meta).bt && col.uidt === UITypes.LinkToAnotherRecord,
+  );
   const source = (await context.base.getSources())[0];
 
   await createLookupColumn(context.context, {
@@ -412,49 +461,54 @@ export async function initFormulaLookupColumns(context: ITestContext) {
     relationColumnId: t2_HM_t1_Ltar.id,
   });
 
-  const t2FformulaColumn = await createColumn(
-    context.context,
-    context.tables.table2,
-    {
-      title: 'T2FormulaTitle',
-      uidt: UITypes.Formula,
-      formula: 'CONCAT({Title}, "?")',
-      formula_raw: 'CONCAT({Title}, "?")',
-    },
-  );
-  const t1_BT_t2_Ltar = (
-    await context.tables.table1.getColumns(context.ctx)
-  ).find((col) => col.title === 'Table2');
+  for (const attr of t1SupportingLookupColumns) {
+    await createLookupColumn(context.context, {
+      base: context.base,
+      title: attr.title,
+      table: await Model.getByIdOrName(context.ctx, {
+        base_id: context.base.id,
+        source_id: source.id!,
+        id: context.tables.table2.id,
+      }),
+      relatedTableName: context.tables.table1.table_name,
+      relatedTableColumnTitle: attr.title,
+      relationColumnId: t2_HM_t1_Ltar.id,
+    });
+  }
 
-  await createLookupColumn(context.context, {
-    base: context.base,
-    title: 'table2FormulaTitle',
-    table: await Model.getByIdOrName(context.ctx, {
-      base_id: context.base.id,
-      source_id: source.id!,
-      id: context.tables.table1.id,
-    }),
-    relatedTableName: context.tables.table2.table_name,
-    relatedTableColumnTitle: 'T2FormulaTitle',
-    relationColumnId: t1_BT_t2_Ltar.id,
+  for (const attr of t2SupportingLookupColumns) {
+    await createLookupColumn(context.context, {
+      base: context.base,
+      title: attr.title,
+      table: await Model.getByIdOrName(context.ctx, {
+        base_id: context.base.id,
+        source_id: source.id!,
+        id: context.tables.table1.id,
+      }),
+      relatedTableName: context.tables.table2.table_name,
+      relatedTableColumnTitle: attr.title,
+      relationColumnId: t1_BT_t2_Ltar.id,
+    });
+  }
+  const t2Fields = t1SupportingLookupColumns
+    .map((col) => `{${col.title}}`)
+    .join(',');
+  const t1Fields = t2SupportingLookupColumns
+    .map((col) => `{${col.title}}`)
+    .join(',');
+  // t2 formula for supporting lookup
+  await createColumn(context.context, context.tables.table2, {
+    title: 't2SupportingLookupFormula',
+    uidt: UITypes.Formula,
+    formula: `CONCAT(${t2Fields})`,
+    formula_raw: `CONCAT(${t2Fields})`,
   });
-
-  // oo
-  const t3_OO_t1_Ltar = (
-    await context.tables.table3.getColumns(context.ctx)
-  ).find((col) => col.title === 'T1_OO');
-
-  await createLookupColumn(context.context, {
-    base: context.base,
-    title: 'table1FormulaTitle',
-    table: await Model.getByIdOrName(context.ctx, {
-      base_id: context.base.id,
-      source_id: source.id!,
-      id: context.tables.table3.id,
-    }),
-    relatedTableName: context.tables.table1.table_name,
-    relatedTableColumnTitle: 'FormulaTitle',
-    relationColumnId: t3_OO_t1_Ltar.id,
+  // t1 formula for supporting lookup
+  await createColumn(context.context, context.tables.table1, {
+    title: 't1SupportingLookupFormula',
+    uidt: UITypes.Formula,
+    formula: `CONCAT(${t1Fields})`,
+    formula_raw: `CONCAT(${t1Fields})`,
   });
 }
 

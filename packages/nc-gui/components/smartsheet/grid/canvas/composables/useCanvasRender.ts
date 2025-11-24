@@ -303,7 +303,7 @@ export function useCanvasRender({
             x: xOffset - scrollLeft.value,
             y: 0,
             radius: 0,
-            fillStyle: '#ffffff88',
+            fillStyle: getColor(themeV4Colors.base.white, undefined, 0.533),
           })
           renderTag(ctx, {
             height: headerRowHeight.value,

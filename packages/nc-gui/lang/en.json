@@ -2108,7 +2108,7 @@
     "syncForThisCategoryAlreadyAdded": "Sync for this category already added",
     "selectSyncCategory": "Select a sync category",
     "categoryNotEditableInEditMode": "Category not editable in edit mode",
-    "syncScopeNotEditableInEditMode": "Sync scope not editable in edit mode"
+    "syncScopeNotEditableInEditMode": "Sync scope can't be modified"
   },
   "placeholder": {
     "enterSyncName": "Enter sync name",

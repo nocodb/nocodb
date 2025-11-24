@@ -5,7 +5,20 @@ const defaultDateFormat = 'YYYY-MM-DD'
 
 export const DateCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor, selected, readonly } = props
+    const {
+      column,
+      value,
+      x,
+      y,
+      width,
+      height,
+      pv,
+      padding,
+      textColor = themeV4Colors.gray['600'],
+      getColor,
+      selected,
+      readonly,
+    } = props
 
     const dateFormat = parseProp(column?.meta)?.date_format ?? defaultDateFormat
     let formattedDate = ''

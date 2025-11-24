@@ -3,7 +3,19 @@ import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTag
 
 export const PhoneNumberCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor, selected, setCursor } = props
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      pv,
+      padding,
+      textColor = themeV4Colors.gray['600'],
+      getColor,
+      selected,
+      setCursor,
+    } = props
 
     const text = value?.toString() ?? ''
 

@@ -2,7 +2,22 @@ import { isBoxHovered, renderSingleLineText, renderTagLabel } from '../utils/can
 
 export const LinksCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, x, y, width, height, padding, t, spriteLoader, mousePosition, readonly, setCursor, selected, getColor } = props
+    const {
+      column,
+      value,
+      x,
+      y,
+      width,
+      height,
+      padding,
+      t,
+      spriteLoader,
+      mousePosition,
+      readonly,
+      setCursor,
+      selected,
+      getColor,
+    } = props
 
     const parsedValue = +value || 0
 

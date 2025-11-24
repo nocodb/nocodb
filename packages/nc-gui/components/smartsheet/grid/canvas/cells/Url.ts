@@ -2,7 +2,21 @@ import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTag
 
 export const UrlCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, column, width, height, selected, pv, padding, textColor = themeV4Colors.gray['600'], getColor, spriteLoader, setCursor } = props
+    const {
+      value,
+      x,
+      y,
+      column,
+      width,
+      height,
+      selected,
+      pv,
+      padding,
+      textColor = themeV4Colors.gray['600'],
+      getColor,
+      spriteLoader,
+      setCursor,
+    } = props
 
     const text = addMissingUrlSchma(value?.toString() ?? '')
 

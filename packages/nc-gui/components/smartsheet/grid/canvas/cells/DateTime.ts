@@ -57,8 +57,8 @@ export const DateTimeCellRenderer: CellRenderer = {
     const dateStr = dateTimeValue?.format(dateFormat) ?? ''
     const truncatedDate = truncateText(ctx, dateStr, dateWidth - 4 * 2)
 
-    ;(ctx.fillStyle = pv ? getColor(themeV4Colors.brand['500']) : getColor(themeV4Colors.gray['600'])),
-      ctx.fillText(truncatedDate, x + padding, textY)
+    ctx.fillStyle = pv ? getColor(themeV4Colors.brand['500']) : getColor(themeV4Colors.gray['600'])
+    ctx.fillText(truncatedDate, x + padding, textY)
 
     const timeStr = dateTimeValue?.format(is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat) ?? ''
     const truncatedTime = truncateText(ctx, timeStr, timeWidth)

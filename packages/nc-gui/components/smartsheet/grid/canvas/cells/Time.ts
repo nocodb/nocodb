@@ -3,7 +3,20 @@ import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTa
 
 export const TimeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, selected, value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor, readonly } = props
+    const {
+      column,
+      selected,
+      value,
+      x,
+      y,
+      width,
+      height,
+      pv,
+      padding,
+      textColor = themeV4Colors.gray['600'],
+      getColor,
+      readonly,
+    } = props
 
     const timeFormat = parseProp(column?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm'
 

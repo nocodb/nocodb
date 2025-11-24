@@ -55,8 +55,7 @@ export const PercentCellRenderer: CellRenderer = {
       return
     }
 
-    ctx.fillStyle = pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
-
+    ctx.fillStyle = pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor)
     renderSingleLineText(ctx, {
       x: x + width - padding,
       y,

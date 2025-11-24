@@ -184,6 +184,7 @@ onMounted(() => {
     }
 
     if (!expression) {
+      console.error('No expression found in match', match)
       continue
     }
 

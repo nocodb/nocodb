@@ -232,7 +232,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
 
       const executionTime = Date.now() - startTime;
 
-      const recordCount = result.length
+      const recordCount = result.length;
 
       logs.push({
         level: 'info',

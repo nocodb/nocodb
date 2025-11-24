@@ -61,7 +61,7 @@ const currentVariables = computed(() => {
       return node.variables
     }
   }
-  return selectedNode.value?.variables || []
+  return Array.isArray(selectedNode.value?.variables) ? selectedNode.value.variables : []
 })
 
 const currentTitle = computed(() => {

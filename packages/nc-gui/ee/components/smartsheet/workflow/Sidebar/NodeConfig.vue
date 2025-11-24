@@ -37,7 +37,7 @@ const { formState } = useProvideFormBuilderHelper({
         ...selectedNode.value?.data,
         ...formState.value,
         testResult: {
-          ...(selectedNode.value?.testResult || {}),
+          ...(selectedNode.value?.data?.testResult || {}),
           isStale: true,
         },
       },

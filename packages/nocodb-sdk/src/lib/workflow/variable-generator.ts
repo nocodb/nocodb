@@ -519,7 +519,7 @@ export function prefixVariableKeys(
   return {
     ...variable,
     key: `${prefix}.${variable.key}`,
-    children: variable.children?.map((child) =>
+    children: (variable.children ?? []).map((child) =>
       prefixVariableKeys(child, prefix)
     ),
   };

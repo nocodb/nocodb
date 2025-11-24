@@ -18,6 +18,7 @@ import type {
   DuplicateColumnJobData,
   DuplicateModelJobData,
 } from '~/interface/Jobs';
+import type { NocoHrTime } from '~/modules/jobs/helpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import { Base, Column, Model, Source } from '~/models';
 import { BasesService } from '~/services/bases.service';
@@ -743,7 +744,7 @@ export class DuplicateProcessor {
       sourceModels: Model[];
       destProject: Base;
       destBase: Source;
-      hrTime: { hrTime: [number, number] };
+      hrTime: NocoHrTime;
       modelFieldIds?: Record<string, string[]>;
       externalModels?: Model[];
       options?: {

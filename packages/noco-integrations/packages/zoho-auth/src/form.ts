@@ -101,7 +101,7 @@ export const form: FormDefinition = [
           type: FormBuilderInputType.OAuth,
           label: 'OAuth configuration',
           span: 24,
-          model: 'config.oauth.code',
+          model: 'config.oauth',
           category: 'Authentication',
           validators: [
             {

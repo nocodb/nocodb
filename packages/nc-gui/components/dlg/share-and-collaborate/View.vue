@@ -90,7 +90,10 @@ watch(showShareModal, (val) => {
             </span>
           </div>
         </div>
-        <div v-if="isLocked || isViewSharingRestricted" class="flex items-center gap-x-2 px-4 text-nc-content-gray-muted">
+        <div
+          v-if="isLocked || isViewSharingRestricted"
+          class="inline-flex items-center gap-x-2 mx-3 px-1 text-nc-content-gray-muted bg-nc-bg-gray-light rounded-md"
+        >
           <div v-if="isViewSharingRestricted" class="flex items-center justify-center h-4 w-4">
             <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
           </div>
@@ -150,7 +153,10 @@ watch(showShareModal, (val) => {
             {{ base.title }}
           </div>
         </div>
-        <div v-if="isPrivateBase" class="flex items-center gap-x-2 px-4 text-nc-content-gray-muted">
+        <div
+          v-if="isPrivateBase"
+          class="inline-flex items-center gap-x-2 mx-3 px-1 text-nc-content-gray-subtle2 bg-nc-bg-gray-light rounded-md"
+        >
           <div class="flex items-center justify-center h-4 w-5">
             <GeneralIcon icon="ncBasePrivate" class="flex-none w-3.5 h-3.5" />
           </div>

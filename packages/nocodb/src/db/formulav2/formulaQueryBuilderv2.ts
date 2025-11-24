@@ -509,12 +509,12 @@ export default async function formulaQueryBuilderv2({
     if (sqlLength > 500 * 1000) {
       const columnInfo = {
         title: column?.title ? `column ${column.title}` : 'new column',
-        id: column?.id ?? '__newcolumn__',
+        id: column?.id ? ` (${column.id})` : '',
       };
       TelemetryHandlerService.sendPriorityError(context, {
         trigger: 'formulaQueryBuilder',
         error_type: 'FORMULA_TOO_LONG_ERROR',
-        message: `Formula length too long for ${columnInfo.title} (${columnInfo.id})`,
+        message: `Formula length too long for ${columnInfo.title}${columnInfo.id}`,
       });
       NcError.get(context).formulaError(
         `Formula length too long for ${columnInfo.title}`,

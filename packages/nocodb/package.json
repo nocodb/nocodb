@@ -270,6 +270,7 @@
     "react-email": "4.0.15",
     "run-script-webpack-plugin": "0.2.2",
     "semver": "^7.5.4",
+    "sinon": "^21.0.0",
     "supertest": "^7.1.1",
     "ts-checker-rspack-plugin": "^1.2.1",
     "ts-jest": "29.1.2",

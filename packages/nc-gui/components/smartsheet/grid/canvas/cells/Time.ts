@@ -3,12 +3,12 @@ import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTa
 
 export const TimeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, selected, value, x, y, width, height, pv, padding, textColor = '#4a5268', readonly } = props
+    const { column, selected, value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor, readonly } = props
 
     const timeFormat = parseProp(column?.meta)?.is12hrFormat ? 'hh:mm A' : 'HH:mm'
 
     if (!value && selected && !readonly) {
-      ctx.fillStyle = '#989FB1'
+      ctx.fillStyle = getColor(themeV4Colors.gray['400'])
       ctx.font = '400 13px Inter'
       ctx.textBaseline = 'middle'
       const truncatedFormat = truncateText(ctx, timeFormat, width - padding * 2)
@@ -34,7 +34,7 @@ export const TimeCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: pv ? '#3366FF' : textColor,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
       })
 

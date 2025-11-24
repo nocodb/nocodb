@@ -5,13 +5,13 @@ const defaultDateFormat = 'YYYY-MM-DD'
 
 export const DateCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, x, y, width, height, pv, padding, textColor = '#4a5268', selected, readonly } = props
+    const { column, value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor, selected, readonly } = props
 
     const dateFormat = parseProp(column?.meta)?.date_format ?? defaultDateFormat
     let formattedDate = ''
 
     if (!value && selected && !readonly) {
-      ctx.fillStyle = '#989FB1'
+      ctx.fillStyle = getColor(themeV4Colors.gray['400'])
       ctx.font = '400 13px Inter'
       ctx.textBaseline = 'middle'
       const placeholderY = Math.max(y, 36)
@@ -48,7 +48,7 @@ export const DateCellRenderer: CellRenderer = {
         text: formattedDate,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: pv ? '#3366FF' : textColor,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
       })
 

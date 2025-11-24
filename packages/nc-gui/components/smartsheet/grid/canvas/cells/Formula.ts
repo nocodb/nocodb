@@ -74,7 +74,8 @@ export const FormulaCellRenderer: CellRenderer = {
       width,
       pv,
       height,
-      textColor = '#4a5268',
+      textColor = themeV4Colors.gray['600'],
+      getColor,
       mousePosition,
       setCursor,
       spriteLoader,
@@ -126,7 +127,7 @@ export const FormulaCellRenderer: CellRenderer = {
       // If the field uses URL formula render it as a clickable link
       if (typeof urls === 'string') {
         ctx.font = `${pv ? 600 : 500} 13px Inter`
-        ctx.fillStyle = pv ? '#3366FF' : textColor
+        ctx.fillStyle = pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor)
         const boxes = renderFormulaURL(ctx, {
           htmlText: urls,
           height,

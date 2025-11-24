@@ -2,7 +2,7 @@ import { ncIsNaN } from 'nocodb-sdk'
 import { renderSingleLineText, roundedRect } from '../utils/canvas'
 
 export const PercentCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, pv, column, padding }) => {
+  render: (ctx, { value, x, y, width, height, pv, column, padding, textColor = themeV4Colors.gray['600'], getColor }) => {
     ctx.font = `${pv ? 600 : 500} 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -24,7 +24,7 @@ export const PercentCellRenderer: CellRenderer = {
         textAlign: 'right',
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: pv ? '#3366FF' : '#4a5268',
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
         render: false,
       })
@@ -37,7 +37,7 @@ export const PercentCellRenderer: CellRenderer = {
 
       if (percent !== 0) {
         roundedRect(ctx, x + padding, barY, barWidth, barHeight, barHeight / 2, {
-          backgroundColor: '#3366FF',
+          backgroundColor: getColor(themeV4Colors.brand['500']),
         })
       }
 
@@ -48,14 +48,14 @@ export const PercentCellRenderer: CellRenderer = {
         textAlign: 'right',
         maxWidth: labelWidth,
         fontFamily: `${pv ? 600 : 500} 12px Inter`,
-        fillStyle: pv ? '#3366FF' : '#4a5268',
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
       })
 
       return
     }
 
-    ctx.fillStyle = pv ? '#3366FF' : '#4a5268'
+    ctx.fillStyle = pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
 
     renderSingleLineText(ctx, {
       x: x + width - padding,
@@ -64,7 +64,7 @@ export const PercentCellRenderer: CellRenderer = {
       textAlign: 'right',
       maxWidth: width - padding * 2,
       fontFamily: `${pv ? 600 : 500} 13px Inter`,
-      fillStyle: pv ? '#3366FF' : '#4a5268',
+      fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
       height,
     })
   },

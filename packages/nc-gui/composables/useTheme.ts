@@ -133,7 +133,7 @@ export const useTheme = createSharedComposable(() => {
    * @param opacity - Optional opacity value between 0 and 1
    * @returns The actual color value (hex, rgb, or rgba)
    */
-  const getColor = (cssVariableValue: string, darkCssVariableValue?: string, opacity?: number): string => {
+  const getColor: GetColorType = (cssVariableValue, darkCssVariableValue, opacity) => {
     // In some case we want different dark mode color which does not have mapping in css variable.
     if (isDark.value) {
       cssVariableValue = darkCssVariableValue ?? cssVariableValue

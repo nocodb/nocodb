@@ -10,7 +10,8 @@ export const PlainCellRenderer: CellRenderer = {
       width,
       height,
       padding,
-      textColor = '#4a5268',
+      textColor = themeV4Colors.gray['600'],
+      getColor,
       fontFamily = '500 13px Inter',
       meta,
       metas,
@@ -50,7 +51,7 @@ export const PlainCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily,
-        fillStyle: textColor,
+        fillStyle: getColor(textColor),
         height,
       })
 

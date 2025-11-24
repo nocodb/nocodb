@@ -2,7 +2,7 @@ import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTag
 
 export const EmailCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, selected, pv, padding, textColor = '#4a5268', setCursor } = props
+    const { value, x, y, width, height, selected, pv, padding, textColor = themeV4Colors.gray['600'], getColor, setCursor } = props
 
     const text = value?.toString() ?? ''
 
@@ -24,7 +24,7 @@ export const EmailCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: (isValidEmail && selected) || pv ? '#3366FF' : textColor,
+        fillStyle: (isValidEmail && selected) || pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         underline: isValidEmail,
         height,
       })

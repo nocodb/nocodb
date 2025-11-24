@@ -106,7 +106,7 @@ export function useColumnFilteredOrSorted() {
         'cellBorderColor': themeV4Colors.gray['200'],
         'cellBorderColor.hovered': themeV4Colors.gray['200'],
         'cellBorderColor.selected': themeV4Colors.gray['200'],
-        'headerBgColor': '#FA8231',
+        'headerBgColor': '#FA82310A',
       },
     },
   }

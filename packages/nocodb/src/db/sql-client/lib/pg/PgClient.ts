@@ -3112,9 +3112,25 @@ class PGClient extends KnexClient {
       if (n.unique !== o.unique) {
         if (n.unique) {
           // Add unique constraint - PostgreSQL will create the index automatically
+          // Generate constraint name and store it in column metadata for later retrieval
           const constraintName = `uk_${t}_${n.cn}`
             .replace(/[^a-zA-Z0-9_]/g, '_')
             .slice(0, 63);
+
+          // Store constraint name in column constraints field for later retrieval
+          // This ensures we can drop the constraint even if table/column name changes
+          // The constraints field will be persisted when the column is updated
+          // Note: constraints is an internal field, not exposed via API
+          if (!n.constraints) n.constraints = {};
+          if (typeof n.constraints === 'string') {
+            try {
+              n.constraints = JSON.parse(n.constraints);
+            } catch {
+              n.constraints = {};
+            }
+          }
+          n.constraints.uniqueConstraintName = constraintName;
+
           query += this.genQuery(
             `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,
             [t, constraintName, n.cn],
@@ -3122,9 +3138,34 @@ class PGClient extends KnexClient {
           );
         } else {
           // Drop unique constraint - this will also drop the associated index
-          const constraintName = `uk_${t}_${n.cn}`
-            .replace(/[^a-zA-Z0-9_]/g, '_')
-            .slice(0, 63);
+          // Try to get constraint name from old column constraints field first
+          let constraintName = null;
+
+          // Parse old column constraints if it exists
+          if (o.constraints) {
+            let oldConstraints = o.constraints;
+            if (typeof oldConstraints === 'string') {
+              try {
+                oldConstraints = JSON.parse(oldConstraints);
+              } catch {
+                oldConstraints = {};
+              }
+            }
+            constraintName = oldConstraints?.uniqueConstraintName;
+          }
+
+          // If not found in metadata, try generated name from old column name
+          // This handles cases where metadata wasn't saved or column was imported
+          if (!constraintName) {
+            // Try with old column name (cno) first, then current column name (cn)
+            const oldColumnName = o.cno || o.cn;
+            constraintName = `uk_${t}_${oldColumnName}`
+              .replace(/[^a-zA-Z0-9_]/g, '_')
+              .slice(0, 63);
+          }
+
+          // Use DROP CONSTRAINT IF EXISTS to avoid errors if constraint doesn't exist
+          // This is safe even if the constraint name doesn't match
           query += this.genQuery(
             `\nALTER TABLE ?? DROP CONSTRAINT IF EXISTS ??;\n`,
             [t, constraintName],

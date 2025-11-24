@@ -11,7 +11,7 @@ import type { XKnex } from '~/db/CustomKnex';
  */
 function extractColumnNameFromError(
   error: any,
-  clientType?: string,
+  _clientType?: string,
 ): string | null {
   // Try multiple sources for error message
   const errorMessage =

@@ -35,7 +35,6 @@ import {
   PermissionKey,
   RelationTypes,
   UITypes,
-  UniqueConstraintViolationError,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { Knex } from 'knex';

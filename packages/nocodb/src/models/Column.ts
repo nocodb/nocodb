@@ -179,6 +179,7 @@ export default class Column<T = any> implements ColumnType {
       'source_id',
       'system',
       'meta',
+      'constraints', // Internal field for constraint metadata (not exposed via API)
       'virtual',
       'description',
       'readonly',
@@ -194,6 +195,10 @@ export default class Column<T = any> implements ColumnType {
 
     if (insertObj.meta && typeof insertObj.meta === 'object') {
       insertObj.meta = JSON.stringify(insertObj.meta);
+    }
+
+    if (insertObj.constraints && typeof insertObj.constraints === 'object') {
+      insertObj.constraints = JSON.stringify(insertObj.constraints);
     }
 
     insertObj.order =
@@ -693,6 +698,8 @@ export default class Column<T = any> implements ColumnType {
 
       columnsList.forEach((column) => {
         column.meta = parseMetaProp(column);
+        // Parse constraints field (internal, not exposed via API)
+        column.constraints = parseMetaProp(column, 'constraints');
       });
 
       await NocoCache.setList(
@@ -1647,6 +1654,7 @@ export default class Column<T = any> implements ColumnType {
       'system',
       'validate',
       'meta',
+      'constraints', // Internal field for constraint metadata (not exposed via API)
       'readonly',
     ]);
 
@@ -1709,19 +1717,19 @@ export default class Column<T = any> implements ColumnType {
       await Column.deleteCoverImageColumnId(context, colId, ncMeta);
     }
 
-    // set meta
+    // set meta and constraints (constraints is internal, not exposed via API)
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.COLUMNS,
-      prepareForDb(updateObj),
+      prepareForDb(updateObj, ['meta', 'constraints']),
       colId,
     );
 
     await NocoCache.update(
       context,
       `${CacheScope.COLUMN}:${colId}`,
-      prepareForResponse(updateObj),
+      prepareForResponse(updateObj, ['meta', 'constraints']),
     );
 
     // insert new col options only if existing colOption meta is deleted

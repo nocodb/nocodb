@@ -3,10 +3,9 @@ import { UITypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column } from '~/models';
-import { Model, Source } from '~/models';
+import { Source } from '~/models';
 import { normalizeValueForUniqueCheck } from '~/helpers/uniqueConstraintHelpers';
 import { NcError } from '~/helpers/catchError';
-import { sanitize } from '~/helpers/sqlSanitize';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()

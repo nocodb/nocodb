@@ -97,10 +97,7 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import {
-  generateUniqueIndexName,
-  validateUniqueConstraint,
-} from '~/helpers/uniqueConstraintHelpers';
+import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import {
   convertAIRecordTypeToValue,
   convertValueToAIRecordType,
@@ -634,6 +631,37 @@ export class ColumnsService implements IColumnsService {
           'Default values are not allowed for unique fields. Please disable the unique constraint first.',
         );
       }
+    }
+
+    // Store unique constraint name in constraints field when enabling unique constraint
+    // This ensures we can drop the constraint even if table/column name changes later
+    // constraints is an internal field (not exposed via API)
+    if (param.column.unique && !column.unique) {
+      // Enabling unique constraint - generate and store constraint name
+      const model = await Model.get(context, param.tableId);
+      const tableName = model.table_name;
+      const columnName = param.column.column_name || column.column_name;
+      const constraintName = `uk_${tableName}_${columnName}`
+        .replace(/[^a-zA-Z0-9_]/g, '_')
+        .slice(0, 63);
+
+      // Parse existing constraints or create new object
+      let constraints = column.constraints;
+      if (typeof constraints === 'string') {
+        try {
+          constraints = JSON.parse(constraints);
+        } catch {
+          constraints = {};
+        }
+      } else if (!constraints) {
+        constraints = {};
+      }
+
+      // Store constraint name in constraints field
+      constraints.uniqueConstraintName = constraintName;
+
+      // Store in colBody (will be saved to database)
+      colBody.constraints = constraints;
     }
 
     let colBody = { ...param.column } as Column & {

@@ -25,7 +25,7 @@ export const UNIQUE_CONSTRAINT_SUPPORTED_TYPES = [
  */
 export function isUniqueConstraintSupportedType(
   uidt: UITypes,
-  meta?: any,
+  _meta?: any,
 ): boolean {
   return UNIQUE_CONSTRAINT_SUPPORTED_TYPES.includes(uidt);
 }

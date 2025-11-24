@@ -166,6 +166,41 @@ describe('extractDataTypeFromWorkflowNodeExpression', () => {
       );
       expect(result).toBe(WorkflowNodeFilterDataType.MULTI_SELECT);
     });
+
+    it('should detect type from bracket notation for fields with spaces', () => {
+      // Add a variable with space in the name
+      const varsWithSpace: VariableDefinition[] = [
+        {
+          key: "$('TestNode').record",
+          name: 'Record',
+          type: VariableType.Object,
+          groupKey: VariableGroupKey.Fields,
+          children: [
+            {
+              key: "$('TestNode').record['Date Time Field']",
+              name: 'Date Time Field',
+              type: VariableType.DateTime,
+              groupKey: VariableGroupKey.Fields,
+            },
+          ],
+        },
+      ];
+
+      const result = extractDataTypeFromWorkflowNodeExpression(
+        "{{ $('TestNode').record['Date Time Field'] }}",
+        varsWithSpace
+      );
+      expect(result).toBe(WorkflowNodeFilterDataType.DATETIME);
+    });
+
+    it('should return TEXT for field with space using dot notation (malformed)', () => {
+      const result = extractDataTypeFromWorkflowNodeExpression(
+        "{{ $('TestNode').record.Date Time }}",
+        flatVariables
+      );
+      // Space breaks the expression into compound, should return TEXT
+      expect(result).toBe(WorkflowNodeFilterDataType.TEXT);
+    });
   });
 
   describe('Built-in Functions', () => {

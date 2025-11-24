@@ -225,15 +225,25 @@ function parseWorkflowVariable(
   node: any,
   flatVariables: VariableDefinition[]
 ): ParsedNode | null {
-  // Handle MemberExpression: $('Node').trigger.timestamp
+  // Handle MemberExpression: $('Node').trigger.timestamp or $('Node')['field name']
   if (node.type === 'MemberExpression') {
-    // Build the path from the member expression
-    const path: string[] = [];
+    // Build the path from the member expression, tracking whether each segment uses bracket notation
+    const pathSegments: Array<{ value: string; useBracket: boolean }> = [];
     let current = node;
 
     while (current.type === 'MemberExpression') {
+      // Handle both dot notation (Identifier) and bracket notation (Literal)
       if (current.property.type === 'Identifier') {
-        path.unshift(current.property.name);
+        pathSegments.unshift({
+          value: current.property.name,
+          useBracket: false,
+        });
+      } else if (current.property.type === 'Literal') {
+        // Bracket notation: ['field name']
+        pathSegments.unshift({
+          value: String(current.property.value),
+          useBracket: true,
+        });
       }
       current = current.object;
     }
@@ -254,10 +264,28 @@ function parseWorkflowVariable(
       }
     }
 
-    // Build the full path with node name: $('NodeName').path.to.property
-    const fullPath = nodeName
-      ? `$('${nodeName}').${path.join('.')}`
-      : path.join('.');
+    // Build the full path with node name, preserving bracket notation
+    let fullPath = '';
+    if (nodeName) {
+      fullPath = `$('${nodeName}')`;
+      pathSegments.forEach((seg) => {
+        if (seg.useBracket) {
+          fullPath += `['${seg.value}']`;
+        } else {
+          fullPath += `.${seg.value}`;
+        }
+      });
+    } else {
+      fullPath = pathSegments
+        .map((seg, i) => {
+          if (seg.useBracket) {
+            return i === 0 ? `['${seg.value}']` : `['${seg.value}']`;
+          } else {
+            return i === 0 ? seg.value : `.${seg.value}`;
+          }
+        })
+        .join('');
+    }
 
     const variable = findVariable(fullPath, flatVariables);
 
@@ -438,7 +466,7 @@ function validateAndExtractType(
       if (consequent.dataType && consequent.dataType === alternate.dataType) {
         result.dataType = consequent.dataType;
       } else {
-        // TODO: To Discuss
+        // we default to TEXT as a fallback. This is a conservative choice to avoid incorrect type assumptions.
         result.dataType = WorkflowNodeFilterDataType.TEXT;
       }
 

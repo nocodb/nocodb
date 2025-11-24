@@ -5,7 +5,7 @@ import {
 } from '@noco-integrations/core';
 import type {
   FormDefinition,
-    WorkflowNodeConfig,
+  WorkflowNodeConfig,
   WorkflowNodeDefinition,
   WorkflowNodeLog,
   WorkflowNodeResult,
@@ -72,8 +72,8 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
         errors.push({ path: `${path}.comparison_op`, message: 'Comparison operation is required' });
       }
       if (this.operationRequiresValue(condition.comparison_op) &&
-          condition.value === undefined &&
-          condition.value !== '') {
+          condition.value === undefined ||
+          condition.value === '') {
         errors.push({ path: `${path}.value`, message: 'Value is required for this operation' });
       }
     }

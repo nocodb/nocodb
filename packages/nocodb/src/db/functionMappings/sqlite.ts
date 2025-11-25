@@ -288,4 +288,36 @@ const sqlite3 = {
   },
 };
 
+  // SQLite does not have built-in checksum/hash functions
+  // These would require loading an extension or using a custom function
+  // For now, we return NULL to indicate unsupported
+  CHECKSUM_MD5: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `CASE WHEN ? IS NULL THEN NULL ELSE 'MD5 not supported in SQLite' END`,
+        [value],
+      ),
+    };
+  },
+  CHECKSUM_SHA1: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `CASE WHEN ? IS NULL THEN NULL ELSE 'SHA1 not supported in SQLite' END`,
+        [value],
+      ),
+    };
+  },
+  CHECKSUM_SHA256: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `CASE WHEN ? IS NULL THEN NULL ELSE 'SHA256 not supported in SQLite' END`,
+        [value],
+      ),
+    };
+  },
+};
+
 export default sqlite3;

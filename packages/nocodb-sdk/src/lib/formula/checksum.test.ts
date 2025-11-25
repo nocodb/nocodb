@@ -10,7 +10,7 @@ describe("Checksum Formula Functions", () => {
   });
 
   test("SHA-1 checksum", () => {
-    expect(checksum_sha1("hello")).toBe("f7ff9e8b7bb2e0fdb81c06f4e8d5b0d4f33196dd");
+    expect(checksum_sha1("hello")).toBe("aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d");
   });
 
   test("SHA-256 checksum", () => {

@@ -467,8 +467,22 @@ export async function initFormulaLookupColumns(context: ITestContext) {
   const t2_HM_t1_Ltar = (
     await context.tables.table2.getColumns(context.ctx)
   ).find((col) => col.title === 'T1s');
+  const source = (await context.base.getSources())[0];
 
-  const t2FformulaColumn = await createColumn(
+  await createLookupColumn(context.context, {
+    base: context.base,
+    title: 'table1FormulaTitle',
+    table: await Model.getByIdOrName(context.ctx, {
+      base_id: context.base.id,
+      source_id: source.id!,
+      id: context.tables.table2.id,
+    }),
+    relatedTableName: context.tables.table1.table_name,
+    relatedTableColumnTitle: 'FormulaTitle',
+    relationColumnId: t2_HM_t1_Ltar.id,
+  });
+
+  const t2FormulaColumn = await createColumn(
     context.context,
     context.tables.table2,
     {
@@ -485,20 +499,6 @@ export async function initFormulaLookupColumns(context: ITestContext) {
     await context.tables.table1.getColumns(context.ctx)
   ).find((col) => col.title === 'Table3');
 
-  const source = (await context.base.getSources())[0];
-
-  await createLookupColumn(context.context, {
-    base: context.base,
-    title: 'table1FormulaTitle',
-    table: await Model.getByIdOrName(context.ctx, {
-      base_id: context.base.id,
-      source_id: source.id!,
-      id: context.tables.table2.id,
-    }),
-    relatedTableName: context.tables.table1.table_name,
-    relatedTableColumnTitle: 'FormulaTitle',
-    relationColumnId: t2_HM_t1_Ltar.id,
-  });
   await createLookupColumn(context.context, {
     base: context.base,
     title: 'table2FormulaTitle',
@@ -508,8 +508,26 @@ export async function initFormulaLookupColumns(context: ITestContext) {
       id: context.tables.table1.id,
     }),
     relatedTableName: context.tables.table2.table_name,
-    relatedTableColumnTitle: 'FormulaTitle',
+    relatedTableColumnTitle: 'T2FormulaTitle',
     relationColumnId: t1_BT_t2_Ltar.id,
+  });
+
+  // oo
+  const t3_OO_t1_Ltar = (
+    await context.tables.table3.getColumns(context.ctx)
+  ).find((col) => col.title === 'T1_OO');
+
+  await createLookupColumn(context.context, {
+    base: context.base,
+    title: 'table1FormulaTitle',
+    table: await Model.getByIdOrName(context.ctx, {
+      base_id: context.base.id,
+      source_id: source.id!,
+      id: context.tables.table3.id,
+    }),
+    relatedTableName: context.tables.table1.table_name,
+    relatedTableColumnTitle: 'FormulaTitle',
+    relationColumnId: t3_OO_t1_Ltar.id,
   });
 
   for (const attr of t1SupportingLookupColumns) {

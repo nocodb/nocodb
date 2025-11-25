@@ -68,7 +68,7 @@ const handleAddNewConnection = (field: FormBuilderElement) => {
   const model = field.model!
 
   if (field.integrationFilter) {
-    const filteredIntegtegrations = allIntegrations.filter((i) => {
+    const filteredIntegrations = allIntegrations.filter((i) => {
       if (field.integrationFilter) {
         return (
           (!field.integrationFilter.type || field.integrationFilter.type === i.type) &&
@@ -78,8 +78,8 @@ const handleAddNewConnection = (field: FormBuilderElement) => {
       return true
     })
 
-    if (filteredIntegtegrations?.length === 1) {
-      addIntegration(filteredIntegtegrations[0]!, false)
+    if (filteredIntegrations?.length === 1) {
+      addIntegration(filteredIntegrations[0]!, false)
 
       activeModel.value = null
 

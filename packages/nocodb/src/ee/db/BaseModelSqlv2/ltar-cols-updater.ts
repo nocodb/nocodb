@@ -1,5 +1,7 @@
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { LTARColsUpdater as LTARColsUpdaterCE } from 'src/db/BaseModelSqlv2/ltar-cols-updater';
+import { LTARColsUpdaterMux } from 'src/ee/db/BaseModelSqlv2/ltar-cols-updater-mux';
+
 import type { Logger } from '@nestjs/common';
 import type { NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -9,6 +11,7 @@ import type CustomKnex from '~/db/CustomKnex';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { Profiler } from '~/helpers/profiler';
 import { LinksRequestHandler } from '~/db/links/requestHandler';
+import { isMuxEnabled } from '~/utils/envs';
 
 // for v3 bulk update with ltar links
 export const LTARColsUpdater = (param: {
@@ -73,13 +76,23 @@ export const LTARColsUpdater = (param: {
   }) => {
     // if external, fallback to CE version
     if (!(await baseModel.getSource()).isMeta()) {
-      return await LTARColsUpdaterCE({
-        baseModel: param.baseModel,
-        logger,
-      }).updateLTARCols({
-        datas,
-        cookie,
-      });
+      if (!isMuxEnabled) {
+        return await LTARColsUpdaterCE({
+          baseModel: param.baseModel,
+          logger,
+        }).updateLTARCols({
+          datas,
+          cookie,
+        });
+      } else {
+        return await LTARColsUpdaterMux({
+          baseModel: param.baseModel,
+          logger,
+        }).updateLTARCols({
+          datas,
+          cookie,
+        });
+      }
     }
 
     const profiler = Profiler.start(`base-model/updateLTARCols`);

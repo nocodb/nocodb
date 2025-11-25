@@ -1189,6 +1189,7 @@ function CustomKnex(
 
           attachToTransaction: {
             enumerable: true,
+            configurable: true,
             value: (fn: () => void) => {
               if (!trx.isTransaction) {
                 return fn();
@@ -1266,6 +1267,7 @@ function CustomKnex(
     },
     attachToTransaction: {
       enumerable: true,
+      configurable: true,
       value: (fn: () => void) => {
         if (!kn.isTransaction) {
           return fn();

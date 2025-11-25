@@ -556,7 +556,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       {},
       { ignoreView: true, getHiddenColumn: true },
     );
-
     // validate rowId
     if (!row) {
       NcError.get(baseModel.context).recordNotFound(rowId);

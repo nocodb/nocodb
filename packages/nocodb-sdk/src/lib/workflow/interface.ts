@@ -5,6 +5,7 @@ enum VariableType {
   Boolean = 'boolean',
   Object = 'object',
   Array = 'array',
+  Date = 'date',
   DateTime = 'datetime',
 }
 

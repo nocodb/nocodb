@@ -320,7 +320,7 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
           {
             key: 'trigger.timestamp',
             name: 'Timestamp',
-            type: NocoSDK.VariableType.String,
+            type: NocoSDK.VariableType.DateTime,
             groupKey: NocoSDK.VariableGroupKey.Meta,
             extra: {
               description: 'Trigger timestamp',

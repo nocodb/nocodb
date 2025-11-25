@@ -180,6 +180,23 @@ export function uiTypeToVariableType(
 }
 
 /**
+ * Helper to safely build a property accessor (dot notation or bracket notation)
+ * Uses bracket notation if the property name contains spaces or special characters
+ */
+function buildPropertyKey(prefix: string, propertyName: string): string {
+  // Check if property name needs bracket notation
+  // Use bracket notation if it contains spaces, starts with a number, or has special chars
+  const needsBrackets =
+    /[^a-zA-Z0-9_$]/.test(propertyName) || /^\d/.test(propertyName);
+
+  if (needsBrackets) {
+    return `${prefix}['${propertyName}']`;
+  } else {
+    return `${prefix}.${propertyName}`;
+  }
+}
+
+/**
  * Generate variable definition from NocoDB column
  */
 export function getFieldVariable(
@@ -192,7 +209,7 @@ export function getFieldVariable(
   );
 
   const variable: VariableDefinition = {
-    key: `${prefix}.${column.title}`,
+    key: buildPropertyKey(prefix, column.title),
     name: column.title,
     type,
     groupKey: VariableGroupKey.Fields,
@@ -502,7 +519,7 @@ export function prefixVariableKeys(
   return {
     ...variable,
     key: `${prefix}.${variable.key}`,
-    children: variable.children?.map((child) =>
+    children: (variable.children ?? []).map((child) =>
       prefixVariableKeys(child, prefix)
     ),
   };

@@ -10,7 +10,8 @@ export const JsonCellRenderer: CellRenderer = {
       height,
       pv,
       padding,
-      textColor = '#4a5268',
+      textColor = themeV4Colors.gray['600'],
+      getColor,
       mousePosition,
       spriteLoader,
       selected,
@@ -72,7 +73,7 @@ export const JsonCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: pv ? '#3366FF' : textColor,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
       })
 

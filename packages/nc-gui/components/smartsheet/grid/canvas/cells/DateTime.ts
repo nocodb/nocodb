@@ -8,7 +8,7 @@ import { timeCellMaxWidthMap, timeFormatsObj } from '../utils/cell'
 dayjs.extend(utc)
 
 export const DateTimeCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, selected, pv, column, padding, readonly }) => {
+  render: (ctx, { value, x, y, width, selected, pv, column, padding, readonly, getColor }) => {
     ctx.font = `${pv ? 600 : 500} 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -31,7 +31,7 @@ export const DateTimeCellRenderer: CellRenderer = {
     const textY = y + 16
 
     if (!value && selected && !readonly) {
-      ctx.fillStyle = '#989FB1'
+      ctx.fillStyle = getColor(themeV4Colors.gray['400'])
       ctx.font = '400 13px Inter'
 
       const truncatedDateFormat = truncateText(ctx, dateFormat, dateWidth - padding)
@@ -57,18 +57,17 @@ export const DateTimeCellRenderer: CellRenderer = {
     const dateStr = dateTimeValue?.format(dateFormat) ?? ''
     const truncatedDate = truncateText(ctx, dateStr, dateWidth - 4 * 2)
 
-    ctx.fillStyle = pv ? '#3366FF' : '#4a5268'
+    ctx.fillStyle = pv ? getColor(themeV4Colors.brand['500']) : getColor(themeV4Colors.gray['600'])
     ctx.fillText(truncatedDate, x + padding, textY)
 
     const timeStr = dateTimeValue?.format(is12hrFormat ? timeFormatsObj[timeFormat] : timeFormat) ?? ''
     const truncatedTime = truncateText(ctx, timeStr, timeWidth)
     ctx.fillText(truncatedTime, x + dateWidth + padding * 2, textY)
     if (timezoneWidth && timezoneWidth > 0 && timezone?.abbreviation) {
-      const gray400 = '#6A7184'
       const oldFillStyle = ctx.fillStyle
       const oldFont = ctx.font
       ctx.font = ctx.font = `500 11px Inter`
-      ctx.fillStyle = gray400
+      ctx.fillStyle = getColor(themeV4Colors.gray['500'])
       ctx.fillText(timezone.abbreviation, x + dateTimeWidth + padding * 3.5, textY)
       ctx.font = oldFont
       ctx.fillStyle = oldFillStyle

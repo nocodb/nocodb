@@ -447,6 +447,7 @@ interface CellRendererOptions {
   sqlUis?: Record<string, any>
   skipRender?: boolean
   setCursor: SetCursorType
+  getColor: GetColorType
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
   user?: Partial<UserType> | Partial<User>
@@ -485,6 +486,8 @@ interface CellRenderStore {
 type CursorType = CSSProperties['cursor']
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
+
+type GetColorType = (cssVariableValue: string, darkCssVariableValue?: string, opacity?: number) => string
 
 type MakeCellEditableFn = (row: Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip?: boolean) => void
 
@@ -1022,6 +1025,7 @@ export type {
   ParsePlainCellValueProps,
   CanvasEditEnabledType,
   SetCursorType,
+  GetColorType,
   CursorType,
   CanvasCellEventDataInjType,
   CanvasGroup,

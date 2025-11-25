@@ -387,6 +387,7 @@ export const themeV4Colors = {
     black: 'var(--color-base-black)',
   },
   brand: {
+    20: 'var(--color-brand-20)',
     50: 'var(--color-brand-50)',
     100: 'var(--color-brand-100)',
     200: 'var(--color-brand-200)',

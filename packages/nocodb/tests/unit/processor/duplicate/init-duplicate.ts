@@ -1,9 +1,10 @@
 // Generated: 2024-12-19T10:30:00Z
-import { UITypes } from 'nocodb-sdk';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { createProject } from '../../factory/base';
 import { customColumns } from '../../factory/column';
 import { createBulkRows } from '../../factory/row';
 import { createTable } from '../../factory/table';
+import { createViewV3 } from '../../factory/view';
 import init from '../../init';
 import type Base from '../../../../src/models/Base';
 
@@ -58,6 +59,65 @@ export async function initDuplicate() {
     table_name: 'table1',
     columns: customColumns('custom', columns),
   });
+
+  const titleField = (await table1.getColumns(ctx)).find(
+    (c) => c.column_name === 'Title',
+  );
+  // create 3 views for table1
+  const _view1 = await createViewV3(context, {
+    table: table1,
+    baseId: base.id,
+    body: {
+      title: 'Grid view 1',
+      type: ViewTypes.GRID,
+      sorts: [
+        {
+          field_id: titleField.id,
+          direction: 'asc',
+        },
+      ],
+    },
+  });
+  const _view2 = await createViewV3(context, {
+    table: table1,
+    baseId: base.id,
+    body: {
+      title: 'Grid view 2',
+      type: ViewTypes.GRID,
+      sorts: [
+        {
+          field_id: titleField.id,
+          direction: 'desc',
+        },
+      ],
+    },
+  });
+  const _view3 = await createViewV3(context, {
+    table: table1,
+    baseId: base.id,
+    body: {
+      title: 'Grid view 3',
+      type: ViewTypes.GRID,
+      filters: {
+        id: 'root',
+        group_operator: 'AND',
+        filters: [
+          {
+            field_id: titleField.id,
+            operator: 'like',
+            value: 'Hello',
+          },
+        ],
+      },
+      sorts: [
+        {
+          field_id: titleField.id,
+          direction: 'asc',
+        },
+      ],
+    },
+  });
+
   // insert records
   await createBulkRows(context, {
     base: base,

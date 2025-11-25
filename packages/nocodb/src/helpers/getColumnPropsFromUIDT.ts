@@ -39,6 +39,10 @@ export default async function getColumnPropsFromUIDT(
   newColumn.altered = column.altered || 2;
 
   const finalColumnMeta = { ...newColumn, ...column };
+  // Preserve original cdf if it was set (newColumn sets it to null by default)
+  if (column.cdf !== undefined && column.cdf !== null) {
+    finalColumnMeta.cdf = column.cdf;
+  }
   sqlUi.adjustLengthAndScale(finalColumnMeta);
 
   if (

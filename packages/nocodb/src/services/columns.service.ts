@@ -2478,7 +2478,11 @@ export class ColumnsService implements IColumnsService {
 
     let colBody: any = param.column;
 
-    // Validate unique constraint
+    // Store original cdf before getColumnPropsFromUIDT potentially overwrites it
+    const originalCdf = colBody.cdf;
+    const originalUnique = colBody.unique;
+
+    // Validate unique constraint BEFORE getColumnPropsFromUIDT
     if (colBody.unique) {
       validateUniqueConstraint(
         context,
@@ -2489,20 +2493,25 @@ export class ColumnsService implements IColumnsService {
           is_meta: !!source.is_meta,
           is_local: !!source.is_local,
         },
-        colBody.cdf,
+        originalCdf,
       );
     }
 
     // Check if default value is being set when unique constraint is enabled
     if (
-      colBody.cdf !== null &&
-      colBody.cdf !== undefined &&
-      colBody.cdf !== '' &&
+      originalCdf !== null &&
+      originalCdf !== undefined &&
+      originalCdf !== '' &&
       colBody.unique
     ) {
       NcError.get(context).badRequest(
         'Default values are not allowed for unique fields. Please disable the unique constraint first.',
       );
+    }
+
+    // Map unique to ck (column_key) for database operations
+    if (originalUnique !== undefined) {
+      colBody.ck = originalUnique ? 1 : 0;
     }
 
     const colExtra = {
@@ -2768,7 +2777,14 @@ export class ColumnsService implements IColumnsService {
             }
 
             {
+              // Preserve original cdf before getColumnPropsFromUIDT potentially overwrites it
+              const preservedCdf = colBody.cdf;
               colBody = await getColumnPropsFromUIDT(colBody, source);
+
+              // Restore original cdf if it was set (getColumnPropsFromUIDT sets it to null by default)
+              if (preservedCdf !== undefined && preservedCdf !== null) {
+                colBody.cdf = preservedCdf;
+              }
 
               // remove default value for SQLite since it doesn't support default value as function when adding column
               // only support default value as constant value
@@ -2820,7 +2836,15 @@ export class ColumnsService implements IColumnsService {
         break;
       default:
         {
+          // Preserve original cdf before getColumnPropsFromUIDT potentially overwrites it
+          const preservedCdf = colBody.cdf;
           colBody = await getColumnPropsFromUIDT(colBody, source);
+
+          // Restore original cdf if it was set (getColumnPropsFromUIDT sets it to null by default)
+          if (preservedCdf !== undefined && preservedCdf !== null) {
+            colBody.cdf = preservedCdf;
+          }
+
           if (colBody.uidt === UITypes.Duration) {
             colBody.dtxp = '20';
             // by default, colBody.dtxs is 2

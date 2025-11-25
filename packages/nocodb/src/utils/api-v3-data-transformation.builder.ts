@@ -363,6 +363,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
       'colOptions',
       'fk_model_id',
       'system',
+      'unique',
     ],
     mappings: {
       uidt: 'type',
@@ -371,6 +372,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
       fk_model_id: 'table_id',
     },
     excludeNullProps: true,
+    booleanProps: ['unique'], // Ensure unique is always included even if false
     meta: {
       snakeCase: true,
       metaProps: ['meta'],
@@ -517,6 +519,8 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         ...data,
         colOptions: undefined,
         options: options && Object.keys(options)?.length ? options : undefined,
+        // Explicitly preserve unique property
+        unique: data.unique,
       };
     },
   },
@@ -581,7 +585,15 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
 });
 
 export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
-  allowed: ['id', 'title', 'type', 'default_value', 'options', 'description'],
+  allowed: [
+    'id',
+    'title',
+    'type',
+    'default_value',
+    'options',
+    'description',
+    'unique',
+  ],
   mappings: {
     type: 'uidt',
     default_value: 'cdf',

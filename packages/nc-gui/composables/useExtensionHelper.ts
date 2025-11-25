@@ -8,7 +8,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     activeError: Ref<any>,
     hasAccessToExtension: ComputedRef<boolean>,
   ) => {
-    const { $api } = useNuxtApp()
+    const { $api, $e } = useNuxtApp()
     const route = useRoute()
 
     const basesStore = useBases()
@@ -194,6 +194,11 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     }
 
+    const toggleFullScreen = () => {
+      fullscreen.value = !fullscreen.value
+      $e(`c:extensions:${extension.value.extensionId}:full-screen`)
+    }
+
     return {
       $api,
       fullscreen,
@@ -204,6 +209,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       tables,
       showExpandBtn,
       fullscreenModalSize,
+      activeBaseId: baseId,
       activeTableId,
       activeViewId,
       getViewsForTable,
@@ -217,6 +223,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       eventBus,
       hasAccessToExtension,
       disableToggleFullscreenBtn,
+      toggleFullScreen,
     }
   },
   'extension-helper',

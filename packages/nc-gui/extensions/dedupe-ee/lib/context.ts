@@ -5,6 +5,8 @@
 export interface DedupeConfig {
   selectedTableId?: string
   selectedViewId?: string
+  selectedFieldId?: string
+  // Todo: support multiple fields
   selectedFieldIds: string[]
 }
 

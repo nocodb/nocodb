@@ -1,20 +1,22 @@
-import { computed, ref } from 'vue'
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes, getFirstNonPersonalView, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '#imports'
 import type { DedupeConfig, DuplicateSet, MergeState } from './context'
+import axios from 'axios'
 
 const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const { $api } = useNuxtApp()
   const { user } = useGlobal()
   const {
     extension,
+
     tables,
     getViewsForTable,
     getTableMeta,
     getData,
     updateData,
     reloadData,
+    activeBaseId,
     activeTableId,
     activeViewId,
   } = useExtensionHelperOrThrow()
@@ -24,7 +26,12 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     selectedTableId: undefined,
     selectedViewId: undefined,
     selectedFieldIds: [],
+    selectedFieldId: undefined,
   })
+
+  const isLoadingGroupSets = ref(false)
+
+  const currentStep = ref<'config' | 'review'>('config')
 
   const views = ref<ViewType[]>([])
   const meta = ref<TableType>()
@@ -67,17 +74,16 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       }))
   })
 
+  const selectedField = computed(() => {
+    if (!config.value.selectedFieldId) return null
+    return meta.value?.columns?.find((col) => col.id === config.value.selectedFieldId)
+  })
+
   const availableFields = computed(() => {
     if (!meta.value?.columns) return []
     return meta.value.columns.filter((col) => {
       if (isSystemColumn(col) || isVirtualCol(col)) return false
-      return ![
-        UITypes.Attachment,
-        UITypes.Links,
-        UITypes.Rollup,
-        UITypes.Lookup,
-        UITypes.Formula,
-      ].includes(col.uidt as UITypes)
+      return ![UITypes.Attachment, UITypes.Links, UITypes.Rollup, UITypes.Lookup, UITypes.Formula].includes(col.uidt as UITypes)
     })
   })
 
@@ -88,9 +94,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const currentSetRecords = computed(() => {
     if (!currentDuplicateSet.value || !currentDuplicateSet.value.records) return []
-    return currentDuplicateSet.value.records.filter(
-      (record) => !mergeState.value.excludedRecordIds.has(record.Id),
-    )
+    return currentDuplicateSet.value.records.filter((record) => !mergeState.value.excludedRecordIds.has(record.Id))
   })
 
   const isLoadingCurrentSetRecords = ref(false)
@@ -409,9 +413,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       return
     }
 
-    const recordsToDelete = currentSetRecords.value
-      .filter((r) => r.Id !== mergeState.value.primaryRecordId)
-      .map((r) => r.Id)
+    const recordsToDelete = currentSetRecords.value.filter((r) => r.Id !== mergeState.value.primaryRecordId).map((r) => r.Id)
 
     if (recordsToDelete.length === 0) {
       message.info('No records to delete')
@@ -498,6 +500,63 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
   }
 
+  const groupSets = ref<Record<string, any>[]>([])
+
+  const loadGroupSetsController = ref() // A ref to manage the CancelToken source for Axios requests.
+
+  async function loadGroupSets() {
+    groupSets.value = []
+
+    if (!config.value.selectedTableId || !config.value.selectedViewId || !config.value.selectedFieldId) {
+      return
+    }
+
+    // Cancel any ongoing request before starting a new one
+    if (loadGroupSetsController.value) {
+      loadGroupSetsController.value.cancel() // Cancels the previous request to prevent overlapping calls.
+    }
+
+    const CancelToken = axios.CancelToken // Axios CancelToken utility.
+    loadGroupSetsController.value = CancelToken.source() // Create a new token source for the current request.
+
+    isLoadingGroupSets.value = true
+    let page = 1
+    let hasMore = true
+
+    let groups: Record<string, any>[] = []
+    try {
+      while (hasMore) {
+        const res = await $api.dbViewRow.groupBy(
+          'noco',
+          activeBaseId.value!,
+          config.value.selectedTableId,
+          config.value.selectedViewId,
+          {
+            offset: (page - 1) * 100,
+            limit: 100,
+            sort: `+${selectedField.value?.title}` as any,
+            column_name: selectedField.value?.title,
+          },
+        )
+
+        groups.push(...(res.list || []).filter((group) => group.count > 1))
+
+        if (res.pageInfo?.isLastPage) {
+          hasMore = false
+        }
+      }
+
+      groupSets.value = groups
+      console.log('groups', groups)
+    } catch (error: any) {
+      if (!axios.isCancel(error)) {
+        message.error(`Error loading group sets: ${error.message || 'Unknown error'}`)
+      }
+    } finally {
+      isLoadingGroupSets.value = false
+    }
+  }
+
   return {
     // State
     config,
@@ -508,6 +567,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     isFindingDuplicates,
     isMerging,
     mergeState,
+    currentStep,
 
     // Computed
     tableList,
@@ -542,6 +602,9 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     nextSet,
     previousSet,
     mergeAndDelete,
+    groupSets,
+    isLoadingGroupSets,
+    loadGroupSets,
   }
 })
 

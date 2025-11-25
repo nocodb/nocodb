@@ -5,4 +5,3 @@ export * from './constants';
 export * from './variable-generator';
 export * from './node/ifTypes';
 export * from './node/typeParser';
-export * from './dependencyExtractor';

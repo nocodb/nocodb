@@ -97,9 +97,13 @@ test.describe('Attachment column', () => {
 
     await dashboard.grid.toolbar.actions.click('Download');
 
-    const csvFileData: string = await dashboard.downloadAndGetFile({
+    let csvFileData: string = await dashboard.downloadAndGetFile({
       downloadUIAction: dashboard.grid.toolbar.actions.clickDownloadSubmenu('CSV'),
     });
+    if (csvFileData.startsWith('\ufeff')) {
+      csvFileData = csvFileData.replace('\ufeff', '');
+    }
+
     const csvArray = csvFileData.split('\r\n');
     const columns = csvArray[0];
     const rows = csvArray.slice(1);

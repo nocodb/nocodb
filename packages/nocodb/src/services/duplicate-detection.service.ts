@@ -74,13 +74,7 @@ export class DuplicateDetectionService {
     ) {
       // Use database-specific case-insensitive comparison
       // Since we're already querying from the table, we can reference the column directly
-      if (source.type === 'pg') {
-        query = query.whereRaw(`LOWER(TRIM(??)) IS NOT NULL`, [columnName]);
-      } else if (source.type === 'mysql2' || source.type === 'mysql') {
-        query = query.whereRaw(`TRIM(??) IS NOT NULL`, [columnName]);
-      } else {
-        query = query.whereRaw(`LOWER(TRIM(??)) IS NOT NULL`, [columnName]);
-      }
+      query = query.whereNotNull(columnName);
     }
 
     if (excludeRowId && primaryKey) {
@@ -188,24 +182,8 @@ export class DuplicateDetectionService {
         UITypes.URL,
       ].includes(column.uidt)
     ) {
-      // Case-insensitive, trimmed comparison for text fields
-      // Since we're already querying from the table, we can reference the column directly
-      if (source.type === 'pg') {
-        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [
-          columnName,
-          String(value),
-        ]);
-      } else if (source.type === 'mysql2' || source.type === 'mysql') {
-        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [
-          columnName,
-          String(value),
-        ]);
-      } else {
-        query = query.whereRaw(`LOWER(TRIM(??)) = LOWER(TRIM(?))`, [
-          columnName,
-          String(value),
-        ]);
-      }
+      // Exact comparison for text fields
+      query = query.where(columnName, String(value));
     } else {
       // Exact comparison for other types
       query = query.where(columnName, value);

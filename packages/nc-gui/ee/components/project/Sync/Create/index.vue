@@ -120,7 +120,12 @@ const previousStep = () => {
             </template>
           </NcButton>
 
-          <NcTooltip :disabled="(!saveError || step !== SyncFormStep.Create) && !isSyncCategoryAlreadyAddedOrBlank.value">
+          <NcTooltip
+            :disabled="
+              ((!saveError || step !== SyncFormStep.Create) && !isSyncCategoryAlreadyAddedOrBlank.value) ||
+              (step === SyncFormStep.Create && isSaving)
+            "
+          >
             <template #title>
               {{ isSyncCategoryAlreadyAddedOrBlank.value ? isSyncCategoryAlreadyAddedOrBlank.tooltip : saveError }}
             </template>

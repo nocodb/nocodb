@@ -18,8 +18,6 @@ export const useSyncStore = defineStore('sync', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const { loadIntegrations } = useIntegrationStore()
-
   const isSyncFeatureEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.SYNC))
 
   const isSyncAdvancedFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.SYNC_BETA_FEATURE))
@@ -120,8 +118,6 @@ export const useSyncStore = defineStore('sync', () => {
       curentBaseSyncs.push(created?.syncConfig)
       baseSyncs.value.set(baseId, curentBaseSyncs)
 
-      await loadIntegrations()
-
       await loadProjectTables(baseId, true)
 
       return created as { job: { id: string } }
@@ -149,8 +145,6 @@ export const useSyncStore = defineStore('sync', () => {
         },
         data,
       )
-
-      await loadIntegrations()
 
       if (result.syncConfig && result.syncConfig.id) {
         const curentBaseSyncs = baseSyncs.value.get(activeProjectId.value) || []

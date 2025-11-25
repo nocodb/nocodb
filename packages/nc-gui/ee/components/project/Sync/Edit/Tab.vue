@@ -10,7 +10,7 @@ const modelValue = useVModel(props, 'modelValue')
 
 const { t } = useI18n()
 
-const { syncConfigForm } = useSyncFormOrThrow()
+const { syncConfigForm, isLoadingIntegrationConfigs } = useSyncFormOrThrow()
 
 const tabs = computed(() => {
   const baseTabs = [
@@ -37,13 +37,19 @@ const tabs = computed(() => {
 </script>
 
 <template>
-  <div class="p-1 rounded-lg flex bg-nc-bg-gray-medium items-center">
+  <div
+    class="p-1 rounded-lg flex bg-nc-bg-gray-medium items-center"
+    :class="{
+      'cursor-wait': isLoadingIntegrationConfigs,
+    }"
+  >
     <div
       v-for="item in tabs"
       :key="item.value"
       :class="{
         'bg-nc-bg-default text-captionBold font-semibold text-nc-content-gray-emphasis': modelValue === item.value,
         'text-nc-content-gray-subtle2 text-caption': modelValue !== item.value,
+        'pointer-events-none': isLoadingIntegrationConfigs,
       }"
       class="px-2 py-1 cursor-pointer rounded-[6px] cursor-pointer"
       @click="modelValue = item.value"

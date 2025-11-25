@@ -20,8 +20,15 @@ const vOpen = useVModel(props, 'value', emits)
 
 const activeTab = ref('general')
 
-const { validateSyncConfig, syncConfigForm, validateIntegrationConfigs, updateSyncConfig, isUpdating, supportedDocs } =
-  useProvideSyncForm(props.baseId, 'edit', props.syncId)
+const {
+  validateSyncConfig,
+  syncConfigForm,
+  validateIntegrationConfigs,
+  updateSyncConfig,
+  isUpdating,
+  supportedDocs,
+  isLoadingIntegrationConfigs,
+} = useProvideSyncForm(props.baseId, 'edit', props.syncId)
 
 const updateError = ref<string | null>(null)
 
@@ -105,6 +112,11 @@ const handleUpdate = async () => {
             </div>
           </a-form>
         </div>
+        <general-overlay :model-value="isLoadingIntegrationConfigs" inline transition class="!bg-opacity-15">
+          <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+            <a-spin size="large" />
+          </div>
+        </general-overlay>
       </div>
 
       <NcModalSupportedDocsSidebar>

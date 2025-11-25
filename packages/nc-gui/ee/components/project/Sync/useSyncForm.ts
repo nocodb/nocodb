@@ -11,7 +11,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
     const { t } = useI18n()
 
-    const { integrationsRefreshKey, getIntegrationForm, integrations, getIntegration } = useIntegrationStore()
+    const { integrationsRefreshKey, getIntegrationForm, integrations, getIntegration, loadIntegrations } = useIntegrationStore()
 
     const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -170,6 +170,9 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       isSaving.value = true
       try {
         const res = await createSync(bsId, syncConfig)
+
+        await loadIntegrations()
+
         return res?.job.id
       } finally {
         isSaving.value = false
@@ -229,6 +232,8 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
             },
           }
         }
+
+        await loadIntegrations()
 
         message.success('Sync updated successfully')
 
@@ -304,8 +309,8 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
           integrationConfigs.value = (
             await Promise.all(
-              existingIntegrationConfigs.map(async (sync) => {
-                const integration = integrations.value.find((i) => i.id === sync.fk_integration_id)
+              existingIntegrationConfigs.map(async (s) => {
+                const integration = integrations.value.find((i) => i.id === s.fk_integration_id)
 
                 if (!integration?.id) {
                   return null
@@ -322,8 +327,8 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
                 return {
                   ...integration,
                   ...int,
-                  syncConfigId: sync.id,
-                  parentSyncConfigId: sync.fk_parent_sync_config_id,
+                  syncConfigId: s.id,
+                  parentSyncConfigId: s.fk_parent_sync_config_id,
                 }
               }),
             )

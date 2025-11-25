@@ -4,6 +4,8 @@ import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType, iconMap } from '#im
 
 const emit = defineEmits(['change'])
 
+const workflowContext = inject(WorkflowVariableInj, null)
+
 const {
   form,
   formState,
@@ -87,7 +89,6 @@ const handleAddNewConnection = (field: FormBuilderElement) => {
       return
     }
   }
-
   activeModel.value = null
 
   nextTick(() => {
@@ -95,6 +96,21 @@ const handleAddNewConnection = (field: FormBuilderElement) => {
     activeModel.value = model
   })
 }
+
+const workflowVariables = computed(() => {
+  if (!workflowContext?.selectedNodeId?.value || !workflowContext?.getAvailableVariablesFlat) {
+    return []
+  }
+  return workflowContext.getAvailableVariablesFlat(workflowContext.selectedNodeId.value)
+})
+
+// Get grouped workflow variables for WorkflowInput fields
+const workflowVariablesGrouped = computed(() => {
+  if (!workflowContext?.selectedNodeId?.value || !workflowContext?.getAvailableVariables) {
+    return []
+  }
+  return workflowContext.getAvailableVariables(workflowContext.selectedNodeId.value)
+})
 
 const filterIntegration = computed(() => {
   if (!activeModel.value) return { type: () => true, sub_type: () => true }
@@ -355,6 +371,15 @@ watch(
                       {{ field.description }}
                     </div>
                   </div>
+                </template>
+                <template v-else-if="field.type === FormBuilderInputType.WorkflowInput">
+                  <NcFormBuilderInputWorkflowInput
+                    :model-value="deepReference(field.model)"
+                    :placeholder="field.placeholder"
+                    :variables="workflowVariables"
+                    :grouped-variables="workflowVariablesGrouped"
+                    @update:model-value="setFormStateWithEmit(field.model, $event)"
+                  />
                 </template>
                 <div
                   v-if="field.helpText && field.type !== FormBuilderInputType.Switch && !field.showHintAsTooltip"

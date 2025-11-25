@@ -4,7 +4,7 @@ import {
   NocoSDK,
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
-} from '@noco-integrations/core'
+} from '@noco-integrations/core';
 import type {
   FormDefinition, WorkflowNodeConfig, WorkflowNodeDefinition, WorkflowNodeLog, WorkflowNodeResult, WorkflowNodeRunContext} from '@noco-integrations/core';
 
@@ -31,7 +31,7 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
         ],
       },
       {
-        type: FormBuilderInputType.Input,
+        type: FormBuilderInputType.WorkflowInput,
         label: 'Record ID',
         span: 24,
         model: 'config.rowId',
@@ -178,6 +178,105 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
           executionTimeMs: executionTime,
         },
       };
+    }
+  }
+
+  public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    const variables: NocoSDK.VariableDefinition[] = [];
+    const { modelId } = this.config;
+
+    if (!modelId) return [];
+
+    try {
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: modelId,
+          user: this.nocodb.user as any,
+        }
+      );
+
+      if (!table) return [];
+
+      variables.push({
+        key: 'config.modelId',
+        name: 'Table',
+        type: NocoSDK.VariableType.String,
+        groupKey: NocoSDK.VariableGroupKey.Fields,
+        extra: {
+          tableName: table.title,
+          description: 'Selected table for record deletion',
+        },
+      });
+
+      variables.push({
+        key: 'config.rowId',
+        name: 'Record ID',
+        type: NocoSDK.VariableType.String,
+        groupKey: NocoSDK.VariableGroupKey.Fields,
+        extra: {
+          description: 'ID of the record to delete',
+        },
+      });
+
+      return variables;
+    } catch {
+      return [];
+    }
+  }
+
+  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    const { modelId } = this.config;
+
+    if (!modelId) return [];
+
+    try {
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: modelId,
+          user: this.nocodb.user as any,
+        }
+      );
+
+      if (!table) return [];
+
+      return [
+        {
+          key: 'deleted',
+          name: 'Record',
+          type: NocoSDK.VariableType.Object,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            description: 'Record',
+            icon: 'cellJson',
+          },
+          children: [
+            {
+              key: 'deleted.id',
+              name: 'ID',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Fields,
+              extra: {
+                description: 'ID of the record',
+                icon: 'cellSystemKey',
+              },
+            },
+            {
+              key: 'deleted.deleted',
+              name: 'Deleted',
+              type: NocoSDK.VariableType.Boolean,
+              groupKey: NocoSDK.VariableGroupKey.Fields,
+              extra: {
+                description: 'Whether the record was deleted',
+                icon: 'cellCheckbox',
+              },
+            }
+          ],
+        },
+      ]
+    } catch {
+      return [];
     }
   }
 }

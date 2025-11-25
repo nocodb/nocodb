@@ -80,6 +80,14 @@ const handleNodeClick = () => {
   }
 }
 
+const hasTestResult = computed(() => {
+  return props.data?.testResult?.status === 'success'
+})
+
+const hasTestError = computed(() => {
+  return props.data?.testResult?.status === 'error'
+})
+
 onClickOutside(
   wrappperRef,
   () => {
@@ -89,7 +97,7 @@ onClickOutside(
     }
   },
   {
-    ignore: ['.node-sidebar', '.ant-select-dropdown', '.ant-picker-dropdown', '.ant-modal', '.nc-dropdown'],
+    ignore: ['.node-sidebar', '.ant-select-dropdown', '.ant-picker-dropdown', '.ant-modal', '.nc-dropdown', '.tippy-box'],
   },
 )
 </script>
@@ -109,9 +117,25 @@ onClickOutside(
           :class="{
             'ring ring-nc-brand-500 ring-offset-2': selectedNodeId === id || showDropdown,
           }"
-          class="flex border-1 rounded-lg w-77 justify-center cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default"
+          class="flex border-1 rounded-lg w-77 justify-center cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default relative"
           @click.stop="handleNodeClick"
         >
+          <!-- Test status badge -->
+          <div
+            v-if="hasTestResult"
+            class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-green-500 border-2 border-white flex items-center justify-center shadow-sm"
+            title="Tested successfully"
+          >
+            <GeneralIcon icon="check" class="text-white !w-3 !h-3 !stroke-2" />
+          </div>
+          <div
+            v-else-if="hasTestError"
+            class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center shadow-sm"
+            title="Test failed"
+          >
+            <GeneralIcon icon="close" class="text-white !w-3 !h-3 !stroke-2" />
+          </div>
+
           <div class="flex gap-2.5 w-full items-center">
             <div
               :class="{

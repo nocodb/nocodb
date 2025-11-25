@@ -1,6 +1,24 @@
 <script setup lang="ts">
 import { IntegrationsType } from 'nocodb-sdk'
-const { selectedNodeId, updateNode, getNodeMetaById, selectedNode, fetchNodeIntegrationOptions } = useWorkflowOrThrow()
+
+const {
+  selectedNodeId,
+  updateNode,
+  getNodeMetaById,
+  selectedNode,
+  fetchNodeIntegrationOptions,
+  clearChildNodesTestResults,
+  getAvailableVariables,
+  getAvailableVariablesFlat,
+} = useWorkflowOrThrow()
+
+provide(WorkflowVariableInj, {
+  selectedNodeId,
+  getAvailableVariables,
+  getAvailableVariablesFlat,
+})
+
+const isIfNode = computed(() => selectedNode.value?.type === 'core.flow.if')
 
 const formSchema = computed(() => {
   if (!selectedNode.value || !selectedNode.value.type) return []
@@ -14,8 +32,17 @@ const { formState } = useProvideFormBuilderHelper({
   onChange: () => {
     if (!selectedNodeId.value) return
     updateNode(selectedNodeId.value, {
-      data: formState.value,
+      data: {
+        ...selectedNode.value?.data,
+        ...formState.value,
+        testResult: {
+          ...(selectedNode.value?.testResult || {}),
+          isStale: true,
+        },
+      },
     })
+
+    clearChildNodesTestResults(selectedNodeId.value)
   },
   fetchOptions: async (key: string) => {
     return fetchNodeIntegrationOptions(
@@ -31,8 +58,10 @@ const { formState } = useProvideFormBuilderHelper({
 </script>
 
 <template>
-  <div class="px-4">
-    <NcFormBuilder v-if="formSchema.length > 0" />
+  <div>
+    <div class="px-4 py-4">
+      <NcFormBuilder v-if="formSchema.length > 0" />
+    </div>
   </div>
 </template>
 

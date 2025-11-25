@@ -1,6 +1,7 @@
 import {
   FormBuilderInputType,
   type FormDefinition,
+  NocoSDK,
   WorkflowNodeCategory,
   type WorkflowNodeConfig,
   type WorkflowNodeDefinition,
@@ -48,6 +49,8 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
     const startTime = Date.now();
 
     try {
+      const triggeredAt = new Date().toISOString();
+
       logs.push({
         level: 'info',
         message: 'Workflow triggered manually',
@@ -62,12 +65,14 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
 
       return {
         outputs: {
-          // Pass through any input data provided when manually triggering
-          data: ctx.inputs || {},
-          timestamp: new Date().toISOString(),
-          triggeredBy: {
-            userId: ctx.user?.id,
-            email: ctx.user?.email,
+          user: {
+            id: ctx.user?.id || null,
+            email: ctx.user?.email || null,
+            display_name: ctx?.user?.display_name || null
+          },
+          trigger: {
+            timestamp: triggeredAt,
+            type: 'manual',
           },
         },
         status: 'success',
@@ -99,5 +104,84 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
         },
       };
     }
+  }
+
+  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    return [
+      {
+        key: 'user',
+        name: 'User',
+        type: NocoSDK.VariableType.Object,
+        groupKey: NocoSDK.VariableGroupKey.Meta,
+        extra: {
+          description: 'User who triggered the workflow',
+          icon: 'cellSystemUser',
+        },
+        children: [
+          {
+            key: 'user.id',
+            name: 'ID',
+            type: NocoSDK.VariableType.String,
+            groupKey: NocoSDK.VariableGroupKey.Meta,
+            extra: {
+              description: 'ID of the user who triggered the workflow',
+              icon: 'cellSystemKey',
+            },
+          },
+          {
+            key: 'user.email',
+            name: 'Email',
+            type: NocoSDK.VariableType.String,
+            groupKey: NocoSDK.VariableGroupKey.Meta,
+            extra: {
+              description: 'Email of the user who triggered the workflow',
+              icon: 'cellEmail',
+            },
+          },
+          {
+            key: 'user.display_name',
+            name: 'Display Name',
+            type: NocoSDK.VariableType.String,
+            groupKey: NocoSDK.VariableGroupKey.Meta,
+            extra: {
+              description: 'Name of the user who triggered the workflow',
+              icon: 'cellText',
+            },
+          },
+        ],
+      },
+      {
+        key: 'trigger',
+        name: 'Trigger',
+        type: NocoSDK.VariableType.Object,
+        groupKey: NocoSDK.VariableGroupKey.Meta,
+        extra: {
+          description: 'Trigger information',
+          icon: 'cellJson',
+        },
+        children: [
+          {
+            key: 'trigger.timestamp',
+            name: 'Timestamp',
+            type: NocoSDK.VariableType.DateTime,
+            groupKey: NocoSDK.VariableGroupKey.Meta,
+            extra: {
+              description: 'Timestamp when the workflow was triggered',
+              icon: 'cellSystemDate',
+            },
+          },
+          {
+            key: 'trigger.type',
+            name: 'Type',
+            type: NocoSDK.VariableType.String,
+            groupKey: NocoSDK.VariableGroupKey.Meta,
+            extra: {
+              description: 'Type of trigger (manual)',
+              icon: 'cellText',
+            },
+          },
+        ],
+      },
+    ];
   }
 }

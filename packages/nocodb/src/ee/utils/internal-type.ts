@@ -1,4 +1,4 @@
-import type { NcContext, NcRequest } from 'nocodb-sdk';
+import type { NcContext, NcRequest, NodeExecutionResult } from 'nocodb-sdk';
 import type { TestConnectionResponse } from '@noco-local-integrations/core';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type {
@@ -108,6 +108,7 @@ export type InternalPOSTResponseType = Promise<
   | BaseTeamV3ResponseType[]
   | WorkspaceTeamV3ResponseType
   | WorkspaceTeamV3ResponseType[]
+  | NodeExecutionResult
 >;
 
 export interface InternalApiModule<

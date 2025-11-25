@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import Details from '~/components/smartsheet/workflow/Sidebar/Details.vue'
 import NodeConfig from '~/components/smartsheet/workflow/Sidebar/NodeConfig.vue'
+import TestStep from '~/components/smartsheet/workflow/Sidebar/TestStep.vue'
+import Result from '~/components/smartsheet/workflow/Sidebar/Result.vue'
 
 const { isSidebarOpen, selectedNode } = useWorkflowOrThrow()
 </script>
@@ -24,7 +26,12 @@ const { isSidebarOpen, selectedNode } = useWorkflowOrThrow()
     </div>
 
     <Details v-if="!selectedNode" />
-    <NodeConfig v-else-if="selectedNode" />
+    <template v-else>
+      <NodeConfig />
+      <NcDivider />
+      <TestStep />
+      <Result v-if="selectedNode.data?.testResult" />
+    </template>
   </div>
 
   <NcButton v-if="!isSidebarOpen" type="text" size="small" class="!absolute top-4 right-4" @click="isSidebarOpen = true">

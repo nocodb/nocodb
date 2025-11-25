@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   GeneralNodeID,
+  genGeneralVariables,
   IntegrationsType,
   NOCO_SERVICE_USERS,
   ServiceUserType,
@@ -8,6 +9,7 @@ import {
 } from 'nocodb-sdk';
 import type {
   NodeExecutionResult,
+  VariableDefinition,
   WorkflowExecutionState,
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
@@ -26,6 +28,7 @@ import { NcError } from '~/helpers/ncError';
 import {
   buildWorkflowGraph,
   determineStartNode,
+  findParentNodes,
   getNextNode,
 } from '~/services/workflows/graphHelpers';
 import { ExpressionContext } from '~/services/workflows/ExpressionContext';
@@ -163,6 +166,7 @@ export class WorkflowExecutionService {
     context: NcContext,
     node: WorkflowGeneralNode,
     expressionContext: ExpressionContext,
+    testMode?: boolean,
   ): Promise<NodeExecutionResult> {
     const result: NodeExecutionResult = {
       nodeId: node.id,
@@ -206,11 +210,16 @@ export class WorkflowExecutionService {
         workspaceId: context.workspace_id,
         baseId: context.base_id,
         inputs: interpolatedData || {},
+        testMode,
       };
 
       const nodeResult: WorkflowNodeResult = await nodeWrapper.run(runContext);
 
       result.status = nodeResult.status === 'error' ? 'error' : 'success';
+      // Exclude testResult from stored input to prevent nested testResults
+      const { testResult: _testResult, ...inputWithoutTestResult } =
+        interpolatedData || {};
+      result.input = inputWithoutTestResult;
       result.output = nodeResult.outputs;
       result.logs = nodeResult.logs;
       result.metrics = nodeResult.metrics;
@@ -419,8 +428,12 @@ export class WorkflowExecutionService {
     node: WorkflowGeneralNode,
     triggerData: any,
     startTime: number,
+    testMode?: boolean,
   ): Promise<NodeExecutionResult> {
-    if (node.type?.startsWith('nocodb.trigger.')) {
+    if (
+      node.type?.startsWith('nocodb.trigger.') ||
+      node.type?.startsWith('core.trigger.')
+    ) {
       const nodeWrapper = this.getNodeWrapper(
         context,
         node.type,
@@ -432,7 +445,8 @@ export class WorkflowExecutionService {
           workspaceId: context.workspace_id,
           baseId: context.base_id,
           inputs: triggerData || {},
-          user: (triggerData as any)?.user,
+          user: (triggerData as any)?.user || (context as any)?.user,
+          testMode,
         };
 
         try {
@@ -441,6 +455,7 @@ export class WorkflowExecutionService {
             nodeId: node.id,
             nodeTitle: node.data?.title || 'Trigger',
             status: nodeResult.status === 'error' ? 'error' : 'success',
+            input: triggerData || {},
             output: nodeResult.outputs || {},
             startTime,
             endTime: Date.now(),
@@ -454,6 +469,7 @@ export class WorkflowExecutionService {
             nodeTitle: node.data?.title || 'Trigger',
             status: 'error',
             error: error.message || 'Trigger execution failed',
+            input: triggerData || {},
             output: {},
             startTime,
             endTime: Date.now(),
@@ -466,9 +482,204 @@ export class WorkflowExecutionService {
       nodeId: node.id,
       nodeTitle: node.data?.title || 'Trigger',
       status: 'success',
+      input: triggerData || {},
       output: triggerData || {},
       startTime,
       endTime: Date.now(),
+    };
+  }
+
+  /**
+   * Test execute a single node by reusing test results from previous nodes
+   * This builds the execution context from stored test data
+   */
+  async testExecuteNode(
+    context: NcContext,
+    workflow: WorkflowType,
+    targetNodeId: string,
+    testTriggerData?: any,
+  ): Promise<NodeExecutionResult> {
+    const nodes = (workflow.nodes || []) as WorkflowGeneralNode[];
+    const edges = (workflow.edges || []) as WorkflowGeneralEdge[];
+
+    const nodeMap = new Map<string, WorkflowGeneralNode>(
+      nodes.map((n) => [n.id, n]),
+    );
+
+    const targetNode = nodeMap.get(targetNodeId);
+    if (!targetNode) {
+      NcError.get(context).workflowNodeNotFound(targetNodeId);
+    }
+
+    // Validate node configuration before testing
+    const nodeWrapper = this.getNodeWrapper(
+      context,
+      targetNode.type,
+      targetNode.data?.config || {},
+    );
+
+    if (nodeWrapper) {
+      try {
+        const validationResult = await nodeWrapper.validate(nodeWrapper.config);
+
+        if (!validationResult.valid && validationResult.errors) {
+          const errorMessages = validationResult.errors
+            .map((e) => e.message)
+            .join(', ');
+          NcError.get(context).badRequest(
+            `Node validation failed: ${errorMessages}`,
+          );
+        }
+      } catch (error) {
+        this.logger.error(`Node validation error: ${targetNode.id}`, error);
+        NcError.get(context).badRequest(
+          `Node validation failed: ${error.message}`,
+        );
+      }
+    }
+
+    const { reverseGraph, triggerNodes } = buildWorkflowGraph(nodes, edges);
+
+    const isTriggerNode =
+      targetNode.type === GeneralNodeID.TRIGGER ||
+      targetNode.type?.startsWith('nocodb.trigger.') ||
+      targetNode.type?.startsWith('core.trigger.') ||
+      triggerNodes.some((t) => t.id === targetNodeId);
+
+    if (isTriggerNode) {
+      const result = await this.executeTriggerNode(
+        context,
+        targetNode,
+        testTriggerData || {},
+        Date.now(),
+        true,
+      );
+
+      let inputVariables: VariableDefinition[] = [];
+      let outputVariables: VariableDefinition[] = [];
+
+      if (nodeWrapper) {
+        if (typeof nodeWrapper.generateInputVariables === 'function') {
+          try {
+            inputVariables = await nodeWrapper.generateInputVariables();
+          } catch (error) {
+            this.logger.warn(
+              `Failed to generate input variables for trigger ${targetNodeId}:`,
+              error,
+            );
+          }
+        }
+
+        if (typeof nodeWrapper.generateOutputVariables === 'function') {
+          try {
+            outputVariables = await nodeWrapper.generateOutputVariables();
+          } catch (error) {
+            this.logger.warn(
+              `Failed to generate output variables for trigger ${targetNodeId}:`,
+              error,
+            );
+          }
+        } else if (result.output) {
+          try {
+            outputVariables = genGeneralVariables(result.output);
+          } catch (error) {
+            this.logger.warn(
+              `Failed to auto-generate variables from trigger output for ${targetNodeId}:`,
+              error,
+            );
+          }
+        }
+      }
+
+      this.logger.log(
+        `Test executed trigger node "${result.nodeTitle}" successfully`,
+      );
+
+      return {
+        ...result,
+        inputVariables,
+        outputVariables,
+      };
+    }
+
+    // For non-trigger nodes, build context from stored test results
+    const parentNodes = findParentNodes(targetNodeId, reverseGraph, nodes);
+
+    // Check if all parent nodes have test results
+    const missingTestResults = parentNodes.filter(
+      (node) => !node.data?.testResult,
+    );
+
+    if (missingTestResults.length > 0) {
+      const missingTitles = missingTestResults
+        .map((n) => n.data?.title || n.id)
+        .join(', ');
+      NcError.get(context).badRequest(
+        `Please test the following nodes first: ${missingTitles}`,
+      );
+    }
+
+    const nodeResults: NodeExecutionResult[] = [];
+    for (const parentNode of parentNodes) {
+      if (parentNode.data?.testResult) {
+        nodeResults.push(parentNode.data.testResult);
+      }
+    }
+
+    const expressionContext = new ExpressionContext(nodeResults, nodes, true);
+
+    const result = await this.executeNode(
+      context,
+      targetNode,
+      expressionContext,
+      true,
+    );
+
+    let inputVariables: VariableDefinition[] = [];
+    if (
+      nodeWrapper &&
+      typeof nodeWrapper.generateInputVariables === 'function'
+    ) {
+      try {
+        inputVariables = await nodeWrapper.generateInputVariables();
+      } catch (error) {
+        this.logger.warn(
+          `Failed to generate input variables for ${targetNodeId}:`,
+          error,
+        );
+      }
+    }
+
+    let outputVariables: VariableDefinition[] = [];
+    if (
+      nodeWrapper &&
+      typeof nodeWrapper.generateOutputVariables === 'function'
+    ) {
+      try {
+        outputVariables = await nodeWrapper.generateOutputVariables();
+      } catch (error) {
+        this.logger.warn(
+          `Failed to generate output variables for ${targetNodeId}:`,
+          error,
+        );
+      }
+    } else if (result.output) {
+      try {
+        outputVariables = genGeneralVariables(result.output);
+      } catch (error) {
+        this.logger.warn(
+          `Failed to auto-generate variables from output for ${targetNodeId}:`,
+          error,
+        );
+      }
+    }
+
+    this.logger.log(`Test executed node "${result.nodeTitle}" successfully`);
+
+    return {
+      ...result,
+      inputVariables,
+      outputVariables,
     };
   }
 }

@@ -17,6 +17,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
     trx?,
     _disableOptimization = false,
   ) => {
+    let insertObj: Record<string, any> | undefined;
     try {
       const columns = await baseModel.model.getColumns(baseModel.context);
       const dbDataWrapper = dataWrapper(data);
@@ -34,7 +35,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       await populatePk(baseModel.context, baseModel.model, data);
 
       // todo: filter based on view
-      const insertObj = await baseModel.model.mapAliasToColumn(
+      insertObj = await baseModel.model.mapAliasToColumn(
         baseModel.context,
         data,
         baseModel.clientMeta,
@@ -205,6 +206,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // Note: insertObj might not exist if error occurred before it was created, but that's okay
       // as the handler will query the database if needed
       const columns = await baseModel.model.getColumns(baseModel.context);
+      // Use insertObj if available (from try block), otherwise fall back to data
       await handleUniqueConstraintError(
         e,
         baseModel.context,
@@ -509,7 +511,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         baseModel.context,
         columns,
         baseModel.dbDriver.clientType(),
-        insertDatas?.[0], // Pass first item of bulk insert data if available
+        datas?.[0] || insertDatas?.[0], // Pass first item of bulk insert data if available
         trx || baseModel.dbDriver, // Pass transaction or dbDriver for querying duplicates
         baseModel.tnPath, // Pass table name for querying duplicates
       );

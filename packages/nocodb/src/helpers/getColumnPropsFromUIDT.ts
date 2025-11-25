@@ -40,8 +40,8 @@ export default async function getColumnPropsFromUIDT(
 
   const finalColumnMeta = { ...newColumn, ...column };
   // Preserve original cdf if it was set (newColumn sets it to null by default)
-  if (column.cdf !== undefined && column.cdf !== null) {
-    finalColumnMeta.cdf = column.cdf;
+  if ('cdf' in column && column.cdf !== undefined && column.cdf !== null) {
+    finalColumnMeta.cdf = column.cdf as string;
   }
   sqlUi.adjustLengthAndScale(finalColumnMeta);
 

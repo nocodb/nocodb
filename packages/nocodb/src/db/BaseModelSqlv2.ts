@@ -2995,7 +2995,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               undefined, // Bulk update - can't determine specific row data
               transaction, // Pass transaction as dbDriver for querying duplicates
               this.tnPath, // Pass table name for querying duplicates
-              undefined, // Bulk update - can't determine specific column from data
             );
             // If not a unique constraint error, re-throw the original error
             throw e;

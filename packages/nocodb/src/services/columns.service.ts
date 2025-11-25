@@ -596,9 +596,11 @@ export class ColumnsService implements IColumnsService {
           context,
           (param.column.uidt || column.uidt) as UITypes,
           (param.column as any).meta || column.meta,
-          param.column.unique,
+          !!(param.column as any).unique, // Convert to boolean (might be number or boolean)
           source,
-          param.column.cdf !== undefined ? param.column.cdf : column.cdf,
+          (param.column as any).cdf !== undefined
+            ? (param.column as any).cdf
+            : column.cdf,
         );
 
         // Check for existing duplicates if enabling unique constraint
@@ -633,14 +635,29 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
+    let colBody = { ...param.column } as Column & {
+      formula?: string;
+      formula_raw?: string;
+      parsed_tree?: any;
+      colOptions?: any;
+      fk_webhook_id?: string;
+      type?: ButtonActionsType;
+      fk_script_id?: string;
+      prompt?: string;
+      prompt_raw?: string;
+      fk_integration_id?: string;
+    } & Partial<Pick<ColumnReqType, 'column_order'>>;
+    sqlUi.adjustLengthAndScale(colBody);
+
     // Store unique constraint name in internal_meta field when enabling unique constraint
     // This ensures we can drop the constraint even if table/column name changes later
     // internal_meta is an internal field (not exposed via API)
-    if (param.column.unique && !column.unique) {
+    if ((param.column as any).unique && !column.unique) {
       // Enabling unique constraint - generate and store constraint name
       // Use base_id + '_' + table_id + '_' + column_id for fixed-length, unique constraint name
       const baseId = context.base_id;
-      const tableId = param.tableId;
+      // Get tableId from column's fk_model_id (table/model id)
+      const tableId = column.fk_model_id;
       const columnId = column.id;
       const constraintName = `uk_${baseId}_${tableId}_${columnId}`;
 
@@ -666,22 +683,8 @@ export class ColumnsService implements IColumnsService {
       internalMeta.unique_constraint_name = constraintName;
 
       // Store in colBody (will be saved to database)
-      colBody.internal_meta = internalMeta;
+      (colBody as any).internal_meta = internalMeta;
     }
-
-    let colBody = { ...param.column } as Column & {
-      formula?: string;
-      formula_raw?: string;
-      parsed_tree?: any;
-      colOptions?: any;
-      fk_webhook_id?: string;
-      type?: ButtonActionsType;
-      fk_script_id?: string;
-      prompt?: string;
-      prompt_raw?: string;
-      fk_integration_id?: string;
-    } & Partial<Pick<ColumnReqType, 'column_order'>>;
-    sqlUi.adjustLengthAndScale(colBody);
 
     const { applyRowColorInvolvement } =
       await this.viewRowColorService.checkIfColumnInvolved({

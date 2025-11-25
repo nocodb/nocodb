@@ -72,17 +72,17 @@ const tableColumns = computed(() => [
   {
     name: 'Unique ID',
     key: 'uniqueId',
-    width: 100,
+    width: 150,
   },
   {
     name: 'Created At',
     key: 'createdAt',
-    width: 100,
+    width: 150,
   },
   {
     name: 'Updated At',
     key: 'updatedAt',
-    width: 100,
+    width: 150,
   },
 ])
 
@@ -316,7 +316,7 @@ onMounted(async () => {
       </div>
 
       <!-- Columns Table -->
-      <NcTable :columns="tableColumns" :data="tableData" :bordered="true" :sticky-header="true" class="nc-sync-schema-table">
+      <NcTable :columns="tableColumns" :data="tableData" :bordered="false" :sticky-header="true" class="nc-sync-schema-table">
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'include'">
             <div class="flex items-center justify-center">
@@ -343,13 +343,30 @@ onMounted(async () => {
           <template v-else-if="column.key === 'targetType'">
             <a-select
               :value="record.uidt"
-              :options="getUITypeOptions(record)"
-              class="nc-select-shadow w-full"
+              class="nc-select-shadow nc-select w-full"
               @update:value="(value) => updateColumn(record._index, 'uidt', value)"
             >
               <template #suffixIcon>
                 <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
               </template>
+
+              <a-select-option v-for="option in getUITypeOptions(record)" :key="option.value" :value="option.value">
+                <div class="flex items-center">
+                  <NcTooltip class="w-full" show-on-truncate-only>
+                    {{ option.label }}
+                    <template #title>
+                      {{ option.label }}
+                    </template>
+                  </NcTooltip>
+
+                  <GeneralIcon
+                    v-if="option.value === record.uidt"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                    icon="check"
+                  />
+                </div>
+              </a-select-option>
             </a-select>
           </template>
 
@@ -426,6 +443,7 @@ onMounted(async () => {
 }
 
 .nc-sync-schema-table {
+  @apply h-140;
   :deep(.nc-table-header-cell) {
     @apply bg-gray-50 text-bodyDefaultSmBold text-nc-content-gray;
   }

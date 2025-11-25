@@ -87,10 +87,12 @@ export default defineConfig({
 
   shortcuts: {
     'color-transition': 'transition-colors duration-100 ease-in',
-    'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',
-    'scrollbar-thin-dull': 'scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-gray-100 scrollbar-track-white',
+    'scrollbar-thin-primary':
+      'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-base-white',
+    'scrollbar-thin-dull':
+      'scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-nc-gray-100 scrollbar-track-base-white',
     'nc-scrollbar-thin':
-      'scrollbar scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent',
+      'scrollbar scrollbar-thin scrollbar-thumb-nc-gray-200 hover:scrollbar-thumb-nc-gray-300 scrollbar-track-transparent',
     'nc-content-max-w': 'max-w-[97.5rem]',
   },
 

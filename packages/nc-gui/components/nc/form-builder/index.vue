@@ -277,7 +277,7 @@ watch(
                     :value="deepReference(field.model)"
                     :options="integrationOptions[field.model]"
                     dropdown-match-select-width
-                    class="nc-select-shadow"
+                    class="nc-select nc-select-shadow"
                     placeholder="Select Integration"
                     allow-clear
                     show-search

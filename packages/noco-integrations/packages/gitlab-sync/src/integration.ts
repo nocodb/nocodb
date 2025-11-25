@@ -577,8 +577,10 @@ export default class GitlabSyncIntegration extends SyncIntegration<GitlabSyncPay
         return 'RemoteUpdatedAt';
       case TARGET_TABLES.TICKETING_COMMENT:
         return 'RemoteCreatedAt';
+      case TARGET_TABLES.TICKETING_TEAM:
+        return 'RemoteCreatedAt';
       default:
-        throw new Error(`Unsupported target table: ${targetTable}`);
+        return 'RemoteUpdatedAt';
     }
   }
 }

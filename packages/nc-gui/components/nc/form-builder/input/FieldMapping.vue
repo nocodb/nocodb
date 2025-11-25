@@ -17,11 +17,7 @@ interface FieldRow {
   value: string
 }
 
-const fieldRows = ref<FieldRow[]>([])
-const isInitializing = ref(false)
-
 const { getFieldOptions } = useFormBuilderHelperOrThrow()
-
 const workflowContext = inject(WorkflowVariableInj, null)
 
 const fieldOptions = computed<FormBuilderSelectOption[]>(() => {
@@ -43,44 +39,25 @@ const groupedVariables = computed(() => {
   return workflowContext.getAvailableVariables(workflowContext.selectedNodeId.value)
 })
 
-const initializeFieldRows = () => {
-  isInitializing.value = true
-  if (vModel.value && typeof vModel.value === 'object') {
-    fieldRows.value = Object.entries(vModel.value).map(([fieldId, value]) => ({
-      id: crypto.randomUUID(),
-      fieldId,
-      value: value || '',
-    }))
-  } else if (fieldRows.value.length === 0) {
-    fieldRows.value.push({
-      id: crypto.randomUUID(),
-      fieldId: '',
-      value: '',
-    })
-  }
-  nextTick(() => {
-    isInitializing.value = false
-  })
-}
-
-onMounted(() => {
-  initializeFieldRows()
-})
-
-watch(
-  () => props.modelValue,
-  (newVal, oldVal) => {
-    if (!isInitializing.value && JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
-      initializeFieldRows()
-    }
-  },
+const fieldRows = ref<FieldRow[]>(
+  props.modelValue && typeof props.modelValue === 'object'
+    ? Object.entries(props.modelValue).map(([fieldId, value]) => ({
+        id: crypto.randomUUID(),
+        fieldId,
+        value: value || '',
+      }))
+    : [
+        {
+          id: crypto.randomUUID(),
+          fieldId: '',
+          value: '',
+        },
+      ],
 )
 
 watch(
   fieldRows,
   (rows) => {
-    if (isInitializing.value) return
-
     const newValue: Record<string, string> = {}
     rows.forEach((row) => {
       if (row.fieldId) {

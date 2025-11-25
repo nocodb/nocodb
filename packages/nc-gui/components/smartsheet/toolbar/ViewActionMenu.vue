@@ -427,8 +427,8 @@ defineOptions({
                 <template #default="{ isAllowed }">
                   <NcMenuItem
                     :disabled="!isAllowed || !!table?.synced"
-                    @click="onImportClick(dialog)"
                     :title="!!table?.synced ? `You can't upload data in synced table` : undefined"
+                    @click="onImportClick(dialog)"
                   >
                     <div
                       v-e="[

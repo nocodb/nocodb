@@ -50,11 +50,13 @@ const form: FormDefinition = [
         message: 'Team key is required',
       },
     ],
+    docsLink: 'https://linear.app/nocodb-integrations/teams',
   },
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include canceled issues',
-    description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
+    description:
+      'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     span: 12,
     model: 'config.includeCanceled',
     category: 'Options',
@@ -63,7 +65,8 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include completed issues',
-    description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
+    description:
+      'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     span: 12,
     model: 'config.includeCompleted',
     category: 'Options',

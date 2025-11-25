@@ -225,6 +225,7 @@ watch(
                     autocomplete="off"
                     class="!w-full"
                     :value="deepReference(field.model)"
+                    :placeholder="field.placeholder"
                     @update:value="setFormStateWithEmit(field.model, $event)"
                   />
                 </template>
@@ -235,6 +236,7 @@ watch(
                     onblur="this.setAttribute('readonly', true);"
                     autocomplete="off"
                     :value="deepReference(field.model)"
+                    :placeholder="field.placeholder"
                     @update:value="setFormStateWithEmit(field.model, $event)"
                   />
                 </template>
@@ -245,6 +247,7 @@ watch(
                       :options="field.fetchOptionsKey ? getFieldOptions(field.model) : field.options"
                       :mode="selectMode(field)"
                       show-search
+                      :placeholder="field.placeholder"
                       :loading="field.fetchOptionsKey && getIsLoadingFieldOptions(field.model)"
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     />

@@ -149,16 +149,25 @@ const handleOAuth = async () => {
 
   url += `&code_challenge=${codeChallenge}&code_challenge_method=S256`
 
-  const result = await openPopup(url, `${OAuthConfig.value.provider} OAuth`, generateState(), codeVerifier, 500, 600)
+  try {
+    const result = await openPopup(url, `${OAuthConfig.value.provider} OAuth`, generateState(), codeVerifier, 500, 600)
 
-  if (!result) {
-    message.error('Failed to authenticate using OAuth')
-    return
-  }
+    if (!result) {
+      message.error('Failed to authenticate using OAuth')
+      return
+    }
 
-  vModel.value = {
-    code: result.code,
-    code_verifier: result.codeVerifier,
+    vModel.value = {
+      code: result.code,
+      code_verifier: result.codeVerifier,
+    }
+  } catch (e: any) {
+    if (e?.message?.includes('Popup closed by user')) {
+      return
+    }
+
+    message.error(e?.message || 'Failed to authenticate using OAuth')
+    console.error(e)
   }
 }
 </script>

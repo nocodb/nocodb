@@ -40,6 +40,8 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       }
     })
 
+    const isLoadingIntegrationConfigs = ref(true)
+
     const integrationConfigs = ref<IntegrationConfig[]>([])
 
     const deletedSyncConfigIds = ref<string[]>([])
@@ -284,49 +286,55 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
       const _syncId = unref(syncId)
       if (mode === 'edit' && _syncId) {
-        deletedSyncConfigIds.value = []
-        const sync = await readSync(_syncId)
-        if (!sync) return
-        syncConfigForm.value = {
-          ...(sync as SyncConfig),
-          meta: {
-            ...(getDefaultSyncConfig().meta as Record<string, any>),
-            ...parseProp(sync.meta),
-          },
-        }
+        isLoadingIntegrationConfigs.value = true
 
-        const existingIntegrationConfigs = [sync, ...(sync?.children || [])]
+        try {
+          deletedSyncConfigIds.value = []
+          const sync = await readSync(_syncId)
+          if (!sync) return
+          syncConfigForm.value = {
+            ...(sync as SyncConfig),
+            meta: {
+              ...(getDefaultSyncConfig().meta as Record<string, any>),
+              ...parseProp(sync.meta),
+            },
+          }
 
-        integrationConfigs.value = (
-          await Promise.all(
-            existingIntegrationConfigs.map(async (sync) => {
-              const integration = integrations.value.find((i) => i.id === sync.fk_integration_id)
+          const existingIntegrationConfigs = [sync, ...(sync?.children || [])]
 
-              if (!integration?.id) {
-                return null
-              }
+          integrationConfigs.value = (
+            await Promise.all(
+              existingIntegrationConfigs.map(async (sync) => {
+                const integration = integrations.value.find((i) => i.id === sync.fk_integration_id)
 
-              const int = await getIntegration(integration, {
-                includeConfig: true,
-              })
+                if (!integration?.id) {
+                  return null
+                }
 
-              if (!int) {
-                return null
-              }
+                const int = await getIntegration(integration, {
+                  includeConfig: true,
+                })
 
-              return {
-                ...integration,
-                ...int,
-                syncConfigId: sync.id,
-                parentSyncConfigId: sync.fk_parent_sync_config_id,
-              }
-            }),
-          )
-        ).filter(Boolean) as IntegrationConfig[]
+                if (!int) {
+                  return null
+                }
 
-        for (const config of integrationConfigs.value) {
-          if (!config.sub_type) continue
-          await getIntegrationForm(IntegrationCategoryType.SYNC, config.sub_type)
+                return {
+                  ...integration,
+                  ...int,
+                  syncConfigId: sync.id,
+                  parentSyncConfigId: sync.fk_parent_sync_config_id,
+                }
+              }),
+            )
+          ).filter(Boolean) as IntegrationConfig[]
+
+          for (const config of integrationConfigs.value) {
+            if (!config.sub_type) continue
+            await getIntegrationForm(IntegrationCategoryType.SYNC, config.sub_type)
+          }
+        } finally {
+          isLoadingIntegrationConfigs.value = false
         }
       }
     })
@@ -339,6 +347,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       validateInfosSyncConfig,
       syncConfigEditFormChanged,
       integrationConfigs,
+      isLoadingIntegrationConfigs,
       activeBaseSyncs,
       addIntegrationConfig,
       removeIntegrationConfig,

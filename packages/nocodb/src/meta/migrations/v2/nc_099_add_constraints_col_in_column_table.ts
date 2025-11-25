@@ -3,13 +3,13 @@ import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.COLUMNS, (table) => {
-    table.text('constraints');
+    table.text('internal_meta');
   });
 };
 
 const down = async (knex) => {
   await knex.schema.alterTable(MetaTable.COLUMNS, (table) => {
-    table.dropColumn('constraints');
+    table.dropColumn('internal_meta');
   });
 };
 

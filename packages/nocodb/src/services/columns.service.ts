@@ -633,9 +633,9 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    // Store unique constraint name in constraints field when enabling unique constraint
+    // Store unique constraint name in internal_meta field when enabling unique constraint
     // This ensures we can drop the constraint even if table/column name changes later
-    // constraints is an internal field (not exposed via API)
+    // internal_meta is an internal field (not exposed via API)
     if (param.column.unique && !column.unique) {
       // Enabling unique constraint - generate and store constraint name
       const model = await Model.get(context, param.tableId);
@@ -645,23 +645,29 @@ export class ColumnsService implements IColumnsService {
         .replace(/[^a-zA-Z0-9_]/g, '_')
         .slice(0, 63);
 
-      // Parse existing constraints or create new object
-      let constraints = column.constraints;
-      if (typeof constraints === 'string') {
+      // Parse existing internal_meta or create new object
+      let internalMeta = column.internal_meta;
+      if (typeof internalMeta === 'string') {
         try {
-          constraints = JSON.parse(constraints);
+          internalMeta = JSON.parse(internalMeta);
         } catch {
-          constraints = {};
+          internalMeta = {};
         }
-      } else if (!constraints) {
-        constraints = {};
+      } else if (!internalMeta) {
+        internalMeta = {};
       }
 
-      // Store constraint name in constraints field
-      constraints.uniqueConstraintName = constraintName;
+      // Validate internal_meta structure
+      const { validateColumnInternalMeta } = await import(
+        '~/types/column-internal-meta'
+      );
+      validateColumnInternalMeta(internalMeta);
+
+      // Store constraint name in internal_meta field
+      internalMeta.unique_constraint_name = constraintName;
 
       // Store in colBody (will be saved to database)
-      colBody.constraints = constraints;
+      colBody.internal_meta = internalMeta;
     }
 
     let colBody = { ...param.column } as Column & {

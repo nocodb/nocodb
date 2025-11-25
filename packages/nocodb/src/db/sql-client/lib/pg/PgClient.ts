@@ -3117,19 +3117,19 @@ class PGClient extends KnexClient {
             .replace(/[^a-zA-Z0-9_]/g, '_')
             .slice(0, 63);
 
-          // Store constraint name in column constraints field for later retrieval
+          // Store constraint name in column internal_meta field for later retrieval
           // This ensures we can drop the constraint even if table/column name changes
-          // The constraints field will be persisted when the column is updated
-          // Note: constraints is an internal field, not exposed via API
-          if (!n.constraints) n.constraints = {};
-          if (typeof n.constraints === 'string') {
+          // The internal_meta field will be persisted when the column is updated
+          // Note: internal_meta is an internal field, not exposed via API
+          if (!n.internal_meta) n.internal_meta = {};
+          if (typeof n.internal_meta === 'string') {
             try {
-              n.constraints = JSON.parse(n.constraints);
+              n.internal_meta = JSON.parse(n.internal_meta);
             } catch {
-              n.constraints = {};
+              n.internal_meta = {};
             }
           }
-          n.constraints.uniqueConstraintName = constraintName;
+          n.internal_meta.unique_constraint_name = constraintName;
 
           query += this.genQuery(
             `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,
@@ -3138,20 +3138,20 @@ class PGClient extends KnexClient {
           );
         } else {
           // Drop unique constraint - this will also drop the associated index
-          // Try to get constraint name from old column constraints field first
+          // Try to get constraint name from old column internal_meta field first
           let constraintName = null;
 
-          // Parse old column constraints if it exists
-          if (o.constraints) {
-            let oldConstraints = o.constraints;
-            if (typeof oldConstraints === 'string') {
+          // Parse old column internal_meta if it exists
+          if (o.internal_meta) {
+            let oldInternalMeta = o.internal_meta;
+            if (typeof oldInternalMeta === 'string') {
               try {
-                oldConstraints = JSON.parse(oldConstraints);
+                oldInternalMeta = JSON.parse(oldInternalMeta);
               } catch {
-                oldConstraints = {};
+                oldInternalMeta = {};
               }
             }
-            constraintName = oldConstraints?.uniqueConstraintName;
+            constraintName = oldInternalMeta?.unique_constraint_name;
           }
 
           // If not found in metadata, try generated name from old column name

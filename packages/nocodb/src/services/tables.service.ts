@@ -337,7 +337,7 @@ export class TablesService {
       NcError.get(context).invalidRequestBody(
         `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
       );
-    } else {
+    } else if (!param.forceDeleteRelations) {
       // if table is using in custom relation as junction table then delete all the relation
       const relations = await Noco.ncMeta.metaList2(
         table.fk_workspace_id,

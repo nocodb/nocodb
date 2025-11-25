@@ -50,11 +50,14 @@ const form: FormDefinition = [
         message: 'Project ID is required',
       },
     ],
+    docsLink:
+      'https://docs.gitlab.com/user/project/working_with_projects/#find-the-project-id',
   },
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include closed issues',
-    description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
+    description:
+      'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     span: 12,
     model: 'config.includeClosed',
     category: 'Options',
@@ -63,7 +66,8 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include merge requests',
-    description: "Sync merge requests along with issues to track code changes, reviews, and merges within your workspace.",
+    description:
+      'Sync merge requests along with issues to track code changes, reviews, and merges within your workspace.',
     span: 12,
     model: 'config.includeMRs',
     category: 'Options',

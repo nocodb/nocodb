@@ -2105,10 +2105,10 @@
     "workspacePermissionRole": "Workspace permission - {role}",
     "missingSharedBaseUrl": "Missing shared base URL",
     "requiredTablesCannotBeExcluded": "Required tables cannot be excluded",
-    "syncForThisCategoryAlreadyAdded": "Sync for this category already added",
+    "syncForThisCategoryAlreadyAdded": "Sync for this category already added, edit the existing sync.",
     "selectSyncCategory": "Select a sync category",
     "categoryNotEditableInEditMode": "Category not editable in edit mode",
-    "syncScopeNotEditableInEditMode": "Sync scope not editable in edit mode"
+    "syncScopeNotEditableInEditMode": "Sync scope can't be modified"
   },
   "placeholder": {
     "enterSyncName": "Enter sync name",

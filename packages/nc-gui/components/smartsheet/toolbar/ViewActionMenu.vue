@@ -260,11 +260,7 @@ const disablePersonalView = computed(() => {
 
 const isUploadAllowed = computed(() => {
   return (
-    isUIAllowed('csvTableImport') &&
-    !isPublicView.value &&
-    !isDataReadOnly.value &&
-    table.value?.type !== 'view' && // isSqlView
-    !table.value?.synced
+    isUIAllowed('csvTableImport') && !isPublicView.value && !isDataReadOnly.value && table.value?.type !== 'view' // isSqlView
   )
 })
 
@@ -429,7 +425,11 @@ defineOptions({
                 :description="$t('objects.permissions.uploadDataTooltip')"
               >
                 <template #default="{ isAllowed }">
-                  <NcMenuItem :disabled="!isAllowed" @click="onImportClick(dialog)">
+                  <NcMenuItem
+                    :disabled="!isAllowed || !!table?.synced"
+                    :title="!!table?.synced ? `You can't upload data in synced table` : undefined"
+                    @click="onImportClick(dialog)"
+                  >
                     <div
                       v-e="[
                         `a:upload:${type}`,
@@ -437,13 +437,13 @@ defineOptions({
                           sidebar: props.inSidebar,
                         },
                       ]"
-                      :class="{ disabled: lockType === LockType.Locked }"
+                      :class="{ disabled: lockType === LockType.Locked || !!table?.synced }"
                       class="nc-base-menu-item"
                     >
                       <component
                         :is="importAlias[type].icon"
                         v-if="importAlias[type]?.icon"
-                        :class="{ 'opacity-80': isAllowed, '!opacity-50': !isAllowed }"
+                        :class="{ 'opacity-80': isAllowed && !table?.synced, '!opacity-50': !isAllowed || !!table?.synced }"
                       />
                       {{ importAlias[type]?.title }}
                     </div>

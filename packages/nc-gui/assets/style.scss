@@ -165,13 +165,13 @@ main {
 
 .ant-form-item-has-error :not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-borderless).ant-input-affix-wrapper,
 .ant-form-item-has-error
-:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-borderless).ant-input-affix-wrapper:hover,
+  :not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-borderless).ant-input-affix-wrapper:hover,
 .ant-form-item-has-error :not(.ant-input-disabled):not(.ant-input-borderless).ant-input,
 .ant-form-item-has-error :not(.ant-input-disabled):not(.ant-input-borderless).ant-input:hover,
 .ant-form-item-has-error
-:not(.ant-input-number-affix-wrapper-disabled):not(.ant-input-number-affix-wrapper-borderless).ant-input-number-affix-wrapper,
+  :not(.ant-input-number-affix-wrapper-disabled):not(.ant-input-number-affix-wrapper-borderless).ant-input-number-affix-wrapper,
 .ant-form-item-has-error
-:not(.ant-input-number-affix-wrapper-disabled):not(
+  :not(.ant-input-number-affix-wrapper-disabled):not(
     .ant-input-number-affix-wrapper-borderless
   ).ant-input-number-affix-wrapper:hover {
   border-color: var(--ant-error-color) !important;
@@ -394,23 +394,23 @@ a {
 }
 
 .ant-form-item:not(.ant-form-item-has-error)
-.nc-select-shadow.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
-.ant-select-selector {
+  .nc-select-shadow.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
+  .ant-select-selector {
   @apply !shadow-selected;
 }
 
 .ant-form-item:not(.ant-form-item-has-error)
-.nc-select-shadow.nc-ai-input.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
-.ant-select-selector {
+  .nc-select-shadow.nc-ai-input.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
+  .ant-select-selector {
   @apply !shadow-selected-ai border-nc-border-purple;
 }
 
 .ant-form-item.ant-form-item-has-error
-.nc-select-shadow.ant-select:not(.ant-select-disabled):not(.ant-select-customize-input).ant-select-focused
-.ant-select-selector,
+  .nc-select-shadow.ant-select:not(.ant-select-disabled):not(.ant-select-customize-input).ant-select-focused
+  .ant-select-selector,
 .ant-form-item.ant-form-item-has-error
-.nc-select-shadow.ant-select:not(.ant-select-disabled):not(.ant-select-customize-input).ant-select-open
-.ant-select-selector {
+  .nc-select-shadow.ant-select:not(.ant-select-disabled):not(.ant-select-customize-input).ant-select-open
+  .ant-select-selector {
   @apply !shadow-error;
 }
 
@@ -450,6 +450,9 @@ a {
 
 .nc-base-menu-item {
   @apply cursor-pointer flex items-center gap-2 py-2;
+  &.disabled {
+    @apply cursor-not-allowed;
+  }
 
   // &:hover {
   //   .nc-icon {
@@ -1469,7 +1472,6 @@ svg.nc-virtual-cell-icon {
   @apply text-bodyBold text-nc-content-gray;
 }
 
-
 .nc-form-section-input-label {
   @apply text-caption text-nc-content-gray pb-2;
 }
@@ -1480,5 +1482,5 @@ svg.nc-virtual-cell-icon {
 
 .nc-form-section-body-grid {
   @apply grid gap-3;
-  grid-template-columns: repeat(24, minmax(0, 1fr))
+  grid-template-columns: repeat(24, minmax(0, 1fr));
 }

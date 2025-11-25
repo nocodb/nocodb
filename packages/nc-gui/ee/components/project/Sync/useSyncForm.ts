@@ -11,7 +11,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
     const { t } = useI18n()
 
-    const { integrationsRefreshKey, getIntegrationForm, integrations, getIntegration } = useIntegrationStore()
+    const { integrationsRefreshKey, getIntegrationForm, integrations, getIntegration, loadIntegrations } = useIntegrationStore()
 
     const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -39,6 +39,8 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
         tooltip: isSyncCategoryAlreadySelected ? t('tooltip.syncForThisCategoryAlreadyAdded') : t('tooltip.selectSyncCategory'),
       }
     })
+
+    const isLoadingIntegrationConfigs = ref(true)
 
     const integrationConfigs = ref<IntegrationConfig[]>([])
 
@@ -152,7 +154,10 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
         }
       }
 
-      console.error('errors', errors)
+      if (errors?.length) {
+        console.error('errors', errors)
+      }
+
       return errors?.length === 0
     }
 
@@ -165,6 +170,9 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       isSaving.value = true
       try {
         const res = await createSync(bsId, syncConfig)
+
+        await loadIntegrations()
+
         return res?.job.id
       } finally {
         isSaving.value = false
@@ -225,6 +233,8 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
           }
         }
 
+        await loadIntegrations()
+
         message.success('Sync updated successfully')
 
         return result
@@ -281,49 +291,55 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
 
       const _syncId = unref(syncId)
       if (mode === 'edit' && _syncId) {
-        deletedSyncConfigIds.value = []
-        const sync = await readSync(_syncId)
-        if (!sync) return
-        syncConfigForm.value = {
-          ...(sync as SyncConfig),
-          meta: {
-            ...(getDefaultSyncConfig().meta as Record<string, any>),
-            ...parseProp(sync.meta),
-          },
-        }
+        isLoadingIntegrationConfigs.value = true
 
-        const existingIntegrationConfigs = [sync, ...(sync?.children || [])]
+        try {
+          deletedSyncConfigIds.value = []
+          const sync = await readSync(_syncId)
+          if (!sync) return
+          syncConfigForm.value = {
+            ...(sync as SyncConfig),
+            meta: {
+              ...(getDefaultSyncConfig().meta as Record<string, any>),
+              ...parseProp(sync.meta),
+            },
+          }
 
-        integrationConfigs.value = (
-          await Promise.all(
-            existingIntegrationConfigs.map(async (sync) => {
-              const integration = integrations.value.find((i) => i.id === sync.fk_integration_id)
+          const existingIntegrationConfigs = [sync, ...(sync?.children || [])]
 
-              if (!integration?.id) {
-                return null
-              }
+          integrationConfigs.value = (
+            await Promise.all(
+              existingIntegrationConfigs.map(async (s) => {
+                const integration = integrations.value.find((i) => i.id === s.fk_integration_id)
 
-              const int = await getIntegration(integration, {
-                includeConfig: true,
-              })
+                if (!integration?.id) {
+                  return null
+                }
 
-              if (!int) {
-                return null
-              }
+                const int = await getIntegration(integration, {
+                  includeConfig: true,
+                })
 
-              return {
-                ...integration,
-                ...int,
-                syncConfigId: sync.id,
-                parentSyncConfigId: sync.fk_parent_sync_config_id,
-              }
-            }),
-          )
-        ).filter(Boolean) as IntegrationConfig[]
+                if (!int) {
+                  return null
+                }
 
-        for (const config of integrationConfigs.value) {
-          if (!config.sub_type) continue
-          await getIntegrationForm(IntegrationCategoryType.SYNC, config.sub_type)
+                return {
+                  ...integration,
+                  ...int,
+                  syncConfigId: s.id,
+                  parentSyncConfigId: s.fk_parent_sync_config_id,
+                }
+              }),
+            )
+          ).filter(Boolean) as IntegrationConfig[]
+
+          for (const config of integrationConfigs.value) {
+            if (!config.sub_type) continue
+            await getIntegrationForm(IntegrationCategoryType.SYNC, config.sub_type)
+          }
+        } finally {
+          isLoadingIntegrationConfigs.value = false
         }
       }
     })
@@ -336,6 +352,7 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       validateInfosSyncConfig,
       syncConfigEditFormChanged,
       integrationConfigs,
+      isLoadingIntegrationConfigs,
       activeBaseSyncs,
       addIntegrationConfig,
       removeIntegrationConfig,

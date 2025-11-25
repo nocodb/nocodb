@@ -120,7 +120,12 @@ const previousStep = () => {
             </template>
           </NcButton>
 
-          <NcTooltip :disabled="(!saveError || step !== SyncFormStep.Create) && !isSyncCategoryAlreadyAddedOrBlank.value">
+          <NcTooltip
+            :disabled="
+              ((!saveError || step !== SyncFormStep.Create) && !isSyncCategoryAlreadyAddedOrBlank.value) ||
+              (step === SyncFormStep.Create && isSaving)
+            "
+          >
             <template #title>
               {{ isSyncCategoryAlreadyAddedOrBlank.value ? isSyncCategoryAlreadyAddedOrBlank.tooltip : saveError }}
             </template>
@@ -157,27 +162,25 @@ const previousStep = () => {
       </div>
     </template>
 
-    <div class="h-[calc(100%_-_50px)] flex">
+    <div class="h-[calc(100%_-_57px)] flex">
       <!-- Content -->
-      <div class="flex-1 nc-modal-sync-edit-content h-full">
-        <div ref="containerElem" class="h-full flex-1 flex flex-col overflow-auto nc-scrollbar-thin px-6 md:px-12 mx-auto">
-          <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 my-6 flex flex-col">
-            <a-form layout="vertical" no-style :hide-required-mark="true" class="flex flex-col gap-8 w-full">
-              <template v-if="step === SyncFormStep.SyncSettings">
-                <ProjectSyncCommonGeneral />
-                <ProjectSyncCommonCategory />
-              </template>
-              <template v-else-if="step === SyncFormStep.Integration">
-                <ProjectSyncCommonSources />
-              </template>
-              <template v-else-if="step === SyncFormStep.DestinationSchema">
-                <ProjectSyncCommonSchemaMapping />
-              </template>
-              <template v-else-if="step === SyncFormStep.Create">
-                <ProjectSyncCreateReview />
-              </template>
-            </a-form>
-          </div>
+      <div class="flex-1 nc-modal-sync-edit-content h-full nc-scrollbar-thin relative">
+        <div class="flex flex-col py-6 px-6 md:px-8 max-w-[768px] w-full min-w-[664px] mx-auto">
+          <a-form layout="vertical" no-style :hide-required-mark="true" class="flex flex-col gap-8 w-full">
+            <template v-if="step === SyncFormStep.SyncSettings">
+              <ProjectSyncCommonGeneral />
+              <ProjectSyncCommonCategory />
+            </template>
+            <template v-else-if="step === SyncFormStep.Integration">
+              <ProjectSyncCommonSources />
+            </template>
+            <template v-else-if="step === SyncFormStep.DestinationSchema">
+              <ProjectSyncCommonSchemaMapping />
+            </template>
+            <template v-else-if="step === SyncFormStep.Create">
+              <ProjectSyncCreateReview />
+            </template>
+          </a-form>
         </div>
       </div>
 

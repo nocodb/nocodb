@@ -62,7 +62,7 @@ onMounted(() => {
         v-model:open="isSyncScheduleOpen"
         v-model:value="selectedInterval"
         :list="intervalOptions"
-        option-label-key="value"
+        option-label-key="label"
         option-value-key="value"
         close-on-select
         :item-height="48"

@@ -446,6 +446,10 @@ a {
 .nc-base-menu-item {
   @apply cursor-pointer flex items-center gap-2 py-2;
 
+  &.disabled {
+    @apply cursor-not-allowed;
+  }
+
   // &:hover {
   //   .nc-icon {
   //     @apply text-accent;

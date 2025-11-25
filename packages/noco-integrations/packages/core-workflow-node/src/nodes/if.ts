@@ -277,8 +277,8 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
   }
 
   private evaluateTextCondition(fieldValue: any, op: NocoSDK.WorkflowNodeComparisonOp, value?: any): boolean {
-    const str1 = fieldValue == null ? '' : String(fieldValue);
-    const str2 = value == null ? '' : String(value);
+    const str1 = NocoSDK.ncIsNullOrUndefined(fieldValue) ? '' : String(fieldValue);
+    const str2 = NocoSDK.ncIsNullOrUndefined(value) ? '' : String(value);
 
     // Check common operations
     const nullResult = this.checkNullOp(fieldValue, op);

@@ -46,14 +46,14 @@ const groupedVariables = computed(() => {
 const initializeFieldRows = () => {
   isInitializing.value = true
   if (vModel.value && typeof vModel.value === 'object') {
-    fieldRows.value = Object.entries(vModel.value).map(([fieldId, value], index) => ({
-      id: `${index}-${fieldId}`,
+    fieldRows.value = Object.entries(vModel.value).map(([fieldId, value]) => ({
+      id: crypto.randomUUID(),
       fieldId,
       value: value || '',
     }))
   } else if (fieldRows.value.length === 0) {
     fieldRows.value.push({
-      id: `${Date.now()}-${Math.random()}`,
+      id: crypto.randomUUID(),
       fieldId: '',
       value: '',
     })
@@ -94,7 +94,7 @@ watch(
 
 function addFieldRow() {
   fieldRows.value.push({
-    id: `${Date.now()}-${Math.random()}`,
+    id: crypto.randomUUID(),
     fieldId: '',
     value: '',
   })
@@ -107,6 +107,12 @@ function removeFieldRow(index: number) {
     addFieldRow()
   }
 }
+
+const disableAddFieldRow = computed(() => {
+  const selectedFieldIds = new Set(fieldRows.value.map((row) => row.fieldId))
+  const availableOptions = fieldOptions.value.filter((option) => !selectedFieldIds.has(option.value))
+  return availableOptions.length === 0
+})
 
 function getAvailableOptions(currentRowId: string) {
   const selectedFieldIds = new Set(
@@ -176,7 +182,7 @@ function getAvailableOptions(currentRowId: string) {
       </div>
     </div>
 
-    <NcButton class="nc-field-mapping-add-btn" type="text" size="small" @click="addFieldRow">
+    <NcButton :disabled="disableAddFieldRow" class="nc-field-mapping-add-btn" type="text" size="small" @click="addFieldRow">
       <div class="flex items-center gap-1">
         <GeneralIcon icon="plus" />
         <span> Add new field </span>

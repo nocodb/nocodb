@@ -81,7 +81,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
           label: table.title || table.table_name,
           value: table.id,
           ncItemDisabled: table.synced,
-          ncItemTooltip: table.synced? 'Records cannot be created in synced tables': null,
+          ncItemTooltip: table.synced ? 'Records cannot be created in synced tables': null,
           table: table
         }))
       }
@@ -136,12 +136,12 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
 
     if (!config.fields || Object.keys(config.fields).length === 0) {
       errors.push({
-        path: 'config.fieldMapping',
+        path: 'config.fields',
         message: 'At least one field is required',
       });
     } else if (typeof config.fields !== 'object') {
       errors.push({
-        path: 'config.fieldMapping',
+        path: 'config.fields',
         message: 'Field mapping must be an object',
       });
     }

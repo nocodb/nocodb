@@ -134,6 +134,10 @@ interface FormBuilderElementBase {
   dependsOn?: string | string[];
   /** Help text for the element */
   helpText?: string;
+  /**
+   * Link to the documentation for the element
+   */
+  docsLink?: string;
 }
 
 /**

@@ -184,28 +184,40 @@ watch(
                 :data-testid="`nc-form-input-${field.model}`"
               >
                 <template v-if="![FormBuilderInputType.Switch, FormBuilderInputType.Checkbox].includes(field.type)" #label>
-                  <div class="flex items-center gap-1">
-                    <span>{{ field.label }}</span>
-                    <span
-                      v-if="
-                        field.required &&
-                        ![
-                          FormBuilderInputType.Select,
-                          FormBuilderInputType.SelectIntegration,
-                          FormBuilderInputType.SelectBase,
-                        ].includes(field.type)
-                      "
-                      class="text-nc-content-red-medium"
-                      >*</span
+                  <div class="flex items-center gap-1 w-full">
+                    <div class="flex-1 flex items-center gap-1">
+                      <span>{{ field.label }}</span>
+                      <span
+                        v-if="
+                          field.required &&
+                          ![
+                            FormBuilderInputType.Select,
+                            FormBuilderInputType.SelectIntegration,
+                            FormBuilderInputType.SelectBase,
+                          ].includes(field.type)
+                        "
+                        class="text-nc-content-red-medium"
+                        >*</span
+                      >
+                      <NcTooltip v-if="field.helpText && field.showHintAsTooltip">
+                        <template #title>
+                          <div class="text-xs">
+                            {{ field.helpText }}
+                          </div>
+                        </template>
+                        <GeneralIcon icon="info" class="text-nc-content-gray-muted h-4" />
+                      </NcTooltip>
+                    </div>
+
+                    <a
+                      v-if="field.docsLink"
+                      :href="field.docsLink"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-xs justify-self-end no-underline hover:underline"
                     >
-                    <NcTooltip v-if="field.helpText && field.showHintAsTooltip">
-                      <template #title>
-                        <div class="text-xs">
-                          {{ field.helpText }}
-                        </div>
-                      </template>
-                      <GeneralIcon icon="info" class="text-nc-content-gray-muted h-4" />
-                    </NcTooltip>
+                      {{ $t('title.docs') }}
+                    </a>
                   </div>
                 </template>
                 <template v-if="field.type === FormBuilderInputType.Input">
@@ -459,6 +471,10 @@ watch(
 
   :deep(.ant-form-item-label > label.ant-form-item-required:after) {
     @apply content-['*'] inline-block text-inherit text-nc-content-red-medium ml-1;
+  }
+
+  :deep(.ant-form-item-label label) {
+    @apply w-full;
   }
 
   :deep(.ant-form-item) {

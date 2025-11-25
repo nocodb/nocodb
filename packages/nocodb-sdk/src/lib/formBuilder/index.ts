@@ -12,6 +12,7 @@ export enum FormBuilderInputType {
   OAuth = 'oauth',
   Checkbox = 'checkbox',
   WorkflowInput = 'workflow-input',
+  FieldMapping = 'field-mapping',
 }
 
 /**
@@ -275,6 +276,17 @@ export interface FormBuilderWorkflowInputElement
 }
 
 /**
+ * FieldMapping element (Dynamic field-value mapping with field selection and workflow input)
+ */
+export interface FormBuilderFieldMappingElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.FieldMapping;
+  /** Key to fetch field options dynamically */
+  fetchOptionsKey?: string;
+  /** Default field-value mappings as Record<fieldId, value> */
+  defaultValue?: Record<string, string> | null;
+}
+
+/**
  * Union type of all possible form builder elements
  */
 export type FormBuilderElement =
@@ -290,7 +302,8 @@ export type FormBuilderElement =
   | FormBuilderSelectViewElement
   | FormBuilderSelectFieldElement
   | FormBuilderOAuthElement
-  | FormBuilderWorkflowInputElement;
+  | FormBuilderWorkflowInputElement
+  | FormBuilderFieldMappingElement;
 
 /**
  * Complete form definition - array of form elements

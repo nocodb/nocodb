@@ -381,6 +381,15 @@ watch(
                     @update:model-value="setFormStateWithEmit(field.model, $event)"
                   />
                 </template>
+                <template v-else-if="field.type === FormBuilderInputType.FieldMapping">
+                  <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
+                    <NcFormBuilderInputFieldMapping
+                      :model-value="deepReference(field.model)"
+                      :element="field"
+                      @update:model-value="setFormStateWithEmit(field.model, $event)"
+                    />
+                  </NcFormBuilderInputMountedWrapper>
+                </template>
                 <div
                   v-if="field.helpText && field.type !== FormBuilderInputType.Switch && !field.showHintAsTooltip"
                   class="w-full mt-1"

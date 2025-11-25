@@ -3112,24 +3112,53 @@ class PGClient extends KnexClient {
       if (n.unique !== o.unique) {
         if (n.unique) {
           // Add unique constraint - PostgreSQL will create the index automatically
-          // Generate constraint name and store it in column metadata for later retrieval
-          const constraintName = `uk_${t}_${n.cn}`
-            .replace(/[^a-zA-Z0-9_]/g, '_')
-            .slice(0, 63);
+          // Use constraint name from internal_meta if available (set by columns.service.ts)
+          // Otherwise fall back to generated name (shouldn't happen in normal flow)
+          let constraintName = null;
+
+          // Try to get constraint name from internal_meta first
+          if (n.internal_meta) {
+            let internalMeta = n.internal_meta;
+            if (typeof internalMeta === 'string') {
+              try {
+                internalMeta = JSON.parse(internalMeta);
+              } catch {
+                internalMeta = {};
+              }
+            }
+            constraintName = internalMeta?.unique_constraint_name;
+          }
+
+          // Fallback: generate constraint name if not in internal_meta
+          // This should only happen if internal_meta wasn't set properly
+          if (!constraintName) {
+            // Try to use base_id, table_id, column_id if available in column object
+            if (n.base_id && n.fk_model_id && n.id) {
+              constraintName = `${n.base_id}_${n.fk_model_id}_${n.id}`;
+            } else {
+              // Last resort: use table and column name (old method)
+              constraintName = `uk_${t}_${n.cn}`
+                .replace(/[^a-zA-Z0-9_]/g, '_')
+                .slice(0, 63);
+            }
+          }
 
           // Store constraint name in column internal_meta field for later retrieval
           // This ensures we can drop the constraint even if table/column name changes
           // The internal_meta field will be persisted when the column is updated
           // Note: internal_meta is an internal field, not exposed via API
-          if (!n.internal_meta) n.internal_meta = {};
-          if (typeof n.internal_meta === 'string') {
-            try {
-              n.internal_meta = JSON.parse(n.internal_meta);
-            } catch {
-              n.internal_meta = {};
+          // Only store if not already set (columns.service.ts should have set it already)
+          if (!n.internal_meta || !n.internal_meta.unique_constraint_name) {
+            if (!n.internal_meta) n.internal_meta = {};
+            if (typeof n.internal_meta === 'string') {
+              try {
+                n.internal_meta = JSON.parse(n.internal_meta);
+              } catch {
+                n.internal_meta = {};
+              }
             }
+            n.internal_meta.unique_constraint_name = constraintName;
           }
-          n.internal_meta.unique_constraint_name = constraintName;
 
           query += this.genQuery(
             `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,

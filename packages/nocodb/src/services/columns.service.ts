@@ -638,12 +638,11 @@ export class ColumnsService implements IColumnsService {
     // internal_meta is an internal field (not exposed via API)
     if (param.column.unique && !column.unique) {
       // Enabling unique constraint - generate and store constraint name
-      const model = await Model.get(context, param.tableId);
-      const tableName = model.table_name;
-      const columnName = param.column.column_name || column.column_name;
-      const constraintName = `uk_${tableName}_${columnName}`
-        .replace(/[^a-zA-Z0-9_]/g, '_')
-        .slice(0, 63);
+      // Use base_id + '_' + table_id + '_' + column_id for fixed-length, unique constraint name
+      const baseId = context.base_id;
+      const tableId = param.tableId;
+      const columnId = column.id;
+      const constraintName = `uk_${baseId}_${tableId}_${columnId}`;
 
       // Parse existing internal_meta or create new object
       let internalMeta = column.internal_meta;

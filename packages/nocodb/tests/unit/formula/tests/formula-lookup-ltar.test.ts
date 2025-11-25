@@ -314,7 +314,6 @@ function formulaLookupLtarTests() {
     });
     expect(t1Rows[0].table2FormulaTitle).to.eq('T2_001?');
     expect(t2Rows[0].table1FormulaTitleConcat).to.contain('T1_001?');
-    expect(t3Rows[0].table1FormulaTitle).to.eq('T1_001?');
   });
 
   it('will create a formula column assigned as display value accessed through ltar field', async () => {

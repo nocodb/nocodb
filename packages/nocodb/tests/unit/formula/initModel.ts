@@ -393,6 +393,12 @@ export async function initFormulaLookupColumns(context: ITestContext) {
       formula_raw: 'CONCAT({Title}, "?")',
     },
   );
+  await createColumn(context.context, context.tables.table2, {
+    title: 'FormulaTitle',
+    uidt: UITypes.Formula,
+    formula: 'CONCAT({Title}, "?")',
+    formula_raw: 'CONCAT({Title}, "?")',
+  });
   const t2SupportingLookupColumns = [
     {
       title: 'T2CreatedTime',
@@ -432,19 +438,19 @@ export async function initFormulaLookupColumns(context: ITestContext) {
   ];
   const t3SupportingLookupColumns = [
     {
-      title: 'T1CreatedTime',
+      title: 'T3CreatedTime',
       uidt: UITypes.CreatedTime,
     },
     {
-      title: 'T1CreatedBy',
+      title: 'T3CreatedBy',
       uidt: UITypes.CreatedBy,
     },
     {
-      title: 'T1LastModifiedTime',
+      title: 'T3LastModifiedTime',
       uidt: UITypes.LastModifiedTime,
     },
     {
-      title: 'T1LastModifiedBy',
+      title: 'T3LastModifiedBy',
       uidt: UITypes.LastModifiedBy,
     },
   ];
@@ -452,7 +458,7 @@ export async function initFormulaLookupColumns(context: ITestContext) {
     await createColumn(context.context, context.tables.table1, colAttr);
   }
   for (const colAttr of t3SupportingLookupColumns) {
-    await createColumn(context.context, context.tables.table1, colAttr);
+    await createColumn(context.context, context.tables.table3, colAttr);
   }
   for (const colAttr of t2SupportingLookupColumns) {
     await createColumn(context.context, context.tables.table2, colAttr);
@@ -462,6 +468,16 @@ export async function initFormulaLookupColumns(context: ITestContext) {
     await context.tables.table2.getColumns(context.ctx)
   ).find((col) => col.title === 'T1s');
 
+  const t2FformulaColumn = await createColumn(
+    context.context,
+    context.tables.table2,
+    {
+      title: 'T2FormulaTitle',
+      uidt: UITypes.Formula,
+      formula: 'CONCAT({Title}, "?")',
+      formula_raw: 'CONCAT({Title}, "?")',
+    },
+  );
   const t1_BT_t2_Ltar = (
     await context.tables.table1.getColumns(context.ctx)
   ).find((col) => col.title === 'Table2');
@@ -483,11 +499,23 @@ export async function initFormulaLookupColumns(context: ITestContext) {
     relatedTableColumnTitle: 'FormulaTitle',
     relationColumnId: t2_HM_t1_Ltar.id,
   });
+  await createLookupColumn(context.context, {
+    base: context.base,
+    title: 'table2FormulaTitle',
+    table: await Model.getByIdOrName(context.ctx, {
+      base_id: context.base.id,
+      source_id: source.id!,
+      id: context.tables.table1.id,
+    }),
+    relatedTableName: context.tables.table2.table_name,
+    relatedTableColumnTitle: 'FormulaTitle',
+    relationColumnId: t1_BT_t2_Ltar.id,
+  });
 
   for (const attr of t1SupportingLookupColumns) {
     await createLookupColumn(context.context, {
       base: context.base,
-      title: attr.title,
+      title: `t2_hm_${attr.title}`,
       table: await Model.getByIdOrName(context.ctx, {
         base_id: context.base.id,
         source_id: source.id!,
@@ -502,7 +530,7 @@ export async function initFormulaLookupColumns(context: ITestContext) {
   for (const attr of t2SupportingLookupColumns) {
     await createLookupColumn(context.context, {
       base: context.base,
-      title: attr.title,
+      title: `t1_bt_${attr.title}`,
       table: await Model.getByIdOrName(context.ctx, {
         base_id: context.base.id,
         source_id: source.id!,
@@ -516,23 +544,23 @@ export async function initFormulaLookupColumns(context: ITestContext) {
   for (const attr of t3SupportingLookupColumns) {
     await createLookupColumn(context.context, {
       base: context.base,
-      title: attr.title,
+      title: `t1_oo_${attr.title}`,
       table: await Model.getByIdOrName(context.ctx, {
         base_id: context.base.id,
         source_id: source.id!,
         id: context.tables.table1.id,
       }),
-      relatedTableName: context.tables.table2.table_name,
+      relatedTableName: context.tables.table3.table_name,
       relatedTableColumnTitle: attr.title,
       relationColumnId: t1_OO_t3_Ltar.id,
     });
   }
 
   const t2Fields = t1SupportingLookupColumns
-    .map((col) => `{${col.title}}`)
+    .map((col) => `{t2_hm_${col.title}}`)
     .join(',');
   const t1Fields = t2SupportingLookupColumns
-    .map((col) => `{${col.title}}`)
+    .map((col) => `{t1_bt_${col.title}}`)
     .join(',');
   // t2 formula for supporting lookup
   await createColumn(context.context, context.tables.table2, {

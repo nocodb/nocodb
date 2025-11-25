@@ -215,7 +215,8 @@ export function getFieldVariable(
     groupKey: VariableGroupKey.Fields,
     isArray,
     extra: {
-      columnId: column.id,
+      entity_id: column.id,
+      entity: 'column',
       uiType: column.uidt,
       icon: uiTypeToIcon(column.uidt as UITypes),
     },

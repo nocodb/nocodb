@@ -247,6 +247,8 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
             icon: table.synced? 'ncZap': 'table',
+            entity_id: modelId,
+            entity: 'table',
             tableName: table.title,
             description: 'Table to monitor for new records',
           },
@@ -291,6 +293,8 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
             type: NocoSDK.VariableType.String,
             groupKey: NocoSDK.VariableGroupKey.Meta,
             extra: {
+              entity_id: modelId,
+              entity: 'table',
               description: 'Table ID',
               icon: 'cellSystemKey',
             },

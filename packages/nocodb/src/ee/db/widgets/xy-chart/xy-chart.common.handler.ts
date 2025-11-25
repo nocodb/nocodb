@@ -16,7 +16,10 @@ import type {
 } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from '~/db/CustomKnex';
-import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
+import {
+  BaseWidgetHandler,
+  type WidgetDependencies,
+} from '~/db/widgets/base-widget.handler';
 import { Column, Filter, Model, Source, View } from '~/models';
 import { validateAggregationColType } from '~/db/aggregation';
 import applyAggregation from '~/db/aggregation';
@@ -501,5 +504,42 @@ export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
         },
       },
     } as any;
+  }
+
+  public extractDependencies(widget: ChartWidgetType): WidgetDependencies {
+    const dependencies = super.extractDependencies(widget);
+
+    const widgetConfig = widget.config as
+      | BarChartConfig
+      | ScatterPlotConfig
+      | LineChartConfig;
+
+    if (widgetConfig.data?.xAxis?.column_id) {
+      dependencies.columns.push({
+        id: widgetConfig.data.xAxis.column_id,
+        path: 'config.data.xAxis.column_id',
+      });
+    }
+
+    if (widgetConfig.data?.yAxis?.fields) {
+      for (let i = 0; i < widgetConfig.data.yAxis.fields.length; i++) {
+        const field = widgetConfig.data.yAxis.fields[i];
+        if (field.column_id) {
+          dependencies.columns.push({
+            id: field.column_id,
+            path: `config.data.yAxis.fields[${i}].column_id`,
+          });
+        }
+      }
+    }
+
+    if (widgetConfig.data?.yAxis?.groupBy) {
+      dependencies.columns.push({
+        id: widgetConfig.data.yAxis.groupBy,
+        path: 'config.data.yAxis.groupBy',
+      });
+    }
+
+    return dependencies;
   }
 }

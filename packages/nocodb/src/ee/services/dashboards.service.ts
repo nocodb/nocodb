@@ -13,7 +13,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import type { DashboardType } from 'nocodb-sdk';
 import type { AppConfig, NcContext, NcRequest } from '~/interface/config';
-import { CustomUrl, Dashboard, Widget } from '~/models';
+import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
@@ -145,6 +145,22 @@ export class DashboardsService {
       NcError.get(context).dashboardNotFound(dashboardId);
     }
 
+    try {
+      const widgets = await Widget.list(context, dashboardId);
+      for (const widget of widgets) {
+        await DependencyTracker.clearDependencies(
+          context,
+          DependencyTableType.Widget,
+          widget.id,
+        );
+      }
+    } catch (error) {
+      console.error(
+        'Failed to clear widget dependencies for dashboard:',
+        error,
+      );
+    }
+
     await Dashboard.delete(context, dashboardId);
 
     this.appHooksService.emit(AppEvents.DASHBOARD_DELETE, {
@@ -214,6 +230,18 @@ export class DashboardsService {
     }
 
     widget.error = hasErrors;
+
+    try {
+      const dependencies = handler.extractDependencies(widget as any);
+      await DependencyTracker.trackDependencies(
+        context,
+        DependencyTableType.Widget,
+        widget.id,
+        dependencies,
+      );
+    } catch (error) {
+      console.error('Failed to track widget dependencies:', error);
+    }
 
     this.appHooksService.emit(AppEvents.WIDGET_CREATE, {
       context,
@@ -288,6 +316,18 @@ export class DashboardsService {
       });
     }
 
+    try {
+      const dependencies = handler.extractDependencies(newWidget as any);
+      await DependencyTracker.trackDependencies(
+        context,
+        DependencyTableType.Widget,
+        newWidget.id,
+        dependencies,
+      );
+    } catch (error) {
+      console.error('Failed to track widget dependencies:', error);
+    }
+
     this.appHooksService.emit(AppEvents.WIDGET_DUPLICATE, {
       sourceWidget: widget as WidgetType,
       destWidget: newWidget as WidgetType,
@@ -347,6 +387,18 @@ export class DashboardsService {
       });
     }
 
+    try {
+      const dependencies = handler.extractDependencies(updatedWidget as any);
+      await DependencyTracker.trackDependencies(
+        context,
+        DependencyTableType.Widget,
+        updatedWidget.id,
+        dependencies,
+      );
+    } catch (error) {
+      console.error('Failed to update widget dependencies:', error);
+    }
+
     this.appHooksService.emit(AppEvents.WIDGET_UPDATE, {
       context,
       oldWidget: widget as WidgetType,
@@ -378,6 +430,16 @@ export class DashboardsService {
     if (!widget) {
       NcError.get(context).widgetNotFound(widgetId);
     }
+    try {
+      await DependencyTracker.clearDependencies(
+        context,
+        DependencyTableType.Widget,
+        widgetId,
+      );
+    } catch (error) {
+      console.error('Failed to clear widget dependencies:', error);
+    }
+
     await Widget.delete(context, widgetId);
 
     this.appHooksService.emit(AppEvents.WIDGET_DELETE, {

@@ -246,6 +246,8 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          entity_id: modelId,
+          entity: 'table',
           icon: table.synced? 'ncZap': 'table',
           tableName: table.title,
           description: 'Selected table for record creation',

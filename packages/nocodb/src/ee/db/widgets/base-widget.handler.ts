@@ -7,6 +7,17 @@ import type {
 } from 'nocodb-sdk';
 import { BaseUser } from '~/models';
 
+export interface WidgetDependency {
+  id: string;
+  path: string;
+}
+
+export interface WidgetDependencies {
+  columns: WidgetDependency[];
+  models: WidgetDependency[];
+  views: WidgetDependency[];
+}
+
 export class BaseWidgetHandler<T extends AnyWidgetType = AnyWidgetType> {
   async validateWidgetData(
     _context: NcContext,
@@ -76,5 +87,36 @@ export class BaseWidgetHandler<T extends AnyWidgetType = AnyWidgetType> {
       position: widget.position,
       ...(mode === 'serialize' ? { id, error: true } : {}),
     };
+  }
+
+  /**
+   * Extract all dependencies from widget
+   * Override this in specific widget handlers for custom extraction logic
+   * Returns object with arrays of column IDs, model IDs, and view IDs with their paths
+   */
+  public extractDependencies(_widget: T): WidgetDependencies {
+    const dependencies: WidgetDependencies = {
+      columns: [],
+      models: [],
+      views: [],
+    };
+
+    // Extract model dependency
+    if (_widget.fk_model_id) {
+      dependencies.models.push({
+        id: _widget.fk_model_id,
+        path: 'fk_model_id',
+      });
+    }
+
+    // Extract view dependency
+    if (_widget.fk_view_id) {
+      dependencies.views.push({
+        id: _widget.fk_view_id,
+        path: 'fk_view_id',
+      });
+    }
+
+    return dependencies;
   }
 }

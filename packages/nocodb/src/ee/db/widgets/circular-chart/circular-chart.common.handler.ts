@@ -5,7 +5,10 @@ import type {
   NcContext,
   PieChartConfig,
 } from 'nocodb-sdk';
-import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
+import {
+  BaseWidgetHandler,
+  type WidgetDependencies,
+} from '~/db/widgets/base-widget.handler';
 import { Column, Model, View } from '~/models';
 import { validateAggregationColType } from '~/db/aggregation';
 
@@ -193,5 +196,29 @@ export class CircularChartCommonHandler extends BaseWidgetHandler<ChartWidgetTyp
         },
       },
     } as any;
+  }
+
+  public extractDependencies(widget: ChartWidgetType): WidgetDependencies {
+    const dependencies = super.extractDependencies(widget);
+
+    const widgetConfig = widget.config as PieChartConfig | DonutChartConfig;
+
+    if (widgetConfig.data?.category?.column_id) {
+      dependencies.columns.push({
+        id: widgetConfig.data.category.column_id,
+        path: 'config.data.category.column_id',
+      });
+    }
+
+    if (widgetConfig.data.value.type === 'summary') {
+      if (widgetConfig.data?.value?.column_id) {
+        dependencies.columns.push({
+          id: widgetConfig.data.value.column_id,
+          path: 'config.data.value.column_id',
+        });
+      }
+    }
+
+    return dependencies;
   }
 }

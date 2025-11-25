@@ -57,55 +57,74 @@ export class DuplicateDetectionService {
       );
     }
 
+    // Use GROUP BY with COUNT to find duplicates directly in the database
+    // This is much more efficient than fetching all records
+    // Limit to 1 for existence check - we just need to know if any duplicates exist
     let query = knex(tableName)
       .select(columnName)
+      .count('* as count')
       .whereNotNull(columnName)
-      .where(columnName, '!=', '');
+      .where(columnName, '!=', '')
+      .groupBy(columnName)
+      .havingRaw('COUNT(*) > 1')
+      .limit(1); // Limit to 1 to avoid fetching all duplicates
 
-    // For text fields, we need to check for case-insensitive and trimmed duplicates
-    if (
-      [
-        UITypes.SingleLineText,
-        UITypes.LongText,
-        UITypes.Email,
-        UITypes.PhoneNumber,
-        UITypes.URL,
-      ].includes(column.uidt)
-    ) {
-      // Use database-specific case-insensitive comparison
-      // Since we're already querying from the table, we can reference the column directly
-      query = query.whereNotNull(columnName);
-    }
-
+    // Exclude specific row if provided (for update operations)
     if (excludeRowId && primaryKey) {
-      query = query.where(primaryKey.column_name, '!=', excludeRowId);
+      query = knex(tableName)
+        .select(columnName)
+        .count('* as count')
+        .whereNotNull(columnName)
+        .where(columnName, '!=', '')
+        .where(primaryKey.column_name, '!=', excludeRowId)
+        .groupBy(columnName)
+        .havingRaw('COUNT(*) > 1')
+        .limit(1);
     }
 
     const results = await query;
+    const hasDuplicates = results.length > 0;
 
-    // Group by normalized values to detect duplicates
-    const valueGroups = new Map<string, number>();
-
-    for (const row of results) {
-      const value = row[columnName];
-      const normalizedValue = normalizeValueForUniqueCheck(value, column.uidt);
-
-      if (normalizedValue !== null) {
-        const key = String(normalizedValue);
-        valueGroups.set(key, (valueGroups.get(key) || 0) + 1);
-      }
-    }
-
-    // Count duplicates
+    // For count, use a simpler approach: total rows minus distinct values
+    // This gives us the number of duplicate rows
     let duplicateCount = 0;
-    for (const [, count] of valueGroups) {
-      if (count > 1) {
-        duplicateCount += count;
+    if (hasDuplicates) {
+      // Count total non-null, non-empty rows
+      const totalQuery = knex(tableName)
+        .count('* as total')
+        .whereNotNull(columnName)
+        .where(columnName, '!=', '');
+
+      // Count distinct non-null, non-empty values
+      const distinctQuery = knex(tableName)
+        .countDistinct(columnName + ' as distinct_count')
+        .whereNotNull(columnName)
+        .where(columnName, '!=', '');
+
+      // Apply excludeRowId if provided
+      if (excludeRowId && primaryKey) {
+        totalQuery.where(primaryKey.column_name, '!=', excludeRowId);
+        distinctQuery.where(primaryKey.column_name, '!=', excludeRowId);
       }
+
+      const [totalResult, distinctResult] = await Promise.all([
+        totalQuery.first(),
+        distinctQuery.first(),
+      ]);
+
+      const total = parseInt(String(totalResult?.total || '0'), 10);
+      const distinct = parseInt(
+        String(distinctResult?.distinct_count || '0'),
+        10,
+      );
+
+      // Duplicate count = total rows - distinct values
+      // (each distinct value should appear once, so extra rows are duplicates)
+      duplicateCount = total - distinct;
     }
 
     return {
-      hasDuplicates: duplicateCount > 0,
+      hasDuplicates,
       count: duplicateCount,
     };
   }

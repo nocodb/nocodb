@@ -301,11 +301,97 @@ export class DataV3Service {
     );
   }
 
+  async validateDataListQueryParams(
+    context: NcContext,
+    param: DataListParams & { modelInfo: ModelInfo },
+  ) {
+    if (param.query.sort) {
+      let fieldsArr: string[] = [];
+      if (typeof param.query.sort !== 'string') {
+        NcError.get(context).invalidRequestBody(
+          `Query parameter 'sort' needs to be a single string`,
+        );
+      }
+      let parsedSort: any | any[];
+      try {
+        const parsedSortJSON = JSON.parse(param.query.sort);
+        parsedSort = Array.isArray(parsedSortJSON)
+          ? parsedSortJSON
+          : [parsedSortJSON];
+        fieldsArr = parsedSort.map((s) => s.field);
+      } catch {
+        NcError.get(context).invalidRequestBody(
+          `Query parameter 'sort' needs to a JSON string in format of [{"field": "fieldId", "direction": "asc"}]`,
+        );
+      }
+      if (
+        parsedSort.some(
+          (s) => s.direction && ['asc', 'desc'].includes(s.direction),
+        )
+      ) {
+        NcError.get(context).invalidRequestBody(
+          `Query parameter 'sort' direction value can only be 'asc' or 'desc'`,
+        );
+      }
+
+      fieldsArr = parsedSort.map((s) => s.field);
+      const notFoundField = fieldsArr.find((field) =>
+        param.modelInfo.columns.some(
+          (col) => col.title !== field && col.id !== field,
+        ),
+      );
+      if (notFoundField) {
+        NcError.get(context).invalidRequestBody(
+          `Field id / title '${notFoundField}' on 'sort' parameter does not exists`,
+        );
+      }
+    }
+    if (param.query.fields) {
+      let fieldsArr: string[] = [];
+      if (typeof param.query.fields !== 'string') {
+        if (Array.isArray(param.query.fields)) {
+          fieldsArr = param.query.fields;
+          param.query.fields = JSON.stringify(param.query.fields);
+        } else {
+          NcError.get(context).invalidRequestBody(
+            `Query parameter 'fields' needs to be a single string`,
+          );
+        }
+      }
+      // in array format
+      else if (param.query.fields.startsWith('[')) {
+        try {
+          JSON.parse(param.query.fields);
+        } catch {
+          NcError.get(context).invalidRequestBody(
+            `Query parameter fields need to be an array of string, or a comma separated`,
+          );
+        }
+      } else {
+        fieldsArr = param.query.fields.split(',');
+      }
+      const notFoundField = fieldsArr.find((field) =>
+        param.modelInfo.columns.some(
+          (col) => col.title !== field && col.id !== field,
+        ),
+      );
+      if (notFoundField) {
+        NcError.get(context).invalidRequestBody(
+          `Field id / title '${notFoundField}' on 'fields' parameter does not exists`,
+        );
+      }
+    }
+  }
+
   async dataList<T extends boolean>(
     context: NcContext,
     param: DataListParams,
     pagination: T = true as T,
   ): Promise<T extends true ? DataListResponse : DataRecord[]> {
+    const modelInfo = await this.getModelInfo(context, param.modelId);
+    const { primaryKey, primaryKeys, columns } = modelInfo;
+    await this.validateDataListQueryParams(context, { ...param, modelInfo });
+
     const pagedData = await this.dataTableService.dataList(context, {
       ...(param as Omit<DataListParams, 'req'>),
       query: {
@@ -314,11 +400,6 @@ export class DataV3Service {
       },
       apiVersion: NcApiVersion.V3,
     });
-
-    const { primaryKey, primaryKeys, columns } = await this.getModelInfo(
-      context,
-      param.modelId,
-    );
 
     // Extract requested fields from query parameters
     const requestedFields = this.getRequestedFields(param.query);

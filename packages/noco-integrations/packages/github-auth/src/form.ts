@@ -28,7 +28,7 @@ export const form: FormDefinition = [
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',
-    defaultValue: redirectUri && clientId ? AuthType.OAuth: AuthType.ApiKey,
+    defaultValue: redirectUri && clientId ? AuthType.OAuth : AuthType.ApiKey,
     options: [
       {
         label: 'API key',

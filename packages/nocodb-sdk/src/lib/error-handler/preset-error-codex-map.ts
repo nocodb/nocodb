@@ -68,8 +68,8 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `View '${id}' not found`,
     code: 404,
   },
-  [NcErrorType.FIELD_NOT_FOUND]: {
-    message: (id: string) => `Field '${id}' not found`,
+  [NcErrorType.ERR_FIELD_NOT_FOUND]: {
+    message: (id: string) => `Field ${id} not found`,
     code: 404,
   },
   [NcErrorType.HOOK_NOT_FOUND]: {

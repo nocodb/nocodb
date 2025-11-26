@@ -305,6 +305,7 @@ export class DataV3Service {
     context: NcContext,
     param: DataListParams & { modelInfo: ModelInfo },
   ) {
+    const columns = param.modelInfo.columns;
     if (param.query.sort) {
       let fieldsArr: string[] = [];
       if (typeof param.query.sort !== 'string') {
@@ -335,15 +336,18 @@ export class DataV3Service {
       }
 
       fieldsArr = parsedSort.map((s) => s.field);
-      const notFoundField = fieldsArr.find((field) =>
-        param.modelInfo.columns.some(
-          (col) => col.title !== field && col.id !== field,
-        ),
+      const idList = columns.map((col) => col.id);
+      const titleList = columns.map((col) => col.title);
+      const columnNameList = columns.map((col) => col.column_name);
+      const hayStack = [...idList, ...titleList, ...columnNameList];
+      const notFoundField = fieldsArr.find(
+        (field) => !hayStack.includes(field),
       );
       if (notFoundField) {
-        NcError.get(context).invalidRequestBody(
-          `Field id / title '${notFoundField}' on 'sort' query parameter not found`,
-        );
+        NcError.get(context).fieldNotFound({
+          field: notFoundField,
+          onSection: `'sort' query parameter`,
+        });
       }
     }
     if (param.query.fields) {
@@ -351,7 +355,6 @@ export class DataV3Service {
       if (typeof param.query.fields !== 'string') {
         if (Array.isArray(param.query.fields)) {
           fieldsArr = param.query.fields;
-          param.query.fields = JSON.stringify(param.query.fields);
         } else {
           NcError.get(context).invalidRequestBody(
             `Query parameter 'fields' needs to be a single string`,
@@ -361,7 +364,7 @@ export class DataV3Service {
       // in array format
       else if (param.query.fields.startsWith('[')) {
         try {
-          JSON.parse(param.query.fields);
+          fieldsArr = JSON.parse(param.query.fields);
         } catch {
           NcError.get(context).invalidRequestBody(
             `Query parameter fields need to be an array of string, or a comma separated`,
@@ -370,15 +373,18 @@ export class DataV3Service {
       } else {
         fieldsArr = param.query.fields.split(',');
       }
-      const idList = param.modelInfo.columns.map((col) => col.id);
-      const titleList = param.modelInfo.columns.map((col) => col.title);
+      const idList = columns.map((col) => col.id);
+      const titleList = columns.map((col) => col.title);
+      const columnNameList = columns.map((col) => col.column_name);
+      const hayStack = [...idList, ...titleList, ...columnNameList];
       const notFoundField = fieldsArr.find(
-        (field) => !idList.includes(field) && !titleList.includes(field),
+        (field) => !hayStack.includes(field),
       );
       if (notFoundField) {
-        NcError.get(context).invalidRequestBody(
-          `Field id / title '${notFoundField}' on 'fields' query parameter not found`,
-        );
+        NcError.get(context).fieldNotFound({
+          field: notFoundField,
+          onSection: `'fields' query parameter`,
+        });
       }
     }
   }

@@ -1690,7 +1690,6 @@ export class ImportService {
                 }
               : {};
 
-
           vwColumnPayloads.set(cl.fk_column_id, {
             id: cl.fk_column_id,
             show: fcl.show,
@@ -1736,7 +1735,7 @@ export class ImportService {
           viewId: vw.id,
           columns: Array.from(vwColumnPayloads.values()),
           req: param.req,
-        })
+        });
 
         // fix view order (view insert will always put it at the end)
         if (view.order !== vw.order) {

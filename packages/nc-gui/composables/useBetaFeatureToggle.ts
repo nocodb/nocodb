@@ -89,15 +89,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'sync',
-    title: 'Sync',
-    description: 'Enable sync feature.',
-    enabled: true,
-    version: 2,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
     id: 'sync_beta_feature',
     title: 'Advanced Sync Features',
     description: 'Enable sync beta features like custom sync, multi source sync, etc.',
@@ -177,15 +168,6 @@ const FEATURES = [
     description: 'Copy view config from another view.',
     enabled: true,
     version: 3,
-    isEE: true,
-  },
-  {
-    id: 'teams',
-    title: 'Teams',
-    description: 'Teams are group of users',
-    enabled: true,
-    version: 3,
-    isEngineering: true,
     isEE: true,
   },
   {

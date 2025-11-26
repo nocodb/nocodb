@@ -277,7 +277,7 @@ onMounted(() => {
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
         <a-tab-pane
-          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('sourceCreate') && base.id && !isMobileMode"
+          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode"
           key="syncs"
         >
           <template #tab>

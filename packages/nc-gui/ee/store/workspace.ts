@@ -661,10 +661,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    * Teams section start here
    */
 
-  // Todo: @rameshmane7218 - use this to restrict teams api call when the migration is temp enabled for local testing
-  const isTeamsMigrationEnabled = true
-
-  const isTeamsEnabled = computed(() => isFeatureEnabled('teams') && isTeamsMigrationEnabled)
+  const isTeamsEnabled = computed(() => isEeUI)
 
   const isTeamsLoading = ref(true)
 

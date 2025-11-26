@@ -657,7 +657,7 @@ export function useInfiniteData(args: {
 
       return data
     } catch (error: any) {
-      if (error?.response?.data.error === 'INVALID_OFFSET_VALUE') {
+      if (error?.response?.data.error === 'ERR_INVALID_OFFSET_VALUE') {
         return []
       }
       if (error?.response?.data?.error === 'FORMULA_ERROR') {

@@ -228,11 +228,11 @@ describe('dataApiV3', () => {
               { direction: 'asc', field: 'NotFoundField' },
             ]),
           },
-          status: 400,
+          status: 422,
         });
-        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('ERR_FIELD_NOT_FOUND');
         expect(response.body.message).to.eq(
-          `Field id / title 'NotFoundField' on 'sort' parameter not found`,
+          `Field 'NotFoundField' on 'sort' query parameter not found`,
         );
       });
       // skip, our sort direction is either {field} (asc) or -{field} (desc) so no validation required
@@ -310,10 +310,10 @@ describe('dataApiV3', () => {
           query: {
             fields: ['Country', 'NotFoundField'],
           },
-          status: 400,
+          status: 422,
         });
         expect(response.body.message).to.eq(
-          `Field id / title 'NotFoundField' on 'fields' parameter not found`,
+          `Field 'NotFoundField' on 'fields' query parameter not found`,
         );
       });
       // our api can accept array or not array

@@ -1,20 +1,9 @@
 import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
+import { BaseModelBuilder } from '../BaseModelBuilder';
 import type { Logger } from '@nestjs/common';
 import type { NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { Profiler } from '~/helpers/profiler';
-
-const createBatchableExtBaseModelSqlv2 = async (
-  baseModel: IBaseModelSqlV2,
-  options?: any,
-) => {
-  // dynamic import of BatchableExtBaseModelSqlv2
-  // to prevent circular dependency
-  const { BatchableExtBaseModelSqlv2 } = await import(
-    '../BatchableExtBaseModelSqlv2'
-  );
-  return BatchableExtBaseModelSqlv2.fromBaseModel(baseModel, options);
-};
 
 // for v3 bulk update with ltar links
 export const LTARColsUpdaterMux = (param: {
@@ -33,7 +22,16 @@ export const LTARColsUpdaterMux = (param: {
 
     // Create a BaseModelSqlv2 instance that uses the transaction for operations
     // while preserving the original dbDriver reference for non-transactional operations
-    const trxBaseModel = await createBatchableExtBaseModelSqlv2(baseModel);
+    const trxBaseModel = await BaseModelBuilder.getBaseModelBatchable(
+      baseModel.context,
+      {
+        context: baseModel.context,
+        dbDriver: baseModel.dbDriver,
+        viewId: baseModel.viewId,
+        model: baseModel.model,
+        schema: baseModel.schema,
+      },
+    );
 
     trxBaseModel.beginBatchMode();
 

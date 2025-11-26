@@ -3,8 +3,8 @@ import {
   FormBuilderValidatorType,
   NocoSDK,
   WorkflowNodeCategory,
-  WorkflowNodeIntegration, } from '@noco-integrations/core';
-import { parseJson } from '../utils/parseJson';
+  WorkflowNodeIntegration,
+} from '@noco-integrations/core';
 import type {
    FormDefinition,
    WorkflowNodeConfig,
@@ -16,7 +16,7 @@ import type {
 
 interface CreateRecordNodeConfig extends WorkflowNodeConfig {
   modelId: string;
-  fieldsJson: string;
+  fields: Record<string, string>;
 }
 
 export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeConfig> {
@@ -37,15 +37,20 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
         ],
       },
       {
-        type: FormBuilderInputType.WorkflowInput,
-        label: 'Fields JSON',
+        type: FormBuilderInputType.FieldMapping,
+        label: 'Fields',
         span: 24,
-        model: 'config.fieldsJson',
-        placeholder: '{ "Title": "Hello", "Status": "Active" }',
+        model: 'config.fields',
+        fetchOptionsKey: 'fields',
+        dependsOn: 'config.modelId',
+        condition: {
+          model: 'config.modelId',
+          notEmpty: true,
+        },
         validators: [
           {
             type: FormBuilderValidatorType.Required,
-            message: 'Fields JSON is required',
+            message: 'At least one field is required',
           },
         ],
       },
@@ -63,7 +68,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
     };
   }
 
-  public async fetchOptions(key: 'tables') {
+  public async fetchOptions(key: 'tables' | 'fields') {
     switch (key) {
       case 'tables':
       {
@@ -76,9 +81,36 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
           label: table.title || table.table_name,
           value: table.id,
           ncItemDisabled: table.synced,
-          ncItemTooltip: table.synced? 'Records cannot be created in synced tables': null,
+          ncItemTooltip: table.synced ? 'Records cannot be created in synced tables': null,
           table: table
         }))
+      }
+      case 'fields':
+      {
+        if (!this.config.modelId) {
+          return [];
+        }
+
+        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+          this.nocodb.context,
+          {
+            tableId: this.config.modelId,
+            user: this.nocodb.user as any,
+          }
+        );
+
+        if (!table || !table.columns) {
+          return [];
+        }
+
+        return table.columns
+          .filter((col: any) => !NocoSDK.isSystemColumn(col))
+          .map((col: any) => ({
+            label: col.title,
+            value: col.title,
+            ncItemDisabled: false,
+            column: col,
+          }));
       }
       default:
         return [];
@@ -102,23 +134,16 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
       }
     }
 
-    if (!config.fieldsJson) {
+    if (!config.fields || Object.keys(config.fields).length === 0) {
       errors.push({
-        path: 'config.fieldsJson',
-        message: 'Fields JSON is required',
+        path: 'config.fields',
+        message: 'At least one field is required',
       });
-    } else {
-      try {
-        const parsed = parseJson(config.fieldsJson);
-        if (!parsed || typeof parsed !== 'object') {
-          errors.push({
-            path: 'config.fieldsJson',
-            message: 'Fields JSON must parse to an object',
-          });
-        }
-      } catch {
-        errors.push({ path: 'config.fieldsJson', message: 'Invalid JSON' });
-      }
+    } else if (typeof config.fields !== 'object') {
+      errors.push({
+        path: 'config.fields',
+        message: 'Field mapping must be an object',
+      });
     }
 
     return { valid: errors.length === 0, errors };
@@ -131,15 +156,13 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
     const startTime = Date.now();
 
     try {
-      const { modelId, fieldsJson } = ctx.inputs.config;
+      const { modelId, fields } = ctx.inputs.config;
 
       logs.push({
         level: 'info',
         message: `Creating record in model ${modelId}`,
         ts: Date.now(),
       });
-
-      const fields = parseJson(fieldsJson);
 
       const context = {
         workspace_id: ctx.workspaceId,
@@ -229,12 +252,12 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
       });
 
       variables.push({
-        key: 'config.fieldsJson',
+        key: 'config.fields',
         name: 'Fields',
-        type: NocoSDK.VariableType.String,
+        type: NocoSDK.VariableType.Object,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
-          description: 'JSON containing field values',
+          description: 'Field values for record creation',
         },
       });
 

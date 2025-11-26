@@ -32,6 +32,8 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { activeWorkspace } = storeToRefs(useWorkspace())
 
+const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
+
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
 
 const router = useRouter()
@@ -47,6 +49,7 @@ const {
   integrationsCategoryFilter,
   activeViewTab,
   loadDynamicIntegrations,
+  availableSyncAuthIntegrationSubtypes,
 } = useIntegrationStore()
 
 const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
@@ -230,6 +233,16 @@ const toggleShowOrHideAllCategory = () => {
   }
 }
 
+const isIntegrationVisible = (integration: IntegrationItemType, category: any) => {
+  if (easterEggToggle.value) return true
+
+  if (isSyncFeatureEnabled.value && category.value === IntegrationCategoryType.AUTH) {
+    return availableSyncAuthIntegrationSubtypes.value.includes(integration.sub_type)
+  }
+
+  return !!integration.isAvailable
+}
+
 onMounted(() => {
   loadDynamicIntegrations()
 
@@ -386,7 +399,12 @@ watch(activeViewTab, (value) => {
               >
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div
-                    v-if="(easterEggToggle || category.value === IntegrationCategoryType.DATABASE) && category.list.length"
+                    v-if="
+                      (easterEggToggle ||
+                        category.value === IntegrationCategoryType.DATABASE ||
+                        (isSyncFeatureEnabled && category.value === IntegrationCategoryType.AUTH)) &&
+                      category.list.length
+                    "
                     :key="key"
                     class="integration-type-wrapper"
                   >
@@ -402,7 +420,7 @@ watch(activeViewTab, (value) => {
                     <div v-if="category.list.length" class="integration-type-list">
                       <template v-for="integration of category.list" :key="integration.sub_type">
                         <NcTooltip
-                          v-if="easterEggToggle || integration.isAvailable"
+                          v-if="isIntegrationVisible(integration, category)"
                           :disabled="integration?.isAvailable"
                           placement="bottom"
                         >

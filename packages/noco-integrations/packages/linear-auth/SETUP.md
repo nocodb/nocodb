@@ -12,9 +12,12 @@ To enable OAuth2 authentication with Linear, you need to set up the following en
 2. Navigate to Settings > API > OAuth applications (or go directly to https://linear.app/settings/api/applications)
 3. Click on "New OAuth application"
 4. Fill out the form:
-   - **Name**: Your application name (e.g., "NocoDB")
+   - **Application Name**: Your application name (e.g., "NocoDB")
+   - **Developer Name**: The person or company developing this application (e.g., "NocoDB")
+   - **Developer URL**: Homepage or documentation for your application (e.g., "https://nocodb.com/")
    - **Description**: Brief description of your application
-   - **Redirect URIs**: The URL where Linear will redirect users after authorization (e.g., `https://your-nocodb-instance.com/api/v1/integrations/auth/linear/callback`)
+   - **Callback URIs**: The URL where Linear will redirect users after authorization (e.g., `https://your-nocodb-instance.com/`)
+   - **Enable “Public”**: Turn ON to allow all Linear workspaces to authorize
    - **Icon**: (Optional) Upload an icon for your application
 5. Click "Create"
 

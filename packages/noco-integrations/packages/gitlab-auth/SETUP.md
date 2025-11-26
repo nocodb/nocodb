@@ -12,7 +12,7 @@ To enable OAuth2 authentication with GitLab, you need to set up the following en
 2. Navigate to User Settings > Applications (or for organization-wide application, go to your Group settings > Applications)
 3. Fill out the form:
    - **Name**: Your application name (e.g., "NocoDB")
-   - **Redirect URI**: The URL where GitLab will redirect users after authorization (e.g., `https://your-nocodb-instance.com/api/v1/integrations/auth/gitlab/callback`)
+   - **Redirect URI**: The URL where GitLab will redirect users after authorization (e.g., `https://your-nocodb-instance.com/`)
    - **Scopes**: Select the following scopes:
      - `api` (API access)
      - `read_user` (Read user information)
@@ -37,7 +37,7 @@ INTEGRATION_AUTH_GITLAB_REDIRECT_URI=your_redirect_uri
 Where:
 - `your_gitlab_client_id`: The Application ID from your GitLab OAuth App
 - `your_gitlab_client_secret`: The Secret from your GitLab OAuth App
-- `your_redirect_uri`: The callback URL you specified when creating the OAuth App (e.g., `https://your-nocodb-instance.com/api/v1/integrations/auth/gitlab/callback`)
+- `your_redirect_uri`: The callback URL you specified when creating the OAuth App (e.g., `https://your-nocodb-instance.com/`)
 
 ## OAuth Scopes
 

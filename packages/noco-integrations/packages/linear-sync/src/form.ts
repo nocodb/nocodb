@@ -50,7 +50,9 @@ const form: FormDefinition = [
         message: 'Team key is required',
       },
     ],
-    docsLink: 'https://linear.app/nocodb-integrations/teams',
+    showHintAsTooltip: true,
+    helpText:
+      'To find your team key, go to Linear → Settings → Teams → select your team → copy the Team Identifier (e.g., ENG).',
   },
   {
     type: FormBuilderInputType.Checkbox,

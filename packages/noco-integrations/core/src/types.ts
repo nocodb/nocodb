@@ -20,12 +20,13 @@ export interface IntegrationManifest {
   hidden?: boolean;
   order?: number;
   sync_category?: SyncCategory;
+  iconStyle?: any;
 }
 
 export interface IntegrationEntry<T = any> {
   type: IntegrationType;
   sub_type: string;
-  wrapper:  new (config: T) => IntegrationWrapper<T>;
+  wrapper: new (config: T) => IntegrationWrapper<T>;
   form: FormDefinition;
   manifest: IntegrationManifest;
 }

@@ -1,6 +1,6 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
-import type { FormDefinition, IntegrationCategoryType, IntegrationType, PaginatedType, SyncCategory } from 'nocodb-sdk'
-import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
+import type { FormDefinition, IntegrationType, PaginatedType, SyncCategory } from 'nocodb-sdk'
+import { ClientType, IntegrationsType, SyncDataType, IntegrationCategoryType, SyncCategoryMeta } from 'nocodb-sdk'
 import { getI18n } from '../../plugins/a.i18n'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
 import type { IntegrationItemType, IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'
@@ -73,6 +73,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const { basesList } = storeToRefs(useBases())
 
+  const { isSyncFeatureEnabled, isSyncAdvancedFeaturesEnabled } = storeToRefs(useSyncStore())
+
   const integrations = ref<IntegrationType[]>([])
 
   const searchQuery = ref('')
@@ -122,6 +124,23 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       }
       router.push({ query: { ...route.value.query, tab } })
     },
+  })
+
+  const availableSyncAuthIntegrationSubtypes = computed(() => {
+    if (!isSyncFeatureEnabled.value) return []
+
+    // eslint-disable-next-line no-unused-expressions
+    integrationsRefreshKey.value
+
+    return allIntegrations
+      .filter(
+        (i) =>
+          i.type === IntegrationCategoryType.SYNC &&
+          SyncCategoryMeta[i.sync_category!] &&
+          !SyncCategoryMeta[i.sync_category!].comingSoon &&
+          (SyncCategoryMeta[i.sync_category!].beta ? isSyncAdvancedFeaturesEnabled.value : true),
+      )
+      .map((i) => i.sub_type)
   })
 
   const loadIntegrations = async (type: IntegrationsType | null = null, baseId: string | undefined = undefined) => {
@@ -610,6 +629,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     getIntegrationForm,
     testConnection,
     showBackButton,
+    availableSyncAuthIntegrationSubtypes,
   }
 }, 'integrations-store')
 

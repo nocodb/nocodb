@@ -6,6 +6,10 @@ const manifest: IntegrationManifest = {
   version: '0.1.0',
   description: 'Connect to MySQL database',
   author: 'NocoDB',
+  iconStyle: {
+    width: '32px',
+    height: '32px',
+  },
 };
 
 export default manifest;

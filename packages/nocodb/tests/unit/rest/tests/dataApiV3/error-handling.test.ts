@@ -220,6 +220,7 @@ describe('dataApiV3', () => {
           `Offset must be a non-negative integer`,
         );
       });
+      // TODO: fix error & message
       it('invalid sort field', async () => {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${countryTable.id}/records`,
@@ -302,7 +303,7 @@ describe('dataApiV3', () => {
           `Invalid filter expression: 'notInOperator' is not a recognized operator. Please use a valid comparison or logical operator`,
         );
       });
-
+      // TODO: fix error & message
       it('invalid select field', async () => {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${countryTable.id}/records`,

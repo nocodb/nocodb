@@ -14,49 +14,29 @@ export const recordIdParam = {
 };
 export const fieldsParam = {
   schema: {
-    type: 'array',
-    items: {
-      type: 'string',
-    },
+    type: 'string',
   },
   in: 'query',
   name: 'fields',
   description:
-    'Specify fields to include in the API response. Array of field names or field ids. \n\nExample: fields=["field1"] or fields=["field1","field2"] will include only field1 (with field2 on 2nd example) in the response.',
+    'Specify fields to include in the API response. String representing stringified JSON array of field names or field ids. \n\nExample: fields=`["field1"]` or fields=`["field1","field2"]` will include only field1 (with field2 on 2nd example) in the response.',
 };
 export const sortParam = {
   schema: {
-    type: 'array',
-    items: {
-      type: 'object',
-      properties: {
-        field: {
-          type: 'string',
-          description: 'Field id or name',
-        },
-        direction: {
-          type: 'string',
-          enum: ['asc', 'desc'],
-          description: 'Sort direction',
-        },
-      },
-      required: ['field'],
-    },
+    type: 'string',
   },
   in: 'query',
   name: 'sort',
   description:
-    'Allows you to specify the fields by which you want to sort the records in your API response. Each sort object must have a \'field\' property specifying the field name and a \'direction\' property with value \'asc\' or \'desc\'. If **viewId** query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view. \n\nExample: sort=`[{"direction":"asc", "field":"field1"}]` will sort records in ascending order based on field1.',
+    'Allows you to specify the fields by which you want to sort the records in your API response. A string representing stringified JSON array of objects. Each object must have a \'field\' property specifying the field name and an optional \'direction\' property with value \'asc\' or \'desc\'. If **viewId** query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view. \n\nExample: sort=`[{"direction":"asc", "field":"field1"}]` will sort records in ascending order based on field1.',
   examples: {
-    field1: {
-      value: [{ direction: 'asc', field: 'field1' }],
+    oneField: {
+      value: '[{ "direction": "asc", "field": "field1" }]',
       summary: 'Sort the response by field1 in ascending order',
     },
     twoFields: {
-      value: [
-        { direction: 'desc', field: 'field1' },
-        { direction: 'asc', field: 'field2' },
-      ],
+      value:
+        '[{ "direction": "desc", "field": "field1" },{ "field": "field2" }]',
       summary:
         'Sort the response by field1 in descending order, followed by field2 in ascending order',
     },

@@ -220,7 +220,6 @@ describe('dataApiV3', () => {
           `Offset must be a non-negative integer`,
         );
       });
-      // TODO: fix error & message
       it('invalid sort field', async () => {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${countryTable.id}/records`,
@@ -229,10 +228,12 @@ describe('dataApiV3', () => {
               { direction: 'asc', field: 'NotFoundField' },
             ]),
           },
-          status: 422,
+          status: 400,
         });
-        expect(response.body.error).to.eq('FIELD_NOT_FOUND');
-        expect(response.body.message).to.eq(`Field 'NotFoundField' not found`);
+        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
+        expect(response.body.message).to.eq(
+          `Field id / title 'NotFoundField' on 'sort' parameter not found`,
+        );
       });
       // skip, our sort direction is either {field} (asc) or -{field} (desc) so no validation required
       it.skip('invalid sort direction', async () => {});
@@ -303,16 +304,17 @@ describe('dataApiV3', () => {
           `Invalid filter expression: 'notInOperator' is not a recognized operator. Please use a valid comparison or logical operator`,
         );
       });
-      // TODO: fix error & message
       it('invalid select field', async () => {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${countryTable.id}/records`,
           query: {
             fields: ['Country', 'NotFoundField'],
           },
-          status: 422,
+          status: 400,
         });
-        expect(response.body.message).to.eq(`Field 'NotFoundField' not found`);
+        expect(response.body.message).to.eq(
+          `Field id / title 'NotFoundField' on 'fields' parameter not found`,
+        );
       });
       // our api can accept array or not array
       it.skip('field parameter malformed', async () => {

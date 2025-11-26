@@ -351,12 +351,12 @@ export class WorkflowExpressionParser {
   private evaluateBinaryExpression(node: any): unknown {
     // Handle logical operators with short-circuit evaluation
     if (node.operator === '&&' || node.operator === '||') {
-      const left = this.evaluateNode(node.left);
+      const left = !!this.evaluateNode(node.left);
 
       if (node.operator === '&&') {
-        return left ? !!this.evaluateNode(node.right) : !!left;
+        return left && !!this.evaluateNode(node.right);
       } else {
-        return left ? !!left : !!this.evaluateNode(node.right);
+        return left || !!this.evaluateNode(node.right);
       }
     }
 

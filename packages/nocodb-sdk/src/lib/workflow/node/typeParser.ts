@@ -519,10 +519,10 @@ export function extractDataTypeFromWorkflowNodeExpression(
     }
 
     // Extract expression from {{ }}
-    const match = fieldExpression.match(/\{\{\s*([^}]+)\s*}}/);
+    const match = fieldExpression.match(/\{\{\s*([^}]+?)\s*}}/);
     if (!match || !match[1]) return WorkflowNodeFilterDataType.TEXT;
 
-    const expression = match[1].trim();
+    const expression = match[1];
 
     const parsed = workflowJsep(expression);
 

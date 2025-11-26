@@ -12,15 +12,19 @@ To enable OAuth2 authentication with GitHub, you need to set up the following en
 2. Navigate to Settings > Developer settings > OAuth Apps
 3. Click on "New OAuth App"
 4. Fill out the form:
+
    - **Application name**: Your application name (e.g., "NocoDB")
    - **Homepage URL**: Your application's homepage URL
    - **Application description**: (Optional) Brief description of your app
    - **Authorization callback URL**: The URL where GitHub will redirect users after authorization (e.g., `https://your-nocodb-instance.com/`)
+   - **Icon**: (Optional) Upload an icon for your application
+
 5. Click "Register application"
 
 ### Step 2: Get Client ID and Client Secret
 
 After registering your OAuth App, you'll be provided with:
+
 - Client ID
 - Client Secret (click "Generate a new client secret" to create one)
 
@@ -35,6 +39,7 @@ INTEGRATION_AUTH_GITHUB_REDIRECT_URI=your_redirect_uri
 ```
 
 Where:
+
 - `your_github_client_id`: The Client ID from your GitHub OAuth App
 - `your_github_client_secret`: The Client Secret from your GitHub OAuth App
 - `your_redirect_uri`: The callback URL you specified when creating the OAuth App (e.g., `https://your-nocodb-instance.com/api/v1/integrations/auth/github/callback`)
@@ -42,5 +47,6 @@ Where:
 ## OAuth Scopes
 
 This integration requests the following GitHub scopes:
+
 - `read:user`: Read-only access to user profile data
-- `repo`: Full control of repositories 
+- `repo`: Full control of repositories

@@ -219,7 +219,6 @@ export class CircularChartCommonHandler extends BaseWidgetHandler<ChartWidgetTyp
       }
     }
 
-    this.enrichDependencies(widget, dependencies);
 
     return dependencies;
   }

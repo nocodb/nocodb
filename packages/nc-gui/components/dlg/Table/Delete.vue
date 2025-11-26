@@ -29,6 +29,19 @@ const table = computed(() => tables.value.find((t) => t.id === props.tableId))
 
 const isLoading = ref(false)
 
+const { status, dependency, checkDependency } = useDependencies()
+
+// Check dependencies when modal opens
+watch(
+  () => props.visible,
+  async (newVal) => {
+    if (newVal && props.tableId) {
+      await checkDependency(DependencyTableType.Model, props.tableId)
+    }
+  },
+  { immediate: true },
+)
+
 const onDelete = async () => {
   if (!table.value) return
 
@@ -107,7 +120,12 @@ const onDelete = async () => {
 </script>
 
 <template>
-  <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.table')" :on-delete="onDelete">
+  <GeneralDeleteModal
+    v-model:visible="visible"
+    :entity-name="$t('objects.table')"
+    :on-delete="onDelete"
+    :disable-delete-btn="status === 'loading'"
+  >
     <template #entity-preview>
       <div
         v-if="table"
@@ -120,6 +138,16 @@ const onDelete = async () => {
         >
           {{ table.title }}
         </div>
+      </div>
+      <div class="mt-4">
+        <NcDependencyList
+          :status="status"
+          :has-breaking-changes="dependency.hasBreakingChanges"
+          :workflows="dependency.workflows"
+          :dashboards="dependency.dashboards"
+          action="delete"
+          entity-type="table"
+        />
       </div>
     </template>
   </GeneralDeleteModal>

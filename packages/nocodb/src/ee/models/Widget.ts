@@ -1,3 +1,4 @@
+import { default as WidgetCE } from 'src/models/Widget';
 import type { IWidget, WidgetTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
@@ -12,7 +13,7 @@ import {
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { Filter } from '~/models';
-export default class Widget implements IWidget {
+export default class Widget extends WidgetCE implements IWidget {
   id?: string;
   title: string;
   description?: string;
@@ -37,6 +38,7 @@ export default class Widget implements IWidget {
   updated_at?: string;
 
   constructor(data: Widget) {
+    super(data);
     Object.assign(this, data);
   }
 

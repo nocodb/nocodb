@@ -88,10 +88,6 @@ export class BaseWidgetHandler<T extends AnyWidgetType = AnyWidgetType> {
    * Extract all dependencies from widget
    * Override this in specific widget handlers for custom extraction logic
    * Returns object with arrays of column IDs, model IDs, and view IDs with their paths
-   *
-   * IMPORTANT: This base implementation does NOT add metadata. Child classes
-   * should call enrichDependencies() before returning to add
-   * widgetType and widgetSubtype to all dependencies.
    */
   public extractDependencies(_widget: T): WidgetDependencies {
     const dependencies: WidgetDependencies = {
@@ -116,41 +112,6 @@ export class BaseWidgetHandler<T extends AnyWidgetType = AnyWidgetType> {
       });
     }
 
-    // Note: enrichDependencies is NOT called here
-    // Child classes must call it after adding all their dependencies
-
     return dependencies;
-  }
-
-  /**
-   * Helper to add widget metadata to all dependency items
-   * Call this at the END of extractDependencies after all dependencies are added
-   */
-  protected enrichDependencies(
-    widget: T,
-    dependencies: WidgetDependencies,
-  ): void {
-    const widgetMetadata = {
-      widgetType: widget.type,
-      widgetSubtype: (widget.config as any)?.chartType,
-    };
-
-    // Add metadata to all column dependencies
-    dependencies.columns.forEach((dep) => {
-      dep.widgetType = widgetMetadata.widgetType;
-      dep.widgetSubtype = widgetMetadata.widgetSubtype;
-    });
-
-    // Add metadata to all model dependencies
-    dependencies.models.forEach((dep) => {
-      dep.widgetType = widgetMetadata.widgetType;
-      dep.widgetSubtype = widgetMetadata.widgetSubtype;
-    });
-
-    // Add metadata to all view dependencies
-    dependencies.views.forEach((dep) => {
-      dep.widgetType = widgetMetadata.widgetType;
-      dep.widgetSubtype = widgetMetadata.widgetSubtype;
-    });
   }
 }

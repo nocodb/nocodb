@@ -36,15 +36,9 @@ export interface DependencyInfo {
   path?: string;
 }
 
-export interface WidgetDependencyInfo extends DependencyInfo {
-  widgetType?: string;
-  widgetSubtype?: string;
-}
-
 export interface WorkflowDependencyInfo extends DependencyInfo {
   nodeType?: string;
   nodeId?: string;
-  nodeIndex?: number;
 }
 
 export interface Dependencies {
@@ -53,11 +47,7 @@ export interface Dependencies {
   views?: DependencyInfo[];
 }
 
-export interface WidgetDependencies {
-  columns?: WidgetDependencyInfo[];
-  models?: WidgetDependencyInfo[];
-  views?: WidgetDependencyInfo[];
-}
+export type WidgetDependencies = Dependencies;
 
 export interface WorkflowDependencies {
   columns?: WorkflowDependencyInfo[];
@@ -66,11 +56,14 @@ export interface WorkflowDependencies {
 }
 
 enum DependencySlots {
+  // Queryable slots (indexed)
+  QUERYABLE_SLOT0 = 'queryable_slot_0',
+  QUERYABLE_SLOT1 = 'queryable_slot_1',
+
+  // Non-queryable slots (not indexed)
   SLOT0 = 'slot_0',
   SLOT1 = 'slot_1',
   SLOT2 = 'slot_2',
-  SLOT3 = 'slot_3',
-  SLOT4 = 'slot_4',
 }
 
 interface SlotDefinition {
@@ -85,64 +78,31 @@ const SLOT_MAPPINGS: Record<
 > = {
   [DependencyTableType.Widget]: {
     path: {
-      id: DependencySlots.SLOT0,
-      type: DependencySlotTypes.STRING,
-      required: false,
-    },
-    widgetType: {
-      id: DependencySlots.SLOT1,
-      type: DependencySlotTypes.STRING,
-      required: false,
-    },
-    widgetSubtype: {
-      id: DependencySlots.SLOT2,
+      id: DependencySlots.SLOT0, // Not indexed - UI display only
       type: DependencySlotTypes.STRING,
       required: false,
     },
   },
   [DependencyTableType.Workflow]: {
-    path: {
-      id: DependencySlots.SLOT0,
+    nodeType: {
+      id: DependencySlots.QUERYABLE_SLOT0, // Indexed - queried for triggers
       type: DependencySlotTypes.STRING,
       required: false,
     },
-    nodeType: {
-      id: DependencySlots.SLOT1,
+    path: {
+      id: DependencySlots.SLOT0, // Not indexed - UI display only
       type: DependencySlotTypes.STRING,
       required: false,
     },
     nodeId: {
-      id: DependencySlots.SLOT2,
-      type: DependencySlotTypes.STRING,
-      required: false,
-    },
-    nodeIndex: {
-      id: DependencySlots.SLOT3,
-      type: DependencySlotTypes.NUMBER,
-      required: false,
-    },
-  },
-  [DependencyTableType.Column]: {
-    path: {
-      id: DependencySlots.SLOT0,
+      id: DependencySlots.SLOT1, // Not indexed - never queried
       type: DependencySlotTypes.STRING,
       required: false,
     },
   },
-  [DependencyTableType.Model]: {
-    path: {
-      id: DependencySlots.SLOT0,
-      type: DependencySlotTypes.STRING,
-      required: false,
-    },
-  },
-  [DependencyTableType.View]: {
-    path: {
-      id: DependencySlots.SLOT0,
-      type: DependencySlotTypes.STRING,
-      required: false,
-    },
-  },
+  [DependencyTableType.Column]: {},
+  [DependencyTableType.Model]: {},
+  [DependencyTableType.View]: {},
 };
 
 export default class DependencyTracker implements DependencyTrackerType {
@@ -153,8 +113,6 @@ export default class DependencyTracker implements DependencyTrackerType {
   source_id: string;
   dependent_type: DependencyTableType;
   dependent_id: string;
-  path: string;
-  meta: any;
   created_at: string;
   updated_at: string;
 

@@ -14,4 +14,5 @@ export const OPERATION_SCOPES = {
   oAuthAuthorizationList: 'org',
   oAuthAuthorizationRevoke: 'org',
   oAuthClientRegenerateSecret: 'org',
+  checkDependency: 'base',
 } as const;

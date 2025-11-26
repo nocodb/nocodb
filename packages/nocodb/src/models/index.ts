@@ -62,3 +62,5 @@ export { default as OAuthToken } from './OAuthToken';
 export { default as WorkspaceUser } from './WorkspaceUser';
 export { default as Workspace } from './Workspace';
 export { default as DependencyTracker } from './DependencyTracker';
+export { default as Widget } from './Widget';
+export { default as Workflow } from './Workflow';

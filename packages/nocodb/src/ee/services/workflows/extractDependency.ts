@@ -6,7 +6,6 @@ export interface DependencyInfo {
   path: string;
   nodeId?: string;
   nodeType?: string;
-  nodeIndex?: number;
 }
 
 export interface WorkflowDependencies {
@@ -78,7 +77,6 @@ function extractFromInterpolations(
   currentNodeMetadata: {
     nodeId: string;
     nodeType: string;
-    nodeIndex: number;
     nodeName: string;
   },
 ): WorkflowDependencies {
@@ -202,7 +200,6 @@ function extractDependenciesFromAST(
               path: fullPath,
               nodeId: currentNodeMetadata.nodeId,
               nodeType: currentNodeMetadata.nodeType,
-              nodeIndex: currentNodeMetadata.nodeIndex,
             };
 
             const entity = variable.extra.entity;
@@ -304,7 +301,6 @@ function extractFromInputVariables(
   nodeMetadata: {
     nodeId: string;
     nodeType: string;
-    nodeIndex: number;
     nodeName: string;
   },
 ): WorkflowDependencies {
@@ -328,7 +324,6 @@ function extractFromInputVariables(
         path: fullPath,
         nodeId: nodeMetadata.nodeId,
         nodeType: nodeMetadata.nodeType,
-        nodeIndex: nodeMetadata.nodeIndex,
       };
 
       const entity = variable.extra.entity;
@@ -369,11 +364,10 @@ export function extractWorkflowDependencies(
     return allDependencies;
   }
 
-  nodes.forEach((node, nodeIndex) => {
+  nodes.forEach((node) => {
     const nodeMetadata = {
       nodeId: node.id,
       nodeType: node.type,
-      nodeIndex,
       nodeName: node.data?.title,
     };
 

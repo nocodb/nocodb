@@ -1,4 +1,5 @@
 import { PlanLimitTypes } from 'nocodb-sdk';
+import { default as WorkflowCE } from 'src/models/Workflow';
 import type {
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
@@ -21,7 +22,7 @@ import DependencyTracker, {
 } from '~/models/DependencyTracker';
 import { processConcurrently } from '~/utils';
 
-export default class Workflow implements WorkflowType {
+export default class Workflow extends WorkflowCE implements WorkflowType {
   id?: string;
   title?: string;
   description?: string;
@@ -45,6 +46,7 @@ export default class Workflow implements WorkflowType {
   updated_by?: string;
 
   constructor(workflow: Workflow) {
+    super(workflow);
     Object.assign(this, workflow);
   }
 

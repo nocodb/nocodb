@@ -48,6 +48,7 @@ import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 import { UtilsService } from '~/services/utils.service';
 import { WorkflowsService } from '~/ee/services/workflows.service';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
+import { DependencyService } from '~/services/dependency.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -77,8 +78,9 @@ export class InternalController extends InternalControllerCE {
     private readonly baseTeamsV3Service: BaseTeamsV3Service,
     private readonly workflowsService: WorkflowsService,
     private readonly workflowExecutionService: WorkflowExecutionService,
+    protected readonly dependencyService: DependencyService,
   ) {
-    super(aclMiddleware, internalApiModules);
+    super(aclMiddleware, internalApiModules, dependencyService);
   }
 
   protected async checkAcl(operation: string, req, scope?: string) {

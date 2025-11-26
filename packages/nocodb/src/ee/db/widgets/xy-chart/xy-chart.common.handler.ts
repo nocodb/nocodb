@@ -540,7 +540,6 @@ export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
       });
     }
 
-    this.enrichDependencies(widget, dependencies);
 
     return dependencies;
   }

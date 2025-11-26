@@ -35,6 +35,18 @@ const viewsStore = useViewsStore()
 
 const isLoading = ref(false)
 
+const { status, dependency, checkDependency } = useDependencies()
+
+watch(
+  () => props.visible,
+  async (newVal) => {
+    if (newVal && column.value?.id) {
+      await checkDependency(DependencyTableType.Column, column.value.id)
+    }
+  },
+  { immediate: true },
+)
+
 // disable for time being - internal discussion required
 /*
 const warningMsg = computed(() => {
@@ -101,7 +113,12 @@ const onDelete = async () => {
 </script>
 
 <template>
-  <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.column')" :on-delete="onDelete">
+  <GeneralDeleteModal
+    v-model:visible="visible"
+    :entity-name="$t('objects.column')"
+    :on-delete="onDelete"
+    :disable-delete-btn="status === 'loading'"
+  >
     <template #entity-preview>
       <div
         v-if="column"
@@ -115,6 +132,16 @@ const onDelete = async () => {
         >
           {{ column.title }}
         </div>
+      </div>
+      <div class="mt-4">
+        <NcDependencyList
+          :status="status"
+          :has-breaking-changes="dependency.hasBreakingChanges"
+          :workflows="dependency.workflows"
+          :dashboards="dependency.dashboards"
+          action="delete"
+          entity-type="column"
+        />
       </div>
     </template>
 

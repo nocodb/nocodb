@@ -219,3 +219,11 @@ export const EventBusEnum = {
   RealtimeViewMeta: Symbol('RealtimeViewMeta'),
   SmartsheetActions: Symbol('SmartSheetActions'),
 }
+
+export enum DependencyTableType {
+  Column = 'column',
+  Model = 'table',
+  View = 'view',
+  Widget = 'widget',
+  Workflow = 'workflow',
+}

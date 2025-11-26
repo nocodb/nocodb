@@ -332,7 +332,7 @@ export class DataV3Service {
       }
       if (
         parsedSort.some(
-          (s) => s.direction && ['asc', 'desc'].includes(s.direction),
+          (s) => s.direction && !['asc', 'desc'].includes(s.direction),
         )
       ) {
         NcError.get(context).invalidRequestBody(
@@ -348,7 +348,7 @@ export class DataV3Service {
       );
       if (notFoundField) {
         NcError.get(context).invalidRequestBody(
-          `Field id / title '${notFoundField}' on 'sort' parameter does not exists`,
+          `Field id / title '${notFoundField}' on 'sort' query parameter not found`,
         );
       }
     }
@@ -376,14 +376,14 @@ export class DataV3Service {
       } else {
         fieldsArr = param.query.fields.split(',');
       }
-      const notFoundField = fieldsArr.find((field) =>
-        param.modelInfo.columns.some(
-          (col) => col.title !== field && col.id !== field,
-        ),
+      const idList = param.modelInfo.columns.map((col) => col.id);
+      const titleList = param.modelInfo.columns.map((col) => col.title);
+      const notFoundField = fieldsArr.find(
+        (field) => !idList.includes(field) && !titleList.includes(field),
       );
       if (notFoundField) {
         NcError.get(context).invalidRequestBody(
-          `Field id / title '${notFoundField}' on 'fields' parameter does not exists`,
+          `Field id / title '${notFoundField}' on 'fields' query parameter not found`,
         );
       }
     }

@@ -177,10 +177,7 @@ function extractDependenciesFromAST(
       // Find the referenced node by name
       const referencedNode = nodes.find(
         (n) =>
-          n.data?.name === referencedNodeName ||
-          n.data?.title === referencedNodeName ||
-          n.data?.label === referencedNodeName ||
-          n.type === referencedNodeName,
+          n.data?.title === referencedNodeName || n.type === referencedNodeName,
       );
 
       if (referencedNode) {

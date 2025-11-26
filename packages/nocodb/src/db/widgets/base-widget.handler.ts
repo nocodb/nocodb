@@ -1,7 +1,14 @@
+export interface WidgetDependency {
+  id: string;
+  path?: string;
+  widgetType?: string;
+  widgetSubtype?: string;
+}
+
 export interface WidgetDependencies {
-  columns: string[];
-  models: string[];
-  views: string[];
+  columns: WidgetDependency[];
+  models: WidgetDependency[];
+  views: WidgetDependency[];
 }
 
 export class BaseWidgetHandler {

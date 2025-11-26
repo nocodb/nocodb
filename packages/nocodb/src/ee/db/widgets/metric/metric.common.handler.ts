@@ -201,6 +201,8 @@ export class MetricCommonHandler extends BaseWidgetHandler<MetricWidgetType> {
       });
     }
 
+    this.enrichDependencies(widget, dependencies);
+
     return dependencies;
   }
 }

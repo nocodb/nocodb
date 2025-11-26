@@ -20,6 +20,7 @@ import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import config from '~/app.config';
 import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
+import { DependencyTableType } from '~/models/DependencyTracker';
 
 @Injectable()
 export class DashboardsService {

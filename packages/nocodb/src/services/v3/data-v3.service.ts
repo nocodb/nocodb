@@ -371,6 +371,7 @@ export class DataV3Service {
       else if (param.query.fields.startsWith('[')) {
         try {
           fieldsArr = JSON.parse(param.query.fields);
+          param.query.fields = fieldsArr;
         } catch {
           NcError.get(context).invalidRequestBody(
             `Query parameter fields need to be an array of string, or a comma separated`,

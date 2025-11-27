@@ -1,5 +1,5 @@
 import { PlanLimitTypes } from 'nocodb-sdk'
-import type { WorkflowNodeDefinition, type WorkflowType } from 'nocodb-sdk'
+import type { WorkflowNodeDefinition, WorkflowType } from 'nocodb-sdk'
 import { DlgWorkflowCreate } from '#components'
 
 export const useWorkflowStore = defineStore('workflow', () => {
@@ -375,13 +375,30 @@ export const useWorkflowStore = defineStore('workflow', () => {
   }
 
   const getWorkflowNodeByKey = (key: string) => {
-    return activeBaseNodeSchemas.value.find((n) => n.key === key)
+    return activeBaseNodeSchemas.value.find((n) => n.id === key)
   }
 
   const getWorkflowNodesByCategory = (category: string) => {
     return activeBaseNodeSchemas.value.filter((n) => n.category === category)
   }
 
+  const loadWorkflowExecutions = async (params: { workflowId?: string; limit?: number; offset?: number }) => {
+    if (!activeWorkspaceId.value || !activeProjectId.value) return []
+    try {
+      const response = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+        operation: 'workflowExecutionList',
+        workflowId: params.workflowId,
+        limit: params.limit,
+        offset: params.offset,
+      })
+
+      return ncIsArray(response) ? response : []
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      return []
+    }
+  }
   async function openNewWorkflowModal({
     baseId,
     e,
@@ -506,9 +523,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
     openNewWorkflowModal,
 
     // Node Schemas
-
     getWorkflowNodeByKey,
     getWorkflowNodesByCategory,
+
+    // Execution Logs
+    loadWorkflowExecutions,
   }
 })
 

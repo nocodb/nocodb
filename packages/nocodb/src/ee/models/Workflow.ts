@@ -9,6 +9,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
+import { WorkflowExecution } from '~/models';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -228,6 +229,8 @@ export default class Workflow implements WorkflowType {
       PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
       -1,
     );
+
+    await WorkflowExecution.deleteByWorkflow(context, workflowId, ncMeta);
 
     return res;
   }

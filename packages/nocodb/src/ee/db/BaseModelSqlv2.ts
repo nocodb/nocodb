@@ -46,7 +46,8 @@ import type {
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
-import type { LinkToAnotherRecordColumn, Source, View } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import { Source, View } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import {
@@ -57,11 +58,15 @@ import {
   populateUpdatePayloadDiff,
   remapWithAlias,
 } from '~/utils';
-import { Audit, Column, Filter, Model, ModelStat, Permission } from '~/models';
+import { Audit, Column, Filter, Model, ModelStat, Permission, Sort } from '~/models';
 import {
   getSingleQueryReadFn,
   singleQueryList,
+  singleQueryGroupedList,
 } from '~/services/data-opt/pg-helpers';
+import sortV2 from '~/db/sortV2';
+import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
+import type { SelectOption } from '~/models';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
 import {
   UPDATE_WORKSPACE_COUNTER,
@@ -3497,6 +3502,54 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if (!hasPermission) {
         NcError.get(this.context).forbidden(errorMessage);
       }
+    }
+  }
+
+  /**
+   * Optimized groupedList for PostgreSQL using singleQueryGroupedList
+   * which handles nested columns/rollups in SQL without nocoExecute
+   */
+  public async groupedList(
+    args: {
+      groupColumnId: string;
+      ignoreViewFilterAndSort?: boolean;
+      options?: (string | number | null | boolean)[];
+    } & Partial<XcFilter>,
+  ): Promise<
+    {
+      key: string;
+      value: Record<string, unknown>[];
+    }[]
+  > {
+    // Use optimized version for PostgreSQL, fallback to base implementation for other databases
+    if (!this.isPg) {
+      return super.groupedList(args);
+    }
+
+    try {
+      const source = await Source.get(this.context, this.model.source_id);
+
+      // Use singleQueryGroupedList which handles nested columns/rollups in SQL
+      return await singleQueryGroupedList(this.context, {
+        model: this.model,
+        view: this.viewId ? await View.get(this.context, this.viewId) : undefined,
+        source,
+        params: {
+          ...args,
+          options: args.options,
+          filterArr: args.filterArr,
+          sortArr: args.sortArr,
+          sort: args.sort,
+          where: args.where,
+          limit: args.limit,
+          offset: args.offset,
+        },
+        groupColumnId: args.groupColumnId,
+        ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,
+        baseModel: this,
+      });
+    } catch (e) {
+      throw e;
     }
   }
 }

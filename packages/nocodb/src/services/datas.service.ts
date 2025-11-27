@@ -14,6 +14,7 @@ import { Base, Column, Model, Source, View } from '~/models';
 import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import { singleQueryGroupedList } from '~/services/data-opt/pg-helpers';
 
 @Injectable()
 export class DatasService {
@@ -486,6 +487,64 @@ export class DatasService {
 
     const source = await Source.get(context, model.source_id);
 
+    // Use singleQueryGroupedList for PostgreSQL to avoid nocoExecute
+    // It handles nested columns/rollups directly in SQL
+    if (source.type === 'pg') {
+      const { dependencyFields } = await getAst(context, {
+        model,
+        query,
+        view,
+        includeRowColorColumns: query.include_row_color === 'true',
+      });
+
+      const listArgs: any = { ...dependencyFields };
+      try {
+        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+      } catch (e) {}
+      try {
+        listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+      } catch (e) {}
+      try {
+        listArgs.options = JSON.parse(listArgs.optionsArrJson);
+      } catch (e) {}
+
+      const groupedData = await singleQueryGroupedList(context, {
+        model,
+        view,
+        source,
+        params: {
+          ...query,
+          ...listArgs,
+        },
+        groupColumnId: param.columnId,
+      });
+
+      const baseModel = await Model.getBaseModelSQL(context, {
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+        source,
+      });
+
+      const countArr = await baseModel.groupedListCount({
+        ...listArgs,
+        groupColumnId: param.columnId,
+      });
+
+      return groupedData.map((item) => {
+        const count =
+          countArr.find((countItem: any) => countItem.key === item.key)
+            ?.count ?? 0;
+
+        item.value = new PagedResponseImpl(item.value, {
+          ...query,
+          count: count,
+        });
+        return item;
+      });
+    }
+
+    // Fallback to original implementation for non-PostgreSQL databases
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,

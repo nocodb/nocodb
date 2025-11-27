@@ -2029,6 +2029,365 @@ const getDataWithCountCache = async (
   };
   return await Promise.all([countHandler(), dataHandler()]);
 };
+export async function singleQueryGroupedList(
+  context: NcContext,
+  ctx: {
+    model: Model;
+    view?: View;
+    source: Source;
+    params;
+    groupColumnId: string;
+    throwErrorIfInvalidParams?: boolean;
+    validateFormula?: boolean;
+    baseModel?: BaseModelSqlv2;
+    customConditions?: Filter[];
+    getHiddenColumns?: boolean;
+    apiVersion?: NcApiVersion;
+    includeSortAndFilterColumns?: boolean;
+    ignoreViewFilterAndSort?: boolean;
+  },
+): Promise<
+  {
+    key: string;
+    value: Record<string, unknown>[];
+  }[]
+> {
+  const profiler = Profiler.start('pgHelper/singleQueryGroupedList');
+
+  if (ctx.source.type !== 'pg') {
+    throw new Error('Source is not postgres');
+  }
+
+  const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
+
+  const getAlias = getAliasGenerator();
+
+  // get knex connection
+  const knex = await NcConnectionMgrv2.get(ctx.source);
+
+  const baseModel =
+    ctx.baseModel ||
+    (await Model.getBaseModelSQL(context, {
+      id: ctx.model.id,
+      viewId: ctx.view?.id,
+      dbDriver: knex,
+    }));
+
+  // load columns list
+  const columns = await ctx.model.getColumns(context);
+  const groupColumn = columns?.find((col) => col.id === ctx.groupColumnId);
+
+  if (!groupColumn) {
+    throw new Error(`Group column with id ${ctx.groupColumnId} not found`);
+  }
+
+  // extract distinct group column values
+  let groupingValues: Set<any>;
+  if (ctx.params.options?.length) {
+    groupingValues = new Set(ctx.params.options);
+  } else if (groupColumn.uidt === UITypes.SingleSelect) {
+    const colOptions = await groupColumn.getColOptions<{
+      options: any[];
+    }>(context);
+    groupingValues = new Set(
+      (colOptions?.options ?? []).map((opt) => opt.title),
+    );
+    groupingValues.add(null);
+  } else {
+    groupingValues = new Set(
+      (
+        await baseModel.execAndParse(
+          knex(baseModel.getTnPath(ctx.model))
+            .select(groupColumn.column_name)
+            .distinct(),
+          null,
+          { raw: true },
+        )
+      ).map((row) => row[groupColumn.column_name]),
+    );
+    groupingValues.add(null);
+  }
+
+  const limit = +listArgs?.limit || 25;
+  const offset = +listArgs?.offset || 0;
+
+  const rootQb = knex(baseModel.getTnPath(ctx.model));
+
+  const aliasColObjMap = await ctx.model.getAliasColObjMap(context, columns);
+  let sorts = extractSortsObject(
+    context,
+    listArgs?.sort,
+    aliasColObjMap,
+    ctx.throwErrorIfInvalidParams,
+    ctx.apiVersion,
+  );
+  const { filters: queryFilterObj } = extractFilterFromXwhere(
+    context,
+    listArgs?.where,
+    aliasColObjMap,
+    ctx.throwErrorIfInvalidParams,
+  );
+
+  if (!sorts?.['length'] && ctx.params.sortArr?.length) {
+    sorts = ctx.params.sortArr;
+  } else if (!sorts?.['length'] && ctx.view && !ctx.ignoreViewFilterAndSort) {
+    sorts = await Sort.list(context, { viewId: ctx.view.id });
+  }
+
+  let viewFilters: Filter[] = [];
+
+  if (ctx.view?.id && !ctx.ignoreViewFilterAndSort) {
+    viewFilters = await Filter.rootFilterList(context, {
+      viewId: ctx.view?.id,
+    });
+  }
+
+  const aggrConditionObj = [
+    ...(ctx.view && !ctx.ignoreViewFilterAndSort
+      ? [
+          new Filter({
+            children: viewFilters,
+            is_group: true,
+          }),
+        ]
+      : []),
+    ...(ctx.customConditions
+      ? [
+          new Filter({
+            children: ctx.customConditions,
+            is_group: true,
+          }),
+        ]
+      : []),
+    new Filter({
+      children: ctx.params.filterArr || [],
+      is_group: true,
+      logical_op: 'and',
+    }),
+    new Filter({
+      children: queryFilterObj,
+      is_group: true,
+      logical_op: 'and',
+    }),
+  ];
+
+  // apply filters on root query
+  await conditionV2(baseModel, aggrConditionObj, rootQb);
+
+  const orderColumn = columns.find((c) => isOrderCol(c));
+
+  // apply sort on root query
+  if (sorts?.length) await sortV2(baseModel, sorts, rootQb);
+
+  // apply sort on root query only if not skipped
+  if (orderColumn) {
+    rootQb.orderBy(orderColumn.column_name);
+  }
+  // Ensure stable ordering
+  if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
+    rootQb.orderBy(ctx.model.primaryKey.column_name);
+  } else {
+    const createdAtColumn = ctx.model.columns.find(
+      (c) => c.uidt === UITypes.CreatedTime && c.system,
+    );
+    if (createdAtColumn) {
+      rootQb.orderBy(createdAtColumn.column_name);
+    }
+  }
+
+  const qb = knex.from(rootQb.as(ROOT_ALIAS));
+
+  profiler.log('get ast');
+  const { ast } = await getAst(context, {
+    query: ctx.params,
+    model: ctx.model,
+    view: ctx.view,
+    throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+    apiVersion: ctx.apiVersion,
+    includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
+    getHiddenColumn: ctx.getHiddenColumns,
+    includeRowColorColumns: ctx.params.include_row_color === 'true',
+  });
+  profiler.log('extract column');
+
+  // Use extractColumns to handle nested columns/rollups in SQL (like singleQueryList)
+  await extractColumns({
+    columns,
+    knex,
+    qb,
+    getAlias,
+    params: ctx.params,
+    baseModel,
+    ast,
+    throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+    validateFormula: ctx.validateFormula,
+    alias: ROOT_ALIAS,
+    apiVersion: ctx.apiVersion,
+  });
+
+  // Apply sort on final query before wrapping in subquery
+  if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
+
+  if (orderColumn && !orderColumn.system) {
+    qb.orderBy(`${ROOT_ALIAS}.${orderColumn.column_name}`);
+  }
+  if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
+    qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
+  } else {
+    const createdAtColumn = ctx.model.columns.find(
+      (c) => c.uidt === UITypes.CreatedTime && c.system,
+    );
+    if (createdAtColumn) {
+      qb.orderBy(`${ROOT_ALIAS}.${createdAtColumn.column_name}`);
+    } else if (ctx.model.primaryKey) {
+      qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
+    }
+  }
+
+  // Build window function partition and order clauses
+  // IMPORTANT: extractColumns creates aliases for columns using getAs(column)
+  // So we need to reference columns by their aliases (column IDs), not original names
+  // The group column alias (column ID used as alias in extractColumns)
+  const groupColumnAlias = getAs(groupColumn);
+  const groupColumnExpr =
+    groupColumn.uidt === UITypes.SingleSelect
+      ? knex.raw(`COALESCE(NULLIF(__nc_base.??, ''), NULL)`, [groupColumnAlias])
+      : knex.raw('__nc_base.??', [groupColumnAlias]);
+
+  // Get the order by columns for the window function
+  // Use column aliases as they appear in the subquery (from extractColumns)
+  // These are the column IDs, which are used as aliases by extractColumns
+  const orderByExpressions: any[] = [];
+
+  if (orderColumn && !orderColumn.system) {
+    orderByExpressions.push(knex.raw('__nc_base.??', [getAs(orderColumn)]));
+  }
+
+  if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
+    orderByExpressions.push(
+      knex.raw('__nc_base.??', [getAs(ctx.model.primaryKey)]),
+    );
+  } else {
+    const createdCol = ctx.model.columns.find(
+      (c) => c.uidt === UITypes.CreatedTime && c.system,
+    );
+    if (createdCol) {
+      orderByExpressions.push(knex.raw('__nc_base.??', [getAs(createdCol)]));
+    } else if (ctx.model.primaryKey) {
+      orderByExpressions.push(
+        knex.raw('__nc_base.??', [getAs(ctx.model.primaryKey)]),
+      );
+    }
+  }
+
+  // Build window function ORDER BY clause
+  // Build SQL string directly using column aliases with proper PostgreSQL quoting
+  let windowOrderByClause = 'NULL';
+  if (orderByExpressions.length > 0) {
+    const orderByParts: string[] = [];
+    for (const expr of orderByExpressions) {
+      // Get the column alias from the expression bindings
+      // The expression is knex.raw('__nc_base.??', [alias])
+      const alias = expr.bindings[0];
+      if (alias) {
+        // Quote the alias properly for PostgreSQL (double quotes)
+        orderByParts.push(`__nc_base."${String(alias).replace(/"/g, '""')}"`);
+      }
+    }
+    if (orderByParts.length > 0) {
+      windowOrderByClause = orderByParts.join(', ');
+    }
+  }
+
+  // Create a subquery with window function to number rows within each group
+  const baseQuerySql = qb.toQuery();
+
+  // Build the group column expression SQL directly with proper quoting
+  let groupColumnSql: string;
+  const quotedGroupAlias = `"${String(groupColumnAlias).replace(/"/g, '""')}"`;
+  if (groupColumn.uidt === UITypes.SingleSelect) {
+    groupColumnSql = `COALESCE(NULLIF(__nc_base.${quotedGroupAlias}, ''), NULL)`;
+  } else {
+    groupColumnSql = `__nc_base.${quotedGroupAlias}`;
+  }
+
+  // Build the window function with proper SQL strings
+  const windowQb = knex
+    .from(knex.raw(`(${baseQuerySql}) as __nc_base`))
+    .select('*')
+    .select(
+      knex.raw(
+        `ROW_NUMBER() OVER (PARTITION BY ${groupColumnSql} ORDER BY ${windowOrderByClause}) as __nc_row_num`,
+      ),
+    );
+
+  // Filter to get only rows within limit per group, and filter by grouping values
+  // Use column alias for filtering and ordering
+  const windowQuerySql = windowQb.toQuery();
+  const groupedQb = knex
+    .from(knex.raw(`(${windowQuerySql}) as __nc_windowed`))
+    .where((qb) => {
+      const groupValues = [...groupingValues];
+      if (groupValues.length === 0) return;
+
+      const nullIndex = groupValues.indexOf(null);
+      if (nullIndex >= 0) {
+        groupValues.splice(nullIndex, 1);
+        if (groupColumn.uidt === UITypes.SingleSelect) {
+          qb.whereNull(groupColumnAlias).orWhere(groupColumnAlias, '=', '');
+        } else {
+          qb.whereNull(groupColumnAlias);
+        }
+        if (groupValues.length > 0) {
+          qb.orWhereIn(groupColumnAlias, groupValues);
+        }
+      } else {
+        qb.whereIn(groupColumnAlias, groupValues);
+      }
+    })
+    .where('__nc_row_num', '<=', limit)
+    .where('__nc_row_num', '>', offset)
+    .orderBy(groupColumnAlias)
+    .orderBy('__nc_row_num');
+
+  knex.applyCte(groupedQb);
+
+  profiler.log('execute grouped query');
+  const data: any[] = await baseModel.execAndParse(groupedQb, null, {
+    skipSubstitutingColumnIds:
+      context.api_version === NcApiVersion.V3 &&
+      ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+  });
+
+  console.log(groupedQb.toQuery());
+
+  // Group results by the group column value
+  // Use the column alias to get the value from the result
+  const groupedResult = data.reduce<Map<string | number | null, any[]>>(
+    (aggObj, row) => {
+      // Try to get value by alias first, then fallback to title
+      const rawVal = row[groupColumnAlias] ?? row[groupColumn.title];
+      const val = typeof rawVal === 'string' && rawVal === '' ? null : rawVal;
+
+      if (!aggObj.has(val)) {
+        aggObj.set(val, []);
+      }
+
+      aggObj.get(val).push(row);
+
+      return aggObj;
+    },
+    new Map(),
+  );
+
+  profiler.end();
+
+  return [...groupingValues].map((key) => ({
+    key,
+    value: groupedResult.get(key) ?? [],
+  }));
+}
+
 export function getSingleQueryReadFn(source: Source) {
   if (['mysql', 'mysql2'].includes(source.type)) {
     return mysqlSingleQueryRead;

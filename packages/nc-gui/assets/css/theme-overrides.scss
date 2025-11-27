@@ -47,6 +47,10 @@ body {
   }
 }
 
+.ant-dropdown-menu-submenu.ant-dropdown-menu-submenu-disabled .ant-dropdown-menu-submenu-title {
+  @apply !bg-nc-bg-default !text-nc-content-gray-disabled;
+}
+
 .ant-dropdown-menu-submenu.ant-dropdown-menu-submenu-popup {
   @apply border-nc-border-gray-medium;
 }

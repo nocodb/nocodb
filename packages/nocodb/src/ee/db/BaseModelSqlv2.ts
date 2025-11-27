@@ -60,22 +60,12 @@ import {
   populateUpdatePayloadDiff,
   remapWithAlias,
 } from '~/utils';
-import {
-  Audit,
-  Column,
-  Filter,
-  Model,
-  ModelStat,
-  Permission,
-  Sort,
-} from '~/models';
+import { Audit, Column, Filter, Model, ModelStat, Permission } from '~/models';
 import {
   getSingleQueryReadFn,
   singleQueryGroupedList,
-  singleQueryGroupedListCount,
   singleQueryList,
 } from '~/services/data-opt/pg-helpers';
-import sortV2 from '~/db/sortV2';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
 import {
   UPDATE_WORKSPACE_COUNTER,
@@ -3554,45 +3544,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           where: args.where,
           limit: args.limit,
           offset: args.offset,
-        },
-        groupColumnId: args.groupColumnId,
-        ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,
-        baseModel: this,
-      });
-    } catch (e) {
-      throw e;
-    }
-  }
-
-  /**
-   * Optimized groupedListCount for PostgreSQL using singleQueryGroupedListCount
-   * which uses the same query building logic as singleQueryGroupedList
-   */
-  public async groupedListCount(
-    args: {
-      groupColumnId: string;
-      ignoreViewFilterAndSort?: boolean;
-    } & XcFilter,
-  ) {
-    // Use optimized version for PostgreSQL, fallback to base implementation for other databases
-    if (!this.isPg) {
-      return super.groupedListCount(args);
-    }
-
-    try {
-      const source = await Source.get(this.context, this.model.source_id);
-
-      // Use singleQueryGroupedListCount which uses the same query building logic
-      return await singleQueryGroupedListCount(this.context, {
-        model: this.model,
-        view: this.viewId
-          ? await View.get(this.context, this.viewId)
-          : undefined,
-        source,
-        params: {
-          ...args,
-          filterArr: args.filterArr,
-          where: args.where,
         },
         groupColumnId: args.groupColumnId,
         ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,

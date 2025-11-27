@@ -1,11 +1,11 @@
 import { CronExpressionParser } from 'cron-parser';
 import {
+  type MetaType,
   type NcContext,
   type OnDeleteAction,
   type SyncCategory,
   SyncTrigger,
   type SyncType,
-  type MetaType,
 } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';

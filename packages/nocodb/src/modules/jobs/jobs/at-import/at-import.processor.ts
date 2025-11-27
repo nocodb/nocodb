@@ -1833,12 +1833,7 @@ export class AtImportProcessor {
           await updateNcTblSchemaById(tblId);
 
           logDetailed(`   Configure show/hide columns`);
-          await nc_configureFields(
-            f.id,
-            vData,
-            aTblSchema[idx].name,
-            'form',
-          );
+          await nc_configureFields(f.id, vData, aTblSchema[idx].name, 'form');
         }
       }
     };
@@ -2402,12 +2397,7 @@ export class AtImportProcessor {
       }
     };
 
-    const nc_configureFields = async (
-      viewId,
-      _c,
-      tblName,
-      viewType?,
-    ) => {
+    const nc_configureFields = async (viewId, _c, tblName, viewType?) => {
       // force hide PK column
       const hiddenColumns = [ncSysFields.id, ncSysFields.hash];
       const c = _c.columnOrder;

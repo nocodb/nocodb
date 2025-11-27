@@ -18,7 +18,7 @@ export const useSyncStore = defineStore('sync', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const isSyncFeatureEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.SYNC))
+  const isSyncFeatureEnabled = computed(() => isEeUI)
 
   const isSyncAdvancedFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.SYNC_BETA_FEATURE))
 

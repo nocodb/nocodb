@@ -74,6 +74,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     syncDataUpvotes: [],
     giftBannerDismissedCount: 0,
     isLeftSidebarOpen: !isViewPortMobile(),
+    lastUsedAuthMethod: null,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */

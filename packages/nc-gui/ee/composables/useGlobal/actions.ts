@@ -87,6 +87,24 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     }
   }
 
+  async function detectLoginMethod() {
+    try {
+      const session = await Auth.currentSession()
+      const decodedidToken = session.getIdToken().decodePayload()
+
+      if (decodedidToken?.identities?.length) {
+        // Federated provider (Google, Facebook, etc.)
+        return decodedidToken.identities[0].providerName?.toLowerCase?.() // e.g. "Google"
+      }
+
+      // If no identities, usually means Cognito native (email/password)
+      return 'email'
+    } catch (err) {
+      console.log(err)
+      return null
+    }
+  }
+
   const checkForCognitoToken = async ({
     axiosInstance,
   }: {
@@ -101,6 +119,11 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       const cognitoUserSession = await Auth.currentSession()
       const idToken = cognitoUserSession.getIdToken()
       const jwt = idToken.getJwtToken()
+
+      // extract auth method
+      detectLoginMethod(idToken).then((method) => {
+        if (method) state.lastUsedAuthMethod.value = method
+      })
 
       const nuxtApp = useNuxtApp()
 

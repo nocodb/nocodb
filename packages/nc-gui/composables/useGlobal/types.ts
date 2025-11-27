@@ -72,6 +72,7 @@ export interface StoredState {
   syncDataUpvotes: string[]
   giftBannerDismissedCount: number
   isLeftSidebarOpen: boolean
+  lastUsedAuthMethod: 'google' | 'oidc' | 'sso' | 'email' | null
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {

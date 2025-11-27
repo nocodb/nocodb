@@ -59,6 +59,20 @@ body {
   @apply bg-nc-bg-default text-nc-content-gray;
 }
 
+.ant-popover-inner,
+.ant-popover-arrow-content {
+  @apply bg-nc-bg-default;
+}
+
+.ant-dropdown-menu-item,
+.ant-dropdown-menu-submenu-title {
+  color: rgba(var(--rgb-base), 0.85);
+
+  &:hover {
+    @apply bg-nc-bg-gray-light;
+  }
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {

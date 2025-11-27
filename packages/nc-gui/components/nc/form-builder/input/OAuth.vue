@@ -75,6 +75,7 @@ const openPopup = (url: string, name: string, state: string, codeVerifier: strin
         }
 
         const url = popup.location.href
+
         if (url.includes(OAuthConfig.value.redirectUri)) {
           const params = new URL(url).searchParams
           const code = params.get(OAuthConfig.value.codeKey || 'code')
@@ -88,7 +89,12 @@ const openPopup = (url: string, name: string, state: string, codeVerifier: strin
             popup.close()
             resolve({ code, codeVerifier })
           } else {
+            // If user clicked cancel button or code is missing and url is redirect url then we have to close the popup
+            clearInterval(interval)
+
             reject(new Error('No code returned'))
+
+            popup.close()
           }
         }
       } catch (e) {
@@ -162,7 +168,7 @@ const handleOAuth = async () => {
       code_verifier: result.codeVerifier,
     }
   } catch (e: any) {
-    if (e?.message?.includes('Popup closed by user')) {
+    if (e?.message?.includes('Popup closed by user') || e?.message?.includes('No code returned')) {
       return
     }
 

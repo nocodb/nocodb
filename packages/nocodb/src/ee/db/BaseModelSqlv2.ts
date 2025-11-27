@@ -47,8 +47,10 @@ import type {
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import { Source, View } from '~/models';
 import type { NcContext } from '~/interface/config';
+import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
+import type { SelectOption } from '~/models';
+import { Source, View } from '~/models';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import {
   batchUpdate,
@@ -58,15 +60,22 @@ import {
   populateUpdatePayloadDiff,
   remapWithAlias,
 } from '~/utils';
-import { Audit, Column, Filter, Model, ModelStat, Permission, Sort } from '~/models';
+import {
+  Audit,
+  Column,
+  Filter,
+  Model,
+  ModelStat,
+  Permission,
+  Sort,
+} from '~/models';
 import {
   getSingleQueryReadFn,
-  singleQueryList,
   singleQueryGroupedList,
+  singleQueryGroupedListCount,
+  singleQueryList,
 } from '~/services/data-opt/pg-helpers';
 import sortV2 from '~/db/sortV2';
-import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
-import type { SelectOption } from '~/models';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
 import {
   UPDATE_WORKSPACE_COUNTER,
@@ -3532,7 +3541,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // Use singleQueryGroupedList which handles nested columns/rollups in SQL
       return await singleQueryGroupedList(this.context, {
         model: this.model,
-        view: this.viewId ? await View.get(this.context, this.viewId) : undefined,
+        view: this.viewId
+          ? await View.get(this.context, this.viewId)
+          : undefined,
         source,
         params: {
           ...args,
@@ -3543,6 +3554,45 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           where: args.where,
           limit: args.limit,
           offset: args.offset,
+        },
+        groupColumnId: args.groupColumnId,
+        ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,
+        baseModel: this,
+      });
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  /**
+   * Optimized groupedListCount for PostgreSQL using singleQueryGroupedListCount
+   * which uses the same query building logic as singleQueryGroupedList
+   */
+  public async groupedListCount(
+    args: {
+      groupColumnId: string;
+      ignoreViewFilterAndSort?: boolean;
+    } & XcFilter,
+  ) {
+    // Use optimized version for PostgreSQL, fallback to base implementation for other databases
+    if (!this.isPg) {
+      return super.groupedListCount(args);
+    }
+
+    try {
+      const source = await Source.get(this.context, this.model.source_id);
+
+      // Use singleQueryGroupedListCount which uses the same query building logic
+      return await singleQueryGroupedListCount(this.context, {
+        model: this.model,
+        view: this.viewId
+          ? await View.get(this.context, this.viewId)
+          : undefined,
+        source,
+        params: {
+          ...args,
+          filterArr: args.filterArr,
+          where: args.where,
         },
         groupColumnId: args.groupColumnId,
         ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,

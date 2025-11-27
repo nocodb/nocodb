@@ -14,7 +14,10 @@ import { Base, Column, Model, Source, View } from '~/models';
 import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
-import { singleQueryGroupedList } from '~/services/data-opt/pg-helpers';
+import {
+  singleQueryGroupedList,
+  singleQueryGroupedListCount,
+} from '~/services/data-opt/pg-helpers';
 
 @Injectable()
 export class DatasService {
@@ -508,17 +511,6 @@ export class DatasService {
         listArgs.options = JSON.parse(listArgs.optionsArrJson);
       } catch (e) {}
 
-      const groupedData = await singleQueryGroupedList(context, {
-        model,
-        view,
-        source,
-        params: {
-          ...query,
-          ...listArgs,
-        },
-        groupColumnId: param.columnId,
-      });
-
       const baseModel = await Model.getBaseModelSQL(context, {
         id: model.id,
         viewId: view?.id,
@@ -526,10 +518,24 @@ export class DatasService {
         source,
       });
 
-      const countArr = await baseModel.groupedListCount({
-        ...listArgs,
-        groupColumnId: param.columnId,
-      });
+      // Run both queries in parallel for better performance
+      const [groupedData, countArr] = await Promise.all([
+        singleQueryGroupedList(context, {
+          model,
+          view,
+          source,
+          params: {
+            ...query,
+            ...listArgs,
+          },
+          groupColumnId: param.columnId,
+          baseModel,
+        }),
+        baseModel.groupedListCount({
+          ...listArgs,
+          groupColumnId: param.columnId,
+        }),
+      ]);
 
       return groupedData.map((item) => {
         const count =

@@ -2359,8 +2359,6 @@ export async function singleQueryGroupedList(
       ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
   });
 
-  console.log(groupedQb.toQuery());
-
   // Group results by the group column value
   // Use the column alias to get the value from the result
   const groupedResult = data.reduce<Map<string | number | null, any[]>>(
@@ -2385,6 +2383,229 @@ export async function singleQueryGroupedList(
   return [...groupingValues].map((key) => ({
     key,
     value: groupedResult.get(key) ?? [],
+  }));
+}
+
+/**
+ * Optimized groupedListCount for PostgreSQL using the same query building logic
+ * as singleQueryGroupedList but with COUNT(*) and GROUP BY instead of ROW_NUMBER
+ */
+export async function singleQueryGroupedListCount(
+  context: NcContext,
+  ctx: {
+    model: Model;
+    view?: View;
+    source: Source;
+    params;
+    groupColumnId: string;
+    throwErrorIfInvalidParams?: boolean;
+    validateFormula?: boolean;
+    baseModel?: BaseModelSqlv2;
+    customConditions?: Filter[];
+    ignoreViewFilterAndSort?: boolean;
+    getHiddenColumns?: boolean;
+    apiVersion?: NcApiVersion;
+    includeSortAndFilterColumns?: boolean;
+  },
+): Promise<
+  {
+    key: string | number | null;
+    count: number;
+  }[]
+> {
+  const profiler = Profiler.start('pgHelper/singleQueryGroupedListCount');
+
+  if (ctx.source.type !== 'pg') {
+    throw new Error('Source is not postgres');
+  }
+
+  const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
+
+  // get knex connection
+  const knex = await NcConnectionMgrv2.get(ctx.source);
+
+  const baseModel =
+    ctx.baseModel ||
+    (await Model.getBaseModelSQL(context, {
+      id: ctx.model.id,
+      viewId: ctx.view?.id,
+      dbDriver: knex,
+    }));
+
+  // load columns list
+  const columns = await ctx.model.getColumns(context);
+  const groupColumn = columns?.find((col) => col.id === ctx.groupColumnId);
+
+  if (!groupColumn) {
+    throw new Error(`Group column with id ${ctx.groupColumnId} not found`);
+  }
+
+  // Extract distinct group column values (same as singleQueryGroupedList)
+  // This ensures we return counts for all groups, even if they have 0 rows
+  let groupingValues: Set<any>;
+  if (ctx.params.options?.length) {
+    groupingValues = new Set(ctx.params.options);
+  } else if (groupColumn.uidt === UITypes.SingleSelect) {
+    const colOptions = await groupColumn.getColOptions<{
+      options: any[];
+    }>(context);
+    groupingValues = new Set(
+      (colOptions?.options ?? []).map((opt) => opt.title),
+    );
+    groupingValues.add(null);
+  } else {
+    groupingValues = new Set(
+      (
+        await baseModel.execAndParse(
+          knex(baseModel.getTnPath(ctx.model))
+            .select(groupColumn.column_name)
+            .distinct(),
+          null,
+          { raw: true },
+        )
+      ).map((row) => row[groupColumn.column_name]),
+    );
+    groupingValues.add(null);
+  }
+
+  const rootQb = knex(baseModel.getTnPath(ctx.model));
+
+  const aliasColObjMap = await ctx.model.getAliasColObjMap(context, columns);
+  const { filters: queryFilterObj } = extractFilterFromXwhere(
+    context,
+    listArgs?.where,
+    aliasColObjMap,
+    ctx.throwErrorIfInvalidParams,
+  );
+
+  let viewFilters: Filter[] = [];
+
+  if (ctx.view?.id && !ctx.ignoreViewFilterAndSort) {
+    viewFilters = await Filter.rootFilterList(context, {
+      viewId: ctx.view?.id,
+    });
+  }
+
+  const aggrConditionObj = [
+    ...(ctx.view && !ctx.ignoreViewFilterAndSort
+      ? [
+          new Filter({
+            children: viewFilters,
+            is_group: true,
+          }),
+        ]
+      : []),
+    ...(ctx.customConditions
+      ? [
+          new Filter({
+            children: ctx.customConditions,
+            is_group: true,
+          }),
+        ]
+      : []),
+    new Filter({
+      children: ctx.params.filterArr || [],
+      is_group: true,
+      logical_op: 'and',
+    }),
+    new Filter({
+      children: queryFilterObj,
+      is_group: true,
+      logical_op: 'and',
+    }),
+  ];
+
+  // apply filters on root query (same as singleQueryGroupedList)
+  await conditionV2(baseModel, aggrConditionObj, rootQb);
+
+  const qb = knex.from(rootQb.as(ROOT_ALIAS));
+
+  profiler.log('get ast');
+  const { ast } = await getAst(context, {
+    query: ctx.params,
+    model: ctx.model,
+    view: ctx.view,
+    throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+    apiVersion: ctx.apiVersion,
+    includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
+    getHiddenColumn: ctx.getHiddenColumns,
+    includeRowColorColumns: ctx.params.include_row_color === 'true',
+  });
+  profiler.log('extract column');
+
+  const getAlias = getAliasGenerator();
+
+  // Use extractColumns to handle nested columns/rollups in SQL (same as singleQueryGroupedList)
+  // This ensures we use the same filtered query
+  await extractColumns({
+    columns,
+    knex,
+    qb,
+    getAlias,
+    params: ctx.params,
+    baseModel,
+    ast,
+    throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
+    validateFormula: ctx.validateFormula,
+    alias: ROOT_ALIAS,
+    apiVersion: ctx.apiVersion,
+  });
+
+  // Get the group column alias (column ID used as alias in extractColumns)
+  const groupColumnAlias = getAs(groupColumn);
+  const quotedGroupAlias = `"${String(groupColumnAlias).replace(/"/g, '""')}"`;
+
+  // Build the group by expression
+  let groupByExpr: string;
+  if (groupColumn.uidt === UITypes.SingleSelect) {
+    groupByExpr = `COALESCE(NULLIF(__nc_base.${quotedGroupAlias}, ''), NULL)`;
+  } else {
+    groupByExpr = `__nc_base.${quotedGroupAlias}`;
+  }
+
+  // Get primary key alias for counting distinct rows
+  // This ensures we count distinct base table rows, not duplicated rows from joins
+  let distinctCountExpr: string;
+  if (ctx.model.primaryKey) {
+    const pkAlias = getAs(ctx.model.primaryKey);
+    const quotedPkAlias = `"${String(pkAlias).replace(/"/g, '""')}"`;
+    distinctCountExpr = `COUNT(DISTINCT __nc_base.${quotedPkAlias})`;
+  } else {
+    // Fallback to counting all rows if no primary key
+    distinctCountExpr = `COUNT(*)`;
+  }
+
+  // Create a subquery that groups by the group column and counts distinct base rows
+  // This ensures counts match the actual number of base table rows per group,
+  // not duplicated rows from joins in extractColumns
+  const baseQuerySql = qb.toQuery();
+  const countQb = knex
+    .from(knex.raw(`(${baseQuerySql}) as __nc_base`))
+    .select(knex.raw(`${groupByExpr} as key`))
+    .select(knex.raw(`${distinctCountExpr} as count`))
+    .groupBy(knex.raw(groupByExpr));
+
+  knex.applyCte(countQb);
+
+  profiler.log('execute count query');
+  const countData: any[] = await baseModel.execAndParse(countQb, null, {
+    raw: true,
+  });
+
+  profiler.end();
+
+  // Create a map of counts by group key
+  const countMap = new Map<string | number | null, number>();
+  for (const row of countData) {
+    const key = row.key;
+    countMap.set(key, parseInt(row.count, 10) || 0);
+  }
+
+  // Return counts for all groups (same as singleQueryGroupedList returns all groups)
+  // This ensures groups with 0 count are also included
+  return [...groupingValues].map((key) => ({
+    key,
+    count: countMap.get(key) ?? 0,
   }));
 }
 

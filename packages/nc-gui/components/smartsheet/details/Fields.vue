@@ -1991,6 +1991,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                                   })
                                 "
                               />
+                              <NcDivider />
                             </template>
 
                             <NcMenuItem

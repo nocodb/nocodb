@@ -73,6 +73,7 @@ const isOptionVisible = computed(() => {
         })
       "
     />
+    <NcDivider />
 
     <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-base-rename" @click="emits('rename')">
       <GeneralIcon icon="rename" />

@@ -177,9 +177,24 @@ export class NcErrorBase {
     });
   }
 
-  fieldNotFound(id: string, args?: NcErrorArgs): never {
+  fieldNotFound(
+    param:
+      | string
+      | {
+          field: string;
+          onSection?: string;
+        },
+    args?: NcErrorArgs
+  ): never {
+    let message = '';
+    if (typeof param === 'string') {
+      message = `'${param}'`;
+    } else {
+      const onSection = param.onSection ? ` on ${param.onSection}` : '';
+      message = `'${param.field}'${onSection}`;
+    }
     throw this.errorCodex.generateError(NcErrorType.ERR_FIELD_NOT_FOUND, {
-      params: id,
+      params: message,
       ...args,
     });
   }

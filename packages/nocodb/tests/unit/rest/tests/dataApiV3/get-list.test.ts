@@ -134,6 +134,26 @@ describe('dataApiV3', () => {
         expect(firstRecord).to.have.property('id');
       });
 
+      it('get list country in JSON string format', async function () {
+        const response = await ncAxiosGet({
+          url: `${urlPrefix}/${countryTable!.id}/records`,
+          query: {
+            fields: JSON.stringify(['id', 'Country']),
+          },
+        });
+        const result = response.body as ListResult;
+        expect(result.records.length).to.greaterThan(0);
+
+        // Verify that both requested fields are present
+        const firstRecord = result.records[0];
+        expect(firstRecord.fields).to.have.property('Country');
+        // CountryId might not be included in fields when it's the primary key
+        expect(Object.keys(firstRecord.fields)).to.include('Country');
+
+        // Verify that id IS included when primary key is in fields
+        expect(firstRecord).to.have.property('id');
+      });
+
       it.skip('get list country with 2 fields on same query param', async function () {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${countryTable!.id}/records`,

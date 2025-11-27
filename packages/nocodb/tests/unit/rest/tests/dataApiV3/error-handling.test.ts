@@ -231,7 +231,9 @@ describe('dataApiV3', () => {
           status: 422,
         });
         expect(response.body.error).to.eq('ERR_FIELD_NOT_FOUND');
-        expect(response.body.message).to.eq(`Field 'NotFoundField' not found`);
+        expect(response.body.message).to.eq(
+          `Field 'NotFoundField' on 'sort' query parameter not found`,
+        );
       });
       // skip, our sort direction is either {field} (asc) or -{field} (desc) so no validation required
       it.skip('invalid sort direction', async () => {});
@@ -302,7 +304,6 @@ describe('dataApiV3', () => {
           `Invalid filter expression: 'notInOperator' is not a recognized operator. Please use a valid comparison or logical operator`,
         );
       });
-
       it('invalid select field', async () => {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${countryTable.id}/records`,
@@ -311,7 +312,9 @@ describe('dataApiV3', () => {
           },
           status: 422,
         });
-        expect(response.body.message).to.eq(`Field 'NotFoundField' not found`);
+        expect(response.body.message).to.eq(
+          `Field 'NotFoundField' on 'fields' query parameter not found`,
+        );
       });
       // our api can accept array or not array
       it.skip('field parameter malformed', async () => {

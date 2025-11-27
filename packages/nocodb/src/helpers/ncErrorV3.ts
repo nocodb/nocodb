@@ -40,7 +40,7 @@ export class NcErrorV3 extends NcErrorV1 {
         code: 422,
       },
       [NcErrorType.ERR_FIELD_NOT_FOUND]: {
-        message: (id: string) => `Field '${id}' not found`,
+        message: (id: string) => `Field ${id} not found`,
         code: 422,
       },
       [NcErrorType.ERR_TEAM_NOT_FOUND]: {

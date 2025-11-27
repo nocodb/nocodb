@@ -56,7 +56,7 @@ const openMarketPlace = () => {
             :source="source"
             variant="large"
             submenu-class="nc-sub-menu-item-icon-only"
-            title-class="!p-0 hover:bg-brand-50 group"
+            title-class="!p-0 hover:bg-nc-bg-brand group"
             show-noco-db-import
             :popup-offset="[8, -2]"
           >
@@ -105,7 +105,7 @@ const openMarketPlace = () => {
         <NcSubMenu
           variant="large"
           class="nc-sub-menu-item-icon-only"
-          title-class="!p-0 hover:bg-brand-50 group"
+          title-class="!p-0 hover:bg-nc-bg-brand group"
           :popup-offset="[8, -2]"
           @click.stop
         >

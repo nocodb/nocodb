@@ -645,7 +645,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                 class="!text-nc-content-gray"
                               />
                             </div>
-                            <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
+                            <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
                           </div>
                         </NcTooltip>
                       </div>
@@ -853,6 +853,16 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
       @apply flex-none !max-w-none !w-auto;
     }
   }
+
+  .nc-date-picker > div > div {
+    &:first-child {
+      @apply pl-0;
+    }
+
+    &:last-child {
+      @apply pr-0;
+    }
+  }
 }
 
 :deep(.nc-virtual-cell) {
@@ -897,6 +907,16 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
   &.nc-virtual-cell-qrcode,
   &.nc-virtual-cell-barcode {
     @apply children:justify-start;
+  }
+
+  .nc-date-picker > div > div{
+    &:first-child {
+      @apply pl-0;
+    }
+
+    &:last-child {
+      @apply pr-0;
+    }
   }
 }
 

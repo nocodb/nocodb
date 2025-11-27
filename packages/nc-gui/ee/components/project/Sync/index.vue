@@ -193,12 +193,14 @@ onMounted(async () => {
             <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
           </template>
         </a-input>
-        <NcButton type="text" size="small" class="!px-2 !w-22">
-          <div class="flex gap-2 items-center">
-            {{ $t('title.docs') }}
-            <GeneralIcon icon="ncExternalLink" />
-          </div>
-        </NcButton>
+        <NuxtLink href="https://nocodb.com/docs/product-docs/noco-sync" target="_blank" rel="noopener noreferrer">
+          <NcButton type="text" size="small" class="!px-2 !w-22">
+            <div class="flex gap-2 items-center">
+              {{ $t('title.docs') }}
+              <GeneralIcon icon="ncExternalLink" />
+            </div>
+          </NcButton>
+        </NuxtLink>
       </div>
 
       <NcButton v-if="isUIAllowed('sourceCreate')" size="small" class="z-10 !px-2" type="primary" @click="handleCreateSync">

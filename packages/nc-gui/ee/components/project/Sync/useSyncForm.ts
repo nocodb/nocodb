@@ -259,25 +259,22 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       )
     }
 
-    /**
-     * Todo: @anbu , @ramesh update docs links
-     */
     const supportedDocs = [
       {
         title: 'How syncs work',
-        href: 'https://nocodb.com/docs/product-docs',
+        href: 'https://nocodb.com/docs/product-docs/noco-sync#how-sync-works',
       },
       {
         title: 'Choosing a sync type',
-        href: 'https://nocodb.com/docs/product-docs',
+        href: 'https://nocodb.com/docs/product-docs/noco-sync#sync-types',
       },
       {
         title: 'Configure sync triggers',
-        href: 'https://nocodb.com/docs/product-docs',
+        href: 'https://nocodb.com/docs/product-docs/noco-sync#sync-trigger',
       },
       {
         title: 'Select tables to sync',
-        href: 'https://nocodb.com/docs/product-docs',
+        href: 'https://nocodb.com/docs/product-docs/noco-sync#add-new-sync',
       },
     ]
 

@@ -67,19 +67,19 @@ const vVisible = computed({
 const supportedDocs: SupportedDocsType[] = [
   {
     title: 'Creating and Managing Teams',
-    href: '',
+    href: 'https://nocodb.com/docs/product-docs/collaboration/teams#create-team',
   },
   {
     title: 'Understanding Team Roles',
-    href: '',
+    href: 'https://nocodb.com/docs/product-docs/collaboration/teams#manage-team-owners',
   },
   {
     title: 'Inviting Members to a Team',
-    href: '',
+    href: 'https://nocodb.com/docs/product-docs/collaboration/teams#add-members-to-a-team',
   },
   {
     title: 'Team Permissions',
-    href: '',
+    href: 'https://nocodb.com/docs/product-docs/collaboration/teams#assign-roles-to-teams',
   },
 ]
 </script>

@@ -122,6 +122,16 @@ body {
     h6 {
       color: rgba(var(--rgb-base), 0.85);
     }
+
+    .ant-btn-text {
+      color: rgba(var(--rgb-base), 0.85);
+
+      &:focus,
+      &:hover {
+        color: rgba(var(--rgb-base), 0.85);
+        background-color: rgba(var(--rgb-base), 0.018);
+      }
+    }
   }
 }
 

@@ -14,7 +14,6 @@ import { Base, Column, Model, Source, View } from '~/models';
 import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
-import { singleQueryGroupedList } from '~/services/data-opt/pg-helpers';
 
 @Injectable()
 export class DatasService {
@@ -517,16 +516,9 @@ export class DatasService {
 
       // Run both queries in parallel for better performance
       const [groupedData, countArr] = await Promise.all([
-        singleQueryGroupedList(context, {
-          model,
-          view,
-          source,
-          params: {
-            ...query,
-            ...listArgs,
-          },
+        await baseModel.groupedList({
+          ...listArgs,
           groupColumnId: param.columnId,
-          baseModel,
         }),
         baseModel.groupedListCount({
           ...listArgs,

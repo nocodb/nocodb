@@ -1,23 +1,12 @@
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { NcError } from '~/helpers/catchError';
+import {
+  dependencySlotMapper,
+  DependencyTableType,
+} from '~/helpers/DependencySlotMapper';
 
-export enum DependencyTableType {
-  Column = 'column',
-  Model = 'table',
-  View = 'view',
-  Widget = 'widget',
-  Workflow = 'workflow',
-}
-
-export enum DependencySlotTypes {
-  STRING = 'string',
-  NUMBER = 'number',
-  BOOLEAN = 'boolean',
-  ARRAY = 'array',
-  OBJECT = 'object',
-}
+export { DependencyTableType } from '~/helpers/DependencySlotMapper';
 
 export interface DependencyTrackerType {
   id?: string;
@@ -55,56 +44,6 @@ export interface WorkflowDependencies {
   views?: WorkflowDependencyInfo[];
 }
 
-enum DependencySlots {
-  // Queryable slots (indexed)
-  QUERYABLE_SLOT0 = 'queryable_slot_0',
-  QUERYABLE_SLOT1 = 'queryable_slot_1',
-
-  // Non-queryable slots (not indexed)
-  SLOT0 = 'slot_0',
-  SLOT1 = 'slot_1',
-  SLOT2 = 'slot_2',
-}
-
-interface SlotDefinition {
-  id: string;
-  type: DependencySlotTypes;
-  required?: boolean;
-}
-
-const SLOT_MAPPINGS: Record<
-  DependencyTableType,
-  Record<string, SlotDefinition>
-> = {
-  [DependencyTableType.Widget]: {
-    path: {
-      id: DependencySlots.SLOT0, // Not indexed - UI display only
-      type: DependencySlotTypes.STRING,
-      required: false,
-    },
-  },
-  [DependencyTableType.Workflow]: {
-    nodeType: {
-      id: DependencySlots.QUERYABLE_SLOT0, // Indexed - queried for triggers
-      type: DependencySlotTypes.STRING,
-      required: false,
-    },
-    path: {
-      id: DependencySlots.SLOT0, // Not indexed - UI display only
-      type: DependencySlotTypes.STRING,
-      required: false,
-    },
-    nodeId: {
-      id: DependencySlots.SLOT1, // Not indexed - never queried
-      type: DependencySlotTypes.STRING,
-      required: false,
-    },
-  },
-  [DependencyTableType.Column]: {},
-  [DependencyTableType.Model]: {},
-  [DependencyTableType.View]: {},
-};
-
 export default class DependencyTracker implements DependencyTrackerType {
   id: string;
   fk_workspace_id: string;
@@ -127,77 +66,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     dependentType: DependencyTableType,
     item: DependencyInfo,
   ): Record<string, any> {
-    const mapping = SLOT_MAPPINGS[dependentType];
-    const fields: Record<string, any> = {};
-
-    for (const [logicalField, slotDef] of Object.entries(mapping)) {
-      let value = (item as any)[logicalField];
-
-      // Check required fields
-      if (slotDef.required && value === undefined) {
-        NcError.badRequest(`Missing required field: ${logicalField}`);
-      }
-
-      // Skip undefined optional fields
-      if (value === undefined) {
-        continue;
-      }
-
-      // Validate and coerce types
-      switch (slotDef.type) {
-        case DependencySlotTypes.NUMBER:
-          if (isNaN(Number(value))) {
-            NcError.badRequest(`Invalid type for field: ${logicalField}`);
-          }
-          value = Number(value);
-          break;
-
-        case DependencySlotTypes.BOOLEAN:
-          value = !!value;
-          break;
-
-        case DependencySlotTypes.ARRAY:
-          if (typeof value === 'string') {
-            try {
-              value = JSON.parse(value);
-            } catch (e) {
-              NcError.badRequest(`Invalid type for field: ${logicalField}`);
-            }
-          }
-          if (!Array.isArray(value)) {
-            NcError.badRequest(`Invalid type for field: ${logicalField}`);
-          }
-          value = JSON.stringify(value);
-          break;
-
-        case DependencySlotTypes.OBJECT:
-          if (typeof value === 'string') {
-            try {
-              value = JSON.parse(value);
-            } catch (e) {
-              NcError.badRequest(`Invalid type for field: ${logicalField}`);
-            }
-          }
-          if (typeof value !== 'object' || value === null) {
-            NcError.badRequest(`Invalid type for field: ${logicalField}`);
-          }
-          value = JSON.stringify(value);
-          break;
-
-        case DependencySlotTypes.STRING:
-          if (typeof value !== 'string') {
-            NcError.badRequest(`Invalid type for field: ${logicalField}`);
-          }
-          break;
-
-        default:
-          break;
-      }
-
-      fields[slotDef.id] = value;
-    }
-
-    return fields;
+    return dependencySlotMapper.extractSlotFields(dependentType, item);
   }
 
   /**
@@ -207,37 +76,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     dependentType: DependencyTableType,
     record: any,
   ): Record<string, any> {
-    const mapping = SLOT_MAPPINGS[dependentType];
-    const fields: Record<string, any> = {};
-
-    for (const [logicalField, slotDef] of Object.entries(mapping)) {
-      let value = record[slotDef.id];
-
-      if (value === undefined) {
-        continue;
-      }
-
-      // Parse back types that were stringified
-      switch (slotDef.type) {
-        case DependencySlotTypes.ARRAY:
-        case DependencySlotTypes.OBJECT:
-          if (typeof value === 'string') {
-            try {
-              value = JSON.parse(value);
-            } catch (e) {
-              // Keep as string if parsing fails
-            }
-          }
-          break;
-
-        default:
-          break;
-      }
-
-      fields[logicalField] = value;
-    }
-
-    return fields;
+    return dependencySlotMapper.hydrateSlotFields(dependentType, record);
   }
 
   /**
@@ -337,20 +176,8 @@ export default class DependencyTracker implements DependencyTrackerType {
     sourceType: DependencyTableType,
     sourceId: string,
     options: {
-      dependentType: DependencyTableType.Widget;
-      widgetType?: string;
-      widgetSubtype?: string;
-    },
-    ncMeta?: any,
-  ): Promise<DependencyTrackerType[]>;
-  public static async getDependentsBySource(
-    context: NcContext,
-    sourceType: DependencyTableType,
-    sourceId: string,
-    options: {
       dependentType: DependencyTableType.Workflow;
       nodeType?: string;
-      nodeId?: string;
     },
     ncMeta?: any,
   ): Promise<DependencyTrackerType[]>;
@@ -360,10 +187,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     sourceId: string,
     options?: {
       dependentType?: DependencyTableType;
-      widgetType?: string;
-      widgetSubtype?: string;
       nodeType?: string;
-      nodeId?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<DependencyTrackerType[]> {
@@ -375,21 +199,13 @@ export default class DependencyTracker implements DependencyTrackerType {
     if (options?.dependentType) {
       condition.dependent_type = options.dependentType;
 
-      const mapping = SLOT_MAPPINGS[options.dependentType];
-
-      if (options.dependentType === DependencyTableType.Widget) {
-        if (options.widgetType && mapping.widgetType) {
-          condition[mapping.widgetType.id] = options.widgetType;
-        }
-        if (options.widgetSubtype && mapping.widgetSubtype) {
-          condition[mapping.widgetSubtype.id] = options.widgetSubtype;
-        }
-      } else if (options.dependentType === DependencyTableType.Workflow) {
-        if (options.nodeType && mapping.nodeType) {
-          condition[mapping.nodeType.id] = options.nodeType;
-        }
-        if (options.nodeId && mapping.nodeId) {
-          condition[mapping.nodeId.id] = options.nodeId;
+      if (options.dependentType === DependencyTableType.Workflow) {
+        if (options.nodeType) {
+          const slotId = dependencySlotMapper.getSlotId(
+            options.dependentType,
+            'nodeType',
+          );
+          if (slotId) condition[slotId] = options.nodeType;
         }
       }
     }
@@ -408,7 +224,12 @@ export default class DependencyTracker implements DependencyTrackerType {
           record.dependent_type,
           record,
         );
-        return { ...record, ...hydratedFields };
+
+        // Remove internal storage fields
+        const { queryable_field_0, queryable_field_1, meta, ...cleanRecord } =
+          record;
+
+        return { ...cleanRecord, ...hydratedFields };
       }
       return record;
     });

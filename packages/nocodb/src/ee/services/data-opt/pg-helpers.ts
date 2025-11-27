@@ -2184,11 +2184,50 @@ export async function singleQueryGroupedList(
     view: ctx.view,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     apiVersion: ctx.apiVersion,
-    includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
-    getHiddenColumn: ctx.getHiddenColumns,
-    includeRowColorColumns: ctx.params.include_row_color === 'true',
   });
+
+  // additionally include grouping column if missing
+  ast[groupColumn.title] = true;
+
   profiler.log('extract column');
+
+  // Build window function partition and order clauses
+  // IMPORTANT: extractColumns creates aliases for columns using getAs(column)
+  // So we need to reference columns by their aliases (column IDs), not original names
+  // The group column alias (column ID used as alias in extractColumns)
+  const groupColumnAlias = getAs(groupColumn);
+
+  // Get the order by columns for the window function
+  // Use column aliases as they appear in the subquery (from extractColumns)
+  // These are the column IDs, which are used as aliases by extractColumns
+  const orderByExpressions: any[] = [];
+
+  if (orderColumn && !orderColumn.system) {
+    orderByExpressions.push(knex.raw('"__nc_base".??', [getAs(orderColumn)]));
+    ast[orderColumn.title] = true;
+  }
+
+  if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
+    orderByExpressions.push(
+      knex.raw('"__nc_base".??', [getAs(ctx.model.primaryKey)]),
+    );
+    ast[ctx.model.primaryKey.title] = true;
+  } else {
+    const createdCol = ctx.model.columns.find(
+      (c) => c.uidt === UITypes.CreatedTime && c.system,
+    );
+    if (createdCol) {
+      orderByExpressions.push(knex.raw('"__nc_base".??', [getAs(createdCol)]));
+      // add it to ast
+      ast[createdCol.title] = true;
+    } else if (ctx.model.primaryKey) {
+      orderByExpressions.push(
+        knex.raw('"__nc_base".??', [getAs(ctx.model.primaryKey)]),
+      );
+      // add it to ast
+      ast[ctx.model.primaryKey.title] = true;
+    }
+  }
 
   // Use extractColumns to handle nested columns/rollups in SQL (like singleQueryList)
   await extractColumns({
@@ -2224,59 +2263,11 @@ export async function singleQueryGroupedList(
     }
   }
 
-  // Build window function partition and order clauses
-  // IMPORTANT: extractColumns creates aliases for columns using getAs(column)
-  // So we need to reference columns by their aliases (column IDs), not original names
-  // The group column alias (column ID used as alias in extractColumns)
-  const groupColumnAlias = getAs(groupColumn);
-  const groupColumnExpr =
-    groupColumn.uidt === UITypes.SingleSelect
-      ? knex.raw(`COALESCE(NULLIF(__nc_base.??, ''), NULL)`, [groupColumnAlias])
-      : knex.raw('__nc_base.??', [groupColumnAlias]);
-
-  // Get the order by columns for the window function
-  // Use column aliases as they appear in the subquery (from extractColumns)
-  // These are the column IDs, which are used as aliases by extractColumns
-  const orderByExpressions: any[] = [];
-
-  if (orderColumn && !orderColumn.system) {
-    orderByExpressions.push(knex.raw('__nc_base.??', [getAs(orderColumn)]));
-  }
-
-  if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
-    orderByExpressions.push(
-      knex.raw('__nc_base.??', [getAs(ctx.model.primaryKey)]),
-    );
-  } else {
-    const createdCol = ctx.model.columns.find(
-      (c) => c.uidt === UITypes.CreatedTime && c.system,
-    );
-    if (createdCol) {
-      orderByExpressions.push(knex.raw('__nc_base.??', [getAs(createdCol)]));
-    } else if (ctx.model.primaryKey) {
-      orderByExpressions.push(
-        knex.raw('__nc_base.??', [getAs(ctx.model.primaryKey)]),
-      );
-    }
-  }
-
   // Build window function ORDER BY clause
   // Build SQL string directly using column aliases with proper PostgreSQL quoting
   let windowOrderByClause = 'NULL';
   if (orderByExpressions.length > 0) {
-    const orderByParts: string[] = [];
-    for (const expr of orderByExpressions) {
-      // Get the column alias from the expression bindings
-      // The expression is knex.raw('__nc_base.??', [alias])
-      const alias = expr.bindings[0];
-      if (alias) {
-        // Quote the alias properly for PostgreSQL (double quotes)
-        orderByParts.push(`__nc_base."${String(alias).replace(/"/g, '""')}"`);
-      }
-    }
-    if (orderByParts.length > 0) {
-      windowOrderByClause = orderByParts.join(', ');
-    }
+    windowOrderByClause = orderByExpressions.join(', ');
   }
 
   // Create a subquery with window function to number rows within each group

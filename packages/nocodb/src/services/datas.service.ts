@@ -536,11 +536,13 @@ export class DatasService {
           countArr.find((countItem: any) => countItem.key === item.key)
             ?.count ?? 0;
 
-        item.value = new PagedResponseImpl(item.value, {
-          ...query,
-          count: count,
-        });
-        return item;
+        return {
+          ...item,
+          value: new PagedResponseImpl(item.value, {
+            ...query,
+            count: count,
+          }),
+        };
       });
     }
 

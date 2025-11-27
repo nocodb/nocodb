@@ -1,21 +1,31 @@
 <script lang="ts" setup>
-const supportedDocs = [
-  {
-    title: 'Integrations',
-    href: 'https://nocodb.com/docs/product-docs/integrations',
-  },
-  {
-    title: 'Create new connection',
-    href: 'https://nocodb.com/docs/product-docs/integrations/create-connection',
-  },
-  {
-    title: 'Add new Data source',
-    href: 'https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source',
-  },
-] as {
-  title: string
-  href: string
-}[]
+import { IntegrationsType } from 'nocodb-sdk'
+const { activeIntegration, activeIntegrationItem } = useIntegrationStore()
+
+const supportedDocs = computed(() => {
+  const docs = [
+    {
+      title: 'Integrations',
+      href: 'https://nocodb.com/docs/product-docs/integrations',
+    },
+    {
+      title: 'Create new connection',
+      href: 'https://nocodb.com/docs/product-docs/integrations/create-connection',
+    },
+  ]
+
+  if (activeIntegrationItem.value?.type === IntegrationsType.Database) {
+    docs.push({
+      title: 'Add new Data source',
+      href: 'https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source',
+    })
+  }
+
+  return docs as {
+    title: string
+    href: string
+  }[]
+})
 </script>
 
 <template>

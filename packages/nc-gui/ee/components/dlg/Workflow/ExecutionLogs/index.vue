@@ -64,8 +64,9 @@ async function loadExecutionLogs(append = false) {
     // Check if we have more data
     if (result.length < pageSize.value) {
       hasMore.value = false
+      currentOffset.value = currentOffset.value + result.length
     } else {
-      currentOffset.value += result.length
+      currentOffset.value += pageSize.value
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

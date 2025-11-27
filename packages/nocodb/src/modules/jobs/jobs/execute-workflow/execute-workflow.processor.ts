@@ -35,7 +35,6 @@ export class ExecuteWorkflowProcessor {
       }
 
       executionRecord = await WorkflowExecution.insert(context, workflowId, {
-        fk_workflow_id: workflowId,
         workflow_data: {
           id: workflow.id,
           title: workflow.title,

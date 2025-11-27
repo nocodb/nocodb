@@ -6,9 +6,9 @@ const { hasManualTrigger, executeWorkflow: _executeWorkflow } = useWorkflowOrThr
 const isLoading = ref(false)
 const showExecutionLogs = ref(false)
 
-const executeWorkflow = () => {
+const executeWorkflow = async () => {
   isLoading.value = true
-  _executeWorkflow()
+  await _executeWorkflow()
   isLoading.value = false
 }
 

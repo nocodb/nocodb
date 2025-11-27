@@ -324,7 +324,6 @@ export class WorkflowExecutionService {
           break;
         }
 
-        // Handle plus nodes
         if (node.type === GeneralNodeID.PLUS) {
           const outgoingEdges = graph.get(currentNodeId) || [];
           currentNodeId =

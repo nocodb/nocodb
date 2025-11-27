@@ -10,6 +10,7 @@ import { UpdateRecordNode } from './nodes/update-record';
 import { FindRecordNode } from './nodes/find-record';
 import { ListRecordsNode } from './nodes/list-records';
 import { DeleteRecordNode } from './nodes/delete-record';
+import { RecordDeletedTriggerNode } from './nodes/record-deleted-trigger'
 
 export const entries: IntegrationEntry[] = [
   {
@@ -30,6 +31,16 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Record Updated Trigger',
+    },
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'nocodb.trigger.after_delete',
+    wrapper: RecordDeletedTriggerNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'NocoDB - Record Deleted Trigger',
     },
   },
   {

@@ -505,6 +505,11 @@ watch(isOpen, (newValue) => {
 .nc-icon-selector-emoji-picker.emoji-mart {
   @apply !w-full md:!w-107.5 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
 
+  .emoji-mart-category .emoji-mart-emoji:hover:before,
+  .emoji-mart-emoji-selected:before {
+    @apply bg-nc-bg-gray-medium;
+  }
+
   span.emoji-type-native {
     @apply cursor-pointer;
   }

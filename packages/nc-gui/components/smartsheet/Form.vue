@@ -1614,7 +1614,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       <a-dropdown
                         v-model:visible="dropdownStates.showEditColumn"
                         :trigger="['click']"
-                        overlay-class-name="nc-dropdown-form-edit-column"
+                        overlay-class-name="nc-dropdown-form-edit-column rounded-2xl"
                         :disabled="!isUIAllowed('fieldEdit') || isLocked"
                         @visible-change="onVisibilityChange('showEditColumn')"
                       >
@@ -1707,7 +1707,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             v-model:visible="dropdownStates.showAddColumn"
                             :trigger="['click']"
                             :disabled="isLocked"
-                            overlay-class-name="nc-dropdown-form-add-column"
+                            overlay-class-name="nc-dropdown-form-add-column rounded-2xl"
                             @visible-change="onVisibilityChange('showAddColumn')"
                           >
                             <NcButton type="secondary" size="small" class="nc-form-add-field" data-testid="nc-form-add-field">

@@ -379,10 +379,6 @@ onMounted(() => {
     @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
     width: calc(100% - 1rem);
   }
-
-  :deep(.active) {
-    @apply !bg-nc-bg-brand !text-nc-content-brand-disabled !hover:(bg-nc-bg-brand text-nc-content-brand-disabled ) font-semibold;
-  }
 }
 
 :deep(.ant-menu-submenu-title) {
@@ -400,5 +396,13 @@ onMounted(() => {
 
 .nc-account-dropdown-item {
   @apply flex flex-row px-4 items-center py-2 gap-x-2 hover:bg-nc-bg-gray-light cursor-pointer;
+}
+</style>
+
+<style lang="scss">
+.nc-user-sidebar {
+  .tabs-menu .active {
+    @apply !bg-nc-bg-brand !text-nc-content-brand-disabled !hover:(bg-nc-bg-brand text-nc-content-brand-disabled) dark:(!bg-nc-bg-gray-medium !hover:bg-nc-bg-gray-medium) font-semibold;
+  }
 }
 </style>

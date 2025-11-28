@@ -33,5 +33,9 @@ const picked = computed({
   .vc-input__input {
     @apply rounded-lg border-1 !border-nc-border-gray-extralight shadow-none;
   }
+
+  .vc-chrome-toggle-icon-highlight {
+    @apply dark:bg-nc-bg-gray-dark;
+  }
 }
 </style>

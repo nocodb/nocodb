@@ -169,10 +169,10 @@ const customRow = (record: Record<string, any>) => ({
       <div class="flex flex-row justify-between items-center w-full mb-4">
         <div class="flex">
           <div v-if="isDifferent">
-            <a-button
+            <NcButton
               v-e="['a:proj-meta:meta-data:sync']"
+              size="small"
               class="nc-btn-metasync-sync-now"
-              type="primary"
               :disabled="isLoading"
               @click="syncMetaDiff"
             >
@@ -181,7 +181,7 @@ const customRow = (record: Record<string, any>) => ({
                 <component :is="iconMap.databaseSync" v-else />
                 {{ $t('activity.metaSync') }}
               </div>
-            </a-button>
+            </NcButton>
           </div>
 
           <div v-else>
@@ -192,16 +192,18 @@ const customRow = (record: Record<string, any>) => ({
           </div>
         </div>
         <!--        Reload -->
-        <a-button
+        <NcButton
           v-e="['a:proj-meta:meta-data:reload']"
+          size="small"
+          type="secondary"
           class="self-start !rounded-md nc-btn-metasync-reload"
           @click="loadMetaDiff()"
         >
-          <div class="flex items-center gap-2 text-gray-600 font-light">
+          <div class="flex items-center gap-2 text-nc-content-gray-subtle2 font-light">
             <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             {{ $t('general.reload') }}
           </div>
-        </a-button>
+        </NcButton>
       </div>
       <div v-if="triggeredSync" class="flex flex-col justify-center items-center h-full overflow-y-auto">
         <GeneralProgressPanel ref="progressRef" class="w-1/2 h-full" />
@@ -216,7 +218,7 @@ const customRow = (record: Record<string, any>) => ({
             :disabled="!syncCompleted"
             @click="onBack"
           >
-            Back
+            {{ $t('general.back') }}
           </NcButton>
         </div>
       </div>
@@ -234,7 +236,7 @@ const customRow = (record: Record<string, any>) => ({
           <template v-if="column.key === 'table_name'">
             <div class="flex items-center gap-2 max-w-full">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon :meta="record" class="text-gray-500" />
+                <GeneralTableIcon :meta="record" class="text-nc-content-gray-muted" />
               </div>
 
               <NcTooltip class="truncate" show-on-truncate-only>
@@ -249,8 +251,8 @@ const customRow = (record: Record<string, any>) => ({
                 <template #title> {{ record?.syncState || $t('msg.info.metaNoChange') }} </template>
                 <span
                   :class="{
-                    'text-red-500': record?.syncState,
-                    'text-gray-500': !record?.syncState,
+                    'text-nc-content-red-medium': record?.syncState,
+                    'text-nc-content-gray-muted': !record?.syncState,
                   }"
                 >
                   {{ record?.syncState || $t('msg.info.metaNoChange') }}
@@ -267,5 +269,3 @@ const customRow = (record: Record<string, any>) => ({
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

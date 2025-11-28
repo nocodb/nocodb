@@ -26,7 +26,8 @@ body {
 // Drawer & Modal
 .ant-drawer-content,
 .ant-modal-content,
-.ant-modal-header {
+.ant-modal-header,
+.ant-card {
   @apply !bg-nc-bg-default;
 }
 
@@ -257,6 +258,24 @@ body {
   // Modal
   .ant-modal-content {
     @apply border-1 border-solid border-nc-border-gray-medium;
+  }
+
+  // Ant design Breadcrumb
+  .ant-breadcrumb {
+    color: rgba(var(--rgb-base), 0.85);
+
+    a {
+      color: rgba(var(--rgb-base), 0.45);
+    }
+
+    .ant-breadcrumb-separator {
+      color: rgba(var(--rgb-base), 0.45);
+    }
+
+    & > span:last-child,
+    & > span:last-child a {
+      color: rgba(var(--rgb-base), 0.85);
+    }
   }
 
   // Sidebar

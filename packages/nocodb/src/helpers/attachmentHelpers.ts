@@ -12,7 +12,96 @@ import { isSecureAttachmentEnabled } from '~/utils';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
 
-const previewableMimeTypes = ['image', 'pdf', 'video', 'audio'];
+const imageMimeTypes = [
+  'image/aces',
+  'image/apng',
+  'image/avci',
+  'image/avcs',
+  'image/avif',
+  'image/bmp',
+  'image/cgm',
+  'image/dicom-rle',
+  'image/dpx',
+  // 'image/emf',   // windows files, a bit risky
+  'image/example',
+  'image/fits',
+  'image/g3fax',
+  'image/gif',
+  // 'image/heic',          // new format with unassessed risks
+  // 'image/heic-sequence', // new format with unassessed risks
+  // 'image/heif',          // new format with unassessed risks
+  // 'image/heif-sequence', // new format with unassessed risks
+  'image/hej2k',
+  'image/hsj2',
+  'image/ief',
+  'image/j2c',
+  'image/jaii',
+  'image/jais',
+  'image/jls',
+  'image/jp2',
+  'image/jpeg',
+  'image/jph',
+  'image/jphc',
+  'image/jpm',
+  'image/jpx',
+  // 'image/jxl', // new format with unassessed risks
+  'image/jxr',
+  'image/jxrA',
+  'image/jxrS',
+  'image/jxs',
+  'image/jxsc',
+  'image/jxsi',
+  'image/jxss',
+  'image/ktx',
+  'image/ktx2',
+  'image/naplps',
+  'image/png',
+  'image/prs.btif',
+  'image/prs.pti',
+  'image/pwg-raster',
+  // 'image/svg+xml', // risk of xss
+  'image/t38',
+  'image/tiff',
+  'image/tiff-fx',
+  // All vnd.* types usually not natively supported
+  // 'image/vnd.adobe.photoshop',
+  // 'image/vnd.airzip.accelerator.azv',
+  // 'image/vnd.blockfact.facti',
+  // 'image/vnd.clip',
+  // 'image/vnd.cns.inf2',
+  // 'image/vnd.dece.graphic',
+  // 'image/vnd.djvu',
+  // 'image/vnd.dwg',
+  // 'image/vnd.dxf',
+  // 'image/vnd.dvb.subtitle',
+  // 'image/vnd.fastbidsheet',
+  // 'image/vnd.fpx',
+  // 'image/vnd.fst',
+  // 'image/vnd.fujixerox.edmics-mmr',
+  // 'image/vnd.fujixerox.edmics-rlc',
+  // 'image/vnd.globalgraphics.pgb',
+  // 'image/vnd.microsoft.icon',
+  // 'image/vnd.mix',
+  // 'image/vnd.ms-modi',
+  // 'image/vnd.mozilla.apng',
+  // 'image/vnd.net-fpx',
+  // 'image/vnd.pco.b16',
+  // 'image/vnd.radiance',
+  // 'image/vnd.sealed.png',
+  // 'image/vnd.sealedmedia.softseal.gif',
+  // 'image/vnd.sealedmedia.softseal.jpg',
+  // 'image/vnd.svf',
+  // 'image/vnd.tencent.tap',
+  // 'image/vnd.valve.source.texture',
+  // 'image/vnd.wap.wbmp',
+  // 'image/vnd.xiff',
+  // 'image/vnd.zbrush.pcx',
+  'image/webp',
+  // 'image/wmf',   // windows files, a bit risky
+  // 'image/x-emf', // windows files, a bit risky
+  // 'image/x-wmf', // windows files, a bit risky
+];
+const previewableMimeTypes = [...imageMimeTypes, 'pdf', 'video', 'audio'];
 
 export function isPreviewAllowed(args: { mimetype?: string; path?: string }) {
   const { mimetype, path } = args;

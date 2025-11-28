@@ -778,6 +778,8 @@ defineExpose({
   }
 
   .cmdk-footer {
+    @apply dark:!text-nc-content-gray-subtle2;
+
     display: flex;
     border-top: 1px solid var(--nc-border-gray-medium);
     background: rgba(242, 242, 242, 0.4);

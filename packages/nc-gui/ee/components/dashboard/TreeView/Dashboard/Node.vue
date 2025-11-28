@@ -342,7 +342,9 @@ const deleteDashboard = () => {
             <div class="mt-1 text-xs whitespace-pre-wrap break-words">{{ vModel.description }}</div>
           </div>
           <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
-            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">{{ $t('labels.createdBy') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
+              {{ $t('labels.createdBy') }}
+            </div>
             <div class="text-xs">
               {{
                 idUserMap[vModel?.created_by]?.id === user?.id

@@ -417,7 +417,11 @@ async function onRename() {
 
                     <component :is="iconMap.ncZap" v-if="table?.synced" class="w-4 text-sm !text-nc-gray-600 opacity-75" />
 
-                    <component :is="iconMap.table" v-else-if="table.type === 'table'" class="w-4 text-sm !text-nc-gray-600 opacity-75" />
+                    <component
+                      :is="iconMap.table"
+                      v-else-if="table.type === 'table'"
+                      class="w-4 text-sm !text-nc-gray-600 opacity-75"
+                    />
 
                     <MdiEye v-else class="flex w-5 text-sm !text-nc-gray-600 opacity-75" />
                   </NcTooltip>

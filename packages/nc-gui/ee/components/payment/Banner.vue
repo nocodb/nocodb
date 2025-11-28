@@ -14,6 +14,8 @@ const _props = withDefaults(
 
 const { $e } = useNuxtApp()
 
+const { isDark } = useTheme()
+
 const { isWsOwner, navigateToPricing: _navigateToPricing, isLoyaltyDiscountAvailable, isTopBannerVisible } = useEeConfig()
 
 const navigateToPricing = () => {
@@ -37,7 +39,9 @@ const navigateToPricing = () => {
         'px-8 py-6 min-h-[168px]': expanded,
       }"
       :style="{
-        background: `linear-gradient(90deg, #FAF5FE 0%, #EFF0FF 29.64%, #E6F2FF 55.77%, #EAF3FF 92.31%, #F3F7FE 100%)`,
+        background: isDark
+          ? 'linear-gradient(90deg, #2a2233 0%, #262a42 29.64%, #1c2a38 55.77%, #1e2731 92.31%, #242b33 100%)'
+          : 'linear-gradient(90deg, #FAF5FE 0%, #EFF0FF 29.64%, #E6F2FF 55.77%, #EAF3FF 92.31%, #F3F7FE 100%)',
       }"
       @click.stop="navigateToPricing()"
     >

@@ -36,7 +36,8 @@ body {
 }
 
 // Dropdown Menu
-.ant-dropdown-menu.ant-dropdown-menu-root {
+.ant-dropdown-menu.ant-dropdown-menu-root,
+.ant-dropdown-menu.ant-dropdown-menu-sub {
   @apply !bg-nc-bg-default !text-nc-content-gray;
 
   .ant-dropdown-menu-item {
@@ -46,8 +47,30 @@ body {
   }
 }
 
+.ant-dropdown-menu-submenu.ant-dropdown-menu-submenu-disabled .ant-dropdown-menu-submenu-title {
+  @apply !bg-nc-bg-default !text-nc-content-gray-disabled;
+}
+
+.ant-dropdown-menu-submenu.ant-dropdown-menu-submenu-popup {
+  @apply border-nc-border-gray-medium;
+}
+
 .ant-collapse-content {
   @apply bg-nc-bg-default text-nc-content-gray;
+}
+
+.ant-popover-inner,
+.ant-popover-arrow-content {
+  @apply bg-nc-bg-default;
+}
+
+.ant-dropdown-menu-item,
+.ant-dropdown-menu-submenu-title {
+  color: rgba(var(--rgb-base), 0.85);
+
+  &:hover {
+    @apply bg-nc-bg-gray-light;
+  }
 }
 
 /* windicss layer base */
@@ -89,6 +112,25 @@ body {
 
     * {
       --tw-ring-offset-color: var(--nc-bg-default);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: rgba(var(--rgb-base), 0.85);
+    }
+
+    .ant-btn-text {
+      color: rgba(var(--rgb-base), 0.85);
+
+      &:focus,
+      &:hover {
+        color: rgba(var(--rgb-base), 0.85);
+        background-color: rgba(var(--rgb-base), 0.018);
+      }
     }
   }
 }
@@ -155,7 +197,8 @@ body {
   }
 
   // Dropdown Menu
-  .ant-dropdown-menu.ant-dropdown-menu-root {
+  .ant-dropdown-menu.ant-dropdown-menu-root,
+  .ant-dropdown-menu.ant-dropdown-menu-sub {
     .ant-dropdown-menu-item {
       &.ant-dropdown-menu-item-disabled {
         @apply !text-nc-content-gray-disabled hover:bg-transparent;
@@ -209,5 +252,20 @@ body {
   // Form item label
   .ant-form-item-label > label {
     @apply text-nc-content-gray;
+  }
+
+  // Modal
+  .ant-modal-content {
+    @apply border-1 border-solid border-nc-border-gray-medium;
+  }
+
+  // Sidebar
+  .nc-home-create-new-btn,
+  .nc-sidebar-item-dark {
+    @apply !hover:bg-nc-bg-gray-medium;
+
+    &.active {
+      @apply !bg-nc-bg-gray-medium !hover:bg-nc-bg-gray-medium;
+    }
   }
 }

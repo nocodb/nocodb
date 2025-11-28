@@ -121,7 +121,7 @@ watch(isOpen, (val) => {
         <div v-if="showClearButton" class="absolute top-10 right-1.5">
           <div
             role="button"
-            class="flex flex-row items-center h-[32px] -mt-[1px] bg-white border-1 border-gray-100 py-0.5 px-2.5 rounded hover:bg-gray-100 cursor-pointer"
+            class="flex flex-row items-center h-[32px] -mt-[1px] bg-nc-bg-default border-1 border-nc-border-gray-light py-0.5 px-2.5 rounded hover:bg-nc-bg-gray-light cursor-pointer"
             @click="clearEmoji"
           >
             Remove

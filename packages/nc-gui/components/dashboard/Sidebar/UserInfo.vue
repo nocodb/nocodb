@@ -198,9 +198,11 @@ const copyEmail = () => {
             >
               <NcMenuItem inner-class="w-full">
                 <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
-                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
+                  <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
                   {{ $t('labels.language') }}
-                  <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
+                  <div class="flex items-center text-nc-content-gray-disabled text-xs">
+                    {{ $t('labels.community.communityTranslated') }}
+                  </div>
                   <div class="flex-1" />
 
                   <GeneralIcon icon="ncChevronRight" class="flex-none !text-gray-500" />
@@ -208,7 +210,7 @@ const copyEmail = () => {
               </NcMenuItem>
 
               <template #content>
-                <div class="bg-white max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
+                <div class="bg-nc-bg-default max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
                   <LazyGeneralLanguageMenu />
                 </div>
               </template>

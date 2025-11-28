@@ -280,7 +280,7 @@ async function onOpenModal({
   @apply !rounded-lg border-1 border-nc-border-gray-medium;
 
   .ant-menu.ant-menu-sub {
-    @apply p-2 !rounded-lg !shadow-lg shadow-gray-200;
+    @apply p-2 !rounded-lg !shadow-lg shadow-nc-border-gray-medium;
   }
 
   .ant-menu-item {
@@ -299,7 +299,8 @@ async function onOpenModal({
     }
   }
 }
+
 .nc-viewlist-submenu-popup .ant-dropdown-menu.ant-dropdown-menu-sub {
-  @apply !rounded-lg !shadow-lg shadow-gray-200;
+  @apply !rounded-lg !shadow-lg shadow-nc-border-gray-medium;
 }
 </style>

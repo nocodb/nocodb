@@ -41,7 +41,7 @@ const precentageColor = computed(() => {
       </div>
       <a-progress :percent="trialPercentage" :stroke-color="precentageColor" :show-info="false" />
 
-      <div class="text-[#374151]">
+      <div class="text-nc-content-gray">
         <span v-if="numberOfDaysLeft >= 0">Expires in: {{ numberOfDaysLeft }} day{{ numberOfDaysLeft > 1 ? 's' : '' }}</span
         ><span v-else>License expired</span><br />
         Licensed to: {{ appInfo.licensedTo }}
@@ -60,6 +60,6 @@ const precentageColor = computed(() => {
 
 <style scoped>
 .nc-trial-card {
-  @apply !rounded-xl !bg-orange-100 !p-1;
+  @apply !rounded-xl border-nc-orange-200 !bg-nc-orange-100 !p-1 text-nc-content-gray;
 }
 </style>

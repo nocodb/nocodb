@@ -397,9 +397,9 @@ defineExpose({
 <template>
   <div v-show="vOpen" class="cmdk-modal" :class="{ 'cmdk-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content h-[25.25rem]">
-      <div class="cmdk-header border-b-1 border-gray-200">
+      <div class="cmdk-header border-b-1 border-nc-border-gray-medium">
         <div class="cmdk-input-wrapper">
-          <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
+          <GeneralIcon class="h-4 w-4 text-nc-content-gray-muted" icon="search" />
           <div
             v-for="el of nestedScope"
             :key="`cmdk-breadcrumb-${el.id}`"
@@ -408,7 +408,7 @@ defineExpose({
             @click="setScope(el.id)"
           >
             <div
-              class="text-gray-600 text-sm cursor-pointer flex gap-2 px-2 py-1 items-center justify-center font-medium capitalize"
+              class="text-nc-content-gray-subtle2 text-sm cursor-pointer flex gap-2 px-2 py-1 items-center justify-center font-medium capitalize"
             >
               <GeneralLoader v-if="cmdLoading && !el.label" />
               <template v-else>
@@ -481,7 +481,7 @@ defineExpose({
               </template>
             </div>
 
-            <span class="text-gray-700 text-sm pl-1 font-medium">/</span>
+            <span class="text-nc-content-gray-subtle text-sm pl-1 font-medium">/</span>
           </div>
           <input ref="cmdInputEl" v-model="cmdInput" class="cmdk-input" type="text" :placeholder="cmdPlaceholder" />
         </div>
@@ -586,11 +586,11 @@ defineExpose({
                             </span>
                           </a-tooltip>
                           <div
-                            class="bg-gray-200 text-gray-600 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
+                            class="bg-nc-bg-gray-medium text-nc-content-gray-subtle2 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
                           >
                             Enter
                             <div
-                              class="bg-white border-1 items-center flex justify-center border-gray-300 text-gray-700 rounded h-5 w-5 px-0.25"
+                              class="bg-nc-bg-default border-1 items-center flex justify-center border-nc-border-gray-dark text-nc-content-gray-subtle rounded h-5 w-5 px-0.25"
                             >
                               ↩
                             </div>
@@ -620,7 +620,11 @@ defineExpose({
   --cmdk-icon-color: var(--cmdk-secondary-text-color);
   --cmdk-icon-size: 1.2em;
 
-  --cmdk-modal-background: #fff;
+  --cmdk-modal-background: var(--nc-bg-default);
+}
+
+.dark .cmdk-modal {
+  color: var(--nc-content-gray-subtle);
 }
 
 .cmdk-modal {
@@ -629,7 +633,7 @@ defineExpose({
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(var(--rgb-base), 0.5);
   z-index: 1100;
 
   color: rgb(60, 65, 73);
@@ -732,8 +736,8 @@ defineExpose({
 
       &.selected {
         cursor: pointer;
-        background-color: #f4f4f5;
-        border-left: 4px solid #3366ff;
+        background-color: var(--color-gray-100);
+        border-left: 4px solid var(--color-brand-400);
         outline: none;
 
         .cmdk-keyboard {
@@ -768,14 +772,16 @@ defineExpose({
         align-items: center;
         padding: 8px 16px;
         font-size: 14px;
-        color: #6a7184;
+        color: var(--nc-content-gray-muted);
       }
     }
   }
 
   .cmdk-footer {
+    @apply dark:!text-nc-content-gray-subtle2;
+
     display: flex;
-    border-top: 1px solid rgb(230, 230, 230);
+    border-top: 1px solid var(--nc-border-gray-medium);
     background: rgba(242, 242, 242, 0.4);
     font-size: 0.8em;
     padding: 0 0.6em;

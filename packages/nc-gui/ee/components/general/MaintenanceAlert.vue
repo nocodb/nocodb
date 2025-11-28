@@ -47,7 +47,7 @@ const dismiss = async () => {
 <template>
   <div
     v-if="maintenance"
-    class="bg-nc-bg-orange-light border-orange-200 border-1 nc-maintenance-sidebar-banner flex flex-col gap-2 rounded-xl relative p-3"
+    class="bg-nc-bg-orange-light border-nc-orange-200 border-1 nc-maintenance-sidebar-banner flex flex-col gap-2 rounded-xl relative p-3"
   >
     <div class="flex gap-3 relative items-center">
       <GeneralIcon icon="alertTriangleSolid" class="w-5 h-5 text-nc-content-orange-medium fill-nc-orange-medium" />

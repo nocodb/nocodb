@@ -470,11 +470,13 @@ defineExpose({
         <template #title>
           <div class="flex flex-col gap-3">
             <div>
-              <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.projName') }}</div>
+              <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
+                {{ $t('labels.projName') }}
+              </div>
               <div class="text-small leading-[18px] mb-1">{{ base.title }}</div>
             </div>
             <div v-if="currentUserRole">
-              <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
+              <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
                 {{ $t('title.yourBaseRole') }}
               </div>
               <div
@@ -502,8 +504,9 @@ defineExpose({
               'flex-grow w-full': isProjectHeader && editMode,
               'bg-nc-bg-gray-medium': isProjectHeader && isProjectNodeContextMenuOpen,
               'h-7 pr-1 pl-2.5 xs:(pl-0) flex-grow w-full': !isProjectHeader,
-              'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode && !isProjectHeader,
-              'hover:bg-nc-bg-gray-medium': !(activeProjectId === base.id && baseViewOpen) && !isProjectHeader,
+              'bg-primary-selected dark:bg-nc-bg-gray-medium active':
+                activeProjectId === base.id && !isMobileMode && !isProjectHeader,
+              'hover:bg-nc-bg-gray-medium': !(activeProjectId === base.id) && !isProjectHeader,
             }"
             :data-id="base.id"
             :data-testid="`nc-sidebar-base-title-${base.title}`"

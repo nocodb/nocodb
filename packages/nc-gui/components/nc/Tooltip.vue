@@ -244,10 +244,10 @@ const onClick = () => {
 }
 .nc-tooltip-dark {
   .ant-tooltip-inner {
-    @apply !px-2 !py-1 !rounded-lg !bg-gray-800;
+    @apply !px-2 !py-1 !rounded-lg !bg-gray-800 dark:!bg-gray-900;
   }
   .ant-tooltip-arrow-content {
-    @apply !bg-gray-800;
+    @apply !bg-gray-800 dark:!bg-gray-900;
   }
 }
 

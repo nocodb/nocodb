@@ -370,7 +370,8 @@ form > .federated-sign-in-container {
   .nc-last-used-auth-sso .federated-sign-in-button.nc-sso,
   .nc-last-used-auth-google .amplify-authenticator__column > button.federated-sign-in-button:not([data-variation='primary']),
   .nc-last-used-auth-email
-    form:not([data-np-autofill-form-type='register']) .amplify-authenticator__column
+    form:not([data-np-autofill-form-type='register'])
+    .amplify-authenticator__column
     > button.amplify-button[data-variation='primary'] {
     position: relative;
 

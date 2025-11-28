@@ -108,8 +108,8 @@ watch(vOpen, () => {
 <template>
   <div v-if="vOpen" class="cmdk-modal cmdj-modal" :class="{ 'cmdk-modal-active cmdj-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content cmdj-modal-content relative h-[25.25rem]">
-      <div class="cmdk-input-wrapper border-b-1 border-gray-200">
-        <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
+      <div class="cmdk-input-wrapper border-b-1 border-nc-border-gray-medium">
+        <GeneralIcon class="h-4 w-4 text-nc-content-gray-muted" icon="search" />
         <input ref="cmdInputEl" v-model="search" class="cmdk-input cmdj-input" placeholder="Search through docs" type="text" />
       </div>
 
@@ -174,15 +174,20 @@ watch(vOpen, () => {
   --cmdk-icon-color: var(--cmdk-secondary-text-color);
   --cmdk-icon-size: 1.2em;
 
-  --cmdk-modal-background: #fff;
+  --cmdk-modal-background: var(--nc-bg-default);
 }
+
+.dark .cmdk-modal {
+  color: var(--nc-content-gray-subtle);
+}
+
 .cmdk-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(var(--rgb-base), 0.5);
   z-index: 1100;
 
   color: rgb(60, 65, 73);
@@ -203,8 +208,8 @@ watch(vOpen, () => {
     &:hover,
     &.selected {
       cursor: pointer;
-      background-color: rgb(248, 249, 251);
-      border-left: 4px solid #3366ff;
+      background-color: var(--color-gray-100);
+      border-left: 4px solid var(--color-brand-400);
       outline: none;
     }
 
@@ -218,6 +223,7 @@ watch(vOpen, () => {
       text-overflow: ellipsis;
       padding: 0.75em 1em;
       width: 640px;
+      min-width: 0;
     }
   }
 }

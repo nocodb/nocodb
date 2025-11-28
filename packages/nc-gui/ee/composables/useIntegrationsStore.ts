@@ -1,6 +1,6 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { FormDefinition, IntegrationType, PaginatedType, SyncCategory } from 'nocodb-sdk'
-import { ClientType, IntegrationsType, SyncDataType, IntegrationCategoryType, SyncCategoryMeta } from 'nocodb-sdk'
+import { ClientType, IntegrationCategoryType, IntegrationsType, SyncCategoryMeta, SyncDataType } from 'nocodb-sdk'
 import { getI18n } from '../../plugins/a.i18n'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
 import type { IntegrationItemType, IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'

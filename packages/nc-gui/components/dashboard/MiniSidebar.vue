@@ -372,7 +372,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
 
     &.active {
-      @apply !bg-nc-brand-100 !text-nc-content-brand;
+      @apply !bg-nc-brand-100 dark:!bg-nc-bg-gray-medium !text-nc-content-brand;
     }
 
     &.active-base {

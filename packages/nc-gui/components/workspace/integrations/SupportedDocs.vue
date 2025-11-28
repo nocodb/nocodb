@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { IntegrationsType } from 'nocodb-sdk'
-const { activeIntegration, activeIntegrationItem } = useIntegrationStore()
+const { activeIntegrationItem } = useIntegrationStore()
 
 const supportedDocs = computed(() => {
   const docs = [

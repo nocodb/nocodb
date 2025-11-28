@@ -139,8 +139,16 @@ watch(isOpen, (val) => {
   }
 }
 .nc-emoji-picker.emoji-mart {
-  @apply !w-90;
-  @apply border-none;
+  @apply !w-90 bg-transparent border-none;
+
+  .emoji-mart-bar {
+    @apply border-b-nc-border-gray-medium;
+  }
+
+  .emoji-mart-category .emoji-mart-emoji:hover:before,
+  .emoji-mart-emoji-selected:before {
+    @apply bg-nc-bg-gray-medium;
+  }
 
   span.emoji-type-native {
     @apply cursor-pointer;
@@ -167,7 +175,7 @@ watch(isOpen, (val) => {
     @apply mt-1 px-1 overflow-x-hidden;
 
     h3.emoji-mart-category-label {
-      @apply text-xs text-gray-500 mb-0;
+      @apply text-xs text-nc-content-gray-muted bg-nc-bg-default mb-0;
     }
 
     .emoji-mart-category {
@@ -176,34 +184,9 @@ watch(isOpen, (val) => {
   }
 
   .emoji-mart-scroll {
-    overflow-y: overlay;
+    @apply nc-scrollbar-thin;
 
-    &::-webkit-scrollbar {
-      width: 3px;
-    }
-    &::-webkit-scrollbar-track {
-      background: #f6f6f600 !important;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: #f6f6f600;
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      background: #f6f6f600;
-    }
-  }
-  .emoji-mart-scroll:hover {
-    &::-webkit-scrollbar {
-      width: 3px;
-    }
-    &::-webkit-scrollbar-track {
-      background: #f6f6f600 !important;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: rgb(215, 215, 215);
-    }
-    &::-webkit-scrollbar-thumb:hover {
-      background: rgb(203, 203, 203);
-    }
+    overflow-y: overlay;
   }
 
   .emoji-mart-emoji {

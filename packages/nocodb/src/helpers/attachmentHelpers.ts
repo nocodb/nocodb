@@ -12,7 +12,7 @@ import { isSecureAttachmentEnabled } from '~/utils';
 import { getToolDir } from '~/utils/nc-config';
 import { NcError } from '~/helpers/catchError';
 
-const imageMimeTypes = [
+export const imageMimeTypes = [
   'image/aces',
   'image/apng',
   'image/avci',

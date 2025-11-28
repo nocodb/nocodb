@@ -97,7 +97,7 @@ export class DuplicateDetectionService {
 
       // Count distinct non-null, non-empty values
       const distinctQuery = knex(tableName)
-        .countDistinct(columnName + ' as distinct_count')
+        .select(knex.raw(`COUNT(DISTINCT ??) as distinct_count`, [columnName]))
         .whereNotNull(columnName)
         .where(columnName, '!=', '');
 

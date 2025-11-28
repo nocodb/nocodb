@@ -319,19 +319,38 @@ export class ColumnsService implements IColumnsService {
       columns: await Promise.all(
         table.columns.map(async (c) => {
           if (c.id === column.id) {
+            // Determine unique value: use column.unique if provided, otherwise preserve existing value
+            const uniqueValue =
+              column.unique !== undefined
+                ? column.unique
+                : (c as any).unique !== undefined
+                ? (c as any).unique
+                : (c as any).ck === 1 || (c as any).ck === '1';
+
             const res = {
               ...c,
               ...column,
-              cn: column.column_name,
+              // Use column.column_name if provided and not empty, otherwise use existing column name
+              // This ensures we don't accidentally rename the column when only updating other properties
+              // Always set cn to the existing column name if column_name is not explicitly provided
+              cn:
+                column.column_name !== undefined &&
+                column.column_name !== null &&
+                column.column_name !== ''
+                  ? column.column_name
+                  : c.column_name,
+              // cno should always be the original column name (before any potential rename)
               cno: c.column_name,
               altered: Altered.UPDATE_COLUMN,
-              // Map unique to ck (column_key) for database operations
-              ck: column.unique
-                ? 1
-                : column.unique === false
-                ? 0
-                : (c as any).ck,
+              // Set both unique and ck (column_key) for database operations
+              unique: uniqueValue,
+              ck: uniqueValue ? 1 : 0,
             };
+
+            // Ensure cn and cno are set correctly - if not renaming, they should be the same
+            if (!res.cn) {
+              res.cn = res.cno;
+            }
 
             if (args.processColumn) {
               await args.processColumn();

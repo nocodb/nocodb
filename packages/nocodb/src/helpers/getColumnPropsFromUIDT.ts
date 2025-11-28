@@ -43,6 +43,13 @@ export default async function getColumnPropsFromUIDT(
   if ('cdf' in column && column.cdf !== undefined && column.cdf !== null) {
     finalColumnMeta.cdf = column.cdf as string;
   }
+  // Preserve original unique and ck if they were set
+  if ('unique' in column && column.unique !== undefined) {
+    finalColumnMeta.unique = column.unique;
+  }
+  if ('ck' in column && column.ck !== undefined) {
+    finalColumnMeta.ck = column.ck;
+  }
   sqlUi.adjustLengthAndScale(finalColumnMeta);
 
   if (

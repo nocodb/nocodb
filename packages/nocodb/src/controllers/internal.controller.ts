@@ -18,7 +18,6 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { DependencyService } from '~/services/dependency.service';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
@@ -31,7 +30,6 @@ export class InternalController {
     protected readonly aclMiddleware: AclMiddleware,
     @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
     protected readonly internalApiModules: InternalApiModule<any>[],
-    protected readonly dependencyService: DependencyService,
   ) {
     if (!this.internalApiModuleMap) {
       this.internalApiModuleMap = {};
@@ -98,26 +96,17 @@ export class InternalController {
   ): InternalPOSTResponseType {
     await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
-    switch (operation) {
-      case 'checkDependency':
-        return this.dependencyService.checkDependency(context, {
-          entityType: payload.entityType,
-          entityId: payload.entityId,
-        });
-      default: {
-        const module = this.internalApiModuleMap['POST'][operation];
+    const module = this.internalApiModuleMap['POST'][operation];
 
-        if (module) {
-          return module.handle(context, {
-            workspaceId,
-            baseId,
-            operation,
-            req,
-            payload,
-          });
-        }
-        return NcError.notFound('Operation');
-      }
+    if (module) {
+      return module.handle(context, {
+        workspaceId,
+        baseId,
+        operation,
+        req,
+        payload,
+      });
     }
+    return NcError.notFound('Operation');
   }
 }

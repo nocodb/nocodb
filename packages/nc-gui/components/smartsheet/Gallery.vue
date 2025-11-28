@@ -909,7 +909,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
     @apply children:justify-start;
   }
 
-  .nc-date-picker > div > div{
+  .nc-date-picker > div > div {
     &:first-child {
       @apply pl-0;
     }

@@ -155,7 +155,16 @@ watch(isOpen, (val) => {
   }
 
   .emoji-mart-anchor {
-    @apply h-8 py-1.5;
+    @apply h-8 py-1.5 dark:text-nc-content-gray-muted;
+
+    &.emoji-mart-anchor-selected {
+      @apply dark:!text-nc-content-gray;
+
+      .emoji-mart-anchor-bar {
+        @apply dark:!bg-nc-gray-400;
+      }
+    }
+
     svg {
       @apply h-3.5 !important;
     }

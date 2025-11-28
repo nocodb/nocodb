@@ -439,7 +439,7 @@ watch(inviteDlg, (newVal) => {
           :placeholder="isTeamsEnabled ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
         >
           <template #prefix>
-            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
           </template>
         </a-input>
         <div class="flex items-center gap-4">
@@ -582,7 +582,7 @@ watch(inviteDlg, (newVal) => {
               <GeneralUserIcon size="base" :user="record" class="flex-none" />
               <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                 <div class="flex items-center gap-1">
-                  <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
+                  <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
                     <template #title>
                       {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                     </template>
@@ -608,7 +608,7 @@ watch(inviteDlg, (newVal) => {
                     </NcBadge>
                   </NcTooltip>
                 </div>
-                <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                   <template #title>
                     {{ record.email }}
                   </template>
@@ -708,10 +708,10 @@ watch(inviteDlg, (newVal) => {
 
           <template #extraRow>
             <div v-if="collaborators?.length === 1" class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
-              <div class="text-2xl text-gray-800 font-bold">
+              <div class="text-2xl text-nc-content-gray font-bold">
                 {{ $t('placeholder.inviteYourTeam') }}
               </div>
-              <div class="text-sm text-gray-700">
+              <div class="text-sm text-nc-content-gray-subtle">
                 {{ $t('placeholder.inviteYourTeamLabel') }}
               </div>
               <img src="~assets/img/placeholder/invite-team.png" alt="Invite Team" class="!w-[30rem] flex-none" />

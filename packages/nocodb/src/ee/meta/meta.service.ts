@@ -112,6 +112,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.WORKFLOWS]: 'wf',
       [MetaTable.WORKFLOW_EXECUTIONS]: 'wfex',
       [MetaTable.DEPENDENCY_TRACKER]: 'dt',
+      [MetaTable.INSTALLATIONS]: 'inst',
     };
 
     const prefix = prefixMap[target] || 'nc';

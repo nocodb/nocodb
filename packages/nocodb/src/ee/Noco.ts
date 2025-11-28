@@ -1,10 +1,13 @@
 import NocoCE from 'src/Noco';
 import type { INestApplication } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
+import type { Express } from 'express';
+import type http from 'http';
 import { NcLogger } from '~/utils/logger/NcLogger';
 import { AuditService } from '~/meta/audit.service';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
+import { Installation } from '~/models';
 
 export default class Noco extends NocoCE {
   protected static initCustomLogger(nestApp: INestApplication) {
@@ -18,6 +21,17 @@ export default class Noco extends NocoCE {
 
   public static isEE(): boolean {
     return this.ee;
+  }
+
+  static async init(param: any, httpServer: http.Server, server: Express) {
+    const res = await super.init(param, httpServer, server);
+
+    // Only initialize license server if NC_LICENSE_SERVER_PRIVATE_KEY is provided
+    if (process.env.NC_LICENSE_SERVER_PRIVATE_KEY) {
+      await Installation.initializeLicenseServer(Noco.ncMeta);
+    }
+
+    return res;
   }
 
   public static async prepareAuditService() {

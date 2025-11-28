@@ -102,6 +102,7 @@ export enum MetaTable {
   WORKFLOWS = 'nc_workflows',
   WORKFLOW_EXECUTIONS = 'nc_workflow_executions',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
+  INSTALLATIONS = 'nc_installations',
 }
 
 export const BaseRelatedMetaTables = [
@@ -318,6 +319,8 @@ export enum CacheScope {
   WORKFLOW = 'nc_workflow',
   WORKFLOW_EXECUTION = 'nc_workflow_execution',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
+  INSTALLATION = 'installation',
+  INSTALLATION_ALIAS = 'installationAlias',
 }
 
 export enum CacheGetType {

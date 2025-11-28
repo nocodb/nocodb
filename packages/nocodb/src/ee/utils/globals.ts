@@ -101,6 +101,7 @@ export enum MetaTable {
   WORKFLOWS = 'nc_workflows',
   WORKFLOW_EXECUTIONS = 'nc_workflow_executions',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
+  INSTALLATIONS = 'nc_installations',
 }
 
 export const BaseRelatedMetaTables = [
@@ -301,6 +302,8 @@ export enum CacheScope {
   WORKFLOW = 'workflow',
   WORKFLOW_EXECUTION = 'workflowExecution',
   DEPENDENCY_TRACKER = 'dependencyTracker',
+  INSTALLATION = 'installation',
+  INSTALLATION_ALIAS = 'installationAlias',
 }
 
 export const RootScopeTables = {
@@ -327,6 +330,7 @@ export const RootScopeTables = {
     MetaTable.OAUTH_AUTHORIZATION_CODES,
     MetaTable.OAUTH_TOKENS,
     MetaTable.TEAMS,
+    MetaTable.INSTALLATIONS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

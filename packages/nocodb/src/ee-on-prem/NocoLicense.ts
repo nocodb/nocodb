@@ -1,0 +1,840 @@
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import { Logger } from '@nestjs/common';
+import { NON_SEAT_ROLES, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import Noco from '~/Noco';
+import { MetaTable, RootScopes } from '~/utils/globals';
+import { getArrayAggExpression } from '~/helpers/dbHelpers';
+import { InstallationStatus } from '~/models/Installation';
+
+const LICENSE_SERVER_URL =
+  process.env.NC_LICENSE_SERVER_URL || 'http://localhost:8080';
+
+const SERVER_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAodQkNztOFlnvajjcrJYl
+aM5zEyApANuJBaipGgKaXnVWseSEX32x8pqD6CuDS7TXbmsJ7VTRou0bhaCoPi/O
+zYWPLxIoCDwgWkyeFqOJgAzUv0AEx/Z6Ecj12Eu561WeaHvR5CjurmF94q7lrrUl
+uvrnnTxZpHU3Gj7YpFIopSRgmF1KDv/QnrkkS94RhBUQrr56j0j5PXnEsZHNsWRs
+iuw1xDDNsCsonzp81T7zIKVS65v2S5DvuOpesBt2xRbfY1T3ONH8MFZyfmcucdhf
+CmIgS4CsVOV8eBGWsB3JrpmLKQqmApUBW8I1vQgXP5C7FabY5wb9fO+TXsw+4u+o
+mwIDAQAB
+-----END PUBLIC KEY-----`;
+
+interface LicenseData {
+  installation_id: string;
+  installation_secret: string;
+  license_key: string;
+  license_type: string;
+  status: InstallationStatus;
+  seat_count: number;
+  expires_at?: string;
+  last_heartbeat_at?: string;
+  config?: {
+    limit_workspace?: number;
+  };
+}
+
+// Cached license data stored in database
+interface CachedLicenseData {
+  license_jwt: string; // RSA-signed JWT from server containing license state
+  installation_secret: string; // HMAC secret for client authentication
+  license_key: string;
+}
+
+export default class NocoLicense {
+  private static logger = new Logger('NocoLicense');
+  private static licenseData: LicenseData | null = null;
+  private static _isExpired: boolean = false;
+
+  // Heartbeat intervals
+  private static readonly HEARTBEAT_INTERVAL_NORMAL_MS = 10000; // 6 hours
+  private static readonly HEARTBEAT_INTERVAL_FAILURE_MS = 1 * 60 * 60 * 1000; // 1 hour
+  private static currentHeartbeatInterval =
+    NocoLicense.HEARTBEAT_INTERVAL_NORMAL_MS;
+  private static heartbeatTimer: NodeJS.Timeout | null = null;
+
+  public static get isExpired() {
+    return this._isExpired;
+  }
+
+  /**
+   * Initialize license system on startup
+   * - Loads cached license data from nc_store
+   * - Validates license status
+   * - Sends initial heartbeat to license server if needed
+   */
+  public static async init(): Promise<void> {
+    const licenseKey = process.env.NC_LICENSE_KEY;
+
+    if (!licenseKey) {
+      console.error('NC_LICENSE_KEY not found in environment variables');
+      process.exit(1);
+    }
+
+    try {
+      const ncMeta = Noco.ncMeta;
+
+      // Load cached license data from nc_store
+      const storedData = await ncMeta.metaGet2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.STORE,
+        {
+          key: `NC_LICENSE_DATA:${licenseKey}`,
+        },
+      );
+
+      if (storedData?.value) {
+        try {
+          const cached: CachedLicenseData = JSON.parse(storedData.value);
+
+          // Verify JWT
+          const licenseData = this.verifyAndDecodeLicenseJWT(
+            cached.license_jwt,
+          );
+
+          if (licenseData) {
+            // JWT valid - use it
+            this.licenseData = {
+              ...licenseData,
+              installation_secret: cached.installation_secret,
+              license_key: cached.license_key,
+            };
+            this._isExpired = !this.isValidStatus(this.licenseData.status);
+
+            console.log(
+              `License loaded from cache: ${this.licenseData.license_type} (${this.licenseData.status})`,
+            );
+            console.log(`Seat usage: ${this.licenseData.seat_count}`);
+
+            // Validate cached license
+            if (
+              this.licenseData.status === InstallationStatus.REVOKED ||
+              this.licenseData.status === InstallationStatus.SUSPENDED
+            ) {
+              console.error(`License has been ${this.licenseData.status}`);
+              process.exit(1);
+            }
+          } else {
+            // JWT invalid/expired - refresh from server
+            this.logger.warn('Cached JWT invalid, refreshing from server');
+
+            // Decode JWT without verification to get installation_secret for refresh
+            const tempData = jwt.decode(cached.license_jwt) as any;
+            if (tempData) {
+              this.licenseData = {
+                ...tempData,
+                installation_secret: cached.installation_secret,
+                license_key: cached.license_key,
+              };
+
+              const refreshed = await this.refreshLicenseFromServer(
+                licenseKey,
+                ncMeta,
+              );
+              if (!refreshed) {
+                this.logger.error('Failed to refresh license');
+                process.exit(1);
+              }
+            } else {
+              this.logger.warn('Could not decode JWT, will re-activate');
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to parse cached license data: ${error.message}`);
+        }
+      }
+
+      if (!this.licenseData) {
+        this.logger.log(
+          'License not found in cache. Attempting to activate with license server...',
+        );
+
+        // Attempt activation with license server
+        const activated = await this.activateLicense(licenseKey, ncMeta);
+
+        if (!activated) {
+          this.logger.error(
+            'License activation failed. Please check your license key and ensure the license server is accessible.',
+          );
+          process.exit(1);
+        }
+
+        this.logger.log('License activated successfully');
+      }
+
+      // Start heartbeat timer
+      this.startHeartbeatTimer();
+    } catch (error) {
+      this.logger.error(`License validation failed: ${error.message}`);
+      process.exit(1);
+    }
+  }
+
+  /**
+   * Start the heartbeat timer
+   */
+  private static startHeartbeatTimer(): void {
+    if (this.heartbeatTimer) {
+      clearTimeout(this.heartbeatTimer);
+    }
+
+    this.heartbeatTimer = setTimeout(() => {
+      this.handleHeartbeat();
+    }, this.currentHeartbeatInterval);
+  }
+
+  /**
+   * Store license data in nc_store with HMAC signature
+   * This is called ONLY by the activation/heartbeat process when receiving data from the license server
+   * The signature prevents local tampering - any modification to the data will be detected
+   */
+  private static async storeLicenseData(
+    jwtToken: string,
+    installationSecret: string,
+    licenseKey: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const key = `NC_LICENSE_DATA:${licenseKey}`;
+
+    const cachedData: CachedLicenseData = {
+      license_jwt: jwtToken,
+      installation_secret: installationSecret,
+      license_key: licenseKey,
+    };
+
+    // Check if entry exists
+    const existing = await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.STORE,
+      { key },
+    );
+
+    if (existing) {
+      // Update existing entry
+      await ncMeta.metaUpdate(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.STORE,
+        {
+          value: JSON.stringify(cachedData),
+        },
+        {
+          key,
+        },
+      );
+    } else {
+      // Insert new entry
+      await ncMeta.metaInsert2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.STORE,
+        {
+          key,
+          value: JSON.stringify(cachedData),
+        },
+        true,
+      );
+    }
+  }
+
+  /**
+   * Verify and decode license JWT using embedded public key
+   * This prevents clients from tampering with license data
+   *
+   * @param jwtToken - JWT token from server
+   * @returns Decoded license data or null if verification fails
+   */
+  private static verifyAndDecodeLicenseJWT(
+    jwtToken: string,
+  ): LicenseData | null {
+    try {
+      const decoded = jwt.verify(jwtToken, SERVER_PUBLIC_KEY, {
+        algorithms: ['RS256'],
+      }) as any;
+
+      // Return decoded data (without installation_secret - that's not in JWT)
+      return decoded;
+    } catch (error: any) {
+      if (error.name === 'TokenExpiredError') {
+        this.logger.warn('License JWT expired, will attempt refresh');
+      } else {
+        this.logger.error(`JWT verification failed: ${error.message}`);
+      }
+      return null;
+    }
+  }
+
+  /**
+   * Heartbeat handler
+   * - Runs every 6 hours (normal) or 1 hour (failure)
+   * - Calculates seat count based on user roles
+   * - Sends heartbeat to license server
+   * - Updates cached license data
+   */
+  private static async handleHeartbeat() {
+    if (!this.licenseData) {
+      this.logger.warn('Heartbeat skipped: License not initialized');
+      this.startHeartbeatTimer();
+      return;
+    }
+
+    try {
+      const ncMeta = Noco.ncMeta;
+
+      // Calculate seat count based on user roles across all workspaces
+      const seatCount = await this.calculateGlobalSeatCount(ncMeta);
+
+      // Send heartbeat to license server with current domains
+      const timestamp = Date.now();
+
+      const heartbeatPayload = {
+        type: 'heartbeat',
+        timestamp,
+        version: 0,
+        installation_id: this.licenseData.installation_id,
+        seat_count: seatCount,
+        environment: {
+          domains: Array.from(Noco.domains), // Track accessed domains
+          version: process.env.npm_package_version,
+          platform: process.platform,
+        },
+      };
+
+      // Sign the heartbeat payload with installation_secret
+      const signature = crypto
+        .createHmac('sha256', this.licenseData.installation_secret)
+        .update(JSON.stringify(heartbeatPayload))
+        .digest('hex');
+
+      const requestBody = {
+        ...heartbeatPayload,
+        signature,
+      };
+
+      this.logger.log(
+        `Sending heartbeat to license server (${seatCount} seats)`,
+      );
+
+      const response = await fetch(
+        `${LICENSE_SERVER_URL}/api/v1/on-premise/agent`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        },
+      );
+
+      if (!response.ok) {
+        this.logger.error(
+          `License server returned error: ${JSON.stringify(
+            await response.json(),
+          )}`,
+        );
+        this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_FAILURE_MS;
+        this.startHeartbeatTimer();
+        return;
+      }
+
+      const data = (await response.json()) as {
+        license_jwt: string;
+        heartbeat_interval_ms: number;
+      };
+
+      // Verify and update license data from JWT
+      const licenseData = this.verifyAndDecodeLicenseJWT(data.license_jwt);
+      if (!licenseData) {
+        this.logger.error('Received invalid JWT from server');
+        this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_FAILURE_MS;
+        this.startHeartbeatTimer();
+        return;
+      }
+
+      // Update local license data
+      this.licenseData = {
+        ...licenseData,
+        installation_secret: this.licenseData.installation_secret,
+        license_key: this.licenseData.license_key,
+        last_heartbeat_at: new Date().toISOString(),
+      };
+
+      // Store updated JWT
+      await this.storeLicenseData(
+        data.license_jwt,
+        this.licenseData.installation_secret,
+        this.licenseData.license_key,
+        ncMeta,
+      );
+
+      this.currentHeartbeatInterval = data.heartbeat_interval_ms;
+
+      // Check license validity
+      const isInvalid = !this.isValidStatus(this.licenseData.status);
+      this._isExpired = isInvalid;
+
+      if (isInvalid) {
+        this.logger.warn(`License is invalid: ${this.licenseData.status}`);
+      } else {
+        this.logger.log('Heartbeat successful');
+      }
+    } catch (error) {
+      this.logger.error(`Heartbeat failed: ${error.message}`);
+      this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_FAILURE_MS;
+    }
+
+    // Schedule next heartbeat
+    this.startHeartbeatTimer();
+  }
+
+  /**
+   * Calculate global seat count across the entire instance
+   * For on-premise, we charge per instance (not per workspace)
+   * A user is counted once if they have any seat-consuming role anywhere in the instance
+   */
+  private static async calculateGlobalSeatCount(
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    const seatUsersMap = new Map<string, true>();
+    const nonSeatUsersMap = new Map<string, true>();
+
+    // Subquery for workspace team roles (teams → workspace roles per user)
+    const workspaceTeamRolesSubquery = ncMeta.knexConnection
+      .select('pa.principal_ref_id as user_id')
+      .select(
+        getArrayAggExpression(
+          ncMeta.knex,
+          ncMeta.knexConnection,
+          'wta.roles',
+          'workspace_team_roles',
+        ),
+      )
+      .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+      .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wta`, function () {
+        this.on('wta.principal_ref_id', '=', 'pa.resource_id')
+          .andOn('wta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+          .andOn('wta.resource_type', '=', ncMeta.knex.raw('?', ['workspace']))
+          .andOn(
+            ncMeta.knex.raw('COALESCE(wta.deleted, FALSE)'),
+            '=',
+            ncMeta.knex.raw('?', [false]),
+          );
+      })
+      .where('pa.principal_type', '=', 'user')
+      .where('pa.resource_type', '=', 'team')
+      .where(
+        ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
+        '=',
+        ncMeta.knex.raw('?', [false]),
+      )
+      .groupBy('pa.principal_ref_id')
+      .as('wtr');
+
+    // Subquery for base team roles (teams → base roles per user)
+    const baseTeamRolesSubquery = ncMeta.knexConnection
+      .select('pa.principal_ref_id as user_id')
+      .select(
+        getArrayAggExpression(
+          ncMeta.knex,
+          ncMeta.knexConnection,
+          'bta.roles',
+          'base_team_roles',
+        ),
+      )
+      .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+      .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as bta`, function () {
+        this.on('bta.principal_ref_id', '=', 'pa.resource_id')
+          .andOn('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+          .andOn('bta.resource_type', '=', ncMeta.knex.raw('?', ['base']))
+          .andOn(
+            ncMeta.knex.raw('COALESCE(bta.deleted, FALSE)'),
+            '=',
+            ncMeta.knex.raw('?', [false]),
+          );
+      })
+      .where('pa.principal_type', '=', 'user')
+      .where('pa.resource_type', '=', 'team')
+      .where(
+        ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
+        '=',
+        ncMeta.knex.raw('?', [false]),
+      )
+      .groupBy('pa.principal_ref_id')
+      .as('btr');
+
+    // Single comprehensive query to get all user roles across the entire instance
+    const allUserRoles = await ncMeta.knexConnection
+      .select(
+        `${MetaTable.USERS}.id as user_id`,
+        'wu.roles as workspace_role',
+        'bu.roles as base_role',
+        'wtr.workspace_team_roles as workspace_team_roles',
+        'btr.base_team_roles as base_team_roles',
+      )
+      .from(MetaTable.USERS)
+      // Left join with direct workspace users (all workspaces)
+      .leftJoin(`${MetaTable.WORKSPACE_USER} as wu`, function () {
+        this.on(`${MetaTable.USERS}.id`, '=', 'wu.fk_user_id').andOn(
+          ncMeta.knex.raw('COALESCE(wu.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        );
+      })
+      // Left join with direct base users (all bases)
+      .leftJoin(`${MetaTable.PROJECT_USERS} as bu`, function () {
+        this.on(`${MetaTable.USERS}.id`, '=', 'bu.fk_user_id');
+      })
+      // Left join with workspace team roles subquery
+      .leftJoin(
+        workspaceTeamRolesSubquery,
+        'wtr.user_id',
+        `${MetaTable.USERS}.id`,
+      )
+      // Left join with base team roles subquery
+      .leftJoin(baseTeamRolesSubquery, 'btr.user_id', `${MetaTable.USERS}.id`)
+      // Filter: only users who have at least one role assignment
+      .where(function () {
+        this.whereNotNull('wu.fk_user_id')
+          .orWhereNotNull('bu.fk_user_id')
+          .orWhereNotNull('wtr.user_id')
+          .orWhereNotNull('btr.user_id');
+      });
+
+    for (const userRole of allUserRoles) {
+      const userId = userRole.user_id;
+
+      // Collect all roles that the user has
+      const effectiveRoles = [];
+
+      // Extract base level role
+      if (userRole.base_role && userRole.base_role !== ProjectRoles.INHERIT) {
+        effectiveRoles.push(userRole.base_role);
+      } else if (userRole.base_team_roles) {
+        let baseTeamRoles = userRole.base_team_roles;
+        if (typeof baseTeamRoles === 'string') {
+          try {
+            baseTeamRoles = JSON.parse(baseTeamRoles);
+          } catch {
+            baseTeamRoles = [baseTeamRoles];
+          }
+        }
+        if (Array.isArray(baseTeamRoles)) {
+          effectiveRoles.push(...baseTeamRoles);
+        } else if (baseTeamRoles) {
+          effectiveRoles.push(baseTeamRoles);
+        }
+      }
+
+      // Extract workspace role
+      if (
+        userRole.workspace_role &&
+        userRole.workspace_role !== WorkspaceUserRoles.INHERIT
+      ) {
+        effectiveRoles.push(userRole.workspace_role);
+      } else if (userRole.workspace_team_roles) {
+        let workspaceTeamRoles = userRole.workspace_team_roles;
+        if (typeof workspaceTeamRoles === 'string') {
+          try {
+            workspaceTeamRoles = JSON.parse(workspaceTeamRoles);
+          } catch {
+            workspaceTeamRoles = [workspaceTeamRoles];
+          }
+        }
+        if (Array.isArray(workspaceTeamRoles)) {
+          effectiveRoles.push(...workspaceTeamRoles);
+        } else if (workspaceTeamRoles) {
+          effectiveRoles.push(workspaceTeamRoles);
+        }
+      }
+
+      // Check if user has any seat-consuming role among all their roles
+      const hasSeatConsumingRole = effectiveRoles.some(
+        (role) => !NON_SEAT_ROLES.includes(role),
+      );
+
+      if (hasSeatConsumingRole) {
+        if (!seatUsersMap.has(userId)) {
+          seatUsersMap.set(userId, true);
+        }
+        if (nonSeatUsersMap.has(userId)) {
+          nonSeatUsersMap.delete(userId);
+        }
+      } else {
+        if (!seatUsersMap.has(userId) && !nonSeatUsersMap.has(userId)) {
+          nonSeatUsersMap.set(userId, true);
+        }
+      }
+    }
+
+    return seatUsersMap.size;
+  }
+
+  /**
+   * Refresh license data from the license server
+   * Called when local signature verification fails
+   * Returns true if refresh succeeded, false otherwise
+   */
+  private static async refreshLicenseFromServer(
+    licenseKey: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    try {
+      // If we don't have installation data, we can't refresh
+      if (!this.licenseData) {
+        this.logger.warn(
+          'Cannot refresh license: No installation data available. Please re-activate your license.',
+        );
+        return false;
+      }
+
+      const installationId = this.licenseData.installation_id;
+      const installationSecret = this.licenseData.installation_secret;
+
+      if (!installationId || !installationSecret) {
+        this.logger.warn(
+          'Cannot refresh license: Missing installation credentials. Please re-activate your license.',
+        );
+        return false;
+      }
+
+      // Calculate current seat count
+      const seatCount = await this.calculateGlobalSeatCount(ncMeta);
+      const timestamp = Date.now();
+
+      // Build heartbeat payload with current domains
+      const heartbeatPayload = {
+        type: 'heartbeat',
+        timestamp,
+        version: 0,
+        installation_id: installationId,
+        seat_count: seatCount,
+        environment: {
+          domains: Array.from(Noco.domains), // Track accessed domains
+          version: process.env.npm_package_version,
+          platform: process.platform,
+        },
+      };
+
+      // Sign the heartbeat payload with installation_secret
+      const signature = crypto
+        .createHmac('sha256', installationSecret)
+        .update(JSON.stringify(heartbeatPayload))
+        .digest('hex');
+
+      // Send heartbeat request to license server
+      const requestBody = {
+        ...heartbeatPayload,
+        signature,
+      };
+
+      this.logger.log(
+        `Refreshing license from server: ${LICENSE_SERVER_URL}/api/v1/on-premise/agent`,
+      );
+
+      const response = await fetch(
+        `${LICENSE_SERVER_URL}/api/v1/on-premise/agent`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        },
+      );
+
+      if (!response.ok) {
+        this.logger.error(
+          `License server returned error: ${JSON.stringify(
+            await response.json(),
+          )}`,
+        );
+        return false;
+      }
+
+      const data = (await response.json()) as {
+        license_jwt: string;
+        heartbeat_interval_ms: number;
+      };
+
+      // Verify JWT
+      const licenseData = this.verifyAndDecodeLicenseJWT(data.license_jwt);
+      if (!licenseData) {
+        this.logger.error('Received invalid JWT from server');
+        return false;
+      }
+
+      // Store updated license data
+      await this.storeLicenseData(
+        data.license_jwt,
+        installationSecret,
+        licenseKey,
+        ncMeta,
+      );
+
+      this.licenseData = {
+        ...licenseData,
+        installation_secret: installationSecret,
+        license_key: licenseKey,
+        last_heartbeat_at: new Date().toISOString(),
+      };
+
+      this.currentHeartbeatInterval = data.heartbeat_interval_ms;
+      this._isExpired = !this.isValidStatus(licenseData.status);
+
+      this.logger.log('License data refreshed successfully from server');
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to refresh license: ${error.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Activate license with the license server
+   * Called when no license data is found in nc_store
+   * Returns true if activation succeeded, false otherwise
+   */
+  private static async activateLicense(
+    licenseKey: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    try {
+      const timestamp = Date.now();
+
+      // Build activation payload
+      const activationPayload = {
+        type: 'register',
+        timestamp,
+        version: 0,
+        license_key: licenseKey,
+        environment: {
+          version: process.env.npm_package_version,
+          platform: process.platform,
+          domains: Array.from(Noco.domains),
+        },
+      };
+
+      this.logger.log(
+        `Activating license with server: ${LICENSE_SERVER_URL}/api/v1/on-premise/agent`,
+      );
+
+      const response = await fetch(
+        `${LICENSE_SERVER_URL}/api/v1/on-premise/agent`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(activationPayload),
+        },
+      );
+
+      if (!response.ok) {
+        this.logger.error(
+          `License server returned error: ${JSON.stringify(
+            await response.json(),
+          )}`,
+        );
+        return false;
+      }
+
+      const data = (await response.json()) as {
+        installation_id: string;
+        installation_secret: string;
+        license_jwt: string;
+        heartbeat_interval_ms: number;
+      };
+
+      // Verify JWT
+      const licenseData = this.verifyAndDecodeLicenseJWT(data.license_jwt);
+      if (!licenseData) {
+        this.logger.error('Received invalid JWT from server');
+        return false;
+      }
+
+      // Store license data
+      await this.storeLicenseData(
+        data.license_jwt,
+        data.installation_secret,
+        licenseKey,
+        ncMeta,
+      );
+
+      this.licenseData = {
+        ...licenseData,
+        installation_secret: data.installation_secret,
+        license_key: licenseKey,
+        last_heartbeat_at: new Date().toISOString(),
+      };
+
+      this.currentHeartbeatInterval = data.heartbeat_interval_ms;
+      this._isExpired = !this.isValidStatus(licenseData.status);
+
+      this.logger.log(
+        `License activated: ${licenseData.license_type} (${licenseData.status})`,
+      );
+      this.logger.log(`Seat usage: ${licenseData.seat_count}`);
+
+      return true;
+    } catch (error) {
+      this.logger.error(`Failed to activate license: ${error.message}`);
+      return false;
+    }
+  }
+
+  public static getLicenseData(): LicenseData {
+    if (!this.licenseData) {
+      throw new Error('License not initialized');
+    }
+    return this.licenseData;
+  }
+
+  public static isTrial(): boolean {
+    return this.getLicenseData().license_type === 'enterprise_trial';
+  }
+
+  public static getSeatCount(): number {
+    return this.getLicenseData().seat_count;
+  }
+
+  public static getExpiry(): Date | undefined {
+    const expiresAt = this.getLicenseData().expires_at;
+    return expiresAt ? new Date(expiresAt) : undefined;
+  }
+
+  public static getDaysUntilExpiration(): number | null {
+    const expiresAt = this.getLicenseData().expires_at;
+    if (!expiresAt) return null;
+
+    const now = new Date();
+    const expirationDate = new Date(expiresAt);
+    const diffMs = expirationDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    return diffDays;
+  }
+
+  private static isValidStatus(status: InstallationStatus): boolean {
+    return status === InstallationStatus.ACTIVE;
+  }
+
+  public static isValid(): boolean {
+    return this.isValidStatus(this.getLicenseData().status);
+  }
+
+  public static getStatus(): InstallationStatus {
+    return this.getLicenseData().status;
+  }
+
+  public static getLicenseType(): string {
+    return this.getLicenseData().license_type;
+  }
+
+  public static getHeartbeatInterval(): number {
+    return this.currentHeartbeatInterval;
+  }
+
+  public static getWorkspaceLimit(): number | undefined {
+    return this.getLicenseData().config?.limit_workspace;
+  }
+
+  public static getOneWorkspace(): boolean {
+    return this.getWorkspaceLimit() === 1;
+  }
+}

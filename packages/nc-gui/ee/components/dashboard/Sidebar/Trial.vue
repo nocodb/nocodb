@@ -43,8 +43,7 @@ const precentageColor = computed(() => {
 
       <div class="text-nc-content-gray">
         <span v-if="numberOfDaysLeft >= 0">Expires in: {{ numberOfDaysLeft }} day{{ numberOfDaysLeft > 1 ? 's' : '' }}</span
-        ><span v-else>License expired</span><br />
-        Licensed to: {{ appInfo.licensedTo }}
+        ><span v-else>License expired</span>
       </div>
       <a no-prefetch no-rel href="https://calendly.com/nocodb-meeting" target="_blank">
         <nc-button size="small" class="text-center w-full text-white">

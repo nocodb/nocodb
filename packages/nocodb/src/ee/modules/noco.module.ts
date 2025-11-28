@@ -76,6 +76,13 @@ import { DashboardsService } from '~/services/dashboards.service';
 
 import { ActionsService } from '~/services/actions.service';
 
+import { OnPremiseController } from '~/controllers/on-premise.controller';
+
+// Conditionally include OnPremiseController based on NC_LICENSE_SERVER_PRIVATE_KEY
+const licenseServerControllers = process.env.NC_LICENSE_SERVER_PRIVATE_KEY
+  ? [OnPremiseController]
+  : [];
+
 export const nocoModuleEeMetadata = {
   imports: [
     NocoAiModule,
@@ -171,6 +178,9 @@ export const nocoModuleEeMetadata = {
     // WorkspaceTeamsV3Controller,
     // /* Base Teams V3 */
     // BaseTeamsV3Controller,
+
+    // Conditionally include OnPremiseController if NC_LICENSE_SERVER_PRIVATE_KEY is set
+    ...licenseServerControllers,
 
     ...nocoModuleMetadata.controllers,
   ],

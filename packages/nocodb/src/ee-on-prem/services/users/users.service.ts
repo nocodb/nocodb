@@ -1,15 +1,14 @@
 import { UsersService as UsersServiceEE } from 'src/ee/services/users/users.service';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LicenseService } from '../license/license.service';
 import type { MetaType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import { WorkspacesService } from '~/services/workspaces.service';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';
-import { User } from '~/models';
-import { NcError } from '~/helpers/catchError';
+// import { User } from '~/models';
+// import { NcError } from '~/helpers/catchError';
 import { IntegrationsService } from '~/services/integrations.service';
 import Noco from '~/Noco';
 import { MailService } from '~/services/mail/mail.service';
@@ -26,7 +25,6 @@ export class UsersService extends UsersServiceEE {
     protected integrationsService: IntegrationsService,
     protected configService: ConfigService<AppConfig>,
     protected telemetryService: TelemetryService,
-    protected licenseService: LicenseService,
   ) {
     super(
       metaService,
@@ -68,7 +66,7 @@ export class UsersService extends UsersServiceEE {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    if (this.licenseService.isTrial()) {
+    /* if (this.licenseService.isTrial()) {
       const userCount = await User.count();
       if (userCount >= this.licenseService.getMaxUsers()) {
         if (this.licenseService.isTrial())
@@ -82,7 +80,7 @@ export class UsersService extends UsersServiceEE {
             'Number of users allowed in your license exceeded. Please upgrade your license.',
           );
       }
-    }
+    } */
     return super.registerNewUserIfAllowed(
       {
         avatar,

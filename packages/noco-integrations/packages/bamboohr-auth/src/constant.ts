@@ -1,0 +1,1 @@
+const APP_LABEL = 'BambooHR'

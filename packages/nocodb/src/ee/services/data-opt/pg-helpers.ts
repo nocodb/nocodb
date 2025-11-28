@@ -2156,8 +2156,13 @@ export async function singleQueryGroupedList(
 
   const orderColumn = columns.find((c) => isOrderCol(c));
 
+  const tempSortQb = knex('dummy_table');
+
   // apply sort on root query
-  if (sorts?.length) await sortV2(baseModel, sorts, rootQb);
+  if (sorts?.length) await sortV2(baseModel, sorts, tempSortQb);
+  const extractedOrderByQuery = tempSortQb
+    .toQuery()
+    .replace(/^select \* from "?dummy_table"?/i, '');
 
   // apply sort on root query only if not skipped
   if (orderColumn) {
@@ -2178,13 +2183,15 @@ export async function singleQueryGroupedList(
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
   profiler.log('get ast');
-  const { ast } = await getAst(context, {
+  const { ast: _ast } = await getAst(context, {
     query: ctx.params,
     model: ctx.model,
     view: ctx.view,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     apiVersion: ctx.apiVersion,
   });
+
+  const ast = { ..._ast };
 
   // additionally include grouping column if missing
   ast[groupColumn.title] = true;
@@ -2200,34 +2207,34 @@ export async function singleQueryGroupedList(
   // Get the order by columns for the window function
   // Use column aliases as they appear in the subquery (from extractColumns)
   // These are the column IDs, which are used as aliases by extractColumns
-  const orderByExpressions: any[] = [];
+  // const orderByExpressions: any[] = [];
 
-  if (orderColumn && !orderColumn.system) {
-    orderByExpressions.push(knex.raw('"__nc_base".??', [getAs(orderColumn)]));
-    ast[orderColumn.title] = true;
-  }
-
-  if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
-    orderByExpressions.push(
-      knex.raw('"__nc_base".??', [getAs(ctx.model.primaryKey)]),
-    );
-    ast[ctx.model.primaryKey.title] = true;
-  } else {
-    const createdCol = ctx.model.columns.find(
-      (c) => c.uidt === UITypes.CreatedTime && c.system,
-    );
-    if (createdCol) {
-      orderByExpressions.push(knex.raw('"__nc_base".??', [getAs(createdCol)]));
-      // add it to ast
-      ast[createdCol.title] = true;
-    } else if (ctx.model.primaryKey) {
-      orderByExpressions.push(
-        knex.raw('"__nc_base".??', [getAs(ctx.model.primaryKey)]),
-      );
-      // add it to ast
-      ast[ctx.model.primaryKey.title] = true;
-    }
-  }
+  // if (orderColumn && !orderColumn.system) {
+  //   orderByExpressions.push(knex.raw('"__nc_base".??', [getAs(orderColumn)]));
+  //   ast[orderColumn.title] = true;
+  // }
+  //
+  // if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
+  //   orderByExpressions.push(
+  //     knex.raw('"__nc_base".??', [getAs(ctx.model.primaryKey)]),
+  //   );
+  //   ast[ctx.model.primaryKey.title] = true;
+  // } else {
+  //   const createdCol = ctx.model.columns.find(
+  //     (c) => c.uidt === UITypes.CreatedTime && c.system,
+  //   );
+  //   if (createdCol) {
+  //     orderByExpressions.push(knex.raw('"__nc_base".??', [getAs(createdCol)]));
+  //     // add it to ast
+  //     ast[createdCol.title] = true;
+  //   } else if (ctx.model.primaryKey) {
+  //     orderByExpressions.push(
+  //       knex.raw('"__nc_base".??', [getAs(ctx.model.primaryKey)]),
+  //     );
+  //     // add it to ast
+  //     ast[ctx.model.primaryKey.title] = true;
+  //   }
+  // }
 
   // Use extractColumns to handle nested columns/rollups in SQL (like singleQueryList)
   await extractColumns({
@@ -2244,35 +2251,48 @@ export async function singleQueryGroupedList(
     apiVersion: ctx.apiVersion,
   });
 
-  // Apply sort on final query before wrapping in subquery
-  if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
+  qb.select(
+    knex.raw(
+      `ROW_NUMBER() OVER (${extractedOrderByQuery}) AS "_nc_sort_order"`,
+    ),
+  );
 
-  if (orderColumn && !orderColumn.system) {
-    qb.orderBy(`${ROOT_ALIAS}.${orderColumn.column_name}`);
-  }
-  if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
-    qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
-  } else {
-    const createdAtColumn = ctx.model.columns.find(
-      (c) => c.uidt === UITypes.CreatedTime && c.system,
-    );
-    if (createdAtColumn) {
-      qb.orderBy(`${ROOT_ALIAS}.${createdAtColumn.column_name}`);
-    } else if (ctx.model.primaryKey) {
-      qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
-    }
-  }
-
-  // Build window function ORDER BY clause
-  // Build SQL string directly using column aliases with proper PostgreSQL quoting
-  let windowOrderByClause = 'NULL';
-  if (orderByExpressions.length > 0) {
-    windowOrderByClause = orderByExpressions.join(', ');
-  }
+  // // Apply sort on final query before wrapping in subquery
+  // if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
+  //
+  // if (orderColumn && !orderColumn.system) {
+  //   qb.orderBy(`${ROOT_ALIAS}.${orderColumn.column_name}`);
+  // }
+  // if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
+  //   qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
+  // } else {
+  //   const createdAtColumn = ctx.model.columns.find(
+  //     (c) => c.uidt === UITypes.CreatedTime && c.system,
+  //   );
+  //   if (createdAtColumn) {
+  //     qb.orderBy(`${ROOT_ALIAS}.${createdAtColumn.column_name}`);
+  //   } else if (ctx.model.primaryKey) {
+  //     qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
+  //   }
+  // }
 
   // Create a subquery with window function to number rows within each group
   const baseQuerySql = qb.toQuery();
 
+  // // Extract ORDER BY clause from the main query to reuse in window function
+  // // This ensures the window function uses the exact same ordering logic
+  // let windowOrderByClause = '';
+  // const orderByMatch = baseQuerySql.match(/\sORDER\s+BY\s+([\s\S]+?)(?:\s+LIMIT|\s*$)/i);
+  // if (orderByMatch && orderByMatch[1]) {
+  //   // Replace ROOT_ALIAS with __nc_base to reference columns in the subquery
+  //   // Handle both quoted and unquoted alias references
+  //   const orderBySql = orderByMatch[1]
+  //     .trim()
+  //     .replace(new RegExp(`"${ROOT_ALIAS.replace(/"/g, '')}"\\.`, 'gi'), '__nc_base.')
+  //     .replace(new RegExp(`${ROOT_ALIAS}\\.`, 'gi'), '__nc_base.');
+  //   windowOrderByClause = ` ORDER BY ${orderBySql}`;
+  // }
+  //
   // Build the group column expression SQL directly with proper quoting
   let groupColumnSql: string;
   const quotedGroupAlias = `"${String(groupColumnAlias).replace(/"/g, '""')}"`;
@@ -2283,14 +2303,13 @@ export async function singleQueryGroupedList(
   }
 
   // Build the window function with proper SQL strings
+  // Include ORDER BY clause to ensure correct row numbering within each partition
+  const windowFunctionSql = `ROW_NUMBER() OVER (PARTITION BY ${groupColumnSql} ORDER BY "__nc_base"."_nc_sort_order" ASC)`;
+
   const windowQb = knex
     .from(knex.raw(`(${baseQuerySql}) as __nc_base`))
     .select('*')
-    .select(
-      knex.raw(
-        `ROW_NUMBER() OVER (PARTITION BY ${groupColumnSql} ORDER BY ${windowOrderByClause}) as __nc_row_num`,
-      ),
-    );
+    .select(knex.raw(`${windowFunctionSql} as __nc_row_num`));
 
   // Filter to get only rows within limit per group, and filter by grouping values
   // Use column alias for filtering and ordering
@@ -2317,9 +2336,9 @@ export async function singleQueryGroupedList(
       }
     })
     .where('__nc_row_num', '<=', limit)
-    .where('__nc_row_num', '>', offset)
-    .orderBy(groupColumnAlias)
-    .orderBy('__nc_row_num');
+    .where('__nc_row_num', '>', offset);
+  // .orderBy(groupColumnAlias)
+  // .orderBy('__nc_row_num');
 
   knex.applyCte(groupedQb);
 
@@ -2342,7 +2361,16 @@ export async function singleQueryGroupedList(
         aggObj.set(val, []);
       }
 
-      aggObj.get(val).push(row);
+      const cleaned: any = {};
+
+      // Only include columns that are in original AST (explicitly requested)
+      for (const [key, value] of Object.entries(row)) {
+        // Skip internal columns which is not part of the AST
+        if (!_ast[key]) continue;
+        cleaned[key] = value;
+      }
+
+      aggObj.get(val).push(cleaned);
 
       return aggObj;
     },

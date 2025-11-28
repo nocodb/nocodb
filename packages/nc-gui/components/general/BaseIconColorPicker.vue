@@ -62,7 +62,7 @@ watch(
       <div
         class="flex flex-row justify-center items-center select-none rounded nc-base-icon-picker-trigger"
         :class="{
-          'hover:bg-nc-gray-500 dark:hover:bg-nc-bg-gray-dark hover:bg-opacity-15 cursor-pointer': !readonly,
+          'hover:bg-gray-500 dark:hover:bg-nc-bg-gray-dark hover:bg-opacity-15 cursor-pointer': !readonly,
           'bg-gray-500 dark:bg-nc-bg-gray-dark bg-opacity-15': isOpen,
           'h-5 w-5 text-base': size === 'xsmall',
           'h-6 w-6 text-lg': size === 'small',

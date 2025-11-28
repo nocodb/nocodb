@@ -313,7 +313,7 @@ const deleteWorkflow = () => {
                 </template>
 
                 <GeneralIcon
-                  :class="activeWorkflowId === vModel.id ? '!text-brand-600/85' : '!text-gray-600/75'"
+                  :class="activeWorkflowId === vModel.id ? '!text-nc-brand-600 opacity-85' : '!text-nc-gray-600 opacity-75'"
                   class="w-4 text-nc-content-gray-subtle !text-[16px]"
                   icon="ncAutomation"
                 />

@@ -182,12 +182,12 @@ onMounted(() => {
 <template>
   <div v-if="vOpen" class="cmdk-modal cmdl-modal" :class="{ 'cmdk-modal-active cmdl-modal-active': vOpen }">
     <div ref="modalEl" class="cmdk-modal-content cmdl-modal-content relative h-[25.25rem]">
-      <div class="cmdk-input-wrapper border-b-1 border-gray-200">
-        <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
+      <div class="cmdk-input-wrapper border-b-1 border-nc-border-gray-medium">
+        <GeneralIcon class="h-4 w-4 text-nc-content-gray-muted" icon="search" />
         <input ref="cmdInputEl" v-model="search" class="cmdk-input" placeholder="Search" type="text" />
       </div>
-      <div class="flex items-center bg-white w-full z-[50]">
-        <div class="text-sm px-4 py-2 text-gray-500">Recent Views</div>
+      <div class="flex items-center bg-nc-bg-default w-full z-[50]">
+        <div class="text-sm px-4 py-2 text-nc-content-gray-muted">Recent Views</div>
       </div>
       <div class="flex flex-col shrink grow overflow-hidden shadow-[rgb(0_0_0_/_50%)_0px_16px_70px] max-w-[650px] p-0">
         <div class="scroll-smooth actions overflow-auto nc-scrollbar-md mb-10 relative mx-0 px-0 py-2">
@@ -217,7 +217,7 @@ onMounted(() => {
                     </a-tooltip>
                   </div>
                 </div>
-                <div class="flex w-1/2 justify-end text-gray-600">
+                <div class="flex w-1/2 justify-end text-nc-content-gray-subtle2">
                   <div class="flex gap-2 px-2 py-1 rounded-md items-center">
                     <component :is="iconMap.project" class="w-4 h-4" />
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg" :tooltip-style="{ zIndex: 1100 }">
@@ -262,15 +262,20 @@ onMounted(() => {
   --cmdk-icon-color: var(--cmdk-secondary-text-color);
   --cmdk-icon-size: 1.2em;
 
-  --cmdk-modal-background: #fff;
+  --cmdk-modal-background: var(--nc-bg-default);
 }
+
+.dark .cmdk-modal {
+  color: var(--nc-content-gray-subtle);
+}
+
 .cmdk-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: rgba(var(--rgb-base), 0.5);
   z-index: 1100;
 
   color: rgb(60, 65, 73);
@@ -289,8 +294,8 @@ onMounted(() => {
 
     &.selected {
       cursor: pointer;
-      background-color: rgb(248, 249, 251);
-      border-left: 4px solid #3366ff;
+      background-color: var(--color-gray-100);
+      border-left: 4px solid var(--color-brand-400);
       outline: none;
     }
 

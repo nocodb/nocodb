@@ -45,7 +45,7 @@ const showBaseOption = (source: SourceType) => {
             :source="source"
             variant="large"
             submenu-class="nc-sub-menu-item-icon-only"
-            title-class="!p-0 hover:bg-nc-bg-brand group"
+            title-class="!p-0 hover:bg-nc-bg-brand dark:hover:bg-nc-bg-gray-medium group"
             show-noco-db-import
             :popup-offset="[8, -2]"
           >

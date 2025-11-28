@@ -327,7 +327,7 @@ watchEffect(() => {
   }
 
   .active {
-    @apply !bg-primary-selected font-medium;
+    @apply !bg-primary-selected dark:!bg-nc-bg-gray-medium font-medium;
   }
 }
 </style>

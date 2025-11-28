@@ -253,4 +253,14 @@ body {
   .ant-form-item-label > label {
     @apply text-nc-content-gray;
   }
+
+  // Sidebar
+  .nc-home-create-new-btn,
+  .nc-sidebar-item-dark {
+    @apply !hover:bg-nc-bg-gray-medium;
+
+    &.active {
+      @apply !bg-nc-bg-gray-medium !hover:bg-nc-bg-gray-medium;
+    }
+  }
 }

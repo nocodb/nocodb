@@ -153,7 +153,8 @@ const hasTableCreatePermission = computed(() => {
           class="nc-sidebar-top-button !h-8 w-full !pl-0"
           :centered="false"
           :class="{
-            '!text-nc-content-brand-disabled !bg-nc-bg-brand !hover:bg-nc-bg-brand': activeProjectId === base.id && baseViewOpen,
+            '!text-nc-content-brand-disabled !bg-nc-bg-brand !hover:bg-nc-bg-brand nc-sidebar-item-dark active':
+              activeProjectId === base.id && baseViewOpen,
             '!hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle)': !(activeProjectId === base.id && baseViewOpen),
           }"
           data-testid="nc-sidebar-base-overview-btn"
@@ -227,10 +228,10 @@ const hasTableCreatePermission = computed(() => {
 }
 
 :deep(.nc-home-create-new-btn.nc-button) {
-  @apply hover:bg-nc-bg-brand !pr-1.5;
+  @apply !pr-1.5;
 
-  &.active {
-    @apply !bg-nc-bg-brand;
+  &:not(.active) {
+    @apply hover:bg-nc-bg-brand;
   }
 }
 </style>

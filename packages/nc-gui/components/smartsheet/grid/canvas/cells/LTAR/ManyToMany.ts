@@ -184,7 +184,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
 
       if (!readonly) {
         renderIconButton(ctx, {
-          buttonX: x + width - 57,
+          buttonX: x + width - 54,
           buttonY: y + 6,
           borderRadius,
           buttonSize,

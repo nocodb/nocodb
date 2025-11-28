@@ -4,7 +4,7 @@ import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
 
 const ellipsisWidth = 15
-const buttonSize = 24
+const buttonSize = 20
 
 export const HasManyCellRenderer: CellRenderer = {
   render: (ctx, props) => {
@@ -182,13 +182,13 @@ export const HasManyCellRenderer: CellRenderer = {
       })
     }
 
-    if (isBoxHovered({ x, y, width, height }, mousePosition)) {
+    if (selected) {
       const borderRadius = 6
 
       if (!readonly) {
         renderIconButton(ctx, {
-          buttonX: x + width - 57,
-          buttonY: y + 4,
+          buttonX: x + width - 54,
+          buttonY: y + 6,
           borderRadius,
           buttonSize,
           spriteLoader,
@@ -196,8 +196,8 @@ export const HasManyCellRenderer: CellRenderer = {
           icon: 'ncPlus',
           iconData: {
             size: 14,
-            xOffset: 5,
-            yOffset: 5,
+            xOffset: 3,
+            yOffset: 3,
           },
           setCursor,
         })
@@ -205,13 +205,18 @@ export const HasManyCellRenderer: CellRenderer = {
 
       renderIconButton(ctx, {
         buttonX: x + width - 30,
-        buttonY: y + 4,
+        buttonY: y + 6,
         borderRadius,
         buttonSize,
         spriteLoader,
         mousePosition,
         icon: 'maximize',
         setCursor,
+        iconData: {
+          size: 12,
+          xOffset: 4,
+          yOffset: 4,
+        },
       })
     }
   },
@@ -227,6 +232,8 @@ export const HasManyCellRenderer: CellRenderer = {
     isDoubleClick,
     openDetachedExpandedForm,
   }) {
+    if (!selected && !isDoubleClick) return false
+
     const rowIndex = row.rowMeta.rowIndex!
     const { x, y, width, height } = getCellPosition(column, rowIndex)
 
@@ -305,7 +312,9 @@ export const HasManyCellRenderer: CellRenderer = {
     return false
   },
   handleHover: async (props) => {
-    const { row, column, mousePosition, getCellPosition, t } = props
+    const { row, column, mousePosition, getCellPosition, t, selected } = props
+
+    if (!selected) return
 
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()

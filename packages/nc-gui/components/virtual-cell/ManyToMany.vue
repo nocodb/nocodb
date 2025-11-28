@@ -233,7 +233,7 @@ onUnmounted(() => {
           v-if="hasEditPermission"
           size="xxsmall"
           type="secondary"
-          class="nc-action-icon nc-many-to-many-plus-icon !h-5 !w-5"
+          class="nc-action-icon nc-many-to-many-plus-icon !h-5 !w-5 !min-w-5"
           @click.stop="openListDlg"
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus h-3 w-3" />
@@ -242,10 +242,10 @@ onUnmounted(() => {
           <NcButton
             size="xxsmall"
             type="secondary"
-            class="nc-action-icon nc-many-to-many-maximize-icon !h-5 !w-5"
+            class="nc-action-icon nc-many-to-many-maximize-icon !h-5 !w-5 !min-w-5"
             @click.stop="openChildList"
           >
-            <GeneralIcon icon="maximize" class="!h-3 !w.3" />
+            <GeneralIcon icon="maximize" class="!h-3 !w-3" />
           </NcButton>
         </NcTooltip>
       </div>

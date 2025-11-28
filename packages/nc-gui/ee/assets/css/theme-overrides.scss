@@ -254,6 +254,11 @@ body {
     @apply text-nc-content-gray;
   }
 
+  // Modal
+  .ant-modal-content {
+    @apply border-1 border-solid border-nc-border-gray-medium;
+  }
+
   // Sidebar
   .nc-home-create-new-btn,
   .nc-sidebar-item-dark {

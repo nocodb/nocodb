@@ -59,6 +59,20 @@ body {
   @apply bg-nc-bg-default text-nc-content-gray;
 }
 
+.ant-popover-inner,
+.ant-popover-arrow-content {
+  @apply bg-nc-bg-default;
+}
+
+.ant-dropdown-menu-item,
+.ant-dropdown-menu-submenu-title {
+  color: rgba(var(--rgb-base), 0.85);
+
+  &:hover {
+    @apply bg-nc-bg-gray-light;
+  }
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {
@@ -107,6 +121,16 @@ body {
     h5,
     h6 {
       color: rgba(var(--rgb-base), 0.85);
+    }
+
+    .ant-btn-text {
+      color: rgba(var(--rgb-base), 0.85);
+
+      &:focus,
+      &:hover {
+        color: rgba(var(--rgb-base), 0.85);
+        background-color: rgba(var(--rgb-base), 0.018);
+      }
     }
   }
 }
@@ -228,5 +252,20 @@ body {
   // Form item label
   .ant-form-item-label > label {
     @apply text-nc-content-gray;
+  }
+
+  // Modal
+  .ant-modal-content {
+    @apply border-1 border-solid border-nc-border-gray-medium;
+  }
+
+  // Sidebar
+  .nc-home-create-new-btn,
+  .nc-sidebar-item-dark {
+    @apply !hover:bg-nc-bg-gray-medium;
+
+    &.active {
+      @apply !bg-nc-bg-gray-medium !hover:bg-nc-bg-gray-medium;
+    }
   }
 }

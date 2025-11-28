@@ -2160,25 +2160,26 @@ export async function singleQueryGroupedList(
 
   // apply sort on root query
   if (sorts?.length) await sortV2(baseModel, sorts, tempSortQb);
-  const extractedOrderByQuery = tempSortQb
-    .toQuery()
-    .replace(/^select \* from "?dummy_table"?/i, '');
 
   // apply sort on root query only if not skipped
   if (orderColumn) {
-    rootQb.orderBy(orderColumn.column_name);
+    tempSortQb.orderBy(orderColumn.column_name);
   }
   // Ensure stable ordering
   if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
-    rootQb.orderBy(ctx.model.primaryKey.column_name);
+    tempSortQb.orderBy(ctx.model.primaryKey.column_name);
   } else {
     const createdAtColumn = ctx.model.columns.find(
       (c) => c.uidt === UITypes.CreatedTime && c.system,
     );
     if (createdAtColumn) {
-      rootQb.orderBy(createdAtColumn.column_name);
+      tempSortQb.orderBy(createdAtColumn.column_name);
     }
   }
+
+  const extractedOrderByQuery = tempSortQb
+    .toQuery()
+    .replace(/^select \* from "?dummy_table"?/i, '');
 
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
@@ -2272,8 +2273,7 @@ export async function singleQueryGroupedList(
     })
     .where('__nc_row_num', '<=', limit)
     .where('__nc_row_num', '>', offset)
-    .orderBy(groupColumnAlias)
-    .orderBy('__nc_row_num');
+    .orderBy(groupColumnAlias);
 
   knex.applyCte(groupedQb);
 

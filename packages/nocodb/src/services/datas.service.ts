@@ -488,7 +488,7 @@ export class DatasService {
 
     // Use singleQueryGroupedList for PostgreSQL to avoid nocoExecute
     // It handles nested columns/rollups directly in SQL
-    if (source.type === 'pg') {
+    if (source.type === 'pg' && param.query?.opt === 'true') {
       const { dependencyFields } = await getAst(context, {
         model,
         query,
@@ -519,6 +519,7 @@ export class DatasService {
         await baseModel.groupedList({
           ...listArgs,
           groupColumnId: param.columnId,
+          useOptimised: param.query?.opt === 'true',
         }),
         baseModel.groupedListCount({
           ...listArgs,

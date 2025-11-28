@@ -576,7 +576,7 @@ watch(
 
 <template>
   <div v-if="activeIntegration" class="h-full">
-    <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
+    <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium">
       <div class="flex-1 flex items-center gap-3">
         <NcButton
           v-if="!isEditMode && !isFromIntegrationPage"
@@ -588,7 +588,7 @@ watch(
         </NcButton>
         <div
           v-if="activeIntegrationIcon"
-          class="h-8 w-8 flex items-center justify-center children:flex-none bg-gray-200 rounded-lg"
+          class="h-8 w-8 flex items-center justify-center children:flex-none bg-nc-bg-gray-medium rounded-lg"
         >
           <component :is="activeIntegrationIcon" class="!stroke-transparent w-4 h-4" />
         </div>
@@ -613,8 +613,8 @@ watch(
             @click="testConnection()"
           >
             <template #icon>
-              <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4" />
-              <GeneralIcon v-else-if="testConnectionError" icon="alertTriangleSolid" class="!text-red-700 w-4 h-4" />
+              <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-nc-content-green-dark w-4 h-4" />
+              <GeneralIcon v-else-if="testConnectionError" icon="alertTriangleSolid" class="!text-nc-content-red-dark w-4 h-4" />
             </template>
 
             <span>
@@ -634,7 +634,7 @@ watch(
           {{ pageMode === IntegrationsPageMode.ADD ? 'Create connection' : 'Update connection' }}
         </NcButton>
         <NcButton size="small" type="text" @click="vOpen = false">
-          <GeneralIcon icon="close" class="text-gray-600" />
+          <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
         </NcButton>
       </div>
     </div>
@@ -642,7 +642,7 @@ watch(
     <div class="h-[calc(100%_-_66px)] flex">
       <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin relative">
         <div class="w-full gap-8 max-w-[768px]">
-          <div class="nc-edit-or-add-connection bg-white relative flex flex-col justify-center gap-2 w-full">
+          <div class="nc-edit-or-add-connection bg-nc-bg-default relative flex flex-col justify-center gap-2 w-full">
             <a-form
               ref="form"
               :model="formState"
@@ -687,7 +687,7 @@ watch(
                     </NcButton>
                     <template #overlay>
                       <div class="p-4 w-[448px] flex flex-col gap-3">
-                        <div class="text-sm text-gray-700">
+                        <div class="text-sm text-nc-content-gray-subtle">
                           Auto populate connection configuration using database connection URL
                         </div>
 
@@ -1015,7 +1015,7 @@ watch(
                       </div>
                     </template>
 
-                    <div class="border-1 border-gray-200 rounded-lg p-3">
+                    <div class="border-1 border-nc-border-gray-medium rounded-lg p-3">
                       <a-row :gutter="24">
                         <a-col :span="12">
                           <a-form-item label="SSL mode">
@@ -1192,16 +1192,16 @@ watch(
 
                     <div class="flex flex-col gap-2">
                       <div>Edit Connection JSON</div>
-                      <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
+                      <div class="border-1 border-nc-border-gray-medium !rounded-lg shadow-sm overflow-hidden">
                         <Suspense>
                           <template #default>
                             <MonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
                           </template>
                           <template #fallback>
-                            <div class="h-[400px] w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+                            <div class="h-[400px] w-full flex items-center justify-center bg-nc-bg-gray-extralight dark:bg-gray-900">
                               <div class="text-center">
                                 <a-spin size="large" />
-                                <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
+                                <div class="mt-4 text-nc-content-gray-subtle2 dark:text-gray-400">Loading Monaco Editor...</div>
                               </div>
                             </div>
                           </template>
@@ -1217,7 +1217,7 @@ watch(
           </div>
         </div>
         <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
-          <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+          <div class="flex items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-85 z-1000">
             <a-spin size="large" />
           </div>
         </general-overlay>
@@ -1286,16 +1286,16 @@ watch(
   }
 
   :deep(.ant-form-item-label > label.ant-form-item-required:after) {
-    @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
+    @apply content-['*'] inline-block text-inherit text-nc-content-red-medium ml-1;
   }
 
   .nc-form-extra-connectin-parameters {
     :deep(.ant-input) {
       &:not(:hover):not(:focus):not(:disabled) {
-        @apply !shadow-default !border-gray-200;
+        @apply !shadow-default !border-nc-border-gray-medium;
       }
       &:hover:not(:focus):not(:disabled) {
-        @apply !border-gray-200 !shadow-hover;
+        @apply !border-nc-border-gray-medium !shadow-hover;
       }
       &:focus {
         @apply !shadow-selected !ring-0;
@@ -1333,10 +1333,10 @@ watch(
     &:not(.ant-form-item-has-error) {
       &:not(:has(.ant-input-password)) .ant-input {
         &:not(:hover):not(:focus):not(:disabled) {
-          @apply shadow-default border-gray-200;
+          @apply shadow-default border-nc-border-gray-medium;
         }
         &:hover:not(:focus):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
+          @apply border-nc-border-gray-medium shadow-hover;
         }
         &:focus {
           @apply shadow-selected ring-0;
@@ -1345,10 +1345,10 @@ watch(
       .ant-input-number,
       .ant-input-affix-wrapper.ant-input-password {
         &:not(:hover):not(:focus-within):not(:disabled) {
-          @apply shadow-default border-gray-200;
+          @apply shadow-default border-nc-border-gray-medium;
         }
         &:hover:not(:focus-within):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
+          @apply border-nc-border-gray-medium shadow-hover;
         }
         &:focus-within {
           @apply shadow-selected ring-0;

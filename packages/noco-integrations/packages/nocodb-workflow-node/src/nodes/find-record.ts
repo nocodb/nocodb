@@ -253,10 +253,20 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: table.synced? 'ncZap': 'table',
           tableName: table.title,
           description: 'Selected table for finding record',
         },
       });
+
+      const iconMap = {
+        [NocoSDK.ViewTypes.FORM]: 'form',
+        [NocoSDK.ViewTypes.GRID]: 'grid',
+        [NocoSDK.ViewTypes.KANBAN]: 'kanban',
+        [NocoSDK.ViewTypes.CALENDAR]: 'calendar',
+        [NocoSDK.ViewTypes.GALLERY]: 'gallery',
+        [NocoSDK.ViewTypes.MAP]: 'map',
+      }
 
       if (viewId) {
         const view = table.views?.find((v) => v.id === viewId);
@@ -266,6 +276,7 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
           type: NocoSDK.VariableType.String,
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
+            icon: view?.type ? iconMap[view.type as keyof typeof iconMap] : 'view',
             viewName: view?.title,
             description: 'Selected view for filtering',
           },

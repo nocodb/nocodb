@@ -26,15 +26,21 @@ const { isSidebarOpen, selectedNode } = useWorkflowOrThrow()
     </div>
 
     <Details v-if="!selectedNode" />
-    <template v-else>
+    <div v-else class="overflow-auto config-wrapper">
       <NodeConfig />
       <NcDivider />
       <TestStep />
       <Result v-if="selectedNode.data?.testResult" />
-    </template>
+    </div>
   </div>
 
   <NcButton v-if="!isSidebarOpen" type="text" size="small" class="!absolute top-4 right-4" @click="isSidebarOpen = true">
     <GeneralIcon icon="ncSidebar" />
   </NcButton>
 </template>
+
+<style scoped lang="scss">
+.config-wrapper {
+  height: calc(100svh - 2 * var(--toolbar-height) - 26px);
+}
+</style>

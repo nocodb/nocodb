@@ -7,16 +7,10 @@ import Installation, {
   LicenseType,
 } from '~/models/Installation';
 import Noco from '~/Noco';
-
-const oldPublicKey = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmvm9e3qSr4r4fgXdbJE6
-9Wkk7LQk/QVvpyCT8/kAWtSPRepeeih+CDlS3szWl2EahctBDPcuWjICIfPnaYXs
-G/KKTNV2Q5orzzYtIAxa7xqyK7/nGHQMHGsVdbAdlLH53DInzcI6oeRijRhMdTNn
-n/Hq1bLjqUQOuL6g8DvY7SV9UolzGtynbURnKpImMZ/N+HCbXX6fCIOxW8rGrTbv
-g51Rsk5P27TppQH0oYnyJDfOwvwlvCPN/SO0l7WbnqZTSRlPx3UsLls5RUIx91RL
-wgB8qNPFuz/58jGESPXWbWNE/uT34px+QDgoew0nk5ZlCc2Uy90u3UM9SFk9ctE2
-fwIDAQAB
------END PUBLIC KEY-----`;
+import {
+  LICENSE_CONFIG,
+  LICENSE_SERVER_OLD_PUBLIC_KEY,
+} from '~/constants/license.constants';
 
 // Request envelope types
 enum AgentRequestType {
@@ -26,7 +20,7 @@ enum AgentRequestType {
 }
 
 enum AgentRequestVersion {
-  V1 = 0,
+  V1 = LICENSE_CONFIG.AGENT_REQUEST_VERSION,
 }
 
 interface AgentRequestEnvelope {
@@ -74,12 +68,14 @@ interface HeartbeatResponse {
 
 @Controller()
 export class OnPremiseController {
-  // Timestamp validation window (5 minutes to prevent replay attacks)
-  private readonly TIMESTAMP_WINDOW_MS = 5 * 60 * 1000;
+  // Timestamp validation window (from shared constants)
+  private readonly TIMESTAMP_WINDOW_MS = LICENSE_CONFIG.TIMESTAMP_WINDOW_MS;
 
-  // Heartbeat intervals
-  private readonly HEARTBEAT_INTERVAL_NORMAL_MS = 10000; // 6 hours
-  private readonly HEARTBEAT_INTERVAL_FAILURE_MS = 1 * 60 * 60 * 1000; // 1 hour
+  // Heartbeat intervals (from shared constants)
+  private readonly HEARTBEAT_INTERVAL_NORMAL_MS =
+    LICENSE_CONFIG.HEARTBEAT_INTERVAL_NORMAL_MS;
+  private readonly HEARTBEAT_INTERVAL_FAILURE_MS =
+    LICENSE_CONFIG.HEARTBEAT_INTERVAL_FAILURE_MS;
 
   constructor() {}
 
@@ -391,7 +387,7 @@ export class OnPremiseController {
       return { valid: false, error: 'License key not found' };
     }
     try {
-      const data: any = jwt.verify(licenseKey, oldPublicKey, {
+      const data: any = jwt.verify(licenseKey, LICENSE_SERVER_OLD_PUBLIC_KEY, {
         algorithms: ['RS256'],
       });
 

@@ -6,19 +6,15 @@ import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { getArrayAggExpression } from '~/helpers/dbHelpers';
 import { InstallationStatus } from '~/models/Installation';
+import {
+  LICENSE_CONFIG,
+  LICENSE_ENV_VARS,
+  LICENSE_SERVER_PUBLIC_KEY,
+} from '~/constants/license.constants';
+import { validateClientLicenseEnvironment } from '~/utils/license-env-validator';
 
 const LICENSE_SERVER_URL =
-  process.env.NC_LICENSE_SERVER_URL || 'http://localhost:8080';
-
-const SERVER_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAodQkNztOFlnvajjcrJYl
-aM5zEyApANuJBaipGgKaXnVWseSEX32x8pqD6CuDS7TXbmsJ7VTRou0bhaCoPi/O
-zYWPLxIoCDwgWkyeFqOJgAzUv0AEx/Z6Ecj12Eu561WeaHvR5CjurmF94q7lrrUl
-uvrnnTxZpHU3Gj7YpFIopSRgmF1KDv/QnrkkS94RhBUQrr56j0j5PXnEsZHNsWRs
-iuw1xDDNsCsonzp81T7zIKVS65v2S5DvuOpesBt2xRbfY1T3ONH8MFZyfmcucdhf
-CmIgS4CsVOV8eBGWsB3JrpmLKQqmApUBW8I1vQgXP5C7FabY5wb9fO+TXsw+4u+o
-mwIDAQAB
------END PUBLIC KEY-----`;
+  process.env[LICENSE_ENV_VARS.LICENSE_SERVER_URL] || 'http://localhost:8080';
 
 interface LicenseData {
   installation_id: string;
@@ -46,9 +42,11 @@ export default class NocoLicense {
   private static licenseData: LicenseData | null = null;
   private static _isExpired: boolean = false;
 
-  // Heartbeat intervals
-  private static readonly HEARTBEAT_INTERVAL_NORMAL_MS = 10000; // 6 hours
-  private static readonly HEARTBEAT_INTERVAL_FAILURE_MS = 1 * 60 * 60 * 1000; // 1 hour
+  // Heartbeat intervals from shared constants
+  private static readonly HEARTBEAT_INTERVAL_NORMAL_MS =
+    LICENSE_CONFIG.HEARTBEAT_INTERVAL_NORMAL_MS;
+  private static readonly HEARTBEAT_INTERVAL_FAILURE_MS =
+    LICENSE_CONFIG.HEARTBEAT_INTERVAL_FAILURE_MS;
   private static currentHeartbeatInterval =
     NocoLicense.HEARTBEAT_INTERVAL_NORMAL_MS;
   private static heartbeatTimer: NodeJS.Timeout | null = null;
@@ -62,14 +60,13 @@ export default class NocoLicense {
    * - Loads cached license data from nc_store
    * - Validates license status
    * - Sends initial heartbeat to license server if needed
+   * @throws {LicenseEnvironmentError} If required environment variables are missing
    */
   public static async init(): Promise<void> {
-    const licenseKey = process.env.NC_LICENSE_KEY;
+    // Validate environment variables
+    validateClientLicenseEnvironment();
 
-    if (!licenseKey) {
-      console.error('NC_LICENSE_KEY not found in environment variables');
-      process.exit(1);
-    }
+    const licenseKey = process.env[LICENSE_ENV_VARS.LICENSE_KEY];
 
     try {
       const ncMeta = Noco.ncMeta;
@@ -112,8 +109,7 @@ export default class NocoLicense {
               this.licenseData.status === InstallationStatus.REVOKED ||
               this.licenseData.status === InstallationStatus.SUSPENDED
             ) {
-              console.error(`License has been ${this.licenseData.status}`);
-              process.exit(1);
+              throw new Error(`License has been ${this.licenseData.status}`);
             }
           } else {
             // JWT invalid/expired - refresh from server
@@ -133,8 +129,9 @@ export default class NocoLicense {
                 ncMeta,
               );
               if (!refreshed) {
-                this.logger.error('Failed to refresh license');
-                process.exit(1);
+                throw new Error(
+                  'Failed to refresh license from server. Please check your license key and network connectivity.',
+                );
               }
             } else {
               this.logger.warn('Could not decode JWT, will re-activate');
@@ -154,10 +151,9 @@ export default class NocoLicense {
         const activated = await this.activateLicense(licenseKey, ncMeta);
 
         if (!activated) {
-          this.logger.error(
+          throw new Error(
             'License activation failed. Please check your license key and ensure the license server is accessible.',
           );
-          process.exit(1);
         }
 
         this.logger.log('License activated successfully');
@@ -167,7 +163,8 @@ export default class NocoLicense {
       this.startHeartbeatTimer();
     } catch (error) {
       this.logger.error(`License validation failed: ${error.message}`);
-      process.exit(1);
+      // Re-throw to let the caller handle the error
+      throw error;
     }
   }
 
@@ -250,8 +247,8 @@ export default class NocoLicense {
     jwtToken: string,
   ): LicenseData | null {
     try {
-      const decoded = jwt.verify(jwtToken, SERVER_PUBLIC_KEY, {
-        algorithms: ['RS256'],
+      const decoded = jwt.verify(jwtToken, LICENSE_SERVER_PUBLIC_KEY, {
+        algorithms: [LICENSE_CONFIG.JWT_ALGORITHM],
       }) as any;
 
       // Return decoded data (without installation_secret - that's not in JWT)

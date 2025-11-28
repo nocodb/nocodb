@@ -11,6 +11,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { LICENSE_CONFIG } from '~/constants/license.constants';
 
 /**
  * Installation status enum representing the lifecycle of an on-premise installation
@@ -796,8 +797,8 @@ mwIDAQAB
       },
       privateKey,
       {
-        algorithm: 'RS256',
-        expiresIn: '2d', // 2 days grace period
+        algorithm: LICENSE_CONFIG.JWT_ALGORITHM,
+        expiresIn: LICENSE_CONFIG.JWT_EXPIRY,
       },
     );
   }

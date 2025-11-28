@@ -8,6 +8,7 @@ import { AuditService } from '~/meta/audit.service';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
 import { Installation } from '~/models';
+import { isLicenseServerEnabled } from '~/utils/license-env-validator';
 
 export default class Noco extends NocoCE {
   protected static initCustomLogger(nestApp: INestApplication) {
@@ -27,7 +28,7 @@ export default class Noco extends NocoCE {
     const res = await super.init(param, httpServer, server);
 
     // Only initialize license server if NC_LICENSE_SERVER_PRIVATE_KEY is provided
-    if (process.env.NC_LICENSE_SERVER_PRIVATE_KEY) {
+    if (isLicenseServerEnabled()) {
       await Installation.initializeLicenseServer(Noco.ncMeta);
     }
 

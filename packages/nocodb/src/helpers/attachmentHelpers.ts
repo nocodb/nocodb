@@ -22,15 +22,15 @@ export const imageMimeTypes = [
   'image/cgm',
   'image/dicom-rle',
   'image/dpx',
-  // 'image/emf',   // windows files, a bit risky
+  'image/emf',
   'image/example',
   'image/fits',
   'image/g3fax',
   'image/gif',
-  // 'image/heic',          // new format with unassessed risks
-  // 'image/heic-sequence', // new format with unassessed risks
-  // 'image/heif',          // new format with unassessed risks
-  // 'image/heif-sequence', // new format with unassessed risks
+  'image/heic',
+  'image/heic-sequence',
+  'image/heif',
+  'image/heif-sequence',
   'image/hej2k',
   'image/hsj2',
   'image/ief',
@@ -44,7 +44,7 @@ export const imageMimeTypes = [
   'image/jphc',
   'image/jpm',
   'image/jpx',
-  // 'image/jxl', // new format with unassessed risks
+  'image/jxl',
   'image/jxr',
   'image/jxrA',
   'image/jxrS',
@@ -97,9 +97,9 @@ export const imageMimeTypes = [
   // 'image/vnd.xiff',
   // 'image/vnd.zbrush.pcx',
   'image/webp',
-  // 'image/wmf',   // windows files, a bit risky
-  // 'image/x-emf', // windows files, a bit risky
-  // 'image/x-wmf', // windows files, a bit risky
+  'image/wmf',
+  'image/x-emf',
+  'image/x-wmf',
 ];
 const previewableMimeTypes = [...imageMimeTypes, 'pdf', 'video', 'audio'];
 

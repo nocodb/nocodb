@@ -2204,38 +2204,6 @@ export async function singleQueryGroupedList(
   // The group column alias (column ID used as alias in extractColumns)
   const groupColumnAlias = getAs(groupColumn);
 
-  // Get the order by columns for the window function
-  // Use column aliases as they appear in the subquery (from extractColumns)
-  // These are the column IDs, which are used as aliases by extractColumns
-  // const orderByExpressions: any[] = [];
-
-  // if (orderColumn && !orderColumn.system) {
-  //   orderByExpressions.push(knex.raw('"__nc_base".??', [getAs(orderColumn)]));
-  //   ast[orderColumn.title] = true;
-  // }
-  //
-  // if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
-  //   orderByExpressions.push(
-  //     knex.raw('"__nc_base".??', [getAs(ctx.model.primaryKey)]),
-  //   );
-  //   ast[ctx.model.primaryKey.title] = true;
-  // } else {
-  //   const createdCol = ctx.model.columns.find(
-  //     (c) => c.uidt === UITypes.CreatedTime && c.system,
-  //   );
-  //   if (createdCol) {
-  //     orderByExpressions.push(knex.raw('"__nc_base".??', [getAs(createdCol)]));
-  //     // add it to ast
-  //     ast[createdCol.title] = true;
-  //   } else if (ctx.model.primaryKey) {
-  //     orderByExpressions.push(
-  //       knex.raw('"__nc_base".??', [getAs(ctx.model.primaryKey)]),
-  //     );
-  //     // add it to ast
-  //     ast[ctx.model.primaryKey.title] = true;
-  //   }
-  // }
-
   // Use extractColumns to handle nested columns/rollups in SQL (like singleQueryList)
   await extractColumns({
     columns,
@@ -2251,49 +2219,16 @@ export async function singleQueryGroupedList(
     apiVersion: ctx.apiVersion,
   });
 
+  // Add a window function column to number rows according to the overall sort order
   qb.select(
     knex.raw(
       `ROW_NUMBER() OVER (${extractedOrderByQuery}) AS "_nc_sort_order"`,
     ),
   );
 
-  // // Apply sort on final query before wrapping in subquery
-  // if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
-  //
-  // if (orderColumn && !orderColumn.system) {
-  //   qb.orderBy(`${ROOT_ALIAS}.${orderColumn.column_name}`);
-  // }
-  // if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
-  //   qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
-  // } else {
-  //   const createdAtColumn = ctx.model.columns.find(
-  //     (c) => c.uidt === UITypes.CreatedTime && c.system,
-  //   );
-  //   if (createdAtColumn) {
-  //     qb.orderBy(`${ROOT_ALIAS}.${createdAtColumn.column_name}`);
-  //   } else if (ctx.model.primaryKey) {
-  //     qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
-  //   }
-  // }
-
   // Create a subquery with window function to number rows within each group
   const baseQuerySql = qb.toQuery();
 
-  // // Extract ORDER BY clause from the main query to reuse in window function
-  // // This ensures the window function uses the exact same ordering logic
-  // let windowOrderByClause = '';
-  // const orderByMatch = baseQuerySql.match(/\sORDER\s+BY\s+([\s\S]+?)(?:\s+LIMIT|\s*$)/i);
-  // if (orderByMatch && orderByMatch[1]) {
-  //   // Replace ROOT_ALIAS with __nc_base to reference columns in the subquery
-  //   // Handle both quoted and unquoted alias references
-  //   const orderBySql = orderByMatch[1]
-  //     .trim()
-  //     .replace(new RegExp(`"${ROOT_ALIAS.replace(/"/g, '')}"\\.`, 'gi'), '__nc_base.')
-  //     .replace(new RegExp(`${ROOT_ALIAS}\\.`, 'gi'), '__nc_base.');
-  //   windowOrderByClause = ` ORDER BY ${orderBySql}`;
-  // }
-  //
-  // Build the group column expression SQL directly with proper quoting
   let groupColumnSql: string;
   const quotedGroupAlias = `"${String(groupColumnAlias).replace(/"/g, '""')}"`;
   if (groupColumn.uidt === UITypes.SingleSelect) {
@@ -2336,9 +2271,9 @@ export async function singleQueryGroupedList(
       }
     })
     .where('__nc_row_num', '<=', limit)
-    .where('__nc_row_num', '>', offset);
-  // .orderBy(groupColumnAlias)
-  // .orderBy('__nc_row_num');
+    .where('__nc_row_num', '>', offset)
+    .orderBy(groupColumnAlias)
+    .orderBy('__nc_row_num');
 
   knex.applyCte(groupedQb);
 

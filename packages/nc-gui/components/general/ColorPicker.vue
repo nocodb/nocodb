@@ -63,9 +63,9 @@ watch(picked, (n, _o) => {
       <div
         v-for="(color, i) of colors.slice((colId - 1) * rowSize, colId * rowSize)"
         :key="`color-${colId}-${i}`"
-        class="p-1 rounded-md flex h-8"
+        class="p-1 rounded-lg flex h-8"
         :class="{
-          'hover:bg-gray-200': isNewDesign,
+          'hover:bg-nc-bg-gray-medium': isNewDesign,
         }"
       >
         <button
@@ -81,12 +81,15 @@ watch(picked, (n, _o) => {
         </button>
       </div>
       <div
-        class="p-1 rounded-md h-8"
+        class="p-1 rounded-lg h-8"
         :class="{
-          'hover:bg-gray-200': isNewDesign,
+          'hover:bg-nc-bg-gray-medium': isNewDesign,
         }"
       >
-        <button class="nc-more-colors-trigger h-6 w-6 border-1 border-gray-400 rounded" @click="isPickerOn = !isPickerOn">
+        <button
+          class="nc-more-colors-trigger h-6 w-6 border-1 border-nc-border-gray-extra-dark rounded"
+          @click="isPickerOn = !isPickerOn"
+        >
           <NcTooltip>
             <template #title>{{ $t('activity.moreColors') }}</template>
             <div class="flex items-center justify-center">
@@ -100,11 +103,11 @@ watch(picked, (n, _o) => {
     <a-card
       v-if="props.advanced"
       class="w-full mt-2"
-      :body-style="{ paddingLeft: '4px !important', paddingRight: '4px !important' }"
+      :body-style="{ paddingLeft: '4px !important', paddingRight: '4px !important', backgroundColor: 'transparent' }"
       :bordered="false"
     >
       <div v-if="isPickerOn" class="flex justify-center">
-        <LazyGeneralChromeWrapper v-model="picked" class="!w-full !shadow-none" />
+        <LazyGeneralChromeWrapper v-model="picked" class="!w-full !shadow-none !bg-transparent" />
       </div>
     </a-card>
   </div>
@@ -112,7 +115,7 @@ watch(picked, (n, _o) => {
 
 <style lansg="scss" scoped>
 .color-picker {
-  @apply flex flex-col items-center justify-center bg-white p-2.5;
+  @apply flex flex-col items-center justify-center bg-nc-bg-default p-2.5;
 }
 .color-picker-row {
   @apply flex flex-row space-x-1;
@@ -120,7 +123,7 @@ watch(picked, (n, _o) => {
 .color-selector {
   @apply h-6 w-6 rounded;
   -webkit-text-stroke-width: 1px;
-  -webkit-text-stroke-color: white;
+  -webkit-text-stroke-color: var(--nc-bg-default);
 }
 .color-selector:hover {
   filter: brightness(90%);
@@ -130,7 +133,7 @@ watch(picked, (n, _o) => {
 .color-selector.selected,
 .nc-more-colors-trigger:focus {
   outline: none;
-  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+  box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px var(--nc-fill-primary-default);
 }
 
 :deep(.vc-chrome-toggle-icon) {

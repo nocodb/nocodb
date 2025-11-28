@@ -53,12 +53,17 @@ watch(
 
 <template>
   <div>
-    <a-dropdown v-model:visible="isOpen" :trigger="['click']" :disabled="readonly">
+    <a-dropdown
+      v-model:visible="isOpen"
+      :trigger="['click']"
+      :disabled="readonly"
+      overlay-class-name="nc-base-icon-color-picker-dropdown overflow-hidden max-w-[342px] relative"
+    >
       <div
         class="flex flex-row justify-center items-center select-none rounded nc-base-icon-picker-trigger"
         :class="{
-          'hover:bg-gray-500 hover:bg-opacity-15 cursor-pointer': !readonly,
-          'bg-gray-500 bg-opacity-15': isOpen,
+          'hover:bg-nc-gray-500 dark:hover:bg-nc-bg-gray-dark hover:bg-opacity-15 cursor-pointer': !readonly,
+          'bg-gray-500 dark:bg-nc-bg-gray-dark bg-opacity-15': isOpen,
           'h-5 w-5 text-base': size === 'xsmall',
           'h-6 w-6 text-lg': size === 'small',
           'h-8 w-8 text-xl': size === 'medium',
@@ -77,18 +82,14 @@ watch(
       </div>
 
       <template #overlay>
-        <div
-          class="nc-base-icon-color-picker-dropdown relative bg-white rounded-lg border-1 border-gray-200 overflow-hidden max-w-[342px]"
-        >
-          <div class="flex justify-start">
-            <GeneralColorPicker
-              :model-value="colorRef"
-              :colors="baseIconColors"
-              :is-new-design="true"
-              class="nc-base-icon-color-picker"
-              @input="updateIconColor"
-            />
-          </div>
+        <div class="flex justify-start">
+          <GeneralColorPicker
+            :model-value="colorRef"
+            :colors="baseIconColors"
+            :is-new-design="true"
+            class="nc-base-icon-color-picker"
+            @input="updateIconColor"
+          />
         </div>
       </template>
     </a-dropdown>
@@ -98,5 +99,11 @@ watch(
 <style lang="scss" scoped>
 .nc-base-icon-color-picker-dropdown {
   box-shadow: 0px 8px 8px -4px #0000000a, 0px 20px 24px -4px #0000001a;
+}
+</style>
+
+<style lang="scss">
+.nc-base-icon-color-picker-dropdown {
+  @apply rounded-lg border-1 border-nc-border-gray-medium;
 }
 </style>

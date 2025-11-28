@@ -160,18 +160,18 @@ const columns = [
           class="nc-acl-search nc-input-border-on-value !w-[400px] nc-input-sm"
         >
           <template #prefix>
-            <component :is="iconMap.search" class="text-gray-600" />
+            <component :is="iconMap.search" class="text-nc-content-gray-subtle2" />
           </template>
         </a-input>
-        <div class="flex">
-          <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
-            <div class="flex items-center gap-2 text-gray-600 font-light">
+        <div class="flex items-center gap-2.5">
+          <NcButton type="text" size="small" class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
+            <div class="flex items-center gap-2 text-nc-content-gray-subtle2 font-light">
               <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
               {{ $t('general.reload') }}
             </div>
-          </a-button>
+          </NcButton>
 
-          <NcButton size="large" class="z-10 !rounded-lg !px-2 mr-2.5" type="primary" @click="saveUIAcl">
+          <NcButton size="small" class="z-10 !rounded-lg !px-2" type="primary" @click="saveUIAcl">
             <div class="flex flex-row items-center w-full gap-x-1">
               <component :is="iconMap.save" />
               <div class="flex">{{ $t('general.save') }}</div>
@@ -213,7 +213,7 @@ const columns = [
                 <GeneralTableIcon
                   size="xsmall"
                   :meta="{ meta: record.table_meta, type: record.ptype, synced: record.synced }"
-                  class="text-gray-500"
+                  class="text-nc-content-gray-muted"
                 />
               </div>
 
@@ -229,9 +229,9 @@ const columns = [
                 <GeneralTableIcon
                   v-if="record?.meta?.icon"
                   :meta="{ meta: record.meta, type: 'view' }"
-                  class="text-gray-500 !text-sm children:(!w-5 !h-5)"
+                  class="text-nc-content-gray-muted !text-sm children:(!w-5 !h-5)"
                 />
-                <GeneralViewIcon v-else :meta="record" class="text-gray-500"></GeneralViewIcon>
+                <GeneralViewIcon v-else :meta="record" class="text-nc-content-gray-muted"></GeneralViewIcon>
               </div>
               <NcTooltip class="truncate" show-on-truncate-only>
                 <template #title>{{ record.title }}</template>

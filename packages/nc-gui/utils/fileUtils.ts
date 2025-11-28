@@ -81,6 +81,24 @@ const isVideo = (name: string, mimetype?: string) => {
 }
 
 const isImage = (name: string, mimetype?: string) => {
+  if (
+    mimetype &&
+    (mimetype?.startsWith('image/vnd.') ||
+      [
+        'image/heic',
+        'image/heic-sequence',
+        'image/heif',
+        'image/heif-sequence',
+        'image/jxl',
+        'image/emf',
+        'image/wmf',
+        'image/x-emf',
+        'image/x-wmf',
+        'image/svg+xml',
+      ].includes(mimetype))
+  ) {
+    return false
+  }
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
 }
 

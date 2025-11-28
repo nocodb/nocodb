@@ -5,6 +5,8 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { isDark } = useTheme()
+
 const route = useRoute()
 
 const workspaceStore = useWorkspace()
@@ -225,8 +227,9 @@ watch(
         isLimitReached
           ? {}
           : {
-              background:
-                'conic-gradient(from 180deg at 50% 50%, #BBCBF6 0deg, #F4E0F7 48deg, #EBDAF8 130deg, #C8CFFA 178deg, #E1E1F7 232deg, #A3D1F9 332deg, #BBCBF6 360deg)',
+              background: isDark
+                ? 'conic-gradient( from 180deg at 50% 50%, #2A3A73 0deg, #4A2D59 48deg, #3E2A62 130deg, #2F3668 178deg, #343459 232deg, #1F4A6A 332deg, #2A3A73 360deg)'
+                : 'conic-gradient(from 180deg at 50% 50%, #BBCBF6 0deg, #F4E0F7 48deg, #EBDAF8 130deg, #C8CFFA 178deg, #E1E1F7 232deg, #A3D1F9 332deg, #BBCBF6 360deg)',
             }
       "
     >
@@ -235,13 +238,18 @@ watch(
 
         <div
           class="nc-upgrade-sidebar-banner w-full transition-all duration-250 ease-in-out overflow-hidden"
+          :class="{
+            'nc-dark': isDark,
+          }"
           :style="
             isLimitReached
               ? {
                   height: contentRefHeight ? `${contentRefHeight + 32}px` : undefined,
                 }
               : {
-                  background: 'linear-gradient(to bottom left, #ec7db1, #85a3ff)',
+                  background: isDark
+                    ? 'linear-gradient(to bottom left, #6a3a59, #2a3f73)'
+                    : 'linear-gradient(to bottom left, #ec7db1, #85a3ff)',
                   height: contentRefHeight ? `${contentRefHeight + 32}px` : undefined,
                 }
           "
@@ -328,6 +336,12 @@ watch(
       &:before {
         @apply content-[''] block absolute inset-0 rounded-xl -z-1;
         background: linear-gradient(90deg, #faf6fe 0%, #e6f3fe 70.19%, #f1f6fe 100%);
+      }
+
+      &.nc-dark {
+        &:before {
+          background: linear-gradient(90deg, #2a2233 0%, #1c2a38 70.19%, #242b33 100%);
+        }
       }
     }
   }

@@ -113,7 +113,7 @@ watch(picked, (n, _o) => {
   </div>
 </template>
 
-<style lansg="scss" scoped>
+<style lang="scss" scoped>
 .color-picker {
   @apply flex flex-col items-center justify-center bg-nc-bg-default p-2.5;
 }

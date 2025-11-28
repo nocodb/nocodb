@@ -2080,7 +2080,7 @@ onKeyStroke('ArrowDown', onDown)
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
-                      :overlay-class-name="`nc-dropdown-add-column ${addColumnDropdown ? 'rounded-2xl': ''}`"
+                      :overlay-class-name="`nc-dropdown-add-column ${addColumnDropdown ? 'rounded-2xl' : ''}`"
                       @visible-change="onVisibilityChange"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">

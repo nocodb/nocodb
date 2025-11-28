@@ -9,6 +9,7 @@ import { getAffectedColumns } from '~/helpers/webhookHelpers';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
+import { DataV3Service } from '~/services/v3/data-v3.service';
 
 export { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
 
@@ -20,6 +21,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
     @Inject('IEventEmitter') protected readonly eventEmitter: IEventEmitter,
     @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly mailService: MailService,
+    private readonly datasV3Service: DataV3Service,
   ) {
     super(eventEmitter, jobsService, mailService);
   }
@@ -88,62 +90,137 @@ export class HookHandlerService extends HookHandlerServiceCE {
 
     try {
       let triggerType: string | null = null;
-      let triggerInputs: any = {};
 
-      if (hookName === 'after.insert') {
+      if (hookName === 'after.insert' || hookName === 'after.bulkInsert') {
         triggerType = 'nocodb.trigger.after_insert';
-        triggerInputs = {
-          newData,
-          user,
-          timestamp: new Date().toISOString(),
-        };
-      } else if (hookName === 'after.update') {
+      } else if (
+        hookName === 'after.update' ||
+        hookName === 'after.bulkUpdate'
+      ) {
         triggerType = 'nocodb.trigger.after_update';
-
-        // Get affected columns for update triggers
-        const model = await Model.get(context, modelId);
-        const affectedColumns = await getAffectedColumns(context, {
-          hookName,
-          prevData,
-          newData,
-          model,
-        });
-
-        triggerInputs = {
-          prevData,
-          newData,
-          user,
-          timestamp: new Date().toISOString(),
-          affectedColumns,
-        };
+      } else if (
+        hookName === 'after.delete' ||
+        hookName === 'after.bulkDelete'
+      ) {
+        triggerType = 'nocodb.trigger.after_delete';
       }
 
-      // If we have a trigger type, find and execute matching workflows
-      // TODO: use DependencyTracker in future
-      if (triggerType) {
-        const workflows = await Workflow.findByTrigger(
-          context,
-          triggerType,
-          modelId,
-        );
+      if (!triggerType) {
+        return;
+      }
 
-        this.logger.log(
-          `Found ${workflows.length} workflows for trigger ${triggerType} on model ${modelId}`,
-        );
+      const model = await Model.get(context, modelId);
+      await model.getColumns(context);
 
+      const newDataArray = Array.isArray(newData) ? newData : [newData];
+      const prevDataArray = Array.isArray(prevData)
+        ? prevData
+        : prevData
+        ? [prevData]
+        : [];
+
+      const workflows = await Workflow.findByTrigger(
+        context,
+        triggerType,
+        modelId,
+      );
+
+      if (workflows.length === 0) {
+        return;
+      }
+
+      for (let i = 0; i < newDataArray.length; i++) {
+        const currentNewData = newDataArray[i];
+        const currentPrevData = prevDataArray[i];
+
+        let triggerInputs: any = {};
+
+        if (hookName === 'after.insert' || hookName === 'after.bulkInsert') {
+          const transformedData =
+            await this.datasV3Service.transformRecordsToV3Format({
+              context,
+              records: [currentNewData],
+              primaryKey: model.primaryKey,
+              primaryKeys: model.primaryKeys,
+              columns: model.columns,
+              reuse: {},
+              depth: 0,
+            });
+
+          triggerInputs = {
+            newData: transformedData[0],
+            user,
+            timestamp: new Date().toISOString(),
+          };
+        } else if (
+          hookName === 'after.update' ||
+          hookName === 'after.bulkUpdate'
+        ) {
+          const affectedColumns = await getAffectedColumns(context, {
+            hookName,
+            prevData: currentPrevData,
+            newData: currentNewData,
+            model,
+          });
+
+          const transformedNewData =
+            await this.datasV3Service.transformRecordsToV3Format({
+              context,
+              records: [currentNewData],
+              primaryKey: model.primaryKey,
+              primaryKeys: model.primaryKeys,
+              columns: model.columns,
+              reuse: {},
+              depth: 0,
+            });
+
+          const transformedPrevData =
+            await this.datasV3Service.transformRecordsToV3Format({
+              context,
+              records: [currentPrevData],
+              primaryKey: model.primaryKey,
+              primaryKeys: model.primaryKeys,
+              columns: model.columns,
+              reuse: {},
+              depth: 0,
+            });
+
+          triggerInputs = {
+            prevData: transformedPrevData[0],
+            newData: transformedNewData[0],
+            user,
+            timestamp: new Date().toISOString(),
+            affectedColumns,
+          };
+        } else if (
+          hookName === 'after.delete' ||
+          hookName === 'after.bulkDelete'
+        ) {
+          const transformedData =
+            await this.datasV3Service.transformRecordsToV3Format({
+              context,
+              records: [currentNewData],
+              primaryKey: model.primaryKey,
+              primaryKeys: model.primaryKeys,
+              columns: model.columns,
+              reuse: {},
+              depth: 0,
+            });
+
+          triggerInputs = {
+            record: transformedData[0],
+            user,
+            timestamp: new Date().toISOString(),
+          };
+        }
         for (const workflow of workflows) {
           try {
-            // Queue workflow execution job
             await this.jobsService.add(JobTypes.ExecuteWorkflow, {
               context,
               workflowId: workflow.id,
               triggerInputs,
               user,
             });
-
-            this.logger.log(
-              `Queued workflow ${workflow.id} (${workflow.title}) for execution`,
-            );
           } catch (e) {
             this.logger.error({
               error: e,

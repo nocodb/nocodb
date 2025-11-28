@@ -17,7 +17,6 @@ export class ExecuteWorkflowProcessor {
     const { context, workflowId, triggerNodeId, triggerInputs } = job.data;
 
     try {
-      // Get the workflow
       const workflow = await Workflow.get(context, workflowId);
 
       if (!workflow) {
@@ -32,7 +31,6 @@ export class ExecuteWorkflowProcessor {
         return;
       }
 
-      // Execute the workflow with trigger inputs
       await this.workflowExecutionService.executeWorkflow(
         context,
         workflow,

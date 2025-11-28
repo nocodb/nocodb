@@ -26,15 +26,10 @@ export class DependencyService {
 
     const breakingChanges = await DependencyTracker.checkBreakingChanges(
       context,
-      sourceType as any,
-      entityId,
-    );
-
-    const detailedDeps = await DependencyTracker.getDependentsBySource(
-      context,
-      sourceType as any,
-      entityId,
-      undefined,
+      {
+        sourceType: sourceType as any,
+        sourceId: entityId,
+      },
     );
 
     const dependencies: any = {
@@ -46,7 +41,7 @@ export class DependencyService {
     const dashboardIds = new Set<string>();
     const workflowIds = new Set<string>();
 
-    for (const dep of detailedDeps) {
+    for (const dep of breakingChanges.dependents) {
       if (dep.dependent_type === DependencyTableType.Widget) {
         const widget = await Widget.get(context, dep.dependent_id);
         if (widget?.fk_dashboard_id) {

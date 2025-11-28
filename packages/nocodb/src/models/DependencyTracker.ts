@@ -60,26 +60,6 @@ export default class DependencyTracker implements DependencyTrackerType {
   }
 
   /**
-   * Internal: Extract queryable fields from dependency info based on dependent type
-   */
-  private static extractQueryableFields(
-    dependentType: DependencyTableType,
-    item: DependencyInfo,
-  ): Record<string, any> {
-    return dependencySlotMapper.extractSlotFields(dependentType, item);
-  }
-
-  /**
-   * Internal: Hydrate queryable fields back to logical names
-   */
-  private static hydrateQueryableFields(
-    dependentType: DependencyTableType,
-    record: any,
-  ): Record<string, any> {
-    return dependencySlotMapper.hydrateSlotFields(dependentType, record);
-  }
-
-  /**
    * Track dependencies - type-safe overloads
    */
   public static async trackDependencies(
@@ -89,6 +69,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     dependencies: WidgetDependencies,
     ncMeta?: any,
   ): Promise<void>;
+
   public static async trackDependencies(
     context: NcContext,
     dependentType: DependencyTableType.Workflow,
@@ -96,6 +77,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     dependencies: WorkflowDependencies,
     ncMeta?: any,
   ): Promise<void>;
+
   public static async trackDependencies(
     context: NcContext,
     dependentType: DependencyTableType,
@@ -112,7 +94,10 @@ export default class DependencyTracker implements DependencyTrackerType {
       type: DependencyTableType;
     }> = [
       { key: 'columns', type: DependencyTableType.Column },
-      { key: 'models', type: DependencyTableType.Model },
+      {
+        key: 'models',
+        type: DependencyTableType.Model,
+      },
       { key: 'views', type: DependencyTableType.View },
     ];
 
@@ -181,6 +166,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     },
     ncMeta?: any,
   ): Promise<DependencyTrackerType[]>;
+
   public static async getDependentsBySource(
     context: NcContext,
     sourceType: DependencyTableType,
@@ -240,13 +226,19 @@ export default class DependencyTracker implements DependencyTrackerType {
    */
   public static async checkBreakingChanges(
     context: NcContext,
-    sourceType: DependencyTableType,
-    sourceId: string,
+    {
+      sourceType,
+      sourceId,
+    }: {
+      sourceType: DependencyTableType;
+      sourceId: string;
+    },
     ncMeta = Noco.ncMeta,
   ): Promise<{
     hasBreakingChanges: boolean;
     affectedWidgets: string[];
     affectedWorkflows: string[];
+    dependents: DependencyTrackerType[];
   }> {
     const dependents = await this.getDependentsBySource(
       context,
@@ -271,6 +263,7 @@ export default class DependencyTracker implements DependencyTrackerType {
       hasBreakingChanges: dependents.length > 0,
       affectedWidgets: Array.from(widgets),
       affectedWorkflows: Array.from(workflows),
+      dependents,
     };
   }
 
@@ -284,13 +277,19 @@ export default class DependencyTracker implements DependencyTrackerType {
     maxDepth: number = 10,
     ncMeta = Noco.ncMeta,
   ): Promise<
-    Array<DependencyTrackerType & { depth: number; dependencyPath: string[] }>
+    Array<
+      DependencyTrackerType & {
+        depth: number;
+        dependencyPath: string[];
+      }
+    >
   > {
     const visited = new Set<string>();
     const result: Array<
       DependencyTrackerType & { depth: number; dependencyPath: string[] }
     > = [];
 
+    // FIXME:recursive CTE for optimization
     const createKey = (type: DependencyTableType, id: string) =>
       `${type}:${id}`;
 
@@ -430,5 +429,25 @@ export default class DependencyTracker implements DependencyTrackerType {
       affectedViews: Array.from(views.values()),
       totalAffected: transitiveDeps.length,
     };
+  }
+
+  /**
+   * Internal: Extract queryable fields from dependency info based on dependent type
+   */
+  private static extractQueryableFields(
+    dependentType: DependencyTableType,
+    item: DependencyInfo,
+  ): Record<string, any> {
+    return dependencySlotMapper.extractSlotFields(dependentType, item);
+  }
+
+  /**
+   * Internal: Hydrate queryable fields back to logical names
+   */
+  private static hydrateQueryableFields(
+    dependentType: DependencyTableType,
+    record: any,
+  ): Record<string, any> {
+    return dependencySlotMapper.hydrateSlotFields(dependentType, record);
   }
 }

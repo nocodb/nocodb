@@ -206,7 +206,6 @@ export class GaugeCommonHandler extends BaseWidgetHandler<GaugeWidgetType> {
       });
     }
 
-
     return dependencies;
   }
 }

@@ -219,7 +219,6 @@ export class CircularChartCommonHandler extends BaseWidgetHandler<ChartWidgetTyp
       }
     }
 
-
     return dependencies;
   }
 }

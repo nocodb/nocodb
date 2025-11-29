@@ -272,3 +272,53 @@ export const SCHEMA_HRIS: SyncSchema = {
     ],
   },
 };
+
+export interface  HrisEmployeeRecord extends SyncRecord {
+  'Remote Id': SyncValue<string>;
+  'Employee Number': SyncValue<string>;
+  'Company': SyncValue<string>;
+  'First Name': SyncValue<string>;
+  'Last Name': SyncValue<string>;
+  'Preferred Name': SyncValue<string>;
+  'Display Full Name': SyncValue<string>;
+  'Username': SyncValue<string>;
+  // TODO: Groups is link, need to revisit later
+  'Groups': SyncValue<string[]>;
+  'Work Email': SyncValue<string>;
+  'Personal Email': SyncValue<string>;
+  'Mobile Phone Number': SyncValue<string>;
+  // TODO: Employments is link, need to revisit later
+  'Employments': SyncValue<string[]>;
+  'Home Location': SyncValue<string>;
+  'Work Location': SyncValue<string>;
+  // TODO: Manager is link, need to revisit later
+  'Manager': SyncValue<string>;
+  'Team': SyncValue<string>;
+  'Pay Group': SyncValue<string>;
+  'Ssn': SyncValue<string>;
+  'Gender': SyncValue<string>;
+  'Ethnicity': SyncValue<string>;
+  'Marital Status': SyncValue<string>;
+  'Date Of Birth': SyncValue<string>;
+  'Hire Date': SyncValue<string>;
+  'Start Date': SyncValue<string>;
+  'Remote Created At': SyncValue<string>;
+  'Employment Status': SyncValue<string>;
+  'Termination Date': SyncValue<string>;
+  'Avatar': SyncValue<string>;
+  'Remote Data': SyncValue<string>;
+};
+
+export interface HrisEmploymentRecord extends SyncRecord {
+  'Remote Id': SyncValue<string>;
+  'Job Title': SyncValue<string>;
+  'Pay Rate': SyncValue<string>;
+  'Pay Period': SyncValue<string>;
+  'Pay Frequency': SyncValue<string>;
+  'Pay Currency': SyncValue<string>;
+  'Pay Group': SyncValue<string>;
+  'Flsa Status': SyncValue<string>;
+  'Effective Date': SyncValue<string>;
+  'Employment Type': SyncValue<string>;
+  'Remote Data': SyncValue<string>;
+}

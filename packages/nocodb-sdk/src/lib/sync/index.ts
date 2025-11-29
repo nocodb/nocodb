@@ -197,7 +197,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_BANK_INFO]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_BANK_INFO,
     icon: 'ncDatabase',
     label: 'HR - Bank Info',
@@ -205,7 +205,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_BENEFIT]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_BENEFIT,
     icon: 'ncDatabase',
     label: 'HR - Benefit',
@@ -213,7 +213,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_COMPANY]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_COMPANY,
     icon: 'ncDatabase',
     label: 'HR - Company',
@@ -221,7 +221,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_DEPENDENT]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_DEPENDENT,
     icon: 'ncUsers',
     label: 'HR - Dependent',
@@ -229,7 +229,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_EMPLOYEE]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_EMPLOYEE,
     icon: 'ncUsers',
     label: 'HR - Employee',
@@ -237,7 +237,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_EMPLOYEE_PAYROLL_RUN]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_EMPLOYEE_PAYROLL_RUN,
     icon: 'ncDatabase',
     label: 'HR - Employee Payroll Run',
@@ -253,7 +253,7 @@ export const TARGET_TABLES_META = {
   //   required: false,
   // },
   [TARGET_TABLES.HRIS_EMPLOYMENT]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_EMPLOYMENT,
     icon: 'ncDatabase',
     label: 'HR - Employment',
@@ -261,7 +261,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_GROUP]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_GROUP,
     icon: 'ncUsers',
     label: 'HR - Group',
@@ -269,7 +269,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_LOCATION]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_LOCATION,
     icon: 'ncDatabase',
     label: 'HR - Location',
@@ -277,7 +277,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_PAY_GROUP]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_PAY_GROUP,
     icon: 'ncDatabase',
     label: 'HR - Pay Group',
@@ -285,7 +285,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_PAYROLL_RUN]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_PAYROLL_RUN,
     icon: 'ncDatabase',
     label: 'HR - Payroll Run',
@@ -293,7 +293,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_TIME_OFF]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_TIME_OFF,
     icon: 'ncDatabase',
     label: 'HR - Time Off',
@@ -301,7 +301,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_TIME_OFF_BALANCE]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_TIME_OFF_BALANCE,
     icon: 'ncDatabase',
     label: 'HR - Time Off Balance',
@@ -309,7 +309,7 @@ export const TARGET_TABLES_META = {
     required: false,
   },
   [TARGET_TABLES.HRIS_TIMESHEET_ENTRY]: {
-    category: SyncCategory.CUSTOM,
+    category: SyncCategory.HRIS,
     value: TARGET_TABLES.HRIS_TIMESHEET_ENTRY,
     icon: 'ncDatabase',
     label: 'HR - Timesheet Entry',

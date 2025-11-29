@@ -12,7 +12,7 @@ export interface SyncIntegrationConfig {
 }
 
 export const useSyncStore = defineStore('sync', () => {
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const bases = useBases()
 
@@ -120,6 +120,12 @@ export const useSyncStore = defineStore('sync', () => {
 
       await loadProjectTables(baseId, true)
 
+      $e('a:sync:create', {
+        sync_type: data.sync_type,
+        sync_category: data.sync_category,
+        sources: data.configs?.length || 0,
+      })
+
       return created as { job: { id: string } }
     } catch (error) {
       console.error('Error creating sync:', error)
@@ -155,6 +161,11 @@ export const useSyncStore = defineStore('sync', () => {
         }
       }
 
+      $e('a:sync:update', {
+        sync_type: result.syncConfig?.sync_type,
+        sync_category: result.syncConfig?.sync_category,
+      })
+
       return result
     } catch (error) {
       console.error('Error updating sync:', error)
@@ -184,6 +195,9 @@ export const useSyncStore = defineStore('sync', () => {
         curentBaseSyncs.splice(index, 1)
         baseSyncs.value.set(baseId, curentBaseSyncs)
       }
+
+      $e('a:sync:delete')
+
       return true
     } catch (error) {
       console.error('Error deleting sync:', error)
@@ -207,6 +221,8 @@ export const useSyncStore = defineStore('sync', () => {
           bulk,
         },
       )
+
+      $e('a:sync:trigger')
 
       return syncData as { id: string }
     } catch (error) {

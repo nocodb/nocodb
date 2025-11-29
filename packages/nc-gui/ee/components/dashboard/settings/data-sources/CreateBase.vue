@@ -659,8 +659,8 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
               @click="testConnection()"
             >
               <template #icon>
-                <GeneralIcon v-if="testSuccess && false" icon="circleCheckSolid" class="!text-green-700 w-4 h-4" />
-                <GeneralIcon v-else-if="testConnectionError || true" icon="alertTriangleSolid" class="!text-red-700 w-4 h-4" />
+                <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4" />
+                <GeneralIcon v-else-if="testConnectionError" icon="alertTriangleSolid" class="!text-red-700 w-4 h-4" />
               </template>
 
               <span>

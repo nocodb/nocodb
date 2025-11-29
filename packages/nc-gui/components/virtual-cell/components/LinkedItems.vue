@@ -492,7 +492,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
         </div>
       </div>
 
-      <div class="nc-dropdown-link-record-footer bg-nc-bg-gray-light p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11">
+      <div
+        class="nc-dropdown-link-record-footer bg-nc-bg-gray-light p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11"
+      >
         <div class="flex items-center gap-2">
           <PermissionsTooltip
             v-if="

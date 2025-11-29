@@ -1585,8 +1585,6 @@ export class ImportService {
             param.req,
           );
           if (!vw) return;
-          const filterPromises: (() => Promise<void>)[] = [];
-          const sortPromises: (() => Promise<void>)[] = [];
 
           idMap.set(view.id, vw.id);
 
@@ -1594,40 +1592,32 @@ export class ImportService {
           const filters = view.filter.children;
 
           for (const fl of filters) {
-            filterPromises.push(async () => {
-              const fg = await this.filtersService.filterCreate(targetContext, {
-                viewId: vw.id,
-                filter: withoutId({
-                  ...fl,
-                  fk_parent_column_id: getIdOrExternalId(
-                    fl.fk_parent_column_id,
-                  ),
-                  fk_column_id: getIdOrExternalId(fl.fk_column_id),
-                  fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
-                }),
-                user: param.user,
-                req: param.req,
-              });
-
-              idMap.set(fl.id, fg.id);
+            const fg = await this.filtersService.filterCreate(targetContext, {
+              viewId: vw.id,
+              filter: withoutId({
+                ...fl,
+                fk_parent_column_id: getIdOrExternalId(fl.fk_parent_column_id),
+                fk_column_id: getIdOrExternalId(fl.fk_column_id),
+                fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
+              }),
+              user: param.user,
+              req: param.req,
             });
+
+            idMap.set(fl.id, fg.id);
           }
 
           // create sorts
           for (const sr of view.sorts) {
-            sortPromises.push(async () => {
-              await this.sortsService.sortCreate(targetContext, {
-                viewId: vw.id,
-                sort: withoutId({
-                  ...sr,
-                  fk_column_id: getIdOrExternalId(sr.fk_column_id),
-                }),
-                req: param.req,
-              });
+            await this.sortsService.sortCreate(targetContext, {
+              viewId: vw.id,
+              sort: withoutId({
+                ...sr,
+                fk_column_id: getIdOrExternalId(sr.fk_column_id),
+              }),
+              req: param.req,
             });
           }
-          await Promise.all(filterPromises.map((handle) => handle()));
-          await Promise.all(sortPromises.map((handle) => handle()));
 
           // update view columns
           const vwColumns = await this.viewColumnsService.columnList(

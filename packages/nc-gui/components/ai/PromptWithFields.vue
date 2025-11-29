@@ -304,11 +304,11 @@ useEventListener(el, 'focusPromptWithFields', () => {
   }
 
   .prompt-field-tag {
-    @apply bg-gray-100 rounded-md px-1 align-middle;
+    @apply bg-nc-bg-gray-light rounded-md px-1 align-middle;
   }
 
   .ProseMirror {
-    @apply px-3 pb-3 pt-2 h-[120px] min-h-[120px] overflow-y-auto nc-scrollbar-thin outline-none border-1 border-gray-200 bg-white text-nc-content-gray rounded-lg !rounded-b-none transition-shadow ease-linear -mx-[1px] -mt-[1px];
+    @apply px-3 pb-3 pt-2 h-[120px] min-h-[120px] overflow-y-auto nc-scrollbar-thin outline-none border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-gray rounded-lg !rounded-b-none transition-shadow ease-linear -mx-[1px] -mt-[1px];
     resize: vertical;
     min-width: 100%;
     max-height: min(800px, calc(100vh - 200px)) !important;
@@ -323,7 +323,7 @@ useEventListener(el, 'focusPromptWithFields', () => {
   }
 
   .tiptap p.is-editor-empty:first-child::before {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
     content: attr(data-placeholder);
     white-space: pre-line; /* Preserve line breaks */
     float: left;

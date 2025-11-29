@@ -18,6 +18,7 @@ export enum OnDeleteAction {
 
 export enum SyncCategory {
   TICKETING = 'ticketing',
+  HRIS = 'hris',
   CRM = 'crm',
   FILE_STORAGE = 'file_storage',
   CUSTOM = 'custom',
@@ -109,6 +110,12 @@ export const SyncCategoryMeta = {
     label: 'Ticketing',
     description: 'Sync issues, tickets, and related activity.',
     icon: 'ncClipboard',
+  },
+  [SyncCategory.HRIS]: {
+    value: SyncCategory.HRIS,
+    label: 'HRIS',
+    description: 'Sync employees, leaves and timesheet.',
+    icon: 'ncUsers',
   },
   [SyncCategory.CRM]: {
     value: SyncCategory.CRM,

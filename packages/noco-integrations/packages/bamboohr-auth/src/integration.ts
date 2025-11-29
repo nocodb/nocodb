@@ -5,6 +5,7 @@ import {
   createAxiosInstance,
 } from '@noco-integrations/core';
 import { clientId, clientSecret, redirectUri, tokenUri } from './config';
+import { APP_LABEL } from './constant';
 import type { RateLimitOptions } from '@noco-integrations/core';
 import type { BambooHRAuthConfig } from './types';
 import type { TestConnectionResponse } from '@noco-integrations/core';

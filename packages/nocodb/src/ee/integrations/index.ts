@@ -5,6 +5,8 @@
 
 import AmazonBedrockAi from '@noco-local-integrations/amazon-bedrock-ai';
 import AzureAi from '@noco-local-integrations/azure-ai';
+import BamboohrAuth from '@noco-local-integrations/bamboohr-auth';
+import BamboohrSync from '@noco-local-integrations/bamboohr-sync';
 import BitbucketAuth from '@noco-local-integrations/bitbucket-auth';
 import BitbucketSync from '@noco-local-integrations/bitbucket-sync';
 import ChatwootAuth from '@noco-local-integrations/chatwoot-auth';
@@ -42,6 +44,8 @@ import type { IntegrationEntry } from '@noco-local-integrations/core';
 export default [
   ...(Array.isArray(AmazonBedrockAi) ? AmazonBedrockAi : [AmazonBedrockAi]),
   ...(Array.isArray(AzureAi) ? AzureAi : [AzureAi]),
+  ...(Array.isArray(BamboohrAuth) ? BamboohrAuth : [BamboohrAuth]),
+  ...(Array.isArray(BamboohrSync) ? BamboohrSync : [BamboohrSync]),
   ...(Array.isArray(BitbucketAuth) ? BitbucketAuth : [BitbucketAuth]),
   ...(Array.isArray(BitbucketSync) ? BitbucketSync : [BitbucketSync]),
   ...(Array.isArray(ChatwootAuth) ? ChatwootAuth : [ChatwootAuth]),

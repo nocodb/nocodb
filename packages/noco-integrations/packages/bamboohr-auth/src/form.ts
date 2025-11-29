@@ -4,6 +4,7 @@ import {
 } from '@noco-integrations/core';
 import { AuthType } from '@noco-integrations/core';
 import { authUri, clientId, redirectUri, scopes } from './config';
+import { APP_LABEL } from './constant';
 import type { FormDefinition } from '@noco-integrations/core';
 
 export const form: FormDefinition = [

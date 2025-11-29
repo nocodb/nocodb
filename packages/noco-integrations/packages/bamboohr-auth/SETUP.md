@@ -1,14 +1,14 @@
-# Bamboo HR Auth Integration Setup
+# BambooHR Auth Integration Setup
 
-This document provides instructions for setting up the Bamboo HR authentication integration for NocoDB.
+This document provides instructions for setting up the BambooHR authentication integration for NocoDB.
 
 ## Environment Variables
 
-To enable OAuth2 authentication with Bamboo HR, you need to configure the following environment variables.
+To enable OAuth2 authentication with BambooHR, you need to configure the following environment variables.
 
 ---
 
-## Step 1: Create a Bamboo HR OAuth Consumer
+## Step 1: Create a BambooHR OAuth Consumer
 
 1. Create an account at BambooHR's [developer portal](https://developers.bamboohr.com/login)
 2. Create an application in the developer portal to get a client ID and secret
@@ -20,7 +20,7 @@ To enable OAuth2 authentication with Bamboo HR, you need to configure the follow
 
 After creating your OAuth consumer:
 
-1. On your developer application page, Bamboo HR will display:
+1. On your developer application page, BambooHR will display:
    * **Key** → Client ID
    * **Secret** → Client Secret
 2. Copy both values
@@ -40,9 +40,9 @@ INTEGRATION_AUTH_BAMBOOHR_REDIRECT_URI=your_redirect_uri
 
 Where:
 
-* `your_bamboohr_client_id` → The **Key (Client ID)** from Bamboo HR
+* `your_bamboohr_client_id` → The **Key (Client ID)** from BambooHR
 * `your_bamboohr_client_secret` → The **Secret (Client Secret)**
-* `your_redirect_uri` → The callback URL used in the OAuth consumer. Use the one that's added at Bamboo HR developer application page
+* `your_redirect_uri` → The callback URL used in the OAuth consumer. Use the one that's added at BambooHR developer application page
 * 
   (e.g., `https://your-nocodb-instance.com/`).
 
@@ -50,7 +50,7 @@ Where:
 
 ## OAuth Scopes Requested
 
-The integration will request these Bamboo HR scopes:
+The integration will request these BambooHR scopes:
 
 // TODO: filter unused oauth scopes
 

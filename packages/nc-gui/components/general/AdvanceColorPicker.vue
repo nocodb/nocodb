@@ -120,7 +120,11 @@ watch(
         <div class="h-full p-2">
           <div class="flex flex-col gap-1">
             <div v-for="(colorGroup, i) of defaultColors" :key="i" class="flex">
-              <div v-for="(color, j) of colorGroup" :key="`color-${i}-${j}`" class="p-1 rounded-md flex h-8 hover:bg-gray-200">
+              <div
+                v-for="(color, j) of colorGroup"
+                :key="`color-${i}-${j}`"
+                class="p-1 rounded-md flex h-8 hover:bg-nc-bg-gray-medium"
+              >
                 <button
                   class="color-selector"
                   :class="{ selected: compare(picked, color) }"
@@ -150,7 +154,7 @@ watch(
 
 <style lang="scss" scoped>
 .color-picker {
-  @apply flex flex-col items-center justify-center bg-white p-2.5;
+  @apply flex flex-col items-center justify-center bg-nc-bg-default p-2.5;
 }
 .color-picker-row {
   @apply flex flex-row space-x-1;
@@ -158,7 +162,7 @@ watch(
 .color-selector {
   @apply h-6 w-6 rounded;
   -webkit-text-stroke-width: 1px;
-  -webkit-text-stroke-color: white;
+  -webkit-text-stroke-color: var(--nc-bg-default);
 }
 .color-selector:hover {
   filter: brightness(90%);
@@ -168,7 +172,7 @@ watch(
 .color-selector.selected,
 .nc-more-colors-trigger:focus {
   outline: none;
-  box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+  box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px var(--nc-fill-primary-default);
 }
 
 :deep(.vc-chrome-toggle-icon) {

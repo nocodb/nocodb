@@ -117,7 +117,7 @@ watch(open, (value) => {
           </div>
           <span
             v-if="rowColoringCount"
-            class="bg-nc-bg-maroon-dark group-hover:bg-maroon-200 text-maroon-700 nc-toolbar-btn-chip"
+            class="bg-nc-bg-maroon-dark group-hover:bg-nc-maroon-200 text-nc-maroon-700 nc-toolbar-btn-chip"
             >{{ rowColoringCount }}</span
           >
         </div>

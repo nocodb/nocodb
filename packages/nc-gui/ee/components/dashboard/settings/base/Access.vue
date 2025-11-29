@@ -62,7 +62,7 @@ const privateBaseMinPlanReq = computed(() => (isOnPrem.value ? PlanTitles.ENTERP
           href="https://nocodb.com/docs/product-docs/bases/private-base"
           target="_blank"
           rel="noopener noreferrer"
-          class="!text-gray-700 text-sm !no-underline !hover:underline"
+          class="!text-nc-content-gray-subtle text-sm !no-underline !hover:underline"
         >
           {{ $t('title.docs') }}
         </a>

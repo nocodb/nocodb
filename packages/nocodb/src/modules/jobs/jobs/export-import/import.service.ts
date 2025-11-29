@@ -13,6 +13,7 @@ import {
 import hash from 'object-hash';
 import papaparse from 'papaparse';
 import { MetaTable } from 'src/cli';
+import PQueue from 'p-queue';
 import { elapsedTime, initTime } from '../../helpers';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
@@ -1550,192 +1551,177 @@ export class ImportService {
 
     elapsedTime(hrTime, 'create referenced columns', 'importModels');
 
-    const viewModelPromises: (() => Promise<void>)[] = [];
     // create views
+    const vieProcessQueue = new PQueue({ concurrency: 3 });
     for (const data of param.data) {
       if (param.existingModel) break;
 
-      viewModelPromises.push(async () => {
-        const modelData = data.model;
-        const viewsData = data.views;
+      const modelData = data.model;
+      const viewsData = data.views;
 
-        const table = tableReferences.get(modelData.id);
+      const table = tableReferences.get(modelData.id);
 
-        // get default view
-        await table.getViews(context);
-        const viewPromises: (() => Promise<void>)[] = [];
-        for (const view of viewsData) {
-          viewPromises.push(async () => {
-            const viewData = withoutId({
-              ...view,
-              meta: RowColorViewHelpers.withContext(
-                targetContext,
-              ).mapMetaColumn({
-                meta: view.meta,
-                idMap: {
-                  get: getIdOrExternalId,
-                } as any,
-              }),
-            });
+      // get default view
+      await table.getViews(context);
+      for (const view of viewsData) {
+        vieProcessQueue.add(async () => {
+          const viewData = withoutId({
+            ...view,
+            meta: RowColorViewHelpers.withContext(targetContext).mapMetaColumn({
+              meta: view.meta,
+              idMap: {
+                get: getIdOrExternalId,
+              } as any,
+            }),
+          });
 
-            const vw = await this.createView(
-              targetContext,
-              idMap,
-              table,
-              viewData,
-              table.views,
-              param.user,
-              param.req,
-            );
-            if (!vw) return;
-            const filterPromises: (() => Promise<void>)[] = [];
-            const sortPromises: (() => Promise<void>)[] = [];
+          const vw = await this.createView(
+            targetContext,
+            idMap,
+            table,
+            viewData,
+            table.views,
+            param.user,
+            param.req,
+          );
+          if (!vw) return;
+          const filterPromises: (() => Promise<void>)[] = [];
+          const sortPromises: (() => Promise<void>)[] = [];
 
-            idMap.set(view.id, vw.id);
+          idMap.set(view.id, vw.id);
 
-            // create filters
-            const filters = view.filter.children;
+          // create filters
+          const filters = view.filter.children;
 
-            for (const fl of filters) {
-              filterPromises.push(async () => {
-                const fg = await this.filtersService.filterCreate(
-                  targetContext,
-                  {
-                    viewId: vw.id,
-                    filter: withoutId({
-                      ...fl,
-                      fk_parent_column_id: getIdOrExternalId(
-                        fl.fk_parent_column_id,
-                      ),
-                      fk_column_id: getIdOrExternalId(fl.fk_column_id),
-                      fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
-                    }),
-                    user: param.user,
-                    req: param.req,
-                  },
-                );
-
-                idMap.set(fl.id, fg.id);
-              });
-            }
-
-            // create sorts
-            for (const sr of view.sorts) {
-              sortPromises.push(async () => {
-                await this.sortsService.sortCreate(targetContext, {
-                  viewId: vw.id,
-                  sort: withoutId({
-                    ...sr,
-                    fk_column_id: getIdOrExternalId(sr.fk_column_id),
-                  }),
-                  req: param.req,
-                });
-              });
-            }
-            await Promise.all(filterPromises.map((handle) => handle()));
-            await Promise.all(sortPromises.map((handle) => handle()));
-
-            // update view columns
-            const vwColumns = await this.viewColumnsService.columnList(
-              targetContext,
-              {
+          for (const fl of filters) {
+            filterPromises.push(async () => {
+              const fg = await this.filtersService.filterCreate(targetContext, {
                 viewId: vw.id,
-              },
-            );
-
-            const vwColumnPayloads: Map<string, any> = new Map();
-
-            for (const cl of vwColumns) {
-              const fcl = view.columns.find(
-                (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
-              );
-              if (!fcl) continue;
-              const calendarColProperties =
-                vw.type === ViewTypes.CALENDAR
-                  ? {
-                      bold: fcl.bold,
-                      italic: fcl.italic,
-                      underline: fcl.underline,
-                    }
-                  : {};
-
-              vwColumnPayloads.set(cl.fk_column_id, {
-                id: cl.fk_column_id,
-                show: fcl.show,
-                order: fcl.order,
-                ...calendarColProperties,
-              });
-            }
-
-            switch (vw.type) {
-              case ViewTypes.GRID:
-                for (const cl of vwColumns) {
-                  const fcl = view.columns.find(
-                    (a) =>
-                      a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
-                  );
-                  if (!fcl) continue;
-                  const { fk_column_id, ...rest } = fcl;
-                  vwColumnPayloads.set(cl.fk_column_id, {
-                    ...vwColumnPayloads.get(cl.fk_column_id),
-                    ...withoutNull(rest),
-                  });
-                }
-                break;
-              case ViewTypes.FORM:
-                for (const cl of vwColumns) {
-                  const fcl = view.columns.find(
-                    (a) =>
-                      a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
-                  );
-                  if (!fcl) continue;
-                  const { fk_column_id, ...rest } = fcl;
-                  vwColumnPayloads.set(cl.fk_column_id, {
-                    ...vwColumnPayloads.get(cl.fk_column_id),
-                    ...withoutNull(rest),
-                  });
-                }
-                break;
-              case ViewTypes.GALLERY:
-              case ViewTypes.KANBAN:
-              case ViewTypes.CALENDAR:
-                break;
-            }
-
-            await this.viewColumnsService.columnsUpdate(targetContext, {
-              viewId: vw.id,
-              columns: Array.from(vwColumnPayloads.values()),
-              req: param.req,
-            });
-
-            // fix view order (view insert will always put it at the end)
-            if (view.order !== vw.order) {
-              await this.viewsService.viewUpdate(targetContext, {
-                viewId: vw.id,
-                view: {
-                  order: view.order,
-                },
+                filter: withoutId({
+                  ...fl,
+                  fk_parent_column_id: getIdOrExternalId(
+                    fl.fk_parent_column_id,
+                  ),
+                  fk_column_id: getIdOrExternalId(fl.fk_column_id),
+                  fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
+                }),
                 user: param.user,
                 req: param.req,
               });
-            }
 
-            elapsedTime(
-              hrTime,
-              'view created for view: ' + vw.id,
-              'importModels',
+              idMap.set(fl.id, fg.id);
+            });
+          }
+
+          // create sorts
+          for (const sr of view.sorts) {
+            sortPromises.push(async () => {
+              await this.sortsService.sortCreate(targetContext, {
+                viewId: vw.id,
+                sort: withoutId({
+                  ...sr,
+                  fk_column_id: getIdOrExternalId(sr.fk_column_id),
+                }),
+                req: param.req,
+              });
+            });
+          }
+          await Promise.all(filterPromises.map((handle) => handle()));
+          await Promise.all(sortPromises.map((handle) => handle()));
+
+          // update view columns
+          const vwColumns = await this.viewColumnsService.columnList(
+            targetContext,
+            {
+              viewId: vw.id,
+            },
+          );
+
+          const vwColumnPayloads: Map<string, any> = new Map();
+
+          for (const cl of vwColumns) {
+            const fcl = view.columns.find(
+              (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
             );
+            if (!fcl) continue;
+            const calendarColProperties =
+              vw.type === ViewTypes.CALENDAR
+                ? {
+                    bold: fcl.bold,
+                    italic: fcl.italic,
+                    underline: fcl.underline,
+                  }
+                : {};
+
+            vwColumnPayloads.set(cl.fk_column_id, {
+              id: cl.fk_column_id,
+              show: fcl.show,
+              order: fcl.order,
+              ...calendarColProperties,
+            });
+          }
+
+          switch (vw.type) {
+            case ViewTypes.GRID:
+              for (const cl of vwColumns) {
+                const fcl = view.columns.find(
+                  (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
+                );
+                if (!fcl) continue;
+                const { fk_column_id, ...rest } = fcl;
+                vwColumnPayloads.set(cl.fk_column_id, {
+                  ...vwColumnPayloads.get(cl.fk_column_id),
+                  ...withoutNull(rest),
+                });
+              }
+              break;
+            case ViewTypes.FORM:
+              for (const cl of vwColumns) {
+                const fcl = view.columns.find(
+                  (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
+                );
+                if (!fcl) continue;
+                const { fk_column_id, ...rest } = fcl;
+                vwColumnPayloads.set(cl.fk_column_id, {
+                  ...vwColumnPayloads.get(cl.fk_column_id),
+                  ...withoutNull(rest),
+                });
+              }
+              break;
+            case ViewTypes.GALLERY:
+            case ViewTypes.KANBAN:
+            case ViewTypes.CALENDAR:
+              break;
+          }
+
+          await this.viewColumnsService.columnsUpdate(targetContext, {
+            viewId: vw.id,
+            columns: Array.from(vwColumnPayloads.values()),
+            req: param.req,
           });
-        }
-        await Promise.all(viewPromises.map((handle) => handle()));
-        elapsedTime(
-          hrTime,
-          'view created for table: ' + modelData.id,
-          'importModels',
-        );
-      });
+
+          // fix view order (view insert will always put it at the end)
+          if (view.order !== vw.order) {
+            await this.viewsService.viewUpdate(targetContext, {
+              viewId: vw.id,
+              view: {
+                order: view.order,
+              },
+              user: param.user,
+              req: param.req,
+            });
+          }
+
+          elapsedTime(
+            hrTime,
+            'view created for view: ' + vw.id,
+            'importModels',
+          );
+        });
+      }
     }
-    await Promise.all(viewModelPromises.map((handle) => handle()));
+    await vieProcessQueue.onIdle();
+
     // create row color info
     for (const data of param.data) {
       if (param.existingModel) break;

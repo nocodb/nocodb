@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Form } from 'ant-design-vue'
-import { type IntegrationType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { type IntegrationType, IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
 import {
   ClientType,
   type DatabricksConnection,
@@ -31,7 +31,7 @@ const _projectId = inject(ProjectIdInj, undefined)
 const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
 const filteredIntegrations = computed(() =>
-  integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB && i.type === IntegrationCategoryType.DATABASE),
+  integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB && i.type === IntegrationsType.Database),
 )
 
 const useForm = Form.useForm

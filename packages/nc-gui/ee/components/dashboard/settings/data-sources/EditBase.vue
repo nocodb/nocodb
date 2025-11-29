@@ -29,7 +29,9 @@ const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const filteredIntegrations = computed(() => integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB))
+const filteredIntegrations = computed(() =>
+  integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB && i.type === IntegrationsType.Database),
+)
 
 const useForm = Form.useForm
 

@@ -450,7 +450,7 @@ const toggleSamplePayload = () => {
   })
 }
 
-const supportedDocs = [
+const supportedDocs: SupportedDocsType[] = [
   {
     title: 'Getting started',
     href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
@@ -1045,26 +1045,9 @@ const toggleIncludeUser = async () => {
         </div>
       </div>
 
-      <div class="h-full bg-nc-bg-gray-extralight border-l-1 w-80 p-5 rounded-br-2xl border-nc-border-gray-medium">
-        <div class="w-full flex flex-col gap-3">
-          <h2 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
-          <div>
-            <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">
-              <div class="h-7 w-7 flex items-center justify-center">
-                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
-              </div>
-              <NuxtLink
-                :href="doc.href"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"
-              >
-                {{ doc.title }}
-              </NuxtLink>
-            </div>
-          </div>
-        </div>
-      </div>
+      <NcModalSupportedDocsSidebar>
+        <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
+      </NcModalSupportedDocsSidebar>
     </div>
     <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_66px)]">
       <WebhookCallLog :hook="hook" />

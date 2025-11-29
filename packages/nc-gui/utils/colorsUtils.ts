@@ -387,6 +387,7 @@ export const themeV4Colors = {
     black: 'var(--color-base-black)',
   },
   brand: {
+    inverted: 'var(--nc-bg-brand-inverted)',
     20: 'var(--color-brand-20)',
     50: 'var(--color-brand-50)',
     100: 'var(--color-brand-100)',
@@ -650,7 +651,10 @@ export const themeVariables = {
   },
   background: {
     'nc-bg-default': themeV4Colors.base.white,
-    'nc-bg-brand': themeV4Colors.brand[50],
+    'nc-bg-brand': {
+      DEFAULT: themeV4Colors.brand[50],
+      inverted: themeV4Colors.brand.inverted,
+    },
     'nc-bg-gray': {
       extralight: themeV4Colors.gray[50],
       sidebar: themeV4Colors.gray[50],

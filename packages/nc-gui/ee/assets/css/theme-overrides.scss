@@ -75,6 +75,11 @@ body {
   }
 }
 
+// ant select
+.ant-select-clear {
+  @apply rounded-full;
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {
@@ -161,6 +166,24 @@ body {
   .ant-input-affix-wrapper,
   .ant-input-number {
     @apply !bg-transparent text-nc-content-gray;
+  }
+
+  .ant-input-number {
+    .ant-input-number-handler {
+      @apply bg-nc-bg-gray-light border-l-nc-border-gray-medium;
+      color: rgba(var(--rgb-base), 0.45);
+
+      &:not(:hover) {
+        .ant-input-number-handler-down-inner,
+        .ant-input-number-handler-up-inner {
+          color: rgba(var(--rgb-base), 0.45);
+        }
+      }
+    }
+
+    .ant-input-number-handler-down {
+      @apply border-t-nc-border-gray-medium;
+    }
   }
 
   .ant-input-affix-wrapper {
@@ -278,6 +301,10 @@ body {
     & > span:last-child a {
       color: rgba(var(--rgb-base), 0.85);
     }
+  }
+
+  .ant-select-clear {
+    @apply rounded-full;
   }
 
   // Multiselect

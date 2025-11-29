@@ -23,7 +23,7 @@ const { openedProject } = storeToRefs(useBases())
 
 const token = useVModel(props, 'token')
 
-const supportedDocs = [
+const supportedDocs: SupportedDocsType[] = [
   {
     title: 'Getting Started with MCP Server',
     href: 'https://nocodb.com/docs/product-docs/mcp',
@@ -242,26 +242,10 @@ const code = computed(
           </NcTabs>
         </div>
       </div>
-      <div class="h-full bg-nc-bg-gray-extralight border-l-1 w-80 p-5 rounded-br-2xl border-nc-border-gray-medium">
-        <div class="w-full flex flex-col gap-3">
-          <h2 class="text-sm text-nc-content-gray-subtle font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
-          <div>
-            <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">
-              <div class="h-7 w-7 flex items-center justify-center">
-                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
-              </div>
-              <NuxtLink
-                :href="doc.href"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="!text-nc-content-gray-muted text-sm !no-underline !hover:underline"
-              >
-                {{ doc.title }}
-              </NuxtLink>
-            </div>
-          </div>
-        </div>
-      </div>
+
+      <NcModalSupportedDocsSidebar>
+        <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
+      </NcModalSupportedDocsSidebar>
     </div>
   </NcModal>
 </template>

@@ -100,3 +100,8 @@ httpbin
 result
 
 .cursorignore
+
+
+
+# Temp
+migrate-colors.js

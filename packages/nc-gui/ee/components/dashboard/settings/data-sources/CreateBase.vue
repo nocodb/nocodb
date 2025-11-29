@@ -32,7 +32,9 @@ const { updateStatLimit } = useEeConfig()
 const _projectId = inject(ProjectIdInj, undefined)
 const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
-const filteredIntegrations = computed(() => integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB))
+const filteredIntegrations = computed(() =>
+  integrations.value.filter((i) => i.sub_type !== SyncDataType.NOCODB && i.type === IntegrationsType.Database),
+)
 
 const useForm = Form.useForm
 

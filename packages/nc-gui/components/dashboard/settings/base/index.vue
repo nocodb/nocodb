@@ -167,6 +167,6 @@ watch(
 
 <style lang="scss" scoped>
 .active-menu {
-  @apply !bg-nc-bg-brand font-semibold !text-nc-content-brand-disabled;
+  @apply !bg-nc-bg-brand dark:!bg-nc-bg-gray-medium font-semibold !text-nc-content-brand-disabled;
 }
 </style>

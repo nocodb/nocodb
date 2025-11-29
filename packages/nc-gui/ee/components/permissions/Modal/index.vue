@@ -12,6 +12,24 @@ const emits = defineEmits(['update:visible'])
 const vVisible = useVModel(props, 'visible', emits)
 
 const contentRef = ref()
+
+const supportedDocs = [
+  {
+    title: 'Permissions Overview',
+    href: 'https://nocodb.com/docs/product-docs/roles-and-permissions',
+  },
+  {
+    title: 'Setting up Table Permissions',
+    href: 'https://nocodb.com/docs/product-docs/roles-and-permissions/table-permissions',
+  },
+  {
+    title: 'Setting up Field Permissions',
+    href: 'https://nocodb.com/docs/product-docs/roles-and-permissions/field-permissions',
+  },
+] as {
+  title: string
+  href: string
+}[]
 </script>
 
 <template>
@@ -55,10 +73,9 @@ const contentRef = ref()
         />
         <div v-else class="flex-1">&nbsp;</div>
 
-        <div class="w-[320px] h-full p-5 bg-nc-bg-gray-extralight">
-          <PermissionsSupportedDocs />
-          <NcDivider class="!my-4" />
-        </div>
+        <NcModalSupportedDocsSidebar>
+          <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
+        </NcModalSupportedDocsSidebar>
       </div>
     </div>
   </NcModal>

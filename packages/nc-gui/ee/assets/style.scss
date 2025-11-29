@@ -413,6 +413,10 @@ a {
   @apply bg-nc-bg-default text-nc-content-gray;
 }
 
+.ant-form-item-has-error .ant-select:not(.ant-select-disabled):not(.ant-select-customize-input) .ant-select-selector {
+  @apply bg-nc-bg-default text-nc-content-gray;
+}
+
 // select dropdown border style
 .ant-select-dropdown {
   @apply border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-default;
@@ -1070,7 +1074,7 @@ svg.nc-virtual-cell-icon {
 }
 
 .nc-edit-or-add-provider-wrapper {
-  @apply overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-2xl shadow-lg shadow-gray-300 dark:shadow-[#161b22];
+  @apply overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-2xl shadow-lg shadow-gray-300 dark:shadow-[#3b3d40];
 }
 
 .nc-breadcrumb {

@@ -430,6 +430,14 @@
 }
 
 /* System tokens */
+
+:root {
+  --nc-bg-brand-inverted: var(--color-brand-50);
+}
+[theme='dark'] {
+  --nc-bg-brand-inverted: var(--color-gray-200);
+}
+
 :root,
 [theme='dark'] {
   --nc-content-gray-extreme: var(--color-base-black);

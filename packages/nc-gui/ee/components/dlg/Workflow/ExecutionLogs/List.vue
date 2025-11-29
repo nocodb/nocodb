@@ -2,6 +2,10 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 
+const props = defineProps<Props>()
+
+const emit = defineEmits<Emit>()
+
 dayjs.extend(relativeTime)
 
 interface Props {
@@ -14,10 +18,6 @@ interface Emit {
   'update:activeItem': (execution: any) => void
   'loadMore': () => void
 }
-
-const props = defineProps<Props>()
-
-const emit = defineEmits<Emit>()
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
@@ -89,9 +89,7 @@ const formatDuration = (startedAt: string, finishedAt?: string) => {
             {{ formatRelativeTime(execution.created_at) }}
           </h4>
           <span class="text-nc-content-gray-subtle2 text-small1">
-            <template v-if="execution.status === 'error'">
-              Error occurred
-            </template>
+            <template v-if="execution.status === 'error'"> Error occurred </template>
             <template v-else-if="execution.finished_at">
               Executed in {{ formatDuration(execution.started_at, execution.finished_at) }}
             </template>

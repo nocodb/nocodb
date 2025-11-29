@@ -17,12 +17,12 @@ import ncWindicssShortcutsPlugin from './assets/nc-windicss-shortcuts-plugin'
 
 import {
   theme as colors,
+  ncBuildColorsWithOpacity,
   themeColors,
   themeV2Colors,
   themeV3Colors,
   themeV4Colors,
   themeVariables,
-  ncBuildColorsWithOpacity,
 } from './utils/colorsUtils'
 
 const isEE = process.env.EE

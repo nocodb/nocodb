@@ -377,7 +377,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
 </script>
 
 <template>
-  <div class="edit-source bg-white relative h-full flex flex-col w-full">
+  <div class="edit-source bg-nc-bg-default relative h-full flex flex-col w-full">
     <div class="h-full max-h-[calc(100%_-_65px)] flex">
       <div class="nc-edit-source-left-panel nc-scrollbar-thin relative">
         <div class="h-full max-w-[768px] mx-auto">
@@ -599,7 +599,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
           </a-form>
         </div>
         <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
-          <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+          <div class="flex items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-85 z-1000">
             <a-spin size="large" />
           </div>
         </general-overlay>
@@ -609,7 +609,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
         <NcDivider />
       </div>
     </div>
-    <div class="p-4 w-full flex items-center justify-between gap-3 border-t-1 border-gray-200">
+    <div class="p-4 w-full flex items-center justify-between gap-3 border-t-1 border-nc-border-gray-medium">
       <div class="flex-1 flex items-center gap-3">
         <div class="flex-1 flex items-center gap-3 text-[#C86827]">
           <GeneralIcon icon="alertTriangle" class="flex-none" />
@@ -664,7 +664,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
   @apply p-6 flex-1 flex justify-center;
 }
 .nc-edit-source-right-panel {
-  @apply p-4 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
+  @apply p-4 w-[320px] border-l-1 border-nc-border-gray-medium flex flex-col gap-4 bg-nc-bg-gray-extralight rounded-br-2xl;
 }
 :deep(.ant-collapse-header) {
   @apply !-mt-4 !p-0 flex items-center !cursor-default children:first:flex;
@@ -727,16 +727,16 @@ function handleAutoScroll(scroll: boolean, className: string) {
   }
 
   :deep(.ant-form-item-label > label.ant-form-item-required:after) {
-    @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
+    @apply content-['*'] inline-block text-inherit text-nc-content-red-medium ml-1;
   }
 
   .nc-form-extra-connectin-parameters {
     :deep(.ant-input) {
       &:not(:hover):not(:focus):not(:disabled) {
-        @apply !shadow-default !border-gray-200;
+        @apply !shadow-default !border-nc-border-gray-medium;
       }
       &:hover:not(:focus):not(:disabled) {
-        @apply !border-gray-200 !shadow-hover;
+        @apply !border-nc-border-gray-medium !shadow-hover;
       }
       &:focus {
         @apply !shadow-selected !ring-0;
@@ -774,10 +774,10 @@ function handleAutoScroll(scroll: boolean, className: string) {
     &:not(.ant-form-item-has-error) {
       &:not(:has(.ant-input-password)) .ant-input {
         &:not(:hover):not(:focus):not(:disabled) {
-          @apply shadow-default border-gray-200;
+          @apply shadow-default border-nc-border-gray-medium;
         }
         &:hover:not(:focus):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
+          @apply border-nc-border-gray-medium shadow-hover;
         }
         &:focus {
           @apply shadow-selected ring-0;
@@ -786,10 +786,10 @@ function handleAutoScroll(scroll: boolean, className: string) {
       .ant-input-number,
       .ant-input-affix-wrapper.ant-input-password {
         &:not(:hover):not(:focus-within):not(:disabled) {
-          @apply shadow-default border-gray-200;
+          @apply shadow-default border-nc-border-gray-medium;
         }
         &:hover:not(:focus-within):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
+          @apply border-nc-border-gray-medium shadow-hover;
         }
         &:focus-within {
           @apply shadow-selected ring-0;

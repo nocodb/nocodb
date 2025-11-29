@@ -15,7 +15,7 @@
   --rgb-base: 0, 0, 0;
 
   --color-base-black: #000000;
-  --color-base-black: 0, 0, 0;
+  --rgb-color-base-black: 0, 0, 0;
 
   --color-base-white: #ffffff;
   --rgb-color-base-black: 255, 255, 255;

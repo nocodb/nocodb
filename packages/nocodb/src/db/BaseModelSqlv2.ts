@@ -4733,6 +4733,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     column: Column,
     options?: (string | number | null | boolean)[],
   ): Promise<Set<any>> {
+    // TODO: Add virtual column support
+    if (isVirtualCol(column)) {
+      NcError.get(this.context).notImplemented('Grouping for virtual columns');
+    }
+
     let groupingValues: Set<any>;
 
     if (options?.length) {
@@ -4766,7 +4771,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       groupColumnId: string;
       ignoreViewFilterAndSort?: boolean;
       options?: (string | number | null | boolean)[];
-      useOptimised?: boolean
+      useOptimised?: boolean;
     } & Partial<XcFilter>,
   ): Promise<
     {

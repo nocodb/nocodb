@@ -71,13 +71,15 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
 </script>
 
 <template>
-  <div class="nc-list-item-wrapper group px-[1px] hover:bg-gray-50 border-y-1 border-gray-200 border-t-transparent">
+  <div
+    class="nc-list-item-wrapper group px-[1px] hover:bg-nc-bg-gray-extralight border-y-1 border-nc-border-gray-medium border-t-transparent"
+  >
     <a-card
       tabindex="0"
-      class="nc-list-item !outline-none transition-all relative group-hover:bg-gray-50 cursor-auto"
+      class="nc-list-item !outline-none transition-all relative group-hover:bg-nc-bg-gray-extralight cursor-auto"
       :class="{
-        '!bg-white': isLoading,
-        '!hover:bg-white': readOnly,
+        '!bg-nc-bg-default': isLoading,
+        '!hover:bg-nc-bg-default': readOnly,
         'nc-is-selected': isSelected,
       }"
       :body-style="{ padding: '6px 10px !important', borderRadius: 0 }"
@@ -109,7 +111,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
           <div class="flex justify-start">
             <SmartsheetPlainCell
               v-if="displayValueColumn"
-              class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]"
+              class="font-semibold text-nc-content-brand nc-display-value truncate leading-[20px]"
               :column="displayValueColumn"
               :model-value="row[displayValueColumn.title]"
             />
@@ -188,14 +190,14 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
                 tabindex="-1"
                 class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
                 :class="{
-                  'bg-gray-200 text-gray-800 hover:(bg-red-100 text-red-500)': isLinked,
+                  'bg-nc-bg-gray-medium text-nc-content-gray hover:(bg-nc-bg-red-dark text-nc-content-red-medium)': isLinked,
                   'bg-green-[#D4F7E0] text-[#17803D] hover:bg-green-200': !isLinked,
                 }"
                 :disabled="!isAllowed"
                 @click="$emit('linkOrUnlink')"
               >
                 <div v-if="isLoading" class="flex">
-                  <MdiLoading class="flex-none w-4 h-4 !text-brand-500 animate-spin" />
+                  <MdiLoading class="flex-none w-4 h-4 !text-nc-content-brand animate-spin" />
                 </div>
                 <GeneralIcon v-else :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4 !font-extrabold" />
               </button>
@@ -218,7 +220,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
 .nc-link-record-cell {
   :deep(.nc-cell),
   :deep(.nc-virtual-cell) {
-    @apply !text-small !text-gray-600 ml-1;
+    @apply !text-small !text-nc-content-gray-subtle2 ml-1;
 
     .nc-cell-field,
     .nc-cell-field-link,
@@ -228,13 +230,13 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     }
 
     &:not(.nc-display-value-cell) {
-      @apply text-gray-600;
+      @apply text-nc-content-gray-subtle2;
       font-weight: 500;
 
       .nc-cell-field,
       input,
       textarea {
-        @apply text-gray-600;
+        @apply text-nc-content-gray-subtle2;
         font-weight: 500;
       }
     }
@@ -301,7 +303,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
 
   &:focus-visible,
   &.nc-is-selected {
-    @apply border-brand-500;
+    @apply border-nc-border-brand;
     box-shadow: 0 0 0 1px #3366ff;
   }
   &:hover {

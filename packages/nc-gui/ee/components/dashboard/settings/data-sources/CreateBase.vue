@@ -635,9 +635,9 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
     @keydown.esc="vOpen = false"
   >
     <div class="flex-1 flex flex-col max-h-full">
-      <div class="px-4 py-3 w-full flex items-center gap-3 border-b-1 border-gray-200">
+      <div class="px-4 py-3 w-full flex items-center gap-3 border-b-1 border-nc-border-gray-medium">
         <div class="flex items-center">
-          <GeneralIcon icon="server1" class="!text-green-700 !h-5 !w-5" />
+          <GeneralIcon icon="server1" class="!text-nc-content-green-dark !h-5 !w-5" />
         </div>
         <div class="flex-1 text-base font-weight-700">Add Data Source</div>
 
@@ -681,13 +681,13 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
             Add Source
           </NcButton>
           <NcButton :disabled="creatingSource" size="small" type="text" @click="vOpen = false">
-            <GeneralIcon icon="close" class="text-gray-600" />
+            <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
           </NcButton>
         </div>
       </div>
       <div class="h-[calc(100%_-_58px)] flex">
         <div class="nc-add-source-left-panel nc-scrollbar-thin relative">
-          <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
+          <div class="create-source bg-nc-bg-default relative flex flex-col gap-2 w-full max-w-[768px]">
             <template v-if="step === 1">
               <a-form
                 ref="form"
@@ -762,11 +762,11 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                               <component :is="menu" />
                               <a-divider style="margin: 4px 0" />
                               <div
-                                class="px-1.5 flex items-center text-brand-500 text-sm cursor-pointer"
+                                class="px-1.5 flex items-center text-nc-content-brand text-sm cursor-pointer"
                                 @mousedown.prevent
                                 @click="handleAddNewConnection"
                               >
-                                <div class="w-full flex items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
+                                <div class="w-full flex items-center gap-2 px-2 py-2 rounded-md hover:bg-nc-bg-gray-light">
                                   <GeneralIcon icon="plus" class="flex-none" />
                                   {{ $t('general.new') }} {{ $t('general.connection').toLowerCase() }}
                                 </div>
@@ -979,7 +979,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
             </template>
           </div>
           <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
-            <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+            <div class="flex items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-85 z-1000">
               <a-spin size="large" />
             </div>
           </general-overlay>
@@ -1000,7 +1000,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
   @apply p-6 flex-1 flex justify-center;
 }
 .nc-add-source-right-panel {
-  @apply p-4 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
+  @apply p-4 w-[320px] border-l-1 border-nc-border-gray-medium flex flex-col gap-4 bg-nc-bg-gray-extralight rounded-br-2xl;
 }
 :deep(.ant-collapse-header) {
   @apply !-mt-4 !p-0 flex items-center !cursor-default children:first:flex;
@@ -1053,16 +1053,16 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
   }
 
   :deep(.ant-form-item-label > label.ant-form-item-required:after) {
-    @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
+    @apply content-['*'] inline-block text-inherit text-nc-content-red-medium ml-1;
   }
 
   .nc-form-extra-connectin-parameters {
     :deep(.ant-input) {
       &:not(:hover):not(:focus):not(:disabled) {
-        @apply !shadow-default !border-gray-200;
+        @apply !shadow-default !border-nc-border-gray-medium;
       }
       &:hover:not(:focus):not(:disabled) {
-        @apply !border-gray-200 !shadow-hover;
+        @apply !border-nc-border-gray-medium !shadow-hover;
       }
       &:focus {
         @apply !shadow-selected !ring-0;
@@ -1100,10 +1100,10 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
     &:not(.ant-form-item-has-error) {
       &:not(:has(.ant-input-password)) .ant-input {
         &:not(:hover):not(:focus):not(:disabled) {
-          @apply shadow-default border-gray-200;
+          @apply shadow-default border-nc-border-gray-medium;
         }
         &:hover:not(:focus):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
+          @apply border-nc-border-gray-medium shadow-hover;
         }
         &:focus {
           @apply shadow-selected ring-0;
@@ -1112,10 +1112,10 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
       .ant-input-number,
       .ant-input-affix-wrapper.ant-input-password {
         &:not(:hover):not(:focus-within):not(:disabled) {
-          @apply shadow-default border-gray-200;
+          @apply shadow-default border-nc-border-gray-medium;
         }
         &:hover:not(:focus-within):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
+          @apply border-nc-border-gray-medium shadow-hover;
         }
         &:focus-within {
           @apply shadow-selected ring-0;

@@ -398,19 +398,19 @@ onUnmounted(() => {
   &.nc-alert-type-success,
   &.nc-alert-type-undefined {
     .nc-alert-icon-wrapper {
-      @apply text-nc-content-green-dark;
+      @apply text-green-700;
     }
   }
 
   &.nc-alert-type-error {
     .nc-alert-icon-wrapper {
-      @apply text-nc-content-red-dark;
+      @apply text-red-700;
     }
   }
 
   &.nc-alert-type-warning {
     .nc-alert-icon-wrapper {
-      @apply text-nc-content-orange-medium;
+      @apply text-orange-700;
     }
   }
 
@@ -424,7 +424,7 @@ onUnmounted(() => {
     @apply absolute bottom-0 left-0 right-0 h-1;
 
     .nc-alert-progress {
-      @apply h-full  bg-brand-400;
+      @apply h-full  bg-nc-brand-400;
     }
   }
 }

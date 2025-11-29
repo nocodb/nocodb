@@ -32,7 +32,8 @@ body {
 }
 
 .ant-drawer,
-.ant-modal {
+.ant-modal,
+.ant-card {
   @apply text-nc-content-gray;
 }
 
@@ -157,7 +158,8 @@ body {
 
   input,
   textarea,
-  .ant-input-affix-wrapper {
+  .ant-input-affix-wrapper,
+  .ant-input-number {
     @apply !bg-transparent text-nc-content-gray;
   }
 
@@ -276,6 +278,11 @@ body {
     & > span:last-child a {
       color: rgba(var(--rgb-base), 0.85);
     }
+  }
+
+  // Multiselect
+  .ant-select-multiple .ant-select-selection-item {
+    @apply bg-nc-bg-gray-medium border-nc-bg-gray-dark;
   }
 
   // Sidebar

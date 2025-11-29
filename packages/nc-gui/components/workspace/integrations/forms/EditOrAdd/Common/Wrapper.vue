@@ -19,7 +19,7 @@ const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 
 <template>
   <div v-if="activeIntegration" class="h-full">
-    <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
+    <div class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-nc-border-gray-medium">
       <div class="flex-1 flex items-center gap-3">
         <NcButton
           v-if="!isEditMode && !isFromIntegrationPage && showBackButton"
@@ -44,7 +44,7 @@ const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
         <slot name="headerRightExtra"> </slot>
         <slot name="headerRight"> </slot>
         <NcButton size="small" type="text" @click="vOpen = false">
-          <GeneralIcon icon="close" class="text-gray-600" />
+          <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
         </NcButton>
       </div>
     </div>
@@ -99,5 +99,3 @@ const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
   @apply font-weight-400;
 }
 </style>
-
-<style lang="scss"></style>

@@ -214,7 +214,7 @@ const onCreatedRecord = async (record: any) => {
       h(
         'span',
         {
-          class: 'text-gray-500',
+          class: 'text-nc-content-gray-muted',
         },
         t('activity.gotSavedLinkedSuccessfully', {
           tableName: relatedTableMeta.value?.title,
@@ -379,7 +379,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
 <template>
   <div class="nc-modal-child-list h-full w-full" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
-      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
+      <div class="nc-dropdown-link-record-header bg-nc-bg-gray-light py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
         <div class="flex-1 nc-dropdown-link-record-search-wrapper flex items-center rounded-md">
           <!-- Utilize SmartsheetToolbarFilterInput component to filter the records for Date or DateTime column -->
           <SmartsheetToolbarFilterInput
@@ -409,7 +409,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
             @keydown.capture.stop="handleKeyDown"
           >
             <template #prefix>
-              <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
+              <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-nc-content-gray-muted" />
             </template>
           </a-input>
         </div>
@@ -428,7 +428,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
               <div
                 v-for="(_x, i) in Array.from({ length: skeletonCount })"
                 :key="i"
-                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-gray-200 hover:bg-gray-50"
+                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium hover:bg-nc-bg-gray-extralight"
               >
                 <div class="flex items-center">
                   <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
@@ -469,14 +469,14 @@ const handleKeyDown = (e: KeyboardEvent) => {
             </template>
           </div>
         </div>
-        <div v-else class="h-full flex flex-col gap-2 my-auto items-center justify-center text-gray-500 text-center">
+        <div v-else class="h-full flex flex-col gap-2 my-auto items-center justify-center text-nc-content-gray-muted text-center">
           <img
             :alt="$t('msg.clickLinkRecordsToAddLinkFromTable')"
             class="!w-[158px] flex-none"
             src="~assets/img/placeholder/link-records.png"
           />
-          <div class="text-base text-gray-700 font-bold">{{ $t('msg.noLinkedRecords') }}</div>
-          <div class="text-gray-700">
+          <div class="text-base text-nc-content-inverted-secondary font-bold">{{ $t('msg.noLinkedRecords') }}</div>
+          <div class="text-nc-content-inverted-secondary">
             {{ $t('msg.clickLinkRecordsToAddLinkFromTable') }}
           </div>
 
@@ -492,7 +492,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
         </div>
       </div>
 
-      <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11">
+      <div
+        class="nc-dropdown-link-record-footer bg-nc-bg-gray-light p-2 rounded-b-xl flex items-center justify-between gap-3 min-h-11"
+      >
         <div class="flex items-center gap-2">
           <PermissionsTooltip
             v-if="
@@ -511,7 +513,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
               <NcButton
                 v-e="['c:row-expand:open']"
                 size="small"
-                class="!hover:(bg-white text-brand-500) !h-7 !text-small"
+                class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
                 type="secondary"
                 :disabled="!isAllowed"
                 @click="addNewRecord"
@@ -530,7 +532,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
             "
             v-e="['c:links:link']"
             data-testid="nc-child-list-button-link-to"
-            class="!hover:(bg-white text-brand-500) !h-7 !text-small"
+            class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
             size="small"
             type="secondary"
             @click="emit('attachRecord')"
@@ -611,17 +613,17 @@ const handleKeyDown = (e: KeyboardEvent) => {
 <style lang="scss">
 .nc-dropdown-link-record-search-wrapper {
   .nc-search-icon {
-    @apply flex-none text-gray-500;
+    @apply flex-none text-nc-content-gray-muted;
   }
 
   &:focus-within {
     .nc-search-icon {
-      @apply text-gray-600;
+      @apply text-nc-content-gray-subtle2;
     }
   }
   input {
     &::placeholder {
-      @apply text-gray-500;
+      @apply text-nc-content-gray-muted;
     }
   }
 }

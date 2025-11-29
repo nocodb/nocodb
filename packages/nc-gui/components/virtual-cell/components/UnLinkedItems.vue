@@ -266,7 +266,7 @@ const onCreatedRecord = (record: any) => {
       h(
         'span',
         {
-          class: 'text-gray-500',
+          class: 'text-nc-content-gray-muted',
         },
         t('activity.gotSavedLinkedSuccessfully', {
           tableName: relatedTableMeta.value?.title,
@@ -356,11 +356,11 @@ const handleKeyDown = (e: KeyboardEvent) => {
 <template>
   <div class="nc-modal-link-record h-full w-full overflow-hidden" :class="{ active: vModel }" @keydown.enter.stop>
     <div class="flex flex-col h-full">
-      <div class="nc-dropdown-link-record-header bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
+      <div class="nc-dropdown-link-record-header bg-nc-bg-gray-light py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
         <div class="flex-1 gap-2 flex items-center">
           <button
             v-if="!hideBackBtn"
-            class="!text-brand-500 hover:!text-brand-700 p-1.5 flex"
+            class="!text-nc-content-brand hover:!text-nc-brand-700 p-1.5 flex"
             @click="emit('attachLinkedRecord')"
           >
             <GeneralIcon icon="ncArrowLeft" class="flex-none h-4 w-4" />
@@ -395,7 +395,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
               @keydown.capture.stop="handleKeyDown"
             >
               <template #prefix>
-                <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
+                <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-nc-content-gray-muted" />
               </template>
             </a-input>
           </div>
@@ -415,7 +415,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
               <div
                 v-for="(_x, i) in Array.from({ length: 10 })"
                 :key="i"
-                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-gray-200 hover:c"
+                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium hover:c"
               >
                 <div class="flex items-center">
                   <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
@@ -461,7 +461,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
             </template>
           </div>
         </template>
-        <div v-else class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-gray-500">
+        <div v-else class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-nc-content-gray-muted">
           <InboxIcon class="w-16 h-16 mx-auto" />
 
           <p v-if="childrenExcludedListPagination.query" class="mb-0">{{ $t('msg.noRecordsMatchYourSearchQuery') }}</p>
@@ -485,7 +485,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 <NcButton
                   v-e="['c:row-expand:open']"
                   size="small"
-                  class="!hover:(bg-white text-brand-500) !h-7 !text-small"
+                  class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
                   type="secondary"
                   :disabled="!isAllowed"
                   @click="addNewRecord"
@@ -497,7 +497,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
           </div>
         </div>
       </div>
-      <div class="nc-dropdown-link-record-footer bg-gray-100 p-2 rounded-b-xl flex items-center justify-between min-h-11">
+      <div class="nc-dropdown-link-record-footer bg-nc-bg-gray-light p-2 rounded-b-xl flex items-center justify-between min-h-11">
         <div class="flex">
           <PermissionsTooltip
             v-if="
@@ -515,7 +515,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
               <NcButton
                 v-e="['c:row-expand:open']"
                 size="small"
-                class="!hover:(bg-white text-brand-500) !h-7 !text-small"
+                class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
                 type="secondary"
                 :disabled="!isAllowed"
                 @click="addNewRecord"
@@ -598,18 +598,18 @@ const handleKeyDown = (e: KeyboardEvent) => {
 <style lang="scss">
 .nc-dropdown-link-record-search-wrapper {
   .nc-search-icon {
-    @apply flex-none text-gray-500;
+    @apply flex-none text-nc-content-gray-muted;
   }
 
   &:focus-within {
     .nc-search-icon {
-      @apply text-gray-600;
+      @apply text-nc-content-gray-subtle2;
     }
   }
 
   input {
     &::placeholder {
-      @apply text-gray-500;
+      @apply text-nc-content-gray-muted;
     }
   }
 }

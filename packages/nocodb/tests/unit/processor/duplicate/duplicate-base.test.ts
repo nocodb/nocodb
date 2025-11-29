@@ -25,14 +25,12 @@ function duplicateBaseTests() {
   };
 
   beforeEach(async function () {
-    console.time('#### duplicateColumnTests');
     const initDuplicateResult = await initDuplicate();
     context = initDuplicateResult;
     nestApp = initDuplicateResult.context.nestApp;
     duplicateProcessor = nestApp.get(DuplicateProcessor);
     basesService = nestApp.get(BasesService);
     tables = initDuplicateResult.tables;
-    console.timeEnd('#### duplicateColumnTests');
   });
 
   it('will duplicate base successfully', async () => {

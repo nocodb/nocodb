@@ -2234,7 +2234,7 @@ onBeforeRouteUpdate((_to, from, next) => {
 }
 
 .selected {
-  @apply bg-nc-bg-brand;
+  @apply bg-nc-bg-brand-inverted;
 }
 
 .slide-fade-enter-active {

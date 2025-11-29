@@ -235,29 +235,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     // If the node type is changing, and it's not a core.plus node,
     // generate a unique title for the new node type
     if (updatedData.type && updatedData.type !== existingNode.type && updatedData.type !== GeneralNodeID.PLUS) {
-      // Check if we're converting from a plus node or trigger placeholder
-      const isConvertingFromPlus = existingNode.type === GeneralNodeID.PLUS
-      const isConvertingFromTriggerPlaceholder = existingNode.type === GeneralNodeID.TRIGGER
-      const hasPlusNodeTitle = updatedData.data?.title === 'Add Action / Condition'
-      const hasTriggerPlaceholderTitle = updatedData.data?.title === 'Trigger'
-
-      // Generate a unique title if:
-      // 1. No title is provided, OR
-      // 2. Converting from a plus node, OR
-      // 3. Converting from trigger placeholder, OR
-      // 4. The current title is a default/placeholder title
-      if (
-        !updatedData.data?.title ||
-        isConvertingFromPlus ||
-        isConvertingFromTriggerPlaceholder ||
-        hasPlusNodeTitle ||
-        hasTriggerPlaceholderTitle
-      ) {
-        const uniqueTitle = generateUniqueNodeTitle(updatedData.type)
-        updatedData.data = {
-          ...updatedData.data,
-          title: uniqueTitle,
-        }
+      const uniqueTitle = generateUniqueNodeTitle(updatedData.type)
+      updatedData.data = {
+        ...updatedData.data,
+        title: uniqueTitle,
       }
     }
 

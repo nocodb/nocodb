@@ -17,10 +17,11 @@ import ncWindicssShortcutsPlugin from './assets/nc-windicss-shortcuts-plugin'
 
 import {
   theme as colors,
+  ncBuildColorsWithOpacity,
   themeColors,
   themeV2Colors,
   themeV3Colors,
-  themeV4ColorsWithNcPrefix,
+  themeV4Colors,
   themeVariables,
 } from './utils/colorsUtils'
 
@@ -180,13 +181,15 @@ export default defineConfig({
         ...themeColors,
         ...themeV2Colors,
         ...themeV3Colors,
-        ...themeV4ColorsWithNcPrefix,
-        ...themeVariables.content,
-        ...themeVariables.border,
-        ...themeVariables.background,
-        ...themeVariables.fill,
-        primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
-        accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
+        ...ncBuildColorsWithOpacity(themeV4Colors, 'nc'),
+        ...ncBuildColorsWithOpacity(themeVariables.content),
+        ...ncBuildColorsWithOpacity(themeVariables.border),
+        ...ncBuildColorsWithOpacity(themeVariables.background),
+        ...ncBuildColorsWithOpacity(themeVariables.fill),
+        ...ncBuildColorsWithOpacity({
+          primary: '--color-primary',
+          accent: '--color-accent',
+        }),
         dark: colors.dark,
         light: colors.light,
       },

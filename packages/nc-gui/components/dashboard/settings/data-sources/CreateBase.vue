@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Form } from 'ant-design-vue'
-import { type IntegrationType, validateAndExtractSSLProp, IntegrationsType } from 'nocodb-sdk'
+import { type IntegrationType, IntegrationsType, validateAndExtractSSLProp } from 'nocodb-sdk'
 import {
   ClientType,
   type DatabricksConnection,

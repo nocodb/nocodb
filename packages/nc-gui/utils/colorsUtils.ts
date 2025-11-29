@@ -653,7 +653,7 @@ export const themeVariables = {
     'nc-bg-default': themeV4Colors.base.white,
     'nc-bg-brand': {
       DEFAULT: themeV4Colors.brand[50],
-      inverted: themeV4Colors.brand['inverted'],
+      inverted: themeV4Colors.brand.inverted,
     },
     'nc-bg-gray': {
       extralight: themeV4Colors.gray[50],

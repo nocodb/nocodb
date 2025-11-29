@@ -1968,6 +1968,7 @@ export async function singleQueryList(
     },
   );
 }
+
 const getDataWithCountCache = async (
   context: NcContext,
   params: {
@@ -2179,7 +2180,8 @@ export async function singleQueryGroupedList(
 
   const extractedOrderByQuery = tempSortQb
     .toQuery()
-    .replace(/^select \* from "?dummy_table"?/i, '');
+    .replace(/^select \* from "?dummy_table"?/i, '')
+    .replaceAll('?', '\\?');
 
   const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
@@ -2228,7 +2230,7 @@ export async function singleQueryGroupedList(
   );
 
   // Create a subquery with window function to number rows within each group
-  const baseQuerySql = qb.toQuery();
+  const baseQuerySql = qb.toQuery().replaceAll('?', '\\?');
 
   let groupColumnSql: string;
   const quotedGroupAlias = `"${String(groupColumnAlias).replace(/"/g, '""')}"`;
@@ -2249,7 +2251,7 @@ export async function singleQueryGroupedList(
 
   // Filter to get only rows within limit per group, and filter by grouping values
   // Use column alias for filtering and ordering
-  const windowQuerySql = windowQb.toQuery();
+  const windowQuerySql = windowQb.toQuery().replaceAll('?', '\\?');
   const groupedQb = knex
     .from(knex.raw(`(${windowQuerySql}) as __nc_windowed`))
     .where((qb) => {

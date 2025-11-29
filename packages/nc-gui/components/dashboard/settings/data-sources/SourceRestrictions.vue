@@ -28,7 +28,7 @@ const metaWrite = useVModel(props, 'allowMetaWrite', emits)
         {{ $t('tooltip.allowDataWrite') }}
       </div>
     </div>
-  </a-form-item> 
+  </a-form-item>
   <a-form-item class="nc-source-restictions-card">
     <div class="flex flex-col gap-1">
       <div class="flex items-center gap-3">

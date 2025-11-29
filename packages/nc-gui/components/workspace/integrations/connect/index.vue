@@ -65,7 +65,7 @@ onMounted(async () => {
             <!-- For spacing  -->
           </div>
         </div>
-        <div v-else class="connection-details bg-white relative h-full flex flex-col w-full">
+        <div v-else class="connection-details bg-nc-bg-default relative h-full flex flex-col w-full">
           <div class="h-full max-h-[calc(100%_-_65px)] flex">
             <div class="connection-details-left-panel nc-scrollbar-thin relative">
               <div v-if="connectionDetails" class="h-full w-[768px] mx-auto">
@@ -151,7 +151,7 @@ onMounted(async () => {
                 </a-form>
               </div>
               <general-overlay v-else :model-value="true" inline transition class="!bg-opacity-15">
-                <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+                <div class="flex items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-85 z-1000">
                   <a-spin size="large" />
                 </div>
               </general-overlay>
@@ -234,7 +234,7 @@ onMounted(async () => {
   }
 
   :deep(.ant-form-item-label > label.ant-form-item-required:after) {
-    @apply content-['*'] inline-block text-inherit text-red-500 ml-1;
+    @apply content-['*'] inline-block text-inherit text-nc-content-red-medium ml-1;
   }
 
   :deep(.ant-form-item) {
@@ -267,10 +267,10 @@ onMounted(async () => {
     &:not(.ant-form-item-has-error) {
       &:not(:has(.ant-input-password)) .ant-input {
         &:not(:hover):not(:focus):not(:disabled) {
-          @apply shadow-default border-gray-200;
+          @apply shadow-default border-nc-border-gray-medium;
         }
         &:hover:not(:focus):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
+          @apply border-nc-border-gray-medium shadow-hover;
         }
         &:focus {
           @apply shadow-selected ring-0;
@@ -279,10 +279,10 @@ onMounted(async () => {
       .ant-input-number,
       .ant-input-affix-wrapper.ant-input-password {
         &:not(:hover):not(:focus-within):not(:disabled) {
-          @apply shadow-default border-gray-200;
+          @apply shadow-default border-nc-border-gray-medium;
         }
         &:hover:not(:focus-within):not(:disabled) {
-          @apply border-gray-200 shadow-hover;
+          @apply border-nc-border-gray-medium shadow-hover;
         }
         &:focus-within {
           @apply shadow-selected ring-0;

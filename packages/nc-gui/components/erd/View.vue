@@ -164,7 +164,7 @@ onMounted(async () => {
   >
     <div class="relative h-full">
       <LazyErdFlow :tables="filteredTables" :config="config">
-        <GeneralOverlay v-model="isLoading" inline class="bg-gray-300/50">
+        <GeneralOverlay v-model="isLoading" inline class="bg-gray-300/50 dark:bg-gray-800/50 rounded-xl">
           <div class="h-full w-full flex flex-col justify-center items-center">
             <a-spin size="large" />
           </div>

@@ -174,7 +174,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     const childNodeIds = findAllChildNodes(nodeId)
     if (childNodeIds.size === 0) return
 
-    const updatedNodes = nodes.value.map((node) => {
+    nodes.value = nodes.value.map((node) => {
       if (childNodeIds.has(node.id) && node.data?.testResult) {
         const { testResult: _testResult, ...dataWithoutTestResult } = node.data
         return {
@@ -184,8 +184,6 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       }
       return node
     })
-
-    nodes.value = updatedNodes
     debouncedWorkflowUpdate()
   }
 

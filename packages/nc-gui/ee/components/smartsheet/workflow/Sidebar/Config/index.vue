@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { IntegrationsType } from 'nocodb-sdk'
-import IfNodeConfig from '~/components/smartsheet/workflow/Node/IfNode/index.vue'
+import IfNodeConfig from '~/components/smartsheet/workflow/Sidebar/Config/If/index.vue'
 
 const {
   selectedNodeId,
@@ -60,10 +60,11 @@ const { formState } = useProvideFormBuilderHelper({
 
 <template>
   <div>
-    <IfNodeConfig v-if="isIfNode" />
-    <div v-else class="px-4 py-4">
-      <NcFormBuilder v-if="formSchema.length > 0" />
+    <div class="px-4 py-4">
+      <IfNodeConfig v-if="isIfNode" />
+      <NcFormBuilder v-else-if="formSchema.length > 0" />
     </div>
+    <NcDivider v-if="formSchema.length > 0 || isIfNode" />
   </div>
 </template>
 

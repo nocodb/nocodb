@@ -7,7 +7,7 @@ import Dropdown from './Dropdown.vue'
 
 const props = defineProps<NodeProps>()
 
-const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, deleteNode, updateSelectedNode } =
+const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, updateSelectedNode } =
   useWorkflowOrThrow()
 
 const wrappperRef = ref()
@@ -47,15 +47,6 @@ const handleTriggerClick = () => {
   if (props.type !== GeneralNodeID.TRIGGER && nodeMeta.value) {
     selectedNodeId.value = props.id
   }
-}
-
-const handleDelete = async () => {
-  await deleteNode(props.id)
-
-  await nextTick()
-  setTimeout(() => {
-    triggerLayout()
-  }, 50)
 }
 
 const hasTestResult = computed(() => {
@@ -106,7 +97,7 @@ onClickOutside(
         </div>
         <div
           v-else
-          class="flex border-1 w-77 rounded-lg cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default relative"
+          class="flex flex-col border-1 w-77 rounded-lg cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default relative"
           :class="{
             'ring ring-nc-brand-500 ring-offset-2': selectedNodeId === props.id || showDropdown,
           }"
@@ -152,22 +143,32 @@ onClickOutside(
 
               <template #overlay>
                 <NcMenu variant="small">
-                  <NcMenuItem @click="openDropdown">
+                  <NcMenuItem
+                    @click="
+                      () => {
+                        openDropdown()
+                        showSubMenuDropdown = false
+                      }
+                    "
+                  >
                     <div class="flex items-center gap-2">
                       <GeneralIcon icon="ncEdit" />
                       Edit
                     </div>
                   </NcMenuItem>
-                  <NcDivider />
-                  <NcMenuItem danger @click="handleDelete">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="delete" />
-                      Delete
-                    </div>
-                  </NcMenuItem>
                 </NcMenu>
               </template>
             </NcDropdown>
+          </div>
+          <NcDivider />
+          <div
+            class="text-bodySm"
+            :class="{
+              'text-nc-content-gray-muted': !props?.data?.description,
+              'text-nc-content-gray': props?.data?.description,
+            }"
+          >
+            {{ props?.data?.description || $t('labels.addDescription') }}
           </div>
         </div>
       </template>

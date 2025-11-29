@@ -17,16 +17,6 @@ interface ManualTriggerConfig extends WorkflowNodeConfig {
 
 export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
-    const form: FormDefinition = [
-      {
-        type: FormBuilderInputType.Input,
-        label: 'Description',
-        span: 24,
-        model: 'config.description',
-        placeholder: 'Optional description for this trigger',
-      },
-    ];
-
     return {
       id: 'core.trigger.manual',
       title: 'When manually triggered',
@@ -34,7 +24,7 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
       icon: 'ncPlay',
       category: WorkflowNodeCategory.TRIGGER,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
-      form,
+      form: [],
       keywords: ['manual', 'trigger', 'start', 'run'],
     };
   }

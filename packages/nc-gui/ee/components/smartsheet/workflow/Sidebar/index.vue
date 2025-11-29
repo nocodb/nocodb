@@ -1,46 +1,32 @@
 <script setup lang="ts">
 import Details from '~/components/smartsheet/workflow/Sidebar/Details.vue'
-import NodeConfig from '~/components/smartsheet/workflow/Sidebar/NodeConfig.vue'
-import TestStep from '~/components/smartsheet/workflow/Sidebar/TestStep.vue'
-import Result from '~/components/smartsheet/workflow/Sidebar/Result.vue'
+import NodeConfig from '~/components/smartsheet/workflow/Sidebar/Config/index.vue'
+import TestStep from '~/components/smartsheet/workflow/Sidebar/Config/TestStep.vue'
+import Result from '~/components/smartsheet/workflow/Sidebar/Config/Result.vue'
+import NodeDetails from '~/components/smartsheet/workflow/Sidebar/NodeDetails.vue'
 
-const { isSidebarOpen, selectedNode } = useWorkflowOrThrow()
+const { selectedNode, selectedNodeId } = useWorkflowOrThrow()
 </script>
 
 <template>
-  <div
-    :class="{
-      'w-0 opacity-0': !isSidebarOpen,
-      'w-100': isSidebarOpen,
-    }"
-    class="border-l-1 node-sidebar border-nc-border-gray-medium h-full bg-nc-bg-default"
-  >
-    <div class="gap-4 p-4 justify-between flex">
-      <div class="text-subHeading1 text-nc-content-gray">
-        {{ $t('general.properties') }}
-      </div>
-
-      <NcButton type="text" size="small" @click="isSidebarOpen = false">
-        <GeneralIcon class="text-nc-content-gray-subtle" icon="close" />
-      </NcButton>
-    </div>
-
+  <div class="border-l-1 node-sidebar w-100 sidebar-config border-nc-border-gray-medium bg-nc-bg-default">
     <Details v-if="!selectedNode" />
-    <div v-else class="overflow-auto config-wrapper">
+    <template v-else>
+      <div class="border-b-1 border-nc-border-gray-medium py-2 px-1" @click="selectedNodeId = null">
+        <NcButton type="text" size="small">
+          <GeneralIcon icon="ncChevronLeft" />
+        </NcButton>
+      </div>
+      <NodeDetails />
       <NodeConfig />
-      <NcDivider />
       <TestStep />
       <Result v-if="selectedNode.data?.testResult" />
-    </div>
+    </template>
   </div>
-
-  <NcButton v-if="!isSidebarOpen" type="text" size="small" class="!absolute top-4 right-4" @click="isSidebarOpen = true">
-    <GeneralIcon icon="ncSidebar" />
-  </NcButton>
 </template>
 
 <style scoped lang="scss">
-.config-wrapper {
-  height: calc(100svh - 2 * var(--toolbar-height) - 26px);
+.sidebar-config {
+  height: calc(100svh - (2 * var(--topbar-height)));
 }
 </style>

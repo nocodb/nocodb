@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
 import type { WorkflowNodeDefinition } from 'nocodb-sdk'
 import { GeneralNodeID, WorkflowNodeCategory } from 'nocodb-sdk'
-import Dropdown from '~/components/smartsheet/workflow/Node/Dropdown.vue'
+import Dropdown from '~/components/smartsheet/workflow/Canvas/Nodes/Dropdown.vue'
 
 const props = defineProps<NodeProps>()
 
@@ -117,7 +116,7 @@ onClickOutside(
           :class="{
             'ring ring-nc-brand-500 ring-offset-2': selectedNodeId === id || showDropdown,
           }"
-          class="flex border-1 rounded-lg w-77 justify-center cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default relative"
+          class="flex flex-col border-1 rounded-lg w-77 justify-center cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default relative"
           @click.stop="handleNodeClick"
         >
           <!-- Test status badge -->
@@ -160,7 +159,14 @@ onClickOutside(
 
               <template #overlay>
                 <NcMenu variant="small">
-                  <NcMenuItem @click="openDropdown">
+                  <NcMenuItem
+                    @click="
+                      () => {
+                        openDropdown()
+                        showSubMenuDropdown = false
+                      }
+                    "
+                  >
                     <div class="flex items-center gap-2">
                       <GeneralIcon icon="ncEdit" />
                       Edit
@@ -176,6 +182,16 @@ onClickOutside(
                 </NcMenu>
               </template>
             </NcDropdown>
+          </div>
+          <NcDivider />
+          <div
+            class="text-bodySm"
+            :class="{
+              'text-nc-content-gray-muted': !props?.data?.description,
+              'text-nc-content-gray': props?.data?.description,
+            }"
+          >
+            {{ props?.data?.description || $t('labels.addDescription') }}
           </div>
         </div>
       </template>

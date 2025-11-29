@@ -11,7 +11,7 @@ import {
   WorkflowNodeFilterDataType,
   extractDataTypeFromWorkflowNodeExpression,
 } from 'nocodb-sdk'
-import ConditionItemRenderer from '~/components/smartsheet/workflow/Node/IfNode/ConditionItemRenderer.vue'
+import ConditionItemRenderer from '~/components/smartsheet/workflow/Sidebar/Config/If/ConditionItemRenderer.vue'
 
 interface Props {
   item: WorkflowNodeConditionItem

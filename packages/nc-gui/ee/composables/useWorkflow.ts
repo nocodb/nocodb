@@ -17,15 +17,15 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { activeBaseNodeSchemas } = storeToRefs(workflowStore)
+  const { activeBaseNodeSchemas, activeWorkflow } = storeToRefs(workflowStore)
 
   const { activeProjectId } = storeToRefs(baseStore)
 
   const { updateWorkflow } = workflowStore
 
-  const isSidebarOpen = ref(true)
-
   const selectedNodeId = ref<string | null>(null)
+
+  const activeTab = ref<'editor' | 'runs'>('editor')
 
   const isSaving = ref(false)
 
@@ -52,10 +52,12 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
   }
 
   const updateWorkflowData = async (
-    { description, nodes, edges }: { description?: string; nodes?: Array<Node>; edges?: Array<Edge> },
+    { description, nodes, edges, title }: { description?: string; nodes?: Array<Node>; edges?: Array<Edge>; title?: string },
     skipNetworkCall: boolean = true,
   ) => {
     if (!activeProjectId.value || !workflow.value?.id) return
+
+    console.log('updateWorkflowData', { description, nodes, edges, title })
 
     if (isUIAllowed('workflowCreateOrEdit')) {
       isSaving.value = true
@@ -64,9 +66,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
           activeProjectId.value,
           workflow.value.id,
           {
-            description,
-            nodes,
-            edges,
+            ...(title ? { title } : {}),
+            ...(description ? { description } : {}),
+            ...(nodes ? { nodes } : {}),
+            ...(edges ? { edges } : {}),
           },
           {
             skipNetworkCall,
@@ -82,17 +85,17 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     if (!activeProjectId.value || !workflow.value?.id) return
     await updateWorkflowData(
       {
-        description: workflow.value.description,
+        description: activeWorkflow.value?.description,
         nodes: nodes.value,
         edges: edges.value,
+        title: activeWorkflow.value?.title,
       },
       false,
     )
   }, 500)
 
-  const updateSelectedNode = (nodeId: string, openSidebar = true) => {
+  const updateSelectedNode = (nodeId: string) => {
     selectedNodeId.value = nodeId
-    isSidebarOpen.value = openSidebar
   }
 
   // Callback for layout - will be set by Main.vue
@@ -570,7 +573,6 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   return {
     // State
-    isSidebarOpen,
     workflow,
     nodes,
     edges,
@@ -579,6 +581,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     selectedNodeId,
     selectedNode,
     hasManualTrigger,
+    activeTab,
 
     // Methods
     updateWorkflowData,

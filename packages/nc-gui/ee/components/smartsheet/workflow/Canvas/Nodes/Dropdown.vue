@@ -2,7 +2,6 @@
 import type { WorkflowNodeCategoryType, WorkflowNodeDefinition } from 'nocodb-sdk'
 import { WorkflowNodeCategory } from 'nocodb-sdk'
 import { onClickOutside } from '@vueuse/core'
-import { computed } from 'vue'
 
 interface Props {
   category: Array<WorkflowNodeCategoryType>

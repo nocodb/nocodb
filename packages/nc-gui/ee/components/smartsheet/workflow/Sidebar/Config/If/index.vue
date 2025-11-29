@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { WorkflowNodeComparisonOp } from 'nocodb-sdk'
 import type { WorkflowNodeConditionGroup, WorkflowNodeConditionItem, WorkflowNodeFilterCondition } from 'nocodb-sdk'
-import ConditionItemRenderer from '~/components/smartsheet/workflow/Node/IfNode/ConditionItemRenderer.vue'
+import ConditionItemRenderer from '~/components/smartsheet/workflow/Sidebar/Config/If/ConditionItemRenderer.vue'
 
 interface IfNodeConfig {
   conditions: WorkflowNodeConditionItem[]

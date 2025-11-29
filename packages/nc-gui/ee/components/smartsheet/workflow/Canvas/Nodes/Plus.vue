@@ -3,7 +3,7 @@ import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
 import { GeneralNodeID, WorkflowNodeCategory } from 'nocodb-sdk'
 import type { WorkflowNodeDefinition } from 'nocodb-sdk'
-import Dropdown from '~/components/smartsheet/workflow/Node/Dropdown.vue'
+import Dropdown from '~/components/smartsheet/workflow/Canvas/Nodes/Dropdown.vue'
 
 const props = defineProps<NodeProps>()
 

@@ -5,7 +5,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { Workflow, Workspace } from '~/models';
+import { Workflow, WorkflowExecution, Workspace } from '~/models';
 import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -280,5 +280,28 @@ export class WorkflowsService {
       payload.nodeId,
       payload.testTriggerData,
     );
+  }
+
+  async listExecutions(
+    context: NcContext,
+    params: {
+      workflowId?: string;
+      limit?: number;
+      offset?: number;
+    },
+  ) {
+    const { workflowId } = params;
+
+    if (!workflowId) {
+      NcError.get(context).badRequest('Workflow ID is required');
+    }
+
+    const workflow = await Workflow.get(context, workflowId);
+
+    if (!workflow) {
+      NcError.get(context).workflowNotFound(workflowId);
+    }
+
+    return await WorkflowExecution.list(context, params);
   }
 }

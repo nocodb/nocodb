@@ -221,6 +221,16 @@ export class InternalController extends InternalControllerCE {
         );
       case 'workflowNodes':
         return await this.workflowExecutionService.getWorkflowNodes(context);
+      case 'workflowExecutionList':
+        return await this.workflowsService.listExecutions(context, {
+          workflowId: req.query.workflowId as string,
+          limit: req.query.limit
+            ? parseInt(req.query.limit as string, 10) || 25
+            : 25,
+          offset: req.query.offset
+            ? parseInt(req.query.offset as string, 10) || 0
+            : 0,
+        });
       default:
         return await super.internalAPI(
           context,

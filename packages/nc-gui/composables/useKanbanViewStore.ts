@@ -72,6 +72,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     provide(SharedViewPasswordInj, password)
 
+    const { isFeatureEnabled } = useBetaFeatureToggle()
+
+    const isOptimizedKanbanEnabled = computed(() => isFeatureEnabled('kanban_opt'))
+
     // kanban view meta data
     const kanbanMetaData = computed(() => {
       if (isPublic.value) {
@@ -262,7 +266,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           meta.value!.id!,
           viewMeta.value!.id!,
           groupingFieldColumn!.value!.id!,
-          { where: xWhere.value, include_row_color: true },
+          { where: xWhere.value, include_row_color: true, opt: isOptimizedKanbanEnabled.value },
           {},
         )
       }

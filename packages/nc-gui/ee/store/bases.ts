@@ -19,6 +19,8 @@ export const useBases = defineStore('basesStore', () => {
 
   const bases = ref<Map<string, NcProject>>(new Map())
 
+  const baseRoleLoadingStatus: Record<string, boolean> = {}
+
   const basesList = computed<NcProject[]>(() =>
     Array.from(bases.value.values()).sort(
       (a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity),
@@ -546,17 +548,25 @@ export const useBases = defineStore('basesStore', () => {
   const getBaseRoles = async (baseId: string) => {
     if (baseRoles.value[baseId]) return baseRoles.value[baseId]
 
-    const user = await loadRoles(baseId, {
-      skipUpdatingUser: true,
-    })
-
-    if (user) {
-      baseRoles.value[baseId] = {
-        roles: user.base_roles || user.workspace_roles || {},
-      }
+    if (baseRoleLoadingStatus[baseId]) {
+      await until(() => !!baseRoles.value[baseId]).toBeTruthy({ timeout: 10000 })
+      return baseRoles.value[baseId]
     }
 
-    return baseRoles.value[baseId]
+    baseRoleLoadingStatus[baseId] = true
+    try {
+      const user = await loadRoles(baseId, {
+        skipUpdatingUser: true,
+      })
+      if (user) {
+        baseRoles.value[baseId] = {
+          roles: user.base_roles || user.workspace_roles || {},
+        }
+      }
+      return baseRoles.value[baseId]
+    } finally {
+      baseRoleLoadingStatus[baseId] = false
+    }
   }
 
   const isLoadingBaseTeams = ref(true)

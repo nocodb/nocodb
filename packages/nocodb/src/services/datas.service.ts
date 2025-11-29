@@ -486,6 +486,63 @@ export class DatasService {
 
     const source = await Source.get(context, model.source_id);
 
+    // Use singleQueryGroupedList for PostgreSQL to avoid nocoExecute
+    // It handles nested columns/rollups directly in SQL
+    if (source.type === 'pg' && param.query?.opt === 'true') {
+      const { dependencyFields } = await getAst(context, {
+        model,
+        query,
+        view,
+        includeRowColorColumns: query.include_row_color === 'true',
+      });
+
+      const listArgs: any = { ...dependencyFields };
+      try {
+        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+      } catch (e) {}
+      try {
+        listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+      } catch (e) {}
+      try {
+        listArgs.options = JSON.parse(listArgs.optionsArrJson);
+      } catch (e) {}
+
+      const baseModel = await Model.getBaseModelSQL(context, {
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+        source,
+      });
+
+      // Run both queries in parallel for better performance
+      const [groupedData, countArr] = await Promise.all([
+        await baseModel.groupedList({
+          ...listArgs,
+          groupColumnId: param.columnId,
+          useOptimised: param.query?.opt === 'true',
+        }),
+        baseModel.groupedListCount({
+          ...listArgs,
+          groupColumnId: param.columnId,
+        }),
+      ]);
+
+      return groupedData.map((item) => {
+        const count =
+          countArr.find((countItem: any) => countItem.key === item.key)
+            ?.count ?? 0;
+
+        return {
+          ...item,
+          value: new PagedResponseImpl(item.value, {
+            ...query,
+            count: count,
+          }),
+        };
+      });
+    }
+
+    // Fallback to original implementation for non-PostgreSQL databases
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,

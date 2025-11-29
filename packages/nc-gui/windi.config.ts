@@ -22,7 +22,7 @@ import {
   themeV3Colors,
   themeV4Colors,
   themeVariables,
-  generateColorsWithOpacity,
+  ncBuildColorsWithOpacity,
 } from './utils/colorsUtils'
 
 const isEE = process.env.EE
@@ -181,12 +181,12 @@ export default defineConfig({
         ...themeColors,
         ...themeV2Colors,
         ...themeV3Colors,
-        ...generateColorsWithOpacity(themeV4Colors, 'nc'),
-        ...generateColorsWithOpacity(themeVariables.content),
-        ...generateColorsWithOpacity(themeVariables.border),
-        ...generateColorsWithOpacity(themeVariables.background),
-        ...generateColorsWithOpacity(themeVariables.fill),
-        ...generateColorsWithOpacity({
+        ...ncBuildColorsWithOpacity(themeV4Colors, 'nc'),
+        ...ncBuildColorsWithOpacity(themeVariables.content),
+        ...ncBuildColorsWithOpacity(themeVariables.border),
+        ...ncBuildColorsWithOpacity(themeVariables.background),
+        ...ncBuildColorsWithOpacity(themeVariables.fill),
+        ...ncBuildColorsWithOpacity({
           primary: '--color-primary',
           accent: '--color-accent',
         }),

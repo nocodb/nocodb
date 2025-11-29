@@ -406,7 +406,7 @@ export function flattenColors(colors: Record<string, any>, prefix = ''): Record<
   return result
 }
 
-export function generateColorsWithOpacity(colors: Record<string, any>, prefix: string = ''): Record<string, any> {
+export function ncBuildColorsWithOpacity(colors: Record<string, any>, prefix: string = ''): Record<string, any> {
   const flat = flattenColors(colors, prefix)
 
   const result: Record<string, any> = {}

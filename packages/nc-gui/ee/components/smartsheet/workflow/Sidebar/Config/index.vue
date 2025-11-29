@@ -59,13 +59,10 @@ const { formState } = useProvideFormBuilderHelper({
 </script>
 
 <template>
-  <div>
-    <div class="px-4 py-4">
-      <IfNodeConfig v-if="isIfNode" />
-      <NcFormBuilder v-else-if="formSchema.length > 0" />
-    </div>
-    <NcDivider v-if="formSchema.length > 0 || isIfNode" />
-  </div>
+  <NcGroupedSettings v-if="formSchema.length > 0 || isIfNode" title="Inputs">
+    <IfNodeConfig v-if="isIfNode" />
+    <NcFormBuilder v-else-if="formSchema.length > 0" />
+  </NcGroupedSettings>
 </template>
 
 <style scoped lang="scss"></style>

@@ -99,13 +99,15 @@ export default {
 </script>
 
 <template>
-  <div class="w-64 bg-white scroll-smooth nc-mention-list nc-scrollbar-md border-1 border-gray-200 rounded-lg max-h-64 !py-2">
+  <div
+    class="w-64 bg-nc-bg-default scroll-smooth nc-mention-list nc-scrollbar-md border-1 border-nc-border-gray-medium rounded-lg max-h-64 !py-2"
+  >
     <template v-if="items.length">
       <div
         v-for="(item, index) in items"
         :key="index"
         :class="{ 'is-selected': index === selectedIndex }"
-        class="py-2 flex hover:bg-gray-100 transition-all cursor-pointer items-center text-gray-800 pl-4"
+        class="py-2 flex hover:bg-nc-bg-gray-light transition-all cursor-pointer items-center text-nc-content-gray pl-4"
         @click="selectItem(index, $event)"
       >
         <GeneralUserIcon
@@ -127,6 +129,6 @@ export default {
 
 <style lang="scss" scoped>
 .is-selected {
-  @apply bg-gray-100;
+  @apply bg-nc-bg-gray-light;
 }
 </style>

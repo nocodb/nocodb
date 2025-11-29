@@ -165,6 +165,22 @@ export const useTheme = createSharedComposable(() => {
           baseColor = computedValue
         }
       }
+    } else if (cssVariableValue.startsWith('--rgb-')) {
+      // Get the computed value from the document root
+      const computedValue = getComputedStyle(document.documentElement).getPropertyValue(cssVariableValue).trim()
+
+      if (!computedValue) {
+        console.log(`CSS variable ${cssVariableValue} not found or has no value`)
+        baseColor = '#000000' // Fallback color
+      } else {
+        // Clamp opacity between 0 and 1
+        const clampedOpacity = Math.max(0, Math.min(1, opacity ?? 1))
+
+        baseColor = `rgba(${computedValue}, ${clampedOpacity})`
+
+        colorCache.set(cacheKey, baseColor)
+        return baseColor
+      }
     }
 
     // If no opacity specified, return the base color
@@ -182,9 +198,11 @@ export const useTheme = createSharedComposable(() => {
     colorCache.set(cacheKey, colorWithOpacity)
     return colorWithOpacity
   }
+
   const clearColorCache = () => {
     colorCache.clear()
   }
+
   let initialized = false
 
   const init = () => {

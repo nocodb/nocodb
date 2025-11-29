@@ -613,8 +613,8 @@ watch(
             @click="testConnection()"
           >
             <template #icon>
-              <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-nc-content-green-dark w-4 h-4" />
-              <GeneralIcon v-else-if="testConnectionError" icon="alertTriangleSolid" class="!text-nc-content-red-dark w-4 h-4" />
+              <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4" />
+              <GeneralIcon v-else-if="testConnectionError" icon="alertTriangleSolid" class="!text-red-700 w-4 h-4" />
             </template>
 
             <span>
@@ -1198,7 +1198,9 @@ watch(
                             <MonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
                           </template>
                           <template #fallback>
-                            <div class="h-[400px] w-full flex items-center justify-center bg-nc-bg-gray-extralight dark:bg-gray-900">
+                            <div
+                              class="h-[400px] w-full flex items-center justify-center bg-nc-bg-gray-extralight dark:bg-gray-900"
+                            >
                               <div class="text-center">
                                 <a-spin size="large" />
                                 <div class="mt-4 text-nc-content-gray-subtle2 dark:text-gray-400">Loading Monaco Editor...</div>

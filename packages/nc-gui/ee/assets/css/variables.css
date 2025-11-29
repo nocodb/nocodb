@@ -7,6 +7,27 @@
   border: 1px solid var(--nc-border-brand)
 */
 
+:root {
+  --spacing-00: 0px;
+  --spacing-01: 2px;
+  --spacing-02: 4px;
+  --spacing-03: 8px;
+  --spacing-04: 12px;
+  --spacing-05: 16px;
+  --spacing-06: 24px;
+  --spacing-07: 32px;
+  --spacing-08: 40px;
+  --spacing-09: 48px;
+  --spacing-10: 64px;
+  --spacing-11: 80px;
+  --spacing-12: 96px;
+  --spacing-13: 160px;
+
+  --font-size-h1: 64px;
+  --font-size-h2: 40px;
+  --font-size-h3: 24px;
+}
+
 /* Refrence tokens - Light */
 :root {
   --color-bg: #ffffff;
@@ -682,25 +703,6 @@
 
   --color-yellow-900: #fff9eb;
   --rgb-color-yellow-900: 255, 249, 235;
-
-  --spacing-00: 0px;
-  --spacing-01: 2px;
-  --spacing-02: 4px;
-  --spacing-03: 8px;
-  --spacing-04: 12px;
-  --spacing-05: 16px;
-  --spacing-06: 24px;
-  --spacing-07: 32px;
-  --spacing-08: 40px;
-  --spacing-09: 48px;
-  --spacing-10: 64px;
-  --spacing-11: 80px;
-  --spacing-12: 96px;
-  --spacing-13: 160px;
-
-  --font-size-h1: 64px;
-  --font-size-h2: 40px;
-  --font-size-h3: 24px;
 }
 
 /* Refrence tokens - Dark */
@@ -822,33 +824,16 @@
   --color-yellow-900: #fff7e5;
 
   --color-base-none: #ffffff00;
-
-  --spacing-00: 0px;
-  --spacing-01: 2px;
-  --spacing-02: 4px;
-  --spacing-03: 8px;
-  --spacing-04: 12px;
-  --spacing-05: 16px;
-  --spacing-06: 24px;
-  --spacing-07: 32px;
-  --spacing-08: 40px;
-  --spacing-09: 48px;
-  --spacing-10: 64px;
-  --spacing-11: 80px;
-  --spacing-12: 96px;
-  --spacing-13: 160px;
-
-  --font-size-h1: 64px;
-  --font-size-h2: 40px;
-  --font-size-h3: 24px;
 }
 
 /* System tokens */
 :root {
   --nc-bg-brand-inverted: var(--color-brand-50);
+  --rgb-nc-bg-brand-inverted: var(--rgb-color-brand-50);
 }
 [theme='dark'] {
   --nc-bg-brand-inverted: var(--color-gray-200);
+  --rgb-nc-bg-brand-inverted: var(--rgb-color-gray-200);
 }
 
 :root,

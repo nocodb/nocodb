@@ -299,7 +299,7 @@ const customRow = (record: Record<string, any>) => ({
   <div class="h-full flex flex-col gap-6 nc-workspace-connections nc-content-max-w mx-auto">
     <div class="flex flex-col justify-between gap-2 mx-1">
       <div class="text-sm font-normal text-nc-content-gray-subtle2">
-        <div>
+        <div class="text-nctemp/50 shadow-sm shadow-nctemp/50">
           {{ $t('msg.manageConnections') }}
           <a
             target="_blank"

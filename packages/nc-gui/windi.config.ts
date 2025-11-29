@@ -13,6 +13,8 @@ import questionMark from '@windicss/plugin-question-mark'
 
 import ncTypographyPlugin from './assets/nc-typography-plugin'
 
+import ncColorsPlugin from './assets/nc-colors-plugin'
+
 import ncWindicssShortcutsPlugin from './assets/nc-windicss-shortcuts-plugin'
 
 import {
@@ -65,6 +67,7 @@ export default defineConfig({
     'text-grey',
   ],
   plugins: [
+    ncColorsPlugin,
     ncTypographyPlugin,
     scrollbar,
     animations,
@@ -180,7 +183,7 @@ export default defineConfig({
         ...themeColors,
         ...themeV2Colors,
         ...themeV3Colors,
-        ...themeV4ColorsWithNcPrefix,
+        // ...themeV4ColorsWithNcPrefix,
         ...themeVariables.content,
         ...themeVariables.border,
         ...themeVariables.background,
@@ -189,6 +192,16 @@ export default defineConfig({
         accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
         dark: colors.dark,
         light: colors.light,
+        nctemp: ({ opacityVariable, opacityValue }: { opacityVariable?: string; opacityValue?: number }) => {
+          const rgb = '16, 185, 129' // your rgb value
+          if (opacityValue !== undefined) {
+            return `rgba(${rgb}, ${opacityValue})`
+          }
+          if (opacityVariable !== undefined) {
+            return `rgba(${rgb}, var(${opacityVariable}, 1))`
+          }
+          return `rgb(${rgb})`
+        },
       },
     },
   },

@@ -38,7 +38,7 @@ const themeDark: editor.IStandaloneThemeData = {
     { token: 'identifier', foreground: '#b68cff', fontStyle: 'bold' }, // purple tint
     { token: 'delimiter.parenthesis', foreground: '#cccccc', fontStyle: 'bold' },
     { token: 'delimiter.brace', foreground: '#b68cff', fontStyle: 'bold' },
-    { token: 'invalid', foreground: '#ff6b6b' }, // red for errors
+    { token: 'invalid', foreground: '#ffffff' },
   ],
 
   colors: {

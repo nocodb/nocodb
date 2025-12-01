@@ -39,6 +39,8 @@ const value = useVModel(props, 'value', emits)
 
 const { $e } = useNuxtApp()
 
+const { isDark } = useTheme()
+
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const { sqlUi, column, fromTableExplorer, validateInfos } = useColumnCreateStoreOrThrow()
@@ -185,7 +187,7 @@ onMounted(async () => {
       id: formulaLanguage.name,
     })
 
-    monacoEditor.defineTheme(formulaLanguage.name, formulaLanguage.theme)
+    monacoEditor.defineTheme(formulaLanguage.name, isDark.value ? formulaLanguage.themeDark : formulaLanguage.theme)
 
     languages.setMonarchTokensProvider(
       formulaLanguage.name,

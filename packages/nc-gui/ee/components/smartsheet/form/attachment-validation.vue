@@ -76,7 +76,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
       <template #default="{ click }">
         <div class="w-full flex items-start justify-between gap-3">
           <div class="flex-1 max-w-[calc(100%_-_40px)]">
-            <div class="font-medium text-gray-800 flex items-center gap-2">
+            <div class="font-medium text-nc-content-gray flex items-center gap-2">
               <div
                 class="cursor-pointer select-none flex items-center gap-2"
                 @click="
@@ -99,7 +99,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
                 />
               </div>
             </div>
-            <div class="text-gray-500 mt-1">
+            <div class="text-nc-content-gray-muted mt-1">
               Manage user file uploads by specifying permitted MIME types.
               <template v-if="isEnabled.fileTypes">
                 <br /><br />
@@ -151,7 +151,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
         <div class="w-full flex items-start justify-between gap-3">
           <div class="flex-1 max-w-[calc(100%_-_40px)]">
             <div
-              class="font-medium text-gray-800 cursor-pointer select-none flex items-center gap-2"
+              class="font-medium text-nc-content-gray cursor-pointer select-none flex items-center gap-2"
               @click="
                 click(
                   PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
@@ -171,7 +171,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
                 "
               />
             </div>
-            <div class="text-gray-500 mt-1">Limit the number of files that can be uploaded.</div>
+            <div class="text-nc-content-gray-muted mt-1">Limit the number of files that can be uploaded.</div>
 
             <div v-if="isEnabled.fileCount" class="nc-att-limit-file-count-wrapper mt-3 flex flex-col gap-1">
               <LazySmartsheetFormValidationInput
@@ -207,7 +207,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
         <div class="w-full flex items-start justify-between gap-3">
           <div class="flex-1 max-w-[calc(100%_-_40px)]">
             <div
-              class="font-medium text-gray-800 cursor-pointer select-none flex items-center gap-2"
+              class="font-medium text-nc-content-gray cursor-pointer select-none flex items-center gap-2"
               @click="
                 click(
                   PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
@@ -228,7 +228,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
                 "
               />
             </div>
-            <div class="text-gray-500 mt-1">Limit the size of files that can be uploaded. (Limit per file)</div>
+            <div class="text-nc-content-gray-muted mt-1">Limit the size of files that can be uploaded. (Limit per file)</div>
 
             <div>
               <div v-if="isEnabled.fileSize" class="nc-att-limit-file-size-wrapper mt-3 flex gap-2">

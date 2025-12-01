@@ -81,7 +81,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
       <div class="w-full flex items-start justify-between gap-3">
         <div class="flex-1 max-w-[calc(100%_-_40px)]">
           <div
-            class="font-medium text-gray-800 cursor-pointer select-none flex items-center gap-2"
+            class="font-medium text-nc-content-gray cursor-pointer select-none flex items-center gap-2"
             @click="
               click(
                 PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
@@ -102,7 +102,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
               "
             />
           </div>
-          <div v-if="subtitle" class="text-gray-500 mt-1">{{ subtitle }}</div>
+          <div v-if="subtitle" class="text-nc-content-gray-muted mt-1">{{ subtitle }}</div>
 
           <div v-if="isLimitRangeEnabled" class="nc-limit-to-range-wrapper mt-3 flex flex-col gap-3">
             <div>

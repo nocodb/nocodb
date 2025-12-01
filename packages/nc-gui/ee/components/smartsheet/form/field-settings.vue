@@ -26,12 +26,12 @@ const columnSupportsScanning = (elementType: UITypes) =>
 <template>
   <!-- Field Settings -->
   <template v-if="activeField">
-    <div class="nc-form-field-settings p-4 flex flex-col gap-4 border-b border-gray-200">
-      <div class="text-sm font-bold text-gray-800">{{ $t('objects.field') }} {{ $t('activity.validations').toLowerCase() }}</div>
+    <div class="nc-form-field-settings p-4 flex flex-col gap-4 border-b border-nc-border-gray-medium">
+      <div class="text-sm font-bold text-nc-content-gray">{{ $t('objects.field') }} {{ $t('activity.validations').toLowerCase() }}</div>
       <div class="flex flex-col gap-6">
         <div class="flex items-center justify-between gap-3">
           <div
-            class="nc-form-input-required text-gray-800 font-medium cursor-pointer select-none"
+            class="nc-form-input-required text-nc-content-gray font-medium cursor-pointer select-none"
             @click="
               () => {
                 activeField.required = !activeField.required
@@ -54,7 +54,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
         <div v-if="columnSupportsScanning(activeField.uidt)" class="!my-0 nc-form-input-enable-scanner-form-item">
           <div class="flex items-center justify-between gap-3">
             <div
-              class="nc-form-input-enable-scanner text-gray-800 font-medium cursor-pointer select-none"
+              class="nc-form-input-enable-scanner text-nc-content-gray font-medium cursor-pointer select-none"
               @click="
                 () => {
                   activeField.enable_scanner = !activeField.enable_scanner
@@ -80,7 +80,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
         <div v-if="isSelectTypeCol(activeField.uidt)" class="w-full flex items-start justify-between gap-3">
           <div class="flex-1 max-w-[calc(100%_-_40px)]">
             <div
-              class="font-medium text-gray-800 cursor-pointer select-none"
+              class="font-medium text-nc-content-gray cursor-pointer select-none"
               @click="
                 () => {
                   activeField.meta.isLimitOption = !activeField.meta.isLimitOption
@@ -90,7 +90,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
             >
               {{ $t('labels.limitOptions') }}
             </div>
-            <div class="text-gray-500 mt-1">{{ $t('labels.limitOptionsSubtext') }}.</div>
+            <div class="text-nc-content-gray-muted mt-1">{{ $t('labels.limitOptionsSubtext') }}.</div>
             <div v-if="activeField.meta.isLimitOption" class="mt-3">
               <SmartsheetFormLimitOptions
                 v-model:model-value="activeField.meta.limitOptions"
@@ -137,13 +137,13 @@ const columnSupportsScanning = (elementType: UITypes) =>
     <!-- Field Appearance Settings -->
     <div
       v-if="isSelectTypeCol(activeField.uidt)"
-      class="nc-form-field-appearance-settings p-4 flex flex-col gap-4 border-b border-gray-200"
+      class="nc-form-field-appearance-settings p-4 flex flex-col gap-4 border-b border-nc-border-gray-medium"
     >
-      <div class="text-sm font-bold text-gray-800">{{ $t('general.appearance') }}</div>
+      <div class="text-sm font-bold text-nc-content-gray">{{ $t('general.appearance') }}</div>
       <div class="flex flex-col gap-6">
         <!-- Select type field Options Layout  -->
         <div>
-          <div class="text-gray-800 font-medium">Options layout</div>
+          <div class="text-nc-content-gray font-medium">Options layout</div>
 
           <a-radio-group
             :value="!!activeField.meta.isList"

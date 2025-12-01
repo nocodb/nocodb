@@ -162,13 +162,13 @@ const showOrHideAll = (showAll: boolean) => {
         data-testid="nc-form-field-limit-option-search-input"
       >
         <template #prefix>
-          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
         </template>
         <template #suffix>
           <GeneralIcon
             v-if="searchQuery.length > 0"
             icon="close"
-            class="ml-2 h-4 w-4 text-gray-500 group-hover:text-black"
+            class="ml-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
             data-testid="nc-form-field-clear-search"
             @click="searchQuery = ''"
           />
@@ -176,14 +176,17 @@ const showOrHideAll = (showAll: boolean) => {
       </a-input>
     </div>
 
-    <div v-if="vModel.length" class="flex items-stretch gap-2 pr-2 pl-3 py-1.5 rounded-t-lg border-1 border-b-0 border-gray-200">
+    <div
+      v-if="vModel.length"
+      class="flex items-stretch gap-2 pr-2 pl-3 py-1.5 rounded-t-lg border-1 border-b-0 border-nc-border-gray-medium"
+    >
       <NcTooltip :disabled="!isRequired">
         <template #title> {{ $t('msg.info.preventHideAllOptions') }} </template>
 
         <NcButton
           type="secondary"
           size="xxsmall"
-          class="!border-none !px-2 !text-xs !text-gray-500 !disabled:text-gray-300"
+          class="!border-none !px-2 !text-xs !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
           :disabled="isRequired || vModel.filter((o) => !o.show).length === vModel.length"
           :shadow="false"
           @click="showOrHideAll(false)"
@@ -196,7 +199,7 @@ const showOrHideAll = (showAll: boolean) => {
         <NcButton
           type="secondary"
           size="xxsmall"
-          class="!border-none !px-2 !text-xs !text-gray-500 !disabled:text-gray-300"
+          class="!border-none !px-2 !text-xs !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
           :disabled="vModel.filter((o) => o.show).length === vModel.length"
           :shadow="false"
           @click="showOrHideAll(true)"
@@ -213,7 +216,7 @@ const showOrHideAll = (showAll: boolean) => {
       item-key="id"
       handle=".nc-child-draggable-icon"
       ghost-class="nc-form-field-limit-option-ghost"
-      class="rounded-b-lg border-1 border-gray-200 !max-h-[224px] overflow-y-auto nc-form-scrollbar"
+      class="rounded-b-lg border-1 border-nc-border-gray-medium !max-h-[224px] overflow-y-auto nc-form-scrollbar"
       @change="onMove($event)"
       @start="drag = true"
       @end="drag = false"
@@ -226,14 +229,17 @@ const showOrHideAll = (showAll: boolean) => {
               : element.title?.toLowerCase().includes(searchQuery.toLowerCase())
           "
           :key="element.id"
-          class="w-full h-10 px-2 py-1.5 flex flex-row items-center gap-3 border-b-1 last:border-none border-gray-200"
+          class="w-full h-10 px-2 py-1.5 flex flex-row items-center gap-3 border-b-1 last:border-none border-nc-border-gray-medium"
           :class="[
             `nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`,
-            `${element.show ? 'hover:bg-gray-50' : 'bg-gray-100'}`,
+            `${element.show ? 'hover:bg-nc-bg-gray-extralight' : 'bg-nc-bg-gray-light'}`,
           ]"
           :data-testid="`nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`"
         >
-          <component :is="iconMap.drag" class="nc-child-draggable-icon flex-none cursor-move !h-4 !w-4 text-gray-600" />
+          <component
+            :is="iconMap.drag"
+            class="nc-child-draggable-icon flex-none cursor-move !h-4 !w-4 text-nc-content-gray-subtle2"
+          />
 
           <NcTooltip :disabled="!isRequired || !(element.show && isRequired && vModel.filter((o) => o.show).length === 1)">
             <template #title> {{ $t('msg.info.preventHideAllOptions') }} </template>
@@ -250,7 +256,7 @@ const showOrHideAll = (showAll: boolean) => {
             >
               <component
                 :is="element.show ? iconMap.eye : iconMap.eyeSlash"
-                class="flex-none cursor-pointer !h-4 !w-4 text-gray-600"
+                class="flex-none cursor-pointer !h-4 !w-4 text-nc-content-gray-subtle2"
               />
             </div>
           </NcTooltip>
@@ -314,7 +320,7 @@ const showOrHideAll = (showAll: boolean) => {
         </div>
       </template>
       <template v-if="!vModel.length" #footer
-        ><div class="px-0.5 py-2 text-gray-500 text-center">{{ $t('title.noOptionsFound') }}</div></template
+        ><div class="px-0.5 py-2 text-nc-content-gray-muted text-center">{{ $t('title.noOptionsFound') }}</div></template
       >
       <template
         v-else-if="
@@ -328,7 +334,9 @@ const showOrHideAll = (showAll: boolean) => {
         "
         #footer
       >
-        <div class="px-0.5 py-2 text-gray-500 text-center">{{ $t('title.noOptionsFound') }} with title `{{ searchQuery }}`</div>
+        <div class="px-0.5 py-2 text-nc-content-gray-muted text-center">
+          {{ $t('title.noOptionsFound') }} with title `{{ searchQuery }}`
+        </div>
       </template>
     </Draggable>
   </div>
@@ -336,9 +344,9 @@ const showOrHideAll = (showAll: boolean) => {
 
 <style scoped lang="scss">
 .nc-form-scrollbar {
-  @apply scrollbar scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
+  @apply scrollbar scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent;
   &::-webkit-scrollbar-thumb:hover {
-    @apply !scrollbar-thumb-gray-300;
+    @apply !scrollbar-thumb-nc-gray-300 dark:!scrollbar-thumb-gray-700;
   }
 }
 .rounded-tag {
@@ -349,6 +357,6 @@ const showOrHideAll = (showAll: boolean) => {
   @apply rounded-tag my-[2px];
 }
 .nc-form-field-limit-option-ghost {
-  @apply bg-gray-50;
+  @apply bg-nc-bg-gray-extralight;
 }
 </style>

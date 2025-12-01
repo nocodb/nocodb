@@ -179,22 +179,22 @@ const handleKeyDown = (e: KeyboardEvent) => {
   <div
     class="flex-1 flex min-h-4 h-full items-stretch nc-validation-input-wrapper text-sm transition-colors overflow-hidden"
     :class="[
-      `${validationInput ? 'text-gray-800' : 'text-gray-500'}`,
+      `${validationInput ? 'text-nc-content-gray' : 'text-nc-content-gray-muted'}`,
       {
-        'custom-validation-input focus-within:(text-gray-800)': isCustomValidationInput,
-        'border-1 !rounded-lg focus-within:(border-brand-500 text-gray-800)': !isCustomValidationInput,
+        'custom-validation-input focus-within:(text-nc-content-gray)': isCustomValidationInput,
+        'border-1 !rounded-lg focus-within:(border-nc-border-brand text-nc-content-gray)': !isCustomValidationInput,
       },
     ]"
     @mouseup.stop
   >
-    <div v-if="$slots.prefix" class="min-w-[88px] px-3 border-r-1 border-gray-200 flex items-center">
+    <div v-if="$slots.prefix" class="min-w-[88px] px-3 border-r-1 border-nc-border-gray-medium flex items-center">
       <slot name="prefix" />
     </div>
 
     <div
       class="flex-1 !h-8 flex items-center"
       :class="{
-        'bg-gray-50 cursor-not-allowed': !validator.type,
+        'bg-nc-bg-gray-extralight cursor-not-allowed': !validator.type,
       }"
     >
       <component
@@ -203,7 +203,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :disabled="!validator.type"
         :placeholder="placeholder ? placeholder : isCustomValidationInput ? 'Type value...' : ''"
         :column="column"
-        class="flex !rounded-lg !disabled:(bg-gray-50 cursor-not-allowed)"
+        class="flex !rounded-lg !disabled:(bg-nc-bg-gray-extralight cursor-not-allowed)"
         style="letter-spacing: normal"
         v-bind="componentProps"
         location="filter"
@@ -215,7 +215,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
       />
     </div>
 
-    <div v-if="$slots.suffix" class="px-3 border-l-1 border-gray-200 flex items-center">
+    <div v-if="$slots.suffix" class="px-3 border-l-1 border-nc-border-gray-medium flex items-center">
       <slot name="suffix" />
     </div>
   </div>
@@ -226,7 +226,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
   @apply !py-1 !px-2 !text-sm;
 
   &::placeholder {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
   }
 }
 
@@ -237,7 +237,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
   &:not(.custom-validation-input) {
     transition: all 0.3s;
     &:hover {
-      @apply border-brand-400;
+      @apply border-nc-brand-400;
     }
     &:focus-within {
       @apply shadow-selected;

@@ -100,10 +100,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isCustomValidationSupported" class="p-4 border-b border-gray-200">
+  <div v-if="isCustomValidationSupported" class="p-4 border-b border-nc-border-gray-medium">
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
-        <div class="text-gray-800 font-medium">Custom validations</div>
+        <div class="text-nc-content-gray font-medium">Custom validations</div>
 
         <div class="flex flex-col">
           <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION">
@@ -127,16 +127,16 @@ onMounted(() => {
                 <div
                   class="nc-custom-validation-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm"
                   :class="{
-                    '!border-brand-500 shadow-selected': isOpen,
-                    'border-gray-200': !isOpen,
-                    'bg-[#F0F3FF]': filteredValidators.length,
+                    '!border-nc-border-brand shadow-selected': isOpen,
+                    'border-nc-border-gray-medium': !isOpen,
+                    'bg-nc-bg-brand dark:bg-nc-bg-gray-light': filteredValidators.length,
                   }"
                   @click="isOpen = !isOpen"
                 >
                   <div
                     class="nc-custom-validation-count flex-1"
                     :class="{
-                      'text-brand-500 ': filteredValidators.length,
+                      'text-nc-content-brand ': filteredValidators.length,
                     }"
                   >
                     {{
@@ -146,13 +146,13 @@ onMounted(() => {
                     }}
                   </div>
 
-                  <GeneralIcon v-if="hasValidationError" icon="alertTriangle" class="flex-none !text-red-500" />
+                  <GeneralIcon v-if="hasValidationError" icon="alertTriangle" class="flex-none !text-nc-content-red-medium" />
 
                   <GeneralIcon
                     icon="settings"
                     class="flex-none w-4 h-4"
                     :class="{
-                      'text-brand-500 ': filteredValidators.length,
+                      'text-nc-content-brand ': filteredValidators.length,
                     }"
                   />
                 </div>
@@ -171,7 +171,7 @@ onMounted(() => {
                                   This warning message will be displayed to form users for invalid inputs.</template
                                 >
 
-                                <GeneralIcon icon="info" class="flex-none text-gray-500 hover:text-gray-700" />
+                                <GeneralIcon icon="info" class="flex-none text-nc-content-gray-muted hover:text-nc-content-gray-subtle" />
                               </NcTooltip>
                             </div>
                             <div class="th"></div>
@@ -191,7 +191,7 @@ onMounted(() => {
                               ></LazySmartsheetFormCustomValidationItem>
                             </template>
                           </template>
-                          <div v-else class="tr flex items-center justify-center text-gray-500">No validations</div>
+                          <div v-else class="tr flex items-center justify-center text-nc-content-gray-muted">No validations</div>
                         </div>
                       </div>
                       <div>
@@ -226,7 +226,7 @@ onMounted(() => {
           </PaymentUpgradeBadgeProvider>
         </div>
       </div>
-      <div class="text-sm text-gray-500">Apply rules and regular expressions on inputs.</div>
+      <div class="text-sm text-nc-content-gray-muted">Apply rules and regular expressions on inputs.</div>
     </div>
   </div>
 </template>
@@ -236,7 +236,7 @@ onMounted(() => {
   @apply border-none text-sm rounded-md;
 
   .thead .tr {
-    @apply bg-gray-100 rounded-t-lg;
+    @apply bg-nc-bg-gray-light rounded-t-lg;
   }
 
   .tbody {
@@ -253,7 +253,7 @@ onMounted(() => {
   }
 
   .tr {
-    @apply h-[32px] flex overflow-hidden border-1  border-gray-200;
+    @apply h-[32px] flex overflow-hidden border-1  border-nc-border-gray-medium;
 
     .th:not(:last-child),
     .td:not(:last-child) {
@@ -265,11 +265,11 @@ onMounted(() => {
     }
 
     .th {
-      @apply text-left uppercase text-gray-500 font-semibold text-xs flex items-center justify-between;
+      @apply text-left uppercase text-nc-content-gray-muted font-semibold text-xs flex items-center justify-between;
     }
 
     .th:not(:last-child):not(:nth-last-child(2)) {
-      @apply border-r-1  border-gray-200;
+      @apply border-r-1  border-nc-border-gray-medium;
     }
 
     .th:last-child {
@@ -277,7 +277,7 @@ onMounted(() => {
     }
 
     .td:not(:last-child) {
-      @apply border-r-1  border-gray-200;
+      @apply border-r-1  border-nc-border-gray-medium;
     }
     .td:last-child {
       @apply px-0;
@@ -285,7 +285,7 @@ onMounted(() => {
   }
 }
 .nc-custom-validator-dropdown {
-  @apply rounded-2xl border-gray-200;
+  @apply rounded-2xl border-nc-border-gray-medium;
   box-shadow: 0px 20px 24px -4px rgba(0, 0, 0, 0.1), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
 }
 </style>

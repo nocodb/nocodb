@@ -483,6 +483,7 @@ export class SyncModuleService implements OnModuleInit {
           }
         }
       } catch (e) {
+        console.log('e', e);
         for (const table of tablesToDelete) {
           if (table.mm) {
             await Model.markAsMmTable(context, table.id, false);

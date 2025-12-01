@@ -3,31 +3,42 @@ import {
   SCHEMA_HRIS,
   SyncIntegration,
   TARGET_TABLES,
-  type HrisBankInfoRecord,
-  type HrisBenefitRecord,
-  type HrisCompanyRecord,
-  type HrisDependentRecord,
-  type HrisEmployeePayrollRunRecord,
-  type HrisEmployeeRecord,
-  type HrisEmploymentRecord,
-  type HrisGroupRecord,
-  type HrisLocationRecord,
-  type HrisPayGroupRecord,
-  type HrisPayrollRunRecord,
-  type HrisTimeOffBalanceRecord,
-  type HrisTimeOffRecord,
-  type HrisTimesheetEntryRecord,
 } from '@noco-integrations/core';
+import { BambooHRFormatter } from './formatter';
 import type { BambooHRAuthIntegration } from '@noco-integrations/bamboohr-auth';
 import type { SyncLinkValue, SyncRecord } from '@noco-integrations/core';
 
 export interface BambooHRSyncPayload {
-  domain: string;
+  title: string;
 }
 
+const employeeFetchFields = [
+  'employeeNumber',
+  'firstName',
+  'lastName',
+  'preferredName',
+  'displayName',
+  'workEmail',
+  'homeEmail',
+  'mobilePhone',
+  'employmentStatus',
+  'ssn',
+  'gender',
+  'ethnicity',
+  'maritalStatus',
+  'dateOfBirth',
+  'hireDate',
+  'terminationDate',
+  'department',
+  'photoUploaded',
+];
+const employeeFetchFieldsCsv = employeeFetchFields.join(',');
+
 export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyncPayload> {
+  formatter = new BambooHRFormatter();
+
   public getTitle() {
-    return this.config.domain;
+    return this.config.title;
   }
 
   public async getDestinationSchema(_auth: BambooHRAuthIntegration) {
@@ -38,31 +49,58 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
     auth: BambooHRAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
-      targetTableIncrementalValues?: {
-        [key: string]: Record<TARGET_TABLES, string>;
-      };
+      targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
     },
   ): Promise<DataObjectStream<SyncRecord>> {
     const stream = new DataObjectStream<SyncRecord>();
 
-    const { domain } = this.config;
+    const { targetTableIncrementalValues } = args;
 
     // Simplified data fetching for BambooHR employees
     void (async () => {
       try {
-        this.log(`[BambooHR Sync] Fetching employees for domain ${domain}`);
+        this.log(
+          `[BambooHR Sync] Fetching employees for company ${auth.config.companyDomain}`,
+        );
 
-        const { data: employees } = await auth.use(async (client) => {
-          return await client.get(
-            `/employees/directory`,
-          );
-        });
+        const employeeIncrementalValue =
+          targetTableIncrementalValues?.[TARGET_TABLES.TICKETING_TICKET];
 
-        for (const employee of employees.employees) {
+        const fetchAfter = employeeIncrementalValue
+          ? new Date(employeeIncrementalValue).toISOString()
+          : '2000-01-01T00:00:00Z';
+
+        const { data: employeeChange } = (await auth.use(async (client) => {
+          return await client.get(`/employees/changed?since=${fetchAfter}`);
+        })) as {
+          data: {
+            latest: string;
+            employees: Record<
+              string,
+              { id: string; action: string; lastChanged: string }
+            >;
+          };
+        };
+        for (const [id, employee] of Object.entries(employeeChange.employees)) {
+          // TODO: handle deleted record
+          if (employee.action.toLowerCase() === 'deleted') {
+            continue;
+          }
+          console.log('fetch for id ' + id);
+          const { data: employeeDetail } = await auth.use(async (client) => {
+            return await client.get(
+              `/employees/${id}?fields=${employeeFetchFieldsCsv}`,
+            );
+          });
+
           stream.push({
-            recordId: employee.id,
+            recordId: `${employeeDetail.id}`,
             targetTable: TARGET_TABLES.HRIS_EMPLOYEE,
-            ...this.formatData(TARGET_TABLES.HRIS_EMPLOYEE, employee),
+            ...this.formatData(
+              TARGET_TABLES.HRIS_EMPLOYEE,
+              employeeDetail,
+              auth.config.companyDomain,
+            ),
           });
         }
 
@@ -77,18 +115,17 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
 
     return stream;
   }
-
-  public formatData(
-    targetTable: TARGET_TABLES,
+  formatData(
+    targetTable: TARGET_TABLES | string,
     data: any,
     namespace?: string,
-  ): {
-    data: SyncRecord;
-    links?: Record<string, SyncLinkValue>;
-  } {
+  ): { data: SyncRecord; links?: Record<string, SyncLinkValue> } {
     switch (targetTable) {
       case TARGET_TABLES.HRIS_EMPLOYEE:
-        return this.formatEmployee(data, namespace);
+        return this.formatter.formatEmployee({
+          employee: data,
+          namespace: namespace!,
+        });
       default: {
         return {
           data: {
@@ -100,36 +137,6 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
     }
   }
 
-  private formatEmployee(
-    employee: any,
-    namespace?: string,
-  ): {
-    data: HrisEmployeeRecord;
-    links?: Record<string, SyncLinkValue>;
-  } {
-    const employeeData: HrisEmployeeRecord = {
-      RemoteId: employee.id,
-      'First Name': employee.firstName,
-      'Last Name': employee.lastName,
-      'Display Full Name': employee.displayName,
-      'Work Email': employee.workEmail,
-      'Mobile Phone Number': employee.mobilePhone,
-      'Hire Date': employee.hireDate,
-      'Employment Status': employee.employmentStatus,
-      'Remote Created At': employee.created,
-      RemoteUpdatedAt: employee.lastChanged,
-      RemoteRaw: JSON.stringify(employee),
-      RemoteNamespace: namespace,
-    };
-
-    const links: Record<string, SyncLinkValue> = {};
-
-    return {
-      data: employeeData,
-      links: Object.keys(links).length > 0 ? links : undefined,
-    };
-  }
-
   public getIncrementalKey(targetTable: TARGET_TABLES) {
     switch (targetTable) {
       case TARGET_TABLES.HRIS_EMPLOYEE:
@@ -137,21 +144,5 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
       default:
         return 'RemoteUpdatedAt';
     }
-  }
-
-  public getNamespaces(): string[] {
-    return [this.config.domain];
-  }
-
-  public async fetchOptions(
-    auth: BambooHRAuthIntegration,
-    key: string,
-  ): Promise<{
-    label: string;
-    value: string;
-  }[]> {
-    // BambooHR does not have dynamic options like Bitbucket repositories
-    // This method can be expanded if there are specific lists to fetch (e.g., custom fields)
-    return [];
   }
 }

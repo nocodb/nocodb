@@ -204,6 +204,7 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: table.synced? 'ncZap': 'table',
           tableName: table.title,
           description: 'Selected table for record deletion',
         },
@@ -215,6 +216,7 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: 'cellSystemKey',
           description: 'ID of the record to delete',
         },
       });

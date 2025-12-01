@@ -349,6 +349,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
           type: NocoSDK.VariableType.String,
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
+            icon: table.synced? 'ncZap': 'table',
             tableName: table.title,
             description: 'Table to monitor for updates',
           },

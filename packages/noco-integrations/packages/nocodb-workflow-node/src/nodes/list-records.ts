@@ -298,25 +298,37 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
 
       if (!table) return [];
 
+      const iconMap = {
+        [NocoSDK.ViewTypes.FORM]: 'form',
+        [NocoSDK.ViewTypes.GRID]: 'grid',
+        [NocoSDK.ViewTypes.KANBAN]: 'kanban',
+        [NocoSDK.ViewTypes.CALENDAR]: 'calendar',
+        [NocoSDK.ViewTypes.GALLERY]: 'gallery',
+        [NocoSDK.ViewTypes.MAP]: 'map',
+      }
+
       variables.push({
         key: 'config.modelId',
         name: 'Table',
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: table.synced? 'ncZap': 'table',
           tableName: table.title,
           description: 'Selected table for listing records',
         },
       });
 
-      if (viewId) {
-        const view = table.views?.find((v) => v.id === viewId);
+      const view = viewId && table.views?.find((v) => v.id === viewId);
+
+      if (view) {
         variables.push({
           key: 'config.viewId',
           name: 'View',
           type: NocoSDK.VariableType.String,
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
+            icon: view?.type ? iconMap[view.type as keyof typeof iconMap] : 'view',
             viewName: view?.title,
             description: 'Selected view for filtering',
           },

@@ -77,7 +77,7 @@ function enableDescriptionEditMode() {
           <a-input
             ref="titleInputRef"
             v-model:value="workflowTitle"
-            class="!rounded-lg text-subHeading2 nc-input !w-80 !px-1"
+            class="!rounded-lg text-subHeading2 nc-input !w-74 !px-1"
             @blur="isTitleInEditMode = false"
             @keydown.enter="isTitleInEditMode = false"
             @keydown.esc="isTitleInEditMode = false"

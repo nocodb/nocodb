@@ -25,7 +25,7 @@ const { selectedNode, selectedNodeId, activeTab } = useWorkflowOrThrow()
         <Result v-if="selectedNode.data?.testResult" />
       </template>
     </template>
-    <LogSidebar />
+    <LogSidebar v-else-if="activeTab === 'logs'" />
   </div>
 </template>
 

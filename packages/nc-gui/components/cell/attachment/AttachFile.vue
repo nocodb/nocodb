@@ -124,7 +124,7 @@ watch(activeMenu, (newVal, oldValue) => {
 <style lang="scss">
 .nc-modal-attachment-create {
   .active-menu {
-    @apply bg-nc-bg-brand font-sembold text-nc-content-brand rounded-md;
+    @apply bg-nc-bg-brand-inverted font-semibold text-nc-content-brand rounded-md;
   }
 }
 

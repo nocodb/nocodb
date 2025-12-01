@@ -620,7 +620,7 @@ export const relationDataFetcher = (param: {
 
       const children = await refBaseModel.execAndParse(
         finalQb,
-        await refTable.getColumns(baseModel.context),
+        await refTable.getColumns(refContext),
       );
 
       const proto = await refBaseModel.getProto();
@@ -882,10 +882,10 @@ export const relationDataFetcher = (param: {
         });
 
       const aliasColObjMap = await childTable.getAliasColObjMap(
-        baseModel.context,
+        childBaseModel.context,
       );
       const { filters: filterObj } = extractFilterFromXwhere(
-        baseModel.context,
+        childBaseModel.context,
         where,
         aliasColObjMap,
       );
@@ -999,9 +999,7 @@ export const relationDataFetcher = (param: {
         pkAndPvOnly: relColOptions.isCrossBaseLink(),
       });
 
-      const aliasColObjMap = await refTable.getAliasColObjMap(
-        baseModel.context,
-      );
+      const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
       const { filters: filterObj } = extractFilterFromXwhere(
         refContext,
         where,
@@ -1032,7 +1030,7 @@ export const relationDataFetcher = (param: {
       const proto = await refBaseModel.getProto();
       const data = await refBaseModel.execAndParse(
         qb,
-        await refTable.getColumns(baseModel.context),
+        await refTable.getColumns(refContext),
       );
       return data.map((c) => {
         c.__proto__ = proto;
@@ -1298,7 +1296,7 @@ export const relationDataFetcher = (param: {
       const aliasColObjMap = await (isBt
         ? parentTable
         : childTable
-      ).getAliasColObjMap(baseModel.context);
+      ).getAliasColObjMap(refModel.context);
       const { filters: filterObj } = extractFilterFromXwhere(
         refModel.context,
         where,
@@ -1565,7 +1563,7 @@ export const relationDataFetcher = (param: {
       });
 
       const aliasColObjMap = await parentTable.getAliasColObjMap(
-        baseModel.context,
+        parentBaseModel.context,
       );
       const { filters: filterObj } = extractFilterFromXwhere(
         parentBaseModel.context,

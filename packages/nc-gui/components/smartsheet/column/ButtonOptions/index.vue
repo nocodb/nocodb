@@ -667,7 +667,7 @@ const handleUpdateActionType = () => {
   }
 
   &.text {
-    @apply border-1 border-gray-200 rounded;
+    @apply border-1 border-nc-border-gray-medium rounded;
 
     &.brand {
       @apply text-brand-500;

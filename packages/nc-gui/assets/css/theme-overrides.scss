@@ -160,6 +160,12 @@ body {
         background-color: rgba(var(--rgb-base), 0.018);
       }
     }
+
+    // Ant rate
+    .ant-rate-star-first,
+    .ant-rate-star-second {
+      @apply text-nc-content-gray-muted;
+    }
   }
 }
 

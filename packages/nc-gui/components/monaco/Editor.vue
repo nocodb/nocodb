@@ -1,4 +1,4 @@
-a<script setup lang="ts">
+<script setup lang="ts">
 import { initializeMonaco } from '../../lib/monaco'
 import PlaceholderContentWidget from './Placeholder'
 

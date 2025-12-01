@@ -299,7 +299,7 @@ useEventListener(NcButton, 'mousedown', () => {
     @apply bg-nc-bg-purple-light hover:bg-nc-bg-purple-light text-nc-content-purple-light;
 
     &.bordered {
-      @apply border-purple-100;
+      @apply border-nc-border-purple-light;
     }
   }
 }
@@ -312,7 +312,7 @@ useEventListener(NcButton, 'mousedown', () => {
   }
 
   &.theme-ai {
-    @apply bg-nc-fill-purple-dark md:(hover:bg-nc-purple-800);
+    @apply bg-purple-700 md:(hover:bg-purple-800);
   }
 }
 
@@ -335,7 +335,7 @@ useEventListener(NcButton, 'mousedown', () => {
     @apply bg-nc-bg-purple-light text-nc-content-purple-dark md:(hover:bg-nc-bg-purple-dark);
 
     &.bordered {
-      @apply border-purple-200;
+      @apply border-nc-border-purple-medium;
     }
   }
 }

@@ -221,7 +221,4 @@ const useSameTimezoneForAll = computed({
     }
   }
 }
-.nc-search-timezone :deep(.ant-select-clear) {
-  margin-top: -8px;
-}
 </style>

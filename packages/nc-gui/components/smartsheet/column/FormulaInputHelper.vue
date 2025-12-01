@@ -39,6 +39,8 @@ const value = useVModel(props, 'value', emits)
 
 const { $e } = useNuxtApp()
 
+const { isDark } = useTheme()
+
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const { sqlUi, column, fromTableExplorer, validateInfos } = useColumnCreateStoreOrThrow()
@@ -185,7 +187,7 @@ onMounted(async () => {
       id: formulaLanguage.name,
     })
 
-    monacoEditor.defineTheme(formulaLanguage.name, formulaLanguage.theme)
+    monacoEditor.defineTheme(formulaLanguage.name, isDark.value ? formulaLanguage.themeDark : formulaLanguage.theme)
 
     languages.setMonarchTokensProvider(
       formulaLanguage.name,
@@ -789,7 +791,7 @@ const validationErrorDisplay = computed(() => {
       <AiIntegrationNotFound v-if="!aiIntegrationAvailable" class="mt-4" />
       <div v-else class="prompt-wrapper">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="9" viewBox="0 0 18 9" fill="none" class="nc-polygon-2">
-          <path d="M1.51476 8.5L9 0.721111L16.4852 8.5H1.51476Z" fill="white" stroke="#e5d4f5" />
+          <path d="M1.51476 8.5L9 0.721111L16.4852 8.5H1.51476Z" fill="var(--nc-bg-default)" stroke="var(--color-purple-100)" />
         </svg>
         <div class="prompt-input-wrapper w-full flex">
           <div class="nc-triangle-bottom-bar"></div>

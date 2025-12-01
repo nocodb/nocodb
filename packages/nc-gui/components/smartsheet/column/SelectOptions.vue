@@ -566,7 +566,7 @@ if (!isKanbanStack.value) {
 
           <div
             v-if="isNewStack"
-            class="ml-1 hover:!text-black-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center"
+            class="ml-1 hover:!text-nc-content-gray-subtle text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center"
             @click="emit('saveChanges', true, false)"
           >
             <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
@@ -607,7 +607,7 @@ if (!isKanbanStack.value) {
               >
                 <div
                   v-if="!isKanban"
-                  class="nc-child-draggable-icon p-2 flex cursor-pointer"
+                  class="nc-child-draggable-icon p-2 flex cursor-pointer text-nc-content-gray-subtle"
                   :data-testid="`select-option-column-handle-icon-${element.title}`"
                 >
                   <component :is="iconMap.dragVertical" small class="handle" />
@@ -655,7 +655,7 @@ if (!isKanbanStack.value) {
               <div
                 v-if="element.status !== 'remove'"
                 :data-testid="`select-column-option-remove-${index}`"
-                class="mx-1 hover:!text-black-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
+                class="mx-1 hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="removeRenderedOption(index)"
               >
                 <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
@@ -663,11 +663,11 @@ if (!isKanbanStack.value) {
               <div
                 v-else
                 :data-testid="`select-column-option-remove-undo-${index}`"
-                class="mx-1 hover:!text-black-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
+                class="mx-1 hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="undoRemoveRenderedOption(index)"
               >
                 <MdiArrowULeftBottom
-                  class="hover:!text-black-500 text-nc-content-gray-muted cursor-pointer w-4 h-4"
+                  class="hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer w-4 h-4"
                   @click="undoRemoveRenderedOption(index)"
                 />
               </div>
@@ -811,7 +811,7 @@ if (!isKanbanStack.value) {
   left: 0;
   top: 50%;
   height: 1px;
-  background: #ccc;
+  background: var(--color-gray-300);
   content: '';
   width: calc(100% + 5px);
   display: block;

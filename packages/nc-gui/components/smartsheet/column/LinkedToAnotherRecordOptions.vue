@@ -715,7 +715,7 @@ const handleScrollIntoView = () => {
 }
 
 :deep(.nc-ltar-relation-type .ant-radio-group) {
-  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-nc-border-gray-dark rounded-lg);
+  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-nc-border-gray-medium rounded-lg);
 
   .ant-radio-wrapper {
     @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3;
@@ -767,7 +767,7 @@ const handleScrollIntoView = () => {
     @apply px-3 py-2 flex items-center mr-0;
 
     &:not(:last-child) {
-      @apply border-b border-gray-200;
+      @apply border-b border-nc-border-gray-medium;
     }
   }
 

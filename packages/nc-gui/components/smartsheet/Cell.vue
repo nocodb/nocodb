@@ -482,7 +482,7 @@ const cellClassName = computed(() => {
 }
 
 .nc-cell {
-  @apply text-sm text-gray-600;
+  @apply text-sm text-nc-content-gray-subtle2;
   font-weight: 500;
 
   :deep(.nc-cell-field),
@@ -497,12 +497,12 @@ const cellClassName = computed(() => {
 
   :deep(input::placeholder),
   :deep(textarea::placeholder) {
-    @apply text-gray-400;
+    @apply text-nc-content-gray-disabled;
     font-weight: 300;
   }
 
   &.nc-display-value-cell {
-    @apply !text-brand-500 !font-semibold;
+    @apply !text-nc-content-brand !font-semibold;
 
     :deep(.nc-cell-field),
     :deep(input),

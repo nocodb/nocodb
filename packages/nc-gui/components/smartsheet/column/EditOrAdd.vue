@@ -1560,7 +1560,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
   }
 
   &.ant-radio-wrapper-disabled {
-    @apply pointer-events-none !bg-[#f5f5f5];
+    @apply pointer-events-none !bg-nc-bg-gray-light dark:!bg-nc-bg-gray-medium;
     box-shadow: none;
 
     &:hover {
@@ -1578,8 +1578,8 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 }
 
 :deep(.ant-select) {
-  &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
-  &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+  &:not(.ant-select-borderless):not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+  &:not(.ant-select-borderless):not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
     @apply !border-nc-border-gray-medium;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
@@ -1655,17 +1655,6 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 .nc-column-options-wrapper {
   &:empty {
     @apply hidden;
-  }
-}
-
-.nc-field-modal-ai-toggle-btn {
-  @apply rounded-l-none -ml-[1px] border-transparent;
-
-  &.nc-ai-mode {
-    @apply bg-nc-purple-600 hover:bg-nc-purple-500;
-  }
-  &:not(.nc-ai-mode) {
-    @apply !border-purple-100;
   }
 }
 </style>

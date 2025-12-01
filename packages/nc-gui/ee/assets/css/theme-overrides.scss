@@ -84,6 +84,20 @@ body {
   @apply rounded-full flex children:flex-none;
 }
 
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  @apply border-nc-border-gray-medium;
+}
+
+.ant-form,
+.ant-radio-wrapper,
+.ant-radio-group {
+  color: rgba(var(--rgb-base), 0.85);
+}
+
+.ant-radio-disabled + span {
+  @apply text-nc-content-gray-muted;
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {
@@ -305,6 +319,11 @@ body {
     & > span:last-child a {
       color: rgba(var(--rgb-base), 0.85);
     }
+  }
+
+  // Ant select
+  .ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    @apply text-nc-content-gray-muted bg-nc-bg-gray-medium;
   }
 
   // Multiselect

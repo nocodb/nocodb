@@ -1560,7 +1560,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
   }
 
   &.ant-radio-wrapper-disabled {
-    @apply pointer-events-none !bg-[#f5f5f5];
+    @apply pointer-events-none !bg-nc-bg-gray-light dark:!bg-nc-bg-gray-medium;
     box-shadow: none;
 
     &:hover {
@@ -1655,17 +1655,6 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 .nc-column-options-wrapper {
   &:empty {
     @apply hidden;
-  }
-}
-
-.nc-field-modal-ai-toggle-btn {
-  @apply rounded-l-none -ml-[1px] border-transparent;
-
-  &.nc-ai-mode {
-    @apply bg-nc-purple-600 hover:bg-nc-purple-500;
-  }
-  &:not(.nc-ai-mode) {
-    @apply !border-purple-100;
   }
 }
 </style>

@@ -113,7 +113,9 @@ const { isSystem } = useColumnCreateStoreOrThrow()
         <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-4 w-4 mr-1" /> </template>
       </a-input>
     </div>
-    <div class="nc-column-list-wrapper flex-col w-full max-h-[290px] nc-scrollbar-thin !overflow-y-auto px-2">
+    <div
+      class="nc-column-list-wrapper flex-col w-full max-h-[290px] nc-scrollbar-thin !overflow-y-auto px-2 focus-visible:(shadow-none outline-none ring-0)"
+    >
       <div v-if="!filteredOptions.length" class="px-2 py-6 text-nc-content-gray-muted flex flex-col items-center gap-6">
         <img
           src="~assets/img/placeholder/no-search-result-found.png"

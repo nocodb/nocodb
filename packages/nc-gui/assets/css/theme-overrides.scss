@@ -76,8 +76,12 @@ body {
 }
 
 // ant select
+.ant-select-item-group {
+  @apply text-nc-content-gray-muted;
+}
+
 .ant-select-clear {
-  @apply rounded-full;
+  @apply rounded-full flex children:flex-none;
 }
 
 /* windicss layer base */
@@ -301,10 +305,6 @@ body {
     & > span:last-child a {
       color: rgba(var(--rgb-base), 0.85);
     }
-  }
-
-  .ant-select-clear {
-    @apply rounded-full;
   }
 
   // Multiselect

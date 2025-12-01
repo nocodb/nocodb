@@ -337,7 +337,7 @@ onBeforeUnmount(() => {
           <!-- Todo: add docs link -->
           <NcButton size="small" type="secondary" @click.stop="navigateTo('/', { open: navigateToBlankTargetOpenOption })">
             <template #icon>
-              <GeneralIcon icon="externalLink" class="text-gray-600" />
+              <GeneralIcon icon="externalLink" class="text-nc-content-gray-subtle2" />
             </template>
 
             {{ $t('activity.goToDocs') }}
@@ -360,7 +360,7 @@ onBeforeUnmount(() => {
             </template>
           </NcButton>
           <NcButton size="small" type="text" @click.stop="isOpenConfigModal = false">
-            <GeneralIcon icon="close" class="text-gray-600" />
+            <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
           </NcButton>
         </div>
 
@@ -543,7 +543,7 @@ onBeforeUnmount(() => {
 
                 <div class="nc-ai-button-config-right-section">
                   <div class="px-3 py-1 text-nc-content-gray-subtle2 text-sm">Input fields</div>
-                  <div class="flex-1 flex border-1 bg-white border-nc-border-gray-medium rounded-xl mt-2 w-full">
+                  <div class="flex-1 flex border-1 bg-nc-bg-default border-nc-border-gray-medium rounded-xl mt-2 w-full">
                     <a-collapse
                       v-model:active-key="expansionInputPanel"
                       ghost
@@ -582,7 +582,7 @@ onBeforeUnmount(() => {
                                   type="text"
                                   class="flex-1 children:children:w-full !font-bold !text-sm"
                                   :class="{
-                                    '!text-gray-900 !bg-gray-100': isOpenSelectRecordDropdown,
+                                    '!text-nc-content-gray-emphasis !bg-nc-bg-gray-light': isOpenSelectRecordDropdown,
                                   }"
                                   @click.stop
                                 >
@@ -720,7 +720,7 @@ onBeforeUnmount(() => {
                   <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length && inputColumns.length)">
                     <template #title>
                       <div class="flex flex-col gap-2 py-1 px-0.5">
-                        <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">Preview checklist</div>
+                        <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">Preview checklist</div>
 
                         <div class="flex gap-2">
                           <div
@@ -807,7 +807,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="nc-ai-button-config-right-section">
                   <div
-                    class="flex-1 flex border-1 bg-white border-nc-border-gray-medium rounded-xl w-full"
+                    class="flex-1 flex border-1 bg-nc-bg-default border-nc-border-gray-medium rounded-xl w-full"
                     :class="{
                       'nc-is-already-generated': isAlreadyGenerated,
                     }"
@@ -986,7 +986,7 @@ onBeforeUnmount(() => {
 
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
 
     .nc-cell,
     .nc-virtual-cell {
@@ -996,7 +996,7 @@ onBeforeUnmount(() => {
 
   &.nc-readonly-div-data-cell:focus-within,
   &.nc-system-field:focus-within {
-    @apply !border-gray-200;
+    @apply !border-nc-border-gray-medium;
   }
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
@@ -1018,12 +1018,12 @@ onBeforeUnmount(() => {
     }
     :deep(.nc-virtual-cell-qrcode) {
       img {
-        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
+        @apply !h-[84px] border-1 border-solid border-nc-border-gray-medium rounded;
       }
     }
     :deep(.nc-virtual-cell-barcode) {
       .nc-barcode-container {
-        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
+        @apply border-1 rounded-lg border-nc-border-gray-medium h-[64px] max-w-full p-2;
         svg {
           @apply !h-full;
         }
@@ -1041,7 +1041,7 @@ onBeforeUnmount(() => {
 }
 
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-purple-500;
+  @apply !border-1 !border-nc-border-purple;
 }
 :deep(.nc-system-field input) {
   @apply bg-transparent;

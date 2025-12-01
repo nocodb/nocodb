@@ -1578,8 +1578,8 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 }
 
 :deep(.ant-select) {
-  &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
-  &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+  &:not(.ant-select-borderless):not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+  &:not(.ant-select-borderless):not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
     @apply !border-nc-border-gray-medium;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }

@@ -116,15 +116,15 @@ const handleShowInput = () => {
     </div>
     <div class="flex flex-row gap-2 relative">
       <div
-        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-nc-border-gray-dark rounded-lg sm:min-h-[32px] xs:min-h-13 focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
+        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-nc-border-gray-dark rounded-lg sm:min-h-[32px] xs:min-h-13 focus-within:(border-nc-border-brand shadow-selected ring-0) transition-all duration-0.3s"
         :class="{
-          'bg-white': isAiModeFieldModal,
+          'bg-nc-bg-default': isAiModeFieldModal,
         }"
       >
         <div ref="defaultValueWrapperRef" class="relative flex-grow max-w-full">
           <div
             v-if="isCurrentDate"
-            class="absolute pointer-events-none h-full w-full bg-white z-2 top-0 left-0 rounded-full items-center flex bg-white"
+            class="absolute pointer-events-none h-full w-full bg-nc-bg-default z-2 top-0 left-0 rounded-full items-center flex bg-nc-bg-default"
           >
             <div class="-ml-2">
               <NcBadge>{{ $t('labels.currentDate') }}</NcBadge>

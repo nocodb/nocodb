@@ -767,7 +767,7 @@ const handleScrollIntoView = () => {
     @apply px-3 py-2 flex items-center mr-0;
 
     &:not(:last-child) {
-      @apply border-b border-gray-200;
+      @apply border-b border-nc-border-gray-medium;
     }
   }
 

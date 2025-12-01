@@ -456,7 +456,7 @@ const handleUpdateActionType = () => {
               :class="{
                 'nc-button-style-dropdown ': isButtonIconDropdownOpen,
                 '!border-nc-border-purple !shadow-selected-ai': isButtonIconDropdownOpen && isAiMode,
-                '!border-brand-500 !shadow-selected': isButtonIconDropdownOpen && !isAiMode,
+                '!border-nc-border-brand !shadow-selected': isButtonIconDropdownOpen && !isAiMode,
               }"
               class="flex items-center justify-center border-1 h-8 px-[11px] border-nc-border-gray-dark !w-full transition-all cursor-pointer !rounded-lg"
             >

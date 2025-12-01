@@ -2323,10 +2323,14 @@ const { message: templatedMessage } = useTemplatedMessage(
   }
 }
 :deep(.nc-form-right-splitpane .splitpanes__splitter) {
-  @apply !border-t-1 !border-nc-border-gray-medium relative;
+  @apply !border-t-1 !border-nc-border-gray-medium relative w-auto;
 
   &::before {
-    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-nc-content-gray border-1 border-nc-border-gray-medium rounded bg-nc-bg-default absolute -top-2.5 z-49 left-[calc(50%_-_16px)];
+    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-nc-content-gray border-1 border-nc-border-gray-medium rounded bg-nc-bg-default absolute -top-2.5 z-49 left-[calc(50%_-_16px)] w-auto;
+  }
+
+  &:hover::before {
+    @apply !w-auto;
   }
 }
 

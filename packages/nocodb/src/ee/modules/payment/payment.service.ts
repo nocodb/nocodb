@@ -52,9 +52,9 @@ export class PaymentService {
   logger = new Logger('PaymentService');
 
   constructor(
-    private readonly appHooksService: AppHooksService,
-    private readonly nocoJobsService: NocoJobsService,
-    private readonly telemetryService: TelemetryService,
+    protected readonly appHooksService: AppHooksService,
+    protected readonly nocoJobsService: NocoJobsService,
+    protected readonly telemetryService: TelemetryService,
   ) {}
 
   async getPlans() {

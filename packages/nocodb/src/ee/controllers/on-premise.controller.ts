@@ -1,4 +1,11 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import jwt from 'jsonwebtoken';
 import { NcError } from '~/helpers/ncError';
@@ -317,7 +324,7 @@ export class OnPremiseController {
    */
   @UseGuards(AuthGuard('basic'))
   @Post('/api/internal/on-premise/license')
-  @HttpCode(200)
+  @HttpCode(201)
   async createLicense(
     @Body()
     payload: {
@@ -380,6 +387,44 @@ export class OnPremiseController {
       expires_at: installation.expires_at,
       config: installation.config,
     };
+  }
+
+  /**
+   * Update an existing license
+   * Allows modifying license configuration, status, and other parameters
+   */
+  @UseGuards(AuthGuard('basic'))
+  @Patch('/api/internal/on-premise/license')
+  @HttpCode(200)
+  async updateLicense(
+    @Body()
+    payload: Partial<Installation> & { id: string },
+  ) {
+    const ncMeta = Noco.ncMeta;
+
+    if (!payload.id) {
+      NcError._.badRequest('License ID is required');
+    }
+
+    // Validate at least one field to update is provided
+    if (
+      !payload.licensed_to &&
+      !payload.license_type &&
+      !payload.status &&
+      payload.expires_at === undefined &&
+      !payload.config
+    ) {
+      NcError._.badRequest('At least one field must be provided for update');
+    }
+
+    // Find installation by ID
+    const installation = await Installation.get(payload.id, ncMeta);
+
+    if (!installation) {
+      NcError._.badRequest('License not found');
+    }
+
+    return await Installation.update(installation.id, payload, ncMeta);
   }
 
   private async verifyOldLicense(licenseKey: string) {

@@ -25,7 +25,7 @@ import type {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
-import { PaymentService } from '~/ee/modules/payment/payment.service';
+import { PaymentService } from '~/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { Base, PrincipalAssignment, Team, User } from '~/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';

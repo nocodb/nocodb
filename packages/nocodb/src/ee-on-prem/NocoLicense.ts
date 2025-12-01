@@ -124,10 +124,7 @@ export default class NocoLicense {
                 license_key: cached.license_key,
               };
 
-              const refreshed = await this.refreshLicenseFromServer(
-                licenseKey,
-                ncMeta,
-              );
+              const refreshed = await this.refreshLicenseFromServer(ncMeta);
               if (!refreshed) {
                 throw new Error(
                   'Failed to refresh license from server. Please check your license key and network connectivity.',
@@ -571,10 +568,11 @@ export default class NocoLicense {
    * Called when local signature verification fails
    * Returns true if refresh succeeded, false otherwise
    */
-  private static async refreshLicenseFromServer(
-    licenseKey: string,
+  public static async refreshLicenseFromServer(
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
+    const licenseKey = process.env[LICENSE_ENV_VARS.LICENSE_KEY];
+
     try {
       // If we don't have installation data, we can't refresh
       if (!this.licenseData) {

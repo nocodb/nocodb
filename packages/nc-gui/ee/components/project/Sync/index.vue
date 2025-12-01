@@ -6,7 +6,7 @@ const props = defineProps<{
   baseId?: string
 }>()
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -113,10 +113,12 @@ const filteredSyncs = computed(() => {
 })
 
 const handleCreateSync = () => {
+  $e('c:sync:open-create-modal')
   isCreateSyncModalOpen.value = true
 }
 
 const handleEditSync = (syncId: string) => {
+  $e('c:sync:open-edit-modal')
   activeSyncId.value = syncId
   isEditSyncModalOpen.value = true
 }
@@ -147,7 +149,7 @@ const handleDeleteSync = async (syncId: string) => {
 
 const triggerSync = async (syncId: string) => {
   if (!currentBase.value?.id) return
-
+  $e('c:sync:trigger-click')
   const job = await _triggerSync(currentBase.value.id!, syncId)
 
   if (job?.id) {
@@ -194,7 +196,7 @@ onMounted(async () => {
           </template>
         </a-input>
         <NuxtLink href="https://nocodb.com/docs/product-docs/noco-sync" target="_blank" rel="noopener noreferrer">
-          <NcButton type="text" size="small" class="!px-2 !w-22">
+          <NcButton v-e="['c:sync:docs']" type="text" size="small" class="!px-2 !w-22">
             <div class="flex gap-2 items-center">
               {{ $t('title.docs') }}
               <GeneralIcon icon="ncExternalLink" />

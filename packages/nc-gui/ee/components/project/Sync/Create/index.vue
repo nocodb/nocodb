@@ -17,6 +17,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
+const { $e } = useNuxtApp()
+
 const vOpen = useVModel(props, 'value', emits)
 
 const {
@@ -41,6 +43,7 @@ const isContinueDisabled = computed(() => {
 })
 
 const closeModal = () => {
+  $e('c:sync:create-modal-close')
   vOpen.value = false
 }
 
@@ -49,15 +52,20 @@ const nextStep = async () => {
     case SyncFormStep.SyncSettings:
       await validateSyncConfig()
       step.value = SyncFormStep.Integration
+      $e('c:sync:create-step', { step: 'integration' })
       break
     case SyncFormStep.Integration:
       if (await validateIntegrationConfigs()) {
         step.value =
           syncConfigForm.value?.sync_category === SyncCategory.CUSTOM ? SyncFormStep.DestinationSchema : SyncFormStep.Create
+        $e('c:sync:create-step', {
+          step: syncConfigForm.value?.sync_category === SyncCategory.CUSTOM ? 'schema' : 'review',
+        })
       }
       break
     case SyncFormStep.DestinationSchema:
       step.value = SyncFormStep.Create
+      $e('c:sync:create-step', { step: 'review' })
       break
     case SyncFormStep.Create:
       try {

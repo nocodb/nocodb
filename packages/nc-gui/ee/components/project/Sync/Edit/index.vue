@@ -16,6 +16,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
+const { $e } = useNuxtApp()
+
 const vOpen = useVModel(props, 'value', emits)
 
 const activeTab = ref('general')
@@ -33,6 +35,7 @@ const {
 const updateError = ref<string | null>(null)
 
 const closeModal = () => {
+  $e('c:sync:edit-modal-close')
   vOpen.value = false
 }
 
@@ -57,6 +60,10 @@ const handleUpdate = async () => {
     updateError.value = error?.message || 'Failed to update sync'
   }
 }
+
+watch(activeTab, (newTab) => {
+  $e('c:sync:edit-tab-change', { tab: newTab })
+})
 </script>
 
 <template>

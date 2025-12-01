@@ -1411,7 +1411,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 >
                                   <component
                                     :is="iconMap.drag"
-                                    class="nc-form-field-drag-handler flex-none !h-4 !w-4 text-nc-content-inverted-primary font-bold"
+                                    class="nc-form-field-drag-handler flex-none !h-4 !w-4 text-white font-bold"
                                   />
                                 </NcButton>
                               </div>

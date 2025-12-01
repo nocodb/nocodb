@@ -156,7 +156,11 @@ onBeforeUnmount(() => {
               <div class="flex-none hide-ui transition-all transition-ease-in-out !h-4 flex items-center bg-nc-bg-default">
                 <NcTooltip placement="bottom">
                   <template #title> {{ $t('title.removeFile') }} </template>
-                  <component :is="iconMap.delete" class="!text-nc-content-red-medium w-3 h-3 cursor-pointer" @click="onRemoveFileClick(file)" />
+                  <component
+                    :is="iconMap.delete"
+                    class="!text-nc-content-red-medium w-3 h-3 cursor-pointer"
+                    @click="onRemoveFileClick(file)"
+                  />
                 </NcTooltip>
               </div>
             </div>

@@ -145,7 +145,7 @@ const renderAsCell = computed(() => {
         >
           <component
             :is="iconMap.maximize"
-            class="transform group-hover:(!text-nc-content-gray) text-text-nc-content-gray-subtle w-3 h-3"
+            class="transform group-hover:(!text-nc-content-gray) text-nc-content-gray-subtle w-3 h-3"
           />
         </NcButton>
       </NcTooltip>

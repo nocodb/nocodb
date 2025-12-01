@@ -880,7 +880,7 @@ textarea:focus {
   }
 }
 .nc-longtext-scrollbar {
-  @apply scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-500 hover:scrollbar-thumb-gray-300 dark:hover:scrollbar-thumb-gray-600 scrollbar-track-transparent;
+  @apply nc-scrollbar-thin;
 }
 
 .nc-readonly-rich-text-wrapper {
@@ -954,7 +954,7 @@ textarea:focus {
       }
 
       .nc-longtext-scrollbar {
-        @apply scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-500 hover:scrollbar-thumb-gray-300 dark:hover:scrollbar-thumb-gray-600 scrollbar-track-transparent;
+        @apply nc-scrollbar-thin;
       }
 
       .expanded-cell-input-ai {

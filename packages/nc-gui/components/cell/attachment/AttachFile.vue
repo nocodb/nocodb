@@ -53,7 +53,10 @@ watch(activeMenu, (newVal, oldValue) => {
     @keydown.esc="dialogShow = false"
   >
     <div class="flex h-full" :class="isMobileMode ? 'flex-col' : 'flex-row'">
-      <div style="border-top-left-radius: 1rem; border-bottom-left-radius: 1rem" class="px-2 !-full flex-grow bg-nc-bg-gray-extralight">
+      <div
+        style="border-top-left-radius: 1rem; border-bottom-left-radius: 1rem"
+        class="px-2 !-full flex-grow bg-nc-bg-gray-extralight"
+      >
         <NcMenu class="!h-full !bg-nc-bg-gray-extralight flex flex-col" :class="{ '!flex-row overflow-x-scroll': isMobileMode }">
           <NcMenuItem
             key="local"

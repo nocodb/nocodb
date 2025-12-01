@@ -130,7 +130,7 @@ export const BelongsToCellRenderer: CellRenderer = {
         y: y + 7,
         icon: 'ncPlus',
         size: 16,
-        color: getColor(themeVariables.content['nc-content-gray']['subtle']),
+        color: getColor(themeVariables.content['nc-content-gray'].subtle),
       })
 
       if (isBoxHovered({ x: x + width - 26, y: y + 7, width: 16, height: 16 }, mousePosition)) {

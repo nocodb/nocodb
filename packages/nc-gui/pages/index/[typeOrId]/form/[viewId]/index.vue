@@ -35,7 +35,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
       'children:(!h-auto my-auto)': sharedViewMeta?.surveyMode,
     }"
     :style="{
-      background: parseProp(sharedFormView?.meta)?.background_color || var(--nc-bg-gray-extralight),
+      background: parseProp(sharedFormView?.meta)?.background_color || 'var(--nc-bg-gray-extralight)',
     }"
   >
     <NuxtPage />

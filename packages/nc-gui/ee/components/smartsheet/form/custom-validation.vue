@@ -171,7 +171,10 @@ onMounted(() => {
                                   This warning message will be displayed to form users for invalid inputs.</template
                                 >
 
-                                <GeneralIcon icon="info" class="flex-none text-nc-content-gray-muted hover:text-nc-content-gray-subtle" />
+                                <GeneralIcon
+                                  icon="info"
+                                  class="flex-none text-nc-content-gray-muted hover:text-nc-content-gray-subtle"
+                                />
                               </NcTooltip>
                             </div>
                             <div class="th"></div>

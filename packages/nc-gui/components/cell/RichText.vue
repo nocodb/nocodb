@@ -387,7 +387,7 @@ onClickOutside(editorDom, (e) => {
 }
 .nc-text-rich-scroll:hover {
   &::-webkit-scrollbar-thumb {
-    @apply bg-gray-200;
+    @apply bg-nc-bg-gray-medium;
   }
 }
 
@@ -409,7 +409,7 @@ onClickOutside(editorDom, (e) => {
       ul[data-type='taskList'] li input[type='checkbox'] {
         background-color: #d5d5d9 !important;
         &:not(:checked) {
-          @apply !border-gray-400;
+          @apply !border-nc-border-gray-extradark;
         }
         &:focus {
           box-shadow: none !important;
@@ -467,7 +467,7 @@ onClickOutside(editorDom, (e) => {
   }
   &.readonly {
     .ProseMirror {
-      @apply bg-gray-50;
+      @apply bg-nc-bg-gray-extralight;
     }
   }
 }
@@ -501,7 +501,7 @@ onClickOutside(editorDom, (e) => {
     pointer-events: none;
   }
   .ProseMirror {
-    @apply flex-grow pt-1.5 border-1 border-gray-200 rounded-lg;
+    @apply flex-grow pt-1.5 border-1 border-nc-border-gray-medium rounded-lg;
 
     > * {
       @apply ml-1;
@@ -510,7 +510,7 @@ onClickOutside(editorDom, (e) => {
   .ProseMirror-focused {
     // remove all border
     outline: none;
-    @apply border-brand-500;
+    @apply border-nc-border-brand;
   }
 }
 .nc-form-field-bubble-menu-wrapper {

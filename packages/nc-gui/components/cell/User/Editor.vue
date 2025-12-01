@@ -385,9 +385,9 @@ onMounted(() => {
                   <div class="flex flex-col w-[calc(100%_-_40px)]">
                     <div class="w-full flex gap-3">
                       <NcTooltip
-                        class="text-bodyDefaultSmBold !leading-5 capitalize truncate max-w-full text-gray-800"
+                        class="text-bodyDefaultSmBold !leading-5 capitalize truncate max-w-full text-nc-content-gray"
                         :class="{
-                          '!text-gray-500': !isCollaborator(op.id || op.email),
+                          '!text-nc-content-gray-muted': !isCollaborator(op.id || op.email),
                         }"
                         show-on-truncate-only
                         placement="bottom"
@@ -425,7 +425,7 @@ onMounted(() => {
       </div>
       <div
         v-if="!readOnly && !isMultiple && vModel.length"
-        class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800"
+        class="inline-block px-2 pt-2 cursor-pointer text-xs text-nc-content-gray-muted hover:text-nc-content-gray"
         @click="vModel = []"
       >
         {{ $t('labels.clearSelection') }}
@@ -491,7 +491,7 @@ onMounted(() => {
                   class="text-bodyDefaultSmBold !leading-5 capitalize truncate max-w-full"
                   :class="{
                     'text-nc-content-brand': op.email === CURRENT_USER_TOKEN,
-                    'text-gray-800': op.email !== CURRENT_USER_TOKEN,
+                    'text-nc-content-gray': op.email !== CURRENT_USER_TOKEN,
                   }"
                   show-on-truncate-only
                   placement="bottom"
@@ -560,7 +560,7 @@ onMounted(() => {
                 }"
                 class="!text-[0.5rem] !h-[16.8px]"
                 :class="{
-                  '!bg-white': val === CURRENT_USER_TOKEN,
+                  '!bg-nc-bg-default': val === CURRENT_USER_TOKEN,
                 }"
                 :is-deleted="!isCollaborator(val)"
                 :disabled="!isCollaborator(val)"
@@ -569,7 +569,7 @@ onMounted(() => {
             </div>
             <span
               :class="{
-                'text-gray-500': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
+                'text-nc-content-gray-muted': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
                 'text-nc-content-brand': val === CURRENT_USER_TOKEN,
                 'font-600': isInFilter,
               }"
@@ -616,7 +616,7 @@ onMounted(() => {
 }
 
 .rounded-tag {
-  @apply bg-gray-200 px-2 rounded-[12px];
+  @apply bg-nc-bg-gray-medium px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {

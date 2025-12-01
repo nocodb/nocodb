@@ -190,10 +190,11 @@ onMounted(() => {
 
 .nc-data-cell {
   &:has(.nc-virtual-cell-barcode) {
-    @apply !border-none;
+    @apply !border-none outline-none;
     box-shadow: none !important;
 
     &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+      @apply outline-none;
       box-shadow: none !important;
     }
   }

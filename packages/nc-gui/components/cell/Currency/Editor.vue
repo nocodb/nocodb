@@ -119,7 +119,7 @@ onMounted(() => {
 <template>
   <div
     v-if="isForm && !isEditColumn && editEnabled && !hidePrefix"
-    class="nc-currency-code h-full !bg-gray-100 border-r border-gray-200 px-3 mr-1 flex items-center"
+    class="nc-currency-code h-full !bg-nc-bg-gray-light border-r border-nc-border-gray-medium px-3 mr-1 flex items-center"
   >
     <span>
       {{ currencyMeta.currency_code }}

@@ -517,7 +517,7 @@ onBeforeUnmount(() => {
             <!-- Right side -->
             <div
               ref="previewPanelDom"
-              class="h-full w-1/2 bg-[#FCF8FF] flex flex-col relative"
+              class="h-full w-1/2 bg-[#FCF8FF] dark:bg-nc-bg-gray-extralight flex flex-col relative"
               @scroll.passive="checkScrollTopMoreThanZero"
             >
               <div class="border-b-1 border-b-nc-border-gray-medium py-2.5 w-full">

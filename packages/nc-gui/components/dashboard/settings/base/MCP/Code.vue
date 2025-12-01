@@ -125,8 +125,8 @@ const onCopyToClipboard = async () => {
   .monaco-editor,
   .monaco-diff-editor,
   .monaco-component {
-    --vscode-editor-background: var(--nc-bg-gray-extra-light);
-    --vscode-editorGutter-background: var(--nc-bg-gray-extra-light);
+    --vscode-editor-background: var(--nc-bg-gray-extralight);
+    --vscode-editorGutter-background: var(--nc-bg-gray-extralight);
   }
 }
 </style>

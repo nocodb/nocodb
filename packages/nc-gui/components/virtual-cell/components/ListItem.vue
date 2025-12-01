@@ -76,7 +76,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
   >
     <a-card
       tabindex="0"
-      class="nc-list-item !outline-none transition-all relative group-hover:bg-nc-bg-gray-extralight cursor-auto"
+      class="nc-list-item !outline-none transition-all relative group-hover:bg-nc-bg-gray-extralight cursor-auto !border-transparent"
       :class="{
         '!bg-nc-bg-default': isLoading,
         '!hover:bg-nc-bg-default': readOnly,

@@ -511,7 +511,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 
 <template>
   <div
-    class="flex flex-col w-full bg-gray-50 h-full"
+    class="flex flex-col w-full bg-nc-bg-gray-extralight h-full"
     data-testid="nc-kanban-wrapper"
     :style="{
       minHeight: 'calc(100% - var(--topbar-height))',
@@ -561,7 +561,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 <a-card
                   v-if="!stack.collapsed"
                   :key="`${stack.id}-${stackIdx}`"
-                  class="flex flex-col w-68.5 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-gray-200"
+                  class="flex flex-col w-68.5 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-nc-border-gray-medium"
                   :class="{
                     'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                     '!cursor-default': isLocked || !hasEditPermission,
@@ -582,7 +582,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                   <!-- Stack -->
                   <a-layout v-else>
                     <a-layout-header
-                      class="border-b-1 border-gray-100 min-h-[49px]"
+                      class="border-b-1 border-nc-border-gray-light min-h-[49px]"
                       :class="`nc-kanban-stack-header-${stack.id}`"
                     >
                       <div
@@ -670,7 +670,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         <NcDropdown
                           placement="bottomRight"
                           overlay-class-name="nc-dropdown-kanban-stack-context-menu"
-                          class="bg-white !rounded-lg"
+                          class="bg-nc-bg-default !rounded-lg"
                         >
                           <NcButton
                             :disabled="compareStack(stack, isSavingStack)"
@@ -811,7 +811,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               <LazySmartsheetRow :row="record">
                                 <a-card
                                   :key="`${getRowId(record)}-${index}`"
-                                  class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
+                                  class="!rounded-lg h-full border-nc-border-gray-medium border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
                                   :body-style="{
                                     padding: '12px !important',
                                     flex: 1,
@@ -838,7 +838,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                     <template v-if="!reloadAttachments && attachments(record).length">
                                       <a-carousel
                                         :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
-                                        class="gallery-carousel !border-b-1 !border-gray-200 !bg-white"
+                                        class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"
                                         arrows
                                       >
                                         <template #customPaging>
@@ -856,7 +856,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                               size="xsmall"
                                               class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
                                             >
-                                              <GeneralIcon icon="arrowLeft" class="text-gray-700 w-4 h-4" />
+                                              <GeneralIcon icon="arrowLeft" class="text-nc-content-inverted-secondary w-4 h-4" />
                                             </NcButton>
                                           </div>
                                         </template>
@@ -868,7 +868,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                               size="xsmall"
                                               class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
                                             >
-                                              <GeneralIcon icon="arrowRight" class="text-gray-700 w-4 h-4" />
+                                              <GeneralIcon icon="arrowRight" class="text-nc-content-inverted-secondary w-4 h-4" />
                                             </NcButton>
                                           </div>
                                         </template>
@@ -887,7 +887,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                     </template>
                                     <div
                                       v-else
-                                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center bg-white"
+                                      class="h-52 w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center bg-nc-bg-default"
                                     >
                                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                                     </div>
@@ -919,7 +919,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                           <LazySmartsheetVirtualCell
                                             v-if="isVirtualCol(displayField)"
                                             v-model="record.row[displayField.title]"
-                                            class="!text-brand-500"
+                                            class="!text-nc-content-brand"
                                             :column="displayField"
                                             :row="record"
                                           />
@@ -927,7 +927,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                           <LazySmartsheetCell
                                             v-else
                                             v-model="record.row[displayField.title]"
-                                            class="!text-brand-500"
+                                            class="!text-nc-content-brand"
                                             :column="displayField"
                                             :edit-enabled="false"
                                             :read-only="true"
@@ -979,7 +979,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                             }"
                                           >
                                             <div v-if="isActiveViewFieldHeaderVisible" class="flex flex-row w-full justify-start">
-                                              <div class="nc-card-col-header w-full !children:text-gray-500">
+                                              <div class="nc-card-col-header w-full !children:text-nc-content-gray-muted">
                                                 <LazySmartsheetHeaderVirtualCell
                                                   v-if="isVirtualCol(col)"
                                                   :column="col"
@@ -994,14 +994,14 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                               v-if="
                                                 !isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)
                                               "
-                                              class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                              class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
                                             >
                                               <LazySmartsheetVirtualCell
                                                 v-if="isVirtualCol(col)"
                                                 v-model="record.row[col.title]"
                                                 :column="col"
                                                 :row="record"
-                                                class="!text-gray-800"
+                                                class="!text-nc-content-gray"
                                               />
 
                                               <LazySmartsheetCell
@@ -1010,7 +1010,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                                 :column="col"
                                                 :edit-enabled="false"
                                                 :read-only="true"
-                                                class="!text-gray-800"
+                                                class="!text-nc-content-gray"
                                               />
                                             </div>
                                             <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
@@ -1025,7 +1025,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           </template>
                           <template v-if="!formattedData.get(stack.title)?.length" #footer>
                             <div class="h-full w-full flex flex-col gap-4 items-center justify-center">
-                              <div class="flex flex-col items-center gap-2 text-gray-600 text-center">
+                              <div class="flex flex-col items-center gap-2 text-nc-content-gray-subtle2 text-center">
                                 <span class="text-sm font-semibold">
                                   {{ $t('general.empty') }} {{ $t('general.stack').toLowerCase() }}
                                 </span>
@@ -1060,7 +1060,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         </Draggable>
                       </div>
                     </a-layout-content>
-                    <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-gray-100">
+                    <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-nc-border-gray-light">
                       <div class="flex items-center justify-between">
                         <PermissionsTooltip
                           v-if="isUIAllowed('dataInsert') && !isSyncedTable"
@@ -1086,7 +1086,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         <div v-else>&nbsp;</div>
 
                         <!-- Record Count -->
-                        <div class="nc-kanban-data-count text-gray-500 font-weight-500 px-1">
+                        <div class="nc-kanban-data-count text-nc-content-gray-muted font-weight-500 px-1">
                           {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) ?? 0 }}
                           {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                         </div>
@@ -1099,7 +1099,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 <a-card
                   v-else
                   :key="`${stack.id}-collapsed`"
-                  class="nc-kanban-collapsed-stack flex items-center w-68.5 h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-gray-200"
+                  class="nc-kanban-collapsed-stack flex items-center w-68.5 h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-nc-border-gray-medium"
                   :class="{
                     'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   }"
@@ -1164,7 +1164,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 
                       <div class="flex items-center gap-2 truncate">
                         <div
-                          class="nc-kanban-data-count px-1 rounded bg-gray-200 text-gray-800 text-sm font-weight-500 truncate"
+                          class="nc-kanban-data-count px-1 rounded bg-nc-bg-gray-medium text-nc-content-gray text-sm font-weight-500 truncate"
                           :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }"
                         >
                           <!-- Record Count -->
@@ -1186,7 +1186,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
           <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">
             <!-- Add New Stack -->
             <a-card
-              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200 nc-kanban-stack-header-new-stack"
+              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-nc-border-gray-medium nc-kanban-stack-header-new-stack"
               :class="[
                 {
                   '!cursor-default': isLocked || !hasEditPermission,
@@ -1352,7 +1352,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 .a-layout,
 .ant-layout-header,
 .ant-layout-footer {
-  @apply !bg-white;
+  @apply !bg-nc-bg-default;
 }
 
 .ant-layout-content {
@@ -1380,12 +1380,12 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
-  @apply rounded-full border-0 cursor-pointer block opacity-100 p-0 outline-none transition-all duration-500 text-transparent h-2 w-2 bg-[#d9d9d9];
+  @apply rounded-full border-0 cursor-pointer block opacity-100 p-0 outline-none transition-all duration-500 text-transparent h-2 w-2 bg-nc-bg-gray-medium;
   font-size: 0;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
-  @apply bg-brand-500 opacity-100;
+  @apply bg-nc-content-brand opacity-100;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li) {
@@ -1419,7 +1419,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 }
 
 .nc-card-display-value-wrapper {
-  @apply my-0 text-xl leading-8 text-gray-600;
+  @apply my-0 text-xl leading-8 text-nc-content-gray-subtle2;
 
   .nc-cell,
   .nc-virtual-cell {
@@ -1429,10 +1429,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
     :deep(input),
     :deep(textarea),
     :deep(.nc-cell-field-link) {
-      @apply !text-xl leading-8 text-gray-600;
+      @apply !text-xl leading-8 text-nc-content-gray-subtle2;
 
       &:not(.ant-select-selection-search-input) {
-        @apply !text-xl leading-8 text-gray-600;
+        @apply !text-xl leading-8 text-nc-content-gray-subtle2;
       }
     }
   }

@@ -166,6 +166,10 @@ body {
     .ant-rate-star-second {
       @apply text-nc-content-gray-muted;
     }
+
+    .ant-card-bordered {
+      @apply border-nc-border-gray-medium;
+    }
   }
 }
 

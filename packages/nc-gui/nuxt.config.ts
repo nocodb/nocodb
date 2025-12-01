@@ -313,6 +313,7 @@ export default defineNuxtConfig({
         'vue3-moveable',
         'vue-fullscreen',
         'cronstrue',
+        'plyr',
       ],
       esbuildOptions: {
         define: {

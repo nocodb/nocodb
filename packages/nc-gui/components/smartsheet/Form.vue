@@ -961,7 +961,7 @@ const { message: templatedMessage } = useTemplatedMessage(
           />
 
           <div
-            class="transition-all duration-300 ease-in relative my-6 bg-nc-bg-default rounded-3xl border-1 border-nc-border-gray-medium px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
+            class="transition-all duration-300 ease-in relative my-6 bg-nc-bg-default rounded-3xl border-1 border-nc-border-gray-medium px-4 py-8 lg:p-12 md:(p-8)"
           >
             <div v-if="formViewData" class="items-center justify-center text-left mt-2">
               <div>

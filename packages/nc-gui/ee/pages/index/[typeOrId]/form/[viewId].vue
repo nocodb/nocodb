@@ -127,7 +127,7 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
     }
 
     .nc-attachment-cell-dropzone {
-      @apply rounded bg-gray-400/75;
+      @apply rounded bg-nc-bg-gray-extradark/75;
     }
   }
 }

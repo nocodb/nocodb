@@ -204,7 +204,7 @@ onUnmounted(() => {
             v-e="['c:cell:links:modal:open']"
             :title="textVal"
             class="text-center nc-datatype-link underline-transparent nc-canvas-links-text font-weight-500"
-            :class="{ '!text-gray-300': !textVal }"
+            :class="{ '!text-nc-content-brand-hover': !textVal }"
             :tabindex="readOnly ? -1 : 0"
             @click.stop.prevent="isForm && !isExpandedFormOpen && hasEditPermission ? openListDlg() : openChildList()"
             @keydown.enter.stop.prevent="isForm && !isExpandedFormOpen && hasEditPermission ? openListDlg() : openChildList"
@@ -222,7 +222,7 @@ onUnmounted(() => {
           @keydown.enter.stop="openListDlg"
         >
           <MdiPlus
-            class="select-none !text-md text-gray-700 nc-action-icon nc-plus !xs:visible invisible group-hover:visible group-focus:visible"
+            class="select-none !text-md text-nc-content-gray-subtle nc-action-icon nc-plus !xs:visible invisible group-hover:visible group-focus:visible"
             @click.stop="openListDlg"
           />
         </div>

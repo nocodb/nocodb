@@ -112,7 +112,7 @@ export default {
             <div
               :class="{
                 'px-1 rounded-full flex-1': !isAttachment(column),
-                'border-gray-200 rounded border-1 blue-chip':
+                'border-nc-border-gray-medium rounded border-1 blue-chip':
                   border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
               }"
             >
@@ -145,7 +145,7 @@ export default {
     >
       <component
         :is="iconMap.closeThick"
-        class="nc-icon unlink-icon text-gray-500/50 group-hover:text-gray-500 ml-0.5 cursor-pointer"
+        class="nc-icon unlink-icon text-nc-content-gray-muted/50 group-hover:text-nc-content-gray-muted ml-0.5 cursor-pointer"
         @click.stop="emit('unlink')"
       />
     </div>

@@ -19,6 +19,7 @@ export const BelongsToCellRenderer: CellRenderer = {
       setCursor,
       selected,
       cellRenderStore,
+      getColor,
     } = props
 
     const relatedTableDisplayValueProp =
@@ -58,10 +59,10 @@ export const BelongsToCellRenderer: CellRenderer = {
         readonly: true,
         height: rowHeightInPx['1']!,
         padding: 10,
-        textColor: themeV3Colors.brand['500'],
+        textColor: getColor(themeV4Colors.brand['500']),
         tag: {
           renderAsTag: true,
-          tagBgColor: themeV3Colors.brand['50'],
+          tagBgColor: getColor(themeV4Colors.brand['50']),
           tagHeight: 24,
         },
         meta: relatedTableMeta,
@@ -108,8 +109,8 @@ export const BelongsToCellRenderer: CellRenderer = {
             { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 10), height: 16, width: 16 },
             mousePosition,
           )
-            ? themeV3Colors.gray['500']
-            : '#AFB3C2',
+            ? getColor(themeV4Colors.gray['500'])
+            : getColor(themeV4Colors.gray['500'], undefined, 0.5),
         })
 
         if (
@@ -129,7 +130,7 @@ export const BelongsToCellRenderer: CellRenderer = {
         y: y + 7,
         icon: 'ncPlus',
         size: 16,
-        color: '#374151',
+        color: getColor(themeVariables.content['nc-content-gray']['subtle']),
       })
 
       if (isBoxHovered({ x: x + width - 26, y: y + 7, width: 16, height: 16 }, mousePosition)) {

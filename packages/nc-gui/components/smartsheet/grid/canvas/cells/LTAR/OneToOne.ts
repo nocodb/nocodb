@@ -21,6 +21,7 @@ export const OneToOneCellRenderer: CellRenderer = {
       setCursor,
       selected,
       cellRenderStore,
+      getColor,
     } = props
 
     const hasValue = !!row[column.title!]
@@ -61,10 +62,10 @@ export const OneToOneCellRenderer: CellRenderer = {
         readonly: true,
         height: rowHeightInPx['1']!,
         padding: 10,
-        textColor: themeV3Colors.brand['500'],
+        textColor: getColor(themeV4Colors.brand['500']),
         tag: {
           renderAsTag: true,
-          tagBgColor: themeV3Colors.brand['50'],
+          tagBgColor: getColor(themeV4Colors.brand['50']),
           tagHeight: 24,
         },
         meta: relatedTableMeta,
@@ -111,8 +112,8 @@ export const OneToOneCellRenderer: CellRenderer = {
             { x: returnData.x + 2, y: y + (rowHeightInPx['1'] === height ? 8 : 10), height: 14, width: 14 },
             mousePosition,
           )
-            ? themeV3Colors.gray['500']
-            : '#AFB3C2',
+            ? getColor(themeV4Colors.gray['500'])
+            : getColor(themeV4Colors.gray['500'], undefined, 0.5),
         })
 
         if (
@@ -133,7 +134,7 @@ export const OneToOneCellRenderer: CellRenderer = {
         y: y + 7,
         icon: hasValue ? 'maximize' : 'ncPlus',
         size: btnSize,
-        color: '#374151',
+        color: getColor(themeV4Colors.gray['700']),
       })
 
       if (isBoxHovered({ x: x + width - 27, y: y + 7, height: btnSize, width: btnSize }, mousePosition)) {

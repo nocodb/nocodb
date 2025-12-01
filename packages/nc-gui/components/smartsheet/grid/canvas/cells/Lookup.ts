@@ -10,7 +10,20 @@ const ellipsisWidth = 15
 
 export const LookupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x: _x, y: _y, value, renderCell, metas, height, width: _width, padding = 10, tableMetaLoader, row } = props
+    const {
+      column,
+      x: _x,
+      y: _y,
+      value,
+      renderCell,
+      metas,
+      height,
+      width: _width,
+      padding = 10,
+      tableMetaLoader,
+      row,
+      getColor,
+    } = props
     let x = _x
     let y = _y
     let width = _width - ellipsisWidth
@@ -141,13 +154,14 @@ export const LookupCellRenderer: CellRenderer = {
       padding: 10,
       tag: {
         renderAsTag: true,
-        tagBgColor: themeV3Colors.base.white,
+        tagBgColor: getColor(themeV4Colors.base.white),
         tagHeight: 20,
-        tagBorderColor: themeV3Colors.gray['200'],
+        tagBorderColor: getColor(themeV4Colors.gray['200']),
         tagBorderWidth: 1,
       },
       meta: relatedTableMeta,
       textAlign: isAttachment(lookupColumn) ? 'center' : props.textAlign,
+      textColor: getColor(themeV4Colors.gray['700']),
     }
 
     const lookupRenderer = (options: CellRendererOptions) => {

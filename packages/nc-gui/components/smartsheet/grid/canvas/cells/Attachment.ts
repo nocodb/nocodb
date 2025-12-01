@@ -71,18 +71,20 @@ function renderFallback(
     itemSize,
     spriteLoader,
     ctx,
+    getColor,
   }: {
     itemX: number
     itemY: number
     itemSize: number
     spriteLoader: any
     ctx: CanvasRenderingContext2D
+    getColor: GetColorType
   },
 ) {
   const icon = getAttachmentIcon(item.title, item.mimetype || item.type)
   ctx.beginPath()
   ctx.roundRect(itemX, itemY, itemSize, itemSize, 4)
-  ctx.strokeStyle = '#D5D5D9'
+  ctx.strokeStyle = getColor(themeV4Colors.gray['300'], themeV4Colors.gray['200'])
   ctx.lineWidth = 1
   ctx.stroke()
 
@@ -91,7 +93,7 @@ function renderFallback(
     x: itemX,
     y: itemY,
     size: itemSize,
-    color: '#6b7280',
+    color: getColor(themeV4Colors.gray['500']),
   })
 }
 
@@ -113,6 +115,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       isUnderLookup,
       textAlign,
       column,
+      getColor,
     },
   ) => {
     let attachments: Attachment[] = []
@@ -150,8 +153,8 @@ export const AttachmentCellRenderer: CellRenderer = {
       }
 
       roundedRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, 8, {
-        backgroundColor: isButtonHovered ? '#f4f4f5' : 'white',
-        borderColor: '#E7E7E9',
+        backgroundColor: isButtonHovered ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.base.white),
+        borderColor: getColor(themeV4Colors.gray['200']),
         borderWidth: 2,
       })
 
@@ -160,10 +163,10 @@ export const AttachmentCellRenderer: CellRenderer = {
         x: buttonX + 8,
         y: buttonY + (buttonHeight - 14) / 2,
         size: 14,
-        color: '#6a7184',
+        color: getColor(themeV4Colors.gray['500']),
       })
 
-      ctx.fillStyle = '#374151'
+      ctx.fillStyle = getColor(themeV4Colors.gray['700'])
       ctx.font = '500 11px Inter'
       ctx.textBaseline = 'middle'
       ctx.fillText('Add File(s)', buttonX + 28, buttonY + (buttonHeight + 2) / 2)
@@ -210,7 +213,7 @@ export const AttachmentCellRenderer: CellRenderer = {
       if (thumbnailUrls?.length && thumbnailUrls[0]) {
         const img = imageLoader.loadOrGetImage(thumbnailUrls[0])
         if (img) {
-          ctx.strokeStyle = '#D5D5D9'
+          ctx.strokeStyle = getColor(themeV4Colors.gray['300'], themeV4Colors.gray['200'])
           ctx.lineWidth = 1
           imageLoader.renderImage(
             ctx,
@@ -222,7 +225,7 @@ export const AttachmentCellRenderer: CellRenderer = {
             4,
             {
               border: true,
-              borderColor: '#D5D5D9',
+              borderColor: getColor(themeV4Colors.gray['300'], themeV4Colors.gray['200']),
               borderWidth: 1,
             },
             'contain',
@@ -233,7 +236,7 @@ export const AttachmentCellRenderer: CellRenderer = {
 
       // If no thumbnail loaded, show appropriate file type icon
       if (!thumbnailLoaded) {
-        renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx })
+        renderFallback(item, { itemX, itemY, itemSize, spriteLoader, ctx, getColor })
       }
 
       lastX = itemX + itemSize
@@ -262,10 +265,14 @@ export const AttachmentCellRenderer: CellRenderer = {
           size: 12,
           xOffset: 4,
           yOffset: 4,
+          color: getColor(themeV4Colors.gray['700']),
         },
         mousePosition,
         spriteLoader,
         icon: 'maximize',
+        background: getColor(themeV4Colors.base.white),
+        borderColor: getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
         setCursor,
       })
 
@@ -280,10 +287,14 @@ export const AttachmentCellRenderer: CellRenderer = {
           size: 12,
           xOffset: 4,
           yOffset: 4,
+          color: getColor(themeV4Colors.gray['700']),
         },
         mousePosition,
         spriteLoader,
         icon: 'ncPaperclip',
+        background: getColor(themeV4Colors.base.white),
+        borderColor: getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
         setCursor,
       })
     }

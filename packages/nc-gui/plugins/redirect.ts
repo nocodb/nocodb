@@ -34,15 +34,19 @@ export default defineNuxtPlugin(function (nuxtApp) {
           // 2. If signin happened in current tab which can be detected by `isTokenUpdatedTab` flag
           if (newToken && newToken !== oldToken && (isTokenUpdatedTab.value || route.value.query?.continueAfterSignIn)) {
             try {
+              // prevent redirect to full url (outside domain)
+              const getNavigateTo = (continueAfterSignIn: string) => {
+                return isFullUrl(continueAfterSignIn) ? '/' : continueAfterSignIn
+              }
               if (route.value.query?.continueAfterSignIn) {
-                await navigateTo(route.value.query.continueAfterSignIn as string, {
-                  external: isFullUrl(route.value.query.continueAfterSignIn as string),
+                await navigateTo(getNavigateTo(route.value.query.continueAfterSignIn as string), {
+                  external: false,
                 })
               } else {
                 const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
                 if (continueAfterSignIn) {
-                  await navigateTo(continueAfterSignIn, {
-                    external: isFullUrl(continueAfterSignIn),
+                  await navigateTo(getNavigateTo(continueAfterSignIn), {
+                    external: false,
                   })
                 }
               }

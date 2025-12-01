@@ -91,6 +91,10 @@ import type {
   WidgetDuplicatePayload,
   WidgetType,
   WidgetUpdatePayload,
+  WorkflowCreatePayload,
+  WorkflowDeletePayload,
+  WorkflowDuplicatePayload,
+  WorkflowUpdatePayload,
   WorkspaceCreatePayload,
   WorkspaceDeletePayload,
   WorkspaceInvitePayload,
@@ -183,6 +187,10 @@ import type {
   WidgetDeleteEvent,
   WidgetDuplicateEvent,
   WidgetUpdateEvent,
+  WorkflowCreateEvent,
+  WorkflowDeleteEvent,
+  WorkflowDuplicateEvent,
+  WorkflowUpdateEvent,
   WorkspaceEvent,
   WorkspaceTeamDeleteEvent,
   WorkspaceTeamInviteEvent,
@@ -3747,6 +3755,100 @@ export class AppHooksListenerService
                 team_title: param.team.title,
                 team_role: param.role,
               },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.WORKFLOW_CREATE: {
+        const param = data as WorkflowCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<WorkflowCreatePayload>(
+            AuditV1OperationTypes.WORKFLOW_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                workflow_title: param.workflow.title,
+                workflow_id: param.workflow.id,
+                workflow_description: param.workflow.description,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.WORKFLOW_UPDATE: {
+        const param = data as WorkflowUpdateEvent;
+
+        const updatePayload = populateUpdatePayloadDiff({
+          prev: param.oldWorkflow,
+          next: param.workflow,
+          parseMeta: true,
+          aliasMap: {
+            title: 'workflow_title',
+            description: 'workflow_description',
+            nodes: 'workflow_nodes',
+            edges: 'workflow_edges',
+          },
+        });
+        if (!updatePayload) break;
+
+        await this.auditInsert(
+          await generateAuditV1Payload<WorkflowUpdatePayload>(
+            AuditV1OperationTypes.WORKFLOW_UPDATE,
+            {
+              details: {
+                workflow_title: param.workflow.title,
+                workflow_id: param.workflow.id,
+                workflow_description: param.workflow.description,
+                workflow_nodes: param.workflow.nodes,
+                workflow_edges: param.workflow.edges,
+                ...updatePayload,
+                previous_state: {
+                  ...updatePayload.previous_state,
+                  workflow_nodes: param.oldWorkflow.nodes,
+                  workflow_edges: param.oldWorkflow.edges,
+                },
+              },
+              context: param.context,
+              req: param.req,
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.WORKFLOW_DELETE: {
+        const param = data as WorkflowDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<WorkflowDeletePayload>(
+            AuditV1OperationTypes.WORKFLOW_DELETE,
+            {
+              details: {
+                workflow_title: param.workflow.title,
+                workflow_id: param.workflow.id,
+              },
+              context: param.context,
+              req: param.req,
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.WORKFLOW_DUPLICATE: {
+        const param = data as WorkflowDuplicateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<WorkflowDuplicatePayload>(
+            AuditV1OperationTypes.WORKFLOW_DUPLICATE,
+            {
+              details: {
+                source_workflow_title: param.sourceWorkflow.title,
+                source_workflow_id: param.sourceWorkflow.id,
+                duplicated_workflow_title: param.destWorkflow.title,
+                duplicated_workflow_id: param.destWorkflow.id,
+              },
+              context: param.context,
+              req: param.req,
             },
           ),
         );

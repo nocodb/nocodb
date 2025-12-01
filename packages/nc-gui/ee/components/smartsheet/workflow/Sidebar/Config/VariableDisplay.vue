@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VariableDefinition } from 'nocodb-sdk'
-import VariableDisplay from '~/components/smartsheet/workflow/Sidebar/VariableDisplay.vue'
+import VariableDisplay from '~/components/smartsheet/workflow/Sidebar/Config/VariableDisplay.vue'
 
 interface Props {
   variables: VariableDefinition[]

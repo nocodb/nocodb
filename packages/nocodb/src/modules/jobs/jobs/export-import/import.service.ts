@@ -15,6 +15,7 @@ import {
 import hash from 'object-hash';
 import papaparse from 'papaparse';
 import { MetaTable } from 'src/cli';
+import PQueue from 'p-queue';
 import { elapsedTime, initTime } from '../../helpers';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
@@ -1599,6 +1600,7 @@ export class ImportService {
     elapsedTime(hrTime, 'create referenced columns', 'importModels');
 
     // create views
+    const vieProcessQueue = new PQueue({ concurrency: 3 });
     for (const data of param.data) {
       if (param.existingModel) break;
 
@@ -1609,154 +1611,154 @@ export class ImportService {
 
       // get default view
       await table.getViews(context);
-
       for (const view of viewsData) {
-        const viewData = withoutId({
-          ...view,
-          meta: RowColorViewHelpers.withContext(targetContext).mapMetaColumn({
-            meta: view.meta,
-            idMap: {
-              get: getIdOrExternalId,
-            } as any,
-          }),
-        });
-
-        const vw = await this.createView(
-          targetContext,
-          idMap,
-          table,
-          viewData,
-          table.views,
-          param.user,
-          param.req,
-        );
-
-        if (!vw) continue;
-
-        idMap.set(view.id, vw.id);
-
-        // create filters
-        const filters = view.filter.children;
-
-        for (const fl of filters) {
-          const fg = await this.filtersService.filterCreate(targetContext, {
-            viewId: vw.id,
-            filter: withoutId({
-              ...fl,
-              fk_parent_column_id: getIdOrExternalId(fl.fk_parent_column_id),
-              fk_column_id: getIdOrExternalId(fl.fk_column_id),
-              fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
+        vieProcessQueue.add(async () => {
+          const viewData = withoutId({
+            ...view,
+            meta: RowColorViewHelpers.withContext(targetContext).mapMetaColumn({
+              meta: view.meta,
+              idMap: {
+                get: getIdOrExternalId,
+              } as any,
             }),
-            user: param.user,
-            req: param.req,
           });
 
-          idMap.set(fl.id, fg.id);
-        }
-
-        // create sorts
-        for (const sr of view.sorts) {
-          await this.sortsService.sortCreate(targetContext, {
-            viewId: vw.id,
-            sort: withoutId({
-              ...sr,
-              fk_column_id: getIdOrExternalId(sr.fk_column_id),
-            }),
-            req: param.req,
-          });
-        }
-
-        // update view columns
-        const vwColumns = await this.viewColumnsService.columnList(
-          targetContext,
-          {
-            viewId: vw.id,
-          },
-        );
-
-        const vwColumnPayloads: Map<string, any> = new Map();
-
-        for (const cl of vwColumns) {
-          const fcl = view.columns.find(
-            (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
+          const vw = await this.createView(
+            targetContext,
+            idMap,
+            table,
+            viewData,
+            table.views,
+            param.user,
+            param.req,
           );
-          if (!fcl) continue;
-          const calendarColProperties =
-            vw.type === ViewTypes.CALENDAR
-              ? {
-                  bold: fcl.bold,
-                  italic: fcl.italic,
-                  underline: fcl.underline,
-                }
-              : {};
+          if (!vw) return;
 
-          vwColumnPayloads.set(cl.fk_column_id, {
-            id: cl.fk_column_id,
-            show: fcl.show,
-            order: fcl.order,
-            ...calendarColProperties,
-          });
-        }
+          idMap.set(view.id, vw.id);
 
-        switch (vw.type) {
-          case ViewTypes.GRID:
-            for (const cl of vwColumns) {
-              const fcl = view.columns.find(
-                (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
-              );
-              if (!fcl) continue;
-              const { fk_column_id, ...rest } = fcl;
-              vwColumnPayloads.set(cl.fk_column_id, {
-                ...vwColumnPayloads.get(cl.fk_column_id),
-                ...withoutNull(rest),
-              });
-            }
-            break;
-          case ViewTypes.FORM:
-            for (const cl of vwColumns) {
-              const fcl = view.columns.find(
-                (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
-              );
-              if (!fcl) continue;
-              const { fk_column_id, ...rest } = fcl;
-              vwColumnPayloads.set(cl.fk_column_id, {
-                ...vwColumnPayloads.get(cl.fk_column_id),
-                ...withoutNull(rest),
-              });
-            }
-            break;
-          case ViewTypes.GALLERY:
-          case ViewTypes.KANBAN:
-          case ViewTypes.CALENDAR:
-            break;
-        }
+          // create filters
+          const filters = view.filter.children;
 
-        await this.viewColumnsService.columnsUpdate(targetContext, {
-          viewId: vw.id,
-          columns: Array.from(vwColumnPayloads.values()),
-          req: param.req,
-        });
+          for (const fl of filters) {
+            const fg = await this.filtersService.filterCreate(targetContext, {
+              viewId: vw.id,
+              filter: withoutId({
+                ...fl,
+                fk_parent_column_id: getIdOrExternalId(fl.fk_parent_column_id),
+                fk_column_id: getIdOrExternalId(fl.fk_column_id),
+                fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
+              }),
+              user: param.user,
+              req: param.req,
+            });
 
-        // fix view order (view insert will always put it at the end)
-        if (view.order !== vw.order) {
-          await this.viewsService.viewUpdate(targetContext, {
-            viewId: vw.id,
-            view: {
-              order: view.order,
+            idMap.set(fl.id, fg.id);
+          }
+
+          // create sorts
+          for (const sr of view.sorts) {
+            await this.sortsService.sortCreate(targetContext, {
+              viewId: vw.id,
+              sort: withoutId({
+                ...sr,
+                fk_column_id: getIdOrExternalId(sr.fk_column_id),
+              }),
+              req: param.req,
+            });
+          }
+
+          // update view columns
+          const vwColumns = await this.viewColumnsService.columnList(
+            targetContext,
+            {
+              viewId: vw.id,
             },
-            user: param.user,
+          );
+
+          const vwColumnPayloads: Map<string, any> = new Map();
+
+          for (const cl of vwColumns) {
+            const fcl = view.columns.find(
+              (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
+            );
+            if (!fcl) continue;
+            const calendarColProperties =
+              vw.type === ViewTypes.CALENDAR
+                ? {
+                    bold: fcl.bold,
+                    italic: fcl.italic,
+                    underline: fcl.underline,
+                  }
+                : {};
+
+            vwColumnPayloads.set(cl.fk_column_id, {
+              id: cl.fk_column_id,
+              show: fcl.show,
+              order: fcl.order,
+              ...calendarColProperties,
+            });
+          }
+
+          switch (vw.type) {
+            case ViewTypes.GRID:
+              for (const cl of vwColumns) {
+                const fcl = view.columns.find(
+                  (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
+                );
+                if (!fcl) continue;
+                const { fk_column_id, ...rest } = fcl;
+                vwColumnPayloads.set(cl.fk_column_id, {
+                  ...vwColumnPayloads.get(cl.fk_column_id),
+                  ...withoutNull(rest),
+                });
+              }
+              break;
+            case ViewTypes.FORM:
+              for (const cl of vwColumns) {
+                const fcl = view.columns.find(
+                  (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
+                );
+                if (!fcl) continue;
+                const { fk_column_id, ...rest } = fcl;
+                vwColumnPayloads.set(cl.fk_column_id, {
+                  ...vwColumnPayloads.get(cl.fk_column_id),
+                  ...withoutNull(rest),
+                });
+              }
+              break;
+            case ViewTypes.GALLERY:
+            case ViewTypes.KANBAN:
+            case ViewTypes.CALENDAR:
+              break;
+          }
+
+          await this.viewColumnsService.columnsUpdate(targetContext, {
+            viewId: vw.id,
+            columns: Array.from(vwColumnPayloads.values()),
             req: param.req,
           });
-        }
 
-        elapsedTime(hrTime, 'view created for view: ' + vw.id, 'importModels');
+          // fix view order (view insert will always put it at the end)
+          if (view.order !== vw.order) {
+            await this.viewsService.viewUpdate(targetContext, {
+              viewId: vw.id,
+              view: {
+                order: view.order,
+              },
+              user: param.user,
+              req: param.req,
+            });
+          }
+
+          elapsedTime(
+            hrTime,
+            'view created for view: ' + vw.id,
+            'importModels',
+          );
+        });
       }
-      elapsedTime(
-        hrTime,
-        'view created for table: ' + modelData.id,
-        'importModels',
-      );
     }
+    await vieProcessQueue.onIdle();
 
     // create row color info
     for (const data of param.data) {

@@ -25,14 +25,12 @@ function duplicateBaseTests() {
   };
 
   beforeEach(async function () {
-    console.time('#### duplicateColumnTests');
     const initDuplicateResult = await initDuplicate();
     context = initDuplicateResult;
     nestApp = initDuplicateResult.context.nestApp;
     duplicateProcessor = nestApp.get(DuplicateProcessor);
     basesService = nestApp.get(BasesService);
     tables = initDuplicateResult.tables;
-    console.timeEnd('#### duplicateColumnTests');
   });
 
   it('will duplicate base successfully', async () => {
@@ -92,6 +90,15 @@ function duplicateBaseTests() {
     expect(row.length).to.gt(0);
     expect(row[0]).to.have.property('Title');
     expect(row[0].Title).to.eq('T1_001');
+
+    const dupBaseViews = await dupTable1?.getViews({
+      workspace_id: context.ctx.workspace_id,
+      base_id: newDupBase.id,
+    });
+
+    expect(dupBaseViews.length).to.gt(0);
+    expect(dupBaseViews[1]).to.have.property('title');
+    expect(dupBaseViews[1].title).to.eq('Grid view 1');
   });
 }
 

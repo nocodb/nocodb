@@ -304,7 +304,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
   &:focus-visible,
   &.nc-is-selected {
     @apply border-nc-border-brand;
-    box-shadow: 0 0 0 1px #3366ff;
+    box-shadow: 0 0 0 1px var(--nc-border-brand);
   }
   &:hover {
     .nc-text-area-expand-btn {

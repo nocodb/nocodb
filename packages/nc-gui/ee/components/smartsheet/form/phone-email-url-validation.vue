@@ -86,7 +86,7 @@ const addPlaceholderValidators = (value, type: 'validate' | 'businessEmail') => 
   <div class="w-full flex items-center justify-between gap-3">
     <div class="max-w-[calc(100%_-_40px)]">
       <div
-        class="font-medium text-gray-800"
+        class="font-medium text-nc-content-gray"
         :class="{
           'cursor-pointer select-none': !isDefaultValidateEnabled,
         }"
@@ -131,7 +131,7 @@ const addPlaceholderValidators = (value, type: 'validate' | 'businessEmail') => 
       >
         <div class="max-w-[calc(100%_-_40px)]">
           <div
-            class="font-medium text-gray-800 cursor-pointer select-none flex items-center gap-2"
+            class="font-medium text-nc-content-gray cursor-pointer select-none flex items-center gap-2"
             @click="
               click(
                 PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,

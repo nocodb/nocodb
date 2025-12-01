@@ -47,7 +47,7 @@ const handleChangeValidator = () => {
     <div class="td">
       <NcSelect
         v-model:value="validator.type"
-        class="nc-custom-validation-type-selector w-full !text-gray-600"
+        class="nc-custom-validation-type-selector w-full !text-nc-content-gray-subtle2"
         :bordered="false"
         placeholder="Select and option"
         :data-testid="`nc-custom-validation-type-${validator.value}`"
@@ -63,7 +63,7 @@ const handleChangeValidator = () => {
             ![StringValidationType.Includes, StringValidationType.NotIncludes].includes(option.value) &&
             !!validatorsMap[option.value]
           "
-          class=":not-disabled:!text-gray-600"
+          class=":not-disabled:!text-nc-content-gray-subtle2"
           :data-testid="`nc-custom-validation-type-option-${option.value}`"
         >
           <div class="w-full flex items-center justify-between gap-2">
@@ -94,7 +94,7 @@ const handleChangeValidator = () => {
         @update-validation-value="updateColMeta(activeField)"
       >
       </LazySmartsheetFormValidationInput>
-      <NcTooltip v-if="validationErrors.length" placement="bottom" class="absolute right-1 flex text-[#FF4A3F]">
+      <NcTooltip v-if="validationErrors.length" placement="bottom" class="absolute right-1 flex text-nc-content-red-medium">
         <template #title>
           <div class="flex flex-col">
             <span v-for="(error, i) in validationErrors" :key="i"> {{ error }} </span>
@@ -108,7 +108,7 @@ const handleChangeValidator = () => {
         v-model="validator.message"
         type="text"
         placeholder="Type error message..."
-        class="nc-custom-validation-error-message-input !w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none ring-transparent) disabled:(bg-gray-50 cursor-not-allowed) !placeholder-gray-500"
+        class="nc-custom-validation-error-message-input !w-full h-full !border-none text-sm !px-3 !py-1 !outline-none !focus:(outline-none border-none shadow-none ring-transparent) disabled:(bg-nc-bg-gray-extralight cursor-not-allowed) !placeholder-nc-content-gray-muted"
         @update:model-value="updateColMeta(activeField)"
       />
     </div>
@@ -119,7 +119,7 @@ const handleChangeValidator = () => {
         size="small"
         @click="emits('remove')"
       >
-        <GeneralIcon icon="delete" class="flex-none h-4 w-4 text-gray-500 hover:text-gray-800" />
+        <GeneralIcon icon="delete" class="flex-none h-4 w-4 text-nc-content-gray-muted hover:text-nc-content-gray" />
       </NcButton>
     </div>
   </div>
@@ -132,22 +132,22 @@ const handleChangeValidator = () => {
   }
 
   .ant-select-item-option:not(.ant-select-item-option-disabled) {
-    @apply !hover:text-black !text-gray-700;
+    @apply !hover:text-nc-content-gray-extreme !text-nc-content-gray-subtle;
   }
 }
 .nc-custom-validation-type-selector.nc-select.ant-select {
   &:hover {
-    @apply bg-gray-50;
+    @apply bg-nc-bg-gray-extralight;
 
     .ant-select-selection-placeholder {
-      @apply text-gray-600;
+      @apply text-nc-content-gray-subtle2;
     }
   }
   &.ant-select-single.ant-select-open .ant-select-selection-item {
     color: inherit !important;
   }
   .ant-select-selection-placeholder {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
   }
 }
 </style>

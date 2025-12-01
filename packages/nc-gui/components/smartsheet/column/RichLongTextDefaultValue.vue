@@ -74,7 +74,11 @@ const handleShowInput = () => {
           'bg-nc-bg-default': isAiModeFieldModal,
         }"
       >
-        <LazyCellRichText v-model:value="cdfValue" class="border-t-1 border-nc-border-gray-light !max-h-80 !min-h-30 text-nc-content-gray-subtle2" show-menu />
+        <LazyCellRichText
+          v-model:value="cdfValue"
+          class="border-t-1 border-nc-border-gray-light !max-h-80 !min-h-30 text-nc-content-gray-subtle2"
+          show-menu
+        />
       </div>
     </div>
   </div>

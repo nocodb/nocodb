@@ -283,14 +283,14 @@ const { message: templatedMessage } = useTemplatedMessage(
             :banner-image-url="sharedFormView.banner_image_url"
             class="flex-none mb-4"
           />
-          <div class="rounded-3xl border-1 border-gray-200 p-6 lg:p-12 bg-white">
-            <h1 class="text-2xl font-bold text-gray-900 mb-4" data-testid="nc-survey-form__heading">
+          <div class="rounded-3xl border-1 border-nc-border-gray-medium p-6 lg:p-12 bg-nc-bg-default">
+            <h1 class="text-2xl font-bold text-nc-content-gray-emphasis mb-4" data-testid="nc-survey-form__heading">
               {{ sharedFormView.heading }}
             </h1>
 
             <div v-if="submitted" class="flex flex-col justify-center items-center text-center">
               <a-alert
-                class="nc-survey-form__success-msg !p-4 !rounded-lg text-left w-full !bg-white !border-gray-200 !items-start"
+                class="nc-survey-form__success-msg !p-4 !rounded-lg text-left w-full !bg-nc-bg-default !border-nc-border-gray-medium !items-start"
                 type="success"
                 data-testid="nc-survey-form__success-msg"
                 outlined
@@ -327,7 +327,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                 "
                 class="mt-16 w-full flex justify-between items-center flex-wrap gap-3"
               >
-                <p v-if="sharedFormView?.show_blank_form" class="text-sm text-gray-500 dark:text-slate-300 m-0">
+                <p v-if="sharedFormView?.show_blank_form" class="text-sm text-nc-content-gray-muted m-0">
                   {{ $t('labels.newFormLoaded') }} {{ secondsRemain }} {{ $t('general.seconds').toLowerCase() }}
                 </p>
 
@@ -348,7 +348,7 @@ const { message: templatedMessage } = useTemplatedMessage(
               <div v-if="sharedFormView.subheading?.trim()">
                 <LazyCellRichText
                   :value="sharedFormView.subheading"
-                  class="font-medium text-base text-gray-500 dark:text-slate-300 !h-auto mb-4 -ml-1"
+                  class="font-medium text-base text-nc-content-gray-muted !h-auto mb-4 -ml-1"
                   is-form-field
                   read-only
                   sync-value-change
@@ -358,7 +358,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
               <div class="flex justify-end mt-12">
                 <div class="flex items-center gap-3">
-                  <div class="hidden md:flex text-sm items-center gap-1 text-gray-800">
+                  <div class="hidden md:flex text-sm items-center gap-1 text-nc-content-gray">
                     <span> {{ $t('labels.pressEnter') }} ↵ </span>
                   </div>
                   <NcButton
@@ -374,7 +374,7 @@ const { message: templatedMessage } = useTemplatedMessage(
           </div>
         </template>
         <div v-else class="px-6 lg:px-12">
-          <h1 class="text-2xl font-bold text-gray-900 line-clamp-2 text-center mb-2rem md:mb-4rem">
+          <h1 class="text-2xl font-bold text-nc-content-gray-emphasis line-clamp-2 text-center mb-2rem md:mb-4rem">
             {{ sharedFormView.heading }}
           </h1>
         </div>
@@ -384,22 +384,22 @@ const { message: templatedMessage } = useTemplatedMessage(
               <div
                 ref="el"
                 :key="field?.title"
-                class="flex flex-col gap-4 w-full m-auto rounded-xl border-1 border-gray-200 bg-white p-6 lg:p-12"
+                class="flex flex-col gap-4 w-full m-auto rounded-xl border-1 border-nc-border-gray-medium bg-nc-bg-default p-6 lg:p-12"
               >
-                <div class="select-none text-gray-500 mb-4 md:mb-2" data-testid="nc-survey-form__footer">
+                <div class="select-none text-nc-content-gray-muted mb-4 md:mb-2" data-testid="nc-survey-form__footer">
                   {{ index + 1 }} / {{ formColumns?.length }}
                 </div>
 
                 <div v-if="field" class="flex flex-col gap-2">
-                  <div class="nc-form-column-label text-sm font-semibold text-gray-800" data-testid="nc-form-column-label">
+                  <div class="nc-form-column-label text-sm font-semibold text-nc-content-gray" data-testid="nc-form-column-label">
                     <span>
                       {{ field.label || field.title }}
                     </span>
-                    <span v-if="isRequired(field)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
+                    <span v-if="isRequired(field)" class="text-nc-content-red-medium text-base leading-[18px]">&nbsp;*</span>
                   </div>
                   <div
                     v-if="field?.description"
-                    class="nc-form-column-description text-gray-500 text-sm"
+                    class="nc-form-column-description text-nc-content-gray-muted text-sm"
                     data-testid="nc-survey-form__field-description"
                   >
                     <LazyCellRichText
@@ -446,8 +446,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                           @update:model-value="validateField(field.title)"
                         />
                         <template v-if="field.uidt === UITypes.LongText" #help>
-                          <div class="flex flex-col gap-2 text-slate-500 dark:text-slate-300 text-xs mt-2">
-                            <div class="hidden text-sm text-gray-500 md:flex flex-wrap items-center">
+                          <div class="flex flex-col gap-2 text-nc-content-gray-muted text-xs mt-2">
+                            <div class="hidden text-sm text-nc-content-gray-muted md:flex flex-wrap items-center">
                               {{ $t('general.shift') }} <span class="text-primary"> &nbsp;⇧&nbsp; </span> +
                               {{ $t('general.enter') }}
                               <span class="text-primary"> &nbsp;↵&nbsp; </span>
@@ -481,7 +481,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     <div v-else class="flex items-center gap-3">
                       <div
                         class="hidden md:flex text-sm items-center gap-1"
-                        :class="fieldHasError ? 'text-gray-200' : 'text-gray-800'"
+                        :class="fieldHasError ? 'text-gray-200' : 'text-nc-content-gray'"
                       >
                         <span> {{ $t('labels.pressEnter') }} ↵ </span>
                       </div>
@@ -596,7 +596,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
   &:focus-within {
     :deep(.ant-form-item-explain-error) {
-      @apply text-gray-400;
+      @apply text-nc-content-gray-disabled;
     }
   }
 }

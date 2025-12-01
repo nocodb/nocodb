@@ -36,17 +36,17 @@ router.afterEach((to) => shouldRedirect(to.name as string))
       'relative': !isAddingEmptyRowPermitted,
     }"
     :style="{
-      background: parseProp(sharedFormView?.meta)?.background_color || '#F9F9FA',
+      background: parseProp(sharedFormView?.meta)?.background_color || 'var(--nc-bg-gray-extralight)',
     }"
   >
     <NuxtPage />
 
     <div v-if="!isAddingEmptyRowPermitted" class="nc-form-submission-restriction-overlay">
       <div class="nc-form-submission-restriction-modal">
-        <div class="text-subHeading1 text-gray-800 font-bold">
+        <div class="text-subHeading1 text-nc-content-gray font-bold">
           {{ $t('objects.permissions.formCannotAcceptSubmissions') }}
         </div>
-        <div class="text-body text-gray-700">
+        <div class="text-body text-nc-content-gray-subtle">
           {{ $t('objects.permissions.formCannotAcceptSubmissionsDescription') }}
         </div>
       </div>
@@ -60,25 +60,13 @@ router.afterEach((to) => shouldRedirect(to.name as string))
   backdrop-filter: blur(1px);
 
   .nc-form-submission-restriction-modal {
-    @apply p-6 rounded-2xl bg-white max-w-md flex flex-col gap-4;
+    @apply p-6 rounded-2xl bg-nc-bg-default max-w-md flex flex-col gap-4;
     box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1);
   }
 }
 </style>
 
 <style lang="scss">
-html,
-body,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-p {
-  @apply dark:text-white color-transition;
-}
-
 .nc-form-view {
   .nc-data-cell {
     @apply !border-none rounded-none;
@@ -88,9 +76,17 @@ p {
     }
   }
 
+  .nc-input {
+    &:not(.layout-list) {
+      &:not(:has(.form-attachment-cell.nc-has-attachments)) {
+        @apply !bg-nc-bg-default rounded-lg border-solid border-1 border-nc-border-gray-medium !focus-within:border-nc-border-brand;
+      }
+    }
+  }
+
   .nc-cell,
   .nc-virtual-cell {
-    @apply bg-white dark:bg-slate-500 appearance-none;
+    @apply bg-nc-bg-default appearance-none;
 
     &.nc-cell-checkbox {
       @apply color-transition !border-0;
@@ -109,16 +105,16 @@ p {
     }
 
     &:not(.nc-cell-checkbox) {
-      @apply bg-white dark:bg-slate-500;
+      @apply bg-nc-bg-default;
 
       &.nc-input {
         @apply w-full h-10;
 
         &:not(.layout-list) {
-          @apply rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500 overflow-hidden;
+          @apply rounded-lg border-solid border-1 border-nc-border-gray-medium focus-within:border-nc-border-brand overflow-hidden;
 
           &.readonly {
-            @apply bg-gray-50 cursor-not-allowed;
+            @apply bg-nc-bg-gray-extralight cursor-not-allowed;
 
             input,
             textarea {
@@ -141,7 +137,7 @@ p {
             @apply !outline-none;
 
             &::placeholder {
-              @apply text-gray-400 dark:text-slate-300;
+              @apply text-nc-content-gray-disabled;
             }
           }
         }
@@ -151,36 +147,17 @@ p {
             input,
             textarea,
             &.nc-virtual-cell {
-              @apply bg-white !disabled:bg-transparent;
+              @apply bg-nc-bg-default !disabled:bg-transparent;
             }
           }
           &.nc-cell-longtext {
             textarea {
-              @apply bg-white !disabled:bg-transparent;
+              @apply bg-nc-bg-default !disabled:bg-transparent;
             }
           }
         }
 
-        input,
-        textarea,
-        &.nc-virtual-cell {
-          .ant-btn {
-            @apply dark:(bg-slate-300);
-          }
-
-          .chip {
-            @apply dark:(bg-slate-700 text-white);
-          }
-        }
-
         &.layout-list > div {
-          .ant-btn {
-            @apply dark:(bg-slate-300);
-          }
-
-          .chip {
-            @apply dark:(bg-slate-700 text-white);
-          }
         }
 
         &.nc-cell-longtext {
@@ -229,7 +206,7 @@ p {
           @apply !py-0 !pl-0 flex items-stretch;
 
           .nc-currency-code {
-            @apply !bg-gray-100;
+            @apply !bg-nc-bg-gray-light;
           }
         }
         &.nc-cell-attachment {
@@ -237,16 +214,6 @@ p {
         }
       }
     }
-
-    .nc-attachment-cell > div {
-      @apply dark:(bg-slate-100);
-    }
-  }
-}
-
-.nc-form-column-label {
-  > * {
-    @apply dark:text-slate-300;
   }
 }
 </style>

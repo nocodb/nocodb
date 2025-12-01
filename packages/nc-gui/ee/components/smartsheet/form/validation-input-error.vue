@@ -16,7 +16,7 @@ const validationInputError = computed(() => {
 </script>
 
 <template>
-  <div v-if="validationInputError.length" class="mt-1 validation-input-error text-red-500 flex flex-col">
+  <div v-if="validationInputError.length" class="mt-1 validation-input-error text-nc-content-red-medium flex flex-col">
     <span v-for="(error, i) in validationInputError" :key="i"> {{ error }} </span>
   </div>
 </template>

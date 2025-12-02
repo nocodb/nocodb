@@ -434,6 +434,7 @@ export class SyncModuleSyncDataProcessor {
         const wrapper =
           await integration.getIntegrationWrapper<SyncIntegration>(logBasic);
 
+        const BATCH_SIZE = wrapper.batchSize;
         if (parentSyncConfig.sync_type === SyncType.Incremental) {
           for (const syncMap of syncMappings) {
             const model = modelSyncTargetMap.get(syncMap.target_table);

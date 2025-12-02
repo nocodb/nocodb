@@ -116,7 +116,7 @@ onMounted(() => {
 <style lang="scss">
 .nc-modal-file-upload {
   .active-menu {
-    @apply bg-nc-bg-brand font-semibold text-content-brand rounded-md;
+    @apply bg-nc-bg-brand-inverted font-semibold text-nc-content-brand rounded-md;
   }
 }
 

@@ -124,7 +124,7 @@ const isCollaborator = (userIdOrEmail) => {
                   </template>
                   <span
                     :class="{
-                      'text-gray-600': !isCollaborator(op.id || op.email),
+                      'text-nc-content-gray-subtle2': !isCollaborator(op.id || op.email),
                     }"
                     :style="{
                       wordBreak: 'keep-all',
@@ -194,7 +194,7 @@ const isCollaborator = (userIdOrEmail) => {
                 }"
                 class="!text-[0.5rem] !h-[16.8px]"
                 :class="{
-                  '!bg-white': selectedOpt.value === CURRENT_USER_TOKEN,
+                  '!bg-nc-bg-default': selectedOpt.value === CURRENT_USER_TOKEN,
                 }"
                 :show-placeholder-icon="selectedOpt.value === CURRENT_USER_TOKEN"
               />
@@ -205,7 +205,7 @@ const isCollaborator = (userIdOrEmail) => {
               </template>
               <span
                 :class="{
-                  'text-gray-500': !isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN,
+                  'text-nc-content-gray-muted': !isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN,
                   'text-nc-content-brand': selectedOpt.value === CURRENT_USER_TOKEN,
                   'font-600': isInFilter,
                 }"
@@ -259,7 +259,7 @@ const isCollaborator = (userIdOrEmail) => {
 }
 
 .rounded-tag {
-  @apply bg-gray-200 px-2 rounded-[12px];
+  @apply bg-nc-bg-gray-medium px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {

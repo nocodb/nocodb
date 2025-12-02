@@ -346,8 +346,7 @@ const triggerAction = async () => {
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
   }
   &:focus-within {
-    @apply outline-none ring-0;
-    box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px #3069fe;
+    @apply outline-none ring-0 shadow-focus;
   }
   &[disabled] {
     @apply opacity-50 cursor-not-allowed;
@@ -456,7 +455,7 @@ const triggerAction = async () => {
       @apply bg-gray-200;
     }
     &:focus {
-      box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+      @apply shadow-focus;
     }
 
     &.brand {

@@ -296,7 +296,7 @@ onMounted(() => {
 
       <div
         v-if="!readOnly && editAllowed && vModel"
-        class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800"
+        class="inline-block px-2 pt-2 cursor-pointer text-xs text-nc-content-gray-muted hover:text-nc-content-gray"
         @click="vModel = ''"
       >
         {{ $t('labels.clearSelection') }}
@@ -365,7 +365,7 @@ onMounted(() => {
         </a-tag>
       </a-select-option>
       <a-select-option v-if="searchVal && isOptionMissing && isNewOptionCreateEnabled" :key="searchVal" :value="searchVal">
-        <div class="flex gap-2 text-gray-500 items-center h-full">
+        <div class="flex gap-2 text-nc-content-gray-muted items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
             {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>

@@ -147,7 +147,7 @@ onMounted(() => {
         </div>
       </template>
     </JsBarcodeWrapper>
-    <a-tooltip v-else-if="!showBarcode && barcodeValue === 'ERR!'" placement="bottom" class="text-orange-700">
+    <a-tooltip v-else-if="!showBarcode && barcodeValue === 'ERR!'" placement="bottom" class="text-nc-content-orange-dark">
       <template #title>
         <span class="font-bold">Please select a target field!</span>
       </template>
@@ -190,10 +190,11 @@ onMounted(() => {
 
 .nc-data-cell {
   &:has(.nc-virtual-cell-barcode) {
-    @apply !border-none;
+    @apply !border-none outline-none;
     box-shadow: none !important;
 
     &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+      @apply outline-none;
       box-shadow: none !important;
     }
   }

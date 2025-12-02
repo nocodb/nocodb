@@ -39,7 +39,7 @@ export const LinksCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2 - 20,
         fontFamily: '500 13px Inter',
-        fillStyle: 'rgb(67, 81, 232)',
+        fillStyle: getColor('rgb(67, 81, 232)', themeV4Colors.brand['500']),
         height,
       })
 
@@ -51,7 +51,7 @@ export const LinksCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2 - 20,
         fontFamily: '500 13px Inter',
-        fillStyle: 'rgb(67, 81, 232)',
+        fillStyle: getColor('rgb(67, 81, 232)', themeV4Colors.brand['500']),
         height,
         underline: selected && isHoverOverText,
       })

@@ -423,7 +423,7 @@ onMounted(() => {
         :key="searchVal"
         :value="searchVal"
       >
-        <div class="flex gap-2 text-gray-500 items-center h-full">
+        <div class="flex gap-2 text-nc-content-gray-muted items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
             {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>

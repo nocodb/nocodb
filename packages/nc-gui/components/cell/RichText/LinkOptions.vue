@@ -190,12 +190,12 @@ const tabIndex = computed(() => {
     <div
       v-if="!justDeleted"
       ref="wrapperRef"
-      class="relative bubble-menu nc-text-area-rich-link-options bg-white flex flex-col border-1 border-gray-200 py-1 px-1 rounded-lg w-full"
+      class="relative bubble-menu nc-text-area-rich-link-options bg-nc-bg-default flex flex-col border-1 border-nc-border-gray-medium py-1 px-1 rounded-lg w-full"
       data-testid="nc-text-area-rich-link-options"
       @keydown.stop="handleKeyDown"
     >
       <div class="flex items-center gap-x-1">
-        <div class="!py-0.5 bg-white rounded-md !z-10 flex-1">
+        <div class="!py-0.5 bg-nc-bg-default rounded-md !z-10 flex-1">
           <a-input
             ref="inputRef"
             v-model:value="href"
@@ -214,7 +214,7 @@ const tabIndex = computed(() => {
           <NcButton
             :tabindex="tabIndex"
             :class="{
-              '!text-gray-300 cursor-not-allowed': href.length === 0,
+              '!text-nc-content-brand-hover cursor-not-allowed': href.length === 0,
             }"
             data-testid="text-gray-700 nc-text-area-rich-link-options-open-link"
             size="small"
@@ -228,7 +228,7 @@ const tabIndex = computed(() => {
           <template #title> Delete link </template>
           <NcButton
             :tabindex="tabIndex"
-            class="!duration-0 !hover:(text-red-400 bg-red-50)"
+            class="!duration-0 !hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
             data-testid="nc-text-area-rich-link-options-open-delete"
             size="small"
             type="text"
@@ -245,11 +245,15 @@ const tabIndex = computed(() => {
 <style lang="scss">
 .bubble-menu {
   // shadow
-  @apply shadow-gray-200 shadow-sm;
+  @apply shadow-nc-border-gray-medium shadow-sm;
 }
 
 .nc-text-area-rich-link-option-input {
-  @apply !placeholder:text-gray-500 text-gray-800;
+  @apply text-nc-content-gray;
+
+  &::placeholder {
+    @apply text-nc-content-gray-muted;
+  }
 }
 
 .nc-text-area-rich-link-options {
@@ -259,11 +263,11 @@ const tabIndex = computed(() => {
   .ant-popover-arrow {
     @apply !shadow-none;
     .ant-popover-arrow-content {
-      @apply !shadow-none !bg-gray-100;
+      @apply !shadow-none !bg-nc-bg-gray-light;
     }
   }
   .ant-popover-inner {
-    @apply !shadow-none !bg-gray-100 py-1.5 px-2.5 text-xs !rounded-sm;
+    @apply !shadow-none !bg-nc-bg-gray-light py-1.5 px-2.5 text-xs !rounded-sm;
   }
 }
 </style>

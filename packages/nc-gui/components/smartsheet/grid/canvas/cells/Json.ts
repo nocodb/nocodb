@@ -30,11 +30,14 @@ export const JsonCellRenderer: CellRenderer = {
           size: 12,
           xOffset: 4,
           yOffset: 4,
+          color: getColor(themeV4Colors.gray['700']),
         },
         mousePosition,
         spriteLoader,
         icon: 'maximize',
-        background: 'white',
+        background: getColor(themeV4Colors.base.white),
+        borderColor: getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
         setCursor,
       })
 

@@ -394,7 +394,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
                     class="flex-none"
                     :class="{
                       'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
-                      'border-gray-200 rounded border-1 max-w-full': ![
+                      'border-nc-border-gray-medium rounded border-1 max-w-full': ![
                         UITypes.Attachment,
                         UITypes.MultiSelect,
                         UITypes.SingleSelect,
@@ -498,7 +498,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
                 class="flex-none"
                 :class="{
                   'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
-                  'border-gray-200 rounded border-1 max-w-full': ![
+                  'border-nc-border-gray-medium rounded border-1 max-w-full': ![
                     UITypes.Attachment,
                     UITypes.MultiSelect,
                     UITypes.SingleSelect,
@@ -545,7 +545,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
 
 .nc-cell-lookup-scroll:hover {
   &::-webkit-scrollbar-thumb {
-    @apply bg-gray-200;
+    @apply bg-nc-bg-gray-medium;
   }
 }
 .nc-lookup-cell .nc-text-area-clamped-text {

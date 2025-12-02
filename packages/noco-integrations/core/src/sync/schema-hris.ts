@@ -69,17 +69,11 @@ export const SCHEMA_HRIS: SyncSchema = {
   //       relatedTable: TARGET_TABLES.HRIS_EMPLOYEE,
   //       relatedTableColumnTitle: 'Dependents',
   //     },
-  //     {
-  //       columnTitle: 'Home Location',
-  //       relatedTable: TARGET_TABLES.HRIS_LOCATION,
-  //       relatedTableColumnTitle: 'Dependents',
-  //     },
   //   ],
   // },
   [TARGET_TABLES.HRIS_EMPLOYEE]: {
     title: TARGET_TABLES_META.hris_employee.label,
     columns: [
-      { title: 'Remote Id', uidt: UITypes.SingleLineText },
       { title: 'Employee Number', uidt: UITypes.SingleLineText, pv: true },
       { title: 'First Name', uidt: UITypes.SingleLineText },
       { title: 'Last Name', uidt: UITypes.SingleLineText },
@@ -109,11 +103,11 @@ export const SCHEMA_HRIS: SyncSchema = {
       //   relatedTable: TARGET_TABLES.HRIS_EMPLOYEE,
       //   relatedTableColumnTitle: 'Managed Employees',
       // },
-      {
-        columnTitle: 'Company',
-        relatedTable: TARGET_TABLES.HRIS_COMPANY,
-        relatedTableColumnTitle: 'Employees',
-      },
+      // {
+      //   columnTitle: 'Company',
+      //   relatedTable: TARGET_TABLES.HRIS_COMPANY,
+      //   relatedTableColumnTitle: 'Employees',
+      // },
       // {
       //   columnTitle: 'Home Location',
       //   relatedTable: TARGET_TABLES.HRIS_LOCATION,
@@ -129,7 +123,6 @@ export const SCHEMA_HRIS: SyncSchema = {
   // [TARGET_TABLES.HRIS_EMPLOYEE_PAYROLL_RUN]: {
   //   title: TARGET_TABLES_META.hris_employee_payroll_run.label,
   //   columns: [
-  //     { title: 'Remote Id', uidt: UITypes.SingleLineText },
   //     { title: 'Gross Pay', uidt: UITypes.Currency },
   //     { title: 'Net Pay', uidt: UITypes.Currency },
   //     { title: 'Start Date', uidt: UITypes.Date },
@@ -152,28 +145,28 @@ export const SCHEMA_HRIS: SyncSchema = {
   //     },
   //   ],
   // },
-  // [TARGET_TABLES.HRIS_EMPLOYMENT]: {
-  //   title: TARGET_TABLES_META.hris_employment.label,
-  //   columns: [
-  //     { title: 'Remote Id', uidt: UITypes.SingleLineText },
-  //     { title: 'Job Title', uidt: UITypes.SingleLineText },
-  //     { title: 'Pay Rate', uidt: UITypes.Currency },
-  //     { title: 'Pay Period', uidt: UITypes.SingleSelect },
-  //     { title: 'Pay Frequency', uidt: UITypes.SingleSelect },
-  //     { title: 'Pay Currency', uidt: UITypes.SingleSelect },
-  //     { title: 'Pay Group', uidt: UITypes.SingleLineText },
-  //     { title: 'Flsa Status', uidt: UITypes.SingleSelect },
-  //     { title: 'Effective Date', uidt: UITypes.Date },
-  //     { title: 'Employment Type', uidt: UITypes.SingleSelect },
-  //   ],
-  //   relations: [
-  //     {
-  //       columnTitle: 'Employee',
-  //       relatedTable: TARGET_TABLES.HRIS_EMPLOYEE,
-  //       relatedTableColumnTitle: 'Employments',
-  //     },
-  //   ],
-  // },
+  [TARGET_TABLES.HRIS_EMPLOYMENT]: {
+    title: TARGET_TABLES_META.hris_employment.label,
+    columns: [
+      { title: 'Remote Id', uidt: UITypes.SingleLineText },
+      { title: 'Job Title', uidt: UITypes.SingleLineText },
+      { title: 'Pay Rate', uidt: UITypes.Currency },
+      { title: 'Pay Period', uidt: UITypes.SingleLineText },
+      { title: 'Pay Frequency', uidt: UITypes.SingleLineText },
+      { title: 'Pay Currency', uidt: UITypes.SingleLineText },
+      { title: 'Pay Group', uidt: UITypes.SingleLineText },
+      { title: 'Flsa Status', uidt: UITypes.SingleLineText },
+      { title: 'Effective Date', uidt: UITypes.Date },
+      { title: 'Employment Type', uidt: UITypes.SingleLineText },
+    ],
+    relations: [
+      {
+        columnTitle: 'Employee',
+        relatedTable: TARGET_TABLES.HRIS_EMPLOYEE,
+        relatedTableColumnTitle: 'Employments',
+      },
+    ],
+  },
   // [TARGET_TABLES.HRIS_GROUP]: {
   //   title: TARGET_TABLES_META.hris_group.label,
   //   columns: [
@@ -191,23 +184,27 @@ export const SCHEMA_HRIS: SyncSchema = {
   //     },
   //   ],
   // },
-  // [TARGET_TABLES.HRIS_LOCATION]: {
-  //   title: TARGET_TABLES_META.hris_location.label,
-  //   columns: [
-  //     { title: 'Remote Id', uidt: UITypes.SingleLineText },
-  //     { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
-  //     { title: 'Phone Number', uidt: UITypes.PhoneNumber },
-  //     { title: 'Street 1', uidt: UITypes.SingleLineText },
-  //     { title: 'Street 2', uidt: UITypes.SingleLineText },
-  //     { title: 'City', uidt: UITypes.SingleLineText },
-  //     { title: 'State', uidt: UITypes.SingleLineText },
-  //     { title: 'Zip Code', uidt: UITypes.SingleLineText },
-  //     { title: 'Country', uidt: UITypes.SingleSelect },
-  //     { title: 'Location Type', uidt: UITypes.SingleSelect },
-  //   ],
-  //   relations: [
-  //   ],
-  // },
+  [TARGET_TABLES.HRIS_LOCATION]: {
+    title: TARGET_TABLES_META.hris_location.label,
+    columns: [
+      { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
+      { title: 'Phone Number', uidt: UITypes.PhoneNumber },
+      { title: 'Street 1', uidt: UITypes.SingleLineText },
+      { title: 'Street 2', uidt: UITypes.SingleLineText },
+      { title: 'City', uidt: UITypes.SingleLineText },
+      { title: 'State', uidt: UITypes.SingleLineText },
+      { title: 'Zip Code', uidt: UITypes.SingleLineText },
+      { title: 'Country', uidt: UITypes.SingleLineText },
+      { title: 'Location Type', uidt: UITypes.SingleLineText },
+    ],
+    relations: [
+      {
+        columnTitle: 'Home of Employee',
+        relatedTable: TARGET_TABLES.HRIS_EMPLOYEE,
+        relatedTableColumnTitle: 'Home',
+      },
+    ],
+  },
   // [TARGET_TABLES.HRIS_PAYROLL_RUN]: {
   //   title: TARGET_TABLES_META.hris_payroll_run.label,
   //   columns: [
@@ -274,53 +271,3 @@ export const SCHEMA_HRIS: SyncSchema = {
   //   ],
   // },
 };
-
-export interface  HrisEmployeeRecord extends SyncRecord {
-  'Remote Id': SyncValue<string>;
-  'Employee Number': SyncValue<string>;
-  'Company': SyncValue<string>;
-  'First Name': SyncValue<string>;
-  'Last Name': SyncValue<string>;
-  'Preferred Name': SyncValue<string>;
-  'Display Full Name': SyncValue<string>;
-  'Username': SyncValue<string>;
-  // TODO: Groups is link, need to revisit later
-  'Groups': SyncValue<string[]>;
-  'Work Email': SyncValue<string>;
-  'Personal Email': SyncValue<string>;
-  'Mobile Phone Number': SyncValue<string>;
-  // TODO: Employments is link, need to revisit later
-  'Employments': SyncValue<string[]>;
-  'Home Location': SyncValue<string>;
-  'Work Location': SyncValue<string>;
-  // TODO: Manager is link, need to revisit later
-  'Manager': SyncValue<string>;
-  'Team': SyncValue<string>;
-  'Pay Group': SyncValue<string>;
-  'Ssn': SyncValue<string>;
-  'Gender': SyncValue<string>;
-  'Ethnicity': SyncValue<string>;
-  'Marital Status': SyncValue<string>;
-  'Date Of Birth': SyncValue<string>;
-  'Hire Date': SyncValue<string>;
-  'Start Date': SyncValue<string>;
-  'Remote Created At': SyncValue<string>;
-  'Employment Status': SyncValue<string>;
-  'Termination Date': SyncValue<string>;
-  'Avatar': SyncValue<string>;
-  'Remote Data': SyncValue<string>;
-};
-
-export interface HrisEmploymentRecord extends SyncRecord {
-  'Remote Id': SyncValue<string>;
-  'Job Title': SyncValue<string>;
-  'Pay Rate': SyncValue<string>;
-  'Pay Period': SyncValue<string>;
-  'Pay Frequency': SyncValue<string>;
-  'Pay Currency': SyncValue<string>;
-  'Pay Group': SyncValue<string>;
-  'Flsa Status': SyncValue<string>;
-  'Effective Date': SyncValue<string>;
-  'Employment Type': SyncValue<string>;
-  'Remote Data': SyncValue<string>;
-}

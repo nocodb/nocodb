@@ -158,13 +158,7 @@ async function processColumnToSwaggerField(
             true,
             dbType,
           );
-          if (
-            column.title
-              .toLowerCase()
-              .startsWith('Item Name and Quantity Lookup '.toLowerCase())
-          ) {
-            console.log(JSON.stringify(lookupField));
-          }
+
           // Determine if this is a single value or array based on relation type
           if (
             relationColOpt &&

@@ -42,7 +42,7 @@ const isFieldInaccessible1 = ref(true)
 </script>
 
 <template>
-  <div class="bg-gray-100 overflow-y-scroll">
+  <div class="bg-nc-bg-gray-light overflow-y-scroll">
     <a-card>
       <div class="flex flex-col gap-2">
         <h4>Simple</h4>
@@ -50,19 +50,19 @@ const isFieldInaccessible1 = ref(true)
         <div class="flex">
           <span>Filter:</span>
 
-          <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
+          <div class="w-[300px] max-h-[100px] overflow-wrap bg-nc-bg-gray-dark overflow-y-scroll">
             {{ filter1 }}
           </div>
 
           <span>Last change event:</span>
-          <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
+          <div class="w-[300px] max-h-[100px] overflow-wrap bg-nc-bg-gray-dark overflow-y-scroll">
             {{ lastChangeEvent1 }}
           </div>
         </div>
         <div class="flex">
           <span>Delete: {{ deleted1Times }}</span>
 
-          <div class="w-[300px] max-h-[100px] overflow-wrap bg-gray-300 overflow-y-scroll">
+          <div class="w-[300px] max-h-[100px] overflow-wrap bg-nc-bg-gray-dark overflow-y-scroll">
             {{ deleted1LastEvent }}
           </div>
         </div>
@@ -82,7 +82,7 @@ const isFieldInaccessible1 = ref(true)
                 <a-select-option :value="ClientType.MYSQL"> mysql </a-select-option>
               </NcSelect>
             </div>
-            <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
+            <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br /></div>
           </div>
           <div class="flex">
             <NcSelect v-model:value="column1Id" @change="filter1.fk_column_id = column1Id">
@@ -166,7 +166,7 @@ const isFieldInaccessible1 = ref(true)
         @delete="onFilter1Delete($event)"
       >
         <template v-if="isFieldInaccessible1" #fieldInaccessibleError>
-          <NcTooltip class="flex-1 flex items-center gap-2 px-2 !text-red-500 cursor-pointer" :disabled="false">
+          <NcTooltip class="flex-1 flex items-center gap-2 px-2 !text-nc-content-red-medium cursor-pointer" :disabled="false">
             <template #title> Field inaccessible error message</template>
             <GeneralIcon icon="alertTriangle" class="flex-none" />
             {{ $t('title.fieldInaccessible') }}

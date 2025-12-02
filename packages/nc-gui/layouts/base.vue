@@ -55,7 +55,7 @@ hooks.hook('page:finish', () => {
           </a-tooltip>
         </div>
 
-        <div class="!text-white flex justify-center">
+        <div class="!text-nc-content-inverted-primary flex justify-center">
           <div v-show="isLoading" class="flex items-center gap-2 ml-3" data-testid="nc-loading">
             {{ $t('general.loading') }}
 
@@ -132,7 +132,7 @@ hooks.hook('page:finish', () => {
       >
         <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
-        <GeneralLanguage class="nc-lang-btn" />
+        <GeneralLanguage class="nc-lang-btn text-white" />
       </NcTooltip>
 
       <div class="w-full h-full overflow-hidden nc-layout-base-inner">
@@ -166,7 +166,7 @@ hooks.hook('page:finish', () => {
 }
 
 .nc-navbar {
-  @apply flex !bg-white items-center !pl-2 !pr-5;
+  @apply flex !bg-nc-bg-default items-center !pl-2 !pr-5;
 }
 
 .nc-layout-base-inner > div {

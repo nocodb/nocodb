@@ -203,7 +203,7 @@ onMounted(async () => {
   <NcModal v-model:visible="value" size="small">
     <div class="flex flex-col gap-3">
       <div>
-        <h1 class="text-base text-gray-800 font-semibold flex items-center gap-2">
+        <h1 class="text-base text-nc-content-gray font-semibold flex items-center gap-2">
           <SmartsheetHeaderVirtualCellIcon
             :column-meta="{
               uidt: type,
@@ -217,7 +217,7 @@ onMounted(async () => {
 
           {{ $t(type === UITypes.Lookup ? 'general.addLookupField' : 'general.addRollupField') }}
         </h1>
-        <div class="text-gray-500 text-[13px] leading-5">
+        <div class="text-nc-content-gray-muted text-[13px] leading-5">
           {{ type === UITypes.Lookup ? $t('labels.addNewLookupHelperText1') : $t('labels.addNewRollupHelperText1') }}
 
           <span class="font-semibold">
@@ -230,7 +230,7 @@ onMounted(async () => {
       <div class="flex w-full gap-2 justify-between items-center">
         <a-input v-model:value="searchField" class="w-full h-8 flex-1" size="small" :placeholder="$t('placeholder.searchFields')">
           <template #prefix>
-            <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
+            <component :is="iconMap.search" class="w-4 text-nc-content-gray-muted h-4" />
           </template>
         </a-input>
         <div class="flex items-center gap-2">
@@ -243,7 +243,7 @@ onMounted(async () => {
         :class="{
           'flex items-center justify-center': isLoadingModel,
         }"
-        class="border-1 rounded-md h-[300px] nc-scrollbar-md border-gray-200"
+        class="border-1 rounded-md h-[300px] nc-scrollbar-md border-nc-border-gray-medium"
       >
         <Draggable
           v-if="!isLoadingModel"
@@ -260,11 +260,11 @@ onMounted(async () => {
               :data-testid="`nc-lookup-add-menu-${field.title}`"
               class="px-3 py-1 flex flex-row items-center rounded-md"
               :class="{
-                'hover:bg-gray-100': !isDragging,
+                'hover:bg-nc-bg-gray-light': !isDragging,
               }"
               @click.stop="selectedFields[field.id] = !selectedFields[field.id]"
             >
-              <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
+              <component :is="iconMap.drag" class="cursor-move !h-3.75 text-nc-content-gray-subtle2 mr-1" />
               <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2">
                 <SmartsheetHeaderIcon :column="field" class="!w-3.5 !h-3.5" color="text-nc-content-gray-muted" />
                 <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
@@ -311,14 +311,14 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .ant-input::placeholder {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .ant-input:placeholder-shown {
-  @apply text-gray-500 !text-md;
+  @apply text-nc-content-gray-muted !text-md;
 }
 
 .ant-input-affix-wrapper {
-  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
 }
 </style>

@@ -101,11 +101,11 @@ onMounted(() => {
   <NcModal v-model:visible="isVisible" size="small">
     <div class="flex flex-col gap-3">
       <div>
-        <h1 class="text-base text-gray-800 font-semibold">{{ $t('labels.searchDisplayValue') }}</h1>
-        <div class="text-gray-600 flex items-center gap-1">
+        <h1 class="text-base text-nc-content-gray font-semibold">{{ $t('labels.searchDisplayValue') }}</h1>
+        <div class="text-nc-content-gray-subtle2 flex items-center gap-1">
           {{ $t('labels.selectYourNewTitleFor') }}
 
-          <span class="bg-gray-100 inline-flex items-center gap-1 px-1 rounded-md">
+          <span class="bg-nc-bg-gray-light inline-flex items-center gap-1 px-1 rounded-md">
             <component :is="iconMap.table" />
             {{ meta?.title ?? meta?.table_name }}
           </span>
@@ -150,14 +150,14 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .ant-input::placeholder {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .ant-input:placeholder-shown {
-  @apply text-gray-500 !text-md;
+  @apply text-nc-content-gray-muted !text-md;
 }
 
 .ant-input-affix-wrapper {
-  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
 }
 </style>

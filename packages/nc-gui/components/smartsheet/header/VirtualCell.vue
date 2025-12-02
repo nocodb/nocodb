@@ -271,7 +271,7 @@ const onClick = (e: Event) => {
         </span>
       </NcTooltip>
 
-      <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
+      <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-nc-content-red-medium">&nbsp;*</span>
 
       <PermissionsTooltip
         v-if="!isAllowedToEditField"

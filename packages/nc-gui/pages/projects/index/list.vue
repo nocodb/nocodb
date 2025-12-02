@@ -29,16 +29,16 @@ const openProject = async (base: BaseType) => {
 
     <template v-for="base of bases" :key="base.id">
       <div
-        class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-gray-300/30) p-2 transition-colors ease-in duration-100"
+        class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-nc-bg-gray-dark/30) p-2 transition-colors ease-in duration-100"
         @click="openProject(base)"
       >
         <div class="font-semibold capitalize">{{ base.title || 'Untitled' }}</div>
         <div>{{ base.updated_at }}</div>
         <div class="flex justify-center">
-          <component :is="iconMap.delete" class="text-gray-500 hover:text-red-500 mr-2" @click.stop="emit('deleteBase', base)" />
+          <component :is="iconMap.delete" class="text-nc-content-gray-muted hover:text-nc-content-red-medium mr-2" @click.stop="emit('deleteBase', base)" />
           <component
             :is="iconMap.edit"
-            class="text-gray-500 hover:text-primary mr-2"
+            class="text-nc-content-gray-muted hover:text-primary mr-2"
             @click.stop="navigateTo(`/base/${base.id}`)"
           />
         </div>

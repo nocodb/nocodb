@@ -25,7 +25,7 @@ const copyValue = async () => {
 
 <template>
   <div class="relative inline-flex items-center w-full h-full group" @click="copyValue">
-    <a-input :value="modelValue" disabled :type="password ? 'password' : 'input'" class="!pr-8 !truncate !bg-white" />
+    <a-input :value="modelValue" disabled :type="password ? 'password' : 'input'" class="!pr-8 !truncate !bg-nc-bg-default" />
     <div
       class="absolute inset-y-0 right-0 flex items-center pr-2 cursor-pointer transition-colors text-nc-content-gray-muted group-hover:text-nc-content-gray-subtle"
     >

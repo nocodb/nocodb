@@ -170,6 +170,12 @@ body {
     .ant-card-bordered {
       @apply border-nc-border-gray-medium;
     }
+
+    .ant-upload.ant-upload-drag {
+      &:not(:disabled) {
+        @apply border-nc-border-gray-medium;
+      }
+    }
   }
 }
 
@@ -196,7 +202,13 @@ body {
   textarea,
   .ant-input-affix-wrapper,
   .ant-input-number {
-    @apply !bg-transparent text-nc-content-gray;
+    &:not(:disabled) {
+      @apply !bg-transparent text-nc-content-gray;
+    }
+
+    &:disabled {
+      @apply bg-nc-bg-gray-light border-nc-border-gray-medium hover:border-nc-border-gray-medium focus:(border-nc-border-gray-medium) text-nc-content-gray-muted;
+    }
   }
 
   .ant-input-number {

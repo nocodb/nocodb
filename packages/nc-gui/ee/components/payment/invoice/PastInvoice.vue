@@ -161,7 +161,7 @@ onMounted(() => {
           </template>
         </template>
         <template v-if="showPagination || paginationCaption" #tableFooter>
-          <div class="flex flex-row justify-center items-center bg-gray-50 min-h-10">
+          <div class="flex flex-row justify-center items-center bg-nc-bg-gray-extralight min-h-10">
             <div class="flex items-center justify-end gap-6 w-full px-6">
               <div v-if="paginationCaption" class="text-nc-content-gray-muted text-bodyDefaultSm">
                 Viewing {{ paginationCaption.start }}-{{ paginationCaption.end }} invoices

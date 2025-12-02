@@ -1173,7 +1173,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         </div>
 
                         <NcButton type="text" size="xs" class="!px-1.5">
-                          <component :is="iconMap.arrowDown" class="text-grey h-4 w-4 flex-none" />
+                          <component :is="iconMap.arrowDown" class="h-4 w-4 flex-none opacity-75" />
                         </NcButton>
                       </div>
                     </div>

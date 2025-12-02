@@ -6,19 +6,17 @@ import {
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
 import type {
-   WorkflowNodeConfig,
-   WorkflowNodeDefinition,
-   WorkflowNodeLog,
-   WorkflowNodeResult,
-   WorkflowNodeRunContext,
+  WorkflowNodeConfig,
+  WorkflowNodeDefinition,
+  WorkflowNodeLog,
+  WorkflowNodeResult,
+  WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
 interface SendEmailActionConfig extends WorkflowNodeConfig {
   to: string;
   cc?: string;
   bcc?: string;
-  fromName?: string;
-  replyTo?: string;
   subject: string;
   body: string;
 }
@@ -58,20 +56,6 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
           label: 'BCC',
           model: 'config.bcc',
           placeholder: 'bcc@example.com',
-          span: 24,
-        },
-        {
-          type: FormBuilderInputType.WorkflowInput,
-          label: 'From Name',
-          model: 'config.fromName',
-          placeholder: 'Your Name',
-          span: 24,
-        },
-        {
-          type: FormBuilderInputType.WorkflowInput,
-          label: 'Reply To',
-          model: 'config.replyTo',
-          placeholder: 'reply@example.com',
           span: 24,
         },
         {
@@ -131,8 +115,8 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
 
     if (config.to) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const emails = config.to.split(',').map(email => email.trim());
-      const invalidEmails = emails.filter(email => !emailRegex.test(email));
+      const emails = config.to.split(',').map((email) => email.trim());
+      const invalidEmails = emails.filter((email) => !emailRegex.test(email));
       if (invalidEmails.length > 0) {
         errors.push({
           path: 'config.to',
@@ -161,7 +145,7 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
       const emailParams = {
         to: config.to,
         subject: config.subject,
-        ...(config.body),
+        ...config.body,
         ...(config.cc && { cc: config.cc }),
         ...(config.bcc && { bcc: config.bcc }),
       };
@@ -249,16 +233,6 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
         key: 'bcc',
         type: NocoSDK.VariableType.String,
         name: 'BCC',
-      },
-      {
-        key: 'fromName',
-        type: NocoSDK.VariableType.String,
-        name: 'From Name',
-      },
-      {
-        key: 'replyTo',
-        type: NocoSDK.VariableType.String,
-        name: 'Reply To',
       },
       {
         key: 'subject',

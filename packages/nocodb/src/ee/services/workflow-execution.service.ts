@@ -250,6 +250,44 @@ export class WorkflowExecutionService {
       result.metrics = nodeResult.metrics;
       result.endTime = Date.now();
 
+      // Generate variable definitions for input/output
+      if (
+        nodeWrapper &&
+        typeof nodeWrapper.generateInputVariables === 'function'
+      ) {
+        try {
+          result.inputVariables = await nodeWrapper.generateInputVariables();
+        } catch (error) {
+          this.logger.warn(
+            `Failed to generate input variables for ${node.id}:`,
+            error,
+          );
+        }
+      }
+
+      if (
+        nodeWrapper &&
+        typeof nodeWrapper.generateOutputVariables === 'function'
+      ) {
+        try {
+          result.outputVariables = await nodeWrapper.generateOutputVariables();
+        } catch (error) {
+          this.logger.warn(
+            `Failed to generate output variables for ${node.id}:`,
+            error,
+          );
+        }
+      } else if (result.output) {
+        try {
+          result.outputVariables = genGeneralVariables(result.output);
+        } catch (error) {
+          this.logger.warn(
+            `Failed to auto-generate variables from output for ${node.id}:`,
+            error,
+          );
+        }
+      }
+
       if (nodeResult.status === 'error' && nodeResult.error) {
         result.error = nodeResult.error.message;
         result.status = 'error';
@@ -475,7 +513,7 @@ export class WorkflowExecutionService {
 
         try {
           const nodeResult = await nodeWrapper.run(runContext);
-          return {
+          const result: NodeExecutionResult = {
             nodeId: node.id,
             nodeTitle: node.data?.title || 'Trigger',
             status: nodeResult.status === 'error' ? 'error' : 'success',
@@ -486,6 +524,41 @@ export class WorkflowExecutionService {
             logs: nodeResult.logs,
             metrics: nodeResult.metrics,
           };
+
+          if (typeof nodeWrapper.generateInputVariables === 'function') {
+            try {
+              result.inputVariables =
+                await nodeWrapper.generateInputVariables();
+            } catch (error) {
+              this.logger.warn(
+                `Failed to generate input variables for trigger ${node.id}:`,
+                error,
+              );
+            }
+          }
+
+          if (typeof nodeWrapper.generateOutputVariables === 'function') {
+            try {
+              result.outputVariables =
+                await nodeWrapper.generateOutputVariables();
+            } catch (error) {
+              this.logger.warn(
+                `Failed to generate output variables for trigger ${node.id}:`,
+                error,
+              );
+            }
+          } else if (result.output) {
+            try {
+              result.outputVariables = genGeneralVariables(result.output);
+            } catch (error) {
+              this.logger.warn(
+                `Failed to auto-generate variables from trigger output for ${node.id}:`,
+                error,
+              );
+            }
+          }
+
+          return result;
         } catch (error) {
           this.logger.error(`Trigger node failed: ${node.id}`, error);
           return {

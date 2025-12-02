@@ -170,6 +170,12 @@ body {
     .ant-card-bordered {
       @apply border-nc-border-gray-medium;
     }
+
+    .ant-upload.ant-upload-drag {
+      &:not(:disabled) {
+        @apply border-nc-border-gray-medium;
+      }
+    }
   }
 }
 

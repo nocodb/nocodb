@@ -62,6 +62,13 @@ const columns = [
     padding: '0px 32px',
   },
   {
+    key: 'source_id',
+    title: t('general.source'),
+    name: 'Source',
+    width: 150,
+    padding: '0px 32px',
+  },
+  {
     key: 'create_records',
     title: 'Create records',
     name: 'Create records',
@@ -239,6 +246,18 @@ watch(
               <GeneralIcon icon="ncLock" class="flex-none h-4 w-4" />
               <span class="text-sm">{{ record.title }}</span>
             </div>
+          </template>
+
+          <template v-if="column.key === 'source_id'">
+            <div v-if="base.sources?.[0]?.id !== record.source_id" class="w-full flex items-center gap-2">
+              <NcTooltip class="min-w-0 truncate max-w-[calc(100%_-_28px)]">
+                <template #title>
+                  {{ enabledSources[record.source_id]?.alias }}
+                </template>
+                <GeneralBaseLogo :color="getSourceIconColor(enabledSources[record.source_id]!)" class="flex-none min-w-4" />
+              </NcTooltip>
+            </div>
+            <div v-else>&nbsp;</div>
           </template>
 
           <!-- Create Records Column -->

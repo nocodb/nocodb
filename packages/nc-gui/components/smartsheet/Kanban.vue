@@ -126,21 +126,20 @@ const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
 
-// Virtual scrolling for horizontal stacks
-const STACK_WIDTH = 280 // w-68.5 = 280px (68.5 * 4 = 274px, rounded to 280)
-const STACK_GAP = 12 // gap-3 = 12px
-const STACK_VIRTUAL_MARGIN = 2
+// Virtual scrolling for horizontal stacks - using IntersectionObserver
+const visibleStackIndices = ref<Set<number>>(new Set())
+const stackObservers = new Map<number, IntersectionObserver>()
 
-const scrollLeft = ref(0)
+// Initialize all stacks as visible initially, then let IntersectionObserver handle it
 const stackSlice = reactive({
   start: 0,
-  end: 10,
+  end: groupingFieldColOptions.value.length || 10,
 })
 
 // Virtual scrolling for vertical cards in each stack
 const CARD_HEIGHT = ref(200) // Approximate card height, will be adjusted dynamically
-const CARD_VIRTUAL_MARGIN = 3
-const INITIAL_VISIBLE_CARDS = 10 // Show initial 10 cards, then virtual scroll
+const CARD_VIRTUAL_MARGIN = 3 // Balance between performance and smoothness
+const INITIAL_VISIBLE_CARDS = 8 // Balance between initial load and memory
 const stackScrollTops = ref<Map<string | null, number>>(new Map())
 const stackCardSlices = ref<Map<string | null, { start: number; end: number }>>(new Map())
 
@@ -157,47 +156,59 @@ const measureCardHeight = () => {
   })
 }
 
-let stackSliceCalculationTimeout: ReturnType<typeof setTimeout> | null = null
-let lastScrollLeft = 0
-let lastContainerWidth = 0
+// Setup IntersectionObserver for stacks
+const setupStackObserver = (stackElement: HTMLElement, stackIdx: number) => {
+  // Clean up existing observer if any
+  const existingObserver = stackObservers.get(stackIdx)
+  if (existingObserver) {
+    existingObserver.disconnect()
+  }
 
-// Calculate visible stack range based on horizontal scroll
-const calculateStackSlice = () => {
-  if (!kanbanContainerRef.value) {
-    if (stackSliceCalculationTimeout) return // Prevent multiple timeouts
-    stackSliceCalculationTimeout = setTimeout(() => {
-      stackSliceCalculationTimeout = null
-      calculateStackSlice()
-    }, 50)
+  if (!kanbanContainerRef.value) return
+
+  // Create observer with root margin for preloading
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          visibleStackIndices.value.add(stackIdx)
+        } else {
+          visibleStackIndices.value.delete(stackIdx)
+        }
+
+        // Update slice based on visible indices
+        updateStackSliceFromVisible()
+      })
+    },
+    {
+      root: kanbanContainerRef.value,
+      rootMargin: '200px', // Preload stacks 200px before/after viewport
+      threshold: 0.01, // Trigger when any part is visible
+    },
+  )
+
+  observer.observe(stackElement)
+  stackObservers.set(stackIdx, observer)
+}
+
+// Update stack slice from visible indices
+const updateStackSliceFromVisible = () => {
+  if (visibleStackIndices.value.size === 0) {
+    // If no stacks visible, show all (fallback)
+    stackSlice.start = 0
+    stackSlice.end = groupingFieldColOptions.value.length
     return
   }
 
-  const containerWidth = kanbanContainerRef.value.clientWidth
-  if (containerWidth === 0) return // Skip if container not ready
+  const visibleArray = Array.from(visibleStackIndices.value).sort((a, b) => a - b)
+  const minVisible = Math.min(...visibleArray)
+  const maxVisible = Math.max(...visibleArray)
 
-  // Skip calculation if scroll position and container width haven't changed significantly
-  // But be less aggressive to ensure smooth scrolling
-  const scrollDiff = Math.abs(scrollLeft.value - lastScrollLeft)
-  const widthDiff = Math.abs(containerWidth - lastContainerWidth)
-  
-  // Only skip if scroll moved very little (less than half a stack) and container didn't resize
-  // This allows more frequent updates for smoother scrolling
-  if (scrollDiff < STACK_WIDTH / 2 && widthDiff < 10 && stackSlice.start > 0) {
-    return
-  }
+  // Add margin for smooth scrolling
+  const margin = 2
+  const newStart = Math.max(0, minVisible - margin)
+  const newEnd = Math.min(groupingFieldColOptions.value.length, maxVisible + margin + 1)
 
-  lastScrollLeft = scrollLeft.value
-  lastContainerWidth = containerWidth
-
-  const startIndex = Math.max(0, Math.floor(scrollLeft.value / (STACK_WIDTH + STACK_GAP)))
-  const visibleCount = Math.ceil(containerWidth / (STACK_WIDTH + STACK_GAP))
-  const endIndex = Math.min(startIndex + visibleCount, groupingFieldColOptions.value.length)
-
-  const newStart = Math.max(0, startIndex - STACK_VIRTUAL_MARGIN)
-  const newEnd = Math.min(groupingFieldColOptions.value.length, endIndex + STACK_VIRTUAL_MARGIN)
-
-  // Always update to ensure smooth scrolling - the reactive system will handle optimization
-  // Only skip if values are exactly the same
   if (stackSlice.start !== newStart || stackSlice.end !== newEnd) {
     stackSlice.start = newStart
     stackSlice.end = newEnd
@@ -207,10 +218,10 @@ const calculateStackSlice = () => {
 // Calculate visible card range for a specific stack
 const calculateCardSlice = (stackTitle: string | null, scrollTop: number, containerHeight: number) => {
   if (isUpdatingSlices) return // Prevent recursive calls
-  
+
   const stack = formattedData.value.get(stackTitle)
   if (!stack || !stack.length) {
-    // Initialize with full range if no data
+    // Initialize with empty range if no data
     const currentSlice = stackCardSlices.value.get(stackTitle)
     if (!currentSlice || currentSlice.end !== 0) {
       stackCardSlices.value.set(stackTitle, { start: 0, end: 0 })
@@ -225,10 +236,11 @@ const calculateCardSlice = (stackTitle: string | null, scrollTop: number, contai
   const visibleCount = Math.ceil(containerHeight / cardHeight)
   const endIndex = Math.min(startIndex + visibleCount, stack.length)
 
+  // Use smaller margins for better memory usage
   const newStart = Math.max(0, startIndex - CARD_VIRTUAL_MARGIN)
   const newEnd = Math.min(stack.length, endIndex + CARD_VIRTUAL_MARGIN)
 
-  // Only update if values actually changed
+  // Always update to ensure smooth scrolling - the reactive system will handle optimization
   const currentSlice = stackCardSlices.value.get(stackTitle)
   if (!currentSlice || currentSlice.start !== newStart || currentSlice.end !== newEnd) {
     stackCardSlices.value.set(stackTitle, { start: newStart, end: newEnd })
@@ -271,38 +283,46 @@ const getPlaceholderHeight = (stackTitle: string | null, position: 'top' | 'bott
 // Track scroll position for each stack
 const kanbanListRefs = ref<Map<string | null, HTMLElement>>(new Map())
 
-let cardSliceCalculationRafs = new Map<string | null, number>()
+const cardSliceCalculationRafs = new Map<string | null, number>()
 
 const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
   return (kanbanListElement) => {
     if (kanbanListElement) {
       const element = kanbanListElement as HTMLElement
       kanbanListRefs.value.set(stackTitle, element)
-      
+
       // Initialize card slice immediately (only if not already set)
       if (!stackCardSlices.value.has(stackTitle)) {
         const stack = formattedData.value.get(stackTitle)
-        const initialEnd = stack && stack.length > 0 
-          ? Math.min(stack.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN) 
-          : 0
+        const initialEnd = stack && stack.length > 0 ? Math.min(stack.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN) : 0
         stackCardSlices.value.set(stackTitle, { start: 0, end: initialEnd })
       }
-      
+
       // Remove old scroll handler if exists
       element.removeEventListener('scroll', kanbanListScrollHandler)
-      
+
+      let lastCardUpdateTime = 0
+      const CARD_UPDATE_INTERVAL = 150 // Update every 150ms for smoothness
+
       const scrollHandler = (e: Event) => {
         kanbanListScrollHandler(e)
-        // Update virtual scroll for this stack using requestAnimationFrame for smooth scrolling
+        // Update virtual scroll for this stack with throttling
         const scrollTop = element.scrollTop
         stackScrollTops.value.set(stackTitle, scrollTop)
-        
+
+        // Throttle updates to prevent jank
+        const now = Date.now()
+        if (now - lastCardUpdateTime < CARD_UPDATE_INTERVAL) {
+          return
+        }
+        lastCardUpdateTime = now
+
         // Cancel previous animation frame if it exists
         const existingRaf = cardSliceCalculationRafs.get(stackTitle)
         if (existingRaf) {
           cancelAnimationFrame(existingRaf)
         }
-        
+
         // Use requestAnimationFrame to batch the calculation
         const raf = requestAnimationFrame(() => {
           calculateCardSlice(stackTitle, scrollTop, element.clientHeight)
@@ -311,7 +331,7 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
         cardSliceCalculationRafs.set(stackTitle, raf)
       }
       element.addEventListener('scroll', scrollHandler)
-      
+
       // Initialize card slice after render (only once)
       nextTick(() => {
         if (element.clientHeight > 0) {
@@ -322,27 +342,13 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
   }
 }
 
-// Track horizontal scroll for container with requestAnimationFrame for smooth scrolling
-let horizontalScrollRaf: number | null = null
-
+// Track horizontal scroll for container (no longer needed for virtual scrolling, but kept for other uses)
+const scrollLeft = ref(0)
 useScroll(kanbanContainerRef, {
   onScroll: (e) => {
-    // Update scroll position immediately for responsive feel
-    const newScrollLeft = e.target?.scrollLeft || 0
-    scrollLeft.value = newScrollLeft
-    
-    // Cancel previous animation frame if it exists
-    if (horizontalScrollRaf) {
-      cancelAnimationFrame(horizontalScrollRaf)
-    }
-    
-    // Use requestAnimationFrame to batch the calculation for smooth scrolling
-    horizontalScrollRaf = requestAnimationFrame(() => {
-      calculateStackSlice()
-      horizontalScrollRaf = null
-    })
+    scrollLeft.value = e.target?.scrollLeft || 0
   },
-  throttle: 0, // No throttle - requestAnimationFrame provides natural throttling
+  throttle: 16,
   behavior: 'smooth',
 })
 
@@ -635,21 +641,26 @@ onBeforeUnmount(() => {
   eventBus.off(smartsheetEventHandler)
   reloadViewMetaHook?.off(reloadViewMetaListener)
   reloadViewDataHook?.off(reloadViewDataListener)
-  
+
   // Clear all timeouts and animation frames
-  if (stackSliceCalculationTimeout) {
-    clearTimeout(stackSliceCalculationTimeout)
-  }
   if (stackLengthWatcherTimeout) {
     clearTimeout(stackLengthWatcherTimeout)
-  }
-  if (horizontalScrollRaf) {
-    cancelAnimationFrame(horizontalScrollRaf)
   }
   cardSliceCalculationRafs.forEach((raf) => {
     cancelAnimationFrame(raf)
   })
   cardSliceCalculationRafs.clear()
+
+  // Disconnect all IntersectionObservers
+  stackObservers.forEach((observer) => {
+    observer.disconnect()
+  })
+  stackObservers.clear()
+
+  // Clear refs to help with garbage collection
+  kanbanListRefs.value.clear()
+  stackScrollTops.value.clear()
+  visibleStackIndices.value.clear()
 })
 
 // reset context menu target on hide
@@ -674,21 +685,19 @@ watch(
   () => {
     if (isUpdatingSlices) return // Prevent recursive calls
     isUpdatingSlices = true
-    
+
     nextTick(() => {
       groupingFieldColOptions.value.forEach((stack) => {
         const stackKey = stack.title ?? null
         const element = kanbanListRefs.value.get(stackKey)
         const stackData = formattedData.value.get(stackKey)
-        
+
         if (element) {
           const scrollTop = stackScrollTops.value.get(stackKey) || 0
           calculateCardSlice(stackKey, scrollTop, element.clientHeight)
         } else if (stackData) {
           // Initialize slice even if element not found yet
-          const initialEnd = stackData.length > 0 
-            ? Math.min(stackData.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN) 
-            : 0
+          const initialEnd = stackData.length > 0 ? Math.min(stackData.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN) : 0
           if (!stackCardSlices.value.has(stackKey) || stackCardSlices.value.get(stackKey)?.end !== initialEnd) {
             stackCardSlices.value.set(stackKey, { start: 0, end: initialEnd })
           }
@@ -700,19 +709,22 @@ watch(
 )
 
 // Recalculate stack slice when stacks change
-let stackLengthWatcherTimeout: ReturnType<typeof setTimeout> | null = null
 watch(
   () => groupingFieldColOptions.value.length,
   () => {
-    if (stackLengthWatcherTimeout) {
-      clearTimeout(stackLengthWatcherTimeout)
-    }
-    stackLengthWatcherTimeout = setTimeout(() => {
-      stackLengthWatcherTimeout = null
-      nextTick(() => {
-        calculateStackSlice()
-      })
-    }, 100)
+    // Update end to include all stacks initially
+    stackSlice.end = groupingFieldColOptions.value.length
+
+    // Re-setup observers for all stacks
+    nextTick(() => {
+      setTimeout(() => {
+        document.querySelectorAll('.nc-kanban-stack').forEach((el, idx) => {
+          if (el && !el.classList.contains('w-[44px]')) {
+            setupStackObserver(el as HTMLElement, idx)
+          }
+        })
+      }, 100)
+    })
   },
 )
 
@@ -726,12 +738,12 @@ onMounted(async () => {
       if (kanbanContainerRef.value && kanbanContainerRef.value.clientWidth > 0) {
         calculateStackSlice()
       }
-      
+
       // Initialize card slices for all stacks (only if not already initialized)
       groupingFieldColOptions.value.forEach((stack) => {
         const stackKey = stack.title ?? null
         const stackData = formattedData.value.get(stackKey)
-        
+
         // Only initialize if not already set
         if (!stackCardSlices.value.has(stackKey)) {
           if (stackData && stackData.length > 0) {
@@ -741,7 +753,7 @@ onMounted(async () => {
             stackCardSlices.value.set(stackKey, { start: 0, end: 0 })
           }
         }
-        
+
         // Recalculate if element exists and is ready
         const element = kanbanListRefs.value.get(stackKey)
         if (element && element.clientHeight > 0) {
@@ -762,9 +774,24 @@ onMounted(async () => {
         // reset shouldScrollToRight
         shouldScrollToRight.value = false
       }
-      
+
       // Measure card height after initial render
       measureCardHeight()
+
+      // Initialize all stacks as visible, then IntersectionObserver will update
+      stackSlice.start = 0
+      stackSlice.end = groupingFieldColOptions.value.length
+
+      // Setup observers for all stacks after a short delay
+      nextTick(() => {
+        setTimeout(() => {
+          document.querySelectorAll('.nc-kanban-stack').forEach((el, idx) => {
+            if (el && !el.classList.contains('w-[44px]')) {
+              setupStackObserver(el as HTMLElement, idx)
+            }
+          })
+        }, 100)
+      })
     })
     isViewDataLoading.value = false
   } catch (error) {
@@ -873,14 +900,14 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
             @end="(e) => e.target.classList.remove('grabbing')"
             @change="onMoveStack($event)"
           >
-            <!-- Placeholder for stacks before visible range -->
-            <div
-              v-if="stackSlice.start > 0"
-              :style="{ width: `${stackSlice.start * (STACK_WIDTH + STACK_GAP) - STACK_GAP}px`, flexShrink: 0 }"
-            />
             <template #item="{ element: stack, index: stackIdx }">
-              <template v-if="stackIdx >= stackSlice.start && stackIdx < stackSlice.end">
               <div
+                v-if="stackIdx >= stackSlice.start && stackIdx < stackSlice.end"
+                ref="(el) => {
+                  if (el && !stack.collapsed) {
+                    nextTick(() => setupStackObserver(el as HTMLElement, stackIdx))
+                  }
+                }"
                 class="nc-kanban-stack"
                 :class="{
                   'w-[44px]': stack.collapsed,
@@ -888,9 +915,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                     // Only hide if:
                     // 1. hideEmptyStack is true AND stack has no data (length is 0 or undefined) AND it's not uncategorized
                     // 2. OR it's required grouping field and uncategorized stack
-                    (hideEmptyStack && 
-                     stack.id !== uncategorizedStackId &&
-                     (!formattedData.get(stack.title) || formattedData.get(stack.title)?.length === 0)) ||
+                    (hideEmptyStack &&
+                      stack.id !== uncategorizedStackId &&
+                      (!formattedData.get(stack.title) || formattedData.get(stack.title)?.length === 0)) ||
                     (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
                 }"
                 :data-testid="`nc-kanban-stack-${stack.title}`"
@@ -1131,6 +1158,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         :data-stack-title="stack.title"
                       >
                         <!-- Draggable Record Card -->
+                        <!-- Note: Draggable uses full list but we only render visible items via v-if -->
                         <Draggable
                           v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 150 })"
                           :list="formattedData.get(stack.title)"
@@ -1140,6 +1168,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           class="flex flex-col h-full"
                           :disabled="isMobileMode"
                           :filter="draggableCardFilter"
+                          :force-fallback="false"
+                          :fallback-tolerance="0"
                           @start="(e) => e.target.classList.add('grabbing')"
                           @end="(e) => e.target.classList.remove('grabbing')"
                           @change="onMove($event, stack.title)"
@@ -1147,7 +1177,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           <!-- Top placeholder for virtual scrolling -->
                           <div
                             v-if="getPlaceholderHeight(stack.title, 'top') > 0"
-                            :style="{ height: `${getPlaceholderHeight(stack.title, 'top')}px`, flexShrink: 0, pointerEvents: 'none' }"
+                            :style="{
+                              height: `${getPlaceholderHeight(stack.title, 'top')}px`,
+                              flexShrink: 0,
+                              pointerEvents: 'none',
+                            }"
                           />
                           <template #item="{ element: record, index }">
                             <template
@@ -1156,13 +1190,13 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   try {
                                     // Handle null/undefined stack title
                                     const stackKey = stack?.title ?? null
-                                    
+
                                     // Ensure stackCardSlices is initialized
                                     if (!stackCardSlices?.value) {
                                       // Initialize with default slice if not ready
                                       return index < INITIAL_VISIBLE_CARDS
                                     }
-                                    
+
                                     const slice = stackCardSlices.value.get(stackKey)
                                     if (!slice) {
                                       // If slice not initialized, show initial cards only
@@ -1176,227 +1210,240 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                 })()
                               "
                             >
-                            <div class="nc-kanban-item py-1 first:pt-2 last:pb-2">
-                              <LazySmartsheetRow :row="record">
-                                <a-card
-                                  :key="`${getRowId(record)}-${index}`"
-                                  class="!rounded-lg h-full border-nc-border-gray-medium border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
-                                  :body-style="{
-                                    padding: '12px !important',
-                                    flex: 1,
-                                    display: 'flex',
-                                  }"
-                                  :data-stack="stack.title"
-                                  :data-testid="`nc-gallery-card-${record.row.id}`"
-                                  :class="{
-                                    'not-draggable': !hasEditPermission || isPublic,
-                                    '!cursor-default': !hasEditPermission || isPublic,
-                                  }"
-                                  :style="{
-                                    ...extractRowBackgroundColorStyle(record).rowBgColor,
-                                    ...extractRowBackgroundColorStyle(record).rowBorderColor,
-                                  }"
-                                  @click="expandFormClick($event, record)"
-                                  @contextmenu="showContextMenu($event, record)"
-                                >
-                                  <!--
+                              <div class="nc-kanban-item py-1 first:pt-2 last:pb-2">
+                                <LazySmartsheetRow :row="record">
+                                  <a-card
+                                    :key="`${getRowId(record)}-${index}`"
+                                    class="!rounded-lg h-full border-nc-border-gray-medium border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
+                                    :body-style="{
+                                      padding: '12px !important',
+                                      flex: 1,
+                                      display: 'flex',
+                                    }"
+                                    :data-stack="stack.title"
+                                    :data-testid="`nc-gallery-card-${record.row.id}`"
+                                    :class="{
+                                      'not-draggable': !hasEditPermission || isPublic,
+                                      '!cursor-default': !hasEditPermission || isPublic,
+                                    }"
+                                    :style="{
+                                      ...extractRowBackgroundColorStyle(record).rowBgColor,
+                                      ...extractRowBackgroundColorStyle(record).rowBorderColor,
+                                    }"
+                                    @click="expandFormClick($event, record)"
+                                    @contextmenu="showContextMenu($event, record)"
+                                  >
+                                    <!--
                                     Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
                                     could reference a non-existent column. This is a workaround to handle such scenarios properly.
                                   -->
-                                  <template v-if="coverImageColumn?.id" #cover>
-                                    <template v-if="!reloadAttachments && attachments(record).length">
-                                      <a-carousel
-                                        :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
-                                        class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"
-                                        arrows
-                                      >
-                                        <template #customPaging>
-                                          <a>
-                                            <div>
-                                              <div></div>
-                                            </div>
-                                          </a>
-                                        </template>
-
-                                        <template #prevArrow>
-                                          <div class="z-10 arrow">
-                                            <NcButton
-                                              type="secondary"
-                                              size="xsmall"
-                                              class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
-                                            >
-                                              <GeneralIcon icon="arrowLeft" class="text-nc-content-inverted-secondary w-4 h-4" />
-                                            </NcButton>
-                                          </div>
-                                        </template>
-
-                                        <template #nextArrow>
-                                          <div class="z-10 arrow">
-                                            <NcButton
-                                              type="secondary"
-                                              size="xsmall"
-                                              class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
-                                            >
-                                              <GeneralIcon icon="arrowRight" class="text-nc-content-inverted-secondary w-4 h-4" />
-                                            </NcButton>
-                                          </div>
-                                        </template>
-
-                                        <template v-for="attachment in attachments(record)" :key="attachment.path">
-                                          <LazyCellAttachmentPreviewThumbnail
-                                            :attachment="attachment"
-                                            class="h-52"
-                                            image-class="!w-full"
-                                            thumbnail="card_cover"
-                                            :object-fit="coverImageObjectFitStyle"
-                                            @click="expandFormClick($event, record)"
-                                          />
-                                        </template>
-                                      </a-carousel>
-                                    </template>
-                                    <div
-                                      v-else
-                                      class="h-52 w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center bg-nc-bg-default"
-                                    >
-                                      <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
-                                    </div>
-                                  </template>
-                                  <div class="flex-1 flex content-stretch gap-3 w-full">
-                                    <div
-                                      v-if="isRowColouringEnabled"
-                                      class="w-1 flex-none min-h-4 rounded-sm"
-                                      :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
-                                    ></div>
-                                    <div
-                                      class="flex-1 flex flex-col !children:pointer-events-none"
-                                      :class="{
-                                        'w-[calc(100%_-_16px)]': isRowColouringEnabled,
-                                        'w-full': !isRowColouringEnabled,
-                                        'gap-3': isActiveViewFieldHeaderVisible,
-                                      }"
-                                    >
-                                      <h2
-                                        v-if="displayField"
-                                        class="nc-card-display-value-wrapper"
-                                        :class="{
-                                          '!children:pointer-events-auto': resetPointerEvent(record, displayField),
-                                        }"
-                                      >
-                                        <template
-                                          v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)"
+                                    <template v-if="coverImageColumn?.id" #cover>
+                                      <template v-if="!reloadAttachments && attachments(record).length">
+                                        <a-carousel
+                                          :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
+                                          class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"
+                                          arrows
                                         >
-                                          <LazySmartsheetVirtualCell
-                                            v-if="isVirtualCol(displayField)"
-                                            v-model="record.row[displayField.title]"
-                                            class="!text-nc-content-brand"
-                                            :column="displayField"
-                                            :row="record"
-                                          />
-
-                                          <LazySmartsheetCell
-                                            v-else
-                                            v-model="record.row[displayField.title]"
-                                            class="!text-nc-content-brand"
-                                            :column="displayField"
-                                            :edit-enabled="false"
-                                            :read-only="true"
-                                          />
-                                        </template>
-                                        <template v-else> -</template>
-                                      </h2>
-
-                                      <div
-                                        v-for="col in fieldsWithoutDisplay"
-                                        :key="`record-${record.row.id}-${col.id}`"
-                                        class="nc-card-col-wrapper"
-                                        :class="{
-                                          '!children:pointer-events-auto': resetPointerEvent(record, col),
-                                        }"
-                                        @click="handleCellClick(col, $event)"
-                                      >
-                                        <NcTooltip
-                                          hide-on-click
-                                          :disabled="isActiveViewFieldHeaderVisible"
-                                          class="w-full z-10 flex"
-                                          :class="{
-                                            'pointer-events-auto': !isActiveViewFieldHeaderVisible,
-                                          }"
-                                          placement="left"
-                                          :arrow="false"
-                                        >
-                                          <template #title>
-                                            <LazySmartsheetHeaderVirtualCell
-                                              v-if="isVirtualCol(col)"
-                                              :column="col"
-                                              :hide-menu="true"
-                                              hide-icon-tooltip
-                                              class="!text-gray-100 nc-record-cell-tooltip"
-                                            />
-                                            <LazySmartsheetHeaderCell
-                                              v-else
-                                              :column="col"
-                                              :hide-menu="true"
-                                              hide-icon-tooltip
-                                              class="!text-gray-100 nc-record-cell-tooltip"
-                                            />
+                                          <template #customPaging>
+                                            <a>
+                                              <div>
+                                                <div></div>
+                                              </div>
+                                            </a>
                                           </template>
 
-                                          <div
-                                            class="flex flex-col rounded-lg w-full"
-                                            :class="{
-                                              'pointer-events-none': !resetPointerEvent(record, col),
-                                            }"
-                                          >
-                                            <div v-if="isActiveViewFieldHeaderVisible" class="flex flex-row w-full justify-start">
-                                              <div class="nc-card-col-header w-full !children:text-nc-content-gray-muted">
-                                                <LazySmartsheetHeaderVirtualCell
-                                                  v-if="isVirtualCol(col)"
-                                                  :column="col"
-                                                  :hide-menu="true"
+                                          <template #prevArrow>
+                                            <div class="z-10 arrow">
+                                              <NcButton
+                                                type="secondary"
+                                                size="xsmall"
+                                                class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                                              >
+                                                <GeneralIcon
+                                                  icon="arrowLeft"
+                                                  class="text-nc-content-inverted-secondary w-4 h-4"
                                                 />
-
-                                                <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
-                                              </div>
+                                              </NcButton>
                                             </div>
+                                          </template>
+
+                                          <template #nextArrow>
+                                            <div class="z-10 arrow">
+                                              <NcButton
+                                                type="secondary"
+                                                size="xsmall"
+                                                class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
+                                              >
+                                                <GeneralIcon
+                                                  icon="arrowRight"
+                                                  class="text-nc-content-inverted-secondary w-4 h-4"
+                                                />
+                                              </NcButton>
+                                            </div>
+                                          </template>
+
+                                          <template v-for="attachment in attachments(record)" :key="attachment.path">
+                                            <LazyCellAttachmentPreviewThumbnail
+                                              :attachment="attachment"
+                                              class="h-52"
+                                              image-class="!w-full"
+                                              thumbnail="card_cover"
+                                              :object-fit="coverImageObjectFitStyle"
+                                              @click="expandFormClick($event, record)"
+                                            />
+                                          </template>
+                                        </a-carousel>
+                                      </template>
+                                      <div
+                                        v-else
+                                        class="h-52 w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center bg-nc-bg-default"
+                                      >
+                                        <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
+                                      </div>
+                                    </template>
+                                    <div class="flex-1 flex content-stretch gap-3 w-full">
+                                      <div
+                                        v-if="isRowColouringEnabled"
+                                        class="w-1 flex-none min-h-4 rounded-sm"
+                                        :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
+                                      ></div>
+                                      <div
+                                        class="flex-1 flex flex-col !children:pointer-events-none"
+                                        :class="{
+                                          'w-[calc(100%_-_16px)]': isRowColouringEnabled,
+                                          'w-full': !isRowColouringEnabled,
+                                          'gap-3': isActiveViewFieldHeaderVisible,
+                                        }"
+                                      >
+                                        <h2
+                                          v-if="displayField"
+                                          class="nc-card-display-value-wrapper"
+                                          :class="{
+                                            '!children:pointer-events-auto': resetPointerEvent(record, displayField),
+                                          }"
+                                        >
+                                          <template
+                                            v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)"
+                                          >
+                                            <LazySmartsheetVirtualCell
+                                              v-if="isVirtualCol(displayField)"
+                                              v-model="record.row[displayField.title]"
+                                              class="!text-nc-content-brand"
+                                              :column="displayField"
+                                              :row="record"
+                                            />
+
+                                            <LazySmartsheetCell
+                                              v-else
+                                              v-model="record.row[displayField.title]"
+                                              class="!text-nc-content-brand"
+                                              :column="displayField"
+                                              :edit-enabled="false"
+                                              :read-only="true"
+                                            />
+                                          </template>
+                                          <template v-else> -</template>
+                                        </h2>
+
+                                        <div
+                                          v-for="col in fieldsWithoutDisplay"
+                                          :key="`record-${record.row.id}-${col.id}`"
+                                          class="nc-card-col-wrapper"
+                                          :class="{
+                                            '!children:pointer-events-auto': resetPointerEvent(record, col),
+                                          }"
+                                          @click="handleCellClick(col, $event)"
+                                        >
+                                          <NcTooltip
+                                            hide-on-click
+                                            :disabled="isActiveViewFieldHeaderVisible"
+                                            class="w-full z-10 flex"
+                                            :class="{
+                                              'pointer-events-auto': !isActiveViewFieldHeaderVisible,
+                                            }"
+                                            placement="left"
+                                            :arrow="false"
+                                          >
+                                            <template #title>
+                                              <LazySmartsheetHeaderVirtualCell
+                                                v-if="isVirtualCol(col)"
+                                                :column="col"
+                                                :hide-menu="true"
+                                                hide-icon-tooltip
+                                                class="!text-gray-100 nc-record-cell-tooltip"
+                                              />
+                                              <LazySmartsheetHeaderCell
+                                                v-else
+                                                :column="col"
+                                                :hide-menu="true"
+                                                hide-icon-tooltip
+                                                class="!text-gray-100 nc-record-cell-tooltip"
+                                              />
+                                            </template>
 
                                             <div
-                                              v-if="
-                                                !isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)
-                                              "
-                                              class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
+                                              class="flex flex-col rounded-lg w-full"
+                                              :class="{
+                                                'pointer-events-none': !resetPointerEvent(record, col),
+                                              }"
                                             >
-                                              <LazySmartsheetVirtualCell
-                                                v-if="isVirtualCol(col)"
-                                                v-model="record.row[col.title]"
-                                                :column="col"
-                                                :row="record"
-                                                class="!text-nc-content-gray"
-                                              />
+                                              <div
+                                                v-if="isActiveViewFieldHeaderVisible"
+                                                class="flex flex-row w-full justify-start"
+                                              >
+                                                <div class="nc-card-col-header w-full !children:text-nc-content-gray-muted">
+                                                  <LazySmartsheetHeaderVirtualCell
+                                                    v-if="isVirtualCol(col)"
+                                                    :column="col"
+                                                    :hide-menu="true"
+                                                  />
 
-                                              <LazySmartsheetCell
-                                                v-else
-                                                v-model="record.row[col.title]"
-                                                :column="col"
-                                                :edit-enabled="false"
-                                                :read-only="true"
-                                                class="!text-nc-content-gray"
-                                              />
+                                                  <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                                </div>
+                                              </div>
+
+                                              <div
+                                                v-if="
+                                                  !isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)
+                                                "
+                                                class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
+                                              >
+                                                <LazySmartsheetVirtualCell
+                                                  v-if="isVirtualCol(col)"
+                                                  v-model="record.row[col.title]"
+                                                  :column="col"
+                                                  :row="record"
+                                                  class="!text-nc-content-gray"
+                                                />
+
+                                                <LazySmartsheetCell
+                                                  v-else
+                                                  v-model="record.row[col.title]"
+                                                  :column="col"
+                                                  :edit-enabled="false"
+                                                  :read-only="true"
+                                                  class="!text-nc-content-gray"
+                                                />
+                                              </div>
+                                              <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
                                             </div>
-                                            <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
-                                          </div>
-                                        </NcTooltip>
+                                          </NcTooltip>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                </a-card>
-                              </LazySmartsheetRow>
-                            </div>
+                                  </a-card>
+                                </LazySmartsheetRow>
+                              </div>
                             </template>
                           </template>
                           <!-- Bottom placeholder for virtual scrolling -->
                           <div
                             v-if="getPlaceholderHeight(stack.title, 'bottom') > 0"
-                            :style="{ height: `${getPlaceholderHeight(stack.title, 'bottom')}px`, flexShrink: 0, pointerEvents: 'none' }"
+                            :style="{
+                              height: `${getPlaceholderHeight(stack.title, 'bottom')}px`,
+                              flexShrink: 0,
+                              pointerEvents: 'none',
+                            }"
                           />
                           <template v-if="!formattedData.get(stack.title)?.length" #footer>
                             <div class="h-full w-full flex flex-col gap-4 items-center justify-center">
@@ -1555,16 +1602,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                   </div>
                 </a-card>
               </div>
-              </template>
             </template>
-            <!-- Placeholder for stacks after visible range -->
-            <div
-              v-if="stackSlice.end < groupingFieldColOptions.length"
-              :style="{
-                width: `${(groupingFieldColOptions.length - stackSlice.end) * (STACK_WIDTH + STACK_GAP) - STACK_GAP}px`,
-                flexShrink: 0,
-              }"
-            />
           </Draggable>
 
           <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">

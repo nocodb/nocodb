@@ -54,6 +54,40 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
   getTitle() {
     return 'Sync Integration';
   }
+
+  /**
+   * Returns the number of sync's batch size. If this number is reached in stream, it'll commit the current stream and flush.
+   * Override this method to provide a custom batch size.
+   *
+   * @returns The batch size
+   */
+  get batchSize(): number {
+      return 100;
+  }
+
+  /**
+   * Retrieves the schema definition for the destination tables.
+   * Defines what tables, columns, and relationships will be created during sync.
+   *
+   * @param auth - The authenticated integration instance with automatic token refresh
+   * @returns A promise resolving to either a standard SyncSchema or CustomSyncSchema
+   *
+   * @example
+   * ```typescript
+   * async getDestinationSchema(auth: AuthIntegration<any, any>) {
+   *   return auth.use(async (client) => {
+   *     const tables = await client.getTables();
+   *     return {
+   *       [TARGET_TABLES.CONTACTS]: {
+   *         title: 'Contacts',
+   *         columns: [...],
+   *         relations: [...]
+   *       }
+   *     };
+   *   });
+   * }
+   * ```
+   */
   abstract getDestinationSchema(
     auth: AuthResponse<any>,
   ): Promise<SyncSchema | CustomSyncSchema>;

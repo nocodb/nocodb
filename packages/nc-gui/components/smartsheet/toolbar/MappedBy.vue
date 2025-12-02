@@ -70,7 +70,7 @@ const handleChange = () => {
             {{ $t('activity.map.mappedBy') }}
             <span class="font-bold">{{ geoDataFieldColumn?.title }}</span>
           </span>
-          <component :is="iconMap.arrowDown" class="text-grey" />
+          <component :is="iconMap.arrowDown" class="text-nc-content-gray-muted" />
         </div>
       </a-button>
     </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableType } from 'nocodb-sdk'
+import type { TableType, SourceType } from 'nocodb-sdk'
 import { PermissionKey } from 'nocodb-sdk'
 
 interface Props {
@@ -34,13 +34,24 @@ const searchQuery = ref<string>('')
 const isFieldPermissionsModalOpen = ref(false)
 const selectedTableForPermissions = ref<string | null>(null)
 
+const enabledSources = computed(() => {
+  if (!base.value.sources) return {}
+
+  return base.value.sources.reduce((acc, curr) => {
+    if (curr?.id && curr?.enabled) {
+      acc[curr.id] = curr
+    }
+
+    return acc
+  }, {} as Record<string, SourceType>)
+})
+
 const tables = computed(() => {
   if (!base.value?.sources || !activeTables.value.length) return []
 
-  const metaOrLocalSources = base.value.sources.filter((source) => source.is_meta || source.is_local)
-  const metaOrLocalSourceIds = new Set(metaOrLocalSources.map((source) => source.id))
-
-  return activeTables.value.filter((table: any) => metaOrLocalSourceIds.has(table.source_id!))
+  return activeTables.value.filter((table: any) => {
+    return !!enabledSources.value[table.source_id] && table.type === 'table'
+  })
 })
 
 const columns = [

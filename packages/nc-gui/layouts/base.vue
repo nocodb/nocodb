@@ -71,7 +71,7 @@ hooks.hook('page:finish', () => {
           <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
           <div class="flex items-center">
-            <GeneralLanguage class="cursor-pointer text-2xl hover:text-accent" />
+            <GeneralLanguage class="cursor-pointer text-2xl text-nc-content-gray hover:text-accent" />
           </div>
         </a-tooltip>
 
@@ -80,7 +80,7 @@ hooks.hook('page:finish', () => {
             <component
               :is="iconMap.threeDotVertical"
               data-testid="nc-menu-accounts"
-              class="md:text-xl cursor-pointer hover:text-accent nc-menu-accounts"
+              class="md:text-xl cursor-pointer text-nc-content-gray hover:text-accent nc-menu-accounts"
               @click.prevent
             />
 

@@ -8,6 +8,19 @@ import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
 
+const setAsAnyType = (field: SwaggerColumn, nullable = true) => {
+  const result = field as any;
+  result.nullable = nullable;
+  result.type = undefined;
+  result.anyOf = [
+    { type: 'string' },
+    { type: 'number' },
+    { type: 'integer' },
+    { type: 'boolean' },
+    { type: 'object' },
+  ];
+};
+
 // TODO: refactor and avoid duplication
 // Helper function to process a single column and return its swagger field definition
 async function processColumnToSwaggerField(
@@ -98,7 +111,7 @@ async function processColumnToSwaggerField(
             dbType,
           );
         }
-        field.type = 'object';
+        setAsAnyType(field);
       } else {
         // For main lookup processing, determine relation type and structure
         const colOpt = await column.getColOptions<LookupColumn>(
@@ -131,7 +144,13 @@ async function processColumnToSwaggerField(
             true,
             dbType,
           );
-
+          if (
+            column.title
+              .toLowerCase()
+              .startsWith('Item Name and Quantity Lookup '.toLowerCase())
+          ) {
+            console.log(JSON.stringify(lookupField));
+          }
           // Determine if this is a single value or array based on relation type
           if (
             relationColOpt &&
@@ -143,6 +162,7 @@ async function processColumnToSwaggerField(
             field.format = lookupField.format;
             field.$ref = lookupField.$ref;
             field.items = lookupField.items;
+            field.anyOf = lookupField.anyOf;
           } else {
             // Array lookup (HAS_MANY or MANY_TO_MANY)
             field.type = 'array';
@@ -152,6 +172,7 @@ async function processColumnToSwaggerField(
               field.items = {
                 type: lookupField.type,
                 format: lookupField.format,
+                anyOf: lookupField.anyOf,
               };
             }
           }
@@ -242,4 +263,5 @@ export interface SwaggerColumn {
   column: Column;
   items?: any;
   format?: string;
+  anyOf?: any[];
 }

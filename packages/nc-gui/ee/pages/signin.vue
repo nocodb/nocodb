@@ -30,5 +30,3 @@ onMounted(() => {
   </template>
   <span v-else />
 </template>
-
-<style></style>

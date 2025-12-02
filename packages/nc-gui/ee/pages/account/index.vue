@@ -67,7 +67,7 @@ onMounted(() => {
         <div class="h-full flex">
           <!-- Side tabs -->
 
-          <div class="h-full bg-nc-bg-default nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
+          <div class="h-full bg-nc-bg-gray-sidebar nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
             <NcMenu
               v-model:open-keys="openKeys"
               v-model:selected-keys="selectedKeys"
@@ -212,7 +212,7 @@ onMounted(() => {
               <a-sub-menu
                 v-if="!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')"
                 key="users"
-                class="!bg-nc-bg-default !my-0"
+                class="!bg-nc-bg-gray-sidebar !my-0"
               >
                 <template #icon>
                   <GeneralIcon icon="ncUsers" class="!h-4 !w-4" />
@@ -367,7 +367,7 @@ onMounted(() => {
 }
 
 :deep(.ant-menu-submenu-arrow) {
-  @apply !text-gray-400;
+  @apply !text-nc-content-gray-disabled;
 }
 
 :deep(.ant-menu-submenu-selected .ant-menu-submenu-arrow) {
@@ -375,6 +375,8 @@ onMounted(() => {
 }
 
 .tabs-menu {
+  @apply bg-nc-bg-gray-sidebar;
+
   :deep(.item) {
     @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
     width: calc(100% - 1rem);

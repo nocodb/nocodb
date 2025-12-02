@@ -3,7 +3,7 @@ const color1 = ref('')
 </script>
 
 <template>
-  <div class="bg-gray-100">
+  <div class="bg-nc-bg-gray-light">
     <a-card>
       <h4>Simple</h4>
 

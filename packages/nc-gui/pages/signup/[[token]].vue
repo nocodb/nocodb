@@ -154,7 +154,7 @@ onMounted(async () => {
     <NuxtLayout>
       <div class="md:bg-primary bg-opacity-5 signup h-full min-h-[600px] flex flex-col justify-center items-center">
         <div
-          class="bg-white md:mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+          class="bg-nc-bg-default md:mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-nc-border-gray-medium shadow-xl)"
         >
           <GeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
@@ -218,7 +218,7 @@ onMounted(async () => {
               <a
                 v-if="appInfo.googleAuthEnabled"
                 :href="`${appInfo.ncSiteUrl}/auth/google`"
-                class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+                class="scaling-btn bg-opacity-100 after:(!bg-nc-bg-default) !text-primary !no-underline"
               >
                 <span class="flex items-center gap-2">
                   <LogosGoogleGmail />
@@ -252,7 +252,7 @@ onMounted(async () => {
                   size="small"
                   class="my-1 hover:(ring ring-accent ring-opacity-100) focus:(!ring !ring-accent ring-opacity-100)"
                 />
-                <div class="prose-xs text-gray-500">{{ $t('msg.subscribeToOurWeeklyNewsletter') }}</div>
+                <div class="prose-xs text-nc-content-gray-muted">{{ $t('msg.subscribeToOurWeeklyNewsletter') }}</div>
               </div>
 
               <div class="text-end prose-sm">
@@ -264,9 +264,9 @@ onMounted(async () => {
           </a-form>
         </div>
 
-        <div class="prose-sm mt-4 text-gray-500">
+        <div class="prose-sm mt-4 text-nc-content-gray-muted">
           {{ $t('msg.bySigningUp') }}
-          <a class="prose-sm !text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb" rel="noopener">
+          <a class="prose-sm !text-nc-content-gray-muted underline" target="_blank" href="https://nocodb.com/policy-nocodb" rel="noopener">
             {{ $t('title.termsOfService') }}</a
           >
         </div>

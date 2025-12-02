@@ -1,4 +1,5 @@
 import { TARGET_TABLES } from '@noco-integrations/core';
+import type { CompensationRecord } from './types/compensation.record';
 import type { SyncLinkValue, SyncRecord } from '@noco-integrations/core';
 
 const safeDateValue = (value: string) => {
@@ -64,6 +65,44 @@ export class BambooHRFormatter {
         Country: employee.country,
         'Location Type': 'Home',
         RemoteRaw: '',
+        RemoteUpdatedAt: safeDateValue(employee.lastChanged),
+        RemoteNamespace: namespace,
+      },
+      links: {
+        'Home of Employee': [employee.id],
+      },
+    } as { data: SyncRecord; links: Record<string, SyncLinkValue> };
+    return result;
+  }
+  formatEmployment({
+    employee,
+    compensation,
+    jobInfo,
+    namespace,
+  }: {
+    employee: any;
+    jobInfo: any;
+    compensation: CompensationRecord;
+    namespace: string;
+  }) {
+    const latestCompensation = compensation.rows.sort((a, b) =>
+      b.startDate.localeCompare(a.startDate),
+    )[0];
+
+    const result = {
+      recordId: employee.id,
+      targetTable: TARGET_TABLES.HRIS_EMPLOYMENT,
+      data: {
+        'Employment Type': employee.employmentHistoryStatus,
+        'Job Title': jobInfo.jobTitle,
+        'Pay Rate': latestCompensation.rate.split(' ')[0],
+        'Pay Period': '',
+        'Pay Frequency': latestCompensation.paidPer,
+        'Pay Currency': latestCompensation.rate.split(' ')[1],
+        'Pay Group': '',
+        'Flsa Status': latestCompensation.exempt ?? '',
+        'Effective Date': latestCompensation.startDate,
+        RemoteRaw: JSON.stringify(jobInfo),
         RemoteUpdatedAt: safeDateValue(employee.lastChanged),
         RemoteNamespace: namespace,
       },

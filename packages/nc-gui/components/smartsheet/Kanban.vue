@@ -126,6 +126,226 @@ const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
 
+// Virtual scrolling for horizontal stacks
+const STACK_WIDTH = 280 // w-68.5 = 280px (68.5 * 4 = 274px, rounded to 280)
+const STACK_GAP = 12 // gap-3 = 12px
+const STACK_VIRTUAL_MARGIN = 2
+
+const scrollLeft = ref(0)
+const stackSlice = reactive({
+  start: 0,
+  end: 10,
+})
+
+// Virtual scrolling for vertical cards in each stack
+const CARD_HEIGHT = ref(200) // Approximate card height, will be adjusted dynamically
+const CARD_VIRTUAL_MARGIN = 3
+const INITIAL_VISIBLE_CARDS = 10 // Show initial 10 cards, then virtual scroll
+const stackScrollTops = ref<Map<string | null, number>>(new Map())
+const stackCardSlices = ref<Map<string | null, { start: number; end: number }>>(new Map())
+
+// Measure actual card height from first rendered card
+const measureCardHeight = () => {
+  nextTick(() => {
+    const firstCard = document.querySelector('.nc-kanban-item')
+    if (firstCard) {
+      const height = firstCard.getBoundingClientRect().height
+      if (height > 0) {
+        CARD_HEIGHT.value = height
+      }
+    }
+  })
+}
+
+let stackSliceCalculationTimeout: ReturnType<typeof setTimeout> | null = null
+let lastScrollLeft = 0
+let lastContainerWidth = 0
+
+// Calculate visible stack range based on horizontal scroll
+const calculateStackSlice = () => {
+  if (!kanbanContainerRef.value) {
+    if (stackSliceCalculationTimeout) return // Prevent multiple timeouts
+    stackSliceCalculationTimeout = setTimeout(() => {
+      stackSliceCalculationTimeout = null
+      calculateStackSlice()
+    }, 50)
+    return
+  }
+
+  const containerWidth = kanbanContainerRef.value.clientWidth
+  if (containerWidth === 0) return // Skip if container not ready
+
+  // Skip calculation if scroll position and container width haven't changed significantly
+  // But be less aggressive to ensure smooth scrolling
+  const scrollDiff = Math.abs(scrollLeft.value - lastScrollLeft)
+  const widthDiff = Math.abs(containerWidth - lastContainerWidth)
+  
+  // Only skip if scroll moved very little (less than half a stack) and container didn't resize
+  // This allows more frequent updates for smoother scrolling
+  if (scrollDiff < STACK_WIDTH / 2 && widthDiff < 10 && stackSlice.start > 0) {
+    return
+  }
+
+  lastScrollLeft = scrollLeft.value
+  lastContainerWidth = containerWidth
+
+  const startIndex = Math.max(0, Math.floor(scrollLeft.value / (STACK_WIDTH + STACK_GAP)))
+  const visibleCount = Math.ceil(containerWidth / (STACK_WIDTH + STACK_GAP))
+  const endIndex = Math.min(startIndex + visibleCount, groupingFieldColOptions.value.length)
+
+  const newStart = Math.max(0, startIndex - STACK_VIRTUAL_MARGIN)
+  const newEnd = Math.min(groupingFieldColOptions.value.length, endIndex + STACK_VIRTUAL_MARGIN)
+
+  // Always update to ensure smooth scrolling - the reactive system will handle optimization
+  // Only skip if values are exactly the same
+  if (stackSlice.start !== newStart || stackSlice.end !== newEnd) {
+    stackSlice.start = newStart
+    stackSlice.end = newEnd
+  }
+}
+
+// Calculate visible card range for a specific stack
+const calculateCardSlice = (stackTitle: string | null, scrollTop: number, containerHeight: number) => {
+  if (isUpdatingSlices) return // Prevent recursive calls
+  
+  const stack = formattedData.value.get(stackTitle)
+  if (!stack || !stack.length) {
+    // Initialize with full range if no data
+    const currentSlice = stackCardSlices.value.get(stackTitle)
+    if (!currentSlice || currentSlice.end !== 0) {
+      stackCardSlices.value.set(stackTitle, { start: 0, end: 0 })
+    }
+    return
+  }
+
+  if (containerHeight === 0) return // Skip if container not ready
+
+  const cardHeight = CARD_HEIGHT.value || 200
+  const startIndex = Math.max(0, Math.floor(scrollTop / cardHeight))
+  const visibleCount = Math.ceil(containerHeight / cardHeight)
+  const endIndex = Math.min(startIndex + visibleCount, stack.length)
+
+  const newStart = Math.max(0, startIndex - CARD_VIRTUAL_MARGIN)
+  const newEnd = Math.min(stack.length, endIndex + CARD_VIRTUAL_MARGIN)
+
+  // Only update if values actually changed
+  const currentSlice = stackCardSlices.value.get(stackTitle)
+  if (!currentSlice || currentSlice.start !== newStart || currentSlice.end !== newEnd) {
+    stackCardSlices.value.set(stackTitle, { start: newStart, end: newEnd })
+  }
+}
+
+// Get visible stacks
+const visibleStacks = computed(() => {
+  return groupingFieldColOptions.value.slice(stackSlice.start, stackSlice.end)
+})
+
+// Get visible cards for a stack
+const getVisibleCards = (stackTitle: string | null) => {
+  const slice = stackCardSlices.value.get(stackTitle)
+  const stack = formattedData.value.get(stackTitle)
+  if (!stack || !slice) return stack || []
+  return stack.slice(slice.start, slice.end)
+}
+
+// Get placeholder height for virtual scrolling
+const getPlaceholderHeight = (stackTitle: string | null, position: 'top' | 'bottom') => {
+  try {
+    if (!stackCardSlices.value) return 0
+    const slice = stackCardSlices.value.get(stackTitle)
+    const stack = formattedData.value?.get(stackTitle)
+    if (!stack || !slice) return 0
+
+    const cardHeight = CARD_HEIGHT.value || 200
+    if (position === 'top') {
+      return slice.start * cardHeight
+    } else {
+      const remaining = stack.length - slice.end
+      return remaining * cardHeight
+    }
+  } catch (e) {
+    return 0
+  }
+}
+
+// Track scroll position for each stack
+const kanbanListRefs = ref<Map<string | null, HTMLElement>>(new Map())
+
+let cardSliceCalculationRafs = new Map<string | null, number>()
+
+const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
+  return (kanbanListElement) => {
+    if (kanbanListElement) {
+      const element = kanbanListElement as HTMLElement
+      kanbanListRefs.value.set(stackTitle, element)
+      
+      // Initialize card slice immediately (only if not already set)
+      if (!stackCardSlices.value.has(stackTitle)) {
+        const stack = formattedData.value.get(stackTitle)
+        const initialEnd = stack && stack.length > 0 
+          ? Math.min(stack.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN) 
+          : 0
+        stackCardSlices.value.set(stackTitle, { start: 0, end: initialEnd })
+      }
+      
+      // Remove old scroll handler if exists
+      element.removeEventListener('scroll', kanbanListScrollHandler)
+      
+      const scrollHandler = (e: Event) => {
+        kanbanListScrollHandler(e)
+        // Update virtual scroll for this stack using requestAnimationFrame for smooth scrolling
+        const scrollTop = element.scrollTop
+        stackScrollTops.value.set(stackTitle, scrollTop)
+        
+        // Cancel previous animation frame if it exists
+        const existingRaf = cardSliceCalculationRafs.get(stackTitle)
+        if (existingRaf) {
+          cancelAnimationFrame(existingRaf)
+        }
+        
+        // Use requestAnimationFrame to batch the calculation
+        const raf = requestAnimationFrame(() => {
+          calculateCardSlice(stackTitle, scrollTop, element.clientHeight)
+          cardSliceCalculationRafs.delete(stackTitle)
+        })
+        cardSliceCalculationRafs.set(stackTitle, raf)
+      }
+      element.addEventListener('scroll', scrollHandler)
+      
+      // Initialize card slice after render (only once)
+      nextTick(() => {
+        if (element.clientHeight > 0) {
+          calculateCardSlice(stackTitle, 0, element.clientHeight)
+        }
+      })
+    }
+  }
+}
+
+// Track horizontal scroll for container with requestAnimationFrame for smooth scrolling
+let horizontalScrollRaf: number | null = null
+
+useScroll(kanbanContainerRef, {
+  onScroll: (e) => {
+    // Update scroll position immediately for responsive feel
+    const newScrollLeft = e.target?.scrollLeft || 0
+    scrollLeft.value = newScrollLeft
+    
+    // Cancel previous animation frame if it exists
+    if (horizontalScrollRaf) {
+      cancelAnimationFrame(horizontalScrollRaf)
+    }
+    
+    // Use requestAnimationFrame to batch the calculation for smooth scrolling
+    horizontalScrollRaf = requestAnimationFrame(() => {
+      calculateStackSlice()
+      horizontalScrollRaf = null
+    })
+  },
+  throttle: 0, // No throttle - requestAnimationFrame provides natural throttling
+  behavior: 'smooth',
+})
+
 const reloadViewDataListener = withLoading(async () => {
   await loadKanbanData()
 })
@@ -415,6 +635,21 @@ onBeforeUnmount(() => {
   eventBus.off(smartsheetEventHandler)
   reloadViewMetaHook?.off(reloadViewMetaListener)
   reloadViewDataHook?.off(reloadViewDataListener)
+  
+  // Clear all timeouts and animation frames
+  if (stackSliceCalculationTimeout) {
+    clearTimeout(stackSliceCalculationTimeout)
+  }
+  if (stackLengthWatcherTimeout) {
+    clearTimeout(stackLengthWatcherTimeout)
+  }
+  if (horizontalScrollRaf) {
+    cancelAnimationFrame(horizontalScrollRaf)
+  }
+  cardSliceCalculationRafs.forEach((raf) => {
+    cancelAnimationFrame(raf)
+  })
+  cardSliceCalculationRafs.clear()
 })
 
 // reset context menu target on hide
@@ -424,12 +659,101 @@ watch(contextMenu, () => {
   }
 })
 
+// Track if we're currently updating slices to prevent loops
+let isUpdatingSlices = false
+
+// Recalculate card slices when data changes
+watch(
+  () => {
+    // Only watch the size of the map and keys, not deep contents
+    return {
+      size: formattedData.value.size,
+      keys: Array.from(formattedData.value.keys()).join(','),
+    }
+  },
+  () => {
+    if (isUpdatingSlices) return // Prevent recursive calls
+    isUpdatingSlices = true
+    
+    nextTick(() => {
+      groupingFieldColOptions.value.forEach((stack) => {
+        const stackKey = stack.title ?? null
+        const element = kanbanListRefs.value.get(stackKey)
+        const stackData = formattedData.value.get(stackKey)
+        
+        if (element) {
+          const scrollTop = stackScrollTops.value.get(stackKey) || 0
+          calculateCardSlice(stackKey, scrollTop, element.clientHeight)
+        } else if (stackData) {
+          // Initialize slice even if element not found yet
+          const initialEnd = stackData.length > 0 
+            ? Math.min(stackData.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN) 
+            : 0
+          if (!stackCardSlices.value.has(stackKey) || stackCardSlices.value.get(stackKey)?.end !== initialEnd) {
+            stackCardSlices.value.set(stackKey, { start: 0, end: initialEnd })
+          }
+        }
+      })
+      isUpdatingSlices = false
+    })
+  },
+)
+
+// Recalculate stack slice when stacks change
+let stackLengthWatcherTimeout: ReturnType<typeof setTimeout> | null = null
+watch(
+  () => groupingFieldColOptions.value.length,
+  () => {
+    if (stackLengthWatcherTimeout) {
+      clearTimeout(stackLengthWatcherTimeout)
+    }
+    stackLengthWatcherTimeout = setTimeout(() => {
+      stackLengthWatcherTimeout = null
+      nextTick(() => {
+        calculateStackSlice()
+      })
+    }, 100)
+  },
+)
+
 onMounted(async () => {
   try {
     isViewDataLoading.value = true
     await loadKanbanData()
 
     nextTick(() => {
+      // Initialize virtual scrolling (only if container is ready)
+      if (kanbanContainerRef.value && kanbanContainerRef.value.clientWidth > 0) {
+        calculateStackSlice()
+      }
+      
+      // Initialize card slices for all stacks (only if not already initialized)
+      groupingFieldColOptions.value.forEach((stack) => {
+        const stackKey = stack.title ?? null
+        const stackData = formattedData.value.get(stackKey)
+        
+        // Only initialize if not already set
+        if (!stackCardSlices.value.has(stackKey)) {
+          if (stackData && stackData.length > 0) {
+            const initialEnd = Math.min(stackData.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN)
+            stackCardSlices.value.set(stackKey, { start: 0, end: initialEnd })
+          } else {
+            stackCardSlices.value.set(stackKey, { start: 0, end: 0 })
+          }
+        }
+        
+        // Recalculate if element exists and is ready
+        const element = kanbanListRefs.value.get(stackKey)
+        if (element && element.clientHeight > 0) {
+          // Use a small delay to ensure DOM is fully ready
+          setTimeout(() => {
+            if (element.clientHeight > 0) {
+              calculateCardSlice(stackKey, 0, element.clientHeight)
+            }
+          }, 50)
+        }
+      })
+
       if (shouldScrollToRight.value && kanbanContainerRef.value) {
         kanbanContainerRef.value.scrollTo({
           left: kanbanContainerRef.value.scrollWidth,
@@ -438,6 +762,9 @@ onMounted(async () => {
         // reset shouldScrollToRight
         shouldScrollToRight.value = false
       }
+      
+      // Measure card height after initial render
+      measureCardHeight()
     })
     isViewDataLoading.value = false
   } catch (error) {
@@ -546,13 +873,24 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
             @end="(e) => e.target.classList.remove('grabbing')"
             @change="onMoveStack($event)"
           >
+            <!-- Placeholder for stacks before visible range -->
+            <div
+              v-if="stackSlice.start > 0"
+              :style="{ width: `${stackSlice.start * (STACK_WIDTH + STACK_GAP) - STACK_GAP}px`, flexShrink: 0 }"
+            />
             <template #item="{ element: stack, index: stackIdx }">
+              <template v-if="stackIdx >= stackSlice.start && stackIdx < stackSlice.end">
               <div
                 class="nc-kanban-stack"
                 :class="{
                   'w-[44px]': stack.collapsed,
                   'hidden':
-                    (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
+                    // Only hide if:
+                    // 1. hideEmptyStack is true AND stack has no data (length is 0 or undefined) AND it's not uncategorized
+                    // 2. OR it's required grouping field and uncategorized stack
+                    (hideEmptyStack && 
+                     stack.id !== uncategorizedStackId &&
+                     (!formattedData.get(stack.title) || formattedData.get(stack.title)?.length === 0)) ||
                     (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
                 }"
                 :data-testid="`nc-kanban-stack-${stack.title}`"
@@ -788,7 +1126,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                       }"
                     >
                       <div
-                        :ref="kanbanListRef"
+                        :ref="createKanbanListRef(stack.title)"
                         class="nc-kanban-list h-full px-2 nc-scrollbar-thin"
                         :data-stack-title="stack.title"
                       >
@@ -806,7 +1144,38 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           @end="(e) => e.target.classList.remove('grabbing')"
                           @change="onMove($event, stack.title)"
                         >
+                          <!-- Top placeholder for virtual scrolling -->
+                          <div
+                            v-if="getPlaceholderHeight(stack.title, 'top') > 0"
+                            :style="{ height: `${getPlaceholderHeight(stack.title, 'top')}px`, flexShrink: 0, pointerEvents: 'none' }"
+                          />
                           <template #item="{ element: record, index }">
+                            <template
+                              v-if="
+                                (() => {
+                                  try {
+                                    // Handle null/undefined stack title
+                                    const stackKey = stack?.title ?? null
+                                    
+                                    // Ensure stackCardSlices is initialized
+                                    if (!stackCardSlices?.value) {
+                                      // Initialize with default slice if not ready
+                                      return index < INITIAL_VISIBLE_CARDS
+                                    }
+                                    
+                                    const slice = stackCardSlices.value.get(stackKey)
+                                    if (!slice) {
+                                      // If slice not initialized, show initial cards only
+                                      return index < INITIAL_VISIBLE_CARDS
+                                    }
+                                    return index >= slice.start && index < slice.end
+                                  } catch (e) {
+                                    // Fallback: show initial cards only if there's any error
+                                    return index < INITIAL_VISIBLE_CARDS
+                                  }
+                                })()
+                              "
+                            >
                             <div class="nc-kanban-item py-1 first:pt-2 last:pb-2">
                               <LazySmartsheetRow :row="record">
                                 <a-card
@@ -1022,7 +1391,13 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                 </a-card>
                               </LazySmartsheetRow>
                             </div>
+                            </template>
                           </template>
+                          <!-- Bottom placeholder for virtual scrolling -->
+                          <div
+                            v-if="getPlaceholderHeight(stack.title, 'bottom') > 0"
+                            :style="{ height: `${getPlaceholderHeight(stack.title, 'bottom')}px`, flexShrink: 0, pointerEvents: 'none' }"
+                          />
                           <template v-if="!formattedData.get(stack.title)?.length" #footer>
                             <div class="h-full w-full flex flex-col gap-4 items-center justify-center">
                               <div class="flex flex-col items-center gap-2 text-nc-content-gray-subtle2 text-center">
@@ -1180,7 +1555,16 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                   </div>
                 </a-card>
               </div>
+              </template>
             </template>
+            <!-- Placeholder for stacks after visible range -->
+            <div
+              v-if="stackSlice.end < groupingFieldColOptions.length"
+              :style="{
+                width: `${(groupingFieldColOptions.length - stackSlice.end) * (STACK_WIDTH + STACK_GAP) - STACK_GAP}px`,
+                flexShrink: 0,
+              }"
+            />
           </Draggable>
 
           <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">

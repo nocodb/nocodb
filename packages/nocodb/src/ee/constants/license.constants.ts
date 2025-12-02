@@ -16,6 +16,9 @@ export const LICENSE_CONFIG = {
 
   // Request envelope version
   AGENT_REQUEST_VERSION: 0,
+
+  // Grace period for network failures (7 days)
+  HEARTBEAT_GRACE_PERIOD_MS: 7 * 24 * 60 * 60 * 1000,
 } as const;
 
 /**

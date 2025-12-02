@@ -35,18 +35,30 @@ interface CachedLicenseData {
   license_jwt: string; // RSA-signed JWT from server containing license state
   installation_secret: string; // HMAC secret for client authentication
   license_key: string;
+  heartbeat_state?: HeartbeatState; // Track heartbeat history
+}
+
+// Heartbeat state tracking
+interface HeartbeatState {
+  last_success_at: string; // ISO timestamp of last successful heartbeat
+  last_attempt_at: string; // ISO timestamp of last heartbeat attempt
+  consecutive_failures: number; // Count of consecutive failed heartbeats
+  grace_period_expires_at: string; // When grace period expires (last_success + grace period)
 }
 
 export default class NocoLicense {
   private static logger = new Logger('NocoLicense');
   private static licenseData: LicenseData | null = null;
   private static _isExpired: boolean = false;
+  private static heartbeatState: HeartbeatState | null = null;
 
   // Heartbeat intervals from shared constants
   private static readonly HEARTBEAT_INTERVAL_NORMAL_MS =
     LICENSE_CONFIG.HEARTBEAT_INTERVAL_NORMAL_MS;
   private static readonly HEARTBEAT_INTERVAL_FAILURE_MS =
     LICENSE_CONFIG.HEARTBEAT_INTERVAL_FAILURE_MS;
+  private static readonly HEARTBEAT_GRACE_PERIOD_MS =
+    LICENSE_CONFIG.HEARTBEAT_GRACE_PERIOD_MS;
   private static currentHeartbeatInterval =
     NocoLicense.HEARTBEAT_INTERVAL_NORMAL_MS;
   private static heartbeatTimer: NodeJS.Timeout | null = null;
@@ -99,10 +111,8 @@ export default class NocoLicense {
             };
             this._isExpired = !this.isValidStatus(this.licenseData.status);
 
-            console.log(
-              `License loaded from cache: ${this.licenseData.license_type} (${this.licenseData.status})`,
-            );
-            console.log(`Seat usage: ${this.licenseData.seat_count}`);
+            // Load heartbeat state
+            this.heartbeatState = cached.heartbeat_state || null;
 
             // Validate cached license
             if (
@@ -198,6 +208,7 @@ export default class NocoLicense {
       license_jwt: jwtToken,
       installation_secret: installationSecret,
       license_key: licenseKey,
+      heartbeat_state: this.heartbeatState || undefined,
     };
 
     // Check if entry exists
@@ -272,7 +283,6 @@ export default class NocoLicense {
    */
   private static async handleHeartbeat() {
     if (!this.licenseData) {
-      this.logger.warn('Heartbeat skipped: License not initialized');
       this.startHeartbeatTimer();
       return;
     }
@@ -310,10 +320,6 @@ export default class NocoLicense {
         signature,
       };
 
-      this.logger.log(
-        `Sending heartbeat to license server (${seatCount} seats)`,
-      );
-
       const response = await fetch(
         `${LICENSE_SERVER_URL}/api/v1/on-premise/agent`,
         {
@@ -329,6 +335,8 @@ export default class NocoLicense {
             await response.json(),
           )}`,
         );
+        // Update heartbeat state for failed attempt
+        this.updateHeartbeatState(false);
         this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_FAILURE_MS;
         this.startHeartbeatTimer();
         return;
@@ -343,6 +351,8 @@ export default class NocoLicense {
       const licenseData = this.verifyAndDecodeLicenseJWT(data.license_jwt);
       if (!licenseData) {
         this.logger.error('Received invalid JWT from server');
+        // Update heartbeat state for failed attempt
+        this.updateHeartbeatState(false);
         this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_FAILURE_MS;
         this.startHeartbeatTimer();
         return;
@@ -355,6 +365,9 @@ export default class NocoLicense {
         license_key: this.licenseData.license_key,
         last_heartbeat_at: new Date().toISOString(),
       };
+
+      // Update heartbeat state for successful attempt
+      this.updateHeartbeatState(true);
 
       // Store updated JWT
       await this.storeLicenseData(
@@ -373,10 +386,11 @@ export default class NocoLicense {
       if (isInvalid) {
         this.logger.warn(`License is invalid: ${this.licenseData.status}`);
       } else {
-        this.logger.log('Heartbeat successful');
+        this.logger.log('License acquired and verified successfully');
       }
     } catch (error) {
-      this.logger.error(`Heartbeat failed: ${error.message}`);
+      // Update heartbeat state for failed attempt
+      this.updateHeartbeatState(false);
       this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_FAILURE_MS;
     }
 
@@ -767,7 +781,6 @@ export default class NocoLicense {
       this.logger.log(
         `License activated: ${licenseData.license_type} (${licenseData.status})`,
       );
-      this.logger.log(`Seat usage: ${licenseData.seat_count}`);
 
       return true;
     } catch (error) {
@@ -834,5 +847,115 @@ export default class NocoLicense {
 
   public static getOneWorkspace(): boolean {
     return this.getWorkspaceLimit() === 1;
+  }
+
+  public static shouldBlockAccess(): boolean {
+    if (!this.licenseData) {
+      // No license data loaded - block access
+      return true;
+    }
+
+    // Always block if explicitly revoked or suspended
+    if (
+      this.licenseData.status === InstallationStatus.REVOKED ||
+      this.licenseData.status === InstallationStatus.SUSPENDED
+    ) {
+      return true;
+    }
+
+    /* TODO: Enable, for now we only block on REVOKED/SUSPENDED
+    // For expired licenses, check if we're in grace period
+    if (this.licenseData.status === InstallationStatus.EXPIRED) {
+      if (!this.isInGracePeriod()) {
+        this.logger.error(
+          'Access blocked: License expired and grace period ended',
+        );
+        return true;
+      }
+      // Within grace period - allow access but log warning
+      this.logger.warn('License expired but within grace period');
+      return false;
+    }
+
+    // For active licenses, check network failure grace period
+    if (this.licenseData.status === InstallationStatus.ACTIVE) {
+      if (!this.isInGracePeriod()) {
+        this.logger.error(
+          'Access blocked: Unable to reach license server for extended period',
+        );
+        return true;
+      }
+    }
+    */
+
+    return false;
+  }
+
+  public static isInGracePeriod(): boolean {
+    if (!this.heartbeatState?.last_success_at) {
+      // No successful heartbeat recorded - within grace period
+      return true;
+    }
+
+    const lastSuccess = new Date(this.heartbeatState.last_success_at);
+    const gracePeriodEnd = new Date(
+      lastSuccess.getTime() + this.HEARTBEAT_GRACE_PERIOD_MS,
+    );
+
+    return Date.now() < gracePeriodEnd.getTime();
+  }
+
+  private static updateHeartbeatState(success: boolean): void {
+    const now = new Date().toISOString();
+
+    if (!this.heartbeatState) {
+      // Initialize heartbeat state on first attempt
+      this.heartbeatState = {
+        last_attempt_at: now,
+        last_success_at: success ? now : now, // On first attempt, set both
+        consecutive_failures: success ? 0 : 1,
+        grace_period_expires_at: new Date(
+          Date.now() + this.HEARTBEAT_GRACE_PERIOD_MS,
+        ).toISOString(),
+      };
+    } else {
+      // Update existing state
+      this.heartbeatState.last_attempt_at = now;
+
+      if (success) {
+        this.heartbeatState.last_success_at = now;
+        this.heartbeatState.consecutive_failures = 0;
+        this.heartbeatState.grace_period_expires_at = new Date(
+          Date.now() + this.HEARTBEAT_GRACE_PERIOD_MS,
+        ).toISOString();
+      } else {
+        this.heartbeatState.consecutive_failures += 1;
+      }
+    }
+
+    // Log heartbeat state for monitoring
+    if (!success) {
+      this.logger.warn(
+        `License verification failed (${
+          this.heartbeatState.consecutive_failures
+        } consecutive failures). Grace period: ${this.getDaysInGracePeriod()} days remaining`,
+      );
+    }
+  }
+
+  public static getHeartbeatState(): HeartbeatState | null {
+    return this.heartbeatState;
+  }
+
+  public static getDaysInGracePeriod(): number | null {
+    if (!this.heartbeatState?.grace_period_expires_at) {
+      return null;
+    }
+
+    const expiresAt = new Date(this.heartbeatState.grace_period_expires_at);
+    const diffMs = expiresAt.getTime() - Date.now();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    return diffDays > 0 ? diffDays : 0;
   }
 }

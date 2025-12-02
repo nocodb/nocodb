@@ -119,7 +119,7 @@ const formatTitle = (title?: string) =>
 }
 
 .star-icon {
-  @apply top-1 right-1 transform hover:(scale-120 text-yellow-300/75) transition-all duration-100 ease;
+  @apply top-1 right-1 transform hover:(scale-120 text-nc-content-yellow-light/75) transition-all duration-100 ease;
 }
 
 .menu-icon {

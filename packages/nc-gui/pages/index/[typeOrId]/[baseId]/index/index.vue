@@ -87,7 +87,7 @@ useSidebar('nc-left-sidebar')
 }
 
 .nc-tab-bar {
-  @apply border-gray-150 !bg-gray-50 relative z-1;
+  @apply border-gray-200 !bg-gray-50 relative z-1;
 
   :deep(.ant-tabs-tab-remove) {
     @apply flex mt-[2px];

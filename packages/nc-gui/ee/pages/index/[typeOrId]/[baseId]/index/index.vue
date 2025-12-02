@@ -29,7 +29,7 @@ useSidebar('nc-left-sidebar')
     @apply !mb-0 before:(!border-b-0);
 
     .ant-tabs-extra-content {
-      @apply !bg-white/0;
+      @apply !bg-nc-bg-default/0;
     }
 
     .ant-tabs-nav-add {
@@ -53,7 +53,7 @@ useSidebar('nc-left-sidebar')
       }
 
       & > .ant-tabs-tab-active {
-        @apply relative bg-white w-full h-full overflow-y-visible;
+        @apply relative bg-nc-bg-default w-full h-full overflow-y-visible;
 
         border-top: 1px solid white;
         border-left: 1px solid white;
@@ -66,7 +66,7 @@ useSidebar('nc-left-sidebar')
       }
 
       & > .ant-tabs-tab:not(.ant-tabs-tab-active) {
-        @apply bg-gray-50 text-gray-500;
+        @apply bg-nc-bg-gray-extralight text-gray-500;
 
         .ant-tabs-tab-remove {
           @apply !text-default;
@@ -87,7 +87,7 @@ useSidebar('nc-left-sidebar')
 }
 
 .nc-tab-bar {
-  @apply border-gray-150 !bg-gray-50 relative z-1;
+  @apply border-gray-200 !bg-nc-bg-gray-extralight relative z-1;
 
   :deep(.ant-tabs-tab-remove) {
     @apply flex mt-[2px];

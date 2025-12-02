@@ -124,12 +124,12 @@ const deleteProject = (base: BaseType) => {
         <div class="self-end flex text-4xl mb-1">
           <MaterialSymbolsGridView
             :class="route.name === 'index-index' ? '!text-primary' : ''"
-            class="cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
+            class="cursor-pointer p-2 hover:bg-nc-bg-gray-dark/50 rounded-full"
             @click="navigateTo('/')"
           />
           <MaterialSymbolsFormatListBulletedRounded
             :class="route.name === 'index-index-list' ? '!text-primary' : ''"
-            class="cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
+            class="cursor-pointer p-2 hover:bg-nc-bg-gray-dark/50 rounded-full"
             @click="navigateTo('/list')"
           />
         </div>

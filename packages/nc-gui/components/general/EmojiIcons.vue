@@ -57,7 +57,7 @@ const selectIcon = (icon?: string) => {
     </div>
     <div v-if="props.showReset" class="m-1">
       <a-divider class="!my-2 w-full" />
-      <div class="p-1 mt-1 cursor-pointer text-xs inline-block border-gray-200 border-1 rounded" @click="selectIcon()">
+      <div class="p-1 mt-1 cursor-pointer text-xs inline-block border-nc-border-gray-medium border-1 rounded" @click="selectIcon()">
         <PhXCircleLight class="text-sm" />
         Reset Icon
       </div>

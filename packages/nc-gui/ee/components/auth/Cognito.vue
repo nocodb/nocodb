@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import '@aws-amplify/ui-vue/styles.css'
-import { AmplifyButton, Authenticator, FederatedSignIn } from '@aws-amplify/ui-vue'
+import { AmplifyButton, Authenticator, FederatedSignIn, useAuthenticator } from '@aws-amplify/ui-vue'
 import isEmail from 'validator/es/lib/isEmail'
 import { Auth } from 'aws-amplify'
 
@@ -108,6 +108,13 @@ watch(emailVerifyDlg, (val) => {
   confirmCode.value = ''
   emailVerifyDlg.value = false
 })
+
+const facade = useAuthenticator()
+const { toForgotPassword } = facade
+
+const onForgotPasswordClicked = (): void => {
+  toForgotPassword()
+}
 </script>
 
 <template>

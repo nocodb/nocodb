@@ -841,24 +841,44 @@ export const themeVariables = {
   },
 }
 
-export const getLighterTint = (
+export const getAdaptiveTint = (
   color: string,
-  option?: {
+  opts?: {
+    isDarkMode?: boolean
     saturationMod?: number
     brightnessMod?: number
   },
 ) => {
+  const { isDarkMode = false, saturationMod = 0, brightnessMod = 0 } = opts || {}
   const evalColor = tinycolor(color)
-
   const hsv = evalColor.toHsv()
 
-  const safeS = hsv.s < 0.01 ? 0 : 5 + (option?.saturationMod ?? 0) // prevent gray → red
-  const safeV = Math.min(100, (hsv.s < 0.01 ? 97 : 100) + (option?.brightnessMod ?? 0))
+  // Normalize grayscale colors
+  const isGray = hsv.s < 0.01
+
+  if (!isDarkMode) {
+    //
+    // 🌞 LIGHT THEME LOGIC (white backgrounds)
+    //
+    const safeS = isGray ? 0 : Math.min(100, 5 + saturationMod)
+    const safeV = Math.min(100, (isGray ? 97 : 100) + brightnessMod)
+
+    return tinycolor({ h: hsv.h, s: safeS, v: safeV }).toHexString()
+  }
+
+  //
+  // 🌙 DARK THEME LOGIC (#171717 backgrounds)
+  //
+  // Dark theme needs *stronger saturation and lower value*
+  // so color remains visible but does NOT glow too much.
+  //
+  const darkS = isGray ? 0 : Math.min(100, hsv.s * 0.7 + saturationMod) // slightly reduce saturation for dark UI
+  const darkV = Math.max(15, Math.min(60, hsv.v * 0.6 + brightnessMod)) // cap brightness
 
   return tinycolor({
     h: hsv.h,
-    s: safeS,
-    v: safeV,
+    s: darkS,
+    v: darkV,
   }).toHexString()
 }
 

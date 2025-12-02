@@ -2,6 +2,8 @@ import { type ColumnType, ROW_COLORING_MODE } from 'nocodb-sdk'
 import { rowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
 
 export function useViewRowColorRender() {
+  const { isDark } = useTheme()
+
   const { getBaseType } = useBase()
 
   const { blockRowColoring } = useEeConfig()
@@ -35,9 +37,9 @@ export function useViewRowColorRender() {
 
       const value = row[selectRowColorInfo.selectColumn.title]
       const rawColor: string | null | undefined = selectRowColorInfo.options.find((k) => k.title === value)?.color
-      const color = rawColor ? getLighterTint(rawColor) : null
-      const hoverColor = rawColor ? getLighterTint(rawColor, { brightnessMod: -3 }) : null
-      const borderColor = rawColor ? getLighterTint(rawColor, { brightnessMod: -10 }) : null
+      const color = rawColor ? getAdaptiveTint(rawColor, { isDarkMode: isDark.value }) : null
+      const hoverColor = rawColor ? getAdaptiveTint(rawColor, { brightnessMod: -3, isDarkMode: isDark.value }) : null
+      const borderColor = rawColor ? getAdaptiveTint(rawColor, { brightnessMod: -10, isDarkMode: isDark.value }) : null
 
       return color
         ? {
@@ -71,11 +73,13 @@ export function useViewRowColorRender() {
         )
 
         if (isFilterValid) {
-          const color: string | null | undefined = getLighterTint(eachCondition.color)
+          const color: string | null | undefined = getAdaptiveTint(eachCondition.color, {
+            isDarkMode: isDark.value,
+          })
 
-          const hoverColor = getLighterTint(eachCondition.color, { brightnessMod: -3 })
+          const hoverColor = getAdaptiveTint(eachCondition.color, { brightnessMod: -3, isDarkMode: isDark.value })
 
-          const borderColor = getLighterTint(eachCondition.color, { brightnessMod: -10 })
+          const borderColor = getAdaptiveTint(eachCondition.color, { brightnessMod: -10, isDarkMode: isDark.value })
 
           return {
             is_set_as_background: eachCondition.is_set_as_background,

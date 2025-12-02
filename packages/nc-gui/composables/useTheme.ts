@@ -1,5 +1,3 @@
-import { computed, onMounted, ref, watch } from 'vue'
-
 export type ThemeMode = 'system' | 'light' | 'dark'
 
 export const useTheme = createSharedComposable(() => {

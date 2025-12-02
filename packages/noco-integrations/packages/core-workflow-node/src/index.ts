@@ -21,7 +21,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'When manually triggered',
-      icon: 'ncPlay'
+      icon: 'ncPlay',
     },
   },
   {
@@ -32,7 +32,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'If Condition',
-      icon: 'ncIfElse'
+      icon: 'ncIfElse',
     },
   },
   {
@@ -43,7 +43,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'Send Email',
-      icon: 'ncEmail'
+      icon: 'ncMail',
     },
   },
 ];

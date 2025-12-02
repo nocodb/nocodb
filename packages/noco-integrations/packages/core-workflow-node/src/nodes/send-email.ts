@@ -27,7 +27,7 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
       id: 'core.action.send-email',
       title: 'Send an Email',
       description: 'Send an email',
-      icon: 'email',
+      icon: 'ncMail',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form: [

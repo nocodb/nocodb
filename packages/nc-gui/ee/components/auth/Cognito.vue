@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import '@aws-amplify/ui-vue/styles.css'
-import { AmplifyButton, Authenticator, FederatedSignIn } from '@aws-amplify/ui-vue'
+import { Authenticator } from '@aws-amplify/ui-vue'
 import isEmail from 'validator/es/lib/isEmail'
 import { Auth } from 'aws-amplify'
 
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
-const { lastUsedAuthMethod } = useGlobal()
 
 const services = {
   async validateCustomSignUp(formData) {
@@ -111,61 +110,14 @@ watch(emailVerifyDlg, (val) => {
 </script>
 
 <template>
-  <div
-    class="py-10 flex justify-center min-h-screen overflow-auto"
-    :class="{
-      'nc-last-used-auth-email': lastUsedAuthMethod === 'email',
-      'nc-last-used-auth-sso': lastUsedAuthMethod === 'sso',
-      'nc-last-used-auth-google': lastUsedAuthMethod === 'google',
-    }"
-  >
+  <div class="py-10 flex justify-center">
     <Authenticator :initial-state="initialState" :form-fields="formFields" :social-providers="['google']" :services="services">
       <template #header>
         <div style="padding: var(--amplify-space-large); text-align: center">
           <img class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
         </div>
       </template>
-      <template #sign-in-footer>
-        <div class="w-full px-6 pb-4 flex flex-col gap-1">
-          <!-- SSO Sign in button -->
-          <FederatedSignIn />
-
-          <AmplifyButton
-            class="nc-sso amplify-authenticator__federated-button -mt-2 amplify-button amplify-field-group__control federated-sign-in-button amplify-authenticator__font"
-            type="button"
-            @click="navigateTo('/sso')"
-          >
-            <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
-            Sign in with Single Sign On
-          </AmplifyButton>
-
-          <AmplifyButton
-            class="amplify-field-group__control amplify-authenticator__font !mt-2"
-            variation="link"
-            :fullwidth="true"
-            size="small"
-            style="font-weight: normal"
-            type="button"
-            @click="onForgotPasswordClicked"
-          >
-            Forgot Password?
-          </AmplifyButton>
-        </div>
-      </template>
       <template #sign-up-footer>
-        <div class="w-full px-6 pb-4 flex flex-col gap-1">
-          <!-- SSO Sign in button -->
-          <FederatedSignIn />
-
-          <AmplifyButton
-            class="nc-sso amplify-authenticator__federated-button -mt-2 amplify-button amplify-field-group__control federated-sign-in-button amplify-authenticator__font"
-            type="button"
-            @click="navigateTo('/sso')"
-          >
-            <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
-            Sign in with Single Sign On
-          </AmplifyButton>
-        </div>
         <div class="pb-4 text-center text-xs tos mx-2">
           By signing up, you agree to our
           <a
@@ -354,45 +306,5 @@ watch(emailVerifyDlg, (val) => {
   --amplify-components-button-link-active-background-color: transparent;
   --amplify-components-button-link-focus-background-color: transparent;
   --amplify-components-button-link-hover-background-color: transparent;
-}
-
-form > .federated-sign-in-container {
-  display: none;
-}
-
-.federated-sign-in-container {
-  flex-direction: column-reverse;
-  gap: 24px;
-}
-
-// apply above 498px width since UI looks cramped below that
-@media (min-width: 498px) {
-  .nc-last-used-auth-sso .federated-sign-in-button.nc-sso,
-  .nc-last-used-auth-google .amplify-authenticator__column > button.federated-sign-in-button:not([data-variation='primary']),
-  .nc-last-used-auth-email
-    form:not([data-np-autofill-form-type='register'])
-    .amplify-authenticator__column
-    > button.amplify-button[data-variation='primary'] {
-    position: relative;
-
-    &::after {
-      position: absolute;
-      content: ' Last Used';
-      font-weight: normal;
-      font-size: 0.775rem;
-      margin-left: 0.25rem;
-      color: #aaaaaa80;
-      right: 7px;
-      border: 1px solid #aaaaaa80;
-      padding: 3px 10px;
-      border-radius: 7px;
-    }
-  }
-
-  // signin button
-  .nc-last-used-auth-email .amplify-authenticator__column > button.amplify-button[data-variation='primary']::after {
-    color: #ffffff80;
-    border: 1px solid #ffffff80;
-  }
 }
 </style>

@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import {
   Body,
   Controller,
@@ -71,6 +72,15 @@ interface ActivationResponse {
 interface HeartbeatResponse {
   license_jwt: string; // RSA-signed JWT containing license state
   heartbeat_interval_ms: number;
+}
+
+interface OldLicenseData {
+  type: 'ENTERPRISE_TRIAL' | 'ENTERPRISE';
+  siteUrl: string;
+  licenseKey: string;
+  maxWorkspacesPerUser?: number;
+  maxUsers?: number;
+  maxWorkspaces?: number;
 }
 
 @Controller()
@@ -172,29 +182,62 @@ export class OnPremiseController {
         NcError._.badRequest('Invalid license key');
       }
 
-      installation = await Installation.insert(
-        {
-          license_key: body.license_key,
-          licensed_to: oldLicense.data.siteUrl,
-          license_type:
-            oldLicense.data.type === 'ENTERPRISE'
-              ? LicenseType.ENTERPRISE
-              : LicenseType.ENTERPRISE_TRIAL,
-          seat_count: 0,
-          status: InstallationStatus.ACTIVE,
-          installed_at: new Date(),
-          last_seen_at: new Date(),
-          meta: {
-            environment: body.environment,
-          },
-          config: {
-            ...(oldLicense.data.maxWorkspaces
-              ? { limit_workspace: oldLicense.data.maxWorkspaces }
-              : {}),
-          },
-        },
+      const existingLicense = await Installation.getByLicenseKey(
+        oldLicense.data.licenseKey,
         ncMeta,
       );
+
+      if (
+        existingLicense &&
+        existingLicense.status !== InstallationStatus.PENDING
+      ) {
+        NcError._.badRequest(
+          'License key is already activated. Use heartbeat endpoint for updates.',
+        );
+      }
+
+      if (existingLicense) {
+        installation = existingLicense;
+      } else {
+        installation = await Installation.insert(
+          {
+            license_key: oldLicense.data.licenseKey,
+            licensed_to: oldLicense.data.siteUrl,
+            license_type:
+              oldLicense.data.type === 'ENTERPRISE'
+                ? LicenseType.ENTERPRISE
+                : LicenseType.ENTERPRISE_TRIAL,
+            seat_count: oldLicense.data.maxUsers || 0,
+            status: InstallationStatus.ACTIVE,
+            installed_at: new Date(),
+            last_seen_at: new Date(),
+            meta: {
+              environment: body.environment,
+            },
+            config: {
+              ...(oldLicense.data.maxWorkspaces
+                ? { limit_workspace: oldLicense.data.maxWorkspaces }
+                : {}),
+            },
+          },
+          ncMeta,
+        );
+      }
+
+      const clientSecret = await Installation.deriveClientSecret(
+        installation.id,
+        ncMeta,
+      );
+
+      // Set installation secret
+      await Installation.update(
+        installation.id,
+        { installation_secret: clientSecret },
+        ncMeta,
+      );
+
+      // Refresh installation data
+      installation = await Installation.get(installation.id, ncMeta);
     }
 
     // Generate RSA-signed JWT containing license state
@@ -427,24 +470,44 @@ export class OnPremiseController {
     return await Installation.update(installation.id, payload, ncMeta);
   }
 
-  private async verifyOldLicense(licenseKey: string) {
+  private async verifyOldLicense(licenseKey: string): Promise<{
+    valid: boolean;
+    data?: OldLicenseData;
+    error?: string;
+  }> {
     if (!licenseKey) {
       return { valid: false, error: 'License key not found' };
     }
+
     try {
-      const data: any = jwt.verify(licenseKey, LICENSE_SERVER_OLD_PUBLIC_KEY, {
+      const data = jwt.verify(licenseKey, LICENSE_SERVER_OLD_PUBLIC_KEY, {
         algorithms: ['RS256'],
-      });
+      }) as OldLicenseData;
 
       // if any of the properties are missing, throw an error
-      if (!data || !data.type || !data.siteUrl) {
+      if (!data || !data.siteUrl) {
         throw new Error('Invalid license key');
       }
+
+      data.licenseKey = crypto
+        .createHash('sha256')
+        .update(licenseKey)
+        .digest('hex');
 
       return { valid: true, data };
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
-        const data = jwt.decode(licenseKey, { json: true });
+        const data = jwt.decode(licenseKey, { json: true }) as OldLicenseData;
+
+        if (!data || !data.siteUrl) {
+          throw new Error('Invalid license key');
+        }
+
+        data.licenseKey = crypto
+          .createHash('sha256')
+          .update(licenseKey)
+          .digest('hex');
+
         return { valid: true, data };
       }
 

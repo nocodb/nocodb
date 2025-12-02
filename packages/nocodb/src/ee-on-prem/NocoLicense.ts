@@ -77,7 +77,7 @@ export default class NocoLicense {
         RootScopes.ROOT,
         MetaTable.STORE,
         {
-          key: `NC_LICENSE_DATA:${licenseKey}`,
+          key: `NC_LICENSE_DATA`,
         },
       );
 
@@ -156,6 +156,9 @@ export default class NocoLicense {
         this.logger.log('License activated successfully');
       }
 
+      // Initial heartbeat
+      await this.handleHeartbeat();
+
       // Start heartbeat timer
       this.startHeartbeatTimer();
     } catch (error) {
@@ -189,7 +192,7 @@ export default class NocoLicense {
     licenseKey: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const key = `NC_LICENSE_DATA:${licenseKey}`;
+    const key = `NC_LICENSE_DATA`;
 
     const cachedData: CachedLicenseData = {
       license_jwt: jwtToken,

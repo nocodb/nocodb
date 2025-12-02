@@ -120,7 +120,7 @@ export const AttachmentCellRenderer: CellRenderer = {
   ) => {
     let attachments: Attachment[] = []
 
-    const rowHeight = pxToRowHeight[height]
+    const rowHeight = pxToRowHeight[height] ?? 1
     const verticalPadding = rowHeight === 1 ? 4 : 8
 
     try {

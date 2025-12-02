@@ -167,6 +167,16 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
   }
 
   /**
+   * Returns the number of sync's batch size. If this number is reached in stream, it'll commit the current stream and flush.
+   * Override this method to provide a custom batch size.
+   *
+   * @returns The batch size
+   */
+  get batchSize(): number {
+      return 100;
+  }
+
+  /**
    * Retrieves the schema definition for the destination tables.
    * Defines what tables, columns, and relationships will be created during sync.
    *

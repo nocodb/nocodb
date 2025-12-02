@@ -10,7 +10,7 @@ export const GeoDataCellRenderer: CellRenderer = {
     const [latitude, longitude] = (value || '').split(';')
     const isLocationSet = !!(latitude && longitude)
     const displayText = isLocationSet ? `${latitude}; ${longitude}` : 'Set location'
-    const rowHeight = pxToRowHeight[height]
+    const rowHeight = pxToRowHeight[height] ?? 1
 
     const verticalPadding = rowHeight === 1 ? 4 : 8
 

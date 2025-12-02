@@ -5,6 +5,8 @@ import { SmartsheetStoreEvents } from '#imports'
 export function useViewRowColorProvider(params: { shared?: boolean }) {
   const { $api, $eventBus } = useNuxtApp()
 
+  const { isDark } = useTheme()
+
   const { activeView, activeViewRowColorInfo } = storeToRefs(useViewsStore())
 
   const { blockRowColoring } = useEeConfig()
@@ -133,6 +135,11 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
       immediate: true,
     },
   )
+
+  watch(isDark, () => {
+    clearRowColouringCache()
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+  })
 
   return { reloadRowColorInfo }
 }

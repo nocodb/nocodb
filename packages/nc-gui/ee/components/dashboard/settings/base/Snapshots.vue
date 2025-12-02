@@ -107,7 +107,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
     <div
       v-if="isCreatingSnapshot"
       style="box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1)"
-      class="bg-nc-bg-default p-6 flex flex-col w-[488px] rounded-2xl"
+      class="bg-nc-bg-default p-6 flex flex-col w-[488px] rounded-2xl dark:(border-1 rounded-xl border-nc-border-gray-medium)"
     >
       <div class="text-nc-content-gray-emphasis text-lg font-bold">Creating base snapshot</div>
       <div class="text-nc-gray-subtle2 mt-2">

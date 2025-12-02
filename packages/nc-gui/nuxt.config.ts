@@ -265,6 +265,7 @@ export default defineNuxtConfig({
         'dagre',
         'dayjs/plugin/utc',
         'dayjs/plugin/timezone',
+        'dayjs/plugin/relativeTime',
         'deep-object-diff',
         'diff',
         'embla-carousel-vue',

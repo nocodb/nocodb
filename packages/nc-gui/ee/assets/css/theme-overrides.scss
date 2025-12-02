@@ -68,10 +68,12 @@ body {
 
 .ant-dropdown-menu-item,
 .ant-dropdown-menu-submenu-title {
-  color: rgba(var(--rgb-base), 0.85);
+  &:not(.ant-dropdown-menu-item-disabled):not(.dropdown-menu-submenu-title-disabled) {
+    color: rgba(var(--rgb-base), 0.85);
 
-  &:hover {
-    @apply bg-nc-bg-gray-light;
+    &:hover {
+      @apply bg-nc-bg-gray-light;
+    }
   }
 }
 

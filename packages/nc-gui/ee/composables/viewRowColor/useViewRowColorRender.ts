@@ -112,7 +112,7 @@ export function useViewRowColorRender() {
 
   const getEvaluatedRowMetaRowColorInfo = (row: any) => {
     const result = {
-      is_set_as_backgrounsd: false,
+      is_set_as_background: false,
       rowBgColor: null,
       rowLeftBorderColor: null,
       rowHoverColor: null,

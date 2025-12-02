@@ -7,8 +7,17 @@ import Dropdown from '~/components/smartsheet/workflow/Canvas/Nodes/Dropdown.vue
 
 const props = defineProps<NodeProps>()
 
-const { getNodeMetaById, updateNode, addPlusNode, triggerLayout, deleteNode, selectedNodeId, edges, updateSelectedNode } =
-  useWorkflowOrThrow()
+const {
+  getNodeMetaById,
+  updateNode,
+  addPlusNode,
+  triggerLayout,
+  deleteNode,
+  selectedNodeId,
+  edges,
+  updateSelectedNode,
+  viewingExecution,
+} = useWorkflowOrThrow()
 
 const nodeMeta = computed(() => {
   return getNodeMetaById(props.type)
@@ -23,7 +32,7 @@ const hasOutput = computed(() => {
 })
 
 const disableDropdown = computed(() => {
-  return !!(props.type !== GeneralNodeID.PLUS && nodeMeta.value)
+  return !!(props.type !== GeneralNodeID.PLUS && nodeMeta.value) || props.readOnly
 })
 
 const selectNodeType = async (option: WorkflowNodeDefinition) => {
@@ -152,7 +161,7 @@ onClickOutside(
               {{ selectedNode.title }}
             </div>
 
-            <NcDropdown v-model:visible="showSubMenuDropdown">
+            <NcDropdown v-if="!viewingExecution" v-model:visible="showSubMenuDropdown">
               <NcButton type="text" size="xxsmall" @click.stop>
                 <GeneralIcon icon="threeDotHorizontal" />
               </NcButton>

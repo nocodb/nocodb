@@ -7,7 +7,7 @@ import Dropdown from './Dropdown.vue'
 
 const props = defineProps<NodeProps>()
 
-const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, updateSelectedNode } =
+const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, updateSelectedNode, viewingExecution } =
   useWorkflowOrThrow()
 
 const wrappperRef = ref()
@@ -136,7 +136,7 @@ onClickOutside(
               {{ selectedNode.title }}
             </div>
 
-            <NcDropdown v-model:visible="showSubMenuDropdown">
+            <NcDropdown v-if="!viewingExecution" v-model:visible="showSubMenuDropdown">
               <NcButton type="text" size="xxsmall" @click.stop>
                 <GeneralIcon icon="threeDotHorizontal" />
               </NcButton>

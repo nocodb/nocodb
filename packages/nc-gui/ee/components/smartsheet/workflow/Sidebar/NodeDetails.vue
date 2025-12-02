@@ -1,4 +1,8 @@
 <script setup lang="ts">
+const props = defineProps<{
+  readOnly?: boolean
+}>()
+
 const { selectedNode, selectedNodeId, getNodeMetaById, updateNode } = useWorkflowOrThrow()
 
 const isDescriptionInEditMode = ref(false)
@@ -50,8 +54,8 @@ function enableDescriptionEditMode() {
     </div>
 
     <div class="mt-4">
-      <div v-if="!isDescriptionInEditMode" class="text-body px-1" @click="enableDescriptionEditMode">
-        <span v-if="!nodeDescription" class="text-nc-content-gray-muted">
+      <div v-if="!isDescriptionInEditMode || props.readOnly" class="text-body px-1" @click="enableDescriptionEditMode">
+        <span v-if="!nodeDescription && !props.readOnly" class="text-nc-content-gray-muted">
           {{ $t('labels.addDescription') }}
         </span>
         {{ nodeDescription }}

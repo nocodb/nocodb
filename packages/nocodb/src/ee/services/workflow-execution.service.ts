@@ -32,6 +32,7 @@ import {
   getNextNode,
 } from '~/services/workflows/graphHelpers';
 import { ExpressionContext } from '~/services/workflows/ExpressionContext';
+import { MailService } from '~/services/mail/mail.service';
 
 @Injectable()
 export class WorkflowExecutionService {
@@ -41,6 +42,7 @@ export class WorkflowExecutionService {
   constructor(
     private readonly dataV3Service: DataV3Service,
     private readonly tablesService: TablesService,
+    private readonly mailService: MailService,
   ) {}
 
   public async getWorkflowNodes(context: NcContext) {
@@ -123,6 +125,7 @@ export class WorkflowExecutionService {
           },
           dataService: this.dataV3Service,
           tablesService: this.tablesService,
+          mailService: this.mailService,
           user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
         },
       }) as WorkflowNodeIntegration;

@@ -181,6 +181,7 @@ async function processColumnToSwaggerField(
                 type: lookupField.type,
                 format: lookupField.format,
                 anyOf: lookupField.anyOf,
+                nullable: lookupField.nullable,
               };
             }
           }
@@ -315,4 +316,5 @@ export interface SwaggerColumn {
   properties?: any;
   format?: string;
   anyOf?: any[];
+  nullable?: boolean;
 }

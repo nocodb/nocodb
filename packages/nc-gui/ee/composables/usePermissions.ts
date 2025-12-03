@@ -171,26 +171,7 @@ export const usePermissions = () => {
   }
 
   const getPermissionTextColor = (value: string): string => {
-    const color = getPermissionColor(value)
-    switch (color) {
-      case 'purple':
-        return 'text-purple-700'
-      case 'blue':
-        return 'text-blue-700'
-      case 'green':
-        return 'text-green-700'
-      case 'orange':
-        return 'text-orange-700'
-      case 'yellow':
-        return 'text-yellow-700'
-      case 'red':
-        return 'text-red-700'
-      case 'maroon':
-        return 'text-maroon-700'
-      case 'gray':
-      default:
-        return 'text-gray-700'
-    }
+    return getTableAndFieldPermissionsColors(getPermissionColor(value))
   }
 
   return {

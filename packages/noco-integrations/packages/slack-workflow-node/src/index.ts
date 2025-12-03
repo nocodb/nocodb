@@ -5,9 +5,6 @@ import {
 import { manifest } from './manifest';
 import { SendMessageNode } from './nodes/send-message';
 
-export * from './manifest';
-export * from './nodes/send-message';
-
 export const entries: IntegrationEntry[] = [
   {
     type: IntegrationType.WorkflowNode,

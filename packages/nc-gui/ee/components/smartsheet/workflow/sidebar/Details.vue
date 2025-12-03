@@ -5,6 +5,8 @@ const { updateWorkflowData, debouncedWorkflowUpdate } = useWorkflowOrThrow()
 
 const { workflow } = useWorkflowOrThrow()
 
+const { $e } = useNuxtApp()
+
 const isTitleInEditMode = ref(false)
 
 const isDescriptionInEditMode = ref(false)
@@ -46,6 +48,20 @@ function enableDescriptionEditMode() {
     descriptionInputRef.value.focus()
   })
 }
+
+function handleTitleBlur() {
+  isTitleInEditMode.value = false
+  $e('a:workflow:title:update', {
+    workflow_id: workflow.value?.id,
+  })
+}
+
+function handleDescriptionBlur() {
+  isDescriptionInEditMode.value = false
+  $e('a:workflow:description:update', {
+    workflow_id: workflow.value?.id,
+  })
+}
 </script>
 
 <template>
@@ -78,9 +94,9 @@ function enableDescriptionEditMode() {
             ref="titleInputRef"
             v-model:value="workflowTitle"
             class="!rounded-lg text-subHeading2 nc-input !w-74 !px-1"
-            @blur="isTitleInEditMode = false"
-            @keydown.enter="isTitleInEditMode = false"
-            @keydown.esc="isTitleInEditMode = false"
+            @blur="handleTitleBlur"
+            @keydown.enter="handleTitleBlur"
+            @keydown.esc="handleTitleBlur"
           />
         </div>
       </div>
@@ -102,9 +118,9 @@ function enableDescriptionEditMode() {
             v-model:value="workflowDescription"
             class="!rounded-lg text-body !px-1 nc-input"
             :auto-size="{ minRows: 2, maxRows: 6 }"
-            @keydown.enter="isDescriptionInEditMode = false"
-            @blur="isDescriptionInEditMode = false"
-            @keydown.esc="isDescriptionInEditMode = false"
+            @keydown.enter="handleDescriptionBlur"
+            @blur="handleDescriptionBlur"
+            @keydown.esc="handleDescriptionBlur"
           />
         </div>
       </div>

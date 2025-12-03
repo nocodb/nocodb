@@ -7,6 +7,8 @@ import Dropdown from '~/components/smartsheet/workflow/canvas/nodes/Dropdown.vue
 
 const props = defineProps<NodeProps>()
 
+const { $e } = useNuxtApp()
+
 const {
   getNodeMetaById,
   updateNode,
@@ -47,6 +49,11 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
 
   const selectedNodeMeta = getNodeMetaById(option.id)
 
+  $e('a:workflow:node:select-type', {
+    node_type: option.id,
+    node_category: option.category,
+  })
+
   if (props.type === GeneralNodeID.PLUS) {
     const hasOutputs = edges.value.some((e) => e.source === props.id)
 
@@ -73,6 +80,11 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
 }
 
 const handleDelete = async () => {
+  $e('a:workflow:node:delete', {
+    node_type: props.type,
+    node_id: props.id,
+  })
+
   await deleteNode(props.id)
 
   await nextTick()

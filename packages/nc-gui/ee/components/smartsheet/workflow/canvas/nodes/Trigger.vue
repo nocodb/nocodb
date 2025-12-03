@@ -7,6 +7,8 @@ import Dropdown from './Dropdown.vue'
 
 const props = defineProps<NodeProps>()
 
+const { $e } = useNuxtApp()
+
 const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, updateSelectedNode, viewingExecution } =
   useWorkflowOrThrow()
 
@@ -32,6 +34,10 @@ const selectTriggerType = async (option: WorkflowNodeDefinition) => {
 
   updateSelectedNode(props.id)
 
+  $e('a:workflow:trigger:select', {
+    trigger_type: option.id,
+  })
+
   const hasPlusNode = edges.value.some((e) => e.source === props.id)
   if (!hasPlusNode) {
     await addPlusNode(props.id)
@@ -46,6 +52,11 @@ const selectTriggerType = async (option: WorkflowNodeDefinition) => {
 const handleTriggerClick = () => {
   if (props.type !== GeneralNodeID.TRIGGER && nodeMeta.value) {
     selectedNodeId.value = props.id
+
+    $e('c:workflow:trigger:open', {
+      trigger_type: props.type,
+      node_id: props.id,
+    })
   }
 }
 

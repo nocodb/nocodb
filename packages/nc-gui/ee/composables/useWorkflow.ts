@@ -58,9 +58,6 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     skipNetworkCall: boolean = true,
   ) => {
     if (!activeProjectId.value || !workflow.value?.id) return
-
-    console.log('updateWorkflowData', { description, nodes, edges, title })
-
     if (isUIAllowed('workflowCreateOrEdit')) {
       isSaving.value = true
       try {
@@ -467,7 +464,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
    * @returns Array of variable definitions with node context
    */
   const getAvailableVariables = (nodeId: string) => {
-    const parentNodeIds = findAllParentNodes(nodeId)
+    const parentNodeIds = findAllParentNodes(nodeId, edges.value)
     const variables: Array<{
       nodeId: string
       nodeTitle: string

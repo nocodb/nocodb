@@ -3,6 +3,8 @@ import { WorkflowNodeCategory } from 'nocodb-sdk'
 
 const { getNodeMetaById, selectedNode, selectedNodeId, edges, nodes, testExecuteNode } = useWorkflowOrThrow()
 
+const { $e } = useNuxtApp()
+
 const isTestingNode = ref()
 
 const findAllAncestors = (nodeId: string): Set<string> => {
@@ -59,8 +61,26 @@ const canTestNode = computed(() => {
 
 const handleTestNode = async () => {
   isTestingNode.value = true
+  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
+
+  $e('a:workflow:node:test', {
+    node_type: selectedNode.value?.type,
+    node_category: nodeMeta?.category,
+  })
+
   try {
     await testExecuteNode(selectedNodeId.value)
+
+    $e('a:workflow:node:test:success', {
+      node_type: selectedNode.value?.type,
+      node_category: nodeMeta?.category,
+    })
+  } catch (error) {
+    $e('a:workflow:node:test:error', {
+      node_type: selectedNode.value?.type,
+      node_category: nodeMeta?.category,
+    })
+    throw error
   } finally {
     isTestingNode.value = false
   }

@@ -5,6 +5,8 @@ const props = defineProps<{
 
 const { selectedNode, selectedNodeId, getNodeMetaById, updateNode } = useWorkflowOrThrow()
 
+const { $e } = useNuxtApp()
+
 const isDescriptionInEditMode = ref(false)
 
 const descriptionInputRef = ref()
@@ -31,6 +33,14 @@ function enableDescriptionEditMode() {
   isDescriptionInEditMode.value = true
   nextTick(() => {
     descriptionInputRef.value.focus()
+  })
+}
+
+function handleDescriptionBlur() {
+  isDescriptionInEditMode.value = false
+  $e('a:workflow:node:description:update', {
+    node_type: selectedNode.value?.type,
+    node_id: selectedNodeId.value,
   })
 }
 </script>
@@ -66,9 +76,9 @@ function enableDescriptionEditMode() {
           v-model:value="nodeDescription"
           class="!rounded-lg text-body !px-1 nc-input"
           :auto-size="{ minRows: 2, maxRows: 6 }"
-          @keydown.enter="isDescriptionInEditMode = false"
-          @blur="isDescriptionInEditMode = false"
-          @keydown.esc="isDescriptionInEditMode = false"
+          @keydown.enter="handleDescriptionBlur"
+          @blur="handleDescriptionBlur"
+          @keydown.esc="handleDescriptionBlur"
         />
       </div>
     </div>

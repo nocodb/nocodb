@@ -7,13 +7,21 @@ const { updateWorkflow } = workflowStore
 
 const { activeWorkflow } = storeToRefs(workflowStore)
 
+const { $e } = useNuxtApp()
+
 const toggleWorkflow = async () => {
   if (!activeWorkflow.value || !activeWorkflow.value.base_id || !activeWorkflow.value.id) {
     return
   }
+  const newState = !activeWorkflow.value.enabled
   await updateWorkflow(activeWorkflow.value.base_id, activeWorkflow.value?.id, {
     ...activeWorkflow.value,
-    enabled: !activeWorkflow.value.enabled,
+    enabled: newState,
+  })
+
+  $e('a:workflow:toggle', {
+    enabled: newState,
+    workflow_id: activeWorkflow.value.id,
   })
 }
 </script>

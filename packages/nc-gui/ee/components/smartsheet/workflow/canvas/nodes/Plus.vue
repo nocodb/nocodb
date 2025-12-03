@@ -7,6 +7,8 @@ import Dropdown from '~/components/smartsheet/workflow/canvas/nodes/Dropdown.vue
 
 const props = defineProps<NodeProps>()
 
+const { $e } = useNuxtApp()
+
 const { getNodeMetaById, updateNode, addPlusNode, triggerLayout, edges, updateSelectedNode } = useWorkflowOrThrow()
 
 const selectNodeType = async (option: WorkflowNodeDefinition) => {
@@ -18,6 +20,11 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
   })
   // Check if the selected node type has multiple outputs (like if/else)
   const selectedNodeMeta = getNodeMetaById(option.id)
+
+  $e('a:workflow:node:add', {
+    node_type: option.id,
+    node_category: option.category,
+  })
 
   // Check if this node already has connections
   const hasOutputs = edges.value.some((e) => e.source === props.id)

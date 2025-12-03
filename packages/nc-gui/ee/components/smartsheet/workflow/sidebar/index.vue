@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Details from '~/components/smartsheet/workflow/Sidebar/Details.vue'
+import Details from '~/components/smartsheet/workflow/sidebar/Details.vue'
 import NodeConfig from '~/components/smartsheet/workflow/sidebar/config/index.vue'
 import TestStep from '~/components/smartsheet/workflow/sidebar/config/TestStep.vue'
 import Result from '~/components/smartsheet/workflow/sidebar/config/Result.vue'

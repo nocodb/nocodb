@@ -13,6 +13,7 @@ import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
+import { jsonThemeDark, jsonThemeLight } from '~/components/monaco/json'
 
 const props = defineProps<Props>()
 
@@ -40,6 +41,8 @@ const { eventList, showUpgradeModal, sampleDataV2 } = toRefs(props)
 const { t } = useI18n()
 
 const { $e, $api } = useNuxtApp()
+
+const { isDark } = useTheme()
 
 const { api, isLoading: loading } = useApi()
 
@@ -1595,18 +1598,7 @@ const webhookV2AndV3Diff = computed(() => {
                           tabSize: 4,
                           readOnly: true,
                         }"
-                        :monaco-custom-theme="{
-                          base: 'vs',
-                          inherit: true,
-                          rules: [
-                            { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
-                            { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
-                            { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
-                            { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
-                            { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
-                          ],
-                          colors: {},
-                        }"
+                        :monaco-custom-theme="isDark ? jsonThemeDark : jsonThemeLight"
                         class="transition-all border-1 rounded-lg"
                         style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
                         :class="{

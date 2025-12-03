@@ -842,12 +842,7 @@ const toggleIncludeUser = async () => {
                             />
                           </template>
                           <template #fallback>
-                            <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-                              <div class="text-center">
-                                <a-spin size="large" />
-                                <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-                              </div>
-                            </div>
+                            <MonacoLoading class="min-h-60 max-h-80 w-full rounded-lg" />
                           </template>
                         </Suspense>
                       </div>
@@ -1031,12 +1026,7 @@ const toggleIncludeUser = async () => {
                     />
                   </template>
                   <template #fallback>
-                    <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-                      <div class="text-center">
-                        <a-spin size="large" />
-                        <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-                      </div>
-                    </div>
+                    <MonacoLoading class="min-h-60 max-h-80 w-full" />
                   </template>
                 </Suspense>
               </div>

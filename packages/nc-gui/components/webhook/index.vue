@@ -1095,12 +1095,7 @@ const webhookV2AndV3Diff = computed(() => {
                     />
                   </template>
                   <template #fallback>
-                    <div class="min-h-50 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-                      <div class="text-center">
-                        <a-spin size="large" />
-                        <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-                      </div>
-                    </div>
+                    <MonacoLoading class="flex-1 min-h-50 w-full" />
                   </template>
                 </Suspense>
               </div>
@@ -1456,12 +1451,7 @@ const webhookV2AndV3Diff = computed(() => {
                             />
                           </template>
                           <template #fallback>
-                            <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-                              <div class="text-center">
-                                <a-spin size="large" />
-                                <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-                              </div>
-                            </div>
+                            <MonacoLoading class="min-h-60 max-h-80 !rounded-lg w-full" />
                           </template>
                         </Suspense>
                       </div>
@@ -1626,12 +1616,7 @@ const webhookV2AndV3Diff = computed(() => {
                       />
                     </template>
                     <template #fallback>
-                      <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-                        <div class="text-center">
-                          <a-spin size="large" />
-                          <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-                        </div>
-                      </div>
+                      <MonacoLoading class="min-h-60 max-h-80 w-full" />
                     </template>
                   </Suspense>
                 </div>

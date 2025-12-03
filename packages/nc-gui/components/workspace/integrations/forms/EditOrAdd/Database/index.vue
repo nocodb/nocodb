@@ -1198,14 +1198,7 @@ watch(
                             <MonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
                           </template>
                           <template #fallback>
-                            <div
-                              class="h-[400px] w-full flex items-center justify-center bg-nc-bg-gray-extralight dark:bg-gray-900"
-                            >
-                              <div class="text-center">
-                                <a-spin size="large" />
-                                <div class="mt-4 text-nc-content-gray-subtle2 dark:text-gray-400">Loading Monaco Editor...</div>
-                              </div>
-                            </div>
+                            <MonacoLoading class="h-[400px] w-full" />
                           </template>
                         </Suspense>
                       </div>

@@ -285,12 +285,7 @@ watch(isDark, async () => {
 <template>
   <div class="relative h-full w-full flex flex-col">
     <!-- Loading State -->
-    <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center bg-nc-bg-gray-extralight">
-      <div class="text-center">
-        <a-spin size="large" />
-        <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-      </div>
-    </div>
+    <MonacoLoading v-if="isLoading" class="absolute inset-0" />
 
     <!-- Error State -->
     <div v-else-if="loadError" class="absolute inset-0 flex items-center justify-center bg-nc-red-50">

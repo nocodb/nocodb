@@ -994,13 +994,9 @@ watch(
                         @update:model-value="handleJsonChange($event)"
                       />
                     </template>
+
                     <template #fallback>
-                      <div class="!h-full w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-                        <div class="text-center">
-                          <a-spin size="large" />
-                          <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-                        </div>
-                      </div>
+                      <MonacoLoading class="!h-full min-h-30" />
                     </template>
                   </Suspense>
                 </div>

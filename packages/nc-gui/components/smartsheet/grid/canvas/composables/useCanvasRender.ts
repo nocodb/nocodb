@@ -192,7 +192,7 @@ export function useCanvasRender({
   const isLocked = inject(IsLockedInj, ref(false))
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { getColor, isDark } = useTheme()
+  const { getColor } = useTheme()
 
   const { isRowColouringEnabled } = useViewRowColorRender()
 

@@ -322,12 +322,7 @@ const supportedDocs = [
               />
             </template>
             <template #fallback>
-              <div class="h-[calc(100%_-_36px)] w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-                <div class="text-center">
-                  <a-spin size="large" />
-                  <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-                </div>
-              </div>
+              <MonacoLoading class="h-[calc(100%_-_36px)] w-full" />
             </template>
           </Suspense>
         </div>

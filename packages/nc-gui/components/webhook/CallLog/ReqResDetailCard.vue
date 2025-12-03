@@ -117,12 +117,7 @@ const formattedPayload = computed(() => {
             />
           </template>
           <template #fallback>
-            <div class="min-h-50 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-              <div class="text-center">
-                <a-spin size="large" />
-                <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-              </div>
-            </div>
+            <MonacoLoading class="min-h-50 min-w-full w-full flex-1" />
           </template>
         </Suspense>
       </div>

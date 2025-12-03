@@ -375,8 +375,8 @@ const deleteDashboard = () => {
             <template #default>
               <GeneralIcon
                 icon="dashboards"
-                :class="activeDashboardId === vModel.id ? '!text-nc-brand-600 opacity-85' : '!text-nc-gray-600 opacity-75'"
-                class="w-4 text-nc-content-gray-subtle !text-[16px]"
+                :class="activeDashboardId === vModel.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
+                class="nc-dashboard-icon w-4 text-nc-content-gray-subtle !text-[16px]"
               />
             </template>
           </LazyGeneralEmojiPicker>

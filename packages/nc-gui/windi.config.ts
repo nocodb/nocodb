@@ -150,21 +150,29 @@ export default defineConfig({
         950: 850,
       },
       textColor: {
-        primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',
-        accent: 'rgba(var(--color-accent), var(--tw-text-opacity))',
+        ...ncBuildColorsWithOpacity({
+          primary: '--color-primary',
+          accent: '--color-accent',
+        }),
       },
       borderColor: {
-        primary: 'rgba(51, 102, 255, 1)',
-        accent: 'rgba(var(--color-accent), var(--tw-border-opacity))',
-        error: 'var(--ant-error-color)',
+        ...ncBuildColorsWithOpacity({
+          primary: '--rgb-color-brand-500',
+          accent: '--color-accent',
+          error: '--ant-error-color',
+        }),
       },
       backgroundColor: {
-        primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
-        accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
+        ...ncBuildColorsWithOpacity({
+          primary: '--color-primary',
+          accent: '--color-accent',
+        }),
       },
       ringColor: {
-        primary: 'rgba(var(--color-primary), var(--tw-ring-opacity))',
-        accent: 'rgba(var(--color-accent), var(--tw-ring-opacity))',
+        ...ncBuildColorsWithOpacity({
+          primary: '--color-primary',
+          accent: '--color-accent',
+        }),
       },
       boxShadow: {
         'default': '0px 0px 4px 0px rgba(var(--rgb-base), 0.08)',

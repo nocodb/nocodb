@@ -433,15 +433,15 @@ const enabledOptions = computed(() => {
                       {{ $t('general.changeIcon') }}
                     </template>
 
-                    <component :is="iconMap.ncZap" v-if="table?.synced" class="w-4 text-sm !text-nc-gray-600 opacity-75" />
+                    <component :is="iconMap.ncZap" v-if="table?.synced" class="nc-table-icon w-4 text-sm !text-nc-gray-600/75" />
 
                     <component
                       :is="iconMap.table"
                       v-else-if="table.type === 'table'"
-                      class="w-4 text-sm !text-nc-gray-600 opacity-75"
+                      class="nc-table-icon w-4 text-sm !text-nc-gray-600/75"
                     />
 
-                    <MdiEye v-else class="flex w-5 text-sm !text-nc-gray-600 opacity-75" />
+                    <MdiEye v-else class="nc-table-iconflex w-5 text-sm !text-nc-gray-600/75" />
                   </NcTooltip>
                 </template>
               </LazyGeneralEmojiPicker>
@@ -658,8 +658,10 @@ const enabledOptions = computed(() => {
 }
 
 .nc-tree-item svg {
-  &:not(.nc-info-icon) {
-    @apply text-primary text-opacity-60;
+  &:not(.nc-info-icon):not(.nc-table-icon):not(.nc-view-icon):not(.nc-script-icon):not(.nc-dashboard-icon):not(
+      .nc-workflow-icon
+    ) {
+    @apply text-primary/60;
   }
 }
 

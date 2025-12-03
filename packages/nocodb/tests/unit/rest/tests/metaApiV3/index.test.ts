@@ -6,6 +6,7 @@ import columnTestV3 from './column.test';
 import baseUsersTestV3 from './baseUsers.test';
 import errorHandlingMetaTestsV3 from './error-handling/index.test';
 import workspaceUsersTest from './workspaceUsers.test';
+import scriptsTestV3 from './scripts.test';
 // import teamPermissionsTestV3 from './team-permissions.test';
 // import teamPermissionBehaviorTestV3 from './team-permission-behavior.test';
 // import teamsTestV3 from './teams.test';
@@ -20,6 +21,7 @@ export default runOnSet(2, function () {
   columnTestV3();
   errorHandlingMetaTestsV3();
   workspaceUsersTest();
+  scriptsTestV3();
   // teamPermissionsTestV3();
   // teamPermissionBehaviorTestV3();
   // teamsTestV3();

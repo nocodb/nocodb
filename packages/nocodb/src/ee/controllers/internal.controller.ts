@@ -113,7 +113,7 @@ export class InternalController extends InternalControllerCE {
       case 'readSync':
         return await this.syncService.readSync(context, req.query.id);
       case 'listScripts':
-        return await this.scriptsService.listScripts(context, baseId);
+        return await this.scriptsService.listScripts(context);
       case 'getScript':
         return await this.scriptsService.getScript(context, req.query.id);
       case 'baseSchema':
@@ -324,12 +324,7 @@ export class InternalController extends InternalControllerCE {
         );
 
       case 'createScript':
-        return await this.scriptsService.createScript(
-          context,
-          baseId,
-          payload,
-          req,
-        );
+        return await this.scriptsService.createScript(context, payload, req);
 
       case 'updateScript':
         return await this.scriptsService.updateScript(

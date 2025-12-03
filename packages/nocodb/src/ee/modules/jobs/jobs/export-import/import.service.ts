@@ -81,12 +81,7 @@ export class ImportService extends ImportServiceCE {
   ) {
     if (!param.data?.length) return;
     for (const script of param.data) {
-      await this.scriptsService.createScript(
-        context,
-        context.base_id,
-        script,
-        param.req,
-      );
+      await this.scriptsService.createScript(context, script, param.req);
     }
   }
 

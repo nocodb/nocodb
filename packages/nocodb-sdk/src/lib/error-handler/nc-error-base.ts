@@ -912,4 +912,11 @@ export class NcErrorBase {
       }
     );
   }
+
+  scriptNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SCRIPT_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
 }

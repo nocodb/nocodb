@@ -17,15 +17,15 @@ import { checkLimit } from '~/helpers/paymentHelpers';
 export class ScriptsService {
   constructor(protected readonly appHooksService: AppHooksService) {}
 
-  async listScripts(context: NcContext, baseId: string) {
-    return await Script.list(context, baseId);
+  async listScripts(context: NcContext) {
+    return await Script.list(context, context.base_id);
   }
 
   async getScript(context: NcContext, scriptId: string) {
     const script = await Script.get(context, scriptId);
 
     if (!script) {
-      return NcError.notFound('Script not found');
+      return NcError.get(context).scriptNotFound(scriptId);
     }
 
     return script;
@@ -33,7 +33,6 @@ export class ScriptsService {
 
   async createScript(
     context: NcContext,
-    baseId: string,
     scriptBody: Partial<ScriptType>,
     req: NcRequest,
   ) {
@@ -48,7 +47,7 @@ export class ScriptsService {
 
     scriptBody.title = scriptBody.title?.trim();
 
-    const script = await Script.insert(context, baseId, {
+    const script = await Script.insert(context, context.base_id, {
       ...scriptBody,
       created_by: req.user.id,
     });
@@ -85,7 +84,7 @@ export class ScriptsService {
     const script = await Script.get(context, scriptId);
 
     if (!script) {
-      return NcError.notFound('Script not found');
+      return NcError.get(context).scriptNotFound(scriptId);
     }
 
     body.title = body.title?.trim();
@@ -120,7 +119,7 @@ export class ScriptsService {
     const script = await Script.get(context, scriptId);
 
     if (!script) {
-      return NcError.notFound('Script not found');
+      return NcError.get(context).scriptNotFound(scriptId);
     }
 
     const buttonCols = await ButtonColumn.buttonUsages(context, scriptId);
@@ -163,7 +162,7 @@ export class ScriptsService {
     const script = await Script.get(context, scriptId);
 
     if (!script) {
-      return NcError.notFound('Script not found');
+      return NcError.get(context).scriptNotFound(scriptId);
     }
 
     await checkLimit({

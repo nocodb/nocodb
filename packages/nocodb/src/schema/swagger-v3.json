@@ -3186,6 +3186,259 @@
         }
       }
     },
+    "/api/v3/meta/bases/{baseId}/scripts": {
+      "get": {
+        "summary": "List Scripts",
+        "description": "Retrieve a list of scripts associated with a specific base.",
+        "operationId": "scripts-list",
+        "tags": [
+          "Scripts"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of scripts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptList"
+                },
+                "examples": {
+                  "scriptList": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "string",
+                          "title": "string",
+                          "description": "string",
+                          "base_id": "string",
+                          "workspace_id": "string"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create script",
+        "description": "Create a new script within the specified base by providing the required script details in the request body.",
+        "operationId": "script-create",
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "tags": [
+          "Scripts"
+        ],
+        "requestBody": {
+          "required": true,
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ScriptCreateReq"
+            },
+            "examples": {
+              "Example 1": {
+                "value": {
+                  "title": "Sample Script",
+                  "description": "Sample Description",
+                  "script": "Sample Script",
+                  "config": {},
+                  "meta": {}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Script created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptGetResponse"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "screjw3n23233lk3",
+                      "title": "This is Script Title",
+                      "description": "Hello Script",
+                      "script": "output.inspect(base)",
+                      "config": {},
+                      "meta": {},
+                      "base_id":  "bas3jh4h43k4j3d",
+                      "workspace_id": "ws3n3e3nf",
+                      "created_at":  "2025-01-16 06:04:18+00:00",
+                      "updated_at": "2025-01-16 06:04:18+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseID}/scripts/{scriptId}": {
+      "get": {
+        "summary": "Get Script Info",
+        "description": "Retrieve the details of a specific script.",
+        "operationId": "script-read",
+        "tags": ["Scripts"],
+        "parameters": [
+          {
+            "name": "scriptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the script."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Script retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptGetResponse"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "screjw3n23233lk3",
+                      "title": "This is Script Title",
+                      "description": "Hello Script",
+                      "script": "output.inspect(base)",
+                      "config": {},
+                      "meta": {},
+                      "base_id":  "bas3jh4h43k4j3d",
+                      "workspace_id": "ws3n3e3nf",
+                      "created_at":  "2025-01-16 06:04:18+00:00",
+                      "updated_at": "2025-01-16 06:04:18+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update script",
+        "description": "Update the script",
+        "operationId": "script-update",
+        "tags": ["Scripts"],
+        "parameters": [
+          {
+            "name": "scriptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the script."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ScriptUpdateReq"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Script updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptGetResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete script",
+        "description": "Delete the script",
+        "operationId": "script-delete",
+        "tags": ["Scripts"],
+        "parameters": [
+          {
+            "name": "scriptId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the script."
+          },
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Script deleted."
+          }
+        }
+      }
+    },
     "/api/v3/data/{baseId}/{tableId}/records": {
       "parameters": [
         {
@@ -9608,6 +9861,155 @@
         "required": [
           "teams"
         ]
+      },
+      "ScriptList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the script."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the script."
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Description of the script."
+                },
+                "base_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the base to which this script belongs to."
+                },
+                "workspace_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the workspace to which this base belongs to."
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "base_id",
+                "workspace_id"
+              ]
+            }
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
+      "ScriptCreateReq": {
+        "description": "Script create request body",
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the script."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the script."
+          },
+          "script": {
+            "type": "string",
+            "description": "Script content."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the script."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Icon for the script."
+          }
+        }
+      },
+      "ScriptUpdateReq": {
+        "description": "Script update request body",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the script."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the script."
+          },
+          "script": {
+            "type": "string",
+            "description": "Script content."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the script."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Icon for the script."
+          }
+        }
+      },
+      "ScriptGetResponse": {
+        "description": "Script with additional info",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the script"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the script."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the script."
+          },
+          "script": {
+            "type": "string",
+            "description": "Script content."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the script."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Icon for the script."
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Unique identifier for the base"
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the script was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the script was last updated"
+          }
+        }
       }
     },
     "responses": {

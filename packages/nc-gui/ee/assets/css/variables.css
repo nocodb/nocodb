@@ -392,6 +392,15 @@
   --enterprise-plan-bg-dark: var(--color-orange-100, #fee6d6);
   --enterprise-plan-border: var(--color-orange-200, #fdcdad);
   --enterprise-plan-chart-fill-color: var(--color-orange-700, #c86827);
+
+  /* View icon colors  */
+  --color-view-icon-grid: #36bfff;
+  --color-view-icon-form: #7d26cd;
+  --color-view-icon-calendar: #b33771;
+  --color-view-icon-gallery: #fc3ac6;
+  --color-view-icon-map: blue;
+  --color-view-icon-kanban: #ff9052;
+  --color-view-icon-view: blue;
 }
 
 /* Refrence tokens - Dark test */
@@ -758,6 +767,15 @@
   --enterprise-plan-bg-dark: #160e08;
   --enterprise-plan-border: #70492c;
   --enterprise-plan-chart-fill-color: #e28e4c;
+
+  /* View icon colors  */
+  --color-view-icon-grid: #5fccff;
+  --color-view-icon-form: #a35bff;
+  --color-view-icon-calendar: #ff5a9d;
+  --color-view-icon-gallery: #ff66da;
+  --color-view-icon-map: #6ab5ff;
+  --color-view-icon-kanban: #ffad70;
+  --color-view-icon-view: #6ab5ff;
 }
 
 /* Refrence tokens - Dark */

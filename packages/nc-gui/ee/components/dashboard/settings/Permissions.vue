@@ -66,10 +66,6 @@ const tables = computed(() => {
     })
 })
 
-watchEffect(() => {
-  console.log('tables', enabledSources.value, tables.value)
-})
-
 const columns = [
   {
     key: 'name',

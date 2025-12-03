@@ -10,15 +10,10 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import jwt from 'jsonwebtoken';
 import { NcError } from '~/helpers/ncError';
-import Installation, {
-  InstallationStatus,
-  LicenseType,
-} from '~/models/Installation';
+import Installation from '~/models/Installation';
 import Noco from '~/Noco';
-import {
-  LICENSE_CONFIG,
-  LICENSE_SERVER_OLD_PUBLIC_KEY,
-} from '~/constants/license.constants';
+import { LICENSE_CONFIG, LICENSE_SERVER_OLD_PUBLIC_KEY } from '~/utils/license';
+import { InstallationStatus, LicenseType } from '~/utils/license';
 
 // Request envelope types
 enum AgentRequestType {

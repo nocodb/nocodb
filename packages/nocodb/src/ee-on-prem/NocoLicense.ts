@@ -5,13 +5,13 @@ import { NON_SEAT_ROLES, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { getArrayAggExpression } from '~/helpers/dbHelpers';
-import { InstallationStatus } from '~/models/Installation';
 import {
+  InstallationStatus,
   LICENSE_CONFIG,
   LICENSE_ENV_VARS,
   LICENSE_SERVER_PUBLIC_KEY,
-} from '~/constants/license.constants';
-import { validateClientLicenseEnvironment } from '~/utils/license-env-validator';
+} from '~/utils/license';
+import { validateClientLicenseEnvironment } from '~/utils/license';
 
 const LICENSE_SERVER_URL =
   process.env[LICENSE_ENV_VARS.LICENSE_SERVER_URL] || 'http://localhost:8080';

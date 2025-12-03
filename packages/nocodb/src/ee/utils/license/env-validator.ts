@@ -1,4 +1,4 @@
-import { LICENSE_ENV_VARS } from '~/constants/license.constants';
+import { LICENSE_ENV_VARS } from './constants';
 
 /**
  * Error thrown when required environment variables are missing

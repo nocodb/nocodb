@@ -1,4 +1,9 @@
-import type { NcContext, NcRequest, NodeExecutionResult } from 'nocodb-sdk';
+import type {
+  DependencyTableType,
+  NcContext,
+  NcRequest,
+  NodeExecutionResult,
+} from 'nocodb-sdk';
 import type { TestConnectionResponse } from '@noco-local-integrations/core';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type {
@@ -109,6 +114,13 @@ export type InternalPOSTResponseType = Promise<
   | WorkspaceTeamV3ResponseType
   | WorkspaceTeamV3ResponseType[]
   | NodeExecutionResult
+  | {
+      hasBreakingChanges: boolean;
+      entities: {
+        type: DependencyTableType;
+        entity: Dashboard | Workflow;
+      }[];
+    }
 >;
 
 export interface InternalApiModule<

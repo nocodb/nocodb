@@ -1,12 +1,8 @@
+import { DependencyTableType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import {
-  dependencySlotMapper,
-  DependencyTableType,
-} from '~/helpers/DependencySlotMapper';
-
-export { DependencyTableType } from '~/helpers/DependencySlotMapper';
+import { dependencySlotMapper } from '~/helpers/DependencySlotMapper';
 
 export interface DependencyTrackerType {
   id?: string;

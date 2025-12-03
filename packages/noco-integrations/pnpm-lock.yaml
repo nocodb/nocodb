@@ -665,6 +665,22 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/slack-workflow-node:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@slack/web-api':
+        specifier: ^7.11.0
+        version: 7.13.0
+    devDependencies:
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/zendesk-auth:
     dependencies:
       '@noco-integrations/core':

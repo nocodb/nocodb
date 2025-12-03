@@ -6,6 +6,7 @@ import {
 } from '@noco-integrations/core';
 import { AxiosError } from 'axios';
 import { BambooHRFormatter } from './formatter';
+import type { JobInfoRecord } from './types/job-info.record';
 import type { CompensationRecord } from './types/compensation.record';
 import type { BambooHRAuthIntegration } from '@noco-integrations/bamboohr-auth';
 import type { SyncLinkValue, SyncRecord } from '@noco-integrations/core';
@@ -25,6 +26,11 @@ interface EmployeeChanged {
 interface CompensationTableChanged {
   table: string;
   employees: Record<string, CompensationRecord>;
+}
+
+interface JobInfoTableChanged {
+  table: string;
+  employees: Record<string, JobInfoRecord>;
 }
 
 const employeeFetchFields = [
@@ -89,27 +95,6 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
     // Simplified data fetching for BambooHR employees
     void (async () => {
       try {
-        const employmentIncrementalValue =
-          targetTableIncrementalValues?.[TARGET_TABLES.HRIS_EMPLOYMENT];
-
-        const employmentFetchAfter = employmentIncrementalValue
-          ? new Date(employmentIncrementalValue).toISOString()
-          : '2000-01-01T00:00:00Z';
-        let compensationChange: CompensationTableChanged = {
-          employees: {},
-          table: '',
-        };
-        if (args.targetTables?.includes(TARGET_TABLES.HRIS_EMPLOYMENT)) {
-          // we get employment table first so when employee is looped, we can get the reference
-          compensationChange = (
-            await auth.use(async (client) => {
-              return await client.get(
-                `/employees/changed/tables/compensation?since=${employmentFetchAfter}`,
-              );
-            })
-          ).data as CompensationTableChanged;
-        }
-
         const employeeIncrementalValue =
           targetTableIncrementalValues?.[TARGET_TABLES.HRIS_EMPLOYEE];
 
@@ -118,7 +103,7 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
           : '2000-01-01T00:00:00Z';
 
         let employeeChange: EmployeeChanged = { employees: {}, latest: '' };
-        const employmentHistoryStatusMap = new Map<string, string>();
+        const employeeDetailCacheMap = new Map<string, any>();
         if (args.targetTables?.includes(TARGET_TABLES.HRIS_EMPLOYEE)) {
           this.log(
             `[BambooHR Sync] Fetching employees for company ${auth.config.companyDomain}`,
@@ -166,10 +151,7 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
                   auth.config.companyDomain,
                 ),
               });
-              employmentHistoryStatusMap.set(
-                employeeDetail.id,
-                employeeDetail.employmentHistoryStatus,
-              );
+              employeeDetailCacheMap.set(employeeDetail.id, employeeDetail);
             } catch (ex) {
               if (ex instanceof AxiosError) {
                 if (ex.response?.status === 404) {
@@ -185,29 +167,58 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
           }
         }
 
+        const employmentIncrementalValue =
+          targetTableIncrementalValues?.[TARGET_TABLES.HRIS_EMPLOYMENT];
+
+        const employmentFetchAfter = employmentIncrementalValue
+          ? new Date(employmentIncrementalValue).toISOString()
+          : '2000-01-01T00:00:00Z';
+        let compensationChange: CompensationTableChanged = {
+          employees: {},
+          table: '',
+        };
+        let jobInfoChange: JobInfoTableChanged = {
+          employees: {},
+          table: '',
+        };
+        if (args.targetTables?.includes(TARGET_TABLES.HRIS_EMPLOYMENT)) {
+          // we get employment table first so when employee is looped, we can get the reference
+          compensationChange = (
+            await auth.use(async (client) => {
+              return await client.get(
+                `/employees/changed/tables/compensation?since=${employmentFetchAfter}`,
+              );
+            })
+          ).data as CompensationTableChanged;
+          jobInfoChange = (
+            await auth.use(async (client) => {
+              return await client.get(
+                `/employees/changed/tables/jobInfo?since=${employmentFetchAfter}`,
+              );
+            })
+          ).data as JobInfoTableChanged;
+        }
         // we map the id to be included in array data
-        const compensationChangeRows = Object.entries(
-          compensationChange.employees,
-        ).map(([id, compensation]) => {
-          return {
-            id,
-            ...compensation,
-          };
-        });
-        for (const compensation of compensationChangeRows.sort((a, b) =>
+        const jobInfoChangeRows = Object.entries(jobInfoChange.employees).map(
+          ([id, jobInfo]) => {
+            return {
+              employeeId: id,
+              ...jobInfo,
+            };
+          },
+        );
+        for (const jobInfo of jobInfoChangeRows.sort((a, b) =>
           a.lastChanged.localeCompare(b.lastChanged),
         )) {
-          let employmentHistoryStatus: string = '';
-          if (!employmentHistoryStatusMap.has(compensation.id)) {
+          let employeeDetail: any = {};
+          if (!employeeDetailCacheMap.has(jobInfo.employeeId)) {
             try {
-              const { data: employeeDetail } = await auth.use(
-                async (client) => {
-                  return await client.get(
-                    `/employees/${compensation.id}?fields=employmentHistoryStatus`,
-                  );
-                },
-              );
-              employmentHistoryStatus = employeeDetail.employmentHistoryStatus;
+              const { data } = await auth.use(async (client) => {
+                return await client.get(
+                  `/employees/${jobInfo.employeeId}?fields=employmentHistoryStatus`,
+                );
+              });
+              employeeDetail = data;
             } catch (ex) {
               if (ex instanceof AxiosError) {
                 if (ex.response?.status === 404) {
@@ -221,20 +232,17 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
               }
             }
           } else {
-            employmentHistoryStatus =
-              employmentHistoryStatusMap.get(compensation.id) ?? '';
+            employeeDetail = employeeDetailCacheMap.get(jobInfo.employeeId);
           }
 
-          stream.push({
-            recordId: `${compensation.id}`,
-            targetTable: TARGET_TABLES.HRIS_EMPLOYMENT,
-            data: {
-              'Employment Type': employmentHistoryStatus,
-              RemoteUpdatedAt: compensation.lastChanged,
-              RemoteRaw: JSON.stringify(compensation),
-            } as SyncRecord,
-            links: [{}],
-          });
+          stream.push(
+            this.formatter.formatEmployment({
+              employee: employeeDetail,
+              compensation: {},
+              jobInfo: jobInfo,
+              namespace: auth.config.companyDomain,
+            }),
+          );
         }
 
         stream.push(null);

@@ -1,5 +1,5 @@
 export interface CompensationRecord {
-  id?: string;
+  employeeId?: string;
   lastChanged: string;
   rows: {
     startDate: string;
@@ -12,18 +12,4 @@ export interface CompensationRecord {
     paySchedule: string;
     overtimeRate: string;
   }[];
-}
-
-export interface JobInfoRecord {
-  id?: string;
-  lastChanged: string;
-  rows: {
-    date: string;
-    location: string;
-    department: 'Human Resources';
-    division: 'North America';
-    jobTitle: 'Associate HR Administrator';
-    reportsTo: 'Jennifer Caldwell';
-    teams: null;
-  };
 }

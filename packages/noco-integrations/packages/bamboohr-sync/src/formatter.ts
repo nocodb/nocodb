@@ -1,4 +1,5 @@
 import { TARGET_TABLES } from '@noco-integrations/core';
+import type { JobInfoRecord } from './types/job-info.record';
 import type { CompensationRecord } from './types/compensation.record';
 import type { SyncLinkValue, SyncRecord } from '@noco-integrations/core';
 
@@ -81,12 +82,15 @@ export class BambooHRFormatter {
     namespace,
   }: {
     employee: any;
-    jobInfo: any;
+    jobInfo: JobInfoRecord;
     compensation: CompensationRecord;
     namespace: string;
   }) {
     const latestCompensation = compensation.rows.sort((a, b) =>
       b.startDate.localeCompare(a.startDate),
+    )[0];
+    const latestJobInfo = jobInfo.rows.sort((a, b) =>
+      b.date.localeCompare(a.date),
     )[0];
 
     const result = {
@@ -94,7 +98,7 @@ export class BambooHRFormatter {
       targetTable: TARGET_TABLES.HRIS_EMPLOYMENT,
       data: {
         'Employment Type': employee.employmentHistoryStatus,
-        'Job Title': jobInfo.jobTitle,
+        'Job Title': latestJobInfo.jobTitle,
         'Pay Rate': latestCompensation.rate.split(' ')[0],
         'Pay Period': '',
         'Pay Frequency': latestCompensation.paidPer,
@@ -107,7 +111,7 @@ export class BambooHRFormatter {
         RemoteNamespace: namespace,
       },
       links: {
-        'Home of Employee': [employee.id],
+        Employee: [employee.id],
       },
     } as { data: SyncRecord; links: Record<string, SyncLinkValue> };
     return result;

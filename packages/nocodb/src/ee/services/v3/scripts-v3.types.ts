@@ -15,8 +15,8 @@ export type ScriptV3GetResponseType = {
   base_id: string;
   workspace_id: string;
   script: string;
-  config: any;
-  meta: any;
+  config: Record<string, unknown>;
+  meta: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 };

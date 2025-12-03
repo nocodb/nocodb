@@ -11,7 +11,7 @@ interface CreateScriptArgs {
 }
 
 export default function () {
-  describe.only(`Scripts v3`, () => {
+  describe(`Scripts v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let API_PREFIX: string;

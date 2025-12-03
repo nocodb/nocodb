@@ -3186,7 +3186,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{baseId}/scripts": {
+    "/api/v3/meta/bases/{base_id}/scripts": {
       "get": {
         "summary": "List Scripts",
         "description": "Retrieve a list of scripts associated with a specific base.",
@@ -3196,7 +3196,7 @@
         ],
         "parameters": [
           {
-            "name": "baseId",
+            "name": "base_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -3306,7 +3306,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{baseID}/scripts/{scriptId}": {
+    "/api/v3/meta/bases/{base_id}/scripts/{script_id}": {
       "get": {
         "summary": "Get Script Info",
         "description": "Retrieve the details of a specific script.",
@@ -3314,7 +3314,7 @@
         "tags": ["Scripts"],
         "parameters": [
           {
-            "name": "scriptId",
+            "name": "script_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -3323,7 +3323,7 @@
             "description": "Unique identifier for the script."
           },
           {
-            "name": "baseId",
+            "name": "base_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -3368,7 +3368,7 @@
         "tags": ["Scripts"],
         "parameters": [
           {
-            "name": "scriptId",
+            "name": "script_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -3377,7 +3377,7 @@
             "description": "Unique identifier for the script."
           },
           {
-            "name": "baseId",
+            "name": "base_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -3414,7 +3414,7 @@
         "tags": ["Scripts"],
         "parameters": [
           {
-            "name": "scriptId",
+            "name": "script_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -3423,7 +3423,7 @@
             "description": "Unique identifier for the script."
           },
           {
-            "name": "baseId",
+            "name": "base_id",
             "in": "path",
             "required": true,
             "schema": {
@@ -9930,7 +9930,7 @@
           },
           "meta": {
             "type": "object",
-            "description": "Icon for the script."
+            "description": "Metadata for the script."
           }
         }
       },
@@ -9956,7 +9956,7 @@
           },
           "meta": {
             "type": "object",
-            "description": "Icon for the script."
+            "description": "Metadata for the script."
           }
         }
       },
@@ -9989,7 +9989,7 @@
           },
           "meta": {
             "type": "object",
-            "description": "Icon for the script."
+            "description": "Metadata of the script."
           },
           "base_id": {
             "type": "string",

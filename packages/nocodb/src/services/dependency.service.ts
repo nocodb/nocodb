@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { DependencyTableType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import DependencyTracker, {
-  DependencyTableType,
-} from '~/models/DependencyTracker';
+import DependencyTracker from '~/models/DependencyTracker';
 import { NcError } from '~/helpers/catchError';
 import { Dashboard, Widget, Workflow } from '~/models';
 import { processConcurrently } from '~/utils';
@@ -32,12 +31,6 @@ export class DependencyService {
       },
     );
 
-    const dependencies: any = {
-      hasBreakingChanges: breakingChanges.hasBreakingChanges,
-      dashboards: [],
-      workflows: [],
-    };
-
     const dashboardIds = new Set<string>();
     const workflowIds = new Set<string>();
 
@@ -61,9 +54,28 @@ export class DependencyService {
       ),
     ]);
 
-    dependencies.dashboards = dashboards.filter(Boolean);
-    dependencies.workflows = workflows.filter(Boolean);
+    const entities: Array<{
+      type: DependencyTableType;
+      entity: Dashboard | Workflow;
+    }> = [];
 
-    return dependencies;
+    for (const dashboard of dashboards.filter(Boolean)) {
+      entities.push({
+        type: DependencyTableType.Widget,
+        entity: dashboard,
+      });
+    }
+
+    for (const workflow of workflows.filter(Boolean)) {
+      entities.push({
+        type: DependencyTableType.Workflow,
+        entity: workflow,
+      });
+    }
+
+    return {
+      hasBreakingChanges: breakingChanges.hasBreakingChanges,
+      entities,
+    };
   }
 }

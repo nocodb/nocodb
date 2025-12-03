@@ -143,8 +143,7 @@ const onDelete = async () => {
         <NcDependencyList
           :status="status"
           :has-breaking-changes="dependency.hasBreakingChanges"
-          :workflows="dependency.workflows"
-          :dashboards="dependency.dashboards"
+          :entities="dependency.entities"
           action="delete"
           entity-type="table"
         />

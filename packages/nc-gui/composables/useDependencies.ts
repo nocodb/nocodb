@@ -1,4 +1,4 @@
-import type { DashboardType, WorkflowType } from 'nocodb-sdk'
+import type { DashboardType, DependencyTableType, WorkflowType } from 'nocodb-sdk'
 
 export function useDependencies() {
   const { api } = useApi()
@@ -11,12 +11,13 @@ export function useDependencies() {
 
   const dependency = ref<{
     hasBreakingChanges: boolean
-    dashboards: Array<DashboardType>
-    workflows: Array<WorkflowType>
+    entities: Array<{
+      type: DependencyTableType
+      entity: DashboardType | WorkflowType
+    }>
   }>({
     hasBreakingChanges: false,
-    dashboards: [],
-    workflows: [],
+    entities: [],
   })
 
   const checkDependency = async (entityType: DependencyTableType, entityId: string) => {

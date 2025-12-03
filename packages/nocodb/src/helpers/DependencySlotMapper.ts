@@ -1,3 +1,4 @@
+import { DependencyTableType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 
 export enum DependencySlotTypes {
@@ -6,14 +7,6 @@ export enum DependencySlotTypes {
   BOOLEAN = 'boolean',
   ARRAY = 'array',
   OBJECT = 'object',
-}
-
-export enum DependencyTableType {
-  Column = 'column',
-  Model = 'table',
-  View = 'view',
-  Widget = 'widget',
-  Workflow = 'workflow',
 }
 
 enum DependencyFields {

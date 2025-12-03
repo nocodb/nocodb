@@ -6,6 +6,11 @@ import { Auth } from 'aws-amplify'
 
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
 const { lastUsedAuthMethod } = useGlobal()
+const facade = useAuthenticator() as any
+const amplifyRoute = toRef(facade, 'route')
+const isSigninOrSignup = computed(() => {
+  return amplifyRoute.value === 'signIn' || amplifyRoute.value === 'signUp'
+})
 
 const services = {
   async validateCustomSignUp(formData) {
@@ -110,7 +115,6 @@ watch(emailVerifyDlg, (val) => {
 })
 
 const onForgotPasswordClicked = (): void => {
-  const facade = useAuthenticator() as any
   facade.toResetPassword()
 }
 </script>
@@ -119,9 +123,9 @@ const onForgotPasswordClicked = (): void => {
   <div
     class="py-10 flex justify-center min-h-screen overflow-auto"
     :class="{
-      'nc-last-used-auth-email': lastUsedAuthMethod === 'email',
-      'nc-last-used-auth-sso': lastUsedAuthMethod === 'sso',
-      'nc-last-used-auth-google': lastUsedAuthMethod === 'google',
+      'nc-last-used-auth-email': lastUsedAuthMethod === 'email' && isSigninOrSignup,
+      'nc-last-used-auth-sso': lastUsedAuthMethod === 'sso' && isSigninOrSignup,
+      'nc-last-used-auth-google': lastUsedAuthMethod === 'google' && isSigninOrSignup,
     }"
   >
     <Authenticator

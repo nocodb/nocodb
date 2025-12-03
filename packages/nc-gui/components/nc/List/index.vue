@@ -628,7 +628,7 @@ const handleEscape = (event: KeyboardEvent) => {
                       v-if="showSelectedOption && compareVModel(option[optionValueKey], option.ncGroupHeader)"
                       id="nc-selected-item-icon"
                       icon="check"
-                      class="flex-none text-primary w-4 h-4"
+                      class="flex-none text-nc-content-brand w-4 h-4"
                     />
                   </slot>
                 </slot>
@@ -652,7 +652,7 @@ const handleEscape = (event: KeyboardEvent) => {
 <style lang="scss" scoped>
 :deep(.nc-toolbar-dropdown-search-field-input) {
   .ant-input {
-    @apply placeholder-gray-500;
+    @apply placeholder-nc-content-gray-muted;
   }
 }
 </style>

@@ -432,6 +432,24 @@ async function onRename() {
 
   onCancel()
 }
+
+const enabledOptions = computed(() => {
+  return {
+    tableRename: isUIAllowed('tableRename', { roles: baseRole?.value, source: source.value }),
+    tableDescriptionEdit: isUIAllowed('tableDescriptionEdit', { roles: baseRole?.value, source: source.value }),
+    tableDuplicate:
+      isUIAllowed('tableDuplicate', {
+        source: source.value,
+      }) &&
+      (source.value?.is_meta || source.value?.is_local),
+    tablePermission:
+      isTableAndFieldPermissionsEnabled.value &&
+      isEeUI &&
+      table.value?.type === 'table' &&
+      isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }),
+    tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
+  }
+})
 </script>
 
 <template>
@@ -572,32 +590,18 @@ async function onRename() {
                   "
                 />
 
-                <NcMenuItem
-                  v-if="
-                    isUIAllowed('tableDescriptionEdit', { roles: baseRole, source }) &&
-                    !isUIAllowed('tableRename', { roles: baseRole, source })
-                  "
-                  :data-testid="`sidebar-table-description-${table.title}`"
-                  class="nc-table-description"
-                  @click="openTableDescriptionDialog(table)"
-                >
-                  <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
-                    <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
-                    <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
-                    {{ $t('labels.editTableDescription') }}
-                  </div>
-                </NcMenuItem>
-
                 <template
                   v-if="
                     !isSharedBase &&
-                    (isUIAllowed('tableRename', { roles: baseRole, source }) ||
-                      isUIAllowed('tableDelete', { roles: baseRole, source }))
+                    (enabledOptions.tableRename ||
+                      enabledOptions.tableDescriptionEdit ||
+                      enabledOptions.tableDuplicate ||
+                      enabledOptions.tablePermission)
                   "
                 >
-                  <NcDivider />
+                  <NcDivider v-if="enabledOptions.tableRename || enabledOptions.tableDuplicate" />
                   <NcMenuItem
-                    v-if="isUIAllowed('tableRename', { roles: baseRole, source })"
+                    v-if="enabledOptions.tableRename"
                     :data-testid="`sidebar-table-rename-${table.title}`"
                     class="nc-table-rename"
                     @click="onRenameMenuClick(table)"
@@ -609,12 +613,7 @@ async function onRename() {
                   </NcMenuItem>
 
                   <NcMenuItem
-                    v-if="
-                      isUIAllowed('tableDuplicate', {
-                        source,
-                      }) &&
-                      (source?.is_meta || source?.is_local)
-                    "
+                    v-if="enabledOptions.tableDuplicate"
                     :data-testid="`sidebar-table-duplicate-${table.title}`"
                     @click="duplicateTable(table)"
                   >
@@ -626,26 +625,18 @@ async function onRename() {
                   <NcDivider />
 
                   <NcMenuItem
-                    v-if="isUIAllowed('tableDescriptionEdit', { roles: baseRole, source })"
+                    v-if="enabledOptions.tableDescriptionEdit"
                     :data-testid="`sidebar-table-description-${table.title}`"
                     class="nc-table-description"
                     @click="openTableDescriptionDialog(table)"
                   >
                     <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
-                      <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
                       <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
                       {{ $t('labels.editTableDescription') }}
                     </div>
                   </NcMenuItem>
                   <PaymentUpgradeBadgeProvider
-                    v-if="
-                      isTableAndFieldPermissionsEnabled &&
-                      isEeUI &&
-                      isUIAllowed('tableDuplicate', {
-                        source,
-                      }) &&
-                      (source?.is_meta || source?.is_local)
-                    "
+                    v-if="enabledOptions.tablePermission"
                     :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
                   >
                     <template #default="{ click }">
@@ -682,6 +673,8 @@ async function onRename() {
                       </NcMenuItem>
                     </template>
                   </PaymentUpgradeBadgeProvider>
+                </template>
+                <template v-if="enabledOptions.tableDelete">
                   <NcDivider />
 
                   <NcMenuItem @click="onDuplicate">
@@ -696,7 +689,6 @@ async function onRename() {
 
                   <NcDivider />
                   <NcMenuItem
-                    v-if="isUIAllowed('tableDelete', { roles: baseRole, source })"
                     :data-testid="`sidebar-table-delete-${table.title}`"
                     class="nc-table-delete"
                     danger

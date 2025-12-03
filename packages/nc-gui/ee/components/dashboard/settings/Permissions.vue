@@ -49,9 +49,25 @@ const enabledSources = computed(() => {
 const tables = computed(() => {
   if (!base.value?.sources || !activeTables.value.length) return []
 
-  return activeTables.value.filter((table: any) => {
-    return !!enabledSources.value[table.source_id] && table.type === 'table'
-  })
+  return activeTables.value
+    .filter((table: any) => {
+      return !!enabledSources.value[table.source_id] && table.type === 'table'
+    })
+    .sort((a: any, b: any) => {
+      const sourceA = enabledSources.value[a.source_id]
+      const sourceB = enabledSources.value[b.source_id]
+
+      // 1 Sort by source.order first
+      const sourceOrderDiff = (sourceA?.order ?? 0) - (sourceB?.order ?? 0)
+      if (sourceOrderDiff !== 0) return sourceOrderDiff
+
+      // 2 If both tables are from same source, sort by table.order
+      return (a.order ?? 0) - (b.order ?? 0)
+    })
+})
+
+watchEffect(() => {
+  console.log('tables', enabledSources.value, tables.value)
 })
 
 const columns = [

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableType, SourceType } from 'nocodb-sdk'
+import type { SourceType, TableType } from 'nocodb-sdk'
 import { PermissionKey } from 'nocodb-sdk'
 
 interface Props {

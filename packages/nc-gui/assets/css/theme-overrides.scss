@@ -41,6 +41,48 @@ body {
   @apply bg-nc-bg-default text-nc-content-gray;
 }
 
+.ant-popover-inner,
+.ant-popover-arrow-content {
+  @apply bg-nc-bg-default;
+}
+
+.ant-dropdown-menu-item,
+.ant-dropdown-menu-submenu-title {
+  &:not(.ant-dropdown-menu-item-disabled):not(.dropdown-menu-submenu-title-disabled) {
+    color: rgba(var(--rgb-base), 0.85);
+
+    &:hover {
+      @apply bg-nc-bg-gray-light;
+    }
+  }
+}
+
+// ant select
+.ant-select-item-group {
+  @apply text-nc-content-gray-muted;
+}
+
+.ant-select-clear {
+  @apply rounded-full flex children:flex-none;
+}
+
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  @apply border-nc-border-gray-medium;
+}
+
+.ant-form,
+.ant-form-item,
+.ant-radio-wrapper,
+.ant-radio-group,
+.ant-list-item {
+  color: rgba(var(--rgb-base), 0.85);
+}
+
+.ant-list-empty-text,
+.ant-radio-disabled + span {
+  @apply text-nc-content-gray-muted;
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {

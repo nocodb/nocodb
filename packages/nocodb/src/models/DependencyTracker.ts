@@ -236,8 +236,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     ncMeta = Noco.ncMeta,
   ): Promise<{
     hasBreakingChanges: boolean;
-    affectedWidgets: string[];
-    affectedWorkflows: string[];
+    affected: Array<{ type: DependencyTableType; id: string }>;
     dependents: DependencyTrackerType[];
   }> {
     const dependents = await this.getDependentsBySource(
@@ -248,21 +247,18 @@ export default class DependencyTracker implements DependencyTrackerType {
       ncMeta,
     );
 
-    const widgets = new Set<string>();
-    const workflows = new Set<string>();
+    const affectedMap = new Map<string, DependencyTableType>();
 
     for (const dep of dependents) {
-      if (dep.dependent_type === DependencyTableType.Widget) {
-        widgets.add(dep.dependent_id);
-      } else if (dep.dependent_type === DependencyTableType.Workflow) {
-        workflows.add(dep.dependent_id);
-      }
+      affectedMap.set(dep.dependent_id, dep.dependent_type);
     }
 
     return {
       hasBreakingChanges: dependents.length > 0,
-      affectedWidgets: Array.from(widgets),
-      affectedWorkflows: Array.from(workflows),
+      affected: Array.from(affectedMap.entries()).map(([id, type]) => ({
+        type,
+        id,
+      })),
       dependents,
     };
   }
@@ -359,10 +355,12 @@ export default class DependencyTracker implements DependencyTrackerType {
     ncMeta = Noco.ncMeta,
   ): Promise<{
     hasBreakingChanges: boolean;
-    affectedWidgets: Array<{ id: string; depth: number; path: string[] }>;
-    affectedWorkflows: Array<{ id: string; depth: number; path: string[] }>;
-    affectedColumns: Array<{ id: string; depth: number; path: string[] }>;
-    affectedViews: Array<{ id: string; depth: number; path: string[] }>;
+    affected: Array<{
+      type: DependencyTableType;
+      id: string;
+      depth: number;
+      path: string[];
+    }>;
     totalAffected: number;
   }> {
     const transitiveDeps = await this.getTransitiveDependents(
@@ -373,60 +371,25 @@ export default class DependencyTracker implements DependencyTrackerType {
       ncMeta,
     );
 
-    const widgets = new Map<
+    const affectedMap = new Map<
       string,
-      { id: string; depth: number; path: string[] }
-    >();
-    const workflows = new Map<
-      string,
-      { id: string; depth: number; path: string[] }
-    >();
-    const columns = new Map<
-      string,
-      { id: string; depth: number; path: string[] }
-    >();
-    const views = new Map<
-      string,
-      { id: string; depth: number; path: string[] }
+      { type: DependencyTableType; id: string; depth: number; path: string[] }
     >();
 
     for (const dep of transitiveDeps) {
-      const info = {
-        id: dep.dependent_id,
-        depth: dep.depth,
-        path: dep.dependencyPath,
-      };
-
-      switch (dep.dependent_type) {
-        case DependencyTableType.Widget:
-          if (!widgets.has(dep.dependent_id)) {
-            widgets.set(dep.dependent_id, info);
-          }
-          break;
-        case DependencyTableType.Workflow:
-          if (!workflows.has(dep.dependent_id)) {
-            workflows.set(dep.dependent_id, info);
-          }
-          break;
-        case DependencyTableType.Column:
-          if (!columns.has(dep.dependent_id)) {
-            columns.set(dep.dependent_id, info);
-          }
-          break;
-        case DependencyTableType.View:
-          if (!views.has(dep.dependent_id)) {
-            views.set(dep.dependent_id, info);
-          }
-          break;
+      if (!affectedMap.has(dep.dependent_id)) {
+        affectedMap.set(dep.dependent_id, {
+          type: dep.dependent_type,
+          id: dep.dependent_id,
+          depth: dep.depth,
+          path: dep.dependencyPath,
+        });
       }
     }
 
     return {
       hasBreakingChanges: transitiveDeps.length > 0,
-      affectedWidgets: Array.from(widgets.values()),
-      affectedWorkflows: Array.from(workflows.values()),
-      affectedColumns: Array.from(columns.values()),
-      affectedViews: Array.from(views.values()),
+      affected: Array.from(affectedMap.values()),
       totalAffected: transitiveDeps.length,
     };
   }

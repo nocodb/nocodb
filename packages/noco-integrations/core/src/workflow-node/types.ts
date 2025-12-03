@@ -1,7 +1,7 @@
 import { IntegrationWrapper } from '../integration';
 import { AuthIntegration } from '../auth';
 import { NocoSDK } from '../sdk';
-import { IDataV3Service, ITablesService } from './nocodb.interface';
+import { IDataV3Service, ITablesService, IMailService } from './nocodb.interface';
 import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition } from 'nocodb-sdk'
 
 
@@ -68,6 +68,7 @@ export interface NocoDBContext {
   dataService: IDataV3Service;
   tablesService: ITablesService;
   user: NocoSDK.UserType;
+  mailService: IMailService;
 }
 
 export interface WorkflowNodeConfig {

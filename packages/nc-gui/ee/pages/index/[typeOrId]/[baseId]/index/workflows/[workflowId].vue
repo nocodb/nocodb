@@ -11,7 +11,7 @@ useProvideWorkflow(activeWorkflow)
 <template>
   <div class="flex flex-col h-full">
     <SmartsheetTopbar />
-    <div style="height: calc(100dvh - var(--topbar-height))">
+    <div style="height: calc(100svh - var(--topbar-height))">
       <SmartsheetWorkflow />
     </div>
   </div>

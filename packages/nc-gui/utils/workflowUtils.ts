@@ -1,4 +1,4 @@
-import type { Node } from '@vue-flow/core'
+import type { Edge, Node } from '@vue-flow/core'
 import type { WorkflowNodeDefinition } from 'nocodb-sdk'
 const generateUniqueNodeId = (nodes: Node[]): string => {
   let candidateId = crypto.randomUUID()
@@ -22,4 +22,36 @@ function transformNode(backendNode: WorkflowNodeDefinition) {
   }
 }
 
-export { generateUniqueNodeId, transformNode }
+/**
+ * Find all parent nodes (upstream nodes) for a given node
+ * @param nodeId - The node ID to find parents for
+ * @returns Set of parent node IDs in execution order
+ */
+const findAllParentNodes = (nodeId: string, edges: Edge[]): string[] => {
+  const parents: string[] = []
+  const visited = new Set<string>()
+
+  const traverse = (currentId: string) => {
+    if (visited.has(currentId)) return
+    visited.add(currentId)
+
+    // Find edges that point to this node
+    const parentEdges = edges.filter((edge) => edge.target === currentId)
+
+    for (const edge of parentEdges) {
+      if (edge.source && edge.source !== currentId) {
+        // First traverse to parents of this parent (to maintain execution order)
+        traverse(edge.source)
+        // Then add this parent
+        if (!parents.includes(edge.source)) {
+          parents.push(edge.source)
+        }
+      }
+    }
+  }
+
+  traverse(nodeId)
+  return parents
+}
+
+export { generateUniqueNodeId, transformNode, findAllParentNodes }

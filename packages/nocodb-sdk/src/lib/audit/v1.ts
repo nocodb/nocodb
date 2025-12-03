@@ -167,6 +167,12 @@ enum AuditV1OperationTypes {
   TEAM_MEMBER_ADD = 'TEAM_MEMBER_ADD',
   TEAM_MEMBER_UPDATE = 'TEAM_MEMBER_UPDATE',
   TEAM_MEMBER_DELETE = 'TEAM_MEMBER_DELETE',
+
+  WORKFLOW_CREATE = 'WORKFLOW_CREATE',
+  WORKFLOW_UPDATE = 'WORKFLOW_UPDATE',
+  WORKFLOW_DELETE = 'WORKFLOW_DELETE',
+
+  WORKFLOW_DUPLICATE = 'WORKFLOW_DUPLICATE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -314,6 +320,13 @@ export const auditV1OperationsCategory: Record<
     value: 'DASHBOARD',
     types: Object.values(AuditV1OperationTypes).filter(
       (key) => key.startsWith('DASHBOARD_') || key.startsWith('WIDGET_')
+    ),
+  },
+  WORKFLOW: {
+    label: 'objects.workflow',
+    value: 'WORKFLOW',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('WORKFLOW_')
     ),
   },
 };
@@ -1156,6 +1169,31 @@ export interface TeamMemberDeletePayload {
   base_title?: string;
 }
 
+export interface WorkflowCreatePayload {
+  workflow_title: string;
+  workflow_id: string;
+  workflow_description: string;
+}
+
+export interface WorkflowUpdatePayload extends UpdatePayload {
+  workflow_title: string;
+  workflow_id: string;
+  workflow_description: string;
+}
+
+export interface WorkflowDeletePayload {
+  workflow_title: string;
+  workflow_id: string;
+}
+
+export interface WorkflowDuplicatePayload {
+  duplicated_workflow_title: string;
+  duplicated_workflow_id: string;
+  source_workflow_title: string;
+  source_workflow_id: string;
+  error?: string;
+}
+
 export interface AuditV1<T = any> {
   // auto generated
   id?: string;
@@ -1369,6 +1407,19 @@ const descriptionTemplates = {
     audit: AuditV1<PermissionDeletePayload>
   ) =>
     `Permission '${audit.details.permission}' has been deleted for entity '${audit.details.entity}' with ID '${audit.details.entity_id}'`,
+  [AuditV1OperationTypes.WORKFLOW_CREATE]: (
+    audit: AuditV1<WorkflowCreatePayload>
+  ) => `Workflow '${audit.details.workflow_title}' has been created`,
+  [AuditV1OperationTypes.WORKFLOW_UPDATE]: (
+    audit: AuditV1<WorkflowUpdatePayload>
+  ) => `Workflow '${audit.details.workflow_title}' has been updated`,
+  [AuditV1OperationTypes.WORKFLOW_DELETE]: (
+    audit: AuditV1<WorkflowDeletePayload>
+  ) => `Workflow '${audit.details.workflow_title}' has been deleted`,
+  [AuditV1OperationTypes.WORKFLOW_DUPLICATE]: (
+    audit: AuditV1<WorkflowDuplicatePayload>
+  ) =>
+    `Workflow '${audit.details.duplicated_workflow_title}' has been duplicated`,
 };
 
 function auditDescription(audit: AuditV1) {

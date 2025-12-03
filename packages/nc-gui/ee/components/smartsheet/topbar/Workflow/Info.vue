@@ -119,6 +119,5 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
         </template>
       </SmartsheetTopbarWorkflowListDropdown>
     </template>
-    <SmartsheetTopbarWorkflowState />
   </div>
 </template>

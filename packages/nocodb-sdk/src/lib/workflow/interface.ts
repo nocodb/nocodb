@@ -101,6 +101,7 @@ interface WorkflowGeneralNode {
   data: {
     config: NodeConfig;
     title: string;
+    description?: string;
     testResult?: NodeExecutionResult;
     inputVariables?: VariableDefinition[];
     outputVariables?: VariableDefinition[];

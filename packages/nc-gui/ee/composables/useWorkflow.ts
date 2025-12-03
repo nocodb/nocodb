@@ -2,7 +2,7 @@ import type { WorkflowNodeCategoryType, WorkflowType } from 'nocodb-sdk'
 import { GENERAL_DEFAULT_NODES, GeneralNodeID, INIT_WORKFLOW_NODES } from 'nocodb-sdk'
 import type { Edge, Node } from '@vue-flow/core'
 import rfdc from 'rfdc'
-import { transformNode } from '~/utils/workflowUtils'
+import { findAllParentNodes, transformNode } from '~/utils/workflowUtils'
 
 const clone = rfdc()
 
@@ -17,17 +17,19 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { activeBaseNodeSchemas } = storeToRefs(workflowStore)
+  const { activeBaseNodeSchemas, activeWorkflow } = storeToRefs(workflowStore)
 
   const { activeProjectId } = storeToRefs(baseStore)
 
   const { updateWorkflow } = workflowStore
 
-  const isSidebarOpen = ref(true)
-
   const selectedNodeId = ref<string | null>(null)
 
+  const activeTab = ref<'editor' | 'logs' | 'settings'>('editor')
+
   const isSaving = ref(false)
+
+  const viewingExecution = ref<any | null>(null)
 
   const nodeTypes = computed(() => {
     return [...GENERAL_DEFAULT_NODES, ...activeBaseNodeSchemas.value.map(transformNode)]
@@ -52,11 +54,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
   }
 
   const updateWorkflowData = async (
-    { description, nodes, edges }: { description?: string; nodes?: Array<Node>; edges?: Array<Edge> },
+    { description, nodes, edges, title }: { description?: string; nodes?: Array<Node>; edges?: Array<Edge>; title?: string },
     skipNetworkCall: boolean = true,
   ) => {
     if (!activeProjectId.value || !workflow.value?.id) return
-
     if (isUIAllowed('workflowCreateOrEdit')) {
       isSaving.value = true
       try {
@@ -64,9 +65,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
           activeProjectId.value,
           workflow.value.id,
           {
-            description,
-            nodes,
-            edges,
+            ...(title ? { title } : {}),
+            ...(description ? { description } : {}),
+            ...(nodes ? { nodes } : {}),
+            ...(edges ? { edges } : {}),
           },
           {
             skipNetworkCall,
@@ -82,17 +84,17 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     if (!activeProjectId.value || !workflow.value?.id) return
     await updateWorkflowData(
       {
-        description: workflow.value.description,
+        description: activeWorkflow.value?.description,
         nodes: nodes.value,
         edges: edges.value,
+        title: activeWorkflow.value?.title,
       },
       false,
     )
   }, 500)
 
-  const updateSelectedNode = (nodeId: string, openSidebar = true) => {
+  const updateSelectedNode = (nodeId: string) => {
     selectedNodeId.value = nodeId
-    isSidebarOpen.value = openSidebar
   }
 
   // Callback for layout - will be set by Main.vue
@@ -108,7 +110,6 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       await layoutCallback()
     }
   }
-
   /**
    * Generate a unique node title based on the node type title
    * E.g., 'NocoDB', 'NocoDB1', 'NocoDB2', etc.
@@ -171,7 +172,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     const childNodeIds = findAllChildNodes(nodeId)
     if (childNodeIds.size === 0) return
 
-    const updatedNodes = nodes.value.map((node) => {
+    nodes.value = nodes.value.map((node) => {
       if (childNodeIds.has(node.id) && node.data?.testResult) {
         const { testResult: _testResult, ...dataWithoutTestResult } = node.data
         return {
@@ -181,8 +182,6 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       }
       return node
     })
-
-    nodes.value = updatedNodes
     debouncedWorkflowUpdate()
   }
 
@@ -232,29 +231,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     // If the node type is changing, and it's not a core.plus node,
     // generate a unique title for the new node type
     if (updatedData.type && updatedData.type !== existingNode.type && updatedData.type !== GeneralNodeID.PLUS) {
-      // Check if we're converting from a plus node or trigger placeholder
-      const isConvertingFromPlus = existingNode.type === GeneralNodeID.PLUS
-      const isConvertingFromTriggerPlaceholder = existingNode.type === GeneralNodeID.TRIGGER
-      const hasPlusNodeTitle = updatedData.data?.title === 'Add Action / Condition'
-      const hasTriggerPlaceholderTitle = updatedData.data?.title === 'Trigger'
-
-      // Generate a unique title if:
-      // 1. No title is provided, OR
-      // 2. Converting from a plus node, OR
-      // 3. Converting from trigger placeholder, OR
-      // 4. The current title is a default/placeholder title
-      if (
-        !updatedData.data?.title ||
-        isConvertingFromPlus ||
-        isConvertingFromTriggerPlaceholder ||
-        hasPlusNodeTitle ||
-        hasTriggerPlaceholderTitle
-      ) {
-        const uniqueTitle = generateUniqueNodeTitle(updatedData.type)
-        updatedData.data = {
-          ...updatedData.data,
-          title: uniqueTitle,
-        }
+      const uniqueTitle = generateUniqueNodeTitle(updatedData.type)
+      updatedData.data = {
+        ...updatedData.data,
+        title: uniqueTitle,
       }
     }
 
@@ -467,38 +447,6 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
   }
 
   /**
-   * Find all parent nodes (upstream nodes) for a given node
-   * @param nodeId - The node ID to find parents for
-   * @returns Set of parent node IDs in execution order
-   */
-  const findAllParentNodes = (nodeId: string): string[] => {
-    const parents: string[] = []
-    const visited = new Set<string>()
-
-    const traverse = (currentId: string) => {
-      if (visited.has(currentId)) return
-      visited.add(currentId)
-
-      // Find edges that point to this node
-      const parentEdges = edges.value.filter((edge) => edge.target === currentId)
-
-      for (const edge of parentEdges) {
-        if (edge.source && edge.source !== currentId) {
-          // First traverse to parents of this parent (to maintain execution order)
-          traverse(edge.source)
-          // Then add this parent
-          if (!parents.includes(edge.source)) {
-            parents.push(edge.source)
-          }
-        }
-      }
-    }
-
-    traverse(nodeId)
-    return parents
-  }
-
-  /**
    * Recursively prefix all variable keys (including children) with the node reference
    */
   const prefixVariableKeysRecursive = (variable: any, prefix: string): any => {
@@ -516,7 +464,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
    * @returns Array of variable definitions with node context
    */
   const getAvailableVariables = (nodeId: string) => {
-    const parentNodeIds = findAllParentNodes(nodeId)
+    const parentNodeIds = findAllParentNodes(nodeId, edges.value)
     const variables: Array<{
       nodeId: string
       nodeTitle: string
@@ -568,9 +516,81 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     return groupedVariables.flatMap((group) => group.variables)
   }
 
+  /**
+   * View a workflow execution - marks execution for viewing
+   */
+  const viewExecution = (execution: any) => {
+    viewingExecution.value = execution
+    selectedNodeId.value = null
+  }
+
+  /**
+   * Exit execution viewing mode
+   */
+  const exitExecutionView = () => {
+    viewingExecution.value = null
+    selectedNodeId.value = null
+  }
+
+  /**
+   * Get the execution result for the currently selected node
+   */
+  const selectedNodeExecutionResult = computed(() => {
+    if (!viewingExecution.value || !selectedNode.value) return null
+
+    const executionData = viewingExecution.value.execution_data
+    if (!executionData || !executionData.nodeResults) return null
+
+    // Find the node result by nodeId
+    return executionData.nodeResults.find((result: any) => result.nodeId === selectedNode.value?.id) || null
+  })
+
+  // Watch for execution changes to load/restore workflow
+  watch(viewingExecution, (execution) => {
+    if (execution) {
+      // Load execution workflow when execution is selected
+      if (execution.workflow_data) {
+        // Filter out general nodes
+        nodes.value = (execution.workflow_data.nodes || []).filter(
+          (node: Node) => !Object.values(GeneralNodeID).includes(node.type),
+        ) as Array<Node>
+
+        // Get IDs of removed nodes for edge filtering
+        const removedNodeIds = new Set(
+          (execution.workflow_data.nodes || [])
+            .filter((node: Node) => Object.values(GeneralNodeID).includes(node.type))
+            .map((node: Node) => node.id),
+        )
+
+        // Filter out edges connected to removed nodes
+        edges.value = (execution.workflow_data.edges || []).filter(
+          (edge: Edge) => !removedNodeIds.has(edge.source) && !removedNodeIds.has(edge.target),
+        ) as Array<Edge>
+        nextTick(() => {
+          triggerLayout()
+        })
+      }
+    } else {
+      // Restore current workflow when execution is cleared
+      nodes.value = (workflow.value?.nodes || INIT_WORKFLOW_NODES) as Array<Node>
+      edges.value = (workflow.value?.edges as Array<Edge>) || []
+      nextTick(() => {
+        triggerLayout()
+      })
+    }
+  })
+
+  // Watch for tab changes to restore workflow when switching to Editor tab
+  watch(activeTab, (tab) => {
+    if (tab === 'editor' && viewingExecution.value) {
+      // Clear execution view when switching to Editor tab
+      viewingExecution.value = null
+      selectedNodeId.value = null
+    }
+  })
+
   return {
     // State
-    isSidebarOpen,
     workflow,
     nodes,
     edges,
@@ -579,6 +599,9 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     selectedNodeId,
     selectedNode,
     hasManualTrigger,
+    activeTab,
+    viewingExecution: readonly(viewingExecution),
+    selectedNodeExecutionResult,
 
     // Methods
     updateWorkflowData,
@@ -587,6 +610,8 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     triggerLayout,
     updateSelectedNode,
     executeWorkflow,
+    viewExecution,
+    exitExecutionView,
 
     // Node utilities
     addPlusNode,

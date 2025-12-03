@@ -31,6 +31,8 @@ import OpenaiAi from '@noco-local-integrations/openai-ai';
 import OpenaiCompatibleAi from '@noco-local-integrations/openai-compatible-ai';
 import PostgresAuth from '@noco-local-integrations/postgres-auth';
 import PostgresSync from '@noco-local-integrations/postgres-sync';
+import SlackAuth from '@noco-local-integrations/slack-auth';
+import SlackWorkflowNode from '@noco-local-integrations/slack-workflow-node';
 import ZendeskAuth from '@noco-local-integrations/zendesk-auth';
 import ZendeskSync from '@noco-local-integrations/zendesk-sync';
 import ZohoAuth from '@noco-local-integrations/zoho-auth';
@@ -66,6 +68,8 @@ export default [
   ...(Array.isArray(OpenaiCompatibleAi) ? OpenaiCompatibleAi : [OpenaiCompatibleAi]),
   ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
+  ...(Array.isArray(SlackAuth) ? SlackAuth : [SlackAuth]),
+  ...(Array.isArray(SlackWorkflowNode) ? SlackWorkflowNode : [SlackWorkflowNode]),
   ...(Array.isArray(ZendeskAuth) ? ZendeskAuth : [ZendeskAuth]),
   ...(Array.isArray(ZendeskSync) ? ZendeskSync : [ZendeskSync]),
   ...(Array.isArray(ZohoAuth) ? ZohoAuth : [ZohoAuth]),

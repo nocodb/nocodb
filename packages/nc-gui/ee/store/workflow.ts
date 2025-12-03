@@ -374,14 +374,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
-  const getWorkflowNodeByKey = (key: string) => {
-    return activeBaseNodeSchemas.value.find((n) => n.id === key)
-  }
-
-  const getWorkflowNodesByCategory = (category: string) => {
-    return activeBaseNodeSchemas.value.filter((n) => n.category === category)
-  }
-
   const loadWorkflowExecutions = async (params: { workflowId?: string; limit?: number; offset?: number }) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return []
     try {
@@ -399,6 +391,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       return []
     }
   }
+
   async function openNewWorkflowModal({
     baseId,
     e,
@@ -521,11 +514,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     openWorkflow,
     duplicateWorkflow,
     openNewWorkflowModal,
-
-    // Node Schemas
-    getWorkflowNodeByKey,
-    getWorkflowNodesByCategory,
-
     // Execution Logs
     loadWorkflowExecutions,
   }

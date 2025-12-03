@@ -3090,7 +3090,7 @@ onKeyStroke('ArrowDown', onDown)
   }
 
   table {
-    background-color: var(--nc-grid-bg);
+    background-color: var(--nc-bg-gray-extralight);
 
     border-collapse: separate;
     border-spacing: 0;

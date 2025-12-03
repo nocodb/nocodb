@@ -376,7 +376,7 @@ form > .federated-sign-in-container {
   gap: 24px;
 }
 
-// apply above 498px width since UI looks cramped below that
+/* apply above 498px width since UI looks cramped below that */
 @media (min-width: 498px) {
   .nc-last-used-auth-sso .federated-sign-in-button.nc-sso,
   .nc-last-used-auth-google .amplify-authenticator__column > button.federated-sign-in-button:not([data-variation='primary']),
@@ -400,7 +400,7 @@ form > .federated-sign-in-container {
     }
   }
 
-  // signin button
+  /* signin button */
   .nc-last-used-auth-email .amplify-authenticator__column > button.amplify-button[data-variation='primary']::after {
     color: #ffffff80;
     border: 1px solid #ffffff80;

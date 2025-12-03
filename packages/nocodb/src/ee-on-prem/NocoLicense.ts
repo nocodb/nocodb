@@ -10,8 +10,9 @@ import {
   LICENSE_CONFIG,
   LICENSE_ENV_VARS,
   LICENSE_SERVER_PUBLIC_KEY,
+  LicenseType,
+  validateClientLicenseEnvironment,
 } from '~/utils/license';
-import { validateClientLicenseEnvironment } from '~/utils/license';
 
 const LICENSE_SERVER_URL =
   process.env[LICENSE_ENV_VARS.LICENSE_SERVER_URL] || 'http://localhost:8080';
@@ -797,7 +798,7 @@ export default class NocoLicense {
   }
 
   public static isTrial(): boolean {
-    return this.getLicenseData().license_type === 'enterprise_trial';
+    return this.getLicenseData().license_type === LicenseType.ENTERPRISE_TRIAL;
   }
 
   public static getSeatCount(): number {

@@ -191,6 +191,7 @@ export default class Script extends ScriptCE implements ScriptType {
       'meta',
       'order',
       'script',
+      'config',
       'base_id',
       'fk_workspace_id',
       'created_by',

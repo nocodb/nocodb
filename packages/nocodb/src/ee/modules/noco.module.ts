@@ -56,6 +56,10 @@ import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.servic
 // import { BaseTeamsV3Controller } from '~/controllers/v3/base-teams-v3.controller';
 import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 
+/* Scripts V3 */
+import { ScriptsV3Controller } from '~/controllers/v3/scripts-v3.controller';
+import { ScriptsV3Service } from '~/services/v3/scripts-v3.service';
+
 /* Snapshot */
 import { SnapshotController } from '~/controllers/snapshot.controller';
 import { SnapshotService } from '~/services/snapshot.service';
@@ -117,6 +121,7 @@ export const nocoModuleEeMetadata = {
 
     /* Scripts */
     ScriptsService,
+    ScriptsV3Service,
 
     /* Workflows */
     WorkflowsService,
@@ -158,6 +163,8 @@ export const nocoModuleEeMetadata = {
     SnapshotController,
 
     BaseMembersV3Controller,
+
+    ScriptsV3Controller,
 
     // NOTE: COMMENTED OUT FOR NOW - ONLY USED FOR TESTING PURPOSES
     // /* Workspace Teams V3 */

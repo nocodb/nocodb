@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import Details from '~/components/smartsheet/workflow/Sidebar/Details.vue'
-import NodeConfig from '~/components/smartsheet/workflow/Sidebar/Config/index.vue'
-import TestStep from '~/components/smartsheet/workflow/Sidebar/Config/TestStep.vue'
-import Result from '~/components/smartsheet/workflow/Sidebar/Config/Result.vue'
-import ExecutionResult from '~/components/smartsheet/workflow/Sidebar/Config/ExecutionResult.vue'
-import NodeDetails from '~/components/smartsheet/workflow/Sidebar/NodeDetails.vue'
-import LogSidebar from '~/components/smartsheet/workflow/Sidebar/Logs/index.vue'
+import NodeConfig from '~/components/smartsheet/workflow/sidebar/config/index.vue'
+import TestStep from '~/components/smartsheet/workflow/sidebar/config/TestStep.vue'
+import Result from '~/components/smartsheet/workflow/sidebar/config/Result.vue'
+import ExecutionResult from '~/components/smartsheet/workflow/sidebar/config/ExecutionResult.vue'
+import NodeDetails from '~/components/smartsheet/workflow/sidebar/NodeDetails.vue'
+import LogSidebar from '~/components/smartsheet/workflow/sidebar/logsList/index.vue'
 
 const { selectedNode, selectedNodeId, activeTab, viewingExecution } = useWorkflowOrThrow()
 </script>

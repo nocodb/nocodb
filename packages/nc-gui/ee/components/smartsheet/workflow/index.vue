@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Canvas from '~/components/smartsheet/workflow/Canvas/index.vue'
-import Sidebar from '~/components/smartsheet/workflow/Sidebar/index.vue'
+import Canvas from '~/components/smartsheet/workflow/canvas/index.vue'
+import Sidebar from '~/components/smartsheet/workflow/sidebar/index.vue'
 
 const route = useRoute()
 

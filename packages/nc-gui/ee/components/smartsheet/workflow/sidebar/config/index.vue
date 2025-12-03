@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { IntegrationsType } from 'nocodb-sdk'
-import IfNodeConfig from '~/components/smartsheet/workflow/Sidebar/Config/If/index.vue'
+import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/if/index.vue'
 
 const {
   selectedNodeId,

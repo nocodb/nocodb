@@ -414,7 +414,7 @@ const enabledOptions = computed(() => {
             <div
               v-else
               v-e="['c:table:emoji-picker']"
-              class="flex items-center nc-table-icon min-w-6"
+              class="flex items-center nc-table-icon-wrapper min-w-6"
               :class="{
                 'pointer-events-none': !canUserEditEmote,
               }"

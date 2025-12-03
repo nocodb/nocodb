@@ -380,13 +380,13 @@ export class TreeViewPage extends BasePage {
   async changeTableIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     const tableTitle = title.replace(/ /g, '');
 
-    await this.get().locator(`.nc-base-tree-tbl-${tableTitle} .nc-table-icon`).click();
+    await this.get().locator(`.nc-base-tree-tbl-${tableTitle} .nc-table-icon-wrapper`).click();
 
     await this.rootPage.locator('.emoji-mart-search > input').fill(icon);
     const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');
     await emojiList.locator('button').first().click();
     await expect(
-      this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator(`.nc-table-icon-wrapper:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 
@@ -427,7 +427,7 @@ export class TreeViewPage extends BasePage {
 
     await this.rootPage.locator(`.nc-base-tree-tbl-${tableTitle}`).waitFor({ state: 'visible' });
     await expect(
-      this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator(`.nc-table-icon-wrapper:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 

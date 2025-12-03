@@ -125,7 +125,7 @@ const navigateToPricing = () => {
 
 .nc-loyalty-payment-banner {
   .nc-upgrade-plan-btn {
-    @apply !bg-purple-200 !hover:bg-purple-300/80 !text-nc-content-purple-dark;
+    @apply !bg-purple-200 dark:!bg-purple-400 !hover:bg-purple-300/80 !text-nc-content-purple-dark;
   }
   &:hover {
     .nc-upgrade-plan-btn {

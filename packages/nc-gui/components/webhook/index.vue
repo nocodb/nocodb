@@ -13,6 +13,7 @@ import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
+import { jsonThemeDark, jsonThemeLight } from '~/components/monaco/json'
 
 const props = defineProps<Props>()
 
@@ -40,6 +41,8 @@ const { eventList, showUpgradeModal, sampleDataV2 } = toRefs(props)
 const { t } = useI18n()
 
 const { $e, $api } = useNuxtApp()
+
+const { isDark } = useTheme()
 
 const { api, isLoading: loading } = useApi()
 
@@ -1095,12 +1098,7 @@ const webhookV2AndV3Diff = computed(() => {
                     />
                   </template>
                   <template #fallback>
-                    <div class="min-h-50 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-                      <div class="text-center">
-                        <a-spin size="large" />
-                        <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-                      </div>
-                    </div>
+                    <MonacoLoading class="flex-1 min-h-50 w-full" />
                   </template>
                 </Suspense>
               </div>
@@ -1456,12 +1454,7 @@ const webhookV2AndV3Diff = computed(() => {
                             />
                           </template>
                           <template #fallback>
-                            <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-                              <div class="text-center">
-                                <a-spin size="large" />
-                                <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-                              </div>
-                            </div>
+                            <MonacoLoading class="min-h-60 max-h-80 !rounded-lg w-full" />
                           </template>
                         </Suspense>
                       </div>
@@ -1605,18 +1598,7 @@ const webhookV2AndV3Diff = computed(() => {
                           tabSize: 4,
                           readOnly: true,
                         }"
-                        :monaco-custom-theme="{
-                          base: 'vs',
-                          inherit: true,
-                          rules: [
-                            { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
-                            { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
-                            { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
-                            { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
-                            { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
-                          ],
-                          colors: {},
-                        }"
+                        :monaco-custom-theme="isDark ? jsonThemeDark : jsonThemeLight"
                         class="transition-all border-1 rounded-lg"
                         style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
                         :class="{
@@ -1626,12 +1608,7 @@ const webhookV2AndV3Diff = computed(() => {
                       />
                     </template>
                     <template #fallback>
-                      <div class="min-h-60 max-h-80 w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-                        <div class="text-center">
-                          <a-spin size="large" />
-                          <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-                        </div>
-                      </div>
+                      <MonacoLoading class="min-h-60 max-h-80 w-full" />
                     </template>
                   </Suspense>
                 </div>

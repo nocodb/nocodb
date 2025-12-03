@@ -984,13 +984,13 @@ function getErrorByTableName(tableName: string) {
                   :percent="importingTableTips[meta!.id!] ?? 0"
                   size="small"
                   status="normal"
-                  stroke-color="#3366FF"
-                  trail-color="#F0F3FF"
+                  stroke-color="var(--nc-content-brand-default)"
+                  trail-color="var(--nc-bg-brand-inverted)"
                 />
               </div>
             </div>
           </template>
-          <div v-if="srcDestMapping" class="bg-gray-50 pl-4 flex-1 flex">
+          <div v-if="srcDestMapping" class="bg-nc-bg-gray-extralight pl-4 flex-1 flex">
             <NcTable
               class="template-form flex-1 max-h-[310px]"
               header-row-class-name="relative"
@@ -1200,8 +1200,8 @@ function getErrorByTableName(tableName: string) {
                     :percent="importingTableTips[table.title] ?? 0"
                     size="small"
                     status="normal"
-                    stroke-color="#3366FF"
-                    trail-color="#F0F3FF"
+                    stroke-color="var(--nc-content-brand-default)"
+                    trail-color="var(--nc-bg-brand-inverted)"
                   />
                 </div>
               </div>
@@ -1309,7 +1309,7 @@ function getErrorByTableName(tableName: string) {
 
 <style scoped lang="scss">
 .template-collapse {
-  @apply bg-white border-nc-border-gray-medium;
+  @apply bg-nc-bg-default border-nc-border-gray-medium;
 }
 
 :deep(.ant-collapse-header) {
@@ -1330,12 +1330,16 @@ function getErrorByTableName(tableName: string) {
   @apply !border-t-0;
 }
 :deep(.nc-import-table-box .ant-collapse-content-box) {
-  @apply p-0;
+  @apply !p-0;
 
   .nc-table-header-row,
   .nc-table-row {
     @apply !border-none relative;
   }
+}
+
+:deep(.ant-collapse > .ant-collapse-item) {
+  @apply !border-nc-border-gray-medium;
 }
 :deep(.nc-import-table-box.nc-upload-box .ant-collapse-content-box) {
   .nc-table-header-row {

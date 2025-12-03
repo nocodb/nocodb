@@ -150,7 +150,7 @@ const onForgotPasswordClicked = (): void => {
             type="button"
             @click="navigateTo('/sso')"
           >
-            <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
+            <GeneralIcon icon="sso" class="flex-none text-nc-content-gray-muted h-4.5 w-4.5 mr-2" />
             Sign in with Single Sign On
           </AmplifyButton>
 
@@ -177,14 +177,14 @@ const onForgotPasswordClicked = (): void => {
             type="button"
             @click="navigateTo('/sso')"
           >
-            <GeneralIcon icon="sso" class="flex-none text-gray-500 h-4.5 w-4.5 mr-2" />
+            <GeneralIcon icon="sso" class="flex-none text-nc-content-gray-muted h-4.5 w-4.5 mr-2" />
             Sign in with Single Sign On
           </AmplifyButton>
         </div>
         <div class="pb-4 text-center text-xs tos mx-2">
           By signing up, you agree to our
           <a
-            class="!cursor-pointer !text-gray-400 !hover:text-brand-500"
+            class="!cursor-pointer !text-nc-content-gray-disabled !hover:text-nc-content-brand"
             href="https://www.nocodb.com/terms-of-service"
             target="_blank"
           >
@@ -192,7 +192,7 @@ const onForgotPasswordClicked = (): void => {
           </a>
           &
           <a
-            class="!cursor-pointer !text-gray-400 !hover:text-brand-500"
+            class="!cursor-pointer !text-nc-content-gray-disabled !hover:text-nc-content-brand"
             href="https://nocodb.com/docs/legal/privacy"
             target="_blank"
           >
@@ -279,17 +279,18 @@ const onForgotPasswordClicked = (): void => {
 [data-amplify-theme] {
   --amplify-components-button-focus-border-color: #3366ff;
   --amplify-components-button-focus-color: #3366ff;
-  --amplify-components-tabs-item-hover-color: #3366ff;
-  --amplify-components-tabs-item-active-color: #3366ff;
-  --amplify-components-tabs-item-focus-color: #3366ff;
-  --amplify-components-tabs-item-active-border-color: #3366ff;
-  --amplify-components-authenticator-router-border-color: #f4f4f5;
-  --amplify-components-authenticator-router-box-shadow: 0 0 0 1px #f4f4f5;
+  --amplify-components-tabs-item-hover-color: var(--color-brand-500);
+  --amplify-components-tabs-item-active-color: var(--color-brand-500);
+  --amplify-components-tabs-item-focus-color: var(--color-brand-500);
+  --amplify-components-tabs-item-active-border-color: var(--color-brand-500);
+  --amplify-components-authenticator-router-border-color: var(--color-gray-100);
+  --amplify-components-authenticator-router-box-shadow: 0 0 0 1px var(--color-gray-100);
   --amplify-components-authenticator-form-padding: 1.5rem;
+  --amplify-components-text-color: var(--nc-content-gray-default);
 }
 
 .tos {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 .amplify-image {
@@ -301,19 +302,19 @@ const onForgotPasswordClicked = (): void => {
 }
 
 .amplify-field__show-password {
-  @apply border-l-0 !rounded-l-none hover:bg-white focus:bg-white focus:ring-0 border-1 border-gray-200;
+  @apply border-l-0 !rounded-l-none hover:bg-nc-bg-default focus:bg-nc-bg-default focus:ring-0 border-1 border-nc-border-gray-medium;
 }
 
 .amplify-input {
-  @apply border-1 border-gray-200 rounded-lg;
+  @apply border-1 border-nc-border-gray-medium rounded-lg;
 }
 
 .amplify-input:focus {
-  @apply border-1 border-brand-500 rounded-lg ring-0;
+  @apply border-1 border-nc-border-brand rounded-lg ring-0;
 }
 
 [data-amplify-container] {
-  @apply !h-[34rem] !min-w-[23.5rem];
+  @apply !h-[34rem] !min-w-[23.5rem] text-nc-content-gray;
 }
 
 .amplify-field-group :not(:first-child) .amplify-input {
@@ -321,11 +322,16 @@ const onForgotPasswordClicked = (): void => {
 }
 
 .federated-sign-in-button {
-  @apply rounded-md border-gray-200 focus:bg-gray-50 focus:border-gray-50 border-1 hover:bg-gray-50 rounded-lg;
+  --amplify-internal-button-color: var(--nc-content-gray-default);
+  @apply rounded-md border-nc-border-gray-medium focus:bg-nc-bg-gray-extralight focus:border-nc-border-gray-extralight border-1 hover:bg-nc-bg-gray-extralight rounded-lg;
+
+  &:hover {
+    --amplify-internal-button-color: var(--nc-content-gray-default);
+  }
 }
 
 .amplify-divider {
-  @apply uppercase !text-gray-800;
+  @apply uppercase !text-nc-content-gray;
 }
 
 .amplify-authenticator__font {
@@ -337,11 +343,11 @@ const onForgotPasswordClicked = (): void => {
 }
 
 .amplify-tabs[data-indicator-position='top'] {
-  @apply !border-t-1 border-brand-500;
+  @apply !border-t-1 border-nc-border-brand;
 }
 
 .amplify-button--link {
-  @apply !text-gray-800 !hover:text-brand-500;
+  @apply !text-nc-content-gray !hover:text-nc-content-brand;
 }
 
 .amplify-tabs-item {
@@ -349,7 +355,7 @@ const onForgotPasswordClicked = (): void => {
 }
 
 .amplify-label {
-  @apply !text-gray-800 font-medium text-sm;
+  @apply !text-nc-content-gray font-medium text-sm;
 }
 
 .amplify-alert {
@@ -357,6 +363,11 @@ const onForgotPasswordClicked = (): void => {
 }
 
 [data-amplify-authenticator] {
+  --amplify-components-authenticator-router-background-color: var(--nc-bg-default);
+  --amplify-components-authenticator-state-inactive-background-color: var(--color-gray-50);
+  --amplify-components-tabs-item-color: var(--nc-content-gray);
+  --amplify-components-divider-label-background-color: var(--nc-bg-default);
+  --amplify-components-divider-label-color: var(--nc-content-gray-muted);
   --amplify-components-button-primary-background-color: #3366ff;
   --amplify-components-button-border-radius: 8px;
   --amplify-components-button-primary-hover-background-color: #2952cc;
@@ -369,6 +380,7 @@ const onForgotPasswordClicked = (): void => {
   --amplify-components-button-link-active-background-color: transparent;
   --amplify-components-button-link-focus-background-color: transparent;
   --amplify-components-button-link-hover-background-color: transparent;
+  --amplify-components-text-error-color: var(--nc-content-red-medium);
 }
 
 form > .federated-sign-in-container {
@@ -408,6 +420,21 @@ form > .federated-sign-in-container {
   .nc-last-used-auth-email .amplify-authenticator__column > button.amplify-button[data-variation='primary']::after {
     color: #ffffff80;
     border: 1px solid #ffffff80;
+  }
+}
+
+[theme='dark'] {
+  .amplify-button.amplify-field__show-password {
+    --amplify-internal-button-color: var(--nc-content-gray-muted);
+    &:hover {
+      --amplify-internal-button-color: var(--nc-content-brand-default);
+    }
+  }
+
+  .amplify-button--disabled {
+    background-color: var(--nc-bg-gray-light);
+    border-color: var(--nc-border-gray-light);
+    color: var(--nc-content-gray-disabled);
   }
 }
 </style>

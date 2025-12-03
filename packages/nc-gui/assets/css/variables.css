@@ -356,24 +356,51 @@
   --color-yellow-900: #32260c;
   --rgb-color-yellow-900: 50, 38, 12;
 
-  --spacing-00: 0px;
-  --spacing-01: 2px;
-  --spacing-02: 4px;
-  --spacing-03: 8px;
-  --spacing-04: 12px;
-  --spacing-05: 16px;
-  --spacing-06: 24px;
-  --spacing-07: 32px;
-  --spacing-08: 40px;
-  --spacing-09: 48px;
-  --spacing-10: 64px;
-  --spacing-11: 80px;
-  --spacing-12: 96px;
-  --spacing-13: 160px;
+  /* Payment plan colors  */
+  /* Free Plan  */
+  --free-plan-color: var(--color-gray-50, #f9f9fa);
+  --free-plan-accent: var(--color-gray-200, #e7e7e9);
+  --free-plan-primary: var(--color-gray-800, #1f293a);
+  --free-plan-bg-light: var(--color-gray-50, #f9f9fa);
+  --free-plan-bg-dark: var(--color-gray-100, #f4f4f5);
+  --free-plan-border: var(--color-gray-200, #e7e7e9);
+  --free-plan-chart-fill-color: var(--color-gray-500, #6a7184);
 
-  --font-size-h1: 64px;
-  --font-size-h2: 40px;
-  --font-size-h3: 24px;
+  /* Plus Plan  */
+  --plus-plan-color: var(--color-blue-50, #edf9ff);
+  --plus-plan-accent: var(--color-blue-200, #afe5ff);
+  --plus-plan-primary: var(--color-blue-700, #207399);
+  --plus-plan-bg-light: var(--color-blue-50, #edf9ff);
+  --plus-plan-bg-dark: var(--color-blue-100, #d7f2ff);
+  --plus-plan-border: var(--color-blue-200, #afe5ff);
+  --plus-plan-chart-fill-color: var(--color-blue-700, #207399);
+
+  /* Business Plan  */
+  --business-plan-color: var(--color-pink-50, #faf5ff);
+  --business-plan-accent: var(--color-pink-200, #feb0e8);
+  --business-plan-primary: var(--color-pink-700, #972377);
+  --business-plan-bg-light: var(--color-pink-50, #ffeefb);
+  --business-plan-bg-dark: var(--color-pink-100, #fed8f4);
+  --business-plan-border: var(--color-pink-200, #feb0e8);
+  --business-plan-chart-fill-color: var(--color-pink-700, #972377);
+
+  /* Enterprise Plan  */
+  --enterprise-plan-color: var(--color-orange-50, #0d1117);
+  --enterprise-plan-accent: var(--color-orange-200, #663b1f);
+  --enterprise-plan-primary: var(--color-orange-700, #c86827);
+  --enterprise-plan-bg-light: var(--color-orange-50, #fff5ef);
+  --enterprise-plan-bg-dark: var(--color-orange-100, #fee6d6);
+  --enterprise-plan-border: var(--color-orange-200, #fdcdad);
+  --enterprise-plan-chart-fill-color: var(--color-orange-700, #c86827);
+
+  /* View icon colors  */
+  --color-view-icon-grid: #36bfff;
+  --color-view-icon-form: #7d26cd;
+  --color-view-icon-calendar: #b33771;
+  --color-view-icon-gallery: #fc3ac6;
+  --color-view-icon-map: blue;
+  --color-view-icon-kanban: #ff9052;
+  --color-view-icon-view: blue;
 }
 
 /* Refrence tokens - Dark test */
@@ -703,6 +730,52 @@
 
   --color-yellow-900: #fff9eb;
   --rgb-color-yellow-900: 255, 249, 235;
+
+  /* Payment plan colors  */
+  /* Free Plan  */
+  --free-plan-color: var(--color-gray-50, #1d1d1f);
+  --free-plan-accent: var(--color-gray-200, #3b3d40);
+  --free-plan-primary: var(--color-gray-800, #e2e9f6);
+  --free-plan-bg-light: var(--color-gray-50, #1d1d1f);
+  --free-plan-bg-dark: var(--color-gray-100, #2a2c2e);
+  --free-plan-border: var(--color-gray-200, #3b3d40);
+  --free-plan-chart-fill-color: var(--color-gray-500, #989ca5);
+
+  /* Plus Plan  */
+  --plus-plan-color: #062e4b;
+  --plus-plan-accent: #1c5062;
+  --plus-plan-primary: #7cd0ff;
+  --plus-plan-bg-light: #122b36;
+  --plus-plan-bg-dark: #0b1e26;
+  --plus-plan-border: #1e4a5b;
+  --plus-plan-chart-fill-color: #63c2f5;
+
+  /* Business Plan  */
+  --business-plan-color: #25172f;
+  --business-plan-accent: #5b2350;
+  --business-plan-primary: #e28ce0;
+  --business-plan-bg-light: #2e1b39;
+  --business-plan-bg-dark: #1d1224;
+  --business-plan-border: #5e2b54;
+  --business-plan-chart-fill-color: #c45cc0;
+
+  /* Enterprise Plan  */
+  --enterprise-plan-color: #1b120b;
+  --enterprise-plan-accent: #5e381d;
+  --enterprise-plan-primary: #e28e4c;
+  --enterprise-plan-bg-light: #24170d;
+  --enterprise-plan-bg-dark: #160e08;
+  --enterprise-plan-border: #70492c;
+  --enterprise-plan-chart-fill-color: #e28e4c;
+
+  /* View icon colors  */
+  --color-view-icon-grid: #5fccff;
+  --color-view-icon-form: #a35bff;
+  --color-view-icon-calendar: #ff5a9d;
+  --color-view-icon-gallery: #ff66da;
+  --color-view-icon-map: #6ab5ff;
+  --color-view-icon-kanban: #ffad70;
+  --color-view-icon-view: #6ab5ff;
 }
 
 /* Refrence tokens - Dark */

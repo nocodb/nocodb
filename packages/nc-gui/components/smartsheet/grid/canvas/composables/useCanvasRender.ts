@@ -1125,8 +1125,9 @@ export function useCanvasRender({
         },
         borderRadius: 6,
         spriteLoader,
-        borderColor: !isExpandHovered ? 'transparent' : undefined,
-        background: !isExpandHovered ? 'transparent' : undefined,
+        background: !isExpandHovered ? 'transparent' : getColor(themeV4Colors.base.white),
+        borderColor: !isExpandHovered ? 'transparent' : getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
         setCursor,
       })
     }
@@ -1215,7 +1216,7 @@ export function useCanvasRender({
         height: 32,
         verticalAlign: 'middle',
         fontFamily: '600 14px Inter',
-        fillStyle: getColor(themeV4Colors.base.white),
+        fillStyle: 'white',
         isTagLabel: true,
         render,
       })
@@ -1254,7 +1255,7 @@ export function useCanvasRender({
       width: learnMoreBtnInfo.width + 10 * 2,
       borderColor: getColor(themeV4Colors.gray['200']),
       borderWidth: 1,
-      fillStyle: isLearnMoreBtnHovered ? themeV3Colors.gray['100'] : getColor(themeV4Colors.base.white),
+      fillStyle: isLearnMoreBtnHovered ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.base.white),
     })
 
     renderLearnMoreBtn(true, xOffSet)
@@ -1267,7 +1268,7 @@ export function useCanvasRender({
     _renderTag({
       x: xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12,
       width: UpgradeBtnInfo.width + 10 * 2,
-      fillStyle: isUpgradeBtnHovered ? themeV3Colors.brand['600'] : themeV3Colors.brand['500'],
+      fillStyle: isUpgradeBtnHovered ? getColor(themeV3Colors.brand['600']) : getColor(themeV3Colors.brand['500']),
     })
 
     renderUpgradeBtn(true, xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12)
@@ -1794,7 +1795,7 @@ export function useCanvasRender({
 
         // Since blur is not working we can use just fill rect
         if (removeInlineAddRecord.value && rowIdx >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
-          ctx.fillStyle = 'rgba(231, 231, 233, 0.8)'
+          ctx.fillStyle = getColor('#e7e7e9', '#171717', 0.8)
           ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
 
           ctx.fill()

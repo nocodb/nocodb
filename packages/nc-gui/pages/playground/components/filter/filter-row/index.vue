@@ -82,7 +82,9 @@ const isFieldInaccessible1 = ref(true)
                 <a-select-option :value="ClientType.MYSQL"> mysql </a-select-option>
               </NcSelect>
             </div>
-            <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br /></div>
+            <div>
+              Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+            </div>
           </div>
           <div class="flex">
             <NcSelect v-model:value="column1Id" @change="filter1.fk_column_id = column1Id">

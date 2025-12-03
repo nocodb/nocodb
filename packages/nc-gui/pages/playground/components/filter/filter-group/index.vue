@@ -131,16 +131,24 @@ onMounted(async () => {
                 </NcSelect>
               </div>
 
-              <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br /></div>
               <div>
-                NestedLevel: <input v-model="options1.nestedLevel" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+                Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+              </div>
+              <div>
+                NestedLevel:
+                <input v-model="options1.nestedLevel" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
               </div>
               <div>
                 filterPerViewLimit:
-                <input v-model="options1.filterPerViewLimit" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+                <input
+                  v-model="options1.filterPerViewLimit"
+                  type="number"
+                  class="text-xs p-1 border-nc-border-gray-medium"
+                /><br />
               </div>
               <div>
-                filtersCount: <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+                filtersCount:
+                <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
               </div>
             </div>
           </div>

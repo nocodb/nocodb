@@ -96,7 +96,7 @@ onMounted(() => {
         <a
           v-if="client.type === 'google'"
           :href="client.url"
-          class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+          class="scaling-btn bg-opacity-100 after:(!bg-nc-bg-default) !text-primary !no-underline"
         >
           <span class="flex items-center gap-2">
             <LogosGoogleGmail />
@@ -115,7 +115,10 @@ onMounted(() => {
       </div>
 
       <Transition name="layout">
-        <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1 max-w-150 mt-5">
+        <div
+          v-if="error"
+          class="self-center mb-4 bg-red-500 text-nc-content-inverted-primary rounded-lg w-3/4 mx-auto p-1 max-w-150 mt-5"
+        >
           <div class="flex items-center gap-2 justify-center">
             <MaterialSymbolsWarning />
             <div class="break-words">{{ error }}</div>
@@ -133,7 +136,7 @@ onMounted(() => {
         <a
           v-if="client.type === 'google'"
           :href="client.url"
-          class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+          class="scaling-btn bg-opacity-100 after:(!bg-nc-bg-default) !text-primary !no-underline"
         >
           <span class="flex items-center gap-2">
             <LogosGoogleGmail />
@@ -164,7 +167,7 @@ onMounted(() => {
 
     <div
       v-else
-      class="bg-white md:mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+      class="bg-nc-bg-default md:mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-nc-border-gray-medium shadow-xl)"
     >
       <LazyGeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 

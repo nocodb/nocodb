@@ -590,7 +590,7 @@ const execBulkAction = async (path: Array<number>) => {
             @click="clearSelectedRangeOfCells(contextMenuPath)"
           >
             <div class="flex gap-2 items-center">
-              <GeneralIcon icon="closeBox" class="text-gray-500" />
+              <GeneralIcon icon="closeBox" class="text-nc-content-gray-muted" />
               {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
             </div>
           </NcMenuItem>
@@ -618,7 +618,7 @@ const execBulkAction = async (path: Array<number>) => {
             @click="clearSelectedRangeOfCells(contextMenuPath)"
           >
             <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
-              <GeneralIcon icon="closeBox" class="text-gray-500" />
+              <GeneralIcon icon="closeBox" class="text-nc-content-gray-muted" />
               {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
             </div>
           </NcMenuItem>

@@ -81,12 +81,7 @@ const showCode = ref(true)
           />
         </template>
         <template #fallback>
-          <div class="h-[402px] w-full flex items-center justify-center bg-nc-bg-gray-extralight">
-            <div class="text-center">
-              <a-spin size="large" />
-              <div class="mt-4 text-nc-content-gray-subtle2">Loading Monaco Editor...</div>
-            </div>
-          </div>
+          <MonacoLoading class="h-[402px] w-full" />
         </template>
       </Suspense>
     </Transition>

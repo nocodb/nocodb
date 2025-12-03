@@ -350,6 +350,8 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
             icon: table.synced? 'ncZap': 'table',
+            entity_id: modelId,
+            entity: 'table',
             tableName: table.title,
             description: 'Table to monitor for updates',
           },
@@ -357,20 +359,21 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
       ];
 
       if (columnFilter && columnFilter.length > 0) {
-        const monitoredColumns = table.columns
-          .filter((col: any) => columnFilter.includes(col.id))
-          .map((col: any) => col.title)
-          .join(', ');
-
-        variables.push({
-          key: 'config.columnFilter',
-          name: 'Monitored Fields',
-          type: NocoSDK.VariableType.Array,
-          groupKey: NocoSDK.VariableGroupKey.Fields,
-          isArray: true,
-          extra: {
-            description: `Fields being monitored: ${monitoredColumns}`,
-          },
+        columnFilter.forEach((colId: string, index: number) => {
+          const column = table.columns.find((c: any) => c.id === colId);
+          if (column) {
+            variables.push({
+              key: `config.columnFilter[${index}]`,
+              name: `Monitored Field: ${column.title}`,
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Fields,
+              extra: {
+                entity_id: colId,
+                entity: 'column',
+                description: `Monitored field: ${column.title}`,
+              },
+            });
+          }
         });
       }
 
@@ -416,6 +419,8 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
               type: NocoSDK.VariableType.String,
               groupKey: NocoSDK.VariableGroupKey.Meta,
               extra: {
+                entity_id: modelId,
+                entity: 'table',
                 description: 'Table ID',
                 icon: 'cellSystemKey',
               },

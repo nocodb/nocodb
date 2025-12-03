@@ -292,6 +292,7 @@
     "update": "Update",
     "updating": "Updating",
     "rename": "Rename",
+    "renaming": "Renaming",
     "renameEntity": "Rename {entity}",
     "untitledEntity": "Untitled {entity}",
     "reload": "Reload",
@@ -1040,6 +1041,9 @@
     "relevantDocumentation": "Relevant documentation"
   },
   "labels": {
+    "checkingDependencies": "Checking Dependencies",
+    "changingConfigWillImpact": "Changing this will impact {count} dependencies",
+    "changingEntityWillImpact": "{action} this {entity} will impact {count} dependencies",
     "triggerWorkflow": "Trigger Workflow",
     "syncCompleted": "Sync Completed",
     "syncFailed": "Sync Failed",

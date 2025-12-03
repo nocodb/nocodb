@@ -4,6 +4,7 @@ import { McpGetOperations } from '~/controllers/internal/modules/McpGet.operatio
 import { McpPostOperations } from '~/controllers/internal/modules/McpPost.operations';
 import { OAuthGetOperations } from '~/controllers/internal/modules/OAuthGet.operations';
 import { OAuthPostOperations } from '~/controllers/internal/modules/OAuthPost.operations';
+import { DependencyPostOperations } from '~/controllers/internal/modules/DependencyPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -12,6 +13,7 @@ export const InternalApiModules = [
   OAuthGetOperations,
   OAuthPostOperations,
   RecordAuditListOperations,
+  DependencyPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

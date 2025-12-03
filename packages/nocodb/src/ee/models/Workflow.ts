@@ -1,4 +1,5 @@
 import { PlanLimitTypes } from 'nocodb-sdk';
+import { default as WorkflowCE } from 'src/models/Workflow';
 import type {
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
@@ -16,8 +17,12 @@ import {
   CacheScope,
   MetaTable,
 } from '~/utils/globals';
+import DependencyTracker, {
+  DependencyTableType,
+} from '~/models/DependencyTracker';
+import { processConcurrently } from '~/utils';
 
-export default class Workflow implements WorkflowType {
+export default class Workflow extends WorkflowCE implements WorkflowType {
   id?: string;
   title?: string;
   description?: string;
@@ -41,6 +46,7 @@ export default class Workflow implements WorkflowType {
   updated_by?: string;
 
   constructor(workflow: Workflow) {
+    super(workflow);
     Object.assign(this, workflow);
   }
 
@@ -241,20 +247,21 @@ export default class Workflow implements WorkflowType {
     modelId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Workflow[]> {
-    // Get all workflows for this base (TODO: use DependencyTracker)
-    const workflows = await this.list(context, context.base_id, ncMeta);
+    const dependencies = await DependencyTracker.getDependentsBySource(
+      context,
+      DependencyTableType.Model,
+      modelId,
+      {
+        nodeType: triggerType,
+        dependentType: DependencyTableType.Workflow,
+      },
+      ncMeta,
+    );
 
-    return workflows.filter((workflow) => {
-      if (!workflow.enabled) return false;
+    const workflows = await processConcurrently(dependencies, (dependency) =>
+      this.get(context, dependency.dependent_id, ncMeta),
+    );
 
-      const nodes = (workflow as any).nodes || [];
-
-      // Look for trigger nodes that match
-      return nodes.some((node: any) => {
-        return (
-          node.type === triggerType && node.data?.config?.modelId === modelId
-        );
-      });
-    });
+    return workflows.filter((wf) => wf.enabled);
   }
 }

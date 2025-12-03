@@ -314,6 +314,8 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
           icon: table.synced? 'ncZap': 'table',
+          entity_id: modelId,
+          entity: 'table',
           tableName: table.title,
           description: 'Selected table for listing records',
         },
@@ -329,6 +331,8 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
             icon: view?.type ? iconMap[view.type as keyof typeof iconMap] : 'view',
+            entity_id: viewId,
+            entity: 'view',
             viewName: view?.title,
             description: 'Selected view for filtering',
           },

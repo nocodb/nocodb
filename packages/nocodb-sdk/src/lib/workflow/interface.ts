@@ -32,8 +32,11 @@ interface VariableDefinition {
 
   // Additional metadata for UI
   extra?: {
-    // Column ID for fields
-    columnId?: string;
+    // Entity ID for dependency tracking
+    entity_id?: string;
+
+    // Entity type for dependency tracking ('column' | 'table' | 'view')
+    entity?: 'column' | 'table' | 'view';
 
     // icon for the variable
     icon?: string;

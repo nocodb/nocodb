@@ -3,7 +3,10 @@ import type { GaugeWidgetType, NcContext, NcRequest } from 'nocodb-sdk';
 import { Column, Filter, Model, Source, View } from '~/models';
 import applyAggregation, { validateAggregationColType } from '~/db/aggregation';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { BaseWidgetHandler } from '~/db/widgets/base-widget.handler';
+import {
+  BaseWidgetHandler,
+  type WidgetDependencies,
+} from '~/db/widgets/base-widget.handler';
 
 export class GaugeCommonHandler extends BaseWidgetHandler<GaugeWidgetType> {
   async validateWidgetData(context: NcContext, widget: GaugeWidgetType) {
@@ -191,5 +194,18 @@ export class GaugeCommonHandler extends BaseWidgetHandler<GaugeWidgetType> {
         },
       },
     };
+  }
+
+  public extractDependencies(widget: GaugeWidgetType): WidgetDependencies {
+    const dependencies = super.extractDependencies(widget);
+
+    if (widget.config?.metric?.column_id) {
+      dependencies.columns.push({
+        id: widget.config.metric.column_id,
+        path: 'config.metric.column_id',
+      });
+    }
+
+    return dependencies;
   }
 }

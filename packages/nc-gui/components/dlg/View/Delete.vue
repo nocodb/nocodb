@@ -18,6 +18,18 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const viewsStore = useViewsStore()
 
+const { status, dependency, checkDependency } = useDependencies()
+
+watch(
+  () => props.modelValue,
+  async (newVal) => {
+    if (newVal && props.view?.id) {
+      await checkDependency(DependencyTableType.View, props.view.id)
+    }
+  },
+  { immediate: true },
+)
+
 async function onDelete() {
   if (!props.view) return
 
@@ -27,7 +39,12 @@ async function onDelete() {
 </script>
 
 <template>
-  <GeneralDeleteModal v-model:visible="vModel" :entity-name="$t('objects.view')" :on-delete="onDelete">
+  <GeneralDeleteModal
+    v-model:visible="vModel"
+    :entity-name="$t('objects.view')"
+    :on-delete="onDelete"
+    :disable-delete-btn="status === 'loading'"
+  >
     <template #entity-preview>
       <div
         v-if="view"
@@ -42,6 +59,18 @@ async function onDelete() {
             {{ view.title }}
           </span>
         </div>
+      </div>
+
+      <!-- Dependency Check Section -->
+      <div class="mt-4">
+        <NcDependencyList
+          :status="status"
+          :has-breaking-changes="dependency.hasBreakingChanges"
+          :workflows="dependency.workflows"
+          :dashboards="dependency.dashboards"
+          action="delete"
+          entity-type="view"
+        />
       </div>
     </template>
   </GeneralDeleteModal>

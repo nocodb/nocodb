@@ -266,6 +266,8 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          entity_id: modelId,
+          entity: 'table',
           tableName: table.title,
           description: 'Selected table for record update',
         },

@@ -253,6 +253,8 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          entity_id: modelId,
+          entity: 'table',
           icon: table.synced? 'ncZap': 'table',
           tableName: table.title,
           description: 'Selected table for finding record',
@@ -276,6 +278,8 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
           type: NocoSDK.VariableType.String,
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
+            entity_id: viewId,
+            entity: 'view',
             icon: view?.type ? iconMap[view.type as keyof typeof iconMap] : 'view',
             viewName: view?.title,
             description: 'Selected view for filtering',

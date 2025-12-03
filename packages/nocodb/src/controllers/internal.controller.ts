@@ -75,7 +75,7 @@ export class InternalController {
     const module = this.internalApiModuleMap['GET'][operation];
 
     if (module) {
-      return await module.handle(context, {
+      return module.handle(context, {
         workspaceId,
         baseId,
         operation,
@@ -95,10 +95,11 @@ export class InternalController {
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {
     await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
+
     const module = this.internalApiModuleMap['POST'][operation];
 
     if (module) {
-      return await module.handle(context, {
+      return module.handle(context, {
         workspaceId,
         baseId,
         operation,

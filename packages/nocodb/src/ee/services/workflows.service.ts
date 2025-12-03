@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, generateUniqueCopyName } from 'nocodb-sdk';
 import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { Workflow, WorkflowExecution, Workspace } from '~/models';
+import { DependencyTracker, Workflow, WorkflowExecution, Workspace } from '~/models';
 import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import NocoSocket from '~/socket/NocoSocket';
+import { DependencyTableType } from '~/models/DependencyTracker';
 
 @Injectable()
 export class WorkflowsService {
@@ -53,6 +55,18 @@ export class WorkflowsService {
       created_by: req.user.id,
     });
 
+    try {
+      const dependencies = extractWorkflowDependencies(workflow.nodes || []);
+      await DependencyTracker.trackDependencies(
+        context,
+        DependencyTableType.Workflow,
+        workflow.id,
+        dependencies,
+      );
+    } catch (error) {
+      console.error('Failed to track workflow dependencies:', error);
+    }
+
     this.appHooksService.emit(AppEvents.WORKFLOW_CREATE, {
       workflow,
       req,
@@ -97,6 +111,20 @@ export class WorkflowsService {
       updated_by: req.user.id,
     });
 
+    try {
+      const dependencies = extractWorkflowDependencies(
+        updatedWorkflow.nodes || [],
+      );
+      await DependencyTracker.trackDependencies(
+        context,
+        DependencyTableType.Workflow,
+        updatedWorkflow.id,
+        dependencies,
+      );
+    } catch (error) {
+      console.error('Failed to track workflow dependencies:', error);
+    }
+
     this.appHooksService.emit(AppEvents.WORKFLOW_UPDATE, {
       workflow: updatedWorkflow,
       oldWorkflow: workflow,
@@ -126,6 +154,16 @@ export class WorkflowsService {
 
     if (!workflow) {
       NcError.get(context).workflowNotFound(workflowId);
+    }
+
+    try {
+      await DependencyTracker.clearDependencies(
+        context,
+        DependencyTableType.Workflow,
+        workflowId,
+      );
+    } catch (error) {
+      console.error('Failed to clear workflow dependencies:', error);
     }
 
     await Workflow.delete(context, workflowId);
@@ -185,6 +223,18 @@ export class WorkflowsService {
       description: workflow.description,
       created_by: req.user.id,
     });
+
+    try {
+      const dependencies = extractWorkflowDependencies(newWorkflow.nodes || []);
+      await DependencyTracker.trackDependencies(
+        context,
+        DependencyTableType.Workflow,
+        newWorkflow.id,
+        dependencies,
+      );
+    } catch (error) {
+      console.error('Failed to track workflow dependencies:', error);
+    }
 
     NocoSocket.broadcastEvent(
       context,

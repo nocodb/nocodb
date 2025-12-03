@@ -113,6 +113,7 @@ import { McpService } from '~/mcp/mcp.service';
 import { McpController } from '~/mcp/mcp.controller';
 import { InternalController } from '~/controllers/internal.controller';
 import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
+import { DependencyService } from '~/services/dependency.service';
 
 /* Datas */
 import { BulkDataAliasController } from '~/controllers/bulk-data-alias.controller';
@@ -326,6 +327,7 @@ export const nocoModuleMetadata = {
     ViewRowColorService,
     ViewRowColorV3Service,
     ViewsV3Service,
+    DependencyService,
 
     /* Datas */
     DataTableService,
@@ -401,6 +403,7 @@ export const nocoModuleMetadata = {
     NocoJobsService,
     ViewRowColorService,
     ViewRowColorV3Service,
+    DependencyService,
 
     /* Datas */
     DatasService,

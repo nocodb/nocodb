@@ -363,7 +363,7 @@ export function useCanvasTable({
           f.extra = getUserColOptions(f, baseUsers.value)
         }
 
-        if ([UITypes.DateTime].includes(f.uidt)) {
+        if ([UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.DateTime].includes(f.uidt)) {
           const meta = parseProp(f.meta)
           f.extra.timezone = isEeUI ? getTimeZoneFromName(meta?.timezone) : undefined
           f.extra.isDisplayTimezone = isEeUI ? meta?.isDisplayTimezone : undefined

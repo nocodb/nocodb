@@ -1125,8 +1125,9 @@ export function useCanvasRender({
         },
         borderRadius: 6,
         spriteLoader,
-        borderColor: !isExpandHovered ? 'transparent' : undefined,
-        background: !isExpandHovered ? 'transparent' : undefined,
+        background: !isExpandHovered ? 'transparent' : getColor(themeV4Colors.base.white),
+        borderColor: !isExpandHovered ? 'transparent' : getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
         setCursor,
       })
     }

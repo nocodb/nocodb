@@ -27,10 +27,10 @@ const FEATURES = [
   {
     id: 'dark_mode',
     title: 'Dark Mode',
-    isEngineering: true,
+    isEngineering: false,
     description: 'Keep your eyes healthy with dark mode.',
     enabled: false,
-    version: 1,
+    version: 2,
   },
   {
     id: 'canvas_group_grid_view',

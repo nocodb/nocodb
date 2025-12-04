@@ -71,13 +71,13 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 })
 
 onMounted(() => {
-  document.addEventListener('mouseup', handleEditorMouseUp)
-  document.addEventListener('mousedown', handleEditorMouseDown)
+  document.addEventListener('pointerup', handleEditorMouseUp)
+  document.addEventListener('pointerdown', handleEditorMouseDown)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('mouseup', handleEditorMouseUp)
-  document.removeEventListener('mousedown', handleEditorMouseDown)
+  document.removeEventListener('pointerup', handleEditorMouseUp)
+  document.removeEventListener('pointerdown', handleEditorMouseDown)
 })
 </script>
 

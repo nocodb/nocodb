@@ -1,3 +1,6 @@
+/**
+ * Vertical resize directive using Pointer Events API for touch/mouse/pen support.
+ */
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.directive('xc-ver-resize', {
     created: (el: Element) => {
@@ -10,10 +13,11 @@ export default defineNuxtPlugin((nuxtApp) => {
       resizer.style.top = '0'
       resizer.style.right = '-1px'
       resizer.style.zIndex = '999'
+      resizer.style.touchAction = 'none' // Prevent browser touch handling
 
       // add resizer to element
       el.appendChild(resizer)
-      resizer.addEventListener('mousedown', initDrag, false)
+      resizer.addEventListener('pointerdown', initDrag, false)
 
       const instance = getCurrentInstance()
 
@@ -27,8 +31,8 @@ export default defineNuxtPlugin((nuxtApp) => {
       let startX: number
       let startWidth: number
 
-      // bind event handlers
-      function initDrag(e: MouseEvent) {
+      // bind event handlers - uses Pointer Events for unified input handling
+      function initDrag(e: PointerEvent) {
         if (el.classList.contains('no-resize')) {
           return
         }
@@ -36,8 +40,9 @@ export default defineNuxtPlugin((nuxtApp) => {
         document.body.style.cursor = 'col-resize'
         startX = e.clientX
         startWidth = parseInt(document.defaultView?.getComputedStyle(el)?.width || '0', 10)
-        document.documentElement.addEventListener('mousemove', doDrag, false)
-        document.documentElement.addEventListener('mouseup', stopDrag, false)
+        document.documentElement.addEventListener('pointermove', doDrag, false)
+        document.documentElement.addEventListener('pointerup', stopDrag, false)
+        document.documentElement.addEventListener('pointercancel', stopDrag, false)
         emit('xcstartresizing', startWidth)
       }
 
@@ -46,7 +51,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       let width: number | string
 
       // emit event on dragging
-      function doDrag(e: MouseEvent) {
+      function doDrag(e: PointerEvent) {
         width = `${startWidth + e.clientX - startX}px`
         emit('xcresizing', width)
       }
@@ -55,8 +60,9 @@ export default defineNuxtPlugin((nuxtApp) => {
       function stopDrag() {
         resizer.classList.remove('primary')
         document.body.style.cursor = ''
-        document.documentElement.removeEventListener('mousemove', doDrag, false)
-        document.documentElement.removeEventListener('mouseup', stopDrag, false)
+        document.documentElement.removeEventListener('pointermove', doDrag, false)
+        document.documentElement.removeEventListener('pointerup', stopDrag, false)
+        document.documentElement.removeEventListener('pointercancel', stopDrag, false)
         emit('xcresize', width)
         emit('xcresized')
       }
@@ -65,7 +71,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       const resizer = el.querySelector('.resizer')
 
       if (resizer) {
-        resizer.removeEventListener('mousedown', (el as any).initDrag, false)
+        resizer.removeEventListener('pointerdown', (el as any).initDrag, false)
       }
     },
   })

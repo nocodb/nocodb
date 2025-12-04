@@ -223,7 +223,7 @@ const onMouseMove = (e: MouseEvent) => {
   }
 }
 
-const onMouseUp = (e: MouseEvent) => {
+const onPointerUp = (e: MouseEvent | PointerEvent) => {
   if (!isDragging.value) return
 
   e.stopPropagation()
@@ -232,8 +232,9 @@ const onMouseUp = (e: MouseEvent) => {
   position.value = undefined
   mousePosition.value = undefined
 
-  document.removeEventListener('mousemove', onMouseMove)
-  document.removeEventListener('mouseup', onMouseUp)
+  document.removeEventListener('pointermove', onMouseMove)
+  document.removeEventListener('pointerup', onPointerUp)
+  document.removeEventListener('pointercancel', onPointerUp)
 }
 
 watch(
@@ -250,7 +251,7 @@ watch(
   { deep: true },
 )
 
-const dragStart = (e: MouseEvent) => {
+const dragStart = (e: MouseEvent | PointerEvent) => {
   if (isEditColumn.value) return
 
   const dom = document.querySelector('.nc-long-text-expanded-modal .ant-modal-content') as HTMLElement
@@ -260,8 +261,9 @@ const dragStart = (e: MouseEvent) => {
     left: e.clientX - dom.getBoundingClientRect().left + 16,
   }
 
-  document.addEventListener('mousemove', onMouseMove)
-  document.addEventListener('mouseup', onMouseUp)
+  document.addEventListener('pointermove', onMouseMove)
+  document.addEventListener('pointerup', onPointerUp)
+  document.addEventListener('pointercancel', onPointerUp)
 
   isDragging.value = true
 }
@@ -282,7 +284,7 @@ watch(editEnabled, () => {
   }
 })
 
-const stopPropagation = (event: MouseEvent) => {
+const stopPropagation = (event: MouseEvent | PointerEvent) => {
   event.stopPropagation()
 }
 
@@ -294,12 +296,12 @@ watch(inputWrapperRef, () => {
 
   if (isVisible.value && modal?.parentElement) {
     modal.parentElement.addEventListener('click', stopPropagation)
-    modal.parentElement.addEventListener('mousedown', stopPropagation)
-    modal.parentElement.addEventListener('mouseup', stopPropagation)
+    modal.parentElement.addEventListener('pointerdown', stopPropagation)
+    modal.parentElement.addEventListener('pointerup', stopPropagation)
   } else if (modal?.parentElement) {
     modal.parentElement.removeEventListener('click', stopPropagation)
-    modal.parentElement.removeEventListener('mousedown', stopPropagation)
-    modal.parentElement.removeEventListener('mouseup', stopPropagation)
+    modal.parentElement.removeEventListener('pointerdown', stopPropagation)
+    modal.parentElement.removeEventListener('pointerup', stopPropagation)
   }
 })
 

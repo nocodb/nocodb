@@ -515,8 +515,8 @@ defineExpose({
                 'mr-1': !isProjectHeader,
               }"
               @click="onProjectClick(base)"
-              @mouseenter="showNodeTooltip = false"
-              @mouseleave="showNodeTooltip = true"
+              @pointerenter="showNodeTooltip = false"
+              @pointerleave="showNodeTooltip = true"
             >
               <div class="flex items-center select-none w-6 h-full">
                 <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
@@ -593,8 +593,8 @@ defineExpose({
                     type="text"
                     :size="isProjectHeader ? 'small' : 'xxsmall'"
                     @click.stop
-                    @mouseenter="showNodeTooltip = false"
-                    @mouseleave="showNodeTooltip = true"
+                    @pointerenter="showNodeTooltip = false"
+                    @pointerleave="showNodeTooltip = true"
                   >
                     <GeneralIcon
                       :icon="isProjectHeader ? 'threeDotVertical' : 'threeDotHorizontal'"
@@ -633,8 +633,8 @@ defineExpose({
                   }"
                   :loading="isAddNewProjectChildEntityLoading"
                   @click.stop="addNewProjectChildEntity()"
-                  @mouseenter="showNodeTooltip = false"
-                  @mouseleave="showNodeTooltip = true"
+                  @pointerenter="showNodeTooltip = false"
+                  @pointerleave="showNodeTooltip = true"
                 >
                   <NcTooltip :title="$t('activity.createTable')" hide-on-click>
                     <GeneralIcon icon="plus" class="text-xl leading-5" style="-webkit-text-stroke: 0.15px" />
@@ -649,8 +649,8 @@ defineExpose({
                     '!opacity-100': isOptionsOpen,
                   }"
                   @click="onProjectClick(base, true, true)"
-                  @mouseenter="showNodeTooltip = false"
-                  @mouseleave="showNodeTooltip = true"
+                  @pointerenter="showNodeTooltip = false"
+                  @pointerleave="showNodeTooltip = true"
                 >
                   <GeneralIcon
                     icon="chevronRight"

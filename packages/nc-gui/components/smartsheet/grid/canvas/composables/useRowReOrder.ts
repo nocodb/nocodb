@@ -55,7 +55,11 @@ export function useRowReorder({
     }
   }
 
-  const handleDragStart = (e: MouseEvent) => {
+  /**
+   * Start row drag operation.
+   * Uses Pointer Events API for unified mouse/touch/pen handling.
+   */
+  const handleDragStart = (e: PointerEvent) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
 
@@ -82,11 +86,12 @@ export function useRowReorder({
     currentDragY.value = e.clientY
     draggedRowGroupPath.value = element.groupPath
 
-    window.addEventListener('mousemove', handleDrag)
-    window.addEventListener('mouseup', handleDragEnd)
+    window.addEventListener('pointermove', handleDrag)
+    window.addEventListener('pointerup', handleDragEnd)
+    window.addEventListener('pointercancel', handleDragEnd)
   }
 
-  function handleDrag(e: MouseEvent) {
+  function handleDrag(e: PointerEvent) {
     currentDragY.value = e.clientY
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
@@ -106,14 +111,15 @@ export function useRowReorder({
     triggerRefreshCanvas()
 
     const edgeThreshold = 100
-    const mouseY = e.clientY - rect.top
+    const pointerY = e.clientY - rect.top
 
-    if (mouseY < edgeThreshold) {
+    if (pointerY < edgeThreshold) {
       scrollToCell(Math.max(0, targetRowIndex.value - 2), 0)
-    } else if (mouseY > rect.height - edgeThreshold) {
+    } else if (pointerY > rect.height - edgeThreshold) {
       scrollToCell(Math.min(totalRows.value - 1, targetRowIndex.value + 2), 0)
     }
   }
+
   async function handleDragEnd() {
     if (draggedRowIndex.value !== null && draggedRowIndex.value + 1 !== targetRowIndex.value) {
       const { totalRows } = getDataCache(draggedRowGroupPath.value)
@@ -133,8 +139,9 @@ export function useRowReorder({
     draggedRowIndex.value = null
     targetRowIndex.value = null
     draggedRowGroupPath.value = null
-    window.removeEventListener('mousemove', handleDrag)
-    window.removeEventListener('mouseup', handleDragEnd)
+    window.removeEventListener('pointermove', handleDrag)
+    window.removeEventListener('pointerup', handleDragEnd)
+    window.removeEventListener('pointercancel', handleDragEnd)
     triggerRefreshCanvas()
   }
 

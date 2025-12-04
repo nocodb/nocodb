@@ -7,7 +7,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['update:visible', 'newTable', 'emptyScript', 'emptyWorkflow', 'emptyDashboard'])
+const emits = defineEmits(['update:visible', 'newTable', 'emptyScript', 'emptyWorkflow', 'emptyDashboard', 'newSync'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
@@ -24,6 +24,10 @@ const { isMarketVisible } = storeToRefs(useAutomationStore())
 const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
 
 const { isDashboardEnabled } = storeToRefs(useDashboardStore())
+
+const syncStore = useSyncStore()
+
+const { isSyncFeatureEnabled } = storeToRefs(syncStore)
 
 const showBaseOption = (source: SourceType) => {
   return (
@@ -84,7 +88,12 @@ const openMarketPlace = () => {
     >
       <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
+    </NcMenuItem>
+    <NcMenuItem v-if="isSyncFeatureEnabled" inner-class="w-full" data-testid="create-new-sync" @click="emits('newSync')">
+      <GeneralIcon icon="ncZap" />
+      {{ $t('labels.sync') }}
       <div class="flex-1 w-full" />
+      <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
     </NcMenuItem>
 
     <NcMenuItemLabel>
@@ -134,7 +143,7 @@ const openMarketPlace = () => {
       <GeneralIcon icon="ncAutomation" />
       {{ $t('general.workflow') }}
       <div class="flex-1 w-full" />
-      <NcBadge :border="false" size="xs" class="!text-nc-content-brand-disabled !bg-nc-bg-brand"> Beta </NcBadge>
+      <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
     </NcMenuItem>
   </NcMenu>
 </template>

@@ -849,7 +849,7 @@ export const getAdaptiveTint = (
     brightnessMod?: number
   },
 ) => {
-  const { isDarkMode = false, saturationMod = 0, brightnessMod = 0 } = opts || {}
+  let { isDarkMode = false, saturationMod = 0, brightnessMod = 0 } = opts || {}
   const evalColor = tinycolor(color)
   const hsv = evalColor.toHsv()
 
@@ -865,6 +865,10 @@ export const getAdaptiveTint = (
 
     return tinycolor({ h: hsv.h, s: safeS, v: safeV }).toHexString()
   }
+
+  // 🔄 Invert modifiers for dark mode ("-mod")
+  saturationMod = -saturationMod
+  brightnessMod = -brightnessMod
 
   //
   // 🌙 DARK THEME LOGIC (#171717 backgrounds)

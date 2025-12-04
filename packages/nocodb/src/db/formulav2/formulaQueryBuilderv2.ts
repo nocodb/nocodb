@@ -20,7 +20,7 @@ import {
 } from './parsed-tree-builder';
 import type { ClientType, LiteralNode } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { BarcodeColumn, QrCodeColumn, User } from '~/models';
+import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
 import type RollupColumn from '~/models/RollupColumn';
 import type {
@@ -34,9 +34,9 @@ import { getRefColumnIfAlias } from '~/helpers';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { BaseUser, ButtonColumn } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
-import Model from '~/models/Model';
 import { CacheScope } from '~/utils/globals';
 import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
+import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -62,6 +62,10 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
 
   let tree = parsedTree;
   if (!tree) {
+    const relatedModels: Map<string, Model> = await getRelatedModelMap(
+      context,
+      model,
+    );
     // formula may include double curly brackets in previous version
     // convert to single curly bracket here for compatibility
     // const _tree1 = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
@@ -78,10 +82,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         | 'mariadb'
         | 'sqlite'
         | 'snowflake',
-      getMeta: async (context, { id }) => {
-        const model = await Model.get(context, id);
-        await model.getColumns(context);
-        return model;
+      getMeta: async (_, { id }) => {
+        return relatedModels.get(id);
       },
     });
 

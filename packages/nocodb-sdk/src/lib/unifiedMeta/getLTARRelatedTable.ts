@@ -15,10 +15,19 @@ export const getLTARRelatedTable = async (
     return undefined;
   }
   if ('getRelatedTable' in colOptions) {
-    return await colOptions.getRelatedTable(context);
-  } else {
-    return await getMeta(context, {
-      id: colOptions.fk_related_model_id,
+    return await colOptions.getRelatedTable({
+      ...context,
+      base_id: colOptions.fk_related_base_id || context.base_id,
     });
+  } else {
+    return await getMeta(
+      {
+        ...context,
+        base_id: colOptions.fk_related_base_id || context.base_id,
+      },
+      {
+        id: colOptions.fk_related_model_id,
+      }
+    );
   }
 };

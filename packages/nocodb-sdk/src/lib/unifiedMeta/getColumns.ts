@@ -11,7 +11,10 @@ export const getColumns = async (
   if ('columns' in model && model.columns?.length) {
     return await model.columns;
   } else if ('getColumns' in model) {
-    return await model.getColumns(context);
+    return await model.getColumns({
+      ...context,
+      base_id: model.base_id || context.base_id,
+    });
   }
   return undefined;
 };

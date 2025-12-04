@@ -2147,7 +2147,11 @@ const {
   cachedRows,
 })
 
-const startDragging = (row: Row, event: MouseEvent) => {
+/**
+ * Start row drag operation.
+ * Accepts both MouseEvent and PointerEvent for touch support.
+ */
+const startDragging = (row: Row, event: MouseEvent | PointerEvent) => {
   if (isPublicView.value) return
   row.rowMeta.isDragging = true
   cachedRows.value.set(row.rowMeta.rowIndex!, row)
@@ -2601,7 +2605,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               size="xxsmall"
                               type="text"
                               :disabled="!!selectedRows.length || !!vSelectedAllRecords"
-                              @mousedown="startDragging(row, $event)"
+                              @pointerdown="startDragging(row, $event)"
                             >
                               <GeneralIcon
                                 :class="{
@@ -2708,8 +2712,8 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               }
                             : {}
                         "
-                        @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, 0)"
-                        @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, 0)"
+                        @pointerdown="handleMouseDown($event, row.rowMeta.rowIndex, 0)"
+                        @pointerover="handleMouseOver($event, row.rowMeta.rowIndex, 0)"
                         @dblclick="makeEditable(row, fields[0])"
                         @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: 0 })"
                         @click="handleCellClick($event, row.rowMeta.rowIndex, 0)"
@@ -2812,8 +2816,8 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               }
                             : {}
                         "
-                        @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, colIndex)"
-                        @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, colIndex)"
+                        @pointerdown="handleMouseDown($event, row.rowMeta.rowIndex, colIndex)"
+                        @pointerover="handleMouseOver($event, row.rowMeta.rowIndex, colIndex)"
                         @click="handleCellClick($event, row.rowMeta.rowIndex, colIndex)"
                         @dblclick="makeEditable(row, columnObj)"
                         @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: colIndex })"

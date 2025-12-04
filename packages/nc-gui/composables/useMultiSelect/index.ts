@@ -309,7 +309,11 @@ export function useMultiSelect(
     return map
   })
 
-  function handleMouseOver(event: MouseEvent, row: number, col: number) {
+  /**
+   * Handle pointer/mouse move over cells for selection.
+   * Accepts both MouseEvent and PointerEvent for compatibility.
+   */
+  function handleMouseOver(event: MouseEvent | PointerEvent, row: number, col: number) {
     if (isFillMode.value) {
       const rw = isArrayStructure ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
 
@@ -344,7 +348,11 @@ export function useMultiSelect(
     event.preventDefault()
   }
 
-  function handleMouseDown(event: MouseEvent, row: number, col: number) {
+  /**
+   * Handle pointer/mouse down for starting cell selection.
+   * Accepts both MouseEvent and PointerEvent for compatibility.
+   */
+  function handleMouseDown(event: MouseEvent | PointerEvent, row: number, col: number) {
     // if there was a right click on selected range, don't restart the selection
     if (
       (event?.button !== MAIN_MOUSE_PRESSED || (event?.button === MAIN_MOUSE_PRESSED && event.ctrlKey)) &&
@@ -382,7 +390,11 @@ export function useMultiSelect(
     }
   }
 
-  const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+  /**
+   * Handle cell click for activating a cell.
+   * Accepts both MouseEvent and PointerEvent for compatibility.
+   */
+  const handleCellClick = (event: MouseEvent | PointerEvent, row: number, col: number) => {
     // if shift key is pressed, don't change the active cell (unless there is no active cell)
     if (!event.shiftKey || activeCell.col === null || activeCell.row === null) {
       makeActive(row, col)
@@ -508,7 +520,11 @@ export function useMultiSelect(
     )
   }
 
-  const handleMouseUp = (_event: MouseEvent) => {
+  /**
+   * Handle pointer/mouse up for ending selection.
+   * Accepts both MouseEvent and PointerEvent for compatibility.
+   */
+  const handleMouseUp = (_event: MouseEvent | PointerEvent) => {
     if (isFillMode.value) {
       try {
         const localAiMode = Boolean(aiMode.value)
@@ -1815,7 +1831,11 @@ export function useMultiSelect(
     }
   }
 
-  function fillHandleMouseDown(event: MouseEvent) {
+  /**
+   * Handle fill handle pointer/mouse down for starting fill mode.
+   * Accepts both MouseEvent and PointerEvent for compatibility.
+   */
+  function fillHandleMouseDown(event: MouseEvent | PointerEvent) {
     if (event?.button !== MAIN_MOUSE_PRESSED) {
       return
     }
@@ -1867,10 +1887,12 @@ export function useMultiSelect(
   }
 
   useEventListener(document, 'keydown', handleKeyDown)
-  useEventListener(document, 'mouseup', handleMouseUp)
+  // Use pointerup for unified mouse/touch support
+  useEventListener(document, 'pointerup', handleMouseUp)
   useEventListener(document, 'paste', handlePaste)
 
-  useEventListener(fillHandle, 'mousedown', fillHandleMouseDown)
+  // Use pointerdown for unified mouse/touch support on fill handle
+  useEventListener(fillHandle, 'pointerdown', fillHandleMouseDown)
 
   return {
     isCellActive,

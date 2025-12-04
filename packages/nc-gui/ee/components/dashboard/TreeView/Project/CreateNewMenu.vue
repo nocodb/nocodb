@@ -89,12 +89,25 @@ const openMarketPlace = () => {
       <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
     </NcMenuItem>
-    <NcMenuItem v-if="isSyncFeatureEnabled" inner-class="w-full" data-testid="create-new-sync" @click="emits('newSync')">
-      <GeneralIcon icon="ncZap" />
-      {{ $t('labels.sync') }}
-      <div class="flex-1 w-full" />
-      <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
-    </NcMenuItem>
+
+    <ProjectSyncCreateProvider v-if="isSyncFeatureEnabled">
+      <template #default="{ createSyncClick }">
+        <NcMenuItem
+          inner-class="w-full"
+          data-testid="create-new-sync"
+          @click="
+            () => {
+              createSyncClick()
+            }
+          "
+        >
+          <GeneralIcon icon="ncZap" />
+          {{ $t('labels.sync') }}
+          <div class="flex-1 w-full" />
+          <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
+        </NcMenuItem>
+      </template>
+    </ProjectSyncCreateProvider>
 
     <NcMenuItemLabel>
       <span class="normal-case"> {{ $t('general.automations') }} </span>

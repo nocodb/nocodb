@@ -26,21 +26,17 @@ const { loadTables } = baseStore
 
 const { bases, activeProjectId } = storeToRefs(basesStore)
 
+const { openNewSyncCreateModal, openSyncProgressModal } = syncStore
+
 const { activeBaseSyncs, isLoadingSync } = storeToRefs(syncStore)
 
 const { loadSyncs, triggerSync: _triggerSync } = syncStore
 
 const searchQuery = ref<string>('')
 
-const isCreateSyncModalOpen = ref(false)
-
 const isEditSyncModalOpen = ref(false)
 
 const activeSyncId = ref('')
-
-const showProgressModal = ref(false)
-
-const syncJobId = ref<string | null>(null)
 
 const columns = [
   {
@@ -113,8 +109,7 @@ const filteredSyncs = computed(() => {
 })
 
 const handleCreateSync = () => {
-  $e('c:sync:open-create-modal')
-  isCreateSyncModalOpen.value = true
+  openNewSyncCreateModal({ baseId: currentBase.value?.id! })
 }
 
 const handleEditSync = (syncId: string) => {
@@ -153,8 +148,7 @@ const triggerSync = async (syncId: string) => {
   const job = await _triggerSync(currentBase.value.id!, syncId)
 
   if (job?.id) {
-    syncJobId.value = job?.id
-    showProgressModal.value = true
+    openSyncProgressModal({ baseId: currentBase.value.id!, jobId: job.id })
   }
 }
 
@@ -336,25 +330,11 @@ onMounted(async () => {
       </NcTable>
     </div>
 
-    <ProjectSyncCreate
-      v-if="isCreateSyncModalOpen"
-      v-model:value="isCreateSyncModalOpen"
-      :base-id="currentBase?.id!"
-      @sync-created="
-        (jobId) => {
-          syncJobId = jobId
-          showProgressModal = true
-        }
-      "
-    />
-
     <ProjectSyncEdit
       v-if="isEditSyncModalOpen && activeSyncId"
       v-model:value="isEditSyncModalOpen"
       :base-id="currentBase?.id!"
       :sync-id="activeSyncId"
     />
-
-    <ProjectSyncProgressModal v-if="syncJobId" v-model="showProgressModal" :job-id="syncJobId" :base-id="currentBase?.id!" />
   </div>
 </template>

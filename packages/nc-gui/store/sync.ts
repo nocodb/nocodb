@@ -1,5 +1,6 @@
 import { acceptHMRUpdate } from 'pinia'
 import type { IntegrationsType, SyncConfig } from 'nocodb-sdk'
+import { ProjectSyncCreate, ProjectSyncProgressModal } from '#components'
 
 export interface SyncIntegrationConfig {
   id?: string
@@ -27,6 +28,8 @@ export const useSyncStore = defineStore('sync', () => {
   const { activeProjectId } = storeToRefs(bases)
 
   const { loadProjectTables } = useTablesStore()
+
+  const { showUpgradeToUseSync } = useEeConfig()
 
   // State
   const baseSyncs = ref<Map<string, SyncConfig[]>>(new Map())
@@ -231,6 +234,50 @@ export const useSyncStore = defineStore('sync', () => {
     }
   }
 
+  async function openNewSyncCreateModal({ baseId }: { baseId?: string }) {
+    if (!baseId || showUpgradeToUseSync()) return
+
+    $e('c:sync:open-create-modal')
+
+    const isDlgOpen = ref(true)
+
+    const { close } = useDialog(ProjectSyncCreate, {
+      'value': isDlgOpen,
+      'baseId': baseId,
+      'onUpdate:value': () => closeDialog(),
+      'onSyncCreated': async (jobId: string) => {
+        closeDialog(jobId)
+      },
+    })
+
+    async function closeDialog(jobId?: string) {
+      isDlgOpen.value = false
+      close(1000)
+
+      if (baseId && jobId) {
+        openSyncProgressModal({ baseId, jobId })
+      }
+    }
+  }
+
+  async function openSyncProgressModal({ baseId, jobId }: { baseId: string; jobId: string }) {
+    if (!baseId || !jobId) return
+
+    const isDlgOpen = ref(true)
+
+    const { close } = useDialog(ProjectSyncProgressModal, {
+      'modelValue': isDlgOpen,
+      'onUpdate:modelValue': () => closeDialog(),
+      'jobId': jobId,
+      'baseId': baseId,
+    })
+
+    function closeDialog() {
+      isDlgOpen.value = false
+      close(1000)
+    }
+  }
+
   return {
     // State
     baseSyncs,
@@ -248,6 +295,8 @@ export const useSyncStore = defineStore('sync', () => {
     updateSync,
     deleteSync,
     triggerSync,
+    openNewSyncCreateModal,
+    openSyncProgressModal,
   }
 })
 

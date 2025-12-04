@@ -282,17 +282,23 @@ const onResizeEnd = () => {
   resizeInProgress.value = false
   resizeDirection.value = null
   resizeRecord.value = null
-  document.removeEventListener('mousemove', onResize)
-  document.removeEventListener('mouseup', onResizeEnd)
+  document.removeEventListener('pointermove', onResize)
+  document.removeEventListener('pointerup', onResizeEnd)
+  document.removeEventListener('pointercancel', onResizeEnd)
 }
 
-const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+/**
+ * Start resize operation for calendar records.
+ * Uses Pointer Events API for unified mouse/touch/pen handling.
+ */
+const onResizeStart = (direction: 'right' | 'left', event: MouseEvent | PointerEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
-  document.addEventListener('mousemove', onResize)
-  document.addEventListener('mouseup', onResizeEnd)
+  document.addEventListener('pointermove', onResize)
+  document.addEventListener('pointerup', onResizeEnd)
+  document.addEventListener('pointercancel', onResizeEnd)
 }
 
 const dragOffset = ref<{
@@ -388,7 +394,11 @@ const onDrag = (event: MouseEvent) => {
   calculateNewRow(event, false)
 }
 
-const stopDrag = (event: MouseEvent) => {
+/**
+ * Stop drag operation for calendar records.
+ * Uses Pointer Events API for unified mouse/touch/pen handling.
+ */
+const stopDrag = (event: MouseEvent | PointerEvent) => {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
 
@@ -420,11 +430,16 @@ const stopDrag = (event: MouseEvent) => {
     y: null,
   }
 
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
+  document.removeEventListener('pointermove', onDrag)
+  document.removeEventListener('pointerup', stopDrag)
+  document.removeEventListener('pointercancel', stopDrag)
 }
 
-const dragStart = (event: MouseEvent, record: Row) => {
+/**
+ * Start drag operation for calendar records.
+ * Uses Pointer Events API for unified mouse/touch/pen handling.
+ */
+const dragStart = (event: MouseEvent | PointerEvent, record: Row) => {
   if (resizeInProgress.value || isSyncedFromColumn.value) return
   let target = event.target as HTMLElement
 
@@ -453,11 +468,12 @@ const dragStart = (event: MouseEvent, record: Row) => {
     dragElement.value = target
     dragRecord.value = record
 
-    document.addEventListener('mousemove', onDrag)
-    document.addEventListener('mouseup', stopDrag)
+    document.addEventListener('pointermove', onDrag)
+    document.addEventListener('pointerup', stopDrag)
+    document.addEventListener('pointercancel', stopDrag)
   }, 200)
 
-  const onMouseUp = () => {
+  const onPointerUp = () => {
     clearTimeout(dragTimeout.value!)
 
     dragOffset.value = {
@@ -465,13 +481,13 @@ const dragStart = (event: MouseEvent, record: Row) => {
       y: null,
     }
 
-    document.removeEventListener('mouseup', onMouseUp)
+    document.removeEventListener('pointerup', onPointerUp)
     if (!isDragging.value) {
       emits('expandRecord', record)
     }
   }
 
-  document.addEventListener('mouseup', onMouseUp)
+  document.addEventListener('pointerup', onPointerUp)
 }
 
 const dropEvent = (event: DragEvent) => {
@@ -572,7 +588,7 @@ const addRecord = (date: dayjs.Dayjs) => {
           class="absolute group draggable-record pointer-events-auto nc-calendar-week-record-card"
           @mouseleave="hoverRecord = null"
           @mouseover="hoverRecord = record.rowMeta.id"
-          @mousedown.stop="dragStart($event, record)"
+          @pointerdown.stop="dragStart($event, record)"
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard

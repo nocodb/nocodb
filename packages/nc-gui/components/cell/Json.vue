@@ -185,7 +185,7 @@ watch(isExpanded, (newVal, oldVal) => {
   if (oldVal && !newVal) canvasSelectCell?.trigger()
 })
 
-const stopPropagation = (event: MouseEvent) => {
+const stopPropagation = (event: MouseEvent | PointerEvent) => {
   event.stopPropagation()
 }
 
@@ -197,12 +197,12 @@ watch(inputWrapperRef, () => {
 
   if (isExpanded.value && modal?.parentElement) {
     modal.parentElement.addEventListener('click', stopPropagation)
-    modal.parentElement.addEventListener('mousedown', stopPropagation)
-    modal.parentElement.addEventListener('mouseup', stopPropagation)
+    modal.parentElement.addEventListener('pointerdown', stopPropagation)
+    modal.parentElement.addEventListener('pointerup', stopPropagation)
   } else if (modal?.parentElement) {
     modal.parentElement.removeEventListener('click', stopPropagation)
-    modal.parentElement.removeEventListener('mousedown', stopPropagation)
-    modal.parentElement.removeEventListener('mouseup', stopPropagation)
+    modal.parentElement.removeEventListener('pointerdown', stopPropagation)
+    modal.parentElement.removeEventListener('pointerup', stopPropagation)
   }
 })
 

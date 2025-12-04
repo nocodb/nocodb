@@ -46,7 +46,11 @@ export function useColumnReorder(
     return null
   }
 
-  const handleDrag = (e: MouseEvent) => {
+  /**
+   * Handle pointer move for column drag.
+   * Uses Pointer Events API for unified mouse/touch/pen handling.
+   */
+  const handleDrag = (e: PointerEvent) => {
     if (!isDragging.value || !dragStart.value) return
 
     const rect = canvasRef.value?.getBoundingClientRect()
@@ -76,12 +80,17 @@ export function useColumnReorder(
     dragStart.value = null
     dragOver.value = null
 
-    window.removeEventListener('mousemove', handleDrag)
-    window.removeEventListener('mouseup', dragEndHandler)
+    window.removeEventListener('pointermove', handleDrag)
+    window.removeEventListener('pointerup', dragEndHandler)
+    window.removeEventListener('pointercancel', dragEndHandler)
 
     requestAnimationFrame(drawCanvas)
   }
 
+  /**
+   * Start column drag operation.
+   * Uses Pointer Events API for unified mouse/touch/pen handling.
+   */
   const startDrag = (x: number) => {
     if (isLocked.value || !isViewOperationsAllowed.value) return
     const col = findColumnAtPosition(x)
@@ -92,8 +101,9 @@ export function useColumnReorder(
         index: columns.value.findIndex((c) => c.id === col.id),
         startX: x,
       }
-      window.addEventListener('mousemove', handleDrag)
-      window.addEventListener('mouseup', dragEndHandler)
+      window.addEventListener('pointermove', handleDrag)
+      window.addEventListener('pointerup', dragEndHandler)
+      window.addEventListener('pointercancel', dragEndHandler)
     }
   }
 

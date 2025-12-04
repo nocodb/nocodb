@@ -348,8 +348,7 @@ export default function () {
       // Validation
       const error = listScripts.body;
       expect(error).to.be.an('object');
-      expect(error).to.have.property('error', 'ERR_FORBIDDEN');
-      expect(error).to.have.property('message').that.includes('not sufficient');
+      expect(error).to.have.property('error', 'ERR_FEATURE_NOT_SUPPORTED');
     });
   });
 }

@@ -134,7 +134,10 @@ export class BambooHRAuthIntegration extends AuthIntegration<
     };
   }
 
-  public async refreshToken(payload: { refresh_token: string }): Promise<{
+  public async refreshToken(
+    payload: { refresh_token: string },
+    config: BambooHRAuthConfig,
+  ): Promise<{
     oauth_token: string;
     refresh_token?: string;
     expires_in?: number;
@@ -143,16 +146,20 @@ export class BambooHRAuthIntegration extends AuthIntegration<
     params.append('grant_type', 'refresh_token');
     params.append('refresh_token', payload.refresh_token);
 
-    const response = await axios.post(tokenUri, params.toString(), {
-      auth: {
-        username: clientId!,
-        password: clientSecret!,
+    const response = await axios.post(
+      tokenUri.replace('{{config.companyDomain}}', config.companyDomain),
+      params.toString(),
+      {
+        auth: {
+          username: clientId!,
+          password: clientSecret!,
+        },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
       },
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'application/json',
-      },
-    });
+    );
 
     return {
       oauth_token: response.data.access_token,

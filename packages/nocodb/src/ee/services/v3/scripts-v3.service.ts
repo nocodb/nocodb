@@ -10,8 +10,7 @@ import type { Script } from '~/models';
 import { ScriptsService } from '~/services/scripts.service';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { validatePayload } from '~/helpers';
-import { getFeature } from '~/helpers/paymentHelpers';
-import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 
 const scriptBuilder = builderGenerator<Script, ScriptV3GetResponseType>({
   allowed: [
@@ -48,19 +47,13 @@ export class ScriptsV3Service {
   /**
    * Validates if the user has access to the Scripts API.
    * This method checks if the feature is enabled for the workspace.
-   * If not, it throws an error indicating that the feature is only available on Enterprise plans.
+   * If not, it throws an error indicating that the feature is only available on higher plans.
    */
   private async validateFeatureAccess(context: NcContext) {
-    if (
-      !(await getFeature(
-        PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
-        context.workspace_id,
-      ))
-    ) {
-      NcError.get(context).forbidden(
-        'Accessing Scripts API is only available on Enterprise plans. Please upgrade your workspace plan to enable this feature. Your current plan is not sufficient.',
-      );
-    }
+    await checkForFeature(
+      context,
+      PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+    );
   }
 
   async scriptList(context: NcContext): Promise<ScriptV3ListResponseType> {

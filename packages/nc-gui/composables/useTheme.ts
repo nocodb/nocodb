@@ -12,7 +12,7 @@ export const useTheme = createSharedComposable(() => {
   /**
    * Some pages are used in iframe which don't support dark theme yet, so disable dark theme for them.
    */
-  const disabledDarkThemeRouteNames = ['index-typeOrId-pricing']
+  const disabledDarkThemeRouteNames = ['index-typeOrId-pricing', 'index-typeOrId-checkout-planId']
 
   const isThemeEnabled = computed(() => {
     return isFeatureEnabled(FEATURE_FLAG.DARK_MODE) && !disabledDarkThemeRouteNames.includes(route.value.name as string)

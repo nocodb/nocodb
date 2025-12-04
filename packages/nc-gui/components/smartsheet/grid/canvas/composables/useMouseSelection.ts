@@ -68,7 +68,11 @@ export function useMouseSelection({
     return { row, col: -1, path: path ?? [] }
   }
 
-  const handleMouseDown = (e: MouseEvent) => {
+  /**
+   * Handle pointer down event for cell selection.
+   * Works with mouse, touch, and pen input via Pointer Events API.
+   */
+  const handleMouseDown = (e: MouseEvent | PointerEvent) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect || e.button !== 0) return
 
@@ -92,7 +96,10 @@ export function useMouseSelection({
     }
   }
 
-  const handleMouseMove = (e: MouseEvent) => {
+  /**
+   * Handle pointer move event for selection tracking.
+   */
+  const handleMouseMove = (e: MouseEvent | PointerEvent) => {
     if (!isSelecting.value) return
 
     const rect = canvasRef.value?.getBoundingClientRect()
@@ -124,6 +131,10 @@ export function useMouseSelection({
       triggerReRender()
     }
   }
+
+  /**
+   * Handle pointer up event to finalize selection.
+   */
   const handleMouseUp = () => {
     isSelecting.value = false
 

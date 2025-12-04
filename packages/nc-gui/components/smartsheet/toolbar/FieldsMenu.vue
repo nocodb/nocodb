@@ -910,7 +910,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             }"
             @visible-change="onAddColumnDropdownVisibilityChange"
           >
-            <NcButton class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
+            <NcButton text-color="primary" class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
               <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
               <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
             </NcButton>
@@ -953,12 +953,6 @@ const onAddColumnDropdownVisibilityChange = () => {
   @apply bg-nc-bg-gray-extralight;
 }
 
-.nc-fields-add-new-field {
-  &:not(:disabled) {
-    @apply text-primary hover:text-primary;
-  }
-}
-
 .nc-cover-image-object-fit-dropdown-menu {
   :deep(.nc-menu-item-inner) {
     @apply !w-full flex items-center justify-between;
@@ -966,6 +960,7 @@ const onAddColumnDropdownVisibilityChange = () => {
 }
 .nc-dropdown-cover-image-wrapper {
   @apply h-8;
+
   &:not(.nc-disabled):not(:focus-within) {
     @apply shadow-default hover:shadow-hover;
   }

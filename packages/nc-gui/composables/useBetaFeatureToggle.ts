@@ -115,10 +115,10 @@ const FEATURES = [
   },
   {
     id: 'extensions',
-    title: 'Extensions',
+    title: 'Extensions beta features',
     description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
     enabled: ncIsPlaywright(),
-    version: 3,
+    version: 4,
     isEngineering: true,
   },
   {
@@ -146,28 +146,12 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'table_and_field_permissions',
-    title: 'Table and Field Permissions',
-    description: 'Allows user to manage table and field permissions.',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
     id: 'view_actions',
     title: 'View Actions',
     description: 'Execute scripts and webhooks to all records in a view.',
     enabled: false,
     version: 1,
     isEngineering: true,
-    isEE: true,
-  },
-  {
-    id: 'copy_view_config_from_another_view',
-    title: 'Copy View Config From Another View',
-    description: 'Copy view config from another view.',
-    enabled: true,
-    version: 3,
     isEE: true,
   },
   {

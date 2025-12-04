@@ -85,7 +85,6 @@ const openMarketPlace = () => {
       <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
       <div class="flex-1 w-full" />
-      <NcBadge :border="false" size="xs" class="!text-nc-content-brand-disabled !bg-nc-bg-brand"> Beta </NcBadge>
     </NcMenuItem>
 
     <NcMenuItemLabel>

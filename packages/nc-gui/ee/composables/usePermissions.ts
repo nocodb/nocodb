@@ -27,10 +27,6 @@ export const usePermissions = () => {
 
   const { blockTableAndFieldPermissions } = useEeConfig()
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
-  const isTableAndFieldPermissionsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.TABLE_AND_FIELD_PERMISSIONS))
-
   // Use centralized permission options from SDK
   const permissionOptions = PermissionOptions
 
@@ -90,7 +86,7 @@ export const usePermissions = () => {
     },
   ) => {
     // If table and field permissions feature is not enabled, then we allow all permissions
-    if (blockTableAndFieldPermissions.value || !isTableAndFieldPermissionsEnabled.value) {
+    if (blockTableAndFieldPermissions.value) {
       return true
     }
 
@@ -186,6 +182,5 @@ export const usePermissions = () => {
     getPermissionSummary,
     getPermissionSummaryLabel,
     isAllowed,
-    isTableAndFieldPermissionsEnabled,
   }
 }

@@ -50,8 +50,6 @@ const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
 
-const { isTableAndFieldPermissionsEnabled } = usePermissions()
-
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
 const projectPageTab = computed({
@@ -99,12 +97,7 @@ watch(
         projectPageTab.value = 'data-source'
       } else if (newVal === 'overview' && isOverviewTabVisible.value) {
         projectPageTab.value = 'overview'
-      } else if (
-        newVal === 'permissions' &&
-        !blockTableAndFieldPermissions.value &&
-        isEeUI &&
-        isTableAndFieldPermissionsEnabled.value
-      ) {
+      } else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
         projectPageTab.value = 'permissions'
       } else if (newVal === 'base-settings') {
         projectPageTab.value = 'base-settings'
@@ -243,10 +236,7 @@ onMounted(() => {
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
-        <a-tab-pane
-          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && isTableAndFieldPermissionsEnabled && !isMobileMode"
-          key="permissions"
-        >
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />

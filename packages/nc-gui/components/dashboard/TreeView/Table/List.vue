@@ -128,6 +128,7 @@ const initSortable = (el: Element) => {
     },
     revertOnSpill: true,
     filter: isTouchEvent,
+    preventOnFilter: false, // Allow click events to propagate on touch devices
     ...getDraggableAutoScrollOptions({ scrollSensitivity: 50 }),
   })
 }

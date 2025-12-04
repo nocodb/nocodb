@@ -113,18 +113,6 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
       });
     }
 
-    if (config.to) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const emails = config.to.split(',').map((email) => email.trim());
-      const invalidEmails = emails.filter((email) => !emailRegex.test(email));
-      if (invalidEmails.length > 0) {
-        errors.push({
-          path: 'config.to',
-          message: 'Invalid email format in To field',
-        });
-      }
-    }
-
     return { valid: errors.length === 0, errors };
   }
 
@@ -145,7 +133,7 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
       const emailParams = {
         to: config.to,
         subject: config.subject,
-        ...config.body,
+        text: config.body,
         ...(config.cc && { cc: config.cc }),
         ...(config.bcc && { bcc: config.bcc }),
       };
@@ -183,8 +171,6 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
       return {
         outputs: {
           success: true,
-          to: config.to,
-          subject: config.subject,
         },
         status: 'success',
         logs,
@@ -220,31 +206,39 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
     return [
       {
-        key: 'to',
+        key: 'config.to',
         type: NocoSDK.VariableType.String,
         name: 'To',
         extra: {
           icon: 'ncUser',
         },
       },
+      ...(this.config.cc
+        ? [
+            {
+              key: 'config.cc',
+              type: NocoSDK.VariableType.String,
+              name: 'CC',
+              extra: {
+                icon: 'ncUsers',
+              },
+            },
+          ]
+        : []),
+      ...(this.config.bcc
+        ? [
+            {
+              key: 'config.bcc',
+              type: NocoSDK.VariableType.String,
+              name: 'BCC',
+              extra: {
+                icon: 'ncUsers',
+              },
+            },
+          ]
+        : []),
       {
-        key: 'cc',
-        type: NocoSDK.VariableType.String,
-        name: 'CC',
-        extra: {
-          icon: 'ncUsers',
-        },
-      },
-      {
-        key: 'bcc',
-        type: NocoSDK.VariableType.String,
-        name: 'BCC',
-        extra: {
-          icon: 'ncUsers',
-        },
-      },
-      {
-        key: 'subject',
+        key: 'config.subject',
         type: NocoSDK.VariableType.String,
         name: 'Subject',
         extra: {
@@ -252,11 +246,26 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
         },
       },
       {
-        key: 'body',
+        key: 'config.body',
         type: NocoSDK.VariableType.String,
         name: 'Body',
         extra: {
           icon: 'ncMessageSquare',
+        },
+      },
+    ];
+  }
+
+  public async generateOutputVariables(): Promise<
+    NocoSDK.VariableDefinition[]
+  > {
+    return [
+      {
+        key: 'success',
+        type: NocoSDK.VariableType.Boolean,
+        name: 'Success',
+        extra: {
+          icon: 'cellCheckbox',
         },
       },
     ];

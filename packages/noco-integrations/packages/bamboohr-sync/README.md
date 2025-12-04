@@ -1,152 +1,130 @@
-# Bitbucket Sync Integration
+# BambooHR Sync Integration
 
-Sync integration for Bitbucket issues and pull requests in NocoDB.
+Sync BambooHR employee, location, and employment data into the NocoDB HRIS schema. The package extends the `SyncIntegration` base class and streams normalized records through `DataObjectStream`.
 
 ## Features
 
-- **Issue Syncing**: Sync issues from Bitbucket repositories
-- **Pull Request Syncing**: Optional PR syncing with reviewers and status
-- **Comment Syncing**: Sync issue and PR comments
-- **User Syncing**: Automatic user extraction from issues, PRs, and comments
-- **Incremental Sync**: Only fetch updated items on subsequent syncs
-- **Multi-Repository**: Sync multiple repositories simultaneously
+- **HRIS schema coverage**: Populates `HRIS_EMPLOYEE`, `HRIS_LOCATION`, and `HRIS_EMPLOYMENT` tables.
+- **Incremental sync**: Uses BambooHR `lastChanged` timestamps so subsequent runs only fetch updates.
+- **Linked records**: Automatically links locations to employees and employment rows back to employees.
+- **Batch-friendly streaming**: Streams data in batches of 25 records to keep memory usage low.
+- **Namespace isolation**: Stores the BambooHR company domain in `RemoteNamespace` for multi-domain datasets.
+
+## How It Works
+
+1. Requires a BambooHR Auth integration (`@noco-integrations/bamboohr-auth`) that yields an Axios client with the company domain and API key.
+2. `fetchData()` inspects `targetTables` and `targetTableIncrementalValues` to decide which tables to sync and which `since` cursor (`lastChanged`) to pass per table.
+3. Employees are pulled via `/employees/changed`; each employee detail is fetched with the required field list and formatted twice (employee + location records).
+4. Employment rows are produced by fetching `/employees/changed/tables/compensation` and `/employees/changed/tables/jobInfo`, hydrating any missing employee details from cache, and combining the latest job and compensation entries.
+5. Records are emitted through `DataObjectStream` until `null` is pushed to close the stream.
 
 ## Configuration
 
 ### Prerequisites
 
-Requires a configured Bitbucket Auth integration (`@noco-integrations/bitbucket-auth`).
+- NocoDB instance with the integrations framework enabled.
+- BambooHR Auth integration configured with company domain and API key.
 
-### Required Permissions
+### Sync Form Fields
 
-Your Bitbucket access token or OAuth app must have the following scopes:
+| Field | Description |
+| --- | --- |
+| `title` | Display name for this sync instance. |
+| `config.authIntegrationId` | Reference to an existing BambooHR auth connection. |
 
-- **`repository`** - Read access to repositories (required for issues and PRs)
-- **`issue`** - Read access to issue comments (required for comment syncing)
-- **`pullrequest`** - Read access to pull requests (if syncing PRs)
-- **`account`** - Read access to user information
+### Required BambooHR Permissions
 
-**Note**: If your token lacks the `issue` scope, comment syncing will be skipped with a warning, but issues and PRs will still sync successfully.
+Grant the API key (or OAuth token) the ability to read:
 
-### Sync Options
+- `employees` – employee directory data.
+- `jobInfo` – job titles, departments, employment history.
+- `compensation` – base pay and overtime compensation tables.
 
-1. **Repositories**: Select one or more repositories to sync (format: `workspace/repository`)
-2. **Include Closed Issues**: Sync closed/resolved issues (default: true)
-3. **Include Pull Requests**: Sync pull requests in addition to issues (default: false)
+## Target Tables & Data Mapping
 
-## Data Schema
+All data is written to the HRIS schema exported by `@noco-integrations/core`.
 
-Syncs to the **Ticketing** schema with the following tables:
+### `HRIS_EMPLOYEE`
 
-### Tickets (Issues & PRs)
-- **Name**: Issue/PR title
-- **Description**: Issue/PR description
-- **Status**: Issue state (new, open, resolved, closed) or PR state (OPEN, MERGED, DECLINED)
-- **Priority**: Issue priority
-- **Ticket Type**: "Issue" or "Pull Request"
-- **Ticket Number**: Issue/PR ID
-- **URL**: Link to issue/PR on Bitbucket
-- **Is Active**: Whether issue/PR is open
-- **Completed At**: When issue/PR was closed/merged
-- **Creator**: Link to reporter/author
-- **Assignees**: Link to assignees/reviewers
+Fields populated by `BambooHRFormatter.formatEmployee()`:
 
-### Users
-- **Name**: Display name or username
-- **URL**: Link to user profile
+- `Employee Number`, `First Name`, `Last Name`, `Preferred Name`, `Display Full Name`
+- `Work Email`, `Personal Email`, `Mobile Phone Number`
+- `Employment Status`, `SSN`, `Gender`, `Ethnicity`, `Marital Status`
+- `Date Of Birth`, `Start Date`, `Termination Date`
+- `Manager`, `Department`, `Avatar`
+- `RemoteRaw` (full employee JSON), `RemoteUpdatedAt`, `RemoteNamespace`
 
-### Comments
-- **Title**: Auto-generated comment title
-- **Body**: Comment content
-- **URL**: Link to comment
-- **Ticket**: Link to parent issue/PR
-- **Created By**: Link to comment author
+### `HRIS_LOCATION`
 
-## Bitbucket API Endpoints Used
+Derived from the same employee detail via `formatHomeLocation()`:
 
-- `GET /repositories` - List user repositories
-- `GET /repositories/{workspace}/{repo}/issues?q=...&sort=-updated_on` - List issues with filtering
-- `GET /repositories/{workspace}/{repo}/pullrequests?q=...&sort=-updated_on` - List pull requests with filtering
-- `GET /repositories/{workspace}/{repo}/issues/{issue_id}/comments?q=...&sort=-created_on` - List issue comments with filtering
-- `GET /repositories/{workspace}/{repo}/pullrequests/{pr_id}/comments?q=...&sort=-created_on` - List PR comments with filtering
+- `Name`, `Phone Number`, `Street 1`, `Street 2`, `City`, `State`, `Zip Code`, `Country`, `Location Type` (`Home`)
+- Links `Home of Employee` → employee `recordId`
 
-### Query Language
+### `HRIS_EMPLOYMENT`
 
-The integration uses Bitbucket's query language for server-side filtering:
+Built by `formatEmployment()` combining the latest jobInfo + compensation rows:
 
-**State Filtering:**
-- Issues: `(state = "new" OR state = "open")`
-- PRs: `state = "OPEN"`
+- `Employment Type`, `Job Title`, `Pay Rate`, `Pay Period`, `Pay Currency`, `Flsa Status`, `Effective Date`
+- Reserved placeholders for `Pay Frequency` and `Pay Group`
+- `RemoteRaw` (job info JSON), `RemoteUpdatedAt`, `RemoteNamespace`
+- Link `Employee` → employee `recordId`
 
-**Incremental Sync:**
-- `updated_on > 2024-01-01T00:00:00.000Z`
-- `created_on > 2024-01-01T00:00:00.000Z`
+## API Endpoints Used
 
-**Combined Filters:**
-- `(state = "new" OR state = "open") AND updated_on > 2024-01-01T00:00:00.000Z`
+- `GET /employees/changed?since={timestamp}`
+- `GET /employees/{id}?fields={employeeFetchFields}`
+- `GET /employees/changed/tables/compensation?since={timestamp}`
+- `GET /employees/changed/tables/jobInfo?since={timestamp}`
+- `GET /employees/{id}/tables/compensation`
 
 ## Incremental Sync
 
-The integration supports incremental syncing based on:
-- **Tickets**: `updated_on` timestamp
-- **Comments**: `created_on` timestamp
+- Employee and location tables rely on the `lastChanged` cursor returned by `/employees/changed`.
+- Employment rows derive their cursor from the same `lastChanged` value returned in jobInfo/compensation feeds.
+- Each emitted record stores the cursor in `RemoteUpdatedAt`, so subsequent runs reuse it via `getIncrementalKey()`.
+- Deleted employees currently emit no tombstones (`deleted` actions are skipped).
 
-Bitbucket API filters data on the server, so only items updated/created after the last sync are fetched and transferred over the network. This makes incremental syncs extremely efficient.
+## Error Handling & Limits
 
-## Limitations
-
-- **Issue Tracker Required**: Repositories must have the issue tracker feature enabled to sync issues
-- **Email Privacy**: User emails are not available via Bitbucket API
-- **Rate Limits**: Subject to Bitbucket API rate limits
-- **Pagination**: Fetches up to 50 items per page
-
-**Note**: If a repository doesn't have the issue tracker enabled, the integration will skip it with a warning message and continue syncing other repositories.
+- Axios `404` responses for missing employees are swallowed so bad references do not terminate the sync.
+- Any other error destroys the stream and surfaces the original exception.
+- Compensation `rate` and `overtimeRate` values are normalized into `<value> <currency>` strings before mapping.
+- Employment `Pay Rate` gracefully drops invalid numeric strings.
+- BambooHR API rate limits still apply; stagger schedules for large tenants.
 
 ## Usage Example
 
 ```typescript
-// Get the sync integration
-const syncIntegration = await Integration.get(context, syncIntegrationId);
+import { Integration, TARGET_TABLES } from '@noco-integrations/core';
 
-// Get the auth integration
+const syncIntegration = await Integration.get(context, syncIntegrationId);
 const authIntegration = await Integration.get(
   context,
-  syncIntegration.getConfig().authIntegrationId
+  syncIntegration.getConfig().authIntegrationId,
 );
 
-// Authenticate
 const authWrapper = await authIntegration.getIntegrationWrapper();
-const auth = await authWrapper.authenticate(); // Returns axios instance
+const bamboohrAuth = await authWrapper.authenticate(); // Axios client
 
-// Get sync wrapper
 const syncWrapper = await syncIntegration.getIntegrationWrapper();
 
-// Fetch data
-const stream = await syncWrapper.fetchData(auth, {
+const stream = await syncWrapper.fetchData(bamboohrAuth, {
   targetTables: [
-    TARGET_TABLES.TICKETING_TICKET,
-    TARGET_TABLES.TICKETING_USER,
-    TARGET_TABLES.TICKETING_COMMENT,
+    TARGET_TABLES.HRIS_EMPLOYEE,
+    TARGET_TABLES.HRIS_LOCATION,
+    TARGET_TABLES.HRIS_EMPLOYMENT,
   ],
 });
 
-// Process stream
 for await (const record of stream) {
-  console.log(record);
+  console.log(record.targetTable, record.data);
 }
 ```
 
-## Bitbucket API Documentation
+## Next Steps
 
-- [Bitbucket Cloud REST API](https://developer.atlassian.com/cloud/bitbucket/rest/intro/)
-- [Issues API](https://developer.atlassian.com/cloud/bitbucket/rest/api-group-issue-tracker/)
-- [Pull Requests API](https://developer.atlassian.com/cloud/bitbucket/rest/api-group-pullrequests/)
-- [Repositories API](https://developer.atlassian.com/cloud/bitbucket/rest/api-group-repositories/)
-
-## Error Handling
-
-The integration includes comprehensive error handling:
-- Repository-level error isolation (one repo failure doesn't stop others)
-- Graceful pagination handling
-- Detailed logging for debugging
-- Stream error propagation
+- Pair this integration with automations or workflows that ingest the HRIS tables.
+- Monitor BambooHR API usage to size batch schedules (current batch size = 25).
+- Extend `BambooHRFormatter` if additional HRIS fields are needed (for example, cost centers or custom fields).

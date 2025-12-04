@@ -9924,8 +9924,7 @@
         "description": "Script create request body",
         "type": "object",
         "required": [
-          "title",
-          "script"
+          "title"
         ],
         "properties": {
           "title": {

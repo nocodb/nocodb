@@ -109,7 +109,7 @@ const filteredSyncs = computed(() => {
 })
 
 const handleCreateSync = () => {
-  openNewSyncCreateModal({ baseId: currentBase.value?.id! })
+  openNewSyncCreateModal({ baseId: currentBase.value?.id })
 }
 
 const handleEditSync = (syncId: string) => {

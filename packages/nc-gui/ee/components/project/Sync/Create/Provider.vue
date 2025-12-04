@@ -77,8 +77,8 @@ onMounted(async () => {
 
 <template>
   <slot
-    :isSyncOptionVisible="isSyncOptionVisible"
-    :createSyncClick="
+    :is-sync-option-visible="isSyncOptionVisible"
+    :create-sync-click="
       () => {
         openNewSyncCreateModal({ baseId: currentBase?.id })
       }

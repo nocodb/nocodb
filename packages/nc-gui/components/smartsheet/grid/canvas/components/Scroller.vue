@@ -197,10 +197,6 @@ const handleWheel = (e: WheelEvent) => {
   updateScroll(scrollTop.value + (canScrollVertically ? deltaY : 0), scrollLeft.value + (canScrollHorizontally ? deltaX : 0))
 }
 
-/**
- * Start dragging the scrollbar thumb.
- * Uses Pointer Events API for unified mouse/touch/pen handling.
- */
 const startDragging = (axis: 'vertical' | 'horizontal', event: PointerEvent) => {
   event.preventDefault()
   event.stopPropagation()

@@ -321,8 +321,8 @@ onMounted(() => {
         :readonly="readOnly || !!isMobileMode"
         @blur="onBlur"
         @keydown="handleKeydown($event, open)"
-        @mouseup.stop
-        @mousedown.stop
+        @pointerup.stop
+        @pointerdown.stop
         @click="clickHandler"
         @input="handleUpdateValue"
       />

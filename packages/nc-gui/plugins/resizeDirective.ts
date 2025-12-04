@@ -1,6 +1,3 @@
-/**
- * Vertical resize directive using Pointer Events API for touch/mouse/pen support.
- */
 export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.vueApp.directive('xc-ver-resize', {
     created: (el: Element) => {

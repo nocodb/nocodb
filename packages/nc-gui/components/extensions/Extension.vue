@@ -155,8 +155,8 @@ watch(
             }
           : {}
       "
-      @mousedown="isMouseDown = true"
-      @mouseup="isMouseDown = false"
+      @pointerdown="isMouseDown = true"
+      @pointerup="isMouseDown = false"
     >
       <ExtensionsExtensionHeader :is-fullscreen="false" />
 

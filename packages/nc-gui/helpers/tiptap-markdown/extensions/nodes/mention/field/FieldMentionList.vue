@@ -103,7 +103,7 @@ export default {
 <template>
   <div
     class="w-64 bg-nc-bg-default scroll-smooth nc-mention-list nc-scrollbar-thin border-1 border-nc-border-gray-medium rounded-lg max-h-64 !py-2 px-2 shadow-lg"
-    @mousedown.stop
+    @pointerdown.stop
   >
     <template v-if="items.length">
       <div

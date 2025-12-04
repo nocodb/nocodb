@@ -72,10 +72,6 @@ export const useRowDragging = ({
     }
   }
 
-  /**
-   * Handle pointer/mouse move for row dragging.
-   * Uses Pointer Events API for unified mouse/touch/pen handling.
-   */
   const moveHandler = (event: MouseEvent | PointerEvent | null, startAutoScroll = false) => {
     try {
       if (event !== null) {
@@ -167,10 +163,6 @@ export const useRowDragging = ({
     }
   }
 
-  /**
-   * Handle pointer/mouse up to end row dragging.
-   * Uses Pointer Events API for unified mouse/touch/pen handling.
-   */
   const pointerUp = async (event: MouseEvent | PointerEvent) => {
     try {
       event.preventDefault()
@@ -215,10 +207,6 @@ export const useRowDragging = ({
     return rowIndex * rowHeight.value
   }
 
-  /**
-   * Start row drag operation.
-   * Uses Pointer Events API for unified mouse/touch/pen handling.
-   */
   const startDragging = (_row: Row, event: MouseEvent | PointerEvent) => {
     try {
       const originalElement = (event.target as HTMLElement).closest(`[data-testid="grid-row-${_row.rowMeta.rowIndex}"]`)

@@ -878,10 +878,6 @@ function extractHoverMetaColRegions(row: Row, group?: CanvasGroup) {
   return { isAtMaxSelection, isCheckboxDisabled, regions, currentX }
 }
 
-/**
- * Handle row meta column clicks (checkbox, reorder, expand/comment).
- * Accepts both MouseEvent and PointerEvent for touch support.
- */
 const handleRowMetaClick = ({
   e,
   row,

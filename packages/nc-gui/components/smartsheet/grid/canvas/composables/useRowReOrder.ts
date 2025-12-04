@@ -55,10 +55,6 @@ export function useRowReorder({
     }
   }
 
-  /**
-   * Start row drag operation.
-   * Uses Pointer Events API for unified mouse/touch/pen handling.
-   */
   const handleDragStart = (e: PointerEvent) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return

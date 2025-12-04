@@ -124,7 +124,7 @@ const onTouchStart = (e: TouchEvent) => {
       :class="{
         'flex items-center justify-center': index >= props.srcs?.length,
       }"
-      @mousedown="onMouseDown"
+      @pointerdown="onMouseDown"
       @touchstart="onTouchStart"
     >
       <img

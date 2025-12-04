@@ -276,8 +276,8 @@ onUnmounted(() => {
     class="relative"
     :class="{ 'json-modal min-w-80': isExpanded, 'min-h-6 flex items-center': !isExpanded }"
   >
-    <div v-if="isExpanded" class="flex flex-col w-full" @mousedown.stop @mouseup.stop @click.stop>
-      <div class="flex flex-row justify-between items-center -mt-2 pb-3 nc-json-action" @mousedown.stop>
+    <div v-if="isExpanded" class="flex flex-col w-full" @pointerdown.stop @pointerup.stop @click.stop>
+      <div class="flex flex-row justify-between items-center -mt-2 pb-3 nc-json-action" @pointerdown.stop>
         <NcButton type="secondary" size="xsmall" class="!w-7 !h-7 !min-w-[fit-content]" @click.stop="closeJSONEditor">
           <component :is="iconMap.minimize" class="w-4 h-4" />
         </NcButton>

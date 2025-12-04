@@ -98,8 +98,8 @@ const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpanded
         ...(!isExpandedFormOpen && { height: '4px' }),
       }"
       style="min-height: 4px"
-      @mouseover="onMouseover"
-      @mouseleave="onMouseleave"
+      @pointerover="onMouseover"
+      @pointerleave="onMouseleave"
       @focus="onWrapperFocus"
       @click="onWrapperFocus"
     >
@@ -124,8 +124,8 @@ const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpanded
     :tabindex="readOnly ? -1 : 0"
     class="nc-filter-value-select w-full focus:outline-transparent relative z-3"
     :class="readOnly ? 'cursor-not-allowed pointer-events-none' : ''"
-    @mouseover="onMouseover"
-    @mouseleave="onMouseleave"
+    @pointerover="onMouseover"
+    @pointerleave="onMouseleave"
     @focus="onWrapperFocus"
     @click="onWrapperFocus"
   >

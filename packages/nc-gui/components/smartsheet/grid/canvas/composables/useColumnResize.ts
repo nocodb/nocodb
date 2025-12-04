@@ -62,10 +62,6 @@ export function useColumnResize(
     return null
   })
 
-  /**
-   * Handle pointer move for column resize.
-   * Uses Pointer Events API for unified mouse/touch/pen handling.
-   */
   const handlePointerMove = (e: PointerEvent) => {
     try {
       const rect = canvasRef.value?.getBoundingClientRect()
@@ -98,10 +94,6 @@ export function useColumnResize(
     window.removeEventListener('pointercancel', handlePointerUp)
   }
 
-  /**
-   * Handle pointer down to start column resize.
-   * Uses Pointer Events API for unified mouse/touch/pen handling.
-   */
   const handlePointerDown = (e: PointerEvent) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect || isLocked.value || !isViewOperationsAllowed.value) return

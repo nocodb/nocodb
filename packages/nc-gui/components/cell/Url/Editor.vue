@@ -106,7 +106,7 @@ const showClicableLink = computed(() => {
       @keydown.delete.stop
       @keydown.alt.stop
       @selectstart.capture.stop
-      @mousedown.stop
+      @pointerdown.stop
     />
     <div
       v-if="showClicableLink"

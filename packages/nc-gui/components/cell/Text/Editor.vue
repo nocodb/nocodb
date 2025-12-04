@@ -66,7 +66,7 @@ function updateInput(e: any) {
     @keydown.delete.stop
     @keydown.alt.stop
     @selectstart.capture.stop
-    @mousedown.stop
+    @pointerdown.stop
   />
   <NcAutoSizeTextarea
     v-else

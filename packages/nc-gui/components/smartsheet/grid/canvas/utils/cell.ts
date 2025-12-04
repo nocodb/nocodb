@@ -149,11 +149,6 @@ export const MouseClickType = {
   RIGHT_CLICK: 'right',
 } as const
 
-/**
- * Determines the click type from a pointer/mouse event.
- * Works with both MouseEvent and PointerEvent (PointerEvent extends MouseEvent).
- * For touch events, detail may be 0 or undefined, so we treat those as single clicks.
- */
 export function getMouseClickType(e: MouseEvent | PointerEvent) {
   if (e.button === 2) return MouseClickType.RIGHT_CLICK
 

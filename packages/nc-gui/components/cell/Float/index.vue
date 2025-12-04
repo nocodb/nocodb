@@ -62,7 +62,7 @@ const focus: VNodeRef = (el) =>
     @keydown.delete.stop
     @keydown.alt.stop
     @selectstart.capture.stop
-    @mousedown.stop
+    @pointerdown.stop
   />
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
   <span v-else class="nc-cell-field">{{ vModel }}</span>

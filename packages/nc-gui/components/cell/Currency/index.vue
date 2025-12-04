@@ -149,7 +149,7 @@ const showInputField = computed(
     @keydown.delete.stop
     @keydown.alt.stop
     @selectstart.capture.stop
-    @mousedown.stop
+    @pointerdown.stop
     @contextmenu.stop
   />
   <input
@@ -169,7 +169,7 @@ const showInputField = computed(
     @keydown.delete.stop
     @keydown.alt.stop
     @selectstart.capture.stop
-    @mousedown.stop
+    @pointerdown.stop
     @contextmenu.stop
   />
 

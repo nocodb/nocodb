@@ -992,11 +992,17 @@ let prevMenuState: {
   columnOrder?: unknown
 } = {}
 
-let mouseUpListener = null
-async function handleMouseDown(e: MouseEvent) {
+let pointerUpListener: ((e: PointerEvent) => void) | null = null
+let lastTapTime = 0
+let lastTapPosition = { x: 0, y: 0 }
+const DOUBLE_TAP_DELAY = 300
+const DOUBLE_TAP_THRESHOLD = 10
+
+async function handlePointerDown(e: PointerEvent) {
   const _elementMap = new CanvasElement(elementMap.elements)
-  mouseUpListener = (e) => handleMouseUp(e, _elementMap)
-  document.addEventListener('mouseup', mouseUpListener)
+  pointerUpListener = (ev) => handlePointerUp(ev, _elementMap)
+  document.addEventListener('pointerup', pointerUpListener)
+  document.addEventListener('pointercancel', pointerUpListener)
 
   // keep it for later use inside mouseup event for showing/hiding dropdown based on the previous state
   prevMenuState = {
@@ -1230,15 +1236,53 @@ function clearColAutoScrollTimer() {
   }
 }
 
-async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
+async function handlePointerUp(e: PointerEvent, _elementMap: CanvasElement) {
   e.preventDefault()
 
   clearColAutoScrollTimer()
 
-  if (mouseUpListener) {
-    document.removeEventListener('mouseup', mouseUpListener)
-    mouseUpListener = null
+  if (pointerUpListener) {
+    document.removeEventListener('pointerup', pointerUpListener)
+    document.removeEventListener('pointercancel', pointerUpListener)
+    pointerUpListener = null
     selectedRowInfo = { index: null, path: [], isSelectionStarted: false }
+  }
+
+  // Handle double-tap for touch devices to enable cell editing
+  if (e.pointerType === 'touch') {
+    const rect = canvasRef.value?.getBoundingClientRect()
+    if (rect) {
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      const now = Date.now()
+      const timeSinceLastTap = now - lastTapTime
+      const distance = Math.sqrt((x - lastTapPosition.x) ** 2 + (y - lastTapPosition.y) ** 2)
+
+      if (timeSinceLastTap < DOUBLE_TAP_DELAY && distance < DOUBLE_TAP_THRESHOLD) {
+        // Double-tap detected - make cell editable
+        if (y > headerRowHeight.value && y < height.value - 36 && x > rowMetaColumnWidth.value) {
+          const element = _elementMap.findElementAt(x, y, [ElementTypes.ROW])
+          const row = element?.row
+          if (row) {
+            const clickedColumn = findColumnAtPosition(x)
+            if (clickedColumn && !clickedColumn.virtual) {
+              makeCellEditable(row, clickedColumn)
+              await nextTick()
+              const inputEl = document.querySelector('.nc-cell-field input, .nc-cell-field textarea') as HTMLInputElement
+              if (inputEl) {
+                inputEl.focus()
+                inputEl.click()
+              }
+            }
+          }
+        }
+        lastTapTime = 0
+        lastTapPosition = { x: 0, y: 0 }
+      } else {
+        lastTapTime = now
+        lastTapPosition = { x, y }
+      }
+    }
   }
 
   await onMouseUpFillHandlerEnd()
@@ -1837,7 +1881,7 @@ const getHeaderTooltipRegions = (
   return regions
 }
 
-const handleMouseMove = (e: MouseEvent) => {
+const handlePointerMove = (e: PointerEvent) => {
   clearColAutoScrollTimer()
 
   const rect = canvasRef.value?.getBoundingClientRect()
@@ -2108,11 +2152,11 @@ const handleMouseMove = (e: MouseEvent) => {
   }
 }
 
-const handleMouseLeave = () => {
+const handlePointerLeave = () => {
   setCursor('auto')
   hideTooltip()
 
-  // Reset hover row on mouse leave from canvas
+  // Reset hover row on pointer leave from canvas
   hoverRow.value = {
     path: [],
     rowIndex: -2,
@@ -2827,13 +2871,15 @@ watch(
         >
           <canvas
             ref="canvasRef"
-            class="sticky top-0 left-0"
+            class="sticky top-0 left-0 touch-none"
             :height="`${height}px`"
             :width="`${width}px`"
             oncontextmenu="return false"
-            @mousedown="handleMouseDown"
-            @mousemove="handleMouseMove"
-            @mouseleave="handleMouseLeave"
+            @pointerdown="handlePointerDown"
+            @pointermove="handlePointerMove"
+            @pointerup="handlePointerUp"
+            @pointerleave="handlePointerLeave"
+            @pointercancel="handlePointerUp"
           >
           </canvas>
           <template #overlay>

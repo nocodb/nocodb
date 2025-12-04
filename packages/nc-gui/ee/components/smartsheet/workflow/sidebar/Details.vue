@@ -15,11 +15,17 @@ const titleInputRef = ref()
 
 const descriptionInputRef = ref()
 
+const localInput = reactive({
+  title: workflow.value?.title || '',
+  description: workflow.value?.description || '',
+})
+
 const workflowTitle = computed({
   get() {
-    return workflow.value?.title
+    return localInput.title
   },
   set(value) {
+    localInput.title = value
     updateWorkflowData({ title: value })
     debouncedWorkflowUpdate()
   },
@@ -27,9 +33,10 @@ const workflowTitle = computed({
 
 const workflowDescription = computed({
   get() {
-    return workflow.value?.description
+    return localInput.description
   },
   set(value) {
+    localInput.description = value
     updateWorkflowData({ description: value })
     debouncedWorkflowUpdate()
   },
@@ -93,7 +100,7 @@ function handleDescriptionBlur() {
           <a-input
             ref="titleInputRef"
             v-model:value="workflowTitle"
-            class="!rounded-lg text-subHeading2 nc-input !w-74 !px-1"
+            class="!rounded-lg text-subHeading2 nc-input !w-74"
             @blur="handleTitleBlur"
             @keydown.enter="handleTitleBlur"
             @keydown.esc="handleTitleBlur"
@@ -116,7 +123,7 @@ function handleDescriptionBlur() {
           <a-textarea
             ref="descriptionInputRef"
             v-model:value="workflowDescription"
-            class="!rounded-lg text-body !px-1 nc-input"
+            class="!rounded-lg text-body nc-input"
             :auto-size="{ minRows: 2, maxRows: 6 }"
             @keydown.enter="handleDescriptionBlur"
             @blur="handleDescriptionBlur"

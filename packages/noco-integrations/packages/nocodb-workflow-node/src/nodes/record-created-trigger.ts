@@ -14,7 +14,6 @@ import type {
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
-
 interface RecordCreatedTriggerConfig extends WorkflowNodeConfig {
   modelId: string;
 }
@@ -52,19 +51,21 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
 
   public async fetchOptions(key: 'tables') {
     switch (key) {
-      case 'tables':
-      {
-        const tables = await this.nocodb.tablesService.getAccessibleTables(this.nocodb.context, {
-          baseId: this.nocodb.context.base_id,
-          roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
-        })
+      case 'tables': {
+        const tables = await this.nocodb.tablesService.getAccessibleTables(
+          this.nocodb.context,
+          {
+            baseId: this.nocodb.context.base_id,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          },
+        );
 
         return tables.map((table: any) => ({
           label: table.title || table.table_name,
           value: table.id,
           ncItemDisabled: table.synced,
-          table
-        }))
+          table,
+        }));
       }
       default:
         return [];
@@ -79,12 +80,21 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
     }
 
     if (config.modelId) {
-      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
-        tableId: config.modelId,
-        user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
-      });
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: config.modelId,
+          user: {
+            ...this.nocodb.user,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          } as any,
+        },
+      );
       if (!table) {
-        errors.push({ path: 'config.modelId', message: 'Table is not accessible' });
+        errors.push({
+          path: 'config.modelId',
+          message: 'Table is not accessible',
+        });
       }
     }
 
@@ -105,10 +115,10 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
             offset: 0,
           },
           req: {
-            user: this.nocodb.user
+            user: this.nocodb.user,
           } as any,
         },
-        false
+        false,
       );
 
       if (result.length) {
@@ -130,13 +140,14 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
       let tableName = '';
 
       try {
-        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
-          this.nocodb.context,
-          {
-            tableId: this.config.modelId,
-            user: this.nocodb.user as any,
-          }
-        );
+        const table =
+          await this.nocodb.tablesService.getTableWithAccessibleViews(
+            this.nocodb.context,
+            {
+              tableId: this.config.modelId,
+              user: this.nocodb.user as any,
+            },
+          );
         tableName = table?.title || '';
       } catch {
         tableName = '';
@@ -150,7 +161,8 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
         if (Object.keys(newData).length === 0) {
           logs.push({
             level: 'info',
-            message: 'No records found in table, using empty object for testing',
+            message:
+              'No records found in table, using empty object for testing',
             ts: Date.now(),
           });
         } else {
@@ -190,7 +202,7 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
             id: user?.id,
             name: user?.display_name,
             email: user?.email,
-          }
+          },
         },
         status: 'success',
         logs,
@@ -234,7 +246,7 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];
@@ -246,7 +258,7 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
           type: NocoSDK.VariableType.String,
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
-            icon: table.synced? 'ncZap': 'table',
+            icon: table.synced ? 'ncZap' : 'table',
             entity_id: modelId,
             entity: 'table',
             tableName: table.title,
@@ -259,7 +271,9 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
     }
   }
 
-  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+  public async generateOutputVariables(): Promise<
+    NocoSDK.VariableDefinition[]
+  > {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -270,11 +284,15 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];
-      const recordVariables = NocoSDK.genRecordVariables(table.columns, false, 'record');
+      const recordVariables = NocoSDK.genRecordVariables(
+        table.columns,
+        false,
+        'record',
+      );
 
       // Table group
       const tableVariable: NocoSDK.VariableDefinition = {
@@ -284,7 +302,9 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
         groupKey: NocoSDK.VariableGroupKey.Meta,
         extra: {
           description: 'Table information',
-          icon: 'cellJson',
+          icon: table.synced ? 'ncZap' : 'table',
+          entity_id: modelId,
+          entity: 'table',
         },
         children: [
           {
@@ -293,10 +313,8 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
             type: NocoSDK.VariableType.String,
             groupKey: NocoSDK.VariableGroupKey.Meta,
             extra: {
-              entity_id: modelId,
-              entity: 'table',
               description: 'Table ID',
-              icon: 'cellSystemKey',
+              icon: 'cellNumber',
             },
           },
           {
@@ -329,7 +347,7 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
             groupKey: NocoSDK.VariableGroupKey.Meta,
             extra: {
               description: 'Trigger timestamp',
-              icon: 'cellSystemDate',
+              icon: 'cellDatetime',
             },
           },
           {
@@ -345,14 +363,14 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
         ],
       };
 
-      const userVariables : NocoSDK.VariableDefinition = {
+      const userVariables: NocoSDK.VariableDefinition = {
         key: 'user',
         name: 'User',
         type: NocoSDK.VariableType.Object,
         groupKey: NocoSDK.VariableGroupKey.Meta,
         extra: {
           description: 'User who created record',
-          icon: 'cellSystemUser',
+          icon: 'ncUser',
         },
         children: [
           {
@@ -362,7 +380,7 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
             groupKey: NocoSDK.VariableGroupKey.Meta,
             extra: {
               description: 'User ID',
-              icon: 'cellSystemKey',
+              icon: 'cellNumber',
             },
           },
           {
@@ -386,9 +404,14 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
             },
           },
         ],
-      }
+      };
 
-      return [...recordVariables, tableVariable, triggerVariable, userVariables];
+      return [
+        ...recordVariables,
+        tableVariable,
+        triggerVariable,
+        userVariables,
+      ];
     } catch {
       return [];
     }

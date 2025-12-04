@@ -3,7 +3,7 @@ import {
   FormBuilderValidatorType,
   NocoSDK,
   WorkflowNodeCategory,
-  WorkflowNodeIntegration
+  WorkflowNodeIntegration,
 } from '@noco-integrations/core';
 import type {
   FormDefinition,
@@ -11,7 +11,8 @@ import type {
   WorkflowNodeDefinition,
   WorkflowNodeLog,
   WorkflowNodeResult,
-  WorkflowNodeRunContext} from '@noco-integrations/core';
+  WorkflowNodeRunContext,
+} from '@noco-integrations/core';
 
 interface UpdateRecordNodeConfig extends WorkflowNodeConfig {
   modelId: string;
@@ -83,34 +84,38 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
 
   public async fetchOptions(key: 'tables' | 'fields') {
     switch (key) {
-      case 'tables':
-      {
-        const tables = await this.nocodb.tablesService.getAccessibleTables(this.nocodb.context, {
-          baseId: this.nocodb.context.base_id,
-          roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
-        })
+      case 'tables': {
+        const tables = await this.nocodb.tablesService.getAccessibleTables(
+          this.nocodb.context,
+          {
+            baseId: this.nocodb.context.base_id,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          },
+        );
 
         return tables.map((table: any) => ({
           label: table.title || table.table_name,
           value: table.id,
           ncItemDisabled: table.synced,
-          ncItemTooltip: table.synced? 'Records cannot be updated in synced tables': null,
-          table: table
-        }))
+          ncItemTooltip: table.synced
+            ? 'Records cannot be updated in synced tables'
+            : null,
+          table: table,
+        }));
       }
-      case 'fields':
-      {
+      case 'fields': {
         if (!this.config.modelId) {
           return [];
         }
 
-        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
-          this.nocodb.context,
-          {
-            tableId: this.config.modelId,
-            user: this.nocodb.user as any,
-          }
-        );
+        const table =
+          await this.nocodb.tablesService.getTableWithAccessibleViews(
+            this.nocodb.context,
+            {
+              tableId: this.config.modelId,
+              user: this.nocodb.user as any,
+            },
+          );
 
         if (!table || !table.columns) {
           return [];
@@ -138,12 +143,21 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
     }
 
     if (config.modelId) {
-      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
-        tableId: config.modelId,
-        user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
-      });
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: config.modelId,
+          user: {
+            ...this.nocodb.user,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          } as any,
+        },
+      );
       if (!table) {
-        errors.push({ path: 'config.modelId', message: 'Table is not accessible' });
+        errors.push({
+          path: 'config.modelId',
+          message: 'Table is not accessible',
+        });
       }
     }
 
@@ -193,7 +207,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         modelId,
         body: { id: rowId, fields },
         cookie: {
-          user: this.nocodb.user
+          user: this.nocodb.user,
         },
       });
 
@@ -245,7 +259,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
     const variables: NocoSDK.VariableDefinition[] = [];
-    const { modelId } = this.config;
+    const { modelId, fields } = this.config;
 
     if (!modelId) return [];
 
@@ -255,7 +269,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];
@@ -266,6 +280,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: table.synced ? 'ncZap' : 'table',
           entity_id: modelId,
           entity: 'table',
           tableName: table.title,
@@ -279,8 +294,36 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: 'cellNumber',
           description: 'ID of the record to update',
         },
+      });
+
+      const fieldsVariable = {
+        key: 'config.fields',
+        name: 'Fields',
+        type: NocoSDK.VariableType.Object,
+        groupKey: NocoSDK.VariableGroupKey.Fields,
+        children: [] as NocoSDK.VariableDefinition[],
+        extra: {
+          icon: 'cellJson',
+          description: 'Field values for record update',
+        },
+      };
+
+      Object.entries(fields).forEach(([key, value]) => {
+        const field = table.columns.find((col: any) => col.title === key);
+        if (!field?.uidt || !value) return;
+        fieldsVariable.children.push({
+          key: `config.fields.${key}`,
+          name: key,
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: NocoSDK.uiTypeToIcon(field),
+            description: `Field value for ${key}`,
+          },
+        });
       });
 
       variables.push({
@@ -289,6 +332,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         type: NocoSDK.VariableType.Object,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: 'cellJson',
           description: 'Field values for record update',
         },
       });
@@ -299,7 +343,9 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
     }
   }
 
-  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+  public async generateOutputVariables(): Promise<
+    NocoSDK.VariableDefinition[]
+  > {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -310,7 +356,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];

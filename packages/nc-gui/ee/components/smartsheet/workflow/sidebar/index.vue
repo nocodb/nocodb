@@ -15,11 +15,6 @@ const { selectedNode, selectedNodeId, activeTab, viewingExecution } = useWorkflo
     <template v-if="activeTab === 'editor'">
       <Details v-if="!selectedNode" />
       <template v-else>
-        <div class="border-b-1 border-nc-border-gray-medium py-2 px-1" @click="selectedNodeId = null">
-          <NcButton type="text" size="small">
-            <GeneralIcon icon="ncChevronLeft" />
-          </NcButton>
-        </div>
         <NodeDetails />
         <NodeConfig />
         <TestStep />

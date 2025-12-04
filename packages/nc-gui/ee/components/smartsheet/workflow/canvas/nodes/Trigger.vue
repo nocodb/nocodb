@@ -132,7 +132,7 @@ onClickOutside(
           <div class="flex gap-2.5 w-full items-center">
             <div
               :class="{
-                'bg-nc-bg-brand !text-nc-content-brand-disabled': [
+                'bg-nc-bg-brand text-nc-content-brand-disabled': [
                   WorkflowNodeCategory.TRIGGER,
                   WorkflowNodeCategory.ACTION,
                 ].includes(selectedNode.category),
@@ -140,7 +140,7 @@ onClickOutside(
               }"
               class="w-5 h-5 flex items-center justify-center rounded-md p-1"
             >
-              <GeneralIcon :icon="selectedNode.icon" class="!w-4 !h-4 !stroke-2" />
+              <GeneralIcon :icon="selectedNode.icon" class="!w-4 !h-4 stroke-transparent" />
             </div>
 
             <div class="text-nc-content-gray truncate flex-1 w-full text-bodyBold">

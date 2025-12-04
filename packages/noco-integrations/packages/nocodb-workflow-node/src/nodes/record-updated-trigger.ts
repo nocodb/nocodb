@@ -11,7 +11,7 @@ import type {
   WorkflowNodeDefinition,
   WorkflowNodeLog,
   WorkflowNodeResult,
-  WorkflowNodeRunContext
+  WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
 interface RecordUpdatedTriggerConfig extends WorkflowNodeConfig {
@@ -73,18 +73,29 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
       errors.push({ path: 'config.modelId', message: 'Table is required' });
     }
 
-    let table: NocoSDK.TableType & {
-      views: Array<NocoSDK.ViewType>
-      columns: Array<NocoSDK.ColumnType>
-    } | null = null;
+    let table:
+      | (NocoSDK.TableType & {
+          views: Array<NocoSDK.ViewType>;
+          columns: Array<NocoSDK.ColumnType>;
+        })
+      | null = null;
 
     if (config.modelId) {
-      table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
-        tableId: config.modelId,
-        user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
-      });
+      table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: config.modelId,
+          user: {
+            ...this.nocodb.user,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          } as any,
+        },
+      );
       if (!table) {
-        errors.push({ path: 'config.modelId', message: 'Table is not accessible' });
+        errors.push({
+          path: 'config.modelId',
+          message: 'Table is not accessible',
+        });
       }
     }
 
@@ -105,33 +116,43 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
 
   public async fetchOptions(key: 'tables' | 'fields') {
     switch (key) {
-      case 'tables':
-      {
-        const tables = await this.nocodb.tablesService.getAccessibleTables(this.nocodb.context, {
-          baseId: this.nocodb.context.base_id,
-          roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
-        })
+      case 'tables': {
+        const tables = await this.nocodb.tablesService.getAccessibleTables(
+          this.nocodb.context,
+          {
+            baseId: this.nocodb.context.base_id,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          },
+        );
 
         return tables.map((table: any) => ({
           label: table.title || table.table_name,
           value: table.id,
-          table: table
-        }))
+          table: table,
+        }));
       }
-      case 'fields':
-      {
+      case 'fields': {
         if (!this.config.modelId) {
-          return []
+          return [];
         }
-        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
-          tableId: this.config.modelId,
-          user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
-        })
-        return table?.columns?.filter((f) => !NocoSDK.isSystemColumn(f)).map((column: any) => ({
-          label: column.title || column.column_name,
-          value: column.id,
-          column: column
-        }))
+        const table =
+          await this.nocodb.tablesService.getTableWithAccessibleViews(
+            this.nocodb.context,
+            {
+              tableId: this.config.modelId,
+              user: {
+                ...this.nocodb.user,
+                roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+              } as any,
+            },
+          );
+        return table?.columns
+          ?.filter((f) => !NocoSDK.isSystemColumn(f))
+          .map((column: any) => ({
+            label: column.title || column.column_name,
+            value: column.id,
+            column: column,
+          }));
       }
       default:
         return [];
@@ -152,10 +173,10 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
             offset: 0,
           },
           req: {
-            user: this.nocodb.user
+            user: this.nocodb.user,
           } as any,
         },
-        false
+        false,
       );
 
       if (result?.length > 0) {
@@ -193,7 +214,8 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
 
           logs.push({
             level: 'info',
-            message: 'No records found in table, using empty object for testing',
+            message:
+              'No records found in table, using empty object for testing',
             ts: Date.now(),
           });
         } else {
@@ -201,13 +223,22 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
           newData = { ...baseData, fields: { ...(baseData?.fields || {}) } };
 
           const firstUserField = Object.keys(newData.fields)[0];
-          if (firstUserField && typeof newData.fields[firstUserField] === 'string') {
-            newData.fields[firstUserField] = `${newData.fields[firstUserField]} (updated)`;
-          } else if (firstUserField && typeof newData.fields[firstUserField] === 'number') {
+          if (
+            firstUserField &&
+            typeof newData.fields[firstUserField] === 'string'
+          ) {
+            newData.fields[firstUserField] =
+              `${newData.fields[firstUserField]} (updated)`;
+          } else if (
+            firstUserField &&
+            typeof newData.fields[firstUserField] === 'number'
+          ) {
             newData.fields[firstUserField] = newData.fields[firstUserField] + 1;
           }
 
-          affectedColumns = this.config.columnFilter || (firstUserField ? [firstUserField] : []);
+          affectedColumns =
+            this.config.columnFilter ||
+            (firstUserField ? [firstUserField] : []);
 
           logs.push({
             level: 'info',
@@ -219,7 +250,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
       }
 
       if (this.config.columnFilter && affectedColumns) {
-        const targetColumns = this.config.columnFilter
+        const targetColumns = this.config.columnFilter;
         const hasMatch = targetColumns.some((col: string) =>
           affectedColumns.includes(col),
         );
@@ -250,18 +281,18 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
       let tableName = '';
 
       try {
-        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
-          this.nocodb.context,
-          {
-            tableId: this.config.modelId,
-            user: this.nocodb.user as any,
-          }
-        );
+        const table =
+          await this.nocodb.tablesService.getTableWithAccessibleViews(
+            this.nocodb.context,
+            {
+              tableId: this.config.modelId,
+              user: this.nocodb.user as any,
+            },
+          );
         tableName = table?.title || '';
       } catch {
         // empty
       }
-
 
       logs.push({
         level: 'info',
@@ -337,7 +368,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];
@@ -349,7 +380,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
           type: NocoSDK.VariableType.String,
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
-            icon: table.synced? 'ncZap': 'table',
+            icon: table.synced ? 'ncZap' : 'table',
             entity_id: modelId,
             entity: 'table',
             tableName: table.title,
@@ -368,6 +399,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
               type: NocoSDK.VariableType.String,
               groupKey: NocoSDK.VariableGroupKey.Fields,
               extra: {
+                icon: NocoSDK.uiTypeToIcon(column),
                 entity_id: colId,
                 entity: 'column',
                 description: `Monitored field: ${column.title}`,
@@ -383,7 +415,9 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
     }
   }
 
-  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+  public async generateOutputVariables(): Promise<
+    NocoSDK.VariableDefinition[]
+  > {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -394,13 +428,21 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];
 
-      const recordVariables = NocoSDK.genRecordVariables(table.columns, false, 'record');
-      const previousRecordVariables = NocoSDK.genRecordVariables(table.columns, false, 'previousRecord');
+      const recordVariables = NocoSDK.genRecordVariables(
+        table.columns,
+        false,
+        'record',
+      );
+      const previousRecordVariables = NocoSDK.genRecordVariables(
+        table.columns,
+        false,
+        'previousRecord',
+      );
 
       const additionalVariables: NocoSDK.VariableDefinition[] = [
         {
@@ -410,7 +452,9 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
           groupKey: NocoSDK.VariableGroupKey.Meta,
           extra: {
             description: 'Table information',
-            icon: 'cellJson',
+            icon: table.synced ? 'ncZap' : 'table',
+            entity_id: modelId,
+            entity: 'table',
           },
           children: [
             {
@@ -419,10 +463,8 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
               type: NocoSDK.VariableType.String,
               groupKey: NocoSDK.VariableGroupKey.Meta,
               extra: {
-                entity_id: modelId,
-                entity: 'table',
                 description: 'Table ID',
-                icon: 'cellSystemKey',
+                icon: 'cellNumber',
               },
             },
             {
@@ -444,7 +486,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
           groupKey: NocoSDK.VariableGroupKey.Meta,
           extra: {
             description: 'User who updated the record',
-            icon: 'cellSystemUser',
+            icon: 'ncUser',
           },
           children: [
             {
@@ -454,7 +496,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
               groupKey: NocoSDK.VariableGroupKey.Meta,
               extra: {
                 description: 'User ID',
-                icon: 'cellSystemKey',
+                icon: 'cellNumber',
               },
             },
             {
@@ -506,7 +548,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
               groupKey: NocoSDK.VariableGroupKey.Meta,
               extra: {
                 description: 'When the trigger was activated',
-                icon: 'cellSystemDate',
+                icon: 'cellDatetime',
               },
             },
             {
@@ -536,7 +578,11 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
         },
       ];
 
-      return [...recordVariables, ...previousRecordVariables, ...additionalVariables];
+      return [
+        ...recordVariables,
+        ...previousRecordVariables,
+        ...additionalVariables,
+      ];
     } catch {
       return [];
     }

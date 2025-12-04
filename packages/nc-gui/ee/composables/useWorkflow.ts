@@ -436,9 +436,6 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
         // Save to backend
         debouncedWorkflowUpdate()
       }
-
-      message.success(`Test executed successfully for "${result.nodeTitle}"`)
-
       return result
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))

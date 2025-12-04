@@ -223,26 +223,41 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
         key: 'to',
         type: NocoSDK.VariableType.String,
         name: 'To',
+        extra: {
+          icon: 'ncUser',
+        },
       },
       {
         key: 'cc',
         type: NocoSDK.VariableType.String,
         name: 'CC',
+        extra: {
+          icon: 'ncUsers',
+        },
       },
       {
         key: 'bcc',
         type: NocoSDK.VariableType.String,
         name: 'BCC',
+        extra: {
+          icon: 'ncUsers',
+        },
       },
       {
         key: 'subject',
         type: NocoSDK.VariableType.String,
         name: 'Subject',
+        extra: {
+          icon: 'cellText',
+        },
       },
       {
         key: 'body',
         type: NocoSDK.VariableType.String,
         name: 'Body',
+        extra: {
+          icon: 'ncMessageSquare',
+        },
       },
     ];
   }

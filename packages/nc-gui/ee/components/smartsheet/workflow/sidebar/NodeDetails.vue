@@ -46,12 +46,12 @@ function handleDescriptionBlur() {
 </script>
 
 <template>
-  <div class="px-4 py-5">
+  <div class="px-4 py-5 relative">
     <div class="flex gap-3 items-center">
       <div
         class="flex items-center justify-center rounded-lg p-3 border-1 border-nc-brand-100 bg-nc-bg-brand text-nc-content-brand"
       >
-        <GeneralIcon :icon="nodeMeta.icon" class="w-6 h-6" />
+        <GeneralIcon :icon="nodeMeta.icon" class="w-6 h-6 stroke-transparent" />
       </div>
       <div>
         <div class="text-subHeading2">
@@ -61,6 +61,12 @@ function handleDescriptionBlur() {
           {{ nodeMeta.category }} Node
         </span>
       </div>
+    </div>
+
+    <div class="absolute top-5 right-2">
+      <NcButton type="text" size="small" @click="selectedNodeId = null">
+        <GeneralIcon icon="ncX" />
+      </NcButton>
     </div>
 
     <div class="mt-4">
@@ -74,7 +80,7 @@ function handleDescriptionBlur() {
         <a-textarea
           ref="descriptionInputRef"
           v-model:value="nodeDescription"
-          class="!rounded-lg text-body !px-1 nc-input"
+          class="!rounded-lg text-body nc-input"
           :auto-size="{ minRows: 2, maxRows: 6 }"
           @keydown.enter="handleDescriptionBlur"
           @blur="handleDescriptionBlur"

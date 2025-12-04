@@ -81,18 +81,18 @@ onClickOutside(
             <div class="flex gap-2 items-center">
               <div
                 :class="{
-                  'bg-nc-bg-brand !text-nc-content-brand-disabled': [
+                  'bg-nc-bg-brand text-nc-content-brand-disabled': [
                     WorkflowNodeCategory.TRIGGER,
                     WorkflowNodeCategory.ACTION,
                   ].includes(node.category),
                   'bg-nc-bg-maroon ': node.category === WorkflowNodeCategory.FLOW,
                 }"
-                class="w-5 h-5 flex items-center justify-center rounded-md p-1"
+                class="w-6 h-6 flex items-center justify-center rounded-md p-1"
               >
-                <GeneralIcon :icon="node.icon" class="!w-4 !h-4 !stroke-2" />
+                <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
               </div>
 
-              <div class="text-nc-content-gray text-captionDropdownDefault">
+              <div class="text-nc-content-gray text-caption">
                 {{ node.title }}
               </div>
             </div>

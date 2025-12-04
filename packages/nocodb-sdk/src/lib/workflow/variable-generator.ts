@@ -7,12 +7,13 @@ import {
 } from './interface';
 import { RelationTypes } from '../globals';
 import { ColumnType } from '~/lib';
+import { LinkToAnotherRecordType } from '~/lib/Api';
 
 /**
  * Map UIType to icon name (matching NocoDB's iconMap)
  */
-export function uiTypeToIcon(uiType: UITypes): string {
-  switch (uiType) {
+export function uiTypeToIcon(column: ColumnType): string {
+  switch (column.uidt) {
     case UITypes.ID:
     case UITypes.ForeignKey:
       return 'cellSystemKey';
@@ -63,8 +64,19 @@ export function uiTypeToIcon(uiType: UITypes): string {
     case UITypes.LastModifiedTime:
       return 'cellSystemDate';
     case UITypes.LinkToAnotherRecord:
-    case UITypes.Links:
-      return 'hm_solid'; // Default to has-many, will be refined based on relation type
+    case UITypes.Links: {
+      const relationType = (column.colOptions as LinkToAnotherRecordType).type;
+      if (relationType === RelationTypes.HAS_MANY) {
+        return 'hm_solid';
+      } else if (relationType === RelationTypes.MANY_TO_MANY) {
+        return 'mm_solid';
+      } else if (relationType === RelationTypes.BELONGS_TO) {
+        return 'bt_solid';
+      } else if (relationType === RelationTypes.ONE_TO_ONE) {
+        return 'oneToOneSolid';
+      }
+      return 'mmSolid';
+    }
     case UITypes.Lookup:
       return 'cellLookup';
     case UITypes.Rollup:
@@ -218,7 +230,7 @@ export function getFieldVariable(
       entity_id: column.id,
       entity: 'column',
       uiType: column.uidt,
-      icon: uiTypeToIcon(column.uidt as UITypes),
+      icon: uiTypeToIcon(column),
     },
   };
 

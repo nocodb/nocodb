@@ -1,7 +1,10 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
+import { PlanFeatureTypes } from 'nocodb-sdk';
+import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
+import { overrideFeature } from '../../../utils/plan.utils';
 
 interface CreateScriptArgs {
   title: string;
@@ -11,10 +14,15 @@ interface CreateScriptArgs {
 }
 
 export default function () {
+  if (!isEE()) {
+    return true;
+  }
+
   describe(`Scripts v3`, () => {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let API_PREFIX: string;
+    let featureMock: any;
 
     async function _createScript(args: CreateScriptArgs) {
       const response = await request(context.app)
@@ -61,6 +69,13 @@ export default function () {
     beforeEach(async () => {
       context = await init();
       const workspaceId = context.fk_workspace_id;
+
+      featureMock = await overrideFeature({
+        workspace_id: context.fk_workspace_id,
+        feature: `${PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT}`,
+        allowed: true,
+      });
+
       const baseResult = await request(context.app)
         .post(`/api/v3/meta/workspaces/${workspaceId}/bases`)
         .set('xc-token', context.xc_token)
@@ -70,6 +85,10 @@ export default function () {
         .expect(200);
       initBase = baseResult.body;
       API_PREFIX = `/api/v3/meta/bases/${initBase.id}`;
+    });
+
+    afterEach(async () => {
+      await featureMock?.restore?.();
     });
 
     it('List Scripts v3', async () => {
@@ -311,6 +330,25 @@ export default function () {
         (s) => s.id === script2.id,
       );
       expect(updatedScript.title).to.equal('Script 2 Updated');
+    });
+
+    it('Forbidden due to plan not sufficient', async () => {
+      featureMock = await overrideFeature({
+        workspace_id: context.fk_workspace_id,
+        feature: `${PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT}`,
+        allowed: false,
+      });
+
+      // Try to list scripts
+      const listScripts = await request(context.app)
+        .get(`${API_PREFIX}/scripts`)
+        .set('xc-auth', context.token)
+        .expect(403);
+
+      // Validation
+      const error = listScripts.body;
+      expect(error).to.be.an('object');
+      expect(error).to.have.property('error', 'ERR_FEATURE_NOT_SUPPORTED');
     });
   });
 }

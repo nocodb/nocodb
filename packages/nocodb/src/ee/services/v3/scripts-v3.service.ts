@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
   ScriptV3GetResponseType,
@@ -9,6 +10,7 @@ import type { Script } from '~/models';
 import { ScriptsService } from '~/services/scripts.service';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { validatePayload } from '~/helpers';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 
 const scriptBuilder = builderGenerator<Script, ScriptV3GetResponseType>({
   allowed: [
@@ -42,7 +44,20 @@ const scriptListItemBuilder = builderGenerator<
 export class ScriptsV3Service {
   constructor(private readonly scriptsService: ScriptsService) {}
 
+  /**
+   * Validates if the user has access to the Scripts API.
+   * This method checks if the feature is enabled for the workspace.
+   * If not, it throws an error indicating that the feature is only available on higher plans.
+   */
+  private async validateFeatureAccess(context: NcContext) {
+    await checkForFeature(
+      context,
+      PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+    );
+  }
+
   async scriptList(context: NcContext): Promise<ScriptV3ListResponseType> {
+    await this.validateFeatureAccess(context);
     const scripts = await this.scriptsService.listScripts(context);
 
     return {
@@ -54,6 +69,7 @@ export class ScriptsV3Service {
     context: NcContext,
     id: string,
   ): Promise<ScriptV3GetResponseType> {
+    await this.validateFeatureAccess(context);
     const script = await this.scriptsService.getScript(context, id);
     return scriptBuilder().build(script);
   }
@@ -63,6 +79,7 @@ export class ScriptsV3Service {
     body: ScriptV3RequestType,
     req: NcRequest,
   ): Promise<ScriptV3GetResponseType> {
+    await this.validateFeatureAccess(context);
     validatePayload(
       'swagger-v3.json#/components/schemas/ScriptCreateReq',
       body,
@@ -79,6 +96,7 @@ export class ScriptsV3Service {
     body: ScriptV3RequestType,
     req: NcRequest,
   ): Promise<ScriptV3GetResponseType> {
+    await this.validateFeatureAccess(context);
     validatePayload(
       'swagger-v3.json#/components/schemas/ScriptUpdateReq',
       body,
@@ -99,6 +117,7 @@ export class ScriptsV3Service {
     id: string,
     req: NcRequest,
   ): Promise<boolean> {
+    await this.validateFeatureAccess(context);
     return await this.scriptsService.deleteScript(context, id, req);
   }
 }

@@ -18,7 +18,7 @@ export const useRowDragging = ({
     isFailed?: boolean,
     path?: Array<number>,
   ) => Promise<void>
-  onDragStart?: (row: Row, e: MouseEvent) => void
+  onDragStart?: (row: Row, e: MouseEvent | PointerEvent) => void
   rowHeight: ComputedRef<number>
   rowSlice: { start: number; end: number }
   totalRows: Ref<number>
@@ -32,7 +32,7 @@ export const useRowDragging = ({
   const mouseStart = ref(0)
   const draggingTop = ref(0)
   const targetTop = ref(32)
-  const lastMoveEvent = ref<null | MouseEvent>(null)
+  const lastMoveEvent = ref<null | MouseEvent | PointerEvent>(null)
   const autoScrolling = ref(false)
   const animationFrameId = ref<number | null>(null)
 
@@ -72,7 +72,11 @@ export const useRowDragging = ({
     }
   }
 
-  const moveHandler = (event: MouseEvent | null, startAutoScroll = false) => {
+  /**
+   * Handle pointer/mouse move for row dragging.
+   * Uses Pointer Events API for unified mouse/touch/pen handling.
+   */
+  const moveHandler = (event: MouseEvent | PointerEvent | null, startAutoScroll = false) => {
     try {
       if (event !== null) {
         event.preventDefault()
@@ -163,7 +167,11 @@ export const useRowDragging = ({
     }
   }
 
-  const mouseUp = async (event: MouseEvent) => {
+  /**
+   * Handle pointer/mouse up to end row dragging.
+   * Uses Pointer Events API for unified mouse/touch/pen handling.
+   */
+  const pointerUp = async (event: MouseEvent | PointerEvent) => {
     try {
       event.preventDefault()
       cancel()
@@ -195,8 +203,9 @@ export const useRowDragging = ({
         animationFrameId.value = null
       }
 
-      window.removeEventListener('mousemove', moveHandler)
-      window.removeEventListener('mouseup', mouseUp)
+      window.removeEventListener('pointermove', moveHandler)
+      window.removeEventListener('pointerup', pointerUp)
+      window.removeEventListener('pointercancel', pointerUp)
     } catch (error) {
       console.error('Error in cancel:', error)
     }
@@ -206,7 +215,11 @@ export const useRowDragging = ({
     return rowIndex * rowHeight.value
   }
 
-  const startDragging = (_row: Row, event: MouseEvent) => {
+  /**
+   * Start row drag operation.
+   * Uses Pointer Events API for unified mouse/touch/pen handling.
+   */
+  const startDragging = (_row: Row, event: MouseEvent | PointerEvent) => {
     try {
       const originalElement = (event.target as HTMLElement).closest(`[data-testid="grid-row-${_row.rowMeta.rowIndex}"]`)
       if (!originalElement) return
@@ -226,8 +239,9 @@ export const useRowDragging = ({
 
       moveHandler(event)
 
-      window.addEventListener('mousemove', moveHandler)
-      window.addEventListener('mouseup', mouseUp)
+      window.addEventListener('pointermove', moveHandler)
+      window.addEventListener('pointerup', pointerUp)
+      window.addEventListener('pointercancel', pointerUp)
     } catch (error) {
       console.error('Error in startDragging:', error)
       cancel()

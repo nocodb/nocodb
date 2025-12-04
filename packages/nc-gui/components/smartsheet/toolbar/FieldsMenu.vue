@@ -417,7 +417,7 @@ watch(
 
     const filterFields =
       newValue
-        .filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
+        .filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id]?.uidt === UITypes.Attachment)
         .map((field) => {
           return {
             value: field.fk_column_id,
@@ -428,7 +428,7 @@ watch(
     coverOptions.value = [{ value: null, label: t('labels.noImage') }, ...filterFields]
 
     const lookupColumns = newValue
-      .filter((f) => f.fk_column_id && metaColumnById.value[f.fk_column_id].uidt === UITypes.Lookup)
+      .filter((f) => f.fk_column_id && metaColumnById.value[f.fk_column_id]?.uidt === UITypes.Lookup)
       .map((f) => metaColumnById.value[f.fk_column_id!])
 
     const attLookupColumnIds: Set<string> = new Set()

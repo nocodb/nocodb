@@ -379,7 +379,7 @@ export function useCanvasTable({
             : undefined
 
           if ([UITypes.DateTime].includes(displayType)) {
-            if (displayColumnConfig.meta) {
+            if (displayColumnConfig?.meta) {
               const displayColumnConfigMeta = displayColumnConfig.meta
 
               const extra = {

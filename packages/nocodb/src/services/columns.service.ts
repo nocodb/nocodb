@@ -105,6 +105,7 @@ import { parseMetaProp } from '~/utils/modelUtils';
 import NocoSocket from '~/socket/NocoSocket';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -620,6 +621,11 @@ export class ColumnsService implements IColumnsService {
             ...colBody,
           } as Column);
         } else if (column.uidt === UITypes.Formula) {
+          const relatedModels: Map<string, Model> = await getRelatedModelMap(
+            context,
+            table,
+          );
+
           colBody.formula = await substituteColumnAliasWithIdInFormula(
             colBody.formula_raw || colBody.formula,
             table.columns,
@@ -629,10 +635,8 @@ export class ColumnsService implements IColumnsService {
             columns: table.columns,
             column,
             clientOrSqlUi: source.type as any,
-            getMeta: async (context, { id }) => {
-              const model = await Model.get(context, id);
-              await model.getColumns(context);
-              return model;
+            getMeta: async (_, { id }) => {
+              return relatedModels.get(id);
             },
           });
 
@@ -666,6 +670,11 @@ export class ColumnsService implements IColumnsService {
           });
         } else if (column.uidt === UITypes.Button) {
           if (colBody.type === ButtonActionsType.Url) {
+            const relatedModels: Map<string, Model> = await getRelatedModelMap(
+              context,
+              table,
+            );
+
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
@@ -675,10 +684,8 @@ export class ColumnsService implements IColumnsService {
               columns: table.columns,
               column,
               clientOrSqlUi: source.type as any,
-              getMeta: async (context, { id }) => {
-                const model = await Model.get(context, id);
-                await model.getColumns(context);
-                return model;
+              getMeta: async (_, { id }) => {
+                return relatedModels.get(id);
               },
             });
 
@@ -2451,6 +2458,11 @@ export class ColumnsService implements IColumnsService {
         break;
       case UITypes.Formula:
         try {
+          const relatedModels: Map<string, Model> = await getRelatedModelMap(
+            context,
+            table,
+          );
+
           colBody.formula = await substituteColumnAliasWithIdInFormula(
             colBody.formula_raw || colBody.formula,
             table.columns,
@@ -2465,10 +2477,8 @@ export class ColumnsService implements IColumnsService {
             },
             columns: table.columns,
             clientOrSqlUi: source.type as any,
-            getMeta: async (context, { id }) => {
-              const model = await Model.get(context, id);
-              await model.getColumns(context);
-              return model;
+            getMeta: async (_, { id }) => {
+              return relatedModels.get(id);
             },
           });
 
@@ -2507,6 +2517,11 @@ export class ColumnsService implements IColumnsService {
       case UITypes.Button: {
         if (colBody.type === ButtonActionsType.Url) {
           try {
+            const relatedModels: Map<string, Model> = await getRelatedModelMap(
+              context,
+              table,
+            );
+
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
@@ -2519,10 +2534,8 @@ export class ColumnsService implements IColumnsService {
                 colOptions: colBody,
               },
               clientOrSqlUi: source.type as any,
-              getMeta: async (context, { id }) => {
-                const model = await Model.get(context, id);
-                await model.getColumns(context);
-                return model;
+              getMeta: async (_, { id }) => {
+                return relatedModels.get(id);
               },
             });
 

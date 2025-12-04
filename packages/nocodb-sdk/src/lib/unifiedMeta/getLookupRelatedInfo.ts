@@ -22,7 +22,10 @@ export const getLookupRelatedInfo = async (
     (col) => col.id === colOptions.fk_relation_column_id
   );
   if (!relationColumn && 'getRelationColumn' in colOptions) {
-    relationColumn = await colOptions.getRelationColumn(context);
+    relationColumn = await colOptions.getRelationColumn({
+      ...context,
+      base_id: columns?.[0]?.base_id || context.base_id,
+    });
   }
 
   const relatedTable = await getLTARRelatedTable(
@@ -40,7 +43,10 @@ export const getLookupRelatedInfo = async (
   );
   let lookupColumn: UnifiedMetaType.IColumn;
   if ('getLookupColumn' in colOptions) {
-    lookupColumn = await colOptions.getLookupColumn(context);
+    lookupColumn = await colOptions.getLookupColumn({
+      ...context,
+      base_id: relatedTable?.base_id || context.base_id,
+    });
   } else {
     lookupColumn = (
       await getColumns(getContextFromObject(relatedTable), {

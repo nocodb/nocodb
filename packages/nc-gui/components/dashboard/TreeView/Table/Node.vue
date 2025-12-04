@@ -51,8 +51,6 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
-const { isTableAndFieldPermissionsEnabled } = usePermissions()
-
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
@@ -377,10 +375,7 @@ const enabledOptions = computed(() => {
       }) &&
       (source.value?.is_meta || source.value?.is_local),
     tablePermission:
-      isTableAndFieldPermissionsEnabled.value &&
-      isEeUI &&
-      table.value?.type === 'table' &&
-      isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }),
+      isEeUI && table.value?.type === 'table' && isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }),
     tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })

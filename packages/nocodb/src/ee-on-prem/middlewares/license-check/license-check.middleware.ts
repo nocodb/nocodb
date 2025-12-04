@@ -51,7 +51,7 @@ export class LicenseCheckMiddleware implements NestMiddleware {
 
   private shouldBypass(path: string): boolean {
     // If no path or non-API path, allow
-    if (!path && !path.startsWith('/api/')) {
+    if (!path || !path.startsWith('/api/')) {
       return true;
     }
 

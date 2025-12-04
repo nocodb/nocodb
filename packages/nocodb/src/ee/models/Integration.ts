@@ -505,7 +505,7 @@ export default class Integration extends IntegrationCE {
 
     const wrapper = await this.getIntegrationWrapper<AuthIntegration>();
 
-    const exchangedConfig = await wrapper.exchangeToken(oauth);
+    const exchangedConfig = await wrapper.exchangeToken(oauth, config);
 
     await Integration.updateIntegration(
       { workspace_id: this.fk_workspace_id },

@@ -82,10 +82,13 @@ export class BambooHRAuthIntegration extends AuthIntegration<
   }
 
   // https://developer.atlassian.com/cloud/bitbucket/oauth-2/
-  public async exchangeToken(payload: {
-    code: string;
-    code_verifier?: string;
-  }): Promise<{
+  public async exchangeToken(
+    payload: {
+      code: string;
+      code_verifier?: string;
+    },
+    config: BambooHRAuthConfig,
+  ): Promise<{
     oauth_token: string;
     refresh_token?: string;
     expires_in?: number;
@@ -96,22 +99,33 @@ export class BambooHRAuthIntegration extends AuthIntegration<
     const params = new URLSearchParams();
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
-    params.append('redirect_uri', redirectUri!);
+    console.log(
+      redirectUri,
+      redirectUri!.replace('{{config.companyDomain}}', config.companyDomain),
+    );
+    params.append(
+      'redirect_uri',
+      redirectUri!.replace('{{config.companyDomain}}', config.companyDomain),
+    );
 
     if (codeVerifier) {
       params.append('code_verifier', codeVerifier);
     }
 
-    const response = await axios.post(tokenUri, params.toString(), {
-      auth: {
-        username: clientId!,
-        password: clientSecret!,
+    const response = await axios.post(
+      tokenUri.replace('{{config.companyDomain}}', config.companyDomain),
+      params.toString(),
+      {
+        auth: {
+          username: clientId!,
+          password: clientSecret!,
+        },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          Accept: 'application/json',
+        },
       },
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'application/json',
-      },
-    });
+    );
 
     return {
       oauth_token: response.data.access_token,

@@ -42,7 +42,7 @@ export abstract class AuthIntegration<TConfig = any, TClient = any> extends Inte
   /**
    * Optional: Exchange OAuth authorization code for tokens.
    */
-  public exchangeToken?(oauthPayload: Record<string, any>): Promise<Record<string, any>>;
+  public exchangeToken?(oauthPayload: Record<string, any>, config: TConfig): Promise<Record<string, any>>;
 
   /**
    * Optional: Refresh an expired OAuth token.

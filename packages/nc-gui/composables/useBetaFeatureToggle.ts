@@ -115,10 +115,10 @@ const FEATURES = [
   },
   {
     id: 'extensions',
-    title: 'Extensions',
+    title: 'Extensions beta features',
     description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
     enabled: ncIsPlaywright(),
-    version: 3,
+    version: 4,
     isEngineering: true,
   },
   {
@@ -143,14 +143,6 @@ const FEATURES = [
     description: 'Allows user to create custom links using existing fields.',
     enabled: false,
     version: 1,
-    isEE: true,
-  },
-  {
-    id: 'table_and_field_permissions',
-    title: 'Table and Field Permissions',
-    description: 'Allows user to manage table and field permissions.',
-    enabled: true,
-    version: 2,
     isEE: true,
   },
   {

@@ -388,8 +388,8 @@ onMounted(() => {
                   'nc-disabled': !aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema'),
                 }"
                 :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"
-                @mouseover="handleMouseOverTag(prompt.description)"
-                @mouseleave="handleMouseLeaveTag"
+                @pointerover="handleMouseOverTag(prompt.description)"
+                @pointerleave="handleMouseLeaveTag"
                 @click="handleUpdatePrompt(prompt.description)"
               >
                 <div class="flex flex-row items-center gap-1 py-1 text-sm">

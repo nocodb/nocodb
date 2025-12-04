@@ -50,7 +50,7 @@ const textareaValue = computed({
       @keydown.delete.stop
       @keydown.alt.stop
       @selectstart.capture.stop
-      @mousedown.stop
+      @pointerdown.stop
     />
 
     <NcAutoSizeTextarea

@@ -499,7 +499,7 @@ defineExpose({
                           height: `${ACTION_HEIGHT}px`,
                         }"
                         :class="{ selected: selected === item.data.id }"
-                        @mouseenter="setAction(item.data.id)"
+                        @pointerenter="setAction(item.data.id)"
                         @click="fireAction(item.data)"
                       >
                         <div class="cmdk-action-content w-full">

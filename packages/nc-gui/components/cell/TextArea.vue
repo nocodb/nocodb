@@ -567,7 +567,7 @@ useResizeObserver(inputWrapperRef, () => {
           @keydown.up.stop
           @keydown.delete.stop
           @selectstart.capture.stop
-          @mousedown.stop
+          @pointerdown.stop
         />
         <div v-if="!readOnly && props.isAi && isExpandedFormOpen" class="-mt-1">
           <div v-if="props.aiMeta?.isStale" ref="aiWarningRef">
@@ -735,7 +735,7 @@ useResizeObserver(inputWrapperRef, () => {
             'select-none': isDragging,
             'cursor-move': !isEditColumn,
           }"
-          @mousedown="dragStart"
+          @pointerdown="dragStart"
         >
           <SmartsheetHeaderCellIcon
             class="flex"

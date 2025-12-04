@@ -135,7 +135,7 @@ watch(vOpen, () => {
               class="cmdk-action cmdj-action"
               :class="{ 'selected': selectedIndex === index, 'pl-4': result.type !== 'page' }"
               @click="navigateToResult(result)"
-              @mouseenter="selectedIndex = index"
+              @pointerenter="selectedIndex = index"
             >
               <div class="cmdk-action-content">
                 <div v-if="result.type === 'page'" class="pr-4">

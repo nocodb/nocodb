@@ -210,7 +210,7 @@ const urls = replaceUrlsWithLink(result)
       <div
         v-if="column"
         class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-gray-100 overflow-hidden cursor-move select-none"
-        @mousedown="dragStart"
+        @pointerdown="dragStart"
       >
         <SmartsheetHeaderIcon :column="column" class="flex" />
 

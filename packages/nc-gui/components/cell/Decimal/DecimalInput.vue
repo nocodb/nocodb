@@ -218,7 +218,7 @@ onMounted(() => {
     @keydown.delete.stop
     @keydown.alt.stop
     @selectstart.capture.stop
-    @mousedown.stop
+    @pointerdown.stop
     @beforeinput="onBeforeInput"
   />
 </template>

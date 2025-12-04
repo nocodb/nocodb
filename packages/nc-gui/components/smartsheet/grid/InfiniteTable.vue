@@ -2147,10 +2147,6 @@ const {
   cachedRows,
 })
 
-/**
- * Start row drag operation.
- * Accepts both MouseEvent and PointerEvent for touch support.
- */
 const startDragging = (row: Row, event: MouseEvent | PointerEvent) => {
   if (isPublicView.value) return
   row.rowMeta.isDragging = true

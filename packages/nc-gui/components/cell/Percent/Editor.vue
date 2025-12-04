@@ -112,7 +112,7 @@ onMounted(() => {
       @keydown.delete.stop
       @keydown.alt.stop
       @selectstart.capture.stop
-      @mousedown.stop
+      @pointerdown.stop
     />
   </CellPercentProgressBar>
   <div v-else>
@@ -133,7 +133,7 @@ onMounted(() => {
       @keydown.delete.stop
       @keydown.alt.stop
       @selectstart.capture.stop
-      @mousedown.stop
+      @pointerdown.stop
     />
   </div>
 </template>

@@ -1160,7 +1160,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                   'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
                   '!text-nc-content-purple-dark': [AIPrompt, AIButton].includes(opt.name),
                 }"
-                @mouseover="handleResetHoverEffect"
+                @pointerover="handleResetHoverEffect"
               >
                 <NcTooltip
                   class="w-full flex gap-2 items-center justify-between"

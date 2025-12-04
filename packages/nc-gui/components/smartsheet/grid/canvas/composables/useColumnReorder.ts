@@ -48,7 +48,6 @@ export function useColumnReorder(
 
   /**
    * Handle pointer move for column drag.
-   * Uses Pointer Events API for unified mouse/touch/pen handling.
    */
   const handleDrag = (e: PointerEvent) => {
     if (!isDragging.value || !dragStart.value) return
@@ -89,7 +88,6 @@ export function useColumnReorder(
 
   /**
    * Start column drag operation.
-   * Uses Pointer Events API for unified mouse/touch/pen handling.
    */
   const startDrag = (x: number) => {
     if (isLocked.value || !isViewOperationsAllowed.value) return

@@ -732,10 +732,6 @@ const onResizeEnd = () => {
   document.removeEventListener('pointercancel', onResizeEnd)
 }
 
-/**
- * Start resize operation for calendar records.
- * Uses Pointer Events API for unified mouse/touch/pen handling.
- */
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent | PointerEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
 
@@ -859,10 +855,6 @@ const onDrag = (event: MouseEvent) => {
   calculateNewRow(event)
 }
 
-/**
- * Stop drag operation for calendar records.
- * Uses Pointer Events API for unified mouse/touch/pen handling.
- */
 const stopDrag = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit') || !isDragging.value || !container.value || !dragRecord.value) return
 
@@ -884,10 +876,6 @@ const stopDrag = (event: MouseEvent | PointerEvent) => {
   document.removeEventListener('pointercancel', stopDrag)
 }
 
-/**
- * Start drag operation for calendar records.
- * Uses Pointer Events API for unified mouse/touch/pen handling.
- */
 const dragStart = (event: MouseEvent | PointerEvent, record: Row) => {
   if (resizeInProgress.value || isSyncedFromColumn.value) return
   let target = event.target as HTMLElement
@@ -1202,8 +1190,8 @@ watch(
             }"
             class="absolute transition draggable-record group cursor-pointer pointer-events-auto"
             @pointerdown.stop="dragStart($event, record)"
-            @mouseleave="hoverRecord = null"
-            @mouseover="hoverRecord = record.rowMeta.id"
+            @pointerleave="hoverRecord = null"
+            @pointerover="hoverRecord = record.rowMeta.id"
             @dragover.prevent
           >
             <LazySmartsheetRow :row="record">

@@ -361,9 +361,6 @@ const onResizeEnd = () => {
   document.removeEventListener('pointercancel', onResizeEnd)
 }
 
-/**
- * Start resize operation. Uses Pointer Events API.
- */
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent | PointerEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   resizeInProgress.value = true
@@ -380,9 +377,6 @@ const onDrag = (event: MouseEvent | PointerEvent) => {
   calculateNewRow(event, false)
 }
 
-/**
- * Stop drag operation. Uses Pointer Events API.
- */
 const stopDrag = (event: MouseEvent | PointerEvent) => {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
@@ -414,9 +408,6 @@ const stopDrag = (event: MouseEvent | PointerEvent) => {
   document.removeEventListener('pointercancel', stopDrag)
 }
 
-/**
- * Start drag operation. Uses Pointer Events API.
- */
 const dragStart = (event: MouseEvent | PointerEvent, record: Row) => {
   if (resizeInProgress.value) return
   let target = event.target as HTMLElement
@@ -528,8 +519,8 @@ defineExpose({
               ...record.rowMeta.style,
             }"
             class="absolute group draggable-record pointer-events-auto nc-calendar-week-record-card"
-            @mouseleave="hoverRecord = null"
-            @mouseover="hoverRecord = record.rowMeta.id"
+            @pointerleave="hoverRecord = null"
+            @pointerover="hoverRecord = record.rowMeta.id"
             @pointerdown.stop="dragStart($event, record)"
           >
             <LazySmartsheetRow :row="record">

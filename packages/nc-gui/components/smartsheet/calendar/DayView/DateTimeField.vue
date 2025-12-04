@@ -725,10 +725,6 @@ const onResizeEnd = () => {
   document.removeEventListener('pointercancel', onResizeEnd)
 }
 
-/**
- * Start resize operation for calendar records.
- * Uses Pointer Events API for unified mouse/touch/pen handling.
- */
 const onResizeStart = (direction: 'right' | 'left', _event: MouseEvent | PointerEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   if (record.rowMeta.range?.is_readonly) return
@@ -752,10 +748,6 @@ const onDrag = (event: MouseEvent) => {
   calculateNewRow(event)
 }
 
-/**
- * Stop drag operation for calendar records.
- * Uses Pointer Events API for unified mouse/touch/pen handling.
- */
 const stopDrag = (event: MouseEvent | PointerEvent) => {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
@@ -783,10 +775,6 @@ const stopDrag = (event: MouseEvent | PointerEvent) => {
   document.removeEventListener('pointercancel', stopDrag)
 }
 
-/**
- * Start drag operation for calendar records.
- * Uses Pointer Events API for unified mouse/touch/pen handling.
- */
 const dragStart = (event: MouseEvent | PointerEvent, record: Row) => {
   if (isSyncedFromColumn.value) return
 
@@ -1213,8 +1201,8 @@ const expandRecord = (record: Row) => {
               }"
               class="absolute draggable-record transition group cursor-pointer pointer-events-auto"
               @pointerdown="dragStart($event, record)"
-              @mouseleave="hoverRecord = null"
-              @mouseover="hoverRecord = record.rowMeta.id as string"
+              @pointerleave="hoverRecord = null"
+              @pointerover="hoverRecord = record.rowMeta.id as string"
               @dragover.prevent
             >
               <LazySmartsheetRow :row="record">

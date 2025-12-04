@@ -120,7 +120,7 @@ watch(activeTab, (newTab) => {
           </a-form>
         </div>
         <general-overlay :model-value="isLoadingIntegrationConfigs" inline transition class="!bg-opacity-15">
-          <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+          <div class="flex items-center justify-center h-full w-full !bg-nc-bg-default/85 z-1000">
             <a-spin size="large" />
           </div>
         </general-overlay>

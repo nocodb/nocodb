@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import VariableDisplay from './VariableDisplay.vue'
 
-const { selectedNode, getNodeMetaById } = useWorkflowOrThrow()
+const { selectedNode } = useWorkflowOrThrow()
 
 const isInputExpanded = ref(true)
 
@@ -12,11 +12,6 @@ const isTestResultStale = computed(() => selectedNode.value?.data?.testResult?.i
 
 const testResult = computed(() => {
   return selectedNode.value?.data?.testResult
-})
-
-const nodeMeta = computed(() => {
-  if (!selectedNode.value || !selectedNode.value.type) return null
-  return getNodeMetaById(selectedNode.value.type)
 })
 
 const inputVariables = computed(() => {
@@ -93,8 +88,6 @@ const outputData = computed(() => {
           @click="isOutputExpanded = !isOutputExpanded"
         >
           <div class="flex items-center gap-2">
-            <GeneralIcon v-if="nodeMeta" :icon="nodeMeta.icon" />
-
             <div class="text-captionBold text-nc-content-gray-emphasis">Output</div>
           </div>
 

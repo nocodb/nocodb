@@ -138,7 +138,10 @@ const formatValue = (value: any): string => {
           @click="expandedItems.has(variable.key) ? expandedItems.delete(variable.key) : expandedItems.add(variable.key)"
         >
           <div class="flex items-center flex-1 gap-2">
-            <GeneralIcon :icon="getVariableIcon(variable) as any" class="w-4 h-4 text-nc-content-gray-subtle" />
+            <GeneralIcon
+              :icon="getVariableIcon(variable) as any"
+              class="w-4 h-4 text-nc-content-gray-subtle stroke-transparent"
+            />
             <div class="text-body text-nc-content-gray-emphasis">{{ variable.name }}</div>
           </div>
           <NcButton type="text" size="xxsmall">

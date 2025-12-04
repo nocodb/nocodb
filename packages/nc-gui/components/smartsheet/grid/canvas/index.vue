@@ -286,7 +286,7 @@ const {
   canvasRef,
   triggerRefreshCanvas,
   resizeableColumn,
-  resizeMouseMove,
+  resizePointerMove,
   isDragging,
   startDrag,
   startResize,
@@ -2028,7 +2028,7 @@ const handlePointerMove = (e: PointerEvent) => {
   } else {
     const y = e.clientY - rect.top
     if (y <= headerRowHeight.value && resizeableColumn.value) {
-      resizeMouseMove(e)
+      resizePointerMove(e)
     } else if (mousePosition.y > height.value - 36) {
       if (!isViewOperationsAllowed.value) return
 

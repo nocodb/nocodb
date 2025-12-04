@@ -77,6 +77,7 @@ onMounted(async () => {
 
 <template>
   <slot
+    v-if="isSyncOptionVisible"
     :is-sync-option-visible="isSyncOptionVisible"
     :create-sync-click="
       () => {

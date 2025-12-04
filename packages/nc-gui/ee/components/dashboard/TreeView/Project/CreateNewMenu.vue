@@ -7,7 +7,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['update:visible', 'newTable', 'emptyScript', 'emptyWorkflow', 'emptyDashboard', 'newSync'])
+const emits = defineEmits(['update:visible', 'newTable', 'emptyScript', 'emptyWorkflow', 'emptyDashboard'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
@@ -24,10 +24,6 @@ const { isMarketVisible } = storeToRefs(useAutomationStore())
 const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
 
 const { isDashboardEnabled } = storeToRefs(useDashboardStore())
-
-const syncStore = useSyncStore()
-
-const { isSyncFeatureEnabled } = storeToRefs(syncStore)
 
 const showBaseOption = (source: SourceType) => {
   return (
@@ -90,7 +86,7 @@ const openMarketPlace = () => {
       {{ $t('labels.dashboard') }}
     </NcMenuItem>
 
-    <ProjectSyncCreateProvider v-if="isSyncFeatureEnabled">
+    <ProjectSyncCreateProvider>
       <template #default="{ createSyncClick }">
         <NcMenuItem
           inner-class="w-full"

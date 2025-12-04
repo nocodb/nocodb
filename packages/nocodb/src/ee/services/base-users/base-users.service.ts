@@ -348,7 +348,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
         ));
 
       // if old role is owner and there is only one owner then restrict update
-      if (targetUser && this.isOldRoleIsOwner(targetUser)) {
+      if (targetUser && this.isOldRoleIsOwner(targetUser, base)) {
         const baseUsers = await BaseUser.getUsersList(
           context,
           {
@@ -663,7 +663,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       }
 
       // if old role is owner and there is only one owner then restrict update
-      if (this.isOldRoleIsOwner(targetUser)) {
+      if (this.isOldRoleIsOwner(targetUser, base)) {
         const baseUsers = await BaseUser.getUsersList(
           context,
           {
@@ -818,7 +818,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       }
 
       // if old role is owner and there is only one owner then restrict to delete
-      if (this.isOldRoleIsOwner(baseUser)) {
+      if (this.isOldRoleIsOwner(baseUser, base)) {
         const baseUsers = await BaseUser.getUsersList(
           context,
           {

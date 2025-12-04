@@ -124,12 +124,12 @@ const formatValue = (value: any): string => {
         class="flex items-center py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
         :style="{ paddingLeft: `${depth * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
       >
-        <div class="flex items-center flex-1 gap-2">
-          <GeneralIcon :icon="getVariableIcon(variable) as any" class="w-4 h-4 text-nc-content-gray-subtle" />
-          <div class="text-captionBold text-nc-content-gray-emphasis">{{ variable.name }}</div>
+        <div class="flex items-center flex-1 gap-2 pr-2">
+          <GeneralIcon :icon="getVariableIcon(variable) as any" class="w-4 h-4 text-nc-content-gray-subtle stroke-transparent" />
+          <div class="text-body text-nc-content-gray-emphasis">{{ variable.name }}</div>
         </div>
 
-        <div class="text-body text-nc-content-gray-subtle">{{ getVariableValue(variable) }}</div>
+        <div class="text-body text-nc-content-gray-subtle truncate">{{ getVariableValue(variable) }}</div>
       </div>
       <div v-else>
         <div
@@ -139,7 +139,7 @@ const formatValue = (value: any): string => {
         >
           <div class="flex items-center flex-1 gap-2">
             <GeneralIcon :icon="getVariableIcon(variable) as any" class="w-4 h-4 text-nc-content-gray-subtle" />
-            <div class="text-captionBold text-nc-content-gray-emphasis">{{ variable.name }}</div>
+            <div class="text-body text-nc-content-gray-emphasis">{{ variable.name }}</div>
           </div>
           <NcButton type="text" size="xxsmall">
             <GeneralIcon
@@ -164,9 +164,9 @@ const formatValue = (value: any): string => {
             >
               <div class="flex items-center flex-1 gap-2">
                 <GeneralIcon icon="cellJson" class="w-4 h-4 text-nc-content-gray-subtle" />
-                <div class="text-captionBold text-nc-content-gray-emphasis">{{ item.name }}</div>
+                <div class="text-body text-nc-content-gray-emphasis">{{ item.name }}</div>
               </div>
-              <div class="text-body text-nc-content-gray-subtle">{{ formatValue(item.value) }}</div>
+              <div class="text-body truncate text-nc-content-gray-subtle">{{ formatValue(item.value) }}</div>
             </div>
           </template>
           <template v-else>
@@ -178,9 +178,9 @@ const formatValue = (value: any): string => {
             >
               <div class="flex items-center flex-1 gap-2">
                 <GeneralIcon icon="cellText" class="w-4 h-4 text-nc-content-gray-subtle" />
-                <div class="text-captionBold text-nc-content-gray-emphasis">{{ prop.name }}</div>
+                <div class="text-body text-nc-content-gray-emphasis">{{ prop.name }}</div>
               </div>
-              <div class="text-body text-nc-content-gray-subtle">{{ formatValue(prop.value) }}</div>
+              <div class="text-body truncate text-nc-content-gray-subtle">{{ formatValue(prop.value) }}</div>
             </div>
           </template>
         </div>

@@ -52,7 +52,10 @@ const outputData = computed(() => {
         </div>
       </div>
 
-      <div class="border-1 border-nc-border-gray-medium rounded-md cursor-pointer overflow-hidden">
+      <div
+        v-if="inputVariables.length > 0"
+        class="border-1 border-nc-border-gray-medium rounded-md cursor-pointer overflow-hidden"
+      >
         <div
           :class="{
             'border-b-1 border-nc-border-gray-extralight hover:border-nc-border-gray-medium': isInputExpanded,
@@ -78,7 +81,10 @@ const outputData = computed(() => {
         </div>
       </div>
 
-      <div class="border-1 border-nc-border-gray-medium rounded-md cursor-pointer overflow-hidden">
+      <div
+        v-if="outputVariables.length > 0"
+        class="border-1 border-nc-border-gray-medium rounded-md cursor-pointer overflow-hidden"
+      >
         <div
           :class="{
             'border-b-1 border-nc-border-gray-extralight hover:border-nc-border-gray-medium': isOutputExpanded,
@@ -104,7 +110,7 @@ const outputData = computed(() => {
         </div>
 
         <div v-if="isOutputExpanded">
-          <VariableDisplay :variables="outputVariables" :data="outputData" />
+          <VariableDisplay :variables="outputVariables" :data="outputData" :depth="0.125" />
         </div>
       </div>
     </div>

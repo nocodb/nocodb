@@ -81,7 +81,11 @@ export class BambooHRFormatter {
     jobInfo,
     namespace,
   }: {
-    employee: any;
+    employee: {
+      id: string;
+      employmentHistoryStatus: string;
+      lastChanged: string;
+    };
     jobInfo: JobInfoRecord;
     compensation: CompensationRecord;
     namespace: string;
@@ -93,19 +97,23 @@ export class BambooHRFormatter {
       b.date.localeCompare(a.date),
     )[0];
 
+    let payRate: string | undefined = latestCompensation?.rate?.split(' ')?.[0];
+    if (isNaN(Number(payRate)) || payRate === '') {
+      payRate = undefined;
+    }
     const result = {
       recordId: employee.id,
       targetTable: TARGET_TABLES.HRIS_EMPLOYMENT,
       data: {
         'Employment Type': employee.employmentHistoryStatus,
         'Job Title': latestJobInfo.jobTitle,
-        'Pay Rate': latestCompensation.rate.split(' ')[0],
-        'Pay Period': '',
-        'Pay Frequency': latestCompensation.paidPer,
-        'Pay Currency': latestCompensation.rate.split(' ')[1],
+        'Pay Rate': payRate,
+        'Pay Period': latestCompensation?.paidPer,
+        'Pay Frequency': '', //latestCompensation?.paySchedule, // skip for now, the schedule returned is id and need to call individual api
+        'Pay Currency': latestCompensation?.rate?.split(' ')?.[1],
         'Pay Group': '',
-        'Flsa Status': latestCompensation.exempt ?? '',
-        'Effective Date': latestCompensation.startDate,
+        'Flsa Status': latestCompensation?.exempt ?? '',
+        'Effective Date': latestCompensation?.startDate,
         RemoteRaw: JSON.stringify(jobInfo),
         RemoteUpdatedAt: safeDateValue(employee.lastChanged),
         RemoteNamespace: namespace,
@@ -113,7 +121,12 @@ export class BambooHRFormatter {
       links: {
         Employee: [employee.id],
       },
-    } as { data: SyncRecord; links: Record<string, SyncLinkValue> };
+    } as {
+      recordId: string;
+      targetTable: TARGET_TABLES;
+      data: SyncRecord;
+      links: Record<string, SyncLinkValue>;
+    };
     return result;
   }
 }

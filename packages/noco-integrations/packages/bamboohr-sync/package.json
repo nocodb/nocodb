@@ -1,7 +1,7 @@
 {
-  "name": "@noco-integrations/bitbucket-sync",
+  "name": "@noco-integrations/bamboohr-sync",
   "version": "0.1.0",
-  "description": "Bitbucket sync integration for NocoDB",
+  "description": "BambooHR sync integration for NocoDB",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

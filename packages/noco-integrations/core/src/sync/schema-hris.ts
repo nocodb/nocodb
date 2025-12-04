@@ -148,8 +148,7 @@ export const SCHEMA_HRIS: SyncSchema = {
   [TARGET_TABLES.HRIS_EMPLOYMENT]: {
     title: TARGET_TABLES_META.hris_employment.label,
     columns: [
-      { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Job Title', uidt: UITypes.SingleLineText },
+      { title: 'Job Title', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Pay Rate', uidt: UITypes.Currency },
       { title: 'Pay Period', uidt: UITypes.SingleLineText },
       { title: 'Pay Frequency', uidt: UITypes.SingleLineText },

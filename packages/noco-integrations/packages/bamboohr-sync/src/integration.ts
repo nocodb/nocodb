@@ -215,7 +215,7 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
             try {
               const { data } = await auth.use(async (client) => {
                 return await client.get(
-                  `/employees/${jobInfo.employeeId}?fields=employmentHistoryStatus`,
+                  `/employees/${jobInfo.employeeId}?fields=employmentHistoryStatus,lastChanged`,
                 );
               });
               employeeDetail = data;
@@ -234,11 +234,31 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
           } else {
             employeeDetail = employeeDetailCacheMap.get(jobInfo.employeeId);
           }
+          let compensationInfo =
+            compensationChange.employees[jobInfo.employeeId];
 
+          if (!compensationInfo) {
+            const { data } = (await auth.use(async (client) => {
+              return await client.get(
+                `/employees/${jobInfo.employeeId}/tables/compensation`,
+              );
+            })) as { data: any[] };
+            compensationInfo = {
+              lastChanged: employeeDetail.lastChanged,
+              rows: (data ?? []).map((row) => {
+                return {
+                  ...row,
+                  rate: `${row.rate.value} ${row.rate.currency}`,
+                  overtimeRate: `${row.overtimeRate.value} ${row.overtimeRate.currency}`,
+                };
+              }),
+              employeeId: jobInfo.employeeId,
+            };
+          }
           stream.push(
             this.formatter.formatEmployment({
               employee: employeeDetail,
-              compensation: {},
+              compensation: compensationInfo,
               jobInfo: jobInfo,
               namespace: auth.config.companyDomain,
             }),

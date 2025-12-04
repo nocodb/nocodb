@@ -3,7 +3,7 @@ import type { IntegrationManifest } from '@noco-integrations/core';
 
 export const manifest: IntegrationManifest = {
   title: APP_LABEL,
-  icon: 'bamboohr',
+  icon: 'bambooHR',
   description: APP_LABEL + ' authentication integration for NocoDB',
   version: '0.1.0',
   author: 'NocoDB',

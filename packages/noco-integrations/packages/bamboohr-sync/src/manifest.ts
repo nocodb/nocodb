@@ -6,7 +6,7 @@ import { APP_LABEL } from './constant';
 
 const manifest: IntegrationManifest = {
   title: APP_LABEL,
-  icon: 'bamboohr',
+  icon: 'bambooHR',
   version: '0.1.0',
   description: 'Sync ' + APP_LABEL + ' employee data',
   sync_category: SyncCategory.HRIS,

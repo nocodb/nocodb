@@ -368,6 +368,7 @@ const getInheritanceInfo = (record: any) => {
     baseTeamRole,
     workspaceRole: workspaceUserRole,
     workspaceTeamRole,
+    defaultBaseRole: base.value?.default_role,
   })
 
   if (!effectiveRole || effectiveRole === ProjectRoles.INHERIT || effectiveRole === ProjectRoles.NO_ACCESS) {

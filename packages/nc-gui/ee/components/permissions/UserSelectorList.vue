@@ -46,6 +46,10 @@ const basesStore = useBases()
 
 const { basesUser, basesTeams } = storeToRefs(basesStore)
 
+const baseStore = useBase()
+
+const { base } = storeToRefs(baseStore)
+
 const listRef = ref()
 
 // Todo: @rameshmane7218, @pranav - remove this flag once the teams table and field permissions are enabled
@@ -63,6 +67,7 @@ const baseUsers = computed(() => {
       baseTeamRole: (user as any).base_team_roles as ProjectRoles,
       workspaceRole: user.workspace_roles as WorkspaceUserRoles,
       workspaceTeamRole: (user as any).workspace_team_roles as WorkspaceUserRoles,
+      defaultBaseRole: base.value?.default_role,
     }),
     ncGroupHeaderLabel: showTeams.value ? t('labels.members') : undefined,
   }))

@@ -178,10 +178,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
   })
 
-  const isCopyViewConfigFromAnotherViewFeatureEnabled = computed(() =>
-    isFeatureEnabled(FEATURE_FLAG.COPY_VIEW_CONFIG_FROM_ANOTHER_VIEW),
-  )
-
   const isShowEveryonePersonalViewsEnabled = computed({
     get: () => {
       if (!isEeUI || !isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)) {
@@ -887,7 +883,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     const result = {
       isDisabled: false,
       tooltip: '',
-      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit') && isCopyViewConfigFromAnotherViewFeatureEnabled.value,
+      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit'),
     }
 
     if (!view) return result
@@ -1166,7 +1162,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
     lastOpenedViewId,
     activeViewRowColorInfo,
     sharedView,
-    isCopyViewConfigFromAnotherViewFeatureEnabled,
     isCardFieldHeaderVisibilityEnabled,
     isActiveViewFieldHeaderVisible,
 

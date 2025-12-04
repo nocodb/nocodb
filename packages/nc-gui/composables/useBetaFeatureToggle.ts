@@ -163,14 +163,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'copy_view_config_from_another_view',
-    title: 'Copy View Config From Another View',
-    description: 'Copy view config from another view.',
-    enabled: true,
-    version: 3,
-    isEE: true,
-  },
-  {
     id: 'show_everyones_personal_views',
     title: "Show Everyone's Personal Views",
     description: 'With this feature we can avoid showing other users personal views in left sidebar',

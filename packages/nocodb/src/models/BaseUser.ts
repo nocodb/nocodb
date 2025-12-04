@@ -114,14 +114,16 @@ export default class BaseUser {
       true,
     );
 
-    const res = await this.get(context, base_id, fk_user_id, ncMeta);
-
-    await NocoCache.appendToList(
+    // delete the key since it might be already defined with inherited values
+    await NocoCache.del(
       context,
-      CacheScope.BASE_USER,
-      [base_id],
       `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
     );
+
+    // delete list to fetch updated list next time
+    await NocoCache.del(context, `${CacheScope.BASE_USER}:${base_id}:list`);
+
+    const res = await this.get(context, base_id, fk_user_id, ncMeta);
 
     cleanCommandPaletteCacheForUser(fk_user_id).catch(() => {
       logger.error('Error cleaning command palette cache');

@@ -3513,7 +3513,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       groupColumnId: string;
       ignoreViewFilterAndSort?: boolean;
       options?: (string | number | null | boolean)[];
-      useOptimised?: boolean
+      useOptimised?: boolean;
     } & Partial<XcFilter>,
   ): Promise<
     {

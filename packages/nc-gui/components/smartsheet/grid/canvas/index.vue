@@ -2877,9 +2877,7 @@ watch(
             oncontextmenu="return false"
             @pointerdown="handlePointerDown"
             @pointermove="handlePointerMove"
-            @pointerup="handlePointerUp"
             @pointerleave="handlePointerLeave"
-            @pointercancel="handlePointerUp"
           >
           </canvas>
           <template #overlay>

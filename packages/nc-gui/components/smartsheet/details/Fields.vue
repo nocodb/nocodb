@@ -78,8 +78,6 @@ const { t } = useI18n()
 
 const { $api } = useNuxtApp()
 
-const { isDark } = useTheme()
-
 const { getMeta } = useMetas()
 
 const { meta, view, eventBus } = useSmartsheetStoreOrThrow()
@@ -2201,12 +2199,7 @@ onBeforeRouteUpdate((_to, from, next) => {
               />
               <div v-else class="w-[25rem] flex flex-col justify-center p-4 items-center">
                 <img src="~assets/img/placeholder/multi-field-editor.png" class="!w-[18rem]" />
-                <div
-                  class="text-2xl text-nc-content-gray-subtle2 font-bold text-center pt-6"
-                  :class="{
-                    'mt-[282px]': isDark,
-                  }"
-                >
+                <div class="text-2xl text-nc-content-gray-subtle2 font-bold text-center pt-6">
                   {{ $t('labels.multiField.selectField') }}
                 </div>
                 <div class="text-center text-sm px-2 text-nc-content-inverted-secondary-disabled pt-6">

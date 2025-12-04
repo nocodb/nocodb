@@ -84,8 +84,26 @@ const openMarketPlace = () => {
     >
       <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
-      <div class="flex-1 w-full" />
     </NcMenuItem>
+
+    <ProjectSyncCreateProvider>
+      <template #default="{ createSyncClick }">
+        <NcMenuItem
+          inner-class="w-full"
+          data-testid="create-new-sync"
+          @click="
+            () => {
+              createSyncClick()
+            }
+          "
+        >
+          <GeneralIcon icon="ncZap" />
+          {{ $t('labels.sync') }}
+          <div class="flex-1 w-full" />
+          <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
+        </NcMenuItem>
+      </template>
+    </ProjectSyncCreateProvider>
 
     <NcMenuItemLabel>
       <span class="normal-case"> {{ $t('general.automations') }} </span>
@@ -134,7 +152,7 @@ const openMarketPlace = () => {
       <GeneralIcon icon="ncAutomation" />
       {{ $t('general.workflow') }}
       <div class="flex-1 w-full" />
-      <NcBadge :border="false" size="xs" class="!text-nc-content-brand-disabled !bg-nc-bg-brand"> Beta </NcBadge>
+      <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
     </NcMenuItem>
   </NcMenu>
 </template>

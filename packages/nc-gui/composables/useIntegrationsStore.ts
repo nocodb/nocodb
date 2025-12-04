@@ -84,6 +84,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const isLoadingIntegrations = ref(false)
 
+  const isLoadedIntegrations = ref(false)
+
   const eventBus = useEventBus<IntegrationStoreEventsTypes>(Symbol('integrationStore'))
 
   const { $api, $e } = useNuxtApp()
@@ -155,6 +157,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       if (!databaseOnly) {
         integrationPaginationData.value.totalRows = pageInfo.totalRows ?? 0
       }
+
+      isLoadedIntegrations.value = true
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
       integrations.value = []
@@ -529,6 +533,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     integrationsRefreshKey,
     integrations,
     isLoadingIntegrations,
+    isLoadedIntegrations,
     deleteConfirmText,
     eventBus,
     requestIntegration,

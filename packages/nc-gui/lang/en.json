@@ -1054,6 +1054,7 @@
     "schema": "Schema",
     "review": "Review",
     "newSync": "New Sync",
+    "sync": "Sync",
     "searchIntegrations": "Search integrations",
     "newSource": "New Source",
     "deleteSource": "Delete source",

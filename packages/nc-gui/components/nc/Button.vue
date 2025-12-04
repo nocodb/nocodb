@@ -266,7 +266,7 @@ useEventListener(NcButton, 'mousedown', () => {
 .nc-button.ant-btn.nc-text-primary {
   &:not(.nc-show-as-disabled):not(:disabled) {
     &.theme-default {
-      @apply text-primary md:(hover:text-primary);
+      @apply text-nc-content-brand md:(hover:text-nc-content-brand);
     }
   }
 }

@@ -124,18 +124,17 @@ export class SlackAuthIntegration extends AuthIntegration<
       if (!response.data.ok) {
         throw new Error(response.data.error || 'Token exchange failed');
       }
+      const botToken = response.data.access_token;
+      const refreshToken = response.data.refresh_token;
 
-      const userToken = response.data.authed_user?.access_token;
-      const refreshToken = response.data.authed_user?.refresh_token;
-
-      if (!userToken) {
+      if (!botToken) {
         throw new Error(
-          'No user access token received from Slack. Ensure you request user_scope parameter in the OAuth authorization URL.',
+          'No bot access token received from Slack. Ensure you request bot scopes in the OAuth authorization URL.',
         );
       }
 
       return {
-        oauth_token: userToken,
+        oauth_token: botToken,
         refresh_token: refreshToken,
       };
     } catch (error) {
@@ -156,9 +155,9 @@ export class SlackAuthIntegration extends AuthIntegration<
   }
 
   /**
-   * Refresh an expired OAuth user token using the refresh token
-   * Only works if token rotation is enabled in Slack app settings
-   * Note: Bot tokens (ApiKey type) are long-lived and never expire, so no refresh is needed
+   * Refresh an expired OAuth token using the refresh token
+   * Note: Bot tokens obtained via OAuth are long-lived and typically don't need refresh
+   * This method is only needed if token rotation is enabled in Slack app settings
    */
   public async refreshToken(payload: { refresh_token: string }): Promise<{
     oauth_token: string;

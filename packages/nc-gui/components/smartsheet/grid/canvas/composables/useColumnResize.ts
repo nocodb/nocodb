@@ -62,7 +62,11 @@ export function useColumnResize(
     return null
   })
 
-  const handleMouseMove = (e: MouseEvent) => {
+  /**
+   * Handle pointer move for column resize.
+   * Uses Pointer Events API for unified mouse/touch/pen handling.
+   */
+  const handlePointerMove = (e: PointerEvent) => {
     try {
       const rect = canvasRef.value?.getBoundingClientRect()
       if (!rect) return
@@ -79,7 +83,7 @@ export function useColumnResize(
         onResize?.(activeColumn.value.id, newWidth)
       }
     } catch (error) {
-      console.error('Error in handleMouseMove:', error)
+      console.error('Error in handlePointerMove:', error)
       cleanupResize()
     }
   }
@@ -89,11 +93,16 @@ export function useColumnResize(
     activeColumn.value = null
     mousePosition.value = null
 
-    window.removeEventListener('mousemove', handleMouseMove)
-    window.removeEventListener('mouseup', handleMouseUp)
+    window.removeEventListener('pointermove', handlePointerMove)
+    window.removeEventListener('pointerup', handlePointerUp)
+    window.removeEventListener('pointercancel', handlePointerUp)
   }
 
-  const handleMouseDown = (e: MouseEvent) => {
+  /**
+   * Handle pointer down to start column resize.
+   * Uses Pointer Events API for unified mouse/touch/pen handling.
+   */
+  const handlePointerDown = (e: PointerEvent) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect || isLocked.value || !isViewOperationsAllowed.value) return
 
@@ -115,11 +124,12 @@ export function useColumnResize(
       startX: mousePosition.value?.x || 0,
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('pointermove', handlePointerMove)
+    window.addEventListener('pointerup', handlePointerUp)
+    window.addEventListener('pointercancel', handlePointerUp)
   }
 
-  function handleMouseUp() {
+  function handlePointerUp() {
     const shouldTriggerResize = isResizing.value && activeColumn.value && mousePosition.value
 
     if (shouldTriggerResize && activeColumn.value && mousePosition.value) {
@@ -138,8 +148,8 @@ export function useColumnResize(
     isResizing,
     activeColumn,
     resizeableColumn,
-    handleMouseMove,
-    handleMouseDown,
+    handlePointerMove,
+    handlePointerDown,
     RESIZE_HANDLE_WIDTH,
     cleanupResize,
   }

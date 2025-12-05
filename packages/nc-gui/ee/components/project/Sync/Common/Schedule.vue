@@ -75,7 +75,7 @@ onMounted(() => {
           <div class="!w-80">
             <div class="w-full flex items-center justify-between">
               <span class="text-captionDropdownDefault">{{ option.label }}</span>
-              <GeneralIcon v-if="option.value === selectedInterval" icon="check" class="text-primary h-4 w-4" />
+              <GeneralIcon v-if="option.value === selectedInterval" icon="check" class="text-nc-content-brand h-4 w-4" />
             </div>
             <div class="text-bodySm text-nc-content-gray-muted">{{ option.description }}</div>
           </div>

@@ -737,7 +737,7 @@ export class WorkspaceUsersService {
               emailUserMap,
               invite_token,
               invitePassive: param.invitePassive,
-              skipEmailInvite: param.skipEmailInvite,
+              skipEmailInvite: param.skipEmailInvite || ,
             },
             transaction,
           );
@@ -773,13 +773,7 @@ export class WorkspaceUsersService {
       await postOperation();
     }
 
-    if (emails.length === 1) {
-      return {
-        msg: 'success',
-      };
-    } else {
-      return { invite_token, emails, error };
-    }
+      return { invite_token, emails, error, registeredEmails };
   }
 
   async prepareUserInviteByEmail(

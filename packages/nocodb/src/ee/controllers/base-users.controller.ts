@@ -40,16 +40,7 @@ export class BaseUsersController extends BaseUsersControllerCE {
       NcError.badRequest('Email is required');
     }
 
-    const user = await User.getByEmail(body.email);
-
-    let workspaceUser;
-
-    if (user) {
-      workspaceUser = await WorkspaceUser.get(req.ncWorkspaceId, user.id);
-    }
-
-    let wsUserInvited = false;
-    if (!workspaceUser) {
+    const { registeredEmails, invite_token } =
       await this.workspaceUsersService.invite({
         workspaceId: req.ncWorkspaceId,
         invitedBy: req.user,
@@ -62,14 +53,14 @@ export class BaseUsersController extends BaseUsersControllerCE {
         },
         baseEditor: !NON_SEAT_ROLES.includes(body.roles as ProjectRoles),
       });
-      wsUserInvited = true;
-    }
 
     return await this.baseUsersService.userInvite(context, {
       baseId,
       baseUser: body,
       req,
-      workspaceInvited: wsUserInvited,
+      workspaceInvited: !!registeredEmails.length,
+      registeredEmails,
+      invite_token,
     });
   }
 }

@@ -297,6 +297,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
       <template v-if="!isMobileMode">
+        <!--   Disabled for now since feed is not actively maintained -->
+        <!--
         <DashboardMiniSidebarItemWrapper>
           <NcTooltip
             v-if="appInfo.feedEnabled"
@@ -307,7 +309,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           >
             <DashboardSidebarFeed />
           </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
+        </DashboardMiniSidebarItemWrapper> -->
         <DashboardMiniSidebarItemWrapper v-if="isChatWootEnabled">
           <NcTooltip :title="`${$t('labels.chatWithNocoDBSupport')}!`" placement="right" hide-on-click :arrow="false">
             <DashboardSidebarChatSupport />

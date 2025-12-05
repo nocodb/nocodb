@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 const props = defineProps<{
-  modelValue?: string
   centered?: boolean
   theme?: 'default' | 'ai'
 }>()

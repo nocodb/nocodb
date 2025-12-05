@@ -207,7 +207,7 @@ onMounted(() => {
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <NcTabs v-model:model-value="projectPageTab" class="w-full">
+      <NcTabs v-model:active-key="projectPageTab" class="w-full">
         <template #leftExtra>
           <div class="w-3"></div>
         </template>

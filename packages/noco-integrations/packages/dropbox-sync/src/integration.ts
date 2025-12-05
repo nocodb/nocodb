@@ -1,13 +1,16 @@
 import {
   DataObjectStream,
-  SCHEMA_HRIS,
+  SCHEMA_FILE_STORAGE,
   SyncIntegration,
-  TARGET_TABLES,
 } from '@noco-integrations/core';
 import { DropboxFormatter } from './formatter';
 import type { FilesListFolderResponse } from './types';
 import type { DropboxAuthIntegration } from '@noco-integrations/dropbox-auth';
-import type { SyncLinkValue, SyncRecord } from '@noco-integrations/core';
+import type {
+  SyncLinkValue,
+  SyncRecord,
+  TARGET_TABLES,
+} from '@noco-integrations/core';
 
 export interface DropboxSyncPayload {
   title: string;
@@ -25,7 +28,7 @@ export default class DropboxSyncIntegration extends SyncIntegration<DropboxSyncP
   }
 
   public async getDestinationSchema(_auth: DropboxAuthIntegration) {
-    return SCHEMA_HRIS;
+    return SCHEMA_FILE_STORAGE;
   }
 
   public async fetchData(
@@ -116,8 +119,6 @@ export default class DropboxSyncIntegration extends SyncIntegration<DropboxSyncP
 
   public getIncrementalKey(targetTable: TARGET_TABLES) {
     switch (targetTable) {
-      case TARGET_TABLES.HRIS_EMPLOYEE:
-        return 'RemoteUpdatedAt';
       default:
         return 'RemoteUpdatedAt';
     }

@@ -29,7 +29,7 @@ const form: FormDefinition = [
     category: 'General',
     integrationFilter: {
       type: IntegrationType.Auth,
-      sub_type: 'bamboohr',
+      sub_type: 'dropbox',
     },
     validators: [
       {

@@ -129,7 +129,6 @@ export const SyncCategoryMeta = {
     label: 'File Storage',
     description: 'Sync files, folders, and metadata.',
     icon: 'ncFolder',
-    comingSoon: true,
   },
   [SyncCategory.CUSTOM]: {
     value: SyncCategory.CUSTOM,

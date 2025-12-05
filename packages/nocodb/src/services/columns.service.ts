@@ -3255,6 +3255,9 @@ export class ColumnsService implements IColumnsService {
             childContext,
             ncMeta,
           );
+          if (!childColumn) {
+            console.log(column.id, relationColOpt);
+          }
           const childTable = await childColumn.getModel(childContext, ncMeta);
 
           const parentColumn = await relationColOpt.getParentColumn(

@@ -9,7 +9,7 @@ const manifest: IntegrationManifest = {
   icon: 'dropbox',
   version: '0.1.0',
   description: 'Sync ' + APP_LABEL + ' dropbox file',
-  sync_category: SyncCategory.HRIS,
+  sync_category: SyncCategory.FILE_STORAGE,
   order: 6, // order in the sync integration list
 };
 

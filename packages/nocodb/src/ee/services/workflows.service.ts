@@ -363,6 +363,10 @@ export class WorkflowsService {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
+    if (!workflow.draft || !workflow.draft.nodes?.length) {
+      NcError.get(context).badRequest('You cannot publish empty nodes');
+    }
+
     if (!hasWorkflowDraftChanges(workflow)) {
       NcError.get(context).badRequest(
         'No draft changes to publish. Please make changes first.',

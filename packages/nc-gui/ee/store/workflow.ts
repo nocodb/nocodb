@@ -380,7 +380,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
         const updatedWorkflows = [...baseWorkflows]
         updatedWorkflows[index] = {
           ...published,
-          _dirty: published._dirty ? published._dirty + 1 : 0,
+          _dirty: published._dirty ? published._dirty + 1 : 1,
         } as WorkflowType
         workflows.value.set(baseId, updatedWorkflows)
       }

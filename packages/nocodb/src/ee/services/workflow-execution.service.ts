@@ -599,7 +599,7 @@ export class WorkflowExecutionService {
     targetNodeId: string,
     testTriggerData?: any,
   ): Promise<NodeExecutionResult> {
-    // Use draft nodes/edges if available (for testing), otherwise use published nodes/edges
+    // ALWAYS PRIORITIZE DRAFT NODES WHEN TESTING
     const nodes = ((workflow as any).draft?.nodes ||
       workflow.nodes ||
       []) as WorkflowGeneralNode[];

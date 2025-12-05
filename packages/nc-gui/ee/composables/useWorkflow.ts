@@ -60,7 +60,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
       const testResult = node.data?.testResult
 
-      if (!testResult || testResult?.status !== 'success' || testResult?.isStale) {
+      if (!testResult || testResult?.status !== 'success' || testResult?.isStale === true) {
         return false
       }
     }
@@ -424,7 +424,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
         edges.value = (published.edges as Array<Edge>) || []
       }
     } catch (e) {
-      message.error('Failed to publish workflow', await extractSdkResponseErrorMsgv2(e))
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
       console.error('[Workflow] Publish error:', e)
     }
   }

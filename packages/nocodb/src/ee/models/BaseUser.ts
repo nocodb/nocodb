@@ -135,12 +135,6 @@ export default class BaseUser extends BaseUserCE {
 
     const res = await this.get(context, base_id, fk_user_id, ncMeta);
 
-    // delete the key since it might be already defined with inherited values
-    await NocoCache.del(
-      context,
-      `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
-    );
-
     // delete list to fetch updated list next time
     await NocoCache.deepDel(
       context,

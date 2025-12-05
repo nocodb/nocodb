@@ -31,7 +31,7 @@ useViewRowColorProvider({ shared: true })
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar show-full-screen-toggle />
       <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-gray-extralight">
-        <LazySmartsheetKanban />
+        <LazySmartsheetKanbanWrapper />
       </div>
     </div>
   </div>

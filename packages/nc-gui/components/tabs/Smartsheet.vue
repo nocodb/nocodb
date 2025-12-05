@@ -291,7 +291,7 @@ watch(isViewsLoading, async () => {
 
                       <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                      <LazySmartsheetKanban v-else-if="isKanban" />
+                      <LazySmartsheetKanbanWrapper v-else-if="isKanban" />
 
                       <LazySmartsheetCalendar v-else-if="isCalendar" />
 

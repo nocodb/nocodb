@@ -126,6 +126,29 @@ const kanbanContainerRef = ref()
 
 const selectedStackTitle = ref('')
 
+// Virtual scrolling for vertical cards in each stack
+const CARD_HEIGHT = ref(200) // Approximate card height, will be adjusted dynamically
+const CARD_VIRTUAL_MARGIN = 0 // No margin for maximum memory efficiency
+const INITIAL_VISIBLE_CARDS = 3 // Further reduced for better memory efficiency
+// Use shallowRef for Maps to reduce reactive dependencies (Maps don't need deep reactivity)
+const stackScrollTops = shallowRef<Map<string | null, number>>(new Map())
+const stackCardSlices = shallowRef<Map<string | null, { start: number; end: number }>>(new Map())
+// Version counter for slice changes - more efficient than hash calculation
+const slicesVersion = ref(0)
+
+// Measure actual card height from first rendered card
+const measureCardHeight = () => {
+  nextTick(() => {
+    const firstCard = document.querySelector('.nc-kanban-item')
+    if (firstCard) {
+      const height = firstCard.getBoundingClientRect().height
+      if (height > 0) {
+        CARD_HEIGHT.value = height
+      }
+    }
+  })
+}
+
 const reloadViewDataListener = withLoading(async () => {
   await loadKanbanData()
 })
@@ -336,6 +359,7 @@ const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
 
     if (stack && (countByStack.value.get(stackTitle) === undefined || stack.length < countByStack.value.get(stackTitle)!)) {
       const page = Math.ceil(stack.length / pageSize)
+      const oldLength = stack.length
 
       await loadMoreKanbanData(stackTitle, {
         offset:
@@ -343,16 +367,55 @@ const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
             ? (page - 1) * pageSize
             : page * pageSize,
       })
+
+      // After loading more data, recalculate slice to include new items
+      nextTick(() => {
+        const newStack = formattedData.value.get(stackTitle)
+        if (newStack && newStack.length > oldLength) {
+          const currentSlice = stackCardSlices.value.get(stackTitle)
+          const scrollTop = e.target.scrollTop
+          const containerHeight = e.target.clientHeight
+          const scrollHeight = e.target.scrollHeight
+          const newStackLength = newStack.length
+
+          // Check if we're at or near the bottom (within threshold)
+          const isAtBottom = scrollTop + containerHeight >= scrollHeight - INFINITY_SCROLL_THRESHOLD
+          // Also check if slice was showing items near the end
+          const wasShowingEnd = currentSlice && currentSlice.end >= oldLength - CARD_VIRTUAL_MARGIN * 2
+
+          if (isAtBottom || wasShowingEnd) {
+            // We're at the bottom or were showing end items, so expand slice to include ALL new items
+            // Use a small delay to ensure DOM has updated with new scrollHeight
+            setTimeout(() => {
+              const cardHeight = CARD_HEIGHT.value || 200
+              const startIndex = Math.max(0, Math.floor(scrollTop / cardHeight))
+              const visibleCount = Math.ceil(containerHeight / cardHeight)
+
+              // Calculate new slice - ensure we show all newly loaded items
+              const newStart = Math.max(0, startIndex - CARD_VIRTUAL_MARGIN)
+              // Expand end to include all new items - use the full new stack length
+              const newEnd = Math.min(
+                newStackLength,
+                Math.max(
+                  currentSlice ? currentSlice.end + (newStackLength - oldLength) : newStackLength,
+                  startIndex + visibleCount + CARD_VIRTUAL_MARGIN,
+                ),
+              )
+
+              // Always update to show new items
+              updateStackCardSlice(stackTitle, { start: newStart, end: newEnd })
+            }, 50)
+          } else {
+            // Not at the end, just recalculate normally
+            setTimeout(() => {
+              calculateCardSlice(stackTitle, scrollTop, containerHeight, false)
+            }, 50)
+          }
+        }
+      })
     }
   }
 })
-
-const kanbanListRef: VNodeRef = (kanbanListElement) => {
-  if (kanbanListElement) {
-    ;(kanbanListElement as HTMLElement).removeEventListener('scroll', kanbanListScrollHandler)
-    ;(kanbanListElement as HTMLElement).addEventListener('scroll', kanbanListScrollHandler)
-  }
-}
 
 const handleDeleteStackClick = (stackTitle: string, stackIdx: number) => {
   deleteStackVModel.value = true
@@ -394,6 +457,233 @@ const handleCellClick = (col, event) => {
   }
 }
 
+// Track scroll position for each stack - use shallowRef to reduce reactive overhead
+const kanbanListRefs = shallowRef<Map<string | null, HTMLElement>>(new Map())
+
+const cardSliceCalculationRafs = new Map<string | null, number>()
+// Track scroll handlers for cleanup
+const scrollHandlers = new Map<string | null, (e: Event) => void>()
+
+// Helper to update stackCardSlices with reactivity (shallowRef requires new Map reference)
+const updateStackCardSlice = (stackTitle: string | null, slice: { start: number; end: number }) => {
+  const newMap = new Map(stackCardSlices.value)
+  newMap.set(stackTitle, slice)
+  stackCardSlices.value = newMap
+  // Increment version counter to trigger reactivity without expensive hash calculation
+  slicesVersion.value++
+}
+
+// Calculate visible card range for a specific stack - SIMPLIFIED to prevent infinite loops
+const calculateCardSlice = (stackTitle: string | null, scrollTop: number, containerHeight: number, forceExpand = false) => {
+  // Prevent recursive calls during batch updates (unless forcing)
+  if (isUpdatingSlices && !forceExpand) return
+
+  const stack = formattedData.value.get(stackTitle)
+  if (!stack || !stack.length) {
+    const currentSlice = stackCardSlices.value.get(stackTitle)
+    if (!currentSlice || currentSlice.end !== 0) {
+      updateStackCardSlice(stackTitle, { start: 0, end: 0 })
+    }
+    return
+  }
+
+  // If container not ready, set initial slice and return
+  if (containerHeight === 0) {
+    if (!stackCardSlices.value.has(stackTitle)) {
+      const initialEnd = Math.min(stack.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN)
+      if (initialEnd > 0) {
+        updateStackCardSlice(stackTitle, { start: 0, end: initialEnd })
+      }
+    }
+    return
+  }
+
+  const cardHeight = CARD_HEIGHT.value || 200
+  if (!cardHeight || cardHeight <= 0) return
+
+  const startIndex = Math.max(0, Math.floor(scrollTop / cardHeight))
+  const visibleCount = Math.ceil(containerHeight / cardHeight)
+  const endIndex = Math.min(startIndex + visibleCount, stack.length)
+
+  // Simple calculation with minimal validation
+  let newStart = Math.max(0, startIndex - CARD_VIRTUAL_MARGIN)
+  let newEnd = Math.min(stack.length, endIndex + CARD_VIRTUAL_MARGIN)
+
+  // Cap maximum visible items - aggressively reduced for memory efficiency
+  const MAX_VISIBLE_ITEMS = 4 // Further reduced to minimize component instances and memory usage
+  if (newEnd - newStart > MAX_VISIBLE_ITEMS) {
+    newEnd = Math.min(stack.length, newStart + MAX_VISIBLE_ITEMS)
+  }
+
+  // Ensure valid range
+  if (newStart >= newEnd || newStart < 0 || newEnd > stack.length) {
+    newStart = 0
+    newEnd = Math.min(MAX_VISIBLE_ITEMS, stack.length)
+  }
+
+  // Only update if changed
+  const currentSlice = stackCardSlices.value.get(stackTitle)
+  if (!currentSlice || currentSlice.start !== newStart || currentSlice.end !== newEnd) {
+    updateStackCardSlice(stackTitle, { start: newStart, end: newEnd })
+  }
+}
+
+// Helper to check visibility - uses version counter for reactivity (more efficient than hash)
+// This function is called in template v-if, so it must access reactive values to trigger re-renders
+const isCardVisible = (stackTitle: string | null, index: number): boolean => {
+  const stackKey = stackTitle ?? null
+  const slice = stackCardSlices.value.get(stackKey)
+  if (!slice) {
+    // Default: show initial items
+    return index < INITIAL_VISIBLE_CARDS
+  }
+  // Check if index is within visible range
+  const isVisible = index < slice.end + 2
+  return isVisible
+}
+
+// Get the original index in the full list for a visible item
+const getOriginalIndex = (stackTitle: string | null, visibleIndex: number) => {
+  const slice = stackCardSlices.value.get(stackTitle)
+  if (!slice) {
+    return visibleIndex
+  }
+  return slice.start + visibleIndex
+}
+
+// Get total scroll height for a stack (for container height calculation)
+const getTotalScrollHeight = (stackTitle: string | null) => {
+  const stack = formattedData.value?.get(stackTitle)
+  if (!stack || !stack.length) return 0
+  return stack.length * (CARD_HEIGHT.value || 200)
+}
+
+// Get placeholder height for virtual scrolling
+const getPlaceholderHeight = (stackTitle: string | null, position: 'top' | 'bottom') => {
+  try {
+    if (!stackCardSlices.value) return 0
+    const slice = stackCardSlices.value.get(stackTitle)
+    const stack = formattedData.value?.get(stackTitle)
+    if (!stack || !slice) return 0
+
+    const cardHeight = CARD_HEIGHT.value || 200
+    if (position === 'top') {
+      return slice.start * cardHeight
+    } else {
+      const remaining = stack.length - slice.end
+      return remaining * cardHeight
+    }
+  } catch (e) {
+    return 0
+  }
+}
+
+// Create kanban list ref with scroll handler
+const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
+  return (kanbanListElement) => {
+    if (kanbanListElement) {
+      const element = kanbanListElement as HTMLElement
+      kanbanListRefs.value.set(stackTitle, element)
+
+      // Initialize card slice immediately (only if not already set)
+      // This ensures items are visible from the start
+      if (!stackCardSlices.value.has(stackTitle)) {
+        const stack = formattedData.value.get(stackTitle)
+        if (stack && stack.length > 0) {
+          const initialEnd = Math.min(stack.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN)
+          updateStackCardSlice(stackTitle, { start: 0, end: initialEnd })
+        } else {
+          updateStackCardSlice(stackTitle, { start: 0, end: 0 })
+        }
+      }
+
+      // Remove old scroll handler if exists
+      element.removeEventListener('scroll', kanbanListScrollHandler)
+
+      // Cancel previous animation frame if it exists
+      let existingRaf: number | undefined
+
+      let lastScrollTime = 0
+      const SCROLL_THROTTLE_MS = 100 // Increased throttle to reduce memory churn and improve performance
+
+      const scrollHandler = (e: Event) => {
+        kanbanListScrollHandler(e)
+        const now = Date.now()
+
+        // Throttle scroll position updates to reduce memory churn
+        if (now - lastScrollTime < SCROLL_THROTTLE_MS) {
+          return
+        }
+        lastScrollTime = now
+
+        const scrollTop = element.scrollTop
+        const containerHeight = element.clientHeight
+
+        // Update scroll position (with reactivity for shallowRef) - only when throttled
+        const newScrollMap = new Map(stackScrollTops.value)
+        newScrollMap.set(stackTitle, scrollTop)
+        stackScrollTops.value = newScrollMap
+
+        // Cancel previous animation frame if it exists
+        if (existingRaf) {
+          cancelAnimationFrame(existingRaf)
+        }
+
+        // Use requestAnimationFrame to batch the calculation for smooth scrolling
+        existingRaf = requestAnimationFrame(() => {
+          // Always calculate slice on scroll - ensure items become visible
+          const isNearBottom = scrollTop + containerHeight >= element.scrollHeight - INFINITY_SCROLL_THRESHOLD
+          // Force calculation even if isUpdatingSlices is true (from scroll events)
+          calculateCardSlice(stackTitle, scrollTop, containerHeight, isNearBottom || scrollTop > 0)
+          existingRaf = undefined
+        })
+        cardSliceCalculationRafs.set(stackTitle, existingRaf)
+      }
+      element.addEventListener('scroll', scrollHandler)
+      // Store handler for cleanup
+      scrollHandlers.set(stackTitle, scrollHandler)
+
+      // Initialize card slice after render (only once)
+      nextTick(() => {
+        const stack = formattedData.value.get(stackTitle)
+
+        // Ensure initial slice is set if not already set
+        if (!stackCardSlices.value.has(stackTitle) && stack && stack.length > 0) {
+          const initialEnd = Math.min(stack.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN)
+          if (initialEnd > 0) {
+            updateStackCardSlice(stackTitle, { start: 0, end: initialEnd })
+          }
+        }
+
+        if (element.clientHeight > 0) {
+          const scrollTop = element.scrollTop || 0
+          calculateCardSlice(stackTitle, scrollTop, element.clientHeight, false)
+          measureCardHeight()
+
+          // Also trigger a scroll event to ensure slice is calculated
+          // This helps if the element already has scroll position
+          if (scrollTop > 0) {
+            const scrollEvent = new Event('scroll', { bubbles: true })
+            element.dispatchEvent(scrollEvent)
+          }
+        } else if (stack && stack.length > 0) {
+          // Even if container height is 0, ensure we have a slice set
+          const currentSlice = stackCardSlices.value.get(stackTitle)
+          if (!currentSlice || currentSlice.end === 0) {
+            const initialEnd = Math.min(stack.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN)
+            if (initialEnd > 0) {
+              updateStackCardSlice(stackTitle, { start: 0, end: initialEnd })
+            }
+          }
+        }
+      })
+    }
+  }
+}
+
+// Track if we're currently updating slices to prevent loops
+let isUpdatingSlices = false
+
 const openNewRecordFormHookHandler = async () => {
   const newRow = await addEmptyRow()
   // preset the grouping field value
@@ -415,6 +705,26 @@ onBeforeUnmount(() => {
   eventBus.off(smartsheetEventHandler)
   reloadViewMetaHook?.off(reloadViewMetaListener)
   reloadViewDataHook?.off(reloadViewDataListener)
+
+  // Clear all timeouts and animation frames
+  cardSliceCalculationRafs.forEach((raf) => {
+    cancelAnimationFrame(raf)
+  })
+  cardSliceCalculationRafs.clear()
+
+  // Remove all scroll event listeners
+  kanbanListRefs.value.forEach((element, stackTitle) => {
+    const handler = scrollHandlers.get(stackTitle)
+    if (handler) {
+      element.removeEventListener('scroll', handler)
+    }
+  })
+  scrollHandlers.clear()
+
+  // Clear refs to help with garbage collection
+  kanbanListRefs.value.clear()
+  stackScrollTops.value.clear()
+  stackCardSlices.value.clear()
 })
 
 // reset context menu target on hide
@@ -423,6 +733,67 @@ watch(contextMenu, () => {
     contextMenuTarget.value = null
   }
 })
+
+// Recalculate card slices when data changes
+// Use a more efficient watch that tracks changes without creating large strings
+// Debounce the watch callback to reduce frequency of updates
+const debouncedRecalculateSlices = useDebounceFn(() => {
+  if (isUpdatingSlices) return // Prevent recursive calls
+  isUpdatingSlices = true
+
+  nextTick(() => {
+    groupingFieldColOptions.value.forEach((stack) => {
+      const stackKey = stack.title ?? null
+      const element = kanbanListRefs.value.get(stackKey)
+      const stackData = formattedData.value.get(stackKey)
+
+      if (element && element.clientHeight > 0) {
+        const scrollTop = stackScrollTops.value.get(stackKey) || 0
+        const currentSlice = stackCardSlices.value.get(stackKey)
+        // Check if slice needs to expand due to new data
+        const needsExpansion = currentSlice && stackData && currentSlice.end >= stackData.length - CARD_VIRTUAL_MARGIN * 2
+        // Only recalculate if element is ready and we have data
+        if (stackData && stackData.length > 0) {
+          calculateCardSlice(stackKey, scrollTop, element.clientHeight, needsExpansion)
+        }
+      } else if (stackData) {
+        // Initialize slice even if element not found yet
+        const initialEnd = stackData.length > 0 ? Math.min(stackData.length, INITIAL_VISIBLE_CARDS + CARD_VIRTUAL_MARGIN) : 0
+        const currentSlice = stackCardSlices.value.get(stackKey)
+        if (!currentSlice || currentSlice.end !== initialEnd) {
+          updateStackCardSlice(stackKey, { start: 0, end: initialEnd })
+        }
+      }
+    })
+    // Use setTimeout to ensure isUpdatingSlices is reset after all updates complete
+    setTimeout(() => {
+      isUpdatingSlices = false
+    }, 0)
+  })
+}, 200) // Increased debounce to 200ms to reduce frequency and memory churn
+
+watch(
+  () => {
+    // Calculate hashes for formattedData keys and lengths to reduce string allocations
+    let lengthHash = 0
+    let keyHash = 0
+    formattedData.value.forEach((stack, key) => {
+      const stackLength = stack?.length || 0
+      lengthHash = ((lengthHash << 5) - lengthHash + stackLength) | 0 // Simple hash for length
+      const keyStr = key ?? 'null'
+      for (let i = 0; i < keyStr.length; i++) {
+        keyHash = ((keyHash << 5) - keyHash + keyStr.charCodeAt(i)) | 0
+      }
+    })
+    return {
+      size: formattedData.value.size,
+      lengthHash, // Use hash instead of string
+      keyHash, // Use hash instead of string
+    }
+  },
+  debouncedRecalculateSlices,
+  { deep: false }, // Deep watch is not needed with hash-based tracking
+)
 
 onMounted(async () => {
   try {
@@ -788,27 +1159,36 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                       }"
                     >
                       <div
-                        :ref="kanbanListRef"
-                        class="nc-kanban-list h-full px-2 nc-scrollbar-thin"
+                        :ref="createKanbanListRef(stack.title)"
+                        class="nc-kanban-list px-2 nc-scrollbar-thin overflow-y-auto"
                         :data-stack-title="stack.title"
+                        :style="{
+                          height: '100%',
+                        }"
                       >
-                        <!-- Draggable Record Card -->
+                        <!-- Draggable Record Card - full list for drag functionality, but only render visible items -->
                         <Draggable
+                          v-if="formattedData.get(stack.title)"
                           v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 150 })"
-                          :list="formattedData.get(stack.title)"
-                          item-key="row.Id"
+                          :list="formattedData.get(stack.title) || []"
+                          item-key="row.id"
                           draggable=".nc-kanban-item"
                           group="kanban-card"
-                          class="flex flex-col h-full"
+                          class="flex flex-col"
+                          :style="{
+                            minHeight: formattedData.get(stack.title)?.length ? `${getTotalScrollHeight(stack.title)}px` : '100%',
+                          }"
                           :disabled="isMobileMode"
                           :filter="draggableCardFilter"
+                          :force-fallback="false"
+                          :fallback-tolerance="0"
                           @start="(e) => e.target.classList.add('grabbing')"
                           @end="(e) => e.target.classList.remove('grabbing')"
                           @change="onMove($event, stack.title)"
                         >
                           <template #item="{ element: record, index }">
                             <div class="nc-kanban-item py-1 first:pt-2 last:pb-2">
-                              <LazySmartsheetRow :row="record">
+                              <SmartsheetRow v-if="isCardVisible(stack.title, index)" :row="record">
                                 <a-card
                                   :key="`${getRowId(record)}-${index}`"
                                   class="!rounded-lg h-full border-nc-border-gray-medium border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
@@ -831,9 +1211,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   @contextmenu="showContextMenu($event, record)"
                                 >
                                   <!--
-                                    Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
-                                    could reference a non-existent column. This is a workaround to handle such scenarios properly.
-                                  -->
+                                      Check the coverImageColumn ID because kanbanMetaData?.fk_cover_image_col_id
+                                      could reference a non-existent column. This is a workaround to handle such scenarios properly.
+                                    -->
                                   <template v-if="coverImageColumn?.id" #cover>
                                     <template v-if="!reloadAttachments && attachments(record).length">
                                       <a-carousel
@@ -1020,44 +1400,54 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                     </div>
                                   </div>
                                 </a-card>
-                              </LazySmartsheetRow>
-                            </div>
-                          </template>
-                          <template v-if="!formattedData.get(stack.title)?.length" #footer>
-                            <div class="h-full w-full flex flex-col gap-4 items-center justify-center">
-                              <div class="flex flex-col items-center gap-2 text-nc-content-gray-subtle2 text-center">
-                                <span class="text-sm font-semibold">
-                                  {{ $t('general.empty') }} {{ $t('general.stack').toLowerCase() }}
-                                </span>
-                                <span class="text-xs font-weight-500">
-                                  {{ $t('title.looksLikeThisStackIsEmpty') }}
-                                </span>
-                              </div>
-                              <PermissionsTooltip
-                                v-if="isUIAllowed('dataInsert') && !isSyncedTable"
-                                :entity="PermissionEntity.TABLE"
-                                :entity-id="meta?.id"
-                                :permission="PermissionKey.TABLE_RECORD_ADD"
-                                placement="right"
-                              >
-                                <template #default="{ isAllowed }">
-                                  <NcButton
-                                    size="xs"
-                                    type="secondary"
-                                    :disabled="!isAllowed"
-                                    @click="handleOpenNewRecordForm(stack.title)"
-                                  >
-                                    <div class="flex items-center gap-2">
-                                      <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
-
-                                      {{ $t('activity.newRecord') }}
-                                    </div>
-                                  </NcButton>
-                                </template>
-                              </PermissionsTooltip>
+                              </SmartsheetRow>
+                              <div
+                                v-else
+                                :style="{
+                                  height: `${CARD_HEIGHT.value || 200}px`,
+                                  pointerEvents: 'none',
+                                }"
+                              />
                             </div>
                           </template>
                         </Draggable>
+
+                        <!-- Empty state -->
+                        <div
+                          v-if="!formattedData.get(stack.title)?.length"
+                          class="h-full w-full flex flex-col gap-4 items-center justify-center"
+                        >
+                          <div class="flex flex-col items-center gap-2 text-nc-content-gray-subtle2 text-center">
+                            <span class="text-sm font-semibold">
+                              {{ $t('general.empty') }} {{ $t('general.stack').toLowerCase() }}
+                            </span>
+                            <span class="text-xs font-weight-500">
+                              {{ $t('title.looksLikeThisStackIsEmpty') }}
+                            </span>
+                          </div>
+                          <PermissionsTooltip
+                            v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+                            :entity="PermissionEntity.TABLE"
+                            :entity-id="meta?.id"
+                            :permission="PermissionKey.TABLE_RECORD_ADD"
+                            placement="right"
+                          >
+                            <template #default="{ isAllowed }">
+                              <NcButton
+                                size="xs"
+                                type="secondary"
+                                :disabled="!isAllowed"
+                                @click="handleOpenNewRecordForm(stack.title)"
+                              >
+                                <div class="flex items-center gap-2">
+                                  <component :is="iconMap.plus" v-if="!isPublic && !isLocked" />
+
+                                  {{ $t('activity.newRecord') }}
+                                </div>
+                              </NcButton>
+                            </template>
+                          </PermissionsTooltip>
+                        </div>
                       </div>
                     </a-layout-content>
                     <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-nc-border-gray-light">
@@ -1301,33 +1691,29 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
     </div>
   </div>
 
-  <Suspense>
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormRow && expandedFormDlg"
-      v-model="expandedFormDlg"
-      :row="expandedFormRow"
-      :state="expandedFormRowState"
-      :meta="meta"
-      :load-row="!isPublic"
-      :view="view"
-      :allow-null-field-ids="groupingFieldColumn?.id ? [groupingFieldColumn.id] : []"
-      @cancel="removeRowFromUncategorizedStack"
-    />
-  </Suspense>
+  <SmartsheetExpandedForm
+    v-if="expandedFormRow && expandedFormDlg"
+    v-model="expandedFormDlg"
+    :row="expandedFormRow"
+    :state="expandedFormRowState"
+    :meta="meta"
+    :load-row="!isPublic"
+    :view="view"
+    :allow-null-field-ids="groupingFieldColumn?.id ? [groupingFieldColumn.id] : []"
+    @cancel="removeRowFromUncategorizedStack"
+  />
 
-  <Suspense>
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id"
-      v-model="expandedFormOnRowIdDlg"
-      :load-row="!isPublic"
-      :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
-      :meta="meta"
-      :expand-form="expandForm"
-      :row-id="route.query.rowId"
-      :view="view"
-      :allow-null-field-ids="groupingFieldColumn?.id ? [groupingFieldColumn.id] : []"
-    />
-  </Suspense>
+  <SmartsheetExpandedForm
+    v-if="expandedFormOnRowIdDlg && meta?.id"
+    v-model="expandedFormOnRowIdDlg"
+    :load-row="!isPublic"
+    :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
+    :meta="meta"
+    :expand-form="expandForm"
+    :row-id="route.query.rowId"
+    :view="view"
+    :allow-null-field-ids="groupingFieldColumn?.id ? [groupingFieldColumn.id] : []"
+  />
 
   <GeneralDeleteModal
     v-model:visible="deleteStackVModel"

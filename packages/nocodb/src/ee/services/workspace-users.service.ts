@@ -737,7 +737,7 @@ export class WorkspaceUsersService {
               emailUserMap,
               invite_token,
               invitePassive: param.invitePassive,
-              skipEmailInvite: param.skipEmailInvite || ,
+              skipEmailInvite: param.skipEmailInvite,
             },
             transaction,
           );

@@ -450,7 +450,9 @@ export class BaseUsersService extends BaseUsersServiceCE {
                   user: user,
                   base: base,
                   role: (roles || 'editor') as ProjectRoles,
-                  token: param.registeredEmails?.includes(user.email) ? invite_token : null,
+                  token: param.registeredEmails?.includes(user.email)
+                    ? invite_token
+                    : null,
                 },
               })
               .catch(() => {}),

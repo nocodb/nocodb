@@ -104,7 +104,6 @@ body {
 }
 
 // ant tabs
-
 .ant-tabs-tab-btn:active,
 .ant-tabs-tab-btn:focus,
 .ant-tabs-tab-remove:active,
@@ -218,6 +217,8 @@ body {
   textarea,
   .ant-input-affix-wrapper,
   .ant-input-number {
+    @apply placeholder-nc-content-gray-disabled;
+
     &:not(:disabled):not(:-webkit-autofill) {
       @apply !bg-transparent text-nc-content-gray;
     }
@@ -246,7 +247,9 @@ body {
   }
 
   .ant-input-affix-wrapper {
-    @apply border-nc-border-gray-medium;
+    &:not(:focus):not(:active):not(.ant-input-affix-wrapper-focused) {
+      @apply border-nc-border-gray-medium;
+    }
 
     .anticon {
       @apply text-nc-content-gray-subtle;

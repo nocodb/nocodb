@@ -148,7 +148,7 @@ const handleShowInput = () => {
                 vModel.uidt,
               ) || isCurrentDate
             "
-            class="w-4 h-4 cursor-pointer rounded-full z-3 text-nc-content-gray-muted hover:bg-nc-bg-gray-extralight default-value-clear"
+            class="w-4 h-4 cursor-pointer rounded-full z-3 text-nc-content-gray-muted hover:bg-nc-bg-gray-extralight dark:hover:bg-nc-bg-gray-medium default-value-clear"
             @click.stop="updateCdfValue(null)"
           />
         </NcTooltip>

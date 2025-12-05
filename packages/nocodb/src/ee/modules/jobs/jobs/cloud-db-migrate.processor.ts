@@ -69,7 +69,10 @@ export class CloudDbMigrateProcessor {
         }
       }
 
-      if (workspaceOrOrg.fk_db_instance_id && !oldDbServerId) {
+      if (
+        (workspaceOrOrg.fk_db_instance_id && !oldDbServerId) ||
+        (oldDbServerId && workspaceOrOrg.fk_db_instance_id === oldDbServerId)
+      ) {
         logBasic(
           'Workspace or Org already has a DbServer assigned, skipping migration',
         );

@@ -207,7 +207,7 @@ onMounted(() => {
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <a-tabs v-model:active-key="projectPageTab" class="w-full">
+      <NcTabs v-model:model-value="projectPageTab" class="w-full">
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
@@ -282,7 +282,7 @@ onMounted(() => {
           </template>
           <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
         </a-tab-pane>
-      </a-tabs>
+      </NcTabs>
     </div>
   </div>
 </template>
@@ -305,12 +305,6 @@ onMounted(() => {
   &:not(:has(.nc-project-overview-tab-content.ant-tabs-tabpane-active)) {
     @apply nc-content-max-w;
   }
-}
-:deep(.ant-tabs-tab .tab-title) {
-  @apply text-nc-content-gray-muted;
-}
-:deep(.ant-tabs-tab-active .tab-title) {
-  @apply text-primary;
 }
 
 .tab-info {

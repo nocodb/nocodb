@@ -4,7 +4,7 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type { BambooHRAuthIntegration } from '@noco-integrations/bamboohr-auth';
+import type { BitbucketAuthIntegration } from '@noco-integrations/bitbucket-auth';
 import type {
   SyncLinkValue,
   SyncRecord,
@@ -24,12 +24,12 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
     return `${this.config.repos[0]}${this.config.repos.length > 1 ? ` + ${this.config.repos.length - 1} more` : ''}`;
   }
 
-  public async getDestinationSchema(_auth: BambooHRAuthIntegration) {
+  public async getDestinationSchema(_auth: BitbucketAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
   public async fetchData(
-    auth: BambooHRAuthIntegration,
+    auth: BitbucketAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: {
@@ -587,7 +587,7 @@ export default class BitbucketSyncIntegration extends SyncIntegration<BitbucketS
     return this.config.repos;
   }
 
-  public async fetchOptions(auth: BambooHRAuthIntegration, key: string) {
+  public async fetchOptions(auth: BitbucketAuthIntegration, key: string) {
     if (key === 'repos') {
       try {
         const options: { label: string; value: string }[] = [];

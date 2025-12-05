@@ -100,7 +100,7 @@ const isAllowed = computed(() => {
     >
       <div
         v-if="!isAllowed && showOverlay"
-        class="absolute inset-0 bg-gray-100/30 backdrop-blur-[0.5px] z-10 rounded"
+        class="absolute inset-0 bg-nc-bg-gray-light/30 backdrop-blur-[0.5px] z-10 rounded"
         :class="{
           'cursor-not-allowed': !isAllowed,
         }"

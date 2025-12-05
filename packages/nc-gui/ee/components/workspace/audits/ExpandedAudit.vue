@@ -53,7 +53,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
   <NcModal v-model:visible="isRowExpanded" size="sm" height="auto" :show-separator="false" @keydown.esc="isRowExpanded = false">
     <template #header>
       <div class="flex items-center justify-between gap-x-2 w-full">
-        <div class="flex-1 text-base font-weight-700 text-gray-900">Audit Details</div>
+        <div class="flex-1 text-base font-weight-700 text-nc-content-gray-emphasis">Audit Details</div>
         <div class="flex items-center gap-2">
           <NcTooltip placement="bottom" class="text-nc-content-gray-subtle2 text-small leading-[18px]">
             <template #title> {{ parseStringDateTime(selectedAudit.created_at, 'D MMMM YYYY HH:mm') }}</template>
@@ -64,9 +64,9 @@ function handleAutoScroll(scroll: boolean, className: string) {
       </div>
     </template>
     <div v-if="selectedAudit" class="nc-expanded-audit flex flex-col gap-4">
-      <div class="bg-gray-50 rounded-lg border-1 border-gray-200">
+      <div class="bg-nc-bg-gray-extralight rounded-lg border-1 border-nc-border-gray-medium">
         <div class="flex">
-          <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
+          <div class="w-1/2 border-r border-nc-border-gray-medium flex flex-col gap-2 px-4 py-3">
             <div class="cell-header">Performed by</div>
             <div
               v-if="selectedAudit?.user && collaboratorsMap.get(selectedAudit.user)?.email"
@@ -75,38 +75,38 @@ function handleAutoScroll(scroll: boolean, className: string) {
               <GeneralUserIcon :user="collaboratorsMap.get(selectedAudit.user)" size="base" class="flex-none" />
               <div class="flex-1 flex flex-col">
                 <div class="w-full flex gap-3">
-                  <span class="text-sm text-gray-800 capitalize font-semibold">
+                  <span class="text-sm text-nc-content-gray capitalize font-semibold">
                     {{ selectedAuditUsername }}
                   </span>
                 </div>
-                <span class="text-xs text-gray-600">
+                <span class="text-xs text-nc-content-gray-subtle2">
                   {{ collaboratorsMap.get(selectedAudit.user)?.email }}
                 </span>
               </div>
             </div>
 
-            <div v-else class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.user }}</div>
+            <div v-else class="text-small leading-[18px] text-nc-content-gray-subtle2">{{ selectedAudit?.user }}</div>
           </div>
 
           <div class="w-1/2">
-            <div class="h-1/2 border-b border-gray-200 flex items-center gap-2 px-4 py-3">
+            <div class="h-1/2 border-b border-nc-border-gray-medium flex items-center gap-2 px-4 py-3">
               <div class="cell-header">{{ $t('general.ipAddress') }}</div>
-              <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.ip === '::1' ? 'localhost' : '' }}</div>
+              <div class="text-small leading-[18px] text-nc-content-gray-subtle2">{{ selectedAudit?.ip === '::1' ? 'localhost' : '' }}</div>
             </div>
             <div class="h-1/2 flex items-center gap-2 px-4 py-3">
               <div class="cell-header whitespace-nowrap">{{ $t('labels.osBrowser') }}</div>
               <NcTooltip class="truncate" placement="bottom" show-on-truncate-only>
                 <template #title> {{ selectedAudit?.user_agent ?? 'N/A' }}</template>
 
-                <span class="text-small leading-[18px] text-gray-600">
+                <span class="text-small leading-[18px] text-nc-content-gray-subtle2">
                   {{ selectedAudit?.user_agent ?? 'N/A' }}
                 </span>
               </NcTooltip>
             </div>
           </div>
         </div>
-        <div class="border-t-1 border-gray-200 flex">
-          <div class="w-1/2 border-r border-gray-200 flex flex-col gap-2 px-4 py-3">
+        <div class="border-t-1 border-nc-border-gray-medium flex">
+          <div class="w-1/2 border-r border-nc-border-gray-medium flex flex-col gap-2 px-4 py-3">
             <div class="cell-header">{{ $t('objects.project') }}</div>
             <div v-if="selectedAudit?.base_id && bases.get(selectedAudit?.base_id)" class="flex items-stretch gap-3">
               <div class="flex items-center">
@@ -117,8 +117,8 @@ function handleAutoScroll(scroll: boolean, className: string) {
                 />
               </div>
               <div>
-                <div class="text-sm font-weight-500 text-gray-900">{{ bases.get(selectedAudit?.base_id)?.title }}</div>
-                <div class="text-small leading-[18px] text-gray-600">{{ selectedAudit?.base_id }}</div>
+                <div class="text-sm font-weight-500 text-nc-content-gray-emphasis">{{ bases.get(selectedAudit?.base_id)?.title }}</div>
+                <div class="text-small leading-[18px] text-nc-content-gray-subtle2">{{ selectedAudit?.base_id }}</div>
               </div>
             </div>
             <template v-else>
@@ -128,13 +128,13 @@ function handleAutoScroll(scroll: boolean, className: string) {
           <div class="w-1/2">
             <div :class="selectedAudit?.base_id ? 'h-1/2' : 'h-full'" class="flex items-center gap-2 px-4 py-3">
               <div class="cell-header">{{ $t('general.event') }}</div>
-              <div class="text-small leading-[18px] text-gray-600">
+              <div class="text-small leading-[18px] text-nc-content-gray-subtle2">
                 {{ auditV1OperationTypesAlias[selectedAudit?.op_type] }}
               </div>
             </div>
-            <div v-if="isDataEventType(selectedAudit)" class="h-1/2 flex items-center gap-2 px-4 py-3 border-t border-gray-200">
+            <div v-if="isDataEventType(selectedAudit)" class="h-1/2 flex items-center gap-2 px-4 py-3 border-t border-nc-border-gray-medium">
               <div class="cell-header">{{ $t('labels.rowId') }}</div>
-              <div class="text-small leading-[18px] text-gray-600">
+              <div class="text-small leading-[18px] text-nc-content-gray-subtle2">
                 {{ selectedAudit?.row_id }}
               </div>
             </div>
@@ -163,7 +163,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
             <span></span>
           </template>
 
-          <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
+          <div class="border-1 border-nc-border-gray-medium !rounded-lg shadow-sm overflow-hidden">
             <Suspense>
               <template #default>
                 <MonacoEditor
@@ -185,7 +185,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
 
 <style lang="scss" scoped>
 .cell-header {
-  @apply text-xs font-semibold text-gray-500;
+  @apply text-xs font-semibold text-nc-content-gray-muted;
 }
 
 .nc-audit-json-perview-wrapper {

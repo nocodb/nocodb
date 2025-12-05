@@ -63,7 +63,7 @@ const handleChange = (type?: string, value?: any) => {
           @update:value="handleChange('size', $event)"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-inverted-secondary" />
           </template>
 
           <a-select-option value="small">Small</a-select-option>
@@ -81,7 +81,7 @@ const handleChange = (type?: string, value?: any) => {
           @update:value="handleChange()"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-inverted-secondary" />
           </template>
         </a-select>
       </div>

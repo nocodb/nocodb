@@ -270,6 +270,6 @@ watch(selectedUsersList, () => {
 
 <style scoped lang="scss">
 .rounded-tag {
-  @apply bg-gray-200 px-2 rounded-[12px];
+  @apply bg-nc-bg-gray-medium px-2 rounded-[12px];
 }
 </style>

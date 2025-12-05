@@ -41,33 +41,33 @@ onMounted(async () => {
         <span class="font-bold text-xl" data-rec="true">
           {{ $t('general.general') }}
         </span>
-        <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-5">
+        <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-5">
           <div class="flex items-center gap-5">
             <GeneralWorkspaceIcon :workspace="org" size="xlarge" />
-            <span class="text-gray-900 text-2xl font-semibold"> {{ org.title }} </span>
+            <span class="text-nc-content-gray-emphasis text-2xl font-semibold"> {{ org.title }} </span>
           </div>
-          <div class="flex border-1 rounded-lg border-gray-200">
+          <div class="flex border-1 rounded-lg border-nc-border-gray-medium">
             <div class="w-1/3 px-4 border-r-1 py-3">
               <div class="text-[40px] font-semibold">{{ workspaces.length }}</div>
-              <div class="text-gray-600 mt-2">
+              <div class="text-nc-content-gray-subtle2 mt-2">
                 Total {{ workspaces.length > 1 ? $t('labels.workspaces') : $t('labels.workspace') }}
               </div>
             </div>
             <div class="w-1/3 px-4 border-r-1 py-3">
               <div class="text-[40px] font-semibold">{{ members.length }}</div>
-              <div class="text-gray-600 mt-2">Total {{ members.length > 1 ? $t('labels.members') : $t('objects.member') }}</div>
+              <div class="text-nc-content-gray-subtle2 mt-2">Total {{ members.length > 1 ? $t('labels.members') : $t('objects.member') }}</div>
             </div>
             <div class="w-1/3 px-4 py-3">
               <div class="text-[40px] font-semibold">{{ bases.length }}</div>
-              <div class="text-gray-600 mt-2">Total {{ bases.length > 1 ? $t('objects.projects') : $t('labels.project') }}</div>
+              <div class="text-nc-content-gray-subtle2 mt-2">Total {{ bases.length > 1 ? $t('objects.projects') : $t('labels.project') }}</div>
             </div>
           </div>
           <!--
            <div class="border-1 rounded-lg">
              <div class="flex items-center px-4 py-3 gap-4">
-               <div class="flex gap-2 items-center text-gray-600">
+               <div class="flex gap-2 items-center text-nc-content-gray-subtle2">
                  <component :is="iconMap.users" class="w-4 h-4" />
-                 <span class="text-gray-600">Total Members</span>
+                 <span class="text-nc-content-gray-subtle2">Total Members</span>
                </div>
                <div class="text-2xl font-semibold">{{ members.length }}</div>
              </div>
@@ -92,11 +92,11 @@ onMounted(async () => {
         </div> -->
         </div>
 
-        <!--      <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6">
+        <!--      <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6">
         <div class="font-bold text-base" data-rec="true">
           {{ $t('labels.members') }}
         </div>
-        <span class="text-gray-600 mt-2"> 23 new members have been added to the organisation since your last invoice. </span>
+        <span class="text-nc-content-gray-subtle2 mt-2"> 23 new members have been added to the organisation since your last invoice. </span>
         <a-divider class="text-gray-200" />
 
         <div class="flex justify-end">

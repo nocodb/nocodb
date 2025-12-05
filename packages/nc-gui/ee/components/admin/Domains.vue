@@ -31,10 +31,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2" data-test-id="nc-org-domain">
+  <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-2" data-test-id="nc-org-domain">
     <div class="flex font-bold text-base" data-rec="true">{{ $t('labels.domain') }}</div>
     <div class="">
-      <h1 class="text-md text-gray-800">
+      <h1 class="text-md text-nc-content-gray">
         Verify your domain ownership to manage it’s user accounts and setup SSO Authentication.
       </h1>
 
@@ -42,7 +42,7 @@ onMounted(async () => {
         <div
           v-if="!domain.deleted"
           :data-test-id="`nc-domain-${domain.domain}`"
-          class="flex flex-row justify-between my-2 nc-domain w-full items-center p-3 hover:bg-gray-50 border-1 first:border-t-1 border-x-1 rounded cursor-pointer group text-gray-600"
+          class="flex flex-row justify-between my-2 nc-domain w-full items-center p-3 hover:bg-nc-bg-gray-extralight border-1 first:border-t-1 border-x-1 rounded cursor-pointer group text-nc-content-gray-subtle2"
           @click="enableEdit(domain)"
         >
           <div class="flex-grow">{{ domain.domain }}</div>
@@ -75,7 +75,7 @@ onMounted(async () => {
             </span>
           </div>
           <NcDropdown :trigger="['click']" placement="bottomRight" @click.stop>
-            <NcButton class="!text-gray-500 !hover:text-gray-800" data-test-id="nc-domain-more-option" size="xsmall" type="text">
+            <NcButton class="!text-nc-content-gray-muted !hover:text-nc-content-gray" data-test-id="nc-domain-more-option" size="xsmall" type="text">
               <GeneralIcon class="text-inherit" icon="threeDotVertical" />
             </NcButton>
             <template #overlay>

@@ -275,7 +275,7 @@ onMounted(() => {
   &[data-checked='true'] {
     @apply bg-nc-brand-500 border-nc-brand-500;
     .nc-radio-dot {
-      @apply block bg-white w-1.5 h-1.5 min-w-1.5 rounded-full;
+      @apply block bg-nc-bg-default w-1.5 h-1.5 min-w-1.5 rounded-full;
     }
   }
 

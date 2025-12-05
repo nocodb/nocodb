@@ -53,7 +53,7 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
     }"
   >
     <div class="flex flex-col gap-5">
-      <div class="flex flex-row items-center gap-x-2 text-base font-weight-700 text-gray-800">
+      <div class="flex flex-row items-center gap-x-2 text-base font-weight-700 text-nc-content-gray">
         <GeneralIcon icon="ncKey" class="!text-base w-5 h-5" />
         {{ $t('msg.thisSharedDashboardIsProtected') }}
       </div>
@@ -73,7 +73,7 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
             @input="passwordError = null"
           />
           <Transition name="layout">
-            <div v-if="passwordError" class="mt-3 mb-2 text-sm text-red-500">{{ passwordError }}</div>
+            <div v-if="passwordError" class="mt-3 mb-2 text-sm text-nc-content-red-medium">{{ passwordError }}</div>
           </Transition>
         </a-form-item>
       </a-form>

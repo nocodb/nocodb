@@ -32,7 +32,7 @@ watch(widgetData, () => {
       <label>Description</label>
       <a-textarea
         v-model:value="widgetData.description"
-        class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800 max-h-[150px] min-h-[100px]"
+        class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-nc-content-gray max-h-[150px] min-h-[100px]"
         placeholder="Description"
       />
     </div>

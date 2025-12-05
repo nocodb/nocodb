@@ -271,10 +271,10 @@ const handleClickDropdown = (e: MouseEvent) => {
     }
     &::-webkit-scrollbar-thumb {
       width: 4px;
-      @apply bg-gray-200 rounded-md;
+      @apply bg-nc-bg-gray-medium rounded-md;
     }
     &::-webkit-scrollbar-thumb:hover {
-      @apply bg-gray-300;
+      @apply bg-nc-bg-gray-dark;
     }
   }
 }

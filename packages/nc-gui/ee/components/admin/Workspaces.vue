@@ -153,7 +153,7 @@ onMounted(() => {
       </div>
       <NcPageHeader>
         <template #icon>
-          <GeneralIcon class="flex-none !h-5 !w-5 fill-gray-200" icon="ncWorkspace" />
+          <GeneralIcon class="flex-none !h-5 !w-5 fill-nc-bg-gray-medium" icon="ncWorkspace" />
         </template>
         <template #title>
           <span data-rec="true">
@@ -171,7 +171,7 @@ onMounted(() => {
             class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
           >
             <template #prefix>
-              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
             </template>
           </a-input>
           <NcButton type="secondary" size="small" @click="newWorkspaceDlg = true">
@@ -196,7 +196,7 @@ onMounted(() => {
                 <template #title>
                   {{ ws.title }}
                 </template>
-                <span class="capitalize font-semibold text-gray-800">
+                <span class="capitalize font-semibold text-nc-content-gray">
                   {{ ws.title }}
                 </span>
               </NcTooltip>
@@ -206,14 +206,14 @@ onMounted(() => {
               <GeneralUserIcon :user="extractOwner(ws)" size="base" class="flex-none" />
               <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                 <div class="flex gap-3">
-                  <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
+                  <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
                     <template #title>
                       {{ extractOwner(ws)?.display_name || extractOwner(ws)?.email.split('@')[0] }}
                     </template>
                     {{ extractOwner(ws)?.display_name || extractOwner(ws)?.email.split('@')[0] }}
                   </NcTooltip>
                 </div>
-                <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                   <template #title>
                     {{ extractOwner(ws)?.email }}
                   </template>
@@ -252,7 +252,7 @@ onMounted(() => {
                     </NcMenuItem>
                     <NuxtLink
                       :href="`${$route.params.page}/${ws.id}`"
-                      class="!underline-transparent !text-gray-800 !hover:text-gray-800"
+                      class="!underline-transparent !text-nc-content-gray !hover:text-nc-content-gray"
                     >
                       <NcMenuItem data-testid="nc-admin-org-user-delete">
                         <GeneralIcon icon="user" />
@@ -279,14 +279,14 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .ant-input::placeholder {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .ant-input:placeholder-shown {
-  @apply text-gray-500 !text-md;
+  @apply text-nc-content-gray-muted !text-md;
 }
 
 .ant-input-affix-wrapper {
-  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
 }
 </style>

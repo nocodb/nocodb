@@ -169,11 +169,11 @@ const onCancel = () => {
       class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6"
     >
       <div v-if="org" class="flex flex-col gap-6 w-150">
-        <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6">
+        <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6">
           <div class="font-bold text-base" data-rec="true">
             {{ $t('labels.organizationProfile') }}
           </div>
-          <span class="text-gray-600 mt-2">
+          <span class="text-nc-content-gray-subtle2 mt-2">
             {{ $t('msg.controlOrgAppearance') }}
           </span>
 
@@ -193,7 +193,7 @@ const onCancel = () => {
                         'border-transparent': !isOpen && form.iconType === IconType.IMAGE,
                         'border-nc-gray-medium': !isOpen && form.iconType !== IconType.IMAGE,
                         'border-primary shadow-selected': isOpen,
-                        'bg-gray-100': !org?.meta?.icon,
+                        'bg-nc-bg-gray-light': !org?.meta?.icon,
                       }"
                     >
                       <GeneralWorkspaceIcon
@@ -210,7 +210,7 @@ const onCancel = () => {
 
               <div class="flex-1 flex flex-col gap-4">
                 <div>
-                  <div class="text-gray-800 mb-2" data-rec="true">{{ $t('labels.organizationName') }}</div>
+                  <div class="text-nc-content-gray mb-2" data-rec="true">{{ $t('labels.organizationName') }}</div>
                   <a-form-item name="title" :rules="formRules.title" class="!my-0">
                     <a-input
                       ref="inputEl"
@@ -248,20 +248,20 @@ const onCancel = () => {
           </a-form>
         </div>
         <!--
-      <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6">
+      <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6">
         <div class="font-bold text-base" data-rec="true">
           {{ $t('labels.domains') }}
         </div>
-        <span class="text-gray-600 mt-2">
+        <span class="text-nc-content-gray-subtle2 mt-2">
           {{ $t('msg.addCompanyDomains') }}
         </span>
         <a-divider class="text-gray-200" />
-        <span class="text-gray-800 mb-3 font-bold">
+        <span class="text-nc-content-gray mb-3 font-bold">
           {{ $t('labels.activeDomains') }}
         </span>
         <div class="flex gap-3">
           <NcBadge v-for="x in domains" :key="x" class="w-28" rounded="lg" size="md">
-            <div class="flex justify-between text-gray-600 gap-1 items-center">
+            <div class="flex justify-between text-nc-content-gray-subtle2 gap-1 items-center">
               {{ x }}
               <component :is="iconMap.close" class="cursor-pointer" @click="deleteDomain(x)" />
             </div>
@@ -274,14 +274,14 @@ const onCancel = () => {
         </div>
       </div> -->
 
-        <!-- <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6">
+        <!-- <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6">
         <div class="font-bold text-base" data-rec="true">
           {{ $t('labels.shareSettings') }}
         </div>
         <a-divider class="text-gray-200" />
-        <div class="flex flex-col px-2 py-3 gap-2 border-1 rounded-lg border-gray-200">
+        <div class="flex flex-col px-2 py-3 gap-2 border-1 rounded-lg border-nc-border-gray-medium">
           <div class="flex items-center justify-between">
-            <span class="text-gray-800 font-bold text-base">
+            <span class="text-nc-content-gray font-bold text-base">
               {{ $t('labels.disablePublicSharing') }}
             </span>
 
@@ -293,33 +293,33 @@ const onCancel = () => {
         </div>
       </div>
 
-      <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6" data-test-id="nc-oidc-provider">
-        <div class="flex font-bold justify-between text-gray-900 text-base" data-rec="true">
+      <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6" data-test-id="nc-oidc-provider">
+        <div class="flex font-bold justify-between text-nc-content-gray-emphasis text-base" data-rec="true">
           {{ $t('labels.userOptions') }}
         </div>
         <a-divider class="text-gray-200" />
         <div class="flex gap-2 flex-col">
           <div class="flex justify-between">
-            <span class="text-gray-800 font-bold"> {{ $t('labels.deleteUserAndData') }} </span>
+            <span class="text-nc-content-gray font-bold"> {{ $t('labels.deleteUserAndData') }} </span>
             <component :is="iconMap.chevronRight" />
           </div>
-          <span class="text-gray-500">
+          <span class="text-nc-content-gray-muted">
             {{ $t('msg.selectUsersToBeRemoved') }}
           </span>
         </div>
       </div> -->
 
-        <!--      <div class="flex flex-col border-1 rounded-2xl border-red-500 p-6" data-test-id="nc-oidc-provider">
-        <div class="flex font-bold justify-between text-red-500 text-base" data-rec="true">
+        <!--      <div class="flex flex-col border-1 rounded-2xl border-nc-border-red p-6" data-test-id="nc-oidc-provider">
+        <div class="flex font-bold justify-between text-nc-content-red-medium text-base" data-rec="true">
           {{ $t('labels.dangerZone') }}
         </div>
         <a-divider class="text-gray-200" />
         <div class="flex gap-2 flex-col">
           <div class="flex justify-between">
-            <span class="text-gray-800 font-bold"> {{ $t('labels.deleteThisOrganization') }} </span>
+            <span class="text-nc-content-gray font-bold"> {{ $t('labels.deleteThisOrganization') }} </span>
             <component :is="iconMap.chevronRight" />
           </div>
-          <span class="text-gray-500">
+          <span class="text-nc-content-gray-muted">
             {{ $t('msg.deleteOrganization') }}
           </span>
         </div>
@@ -331,10 +331,10 @@ const onCancel = () => {
 
 <style lang="scss" scoped>
 .ant-input::placeholder {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .ant-input {
-  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  @apply px-4 rounded-lg py-2 w-full border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
 }
 </style>

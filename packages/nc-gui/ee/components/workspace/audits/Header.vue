@@ -249,7 +249,7 @@ const showWorkspaceSelector = ref(false)
               {{ $t('objects.workspace') }}:
               <NcTooltip
                 class="capitalize truncate !leading-5"
-                :class="{ 'text-brand-500': auditLogsQuery.workspaceId }"
+                :class="{ 'text-nc-content-brand': auditLogsQuery.workspaceId }"
                 show-on-truncate-only
               >
                 <template #title>
@@ -290,8 +290,8 @@ const showWorkspaceSelector = ref(false)
             </template>
             <template #listHeader>
               <div class="px-2" @click="handleUpdateWorkspaceQuery()">
-                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-gray-100 cursor-pointer">
-                  <span class="flex-1 text-gray-800"> All Workspaces </span>
+                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer">
+                  <span class="flex-1 text-nc-content-gray"> All Workspaces </span>
                   <GeneralIcon v-if="!auditLogsQuery.workspaceId" icon="check" class="flex-none text-primary w-4 h-4" />
                 </div>
               </div>
@@ -311,7 +311,7 @@ const showWorkspaceSelector = ref(false)
               {{ $t('objects.user') }}:
               <NcTooltip
                 class="capitalize truncate !leading-5"
-                :class="{ 'text-brand-500': auditLogsQuery.user }"
+                :class="{ 'text-nc-content-brand': auditLogsQuery.user }"
                 show-on-truncate-only
               >
                 <template #title>
@@ -345,11 +345,11 @@ const showWorkspaceSelector = ref(false)
                 <GeneralUserIcon :user="option" size="base" class="flex-none" />
                 <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
                   <div class="w-full flex gap-3">
-                    <span class="text-sm text-gray-800 capitalize font-semibold truncate">
+                    <span class="text-sm text-nc-content-gray capitalize font-semibold truncate">
                       {{ option?.display_name || option?.email?.slice(0, option?.email.indexOf('@')) }}
                     </span>
                   </div>
-                  <span class="text-xs text-gray-600 truncate">
+                  <span class="text-xs text-nc-content-gray-subtle2 truncate">
                     {{ option?.email }}
                   </span>
                 </div>
@@ -358,8 +358,8 @@ const showWorkspaceSelector = ref(false)
             </template>
             <template #listHeader>
               <div class="px-2" @click="handleUpdateUserQuery()">
-                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-gray-100 cursor-pointer">
-                  <span class="flex-1 text-gray-800"> All Users </span>
+                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer">
+                  <span class="flex-1 text-nc-content-gray"> All Users </span>
                   <GeneralIcon v-if="!auditLogsQuery.user" icon="check" class="flex-none text-primary w-4 h-4" />
                 </div>
               </div>
@@ -383,7 +383,7 @@ const showWorkspaceSelector = ref(false)
           <div class="!w-[106px] flex items-center justify-between gap-2">
             <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
               {{ $t('objects.project') }}:
-              <NcTooltip class="truncate !leading-5" :class="{ 'text-brand-500': auditLogsQuery.baseId }" show-on-truncate-only>
+              <NcTooltip class="truncate !leading-5" :class="{ 'text-nc-content-brand': auditLogsQuery.baseId }" show-on-truncate-only>
                 <template #title>
                   <span class="capitalize">
                     {{ selectedBase }}
@@ -414,7 +414,7 @@ const showWorkspaceSelector = ref(false)
                   class="nc-view-icon flex-none"
                 />
 
-                <NcTooltip class="max-w-full truncate text-gray-800" placement="top" show-on-truncate-only>
+                <NcTooltip class="max-w-full truncate text-nc-content-gray" placement="top" show-on-truncate-only>
                   <template #title> {{ option.title }}</template>
                   {{ option.title }}
                 </NcTooltip>
@@ -428,8 +428,8 @@ const showWorkspaceSelector = ref(false)
                 }"
                 @click="handleUpdateBaseQuery()"
               >
-                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-gray-100 cursor-pointer">
-                  <span class="flex-1 text-gray-800"> All Bases </span>
+                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer">
+                  <span class="flex-1 text-nc-content-gray"> All Bases </span>
                   <GeneralIcon v-if="!auditLogsQuery.baseId" icon="check" class="flex-none text-primary w-4 h-4" />
                 </div>
               </div>
@@ -458,7 +458,7 @@ const showWorkspaceSelector = ref(false)
               {{ $t('general.event') }}:
               <NcTooltip
                 class="truncate !leading-5"
-                :class="{ 'text-brand-500': !(!ncIsArray(auditLogsQuery.type) || !auditLogsQuery.type?.length) }"
+                :class="{ 'text-nc-content-brand': !(!ncIsArray(auditLogsQuery.type) || !auditLogsQuery.type?.length) }"
                 show-on-truncate-only
               >
                 <template #title>
@@ -488,15 +488,15 @@ const showWorkspaceSelector = ref(false)
             @update:value="handleUpdateEventQuery($event)"
           >
             <template #listItemContent="{ option }">
-              <NcTooltip class="flex-1 max-w-[calc(100%_-_24px)] truncate text-gray-800" placement="top" show-on-truncate-only>
+              <NcTooltip class="flex-1 max-w-[calc(100%_-_24px)] truncate text-nc-content-gray" placement="top" show-on-truncate-only>
                 <template #title> {{ $t(option.label) }}</template>
                 {{ $t(option.label) }}
               </NcTooltip>
             </template>
             <template #listHeader>
               <div class="px-2" @click="handleUpdateEventQuery()">
-                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-gray-100 cursor-pointer">
-                  <span class="flex-1 text-gray-800"> All Events </span>
+                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer">
+                  <span class="flex-1 text-nc-content-gray"> All Events </span>
                   <GeneralIcon
                     v-if="!ncIsArray(auditLogsQuery.type) || !auditLogsQuery.type?.length"
                     icon="check"
@@ -517,7 +517,7 @@ const showWorkspaceSelector = ref(false)
               Range:
               <NcTooltip
                 class="truncate !leading-5"
-                :class="{ 'text-brand-500': auditLogsQuery.dateRange }"
+                :class="{ 'text-nc-content-brand': auditLogsQuery.dateRange }"
                 show-on-truncate-only
               >
                 <template #title>
@@ -540,7 +540,7 @@ const showWorkspaceSelector = ref(false)
                 @click="handleClearDateRange"
               >
                 <div class="w-full flex items-center justify-between gap-3">
-                  <span class="flex-1 text-gray-800"> All Time </span>
+                  <span class="flex-1 text-nc-content-gray"> All Time </span>
                   <GeneralIcon v-if="!auditLogsQuery.dateRange" icon="check" class="flex-none text-primary w-4 h-4" />
                 </div>
               </NcMenuItem>
@@ -551,7 +551,7 @@ const showWorkspaceSelector = ref(false)
                   @click="handleUpdateDateRange(range.value, range.label)"
                 >
                   <div class="w-full flex items-center justify-between gap-2">
-                    <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_24px)] text-gray-800">
+                    <div class="flex-1 flex items-center gap-2 max-w-[calc(100%_-_24px)] text-nc-content-gray">
                       {{ range.label }}
                     </div>
 
@@ -569,7 +569,7 @@ const showWorkspaceSelector = ref(false)
                 @click.stop="handleCustomDateRangeClick"
               >
                 <div class="w-full flex items-center justify-between gap-3">
-                  <div class="w-full flex items-center justify-between gap-2 text-gray-800">
+                  <div class="w-full flex items-center justify-between gap-2 text-nc-content-gray">
                     <GeneralIcon
                       icon="chevronDown"
                       class="flex-none w-4 h-4 transform"
@@ -577,7 +577,7 @@ const showWorkspaceSelector = ref(false)
                         'rotate-270': auditLogsQuery.dateRange !== AuditLogsDateRange.Custom,
                       }"
                     />
-                    <span class="flex-1 text-gray-800"> Custom Date Range </span>
+                    <span class="flex-1 text-nc-content-gray"> Custom Date Range </span>
                   </div>
                   <GeneralIcon
                     v-if="auditLogsQuery.dateRange === AuditLogsDateRange.Custom"
@@ -631,10 +631,10 @@ const showWorkspaceSelector = ref(false)
 
 :deep(.nc-button) {
   svg.sort-asc path.up {
-    @apply !stroke-brand-500;
+    @apply !stroke-nc-border-brand;
   }
   svg.sort-desc path.down {
-    @apply !stroke-brand-500;
+    @apply !stroke-nc-border-brand;
   }
 }
 :deep(.nc-menu-item::after) {
@@ -647,7 +647,7 @@ const showWorkspaceSelector = ref(false)
   }
 }
 .nc-audit-custom-date-range-input {
-  @apply border-1 border-gray-200 rounded-lg pr-2 py-1 transition-all duration-0.3s shadow-default focus-within:(border-brand-500 shadow-selected);
+  @apply border-1 border-nc-border-gray-medium rounded-lg pr-2 py-1 transition-all duration-0.3s shadow-default focus-within:(border-nc-border-brand shadow-selected);
   &:hover:not(:focus-within) {
     @apply shadow-hover;
   }

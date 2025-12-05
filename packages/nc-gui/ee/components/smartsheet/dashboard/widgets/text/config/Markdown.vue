@@ -399,7 +399,7 @@ defineExpose({
       }
 
       tbody {
-        @apply bg-white;
+        @apply bg-nc-bg-default;
         tr {
           th {
             @apply border-r-1 first:rounded-tl-lg last:rounded-tr-lg last:border-r-0 bg-nc-bg-gray-extralight px-2 py-2;

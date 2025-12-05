@@ -7,7 +7,7 @@ const { commandPalette } = useCommandPalette()
     v-e="['c:quick-actions']"
     type="text"
     size="small"
-    class="nc-sidebar-top-button w-full !hover:(bg-gray-200 text-gray-700) !rounded-md !xs:hidden !h-7 my-0.5"
+    class="nc-sidebar-top-button w-full !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) !rounded-md !xs:hidden !h-7 my-0.5"
     data-testid="nc-sidebar-search-btn"
     :centered="false"
     @click="commandPalette?.open()"
@@ -16,7 +16,7 @@ const { commandPalette } = useCommandPalette()
       <MaterialSymbolsSearch class="!h-3.9" />
       Quick Actions
       <div
-        class="inline-flex gap-1 justify-center text-xs px-[8px] py-[1px] uppercase border-1 border-gray-300 rounded-md bg-slate-150 text-gray-500"
+        class="inline-flex gap-1 justify-center text-xs px-[8px] py-[1px] uppercase border-1 border-nc-border-gray-dark rounded-md bg-slate-150 text-nc-content-gray-muted"
       >
         <kbd class="text-[16px] mt-[0.5px]">⌘</kbd>
         <kbd class="!leading-4">K</kbd>

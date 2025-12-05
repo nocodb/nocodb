@@ -100,12 +100,12 @@ export const isShowNullField = (column: ColumnType) => {
   ].includes(column.uidt as UITypes)
 }
 
-export const getSelectTypeOptionTextColor = (color?: string | null): string => {
-  color = color ?? '#ccc' // Set default only if color is null or undefined
+export const getSelectTypeOptionTextColor = (color: string | null | undefined, getColor: GetColorType): string => {
+  color = color ?? getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)') // Set default only if color is null or undefined
 
   return tinycolor.isReadable(color, '#fff', { level: 'AA', size: 'large' })
     ? '#fff'
-    : tinycolor.mostReadable(color, ['#0b1d05', '#fff']).toHex8String()
+    : tinycolor.mostReadable(color, [getColor('var(--nc-content-gray)', 'var(--nc-content-gray-subtle2)'), '#fff']).toHex8String()
 }
 
 export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmode'] => {

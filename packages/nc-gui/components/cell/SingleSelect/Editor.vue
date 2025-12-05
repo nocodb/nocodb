@@ -15,6 +15,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMobileMode } = useGlobal()
 
+const { getColor } = useTheme()
+
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj)!
@@ -342,7 +344,7 @@ onMounted(() => {
         >
           <span
             :style="{
-              color: getSelectTypeOptionTextColor(op.color),
+              color: getSelectTypeOptionTextColor(op.color, getColor),
             }"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >

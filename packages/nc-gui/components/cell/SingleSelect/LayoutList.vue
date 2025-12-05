@@ -14,6 +14,8 @@ const vModel = useVModel(props, 'modelValue')
 
 const { disabled, options } = toRefs(props)
 
+const { getColor } = useTheme()
+
 const column = inject(ColumnInj)!
 
 const searchVal = ref('')
@@ -78,7 +80,7 @@ const handleKeyDownList = (e: KeyboardEvent) => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                color: getSelectTypeOptionTextColor(op.color),
+                color: getSelectTypeOptionTextColor(op.color, getColor),
               }"
               class="text-small"
             >

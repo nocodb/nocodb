@@ -10,6 +10,8 @@ interface Props {
 
 const { modelValue, options: selectOptions } = defineProps<Props>()
 
+const { getColor } = useTheme()
+
 const column = inject(ColumnInj)!
 
 const isForm = inject(IsFormInj, ref(false))
@@ -93,7 +95,7 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
         >
           <span
             :style="{
-              color: getSelectTypeOptionTextColor(selectedOpt.color),
+              color: getSelectTypeOptionTextColor(selectedOpt.color, getColor),
             }"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >

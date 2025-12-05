@@ -86,7 +86,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           type="secondary"
           size="small"
           class="nc-topbar-extension-btn"
-          :class="{ '!bg-nc-bg-brand !hover:bg-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
+          :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
           data-testid="nc-topbar-extension-btn"
           @click="toggleExtensionPanel"
         >
@@ -119,7 +119,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           type="secondary"
           size="small"
           class="nc-topbar-action-btn"
-          :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isActionPanelExpanded }"
+          :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isActionPanelExpanded }"
           data-testid="nc-topbar-action-btn"
           @click="toggleActionPanel"
         >

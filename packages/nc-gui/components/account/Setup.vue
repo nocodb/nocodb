@@ -80,7 +80,7 @@ onMounted(async () => {
               </template>
               <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium -mt-1 w-6 h-6 nc-pending" />
             </NcTooltip>
-            <GeneralIcon v-else icon="circleCheckSolid" class="text-success w-6 h-6 bg-white-500 nc-configured" />
+            <GeneralIcon v-else icon="circleCheckSolid" class="text-success w-6 h-6 nc-configured" />
 
             <span class="font-bold text-base"> {{ config.title }}</span>
           </div>

@@ -197,7 +197,7 @@ whenever(isOpen, () => {
     <template #overlay>
       <div ref="ncRecordPickerDropdownRef" :class="`${randomClass}`" class="nc-record-picker-dropdown-wrapper">
         <div class="flex flex-col h-full w-full" :class="{ active: isOpen }" @keydown.enter.stop>
-          <div class="bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
+          <div class="bg-nc-bg-gray-light py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
             <div class="flex-1 nc-record-picker-dropdown-record-search-wrapper flex items-center py-0.5 rounded-md">
               <a-input
                 ref="filterQueryRef"
@@ -208,7 +208,7 @@ whenever(isOpen, () => {
                 size="small"
               >
                 <template #prefix>
-                  <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
+                  <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-nc-content-gray-muted" />
                 </template>
                 <template v-if="!isValidSearchQuery" #suffix>
                   <NcTooltip :title="$t('msg.error.invalidSearchQueryForVisibleFields')" class="flex">
@@ -236,7 +236,7 @@ whenever(isOpen, () => {
 
 <style lang="scss">
 .nc-record-picker-dropdown {
-  @apply rounded-xl !border-gray-200;
+  @apply rounded-xl !border-nc-border-gray-medium;
   z-index: 1000 !important;
 }
 .nc-record-picker-dropdown-wrapper {
@@ -255,18 +255,18 @@ whenever(isOpen, () => {
 
 .nc-record-picker-dropdown-record-search-wrapper {
   .nc-search-icon {
-    @apply flex-none text-gray-500;
+    @apply flex-none text-nc-content-gray-muted;
   }
 
   &:focus-within {
     .nc-search-icon {
-      @apply text-gray-600;
+      @apply text-nc-content-gray-subtle2;
     }
   }
   input {
     @apply !caret-nc-fill-primary;
     &::placeholder {
-      @apply text-gray-500;
+      @apply text-nc-content-gray-muted;
     }
   }
 }

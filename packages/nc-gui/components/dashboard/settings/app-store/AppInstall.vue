@@ -222,7 +222,7 @@ onMounted(async () => {
             <tfoot>
               <tr>
                 <td :colspan="plugin.formDetails.items.length" class="text-center">
-                  <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addSetting">
+                  <a-button type="default" class="!bg-nc-bg-gray-light rounded-md border-none mr-1" @click="addSetting">
                     <template #icon>
                       <component :is="iconMap.plus" class="flex mx-auto" />
                     </template>

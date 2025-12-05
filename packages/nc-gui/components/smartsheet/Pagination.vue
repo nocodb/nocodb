@@ -85,7 +85,7 @@ const tempPageVal = ref(page.value)
 
 <template>
   <div
-    class="flex items-center bg-white border-gray-200 nc-grid-pagination-wrapper"
+    class="flex items-center bg-nc-bg-default border-nc-border-gray-medium nc-grid-pagination-wrapper"
     :class="{ 'border-t-1': !isGroupBy, 'h-13': isMobileMode, 'h-10': !isMobileMode }"
     :style="`${fixedSize ? `width: ${fixedSize}px;` : ''}${
       isGroupBy ? 'margin-top:1px; border-radius: 0 0 8px 8px !important;' : ''
@@ -101,7 +101,7 @@ const tempPageVal = ref(page.value)
       <slot name="add-record" />
       <span
         v-if="!alignCountOnRight && count !== null && count !== Infinity"
-        class="caption ml-2.5 text-gray-500 text-xs"
+        class="caption ml-2.5 text-nc-content-gray-muted text-xs"
         data-testid="grid-pagination"
       >
         {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
@@ -155,7 +155,7 @@ const tempPageVal = ref(page.value)
       <div class="text-right">
         <span
           v-if="alignCountOnRight && count !== Infinity"
-          class="caption nc-grid-row-count mr-2.5 text-gray-500 text-xs"
+          class="caption nc-grid-row-count mr-2.5 text-nc-content-gray-muted text-xs"
           data-testid="grid-pagination"
         >
           {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
@@ -169,7 +169,7 @@ const tempPageVal = ref(page.value)
 .nc-grid-pagination-wrapper {
   .ant-pagination-item-active {
     a {
-      @apply text-sm !text-gray-700 !hover:text-gray-800;
+      @apply text-sm !text-nc-content-gray-subtle !hover:text-nc-content-gray;
     }
   }
 }
@@ -186,11 +186,11 @@ const tempPageVal = ref(page.value)
 
 :deep(.ant-pagination-item:not(.ant-pagination-item-active) a) {
   line-height: 21px !important;
-  @apply text-sm !text-gray-400;
+  @apply text-sm !text-nc-content-gray-disabled;
 }
 
 :deep(.ant-pagination-item-link) {
-  @apply text-gray-800 flex items-center justify-center;
+  @apply text-nc-content-gray flex items-center justify-center;
 }
 
 :deep(.ant-pagination-item.ant-pagination-item-active) {

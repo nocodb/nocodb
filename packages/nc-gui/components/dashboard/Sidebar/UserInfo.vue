@@ -78,7 +78,7 @@ const copyEmail = () => {
 
 <template>
   <div
-    class="flex w-full flex-col border-gray-200 gap-y-1"
+    class="flex w-full flex-col border-nc-border-gray-medium gap-y-1"
     :class="{
       'sticky bottom-0 bg-[var(--mini-sidebar-bg-color)]': isMiniSidebar,
     }"
@@ -108,7 +108,7 @@ const copyEmail = () => {
           <div
             class="flex"
             :class="{
-              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer': !isMiniSidebar,
+              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-nc-bg-gray-medium rounded-lg cursor-pointer': !isMiniSidebar,
               'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
             }"
             data-testid="nc-sidebar-userinfo"
@@ -136,7 +136,7 @@ const copyEmail = () => {
                 {{ name ? name : user?.email }}
               </NcTooltip>
 
-              <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
+              <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-nc-content-gray-muted" />
             </template>
           </div>
         </NcTooltip>
@@ -185,7 +185,7 @@ const copyEmail = () => {
               rel="noopener noreferrer"
             >
               <NcMenuItem class="social-icon-wrapper group">
-                <GeneralIcon class="social-icon text-gray-500 group-hover:text-gray-800" icon="ncTwitter" />
+                <GeneralIcon class="social-icon text-nc-content-gray-muted group-hover:text-nc-content-gray" icon="ncTwitter" />
                 <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
               </NcMenuItem>
             </a>
@@ -205,7 +205,7 @@ const copyEmail = () => {
                   </div>
                   <div class="flex-1" />
 
-                  <GeneralIcon icon="ncChevronRight" class="flex-none !text-gray-500" />
+                  <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
                 </div>
               </NcMenuItem>
 

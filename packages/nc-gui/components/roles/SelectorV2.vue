@@ -129,12 +129,12 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
                   <GeneralIcon
                     :icon="(option.icon as IconMapKey)"
                     class="flex-none h-4 w-4"
-                    :class="roleColorsMapping[option.color]?.content ?? 'text-gray-300'"
+                    :class="roleColorsMapping[option.color]?.content ?? 'text-nc-content-brand-hover'"
                   />
                   <span
                     class="text-captionDropdownDefault"
                     :class="[
-                      roleColorsMapping[option.color]?.content ?? 'text-gray-300',
+                      roleColorsMapping[option.color]?.content ?? 'text-nc-content-brand-hover',
                       {
                         '!font-semibold': !description,
                       },

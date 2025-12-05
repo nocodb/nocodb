@@ -192,6 +192,10 @@ body {
         @apply border-nc-border-gray-medium;
       }
     }
+
+    .ant-checkbox-disabled + span {
+      @apply text-nc-content-gray-disabled;
+    }
   }
 }
 

@@ -454,11 +454,11 @@ defineExpose({
                   :is="(iconMap as any)[el.icon]"
                   v-else-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
                   :class="{
-                    '!text-blue-500': el.icon === 'grid',
-                    '!text-purple-500': el.icon === 'form',
-                    '!text-[#FF9052]': el.icon === 'kanban',
-                    '!text-pink-500': el.icon === 'gallery',
-                    '!text-maroon-500': el.icon === 'calendar',
+                    '!text-[var(--color-view-icon-grid)]': el.icon === 'grid',
+                    '!text-[var(--color-view-icon-form)]': el.icon === 'form',
+                    '!text-[var(--color-view-icon-kanban)]': el.icon === 'kanban',
+                    '!text-[var(--color-view-icon-gallery)]': el.icon === 'gallery',
+                    '!text-[var(--color-view-icon-calendar)]': el.icon === 'calendar',
                   }"
                   class="cmdk-action-icon"
                 />
@@ -565,11 +565,11 @@ defineExpose({
                               :is="(iconMap as any)[item.data.icon]"
                               v-if="item.data.icon && typeof item.data.icon === 'string' && (iconMap as any)[item.data.icon]"
                               :class="{
-                                '!text-blue-500': item.data.icon === 'grid',
-                                '!text-purple-500': item.data.icon === 'form',
-                                '!text-[#FF9052]': item.data.icon === 'kanban',
-                                '!text-pink-500': item.data.icon === 'gallery',
-                                '!text-maroon-500 w-4 h-4': item.data.icon === 'calendar',
+                                '!text-[var(--color-view-icon-grid)]': item.data.icon === 'grid',
+                                '!text-[var(--color-view-icon-form)]': item.data.icon === 'form',
+                                '!text-[var(--color-view-icon-kanban)]': item.data.icon === 'kanban',
+                                '!text-[var(--color-view-icon-gallery)]': item.data.icon === 'gallery',
+                                '!text-[var(--color-view-icon-calendar)]': item.data.icon === 'calendar',
                               }"
                               class="cmdk-action-icon"
                             />

@@ -189,7 +189,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
   & :deep(.nc-menu-item) {
     border: 0px !important;
     &:hover {
-      @apply bg-nc-bg-gray-extralight text-black;
+      @apply bg-nc-bg-gray-extralight text-nc-content-gray-extreme;
     }
     margin: 0 !important;
     &.ant-menu-item-disabled {

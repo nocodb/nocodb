@@ -85,7 +85,7 @@ useProvideSmartsheetRowStore(row)
           <SmartsheetPlainCell
             :model-value="row.row[displayField.title]"
             :column="displayField"
-            class="font-semibold text-brand-500 nc-display-value leading-[20px]"
+            class="font-semibold text-nc-content-brand nc-display-value leading-[20px]"
           />
 
           <div v-if="fieldsToDisplay.length > 0" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5">
@@ -142,7 +142,7 @@ useProvideSmartsheetRowStore(row)
 .nc-picker-record-cell {
   :deep(.nc-cell),
   :deep(.nc-virtual-cell) {
-    @apply !text-small !text-gray-600 ml-1;
+    @apply !text-small !text-nc-content-gray-subtle2 ml-1;
 
     .nc-cell-field,
     .nc-cell-field-link,
@@ -152,13 +152,13 @@ useProvideSmartsheetRowStore(row)
     }
 
     &:not(.nc-display-value-cell) {
-      @apply text-gray-600;
+      @apply text-nc-content-gray-subtle2;
       font-weight: 500;
 
       .nc-cell-field,
       input,
       textarea {
-        @apply text-gray-600;
+        @apply text-nc-content-gray-subtle2;
         font-weight: 500;
       }
     }
@@ -228,8 +228,8 @@ useProvideSmartsheetRowStore(row)
 
   &:focus-visible,
   &.nc-is-selected {
-    @apply border-brand-500;
-    box-shadow: 0 0 0 1px #3366ff;
+    @apply border-nc-border-brand;
+    box-shadow: 0 0 0 1px rgba(var(--rgb-color-brand-500), 1);
   }
   &:hover {
     .nc-text-area-expand-btn {

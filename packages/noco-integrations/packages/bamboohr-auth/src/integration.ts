@@ -16,7 +16,7 @@ export class BambooHRAuthIntegration extends AuthIntegration<
 > {
   public client: AxiosInstance | null = null;
 
-  // RateLimit-
+  // RateLimit-https://documentation.bamboohr.com/docs/api-details
   protected getRateLimitConfig(): RateLimitOptions | null {
     return {
       global: {
@@ -82,13 +82,10 @@ export class BambooHRAuthIntegration extends AuthIntegration<
   }
 
   // https://developer.atlassian.com/cloud/bitbucket/oauth-2/
-  public async exchangeToken(
-    payload: {
-      code: string;
-      code_verifier?: string;
-    },
-    config: BambooHRAuthConfig,
-  ): Promise<{
+  public async exchangeToken(payload: {
+    code: string;
+    code_verifier?: string;
+  }): Promise<{
     oauth_token: string;
     refresh_token?: string;
     expires_in?: number;
@@ -99,13 +96,12 @@ export class BambooHRAuthIntegration extends AuthIntegration<
     const params = new URLSearchParams();
     params.append('grant_type', 'authorization_code');
     params.append('code', code);
-    console.log(
-      redirectUri,
-      redirectUri!.replace('{{config.companyDomain}}', config.companyDomain),
-    );
     params.append(
       'redirect_uri',
-      redirectUri!.replace('{{config.companyDomain}}', config.companyDomain),
+      redirectUri!.replace(
+        '{{config.companyDomain}}',
+        this.config.companyDomain,
+      ),
     );
 
     if (codeVerifier) {
@@ -113,7 +109,7 @@ export class BambooHRAuthIntegration extends AuthIntegration<
     }
 
     const response = await axios.post(
-      tokenUri.replace('{{config.companyDomain}}', config.companyDomain),
+      tokenUri.replace('{{config.companyDomain}}', this.config.companyDomain),
       params.toString(),
       {
         auth: {
@@ -134,10 +130,7 @@ export class BambooHRAuthIntegration extends AuthIntegration<
     };
   }
 
-  public async refreshToken(
-    payload: { refresh_token: string },
-    config: BambooHRAuthConfig,
-  ): Promise<{
+  public async refreshToken(payload: { refresh_token: string }): Promise<{
     oauth_token: string;
     refresh_token?: string;
     expires_in?: number;
@@ -147,7 +140,7 @@ export class BambooHRAuthIntegration extends AuthIntegration<
     params.append('refresh_token', payload.refresh_token);
 
     const response = await axios.post(
-      tokenUri.replace('{{config.companyDomain}}', config.companyDomain),
+      tokenUri.replace('{{config.companyDomain}}', this.config.companyDomain),
       params.toString(),
       {
         auth: {

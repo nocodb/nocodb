@@ -1,6 +1,6 @@
 import { TARGET_TABLES } from '@noco-integrations/core';
-import type { JobInfoRecord } from './types/job-info.record';
-import type { CompensationRecord } from './types/compensation.record';
+import type { JobInfoRecord } from './types';
+import type { CompensationRecord } from './types';
 import type { SyncLinkValue, SyncRecord } from '@noco-integrations/core';
 
 const safeDateValue = (value: string) => {

@@ -6,8 +6,8 @@ import {
 } from '@noco-integrations/core';
 import { AxiosError } from 'axios';
 import { BambooHRFormatter } from './formatter';
-import type { JobInfoRecord } from './types/job-info.record';
-import type { CompensationRecord } from './types/compensation.record';
+import type { JobInfoRecord } from './types';
+import type { CompensationRecord } from './types';
 import type { BambooHRAuthIntegration } from '@noco-integrations/bamboohr-auth';
 import type { SyncLinkValue, SyncRecord } from '@noco-integrations/core';
 

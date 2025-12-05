@@ -89,10 +89,10 @@ const saveGoogleProvider = async () => {
     <div class="overflow-y-auto h-[calc(min(40vh, 56rem))] pr-1 nc-scrollbar-md">
       <div class="gap-y-8 flex flex-col">
         <a-form ref="formValidator" :model="form">
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-2 mb-4">
             <div class="flex flex-row items-center">
               <span class="text-nc-content-gray">{{ $t('labels.redirectUrl') }}</span>
-              <NcTooltip>
+              <NcTooltip class="flex"> 
                 <template #title>
                   This is the URL where authentication responses will be sent after successful login. Also referred to as
                   'Callback URL' or 'Reply URL'.

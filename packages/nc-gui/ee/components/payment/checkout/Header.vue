@@ -26,7 +26,7 @@ const { title } = toRefs(props)
     </slot>
 
     <div class="hidden md:(flex invisible)">
-      <NcButton type="text" size="small" inner-class="!gap-1" class="!text-nc-content-brand !hover:text-brand-600">
+      <NcButton type="text" size="small" inner-class="!gap-1" class="!text-nc-content-brand !hover:text-nc-content-brand-disabled">
         <template #icon>
           <GeneralIcon icon="chevronLeft" class="h-4 w-4" />
         </template>

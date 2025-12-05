@@ -128,7 +128,7 @@ onBeforeUnmount(async () => {
 <template>
   <div class="flex flex-col w-full justify-center md:mt-4">
     <div class="flex flex-col w-full gap-6">
-      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-white py-3 md:-mx-6 z-10">
+      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-nc-bg-default py-3 md:-mx-6 z-10">
         <div class="max-w-[920px] mx-auto flex flex-col gap-2 px-4">
           <PaymentCheckoutHeader
             :title="
@@ -216,7 +216,7 @@ onBeforeUnmount(async () => {
 
     @apply transition-all text-base font-700 text-nc-content-gray;
     &:not(.ant-radio-wrapper-disabled).ant-radio-wrapper-checked {
-      @apply border-brand-500 shadow-selected;
+      @apply border-nc-border-brand shadow-selected;
     }
 
     & span.ant-radio + span {

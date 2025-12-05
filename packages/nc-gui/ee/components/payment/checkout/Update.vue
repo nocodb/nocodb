@@ -182,7 +182,7 @@ const onCancelSubscription = async () => {
 
 <template>
   <div class="h-full flex flex-col w-full max-w-[676px] mx-auto px-6">
-    <div class="sticky top-0 bg-white pt-5 -mt-5 -mx-6 px-6">
+    <div class="sticky top-0 bg-nc-bg-default pt-5 -mt-5 -mx-6 px-6">
       <PaymentCheckoutHeader
         v-if="changes.change === 'upgrade'"
         :title="changes.plan || !changes.period || changes.period === 'year' ? 'Upgrade Plan' : 'Change Billing Period'"
@@ -492,7 +492,7 @@ const onCancelSubscription = async () => {
       @apply w-full p-6 flex-1 flex justify-center;
     }
     .nc-edit-or-add-integration-right-panel {
-      @apply p-5 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
+      @apply p-5 w-[320px] border-l-1 border-nc-border-gray-medium flex flex-col gap-4 bg-nc-bg-gray-extralight rounded-br-2xl;
     }
   }
 }

@@ -29666,9 +29666,19 @@
             "$ref": "#/components/schemas/Meta",
             "description": "Meta data for the Workflow"
           },
-          "trigger_count": {
-            "type": "number",
-            "description": "Number of times the workflow has been triggered"
+          "draft": {
+            "type": "object",
+            "description": "Draft data for the Workflow",
+            "properties": {
+              "nodes": {
+                "$ref": "#/components/schemas/Meta",
+                "description": "Nodes configuration for the draft workflow"
+              },
+              "edges": {
+                "$ref": "#/components/schemas/Meta",
+                "description": "Edges configuration for the draft workflow"
+              }
+            }
           },
           "order": {
             "description": "The order of the workflow in the list",

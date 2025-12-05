@@ -4,6 +4,7 @@ import * as nc_003_alter_row_color_condition_nc_order_col from './v0/nc_003_alte
 import * as nc_004_workflows from './v0/nc_004_workflows';
 import * as nc_005_add_user_specific_and_meta_column_in_sync_configs from './v0/nc_005_add_user_specific_and_meta_column_in_sync_configs';
 import * as nc_006_dependency_slots from './v0/nc_006_dependency_slots';
+import * as nc_007_workflow_draft from './v0/nc_007_workflow_draft';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -19,6 +20,7 @@ export default class XcMigrationSourcev0 {
       'nc_004_workflows',
       'nc_005_add_user_specific_and_meta_column_in_sync_configs',
       'nc_006_dependency_slots',
+      'nc_007_workflow_draft',
     ]);
   }
 
@@ -40,6 +42,8 @@ export default class XcMigrationSourcev0 {
         return nc_005_add_user_specific_and_meta_column_in_sync_configs;
       case 'nc_006_dependency_slots':
         return nc_006_dependency_slots;
+      case 'nc_007_workflow_draft':
+        return nc_007_workflow_draft;
     }
   }
 }

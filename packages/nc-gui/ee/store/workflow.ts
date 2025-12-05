@@ -358,6 +358,42 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
+  const publishWorkflow = async (baseId: string, workflowId: string) => {
+    if (!activeWorkspaceId.value) return null
+    try {
+      const published = await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        baseId,
+        {
+          operation: 'workflowPublish',
+        },
+        {
+          workflowId,
+        },
+      )
+
+      // Update local state
+      const baseWorkflows = workflows.value.get(baseId) || []
+      const index = baseWorkflows.findIndex((a) => a.id === workflowId)
+
+      if (index !== -1) {
+        const updatedWorkflows = [...baseWorkflows]
+        updatedWorkflows[index] = {
+          ...published,
+          _dirty: published._dirty ? published._dirty + 1 : 0,
+        } as WorkflowType
+        workflows.value.set(baseId, updatedWorkflows)
+      }
+
+      $e('a:workflow:publish')
+      return published
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      return null
+    }
+  }
+
   const loadWorkflowNodes = async () => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
     try {
@@ -513,6 +549,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     deleteWorkflow,
     openWorkflow,
     duplicateWorkflow,
+    publishWorkflow,
     openNewWorkflowModal,
     // Execution Logs
     loadWorkflowExecutions,

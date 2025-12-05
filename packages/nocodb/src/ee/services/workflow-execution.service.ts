@@ -599,8 +599,13 @@ export class WorkflowExecutionService {
     targetNodeId: string,
     testTriggerData?: any,
   ): Promise<NodeExecutionResult> {
-    const nodes = (workflow.nodes || []) as WorkflowGeneralNode[];
-    const edges = (workflow.edges || []) as WorkflowGeneralEdge[];
+    // Use draft nodes/edges if available (for testing), otherwise use published nodes/edges
+    const nodes = ((workflow as any).draft?.nodes ||
+      workflow.nodes ||
+      []) as WorkflowGeneralNode[];
+    const edges = ((workflow as any).draft?.edges ||
+      workflow.edges ||
+      []) as WorkflowGeneralEdge[];
 
     const nodeMap = new Map<string, WorkflowGeneralNode>(
       nodes.map((n) => [n.id, n]),

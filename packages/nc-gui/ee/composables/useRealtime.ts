@@ -367,7 +367,9 @@ export const useRealtime = createSharedComposable(() => {
         break
       }
       case 'update': {
-        const updatedWorkflows = existingWorkflows.map((d) => (d.id === id ? { ...d, ...workflow } : d))
+        const updatedWorkflows = existingWorkflows.map((d) =>
+          d.id === id ? { ...d, ...workflow, _dirty: d._dirty ? +d._dirty + 1 : 1 } : d,
+        )
 
         updatedWorkflows.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 

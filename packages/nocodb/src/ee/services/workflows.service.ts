@@ -335,6 +335,7 @@ export class WorkflowsService {
       workflowId?: string;
       limit?: number;
       offset?: number;
+      cursorId?: string;
     },
   ) {
     const { workflowId } = params;

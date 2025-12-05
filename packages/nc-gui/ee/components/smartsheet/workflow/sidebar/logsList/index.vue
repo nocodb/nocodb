@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { EventType } from 'nocodb-sdk'
+import type { WorkflowExecutionPayload } from 'nocodb-sdk'
 import List from './List.vue'
+
+const { $ncSocket } = useNuxtApp()
 
 const workflowStore = useWorkflowStore()
 
@@ -10,13 +14,16 @@ const { loadWorkflowExecutions } = workflowStore
 
 const { viewExecution, exitExecutionView, viewingExecution } = useWorkflowOrThrow()
 
+const { base } = storeToRefs(useBase())
+
+const activeExecutionListener = ref<string | null>(null)
+
 const isLoading = ref(false)
+const isLoadingMore = ref(false)
 
 const executions = ref<any[]>([])
 
 const pageSize = ref(25)
-
-const currentOffset = ref(0)
 
 const hasMore = ref(true)
 
@@ -45,19 +52,26 @@ const handleBackClick = () => {
 }
 
 async function loadExecutionLogs(append = false) {
+  if (isLoading.value || isLoadingMore.value) return
+
   try {
     if (!append) {
       isLoading.value = true
       executions.value = []
-      currentOffset.value = 0
       hasMore.value = true
+    } else {
+      isLoadingMore.value = true
     }
+
+    // Use cursor-based pagination: get executions older than the last one in the list
+    const lastExecution = append && executions.value.length > 0 ? executions.value[executions.value.length - 1] : null
 
     const result = await loadWorkflowExecutions({
       workflowId: activeWorkflowId.value,
       limit: pageSize.value,
-      offset: currentOffset.value,
+      ...(lastExecution && { cursorId: lastExecution.id }),
     })
+
     if (append) {
       executions.value = [...executions.value, ...result]
     } else {
@@ -67,23 +81,67 @@ async function loadExecutionLogs(append = false) {
     // Check if we have more data
     if (result.length < pageSize.value) {
       hasMore.value = false
-      currentOffset.value = currentOffset.value + result.length
-    } else {
-      currentOffset.value += pageSize.value
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     if (!append) {
       isLoading.value = false
+    } else {
+      isLoadingMore.value = false
     }
   }
 }
 
 async function loadMore() {
-  if (!hasMore.value) return
+  if (!hasMore.value || isLoadingMore.value) return
   await loadExecutionLogs(true)
 }
+
+watch(
+  [activeWorkflowId, () => base.value?.id],
+  ([newWorkflowId, newBaseId], [oldWorkflowId, _oldBaseId]) => {
+    // Unsubscribe from old listener
+    if (activeExecutionListener.value) {
+      $ncSocket.offMessage(activeExecutionListener.value)
+      activeExecutionListener.value = null
+    }
+
+    // Subscribe to new workflow's executions if we have all required IDs
+    if (newWorkflowId && newBaseId && base.value?.fk_workspace_id) {
+      activeExecutionListener.value = $ncSocket.onMessage(
+        `${EventType.WORKFLOW_EXECUTION_EVENT}:${base.value.fk_workspace_id}:${newBaseId}:${newWorkflowId}`,
+        (data: WorkflowExecutionPayload) => {
+          const { id, action, payload } = data
+
+          if (action === 'create') {
+            executions.value = [payload, ...executions.value]
+          } else if (action === 'update') {
+            const index = executions.value.findIndex((e) => e.id === id)
+            if (index !== -1) {
+              executions.value[index] = { ...executions.value[index], ...payload }
+            }
+          }
+        },
+      )
+    }
+
+    if (newWorkflowId && newWorkflowId !== oldWorkflowId) {
+      loadExecutionLogs()
+    }
+  },
+  { immediate: true },
+)
+
+const unsubscribeActiveChannels = (): void => {
+  if (activeExecutionListener.value) {
+    $ncSocket.offMessage(activeExecutionListener.value)
+  }
+}
+
+onBeforeUnmount(() => {
+  unsubscribeActiveChannels()
+})
 
 onBeforeMount(async () => {
   await loadExecutionLogs()

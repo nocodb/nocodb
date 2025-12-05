@@ -30,6 +30,8 @@
 
 /* Refrence tokens - Light */
 :root {
+  color-scheme: light;
+
   --color-bg: #ffffff;
   --color-text: #000000;
 
@@ -405,6 +407,8 @@
 
 /* Refrence tokens - Dark test */
 [theme='dark'] {
+  color-scheme: dark;
+
   --color-bg: #121212;
   --color-text: #ffffff;
 

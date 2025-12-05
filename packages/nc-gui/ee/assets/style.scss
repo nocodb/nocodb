@@ -1020,18 +1020,18 @@ svg.nc-virtual-cell-icon {
   @apply !rounded-lg;
 
   .nc-search-icon {
-    @apply text-gray-400;
+    @apply text-nc-content-gray-disabled;
   }
 
   &:hover .nc-search-icon,
   &.ant-input-affix-wrapper-focused .nc-search-icon {
-    @apply text-gray-800;
+    @apply text-nc-content-gray;
   }
 }
 .nc-toolbar-dropdown-search-field-input,
 .nc-general-search-field-input {
   .nc-search-icon {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
   }
 
   &:hover .nc-search-icon,

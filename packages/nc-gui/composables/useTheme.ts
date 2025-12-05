@@ -34,6 +34,7 @@ export const useTheme = createSharedComposable(() => {
 
       if (dark) {
         document.documentElement.setAttribute('theme', 'dark')
+        document.documentElement.style.colorScheme = 'dark'
 
         /**
          * WindiCSS config uses `darkMode: 'class'`, so we add the `dark` class
@@ -53,6 +54,7 @@ export const useTheme = createSharedComposable(() => {
       } else {
         document.documentElement.removeAttribute('theme')
         document.documentElement.classList.remove('dark')
+        document.documentElement.style.colorScheme = 'light'
       }
 
       forcedNextTick(() => {

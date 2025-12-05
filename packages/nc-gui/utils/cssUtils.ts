@@ -27,6 +27,7 @@ export const roleColorsMapping: Record<
     bg: string
     content: string
     contentTooltip: string
+    badgeClass?: string
   }
 > = {
   purple: {
@@ -70,9 +71,10 @@ export const roleColorsMapping: Record<
     contentTooltip: 'text-nc-gray-200',
   },
   gray: {
-    bg: 'bg-nc-bg-gray-light',
-    content: 'text-nc-content-gray',
+    bg: 'bg-nc-bg-gray-medium',
+    content: 'text-nc-content-gray-subtle2',
     contentTooltip: 'text-nc-gray-200',
+    badgeClass: '!bg-nc-bg-gray-medium !border-nc-border-gray-medium',
   },
 }
 

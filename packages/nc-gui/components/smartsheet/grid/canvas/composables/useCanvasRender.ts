@@ -316,7 +316,7 @@ export function useCanvasRender({
         }
       }
 
-      ctx.fillStyle = getColor(themeV4Colors.gray['500'])
+      ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
 
       const rightPadding = 8
       let iconSpace = rightPadding
@@ -338,7 +338,7 @@ export function useCanvasRender({
         spriteLoader.renderIcon(ctx, {
           icon: column?.virtual ? iconConfig?.icon : iconConfig,
           size: 13,
-          color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500']),
+          color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
           x: xOffset + 8 - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
@@ -568,7 +568,7 @@ export function useCanvasRender({
           }
         }
 
-        ctx.fillStyle = getColor(themeV4Colors.gray['500'])
+        ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
         const iconConfig = (
           column?.virtual
             ? renderVIcon(column.columnObj, column.relatedColObj)
@@ -578,7 +578,7 @@ export function useCanvasRender({
           spriteLoader.renderIcon(ctx, {
             icon: column?.virtual ? iconConfig?.icon : iconConfig,
             size: 13,
-            color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500']),
+            color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
             x: xOffset + 8,
             y: headerRowHeight.value / 2 - 7,
           })
@@ -610,7 +610,8 @@ export function useCanvasRender({
               isSelectedAllRecords.value,
               false,
               spriteLoader,
-              isCheckboxHovered ? getColor(themeV4Colors.brand['500']) : '#D9D9D9',
+              isCheckboxHovered ? getColor(themeV4Colors.brand['500']) : getColor('#D9D9D9', '--rgb-color-gray-200'),
+              getColor,
             )
           } else {
             ctx.fillText(truncatedText, x, y)
@@ -1025,7 +1026,8 @@ export function useCanvasRender({
         isChecked,
         isDisabled,
         spriteLoader,
-        isCheckboxHovered ? getColor(themeV4Colors.brand['500']) : '#D9D9D9',
+        isCheckboxHovered ? getColor(themeV4Colors.brand['500']) : getColor('#D9D9D9', '--rgb-color-gray-200'),
+        getColor,
       )
       currentX += 24
     }

@@ -15,6 +15,7 @@ import ClaudeAi from '@noco-local-integrations/claude-ai';
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
 import CoreWorkflowNode from '@noco-local-integrations/core-workflow-node';
 import DeepseekAi from '@noco-local-integrations/deepseek-ai';
+import DropboxAuth from '@noco-local-integrations/dropbox-auth';
 import FreshdeskAuth from '@noco-local-integrations/freshdesk-auth';
 import FreshdeskSync from '@noco-local-integrations/freshdesk-sync';
 import GithubAuth from '@noco-local-integrations/github-auth';
@@ -54,6 +55,7 @@ export default [
   ...(Array.isArray(ClickhouseAuth) ? ClickhouseAuth : [ClickhouseAuth]),
   ...(Array.isArray(CoreWorkflowNode) ? CoreWorkflowNode : [CoreWorkflowNode]),
   ...(Array.isArray(DeepseekAi) ? DeepseekAi : [DeepseekAi]),
+  ...(Array.isArray(DropboxAuth) ? DropboxAuth : [DropboxAuth]),
   ...(Array.isArray(FreshdeskAuth) ? FreshdeskAuth : [FreshdeskAuth]),
   ...(Array.isArray(FreshdeskSync) ? FreshdeskSync : [FreshdeskSync]),
   ...(Array.isArray(GithubAuth) ? GithubAuth : [GithubAuth]),
@@ -67,13 +69,19 @@ export default [
   ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),
   ...(Array.isArray(MysqlSync) ? MysqlSync : [MysqlSync]),
   ...(Array.isArray(NocodbAi) ? NocodbAi : [NocodbAi]),
-  ...(Array.isArray(NocodbWorkflowNode) ? NocodbWorkflowNode : [NocodbWorkflowNode]),
+  ...(Array.isArray(NocodbWorkflowNode)
+    ? NocodbWorkflowNode
+    : [NocodbWorkflowNode]),
   ...(Array.isArray(OpenaiAi) ? OpenaiAi : [OpenaiAi]),
-  ...(Array.isArray(OpenaiCompatibleAi) ? OpenaiCompatibleAi : [OpenaiCompatibleAi]),
+  ...(Array.isArray(OpenaiCompatibleAi)
+    ? OpenaiCompatibleAi
+    : [OpenaiCompatibleAi]),
   ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
   ...(Array.isArray(SlackAuth) ? SlackAuth : [SlackAuth]),
-  ...(Array.isArray(SlackWorkflowNode) ? SlackWorkflowNode : [SlackWorkflowNode]),
+  ...(Array.isArray(SlackWorkflowNode)
+    ? SlackWorkflowNode
+    : [SlackWorkflowNode]),
   ...(Array.isArray(ZendeskAuth) ? ZendeskAuth : [ZendeskAuth]),
   ...(Array.isArray(ZendeskSync) ? ZendeskSync : [ZendeskSync]),
   ...(Array.isArray(ZohoAuth) ? ZohoAuth : [ZohoAuth]),

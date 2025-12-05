@@ -21,6 +21,16 @@ export class WorkflowEvaluationError extends Error {
 }
 
 /**
+ * Wrapper for arrow function AST nodes
+ * This allows us to pass arrow functions to array methods without creating actual JS functions
+ */
+interface ArrowFunctionWrapper {
+  readonly __isArrowFunction: true;
+  readonly params: string[];
+  readonly body: any;
+}
+
+/**
  * Whitelisted string methods that are safe to execute
  */
 const SAFE_STRING_METHODS = new Set([
@@ -113,6 +123,7 @@ export class WorkflowExpressionParser {
   private inputData: unknown;
   private recursionDepth: number;
   private iterationCount: number;
+  private localScope: Record<string, unknown>;
 
   constructor() {
     this.context = {};
@@ -120,6 +131,7 @@ export class WorkflowExpressionParser {
     this.inputData = null;
     this.recursionDepth = 0;
     this.iterationCount = 0;
+    this.localScope = {};
   }
 
   /**
@@ -254,6 +266,9 @@ export class WorkflowExpressionParser {
         case 'TemplateLiteral':
           return this.evaluateTemplateLiteral(node);
 
+        case 'ArrowFunctionExpression':
+          return this.createArrowFunction(node);
+
         default:
           throw new WorkflowSecurityError(
             `Unsupported node type: ${node.type}`
@@ -268,6 +283,11 @@ export class WorkflowExpressionParser {
    * Evaluate an identifier (variable name)
    */
   private evaluateIdentifier(name: string): unknown {
+    // Check local scope first (for arrow function parameters)
+    if (name in this.localScope) {
+      return this.localScope[name];
+    }
+
     // Check for dangerous identifiers
     this.validateIdentifier(name);
 
@@ -540,6 +560,60 @@ export class WorkflowExpressionParser {
   }
 
   /**
+   * Create an arrow function wrapper (AST representation, not actual JS function)
+   * This wrapper will be recognized and evaluated by array methods
+   */
+  private createArrowFunction(node: any): ArrowFunctionWrapper {
+    const params = node.params.map((p: any) => {
+      this.validateIdentifier(p.name);
+      return p.name;
+    });
+    const body = node.body;
+
+    return {
+      __isArrowFunction: true,
+      params,
+      body,
+    };
+  }
+
+  /**
+   * Check if a value is an arrow function wrapper
+   */
+  private isArrowFunction(value: unknown): value is ArrowFunctionWrapper {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      '__isArrowFunction' in value &&
+      (value as ArrowFunctionWrapper).__isArrowFunction === true
+    );
+  }
+
+  /**
+   * Evaluate an arrow function with given arguments
+   */
+  private evaluateArrowFunction(
+    arrowFn: ArrowFunctionWrapper,
+    args: unknown[]
+  ): unknown {
+    // Save previous local scope
+    const previousScope = { ...this.localScope };
+
+    try {
+      // Set arrow function parameters in local scope
+      arrowFn.params.forEach((param: string, index: number) => {
+        this.localScope[param] = args[index];
+      });
+
+      // Evaluate the body of the arrow function
+      return this.evaluateNode(arrowFn.body);
+    } finally {
+      // Restore previous local scope
+      this.localScope = previousScope;
+    }
+  }
+
+  /**
    * Handle $() node access function
    */
   private handleNodeAccess(args: unknown[]): unknown {
@@ -714,6 +788,19 @@ export class WorkflowExpressionParser {
       throw new WorkflowSecurityError(`Method "${methodName}" is not allowed`);
     }
 
+    // Handle array methods with arrow function callbacks manually
+    if (Array.isArray(object) && this.isCallbackMethod(methodName)) {
+      const callback = args[0];
+      if (this.isArrowFunction(callback)) {
+        return this.evaluateArrayMethodWithArrowFunction(
+          object,
+          methodName,
+          callback,
+          args.slice(1)
+        );
+      }
+    }
+
     // Validate callback arguments for array methods that accept them
     if (this.isCallbackMethod(methodName)) {
       this.validateCallbackArguments(args);
@@ -757,6 +844,149 @@ export class WorkflowExpressionParser {
       throw new WorkflowEvaluationError(
         `Method "${methodName}" failed: ${error.message}`
       );
+    }
+  }
+
+  /**
+   * Manually evaluate array methods with arrow functions
+   * This avoids creating actual JS functions and keeps everything in AST evaluation
+   */
+  private evaluateArrayMethodWithArrowFunction(
+    array: unknown[],
+    methodName: string,
+    arrowFn: ArrowFunctionWrapper,
+    extraArgs: unknown[]
+  ): unknown {
+    // Check iteration limit
+    this.iterationCount++;
+    if (this.iterationCount > MAX_ITERATIONS) {
+      throw new WorkflowSecurityError('Maximum iteration count exceeded');
+    }
+
+    // Validate array size
+    if (array.length > MAX_COLLECTION_SIZE) {
+      throw new WorkflowSecurityError('Array size exceeds maximum allowed');
+    }
+
+    switch (methodName) {
+      case 'map': {
+        const result: unknown[] = [];
+        for (let i = 0; i < array.length; i++) {
+          const value = this.evaluateArrowFunction(arrowFn, [
+            array[i],
+            i,
+            array,
+          ]);
+          result.push(value);
+        }
+        return result;
+      }
+
+      case 'filter': {
+        const result: unknown[] = [];
+        for (let i = 0; i < array.length; i++) {
+          const shouldInclude = this.evaluateArrowFunction(arrowFn, [
+            array[i],
+            i,
+            array,
+          ]);
+          if (shouldInclude) {
+            result.push(array[i]);
+          }
+        }
+        return result;
+      }
+
+      case 'find': {
+        for (let i = 0; i < array.length; i++) {
+          const matches = this.evaluateArrowFunction(arrowFn, [
+            array[i],
+            i,
+            array,
+          ]);
+          if (matches) {
+            return array[i];
+          }
+        }
+        return undefined;
+      }
+
+      case 'findIndex': {
+        for (let i = 0; i < array.length; i++) {
+          const matches = this.evaluateArrowFunction(arrowFn, [
+            array[i],
+            i,
+            array,
+          ]);
+          if (matches) {
+            return i;
+          }
+        }
+        return -1;
+      }
+
+      case 'some': {
+        for (let i = 0; i < array.length; i++) {
+          const matches = this.evaluateArrowFunction(arrowFn, [
+            array[i],
+            i,
+            array,
+          ]);
+          if (matches) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      case 'every': {
+        for (let i = 0; i < array.length; i++) {
+          const matches = this.evaluateArrowFunction(arrowFn, [
+            array[i],
+            i,
+            array,
+          ]);
+          if (!matches) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      case 'reduce': {
+        if (array.length === 0 && extraArgs.length === 0) {
+          throw new WorkflowEvaluationError(
+            'Reduce of empty array with no initial value'
+          );
+        }
+
+        let accumulator: unknown;
+        let startIndex: number;
+
+        if (extraArgs.length > 0) {
+          accumulator = extraArgs[0];
+          startIndex = 0;
+        } else {
+          accumulator = array[0];
+          startIndex = 1;
+        }
+
+        for (let i = startIndex; i < array.length; i++) {
+          accumulator = this.evaluateArrowFunction(arrowFn, [
+            accumulator,
+            array[i],
+            i,
+            array,
+          ]);
+        }
+
+        return accumulator;
+      }
+
+      default:
+        throw new WorkflowSecurityError(
+          `Array method "${methodName}" with arrow functions is not supported`
+        );
     }
   }
 
@@ -813,15 +1043,23 @@ export class WorkflowExpressionParser {
 
   /**
    * Validate callback arguments to prevent function injection
+   * Allows arrow function wrappers created by the parser, but blocks external functions
    */
   private validateCallbackArguments(args: unknown[]): void {
     for (const arg of args) {
+      // Allow arrow function wrappers created by the parser
+      if (this.isArrowFunction(arg)) {
+        continue;
+      }
+
+      // Block any actual JavaScript functions (security risk)
       if (typeof arg === 'function') {
         throw new WorkflowSecurityError(
-          'Callback functions are not supported. Array methods with callbacks cannot be used.'
+          'Callback functions are not supported. Use arrow function syntax in expressions instead.'
         );
       }
-      // Also check for objects that might contain functions
+
+      // Check for objects that might contain external functions
       if (arg !== null && typeof arg === 'object') {
         this.validateContextData(arg, 0, new WeakSet());
       }

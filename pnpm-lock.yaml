@@ -1439,6 +1439,9 @@ importers:
       nc-jsep:
         specifier: ^1.7.5
         version: 1.7.5
+      nc-jsep-plugin-arrow:
+        specifier: ^1.7.5
+        version: 1.7.5(nc-jsep@1.7.5)
       nc-jsep-plugin-object:
         specifier: ^1.7.5
         version: 1.7.5(nc-jsep@1.7.5)
@@ -14904,6 +14907,12 @@ packages:
 
   nc-analytics@0.0.6:
     resolution: {integrity: sha512-YMNRCs8KVnK5CADBAmrfznN589zMzYmzVVkr0coPw8nq0NMcNYft0lONeGs8g/urvZuw/GHfMoVbgbhch0/OxA==}
+
+  nc-jsep-plugin-arrow@1.7.5:
+    resolution: {integrity: sha512-73Narl9BQQwGbksT5Ls5FZeQID+DoyqAameSsKKuzRRcWyOZG1L2qX2DVhT5ptmhIWFAdZfYs/z6UaA3JM8vGg==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      nc-jsep: 1.7.5
 
   nc-jsep-plugin-object@1.7.5:
     resolution: {integrity: sha512-NCEDhcmE/Tc1IROg3zlnbo8YzhIJn2zcwI7py5fLTAPWqofZq5KrvNVWm6vn1a/nym05vwhj1iqK7SdDTANXtQ==}
@@ -38310,6 +38319,10 @@ snapshots:
   natural-compare@1.4.0: {}
 
   nc-analytics@0.0.6: {}
+
+  nc-jsep-plugin-arrow@1.7.5(nc-jsep@1.7.5):
+    dependencies:
+      nc-jsep: 1.7.5
 
   nc-jsep-plugin-object@1.7.5(nc-jsep@1.7.5):
     dependencies:

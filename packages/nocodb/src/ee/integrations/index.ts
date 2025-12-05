@@ -16,6 +16,7 @@ import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
 import CoreWorkflowNode from '@noco-local-integrations/core-workflow-node';
 import DeepseekAi from '@noco-local-integrations/deepseek-ai';
 import DropboxAuth from '@noco-local-integrations/dropbox-auth';
+import DropboxSync from '@noco-local-integrations/dropbox-sync';
 import FreshdeskAuth from '@noco-local-integrations/freshdesk-auth';
 import FreshdeskSync from '@noco-local-integrations/freshdesk-sync';
 import GithubAuth from '@noco-local-integrations/github-auth';
@@ -56,6 +57,7 @@ export default [
   ...(Array.isArray(CoreWorkflowNode) ? CoreWorkflowNode : [CoreWorkflowNode]),
   ...(Array.isArray(DeepseekAi) ? DeepseekAi : [DeepseekAi]),
   ...(Array.isArray(DropboxAuth) ? DropboxAuth : [DropboxAuth]),
+  ...(Array.isArray(DropboxSync) ? DropboxSync : [DropboxSync]),
   ...(Array.isArray(FreshdeskAuth) ? FreshdeskAuth : [FreshdeskAuth]),
   ...(Array.isArray(FreshdeskSync) ? FreshdeskSync : [FreshdeskSync]),
   ...(Array.isArray(GithubAuth) ? GithubAuth : [GithubAuth]),

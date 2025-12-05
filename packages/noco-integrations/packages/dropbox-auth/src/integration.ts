@@ -81,12 +81,10 @@ export class DropboxAuthIntegration extends AuthIntegration<
   }
 
   // https://www.dropbox.com/developers/reference/oauth-guide
-  public async exchangeToken(
-    payload: {
-      code: string;
-      code_verifier?: string;
-    },
-  ): Promise<{
+  public async exchangeToken(payload: {
+    code: string;
+    code_verifier?: string;
+  }): Promise<{
     oauth_token: string;
     refresh_token?: string;
     expires_in?: number;
@@ -120,9 +118,7 @@ export class DropboxAuthIntegration extends AuthIntegration<
     };
   }
 
-  public async refreshToken(
-    payload: { refresh_token: string },
-  ): Promise<{
+  public async refreshToken(payload: { refresh_token: string }): Promise<{
     oauth_token: string;
     refresh_token?: string;
     expires_in?: number;

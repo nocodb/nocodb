@@ -18,7 +18,7 @@ export const scopes = [
 // OAuth URIs for Dropbox
 export const authUri =
   clientId && redirectUri
-    ? `https://www.dropbox.com/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`
+    ? `https://www.dropbox.com/oauth2/authorize?token_access_type=offline&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scopes.join(' '))}`
     : '';
 
 export const tokenUri = 'https://api.dropbox.com/oauth2/token';

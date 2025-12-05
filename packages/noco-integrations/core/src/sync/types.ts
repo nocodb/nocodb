@@ -374,8 +374,8 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
     label: string;
     value: string;
   }[] > {
-  return [];
-}
+    return [];
+  }
 }
 
 /**

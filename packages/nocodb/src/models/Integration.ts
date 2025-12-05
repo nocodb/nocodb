@@ -613,7 +613,7 @@ export default class Integration implements IntegrationType {
       NcError._.internalServerError('Integration not found');
     }
 
-    return new integrationWrapper.wrapper(config.config) as T;
+    return new integrationWrapper.wrapper(config.config, {}) as T;
   }
 
   public wrapper: IntegrationWrapper;
@@ -629,7 +629,18 @@ export default class Integration implements IntegrationType {
         NcError._.internalServerError('Integration not found');
       }
 
-      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), pLogger);
+      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), {
+        saveConfig: async (config: any) => {
+          await Integration.updateIntegration(
+            {
+              workspace_id: this.fk_workspace_id,
+            },
+            this.id,
+            { config },
+          );
+        },
+        logger: pLogger,
+      });
 
       if (
         this.type === IntegrationsType.Auth &&

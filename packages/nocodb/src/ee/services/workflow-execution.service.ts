@@ -116,19 +116,22 @@ export class WorkflowExecutionService {
     let nodeWrapper;
 
     try {
-      nodeWrapper = new integration.wrapper({
-        ...nodeConfig,
-        _nocodb: {
-          context: {
-            ...context,
+      nodeWrapper = new integration.wrapper(
+        {
+          ...nodeConfig,
+          _nocodb: {
+            context: {
+              ...context,
+              user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+            },
+            dataService: this.dataV3Service,
+            tablesService: this.tablesService,
+            mailService: this.mailService,
             user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
           },
-          dataService: this.dataV3Service,
-          tablesService: this.tablesService,
-          mailService: this.mailService,
-          user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
         },
-      }) as WorkflowNodeIntegration;
+        {},
+      ) as WorkflowNodeIntegration;
 
       // Inject auth loader into node instance
       if (typeof nodeWrapper.setAuthLoader === 'function') {

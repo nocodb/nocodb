@@ -322,6 +322,22 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/dropbox-sync:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      axios:
+        specifier: ^1.9.0
+        version: 1.13.2
+    devDependencies:
+      '@types/node':
+        specifier: ^20.17.46
+        version: 20.17.46
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/freshdesk-auth:
     dependencies:
       '@noco-integrations/core':
@@ -6025,7 +6041,7 @@ snapshots:
       '@vue-flow/core': 1.47.0(vue@3.5.24(typescript@5.8.3))
       acorn-loose: 8.5.2
       acorn-walk: 8.3.4
-      axios: 1.9.0
+      axios: 1.13.2
       chevrotain: 10.5.0
       dayjs: 1.11.13
       fast-deep-equal: 3.1.3

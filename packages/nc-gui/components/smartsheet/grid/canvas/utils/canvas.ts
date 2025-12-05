@@ -257,6 +257,7 @@ export const renderCheckbox = (
   isDisabled: boolean,
   spriteLoader: SpriteLoader,
   strokeColor = '#E5E7EB',
+  getColor: GetColorType,
 ) => {
   const size = 16
   const radius = 4
@@ -265,7 +266,7 @@ export const renderCheckbox = (
   ctx.roundRect(x, y, size, size, radius)
 
   if (isDisabled) {
-    ctx.fillStyle = '#F5F5F5'
+    ctx.fillStyle = getColor('#F5F5F5')
     ctx.fill()
 
     if (isChecked) {
@@ -274,15 +275,15 @@ export const renderCheckbox = (
         size: 12,
         x: x + 2,
         y: y + 2,
-        color: '#B8B8B8',
+        color: getColor('#B8B8B8'),
       })
     }
 
-    ctx.strokeStyle = strokeColor ?? '#D9D9D9'
+    ctx.strokeStyle = strokeColor ?? getColor('#D9D9D9')
     ctx.lineWidth = 1
     ctx.stroke()
   } else if (isChecked) {
-    ctx.fillStyle = '#3366FF'
+    ctx.fillStyle = getColor('--rgb-color-brand-500')
     ctx.fill()
 
     const checkX = x + 3.5
@@ -298,10 +299,10 @@ export const renderCheckbox = (
     ctx.lineTo(checkX + checkSize + 2, checkY)
     ctx.stroke()
   } else {
-    ctx.fillStyle = '#FFFFFF'
+    ctx.fillStyle = getColor('#FFFFFF', themeV4Colors.base.white)
     ctx.fill()
 
-    ctx.strokeStyle = strokeColor ?? '#D1D5DB'
+    ctx.strokeStyle = strokeColor ?? getColor('#D1D5DB')
     ctx.lineWidth = 1
     ctx.stroke()
   }

@@ -117,14 +117,10 @@ const onTestConnection = async () => {
         @click="onTestConnection"
       >
         <div class="flex items-center gap-2">
-          <GeneralIcon
-            v-if="testConnectionResult?.success === true"
-            icon="circleCheckSolid"
-            class="text-success w-4 h-4 bg-white-500"
-          />
+          <GeneralIcon v-if="testConnectionResult?.success === true" icon="circleCheckSolid" class="text-success w-4 h-4" />
           <NcTooltip v-if="testConnectionResult?.success === false" placement="top">
             <template #title>{{ testConnectionResult?.message }}</template>
-            <GeneralIcon icon="alertTriangleSolid" class="text-warning w-4 h-4 bg-white-500" />
+            <GeneralIcon icon="alertTriangleSolid" class="text-warning w-4 h-4" />
           </NcTooltip>
           Test connection
         </div>

@@ -261,7 +261,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
         <template v-else-if="item.type === 'text'">
           <div
             class="leading-5 whitespace-pre-wrap"
-            :class="{ 'text-nc-content-red-medium': item.style === 'error', 'text-orange-500': item.style === 'warning' }"
+            :class="{ 'text-nc-content-red-medium': item.style === 'error', 'text-nc-content-orange-medium': item.style === 'warning' }"
             data-testid="nc-playground-text-output"
           >
             {{ item.content }}
@@ -370,7 +370,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
 }
 
 .nc-scripts-table {
-  @apply border-1 border-separate rounded-md border-gray-300 w-full border-1 border-nc-border-gray-medium;
+  @apply border-1 border-separate rounded-md border-nc-border-gray-dark w-full border-1 border-nc-border-gray-medium;
   border-spacing: 0px;
 
   thead {

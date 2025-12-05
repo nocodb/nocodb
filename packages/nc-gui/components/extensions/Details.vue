@@ -260,7 +260,7 @@ const detailsBody = computed(() => {
 
     // Pre tag is the parent wrapper for Code block
     pre {
-      @apply overflow-auto mt-3 bg-gray-100;
+      @apply overflow-auto mt-3 bg-nc-bg-gray-light;
 
       border-color: #d0d5dd;
       border: 1px;
@@ -276,7 +276,7 @@ const detailsBody = computed(() => {
     }
 
     code {
-      @apply rounded-md px-2 py-1 bg-gray-100;
+      @apply rounded-md px-2 py-1 bg-nc-bg-gray-light;
 
       color: inherit;
       font-size: 0.8rem;

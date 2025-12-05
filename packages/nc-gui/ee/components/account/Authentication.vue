@@ -158,7 +158,7 @@ onMounted(async () => {
               {{ $t('labels.ssoSettings') }}
             </span>
             <a
-              class="!text-gray-700 !hover:text-gray-700"
+              class="!text-nc-content-inverted-secondary !hover:text-nc-content-inverted-secondary"
               href="https://nocodb.com/docs/product-docs/account-settings/authentication#single-sign-on-sso"
               target="_blank"
               rel="noopener"
@@ -166,22 +166,22 @@ onMounted(async () => {
               Go to documentation
             </a>
           </div>
-          <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
+          <div class="mt-5 flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-2">
             <div class="flex font-bold text-base" data-rec="true">{{ $t('labels.generalSettings') }}</div>
             <div class="">
-              <h1 class="text-md text-gray-800">SignIn URL</h1>
-              <div class="flex border-gray-200 border-1 bg-gray-50 items-center justify-between py-2 px-4 rounded-lg">
-                <span class="text-gray-800"> {{ signInUrl }} </span>
+              <h1 class="text-md text-nc-content-gray">SignIn URL</h1>
+              <div class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg">
+                <span class="text-nc-content-gray"> {{ signInUrl }} </span>
                 <NcButton size="xsmall" type="text" @click="copyRedirectUrl">
                   <MdiCheck v-if="isCopied.signIn" class="h-3.5" />
-                  <component :is="iconMap.copy" v-else class="text-gray-800" />
+                  <component :is="iconMap.copy" v-else class="text-nc-content-gray" />
                 </NcButton>
               </div>
             </div>
           </div>
 
           <div
-            class="flex mt-5 rounded-2xl flex-row justify-between nc-google-provider w-full items-center p-4 hover:bg-gray-50 border-1 cursor-pointer group text-gray-600"
+            class="flex mt-5 rounded-2xl flex-row justify-between nc-google-provider w-full items-center p-4 hover:bg-nc-bg-gray-extralight border-1 cursor-pointer group text-nc-content-gray-subtle2"
             data-test-id="nc-google-provider"
             @click="enableEdit(googleProvider)"
           >
@@ -192,14 +192,14 @@ onMounted(async () => {
                 size="small"
                 @change="updateProviderStatus(googleProvider)"
               />
-              <span class="text-base font-bold ml-2 group-hover:text-black capitalize" data-test-id="nc-saml-title">
+              <span class="text-base font-bold ml-2 group-hover:text-nc-content-gray-extreme capitalize" data-test-id="nc-saml-title">
                 Google
               </span>
             </div>
 
             <NcDropdown :trigger="['click']" placement="bottomRight" @click.stop>
               <NcButton
-                class="!text-gray-500 !hover:text-gray-800 nc-google-more-option"
+                class="!text-nc-content-gray-muted !hover:text-nc-content-gray nc-google-more-option"
                 data-test-id="nc-google-more-option"
                 size="xsmall"
                 type="text"
@@ -223,7 +223,7 @@ onMounted(async () => {
               </template>
             </NcDropdown>
           </div>
-          <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6">
+          <div class="mt-5 flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6">
             <div class="flex font-bold justify-between text-base" data-rec="true">
               {{ $t('labels.saml') }}
 
@@ -240,19 +240,19 @@ onMounted(async () => {
             </div>
             <a-divider class="text-gray-200" />
             <div class="flex flex-col">
-              <span v-if="!samlProviders.length" class="text-gray-500"> {{ $t('msg.info.noSaml') }} </span>
+              <span v-if="!samlProviders.length" class="text-nc-content-gray-muted"> {{ $t('msg.info.noSaml') }} </span>
               <div
                 v-for="(sam, id) in samlProviders"
                 :key="id"
                 :data-test-id="`nc-saml-provider-${sam.title}`"
-                class="flex flex-row justify-between nc-saml-provider w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
+                class="flex flex-row justify-between nc-saml-provider w-full items-center p-3 hover:bg-nc-bg-gray-extralight first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-nc-content-gray-subtle2"
                 @click="enableEdit(sam)"
               >
                 <div :class="`nc-saml-${sam.title}-enable`">
                   <span @click.stop>
                     <NcSwitch :checked="!!sam.enabled" class="min-w-4" size="small" @change="updateProviderStatus(sam)" />
                   </span>
-                  <span class="text-inherit ml-2 group-hover:text-black capitalize" data-test-id="nc-saml-title">
+                  <span class="text-inherit ml-2 group-hover:text-nc-content-gray-extreme capitalize" data-test-id="nc-saml-title">
                     {{ sam?.title }}
                   </span>
                 </div>
@@ -260,7 +260,7 @@ onMounted(async () => {
                 <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
                   <NcButton
                     :class="`nc-saml-${sam.title}-more-option`"
-                    class="!text-gray-500 !hover:text-gray-800"
+                    class="!text-nc-content-gray-muted !hover:text-nc-content-gray"
                     data-test-id="nc-saml-more-option"
                     size="xsmall"
                     type="text"
@@ -288,7 +288,7 @@ onMounted(async () => {
               </div>
             </div>
           </div>
-          <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6" data-test-id="nc-oidc-provider">
+          <div class="mt-5 flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6" data-test-id="nc-oidc-provider">
             <div class="flex font-bold justify-between text-base" data-rec="true">
               {{ $t('labels.oidc') }}
 
@@ -305,19 +305,19 @@ onMounted(async () => {
             </div>
             <a-divider class="text-gray-200" />
             <div class="flex flex-col">
-              <span v-if="!oidcProviders.length" class="text-gray-500"> {{ $t('msg.info.noSaml') }} </span>
+              <span v-if="!oidcProviders.length" class="text-nc-content-gray-muted"> {{ $t('msg.info.noSaml') }} </span>
               <div
                 v-for="(oid, id) in oidcProviders"
                 :key="id"
                 :data-test-id="`nc-oidc-provider-${oid.title}`"
-                class="flex flex-row nc-oidc-provider justify-between w-full items-center p-3 hover:bg-gray-50 first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-gray-600"
+                class="flex flex-row nc-oidc-provider justify-between w-full items-center p-3 hover:bg-nc-bg-gray-extralight first:rounded-t-lg border-b-1 first:border-t-1 border-x-1 last:rounded-b-lg cursor-pointer group text-nc-content-gray-subtle2"
                 @click="enableEdit(oid)"
               >
                 <div :class="`nc-oidc-${oid.title}-enable`">
                   <span @click.stop>
                     <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @change="updateProviderStatus(oid)" />
                   </span>
-                  <span class="text-inherit ml-2 group-hover:text-black capitalize" data-test-id="nc-oidc-title">
+                  <span class="text-inherit ml-2 group-hover:text-nc-content-gray-extreme capitalize" data-test-id="nc-oidc-title">
                     {{ oid?.title }}
                   </span>
                 </div>
@@ -325,7 +325,7 @@ onMounted(async () => {
                 <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
                   <NcButton
                     :class="`nc-oidc-${oid.title}-more-option`"
-                    class="!text-gray-500 !hover:text-gray-800"
+                    class="!text-nc-content-gray-muted !hover:text-nc-content-gray"
                     data-test-id="nc-oidc-more-option"
                     size="xsmall"
                     type="text"

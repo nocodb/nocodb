@@ -117,38 +117,24 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
           }"
           :is-locked="!!newRole"
           variant="default"
-          item-class-name="nc-role-select-dropdown"
+          item-class-name="nc-role-select-dropdown !px-3"
           :wrapper-class-name="`!h-auto nc-role-selector-dropdown ${!!newRole ? '!cursor-wait' : ''}`"
           @update:value="onChangeRole"
           @escape="onEsc"
         >
           <template #listItem="{ option }">
-            <div
-              class="w-full flex flex-col rounded-md -mx-1 px-3"
-              :class="[
-                `nc-role-select-${option.value}`,
-                {
-                  '!bg-gray-200 dark:!bg-gray-600': option.value === ProjectRoles.INHERIT,
-                },
-              ]"
-            >
+            <div class="w-full flex flex-col rounded-md" :class="[`nc-role-select-${option.value}`]">
               <div class="w-full flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <GeneralIcon
                     :icon="(option.icon as IconMapKey)"
                     class="flex-none h-4 w-4"
-                    :class="
-                      option.value === ProjectRoles.INHERIT
-                        ? 'text-nc-content-gray-muted dark:text-nc-content-gray-light'
-                        : roleColorsMapping[option.color]?.content ?? 'text-gray-300'
-                    "
+                    :class="roleColorsMapping[option.color]?.content ?? 'text-nc-content-brand-hover'"
                   />
                   <span
                     class="text-captionDropdownDefault"
                     :class="[
-                      option.value === ProjectRoles.INHERIT
-                        ? 'text-nc-content-gray-muted dark:text-nc-content-gray-light'
-                        : roleColorsMapping[option.color]?.content ?? 'text-gray-300',
+                      roleColorsMapping[option.color]?.content ?? 'text-nc-content-brand-hover',
                       {
                         '!font-semibold': !description,
                       },
@@ -158,7 +144,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
                   </span>
                 </div>
                 <GeneralLoader v-if="option.value === newRole" size="medium" />
-                <GeneralIcon v-else-if="!newRole && option.value === role" icon="check" class="text-primary h-4 w-4" />
+                <GeneralIcon v-else-if="!newRole && option.value === role" icon="check" class="text-nc-content-brand h-4 w-4" />
               </div>
               <div
                 v-if="description"

@@ -220,7 +220,7 @@ watch(
           </svg>
 
           <!-- Value display -->
-          <div v-if="showValue" class="text-center text-xl font-bold text-gray-700">
+          <div v-if="showValue" class="text-center text-xl font-bold text-nc-content-gray-subtle">
             {{ Intl.NumberFormat().format(gaugeValue) }}
           </div>
 
@@ -228,7 +228,7 @@ watch(
           <div v-if="gaugeRanges.length > 0" class="flex flex-wrap gap-2 justify-center px-2">
             <div v-for="(range, index) in gaugeRanges" :key="index" class="flex items-center gap-1.5">
               <div class="w-2.5 h-2.5 rounded-full" :style="{ backgroundColor: range.color }" />
-              <span class="text-xs text-gray-600">{{ range.label || `${range.min}-${range.max}` }}</span>
+              <span class="text-xs text-nc-content-gray-subtle2">{{ range.label || `${range.min}-${range.max}` }}</span>
             </div>
           </div>
         </div>

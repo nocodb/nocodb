@@ -173,7 +173,7 @@ watch(selected, () => {
             class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
           >
             <template #prefix>
-              <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
+              <component :is="iconMap.search" class="w-4 text-nc-content-gray-muted h-4" />
             </template>
           </a-input>
           <NcDropdown v-if="isSomeSelected">
@@ -186,7 +186,7 @@ watch(selected, () => {
             <template #overlay>
               <NcMenu variant="small">
                 <NcMenuItem @click="inviteUsersToWorkspace">
-                  <GeneralIcon class="text-gray-800" icon="email" />
+                  <GeneralIcon class="text-nc-content-gray" icon="email" />
                   <span>{{ $t('labels.inviteUsersToWorkspace') }}</span>
                 </NcMenuItem>
               </NcMenu>
@@ -227,7 +227,7 @@ watch(selected, () => {
             <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
               <div class="flex gap-2">
                 <NcTooltip
-                  class="truncate text-gray-800 capitalize font-semibold"
+                  class="truncate text-nc-content-gray capitalize font-semibold"
                   :class="{
                     'max-w-1/2': member.cloud_org_roles,
                     'max-w-full': !member.cloud_org_roles,
@@ -249,7 +249,7 @@ watch(selected, () => {
                   class="!px-1"
                 />
               </div>
-              <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+              <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                 <template #title>
                   {{ member.email }}
                 </template>
@@ -266,7 +266,7 @@ watch(selected, () => {
 
               <template #overlay>
                 <div class="rounded-lg">
-                  <div class="rounded-t-lg font-medium bg-gray-100 py-1.5 px-2">
+                  <div class="rounded-t-lg font-medium bg-nc-bg-gray-light py-1.5 px-2">
                     {{ $t('labels.memberIn') }}
                   </div>
                   <div class="max-h-72 nc-scrollbar-md overflow-y-auto">
@@ -345,14 +345,14 @@ watch(selected, () => {
 
 <style lang="scss" scoped>
 .ant-input::placeholder {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .ant-input:placeholder-shown {
-  @apply text-gray-500 !text-md;
+  @apply text-nc-content-gray-muted !text-md;
 }
 
 .ant-input-affix-wrapper {
-  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
 }
 </style>

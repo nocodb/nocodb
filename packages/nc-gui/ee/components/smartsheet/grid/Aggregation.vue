@@ -64,10 +64,10 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
       @click.stop
     >
       <div
-        class="flex items-center overflow-x-hidden justify-end group-aggregation text-gray-500 transition-all transition-linear px-3 py-2"
+        class="flex items-center overflow-x-hidden justify-end group-aggregation text-nc-content-gray-muted transition-all transition-linear px-3 py-2"
         :class="{
           'cursor-pointer': !isLocked && isViewOperationsAllowed,
-          'hover:bg-gray-100': isViewOperationsAllowed,
+          'hover:bg-nc-bg-gray-light': isViewOperationsAllowed,
           'cursor-auto': !isViewOperationsAllowed,
         }"
         :style="{
@@ -79,12 +79,12 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
         <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)">
           <div
             v-if="field?.aggregation === 'none' || field?.aggregation === null"
-            class="text-gray-500 opacity-0 transition"
+            class="text-nc-content-gray-muted opacity-0 transition"
             :class="{
               'group-hover-aggregation': !isLocked && isViewOperationsAllowed,
             }"
           >
-            <GeneralIcon class="text-gray-500" icon="arrowDown" />
+            <GeneralIcon class="text-nc-content-gray-muted" icon="arrowDown" />
             <span class="text-[10px] font-semibold"> Summary </span>
           </div>
 
@@ -96,11 +96,11 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
             }"
           >
             <div class="flex gap-2 truncate text-nowrap overflow-hidden items-center">
-              <span class="text-gray-500 text-[12px] leading-4">
+              <span class="text-nc-content-gray-muted text-[12px] leading-4">
                 {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
               </span>
 
-              <span class="text-gray-600 font-semibold text-[12px]">
+              <span class="text-nc-content-gray-subtle2 font-semibold text-[12px]">
                 {{
                   getFormattedAggrationValue(field.aggregation, group.aggregations[column.title], column, [], {
                     meta,
@@ -144,10 +144,10 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
             class="!flex-1 nc-aggregation-menu"
             @click="updateAggregate(column.id, agg)"
           >
-            <div class="flex !flex-grow-1 !w-full text-[13px] text-gray-800 items-center justify-between">
+            <div class="flex !flex-grow-1 !w-full text-[13px] text-nc-content-gray items-center justify-between">
               {{ $t(`aggregation_type.${agg}`) }}
 
-              <GeneralIcon v-if="field?.aggregation === agg" class="text-brand-500" icon="check" />
+              <GeneralIcon v-if="field?.aggregation === agg" class="text-nc-content-brand" icon="check" />
             </div>
           </NcMenuItem>
         </NcMenu>

@@ -632,7 +632,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                     v-if="coverImageColumnId === option.value"
                     id="nc-selected-item-icon"
                     icon="check"
-                    class="flex-none text-primary w-4 h-4"
+                    class="flex-none text-nc-content-brand w-4 h-4"
                   />
                 </div>
               </a-select-option>
@@ -676,7 +676,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                     <GeneralIcon
                       v-else-if="option.value === coverImageObjectFit"
                       icon="check"
-                      class="flex-none text-primary w-4 h-4"
+                      class="flex-none text-nc-content-brand w-4 h-4"
                     />
                   </NcMenuItem>
                 </NcMenu>
@@ -814,7 +814,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                         <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
                           <NcButton
                             :class="{
-                              '!text-primary !bg-nc-bg-brand hover:!bg-nc-bg-gray-light active:!bg-nc-brand-200': field.bold,
+                              '!text-nc-content-brand !bg-nc-bg-brand hover:!bg-nc-brand-100 active:!bg-nc-brand-200': field.bold,
                               '!rounded-r-none': field.italic,
                             }"
                             class="!w-5 !h-5 hover:!bg-nc-bg-gray-medium active:!bg-nc-bg-gray-dark relative"
@@ -831,7 +831,8 @@ const onAddColumnDropdownVisibilityChange = () => {
                           </NcButton>
                           <NcButton
                             :class="{
-                              '!text-primary !bg-nc-bg-brand hover:!bg-nc-brand-100 active:!bg-nc-brand-200': field.italic,
+                              '!text-nc-content-brand !bg-nc-bg-brand hover:!bg-nc-brand-100 active:!bg-nc-brand-200':
+                                field.italic,
                               '!rounded-l-none': field.bold,
                               '!rounded-r-none': field.underline,
                             }"
@@ -849,7 +850,8 @@ const onAddColumnDropdownVisibilityChange = () => {
                           </NcButton>
                           <NcButton
                             :class="{
-                              '!text-primary !bg-nc-bg-brand hover:!bg-nc-brand-100 active:!bg-nc-brand-200': field.underline,
+                              '!text-nc-content-brand !bg-nc-bg-brand hover:!bg-nc-brand-100 active:!bg-nc-brand-200':
+                                field.underline,
                               '!rounded-l-none': field.italic,
                             }"
                             class="!w-5 !h-5 hover:!bg-nc-bg-gray-medium active:!bg-nc-bg-gray-dark relative"

@@ -83,7 +83,7 @@ onScopeDispose($destroy)
 <template>
   <VueFlow v-model="elements" class="nc-erd-flow">
     <Controls
-      class="bg-transparent rounded-lg shadow-md border-1 border-gray-200 !right-13 flex items-center"
+      class="bg-transparent rounded-lg shadow-md border-1 border-nc-border-gray-medium !right-13 flex items-center"
       :position="PanelPosition.TopRight"
       :show-fit-view="false"
       :show-interactive="false"
@@ -94,7 +94,7 @@ onScopeDispose($destroy)
         </div>
       </template>
       <template #control-zoom-out>
-        <div class="nc-erd-zoom-btn border-l-1 border-gray-200 rounded-r-lg h-9 !px-2 flex items-center" @click="internalZoomOut">
+        <div class="nc-erd-zoom-btn border-l-1 border-nc-border-gray-medium rounded-r-lg h-9 !px-2 flex items-center" @click="internalZoomOut">
           <GeneralIcon icon="minus" />
         </div>
       </template>
@@ -131,7 +131,7 @@ onScopeDispose($destroy)
 }
 
 .nc-erd-zoom-btn {
-  @apply bg-white px-1.5 py-1 hover:(bg-gray-100 text-gray-800) cursor-pointer text-gray-600;
+  @apply bg-nc-bg-default px-1.5 py-1 hover:(bg-nc-bg-gray-light text-nc-content-gray) cursor-pointer text-nc-content-gray-subtle2;
 }
 
 .nc-erd-flow {

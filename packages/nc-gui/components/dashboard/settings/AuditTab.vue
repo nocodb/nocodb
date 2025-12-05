@@ -94,11 +94,11 @@ const columns = [
 
 <template>
   <div class="flex flex-col gap-4 w-full">
-    <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
+    <div v-if="!appInfo.auditEnabled" class="text-nc-content-red-medium">Audit logs are currently disabled by administrators.</div>
     <div class="flex flex-row justify-end items-center">
       <a-button class="self-start !rounded-md" @click="loadAudits">
         <!-- Reload -->
-        <div class="flex items-center gap-2 text-gray-600 font-light">
+        <div class="flex items-center gap-2 text-nc-content-gray-subtle2 font-light">
           <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
 
           {{ $t('general.reload') }}

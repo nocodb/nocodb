@@ -50,6 +50,6 @@ const { appInfo } = useGlobal()
 
 <style scoped lang="scss">
 .nc-workspace-menu-item {
-  @apply flex items-center pl-2 py-2 gap-2 text-sm hover:text-black;
+  @apply flex items-center pl-2 py-2 gap-2 text-sm hover:text-nc-content-gray-extreme;
 }
 </style>

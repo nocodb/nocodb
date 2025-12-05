@@ -555,7 +555,7 @@ onBeforeUnmount(() => {
           <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
           <NuxtLink
             :href="`/admin/${orgId}/bases`"
-            class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent max-w-1/4"
+            class="!hover:(text-nc-content-gray underline-nc-gray-600) flex items-center !text-nc-content-gray-subtle !underline-transparent max-w-1/4"
           >
             <div class="nc-breadcrumb-item">
               {{ $t('objects.projects') }}

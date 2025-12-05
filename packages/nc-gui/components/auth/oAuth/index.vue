@@ -127,7 +127,7 @@ onMounted(() => {
       v-else-if="error"
       class="rounded-xl shadow-sm bg-nc-bg-default border-1 border-nc-border-gray-medium p-8 max-w-md w-full text-center"
     >
-      <GeneralIcon icon="alertTriangle" class="w-12 h-12 text-red-500 mx-auto mb-4" />
+      <GeneralIcon icon="alertTriangle" class="w-12 h-12 text-nc-content-red-medium mx-auto mb-4" />
       <h2 class="text-xl font-semibold text-nc-content-gray-extreme mb-2">Authorization Error</h2>
       <p class="text-nc-content-gray-subtle2 mb-6">{{ error }}</p>
       <NcButton size="small" type="primary" @click="$router.push('/')"> Back to NocoDB </NcButton>
@@ -171,7 +171,7 @@ onMounted(() => {
       </div>
 
       <div class="bg-nc-bg-gray-extralight mt-4 rounded-lg p-4">
-        <h3 class="font-medium text-gray-900 mb-3">This application will be able to:</h3>
+        <h3 class="font-medium text-nc-content-gray-emphasis mb-3">This application will be able to:</h3>
         <ul class="space-y-2">
           <li class="flex items-center text-sm text-nc-content-gray-subtle">
             <GeneralIcon icon="ncCheck" class="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />

@@ -13,7 +13,7 @@ const vModel = useVModel(props, 'value', (_, val) => {
 </script>
 
 <template>
-  <div class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 w-[fit-content] text-nc-content-gray-subtle2 font-weight-500">
+  <div class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 w-[fit-content] text-nc-content-gray-subtle2 font-weight-500">
     <div
       class="tab"
       :class="{
@@ -43,7 +43,7 @@ const vModel = useVModel(props, 'value', (_, val) => {
 
 <style lang="scss" scoped>
 .tab {
-  @apply flex flex-row items-center h-8 justify-center px-2 py-1 rounded-[6px] gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none hover:text-brand-600;
+  @apply flex flex-row items-center h-8 justify-center px-2 py-1 rounded-[6px] gap-x-2 text-nc-content-gray-subtle2 hover:text-nc-content-gray-extreme cursor-pointer transition-all duration-300 select-none hover:text-nc-content-brand-disabled;
 }
 
 .tab-icon {
@@ -59,7 +59,7 @@ const vModel = useVModel(props, 'value', (_, val) => {
 }
 
 .active {
-  @apply bg-white text-nc-content-gray-emphasis font-semibold;
+  @apply bg-nc-bg-default text-nc-content-gray-emphasis font-semibold;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }

@@ -103,6 +103,20 @@ body {
   @apply text-nc-content-gray-muted;
 }
 
+// ant tabs
+.ant-tabs-tab-btn:active,
+.ant-tabs-tab-btn:focus,
+.ant-tabs-tab-remove:active,
+.ant-tabs-tab-remove:focus,
+.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  --tw-bg-opacity: 1;
+  color: rgba(var(--rgb-color-brand-500), var(--tw-bg-opacity));
+}
+
+.ant-tabs-ink-bar {
+  background: rgb(var(--rgb-color-brand-500));
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {
@@ -178,6 +192,10 @@ body {
         @apply border-nc-border-gray-medium;
       }
     }
+
+    .ant-checkbox-disabled + span {
+      @apply text-nc-content-gray-disabled;
+    }
   }
 }
 
@@ -193,7 +211,6 @@ body {
   select:-webkit-autofill,
   select:-webkit-autofill:hover,
   select:-webkit-autofill:focus {
-    border: 1px solid var(--nc-border-gray-medium);
     -webkit-text-fill-color: var(--nc-content-gray-default);
     -webkit-box-shadow: none;
     box-shadow: none; /* Auto fill input bg color*/
@@ -204,7 +221,9 @@ body {
   textarea,
   .ant-input-affix-wrapper,
   .ant-input-number {
-    &:not(:disabled) {
+    @apply placeholder-nc-content-gray-disabled;
+
+    &:not(:disabled):not(:-webkit-autofill) {
       @apply !bg-transparent text-nc-content-gray;
     }
 
@@ -232,7 +251,9 @@ body {
   }
 
   .ant-input-affix-wrapper {
-    @apply border-nc-border-gray-medium;
+    &:not(:focus):not(:active):not(.ant-input-affix-wrapper-focused) {
+      @apply border-nc-border-gray-medium;
+    }
 
     .anticon {
       @apply text-nc-content-gray-subtle;

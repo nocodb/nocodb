@@ -212,7 +212,7 @@ const handleCancel = () => {
       <div class="p-3 pb-0 h-full">
         <div
           v-if="isMarkdown"
-          class="nc-text-widget-expanded-textarea overflow-auto border-1 border-nc-border-gray-medium bg-white !rounded-lg focus-within:border-nc-border-brand"
+          class="nc-text-widget-expanded-textarea overflow-auto border-1 border-nc-border-gray-medium bg-nc-bg-default !rounded-lg focus-within:border-nc-border-brand"
           :style="{
             resize: 'both',
             maxHeight: 'min(795px, 100vh - 170px)',

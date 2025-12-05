@@ -105,7 +105,7 @@ watch(activeWorkspaceId, () => {
 
 <template>
   <div class="nc-content-max-w mx-auto h-full flex flex-col gap-6">
-    <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
+    <div v-if="!appInfo.auditEnabled" class="text-nc-content-red-medium">Audit logs are currently disabled by administrators.</div>
 
     <template v-else>
       <WorkspaceAuditsHeader />
@@ -125,7 +125,7 @@ watch(activeWorkspaceId, () => {
               <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
                 <div class="w-full flex gap-3">
                   <NcTooltip
-                    class="text-sm !leading-5 text-gray-800 capitalize font-semibold truncate"
+                    class="text-sm !leading-5 text-nc-content-gray capitalize font-semibold truncate"
                     show-on-truncate-only
                     placement="bottom"
                   >
@@ -135,7 +135,7 @@ watch(activeWorkspaceId, () => {
                     {{ getUserName(audit.user) }}
                   </NcTooltip>
                 </div>
-                <NcTooltip class="text-xs !leading-4 text-gray-600 truncate" show-on-truncate-only placement="bottom">
+                <NcTooltip class="text-xs !leading-4 text-nc-content-gray-subtle2 truncate" show-on-truncate-only placement="bottom">
                   <template #title>
                     {{ collaboratorsMap.get(audit.user)?.email }}
                   </template>
@@ -155,14 +155,14 @@ watch(activeWorkspaceId, () => {
           </div>
           <div v-if="column.key === 'base_id'" class="w-full">
             <div v-if="bases.get(audit.base_id)" class="w-full">
-              <NcTooltip class="truncate text-sm !leading-5 text-gray-800 font-semibold" show-on-truncate-only placement="bottom">
+              <NcTooltip class="truncate text-sm !leading-5 text-nc-content-gray font-semibold" show-on-truncate-only placement="bottom">
                 <template #title>
                   {{ bases.get(audit.base_id)?.title }}
                 </template>
                 {{ bases.get(audit.base_id)?.title }}
               </NcTooltip>
 
-              <div class="text-gray-600 text-xs">ID: {{ audit.base_id }}</div>
+              <div class="text-nc-content-gray-subtle2 text-xs">ID: {{ audit.base_id }}</div>
             </div>
             <div v-else class="truncate">{{ audit.base_id ?? '' }}</div>
           </div>

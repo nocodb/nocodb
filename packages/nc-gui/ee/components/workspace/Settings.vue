@@ -430,7 +430,7 @@ const onCancel = () => {
       <div class="nc-settings-item-card-wrapper mt-10">
         <div class="nc-settings-item-heading text-nc-content-red-dark">{{ $t('labels.dangerZone') }}</div>
 
-        <div class="nc-settings-item-card flex flex-col border-1 border-red-500 text-nc-content-gray">
+        <div class="nc-settings-item-card flex flex-col border-1 border-nc-border-red text-nc-content-gray">
           <div class="nc-settings-item">
             <div class="nc-settings-item-content">
               <div class="nc-settings-item-title">{{ $t('msg.info.leaveThisWorkspace') }}</div>

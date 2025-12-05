@@ -278,7 +278,7 @@ watchEffect(() => {
           :data-type="entity.type"
           class="nc-dashboard-item nc-tree-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
           :class="{
-            'bg-gray-200': isMarked === entity.id,
+            'bg-nc-bg-gray-medium': isMarked === entity.id,
             'active': activeDashboardId === entity.id,
           }"
           :dashboard="entity"

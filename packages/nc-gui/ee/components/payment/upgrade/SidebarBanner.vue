@@ -275,7 +275,7 @@ watch(
                 <NcButton
                   type="text"
                   size="xxsmall"
-                  class="text-gray-700 !hover:(text-gray-800 bg-transparent)"
+                  class="text-nc-content-gray-subtle !hover:(text-nc-content-gray bg-transparent)"
                   @click.stop="isSideBannerExpanded = !isSideBannerExpanded"
                 >
                   <GeneralIcon

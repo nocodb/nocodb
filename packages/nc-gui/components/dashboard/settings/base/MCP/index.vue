@@ -141,9 +141,8 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
 <template>
   <div v-if="isCreatingMcpToken" class="absolute w-full h-full inset-0 flex items-center justify-center z-90 bg-black/12">
     <div
-      v-if="isCreatingMcpToken"
       style="box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1)"
-      class="bg-white p-6 flex flex-col w-[488px] rounded-2xl"
+      class="bg-nc-bg-default p-6 flex flex-col w-[488px] rounded-2xl dark:(border-1 border-nc-border-gray-medium)"
     >
       <div class="text-nc-content-gray-emphasis text-lg font-bold">{{ $t('labels.creatingMCPToken') }}</div>
       <div class="text-nc-gray-subtle2 mt-2">

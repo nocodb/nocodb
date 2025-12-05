@@ -134,7 +134,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
       <NcButton
         :disabled="isUnsavedSnapshotsPending || isCooldownPeriodReached"
         type="ghost"
-        class="!text-primary"
+        class="!text-nc-content-brand"
         data-testid="add-new-snapshot"
         size="small"
         :class="{

@@ -390,12 +390,12 @@ onMounted(async () => {
                 <div
                   class="w-4 h-4 rounded-full border-2 transition-all"
                   :class="
-                    currentCreatedAtColumn === record.title ? 'border-brand-500 bg-white relative' : 'border-gray-300 bg-white'
+                    currentCreatedAtColumn === record.title ? 'border-nc-border-brand bg-nc-bg-default relative' : 'border-nc-border-gray-dark bg-nc-bg-default'
                   "
                 >
                   <div
                     v-if="currentCreatedAtColumn === record.title"
-                    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-brand-500"
+                    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-nc-brand-500"
                   />
                 </div>
               </NcButton>
@@ -413,12 +413,12 @@ onMounted(async () => {
                 <div
                   class="w-4 h-4 rounded-full border-2 transition-all"
                   :class="
-                    currentUpdatedAtColumn === record.title ? 'border-brand-500 bg-white relative' : 'border-gray-300 bg-white'
+                    currentUpdatedAtColumn === record.title ? 'border-nc-border-brand bg-nc-bg-default relative' : 'border-nc-border-gray-dark bg-nc-bg-default'
                   "
                 >
                   <div
                     v-if="currentUpdatedAtColumn === record.title"
-                    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-brand-500"
+                    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-nc-brand-500"
                   />
                 </div>
               </NcButton>
@@ -445,7 +445,7 @@ onMounted(async () => {
 .nc-sync-schema-table {
   @apply h-140;
   :deep(.nc-table-header-cell) {
-    @apply bg-gray-50 text-bodyDefaultSmBold text-nc-content-gray;
+    @apply bg-nc-bg-gray-extralight text-bodyDefaultSmBold text-nc-content-gray;
   }
 
   :deep(.nc-table-cell) {

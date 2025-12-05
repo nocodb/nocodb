@@ -45,6 +45,7 @@ const roleProperties = computed(() => {
   // Use inherited role icon if role is INHERIT and inheritedRoleIcon is provided
   const icon = isInheritRole.value && props.inheritedRoleIcon ? props.inheritedRoleIcon : RoleIcons[role]
   const label = RoleLabels[role]
+
   return {
     color: props.disabled ? 'disabled' : color,
     icon,
@@ -69,12 +70,7 @@ const roleProperties = computed(() => {
 
     <NcBadge
       class="!px-2 w-full"
-      :class="[
-        ncBadgeClass,
-        {
-          '!bg-gray-200 !border-gray-200 dark:!bg-gray-600 dark:!border-gray-600': isInheritRole,
-        },
-      ]"
+      :class="[ncBadgeClass, roleColorsMapping[roleProperties.color]?.badgeClass ?? '']"
       :color="roleProperties.color === 'disabled' ? 'gray' : roleProperties.color"
       :border="borderRef"
       :size="sizeSelect"
@@ -82,17 +78,13 @@ const roleProperties = computed(() => {
       <div
         class="badge-text w-full flex items-center justify-between gap-2"
         :class="
-          isInheritRole
-            ? '!text-nc-content-gray-muted dark:!text-nc-content-gray-light'
-            : roleColorsMapping[roleProperties.color]?.content ?? 'text-nc-content-brand-hover'
+          roleColorsMapping[roleProperties.color]?.badgeContent ??
+          roleColorsMapping[roleProperties.color]?.content ??
+          'text-nc-content-brand-hover'
         "
       >
         <div class="flex items-center gap-2">
-          <GeneralIcon
-            v-if="showIcon"
-            :icon="roleProperties.icon"
-            :class="isInheritRole ? '!text-nc-content-gray-muted dark:!text-nc-content-gray-light' : ''"
-          />
+          <GeneralIcon v-if="showIcon" :icon="roleProperties.icon" />
           <span v-if="!iconOnly" class="flex whitespace-nowrap">
             <slot name="label">
               {{ $t(`objects.roleType.${roleProperties.label}`) }}

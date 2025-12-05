@@ -115,7 +115,7 @@ onBeforeMount(async () => {
           <div class="flex items-center gap-1.5">
             <div v-if="viewingExecution.status === 'success'" class="w-2 h-2 rounded-full bg-green-500" />
             <div v-else-if="viewingExecution.status === 'error'" class="w-2 h-2 rounded-full bg-red-500" />
-            <div v-else class="w-2 h-2 rounded-full bg-gray-400" />
+            <div v-else class="w-2 h-2 rounded-full bg-nc-bg-gray-extradark" />
             <span class="text-bodySm text-nc-content-gray capitalize">
               {{ viewingExecution.status || 'Unknown' }}
             </span>

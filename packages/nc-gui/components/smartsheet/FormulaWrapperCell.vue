@@ -105,7 +105,7 @@ provide(ColumnInj, column)
   }
 
   &.nc-display-value-cell {
-    @apply !text-brand-500 !font-semibold;
+    @apply !text-nc-content-brand !font-semibold;
 
     :deep(.nc-cell-field) {
       @apply !font-semibold;

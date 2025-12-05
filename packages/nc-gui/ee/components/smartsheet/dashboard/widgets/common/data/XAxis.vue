@@ -95,7 +95,7 @@ const filterField = (column: ColumnType) => {
           @update:value="handleChange('sort')"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-inverted-secondary" />
           </template>
         </a-select>
       </div>
@@ -110,7 +110,7 @@ const filterField = (column: ColumnType) => {
           @update:value="handleChange('order')"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-inverted-secondary" />
           </template>
         </a-select>
       </div>

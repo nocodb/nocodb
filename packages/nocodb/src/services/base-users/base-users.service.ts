@@ -478,13 +478,26 @@ export class BaseUsersService {
       ncMeta,
     );
 
-    await BaseUser.updateRoles(
-      context,
-      param.baseId,
-      param.userId,
-      param.baseUser.roles,
-      ncMeta,
-    );
+    if (oldBaseUser) {
+      await BaseUser.updateRoles(
+        context,
+        param.baseId,
+        param.userId,
+        param.baseUser.roles,
+        ncMeta,
+      );
+    } else {
+      await BaseUser.insert(
+        context,
+        {
+          base_id: param.baseId,
+          fk_user_id: param.userId,
+          roles: param.baseUser.roles,
+          invited_by: param.req?.user?.id,
+        },
+        ncMeta,
+      );
+    }
 
     await this.mailService.sendMail(
       {

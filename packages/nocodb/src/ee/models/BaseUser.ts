@@ -135,11 +135,11 @@ export default class BaseUser extends BaseUserCE {
 
     const res = await this.get(context, base_id, fk_user_id, ncMeta);
 
-    await NocoCache.appendToList(
+    // delete list to fetch updated list next time
+    await NocoCache.deepDel(
       context,
-      CacheScope.BASE_USER,
-      [base_id],
-      `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
+      `${CacheScope.BASE_USER}:${base_id}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
     );
 
     cleanCommandPaletteCacheForUser(fk_user_id).catch(() => {

@@ -86,7 +86,6 @@ export class DropboxAuthIntegration extends AuthIntegration<
       code: string;
       code_verifier?: string;
     },
-    _config: DropboxAuthConfig,
   ): Promise<{
     oauth_token: string;
     refresh_token?: string;
@@ -123,7 +122,6 @@ export class DropboxAuthIntegration extends AuthIntegration<
 
   public async refreshToken(
     payload: { refresh_token: string },
-    _config: DropboxAuthConfig,
   ): Promise<{
     oauth_token: string;
     refresh_token?: string;

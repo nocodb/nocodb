@@ -121,7 +121,11 @@ export default class BaseUser {
     );
 
     // delete list to fetch updated list next time
-    await NocoCache.del(context, `${CacheScope.BASE_USER}:${base_id}:list`);
+    await NocoCache.deepDel(
+      context,
+      `${CacheScope.BASE_USER}:${base_id}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
+    );
 
     const res = await this.get(context, base_id, fk_user_id, ncMeta);
 

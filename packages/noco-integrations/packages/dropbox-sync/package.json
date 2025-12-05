@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "axios": "^1.9.0"
+    "axios": "^1.9.0",
+    "mime": "^4.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.46",

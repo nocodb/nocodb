@@ -1,4 +1,5 @@
 import { TARGET_TABLES } from '@noco-integrations/core';
+import mime from 'mime';
 import type {
   SyncLinkValue,
   SyncRecord,
@@ -110,22 +111,8 @@ export class DropboxFormatter {
       const parentPath = getParentPath(file.path_display);
       const fileRecordId = file.id;
 
-      // Determine MIME type from file extension
-      const extension = file.name.split('.').pop()?.toLowerCase() || '';
-      const mimeTypeMap: Record<string, string> = {
-        pdf: 'application/pdf',
-        doc: 'application/msword',
-        docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        xls: 'application/vnd.ms-excel',
-        xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        jpg: 'image/jpeg',
-        jpeg: 'image/jpeg',
-        png: 'image/png',
-        gif: 'image/gif',
-        txt: 'text/plain',
-        json: 'application/json',
-      };
-      const mimeType = mimeTypeMap[extension] || 'application/octet-stream';
+      // Determine MIME type from file name
+      const mimeType = mime.getType(file.name) || 'application/octet-stream';
 
       const fileData: SyncRecord &
         Record<string, SyncValue<string | number | boolean | null>> = {

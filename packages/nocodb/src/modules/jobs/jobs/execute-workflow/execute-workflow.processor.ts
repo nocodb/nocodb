@@ -46,10 +46,6 @@ export class ExecuteWorkflowProcessor {
         status: 'in_progress',
       });
 
-      this.logger.log(
-        `Started execution ${executionRecord.id} for workflow ${workflowId}`,
-      );
-
       // Execute workflow
       const result = await this.workflowExecutionService.executeWorkflow(
         context,
@@ -64,10 +60,6 @@ export class ExecuteWorkflowProcessor {
         finished_at: new Date(),
         status: result.status === 'completed' ? 'success' : result.status,
       });
-
-      this.logger.log(
-        `Completed execution ${executionRecord.id} with status: ${result.status}`,
-      );
     } catch (error) {
       this.logger.error(`Failed to execute workflow ${workflowId}:`, error);
 

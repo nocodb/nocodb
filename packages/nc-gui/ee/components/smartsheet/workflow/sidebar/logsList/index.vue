@@ -58,7 +58,6 @@ async function loadExecutionLogs(append = false) {
       limit: pageSize.value,
       offset: currentOffset.value,
     })
-
     if (append) {
       executions.value = [...executions.value, ...result]
     } else {
@@ -67,7 +66,7 @@ async function loadExecutionLogs(append = false) {
 
     // Check if we have more data
     if (result.length < pageSize.value) {
-      // hasMore.value = false
+      hasMore.value = false
       currentOffset.value = currentOffset.value + result.length
     } else {
       currentOffset.value += pageSize.value

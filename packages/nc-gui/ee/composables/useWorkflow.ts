@@ -688,7 +688,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     hasDraftChanges,
     canPublish,
     activeTab,
-    viewingExecution: readonly(viewingExecution),
+    viewingExecution,
     selectedNodeExecutionResult,
 
     // Methods

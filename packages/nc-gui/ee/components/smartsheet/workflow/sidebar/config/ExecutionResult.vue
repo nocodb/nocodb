@@ -35,8 +35,8 @@ const outputData = computed(() => {
 </script>
 
 <template>
-  <NcGroupedSettings v-if="executionResult" title="Execution Result">
-    <div class="space-y-3">
+  <NcGroupedSettings title="Execution Result">
+    <div v-if="executionResult" class="space-y-3">
       <div class="space-y-1">
         <div v-if="executionResult.status === 'success'" class="text-bodyBold text-nc-content-green-dark">
           Node executed successfully
@@ -131,6 +131,11 @@ const outputData = computed(() => {
             [{{ log.level }}] {{ log.message }}
           </div>
         </div>
+      </div>
+    </div>
+    <div v-else>
+      <div class="flex items-center">
+        <div class="text-nc-content-gray-muted text-bodySm">Node has not been executed</div>
       </div>
     </div>
   </NcGroupedSettings>

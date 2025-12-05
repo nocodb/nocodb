@@ -59,7 +59,7 @@ interface VariableDefinition {
 interface NodeExecutionResult {
   nodeId: string;
   nodeTitle: string;
-  status: 'pending' | 'running' | 'success' | 'error';
+  status: 'pending' | 'running' | 'success' | 'error' | 'skipped';
   output?: any;
   input?: any;
   error?: string;
@@ -81,7 +81,7 @@ interface NodeExecutionResult {
 interface WorkflowExecutionState {
   id: string;
   workflowId: string;
-  status: 'running' | 'completed' | 'error' | 'cancelled';
+  status: 'running' | 'completed' | 'error' | 'cancelled' | 'skipped';
   startTime: number;
   endTime?: number;
   nodeResults: NodeExecutionResult[];

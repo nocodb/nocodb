@@ -237,39 +237,54 @@ export function getFieldVariable(
   if (column.uidt === UITypes.Attachment && isArray) {
     variable.children = [
       {
-        key: `${variable.key}[i].url`,
+        key: `${variable.key}.map(item => item.url).join(', ')`,
         name: 'url',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
-        extra: { icon: 'cellUrl' },
+        extra: {
+          icon: 'cellUrl',
+          description: 'Comma-separated URLs of all attachments',
+        },
       },
       {
-        key: `${variable.key}[i].signedUrl`,
+        key: `${variable.key}.map(item => item.signedUrl).join(', ')`,
         name: 'signedUrl',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
-        extra: { icon: 'cellUrl' },
+        extra: {
+          icon: 'cellUrl',
+          description: 'Comma-separated signed URLs of all attachments',
+        },
       },
       {
-        key: `${variable.key}[i].title`,
+        key: `${variable.key}.map(item => item.title).join(', ')`,
         name: 'title',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
-        extra: { icon: 'cellText' },
+        extra: {
+          icon: 'cellText',
+          description: 'Comma-separated titles of all attachments',
+        },
       },
       {
-        key: `${variable.key}[i].mimetype`,
+        key: `${variable.key}.map(item => item.mimetype).join(', ')`,
         name: 'mimetype',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
-        extra: { icon: 'cellText' },
+        extra: {
+          icon: 'cellText',
+          description: 'Comma-separated mimetypes of all attachments',
+        },
       },
       {
-        key: `${variable.key}[i].size`,
+        key: `${variable.key}.map(item => item.size).join(', ')`,
         name: 'size',
-        type: VariableType.Number,
+        type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
-        extra: { icon: 'cellNumber' },
+        extra: {
+          icon: 'cellNumber',
+          description: 'Comma-separated sizes of all attachments',
+        },
       },
       // Add .length for arrays
       {
@@ -287,25 +302,42 @@ export function getFieldVariable(
     const isMulti = parseProp(column.meta)?.is_multi;
     const userProps: VariableDefinition[] = [
       {
-        key: `${variable.key}${isMulti ? '[i]' : ''}.id`,
+        key: isMulti
+          ? `${variable.key}.map(item => item.id).join(', ')`
+          : `${variable.key}.id`,
         name: 'id',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
-        extra: { icon: 'cellSystemKey' },
+        extra: {
+          icon: 'cellSystemKey',
+          description: isMulti ? 'Comma-separated user IDs' : 'User ID',
+        },
       },
       {
-        key: `${variable.key}${isMulti ? '[i]' : ''}.email`,
+        key: isMulti
+          ? `${variable.key}.map(item => item.email).join(', ')`
+          : `${variable.key}.email`,
         name: 'email',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
-        extra: { icon: 'cellEmail' },
+        extra: {
+          icon: 'cellEmail',
+          description: isMulti ? 'Comma-separated emails' : 'User email',
+        },
       },
       {
-        key: `${variable.key}${isMulti ? '[i]' : ''}.display_name`,
+        key: isMulti
+          ? `${variable.key}.map(item => item.display_name || '').join(', ')`
+          : `${variable.key}.display_name`,
         name: 'display_name',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
-        extra: { icon: 'cellText' },
+        extra: {
+          icon: 'cellText',
+          description: isMulti
+            ? 'Comma-separated display names'
+            : 'User display name',
+        },
       },
     ];
 

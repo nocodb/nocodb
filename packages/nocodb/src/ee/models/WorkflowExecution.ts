@@ -16,7 +16,7 @@ export default class WorkflowExecution {
   finished?: boolean;
   started_at?: Date | string;
   finished_at?: Date | string;
-  status?: string; // 'success', 'error', 'in_progress'
+  status?: string; // 'success', 'error', 'in_progress', 'skipped', 'pending'
 
   created_at?: string;
   updated_at?: string;

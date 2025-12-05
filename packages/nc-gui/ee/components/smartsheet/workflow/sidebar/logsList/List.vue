@@ -29,11 +29,15 @@ const { isLoading: isLoadingMore } = useInfiniteScroll(
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'success':
-      return 'checkFill'
+      return 'ncCheckCircle'
     case 'error':
-      return 'alertTriangleSolid'
+      return 'ncX'
     case 'in_progress':
-      return 'loading'
+      return 'refresh'
+    case 'skipped':
+      return 'ncMinus'
+    case 'pending':
+      return 'ncPending'
     default:
       return 'info'
   }
@@ -50,7 +54,17 @@ const getStatusIcon = (status: string) => {
         }"
         @click="emit('update:activeItem', execution)"
       >
-        <GeneralIcon :icon="getStatusIcon(execution.status)" class="h-5 w-5 text-base-white" />
+        <div
+          :class="{
+            'bg-nc-green-600 dark:bg-nc-green-500': execution.status === 'success',
+            'bg-nc-red-500 dark:bg-nc-red-500': execution.status === 'error',
+            'bg-nc-brand-500 dark:bg-nc-brand-500': execution.status === 'in_progress',
+            'bg-nc-gray-400 dark:bg-nc-gray-500': execution.status === 'skipped' || execution.status === 'pending',
+          }"
+          class="w-5 h-5 rounded-full flex items-center justify-center"
+        >
+          <GeneralIcon :icon="getStatusIcon(execution.status)" class="text-base-white !w-3 !h-3" />
+        </div>
 
         <div class="ml-2">Run {{ execution.id }}</div>
 

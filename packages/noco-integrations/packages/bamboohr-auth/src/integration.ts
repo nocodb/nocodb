@@ -81,7 +81,7 @@ export class BambooHRAuthIntegration extends AuthIntegration<
     }
   }
 
-  // https://developer.atlassian.com/cloud/bitbucket/oauth-2/
+  // https://documentation.bamboohr.com/docs/getting-started/
   public async exchangeToken(payload: {
     code: string;
     code_verifier?: string;

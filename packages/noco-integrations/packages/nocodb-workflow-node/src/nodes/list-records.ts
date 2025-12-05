@@ -5,7 +5,7 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
-import { parseJson } from '../utils/parseJson'
+import { parseJson } from '../utils/parseJson';
 import type {
   FormDefinition,
   WorkflowNodeConfig,
@@ -17,7 +17,7 @@ import type {
 
 interface ListRecordsNodeConfig extends WorkflowNodeConfig {
   modelId: string;
-  viewId?: string
+  viewId?: string;
   limit?: number;
   offset?: number;
   filterJson?: string;
@@ -52,9 +52,9 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         condition: [
           {
             model: 'config.modelId',
-            notEmpty: true
-          }
-        ]
+            notEmpty: true,
+          },
+        ],
       },
       {
         type: FormBuilderInputType.Input,
@@ -89,7 +89,8 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
     return {
       id: 'nocodb.list_records',
       title: 'List Records',
-      description: 'List records from a NocoDB table with optional filtering and sorting',
+      description:
+        'List records from a NocoDB table with optional filtering and sorting',
       icon: 'ncRecordFind',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
@@ -100,33 +101,42 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
 
   public async fetchOptions(key: 'tables' | 'views') {
     switch (key) {
-      case 'tables':
-      {
-        const tables = await this.nocodb.tablesService.getAccessibleTables(this.nocodb.context, {
-          baseId: this.nocodb.context.base_id,
-          roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
-        })
+      case 'tables': {
+        const tables = await this.nocodb.tablesService.getAccessibleTables(
+          this.nocodb.context,
+          {
+            baseId: this.nocodb.context.base_id,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          },
+        );
 
         return tables.map((table: any) => ({
           label: table.title || table.table_name,
           value: table.id,
-          table: table
-        }))
+          table: table,
+        }));
       }
       case 'views': {
         if (!this.config.modelId) {
-          return []
+          return [];
         }
-        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
-          tableId: this.config.modelId,
-          user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
-        })
+        const table =
+          await this.nocodb.tablesService.getTableWithAccessibleViews(
+            this.nocodb.context,
+            {
+              tableId: this.config.modelId,
+              user: {
+                ...this.nocodb.user,
+                roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+              } as any,
+            },
+          );
 
         return table.views.map((view: any) => ({
           label: view.title || table.table_name,
           value: view.id,
-          view: view
-        }))
+          view: view,
+        }));
       }
       default:
         return [];
@@ -140,26 +150,35 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
       errors.push({ path: 'config.modelId', message: 'Table is required' });
     }
 
-    let table
+    let table;
 
     if (config.modelId) {
-      table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
-        tableId: config.modelId,
-        user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
-      });
+      table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: config.modelId,
+          user: {
+            ...this.nocodb.user,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          } as any,
+        },
+      );
       if (!table) {
-        errors.push({ path: 'config.modelId', message: 'Table is not accessible' });
+        errors.push({
+          path: 'config.modelId',
+          message: 'Table is not accessible',
+        });
       }
     }
 
-    if(config.modelId && config.viewId) {
-      const view = table?.views?.find((v) => v.id === config.viewId)
+    if (config.modelId && config.viewId) {
+      const view = table?.views?.find((v) => v.id === config.viewId);
 
       if (!view) {
         errors.push({
           path: 'config.viewId',
-          message: 'Selected view is invalid'
-        })
+          message: 'Selected view is invalid',
+        });
       }
     }
 
@@ -224,7 +243,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
           viewId,
           ignorePagination: false,
           req: {
-            user: this.nocodb.user
+            user: this.nocodb.user,
           } as NocoSDK.NcRequest,
         },
         false,
@@ -246,7 +265,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
           pagination: {
             limit,
             offset,
-          }
+          },
         },
         status: 'success',
         logs,
@@ -293,7 +312,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];
@@ -305,7 +324,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         [NocoSDK.ViewTypes.CALENDAR]: 'calendar',
         [NocoSDK.ViewTypes.GALLERY]: 'gallery',
         [NocoSDK.ViewTypes.MAP]: 'map',
-      }
+      };
 
       variables.push({
         key: 'config.modelId',
@@ -313,7 +332,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
-          icon: table.synced? 'ncZap': 'table',
+          icon: table.synced ? 'ncZap' : 'table',
           entity_id: modelId,
           entity: 'table',
           tableName: table.title,
@@ -330,7 +349,9 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
           type: NocoSDK.VariableType.String,
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
-            icon: view?.type ? iconMap[view.type as keyof typeof iconMap] : 'view',
+            icon: view?.type
+              ? iconMap[view.type as keyof typeof iconMap]
+              : 'view',
             entity_id: viewId,
             entity: 'view',
             viewName: view?.title,
@@ -345,6 +366,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         type: NocoSDK.VariableType.Number,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: 'cellNumber',
           description: 'Maximum number of records to retrieve',
         },
       });
@@ -355,6 +377,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         type: NocoSDK.VariableType.Number,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: 'cellNumber',
           description: 'Number of records to skip',
         },
       });
@@ -365,6 +388,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: 'cellJson',
           description: 'JSON filter criteria',
         },
       });
@@ -375,6 +399,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         type: NocoSDK.VariableType.String,
         groupKey: NocoSDK.VariableGroupKey.Fields,
         extra: {
+          icon: 'cellJson',
           description: 'JSON sort criteria',
         },
       });
@@ -385,7 +410,9 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
     }
   }
 
-  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+  public async generateOutputVariables(): Promise<
+    NocoSDK.VariableDefinition[]
+  > {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -396,12 +423,16 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];
 
-      const recordVariables = NocoSDK.genRecordVariables(table.columns, true, 'records');
+      const recordVariables = NocoSDK.genRecordVariables(
+        table.columns,
+        true,
+        'records',
+      );
 
       const paginationVariable: NocoSDK.VariableDefinition = {
         key: 'pagination',

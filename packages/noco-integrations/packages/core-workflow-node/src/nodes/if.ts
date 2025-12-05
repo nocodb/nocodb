@@ -1,7 +1,7 @@
 import {
   NocoSDK,
   WorkflowNodeCategory,
-  WorkflowNodeIntegration
+  WorkflowNodeIntegration,
 } from '@noco-integrations/core';
 import type {
   FormDefinition,
@@ -9,7 +9,7 @@ import type {
   WorkflowNodeDefinition,
   WorkflowNodeLog,
   WorkflowNodeResult,
-  WorkflowNodeRunContext
+  WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
 export interface IfNodeConfig extends WorkflowNodeConfig {
@@ -48,7 +48,10 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     };
   }
 
-  private validateConditionItem(item: NocoSDK.WorkflowNodeConditionItem, path: string): { path?: string; message: string }[] {
+  private validateConditionItem(
+    item: NocoSDK.WorkflowNodeConditionItem,
+    path: string,
+  ): { path?: string; message: string }[] {
     const errors: { path?: string; message: string }[] = [];
 
     if ('is_group' in item && item.is_group) {
@@ -69,12 +72,20 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
         errors.push({ path: `${path}.field`, message: 'Field is required' });
       }
       if (!condition.comparison_op) {
-        errors.push({ path: `${path}.comparison_op`, message: 'Comparison operation is required' });
+        errors.push({
+          path: `${path}.comparison_op`,
+          message: 'Comparison operation is required',
+        });
       }
-      if (this.operationRequiresValue(condition.comparison_op) &&
-          condition.value === undefined ||
-          condition.value === '') {
-        errors.push({ path: `${path}.value`, message: 'Value is required for this operation' });
+      if (
+        (this.operationRequiresValue(condition.comparison_op) &&
+          condition.value === undefined) ||
+        condition.value === ''
+      ) {
+        errors.push({
+          path: `${path}.value`,
+          message: 'Value is required for this operation',
+        });
       }
     }
 
@@ -93,7 +104,9 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     }
 
     config.conditions.forEach((item, index) => {
-      errors.push(...this.validateConditionItem(item, `config.conditions[${index}]`));
+      errors.push(
+        ...this.validateConditionItem(item, `config.conditions[${index}]`),
+      );
     });
 
     return { valid: errors.length === 0, errors };
@@ -107,11 +120,14 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     if ('is_group' in item && item.is_group) {
       // Evaluate group recursively
       const group = item as NocoSDK.WorkflowNodeConditionGroup;
-      const results = group.children.map((child) => this.evaluateConditionItem(child, ctx, logs));
+      const results = group.children.map((child) =>
+        this.evaluateConditionItem(child, ctx, logs),
+      );
 
-      const result = group.logical_op === 'and'
-        ? results.every((r) => r)
-        : results.some((r) => r);
+      const result =
+        group.logical_op === 'and'
+          ? results.every((r) => r)
+          : results.some((r) => r);
 
       logs.push({
         level: 'info',
@@ -141,9 +157,11 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
         data: { conditions },
       });
 
-      const results = conditions.map((item: NocoSDK.WorkflowNodeConditionItem) => {
-        return this.evaluateConditionItem(item, ctx, logs);
-      });
+      const results = conditions.map(
+        (item: NocoSDK.WorkflowNodeConditionItem) => {
+          return this.evaluateConditionItem(item, ctx, logs);
+        },
+      );
 
       const finalResult = results.every((r: boolean) => r);
       const executionTime = Date.now() - startTime;
@@ -158,10 +176,12 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
       return {
         outputs: {
           result: finalResult,
-          conditions: conditions.map((item: NocoSDK.WorkflowNodeConditionItem, i: number) => ({
-            ...item,
-            result: results[i],
-          })),
+          conditions: conditions.map(
+            (item: NocoSDK.WorkflowNodeConditionItem, i: number) => ({
+              ...item,
+              result: results[i],
+            }),
+          ),
         },
         status: 'success',
         logs,
@@ -196,34 +216,65 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     }
   }
 
-  private operationRequiresValue(op: NocoSDK.WorkflowNodeComparisonOp): boolean {
+  private operationRequiresValue(
+    op: NocoSDK.WorkflowNodeComparisonOp,
+  ): boolean {
     return !IfNode.OPERATIONS_WITHOUT_VALUE.has(op);
   }
 
-  private evaluateCondition(condition: NocoSDK.WorkflowNodeFilterCondition, ctx: WorkflowNodeRunContext, logs: WorkflowNodeLog[]): boolean {
-    const { field, dataType, comparison_op, comparison_sub_op, value } = condition;
+  private evaluateCondition(
+    condition: NocoSDK.WorkflowNodeFilterCondition,
+    ctx: WorkflowNodeRunContext,
+    logs: WorkflowNodeLog[],
+  ): boolean {
+    const { field, dataType, comparison_op, comparison_sub_op, value } =
+      condition;
 
     const fieldValue = field;
     const comparisonValue = value;
 
-    const detectedDataType = dataType || this.detectDataType(fieldValue) || NocoSDK.WorkflowNodeFilterDataType.TEXT;
+    const detectedDataType =
+      dataType ||
+      this.detectDataType(fieldValue) ||
+      NocoSDK.WorkflowNodeFilterDataType.TEXT;
 
     const result = (() => {
       switch (detectedDataType) {
         case NocoSDK.WorkflowNodeFilterDataType.TEXT:
-          return this.evaluateTextCondition(fieldValue, comparison_op, comparisonValue);
+          return this.evaluateTextCondition(
+            fieldValue,
+            comparison_op,
+            comparisonValue,
+          );
         case NocoSDK.WorkflowNodeFilterDataType.NUMBER:
-          return this.evaluateNumberCondition(fieldValue, comparison_op, comparisonValue);
+          return this.evaluateNumberCondition(
+            fieldValue,
+            comparison_op,
+            comparisonValue,
+          );
         case NocoSDK.WorkflowNodeFilterDataType.DATE:
         case NocoSDK.WorkflowNodeFilterDataType.DATETIME:
-          return this.evaluateDateCondition(fieldValue, comparison_op, comparison_sub_op, comparisonValue);
+          return this.evaluateDateCondition(
+            fieldValue,
+            comparison_op,
+            comparison_sub_op,
+            comparisonValue,
+          );
         case NocoSDK.WorkflowNodeFilterDataType.BOOLEAN:
           return this.evaluateBooleanCondition(fieldValue, comparison_op);
         case NocoSDK.WorkflowNodeFilterDataType.SELECT:
         case NocoSDK.WorkflowNodeFilterDataType.MULTI_SELECT:
-          return this.evaluateSelectCondition(fieldValue, comparison_op, comparisonValue);
+          return this.evaluateSelectCondition(
+            fieldValue,
+            comparison_op,
+            comparisonValue,
+          );
         case NocoSDK.WorkflowNodeFilterDataType.JSON:
-          return this.evaluateJsonCondition(fieldValue, comparison_op, comparisonValue);
+          return this.evaluateJsonCondition(
+            fieldValue,
+            comparison_op,
+            comparisonValue,
+          );
         default:
           throw new Error(`Unknown data type: ${detectedDataType}`);
       }
@@ -233,18 +284,29 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
       level: 'info',
       message: `Condition: ${field} ${comparison_op} ${comparisonValue || ''} = ${result}`,
       ts: Date.now(),
-      data: { condition, fieldValue, comparisonValue, detectedDataType, result },
+      data: {
+        condition,
+        fieldValue,
+        comparisonValue,
+        detectedDataType,
+        result,
+      },
     });
 
     return result;
   }
 
-  private detectDataType(value: any): NocoSDK.WorkflowNodeFilterDataType | undefined {
+  private detectDataType(
+    value: any,
+  ): NocoSDK.WorkflowNodeFilterDataType | undefined {
     if (value == null) return undefined;
 
-    if (typeof value === 'boolean') return NocoSDK.WorkflowNodeFilterDataType.BOOLEAN;
-    if (typeof value === 'number') return NocoSDK.WorkflowNodeFilterDataType.NUMBER;
-    if (value instanceof Date) return NocoSDK.WorkflowNodeFilterDataType.DATETIME;
+    if (typeof value === 'boolean')
+      return NocoSDK.WorkflowNodeFilterDataType.BOOLEAN;
+    if (typeof value === 'number')
+      return NocoSDK.WorkflowNodeFilterDataType.NUMBER;
+    if (value instanceof Date)
+      return NocoSDK.WorkflowNodeFilterDataType.DATETIME;
     if (typeof value === 'string') {
       const date = new Date(value);
       if (!isNaN(date.getTime()) && /^\d{4}-\d{2}-\d{2}/.test(value)) {
@@ -252,21 +314,31 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
       }
       return NocoSDK.WorkflowNodeFilterDataType.TEXT;
     }
-    if (Array.isArray(value)) return NocoSDK.WorkflowNodeFilterDataType.MULTI_SELECT;
-    if (typeof value === 'object') return NocoSDK.WorkflowNodeFilterDataType.JSON;
+    if (Array.isArray(value))
+      return NocoSDK.WorkflowNodeFilterDataType.MULTI_SELECT;
+    if (typeof value === 'object')
+      return NocoSDK.WorkflowNodeFilterDataType.JSON;
 
     return undefined;
   }
 
   // Helper to check NULL operations (shared across all types)
-  private checkNullOp(fieldValue: any, op: NocoSDK.WorkflowNodeComparisonOp): boolean | null {
+  private checkNullOp(
+    fieldValue: any,
+    op: NocoSDK.WorkflowNodeComparisonOp,
+  ): boolean | null {
     if (op === NocoSDK.WorkflowNodeComparisonOp.NULL) return fieldValue == null;
-    if (op === NocoSDK.WorkflowNodeComparisonOp.NOT_NULL) return fieldValue != null;
+    if (op === NocoSDK.WorkflowNodeComparisonOp.NOT_NULL)
+      return fieldValue != null;
     return null;
   }
 
   // Helper to check BLANK operations (shared across all types)
-  private checkBlankOp(fieldValue: any, op: NocoSDK.WorkflowNodeComparisonOp, isEmpty: (val: any) => boolean): boolean | null {
+  private checkBlankOp(
+    fieldValue: any,
+    op: NocoSDK.WorkflowNodeComparisonOp,
+    isEmpty: (val: any) => boolean,
+  ): boolean | null {
     if (op === NocoSDK.WorkflowNodeComparisonOp.BLANK) {
       return fieldValue == null || isEmpty(fieldValue);
     }
@@ -276,15 +348,25 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     return null;
   }
 
-  private evaluateTextCondition(fieldValue: any, op: NocoSDK.WorkflowNodeComparisonOp, value?: any): boolean {
-    const str1 = NocoSDK.ncIsNullOrUndefined(fieldValue) ? '' : String(fieldValue);
+  private evaluateTextCondition(
+    fieldValue: any,
+    op: NocoSDK.WorkflowNodeComparisonOp,
+    value?: any,
+  ): boolean {
+    const str1 = NocoSDK.ncIsNullOrUndefined(fieldValue)
+      ? ''
+      : String(fieldValue);
     const str2 = NocoSDK.ncIsNullOrUndefined(value) ? '' : String(value);
 
     // Check common operations
     const nullResult = this.checkNullOp(fieldValue, op);
     if (nullResult !== null) return nullResult;
 
-    const blankResult = this.checkBlankOp(fieldValue, op, (val) => String(val).trim() === '');
+    const blankResult = this.checkBlankOp(
+      fieldValue,
+      op,
+      (val) => String(val).trim() === '',
+    );
     if (blankResult !== null) return blankResult;
 
     switch (op) {
@@ -305,19 +387,28 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     }
   }
 
-  private evaluateNumberCondition(fieldValue: any, op: NocoSDK.WorkflowNodeComparisonOp, value?: any): boolean {
+  private evaluateNumberCondition(
+    fieldValue: any,
+    op: NocoSDK.WorkflowNodeComparisonOp,
+    value?: any,
+  ): boolean {
     const num1 = parseFloat(fieldValue);
     const num2 = parseFloat(value);
 
     if (isNaN(num1)) {
-      return op === NocoSDK.WorkflowNodeComparisonOp.NULL || op === NocoSDK.WorkflowNodeComparisonOp.BLANK;
+      return (
+        op === NocoSDK.WorkflowNodeComparisonOp.NULL ||
+        op === NocoSDK.WorkflowNodeComparisonOp.BLANK
+      );
     }
 
     // Check common operations
     const nullResult = this.checkNullOp(fieldValue, op);
     if (nullResult !== null) return nullResult;
 
-    const blankResult = this.checkBlankOp(fieldValue, op, (val) => isNaN(parseFloat(val)));
+    const blankResult = this.checkBlankOp(fieldValue, op, (val) =>
+      isNaN(parseFloat(val)),
+    );
     if (blankResult !== null) return blankResult;
 
     switch (op) {
@@ -346,14 +437,19 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
   ): boolean {
     const date1 = new Date(fieldValue);
     if (isNaN(date1.getTime())) {
-      return op === NocoSDK.WorkflowNodeComparisonOp.NULL || op === NocoSDK.WorkflowNodeComparisonOp.BLANK;
+      return (
+        op === NocoSDK.WorkflowNodeComparisonOp.NULL ||
+        op === NocoSDK.WorkflowNodeComparisonOp.BLANK
+      );
     }
 
     // Check common operations
     const nullResult = this.checkNullOp(fieldValue, op);
     if (nullResult !== null) return nullResult;
 
-    const blankResult = this.checkBlankOp(fieldValue, op, (val) => isNaN(new Date(val).getTime()));
+    const blankResult = this.checkBlankOp(fieldValue, op, (val) =>
+      isNaN(new Date(val).getTime()),
+    );
     if (blankResult !== null) return blankResult;
 
     // Handle IS_WITHIN special case
@@ -382,7 +478,10 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     }
   }
 
-  private evaluateBooleanCondition(fieldValue: any, op: NocoSDK.WorkflowNodeComparisonOp): boolean {
+  private evaluateBooleanCondition(
+    fieldValue: any,
+    op: NocoSDK.WorkflowNodeComparisonOp,
+  ): boolean {
     const boolValue = Boolean(fieldValue);
 
     switch (op) {
@@ -397,11 +496,19 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     }
   }
 
-  private evaluateSelectCondition(fieldValue: any, op: NocoSDK.WorkflowNodeComparisonOp, value?: any): boolean {
+  private evaluateSelectCondition(
+    fieldValue: any,
+    op: NocoSDK.WorkflowNodeComparisonOp,
+    value?: any,
+  ): boolean {
     const values = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
     const compareValues = Array.isArray(value)
       ? value
-      : value ? String(value).split(',').map((v: string) => v.trim()) : [];
+      : value
+        ? String(value)
+            .split(',')
+            .map((v: string) => v.trim())
+        : [];
 
     // Check common operations
     const blankResult = this.checkBlankOp(fieldValue, op, (val) => {
@@ -428,17 +535,24 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     }
   }
 
-  private evaluateJsonCondition(fieldValue: any, op: NocoSDK.WorkflowNodeComparisonOp, value?: any): boolean {
+  private evaluateJsonCondition(
+    fieldValue: any,
+    op: NocoSDK.WorkflowNodeComparisonOp,
+    value?: any,
+  ): boolean {
     try {
-      const json1 = typeof fieldValue === 'string' ? JSON.parse(fieldValue) : fieldValue;
+      const json1 =
+        typeof fieldValue === 'string' ? JSON.parse(fieldValue) : fieldValue;
       const json2 = typeof value === 'string' ? JSON.parse(value) : value;
 
       // Check common operations
       const nullResult = this.checkNullOp(fieldValue, op);
       if (nullResult !== null) return nullResult;
 
-      const blankResult = this.checkBlankOp(fieldValue, op, (val) =>
-        typeof val === 'object' && Object.keys(val).length === 0
+      const blankResult = this.checkBlankOp(
+        fieldValue,
+        op,
+        (val) => typeof val === 'object' && Object.keys(val).length === 0,
       );
       if (blankResult !== null) return blankResult;
 
@@ -466,10 +580,17 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
   }
 
   private addMonths(date: Date, months: number): Date {
-    return new Date(date.getFullYear(), date.getMonth() + months, date.getDate());
+    return new Date(
+      date.getFullYear(),
+      date.getMonth() + months,
+      date.getDate(),
+    );
   }
 
-  private getDateFromSubOp(subOp: NocoSDK.WorkflowNodeComparisonSubOp, value?: any): Date {
+  private getDateFromSubOp(
+    subOp: NocoSDK.WorkflowNodeComparisonSubOp,
+    value?: any,
+  ): Date {
     const today = this.getToday();
 
     switch (subOp) {
@@ -498,7 +619,11 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     }
   }
 
-  private isWithinDateRange(date: Date, subOp: NocoSDK.WorkflowNodeComparisonSubOp, value?: any): boolean {
+  private isWithinDateRange(
+    date: Date,
+    subOp: NocoSDK.WorkflowNodeComparisonSubOp,
+    value?: any,
+  ): boolean {
     const now = new Date();
     const time = date.getTime();
 
@@ -512,7 +637,11 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
         return time >= monthAgo.getTime() && time <= now.getTime();
       }
       case NocoSDK.WorkflowNodeComparisonSubOp.PAST_YEAR: {
-        const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        const yearAgo = new Date(
+          now.getFullYear() - 1,
+          now.getMonth(),
+          now.getDate(),
+        );
         return time >= yearAgo.getTime() && time <= now.getTime();
       }
       case NocoSDK.WorkflowNodeComparisonSubOp.NEXT_WEEK: {
@@ -524,7 +653,11 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
         return time >= now.getTime() && time <= monthFromNow.getTime();
       }
       case NocoSDK.WorkflowNodeComparisonSubOp.NEXT_YEAR: {
-        const yearFromNow = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
+        const yearFromNow = new Date(
+          now.getFullYear() + 1,
+          now.getMonth(),
+          now.getDate(),
+        );
         return time >= now.getTime() && time <= yearFromNow.getTime();
       }
       case NocoSDK.WorkflowNodeComparisonSubOp.PAST_NUMBER_OF_DAYS: {

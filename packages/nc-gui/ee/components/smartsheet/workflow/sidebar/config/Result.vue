@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import VariableDisplay from './VariableDisplay.vue'
 
-const { selectedNode, getNodeMetaById } = useWorkflowOrThrow()
+const { selectedNode } = useWorkflowOrThrow()
 
 const isInputExpanded = ref(true)
 
@@ -12,11 +12,6 @@ const isTestResultStale = computed(() => selectedNode.value?.data?.testResult?.i
 
 const testResult = computed(() => {
   return selectedNode.value?.data?.testResult
-})
-
-const nodeMeta = computed(() => {
-  if (!selectedNode.value || !selectedNode.value.type) return null
-  return getNodeMetaById(selectedNode.value.type)
 })
 
 const inputVariables = computed(() => {
@@ -52,7 +47,10 @@ const outputData = computed(() => {
         </div>
       </div>
 
-      <div class="border-1 border-nc-border-gray-medium rounded-md cursor-pointer overflow-hidden">
+      <div
+        v-if="inputVariables.length > 0"
+        class="border-1 border-nc-border-gray-medium rounded-md cursor-pointer overflow-hidden"
+      >
         <div
           :class="{
             'border-b-1 border-nc-border-gray-extralight hover:border-nc-border-gray-medium': isInputExpanded,
@@ -78,7 +76,10 @@ const outputData = computed(() => {
         </div>
       </div>
 
-      <div class="border-1 border-nc-border-gray-medium rounded-md cursor-pointer overflow-hidden">
+      <div
+        v-if="outputVariables.length > 0"
+        class="border-1 border-nc-border-gray-medium rounded-md cursor-pointer overflow-hidden"
+      >
         <div
           :class="{
             'border-b-1 border-nc-border-gray-extralight hover:border-nc-border-gray-medium': isOutputExpanded,
@@ -87,8 +88,6 @@ const outputData = computed(() => {
           @click="isOutputExpanded = !isOutputExpanded"
         >
           <div class="flex items-center gap-2">
-            <GeneralIcon v-if="nodeMeta" :icon="nodeMeta.icon" />
-
             <div class="text-captionBold text-nc-content-gray-emphasis">Output</div>
           </div>
 
@@ -104,7 +103,7 @@ const outputData = computed(() => {
         </div>
 
         <div v-if="isOutputExpanded">
-          <VariableDisplay :variables="outputVariables" :data="outputData" />
+          <VariableDisplay :variables="outputVariables" :data="outputData" :depth="0.125" />
         </div>
       </div>
     </div>

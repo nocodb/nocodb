@@ -140,26 +140,25 @@ onClickOutside(
           class="flex flex-col border-1 rounded-lg w-77 justify-center cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default relative"
           @click.stop="handleNodeClick"
         >
-          <!-- Test status badge -->
           <div
             v-if="hasTestResult"
-            class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-green-500 border-2 border-white flex items-center justify-center shadow-sm"
+            class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-nc-green-600 dark:bg-nc-green-500 flex items-center justify-center"
             title="Tested successfully"
           >
-            <GeneralIcon icon="check" class="text-white !w-3 !h-3 !stroke-2" />
+            <GeneralIcon icon="ncCheckCircle" class="text-base-white !w-3 !h-3" />
           </div>
           <div
             v-else-if="hasTestError"
-            class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center shadow-sm"
+            class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-nc-red-500 dark:bg-nc-red-500 flex items-center justify-center"
             title="Test failed"
           >
-            <GeneralIcon icon="close" class="text-white !w-3 !h-3 !stroke-2" />
+            <GeneralIcon icon="ncX" class="text-base-white !w-3 !h-3" />
           </div>
 
           <div class="flex gap-2.5 w-full items-center">
             <div
               :class="{
-                'bg-nc-bg-brand !text-nc-content-brand-disabled': [
+                'bg-nc-bg-brand text-nc-content-brand-disabled': [
                   WorkflowNodeCategory.TRIGGER,
                   WorkflowNodeCategory.ACTION,
                 ].includes(selectedNode.category),
@@ -167,7 +166,7 @@ onClickOutside(
               }"
               class="w-5 h-5 flex items-center justify-center rounded-md p-1"
             >
-              <GeneralIcon :icon="selectedNode.icon" class="!w-4 !h-4 !stroke-2" />
+              <GeneralIcon :icon="selectedNode.icon" class="!w-4 !h-4 stroke-transparent" />
             </div>
             <div class="text-nc-content-gray truncate flex-1 w-full text-bodyBold">
               {{ selectedNode.title }}

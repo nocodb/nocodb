@@ -187,28 +187,47 @@ function extractDependenciesFromAST(
         if (outputVars) {
           const variable = findVariableByKey(outputVars, variableKey);
 
-          if (
-            variable?.extra?.entity_id &&
-            variable.extra.entity &&
-            ncIsString(variable.extra.entity_id)
-          ) {
-            const expressionPath = toExpressionPath(variableKey);
-            const fullPath = `$('${referencedNodeName}').${expressionPath}`;
+          if (variable) {
+            // Check current variable for entity metadata
+            let entityId = variable.extra?.entity_id;
+            let entity = variable.extra?.entity;
 
-            const depInfo: DependencyInfo = {
-              id: variable.extra.entity_id,
-              path: fullPath,
-              nodeId: currentNodeMetadata.nodeId,
-              nodeType: currentNodeMetadata.nodeType,
-            };
+            // If not found, try to find parent variable and check its metadata
+            if (!entityId || !entity) {
+              const parentPath = variableKey.split('.').slice(0, -1).join('.');
+              if (parentPath) {
+                const parentVariable = findVariableByKey(
+                  outputVars,
+                  parentPath,
+                );
+                if (
+                  parentVariable?.extra?.entity_id &&
+                  parentVariable?.extra?.entity
+                ) {
+                  entityId = parentVariable.extra.entity_id;
+                  entity = parentVariable.extra.entity;
+                }
+              }
+            }
 
-            const entity = variable.extra.entity;
-            if (entity === 'column') {
-              dependencies.columns.push(depInfo);
-            } else if (entity === 'table') {
-              dependencies.models.push(depInfo);
-            } else if (entity === 'view') {
-              dependencies.views.push(depInfo);
+            if (entityId && entity && ncIsString(entityId)) {
+              const expressionPath = toExpressionPath(variableKey);
+              const fullPath = `$('${referencedNodeName}').${expressionPath}`;
+
+              const depInfo: DependencyInfo = {
+                id: entityId,
+                path: fullPath,
+                nodeId: currentNodeMetadata.nodeId,
+                nodeType: currentNodeMetadata.nodeType,
+              };
+
+              if (entity === 'column') {
+                dependencies.columns.push(depInfo);
+              } else if (entity === 'table') {
+                dependencies.models.push(depInfo);
+              } else if (entity === 'view') {
+                dependencies.views.push(depInfo);
+              }
             }
           }
         }
@@ -310,23 +329,32 @@ function extractFromInputVariables(
     views: [],
   };
 
-  function processVariable(variable: any): void {
+  function processVariable(variable: any, parentVariable?: any): void {
+    // Check current variable for entity metadata
+    let entityId = variable.extra?.entity_id;
+    let entity = variable.extra?.entity;
+
+    // If not found and parent exists, check parent for entity metadata
     if (
-      variable.extra?.entity_id &&
-      variable.extra?.entity &&
-      ncIsString(variable.extra.entity_id)
+      (!entityId || !entity) &&
+      parentVariable?.extra?.entity_id &&
+      parentVariable?.extra?.entity
     ) {
+      entityId = parentVariable.extra.entity_id;
+      entity = parentVariable.extra.entity;
+    }
+
+    if (entityId && entity && ncIsString(entityId)) {
       const expressionPath = toExpressionPath(variable.key);
       const fullPath = `$('${nodeMetadata.nodeName}').${expressionPath}`;
 
       const depInfo: DependencyInfo = {
-        id: variable.extra.entity_id,
+        id: entityId,
         path: fullPath,
         nodeId: nodeMetadata.nodeId,
         nodeType: nodeMetadata.nodeType,
       };
 
-      const entity = variable.extra.entity;
       if (entity === 'column') {
         dependencies.columns.push(depInfo);
       } else if (entity === 'table') {
@@ -337,7 +365,9 @@ function extractFromInputVariables(
     }
 
     if (variable.children?.length) {
-      variable.children.forEach(processVariable);
+      variable.children.forEach((child: any) =>
+        processVariable(child, variable),
+      );
     }
   }
 

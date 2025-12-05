@@ -11,7 +11,7 @@ import type {
   WorkflowNodeDefinition,
   WorkflowNodeLog,
   WorkflowNodeResult,
-  WorkflowNodeRunContext
+  WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
 interface RecordDeletedTriggerConfig extends WorkflowNodeConfig {
@@ -56,18 +56,29 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
       errors.push({ path: 'config.modelId', message: 'Table is required' });
     }
 
-    let table: NocoSDK.TableType & {
-      views: Array<NocoSDK.ViewType>
-      columns: Array<NocoSDK.ColumnType>
-    } | null = null;
+    let table:
+      | (NocoSDK.TableType & {
+          views: Array<NocoSDK.ViewType>;
+          columns: Array<NocoSDK.ColumnType>;
+        })
+      | null = null;
 
     if (config.modelId) {
-      table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
-        tableId: config.modelId,
-        user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
-      });
+      table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: config.modelId,
+          user: {
+            ...this.nocodb.user,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          } as any,
+        },
+      );
       if (!table) {
-        errors.push({ path: 'config.modelId', message: 'Table is not accessible' });
+        errors.push({
+          path: 'config.modelId',
+          message: 'Table is not accessible',
+        });
       }
     }
 
@@ -77,16 +88,19 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
   public async fetchOptions(key: 'tables') {
     switch (key) {
       case 'tables': {
-        const tables = await this.nocodb.tablesService.getAccessibleTables(this.nocodb.context, {
-          baseId: this.nocodb.context.base_id,
-          roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
-        })
+        const tables = await this.nocodb.tablesService.getAccessibleTables(
+          this.nocodb.context,
+          {
+            baseId: this.nocodb.context.base_id,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          },
+        );
 
         return tables.map((table: any) => ({
           label: table.title || table.table_name,
           value: table.id,
-          table: table
-        }))
+          table: table,
+        }));
       }
       default:
         return [];
@@ -107,10 +121,10 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
             offset: 0,
           },
           req: {
-            user: this.nocodb.user
+            user: this.nocodb.user,
           } as any,
         },
-        false
+        false,
       );
 
       if (result?.length > 0) {
@@ -130,8 +144,7 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
     const startTime = Date.now();
 
     try {
-      let { record, user, timestamp } =
-        ctx.inputs as any;
+      let { record, user, timestamp } = ctx.inputs as any;
 
       if (ctx.testMode) {
         user = this.nocodb.user;
@@ -145,11 +158,12 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
 
           logs.push({
             level: 'info',
-            message: 'No records found in table, using empty object for testing',
+            message:
+              'No records found in table, using empty object for testing',
             ts: Date.now(),
           });
         } else {
-          record = baseData
+          record = baseData;
 
           logs.push({
             level: 'info',
@@ -163,18 +177,18 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
       let tableName = '';
 
       try {
-        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
-          this.nocodb.context,
-          {
-            tableId: this.config.modelId,
-            user: this.nocodb.user as any,
-          }
-        );
+        const table =
+          await this.nocodb.tablesService.getTableWithAccessibleViews(
+            this.nocodb.context,
+            {
+              tableId: this.config.modelId,
+              user: this.nocodb.user as any,
+            },
+          );
         tableName = table?.title || '';
       } catch {
         // empty
       }
-
 
       logs.push({
         level: 'info',
@@ -236,7 +250,6 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
     }
   }
 
-
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
     const { modelId } = this.config;
 
@@ -248,7 +261,7 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];
@@ -260,6 +273,9 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
           type: NocoSDK.VariableType.String,
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
+            icon: table.synced ? 'ncZap' : 'table',
+            entity_id: modelId,
+            entity: 'table',
             tableName: table.title,
             description: 'Table to monitor for deleted',
           },
@@ -270,7 +286,9 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
     }
   }
 
-  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+  public async generateOutputVariables(): Promise<
+    NocoSDK.VariableDefinition[]
+  > {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -281,12 +299,16 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];
 
-      const recordVariables = NocoSDK.genRecordVariables(table.columns, false, 'record');
+      const recordVariables = NocoSDK.genRecordVariables(
+        table.columns,
+        false,
+        'record',
+      );
 
       const additionalVariables: NocoSDK.VariableDefinition[] = [
         {
@@ -296,7 +318,9 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
           groupKey: NocoSDK.VariableGroupKey.Meta,
           extra: {
             description: 'Table information',
-            icon: 'cellJson',
+            icon: table.synced ? 'ncZap' : 'table',
+            entity_id: modelId,
+            entity: 'table',
           },
           children: [
             {
@@ -306,7 +330,7 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
               groupKey: NocoSDK.VariableGroupKey.Meta,
               extra: {
                 description: 'Table ID',
-                icon: 'cellSystemKey',
+                icon: 'cellNumber',
               },
             },
             {
@@ -328,7 +352,7 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
           groupKey: NocoSDK.VariableGroupKey.Meta,
           extra: {
             description: 'User who deleted the record',
-            icon: 'cellSystemUser',
+            icon: 'ncUser',
           },
           children: [
             {
@@ -338,7 +362,7 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
               groupKey: NocoSDK.VariableGroupKey.Meta,
               extra: {
                 description: 'User ID',
-                icon: 'cellSystemKey',
+                icon: 'cellNumber',
               },
             },
             {
@@ -390,7 +414,7 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
               groupKey: NocoSDK.VariableGroupKey.Meta,
               extra: {
                 description: 'When the trigger was activated',
-                icon: 'cellSystemDate',
+                icon: 'cellDatetime',
               },
             },
           ],

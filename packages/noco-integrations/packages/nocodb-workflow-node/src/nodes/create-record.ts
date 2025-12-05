@@ -6,13 +6,13 @@ import {
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
 import type {
-   FormDefinition,
-   WorkflowNodeConfig,
-   WorkflowNodeDefinition,
-   WorkflowNodeLog,
-   WorkflowNodeResult,
-   WorkflowNodeRunContext,
-} from '@noco-integrations/core'
+  FormDefinition,
+  WorkflowNodeConfig,
+  WorkflowNodeDefinition,
+  WorkflowNodeLog,
+  WorkflowNodeResult,
+  WorkflowNodeRunContext,
+} from '@noco-integrations/core';
 
 interface CreateRecordNodeConfig extends WorkflowNodeConfig {
   modelId: string;
@@ -70,34 +70,38 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
 
   public async fetchOptions(key: 'tables' | 'fields') {
     switch (key) {
-      case 'tables':
-      {
-        const tables = await this.nocodb.tablesService.getAccessibleTables(this.nocodb.context, {
-          baseId: this.nocodb.context.base_id,
-          roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
-        })
+      case 'tables': {
+        const tables = await this.nocodb.tablesService.getAccessibleTables(
+          this.nocodb.context,
+          {
+            baseId: this.nocodb.context.base_id,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          },
+        );
 
         return tables.map((table: any) => ({
           label: table.title || table.table_name,
           value: table.id,
           ncItemDisabled: table.synced,
-          ncItemTooltip: table.synced ? 'Records cannot be created in synced tables': null,
-          table: table
-        }))
+          ncItemTooltip: table.synced
+            ? 'Records cannot be created in synced tables'
+            : null,
+          table: table,
+        }));
       }
-      case 'fields':
-      {
+      case 'fields': {
         if (!this.config.modelId) {
           return [];
         }
 
-        const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
-          this.nocodb.context,
-          {
-            tableId: this.config.modelId,
-            user: this.nocodb.user as any,
-          }
-        );
+        const table =
+          await this.nocodb.tablesService.getTableWithAccessibleViews(
+            this.nocodb.context,
+            {
+              tableId: this.config.modelId,
+              user: this.nocodb.user as any,
+            },
+          );
 
         if (!table || !table.columns) {
           return [];
@@ -125,12 +129,21 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
     }
 
     if (config.modelId) {
-      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(this.nocodb.context, {
-        tableId: config.modelId,
-        user: { ...this.nocodb.user, roles: { [NocoSDK.ProjectRoles.EDITOR]: true } } as any,
-      });
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: config.modelId,
+          user: {
+            ...this.nocodb.user,
+            roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+          } as any,
+        },
+      );
       if (!table) {
-        errors.push({ path: 'config.modelId', message: 'Table is not accessible' });
+        errors.push({
+          path: 'config.modelId',
+          message: 'Table is not accessible',
+        });
       }
     }
 
@@ -173,7 +186,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
         modelId,
         body: { fields },
         cookie: {
-          user: this.nocodb.user
+          user: this.nocodb.user,
         },
       });
 
@@ -225,7 +238,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
     const variables: NocoSDK.VariableDefinition[] = [];
-    const { modelId } = this.config;
+    const { modelId, fields } = this.config;
 
     if (!modelId) return [];
 
@@ -235,7 +248,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];
@@ -248,21 +261,42 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
         extra: {
           entity_id: modelId,
           entity: 'table',
-          icon: table.synced? 'ncZap': 'table',
+          icon: table.synced ? 'ncZap' : 'table',
           tableName: table.title,
           description: 'Selected table for record creation',
         },
       });
 
-      variables.push({
+      const fieldsVariable = {
         key: 'config.fields',
         name: 'Fields',
         type: NocoSDK.VariableType.Object,
         groupKey: NocoSDK.VariableGroupKey.Fields,
+        children: [] as NocoSDK.VariableDefinition[],
         extra: {
           description: 'Field values for record creation',
+          icon: 'fields',
         },
+      };
+
+      Object.entries(fields).forEach(([key, value]) => {
+        const field = table.columns.find((col: any) => col.title === key);
+        if (!field?.uidt || !value) return;
+        fieldsVariable.children.push({
+          key: `config.fields.${key}`,
+          name: key,
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            entity_id: field.id,
+            entity: 'column',
+            description: `Field value for ${key}`,
+            icon: NocoSDK.uiTypeToIcon(field),
+          },
+        });
       });
+
+      variables.push(fieldsVariable);
 
       return variables;
     } catch {
@@ -270,7 +304,9 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
     }
   }
 
-  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+  public async generateOutputVariables(): Promise<
+    NocoSDK.VariableDefinition[]
+  > {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -281,7 +317,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
         {
           tableId: modelId,
           user: this.nocodb.user as any,
-        }
+        },
       );
 
       if (!table) return [];

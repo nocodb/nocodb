@@ -1,14 +1,14 @@
 import {
-  FormBuilderInputType,
-  type FormDefinition,
   NocoSDK,
   WorkflowNodeCategory,
-  type WorkflowNodeConfig,
-  type WorkflowNodeDefinition,
   WorkflowNodeIntegration,
-  type WorkflowNodeLog,
-  type WorkflowNodeResult,
-  type WorkflowNodeRunContext,
+} from '@noco-integrations/core';
+import type {
+  WorkflowNodeConfig,
+  WorkflowNodeDefinition,
+  WorkflowNodeLog,
+  WorkflowNodeResult,
+  WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
 interface ManualTriggerConfig extends WorkflowNodeConfig {
@@ -58,7 +58,7 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
           user: {
             id: ctx.user?.id || null,
             email: ctx.user?.email || null,
-            display_name: ctx?.user?.display_name || null
+            display_name: ctx?.user?.display_name || null,
           },
           trigger: {
             timestamp: triggeredAt,
@@ -96,7 +96,9 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
     }
   }
 
-  public async generateOutputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+  public async generateOutputVariables(): Promise<
+    NocoSDK.VariableDefinition[]
+  > {
     return [
       {
         key: 'user',
@@ -105,7 +107,7 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
         groupKey: NocoSDK.VariableGroupKey.Meta,
         extra: {
           description: 'User who triggered the workflow',
-          icon: 'cellSystemUser',
+          icon: 'cellUser',
         },
         children: [
           {
@@ -115,7 +117,7 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
             groupKey: NocoSDK.VariableGroupKey.Meta,
             extra: {
               description: 'ID of the user who triggered the workflow',
-              icon: 'cellSystemKey',
+              icon: 'cellNumber',
             },
           },
           {
@@ -157,7 +159,7 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
             groupKey: NocoSDK.VariableGroupKey.Meta,
             extra: {
               description: 'Timestamp when the workflow was triggered',
-              icon: 'cellSystemDate',
+              icon: 'cellDatetime',
             },
           },
           {

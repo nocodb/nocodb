@@ -984,7 +984,7 @@ function getErrorByTableName(tableName: string) {
                   :percent="importingTableTips[meta!.id!] ?? 0"
                   size="small"
                   status="normal"
-                  stroke-color="var(--nc-content-brand-default)"
+                  stroke-color="var(--nc-content-brand)"
                   trail-color="var(--nc-bg-brand-inverted)"
                 />
               </div>
@@ -1200,7 +1200,7 @@ function getErrorByTableName(tableName: string) {
                     :percent="importingTableTips[table.title] ?? 0"
                     size="small"
                     status="normal"
-                    stroke-color="var(--nc-content-brand-default)"
+                    stroke-color="var(--nc-content-brand)"
                     trail-color="var(--nc-bg-brand-inverted)"
                   />
                 </div>

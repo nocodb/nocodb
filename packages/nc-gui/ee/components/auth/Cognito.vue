@@ -286,7 +286,7 @@ const onForgotPasswordClicked = (): void => {
   --amplify-components-authenticator-router-border-color: var(--color-gray-100);
   --amplify-components-authenticator-router-box-shadow: 0 0 0 1px var(--color-gray-100);
   --amplify-components-authenticator-form-padding: 1.5rem;
-  --amplify-components-text-color: var(--nc-content-gray-default);
+  --amplify-components-text-color: var(--nc-content-gray);
 }
 
 .tos {
@@ -322,11 +322,11 @@ const onForgotPasswordClicked = (): void => {
 }
 
 .federated-sign-in-button {
-  --amplify-internal-button-color: var(--nc-content-gray-default);
+  --amplify-internal-button-color: var(--nc-content-gray);
   @apply rounded-md border-nc-border-gray-medium focus:bg-nc-bg-gray-extralight focus:border-nc-border-gray-extralight border-1 hover:bg-nc-bg-gray-extralight rounded-lg;
 
   &:hover {
-    --amplify-internal-button-color: var(--nc-content-gray-default);
+    --amplify-internal-button-color: var(--nc-content-gray);
   }
 }
 
@@ -427,7 +427,7 @@ form > .federated-sign-in-container {
   .amplify-button.amplify-field__show-password {
     --amplify-internal-button-color: var(--nc-content-gray-muted);
     &:hover {
-      --amplify-internal-button-color: var(--nc-content-brand-default);
+      --amplify-internal-button-color: var(--nc-content-brand);
     }
   }
 

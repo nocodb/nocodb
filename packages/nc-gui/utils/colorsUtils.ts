@@ -59,7 +59,7 @@ export const themeV2Colors = {
 
 // @deprecated
 // Use CSS variables from variables.css directly in future like:
-// color: var(--nc-content-brand-default)
+// color: var(--nc-content-brand)
 // background: var(--nc-bg-brand)
 // The above values map 1:1 directly with Figma CSS variables.
 export const themeV3Colors = {

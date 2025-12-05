@@ -372,7 +372,7 @@ defineExpose({
 
     .ProseMirror {
       @apply flex-grow !border-0 rounded-lg;
-      caret-color: var(--nc-content-brand-default);
+      caret-color: var(--nc-content-brand);
     }
 
     p {

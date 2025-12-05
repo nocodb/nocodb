@@ -84,7 +84,7 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
             :percent="progress.percentage"
             size="small"
             status="normal"
-            stroke-color="var(--nc-content-brand-default)"
+            stroke-color="var(--nc-content-brand)"
             trail-color="var(--nc-bg-brand-inverted)"
             :show-info="false"
           />

@@ -2,7 +2,7 @@
   Usage:
   Figma variables can be used as is like below:
   
-  color: var(--nc-content-brand-default)
+  color: var(--nc-content-brand)
   background: var(--nc-bg-brand)
   border: 1px solid var(--nc-border-brand)
 */
@@ -917,18 +917,18 @@
 [theme='dark'] {
   --nc-content-gray-extreme: var(--color-base-black);
   --nc-content-gray-emphasis: var(--color-gray-900);
-  --nc-content-gray-default: var(--color-gray-800);
+  --nc-content-gray: var(--color-gray-800);
   --nc-content-gray-subtle: var(--color-gray-700);
   --nc-content-gray-subtle-2: var(--color-gray-600);
   --nc-content-gray-muted: var(--color-gray-500);
   --nc-content-gray-disabled: var(--color-gray-400);
 
-  --nc-content-brand-default: var(--color-brand-500);
+  --nc-content-brand: var(--color-brand-500);
   --nc-content-brand-hover: var(--color-gray-300);
   --nc-content-brand-disabled: var(--color-brand-600);
 
-  --nc-content-inverted-primary-default: var(--color-base-white);
-  --nc-content-inverted-secondary-default: var(--color-gray-700);
+  --nc-content-inverted-primary: var(--color-base-white);
+  --nc-content-inverted-secondary: var(--color-gray-700);
   --nc-content-inverted-secondary-hover: var(--color-gray-700);
 
   --nc-bg-gray-extralight: var(--color-gray-50);
@@ -1000,20 +1000,20 @@
   --nc-content-inverted-primary-disabled: var(--color-gray-400);
   --nc-content-inverted-secondary-disabled: var(--color-gray-400);
 
-  --nc-fill-primary-default: var(--color-brand-500);
+  --nc-fill-primary: var(--color-brand-500);
   --nc-fill-primary-hover: var(--color-brand-600);
   --nc-fill-primary-disabled: var(--color-gray-300);
   --nc-fill-primary-disabled-2: var(--color-brand-200);
 
-  --nc-fill-secondary-default: var(--color-base-white);
+  --nc-fill-secondary: var(--color-base-white);
   --nc-fill-secondary-hover: var(--color-gray-50);
   --nc-fill-secondary-disabled: var(--color-base-white);
 
-  --nc-fill-warning-default: var(--color-red-500);
+  --nc-fill-warning: var(--color-red-500);
   --nc-fill-warning-hover: var(--color-red-600);
   --nc-fill-warning-disabled: var(--color-gray-50);
 
-  --nc-fill-success-default: var(--color-green-500);
+  --nc-fill-success: var(--color-green-500);
   --nc-fill-success-hover: var(--color-green-600);
   --nc-fill-success-disabled: var(--color-gray-50);
 

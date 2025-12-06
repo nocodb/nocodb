@@ -448,6 +448,7 @@ interface CellRendererOptions {
   skipRender?: boolean
   setCursor: SetCursorType
   getColor: GetColorType
+  isDark?: boolean
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
   user?: Partial<UserType> | Partial<User>
@@ -458,6 +459,7 @@ interface CellRendererOptions {
   fontFamily?: string
   isRowHovered?: boolean
   isRowChecked?: boolean
+  isRowCellSelected?: boolean
   isCellInSelectionRange?: boolean
   isGroupHeader?: boolean
   rowMeta?: Row['rowMeta']
@@ -487,7 +489,12 @@ type CursorType = CSSProperties['cursor']
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
-type GetColorType = (cssVariableValue: string, darkCssVariableValue?: string, opacity?: number) => string
+type GetColorType = (
+  cssVariableValue: string,
+  darkCssVariableValue?: string,
+  opacity?: number,
+  options?: { bypass?: boolean },
+) => string
 
 type MakeCellEditableFn = (row: Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip?: boolean) => void
 

@@ -14,7 +14,15 @@ const props = withDefaults(
   },
 )
 
+provide(IsExpandedFormOpenInj, ref(true))
+
 provide(RowHeightInj, ref(1 as const))
+
+provide(IsUnderLookupInj, ref(true))
+
+provide(IsLinkRecordDropdownInj, ref(true))
+
+provide(IsFormInj, ref(false))
 
 const row = useVModel(props, 'row')
 
@@ -51,10 +59,12 @@ useProvideSmartsheetRowStore(row)
 </script>
 
 <template>
-  <div class="nc-list-item-wrapper px-[1px]">
+  <div
+    class="nc-list-item-wrapper hover:bg-nc-bg-gray-extralight group px-[1px] border-y-1 border-nc-border-gray-medium border-t-transparent"
+  >
     <a-card
       tabindex="0"
-      class="nc-list-item !outline-none transition-all relative group-hover:bg-nc-bg-gray-extralight cursor-pointer"
+      class="nc-list-item !outline-none transition-all relative group-hover:!bg-nc-bg-gray-extralight cursor-pointer !border-transparent"
       :body-style="{ padding: '6px 10px !important', borderRadius: 0 }"
       :hoverable="false"
     >

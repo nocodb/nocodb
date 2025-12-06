@@ -29,16 +29,9 @@ const showAdvancedOptions = ref(false)
     </div>
 
     <div class="flex items-center gap-2">
-      <a-checkbox
-        v-model:checked="config.showPkAndFk"
-        v-e="['c:erd:showPkAndFk']"
-        class="nc-erd-showPkAndFk-checkbox"
-        :class="[
-          `nc-erd-showPkAndFk-checkbox-${config.showAllColumns ? 'enabled' : 'disabled'}`,
-          `nc-erd-showPkAndFk-checkbox-${config.showPkAndFk ? 'checked' : 'unchecked'}`,
-        ]"
-        :disabled="!config.showAllColumns"
-      />
+      <a-checkbox v-model:checked="config.showPkAndFk" v-e="['c:erd:showPkAndFk']" class="nc-erd-showPkAndFk-checkbox" :class="[
+      `nc-erd-showPkAndFk-checkbox-${config.showAllColumns ? 'enabled' : 'disabled'}`,
+      `nc-erd-showPkAndFk-checkbox-${config.showPkAndFk ? 'checked' : 'unchecked'}`, ]" " :disabled="!config.showAllColumns" />
       <span class="select-none nc-erd-config-option-label">{{ $t('activity.erd.showPkAndFk') }}</span>
     </div>
 

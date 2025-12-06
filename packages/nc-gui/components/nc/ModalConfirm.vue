@@ -291,19 +291,19 @@ useSelectedCellKeydownListener(
 
   &.nc-modal-confirm-type-success {
     .nc-modal-confirm-icon-wrapper {
-      @apply text-nc-content-green-dark;
+      @apply text-green-700;
     }
   }
 
   &.nc-modal-confirm-type-error {
     .nc-modal-confirm-icon-wrapper {
-      @apply text-nc-content-red-dark;
+      @apply text-red-700;
     }
   }
 
   &.nc-modal-confirm-type-warning {
     .nc-modal-confirm-icon-wrapper {
-      @apply text-nc-content-orange-medium;
+      @apply text-orange-500;
     }
   }
 

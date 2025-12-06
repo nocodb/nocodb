@@ -848,49 +848,71 @@ export const getAdaptiveTint = (
     isDarkMode?: boolean
     saturationMod?: number
     brightnessMod?: number
+    shade?: number // darker
+    tint?: number // lighter
   },
 ) => {
   const isDarkMode = opts?.isDarkMode
+  let { saturationMod = 0, brightnessMod = 0, shade = 0, tint = 0 } = opts || {}
 
-  let { saturationMod = 0, brightnessMod = 0 } = opts || {}
-  const evalColor = tinycolor(color)
-  const hsv = evalColor.toHsv()
+  const base = tinycolor(color)
+  const hsv = base.toHsv()
 
-  // Normalize grayscale colors
   const isGray = hsv.s < 0.01
+  let s = hsv.s
+  let v = hsv.v
 
+  //
+  // --- STEP 1: ORIGINAL BASE LOGIC (unchanged for light mode) ---
+  //
   if (!isDarkMode) {
-    //
-    // 🌞 LIGHT THEME LOGIC (white backgrounds)
-    //
+    // LIGHT MODE — keep exactly your original behavior (no extra dark/light here)
     const safeS = isGray ? 0 : Math.min(100, 5 + saturationMod)
     const safeV = Math.min(100, (isGray ? 97 : 100) + brightnessMod)
+    s = safeS
+    v = safeV
+  } else {
+    saturationMod = -saturationMod
+    brightnessMod = -brightnessMod
 
-    return tinycolor({ h: hsv.h, s: safeS, v: safeV }).toHexString()
+    // DARK MODE — keep your original dark tuning
+    const darkS = isGray ? 0 : Math.min(100, hsv.s * 0.7 + saturationMod)
+    const darkV = Math.max(15, Math.min(60, hsv.v * 0.6 + brightnessMod))
+    s = darkS
+    v = darkV
+
+    //
+    // --- STEP 2: Controlled hover / border adjustments ---
+    //
+    if (shade !== 0) {
+      // shade = *darken* → reduce brightness
+      v = Math.max(0, v - shade)
+    }
+
+    if (tint !== 0) {
+      // tint = *lighten* → increase brightness
+      v = Math.min(100, v + tint)
+    }
   }
 
-  // 🔄 Invert modifiers for dark mode ("-mod")
-  saturationMod = -saturationMod
-  brightnessMod = -brightnessMod
-
-  //
-  // 🌙 DARK THEME LOGIC (#171717 backgrounds)
-  //
-  // Dark theme needs *stronger saturation and lower value*
-  // so color remains visible but does NOT glow too much.
-  //
-  const darkS = isGray ? 0 : Math.min(100, hsv.s * 0.7 + saturationMod) // slightly reduce saturation for dark UI
-  const darkV = Math.max(15, Math.min(60, hsv.v * 0.6 + brightnessMod)) // cap brightness
-
-  return tinycolor({
-    h: hsv.h,
-    s: darkS,
-    v: darkV,
-  }).toHexString()
+  return tinycolor({ h: hsv.h, s, v }).toHexString()
 }
 
-export const getOppositeColorOfBackground = (color: string) => {
-  return tinycolor.isReadable(color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-    ? '#fff'
-    : tinycolor.mostReadable(color || '#ccc', ['#0b1d05', '#fff']).toHex8String()
+export const getOppositeColorOfBackground = (
+  background?: string,
+  preferredText?: string,
+  fallbackColors: string[] = ['#1f293a', '#101015', '#ffffff'],
+) => {
+  const bg = background || '#cccccc'
+  const txt = preferredText || '#ffffff'
+
+  // If preferred text color is readable on this background
+  if (tinycolor.isReadable(bg, txt, { level: 'AA', size: 'large' })) {
+    return tinycolor(txt).toHex8String()
+  }
+
+  // Else choose best fallback between white & black
+  const fallback = tinycolor.mostReadable(bg, fallbackColors)
+
+  return fallback.toHex8String()
 }

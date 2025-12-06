@@ -84,7 +84,7 @@ onMounted(async () => {
         <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
           <div class="w-full flex items-center gap-2">
             <div class="min-w-5 flex items-center justify-center">
-              <GeneralTableIcon size="xsmall" :meta="{ meta: table.meta, synced: table.synced }" class="text-gray-500" />
+              <GeneralTableIcon size="xsmall" :meta="{ meta: table.meta, synced: table.synced }" class="text-nc-content-gray-muted" />
             </div>
             <NcTooltip class="flex-1 truncate" show-on-truncate-only>
               <template #title>{{ table.label }}</template>
@@ -94,7 +94,7 @@ onMounted(async () => {
               :is="iconMap.check"
               v-if="savedPayloads.selectedTableId === table.value"
               id="nc-selected-item-icon"
-              class="flex-none text-primary w-4 h-4"
+              class="flex-none text-nc-content-brand w-4 h-4"
             />
           </div>
         </a-select-option>
@@ -114,7 +114,7 @@ onMounted(async () => {
         <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
           <div class="w-full flex items-center gap-2">
             <div class="min-w-5 flex items-center justify-center">
-              <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+              <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-nc-content-gray-muted" />
             </div>
             <NcTooltip class="flex-1 truncate" show-on-truncate-only>
               <template #title>{{ view.label }}</template>
@@ -124,7 +124,7 @@ onMounted(async () => {
               :is="iconMap.check"
               v-if="savedPayloads.selectedViewId === view.value"
               id="nc-selected-item-icon"
-              class="flex-none text-primary w-4 h-4"
+              class="flex-none text-nc-content-brand w-4 h-4"
             />
           </div> </a-select-option
       ></NcSelect>

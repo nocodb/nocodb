@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getEmbedURL } from './utils'
+import EmptyStateBanner from './assets/empty-state-banner.svg'
 
 const { showExtensionDetails } = useExtensions()
 
@@ -70,7 +71,8 @@ const openSelectedLink = async () => {
     <div class="h-full flex justify-center items-center">
       <div v-if="showEmptyState" class="w-full text-center">
         <div class="mb-2">To view a preview, select a cell in the URL field.</div>
-        <img src="./assets/empty-state-banner.svg" class="w-80 mx-auto" />
+
+        <GeneralIcon icon="ncExtUrlPreviewEmptyState" class="w-80 mx-auto" />
       </div>
       <div v-else-if="embedURL === 'unsupported'" class="w-full text-center">
         <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-8 h-8 flex-none" />

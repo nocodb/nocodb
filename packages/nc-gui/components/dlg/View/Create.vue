@@ -1170,7 +1170,7 @@ watch(activeBaseId, () => {
             <template #AutoSuggestedContent>
               <div class="px-5 pt-5 pb-2 w-full">
                 <div v-if="aiError" class="w-full flex items-center gap-3">
-                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-4 h-4" />
 
                   <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
                     <template #title>
@@ -1337,7 +1337,7 @@ watch(activeBaseId, () => {
                 </div>
 
                 <div v-if="aiError" class="w-full flex items-center gap-3">
-                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-4 h-4" />
 
                   <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
                     <template #title>

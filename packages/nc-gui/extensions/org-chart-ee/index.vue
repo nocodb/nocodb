@@ -431,7 +431,7 @@ onBeforeUnmount(() => {
                         :is="iconMap.check"
                         v-if="tableId === table.id"
                         id="nc-selected-item-icon"
-                        class="flex-none text-primary w-4 h-4"
+                        class="flex-none text-nc-content-brand w-4 h-4"
                       />
                     </div>
                   </a-select-option>
@@ -459,7 +459,7 @@ onBeforeUnmount(() => {
                         :is="iconMap.check"
                         v-if="viewId === view.id"
                         id="nc-selected-item-icon"
-                        class="flex-none text-primary w-4 h-4"
+                        class="flex-none text-nc-content-brand w-4 h-4"
                       />
                     </div>
                   </a-select-option>
@@ -471,7 +471,7 @@ onBeforeUnmount(() => {
             <h1>Settings</h1>
             <div class="flex flex-col">
               <div class="text-sm text-nc-content-gray mb-2">
-                Relationship field <span class="text-sm font-bold text-red-500">*</span>
+                Relationship field <span class="text-sm font-bold text-nc-content-red-medium">*</span>
               </div>
               <a-form-item class="!my-0 w-full">
                 <NcSelect
@@ -495,7 +495,7 @@ onBeforeUnmount(() => {
                         :is="iconMap.check"
                         v-if="relationFieldId === relationField.id"
                         id="nc-selected-item-icon"
-                        class="flex-none text-primary w-4 h-4"
+                        class="flex-none text-nc-content-brand w-4 h-4"
                       />
                     </div>
                   </a-select-option>
@@ -537,7 +537,7 @@ onBeforeUnmount(() => {
                         :is="iconMap.check"
                         v-if="!coverImageFieldId"
                         id="nc-selected-item-icon"
-                        class="flex-none text-primary w-4 h-4"
+                        class="flex-none text-nc-content-brand w-4 h-4"
                       />
                     </div>
                   </a-select-option>
@@ -558,7 +558,7 @@ onBeforeUnmount(() => {
                         :is="iconMap.check"
                         v-if="coverImageFieldId === coverImageField.id"
                         id="nc-selected-item-icon"
-                        class="flex-none text-primary w-4 h-4"
+                        class="flex-none text-nc-content-brand w-4 h-4"
                       />
                     </div>
                   </a-select-option>

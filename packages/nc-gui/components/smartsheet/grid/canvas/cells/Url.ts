@@ -27,7 +27,7 @@ export const UrlCellRenderer: CellRenderer = {
       }
     }
 
-    const isValid = text && isValidURL(text)
+    const isValid = !!text && isValidURL(text)
 
     if (props.tag?.renderAsTag) {
       return renderTagLabel(ctx, { ...props, text })
@@ -63,7 +63,7 @@ export const UrlCellRenderer: CellRenderer = {
         spriteLoader.renderIcon(ctx, {
           icon: 'ncInfo',
           size: iconSize,
-          color: themeV3Colors.red['400'],
+          color: getColor('--rgb-color-red-400'),
           x: iconX,
           y: y + (yOffset - y) / 2,
         })

@@ -1005,11 +1005,11 @@ const webhookV2AndV3Diff = computed(() => {
                 @click="testWebhook"
               >
                 <template #icon>
-                  <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-nc-content-green-dark w-4 h-4 flex-none" />
+                  <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4 flex-none" />
                   <GeneralIcon
                     v-else-if="testConnectionError"
                     icon="alertTriangleSolid"
-                    class="!text-nc-content-red-dark w-4 h-4 flex-none"
+                    class="!text-red-700 w-4 h-4 flex-none"
                   />
                 </template>
                 <span>

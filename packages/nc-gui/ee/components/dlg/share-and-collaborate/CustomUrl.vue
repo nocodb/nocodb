@@ -385,7 +385,7 @@ watch(
           {{ validation?.hasError ? validation.msg : $t('title.thisUrlIsUnavailable') }}
         </div>
 
-        <div v-else-if="showAvailableStatus" class="text-small mt-2 flex items-center gap-1.5 text-nc-content-green-dark">
+        <div v-else-if="showAvailableStatus" class="text-small mt-2 flex items-center gap-1.5 text-green-700 dark:text-green-600">
           <div class="h-4 w-4 flex items-center justify-center">
             <GeneralIcon icon="ncCheckCircle" class="flex-none w-3.5 h-3.5" />
           </div>

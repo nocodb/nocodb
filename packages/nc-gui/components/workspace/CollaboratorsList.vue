@@ -602,7 +602,7 @@ watch(inviteDlg, (newVal) => {
                       v-else
                       :border="false"
                       color="green"
-                      class="text-nc-content-green-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
+                      class="text-nc-content-green-dark dark:!bg-nc-bg-green-light text-[10px] leading-[14px] !h-[18px] font-semibold"
                     >
                       <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
                     </NcBadge>

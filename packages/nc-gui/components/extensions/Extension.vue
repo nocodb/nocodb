@@ -169,7 +169,11 @@ watch(
           }"
         >
           <a-result status="error" title="Extension Error" class="nc-extension-error">
-            <template #subTitle>{{ activeError }}</template>
+            <template #subTitle>
+              <span class="text-nc-content-gray-muted">
+                {{ activeError }}
+              </span>
+            </template>
             <template #extra>
               <NcButton size="small" @click="onClearData">
                 <div class="flex items-center gap-2">
@@ -256,7 +260,7 @@ watch(
   @apply absolute top-0 left-0 z-1000 w-full h-full bg-black/50 flex items-center justify-center;
 
   .extension-modal-content {
-    @apply bg-nc-bg-default rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col overflow-hidden;
+    @apply bg-nc-bg-default rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col overflow-hidden dark:(border-1 border-nc-border-gray-medium);
   }
 }
 

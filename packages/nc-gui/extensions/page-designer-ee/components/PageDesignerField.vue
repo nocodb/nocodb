@@ -15,6 +15,8 @@ import { Removable } from '../lib/removable'
 const props = defineProps<PageDesignerWidgetComponentProps>()
 defineEmits(['deleteCurrentWidget'])
 
+const { isDark, getColor } = useTheme()
+
 const payload = inject(PageDesignerPayloadInj)!
 const widget = ref() as Ref<PageDesignerFieldWidget>
 const row = inject(PageDesignerRowInj)!
@@ -90,6 +92,35 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc((row.value?.row ??
 
 const fieldTitle = computed(() => widget.value.field.title ?? '')
 const isLookupField = computed(() => widget.value.field.uidt === UITypes.Lookup)
+
+const widgetColors = computed(() => {
+  if (!widget.value) {
+    return {
+      backgroundColor: undefined,
+      textColor: undefined,
+    }
+  }
+
+  if (!isDark.value) {
+    return {
+      backgroundColor: widget.value.backgroundColor,
+      textColor: getOppositeColorOfBackground(widget.value.backgroundColor, widget.value.textColor),
+    }
+  } else {
+    return {
+      backgroundColor:
+        widget.value.backgroundColor?.toLowerCase() === '#ffffff'
+          ? getColor('var(--nc-bg-default)')
+          : widget.value.backgroundColor,
+      textColor: getOppositeColorOfBackground(
+        widget.value.backgroundColor?.toLowerCase() === '#ffffff'
+          ? getColor('var(--nc-bg-default)')
+          : widget.value.backgroundColor,
+        widget.value.textColor === '#000000' ? getColor('var(--nc-content-gray-extreme)') : widget.value.textColor,
+      ),
+    }
+  }
+})
 </script>
 
 <template>
@@ -105,12 +136,12 @@ const isLookupField = computed(() => widget.value.field.uidt === UITypes.Lookup)
           }px`,
           borderColor: widget.borderColor,
           borderRadius: `${widget.borderRadius || 0}px`,
-          background: widget.backgroundColor,
+          background: widgetColors.backgroundColor,
           fontSize: `${widget.fontSize}px`,
           fontWeight: widget.fontWeight,
           fontFamily: widget.fontFamily,
           lineHeight: widget.lineHeight,
-          color: widget.textColor,
+          color: widgetColors.textColor,
           justifyContent: widget.horizontalAlign,
           alignItems: widget.verticalAlign,
           textAlign: horizontalAlignTotextAlignMap[widget.horizontalAlign],

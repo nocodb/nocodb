@@ -173,8 +173,8 @@ whenever(isOpen, () => {
       :disabled="disabled"
       icon-position="right"
       full-width
-      :class="{ 'record-picker-active': isOpen, '!bg-[#F5F5F5]': disabled }"
-      class="!border-[#d9d9d9]"
+      :class="{ 'record-picker-active': isOpen, '!bg-nc-bg-gray-light': disabled }"
+      class="!border-nc-border-gray-medium"
     >
       <span v-if="displayField && localState?.row" class="truncate text-left !leading-[1.5]">
         <SmartsheetPlainCell :model-value="localState?.row[displayField.title]" :column="displayField" />
@@ -182,7 +182,7 @@ whenever(isOpen, () => {
       <span
         v-else
         :class="{
-          'text-[rgba(0,0,0,.25)]': disabled,
+          'text-[rgba(var(--rgb-base),.25)]': disabled,
         }"
         class="truncate text-left !leading-[1.5]"
       >
@@ -190,7 +190,7 @@ whenever(isOpen, () => {
       </span>
 
       <template #icon>
-        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="self-center text-gray-700" />
+        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="self-center text-nc-content-gray-subtle" />
       </template>
     </NcButton>
 

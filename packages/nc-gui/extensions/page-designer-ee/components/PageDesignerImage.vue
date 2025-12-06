@@ -18,6 +18,8 @@ watch(
   { immediate: true },
 )
 
+const { isDark, getColor } = useTheme()
+
 const draggable = computed(() => !props.disabled)
 const throttleDrag = 1
 const edgeDraggable = false
@@ -59,6 +61,27 @@ const onRenderEnd = () => {
 
 const errored = ref(false)
 const container = useParentElement()
+
+const widgetColors = computed(() => {
+  if (!widget.value) {
+    return {
+      backgroundColor: undefined,
+    }
+  }
+
+  if (!isDark.value) {
+    return {
+      backgroundColor: widget.value.backgroundColor,
+    }
+  } else {
+    return {
+      backgroundColor:
+        widget.value.backgroundColor?.toLowerCase() === '#ffffff'
+          ? getColor('var(--nc-bg-default)')
+          : widget.value.backgroundColor,
+    }
+  }
+})
 </script>
 
 <template>
@@ -66,7 +89,7 @@ const container = useParentElement()
     <div ref="targetRef" class="absolute" :style="widget.cssStyle">
       <div
         :style="{
-          background: `${widget.backgroundColor}`,
+          background: `${widgetColors.backgroundColor}`,
           height: '100%',
           width: '100%',
           borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${

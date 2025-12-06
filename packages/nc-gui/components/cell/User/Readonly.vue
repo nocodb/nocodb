@@ -172,13 +172,13 @@ const isCollaborator = (userIdOrEmail) => {
           :color="
             selectedOpt.value === CURRENT_USER_TOKEN
               ? themeV4Colors.brand[50]
-              : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-medium)')
+              : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
           "
         >
           <span
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             :style="{
-              color: getSelectTypeOptionTextColor(getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-medium)'), getColor),
+              color: getSelectTypeOptionTextColor(getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'), getColor),
             }"
             class="flex items-stretch gap-2"
           >

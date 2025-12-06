@@ -3,6 +3,8 @@ import { defineAsyncComponent } from 'vue'
 
 const props = defineProps<Props>()
 
+const { isDark } = useTheme()
+
 // Define Monaco Editor as an async component
 const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
@@ -89,11 +91,12 @@ const formattedPayload = computed(() => {
           <span class="text-xs leading-[18px]">Payload</span>
           <GeneralCopyButton :content="copyPayloadContent" size="xs" class="!px-1" />
         </div>
+
         <Suspense>
           <template #default>
             <MonacoEditor
               :model-value="formattedPayload"
-              class="min-w-full w-full flex-1 min-h-50 resize-y overflow-auto expanded-editor"
+              class="min-w-full w-full flex-1 min-h-50 resize-y overflow-auto expanded-editor max-h-screen"
               hide-minimap
               disable-deep-compare
               read-only
@@ -103,13 +106,15 @@ const formattedPayload = computed(() => {
                   verticalScrollbarSize: 6,
                   horizontalScrollbarSize: 6,
                 },
+                wordWrap: 'on',
+                wrappingStrategy: 'advanced',
               }"
               :monaco-custom-theme="{
-                base: 'vs',
+                base: isDark ? 'vs-dark' : 'vs',
                 inherit: true,
                 rules: [],
                 colors: {
-                  'editor.background': '#f9f9fa',
+                  'editor.background': isDark ? '#171717' : '#f9f9fa',
                 },
               }"
               @keydown.enter.stop
@@ -127,7 +132,7 @@ const formattedPayload = computed(() => {
 
 <style scoped lang="scss">
 .detail-card {
-  @apply flex flex-col w-full border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-gray-extralight h-full;
+  @apply flex flex-col w-full border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-gray-extralight h-full max-h-screen;
 
   & > .detail-title {
     @apply border-b border-nc-border-gray-medium px-3 py-2;
@@ -149,7 +154,7 @@ const formattedPayload = computed(() => {
       .log-detail-item {
         @apply flex flex-row w-full;
         .label:not(.script) {
-          @apply min-w-40 font-weight-600 text-gray-700 text-small1 lowercase;
+          @apply min-w-40 font-weight-600 text-nc-content-gray-subtle text-small1 lowercase;
         }
 
         .value {

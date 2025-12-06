@@ -266,7 +266,7 @@ export const renderCheckbox = (
   ctx.roundRect(x, y, size, size, radius)
 
   if (isDisabled) {
-    ctx.fillStyle = getColor('#F5F5F5')
+    ctx.fillStyle = getColor('#F5F5F5', 'var(--nc-bg-gray-medium)')
     ctx.fill()
 
     if (isChecked) {
@@ -275,11 +275,11 @@ export const renderCheckbox = (
         size: 12,
         x: x + 2,
         y: y + 2,
-        color: getColor('#B8B8B8'),
+        color: getColor('#B8B8B8', 'var(--nc-bg-gray-extra-dark)'),
       })
     }
 
-    ctx.strokeStyle = strokeColor ?? getColor('#D9D9D9')
+    ctx.strokeStyle = strokeColor ?? getColor('#D9D9D9', 'var(--nc-bg-gray-dark)')
     ctx.lineWidth = 1
     ctx.stroke()
   } else if (isChecked) {

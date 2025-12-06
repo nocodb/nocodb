@@ -528,7 +528,7 @@ onBeforeUnmount(() => {
               <div class="flex flex-col gap-6 h-[calc(100%_-_45px)] nc-scrollbar-thin py-6">
                 <div v-if="aiError" class="nc-ai-button-config-right-section">
                   <div class="py-3 pl-3 pr-2 flex items-center gap-3 bg-nc-bg-red-light rounded-lg w-full">
-                    <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+                    <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-4 h-4" />
 
                     <div class="text-sm text-nc-content-gray-subtle flex-1 max-w-[calc(100%_-_24px)]">
                       <NcTooltip class="truncate" show-on-truncate-only>

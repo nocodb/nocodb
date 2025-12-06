@@ -18,6 +18,8 @@ watch(
   { immediate: true },
 )
 
+const { isDark, getColor } = useTheme()
+
 const draggable = computed(() => !props.disabled)
 const throttleDrag = 1
 const edgeDraggable = false
@@ -74,6 +76,18 @@ const computedStyle = computed(() => {
 })
 
 const container = useParentElement()
+
+const widgetColors = computed(() => {
+  if (!widget.value) {
+    return {
+      backgroundColor: undefined,
+    }
+  }
+
+  return {
+    backgroundColor: getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), widget.value.backgroundColor),
+  }
+})
 </script>
 
 <template>
@@ -81,7 +95,7 @@ const container = useParentElement()
     <div ref="targetRef" class="absolute" :style="computedStyle">
       <div
         :style="{
-          background: `${widget.backgroundColor}`,
+          background: `${widgetColors.backgroundColor}`,
           height: '100%',
           width: '100%',
         }"

@@ -117,6 +117,10 @@ body {
   background: rgb(var(--rgb-color-brand-500));
 }
 
+.ant-progress-text {
+  color: rgba(var(--rgb-base), 0.85);
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {
@@ -196,15 +200,63 @@ body {
     .ant-checkbox-disabled + span {
       @apply text-nc-content-gray-disabled;
     }
+
+    // Checkbox
+    .ant-checkbox {
+      color: rgba(var(--rgb-base), 0.85);
+    }
+    .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+    .ant-checkbox:hover .ant-checkbox-inner,
+    .ant-checkbox-input:focus + .ant-checkbox-inner {
+      border-color: var(--ant-primary-color);
+    }
+    .ant-checkbox-inner {
+      background-color: var(--nc-bg-default);
+      border: 1px solid var(--nc-border-gray-medium);
+    }
+    .ant-checkbox-checked .ant-checkbox-inner {
+      background-color: var(--ant-primary-color);
+      border-color: var(--ant-primary-color);
+    }
+    .ant-checkbox-disabled.ant-checkbox-checked .ant-checkbox-inner::after {
+      border-color: rgba(var(--rgb-base), 0.25);
+    }
+    .ant-checkbox-disabled .ant-checkbox-inner {
+      background-color: var(--nc-bg-gray-medium);
+      border-color: var(--nc-bg-gray-dark) !important;
+    }
+    .ant-checkbox-disabled .ant-checkbox-inner::after {
+      border-color: var(--nc-bg-gray-extra-dark);
+    }
+    .ant-checkbox-disabled + span {
+      color: rgba(var(--rgb-base), 0.25);
+    }
+    .ant-checkbox-wrapper {
+      color: rgba(var(--rgb-base), 0.85);
+    }
+    .ant-checkbox-group {
+      color: rgba(var(--rgb-base), 0.85);
+    }
+    .ant-checkbox-indeterminate .ant-checkbox-inner {
+      background-color: var(--nc-bg-default);
+      border-color: var(--nc-border-gray-medium);
+    }
+    .ant-checkbox-indeterminate .ant-checkbox-inner::after {
+      background-color: var(--ant-primary-color);
+    }
+    .ant-checkbox-indeterminate.ant-checkbox-disabled .ant-checkbox-inner::after {
+      background-color: rgba(var(--rgb-base), 0.25);
+      border-color: rgba(var(--rgb-base), 0.25);
+    }
   }
 }
 
 // Dark theme specific style
 [theme='dark'] {
   /* Change autocomplete styles in WebKit */
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus,
+  input:-webkit-autofill:not([type='checkbox']):not([type='radio']),
+  input:-webkit-autofill:hover:not([type='checkbox']):not([type='radio']),
+  input:-webkit-autofill:focus:not([type='checkbox']):not([type='radio']),
   textarea:-webkit-autofill,
   textarea:-webkit-autofill:hover,
   textarea:-webkit-autofill:focus,
@@ -217,7 +269,7 @@ body {
     transition: background-color 5000s ease-in-out 0s; /* Prevent flash on focus */
   }
 
-  input,
+  input:not([type='checkbox']):not([type='radio']),
   textarea,
   .ant-input-affix-wrapper,
   .ant-input-number {

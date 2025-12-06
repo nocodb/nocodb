@@ -21,13 +21,13 @@ function onDragStart(e: DragEvent) {
 
 <template>
   <div
-    class="field-element pl-1 pr-2 flex flex-row items-center hover:bg-gray-50"
+    class="field-element pl-1 pr-2 flex flex-row items-center hover:bg-nc-bg-gray-extralight"
     :class="{ dragging, 'cursor-pointer': !disabled, 'cursor-not-allowed': disabled }"
     @dragstart="onDragStart"
   >
     <div class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2">
-      <component :is="iconMap.drag" v-if="displayDragHandle" class="!h-3.75 text-gray-600 mr-1 cursor-move" />
-      <component :is="icon" class="!text-gray-600 mr-2" />
+      <component :is="iconMap.drag" v-if="displayDragHandle" class="!h-3.75 text-nc-content-gray-subtle2 mr-1 cursor-move" />
+      <component :is="icon" class="!text-nc-content-gray-subtle2 mr-2" />
 
       <NcTooltip class="pl-1 truncate" show-on-truncate-only>
         <template #title>

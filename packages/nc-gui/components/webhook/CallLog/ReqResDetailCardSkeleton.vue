@@ -72,7 +72,7 @@ defineProps<Props>()
       .log-detail-item {
         @apply flex flex-row w-full;
         .label {
-          @apply min-w-40 font-weight-600 text-gray-700 text-small1 lowercase;
+          @apply min-w-40 font-weight-600 text-nc-content-gray-subtle text-small1 lowercase;
         }
 
         .value {

@@ -157,9 +157,6 @@ router.afterEach((to) => shouldRedirect(to.name as string))
           }
         }
 
-        &.layout-list > div {
-        }
-
         &.nc-cell-longtext {
           @apply p-0 h-auto;
           & > div {

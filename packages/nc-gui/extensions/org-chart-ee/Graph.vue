@@ -61,7 +61,7 @@ onScopeDispose($destroy)
 <template>
   <Teleport to="body" :disabled="!isFullScreen">
     <div
-      class="w-full bg-white h-full"
+      class="w-full bg-nc-bg-default h-full"
       :class="{
         '!z-1100 !nc-h-screen !nc-w-screen fixed top-0 left-0 right-0 bottom-0': isFullScreen,
       }"

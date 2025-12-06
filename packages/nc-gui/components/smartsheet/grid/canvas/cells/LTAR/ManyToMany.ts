@@ -69,7 +69,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
       textColor: getColor(themeV4Colors.brand['500']),
       tag: {
         renderAsTag: true,
-        tagBgColor: getColor(themeV4Colors.brand['50']),
+        tagBgColor: getColor(themeV4Colors.brand['50'], 'var(--nc-bg-gray-light)'),
         tagHeight: 24,
       },
       meta: relatedTableMeta,

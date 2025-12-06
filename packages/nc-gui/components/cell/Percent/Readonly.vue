@@ -127,8 +127,8 @@ const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpanded
         :percent="progressPercent"
         size="small"
         status="normal"
-        stroke-color="#3366FF"
-        trail-color="#E5E5E5"
+        stroke-color="var(--nc-content-brand)"
+        trail-color="var(--nc-bg-brand-inverted)"
         :show-info="false"
       />
     </div>

@@ -16,13 +16,16 @@ const editEnabled = inject(EditModeInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
 const readOnly = inject(ReadonlyInj, ref(false))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-const isForm = inject(IsFormInj)!
+const isForm = inject(IsFormInj, ref(false))
+const isGrid = inject(IsGridInj, ref(false))
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
 const _vModel = useVModel(props, 'modelValue', emits)
 const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultValue: false })
 const cellFocused = ref(false)
 const inputRef = ref<HTMLInputElement>()
+
+const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpandedFormOpen.value))
 
 const focus: VNodeRef = (el) => {
   if ((!isExpandedFormOpen.value || localEditEnabled.value) && !isEditColumn.value) {
@@ -94,26 +97,28 @@ onMounted(() => {
     :is-show-number="true"
     :percentage="vModelNumber"
   >
-    <!-- eslint-disable vue/use-v-on-exact -->
-    <input
-      :ref="focus"
-      v-model="vModel"
-      class="nc-cell-field w-full !border-none !outline-none focus:ring-0 h-full min-h-[18px]"
-      :class="isExpandedFormOpen ? 'py-1' : ''"
-      :type="inputType"
-      :placeholder="placeholder"
-      :disabled="readOnly"
-      @blur="onBlur"
-      @focus="onFocus"
-      @keydown.down.stop
-      @keydown.left.stop
-      @keydown.right.stop
-      @keydown.up.stop
-      @keydown.delete.stop
-      @keydown.alt.stop
-      @selectstart.capture.stop
-      @mousedown.stop
-    />
+    <template v-if="showInput" #default>
+      <!-- eslint-disable vue/use-v-on-exact -->
+      <input
+        :ref="focus"
+        v-model="vModel"
+        class="nc-cell-field w-full !border-none !outline-none focus:ring-0 h-full min-h-[18px]"
+        :class="isExpandedFormOpen ? 'py-1' : ''"
+        :type="inputType"
+        :placeholder="placeholder"
+        :disabled="readOnly"
+        @blur="onBlur"
+        @focus="onFocus"
+        @keydown.down.stop
+        @keydown.left.stop
+        @keydown.right.stop
+        @keydown.up.stop
+        @keydown.delete.stop
+        @keydown.alt.stop
+        @selectstart.capture.stop
+        @mousedown.stop
+      />
+    </template>
   </CellPercentProgressBar>
   <div v-else>
     <!-- eslint-disable vue/use-v-on-exact -->

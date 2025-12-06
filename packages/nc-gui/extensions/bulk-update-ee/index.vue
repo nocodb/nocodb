@@ -900,7 +900,11 @@ watch(
               <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
                 <div class="w-full flex items-center gap-2">
                   <div class="min-w-5 flex items-center justify-center">
-                    <GeneralTableIcon size="xsmall" :meta="{ meta: table.meta, synced: table.synced }" class="text-gray-500" />
+                    <GeneralTableIcon
+                      size="xsmall"
+                      :meta="{ meta: table.meta, synced: table.synced }"
+                      class="text-nc-content-gray-muted"
+                    />
                   </div>
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ table.label }}</template>
@@ -910,7 +914,7 @@ watch(
                     :is="iconMap.check"
                     v-if="savedPayloads.selectedTableId === table.value"
                     id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
+                    class="flex-none text-nc-content-brand w-4 h-4"
                   />
                 </div>
               </a-select-option>
@@ -932,7 +936,7 @@ watch(
               <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
                 <div class="w-full flex items-center gap-2">
                   <div class="min-w-5 flex items-center justify-center">
-                    <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                    <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-nc-content-gray-muted" />
                   </div>
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ view.label }}</template>
@@ -942,7 +946,7 @@ watch(
                     :is="iconMap.check"
                     v-if="savedPayloads.selectedViewId === view.value"
                     id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
+                    class="flex-none text-nc-content-brand w-4 h-4"
                   />
                 </div> </a-select-option
             ></NcSelect>
@@ -999,7 +1003,7 @@ watch(
                         :is="iconMap.check"
                         v-if="savedPayloads.selectedTableId === table.value"
                         id="nc-selected-item-icon"
-                        class="flex-none text-primary w-4 h-4"
+                        class="flex-none text-nc-content-brand w-4 h-4"
                       />
                     </div>
                   </a-select-option>
@@ -1036,7 +1040,7 @@ watch(
                         :is="iconMap.check"
                         v-if="savedPayloads.selectedViewId === view.value"
                         id="nc-selected-item-icon"
-                        class="flex-none text-primary w-4 h-4"
+                        class="flex-none text-nc-content-brand w-4 h-4"
                       />
                     </div> </a-select-option
                 ></NcSelect>
@@ -1237,7 +1241,7 @@ watch(
                                   :is="iconMap.check"
                                   v-if="fieldConfig.columnId === col.id"
                                   id="nc-selected-item-icon"
-                                  class="flex-none text-primary w-4 h-4"
+                                  class="flex-none text-nc-content-brand w-4 h-4"
                                 />
                               </div>
                             </NcTooltip>
@@ -1276,7 +1280,7 @@ watch(
                                 :is="iconMap.check"
                                 v-if="fieldConfig.opType === action.value"
                                 id="nc-selected-item-icon"
-                                class="flex-none text-primary w-4 h-4"
+                                class="flex-none text-nc-content-brand w-4 h-4"
                               />
                             </div>
                           </a-select-option>
@@ -1355,7 +1359,7 @@ watch(
 
                 <div
                   v-else
-                  class="text-gray-600"
+                  class="text-nc-content-gray-subtle2"
                   :class="{
                     'p-6 text-center': fullscreen,
                     'px-3 py-4 min-h-[120px] flex-1 flex flex-col gap-3 items-center justify-center': !fullscreen,
@@ -1662,28 +1666,6 @@ watch(
           }
         }
 
-        input,
-        textarea,
-        &.nc-virtual-cell {
-          .ant-btn {
-            @apply dark:(bg-slate-300);
-          }
-
-          .chip {
-            @apply dark:(bg-slate-700 text-nc-content-gray-extreme);
-          }
-        }
-
-        &.layout-list > div {
-          .ant-btn {
-            @apply dark:(bg-slate-300);
-          }
-
-          .chip {
-            @apply dark:(bg-slate-700 text-nc-content-gray-extreme);
-          }
-        }
-
         &.nc-cell-longtext {
           @apply p-0 h-auto;
           & > div {
@@ -1740,10 +1722,6 @@ watch(
           @apply h-auto;
         }
       }
-    }
-
-    .nc-attachment-cell > div {
-      @apply dark:(bg-slate-100);
     }
   }
 }

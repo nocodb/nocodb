@@ -21,6 +21,8 @@ const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { isDark, getColor } = useTheme()
+
 const { metas } = useMetas()
 
 const runtimeConfig = useRuntimeConfig()
@@ -220,6 +222,35 @@ const tableRowHeight = computed(() => {
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(value?.[0])?.[0]
+
+const widgetColors = computed(() => {
+  if (!widget.value) {
+    return {
+      backgroundColor: undefined,
+      textColor: undefined,
+      headerTextColor: undefined,
+      rowTextColor: undefined,
+    }
+  }
+
+  if (!isDark.value) {
+    return {
+      backgroundColor: widget.value.backgroundColor,
+      textColor: getOppositeColorOfBackground(widget.value.backgroundColor, widget.value.textColor),
+      headerTextColor: getOppositeColorOfBackground(widget.value.backgroundColor, widget.value.tableSettings.header.textColor),
+      rowTextColor: getOppositeColorOfBackground(widget.value.backgroundColor, widget.value.tableSettings.row.textColor),
+    }
+  } else {
+    const bgColor =
+      widget.value.backgroundColor?.toLowerCase() === '#ffffff' ? getColor('var(--nc-bg-default)') : widget.value.backgroundColor
+    return {
+      backgroundColor: bgColor,
+      textColor: getOppositeColorOfBackground(bgColor, widget.value.textColor),
+      headerTextColor: getOppositeColorOfBackground(bgColor, widget.value.tableSettings.header.textColor),
+      rowTextColor: getOppositeColorOfBackground(bgColor, widget.value.tableSettings.row.textColor),
+    }
+  }
+})
 </script>
 
 <template>
@@ -235,12 +266,12 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
           }px`,
           borderColor: widget.borderColor,
           borderRadius: `${widget.borderRadius || 0}px`,
-          background: widget.backgroundColor,
+          background: widgetColors.backgroundColor,
           fontSize: `${widget.fontSize}px`,
           fontWeight: widget.fontWeight,
           fontFamily: widget.fontFamily,
           lineHeight: widget.lineHeight,
-          color: widget.textColor,
+          color: widgetColors.textColor,
           justifyContent: widget.horizontalAlign,
           alignItems: widget.verticalAlign,
           textAlign: horizontalAlignTotextAlignMap[widget.horizontalAlign],
@@ -291,7 +322,7 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
                   :key="index"
                   :style="{
                     ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
-                    color: widget.tableSettings.header.textColor,
+                    color: widgetColors.headerTextColor,
                     fontSize: `${widget.tableSettings.header.fontSize}px`,
                     lineHeight: widget.tableSettings.header.lineHeight,
                     fontWeight: widget.tableSettings.header.fontWeight,
@@ -309,7 +340,7 @@ const attachmentUrl = (value: Record<string, any>) => getPossibleAttachmentSrc(v
                   :key="idx"
                   :style="{
                     ...(widget.borderColor === defaultBlackColor ? {} : { borderColor: widget.borderColor }),
-                    color: widget.tableSettings.row.textColor,
+                    color: widgetColors.rowTextColor,
                     fontSize: `${widget.tableSettings.row.fontSize}px`,
                     lineHeight: widget.tableSettings.row.lineHeight,
                     fontWeight: widget.tableSettings.row.fontWeight,

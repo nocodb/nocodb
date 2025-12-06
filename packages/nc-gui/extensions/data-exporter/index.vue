@@ -323,7 +323,7 @@ onMounted(async () => {
         v-if="!fullscreen"
         class="p-3 flex flex-col gap-3"
         :class="{
-          'bg-white': fullscreen,
+          'bg-nc-bg-default': fullscreen,
         }"
       >
         <div class="flex items-center justify-between gap-2.5 flex-wrap">
@@ -356,7 +356,11 @@ onMounted(async () => {
                 <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
                   <div class="w-full flex items-center gap-2">
                     <div class="min-w-5 flex items-center justify-center">
-                      <GeneralTableIcon size="xsmall" :meta="{ meta: table.meta, synced: table.synced }" class="text-gray-500" />
+                      <GeneralTableIcon
+                        size="xsmall"
+                        :meta="{ meta: table.meta, synced: table.synced }"
+                        class="text-nc-content-gray-muted"
+                      />
                     </div>
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>{{ table.label }}</template>
@@ -366,7 +370,7 @@ onMounted(async () => {
                       :is="iconMap.check"
                       v-if="exportPayload.tableId === table.value"
                       id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
+                      class="flex-none text-nc-content-brand w-4 h-4"
                     />
                   </div>
                 </a-select-option>
@@ -394,7 +398,10 @@ onMounted(async () => {
                 <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
                   <div class="w-full flex items-center gap-2">
                     <div class="min-w-5 flex items-center justify-center">
-                      <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                      <GeneralViewIcon
+                        :meta="{ meta: view.meta, type: view.type }"
+                        class="flex-none text-nc-content-gray-muted"
+                      />
                     </div>
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>{{ view.label }}</template>
@@ -404,7 +411,7 @@ onMounted(async () => {
                       :is="iconMap.check"
                       v-if="exportPayload.viewId === view.value"
                       id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
+                      class="flex-none text-nc-content-brand w-4 h-4"
                     />
                   </div> </a-select-option
               ></NcSelect>
@@ -429,7 +436,7 @@ onMounted(async () => {
       >
         <div
           v-if="fullscreen"
-          class="w-[320px] border-r-1 border-r-nc-border-gray-medium bg-white p-4 pt-t flex flex-col gap-5 nc-scrollbar-thin"
+          class="w-[320px] border-r-1 border-r-nc-border-gray-medium bg-nc-bg-default p-4 pt-t flex flex-col gap-5 nc-scrollbar-thin"
         >
           <div class="text-base font-bold text-nc-content-gray-extreme">Settings</div>
           <div class="flex flex-col gap-2">
@@ -448,7 +455,11 @@ onMounted(async () => {
                 <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
                   <div class="w-full flex items-center gap-2">
                     <div class="min-w-5 flex items-center justify-center">
-                      <GeneralTableIcon size="xsmall" :meta="{ meta: table.meta, synced: table.synced }" class="text-gray-500" />
+                      <GeneralTableIcon
+                        size="xsmall"
+                        :meta="{ meta: table.meta, synced: table.synced }"
+                        class="text-nc-content-gray-muted"
+                      />
                     </div>
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>{{ table.label }}</template>
@@ -458,7 +469,7 @@ onMounted(async () => {
                       :is="iconMap.check"
                       v-if="exportPayload.tableId === table.value"
                       id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
+                      class="flex-none text-nc-content-brand w-4 h-4"
                     />
                   </div>
                 </a-select-option>
@@ -482,7 +493,10 @@ onMounted(async () => {
                 <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
                   <div class="w-full flex items-center gap-2">
                     <div class="min-w-5 flex items-center justify-center">
-                      <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                      <GeneralViewIcon
+                        :meta="{ meta: view.meta, type: view.type }"
+                        class="flex-none text-nc-content-gray-muted"
+                      />
                     </div>
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>{{ view.label }}</template>
@@ -492,7 +506,7 @@ onMounted(async () => {
                       :is="iconMap.check"
                       v-if="exportPayload.viewId === view.value"
                       id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
+                      class="flex-none text-nc-content-brand w-4 h-4"
                     />
                   </div>
                 </a-select-option>
@@ -520,7 +534,7 @@ onMounted(async () => {
                       :is="iconMap.check"
                       v-if="exportPayload.delimiter === delimiter.value"
                       id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
+                      class="flex-none text-nc-content-brand w-4 h-4"
                     />
                   </div>
                 </a-select-option>
@@ -549,7 +563,7 @@ onMounted(async () => {
                       :is="iconMap.check"
                       v-if="exportPayload.encoding === encoding.value"
                       id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
+                      class="flex-none text-nc-content-brand w-4 h-4"
                     />
                   </div>
                 </a-select-option>
@@ -568,7 +582,7 @@ onMounted(async () => {
                 :class="{
                   'px-4 py-3': fullscreen,
                   'px-3 py-2 border-1 border-nc-border-gray-medium mx-3 rounded-lg': !fullscreen,
-                  'bg-white hover:bg-gray-50': exp.status === JobStatus.COMPLETED,
+                  'bg-nc-bg-default hover:bg-nc-bg-gray-extralight': exp.status === JobStatus.COMPLETED,
                   'bg-nc-bg-red-light': exp.status !== JobStatus.COMPLETED,
                 }"
               >
@@ -599,9 +613,12 @@ onMounted(async () => {
                   </div>
 
                   <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1">
-                    <div class="inline-flex gap-1 text-sm text-gray-800 -ml-[1px]">
+                    <div class="inline-flex gap-1 text-sm text-nc-content-gray -ml-[1px]">
                       <span class="inline-flex items-center h-5">
-                        <GeneralIcon icon="file" class="flex-none text-gray-600/80 h-3.5 w-3.5" />
+                        <GeneralIcon
+                          icon="file"
+                          class="flex-none text-nc-content-gray-subtle2/80 dark:text-nc-content-gray-subtle2 h-3.5 w-3.5"
+                        />
                       </span>
                       <NcTooltip class="truncate max-w-[calc(100%_-_20px)]" show-on-truncate-only>
                         <template #title>
@@ -660,7 +677,7 @@ onMounted(async () => {
               </div>
             </template>
           </div>
-          <div v-else-if="fullscreen" class="px-3 py-2 flex-1 flex items-center justify-center text-gray-800">
+          <div v-else-if="fullscreen" class="px-3 py-2 flex-1 flex items-center justify-center text-nc-content-gray">
             <a-empty
               :image-style="{
                 height: '24px',
@@ -680,7 +697,7 @@ onMounted(async () => {
 .data-exporter {
   @apply flex flex-col overflow-hidden h-full;
   .data-exporter-header {
-    @apply px-3 py-1 bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
+    @apply px-3 py-1 bg-nc-bg-gray-light text-[11px] leading-4 text-nc-content-gray-subtle2 border-b-1;
   }
 
   .nc-data-exporter-select-wrapper {
@@ -739,7 +756,7 @@ onMounted(async () => {
   }
 
   .data-exporter-footer {
-    @apply flex items-center justify-end bg-gray-100;
+    @apply flex items-center justify-end bg-nc-bg-gray-light;
   }
 }
 </style>

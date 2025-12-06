@@ -81,7 +81,7 @@ const plainCellValue = computed(() => {
         :srcs="getPossibleAttachmentSrc(record[selectedCoverImageField.title][0], 'card_cover')"
         :is-cell-preview="false"
       />
-      <div v-else class="h-22 w-full flex flex-row border-b border-gray-200 items-center justify-center">
+      <div v-else class="h-22 w-full flex flex-row border-b border-nc-border-gray-medium items-center justify-center">
         <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
       </div>
     </div>

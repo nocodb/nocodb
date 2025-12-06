@@ -181,4 +181,8 @@ input::-webkit-inner-spin-button {
 input[type='number'] {
   -moz-appearance: textfield;
 }
+
+input:disabled {
+  @apply bg-transparent;
+}
 </style>

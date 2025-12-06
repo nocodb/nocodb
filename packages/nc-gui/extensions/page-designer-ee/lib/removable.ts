@@ -11,8 +11,7 @@ export const Removable = {
       'div',
       {
         key: 'removable',
-        className:
-          'moveable-removable absolute w-5 h-5 px-2 bg-white rounded-md hover:bg-gray-100 border-1 cursor-pointer border-nc-border-gray-medium justify-center items-center gap-2 inline-flex',
+        className: `moveable-removable ${extensionClassNames.pageDesignerRemovable}`,
         style: {
           left: `${rect.width - (rotatable ? 15 : 9)}px`,
           top: rotatable ? `-30px` : `-10px`,

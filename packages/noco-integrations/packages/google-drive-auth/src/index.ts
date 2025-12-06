@@ -8,7 +8,7 @@ import { manifest } from './manifest';
 
 const integration: IntegrationEntry = {
   type: IntegrationType.Auth,
-  sub_type: 'googledrive',
+  sub_type: 'google-drive',
   wrapper: GoogleDriveAuthIntegration,
   form,
   manifest,

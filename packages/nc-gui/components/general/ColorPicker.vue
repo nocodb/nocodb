@@ -133,7 +133,7 @@ watch(picked, (n, _o) => {
 .color-selector.selected,
 .nc-more-colors-trigger:focus {
   outline: none;
-  box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px var(--nc-fill-primary-default);
+  box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px var(--nc-fill-primary);
 }
 
 :deep(.vc-chrome-toggle-icon) {

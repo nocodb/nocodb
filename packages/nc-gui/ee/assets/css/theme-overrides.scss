@@ -211,7 +211,7 @@ body {
   select:-webkit-autofill,
   select:-webkit-autofill:hover,
   select:-webkit-autofill:focus {
-    -webkit-text-fill-color: var(--nc-content-gray-default);
+    -webkit-text-fill-color: var(--nc-content-gray);
     -webkit-box-shadow: none;
     box-shadow: none; /* Auto fill input bg color*/
     transition: background-color 5000s ease-in-out 0s; /* Prevent flash on focus */

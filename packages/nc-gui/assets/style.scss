@@ -981,7 +981,7 @@ svg.nc-virtual-cell-icon {
   }
 
   .ant-checkbox-wrapper {
-    @apply !m-0 !mr-0 !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
+    @apply !m-0 !mr-0 !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-nc-bg-gray-light;
 
     &:not(.nc-hidden-option) {
       @apply !flex;
@@ -1005,7 +1005,7 @@ svg.nc-virtual-cell-icon {
     }
   }
   .ant-radio-wrapper {
-    @apply !m-0 !mr-0 !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-gray-100;
+    @apply !m-0 !mr-0 !items-center w-full !max-w-full pl-2 rounded-lg hover:bg-nc-bg-gray-light;
 
     &:not(.nc-hidden-option) {
       @apply !flex;

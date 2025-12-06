@@ -22,6 +22,8 @@ const { isMobileMode } = useGlobal()
 
 const { t } = useI18n()
 
+const { getColor } = useTheme()
+
 const meta = inject(MetaInj)!
 
 const isInFilter = inject(IsInFilterInj, ref(false))
@@ -457,7 +459,7 @@ onMounted(() => {
       @keydown="onKeyDown"
     >
       <template #suffixIcon>
-        <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
+        <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle nc-select-expand-btn" />
       </template>
       <template v-for="op of options" :key="op.id || op.email">
         <a-select-option
@@ -532,7 +534,9 @@ onMounted(() => {
             '!my-0': !rowHeight || rowHeight === 1,
           }"
           :style="{ display: 'flex', alignItems: 'center' }"
-          :color="val === CURRENT_USER_TOKEN ? themeV4Colors.brand[50] : location === 'filter' ? themeV4Colors.gray[200] : '#ccc'"
+          :color="
+            val === CURRENT_USER_TOKEN ? themeV4Colors.brand[50] : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
+          "
           :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
           :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
           @click="onTagClick($event, onClose)"
@@ -540,12 +544,7 @@ onMounted(() => {
         >
           <span
             :style="{
-              color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', {
-                level: 'AA',
-                size: 'large',
-              })
-                ? '#fff'
-                : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              color: getSelectTypeOptionTextColor(getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'), getColor),
             }"
             class="flex items-stretch gap-2"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
@@ -585,7 +584,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .ms-close-icon {
-  color: rgba(0, 0, 0, 0.25);
+  color: rgba(var(--rgb-base), 0.25);
   cursor: pointer;
   display: flex;
   font-size: 12px;
@@ -606,7 +605,7 @@ onMounted(() => {
 }
 
 .ms-close-icon:hover {
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(var(--rgb-base), 0.45);
 }
 
 .read-only {
@@ -621,10 +620,6 @@ onMounted(() => {
 
 :deep(.ant-tag) {
   @apply "rounded-tag" my-[1px];
-}
-
-:deep(.ant-tag-close-icon) {
-  @apply "text-slate-500";
 }
 
 :deep(.ant-select-selection-overflow-item) {

@@ -10,8 +10,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Routing Number', uidt: UITypes.SingleLineText },
       { title: 'Bank Name', uidt: UITypes.SingleLineText },
       { title: 'Account Type', uidt: UITypes.SingleSelect },
-      { title: 'Remote Created At', uidt: UITypes.DateTime },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
       {
@@ -32,7 +30,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Start Date', uidt: UITypes.Date },
       { title: 'End Date', uidt: UITypes.Date },
       { title: 'Employer Benefit', uidt: UITypes.SingleLineText },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
       {
@@ -49,7 +46,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Legal Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Display Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Eins', uidt: UITypes.SingleLineText },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [],
   },
@@ -66,7 +62,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Phone Number', uidt: UITypes.PhoneNumber },
       { title: 'Is Student', uidt: UITypes.Checkbox },
       { title: 'Ssn', uidt: UITypes.SingleLineText },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
       {
@@ -85,7 +80,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_employee.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Remote Created At', uidt: UITypes.DateTime },
       { title: 'Employee Number', uidt: UITypes.SingleLineText, pv: true },
       { title: 'First Name', uidt: UITypes.SingleLineText },
       { title: 'Last Name', uidt: UITypes.SingleLineText },
@@ -107,7 +101,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Employment Status', uidt: UITypes.SingleLineText },
       { title: 'Termination Date', uidt: UITypes.Date },
       { title: 'Avatar', uidt: UITypes.URL },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
       {
@@ -144,7 +137,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Earnings', uidt: UITypes.JSON },
       { title: 'Deductions', uidt: UITypes.JSON },
       { title: 'Taxes', uidt: UITypes.JSON },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
       {
@@ -172,7 +164,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Flsa Status', uidt: UITypes.SingleSelect },
       { title: 'Effective Date', uidt: UITypes.Date },
       { title: 'Employment Type', uidt: UITypes.SingleSelect },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
       {
@@ -190,7 +181,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Type', uidt: UITypes.SingleLineText },
       { title: 'Is Commonly Used As Team', uidt: UITypes.Checkbox },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
       {
@@ -213,19 +203,9 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Zip Code', uidt: UITypes.SingleLineText },
       { title: 'Country', uidt: UITypes.SingleSelect },
       { title: 'Location Type', uidt: UITypes.SingleSelect },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
     ],
-  },
-  [TARGET_TABLES.HRIS_PAY_GROUP]: {
-    title: TARGET_TABLES_META.hris_pay_group.label,
-    columns: [
-      { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Pay Group Name', uidt: UITypes.SingleLineText, pv: true },
-      { title: 'Remote Data', uidt: UITypes.JSON },
-    ],
-    relations: [],
   },
   [TARGET_TABLES.HRIS_PAYROLL_RUN]: {
     title: TARGET_TABLES_META.hris_payroll_run.label,
@@ -236,7 +216,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Start Date', uidt: UITypes.Date },
       { title: 'End Date', uidt: UITypes.Date },
       { title: 'Check Date', uidt: UITypes.Date },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [],
   },
@@ -252,7 +231,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Request Type', uidt: UITypes.SingleSelect },
       { title: 'Start Time', uidt: UITypes.DateTime },
       { title: 'End Time', uidt: UITypes.DateTime },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
       {
@@ -269,7 +247,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Balance', uidt: UITypes.Decimal },
       { title: 'Used', uidt: UITypes.Decimal },
       { title: 'Policy Type', uidt: UITypes.SingleSelect },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
       {
@@ -286,7 +263,6 @@ export const SCHEMA_HRIS: SyncSchema = {
       { title: 'Hours Worked', uidt: UITypes.Decimal },
       { title: 'Start Time', uidt: UITypes.DateTime },
       { title: 'End Time', uidt: UITypes.DateTime },
-      { title: 'Remote Data', uidt: UITypes.JSON },
     ],
     relations: [
       {

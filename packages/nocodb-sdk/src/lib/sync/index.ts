@@ -115,7 +115,6 @@ export enum TARGET_TABLES {
   HRIS_EMPLOYMENT = 'hris_employment',
   HRIS_GROUP = 'hris_group',
   HRIS_LOCATION = 'hris_location',
-  HRIS_PAY_GROUP = 'hris_pay_group',
   HRIS_PAYROLL_RUN = 'hris_payroll_run',
   HRIS_TIME_OFF = 'hris_time_off',
   HRIS_TIME_OFF_BALANCE = 'hris_time_off_balance',
@@ -233,14 +232,6 @@ export const TARGET_TABLES_META = {
     icon: 'ncDatabase',
     label: 'HR - Location',
     description: 'Represents human resources location data.',
-    required: false,
-  },
-  [TARGET_TABLES.HRIS_PAY_GROUP]: {
-    category: SyncCategory.HRIS,
-    value: TARGET_TABLES.HRIS_PAY_GROUP,
-    icon: 'ncDatabase',
-    label: 'HR - Pay Group',
-    description: 'Represents human resources pay group data.',
     required: false,
   },
   [TARGET_TABLES.HRIS_PAYROLL_RUN]: {

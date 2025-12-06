@@ -154,6 +154,11 @@ export function batchUpdate(
     });
   });
 
+  // return null if no fields updated
+  if (allColumns.size === 0) {
+    return null;
+  }
+
   const columns = Array.from(allColumns);
 
   // Build update object with CASE statements for each column

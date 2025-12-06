@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { DependencyTableType, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean

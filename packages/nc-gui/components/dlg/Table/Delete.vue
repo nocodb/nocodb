@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type LinkToAnotherRecordType, type TableType, isLinksOrLTAR } from 'nocodb-sdk'
+import { DependencyTableType, type LinkToAnotherRecordType, type TableType, isLinksOrLTAR } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{

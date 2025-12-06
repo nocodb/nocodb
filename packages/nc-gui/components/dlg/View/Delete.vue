@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { DependencyTableType } from 'nocodb-sdk'
 interface Props {
   modelValue: boolean
   view?: Record<string, any>

@@ -9,13 +9,14 @@ import {
   InstallationStatus,
   LICENSE_CONFIG,
   LICENSE_ENV_VARS,
+  LICENSE_SERVER_OLD_PUBLIC_KEY,
   LICENSE_SERVER_PUBLIC_KEY,
   LicenseType,
   validateClientLicenseEnvironment,
 } from '~/utils/license';
 
 const LICENSE_SERVER_URL =
-  process.env[LICENSE_ENV_VARS.LICENSE_SERVER_URL] || 'http://localhost:8080';
+  process.env[LICENSE_ENV_VARS.LICENSE_SERVER_URL] || 'https://app.nocodb.com';
 
 interface LicenseData {
   installation_id: string;
@@ -290,6 +291,30 @@ export default class NocoLicense {
 
     try {
       const ncMeta = Noco.ncMeta;
+
+      // If using old license (no installation_id), attempt activation instead of heartbeat
+      if (!this.licenseData.installation_id) {
+        this.logger.log(
+          'Legacy license detected, attempting activation with license server...',
+        );
+
+        const activated = await this.activateLicense(
+          this.licenseData.license_key,
+          ncMeta,
+        );
+
+        if (activated) {
+          // Update heartbeat state for successful upgrade
+          this.updateHeartbeatState(true);
+        } else {
+          // Update heartbeat state for failed attempt
+          this.updateHeartbeatState(false);
+          this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_FAILURE_MS;
+        }
+
+        this.startHeartbeatTimer();
+        return;
+      }
 
       // Calculate seat count based on user roles across all workspaces
       const seatCount = await this.calculateGlobalSeatCount(ncMeta);
@@ -725,9 +750,7 @@ export default class NocoLicense {
         },
       };
 
-      this.logger.log(
-        `Activating license with server: ${LICENSE_SERVER_URL}/api/v1/on-premise/agent`,
-      );
+      this.logger.log(`Activating license with server.`);
 
       const response = await fetch(
         `${LICENSE_SERVER_URL}/api/v1/on-premise/agent`,
@@ -786,6 +809,124 @@ export default class NocoLicense {
       return true;
     } catch (error) {
       this.logger.error(`Failed to activate license: ${error.message}`);
+
+      // Fallback: Try to validate as old-format license key
+      const fallbackResult = await this.tryActivateWithOldLicense(
+        licenseKey,
+        ncMeta,
+      );
+
+      if (fallbackResult) {
+        this.logger.log('Successfully validated legacy license key');
+        return true;
+      }
+
+      return false;
+    }
+  }
+
+  /**
+   * Fallback activation using old license key format (pre-license-server)
+   * This allows customers with old license keys to continue using NocoDB
+   * even if they can't connect to the license server yet
+   *
+   * Unlike new licenses, old licenses are NOT stored in the database.
+   * They are only loaded into memory and will trigger activation attempts
+   * on every heartbeat until successfully upgraded.
+   */
+  private static async tryActivateWithOldLicense(
+    licenseKey: string,
+    _ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    try {
+      // Try to verify the license key using the old public key
+      const decoded = jwt.verify(licenseKey, LICENSE_SERVER_OLD_PUBLIC_KEY, {
+        algorithms: ['RS256'],
+      }) as any;
+
+      if (!decoded || !decoded.siteUrl) {
+        this.logger.warn('Invalid old license key format');
+        return false;
+      }
+
+      // Map old license format to new license data structure (in-memory only)
+      const licenseType =
+        decoded.type === 'ENTERPRISE_TRIAL'
+          ? LicenseType.ENTERPRISE_TRIAL
+          : LicenseType.ENTERPRISE;
+
+      this.licenseData = {
+        installation_id: '', // Will be set when successfully activated with server
+        installation_secret: '', // Will be set when successfully activated with server
+        license_key: licenseKey,
+        license_type: licenseType,
+        status: InstallationStatus.ACTIVE,
+        seat_count: decoded.maxUsers || 0,
+        config: {
+          limit_workspace: decoded.maxWorkspaces || undefined,
+        },
+        last_heartbeat_at: new Date().toISOString(),
+      };
+
+      // Use normal heartbeat interval
+      this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_NORMAL_MS;
+      this._isExpired = false;
+
+      this.logger.log(
+        `Legacy license loaded. System will attempt to activate with license server soon, please make sure to allow egress to https://app.nocodb.com/api/v1/on-premise/agent`,
+      );
+
+      return true;
+    } catch (error) {
+      // If verification fails due to expiration, still allow it (for old licenses)
+      if (error instanceof jwt.TokenExpiredError) {
+        this.logger.warn(
+          'Old license key is expired, but allowing temporary operation',
+        );
+
+        try {
+          // Decode without verification to get the data
+          const decoded = jwt.decode(licenseKey, { json: true }) as any;
+
+          if (!decoded || !decoded.siteUrl) {
+            return false;
+          }
+
+          const licenseType =
+            decoded.type === 'ENTERPRISE_TRIAL'
+              ? LicenseType.ENTERPRISE_TRIAL
+              : LicenseType.ENTERPRISE;
+
+          this.licenseData = {
+            installation_id: '',
+            installation_secret: '',
+            license_key: licenseKey,
+            license_type: licenseType,
+            status: InstallationStatus.ACTIVE,
+            seat_count: decoded.maxUsers || 0,
+            config: {
+              limit_workspace: decoded.maxWorkspaces || undefined,
+            },
+            last_heartbeat_at: new Date().toISOString(),
+          };
+
+          this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_NORMAL_MS;
+          this._isExpired = false;
+
+          this.logger.log(
+            `Legacy license loaded. System will attempt to activate with license server soon, please make sure to allow egress to https://app.nocodb.com/api/v1/on-premise/agent`,
+          );
+
+          return true;
+        } catch (decodeError) {
+          this.logger.error(
+            `Failed to decode expired license: ${decodeError.message}`,
+          );
+          return false;
+        }
+      }
+
+      this.logger.error(`Failed to validate as old license: ${error.message}`);
       return false;
     }
   }

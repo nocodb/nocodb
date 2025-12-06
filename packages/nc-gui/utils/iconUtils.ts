@@ -808,6 +808,7 @@ import NcChatwoot from '~icons/nc-icons-v2/chatwoot'
 import NcGraduationCap from '~icons/nc-icons-v2/graduation-cap'
 import NcSupportAgent from '~icons/nc-icons-v2/support-agent'
 import NcBuilding from '~icons/nc-icons-v2/building'
+import NcExtUrlPreviewEmptyState from '~icons/nc-icons/extension-url-preview-empty-state'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1826,6 +1827,7 @@ export const iconMap = {
   'ncRecordFind': NcAuditNew,
   'ncFormResponse': NcFormResponse,
   'ncIfElse': NcIfElse,
+  'ncExtUrlPreviewEmptyState': h(NcExtUrlPreviewEmptyState, { stroke: 'transparent' }),
 }
 
 export const getMdiIcon = (type: string): any => {

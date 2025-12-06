@@ -6,6 +6,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { getColor } = useTheme()
+
 const cPercentage = computed(() => Math.max(0, Math.min(100, props.percentage)))
 
 const labelMarginLeft = computed<number>(() => {
@@ -29,8 +31,12 @@ const slotHasChildren = (name?: string) => {
     </div>
     <div class="progress-bar flex items-center gap-2 w-full h-full">
       <div class="flex-1 flex rounded-full overflow-hidden h-full self-stretch">
-        <div style="align-self: stretch; background-color: #3366ff" :style="{ width: `${cPercentage}%` }"></div>
-        <div style="align-self: stretch; background-color: #e5e5e5" :style="{ width: `${100 - cPercentage}%` }"></div>
+        <div class="bg-nc-brand-500" style="align-self: stretch" :style="{ width: `${cPercentage}%` }"></div>
+        <div
+          class="bg-[#e5e5e5] dark:bg-nc-bg-brand-inverted"
+          style="align-self: stretch"
+          :style="{ width: `${100 - cPercentage}%` }"
+        ></div>
         <template v-if="isShowNumber">
           <div style="position: absolute" :style="{ 'margin-left': `${labelMarginLeft}%` }">
             <span

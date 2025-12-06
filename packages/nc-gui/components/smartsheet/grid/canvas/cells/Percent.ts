@@ -32,7 +32,7 @@ export const PercentCellRenderer: CellRenderer = {
       const barWidth = (width - padding * 2 - labelWidth - 4) * (percent / 100)
 
       roundedRect(ctx, x + padding, barY, width - padding * 2 - labelWidth - 4, barHeight, barHeight / 2, {
-        backgroundColor: '#E5E5E5',
+        backgroundColor: getColor('#E5E5E5', 'var(--nc-bg-brand-inverted)'),
       })
 
       if (percent !== 0) {

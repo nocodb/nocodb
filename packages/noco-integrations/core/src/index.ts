@@ -13,7 +13,3 @@ export type {
   TicketingCommentRecord,
   TicketingTeamRecord,
 } from './sync/schema-ticketing';
-export type {
-  HrisEmployeeRecord,
-  HrisEmploymentRecord,
-} from './sync/schema-hris';

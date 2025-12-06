@@ -117,6 +117,10 @@ body {
   background: rgb(var(--rgb-color-brand-500));
 }
 
+.ant-progress-text {
+  color: rgba(var(--rgb-base), 0.85);
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {

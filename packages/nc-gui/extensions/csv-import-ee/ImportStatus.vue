@@ -22,9 +22,9 @@ const itemRef = ref<HTMLDivElement>()
 
 const statusObj = computed(() => {
   return {
-    inprogress: { title: 'CSV Import in Progress', icon: 'ncInfoSolid', color: 'text-nc-fill-primary' },
-    compeleted: { title: 'CSV Imported', icon: 'circleCheckSolid', color: 'text-nc-fill-green-dark' },
-    failed: { title: 'CSV Import Failed', icon: 'alertTriangleSolid', color: 'text-nc-fill-red-dark' },
+    inprogress: { title: 'CSV Import in Progress', icon: 'ncInfoSolid', color: 'text-brand-500' },
+    compeleted: { title: 'CSV Imported', icon: 'circleCheckSolid', color: 'text-green-700' },
+    failed: { title: 'CSV Import Failed', icon: 'alertTriangleSolid', color: 'text-red-700' },
   }[status.value]
 })
 
@@ -37,7 +37,7 @@ const handleScroll = () => {
 <template>
   <div
     ref="itemRef"
-    class="flex flex-col gap-4 p-3 group transition-all duration-300 border-nc-border-gray-medium cursor-pointer bg-white"
+    class="flex flex-col gap-4 p-3 group transition-all duration-300 border-nc-border-gray-medium cursor-pointer bg-nc-bg-default"
     :class="{
       'border-1 rounded-lg': status === 'inprogress',
       'border-b-1 hover:bg-nc-bg-gray-extralight ': status !== 'inprogress',
@@ -56,7 +56,10 @@ const handleScroll = () => {
                 :border="false"
                 class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium leading-5 align-middle"
               >
-                <GeneralIcon icon="file" class="flex-none text-gray-600/80 h-3.5 w-3.5" />
+                <GeneralIcon
+                  icon="file"
+                  class="flex-none text-nc-content-gray-subtle2/80 dark:text-nc-content-gray-subtle2 h-3.5 w-3.5"
+                />
 
                 <NcTooltip class="truncate max-w-[120px]" show-on-truncate-only>
                   <template #title>
@@ -81,7 +84,7 @@ const handleScroll = () => {
               >
                 <LazyGeneralEmojiPicker :emoji="tableicon" readonly size="xsmall" class="flex-none">
                   <template #default>
-                    <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
+                    <GeneralIcon icon="table" class="min-w-4 !text-nc-content-gray-muted dark:text-nc-content-gray-subtle2" />
                   </template>
                 </LazyGeneralEmojiPicker>
                 <NcTooltip class="truncate max-w-[120px]" show-on-truncate-only>
@@ -104,7 +107,12 @@ const handleScroll = () => {
         </div>
 
         <div v-if="status === 'inprogress'">
-          <a-progress :percent="inprogressPercentage" size="small" />
+          <a-progress
+            :percent="inprogressPercentage"
+            size="small"
+            stroke-color="var(--nc-content-brand)"
+            trail-color="var(--nc-bg-brand-inverted)"
+          />
         </div>
       </div>
       <GeneralIcon

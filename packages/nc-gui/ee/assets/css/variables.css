@@ -423,11 +423,14 @@
   --color-base-none: #ffffff00;
 
   /* 🎨 Brand */
-  --color-brand-20: #1c1e28;
-  --rgb-color-brand-20: 28, 30, 40;
+  --color-brand-20: #11131c;
+  --rgb-color-brand-20: 17, 19, 28;
 
-  --color-brand-50: #141a57;
-  --rgb-color-brand-50: 20, 26, 87;
+  --color-brand-50: #1b2033;
+  --rgb-color-brand-50: 27, 32, 51;
+
+  /* --color-brand-50: #141a57;
+  --rgb-color-brand-50: 20, 26, 87; */
 
   --color-brand-100: #19288f;
   --rgb-color-brand-100: 25, 40, 143;

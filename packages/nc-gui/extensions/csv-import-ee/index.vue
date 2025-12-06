@@ -1161,7 +1161,9 @@ const errorMsgsTableColumns = [
             'h-[calc(100%_-_40px)]': !fullscreen,
           }"
         >
-          <div class="border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-light text-tiny py-1 px-3 text-gray-600">
+          <div
+            class="border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-light text-tiny py-1 px-3 text-nc-content-gray-subtle2"
+          >
             Recent Imports
           </div>
           <div class="flex-1 flex flex-col nc-scrollbar-thin">
@@ -1196,7 +1198,7 @@ const errorMsgsTableColumns = [
           </div>
         </div>
 
-        <div v-if="!fullscreen" class="flex justify-end p-3 border-t-1 border-t-nc-border-gray-medium bg-white">
+        <div v-if="!fullscreen" class="flex justify-end p-3 border-t-1 border-t-nc-border-gray-medium bg-nc-bg-default">
           <NcTooltip :disabled="extensionAccess.update || viewImportHistory" placement="left">
             <template #title>
               {{ $t('tooltip.youDoNotHaveSufficientPermissionToConfigureThisExtension') }}
@@ -1253,7 +1255,7 @@ const errorMsgsTableColumns = [
           <div
             class="flex items-center gap-3"
             :class="{
-              '-mx-4 px-4 -mt-4 py-4 bg-white': fullscreen,
+              '-mx-4 px-4 -mt-4 py-4 bg-nc-bg-default': fullscreen,
               'max-w-full': !fullscreen,
             }"
           >
@@ -1281,7 +1283,7 @@ const errorMsgsTableColumns = [
                         :is="iconMap.check"
                         v-if="importConfig.delimiter === delimiter.value"
                         id="nc-selected-item-icon"
-                        class="flex-none text-primary w-4 h-4"
+                        class="flex-none text-nc-content-brand w-4 h-4"
                       />
                     </div>
                   </a-select-option>
@@ -1311,7 +1313,7 @@ const errorMsgsTableColumns = [
                         :is="iconMap.check"
                         v-if="importConfig.encoding === encoding.value"
                         id="nc-selected-item-icon"
-                        class="flex-none text-primary w-4 h-4"
+                        class="flex-none text-nc-content-brand w-4 h-4"
                       />
                     </div>
                   </a-select-option>
@@ -1332,7 +1334,7 @@ const errorMsgsTableColumns = [
               :disabled="!extensionAccess.update"
               @change="handleChange"
             >
-              <p class="ant-upload-drag-icon !mb-2">
+              <p class="ant-upload-drag-icon text-nc-content-gray-subtle !mb-2">
                 <GeneralIcon class="h-6 w-6" icon="upload" />
               </p>
               <p class="ant-upload-text !text-nc-content-gray !text-sm">
@@ -1370,7 +1372,7 @@ const errorMsgsTableColumns = [
                         <GeneralTableIcon
                           size="xsmall"
                           :meta="{ meta: table.meta, synced: table.synced }"
-                          class="!mx-0 !text-gray-500 !text-small"
+                          class="!mx-0 !text-nc-content-gray-muted !text-small"
                         />
 
                         <NcTooltip show-on-truncate-only class="flex-1 truncate">
@@ -1384,7 +1386,7 @@ const errorMsgsTableColumns = [
                           :is="iconMap.check"
                           v-if="importPayload.tableId === table.id"
                           id="nc-selected-item-icon"
-                          class="flex-none text-primary w-4 h-4"
+                          class="flex-none text-nc-content-brand w-4 h-4"
                         />
                       </div>
                     </a-select-option>
@@ -1461,7 +1463,7 @@ const errorMsgsTableColumns = [
                                       :is="iconMap.check"
                                       v-if="importPayload.importType === opt.type"
                                       id="nc-selected-item-icon"
-                                      class="flex-none text-primary w-4 h-4"
+                                      class="flex-none text-nc-content-brand w-4 h-4"
                                     />
                                   </div>
                                 </NcTooltip>
@@ -1501,7 +1503,7 @@ const errorMsgsTableColumns = [
                                     :is="iconMap.check"
                                     v-if="importPayload.upsertColumnId === col.id"
                                     id="nc-selected-item-icon"
-                                    class="flex-none text-primary w-4 h-4"
+                                    class="flex-none text-nc-content-brand w-4 h-4"
                                   />
                                 </div>
                               </a-select-option>
@@ -1568,7 +1570,7 @@ const errorMsgsTableColumns = [
               <div class="flex items-center justify-between gap-3">
                 <div class="text-sm font-weight-700 text-nc-content-gray">Match CSV columns to NocoDB fields</div>
                 <div>
-                  <NcBadge class="!text-sm !h-5 bg-nc-bg-brand truncate text-primary" :border="false">
+                  <NcBadge class="!text-sm !h-5 bg-nc-bg-brand truncate text-nc-content-brand" :border="false">
                     {{ selectedFieldDetails.selected }}/{{ selectedFieldDetails.total }} selected
                   </NcBadge>
                 </div>
@@ -1608,7 +1610,7 @@ const errorMsgsTableColumns = [
                           },
                           synced: selectedTable?.synced,
                         }"
-                        class="!mx-0 !text-gray-500 !text-small"
+                        class="!mx-0 !text-nc-content-gray-muted !text-small"
                       />
                       <NcTooltip class="max-w-[80px] ml-1 text-nc-content-gray-subtle2 truncate" show-on-truncate-only>
                         <template #title>
@@ -1691,7 +1693,7 @@ const errorMsgsTableColumns = [
                               :is="iconMap.check"
                               v-if="importMeta.destCn === col.title"
                               id="nc-selected-item-icon"
-                              class="flex-none text-primary w-4 h-4"
+                              class="flex-none text-nc-content-brand w-4 h-4"
                             />
                           </div>
                         </a-select-option>
@@ -1704,7 +1706,7 @@ const errorMsgsTableColumns = [
           </div>
           <general-overlay :model-value="isImportingRecords" inline transition class="!bg-opacity-15">
             <div
-              class="flex flex-col gap-2 items-center justify-center h-full w-full !bg-white !bg-opacity-85 font-semibold text-base text-brand-600"
+              class="flex flex-col gap-2 items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-85 font-semibold text-base text-nc-content-brand-disabled"
             >
               <a-spin size="large" />
               <template v-if="importPayload?.upsert">
@@ -1775,7 +1777,7 @@ const errorMsgsTableColumns = [
     @apply transition-all justify-between !mr-0;
 
     // &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled):focus-within {
-    //   @apply border-brand-500;
+    //   @apply border-nc-border-brand;
     // }
 
     span:not(.ant-radio):not(.nc-ltar-icon) {

@@ -2813,6 +2813,12 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
+  nc-jsep-plugin-arrow@1.7.5:
+    resolution: {integrity: sha512-73Narl9BQQwGbksT5Ls5FZeQID+DoyqAameSsKKuzRRcWyOZG1L2qX2DVhT5ptmhIWFAdZfYs/z6UaA3JM8vGg==}
+    engines: {node: '>= 20'}
+    peerDependencies:
+      nc-jsep: 1.7.5
+
   nc-jsep-plugin-object@1.7.5:
     resolution: {integrity: sha512-NCEDhcmE/Tc1IROg3zlnbo8YzhIJn2zcwI7py5fLTAPWqofZq5KrvNVWm6vn1a/nym05vwhj1iqK7SdDTANXtQ==}
     engines: {node: '>= 20'}
@@ -5944,6 +5950,10 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
+  nc-jsep-plugin-arrow@1.7.5(nc-jsep@1.7.5):
+    dependencies:
+      nc-jsep: 1.7.5
+
   nc-jsep-plugin-object@1.7.5(nc-jsep@1.7.5):
     dependencies:
       nc-jsep: 1.7.5
@@ -5972,6 +5982,7 @@ snapshots:
       dayjs: 1.11.13
       fast-deep-equal: 3.1.3
       nc-jsep: 1.7.5
+      nc-jsep-plugin-arrow: 1.7.5(nc-jsep@1.7.5)
       nc-jsep-plugin-object: 1.7.5(nc-jsep@1.7.5)
       nc-jsep-plugin-template: 1.7.5(nc-jsep@1.7.5)
       nc-jsep-plugin-ternary: 1.7.5(nc-jsep@1.7.5)

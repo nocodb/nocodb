@@ -39,13 +39,13 @@ export const LICENSE_ENV_VARS = {
  * RSA public key for JWT verification (on-premise installations)
  */
 export const LICENSE_SERVER_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAodQkNztOFlnvajjcrJYl
-aM5zEyApANuJBaipGgKaXnVWseSEX32x8pqD6CuDS7TXbmsJ7VTRou0bhaCoPi/O
-zYWPLxIoCDwgWkyeFqOJgAzUv0AEx/Z6Ecj12Eu561WeaHvR5CjurmF94q7lrrUl
-uvrnnTxZpHU3Gj7YpFIopSRgmF1KDv/QnrkkS94RhBUQrr56j0j5PXnEsZHNsWRs
-iuw1xDDNsCsonzp81T7zIKVS65v2S5DvuOpesBt2xRbfY1T3ONH8MFZyfmcucdhf
-CmIgS4CsVOV8eBGWsB3JrpmLKQqmApUBW8I1vQgXP5C7FabY5wb9fO+TXsw+4u+o
-mwIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoJmGmnm0jzZ0PsXd/8Lb
+FmII2KreX1hDoC3dOGdOrpvkGx/RMgkDb3XOhjOXRhJconVutzbnwvbSVemXCVHn
+5hav08+STDqvGveu0zrvB5+E+zKTyb2yqdBbjPUr6l3IZuRsozHeNYWpohZAsTM+
+eaPwgqhKnyemzX7kpftcbdqBm7rmmU9IKHxei9Qv5Jd7yVs3IqO5HkBUOn+hSfGU
+7QN5f7qPGOUUEUpCI72+sMI/1J3YoUMWmThrFrc9u95feVvQh4kF9UEeI5AuZn8d
+whonhMeWGMHt00hfs5xjdrXm92HBQGsHbbsHczvlmvnYFQGp0O8UZniTFvNDuG/g
+/QIDAQAB
 -----END PUBLIC KEY-----`;
 
 export const LICENSE_SERVER_OLD_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----

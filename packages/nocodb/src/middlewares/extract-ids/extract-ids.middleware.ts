@@ -625,8 +625,7 @@ export class AclMiddleware implements NestInterceptor {
       req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
       req[VIEW_KEY].owned_by !== req.user?.id &&
       ['POST', 'PATCH', 'DELETE', 'PUT'].includes(req.method) &&
-      permissionName !== 'viewUpdate' &&
-      permissionName !== 'viewDelete'
+      !['viewUpdate', 'viewDelete', 'dataList'].includes(permissionName)
     ) {
       NcError.forbidden('Unauthorized access');
     }

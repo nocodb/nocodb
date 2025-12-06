@@ -21,11 +21,16 @@ export class WorkflowEvaluationError extends Error {
 }
 
 /**
+ * Symbol used to identify arrow function wrappers
+ */
+const ARROW_FN_SYMBOL = Symbol('WorkflowArrowFunction');
+
+/**
  * Wrapper for arrow function AST nodes
  * This allows us to pass arrow functions to array methods without creating actual JS functions
  */
 interface ArrowFunctionWrapper {
-  readonly __isArrowFunction: true;
+  readonly [ARROW_FN_SYMBOL]: true;
   readonly params: string[];
   readonly body: any;
 }
@@ -74,7 +79,6 @@ const SAFE_ARRAY_METHODS = new Set([
   'reduce',
   'some',
   'every',
-  'length',
 ]);
 
 /**
@@ -489,8 +493,18 @@ export class WorkflowExpressionParser {
 
     switch (node.operator) {
       case '-':
+        if (typeof argument !== 'number' || isNaN(argument)) {
+          throw new WorkflowSecurityError(
+            `Unary '-' operator requires a valid number, got ${typeof argument}`
+          );
+        }
         return -(argument as number);
       case '+':
+        if (typeof argument !== 'number' || isNaN(argument)) {
+          throw new WorkflowSecurityError(
+            `Unary '+' operator requires a valid number, got ${typeof argument}`
+          );
+        }
         return +(argument as number);
       case '!':
         return !argument;
@@ -566,12 +580,17 @@ export class WorkflowExpressionParser {
   private createArrowFunction(node: any): ArrowFunctionWrapper {
     const params = node.params.map((p: any) => {
       this.validateIdentifier(p.name);
+      if (p.name.startsWith('$')) {
+        throw new WorkflowSecurityError(
+          `Parameter name "${p.name}" cannot start with $`
+        );
+      }
       return p.name;
     });
     const body = node.body;
 
     return {
-      __isArrowFunction: true,
+      [ARROW_FN_SYMBOL]: true,
       params,
       body,
     };
@@ -582,10 +601,7 @@ export class WorkflowExpressionParser {
    */
   private isArrowFunction(value: unknown): value is ArrowFunctionWrapper {
     return (
-      typeof value === 'object' &&
-      value !== null &&
-      '__isArrowFunction' in value &&
-      (value as ArrowFunctionWrapper).__isArrowFunction === true
+      typeof value === 'object' && value !== null && ARROW_FN_SYMBOL in value
     );
   }
 
@@ -925,6 +941,20 @@ export class WorkflowExpressionParser {
         return -1;
       }
 
+      case 'findLastIndex': {
+        for (let i = array.length - 1; i >= 0; i--) {
+          const matches = this.evaluateArrowFunction(arrowFn, [
+            array[i],
+            i,
+            array,
+          ]);
+          if (matches) {
+            return i;
+          }
+        }
+        return -1;
+      }
+
       case 'some': {
         for (let i = 0; i < array.length; i++) {
           const matches = this.evaluateArrowFunction(arrowFn, [
@@ -1017,9 +1047,9 @@ export class WorkflowExpressionParser {
       'map',
       'filter',
       'reduce',
-      'forEach',
       'find',
       'findIndex',
+      'findLastIndex',
       'some',
       'every',
     ].includes(methodName);

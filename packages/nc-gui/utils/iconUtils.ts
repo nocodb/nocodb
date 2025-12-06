@@ -1330,6 +1330,7 @@ export const iconMap = {
   'greenhouse': NcGreenhouse,
   'lever': h(NcLever, { stroke: 'transparent' }),
   'bitBucket': NcBitBucket,
+  'bambooHR': NcLogoBambooHrColored,
   'quickbooks': NcQuickbooks,
   'intercom': NcIntercom,
   'dropbox': NcDropbox,

@@ -42,12 +42,12 @@ export abstract class AuthIntegration<TConfig = any, TClient = any> extends Inte
   /**
    * Optional: Exchange OAuth authorization code for tokens.
    */
-  public exchangeToken?(oauthPayload: Record<string, any>, config: TConfig): Promise<Record<string, any>>;
+  public exchangeToken?(oauthPayload: Record<string, any>): Promise<Record<string, any>>;
 
   /**
    * Optional: Refresh an expired OAuth token.
    */
-  public refreshToken?(payload: { refresh_token: string }, config: TConfig): Promise<Record<string, any>>;
+  public refreshToken?(payload: { refresh_token: string }): Promise<Record<string, any>>;
 
   /**
    * Optional: Clean up client resources.
@@ -112,7 +112,7 @@ export abstract class AuthIntegration<TConfig = any, TClient = any> extends Inte
       try {
         const newTokens = await this.refreshToken!({
           refresh_token: (this.config as any).refresh_token!,
-        }, this.config);
+        });
 
         // Persist the refreshed tokens if needed
         if (this.tokenRefreshCallback) {

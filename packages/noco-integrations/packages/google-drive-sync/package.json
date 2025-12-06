@@ -1,7 +1,7 @@
 {
-  "name": "@noco-integrations/dropbox-sync",
+  "name": "@noco-integrations/google-drive-sync",
   "version": "0.1.0",
-  "description": "Dropbox sync integration for NocoDB",
+  "description": "Google Drive sync integration for NocoDB",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

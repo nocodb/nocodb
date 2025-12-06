@@ -6,8 +6,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_bank_info.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Account Number', uidt: UITypes.SingleLineText },
       { title: 'Routing Number', uidt: UITypes.SingleLineText },
       { title: 'Bank Name', uidt: UITypes.SingleLineText },
@@ -27,8 +25,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_benefit.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Provider Name', uidt: UITypes.SingleLineText },
       { title: 'Benefit Plan Type', uidt: UITypes.SingleSelect },
       { title: 'Employee Contribution', uidt: UITypes.Currency },
@@ -50,8 +46,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_company.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Legal Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Display Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Eins', uidt: UITypes.MultiSelect },
@@ -63,8 +57,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_dependent.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'First Name', uidt: UITypes.SingleLineText },
       { title: 'Middle Name', uidt: UITypes.SingleLineText },
       { title: 'Last Name', uidt: UITypes.SingleLineText },
@@ -89,8 +81,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_employee.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Employee Number', uidt: UITypes.SingleLineText },
       { title: 'Company', uidt: UITypes.SingleLineText },
       { title: 'First Name', uidt: UITypes.SingleLineText },
@@ -132,8 +122,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_employee_payroll_run.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Payroll Run', uidt: UITypes.SingleLineText },
       { title: 'Gross Pay', uidt: UITypes.Currency },
       { title: 'Net Pay', uidt: UITypes.Currency },
@@ -157,8 +145,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_employment.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Job Title', uidt: UITypes.SingleLineText },
       { title: 'Pay Rate', uidt: UITypes.Currency },
       { title: 'Pay Period', uidt: UITypes.SingleSelect },
@@ -176,8 +162,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_group.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Parent Group', uidt: UITypes.SingleLineText },
       { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Type', uidt: UITypes.SingleSelect },
@@ -190,8 +174,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_location.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Phone Number', uidt: UITypes.PhoneNumber },
       { title: 'Street 1', uidt: UITypes.SingleLineText },
@@ -215,8 +197,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_pay_group.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Pay Group Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Remote Data', uidt: UITypes.JSON },
     ],
@@ -226,8 +206,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_payroll_run.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Run State', uidt: UITypes.SingleSelect },
       { title: 'Run Type', uidt: UITypes.SingleSelect },
       { title: 'Start Date', uidt: UITypes.Date },
@@ -241,8 +219,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_time_off.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Approver', uidt: UITypes.SingleLineText },
       { title: 'Status', uidt: UITypes.SingleSelect },
       { title: 'Employee Note', uidt: UITypes.LongText },
@@ -265,8 +241,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_time_off_balance.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Balance', uidt: UITypes.Decimal },
       { title: 'Used', uidt: UITypes.Decimal },
       { title: 'Policy Type', uidt: UITypes.SingleSelect },
@@ -284,8 +258,6 @@ export const SCHEMA_HRIS: SyncSchema = {
     title: TARGET_TABLES_META.hris_timesheet_entry.label,
     columns: [
       { title: 'Remote Id', uidt: UITypes.SingleLineText },
-      { title: 'Created At', uidt: UITypes.DateTime },
-      { title: 'Modified At', uidt: UITypes.DateTime },
       { title: 'Hours Worked', uidt: UITypes.Decimal },
       { title: 'Start Time', uidt: UITypes.DateTime },
       { title: 'End Time', uidt: UITypes.DateTime },

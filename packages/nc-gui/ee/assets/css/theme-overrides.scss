@@ -254,9 +254,9 @@ body {
 // Dark theme specific style
 [theme='dark'] {
   /* Change autocomplete styles in WebKit */
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover,
-  input:-webkit-autofill:focus,
+  input:-webkit-autofill:not([type='checkbox']):not([type='radio']),
+  input:-webkit-autofill:hover:not([type='checkbox']):not([type='radio']),
+  input:-webkit-autofill:focus:not([type='checkbox']):not([type='radio']),
   textarea:-webkit-autofill,
   textarea:-webkit-autofill:hover,
   textarea:-webkit-autofill:focus,
@@ -269,7 +269,7 @@ body {
     transition: background-color 5000s ease-in-out 0s; /* Prevent flash on focus */
   }
 
-  input,
+  input:not([type='checkbox']):not([type='radio']),
   textarea,
   .ant-input-affix-wrapper,
   .ant-input-number {

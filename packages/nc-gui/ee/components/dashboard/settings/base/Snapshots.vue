@@ -151,7 +151,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
       class="mt-5 p-4 flex gap-4 border-1 relative rounded-lg border-nc-border-gray-extralight justify-between"
     >
       <div class="flex w-full gap-4">
-        <GeneralIcon icon="ncInfoSolid" class="text-nc-content-red-dark mt-1" />
+        <GeneralIcon icon="ncInfoSolid" class="text-red-700 mt-1" />
 
         <div class="flex flex-col flex-1 w-full gap-1">
           <div class="text-[16px] leading-6 font-semibold">{{ $t('labels.snapshotCreationFailed') }}</div>
@@ -171,7 +171,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
       class="mt-5 p-4 flex gap-4 border-1 rounded-lg border-nc-border-gray-extralight justify-between"
     >
       <div class="flex w-full gap-4">
-        <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium mt-1" />
+        <GeneralIcon icon="alertTriangleSolid" class="text-orange-500 mt-1" />
 
         <div class="flex flex-1 flex-col gap-1">
           <div class="text-[16px] leading-6 font-semibold">

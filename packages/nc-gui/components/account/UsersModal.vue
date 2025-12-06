@@ -140,13 +140,13 @@ const userRoleOptions = [
             <a-alert class="!mt-2" type="success" show-icon>
               <template #message>
                 <div class="flex flex-row justify-between items-center py-1">
-                  <div class="flex pl-2 text-nc-content-green-dark text-xs" data-rec="true">
+                  <div class="flex pl-2 text-green-700 text-xs" data-rec="true">
                     {{ inviteUrl }}
                   </div>
 
                   <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
-                      <component :is="iconMap.copy" class="flex mx-auto text-nc-content-green-dark h-[1rem]" />
+                      <component :is="iconMap.circleCheckSolid" class="flex mx-auto text-green-700 h-[1rem]" />
                     </template>
                   </a-button>
                 </div>

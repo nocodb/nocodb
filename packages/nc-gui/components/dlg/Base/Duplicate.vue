@@ -206,7 +206,7 @@ onKeyStroke('Enter', () => {
         </template>
         <template v-else-if="status === 'error'">
           <div class="flex items-center gap-2">
-            <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-6 h-6" />
+            <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-6 h-6" />
             <div class="text-nc-content-gray-emphasis font-semibold">
               {{ $t('labels.duplicateBaseFailed') }}
             </div>

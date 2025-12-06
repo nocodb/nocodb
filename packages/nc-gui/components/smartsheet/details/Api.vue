@@ -254,11 +254,11 @@ const supportedDocs = [
               >
                 <div class="flex items-center gap-2 text-small leading-[18px] min-w-80px justify-center">
                   <GeneralIcon
-                    :icon="isCopied ? 'circleCheck' : 'copy'"
+                    :icon="isCopied ? 'circleCheckSolid' : 'copy'"
                     class="h-4 w-4"
                     :class="{
                       'text-nc-content-gray-subtle': !isCopied,
-                      'text-nc-content-green-dark': isCopied,
+                      'text-green-700': isCopied,
                     }"
                   />
                   {{ isCopied ? $t('general.copied') : $t('general.copy') }}

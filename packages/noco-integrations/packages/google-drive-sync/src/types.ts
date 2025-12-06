@@ -24,3 +24,16 @@ export interface GoogleDriveFileListResponse {
   files: GoogleDriveFile[];
   nextPageToken?: string;
 }
+
+export interface GoogleDriveChange {
+  file: GoogleDriveFile;
+  changeType: string;
+  time: string;
+  removed: boolean;
+}
+
+export interface GoogleDriveChangesResponse {
+  changes: GoogleDriveChange[];
+  nextPageToken?: string;
+  newStartPageToken?: string;
+}

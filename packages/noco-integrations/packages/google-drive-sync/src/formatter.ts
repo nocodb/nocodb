@@ -4,7 +4,7 @@ import type {
   SyncRecord,
   SyncValue,
 } from '@noco-integrations/core';
-import type { GoogleDriveFileListResponse } from './types';
+import type { GoogleDriveFile } from './types';
 
 export class GoogleDriveFormatter {
   /**
@@ -12,11 +12,7 @@ export class GoogleDriveFormatter {
    * @param files - The Google Drive files list response containing files
    * @returns Array of formatted data objects for files and folders
    */
-  formatEntries({
-    files,
-  }: {
-    files: GoogleDriveFileListResponse['files'];
-  }): Array<{
+  formatEntries({ files }: { files: GoogleDriveFile[] }): Array<{
     recordId: string;
     targetTable: TARGET_TABLES;
     data: SyncRecord;

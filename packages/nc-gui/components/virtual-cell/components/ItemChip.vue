@@ -212,10 +212,10 @@ export default {
   }
 
   .blue-chip {
-    @apply !bg-nc-bg-brand !border-none px-2 py-[3px] rounded-lg;
+    @apply !bg-nc-bg-brand dark:!bg-nc-bg-gray-light !border-none px-2 py-[3px] rounded-lg;
     &,
     & * {
-      @apply !text-nc-content-brand !bg-nc-bg-brand;
+      @apply !text-nc-content-brand !bg-nc-bg-brand dark:!bg-nc-bg-gray-light;
     }
 
     :deep(.clamped-text) {

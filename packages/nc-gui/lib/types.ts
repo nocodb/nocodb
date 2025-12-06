@@ -487,7 +487,12 @@ type CursorType = CSSProperties['cursor']
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
 
-type GetColorType = (cssVariableValue: string, darkCssVariableValue?: string, opacity?: number) => string
+type GetColorType = (
+  cssVariableValue: string,
+  darkCssVariableValue?: string,
+  opacity?: number,
+  options?: { bypass?: boolean },
+) => string
 
 type MakeCellEditableFn = (row: Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip?: boolean) => void
 

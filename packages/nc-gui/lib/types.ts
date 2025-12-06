@@ -448,6 +448,7 @@ interface CellRendererOptions {
   skipRender?: boolean
   setCursor: SetCursorType
   getColor: GetColorType
+  isDark?: boolean
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
   user?: Partial<UserType> | Partial<User>
@@ -458,6 +459,7 @@ interface CellRendererOptions {
   fontFamily?: string
   isRowHovered?: boolean
   isRowChecked?: boolean
+  isRowCellSelected?: boolean
   isCellInSelectionRange?: boolean
   isGroupHeader?: boolean
   rowMeta?: Row['rowMeta']

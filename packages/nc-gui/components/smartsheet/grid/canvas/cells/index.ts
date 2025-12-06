@@ -73,7 +73,7 @@ export function useGridCellHandler(params: {
 
   const { isRowColouringEnabled } = useViewRowColorRender()
 
-  const { getColor } = useTheme()
+  const { getColor, isDark } = useTheme()
 
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()
@@ -182,6 +182,7 @@ export function useGridCellHandler(params: {
       fontFamily,
       isRowHovered = false,
       isRowChecked = false,
+      isRowCellSelected = false,
       isCellInSelectionRange = false,
       isGroupHeader = false,
       rowMeta = {},
@@ -215,7 +216,8 @@ export function useGridCellHandler(params: {
         })
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
         const rowColor =
-          rowMeta?.is_set_as_background && (selected || isRowHovered || isRowChecked || isCellInSelectionRange)
+          rowMeta?.is_set_as_background &&
+          (selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected)
             ? rowMeta?.rowHoverColor
             : rowMeta?.rowBgColor
 
@@ -317,6 +319,7 @@ export function useGridCellHandler(params: {
         sqlUis: sqlUis.value,
         setCursor,
         getColor,
+        isDark: isDark.value,
         cellRenderStore,
         baseUsers: baseUsers.value,
         user: user.value,

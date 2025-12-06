@@ -1439,6 +1439,7 @@ export function useCanvasRender({
           skipRender: isCellEditEnabled,
           isRowHovered: isHovered,
           isRowChecked: recordSelected,
+          isRowCellSelected: isRowCellSelected,
           isCellInSelectionRange:
             selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup,
           isRootCell: true,
@@ -1522,6 +1523,7 @@ export function useCanvasRender({
               path: groupPath,
               isRowHovered: isHovered,
               isRowChecked: recordSelected,
+              isRowCellSelected: isRowCellSelected,
               isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup,
               isRootCell: true,
             })

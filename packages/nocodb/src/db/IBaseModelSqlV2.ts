@@ -382,6 +382,7 @@ export interface IBaseModelSqlV2 {
   getNonTransactionalClone(): IBaseModelSqlV2;
 
   now(): string;
+  schema?: string;
   get viewId(): string;
   /** Returns the active database driver (transaction if active, otherwise base driver) */
   get dbDriver(): CustomKnex;

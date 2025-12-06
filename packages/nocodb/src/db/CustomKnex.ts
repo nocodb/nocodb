@@ -1187,8 +1187,11 @@ function CustomKnex(
             },
           },
 
+          // `configurable: true` is required so that BatchableExtBaseModelSqlv2 can reconfigure or delete
+          // the `attachToTransaction` property for batching functionality. See BatchableExtBaseModelSqlv2 for details.
           attachToTransaction: {
             enumerable: true,
+            configurable: true,
             value: (fn: () => void) => {
               if (!trx.isTransaction) {
                 return fn();
@@ -1266,6 +1269,7 @@ function CustomKnex(
     },
     attachToTransaction: {
       enumerable: true,
+      configurable: true,
       value: (fn: () => void) => {
         if (!kn.isTransaction) {
           return fn();

@@ -185,6 +185,25 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     this.context = context;
   }
 
+  // need to override for it to return ee version
+  /**
+   * Creates a new BaseModelSqlv2 instance that uses the base database driver
+   * instead of any active transaction. This is useful for operations that need
+   * to run outside of the current transaction context, such as broadcasting
+   * link updates to avoid transaction conflicts.
+   *
+   * @returns A new BaseModelSqlv2 instance with non-transactional database access
+   */
+  public override getNonTransactionalClone() {
+    return new BaseModelSqlv2({
+      dbDriver: this._dbDriver,
+      model: this.model,
+      viewId: this.viewId,
+      context: this.context,
+      schema: this.schema,
+    });
+  }
+
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
     if (this.isPg && this.schema) {
@@ -2630,14 +2649,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       profiler.log('execute done');
 
       if (apiVersion === NcApiVersion.V3) {
-        if (this.source.isMeta()) {
-          profiler.log('updateLTARCols start');
-          // remove LTAR/Links if part of the update request
-          await this.updateLTARCols({
-            datas,
-            cookie,
-          });
-        }
+        profiler.log('updateLTARCols start');
+        // remove LTAR/Links if part of the update request
+        await this.updateLTARCols({
+          datas,
+          cookie,
+        });
         profiler.log('postUpdateOps start');
         await Promise.all(postUpdateOps.map((ops) => ops()));
         profiler.log('postUpdateOps done');

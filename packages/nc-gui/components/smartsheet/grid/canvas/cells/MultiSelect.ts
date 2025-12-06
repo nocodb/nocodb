@@ -79,7 +79,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
         textAlign: 'left',
         verticalAlign: 'middle',
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: getSelectTypeOptionTextColor(optionsMap[text]?.color ?? defaultColor, getColor),
+        fillStyle: getSelectTypeOptionTextColor(optionsMap[text]?.color ?? defaultColor, getColor, true),
         height,
       })
 

@@ -95,7 +95,7 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
         >
           <span
             :style="{
-              color: getSelectTypeOptionTextColor(selectedOpt.color, getColor),
+              color: getSelectTypeOptionTextColor(selectedOpt.color, getColor, true),
             }"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >

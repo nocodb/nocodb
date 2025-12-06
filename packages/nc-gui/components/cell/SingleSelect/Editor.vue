@@ -344,7 +344,7 @@ onMounted(() => {
         >
           <span
             :style="{
-              color: getSelectTypeOptionTextColor(op.color, getColor),
+              color: getSelectTypeOptionTextColor(op.color, getColor, true),
             }"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >

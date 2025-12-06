@@ -4,7 +4,6 @@ import {
 } from '@noco-integrations/core';
 import { AuthType } from '@noco-integrations/core';
 import { authUri, clientId, redirectUri, scopes } from './config';
-import { APP_LABEL } from './constant';
 import type { FormDefinition } from '@noco-integrations/core';
 
 export const form: FormDefinition = [
@@ -29,12 +28,8 @@ export const form: FormDefinition = [
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',
-    defaultValue: redirectUri && clientId ? AuthType.OAuth : AuthType.ApiKey,
+    defaultValue: AuthType.OAuth,
     options: [
-      {
-        label: 'Access token',
-        value: AuthType.ApiKey,
-      },
       ...(redirectUri && clientId
         ? [
             {
@@ -50,24 +45,6 @@ export const form: FormDefinition = [
         message: 'Auth type is required',
       },
     ],
-  },
-  {
-    type: FormBuilderInputType.Input,
-    label: 'Access token',
-    span: 24,
-    model: 'config.token',
-    category: 'Authentication',
-    placeholder: `Enter your ${APP_LABEL} access token`,
-    validators: [
-      {
-        type: FormBuilderValidatorType.Required,
-        message: 'Access token is required',
-      },
-    ],
-    condition: {
-      model: 'config.type',
-      value: AuthType.ApiKey,
-    },
   },
 
   ...(redirectUri && clientId

@@ -39,13 +39,6 @@ export class GoogleDriveAuthIntegration extends AuthIntegration<
   public async authenticate(): Promise<AxiosInstance> {
     let accessToken: string;
     switch (this.config.type) {
-      case AuthType.ApiKey:
-        if (!this.config.token) {
-          throw new Error(`Missing required ${APP_LABEL} access token`);
-        }
-        accessToken = this.config.token;
-        break;
-
       case AuthType.OAuth:
         if (!this.config.oauth_token) {
           throw new Error(`Missing required ${APP_LABEL} OAuth token`);

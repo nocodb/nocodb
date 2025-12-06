@@ -93,12 +93,18 @@ export function useKeyboardNavigation({
       e.preventDefault()
       return true
     }
+
     if (isExpandedCellInputExist()) return
     if (isNcDropdownOpen()) return
     if (isCmdJActive() || cmdKActive()) return
+
     if (isDrawerOrModalExist() || isLinkDropdownExist() || isGeneralOverlayActive()) {
       // If Extension Pane is Active, ignore
       if (!isExtensionPaneActive()) return
+      else if (!isActiveElementInsideExtension() && isDrawerOrModalExist()) {
+        // If extension pane open and active drawer or modal is not extension modal then we have to return, else it will prevent keyboard events
+        return
+      }
     }
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey

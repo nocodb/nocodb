@@ -241,7 +241,7 @@ export function getFieldVariable(
       itemSchema: [
         {
           key: 'url',
-          name: 'url',
+          name: 'URL',
           type: VariableType.String,
           groupKey: VariableGroupKey.Fields,
           extra: {
@@ -251,7 +251,7 @@ export function getFieldVariable(
         },
         {
           key: 'signedUrl',
-          name: 'signedUrl',
+          name: 'Signed URL',
           type: VariableType.String,
           groupKey: VariableGroupKey.Fields,
           extra: {
@@ -261,7 +261,7 @@ export function getFieldVariable(
         },
         {
           key: 'title',
-          name: 'title',
+          name: 'Title',
           type: VariableType.String,
           groupKey: VariableGroupKey.Fields,
           extra: {
@@ -271,7 +271,7 @@ export function getFieldVariable(
         },
         {
           key: 'mimetype',
-          name: 'mimetype',
+          name: 'MimeType',
           type: VariableType.String,
           groupKey: VariableGroupKey.Fields,
           extra: {
@@ -281,7 +281,7 @@ export function getFieldVariable(
         },
         {
           key: 'size',
-          name: 'size',
+          name: 'Size',
           type: VariableType.Number,
           groupKey: VariableGroupKey.Fields,
           extra: {
@@ -306,7 +306,7 @@ export function getFieldVariable(
       },
       {
         key: `${variable.key}.map(item => item.url).join(', ')`,
-        name: 'url',
+        name: 'URLs of all attachments',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
@@ -316,7 +316,7 @@ export function getFieldVariable(
       },
       {
         key: `${variable.key}.map(item => item.signedUrl).join(', ')`,
-        name: 'signedUrl',
+        name: 'Signed URLs of all attachments',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
@@ -326,7 +326,7 @@ export function getFieldVariable(
       },
       {
         key: `${variable.key}.map(item => item.title).join(', ')`,
-        name: 'title',
+        name: 'Titles of all attachments',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
@@ -336,7 +336,7 @@ export function getFieldVariable(
       },
       {
         key: `${variable.key}.map(item => item.mimetype).join(', ')`,
-        name: 'mimetype',
+        name: 'MimeTypes of all attachments',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
@@ -346,7 +346,7 @@ export function getFieldVariable(
       },
       {
         key: `${variable.key}.map(item => item.size).join(', ')`,
-        name: 'size',
+        name: 'Sizes of all attachments',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
@@ -402,7 +402,7 @@ export function getFieldVariable(
         key: isMulti
           ? `${variable.key}.map(item => item.id).join(', ')`
           : `${variable.key}.id`,
-        name: 'id',
+        name: 'User IDs of all collaborators',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
@@ -414,7 +414,7 @@ export function getFieldVariable(
         key: isMulti
           ? `${variable.key}.map(item => item.email).join(', ')`
           : `${variable.key}.email`,
-        name: 'email',
+        name: 'Emails of all collaborators',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
@@ -426,7 +426,7 @@ export function getFieldVariable(
         key: isMulti
           ? `${variable.key}.map(item => item.display_name || '').join(', ')`
           : `${variable.key}.display_name`,
-        name: 'display_name',
+        name: 'Display names of all collaborators',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
@@ -438,11 +438,11 @@ export function getFieldVariable(
       },
       {
         key: `${variable.key}.length`,
-        name: 'length',
+        name: 'Number of collaborators',
         type: VariableType.Number,
         groupKey: VariableGroupKey.Meta,
         extra: {
-          description: 'Number of users',
+          description: 'Number of collaborators',
           icon: 'cellNumber',
         },
       },
@@ -451,7 +451,7 @@ export function getFieldVariable(
     variable.children = [
       {
         key: `${variable.key}.length`,
-        name: 'length',
+        name: 'Number of linked records',
         type: VariableType.Number,
         groupKey: VariableGroupKey.Meta,
         extra: {
@@ -481,7 +481,7 @@ export function getFieldVariable(
     variable.children = [
       {
         key: `${variable.key}.length`,
-        name: 'length',
+        name: 'Number of selected options',
         type: VariableType.Number,
         groupKey: VariableGroupKey.Meta,
         extra: {
@@ -575,7 +575,7 @@ export function genRecordVariables(
         children: [
           {
             key: `${recordKey}.length`,
-            name: 'Count',
+            name: 'Number of records',
             type: VariableType.Number,
             groupKey: VariableGroupKey.Meta,
             extra: {

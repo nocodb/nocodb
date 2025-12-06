@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VariableDefinition } from 'nocodb-sdk'
+import { WorkflowExpressionParser } from 'nocodb-sdk'
 import VariableDisplay from '~/components/smartsheet/workflow/sidebar/config/VariableDisplay.vue'
 
 interface Props {
@@ -88,6 +89,57 @@ const isVariableExpandable = (variable: VariableDefinition) => {
   return typeof value === 'object' && value !== null && Object.keys(value).length > 0
 }
 
+// Helper function to recursively populate values in schema children
+const populateChildrenValues = (
+  children: VariableDefinition[] | undefined,
+  parentValue: any,
+  parentKey?: string,
+): VariableDefinition[] | undefined => {
+  if (!children || !parentValue || typeof parentValue !== 'object') return children
+
+  const parser = new WorkflowExpressionParser()
+
+  return children.map((child) => {
+    let expression: string
+
+    if (parentKey && child.key.startsWith(parentKey)) {
+      // Replace parent key with $json
+      // "fields.Index" → "$json.Index"
+      // "fields.Attachment.map(...)" → "$json.Attachment.map(...)"
+      if (child.key.startsWith(`${parentKey}.`)) {
+        expression = child.key.replace(`${parentKey}.`, '$json.')
+      } else if (child.key.startsWith(`${parentKey}[`)) {
+        // "fields['Customer Id']" → "$json['Customer Id']"
+        expression = child.key.replace(parentKey, '$json')
+      } else {
+        expression = `$json.${child.key}`
+      }
+    } else {
+      // No parent key or doesn't start with parent key - use key directly
+      expression = child.key.includes('[') ? `$json${child.key}` : `$json.${child.key}`
+    }
+
+    let value: any
+    try {
+      const rawParentValue = toRaw(parentValue)
+      parser.setCurrentNodeData(rawParentValue)
+      value = parser.evaluate(expression)
+    } catch (error) {
+      console.warn(`Failed to evaluate expression "${expression}":`, error)
+      value = undefined
+    }
+
+    return {
+      ...child,
+      extra: {
+        ...child.extra,
+        value,
+      },
+      children: child.children ? populateChildrenValues(child.children, value, child.key) : child.children,
+    }
+  })
+}
+
 const getArrayItems = (variable: VariableDefinition) => {
   const value = getVariableValue(variable)
   if (!Array.isArray(value)) return []
@@ -111,18 +163,21 @@ const getArrayItems = (variable: VariableDefinition) => {
         }
       } else {
         // Array of objects - generate children based on itemSchema
-        const children: VariableDefinition[] = itemSchema.map((schemaDef) => ({
-          key: `${variable.key}[${index}].${schemaDef.key}`,
-          name: schemaDef.name,
-          type: schemaDef.type,
-          groupKey: schemaDef.groupKey,
-          isArray: schemaDef.isArray,
-          extra: {
-            ...schemaDef.extra,
-            value: item?.[schemaDef.key],
-          },
-          children: schemaDef.children,
-        }))
+        const children: VariableDefinition[] = itemSchema.map((schemaDef) => {
+          const itemValue = item?.[schemaDef.key]
+          return {
+            key: `${variable.key}[${index}].${schemaDef.key}`,
+            name: schemaDef.name,
+            type: schemaDef.type,
+            groupKey: schemaDef.groupKey,
+            isArray: schemaDef.isArray,
+            extra: {
+              ...schemaDef.extra,
+              value: itemValue,
+            },
+            children: populateChildrenValues(schemaDef.children, itemValue, schemaDef.key),
+          }
+        })
 
         return {
           key: `${variable.key}[${index}]`,
@@ -253,7 +308,8 @@ const formatValue = (value: any): string => {
             v-else-if="
               typeof getVariableValue(variable) === 'object' &&
               getVariableValue(variable) !== null &&
-              !Array.isArray(getVariableValue(variable))
+              !Array.isArray(getVariableValue(variable)) &&
+              !variable.children?.length
             "
           >
             <div

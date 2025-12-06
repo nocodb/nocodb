@@ -249,7 +249,11 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
         }
       }
 
-      if (this.config.columnFilter && affectedColumns) {
+      if (!affectedColumns?.length) {
+        affectedColumns = [];
+      }
+
+      if (this.config.columnFilter?.length) {
         const targetColumns = this.config.columnFilter;
         const hasMatch = targetColumns.some((col: string) =>
           affectedColumns.includes(col),

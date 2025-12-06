@@ -410,7 +410,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
-  const loadWorkflowExecutions = async (params: { workflowId?: string; limit?: number; offset?: number }) => {
+  const loadWorkflowExecutions = async (params: { workflowId?: string; limit?: number; offset?: number; cursorId?: string }) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return []
     try {
       const response = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
@@ -418,6 +418,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
         workflowId: params.workflowId,
         limit: params.limit,
         offset: params.offset,
+        cursorId: params.cursorId,
       })
 
       return ncIsArray(response) ? response : []

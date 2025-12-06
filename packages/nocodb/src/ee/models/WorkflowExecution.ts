@@ -52,15 +52,34 @@ export default class WorkflowExecution {
       workflowId?: string;
       limit?: number;
       offset?: number;
+      cursorId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const { workflowId, limit = 25, offset = 0 } = params;
+    const { workflowId, limit = 25, offset = 0, cursorId } = params;
 
     const condition: any = {};
+    let xcCondition: any = undefined;
 
     if (workflowId) {
       condition.fk_workflow_id = workflowId;
+    }
+
+    if (cursorId) {
+      const cursorExecution = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.WORKFLOW_EXECUTIONS,
+        cursorId,
+      );
+
+      if (cursorExecution) {
+        xcCondition = {
+          created_at: {
+            lt: cursorExecution.created_at,
+          },
+        };
+      }
     }
 
     const executionList = await ncMeta.metaList2(
@@ -69,11 +88,12 @@ export default class WorkflowExecution {
       MetaTable.WORKFLOW_EXECUTIONS,
       {
         condition,
+        xcCondition,
         orderBy: {
           created_at: 'desc',
         },
         limit,
-        offset,
+        offset: cursorId ? 0 : offset,
       },
     );
 

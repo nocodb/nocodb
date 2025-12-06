@@ -56,6 +56,13 @@ export interface WorkflowPayload extends BaseSocketPayload {
   payload: WorkflowType;
 }
 
+export interface WorkflowExecutionPayload extends BaseSocketPayload {
+  id: string;
+  workflowId: string;
+  action: 'create' | 'update';
+  payload: any;
+}
+
 export interface TeamPayload extends BaseSocketPayload {
   id: string;
   action:
@@ -86,6 +93,7 @@ export type SocketEventPayloadMap = SocketEventPayloadMapOSS & {
   [EventType.SCRIPT_EVENT]: ScriptPayload;
   [EventType.TEAM_EVENT]: TeamPayload;
   [EventType.WORKFLOW_EVENT]: WorkflowPayload;
+  [EventType.WORKFLOW_EXECUTION_EVENT]: WorkflowExecutionPayload;
 };
 
 // Helper type to get payload type for a specific event

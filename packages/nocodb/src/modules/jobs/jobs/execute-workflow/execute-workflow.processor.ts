@@ -1,10 +1,12 @@
 import { Inject, Logger } from '@nestjs/common';
+import { EventType } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import { type ExecuteWorkflowJobData } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import Workflow from '~/models/Workflow';
 import WorkflowExecution from '~/models/WorkflowExecution';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
+import NocoSocket from '~/socket/NocoSocket';
 
 export class ExecuteWorkflowProcessor {
   protected logger = new Logger(ExecuteWorkflowProcessor.name);
@@ -46,6 +48,17 @@ export class ExecuteWorkflowProcessor {
         status: 'in_progress',
       });
 
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.WORKFLOW_EXECUTION_EVENT,
+        payload: {
+          id: executionRecord.id,
+          workflowId,
+          action: 'create',
+          payload: executionRecord,
+        },
+        scopes: [workflowId],
+      });
+
       // Execute workflow
       const result = await this.workflowExecutionService.executeWorkflow(
         context,
@@ -54,22 +67,52 @@ export class ExecuteWorkflowProcessor {
         triggerNodeId,
       );
 
-      await WorkflowExecution.update(context, executionRecord.id, {
-        execution_data: result,
-        finished: true,
-        finished_at: new Date(),
-        status: result.status === 'completed' ? 'success' : result.status,
+      const updatedExecution = await WorkflowExecution.update(
+        context,
+        executionRecord.id,
+        {
+          execution_data: result,
+          finished: true,
+          finished_at: new Date(),
+          status: result.status === 'completed' ? 'success' : result.status,
+        },
+      );
+
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.WORKFLOW_EXECUTION_EVENT,
+        payload: {
+          id: executionRecord.id,
+          workflowId,
+          action: 'update',
+          payload: updatedExecution,
+        },
+        scopes: [workflowId],
       });
     } catch (error) {
       this.logger.error(`Failed to execute workflow ${workflowId}:`, error);
 
       if (executionRecord) {
         try {
-          await WorkflowExecution.update(context, executionRecord.id, {
-            finished: true,
-            finished_at: new Date(),
-            status: 'error',
-            execution_data: null,
+          const updatedExecution = await WorkflowExecution.update(
+            context,
+            executionRecord.id,
+            {
+              finished: true,
+              finished_at: new Date(),
+              status: 'error',
+              execution_data: null,
+            },
+          );
+
+          NocoSocket.broadcastEvent(context, {
+            event: EventType.WORKFLOW_EXECUTION_EVENT,
+            payload: {
+              id: executionRecord.id,
+              workflowId,
+              action: 'update',
+              payload: updatedExecution,
+            },
+            scopes: [workflowId],
           });
         } catch (updateError) {
           this.logger.error(`Failed to update execution log:`, updateError);

@@ -731,6 +731,267 @@ describe('WorkflowExpressionParser', () => {
     });
   });
 
+  describe('Arrow Functions', () => {
+    beforeEach(() => {
+      parser.setContext({
+        items: [1, 2, 3, 4, 5],
+        users: [
+          { name: 'Alice', age: 30 },
+          { name: 'Bob', age: 25 },
+          { name: 'Charlie', age: 35 },
+        ],
+        products: [
+          { title: 'Laptop', price: 999 },
+          { title: 'Mouse', price: 25 },
+          { title: 'Keyboard', price: 75 },
+        ],
+        attachments: [
+          { title: 'file1.pdf', size: 1024, mimetype: 'application/pdf' },
+          { title: 'file2.jpg', size: 2048, mimetype: 'image/jpeg' },
+          { title: 'file3.txt', size: 512, mimetype: 'text/plain' },
+        ],
+      });
+    });
+
+    describe('Array.map()', () => {
+      it('should map array with arrow function', () => {
+        expect(parser.evaluate('$("items").map(x => x * 2)')).toEqual([
+          2, 4, 6, 8, 10,
+        ]);
+      });
+
+      it('should map to object property', () => {
+        expect(parser.evaluate('$("users").map(u => u.name)')).toEqual([
+          'Alice',
+          'Bob',
+          'Charlie',
+        ]);
+      });
+
+      it('should map with nested property access', () => {
+        expect(parser.evaluate('$("products").map(p => p.price)')).toEqual([
+          999, 25, 75,
+        ]);
+      });
+
+      it('should map with expression in body', () => {
+        expect(parser.evaluate('$("items").map(x => x * 2 + 1)')).toEqual([
+          3, 5, 7, 9, 11,
+        ]);
+      });
+
+      it('should chain map with other array methods', () => {
+        expect(parser.evaluate('$("items").map(x => x * 2).join(", ")')).toBe(
+          '2, 4, 6, 8, 10'
+        );
+      });
+
+      it('should map attachment titles', () => {
+        expect(
+          parser.evaluate('$("attachments").map(item => item.title)')
+        ).toEqual(['file1.pdf', 'file2.jpg', 'file3.txt']);
+      });
+
+      it('should map and join attachment titles', () => {
+        expect(
+          parser.evaluate('$("attachments").map(item => item.title).join(", ")')
+        ).toBe('file1.pdf, file2.jpg, file3.txt');
+      });
+
+      it('should map attachment sizes', () => {
+        expect(
+          parser.evaluate('$("attachments").map(item => item.size)')
+        ).toEqual([1024, 2048, 512]);
+      });
+
+      it('should map with string methods', () => {
+        expect(
+          parser.evaluate('$("users").map(u => u.name.toUpperCase())')
+        ).toEqual(['ALICE', 'BOB', 'CHARLIE']);
+      });
+    });
+
+    describe('Array.filter()', () => {
+      it('should filter array with arrow function', () => {
+        expect(parser.evaluate('$("items").filter(x => x > 3)')).toEqual([
+          4, 5,
+        ]);
+      });
+
+      it('should filter objects by property', () => {
+        expect(parser.evaluate('$("users").filter(u => u.age >= 30)')).toEqual([
+          { name: 'Alice', age: 30 },
+          { name: 'Charlie', age: 35 },
+        ]);
+      });
+
+      it('should filter products by price', () => {
+        expect(
+          parser.evaluate('$("products").filter(p => p.price < 100)')
+        ).toEqual([
+          { title: 'Mouse', price: 25 },
+          { title: 'Keyboard', price: 75 },
+        ]);
+      });
+
+      it('should chain filter with map', () => {
+        expect(
+          parser.evaluate('$("items").filter(x => x > 2).map(x => x * 2)')
+        ).toEqual([6, 8, 10]);
+      });
+    });
+
+    describe('Array.find()', () => {
+      it('should find element with arrow function', () => {
+        expect(parser.evaluate('$("items").find(x => x > 3)')).toBe(4);
+      });
+
+      it('should find object by property', () => {
+        expect(
+          parser.evaluate('$("users").find(u => u.name === "Bob")')
+        ).toEqual({ name: 'Bob', age: 25 });
+      });
+
+      it('should return undefined when not found', () => {
+        expect(parser.evaluate('$("items").find(x => x > 10)')).toBeUndefined();
+      });
+    });
+
+    describe('Array.some() and every()', () => {
+      it('should check if some elements match', () => {
+        expect(parser.evaluate('$("items").some(x => x > 3)')).toBe(true);
+        expect(parser.evaluate('$("items").some(x => x > 10)')).toBe(false);
+      });
+
+      it('should check if every element matches', () => {
+        expect(parser.evaluate('$("items").every(x => x > 0)')).toBe(true);
+        expect(parser.evaluate('$("items").every(x => x > 3)')).toBe(false);
+      });
+    });
+
+    describe('Array.reduce()', () => {
+      it('should reduce array with arrow function', () => {
+        expect(
+          parser.evaluate('$("items").reduce((acc, x) => acc + x, 0)')
+        ).toBe(15);
+      });
+
+      it('should reduce to calculate total price', () => {
+        expect(
+          parser.evaluate(
+            '$("products").reduce((total, p) => total + p.price, 0)'
+          )
+        ).toBe(1099);
+      });
+    });
+
+    describe('Complex arrow function scenarios', () => {
+      it('should handle nested arrow functions', () => {
+        parser.setContext({
+          matrix: [
+            [1, 2],
+            [3, 4],
+          ],
+        });
+        expect(
+          parser.evaluate('$("matrix").map(row => row.map(x => x * 2))')
+        ).toEqual([
+          [2, 4],
+          [6, 8],
+        ]);
+      });
+
+      it('should handle arrow function with ternary operator', () => {
+        expect(
+          parser.evaluate('$("items").map(x => x > 3 ? "big" : "small")')
+        ).toEqual(['small', 'small', 'small', 'big', 'big']);
+      });
+
+      it('should use arrow function parameter multiple times', () => {
+        expect(parser.evaluate('$("items").map(x => x * x)')).toEqual([
+          1, 4, 9, 16, 25,
+        ]);
+      });
+
+      it('should handle complex expressions in arrow body', () => {
+        expect(
+          parser.evaluate(
+            '$("users").map(u => u.name.toLowerCase().slice(0, 3))'
+          )
+        ).toEqual(['ali', 'bob', 'cha']);
+      });
+
+      it('should work with real-world attachment scenario', () => {
+        // This is the exact use case from the bug report
+        const result = parser.processString(
+          'Attachments: {{ $("attachments").map(item => item.title).join(", ") }}'
+        );
+        expect(result).toBe('Attachments: file1.pdf, file2.jpg, file3.txt');
+      });
+
+      it('should map multiple properties and format', () => {
+        expect(
+          parser.evaluate(
+            '$("users").map(u => u.name.concat(" (", u.age.toString(), ")"))'
+          )
+        ).toEqual(['Alice (30)', 'Bob (25)', 'Charlie (35)']);
+      });
+    });
+
+    describe('Arrow function with different parameter names', () => {
+      it('should work with single letter parameters', () => {
+        expect(parser.evaluate('$("items").map(x => x * 2)')).toEqual([
+          2, 4, 6, 8, 10,
+        ]);
+        expect(parser.evaluate('$("items").map(i => i * 2)')).toEqual([
+          2, 4, 6, 8, 10,
+        ]);
+        expect(parser.evaluate('$("items").map(n => n * 2)')).toEqual([
+          2, 4, 6, 8, 10,
+        ]);
+      });
+
+      it('should work with descriptive parameter names', () => {
+        expect(parser.evaluate('$("items").map(item => item * 2)')).toEqual([
+          2, 4, 6, 8, 10,
+        ]);
+        expect(parser.evaluate('$("users").map(user => user.name)')).toEqual([
+          'Alice',
+          'Bob',
+          'Charlie',
+        ]);
+        expect(
+          parser.evaluate('$("products").map(product => product.price)')
+        ).toEqual([999, 25, 75]);
+      });
+    });
+
+    describe('Arrow function scope isolation', () => {
+      it('should not leak parameters between arrow functions', () => {
+        const result = parser.evaluate(
+          '$("items").map(x => x * 2).map(y => y + 1)'
+        );
+        expect(result).toEqual([3, 5, 7, 9, 11]);
+      });
+
+      it('should handle nested scopes correctly', () => {
+        parser.setContext({
+          nested: [
+            [1, 2],
+            [3, 4],
+          ],
+        });
+        const result = parser.evaluate(
+          '$("nested").map(arr => arr.map(num => num * 2))'
+        );
+        expect(result).toEqual([
+          [2, 4],
+          [6, 8],
+        ]);
+      });
+    });
+  });
+
   describe('Error Handling', () => {
     it('should throw WorkflowEvaluationError for invalid expressions', () => {
       expect(() => parser.evaluate('$("NonExistent")')).toThrow(

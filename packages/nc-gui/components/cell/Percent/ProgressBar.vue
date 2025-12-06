@@ -6,8 +6,6 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { getColor } = useTheme()
-
 const cPercentage = computed(() => Math.max(0, Math.min(100, props.percentage)))
 
 const labelMarginLeft = computed<number>(() => {
@@ -38,7 +36,7 @@ const slotHasChildren = (name?: string) => {
           :style="{ width: `${100 - cPercentage}%` }"
         ></div>
         <template v-if="isShowNumber">
-          <div style="position: absolute" :style="{ 'margin-left': `${labelMarginLeft}%` }">
+          <div class="absolute transform top-1/2 -translate-y-1/2" :style="{ 'margin-left': `${labelMarginLeft}%` }">
             <span
               style="mix-blend-mode: difference; color: #ffffff"
               :style="{
@@ -48,7 +46,7 @@ const slotHasChildren = (name?: string) => {
               {{ `${formatPercentage(percentage)}` }}
             </span>
           </div>
-          <div style="position: absolute" :style="{ 'margin-left': `${labelMarginLeft}%` }">
+          <div class="absolute transform top-1/2 -translate-y-1/2" :style="{ 'margin-left': `${labelMarginLeft}%` }">
             <span
               style="mix-blend-mode: overlay; color: #ffffff"
               :style="{

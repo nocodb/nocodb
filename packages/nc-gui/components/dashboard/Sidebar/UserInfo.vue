@@ -80,7 +80,7 @@ const copyEmail = () => {
   <div
     class="flex w-full flex-col border-nc-border-gray-medium gap-y-1"
     :class="{
-      'sticky bottom-0 bg-[var(--mini-sidebar-bg-color)]': isMiniSidebar,
+      'sticky bottom-0 bg-nc-bg-gray-minisidebar': isMiniSidebar,
     }"
   >
     <LazyGeneralMaintenanceAlert v-if="!isMiniSidebar" />
@@ -108,7 +108,8 @@ const copyEmail = () => {
           <div
             class="flex"
             :class="{
-              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-nc-bg-gray-medium rounded-lg cursor-pointer': !isMiniSidebar,
+              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-nc-bg-gray-medium rounded-lg cursor-pointer':
+                !isMiniSidebar,
               'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
             }"
             data-testid="nc-sidebar-userinfo"

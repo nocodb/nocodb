@@ -6,7 +6,7 @@ const tagHeight = 22
 const topPadding = 4
 
 export const SingleSelectCellRenderer: CellRenderer = {
-  render: (ctx, { column, value, x, y, width, pv, padding }) => {
+  render: (ctx, { column, value, x, y, width, pv, padding, getColor }) => {
     const text = value?.toString()?.trim() ?? ''
 
     // If it is empty text then no need to render
@@ -42,7 +42,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
       textAlign: 'left',
       verticalAlign: 'middle',
       fontFamily: `${pv ? 600 : 500} 13px Inter`,
-      fillStyle: getSelectTypeOptionTextColor(opColor),
+      fillStyle: getSelectTypeOptionTextColor(opColor, getColor),
     })
 
     return {

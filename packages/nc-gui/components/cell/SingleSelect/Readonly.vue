@@ -50,7 +50,7 @@ const selectedOpt = computed(() => {
       <a-tag v-if="selectedOpt" class="rounded-tag !h-[22px] max-w-full" :color="selectedOpt.color">
         <span
           :style="{
-            color: getSelectTypeOptionTextColor(selectedOpt.color, getColor),
+            color: getSelectTypeOptionTextColor(selectedOpt.color, getColor, true),
           }"
           :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
         >

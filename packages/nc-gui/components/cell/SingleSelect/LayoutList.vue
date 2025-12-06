@@ -80,7 +80,7 @@ const handleKeyDownList = (e: KeyboardEvent) => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                color: getSelectTypeOptionTextColor(op.color, getColor),
+                color: getSelectTypeOptionTextColor(op.color, getColor, true),
               }"
               class="text-small"
             >

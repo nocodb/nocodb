@@ -42,7 +42,7 @@ export const SingleSelectCellRenderer: CellRenderer = {
       textAlign: 'left',
       verticalAlign: 'middle',
       fontFamily: `${pv ? 600 : 500} 13px Inter`,
-      fillStyle: getSelectTypeOptionTextColor(opColor, getColor),
+      fillStyle: getSelectTypeOptionTextColor(opColor, getColor, true),
     })
 
     return {

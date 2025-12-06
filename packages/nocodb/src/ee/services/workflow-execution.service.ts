@@ -3,6 +3,7 @@ import {
   GeneralNodeID,
   genGeneralVariables,
   IntegrationsType,
+  NcBaseError,
   NOCO_SERVICE_USERS,
   ServiceUserType,
   WorkflowExpressionParser,
@@ -645,6 +646,8 @@ export class WorkflowExecutionService {
         }
       } catch (error) {
         this.logger.error(`Node validation error: ${targetNode.id}`, error);
+        if (error instanceof NcError || error instanceof NcBaseError)
+          throw error;
         NcError.get(context).badRequest(
           `Node validation failed: ${error.message}`,
         );

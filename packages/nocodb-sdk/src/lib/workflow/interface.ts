@@ -50,6 +50,13 @@ interface VariableDefinition {
 
     // Description for tooltips
     description?: string;
+
+    // Value for dynamically generated variables (used in data display)
+    value?: any;
+
+    // Item schema for array variables - defines the structure of each array item
+    // Used to generate "Record 1", "Record 2", etc. when displaying actual data
+    itemSchema?: VariableDefinition[];
   };
 
   // Nested variables for objects/arrays

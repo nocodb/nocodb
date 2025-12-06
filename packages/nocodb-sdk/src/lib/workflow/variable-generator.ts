@@ -235,7 +235,75 @@ export function getFieldVariable(
   };
 
   if (column.uidt === UITypes.Attachment && isArray) {
+    // Define the structure of each attachment item
+    variable.extra = {
+      ...variable.extra,
+      itemSchema: [
+        {
+          key: 'url',
+          name: 'url',
+          type: VariableType.String,
+          groupKey: VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellUrl',
+            description: 'URL of the attachment',
+          },
+        },
+        {
+          key: 'signedUrl',
+          name: 'signedUrl',
+          type: VariableType.String,
+          groupKey: VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellUrl',
+            description: 'Signed URL of the attachment',
+          },
+        },
+        {
+          key: 'title',
+          name: 'title',
+          type: VariableType.String,
+          groupKey: VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellText',
+            description: 'Title of the attachment',
+          },
+        },
+        {
+          key: 'mimetype',
+          name: 'mimetype',
+          type: VariableType.String,
+          groupKey: VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellText',
+            description: 'MIME type of the attachment',
+          },
+        },
+        {
+          key: 'size',
+          name: 'size',
+          type: VariableType.Number,
+          groupKey: VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellNumber',
+            description: 'Size of the attachment in bytes',
+          },
+        },
+      ],
+    };
+
+    // Array-level properties
     variable.children = [
+      {
+        key: `${variable.key}.length`,
+        name: 'length',
+        type: VariableType.Number,
+        groupKey: VariableGroupKey.Meta,
+        extra: {
+          description: 'Number of attachments',
+          icon: 'cellNumber',
+        },
+      },
       {
         key: `${variable.key}.map(item => item.url).join(', ')`,
         name: 'url',
@@ -286,21 +354,50 @@ export function getFieldVariable(
           description: 'Comma-separated sizes of all attachments',
         },
       },
-      // Add .length for arrays
-      {
-        key: `${variable.key}.length`,
-        name: 'length',
-        type: VariableType.Number,
-        groupKey: VariableGroupKey.Meta,
-        extra: {
-          description: 'Number of attachments',
-          icon: 'cellNumber',
-        },
-      },
     ];
   } else if (column.uidt === UITypes.Collaborator) {
     const isMulti = parseProp(column.meta)?.is_multi;
-    const userProps: VariableDefinition[] = [
+
+    variable.extra = isMulti
+      ? {
+          ...variable.extra,
+          itemSchema: [
+            {
+              key: 'id',
+              name: 'id',
+              type: VariableType.String,
+              groupKey: VariableGroupKey.Fields,
+              extra: {
+                icon: 'cellSystemKey',
+                description: 'User ID',
+              },
+            },
+            {
+              key: 'email',
+              name: 'email',
+              type: VariableType.String,
+              groupKey: VariableGroupKey.Fields,
+              extra: {
+                icon: 'cellEmail',
+                description: 'User email',
+              },
+            },
+            {
+              key: 'display_name',
+              name: 'display_name',
+              type: VariableType.String,
+              groupKey: VariableGroupKey.Fields,
+              extra: {
+                icon: 'cellText',
+                description: 'User display name',
+              },
+            },
+          ],
+        }
+      : {};
+
+    // Array-level properties
+    variable.children = [
       {
         key: isMulti
           ? `${variable.key}.map(item => item.id).join(', ')`
@@ -339,10 +436,7 @@ export function getFieldVariable(
             : 'User display name',
         },
       },
-    ];
-
-    if (isMulti) {
-      userProps.push({
+      {
         key: `${variable.key}.length`,
         name: 'length',
         type: VariableType.Number,
@@ -351,10 +445,8 @@ export function getFieldVariable(
           description: 'Number of users',
           icon: 'cellNumber',
         },
-      });
-    }
-
-    variable.children = userProps;
+      },
+    ];
   } else if (column.uidt === UITypes.LinkToAnotherRecord && isArray) {
     variable.children = [
       {
@@ -368,7 +460,24 @@ export function getFieldVariable(
         },
       },
     ];
-  } else if (column.uidt === UITypes.MultiSelect) {
+  } else if (column.uidt === UITypes.MultiSelect && isArray) {
+    variable.extra = {
+      ...variable.extra,
+      itemSchema: [
+        {
+          key: '', // Empty key means the item itself (it's a primitive string)
+          name: 'option',
+          type: VariableType.String,
+          groupKey: VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellText',
+            description: 'Selected option',
+          },
+        },
+      ],
+    };
+
+    // Array-level properties
     variable.children = [
       {
         key: `${variable.key}.length`,
@@ -406,40 +515,6 @@ export function getMetaVariables(prefix: string = ''): VariableDefinition[] {
 }
 
 /**
- * Append .length property to array variables recursively
- */
-function appendArrayLengthVariable(
-  variables: VariableDefinition[]
-): VariableDefinition[] {
-  return variables.map((variable) => {
-    if (variable.isArray && !variable.children) {
-      // Add length property if not already present
-      return {
-        ...variable,
-        children: [
-          {
-            key: `${variable.key}.length`,
-            name: 'length',
-            type: VariableType.Number,
-            groupKey: VariableGroupKey.Meta,
-            extra: {
-              description: `Number of ${variable.name.toLowerCase()}`,
-            },
-          },
-        ],
-      };
-    } else if (variable.children) {
-      // Recursively process children
-      return {
-        ...variable,
-        children: appendArrayLengthVariable(variable.children),
-      };
-    }
-    return variable;
-  });
-}
-
-/**
  * Generate complete record variable structure
  * This is the main function for generating variables from NocoDB table columns
  *
@@ -457,10 +532,9 @@ export function genRecordVariables(
   const recordName = recordKey.charAt(0).toUpperCase() + recordKey.slice(1);
 
   if (isArray) {
-    // Generate field variables with array item prefix
+    // Generate field variables (without array prefix for itemSchema)
     const fieldVariables = filteredColumns.map((col) => {
-      const fieldVar = getFieldVariable(col, 'fields');
-      return prefixVariableKeys(fieldVar, `${recordKey}[i]`);
+      return getFieldVariable(col, 'fields');
     });
 
     return [
@@ -473,29 +547,32 @@ export function genRecordVariables(
         extra: {
           description: `List of ${recordName.toLowerCase()}`,
           icon: 'cellJson',
+          // Define the structure of each record item
+          itemSchema: [
+            {
+              key: 'id',
+              name: 'ID',
+              type: VariableType.String,
+              groupKey: VariableGroupKey.Fields,
+              extra: {
+                description: 'Record ID',
+                icon: 'cellSystemKey',
+              },
+            },
+            {
+              key: 'fields',
+              name: 'Fields',
+              type: VariableType.Object,
+              groupKey: VariableGroupKey.Fields,
+              extra: {
+                description: 'Record fields',
+                icon: 'cellJson',
+              },
+              children: fieldVariables,
+            },
+          ],
         },
         children: [
-          {
-            key: `${recordKey}[i].id`,
-            name: 'ID',
-            type: VariableType.String,
-            groupKey: VariableGroupKey.Fields,
-            extra: {
-              description: 'Record ID',
-              icon: 'cellSystemKey',
-            },
-          },
-          {
-            key: `${recordKey}[i].fields`,
-            name: 'Fields',
-            type: VariableType.Object,
-            groupKey: VariableGroupKey.Fields,
-            extra: {
-              description: 'Record fields',
-              icon: 'cellJson',
-            },
-            children: fieldVariables,
-          },
           {
             key: `${recordKey}.length`,
             name: 'Count',
@@ -598,17 +675,152 @@ export function genGeneralVariables(
   if (Array.isArray(output)) {
     if (output.length === 0) return [];
 
-    const itemVars = genGeneralVariables(output[0], `${prefix}[i]`);
+    const firstItem = output[0];
+    const arrayName = prefix.split('.').pop() || 'items';
+
+    // If array items are primitives (string, number, boolean)
+    if (typeof firstItem !== 'object' || firstItem === null) {
+      return [
+        {
+          key: prefix,
+          name: arrayName,
+          type: VariableType.Array,
+          groupKey: VariableGroupKey.Fields,
+          isArray: true,
+          extra: {
+            description: `Array of ${typeof firstItem}s`,
+            itemSchema: [
+              {
+                key: '',
+                name: 'item',
+                type: typeof firstItem as VariableType,
+                groupKey: VariableGroupKey.Fields,
+                extra: {
+                  description: `Individual ${typeof firstItem}`,
+                },
+              },
+            ],
+          },
+          children: [
+            {
+              key: `${prefix}.length`,
+              name: 'length',
+              type: VariableType.Number,
+              groupKey: VariableGroupKey.Meta,
+              extra: {
+                description: 'Number of items',
+              },
+            },
+          ],
+        },
+      ];
+    }
+
+    // If array items are objects, analyze the structure
+    const itemSchema: VariableDefinition[] = [];
+
+    // Analyze first item's properties
+    for (const [itemKey, itemValue] of Object.entries(firstItem)) {
+      const isNestedArray = Array.isArray(itemValue);
+      const valueType = typeof itemValue;
+
+      const itemDef: VariableDefinition = {
+        key: itemKey,
+        name: itemKey,
+        type: isNestedArray
+          ? VariableType.Array
+          : valueType === 'object' && itemValue !== null
+          ? VariableType.Object
+          : (valueType as VariableType),
+        groupKey: VariableGroupKey.Fields,
+        isArray: isNestedArray,
+        extra: {
+          description: `${itemKey} property of array item`,
+        },
+      };
+
+      // For nested objects/arrays, recursively build schema
+      if (typeof itemValue === 'object' && itemValue !== null) {
+        if (Array.isArray(itemValue) && itemValue.length > 0) {
+          // Nested array - recursively generate its itemSchema
+          const nestedFirstItem = itemValue[0];
+          if (typeof nestedFirstItem === 'object' && nestedFirstItem !== null) {
+            const nestedItemSchema: VariableDefinition[] = [];
+            for (const [nestedKey, nestedValue] of Object.entries(
+              nestedFirstItem
+            )) {
+              nestedItemSchema.push({
+                key: nestedKey,
+                name: nestedKey,
+                type: typeof nestedValue as VariableType,
+                groupKey: VariableGroupKey.Fields,
+                extra: {
+                  description: `${nestedKey} property`,
+                },
+              });
+            }
+            itemDef.extra = {
+              ...itemDef.extra,
+              itemSchema: nestedItemSchema,
+            };
+          } else {
+            // Array of primitives
+            itemDef.extra = {
+              ...itemDef.extra,
+              itemSchema: [
+                {
+                  key: '',
+                  name: 'item',
+                  type: typeof nestedFirstItem as VariableType,
+                  groupKey: VariableGroupKey.Fields,
+                },
+              ],
+            };
+          }
+          itemDef.children = [
+            {
+              key: `${itemKey}.length`,
+              name: 'length',
+              type: VariableType.Number,
+              groupKey: VariableGroupKey.Meta,
+              extra: {
+                description: 'Number of items',
+              },
+            },
+          ];
+        } else if (!Array.isArray(itemValue)) {
+          // Nested object - build children
+          const nestedChildren: VariableDefinition[] = [];
+          for (const [nestedKey, nestedValue] of Object.entries(itemValue)) {
+            nestedChildren.push({
+              key: `${itemKey}.${nestedKey}`,
+              name: nestedKey,
+              type: typeof nestedValue as VariableType,
+              groupKey: VariableGroupKey.Fields,
+              extra: {
+                description: `${nestedKey} property`,
+              },
+            });
+          }
+          itemDef.children = nestedChildren;
+        }
+      }
+
+      itemSchema.push(itemDef);
+    }
 
     return [
       {
         key: prefix,
-        name: prefix.split('.').pop() || 'items',
+        name: arrayName,
         type: VariableType.Array,
         groupKey: VariableGroupKey.Fields,
         isArray: true,
+        extra: {
+          description: `Array of ${arrayName}`,
+          itemSchema: itemSchema,
+        },
         children: [
-          ...itemVars,
           {
             key: `${prefix}.length`,
             name: 'length',
@@ -629,7 +841,7 @@ export function genGeneralVariables(
     const isArray = Array.isArray(value);
     const valueType = typeof value;
 
-    variables.push({
+    const varDef: VariableDefinition = {
       key: fullKey,
       name: key,
       type: isArray
@@ -639,12 +851,68 @@ export function genGeneralVariables(
         : (valueType as VariableType),
       groupKey: VariableGroupKey.Fields,
       isArray,
-      children:
-        typeof value === 'object' && value !== null
-          ? genGeneralVariables(value, fullKey)
-          : undefined,
-    });
+    };
+
+    // Handle arrays with itemSchema
+    if (isArray && value.length > 0) {
+      const firstItem = value[0];
+
+      // Array of primitives
+      if (typeof firstItem !== 'object' || firstItem === null) {
+        varDef.extra = {
+          itemSchema: [
+            {
+              key: '',
+              name: 'item',
+              type: typeof firstItem as VariableType,
+              groupKey: VariableGroupKey.Fields,
+              extra: {
+                description: `Individual ${typeof firstItem}`,
+              },
+            },
+          ],
+        };
+      } else {
+        // Array of objects - build itemSchema
+        const itemSchema: VariableDefinition[] = [];
+        for (const [itemKey, itemValue] of Object.entries(firstItem)) {
+          itemSchema.push({
+            key: itemKey,
+            name: itemKey,
+            type: Array.isArray(itemValue)
+              ? VariableType.Array
+              : typeof itemValue === 'object' && itemValue !== null
+              ? VariableType.Object
+              : (typeof itemValue as VariableType),
+            groupKey: VariableGroupKey.Fields,
+            isArray: Array.isArray(itemValue),
+            extra: {
+              description: `${itemKey} property`,
+            },
+          });
+        }
+        varDef.extra = { itemSchema };
+      }
+
+      // Add length property
+      varDef.children = [
+        {
+          key: `${fullKey}.length`,
+          name: 'length',
+          type: VariableType.Number,
+          groupKey: VariableGroupKey.Meta,
+          extra: {
+            description: 'Number of items',
+          },
+        },
+      ];
+    } else if (!isArray && valueType === 'object' && value !== null) {
+      // Regular object - recurse into children
+      varDef.children = genGeneralVariables(value, fullKey);
+    }
+
+    variables.push(varDef);
   }
 
-  return appendArrayLengthVariable(variables);
+  return variables;
 }

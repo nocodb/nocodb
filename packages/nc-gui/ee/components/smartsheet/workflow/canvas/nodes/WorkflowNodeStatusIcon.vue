@@ -26,7 +26,7 @@ const status = computed(() => {
 
 const STATUS_CONFIG = {
   success: {
-    icon: 'ncCheckCircle',
+    icon: 'ncCheck',
     testLabel: 'Tested successfully',
     executionLabel: 'Executed successfully',
   },

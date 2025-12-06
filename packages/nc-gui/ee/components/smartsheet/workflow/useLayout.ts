@@ -27,7 +27,12 @@ export function useLayout() {
     dagreGraph.setDefaultEdgeLabel(() => ({}))
 
     const isHorizontal = direction === 'LR'
-    dagreGraph.setGraph({ rankdir: direction })
+    dagreGraph.setGraph({
+      rankdir: direction,
+      nodesep: 80, // Increased gap between nodes
+      ranksep: 80, // Increased gap between ranks
+      edgesep: 380, // Increased gap between edges
+    })
 
     previousDirection.value = direction
 

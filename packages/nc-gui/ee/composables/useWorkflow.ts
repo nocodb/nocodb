@@ -229,6 +229,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       source: sourceNodeId,
       target: plusNode.id,
       animated: false,
+      type: edgeLabel ? 'smoothstep' : undefined, // Use smoothstep for conditional edges
     }
 
     // Add label for conditional branches
@@ -332,7 +333,8 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
             id: `e:${inEdge.source}->${outEdge.target}`,
             source: inEdge.source,
             target: outEdge.target,
-            animated: true,
+            animated: false, // Never animate edges
+            type: inEdge.label && outEdge.label ? 'smoothstep' : undefined, // Keep smoothstep for conditional edges
           }
           // Only preserve edge label if BOTH incoming and outgoing edges have labels
           // This means we're bridging within a branch context (e.g., deleting a node in the middle of a branch)
@@ -509,7 +511,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       }
       return result
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      throw e;
       console.error('[Workflow] Test execution error:', e)
     }
   }

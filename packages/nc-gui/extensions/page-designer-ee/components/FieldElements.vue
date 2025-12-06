@@ -113,7 +113,7 @@ function onFieldClick(field: ColumnType) {
       <div>
         <div
           v-if="filterQuery.length && !filteredFieldList.length"
-          class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
+          class="px-2 py-6 text-nc-content-gray-muted flex flex-col items-center gap-6 text-center"
         >
           <img
             src="~assets/img/placeholder/no-search-result-found.png"
@@ -145,7 +145,7 @@ function onFieldClick(field: ColumnType) {
     @apply !border-none !shadow-none;
   }
   :deep(.nc-field-elements-search .ant-input::placeholder) {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
   }
   :deep(.nc-field-elements-search input) {
     @apply !rounded-none caret-nc-fill-primary;

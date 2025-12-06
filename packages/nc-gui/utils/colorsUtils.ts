@@ -889,8 +889,21 @@ export const getAdaptiveTint = (
   }).toHexString()
 }
 
-export const getOppositeColorOfBackground = (color: string) => {
-  return tinycolor.isReadable(color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-    ? '#fff'
-    : tinycolor.mostReadable(color || '#ccc', ['#0b1d05', '#fff']).toHex8String()
+export const getOppositeColorOfBackground = (
+  background?: string,
+  preferredText?: string,
+  fallbackColors: string[] = ['#1f293a', '#101015', '#ffffff'],
+) => {
+  const bg = background || '#cccccc'
+  const txt = preferredText || '#ffffff'
+
+  // If preferred text color is readable on this background
+  if (tinycolor.isReadable(bg, txt, { level: 'AA', size: 'large' })) {
+    return tinycolor(txt).toHex8String()
+  }
+
+  // Else choose best fallback between white & black
+  const fallback = tinycolor.mostReadable(bg, fallbackColors)
+
+  return fallback.toHex8String()
 }

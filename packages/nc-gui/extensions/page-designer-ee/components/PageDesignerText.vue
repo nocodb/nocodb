@@ -11,6 +11,8 @@ import { Removable } from '../lib/removable'
 const props = defineProps<PageDesignerWidgetComponentProps>()
 defineEmits(['deleteCurrentWidget'])
 
+const { isDark, getColor } = useTheme()
+
 const payload = inject(PageDesignerPayloadInj)!
 const meta = inject(PageDesignerTableTypeInj)
 const { t } = useI18n()
@@ -133,6 +135,35 @@ const replacedText = computed(() => {
   })
 })
 
+const widgetColors = computed(() => {
+  if (!widget.value) {
+    return {
+      backgroundColor: undefined,
+      textColor: undefined,
+    }
+  }
+
+  if (!isDark.value) {
+    return {
+      backgroundColor: widget.value.backgroundColor,
+      textColor: getOppositeColorOfBackground(widget.value.backgroundColor, widget.value.textColor),
+    }
+  } else {
+    return {
+      backgroundColor:
+        widget.value.backgroundColor?.toLowerCase() === '#ffffff'
+          ? getColor('var(--nc-bg-default)')
+          : widget.value.backgroundColor,
+      textColor: getOppositeColorOfBackground(
+        widget.value.backgroundColor?.toLowerCase() === '#ffffff'
+          ? getColor('var(--nc-bg-default)')
+          : widget.value.backgroundColor,
+        widget.value.textColor === '#000000' ? getColor('var(--nc-content-gray-extreme)') : widget.value.textColor,
+      ),
+    }
+  }
+})
+
 function focusTextarea() {
   const textarea = document.querySelector<HTMLTextAreaElement>('#textWidgetContent')
   nextTick(() => {
@@ -149,7 +180,7 @@ onMounted(focusTextarea)
       <div
         :style="{
           display: 'flex',
-          background: `${widget.backgroundColor}`,
+          background: `${widgetColors.backgroundColor}`,
           height: '100%',
           width: '100%',
           borderWidth: `${widget.borderTop || 0}px ${widget.borderRight || 0}px ${widget.borderBottom || 0}px ${
@@ -170,7 +201,7 @@ onMounted(focusTextarea)
             fontWeight: widget.fontWeight,
             fontFamily: widget.fontFamily,
             lineHeight: widget.lineHeight,
-            color: widget.textColor,
+            color: widgetColors.textColor,
             whiteSpace: 'pre-wrap',
             textAlign: horizontalAlignTotextAlignMap[widget.horizontalAlign],
           }"

@@ -255,7 +255,7 @@ useEventListener('afterprint', () => {
   }
   .page-widget {
     & > .absolute {
-      outline: 2px solid #ddd;
+      outline: 2px solid var(--nc-border-gray-medium);
       transition: outline 200ms ease-in-out;
       @apply rounded-[2px];
       cursor: grab !important;
@@ -265,12 +265,12 @@ useEventListener('afterprint', () => {
     }
     &:hover {
       > .absolute {
-        outline: 2px solid gray;
+        outline: 2px solid var(--nc-border-gray-extra-dark);
       }
     }
     &.active-page-widget {
       & > .absolute {
-        outline: 2px solid #3366ff;
+        outline: 2px solid var(--nc-content-brand);
       }
       .moveable-removable {
         @apply flex;
